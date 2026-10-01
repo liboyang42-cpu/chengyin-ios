@@ -1,0 +1,13 @@
+.DS_Store
+.build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+Config/Local.xcconfig
+*.p12
+*.p8
+*.mobileprovision
+.env
+
+__pycache__/
+*.pyc
