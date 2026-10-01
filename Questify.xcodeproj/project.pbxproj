@@ -15,6 +15,26 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "7FE110A1B16F1C76E2B44EAB";
 		};
+		"74E41CC929B3EEB9D9C0C251" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/ActivityBrowserView.swift";
+			"sourceTree" = "<group>";
+		};
+		"07F9CEF9B4809A61F7EB4342" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "74E41CC929B3EEB9D9C0C251";
+		};
+		"1A4BB41766280F97D1CF2C6B" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/ActivityDetailView.swift";
+			"sourceTree" = "<group>";
+		};
+		"CE576AE852497959A48EEBD7" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "1A4BB41766280F97D1CF2C6B";
+		};
 		"66549DA0D0592DA5EE9730F5" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -94,6 +114,26 @@
 		"1C97DA28C6AF31AF423963EC" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "09D0D765E8E54736A13F3A2C";
+		};
+		"3763B23C284D37776F6F43BE" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/ActivityDetail.swift";
+			"sourceTree" = "<group>";
+		};
+		"998052F18D28B531A21A68C8" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "3763B23C284D37776F6F43BE";
+		};
+		"79E56E008136D2757471DA70" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/ActivityService.swift";
+			"sourceTree" = "<group>";
+		};
+		"73383D9E38C0FEE599501180" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "79E56E008136D2757471DA70";
 		};
 		"75DD842E1C72391E33AB1228" = {
 			"isa" = "PBXFileReference";
@@ -191,6 +231,8 @@
 			"isa" = "PBXGroup";
 			"children" = (
 				"7FE110A1B16F1C76E2B44EAB",
+				"74E41CC929B3EEB9D9C0C251",
+				"1A4BB41766280F97D1CF2C6B",
 				"66549DA0D0592DA5EE9730F5",
 				"490C9C54035456EAE4C8AA3C",
 				"B435788993D860E24976C9CE",
@@ -199,6 +241,8 @@
 				"A2BE8FFFF74D7C463766EE66",
 				"DD569E269DB56BCD23E31191",
 				"09D0D765E8E54736A13F3A2C",
+				"3763B23C284D37776F6F43BE",
+				"79E56E008136D2757471DA70",
 				"75DD842E1C72391E33AB1228",
 				"23B94D52B4077ADEA360A424",
 				"20BB6067303A0CDE2B4AC89A",
@@ -217,6 +261,8 @@
 			"buildActionMask" = 2147483647;
 			"files" = (
 				"64813A2E149DC6AB711E2D08",
+				"07F9CEF9B4809A61F7EB4342",
+				"CE576AE852497959A48EEBD7",
 				"ECD2264D1FFB6B568359A80B",
 				"ECDA26536837E6D6B882ED12",
 				"7F1BDE17F75E817CC8DBFD44",
@@ -225,6 +271,8 @@
 				"2EE67CDA63671CFD5FF1290C",
 				"54FE7793AD08F2A7B60C1BE0",
 				"1C97DA28C6AF31AF423963EC",
+				"998052F18D28B531A21A68C8",
+				"73383D9E38C0FEE599501180",
 				"F986E08EEEF5D1E1BBFEA3E0",
 				"EFD0C7603312157E857957E6",
 				"A31D37224ABB224D19DD844D",

@@ -4,6 +4,7 @@ public struct SessionOperationGate {
     private var epoch=SessionEpoch()
     public private(set) var activeKind: Kind?
     public init() {}
+    public var currentStamp: UInt64 { epoch.currentStamp }
     public mutating func begin(_ kind:Kind) -> UInt64 {
         activeKind=kind
         return epoch.advance()

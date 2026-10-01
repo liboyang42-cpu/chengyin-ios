@@ -9,6 +9,7 @@ final class AppSession: ObservableObject {
     private var gate = SessionOperationGate()
     private let vault = KeychainTokenStore()
     private let service: AuthService?
+    private let activityService: ActivityService?
     private var token: String?
     private var didBootstrap = false
     private let restoreBlockedKey = "session.preventRestore"
@@ -17,8 +18,10 @@ final class AppSession: ObservableObject {
     init() {
         if let value=Bundle.main.object(forInfoDictionaryKey:"QuestifyAPIBaseURL") as? String,
            let url=URL(string:value), let configuration=try? APIConfiguration(baseURL:url) {
-            service=AuthService(configuration:configuration,transport:URLSessionTransport())
-        } else { service=nil }
+            let transport=URLSessionTransport()
+            service=AuthService(configuration:configuration,transport:transport)
+            activityService=ActivityService(configuration:configuration,transport:transport)
+        } else { service=nil;activityService=nil }
     }
 
     func bootstrap() async {
@@ -82,6 +85,41 @@ final class AppSession: ObservableObject {
             // Captured old credential only. Completion cannot mutate a newer login.
             try? await service.logout(token:oldToken)
         }
+    }
+
+    func activities(page:Int,keyword:String) async throws -> [ActivitySummary] {
+        guard let activityService else { throw APIError.notConfigured }
+        let stamp=gate.currentStamp, credential=token
+        do {
+            let result=try await activityService.list(page:page,keyword:keyword,token:credential)
+            guard gate.isCurrent(stamp) else { throw CancellationError() }
+            return result
+        } catch {
+            expireIfMatching(error:error,stamp:stamp,credential:credential)
+            throw error
+        }
+    }
+
+    func activityDetail(id:Int) async throws -> ActivityDetailAccess {
+        guard let activityService else { throw APIError.notConfigured }
+        let stamp=gate.currentStamp, credential=token
+        do {
+            let result=try await activityService.detail(id:id,token:credential)
+            guard gate.isCurrent(stamp) else { throw CancellationError() }
+            return result
+        } catch {
+            expireIfMatching(error:error,stamp:stamp,credential:credential)
+            throw error
+        }
+    }
+
+    private func expireIfMatching(error:Error,stamp:UInt64,credential:String?) {
+        guard error as? APIError == .unauthorized, credential != nil,
+              gate.isCurrent(stamp), credential == token else { return }
+        gate.invalidate()
+        UserDefaults.standard.set(true,forKey:restoreBlockedKey)
+        token=nil;account=nil;isWorking=false;errorKey="auth.expired"
+        try? vault.clear()
     }
 
     private static func messageKey(for error:Error) -> String {

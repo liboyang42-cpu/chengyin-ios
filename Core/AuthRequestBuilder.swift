@@ -15,6 +15,12 @@ public struct AuthRequestBuilder {
     /// Existing Flutter AuthApi uses multipart FormData, and a raw Authorization token.
     public func make(_ endpoint: AuthEndpoint, fields: [String: String] = [:],
                      token: String? = nil, boundary: String = UUID().uuidString) throws -> URLRequest {
+        try Self.makeFormRequest(url: configuration.url(for: endpoint), fields: fields,
+                                 token: token, includesBody: endpoint != .userInfo, boundary: boundary)
+    }
+
+    static func makeFormRequest(url: URL, fields: [String: String], token: String?,
+                                includesBody: Bool = true, boundary: String = UUID().uuidString) throws -> URLRequest {
         guard !boundary.isEmpty, boundary.count <= 70,
               boundary.allSatisfy({ $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "-") }),
               fields.keys.allSatisfy({ !$0.isEmpty && $0.allSatisfy { $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "_") } }),
@@ -22,14 +28,14 @@ public struct AuthRequestBuilder {
         if let token, !Self.isValidToken(token) {
             throw APIError.invalidRequest
         }
-        var request = URLRequest(url: configuration.url(for: endpoint))
+        var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.timeoutInterval = 20
         request.cachePolicy = .reloadIgnoringLocalCacheData
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         if let token { request.setValue(token, forHTTPHeaderField: "Authorization") }
         // userInfo has no body in the source contract.
-        if endpoint != .userInfo {
+        if includesBody {
             request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
             var body = ""
             for key in fields.keys.sorted() {

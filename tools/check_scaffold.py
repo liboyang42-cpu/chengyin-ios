@@ -50,7 +50,7 @@ for key,entry in catalog['strings'].items():
 ui='\n'.join(p.read_text() for p in (ROOT/'App').glob('*.swift'))
 # Every dot-separated UI string is a localized key except explicit accessibility/storage IDs.
 localizable_ui=re.sub(r'\.accessibilityIdentifier\("(?:\\.|[^"\\])*"\)', '', ui)
-keys=set(re.findall(r'"((?:welcome|role|registration|settings|language|action|auth|account)\.[A-Za-z.]+)"',localizable_ui))
+keys=set(re.findall(r'"((?:welcome|role|registration|settings|language|action|auth|account|activity)\.[A-Za-z.]+)"',localizable_ui))
 assert not keys-set(catalog['strings']),keys-set(catalog['strings'])
 assert 'preferences.language' in ui
 assert not any(p.suffix in {'.p8','.p12','.mobileprovision'} for p in ROOT.rglob('*'))

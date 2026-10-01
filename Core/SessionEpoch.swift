@@ -3,6 +3,7 @@
 public struct SessionEpoch {
     private var value: UInt64 = 0
     public init() {}
+    public var currentStamp: UInt64 { value }
     @discardableResult public mutating func advance() -> UInt64 {
         value &+= 1
         return value

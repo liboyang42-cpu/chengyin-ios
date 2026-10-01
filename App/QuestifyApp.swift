@@ -14,7 +14,12 @@ struct QuestifyApp: App {
     var body: some Scene {
         WindowGroup {
             Group {
-                if let account = session.account { AccountView(account: account) }
+                if let account = session.account {
+                    TabView {
+                        ActivityBrowserView().tabItem { Label("activity.browse",systemImage:"map") }
+                        AccountView(account:account).tabItem { Label("account.title",systemImage:"person.crop.circle") }
+                    }.id(account.id)
+                }
                 else { WelcomeView() }
             }
                 .environmentObject(session)
