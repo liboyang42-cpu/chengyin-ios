@@ -33,10 +33,10 @@ import SwiftUI
             NavigationStack {
                 DiscoveryTemplateBrowserView(reader:session)
                     .toolbar {
-                    ToolbarItem(placement:.topBarLeading) {
-                        Button("square.title",systemImage:"square.grid.2x2") { showsSquare=true }
-                            .accessibilityIdentifier("homeFeed.openSquare")
-                    } ToolbarItem(placement:.cancellationAction) { Button("action.close") { showsTemplates=false } } }
+                        ToolbarItem(placement:.cancellationAction) {
+                            Button("action.close") { showsTemplates=false }
+                        }
+                    }
             }
         }
     }
