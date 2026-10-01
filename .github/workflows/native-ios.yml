@@ -2,7 +2,7 @@ name: Native iOS checks
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, migration/native-ios]
   workflow_dispatch:
 permissions:
   contents: read

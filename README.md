@@ -2,15 +2,17 @@
 
 SwiftUI-first iOS app, with UIKit bridges only when a feature needs them. Independent of the preserved Flutter app, which remains a candidate Android client. This folder is a new implementation, not a completed migration.
 
-## First slice
+## Current implemented slices
 
 - Native player / merchant registration-intent chooser
 - Settings language preference: system / English / Simplified Chinese, device persistence
 - Native navigation, sheets, system controls, Dynamic Type and light/dark support by construction
 - English / Chinese String Catalog, three SwiftUI previews
-- Pure Swift domain test package; dependency-free Xcode project
+- Read-only native activity list/detail and MapKit
+- Registration contracts and a native VisionKit/UIKit scanner component
+- Pure Swift domain test package and targeted XCUITest scenarios; dependency-free Xcode project
 
-Registration intent opens an existing-account sign-in form. The service address is deliberately unset, so sign-in is disabled until an approved endpoint is configured. Password login, current-account restoration and logout code are wired, but no live backend validation has been performed. New account registration, third-party sign-in, merchant application and business screens remain pending. UI behavior and accessibility have not yet been exercised on a simulator/device.
+Registration intent opens an existing-account sign-in form. The service address is deliberately unset, so sign-in is disabled until an approved endpoint is configured. Password login, current-account restoration and logout code are wired, but no live backend validation has been performed. New account registration, third-party sign-in, merchant application and most business flows remain pending. Targeted entry/language/scanner-fallback simulator tests have passed; full UI, accessibility, physical-device and backend acceptance remain pending. See `PROGRESS.md` for exact evidence.
 
 ## Build and test (requires an approved toolchain)
 
@@ -34,7 +36,7 @@ python3 tools/generate_project.py
 python3 tools/check_scaffold.py
 ```
 
-These Python checks do not compile Swift or demonstrate a working iOS app. See `docs/verification.md` for actual results, and `docs/migration-plan.md` for scope.
+These Python checks do not compile Swift or demonstrate a working iOS app. See `PROGRESS.md` for the latest verified revision, `docs/verification.md` for earlier evidence, and `docs/migration-plan.md` for scope.
 
 ## Repository and security boundary
 
@@ -42,4 +44,6 @@ Target repository: `chengyin-ios` (public). Flutter history, deployment scripts,
 
 ## CI scope
 
-`Native iOS checks` uses GitHub-hosted macOS for pure Swift unit tests and unsigned simulator/device compilation, plus a separate read-only Gitleaks job. It does not run UI interaction tests, connect a production backend, sign an IPA or upload to a store. No release credentials or build artifacts are used. A successful compile alone is not product acceptance.
+`Native iOS checks` runs on pushes to `main` and `migration/native-ios`, PRs and manual dispatch. It uses GitHub-hosted macOS for pure Swift tests, unsigned simulator/device compilation and targeted simulator UI tests, plus a separate read-only Gitleaks job. It does not connect a production backend, sign a distribution IPA or upload to a store. No release credentials or build artifacts are used. A successful compile or limited UI suite is not complete product acceptance.
+
+Development stays on `migration/native-ios`; one overall PR follows completion of the full migration and its acceptance gates.

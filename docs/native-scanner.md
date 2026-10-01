@@ -110,7 +110,7 @@ string preservation, whitespace preservation for host validation, repeated/diffe
 late callbacks, cancellation, and independent new presentations. The gate has no
 platform dependencies. These tests do not exercise VisionKit or camera lifecycle.
 
-In this Linux worker, neither Swift nor Xcode is installed. Swift compilation,
+At initial source-authoring time, the Linux environment had no Swift or Xcode. Swift compilation,
 the new unit tests, simulator UI tests, real-device camera tests, screenshots and
 accessibility checks have **not run**. Static source/localization consistency and
 whitespace checks can be run here. The integration owner must regenerate the
@@ -144,3 +144,6 @@ Implementation researched against Apple documentation on 2026-10-01:
 - [Camera authorization](https://developer.apple.com/documentation/avfoundation/avcapturedevice/authorizationstatus(for:)): grant/denial/restriction are distinct, and Settings may change authorization
 - [requestAccess](https://developer.apple.com/documentation/avfoundation/avcapturedevice/requestaccess(for:completionhandler:)): usage text is required and UI updates belong on the main actor
 - [Recognized barcode payload](https://developer.apple.com/documentation/visionkit/recognizeditem/barcode/payloadstringvalue): optional string data supplied by VisionKit
+
+
+Integration update: the exact revision and later hosted compilation, unit-test and unsupported-Simulator UI evidence are recorded in `../PROGRESS.md`. Real-device camera acceptance remains pending.
