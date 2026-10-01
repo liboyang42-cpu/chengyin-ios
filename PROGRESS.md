@@ -8,9 +8,9 @@ Continue implementation and validation on `migration/native-ios`. Do not open a 
 
 ## Last verified code revision
 
-`eec6ca444687ce27187a8cc2d7524b5b30494bde`
+`4c3b22f55c3721377556334c4b71bdbc8af74bc7`
 
-[Native checks run 36842060624](https://github.com/liboyang42-cpu/chengyin-ios/actions/runs/36842060624)
+[Native checks run 36844785240](https://github.com/liboyang42-cpu/chengyin-ios/actions/runs/36844785240)
 
 - 69 Swift unit tests passed
 - 6 Python importer tests passed
@@ -24,7 +24,7 @@ The five UI cases cover persisted language switching, repeated player/merchant e
 
 - Independent SwiftUI project with iOS17 provisional minimum; English/Chinese resource catalogs and app language preference
 - Existing-account password sign-in code, Keychain session storage, bootstrap/logout/cancellation guards; live server and physical Keychain behavior unverified
-- Read-only activity client, searchable/paged native list, detail, ticket display, MapKit for valid coordinates and explicit club gate; these activity screens still need their own UI fixtures/screenshots and backend validation
+- Read-only activity client, searchable/paged native list, detail, ticket display, MapKit for valid coordinates and explicit club gate; four isolated offline UI scenarios are authored in this revision and await simulator validation; screenshots and backend validation remain outstanding
 - Registration request/response contracts, quote signature preservation and stable retry identifiers; no order/payment execution
 - VisionKit/UIKit scanner component, permission/lifecycle/retry/one-shot-delivery handling; outside production navigation pending a validated business host, and physical-device recognition untested
 - Reviewed-key ARB conversion tool; candidate resource conversion is not completed UI translation

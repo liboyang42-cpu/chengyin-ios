@@ -1479,6 +1479,23 @@
           }
         }
       }
+    },
+    "activity.fixtureNotice": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "UI test fixtures · No live data"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "UI 测试数据 · 非实时内容"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

@@ -1,9 +1,10 @@
 import SwiftUI
 import MapKit
 
+@MainActor
 struct ActivityDetailView: View {
     let id: Int
-    @EnvironmentObject private var session: AppSession
+    let reader: any ActivityReading
     @State private var access: ActivityDetailAccess?
     @State private var loading=false
     @State private var failed=false
@@ -14,7 +15,11 @@ struct ActivityDetailView: View {
             else if failed {
                 ContentUnavailableView {
                     Label("activity.loadFailed",systemImage:"wifi.exclamationmark")
-                } actions: { Button("action.retry") { Task { await load() } } }
+                } actions: {
+                    Button("action.retry") { Task { await load() } }
+                        .accessibilityIdentifier("activity.detail.retry")
+                }
+                .accessibilityIdentifier("activity.detail.error")
             } else if let access {
                 switch access {
                 case .clubRequired(_,let message):
@@ -24,6 +29,7 @@ struct ActivityDetailView: View {
                         if let message, !message.isEmpty { Text(message) }
                         else { Text("activity.clubRequiredHint") }
                     }
+                    .accessibilityIdentifier("activity.detail.clubGate")
                 case .allowed(let detail):
                     detailContent(detail)
                 }
@@ -37,6 +43,7 @@ struct ActivityDetailView: View {
         List {
             Section {
                 Text(detail.summary.name).font(.title2.bold())
+                    .accessibilityIdentifier("activity.detail.name")
                 if let text=detail.summary.description, !text.isEmpty { Text(text) }
                 if let date=detail.summary.startDate { Label(date,systemImage:"calendar") }
                 if let address=detail.summary.addressName ?? detail.summary.address { Label(address,systemImage:"mappin") }
@@ -57,13 +64,24 @@ struct ActivityDetailView: View {
                     VStack(alignment:.leading,spacing:8) {
                         Text(ticket.name).font(.headline)
                         AmountLabel(amount:ticket.price)
-                        if ticket.isSoldOut { Text("activity.soldOut").foregroundStyle(.secondary) }
-                        else if ticket.remainingInventory == nil { Text("activity.inventoryUnknown").font(.caption).foregroundStyle(.secondary) }
+                            .accessibilityElement(children:.combine)
+                            .accessibilityIdentifier("activity.ticket.price.\(ticket.id)")
+                        if ticket.isSoldOut {
+                            Text("activity.soldOut").foregroundStyle(.secondary)
+                                .accessibilityIdentifier("activity.ticket.soldOut.\(ticket.id)")
+                        } else if ticket.remainingInventory == nil {
+                            Text("activity.inventoryUnknown").font(.caption).foregroundStyle(.secondary)
+                                .accessibilityIdentifier("activity.ticket.inventoryUnknown.\(ticket.id)")
+                        }
                     }.padding(.vertical,4)
                 }
             }
-            Section { Text("activity.registrationPending").foregroundStyle(.secondary) }
+            Section {
+                Text("activity.registrationPending").foregroundStyle(.secondary)
+                    .accessibilityIdentifier("activity.detail.readOnly")
+            }
         }
+        .accessibilityIdentifier("activity.detail.content")
     }
     @MainActor private func load() async {
         generation += 1
@@ -71,7 +89,7 @@ struct ActivityDetailView: View {
         loading=true;failed=false
         defer { if generation == operation { loading=false } }
         do {
-            let result=try await session.activityDetail(id:id)
+            let result=try await reader.activityDetail(id:id)
             if generation == operation { access=result }
         }
         catch is CancellationError { }

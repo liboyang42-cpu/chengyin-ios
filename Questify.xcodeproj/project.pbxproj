@@ -35,6 +35,26 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "1A4BB41766280F97D1CF2C6B";
 		};
+		"C4BDF11757060F5BF5F74795" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/ActivityFixtureSupport.swift";
+			"sourceTree" = "<group>";
+		};
+		"7E777B37DB6CBF472FFD335C" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "C4BDF11757060F5BF5F74795";
+		};
+		"1AF49DE02FE53B0E9C4C5C59" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/ActivityReading.swift";
+			"sourceTree" = "<group>";
+		};
+		"863666D33411E600CCC1376F" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "1AF49DE02FE53B0E9C4C5C59";
+		};
 		"66549DA0D0592DA5EE9730F5" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -273,6 +293,8 @@
 				"7FE110A1B16F1C76E2B44EAB",
 				"74E41CC929B3EEB9D9C0C251",
 				"1A4BB41766280F97D1CF2C6B",
+				"C4BDF11757060F5BF5F74795",
+				"1AF49DE02FE53B0E9C4C5C59",
 				"66549DA0D0592DA5EE9730F5",
 				"490C9C54035456EAE4C8AA3C",
 				"B435788993D860E24976C9CE",
@@ -296,6 +318,7 @@
 				"DE5EE0876F360E797D806DD9",
 				"CAE662172FD450BB0CD710A7",
 				"0A3E27B8CA818264D75C8D81",
+				"66E788568176BD42751DB944",
 				"966D2C93A8CF638AE9207040",
 			);
 			"sourceTree" = "<group>";
@@ -307,6 +330,8 @@
 				"64813A2E149DC6AB711E2D08",
 				"07F9CEF9B4809A61F7EB4342",
 				"CE576AE852497959A48EEBD7",
+				"7E777B37DB6CBF472FFD335C",
+				"863666D33411E600CCC1376F",
 				"ECD2264D1FFB6B568359A80B",
 				"ECDA26536837E6D6B882ED12",
 				"7F1BDE17F75E817CC8DBFD44",
@@ -396,6 +421,16 @@
 			"productReference" = "A8792157CB4F27FB949C035F";
 			"productType" = "com.apple.product-type.application";
 		};
+		"66E788568176BD42751DB944" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUITests/ActivityFlowTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"D5C2867F681F497D80C4FD4C" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "66E788568176BD42751DB944";
+		};
 		"966D2C93A8CF638AE9207040" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -450,6 +485,7 @@
 			"isa" = "PBXSourcesBuildPhase";
 			"buildActionMask" = 2147483647;
 			"files" = (
+				"D5C2867F681F497D80C4FD4C",
 				"A0D37CFDB74370E33EC5F4F6",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
