@@ -8,23 +8,23 @@ Continue implementation and validation on `migration/native-ios`. Do not open a 
 
 ## Last verified code revision
 
-`4c3b22f55c3721377556334c4b71bdbc8af74bc7`
+`1860c2880b24e4d82805a9bcb5f2cd5f8ec07a4d`
 
-[Native checks run 36844785240](https://github.com/liboyang42-cpu/chengyin-ios/actions/runs/36844785240)
+[Native checks run 36848589415](https://github.com/liboyang42-cpu/chengyin-ios/actions/runs/36848589415)
 
-- 69 Swift unit tests passed
+- 94 Swift unit tests passed
 - 6 Python importer tests passed
-- 5 iPhone Simulator UI tests passed
+- 9 iPhone Simulator UI tests passed
 - Unsigned simulator Debug and device Release builds passed
 - Gitleaks passed
 
-The five UI cases cover persisted language switching, repeated player/merchant entry dismissal, unconfigured login blocking, repeated Settings presentation after cold launch, and the scanner's unsupported-Simulator/Cancel path. They do not exercise real credentials, business data, camera recognition or payment.
+The five entry UI cases cover persisted language switching, repeated player/merchant entry dismissal, unconfigured login blocking, repeated Settings presentation after cold launch, and the scanner's unsupported-Simulator/Cancel path. They do not exercise real credentials, business data, camera recognition or payment.
 
 ## Implemented, with limits
 
 - Independent SwiftUI project with iOS17 provisional minimum; English/Chinese resource catalogs and app language preference
 - Existing-account password sign-in code, Keychain session storage, bootstrap/logout/cancellation guards; live server and physical Keychain behavior unverified
-- Read-only activity client, searchable/paged native list, detail, ticket display, MapKit for valid coordinates and explicit club gate; four isolated offline UI scenarios are authored in this revision and await simulator validation; screenshots and backend validation remain outstanding
+- Read-only activity client, searchable/paged native list, detail, ticket display, MapKit for valid coordinates and explicit club gate; four isolated offline UI scenarios passed in run 36848589415; visual screenshot review and backend validation remain outstanding
 - Registration request/response contracts, quote signature preservation and stable retry identifiers; no order/payment execution
 - VisionKit/UIKit scanner component, permission/lifecycle/retry/one-shot-delivery handling; outside production navigation pending a validated business host, and physical-device recognition untested
 - Reviewed-key ARB conversion tool; candidate resource conversion is not completed UI translation
@@ -49,6 +49,6 @@ An earlier UI run failed because the test queried a native Picker option as Stat
 
 ## Activity UI regression follow-up
 
-Run 36846622633 compiled both app configurations and passed the existing five entry UI cases, but all four newly added activity cases failed. The rendered hierarchy exposed an empty detail destination before its loading task started, inherited accessibility identifiers, and scrolling obscured by the keyboard. Concrete state roots, leaf identifiers and unobscured gestures are now under revalidation. These failures are not excluded or relabeled as passing.
+Run 36846622633 compiled both app configurations and passed the existing five entry UI cases, but all four newly added activity cases failed. The rendered hierarchy exposed an empty detail destination before its loading task started, inherited accessibility identifiers, and scrolling obscured by the keyboard. Concrete state roots, leaf identifiers and unobscured gestures passed all four cases in run 36848589415. These failures are not excluded or relabeled as passing.
 
 Registration networking now includes source-aligned quote/create and one explicit known-ID status readback, with 25 synthetic service tests. It remains unwired to live UI/credentials/payment.
