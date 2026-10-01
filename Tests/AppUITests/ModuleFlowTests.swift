@@ -31,7 +31,8 @@ final class ModuleFlowTests: XCTestCase {
         tap(app.buttons["profile.open.orders"])
         tap(app.buttons["profile.order.901"])
         XCTAssertTrue(app.navigationBars["Order details"].waitForExistence(timeout:5))
-        XCTAssertTrue(app.staticTexts["FIXTURE-901"].waitForExistence(timeout:5))
+        let reference=app.staticTexts.matching(NSPredicate(format:"label CONTAINS %@", "FIXTURE-901")).firstMatch
+        XCTAssertTrue(reference.waitForExistence(timeout:5),app.debugDescription)
         capture("Order detail – synthetic data")
         tap(app.navigationBars["Order details"].buttons.firstMatch)
         XCTAssertTrue(app.buttons["profile.order.901"].waitForExistence(timeout:5))
@@ -45,5 +46,35 @@ final class ModuleFlowTests: XCTestCase {
         tap(app.buttons["merchant.orders.entry"])
         XCTAssertTrue(app.buttons["merchant.order.row.101"].waitForExistence(timeout:10))
         capture("Merchant finance orders – synthetic data")
+    }
+    func testClubMemberGateAndReadOnlyMemberList() {
+        launch(["--uitesting-club-fixture","owner"])
+        XCTAssertTrue(app.staticTexts["club.fixture.notice"].waitForExistence(timeout:10))
+        tap(app.buttons["club.home.owned.81"])
+        XCTAssertTrue(app.navigationBars["Club details"].waitForExistence(timeout:5))
+        let members=app.buttons["club.openMembers"]
+        if !members.isHittable { app.swipeUp() }
+        tap(members)
+        XCTAssertTrue(app.descendants(matching:.any)["club.member.701"].waitForExistence(timeout:5),app.debugDescription)
+        capture("Club members – synthetic data")
+    }
+    func testMessagingReadOnlyHistoryNavigation() {
+        launch(["--uitesting-module","messaging"])
+        XCTAssertTrue(app.staticTexts["module.fixture.notice"].waitForExistence(timeout:10))
+        tap(app.buttons["messaging.conversation.901"])
+        XCTAssertTrue(app.navigationBars["Conversation"].waitForExistence(timeout:5))
+        XCTAssertTrue(app.buttons["messaging.history.earlier"].waitForExistence(timeout:5))
+        XCTAssertFalse(app.textViews.firstMatch.exists,"Read-only history exposes no message composer")
+        capture("Conversation – synthetic data")
+        tap(app.navigationBars["Conversation"].buttons.firstMatch)
+        XCTAssertTrue(app.buttons["messaging.conversation.901"].waitForExistence(timeout:5))
+    }
+    func testRoamSyntheticListOpensDetail() {
+        launch(["--uitesting-module","roam"])
+        XCTAssertTrue(app.staticTexts["module.fixture.notice"].waitForExistence(timeout:10))
+        tap(app.buttons["roam.display.toggle"])
+        tap(app.buttons["roam.row.place-901"])
+        XCTAssertTrue(app.navigationBars["Map details"].waitForExistence(timeout:5))
+        capture("Map detail – synthetic data")
     }
 }

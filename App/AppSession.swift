@@ -13,6 +13,33 @@ final class AppSession: ObservableObject {
     private let discoveryService: DiscoveryService?
     private let profileService: ProfileService?
     private let merchantService: MerchantService?
+    private let clubService: ClubService?
+    private let roamService: RoamService?
+    private let messagingService: MessagingService?
+    lazy var messagingReader=MessagingSessionReader(service:messagingService,currentSession:{ [weak self] in
+        guard let self, let account=self.account, let token=self.token else { return nil }
+        return try? MessagingReadSession(accountID:account.id,epoch:self.gate.currentStamp,token:token)
+    },onUnauthorized:{ [weak self] snapshot in
+        guard let self else { return }
+        self.expireIfMatching(error:APIError.unauthorized,stamp:snapshot.identity.epoch,credential:self.token)
+    })
+    @Published var roamArea: RoamSearchArea?
+    lazy var roamReader=RoamSessionReader(service:roamService,currentSession:{ [weak self] in
+        guard let self, let account=self.account, let token=self.token else { return nil }
+        return try? RoamReadSession(accountID:account.id,epoch:self.gate.currentStamp,token:token)
+    },searchArea:{ [weak self] in self?.roamArea },onUnauthorized:{ [weak self] snapshot in
+        guard let self else { return }
+        self.expireIfMatching(error:APIError.unauthorized,stamp:snapshot.identity.epoch,credential:self.token)
+    })
+    lazy var clubReader=ClubSessionReader(service:clubService,currentSession:{ [weak self] in
+        guard let self else { return ClubReadSession(guestEpoch:0) }
+        if let account=self.account, let token=self.token,
+           let snapshot=try? ClubReadSession(accountID:account.id,epoch:self.gate.currentStamp,token:token) { return snapshot }
+        return ClubReadSession(guestEpoch:self.gate.currentStamp)
+    },onUnauthorized:{ [weak self] snapshot in
+        guard let self else { return }
+        self.expireIfMatching(error:APIError.unauthorized,stamp:snapshot.identity.epoch,credential:self.token)
+    })
     private var merchantAccessRecord: (stamp:UInt64, access:MerchantAccess)?
     var isSignedIn: Bool { account != nil && token != nil }
     var sessionRevision: UInt64 { gate.currentStamp }
@@ -37,7 +64,10 @@ final class AppSession: ObservableObject {
             discoveryService=DiscoveryService(configuration:configuration,transport:transport)
             profileService=ProfileService(configuration:configuration,transport:transport)
             merchantService=MerchantService(configuration:configuration,transport:transport)
-        } else { service=nil;activityService=nil;discoveryService=nil;profileService=nil;merchantService=nil }
+            clubService=ClubService(configuration:configuration,transport:transport)
+            roamService=RoamService(configuration:configuration,transport:transport)
+            messagingService=MessagingService(configuration:configuration,transport:transport)
+        } else { service=nil;activityService=nil;discoveryService=nil;profileService=nil;merchantService=nil;clubService=nil;roamService=nil;messagingService=nil }
     }
 
     func bootstrap() async {
@@ -95,7 +125,7 @@ final class AppSession: ObservableObject {
         // Persist a non-secret tombstone before deletion. A Keychain failure cannot
         // silently restore a logged-out account at the next cold start.
         UserDefaults.standard.set(true,forKey:restoreBlockedKey)
-        token=nil;account=nil;isWorking=false;errorKey=nil
+        roamArea=nil;token=nil;account=nil;isWorking=false;errorKey=nil
         do { try vault.clear() } catch { errorKey="auth.storageError" }
         if let service, let oldToken {
             // Captured old credential only. Completion cannot mutate a newer login.
@@ -134,7 +164,7 @@ final class AppSession: ObservableObject {
               gate.isCurrent(stamp), credential == token else { return }
         gate.invalidate()
         UserDefaults.standard.set(true,forKey:restoreBlockedKey)
-        token=nil;account=nil;isWorking=false;errorKey="auth.expired"
+        roamArea=nil;token=nil;account=nil;isWorking=false;errorKey="auth.expired"
         try? vault.clear()
     }
 
@@ -203,4 +233,14 @@ extension AppSession: DiscoveryReading, MerchantReading {
     func merchantEvents(access:MerchantAccess) async throws -> [MerchantEvent] { try await readMerchant(access:access) { try await $0.events(access:access,token:$1) } }
     func merchantOrders(access:MerchantAccess,filter:MerchantOrderFilter) async throws -> [MerchantOrder] { try await readMerchant(access:access) { try await $0.orders(access:access,filter:filter,token:$1) } }
     func merchantProjects(access:MerchantAccess) async throws -> MerchantProjectPage { try await readMerchant(access:access) { try await $0.projects(access:access,token:$1) } }
+}
+
+extension AppSession: ClubReading {
+    var isClubConfigured: Bool { clubReader.isClubConfigured }
+    var clubIdentity: ClubReadIdentity { clubReader.clubIdentity }
+    func clubHome() async throws -> ClubHome { try await clubReader.clubHome() }
+    func clubOwned() async throws -> [ClubRecord] { try await clubReader.clubOwned() }
+    func clubDirectory(name:String?) async throws -> [ClubRecord] { try await clubReader.clubDirectory(name:name) }
+    func clubDetail(id:Int) async throws -> ClubRecord { try await clubReader.clubDetail(id:id) }
+    func clubMembers(id:Int) async throws -> ClubMemberDirectory { try await clubReader.clubMembers(id:id) }
 }

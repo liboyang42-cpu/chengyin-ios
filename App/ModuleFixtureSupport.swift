@@ -2,7 +2,7 @@
 import SwiftUI
 
 enum ModuleFixture: String {
-    case discovery, profile
+    case discovery, profile, messaging, roam
     static var selected: Self? {
         let args=ProcessInfo.processInfo.arguments
         guard let i=args.firstIndex(of:"--uitesting-module"),args.indices.contains(i+1) else { return nil }
@@ -14,6 +14,7 @@ enum ModuleFixture: String {
 struct ModuleFixtureRootView: View {
     let module: ModuleFixture
     @State private var discovery=DiscoveryFixtureReader()
+    @State private var roam=RoamFixtureReader()
     var body: some View {
         VStack(spacing:0) {
             Text("activity.fixtureNotice").font(.caption.bold()).padding(8)
@@ -22,6 +23,8 @@ struct ModuleFixtureRootView: View {
             switch module {
             case .discovery: DiscoveryHomeView(reader:discovery)
             case .profile: ProfileFixtureHostView()
+            case .messaging: MessagingFixtureHostView()
+            case .roam: RoamBrowserView(reader:roam)
             }
         }
     }

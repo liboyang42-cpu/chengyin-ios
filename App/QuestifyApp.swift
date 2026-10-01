@@ -19,6 +19,8 @@ struct QuestifyApp: App {
                     ActivityFixtureRootView(scenario:scenario)
                 } else if let merchant=MerchantFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) {
                     MerchantFixtureRootView(scenario:merchant)
+                } else if let club=ClubFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) {
+                    ClubFixtureRootView(scenario:club)
                 } else if let module=ModuleFixture.selected {
                     ModuleFixtureRootView(module:module)
                 } else if let session=sessionContainer.session {
@@ -43,7 +45,8 @@ private final class AppSessionContainer: ObservableObject {
     init() {
         #if DEBUG
         if ActivityFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||
-           MerchantFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil || ModuleFixture.selected != nil {
+           MerchantFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil || ModuleFixture.selected != nil ||
+           ClubFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil {
             session=nil
             return
         }
@@ -57,6 +60,8 @@ private final class AppSessionContainer: ObservableObject {
 private struct SessionRootView: View {
     @ObservedObject var session: AppSession
     @State private var browsingAsGuest=false
+    @State private var selectedTab=0
+    @State private var showsAreaPicker=false
     #if DEBUG
     @State private var showsScannerFixture = false
     #endif
@@ -64,18 +69,23 @@ private struct SessionRootView: View {
     var body: some View {
         Group {
             if session.account != nil || browsingAsGuest {
-                TabView {
-                    DiscoveryHomeView(reader:session).tabItem { Label("discovery.title",systemImage:"sparkle.magnifyingglass") }
-                    ActivityBrowserView(reader:session).tabItem { Label("activity.browse",systemImage:"map") }
+                TabView(selection:$selectedTab) {
+                    DiscoveryHomeView(reader:session).tabItem { Label("discovery.title",systemImage:"sparkle.magnifyingglass") }.tag(0)
+                    ActivityBrowserView(reader:session).tabItem { Label("activity.browse",systemImage:"map") }.tag(1)
+                    RoamBrowserView(reader:session.roamReader,onChooseArea:{ showsAreaPicker=true })
+                        .tabItem { Label("roam.title",systemImage:"map") }.tag(3)
+                    NavigationStack { ClubHomeView(reader:session,onSignIn:{ selectedTab=4 }) }
+                        .tabItem { Label("club.title",systemImage:"person.3") }.tag(2)
                     Group {
                         if let account=session.account { AccountView(account:account) }
                         else { WelcomeView() }
-                    }.tabItem { Label("account.title",systemImage:"person.crop.circle") }
+                    }.tabItem { Label("account.title",systemImage:"person.crop.circle") }.tag(4)
                 }.id(session.account?.id ?? 0)
             } else { WelcomeView(onBrowse:{ browsingAsGuest=true }) }
         }
         .environmentObject(session)
         .task { await session.bootstrap() }
+        .sheet(isPresented:$showsAreaPicker) { RoamAreaPicker(onSelect:{ session.roamArea=$0 }) }
         #if DEBUG
         .sheet(isPresented: $showsScannerFixture) { NativeQRScanner { _ in } }
         .onAppear {

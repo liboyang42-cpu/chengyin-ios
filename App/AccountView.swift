@@ -23,6 +23,13 @@ struct AccountView: View {
                 }
                 ProfileAccountLinks(reader:session.profileReader)
                 Section {
+                    NavigationLink { MessagingHomeView(reader:session.messagingReader).id(session.messagingReader.identity) } label: {
+                        Label("messaging.title",systemImage:"bubble.left.and.bubble.right")
+                    }.accessibilityIdentifier("account.messages")
+                    NavigationLink { ClubHomeView(reader:session) } label: { Label("club.title",systemImage:"person.3") }
+                        .accessibilityIdentifier("account.clubs")
+                }
+                Section {
                     NavigationLink { MerchantHomeView(reader:session) } label: {
                         Label("merchant.title",systemImage:"storefront")
                     }.accessibilityIdentifier("account.merchant")

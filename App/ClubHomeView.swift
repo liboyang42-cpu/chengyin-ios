@@ -1,0 +1,61 @@
+import SwiftUI
+
+/// Place inside the root's existing NavigationStack. This view never uses entry role as access.
+@MainActor
+struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
+    @ObservedObject var reader: Reader
+    var onSignIn: (() -> Void)? = nil
+    /// The home event id is a topic id in the source. Omit until native topic routing is available.
+    var onTopicDestination: ((Int) -> Void)? = nil
+    var body: some View {
+        ClubReadScreen(reader: reader, accessibilityPrefix: "club.home", onSignIn: onSignIn,
+                       load: { try await reader.clubHome() }) { home in
+            List {
+                Section {
+                    NavigationLink {
+                        ClubDirectoryView(reader: reader, onSignIn: onSignIn)
+                    } label: { Label("club.directory", systemImage: "magnifyingglass") }
+                        .accessibilityIdentifier("club.openDirectory")
+                    NavigationLink {
+                        ClubOwnedView(reader: reader, onSignIn: onSignIn)
+                    } label: { Label("club.owned", systemImage: "person.crop.circle") }
+                        .accessibilityIdentifier("club.openOwned")
+                }
+                clubSection("club.owned", rows: home.owned, empty: "club.emptyOwned", identifier: "club.home.owned")
+                clubSection("club.joined", rows: home.joined, empty: "club.emptyJoined", identifier: "club.home.joined")
+                clubSection("club.nearby", rows: home.nearby, empty: "club.emptyNearby", identifier: "club.home.nearby")
+                Section("club.events") {
+                    if home.events.isEmpty {
+                        Text("club.emptyEvents").foregroundStyle(.secondary).accessibilityIdentifier("club.home.events.empty")
+                    }
+                    ForEach(Array(home.events.enumerated()), id: \.offset) { _, event in
+                        if let onTopicDestination {
+                            Button { onTopicDestination(event.id) } label: { eventRow(event) }
+                                .accessibilityIdentifier("club.event.\(event.id)")
+                        } else { eventRow(event) }
+                    }
+                }
+            }
+        }
+        .navigationTitle("club.title")
+    }
+    private func clubSection(_ title: LocalizedStringKey, rows: [ClubRecord], empty: LocalizedStringKey,
+                             identifier: String) -> some View {
+        Section(title) {
+            if rows.isEmpty { Text(empty).foregroundStyle(.secondary).accessibilityIdentifier(identifier + ".empty") }
+            ForEach(Array(rows.enumerated()), id: \.offset) { _, club in
+                NavigationLink {
+                    ClubDetailView(id: club.id, reader: reader, onSignIn: onSignIn)
+                } label: { ClubRow(club: club) }
+                    .accessibilityIdentifier(identifier + ".\(club.id)")
+            }
+        }
+    }
+    private func eventRow(_ event: ClubHomeEvent) -> some View {
+        Label {
+            if event.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { Text("club.untitledEvent") }
+            else { Text(verbatim: event.title) }
+        } icon: { Image(systemName: "flag.checkered") }
+        .foregroundStyle(.primary)
+    }
+}
