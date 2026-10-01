@@ -1,0 +1,58 @@
+name: Native iOS checks
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: native-ios-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  native:
+    runs-on: macos-26
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Record Apple toolchain
+        run: |
+          xcodebuild -version
+          swift --version
+          xcodebuild -showsdks
+      - name: Check project and localization structure
+        run: |
+          python3 tools/check_scaffold.py
+          plutil -lint Questify.xcodeproj/project.pbxproj
+          git diff --exit-code -- Questify.xcodeproj
+      - name: Run pure Swift domain tests
+        run: swift test
+      - name: Compile iOS simulator app (unsigned)
+        run: |
+          xcodebuild -project Questify.xcodeproj -scheme Questify \
+            -configuration Debug -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "$RUNNER_TEMP/questify-simulator" \
+            CODE_SIGNING_ALLOWED=NO build
+      - name: Compile iOS device app (unsigned)
+        run: |
+          xcodebuild -project Questify.xcodeproj -scheme Questify \
+            -configuration Release -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "$RUNNER_TEMP/questify-device" \
+            CODE_SIGNING_ALLOWED=NO build
+  secrets:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: 'false'
+          GITLEAKS_ENABLE_COMMENTS: 'false'
