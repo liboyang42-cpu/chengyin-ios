@@ -160,7 +160,7 @@ struct RegistrationSheetView: View {
         }
     }
     private var quoteSection: some View {
-        Section("registration.form.fees") {
+        Section {
             if !flow.quoteEnabled {
                 Text("registration.form.quoteDisabled").foregroundStyle(.secondary)
             } else if flow.isQuoting {
@@ -194,7 +194,7 @@ struct RegistrationSheetView: View {
             Button("registration.form.refreshQuote") { Task { await flow.requestQuote() } }
                 .disabled(!flow.quoteEnabled || !flow.canEdit || flow.isQuoting)
                 .accessibilityIdentifier("registration.form.refreshQuote")
-        } footer: { Text("registration.form.currencyHint") }
+        } header: { Text("registration.form.fees") } footer: { Text("registration.form.currencyHint") }
     }
     private var confirmationSection: some View {
         Section {
