@@ -4,6 +4,7 @@ import SwiftUI
 struct ClubDirectoryView<Reader: ClubReading & ObservableObject>: View {
     @ObservedObject var reader: Reader
     var onSignIn: (() -> Void)? = nil
+    var actionCoordinator: ClubActionCoordinator? = nil
     @State private var searchText = ""
     @State private var submittedName = ""
     var body: some View {
@@ -15,7 +16,7 @@ struct ClubDirectoryView<Reader: ClubReading & ObservableObject>: View {
                 List {
                     ForEach(Array(rows.enumerated()), id: \.offset) { _, club in
                         NavigationLink {
-                            ClubDetailView(id: club.id, reader: reader, onSignIn: onSignIn)
+                            ClubDetailView(id: club.id, reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator)
                         } label: { ClubRow(club: club) }.accessibilityIdentifier("club.directory.\(club.id)")
                     }
                 }
@@ -35,6 +36,7 @@ struct ClubDirectoryView<Reader: ClubReading & ObservableObject>: View {
 struct ClubOwnedView<Reader: ClubReading & ObservableObject>: View {
     @ObservedObject var reader: Reader
     var onSignIn: (() -> Void)? = nil
+    var actionCoordinator: ClubActionCoordinator? = nil
     var body: some View {
         ClubReadScreen(reader: reader, accessibilityPrefix: "club.owned", requiresSignIn: true,
                        onSignIn: onSignIn, load: { try await reader.clubOwned() }) { rows in
@@ -44,7 +46,7 @@ struct ClubOwnedView<Reader: ClubReading & ObservableObject>: View {
                 List {
                     ForEach(Array(rows.enumerated()), id: \.offset) { _, club in
                         NavigationLink {
-                            ClubDetailView(id: club.id, reader: reader, onSignIn: onSignIn)
+                            ClubDetailView(id: club.id, reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator)
                         } label: { ClubRow(club: club) }.accessibilityIdentifier("club.owned.\(club.id)")
                     }
                 }

@@ -5,6 +5,7 @@ import SwiftUI
 struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
     @ObservedObject var reader: Reader
     var onSignIn: (() -> Void)? = nil
+    var actionCoordinator: ClubActionCoordinator? = nil
     /// The home event id is a topic id in the source. Omit until native topic routing is available.
     var onTopicDestination: ((Int) -> Void)? = nil
     var body: some View {
@@ -13,11 +14,11 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
             List {
                 Section {
                     NavigationLink {
-                        ClubDirectoryView(reader: reader, onSignIn: onSignIn)
+                        ClubDirectoryView(reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator)
                     } label: { Label("club.directory", systemImage: "magnifyingglass") }
                         .accessibilityIdentifier("club.openDirectory")
                     NavigationLink {
-                        ClubOwnedView(reader: reader, onSignIn: onSignIn)
+                        ClubOwnedView(reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator)
                     } label: { Label("club.owned", systemImage: "person.crop.circle") }
                         .accessibilityIdentifier("club.openOwned")
                 }
@@ -45,7 +46,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
             if rows.isEmpty { Text(empty).foregroundStyle(.secondary).accessibilityIdentifier(identifier + ".empty") }
             ForEach(Array(rows.enumerated()), id: \.offset) { _, club in
                 NavigationLink {
-                    ClubDetailView(id: club.id, reader: reader, onSignIn: onSignIn)
+                    ClubDetailView(id: club.id, reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator)
                 } label: { ClubRow(club: club) }
                     .accessibilityIdentifier(identifier + ".\(club.id)")
             }

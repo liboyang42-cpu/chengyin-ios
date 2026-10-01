@@ -50,6 +50,7 @@ final class AppSession: ObservableObject {
         UserDefaults.standard.set(false,forKey:self.restoreBlockedKey)
         self.token=result.token;self.account=result.account;self.errorKey=nil
         self.participantCoordinator.synchronizeSession();self.synchronizeRegistration()
+        self.clubActionCoordinator.synchronizeSession()
         return true
     })
     private let discoveryService: DiscoveryService?
@@ -68,6 +69,23 @@ final class AppSession: ObservableObject {
     })
     private let merchantService: MerchantService?
     private let clubService: ClubService?
+    private let clubActionService: ClubActionService?
+    @Published private(set) var clubMembershipRevision: UInt64 = 0
+    private var currentClubActionSession: ClubActionSession? {
+        guard let account, let token else { return nil }
+        return try? ClubActionSession(account: account, epoch: gate.currentStamp, token: token)
+    }
+    lazy var clubActionWriter = ClubActionSessionWriter(service: clubActionService, currentSession: { [weak self] in
+        self?.currentClubActionSession
+    }, onUnauthorized: { [weak self] snapshot in
+        // Compare the whole captured snapshot, including credential and verified role.
+        // A late failure can never expire a replacement account or token.
+        guard let self, self.currentClubActionSession == snapshot else { return }
+        self.expireIfMatching(error: APIError.unauthorized, stamp: snapshot.identity.epoch, credential: self.token)
+    })
+    lazy var clubActionCoordinator = ClubActionCoordinator(writer: clubActionWriter, reader: clubReader, onMembershipChanged: { [weak self] _ in
+        self?.clubMembershipRevision &+= 1
+    })
     private let roamService: RoamService?
     private let messagingService: MessagingService?
     private let messageActionService: MessageActionService?
@@ -140,10 +158,11 @@ final class AppSession: ObservableObject {
             participantService=ParticipantService(configuration:configuration,transport:transport)
             merchantService=MerchantService(configuration:configuration,transport:transport)
             clubService=ClubService(configuration:configuration,transport:transport)
+            clubActionService=ClubActionService(configuration:configuration,transport:transport)
             roamService=RoamService(configuration:configuration,transport:transport)
             messagingService=MessagingService(configuration:configuration,transport:transport)
             messageActionService=MessageActionService(configuration:configuration,transport:transport)
-        } else { service=nil;authChannelService=nil;activityService=nil;registrationBackend=UnconfiguredRegistrationBackend();playService=nil;discoveryService=nil;profileService=nil;participantService=nil;merchantService=nil;clubService=nil;roamService=nil;messagingService=nil;messageActionService=nil }
+        } else { service=nil;authChannelService=nil;activityService=nil;registrationBackend=UnconfiguredRegistrationBackend();playService=nil;discoveryService=nil;profileService=nil;participantService=nil;merchantService=nil;clubService=nil;clubActionService=nil;roamService=nil;messagingService=nil;messageActionService=nil }
     }
 
     func bootstrap() async {
@@ -155,6 +174,7 @@ final class AppSession: ObservableObject {
             return
         }
         let operation=gate.begin(.bootstrap)
+        clubActionCoordinator.synchronizeSession()
         isWorking=true
         defer { if gate.isCurrent(operation) { isWorking=false;gate.finish(operation) } }
         do {
@@ -163,6 +183,7 @@ final class AppSession: ObservableObject {
             guard gate.isCurrent(operation) else { return }
             token=saved;account=restored
             participantCoordinator.synchronizeSession();synchronizeRegistration()
+            clubActionCoordinator.synchronizeSession()
         } catch {
             guard gate.isCurrent(operation) else { return }
             if error as? APIError == .unauthorized {
@@ -178,6 +199,7 @@ final class AppSession: ObservableObject {
         guard !isWorking, !authChannels.state.isWorking else { return }
         guard let service else { errorKey="auth.notConfigured";return }
         let operation=gate.begin(.login)
+        clubActionCoordinator.synchronizeSession()
         isWorking=true;errorKey=nil
         defer { if gate.isCurrent(operation) { isWorking=false;gate.finish(operation) } }
         do {
@@ -187,6 +209,7 @@ final class AppSession: ObservableObject {
             UserDefaults.standard.set(false,forKey:restoreBlockedKey)
             token=result.token;account=result.account
             participantCoordinator.synchronizeSession();synchronizeRegistration()
+            clubActionCoordinator.synchronizeSession()
         } catch {
             guard gate.isCurrent(operation) else { return }
             errorKey=Self.messageKey(for:error)
@@ -194,7 +217,7 @@ final class AppSession: ObservableObject {
     }
 
     func cancelPendingLogin() {
-        if gate.cancelLogin() { isWorking=false;errorKey=nil }
+        if gate.cancelLogin() { isWorking=false;errorKey=nil;clubActionCoordinator.synchronizeSession() }
     }
 
     func logout() async {
@@ -206,6 +229,7 @@ final class AppSession: ObservableObject {
         UserDefaults.standard.set(true,forKey:restoreBlockedKey)
         roamArea=nil;token=nil;account=nil;isWorking=false;errorKey=nil
         participantCoordinator.synchronizeSession();synchronizeRegistration()
+        clubActionCoordinator.synchronizeSession()
         do { try vault.clear() } catch { errorKey="auth.storageError" }
         if let service, let oldToken {
             // Captured old credential only. Completion cannot mutate a newer login.
@@ -246,6 +270,7 @@ final class AppSession: ObservableObject {
         UserDefaults.standard.set(true,forKey:restoreBlockedKey)
         roamArea=nil;token=nil;account=nil;isWorking=false;errorKey="auth.expired"
         participantCoordinator.synchronizeSession();synchronizeRegistration()
+        clubActionCoordinator.synchronizeSession()
         try? vault.clear()
     }
 

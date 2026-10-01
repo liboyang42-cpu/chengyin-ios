@@ -1,0 +1,97 @@
+import XCTest
+
+/// Offline DEBUG fixtures only. The fixture root does not construct AppSession,
+/// a transport, a credential, or a real membership request.
+final class ClubActionFlowTests: XCTestCase {
+    private var app: XCUIApplication!
+    override func setUpWithError() throws { continueAfterFailure = false; app = XCUIApplication() }
+    override func tearDownWithError() throws { app.terminate(); app = nil }
+
+    private func launch(_ scenario: String) {
+        app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", "(en)", "-AppleLocale", "en_US",
+                               "--uitesting-club-action-fixture", scenario]
+        app.launch()
+        XCTAssertTrue(app.staticTexts["club.action.fixture.notice"].waitForExistence(timeout: 10), app.debugDescription)
+    }
+    private func element(_ id: String) -> XCUIElement { app.descendants(matching: .any).matching(identifier: id).firstMatch }
+    private func reveal(_ element: XCUIElement) {
+        for _ in 0..<6 {
+            if element.exists && element.isHittable { return }
+            app.swipeUp()
+        }
+    }
+    private func tap(_ element: XCUIElement, file: StaticString = #filePath, line: UInt = #line) {
+        let ready = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == true AND hittable == true"), object: element)
+        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 10), .completed, app.debugDescription, file: file, line: line)
+        element.tap()
+    }
+    private func assertCount(_ count: Int, file: StaticString = #filePath, line: UInt = #line) {
+        let expected = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == true AND label == %@", String(count)),
+                                                 object: element("club.action.fixture.writeCount"))
+        XCTAssertEqual(XCTWaiter.wait(for: [expected], timeout: 5), .completed, app.debugDescription, file: file, line: line)
+    }
+    private func confirm(_ action: String) {
+        let button = app.buttons["club.action." + action]
+        reveal(button); tap(button)
+        let confirmation = app.buttons["club.action.confirm"]
+        XCTAssertTrue(confirmation.waitForExistence(timeout: 5), app.debugDescription)
+        assertCount(0)
+        tap(confirmation)
+    }
+    private func capture(_ name: String) {
+        let attachment = XCTAttachment(screenshot: app.screenshot())
+        attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
+    }
+    func testJoinRequiresConfirmationAndUsesServerMembership() {
+        launch("join")
+        assertCount(0)
+        confirm("join")
+        let leave = app.buttons["club.action.leave"]
+        XCTAssertTrue(leave.waitForExistence(timeout: 10), app.debugDescription)
+        XCTAssertTrue(leave.isEnabled)
+        assertCount(1)
+        XCTAssertFalse(app.buttons["club.action.join"].exists)
+        let membership = element("club.action.serverMembership")
+        XCTAssertTrue(membership.waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertTrue(membership.label.contains("Joined"), membership.label)
+        capture("Club joined – synthetic server readback")
+    }
+    func testApplicationStaysPendingWithoutMembershipAccess() {
+        launch("apply")
+        confirm("apply")
+        assertCount(1)
+        let pending = element("club.action.gated")
+        XCTAssertTrue(pending.waitForExistence(timeout: 10), app.debugDescription)
+        XCTAssertTrue(pending.label.localizedCaseInsensitiveContains("pending"), pending.label)
+        XCTAssertFalse(app.buttons["club.action.leave"].exists)
+        XCTAssertFalse(app.buttons["club.action.apply"].exists)
+        let membersGate = element("club.members.gated")
+        reveal(membersGate)
+        XCTAssertTrue(membersGate.exists, app.debugDescription)
+        XCTAssertFalse(app.buttons["club.openMembers"].exists)
+        assertCount(1)
+        capture("Club application remains pending – synthetic data")
+    }
+    func testUnknownOutcomeReadbackDoesNotUnlockOrRepeatAcrossRelogin() {
+        launch("unknown")
+        confirm("join")
+        let unknown = element("club.action.unknown")
+        XCTAssertTrue(unknown.waitForExistence(timeout: 10), app.debugDescription)
+        XCTAssertFalse(app.buttons["club.action.join"].isEnabled)
+        assertCount(1)
+        let readback = app.buttons["club.action.readback"]
+        reveal(readback); tap(readback)
+        let leave = app.buttons["club.action.leave"]
+        XCTAssertTrue(leave.waitForExistence(timeout: 10), app.debugDescription)
+        XCTAssertFalse(leave.isEnabled, "A current Joined snapshot must not unlock an uncertain mutation")
+        XCTAssertTrue(unknown.exists)
+        assertCount(1)
+        tap(app.buttons["club.action.fixture.signOut"])
+        tap(app.buttons["club.action.fixture.signIn"])
+        XCTAssertTrue(unknown.waitForExistence(timeout: 10), app.debugDescription)
+        XCTAssertTrue(leave.waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertFalse(leave.isEnabled, "Same-account relogin must retain the unknown-outcome lock")
+        assertCount(1)
+        capture("Unknown club request remains locked after readback and relogin")
+    }
+}

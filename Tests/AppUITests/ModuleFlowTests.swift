@@ -142,8 +142,12 @@ final class ModuleFlowTests: XCTestCase {
         let consent=app.switches["registration.form.consent"]
         for _ in 0..<8 { if consent.exists && consent.isHittable { break };app.swipeUp() }
         tap(consent)
-        tap(app.buttons["registration.form.review"])
-        XCTAssertTrue(app.alerts.firstMatch.waitForExistence(timeout:5))
+        let review=app.buttons["registration.form.review"]
+        for _ in 0..<3 { if review.exists && review.isHittable { break };app.swipeUp() }
+        XCTAssertEqual(consent.value as? String,"1",app.debugDescription)
+        XCTAssertTrue(review.isEnabled,app.debugDescription)
+        tap(review)
+        XCTAssertTrue(app.alerts.firstMatch.waitForExistence(timeout:5),app.debugDescription)
         tap(app.alerts.buttons["Create demo registration"])
         let read=app.buttons["registration.form.readStatus"]
         XCTAssertTrue(read.waitForExistence(timeout:10),app.debugDescription)

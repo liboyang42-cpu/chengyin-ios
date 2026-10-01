@@ -21,6 +21,8 @@ struct QuestifyApp: App {
                     MerchantFixtureRootView(scenario:merchant)
                 } else if let club=ClubFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) {
                     ClubFixtureRootView(scenario:club)
+                } else if let clubAction=ClubActionFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) {
+                    ClubActionFixtureRootView(scenario:clubAction)
                 } else if let registration=RegistrationFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) {
                     RegistrationFixtureHostView(scenario:registration)
                 } else if let module=ModuleFixture.selected {
@@ -35,6 +37,7 @@ struct QuestifyApp: App {
                 #endif
             }
             .environment(\.locale, AppLanguage(storedValue: storedLanguage).locale)
+            .tint(.purple)
         }
     }
 }
@@ -49,6 +52,7 @@ private final class AppSessionContainer: ObservableObject {
         if ActivityFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||
            MerchantFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil || ModuleFixture.selected != nil ||
            ClubFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||
+           ClubActionFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||
            RegistrationFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil {
             session=nil
             return
@@ -77,7 +81,7 @@ private struct SessionRootView: View {
                     ActivityBrowserView(reader:session,playReaderForActivity:{ session.playReader(for:.activity($0)) },registrationEnabled:true).tabItem { Label("activity.browse",systemImage:"map") }.tag(1)
                     RoamBrowserView(reader:session.roamReader,onChooseArea:{ showsAreaPicker=true })
                         .tabItem { Label("roam.title",systemImage:"map") }.tag(3)
-                    NavigationStack { ClubHomeView(reader:session,onSignIn:{ selectedTab=4 }) }
+                    NavigationStack { ClubHomeView(reader:session,onSignIn:{ selectedTab=4 },actionCoordinator:session.clubActionCoordinator) }
                         .tabItem { Label("club.title",systemImage:"person.3") }.tag(2)
                     Group {
                         if let account=session.account { AccountView(account:account) }

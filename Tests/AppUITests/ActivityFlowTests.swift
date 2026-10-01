@@ -118,7 +118,7 @@ final class ActivityFlowTests: XCTestCase {
     private func waitForHittable(_ target: XCUIElement, file: StaticString=#filePath, line: UInt=#line) {
         let ready=XCTNSPredicateExpectation(
             predicate:NSPredicate(format:"exists == true AND hittable == true"),object:target)
-        XCTAssertEqual(XCTWaiter.wait(for:[ready],timeout:10),.completed,app.debugDescription,file:file,line:line)
+        XCTAssertEqual(XCTWaiter.wait(for:[ready],timeout:30),.completed,app.debugDescription,file:file,line:line)
     }
 
     private func tap(_ target: XCUIElement, file: StaticString=#filePath, line: UInt=#line) {

@@ -87,7 +87,7 @@ The callback runs synchronously on MainActor after exact session matching. Advan
 
 `MessagingFixtureHostView(scenario:)` and `MessagingFixtureReader` are DEBUG-only. Scenarios: success, empty, error, closed, unauthorized, unconfigured, pagingError, loading. All content is synthetic; there are no fixture URLs or real personal records. `success` provides 35 conversations and history with text, image placeholder, generic result, route, location, unknown type and literal markup-like text. Page 2 uses cursor 42, then stops. `loading` delays 15 seconds and honors cancellation.
 
-Suggested root fixture route: `--messaging-fixture <scenario>` under the existing DEBUG harness. This worker did not modify root routing or add an AppUITests file outside its ownership.
+Suggested root fixture route: `--messaging-fixture <scenario>` under the existing DEBUG harness. This module did not modify root routing or add an AppUITests file outside its ownership.
 
 Required simulator assertions:
 

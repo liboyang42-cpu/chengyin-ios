@@ -29,4 +29,4 @@ Reviewed 2026-10-01 against the retained Flutter checkout. This is a pure Swift 
 
 ## Verification
 
-Added 26 focused Swift XCTest cases for request keys/omissions, decimal/null/zero behavior, quote readiness, signature passthrough, same-intent retries, new-intent IDs, offer pairing, response variants and failure envelopes. Static whitespace and source review passed in this Linux workspace. There is no installed Swift compiler here: compilation and test execution are **not run**, and must be verified by the parent task's native CI. Project regeneration is intentionally left to the parent task.
+Added 26 focused Swift XCTest cases for request keys/omissions, decimal/null/zero behavior, quote readiness, signature passthrough, same-intent retries, new-intent IDs, offer pairing, response variants and failure envelopes. Static whitespace and source review passed in this Linux workspace. There is no installed Swift compiler here: compilation and test execution are **not run**, and must be verified by the integration's native CI. Project regeneration is intentionally left to the integration.

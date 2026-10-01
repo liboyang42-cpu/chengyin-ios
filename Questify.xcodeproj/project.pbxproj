@@ -95,6 +95,26 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "D94CA663BB4C6261A21DCE65";
 		};
+		"FF87529B40E21D36CC9ED99F" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/ClubActionFixtureSupport.swift";
+			"sourceTree" = "<group>";
+		};
+		"D22EE7F9861F005F98300F98" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "FF87529B40E21D36CC9ED99F";
+		};
+		"192BD39924E71BE96ED1AD43" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/ClubActionPanel.swift";
+			"sourceTree" = "<group>";
+		};
+		"46A7B9E26B8772353113B0F6" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "192BD39924E71BE96ED1AD43";
+		};
 		"154AD76AE4784E1D99C64578" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -735,6 +755,46 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "696F827999369F5AFB5AC512";
 		};
+		"35C79571D0E400999338F5A5" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/ClubActionContracts.swift";
+			"sourceTree" = "<group>";
+		};
+		"236BF6924C78F8495C240306" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "35C79571D0E400999338F5A5";
+		};
+		"60735704B98EB6E0DBDFA5A8" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/ClubActionCoordinator.swift";
+			"sourceTree" = "<group>";
+		};
+		"F40CF93F14EFF126EB3BC825" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "60735704B98EB6E0DBDFA5A8";
+		};
+		"4DB09B674A9CB08E71DD9A0A" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/ClubActionService.swift";
+			"sourceTree" = "<group>";
+		};
+		"100969A88506CF25C78E99A8" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "4DB09B674A9CB08E71DD9A0A";
+		};
+		"B3637A5508AC79DC5F3406FD" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/ClubActionWriting.swift";
+			"sourceTree" = "<group>";
+		};
+		"8AEC4003AF0C01ED030B46D8" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "B3637A5508AC79DC5F3406FD";
+		};
 		"319440C5604A8038574B7396" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -1169,6 +1229,8 @@
 				"EF553015C2024B8231000DA4",
 				"6F42EBEA1DC063C5D3EBC5BB",
 				"D94CA663BB4C6261A21DCE65",
+				"FF87529B40E21D36CC9ED99F",
+				"192BD39924E71BE96ED1AD43",
 				"154AD76AE4784E1D99C64578",
 				"D8DA1FD14F9B750D9D4E64D6",
 				"D9F2B23946B7D2A7C1A4EB11",
@@ -1233,6 +1295,10 @@
 				"C7ED8788255E13734272797F",
 				"20BB6067303A0CDE2B4AC89A",
 				"696F827999369F5AFB5AC512",
+				"35C79571D0E400999338F5A5",
+				"60735704B98EB6E0DBDFA5A8",
+				"4DB09B674A9CB08E71DD9A0A",
+				"B3637A5508AC79DC5F3406FD",
 				"319440C5604A8038574B7396",
 				"0354569B1D7808C1BE8DB028",
 				"959ECC7C7B8E69BFEF7F2967",
@@ -1276,6 +1342,7 @@
 				"CAE662172FD450BB0CD710A7",
 				"0A3E27B8CA818264D75C8D81",
 				"66E788568176BD42751DB944",
+				"8868167DA4A98880863F9204",
 				"966D2C93A8CF638AE9207040",
 				"BA851E1F4F3FE032492FB7DC",
 			);
@@ -1294,6 +1361,8 @@
 				"0B011F6E9B82D3A1F32D1BF6",
 				"040F13BB1A7C719666560B10",
 				"025A794DAAC8A98EDCF1C7BF",
+				"D22EE7F9861F005F98300F98",
+				"46A7B9E26B8772353113B0F6",
 				"23E265730E3F6A465B598B94",
 				"5453573F16CFD92D6AA09247",
 				"AA497B603AF59E3F239AA03C",
@@ -1358,6 +1427,10 @@
 				"27C8537C8ED7F7AE69910709",
 				"A31D37224ABB224D19DD844D",
 				"5BFCEC69121174BE32FD2B54",
+				"236BF6924C78F8495C240306",
+				"F40CF93F14EFF126EB3BC825",
+				"100969A88506CF25C78E99A8",
+				"8AEC4003AF0C01ED030B46D8",
 				"8939A3B7DDF28D23DB3E5A70",
 				"12B39DAECC4D18241FC0F5A8",
 				"4B83E4AAF725D6606E16C448",
@@ -1476,6 +1549,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "66E788568176BD42751DB944";
 		};
+		"8868167DA4A98880863F9204" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUITests/ClubActionFlowTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"8FF43D5CB78CCDFC2B87CE7D" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "8868167DA4A98880863F9204";
+		};
 		"966D2C93A8CF638AE9207040" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -1541,6 +1624,7 @@
 			"buildActionMask" = 2147483647;
 			"files" = (
 				"D5C2867F681F497D80C4FD4C",
+				"8FF43D5CB78CCDFC2B87CE7D",
 				"A0D37CFDB74370E33EC5F4F6",
 				"A0EF509173BCA11DCB538A15",
 			);

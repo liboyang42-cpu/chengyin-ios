@@ -81,7 +81,7 @@ Read-screen generations reject out-of-order retry/refresh completion and dismiss
 - Static coverage verified all 56 module localization entries and whitespace/source-bound file checks
 - Isolated temporary integration copied the module plus baseline, merged the 56 keys and regenerated the project: structural checks passed (65 Swift source references, 373 bilingual keys, deterministic regeneration). The module checkout intentionally retains the untouched baseline project/catalog; run root integration before its aggregate structural check
 - Swift and Xcode are not installed in this Linux workspace. XCTest execution, Swift type checking, Xcode compilation, simulator layout/accessibility and UI interaction checks are NOT RUN; root macOS CI is required before claiming native build/runtime validation
-- No live backend, write, secret, production host default, user computer, Codex task, signing, commit, push or PR was used
+- No live backend, write, secret, production host default, user computer, external execution task, signing, commit, push or PR was used
 
 Remaining source modules: club posts/comments/feed, topic/activity detail, leaderboard, creation/enrollment, join approval, role/governance, customer CRM, workbench, finance/settlement, group chat/code and all mutations. This is the agreed read batch, not full club feature parity.
 

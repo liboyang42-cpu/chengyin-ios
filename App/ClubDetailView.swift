@@ -5,9 +5,25 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
     let id: Int
     @ObservedObject var reader: Reader
     var onSignIn: (() -> Void)? = nil
+    var actionCoordinator: ClubActionCoordinator? = nil
+    @State private var actionDetail: ClubRecord? = nil
+    @State private var actionIdentity: ClubReadIdentity? = nil
+    @State private var detailGeneration: UInt64 = 0
     var body: some View {
         ClubReadScreen(reader: reader, accessibilityPrefix: "club.detail", onSignIn: onSignIn,
-                       load: { try await reader.clubDetail(id: id) }) { club in
+                       load: {
+                           detailGeneration &+= 1
+                           let revision = detailGeneration, identity = reader.clubIdentity
+                           let detail = try await reader.clubDetail(id: id)
+                           // Neither an older refresh nor a pre-mutation read can
+                           // replace a newer refresh or action readback.
+                           guard !Task.isCancelled, revision == detailGeneration, identity == reader.clubIdentity else { throw CancellationError() }
+                           // Clear on every accepted read, even if its value equals the
+                           // older pre-action snapshot (for example after removal).
+                           actionDetail = nil; actionIdentity = nil
+                           return detail
+                       }) { loadedClub in
+            let club = actionIdentity == reader.clubIdentity && actionDetail?.id == id ? (actionDetail ?? loadedClub) : loadedClub
             List {
                 Section {
                     ClubName(value: club.name).font(.title2.bold()).accessibilityIdentifier("club.detail.name")
@@ -19,6 +35,13 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                     else if club.myJoinStatus == 2 { Text("club.membership.rejected") }
                     if club.viewerIsAdmin { Text("club.viewerAdministrator") }
                     if (1...5).contains(club.level) { LabeledContent("club.level") { Text(verbatim: "L\(club.level)") } }
+                }
+                if let actionCoordinator {
+                    ClubActionPanel(club: club, identity: reader.clubIdentity, coordinator: actionCoordinator,
+                                    onReadbackStarted: { detailGeneration &+= 1; return detailGeneration }) { detail, identity, generation in
+                        guard identity == reader.clubIdentity, detail.id == id, generation == detailGeneration else { return }
+                        actionDetail = detail; actionIdentity = identity
+                    }
                 }
                 Section("club.introduction") {
                     if let description = club.description, !description.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -41,5 +64,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                 }
             }
         }.navigationTitle("club.detail")
+            .id(id)
+            .onChange(of: reader.clubIdentity) { _, _ in actionDetail = nil; actionIdentity = nil }
     }
 }

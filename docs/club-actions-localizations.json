@@ -1,0 +1,122 @@
+[
+  {
+    "key": "club.action.membership",
+    "en": "Membership",
+    "zh-Hans": "成员身份"
+  },
+  {
+    "key": "club.action.join",
+    "en": "Join club",
+    "zh-Hans": "加入俱乐部"
+  },
+  {
+    "key": "club.action.apply",
+    "en": "Apply to join",
+    "zh-Hans": "申请加入"
+  },
+  {
+    "key": "club.action.reapply",
+    "en": "Apply again",
+    "zh-Hans": "重新申请"
+  },
+  {
+    "key": "club.action.leave",
+    "en": "Leave club",
+    "zh-Hans": "退出俱乐部"
+  },
+  {
+    "key": "club.action.confirm.join",
+    "en": "Send a request to join this club. Your membership will be checked with the server.",
+    "zh-Hans": "向此俱乐部发送加入请求，随后从服务器确认成员状态。"
+  },
+  {
+    "key": "club.action.confirm.apply",
+    "en": "Send an application to this club. You will become a member only after approval.",
+    "zh-Hans": "向此俱乐部发送申请，审批通过后才能成为成员。"
+  },
+  {
+    "key": "club.action.confirm.leave",
+    "en": "Leave this club? You may lose access to its members and member-only features. Rejoining may require approval.",
+    "zh-Hans": "确定退出此俱乐部？你可能无法再查看成员及使用成员专属功能，重新加入可能需要审批。"
+  },
+  {
+    "key": "club.action.unavailable",
+    "en": "Membership actions are not configured.",
+    "zh-Hans": "成员操作尚未配置。"
+  },
+  {
+    "key": "club.action.owner",
+    "en": "Creators cannot leave their own club here.",
+    "zh-Hans": "创建者不能在此退出自己的俱乐部。"
+  },
+  {
+    "key": "club.action.merchant",
+    "en": "Joining is unavailable for a merchant account.",
+    "zh-Hans": "商家账号无法在此加入俱乐部。"
+  },
+  {
+    "key": "club.action.unsupported",
+    "en": "This membership state is not supported. Refresh to check the current status.",
+    "zh-Hans": "暂不支持此成员状态，请刷新查看最新状态。"
+  },
+  {
+    "key": "club.action.working",
+    "en": "Checking membership…",
+    "zh-Hans": "正在确认成员状态…"
+  },
+  {
+    "key": "club.action.unknown",
+    "en": "The request may have reached the server. It will not be sent again. You can check your current membership below.",
+    "zh-Hans": "请求可能已到达服务器，不会再次发送。你可以在下方查看当前成员状态。"
+  },
+  {
+    "key": "club.action.readback",
+    "en": "Check current membership",
+    "zh-Hans": "查看当前成员状态"
+  },
+  {
+    "key": "club.action.acknowledged",
+    "en": "The server acknowledged the request. Current membership is shown below when available.",
+    "zh-Hans": "服务器已确认收到请求；获取成功后，下方会显示当前成员状态。"
+  },
+  {
+    "key": "club.action.notSent",
+    "en": "No membership request was sent. Refresh the club before trying again.",
+    "zh-Hans": "尚未发送成员请求，请刷新俱乐部后再试。"
+  },
+  {
+    "key": "club.action.rejected",
+    "en": "The server declined the request.",
+    "zh-Hans": "服务器拒绝了此请求。"
+  },
+  {
+    "key": "club.action.notJoined",
+    "en": "Current status: not a member",
+    "zh-Hans": "当前状态：非成员"
+  },
+  {
+    "key": "club.action.readbackUnavailable",
+    "en": "Current membership could not be checked. Check again before taking another action.",
+    "zh-Hans": "当前无法确认成员状态，请再次查询后再操作。"
+  },
+  {
+    "key": "club.action.changed",
+    "en": "Membership or joining policy changed. Refresh the club and review the new action.",
+    "zh-Hans": "成员状态或加入规则已改变，请刷新俱乐部并确认最新操作。"
+  },
+  {
+    "key": "club.action.prepareFailed",
+    "en": "Could not check current membership. No request was sent.",
+    "zh-Hans": "无法确认当前成员状态，尚未发送请求。"
+  },
+  {
+    "key": "club.action.fixtureNotice",
+    "en": "Offline membership fixture · no real club changes",
+    "zh-Hans": "离线成员示例 · 不会更改真实俱乐部"
+  },
+  {
+    "key": "club.action.fixtureWrites",
+    "en": "Synthetic requests:",
+    "zh-Hans": "模拟请求数："
+  }
+]

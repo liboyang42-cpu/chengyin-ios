@@ -42,7 +42,7 @@ RegistrationSheetView(
 )
 ```
 
-The sheet supplies its own `NavigationStack`; present it using `.sheet`. Root integration owns the activity-detail entry and authenticated-session wiring. Add the App/Core files via project regeneration and merge `registration-ui-localizations.json` into the existing bilingual string catalog. The worker intentionally does not edit shared navigation, AppSession, catalog or project files.
+The sheet supplies its own `NavigationStack`; present it using `.sheet`. Root integration owns the activity-detail entry and authenticated-session wiring. Add the App/Core files via project regeneration and merge `registration-ui-localizations.json` into the existing bilingual string catalog. This module does not edit shared navigation, AppSession, catalog or project files.
 
 Host requirements:
 

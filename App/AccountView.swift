@@ -26,7 +26,7 @@ struct AccountView: View {
                     NavigationLink { MessagingHomeView(reader:session.messagingReader,senderForConversation:{ session.messageSender(for:$0) }).id(session.messagingReader.identity) } label: {
                         Label("messaging.title",systemImage:"bubble.left.and.bubble.right")
                     }.accessibilityIdentifier("account.messages")
-                    NavigationLink { ClubHomeView(reader:session) } label: { Label("club.title",systemImage:"person.3") }
+                    NavigationLink { ClubHomeView(reader:session,actionCoordinator:session.clubActionCoordinator) } label: { Label("club.title",systemImage:"person.3") }
                         .accessibilityIdentifier("account.clubs")
                 }
                 Section {

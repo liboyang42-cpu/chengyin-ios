@@ -4,12 +4,16 @@ import SwiftUI
     @Published var draft=""
     @Published private(set) var state:MessageSendState
     let coordinator:MessageActionCoordinator
+    var retrying=false
     init(_ coordinator:MessageActionCoordinator) {
         self.coordinator=coordinator;state=coordinator.visibleState
+    }
+    func observe() {
         coordinator.onStateChange={ [weak self] in
             guard let self else { return };state=coordinator.visibleState
-            if state == .sending { draft="" }
+            if state == .sending && !retrying { draft="" }
         }
+        update()
     }
     func update() { state=coordinator.visibleState }
 }
@@ -52,8 +56,11 @@ import SwiftUI
                     typing=false
                     let text=model.draft
                     guard let expected=identity else { return }
-                    Task { if await model.coordinator.sendNew(text,conversationReady:ready,expectedIdentity:expected),
-                              case .acknowledged(let receipt)=model.coordinator.visibleState { onAcknowledged(receipt) } }
+                    Task {
+                        _=await model.coordinator.sendNew(text,conversationReady:ready,expectedIdentity:expected)
+                        if model.coordinator.pendingText == text.trimmingCharacters(in:.whitespacesAndNewlines) { model.draft="" }
+                        model.update()
+                    }
                 } label: { Label("message.send.button",systemImage:"arrow.up.circle.fill") }
                 .disabled(!canCompose || model.draft.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty)
                 .accessibilityIdentifier("message.send.button")
@@ -61,13 +68,22 @@ import SwiftUI
             if !conversationReady { Text("message.send.historyRequired").font(.caption).foregroundStyle(.secondary) }
         }
         .padding().background(.regularMaterial).privacySensitive()
+        .onAppear { model.observe() }
+        .onChange(of:model.state) { _,state in
+            // The currently visible history owns readback, even after dismiss/reopen.
+            if case .acknowledged(let receipt)=state { onAcknowledged(receipt) }
+        }
         .onChange(of:identity) { _,_ in model.draft="";confirmsRetry=false;model.update() }
         .onDisappear { model.draft="";typing=false }
         .alert("message.send.retryTitle",isPresented:$confirmsRetry) {
             Button("message.send.retry") {
                 guard let expected=identity else { return }
-                Task { if await model.coordinator.retry(conversationReady:ready,expectedIdentity:expected),
-                          case .acknowledged(let receipt)=model.coordinator.visibleState { onAcknowledged(receipt) } }
+                Task {
+                    model.retrying=true
+                    defer { model.retrying=false }
+                    _=await model.coordinator.retry(conversationReady:ready,expectedIdentity:expected)
+                    model.update()
+                }
             }
             Button("action.cancel",role:.cancel) {}
         } message: { Text("message.send.retryHint") }
