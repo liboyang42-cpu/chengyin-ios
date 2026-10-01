@@ -2,7 +2,7 @@
 import SwiftUI
 
 enum ModuleFixture: String {
-    case discovery, profile, messaging, roam, participants, play, composer
+    case discovery, profile, messaging, roam, participants, play, composer, topic
     static var selected: Self? {
         let args=ProcessInfo.processInfo.arguments
         guard let i=args.firstIndex(of:"--uitesting-module"),args.indices.contains(i+1) else { return nil }
@@ -28,6 +28,7 @@ struct ModuleFixtureRootView: View {
             case .participants: ParticipantFixtureHostView()
             case .play: PlayFixtureHostView()
             case .composer: MessageActionFixtureHost()
+            case .topic: TopicFixtureHostView()
             }
         }
     }

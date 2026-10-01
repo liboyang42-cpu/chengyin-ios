@@ -5,6 +5,7 @@ struct AccountView: View {
     @EnvironmentObject private var session: AppSession
     @State private var showsSettings=false
     @State private var confirmsLogout=false
+    @State private var showsMerchantApplication=false
     private var roleLabel: LocalizedStringKey {
         switch account.effectiveRole {
         case "merchant": return "account.role.merchant"
@@ -30,9 +31,12 @@ struct AccountView: View {
                         .accessibilityIdentifier("account.clubs")
                 }
                 Section {
-                    NavigationLink { MerchantHomeView(reader:session) } label: {
+                    NavigationLink { MerchantHomeView(reader:session,openApplication:{ showsMerchantApplication=true }) } label: {
                         Label("merchant.title",systemImage:"storefront")
                     }.accessibilityIdentifier("account.merchant")
+                    Button { showsMerchantApplication=true } label: {
+                        Label("merchant.onboarding.openApplication",systemImage:"doc.text")
+                    }.accessibilityIdentifier("account.merchantApplication")
                 }
                 Section {
                     Button("auth.signOut",role:.destructive) { confirmsLogout=true }
@@ -43,6 +47,9 @@ struct AccountView: View {
                 ToolbarItem(placement:.topBarTrailing) {
                     Button("settings.title",systemImage:"gearshape") { showsSettings=true }
                 }
+            }
+            .navigationDestination(isPresented:$showsMerchantApplication) {
+                MerchantOnboardingView(session:session,coordinator:session.merchantOnboardingCoordinator)
             }
             .sheet(isPresented:$showsSettings) { SettingsView() }
             .confirmationDialog("auth.signOutConfirm",isPresented:$confirmsLogout,titleVisibility:.visible) {

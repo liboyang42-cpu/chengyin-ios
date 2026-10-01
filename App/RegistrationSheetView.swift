@@ -33,6 +33,8 @@ struct RegistrationSheetView: View {
     }
     private var flow: RegistrationUIFlow { model.flow }
     var body: some View {
+        // Observe the controller notification even though its fields live in a reference type.
+        let _ = model.revision
         NavigationStack {
             Form {
                 if flow.creationPolicy.permitsCreation {

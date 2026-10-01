@@ -1,0 +1,45 @@
+# CN and US operational profiles
+
+## Scope
+
+One codebase, two explicit deployment profiles, both supporting English and Simplified Chinese. First launch defaults to Simplified Chinese for CN and English for US. An existing stored language, including System, takes precedence. Changing language does not migrate an account, select a backend, change a token, select an operational market, authorize a payment, or indicate the Apple storefront.
+
+`Core/RegionalConfiguration.swift` is a pure configuration foundation. It does not itself change app routing: complete the integration recipe below before claiming the UI follows regional restrictions.
+
+## Integration recipe
+
+1. Regenerate `Questify.xcodeproj` with `python3 tools/generate_project.py` after adding the Core source. Swift Package Manager already discovers it automatically.
+2. In the normal base build configuration, explicitly set `QUESTIFY_MARKET = CN` and `INFOPLIST_KEY_QuestifyMarket = $(QUESTIFY_MARKET)`. Use `Config/China.xcconfig` and `Config/UnitedStates.xcconfig` as build overlays, for example `xcodebuild ... -xcconfig Config/UnitedStates.xcconfig`. These profiles include the existing base configuration. They do not create Bundle IDs, targets, store apps or signing identities. Both deliberately leave `QUESTIFY_API_BASE_URL` empty. A command-line deployment override still requires reviewed endpoint approval.
+3. Resolve `RegionalConfiguration.market(buildValue:)` from the `QuestifyMarket` Info.plist string once at startup. Store the immutable result in session/container configuration. Missing or unknown metadata is an invalid/offline configuration; never silently choose a live CN or US backend.
+4. Construct `RegionalConfiguration(market:baseURL:approvedBaseURLs:verifiedCapabilities:)` once. Supply the existing `QuestifyAPIBaseURL` string as `baseURL`. `approvedBaseURLs` is a reviewed dictionary of exact HTTPS base URLs keyed by market, empty until approved; never derive it from the runtime URL itself. Do not invent hostnames, reuse the CN endpoint for US, or use wildcard/suffix matches. Exact port and path are included. Supply verified capabilities only after the corresponding regional backend contract is validated. An approved backend alone does not enable auth.
+5. Use `configuration.apiConfiguration` to construct read-only services independently from auth capability availability. Thus an approved US browse backend can work while US auth remains disabled. Do not change it on a language update. An unapproved endpoint must never reach an API service.
+6. Before constructing/injecting the legacy `AuthChannelService` or coordinator, require `configuration.canUseDomesticChinaPhone`. Also gate `sendSMSCode` and `loginWithPhone` entry points at the host session boundary; hiding buttons alone is insufficient. The existing coordinator and request validators accept CN domestic 11-digit numbers only. For US, hide this CN-specific phone form and do not normalize a US number into it. E.164 is a desired US contract, not an implemented request adapter or verified provider. Do not expose or enable unimplemented email/Apple/Google actions.
+7. Gate password login and registration/session-restoration contracts separately with `configuration.availability(of: .usernamePassword) == .available`. The current username/password contract belongs to the CN implementation; it must not be relabeled “email login” or sent to a US endpoint. Prevent cross-market token reuse before session restoration: choose an explicitly market-scoped credential namespace, with a separate reviewed migration of existing credentials. Language changes must not switch or clear credentials. This Core foundation does not migrate Keychain data.
+8. Initialize the language preference only when `UserDefaults.standard.object(forKey: "preferences.language") == nil`. Use `configuration.market.language(storedValue: UserDefaults.standard.string(forKey: "preferences.language"))`, then persist its raw value before SwiftUI creates the preference wrapper. Keep existing System choices as System. Retain the existing invalid-string fallback to System. Read-only operational-market text in Settings can explain why language changes leave login/payment options unchanged. Never add a user-controlled market switch tied to locale.
+9. Existing UI fixture tests may explicitly choose System/English in DEBUG reset handling; add separate first-install tests without that override for CN Chinese and US English. Exercise both language switches, relaunch, stored System, invalid market, hidden and programmatically rejected CN login in US, and unchanged market/backend/token identity after switching languages.
+
+## Capability contract
+
+`desiredCapabilities` describes a product plan, never an enablement list. `implementedCapabilities` currently contains only CN username/password and CN domestic-phone contracts. `availability(of:)` requires desired + implemented + configured approved endpoint + explicit contract verification. US auth is unavailable even if a caller passes every verification flag. Apple remains unavailable despite existing scaffold code until provider/entitlement/server validation is implemented and reviewed.
+
+`phoneContract` distinguishes CN domestic 11-digit input from proposed US international E.164 input. It does not validate numbers, dispatch requests, or assert SMS coverage. No new auth endpoints have been invented.
+
+Physical-event payment, digital-content payment and merchant payout are separate pending capabilities. All remain unavailable in both profiles, even if verification flags are mistakenly set. There is no OAuth, charge, payout or tax-identifier collection in this change.
+
+## Release and commercial decisions still open
+
+- The operational market is neither the UI language nor Apple's actual storefront. A US build or English UI cannot authorize a storefront-specific external digital-purchase link. Any later digital-goods flow must verify the actual relevant storefront and current platform policy; physical-event tickets and digital unlocks require separate classification.
+- One or two App Store listings is undecided. Two nearly identical apps distinguished only by location/language risk Apple's duplicate-app rules; these profiles deliberately create no additional listing or Bundle ID.
+- Apple/Google/email are desired US options only. A future third-party login implementation must review Apple's applicable equivalent-login requirements and verify its backend/provider configuration.
+- Legal entity, merchant-of-record, provider country eligibility, supported payer/payout-recipient countries, currency, settlement, refunds, tax onboarding, sanctions/compliance and cross-border data decisions require separate review. Whether the only entity is Shanghai-based, and whether payout recipients include China creators, are still unanswered. No flag here constitutes legal/financial approval or establishes provider eligibility.
+- Do not add SSN/EIN entry or storage. Provider-hosted onboarding, if later selected and approved, requires its own implementation and security review.
+
+## Verification
+
+Added eight pure Swift tests covering language persistence/defaults, explicit market parsing, no-default endpoints, exact per-market URL approval, configured versus verified CN auth, US fail-closed behavior, permanently pending payment/provider capabilities, and language/market independence. `python3 tools/generate_project.py` and `python3 tools/check_scaffold.py` passed in the Linux workspace. Swift/Xcode is absent here; the tests have not been compiled or executed here. Run `swift test` and both unsigned CN/US simulator builds on the authorized Mac/CI, then run the UI scenarios above. This foundation does not establish live backend/provider or store readiness.
+
+## Integrated application state
+
+The migration app now reads the operational profile independently from stored UI language. Config/Base.xcconfig explicitly selects CN; the US overlay changes only reviewed deployment settings. Both endpoints and the per-market approval registry remain empty. Settings displays the market read-only. The CN profile alone renders the retained domestic credential forms; the US profile explains pending adapters without exposing those forms. Auth services are gated at construction, not only by button visibility. Token Keychain services and restore tombstones use separate CN/US namespaces; old unscoped tokens are not imported.
+
+Two DEBUG-only UI tests exercise first-launch defaults, saved language preservation and the US absence of CN credential forms. Their market override cannot exist in a Release build. CI also compiles the US release profile unsigned; no Bundle ID, entitlement, payment account, legal acceptance or store listing is created by these profiles.

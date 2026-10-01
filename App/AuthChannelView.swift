@@ -14,18 +14,21 @@ struct AuthChannelView: View {
     private let onOpenAgreement: (() -> Void)?
     private let onOpenPrivacy: (() -> Void)?
     private let legalReleaseContentVerified: Bool
+    private let domesticPhoneVisible:Bool
 
     init(coordinator: AuthChannelCoordinator, sessionSnapshot: AuthChannelSessionSnapshot,
-         legalReleaseContentVerified: Bool = false,
+         domesticPhoneVisible:Bool=true, legalReleaseContentVerified: Bool = false,
          onOpenAgreement: (() -> Void)? = nil, onOpenPrivacy: (() -> Void)? = nil) {
         _model = StateObject(wrappedValue: AuthChannelModel(coordinator: coordinator))
         self.sessionSnapshot = sessionSnapshot
+        self.domesticPhoneVisible=domesticPhoneVisible
         self.legalReleaseContentVerified = legalReleaseContentVerified
         self.onOpenAgreement = onOpenAgreement; self.onOpenPrivacy = onOpenPrivacy
     }
     var body: some View {
         NavigationStack {
             Form {
+                if domesticPhoneVisible {
                 Section {
                     TextField("auth.channels.phone", text: $model.phone)
                         .keyboardType(.phonePad).textContentType(.telephoneNumber)
@@ -68,6 +71,7 @@ struct AuthChannelView: View {
                     .accessibilityIdentifier("auth.channels.phoneSignIn")
                 } header: { Text("auth.channels.phoneTitle") }
                   footer: { Text("auth.channels.codeLifetime") }
+                } else { Section { Text("region.usLoginPending").accessibilityIdentifier("region.auth.pending") } }
                 if model.state.smsSent {
                     Section { Label("auth.channels.smsSent", systemImage: "checkmark.circle") }
                 }

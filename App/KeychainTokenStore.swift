@@ -4,7 +4,10 @@ import Security
 /// New native bundle uses its own Keychain namespace. No implicit Flutter session migration.
 struct KeychainTokenStore {
     enum StoreError: Error { case status(OSStatus), invalidToken }
-    private let service = (Bundle.main.bundleIdentifier ?? "Questify") + ".session"
+    private let service:String
+    init(market:RegionalMarket?) {
+        service=(Bundle.main.bundleIdentifier ?? "Questify") + ".session." + (market?.rawValue ?? "unconfigured")
+    }
     private let account = "session-token"
     private var query: [String: Any] {
         [kSecClass as String:kSecClassGenericPassword,

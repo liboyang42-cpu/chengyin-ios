@@ -3,11 +3,14 @@ import SwiftUI
 @main
 struct QuestifyApp: App {
     @StateObject private var sessionContainer = AppSessionContainer()
-    @AppStorage("preferences.language") private var storedLanguage = AppLanguage.system.rawValue
+    @AppStorage("preferences.language") private var storedLanguage:String?
     init() {
         #if DEBUG
         if ProcessInfo.processInfo.arguments.contains("--uitesting-reset-language") {
-            UserDefaults.standard.removeObject(forKey: "preferences.language")
+            UserDefaults.standard.set(AppLanguage.system.rawValue,forKey:"preferences.language")
+        }
+        if ProcessInfo.processInfo.arguments.contains("--uitesting-first-launch-language") {
+            UserDefaults.standard.removeObject(forKey:"preferences.language")
         }
         #endif
     }
@@ -19,6 +22,8 @@ struct QuestifyApp: App {
                     ActivityFixtureRootView(scenario:scenario)
                 } else if let merchant=MerchantFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) {
                     MerchantFixtureRootView(scenario:merchant)
+                } else if let onboarding=MerchantOnboardingFixtureRoot.selected(arguments:ProcessInfo.processInfo.arguments) {
+                    MerchantOnboardingFixtureRoot(name:onboarding)
                 } else if let club=ClubFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) {
                     ClubFixtureRootView(scenario:club)
                 } else if let clubAction=ClubActionFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) {
@@ -36,7 +41,7 @@ struct QuestifyApp: App {
                 }
                 #endif
             }
-            .environment(\.locale, AppLanguage(storedValue: storedLanguage).locale)
+            .environment(\.locale, RegionalLaunchConfiguration.language(storedLanguage).locale)
             .tint(.purple)
         }
     }
@@ -51,6 +56,7 @@ private final class AppSessionContainer: ObservableObject {
         #if DEBUG
         if ActivityFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||
            MerchantFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil || ModuleFixture.selected != nil ||
+           MerchantOnboardingFixtureRoot.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||
            ClubFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||
            ClubActionFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||
            RegistrationFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil {
@@ -77,7 +83,7 @@ private struct SessionRootView: View {
         Group {
             if session.account != nil || browsingAsGuest {
                 TabView(selection:$selectedTab) {
-                    DiscoveryHomeView(reader:session).tabItem { Label("discovery.title",systemImage:"sparkle.magnifyingglass") }.tag(0)
+                    DiscoveryHomeView(reader:session,topicBrowsingEnabled:true).tabItem { Label("discovery.title",systemImage:"sparkle.magnifyingglass") }.tag(0)
                     ActivityBrowserView(reader:session,playReaderForActivity:{ session.playReader(for:.activity($0)) },registrationEnabled:true).tabItem { Label("activity.browse",systemImage:"map") }.tag(1)
                     RoamBrowserView(reader:session.roamReader,onChooseArea:{ showsAreaPicker=true })
                         .tabItem { Label("roam.title",systemImage:"map") }.tag(3)

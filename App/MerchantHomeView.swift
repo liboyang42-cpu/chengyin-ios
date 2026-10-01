@@ -4,6 +4,7 @@ import SwiftUI
 @MainActor
 struct MerchantHomeView<Reader: MerchantReading>: View {
     @ObservedObject var reader: Reader
+    var openApplication: (() -> Void)? = nil
     @StateObject private var access = MerchantLoadModel<MerchantAccess>()
 
     var body: some View {
@@ -23,6 +24,10 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
                             Text(LocalizedStringKey(identity.application?.titleKey ?? "merchant.access.inactive"))
                                 .accessibilityIdentifier("merchant.access.inactive")
                             Text("merchant.access.inactiveHint").foregroundStyle(.secondary)
+                        }
+                        if let openApplication {
+                            Button("merchant.onboarding.openApplication", action: openApplication)
+                                .accessibilityIdentifier("merchant.onboarding.entry")
                         }
                         Button("merchant.refreshAccess") { Task { await reload() } }
                             .accessibilityIdentifier("merchant.access.refresh")

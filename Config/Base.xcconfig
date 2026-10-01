@@ -15,6 +15,8 @@ CODE_SIGN_STYLE = Automatic
 // No ATS relaxation, credentials, service endpoints, capabilities, or entitlements.
 
 // Set only an approved public API base URL; never put secrets in build settings.
+QUESTIFY_MARKET = CN
+INFOPLIST_KEY_QuestifyMarket = $(QUESTIFY_MARKET)
 QUESTIFY_API_BASE_URL =
 INFOPLIST_KEY_QuestifyAPIBaseURL = $(QUESTIFY_API_BASE_URL)
 

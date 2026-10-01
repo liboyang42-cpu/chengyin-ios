@@ -93,3 +93,19 @@ Run 36874733922 at f521ac9 passed domain/build and secrets jobs, with 19/22 UI t
 ## Club action integration (awaiting CI)
 
 Join/application/reapplication and leave now use a stable session-owned coordinator, fresh rights checks, native confirmation, conservative uncertain-outcome locks and server membership readback. Unknown receipt and current membership remain separate facts. Added 50 synthetic domain tests and three offline UI cases; totals are 479 authored domain tests, 25 UI cases and 760 bilingual catalog keys. No real membership request was sent. Six Python structural tests and scaffold checks pass locally; Apple compilation and simulator execution for this batch remain pending.
+
+## Fifth batch verification in progress
+
+Run 36879776914 at b596b6b has passed all 479 domain tests, both unsigned app builds and secret scanning. The 25-case simulator job is still running; this is not a full green result. A subsequent uncommitted workflow change prepares one-day, synthetic-only screenshot artifacts for visual inspection and boots the simulator before UI readiness checks. Neither screenshot export nor visual acceptance has yet been verified.
+
+## Merchant application slice (awaiting CI)
+
+The native four-step application/status flow now has Account and MerchantHome entry points, a retained session-scoped coordinator, separately confirmed license upload and frozen application submission, rejected-data backfill, and explicit pending/activation/effective/disabled states. Forty-one new core tests and three offline UI cases are authored (520 core / 28 UI total before the next topic slice); 848 bilingual keys are present. Existing registered identities can use the source contract only after approved backend configuration and acceptance. New US identity enrollment remains blocked because the retained source supports a Chinese resident-ID prerequisite rather than a verified international enrollment contract. No real document selection/upload, personal-data transmission, submission or approval was performed.
+
+## Fifth UI result and regional/topic batch
+
+Run 36879776914 finished with 21/25 UI cases passing. The previous activity readiness and composer receipt cases pass. Three new club-action cases reached a visible native confirmation sheet but could not target its nested confirmation buttons; their selectors are being corrected without removing mutation-count or membership assertions. Registration diagnostics show the outer consent Toggle row remained off: its actual nested UISwitch must be tapped. The review remained correctly disabled. These corrections still require another simulator run.
+
+The subsequent integrated batch adds read-only public route/topic pagination, supplied chapter/node stories, tickets/comments and explicit locked/unavailable states. It performs no purchase, like, start, hidden-chapter or Play.nodes request. Thirteen domain tests and two UI cases are authored.
+
+CN/US operational profiles now remain independent of UI language. CN defaults Chinese, US English; saved English/Chinese/System choices remain available. Market metadata fails closed, endpoints require an independently reviewed per-market allowlist (currently empty), and credentials/tombstones are namespaced by market with no automatic legacy migration. Existing CN phone/password adapters cannot dispatch from the US profile. US authentication and all payment/payout capabilities remain blocked pending actual contracts/provider/entity verification. Eight regional domain tests and two entry UI cases are authored. There are 541 authored core tests, 32 UI cases and 897 bilingual keys after these integrations. Compile/runtime verification for this batch is pending.

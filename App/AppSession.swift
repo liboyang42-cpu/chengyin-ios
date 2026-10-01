@@ -7,7 +7,11 @@ final class AppSession: ObservableObject {
     @Published private(set) var isWorking = false
     @Published private(set) var errorKey: String?
     private var gate = SessionOperationGate()
-    private let vault = KeychainTokenStore()
+    private let vault:KeychainTokenStore
+    let regionalConfiguration:RegionalConfiguration?
+    var operationalMarket:RegionalMarket? { regionalConfiguration?.market ?? RegionalLaunchConfiguration.market }
+    var canUsePassword:Bool { regionalConfiguration?.availability(of:.usernamePassword) == .available }
+    var supportsDomesticPhoneInput:Bool { operationalMarket == .china }
     private let service: AuthService?
     private let activityService: ActivityService?
     private let registrationBackend: any RegistrationCoordinatingService
@@ -51,7 +55,19 @@ final class AppSession: ObservableObject {
         self.token=result.token;self.account=result.account;self.errorKey=nil
         self.participantCoordinator.synchronizeSession();self.synchronizeRegistration()
         self.clubActionCoordinator.synchronizeSession()
+        self.merchantOnboardingCoordinator.synchronizeSession()
         return true
+    })
+    private let topicService: TopicService?
+    private var currentTopicSession: TopicReadSession? {
+        guard let account, let token else { return nil }
+        return try? TopicReadSession(accountID:account.id,epoch:gate.currentStamp,token:token)
+    }
+    lazy var topicReader=TopicSessionReader(service:topicService,currentSession:{ [weak self] in
+        self?.currentTopicSession
+    },onUnauthorized:{ [weak self] snapshot in
+        guard let self,self.currentTopicSession == snapshot else { return }
+        self.expireIfMatching(error:APIError.unauthorized,stamp:snapshot.epoch,credential:self.token)
     })
     private let discoveryService: DiscoveryService?
     private let profileService: ProfileService?
@@ -68,6 +84,19 @@ final class AppSession: ObservableObject {
         self?.participantRevision &+= 1
     })
     private let merchantService: MerchantService?
+    private let merchantOnboardingService: MerchantOnboardingService?
+    private var currentMerchantOnboardingSession: MerchantOnboardingSession? {
+        guard let account, let token else { return nil }
+        return try? MerchantOnboardingSession(accountID: account.id, epoch: gate.currentStamp, token: token)
+    }
+    lazy var merchantOnboardingAdapter = MerchantOnboardingSessionAdapter(service: merchantOnboardingService, currentSession: { [weak self] in
+        self?.currentMerchantOnboardingSession
+    }, onUnauthorized: { [weak self] snapshot in
+        guard let self, self.currentMerchantOnboardingSession == snapshot else { return }
+        self.expireIfMatching(error: APIError.unauthorized, stamp: snapshot.identity.epoch, credential: self.token)
+    })
+    // Retained outside navigation so unresolved submissions cannot be replayed by reopening.
+    lazy var merchantOnboardingCoordinator = MerchantOnboardingCoordinator(server: merchantOnboardingAdapter)
     private let clubService: ClubService?
     private let clubActionService: ClubActionService?
     @Published private(set) var clubMembershipRevision: UInt64 = 0
@@ -141,28 +170,34 @@ final class AppSession: ObservableObject {
     })
     private var token: String?
     private var didBootstrap = false
-    private let restoreBlockedKey = "session.preventRestore"
-    var isConfigured: Bool { service != nil }
+    private let restoreBlockedKey:String
+    var isConfigured: Bool { regionalConfiguration?.apiConfiguration != nil }
 
     init() {
-        if let value=Bundle.main.object(forInfoDictionaryKey:"QuestifyAPIBaseURL") as? String,
-           let url=URL(string:value), let configuration=try? APIConfiguration(baseURL:url) {
+        let regional=RegionalLaunchConfiguration.configuration
+        regionalConfiguration=regional
+        let market=regional?.market ?? RegionalLaunchConfiguration.market
+        vault=KeychainTokenStore(market:market)
+        restoreBlockedKey="session.preventRestore." + (market?.rawValue ?? "unconfigured")
+        if let configuration=regional?.apiConfiguration {
             let transport=URLSessionTransport()
-            service=AuthService(configuration:configuration,transport:transport)
-            authChannelService=AuthChannelService(configuration:configuration,transport:transport)
+            service=regional?.availability(of:.usernamePassword) == .available ? AuthService(configuration:configuration,transport:transport) : nil
+            authChannelService=regional?.canUseDomesticChinaPhone == true ? AuthChannelService(configuration:configuration,transport:transport) : nil
             activityService=ActivityService(configuration:configuration,transport:transport)
             registrationBackend=RegistrationService(configuration:configuration,transport:transport)
             playService=PlayService(configuration:configuration,transport:transport)
+            topicService=TopicService(configuration:configuration,transport:transport)
             discoveryService=DiscoveryService(configuration:configuration,transport:transport)
             profileService=ProfileService(configuration:configuration,transport:transport)
             participantService=ParticipantService(configuration:configuration,transport:transport)
             merchantService=MerchantService(configuration:configuration,transport:transport)
+            merchantOnboardingService=MerchantOnboardingService(configuration:configuration,transport:transport)
             clubService=ClubService(configuration:configuration,transport:transport)
             clubActionService=ClubActionService(configuration:configuration,transport:transport)
             roamService=RoamService(configuration:configuration,transport:transport)
             messagingService=MessagingService(configuration:configuration,transport:transport)
             messageActionService=MessageActionService(configuration:configuration,transport:transport)
-        } else { service=nil;authChannelService=nil;activityService=nil;registrationBackend=UnconfiguredRegistrationBackend();playService=nil;discoveryService=nil;profileService=nil;participantService=nil;merchantService=nil;clubService=nil;clubActionService=nil;roamService=nil;messagingService=nil;messageActionService=nil }
+        } else { service=nil;authChannelService=nil;activityService=nil;registrationBackend=UnconfiguredRegistrationBackend();playService=nil;topicService=nil;discoveryService=nil;profileService=nil;participantService=nil;merchantService=nil;merchantOnboardingService=nil;clubService=nil;clubActionService=nil;roamService=nil;messagingService=nil;messageActionService=nil }
     }
 
     func bootstrap() async {
@@ -175,6 +210,7 @@ final class AppSession: ObservableObject {
         }
         let operation=gate.begin(.bootstrap)
         clubActionCoordinator.synchronizeSession()
+        merchantOnboardingCoordinator.synchronizeSession()
         isWorking=true
         defer { if gate.isCurrent(operation) { isWorking=false;gate.finish(operation) } }
         do {
@@ -184,6 +220,7 @@ final class AppSession: ObservableObject {
             token=saved;account=restored
             participantCoordinator.synchronizeSession();synchronizeRegistration()
             clubActionCoordinator.synchronizeSession()
+            merchantOnboardingCoordinator.synchronizeSession()
         } catch {
             guard gate.isCurrent(operation) else { return }
             if error as? APIError == .unauthorized {
@@ -200,6 +237,7 @@ final class AppSession: ObservableObject {
         guard let service else { errorKey="auth.notConfigured";return }
         let operation=gate.begin(.login)
         clubActionCoordinator.synchronizeSession()
+        merchantOnboardingCoordinator.synchronizeSession()
         isWorking=true;errorKey=nil
         defer { if gate.isCurrent(operation) { isWorking=false;gate.finish(operation) } }
         do {
@@ -210,6 +248,7 @@ final class AppSession: ObservableObject {
             token=result.token;account=result.account
             participantCoordinator.synchronizeSession();synchronizeRegistration()
             clubActionCoordinator.synchronizeSession()
+            merchantOnboardingCoordinator.synchronizeSession()
         } catch {
             guard gate.isCurrent(operation) else { return }
             errorKey=Self.messageKey(for:error)
@@ -217,7 +256,7 @@ final class AppSession: ObservableObject {
     }
 
     func cancelPendingLogin() {
-        if gate.cancelLogin() { isWorking=false;errorKey=nil;clubActionCoordinator.synchronizeSession() }
+        if gate.cancelLogin() { isWorking=false;errorKey=nil;clubActionCoordinator.synchronizeSession();merchantOnboardingCoordinator.synchronizeSession() }
     }
 
     func logout() async {
@@ -230,6 +269,7 @@ final class AppSession: ObservableObject {
         roamArea=nil;token=nil;account=nil;isWorking=false;errorKey=nil
         participantCoordinator.synchronizeSession();synchronizeRegistration()
         clubActionCoordinator.synchronizeSession()
+        merchantOnboardingCoordinator.synchronizeSession()
         do { try vault.clear() } catch { errorKey="auth.storageError" }
         if let service, let oldToken {
             // Captured old credential only. Completion cannot mutate a newer login.
@@ -271,6 +311,7 @@ final class AppSession: ObservableObject {
         roamArea=nil;token=nil;account=nil;isWorking=false;errorKey="auth.expired"
         participantCoordinator.synchronizeSession();synchronizeRegistration()
         clubActionCoordinator.synchronizeSession()
+        merchantOnboardingCoordinator.synchronizeSession()
         try? vault.clear()
     }
 
@@ -356,3 +397,6 @@ extension AppSession: ClubReading {
     func create(_ intent:RegistrationCreateIntent,token:String) async throws -> RegistrationCreateResult { throw APIError.notConfigured }
     func readStatus(registrationID:Int,token:String) async throws -> RegistrationStatusSnapshot { throw APIError.notConfigured }
 }
+
+// Registration intent is navigation only; merchant authorization still comes from access/me.
+extension AppSession: MerchantOnboardingObserving {}

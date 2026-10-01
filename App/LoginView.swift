@@ -16,6 +16,7 @@ struct LoginView: View {
                 Section {
                     Text(intent == .merchant ? LocalizedStringKey("auth.merchantNotice") : LocalizedStringKey("auth.playerNotice"))
                 }
+                if session.operationalMarket == .china {
                 Section("auth.existingAccount") {
                     TextField("auth.username",text:$username)
                         .textContentType(.username).textInputAutocapitalization(.never)
@@ -33,9 +34,10 @@ struct LoginView: View {
                             if session.isWorking { ProgressView() }
                         }
                     }
-                    .disabled(!session.isConfigured || session.isWorking || username.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty || password.isEmpty)
+                    .disabled(!session.canUsePassword || session.isWorking || username.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty || password.isEmpty)
                     .accessibilityIdentifier("auth.signIn")
                 }
+                } else { Section { Text("region.usLoginPending").accessibilityIdentifier("region.auth.pending") } }
                 if !session.isConfigured {
                     Section { Label("auth.notConfigured",systemImage:"info.circle") }
                 }
@@ -58,7 +60,7 @@ struct LoginView: View {
                 }
             }
             .sheet(isPresented:$showsOtherSignIn) {
-                AuthChannelView(coordinator:session.authChannels,sessionSnapshot:session.authChannelSnapshot)
+                AuthChannelView(coordinator:session.authChannels,sessionSnapshot:session.authChannelSnapshot,domesticPhoneVisible:session.supportsDomesticPhoneInput)
             }
             .interactiveDismissDisabled(session.isWorking)
             .onChange(of:session.account?.id) { _,newID in if newID != nil { password="";dismiss() } }
@@ -66,7 +68,7 @@ struct LoginView: View {
         }
     }
     private func submit() {
-        guard session.isConfigured, !session.isWorking,
+        guard session.canUsePassword, !session.isWorking,
               !username.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty, !password.isEmpty else { return }
         focusedField=nil
         let name=username, credential=password

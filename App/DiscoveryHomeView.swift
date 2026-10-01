@@ -4,12 +4,15 @@ import SwiftUI
 @MainActor
 struct DiscoveryHomeView: View {
     let reader: any DiscoveryReading
+    var topicBrowsingEnabled=false
+    @State private var showsTopics=false
     private let onBannerDestination: ((DiscoveryBanner.Destination) -> Void)?
     @StateObject private var banners = DiscoveryLoader<[DiscoveryBanner]>()
     @StateObject private var home = DiscoveryLoader<DiscoveryTemplateHome>()
 
-    init(reader: any DiscoveryReading, onBannerDestination: ((DiscoveryBanner.Destination) -> Void)? = nil) {
+    init(reader: any DiscoveryReading, topicBrowsingEnabled:Bool=false, onBannerDestination: ((DiscoveryBanner.Destination) -> Void)? = nil) {
         self.reader = reader
+        self.topicBrowsingEnabled=topicBrowsingEnabled
         self.onBannerDestination = onBannerDestination
     }
 
@@ -21,6 +24,10 @@ struct DiscoveryHomeView: View {
                 } else {
                     List {
                         Section {
+                            if topicBrowsingEnabled {
+                                Button { showsTopics=true } label: { Label("topic.title",systemImage:"map") }
+                                    .accessibilityIdentifier("discovery.openRoutes")
+                            }
                             NavigationLink {
                                 DiscoveryTemplateBrowserView(reader: reader)
                             } label: {
@@ -47,6 +54,7 @@ struct DiscoveryHomeView: View {
                     .refreshable { await reload() }
                 }
             }
+            .sheet(isPresented:$showsTopics) { SessionTopicBrowserView() }
             .navigationTitle("discovery.title")
             .task { if reader.isConfigured { await reload() } }
         }

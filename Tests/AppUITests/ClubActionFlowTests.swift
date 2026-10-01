@@ -33,9 +33,28 @@ final class ClubActionFlowTests: XCTestCase {
     private func confirm(_ action: String) {
         let button = app.buttons["club.action." + action]
         reveal(button); tap(button)
-        let confirmation = app.buttons["club.action.confirm"]
-        XCTAssertTrue(confirmation.waitForExistence(timeout: 5), app.debugDescription)
+        // iOS 26 presents this native confirmation as a popover containing a sheet.
+        // Its accessibility tree exposes both a wrapper and the actionable button with
+        // this identifier. Resolve a hittable descendant inside the actual dialog,
+        // rather than asking the ambiguous application-wide query for one element.
+        let dialog = app.sheets.firstMatch
+        XCTAssertTrue(dialog.waitForExistence(timeout: 5), app.debugDescription)
+        let title = action == "apply" ? "Apply to join" : action == "leave" ? "Leave club" : "Join club"
+        XCTAssertEqual(dialog.label, title)
+        let target = dialog.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "Fixture club")).firstMatch
+        XCTAssertTrue(target.exists, "The native dialog must name the club being changed")
         assertCount(0)
+        let matches = dialog.buttons.matching(identifier: "club.action.confirm")
+        let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            matches.allElementsBoundByIndex.contains { $0.exists && $0.isEnabled && $0.isHittable }
+        }, object: dialog)
+        capture("Club confirmation before dispatch – " + action)
+        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 10), .completed, app.debugDescription)
+        guard let confirmation = matches.allElementsBoundByIndex.reversed().first(where: { $0.exists && $0.isEnabled && $0.isHittable }) else {
+            XCTFail("No enabled, hittable confirmation button in the presented native sheet: " + app.debugDescription)
+            return
+        }
+        XCTAssertEqual(confirmation.label, title)
         tap(confirmation)
     }
     private func capture(_ name: String) {

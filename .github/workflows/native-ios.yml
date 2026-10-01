@@ -44,6 +44,14 @@ jobs:
             -destination 'generic/platform=iOS' \
             -derivedDataPath "$RUNNER_TEMP/questify-device" \
             CODE_SIGNING_ALLOWED=NO build
+      - name: Compile US regional profile (unsigned)
+        run: |
+          xcodebuild -project Questify.xcodeproj -scheme Questify \
+            -configuration Release -sdk iphoneos \
+            -xcconfig Config/UnitedStates.xcconfig \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "$RUNNER_TEMP/questify-us-device" \
+            CODE_SIGNING_ALLOWED=NO build
   secrets:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -79,10 +87,33 @@ jobs:
               f.write('TEST_SIMULATOR_ID='+chosen['udid']+'\n')
           print('Selected simulator:',chosen['name'])
           PY
+      - name: Boot simulator before UI readiness checks
+        run: xcrun simctl bootstatus "$TEST_SIMULATOR_ID" -b
       - name: Test native module flows and session boundaries
         run: |
           xcodebuild -project Questify.xcodeproj -scheme Questify \
             -configuration Debug -destination "platform=iOS Simulator,id=$TEST_SIMULATOR_ID" \
             -derivedDataPath "$RUNNER_TEMP/questify-ui-tests" \
+            -resultBundlePath "$RUNNER_TEMP/questify-ui-results.xcresult" \
             -parallel-testing-enabled NO \
             CODE_SIGNING_ALLOWED=NO test
+      - name: Export offline fixture screenshots
+        if: always()
+        run: |
+          if [ -d "$RUNNER_TEMP/questify-ui-results.xcresult" ]; then
+            xcrun xcresulttool export attachments \
+              --path "$RUNNER_TEMP/questify-ui-results.xcresult" \
+              --output-path "$RUNNER_TEMP/questify-ui-attachments"
+          fi
+      - name: Retain synthetic UI screenshots briefly
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: offline-ui-screenshots-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/questify-ui-attachments/**/*.png
+            ${{ runner.temp }}/questify-ui-attachments/**/*.jpg
+            ${{ runner.temp }}/questify-ui-attachments/**/manifest.json
+          if-no-files-found: warn
+          retention-days: 1
+          compression-level: 0

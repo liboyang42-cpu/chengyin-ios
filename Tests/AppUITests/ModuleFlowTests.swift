@@ -141,7 +141,10 @@ final class ModuleFlowTests: XCTestCase {
         XCTAssertTrue(app.navigationBars["Activity registration"].waitForExistence(timeout:10))
         let consent=app.switches["registration.form.consent"]
         for _ in 0..<8 { if consent.exists && consent.isHittable { break };app.swipeUp() }
-        tap(consent)
+        // iOS exposes both the full Toggle row and its UISwitch child. Tap the
+        // actual switch: tapping the row's text activation point need not toggle it.
+        let control=consent.switches.firstMatch
+        tap(control.exists ? control : consent)
         let review=app.buttons["registration.form.review"]
         for _ in 0..<3 { if review.exists && review.isHittable { break };app.swipeUp() }
         XCTAssertEqual(consent.value as? String,"1",app.debugDescription)
