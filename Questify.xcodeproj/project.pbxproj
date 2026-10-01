@@ -5,6 +5,26 @@
 	};
 	"objectVersion" = 56;
 	"objects" = {
+		"7FE110A1B16F1C76E2B44EAB" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/AccountView.swift";
+			"sourceTree" = "<group>";
+		};
+		"64813A2E149DC6AB711E2D08" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "7FE110A1B16F1C76E2B44EAB";
+		};
+		"66549DA0D0592DA5EE9730F5" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/AppSession.swift";
+			"sourceTree" = "<group>";
+		};
+		"ECD2264D1FFB6B568359A80B" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "66549DA0D0592DA5EE9730F5";
+		};
 		"490C9C54035456EAE4C8AA3C" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -14,6 +34,16 @@
 		"ECDA26536837E6D6B882ED12" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "490C9C54035456EAE4C8AA3C";
+		};
+		"B435788993D860E24976C9CE" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/LoginView.swift";
+			"sourceTree" = "<group>";
+		};
+		"7F1BDE17F75E817CC8DBFD44" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "B435788993D860E24976C9CE";
 		};
 		"44FF6526D3EDDFF8AA848DB9" = {
 			"isa" = "PBXFileReference";
@@ -139,7 +169,10 @@
 		"19F479106CE8C3BA8C106518" = {
 			"isa" = "PBXGroup";
 			"children" = (
+				"7FE110A1B16F1C76E2B44EAB",
+				"66549DA0D0592DA5EE9730F5",
 				"490C9C54035456EAE4C8AA3C",
+				"B435788993D860E24976C9CE",
 				"44FF6526D3EDDFF8AA848DB9",
 				"26784887E03A250B06027F4D",
 				"A2BE8FFFF74D7C463766EE66",
@@ -159,7 +192,10 @@
 			"isa" = "PBXSourcesBuildPhase";
 			"buildActionMask" = 2147483647;
 			"files" = (
+				"64813A2E149DC6AB711E2D08",
+				"ECD2264D1FFB6B568359A80B",
 				"ECDA26536837E6D6B882ED12",
+				"7F1BDE17F75E817CC8DBFD44",
 				"D5A32CFBA3E396C0AED0C327",
 				"726B017AB0C8377AA9E03CB7",
 				"2EE67CDA63671CFD5FF1290C",

@@ -10,7 +10,7 @@ SwiftUI-first iOS app, with UIKit bridges only when a feature needs them. Indepe
 - English / Chinese String Catalog, three SwiftUI previews
 - Pure Swift domain test package; dependency-free Xcode project
 
-Registration currently opens an explicitly labeled **not connected** screen. No authentication, merchant authorization, API call, account creation, payment, or live data is implemented. UI behavior and accessibility have not yet been exercised on a simulator/device.
+Registration intent opens an existing-account sign-in form. The service address is deliberately unset, so sign-in is disabled until an approved endpoint is configured. Password login, current-account restoration and logout code are wired, but no live backend validation has been performed. New account registration, third-party sign-in, merchant application and business screens remain pending. UI behavior and accessibility have not yet been exercised on a simulator/device.
 
 ## Build and test (requires an approved toolchain)
 
