@@ -39,3 +39,7 @@ These Python checks do not compile Swift or demonstrate a working iOS app. See `
 ## Repository and security boundary
 
 Target repository: `chengyin-ios` (public). Flutter history, deployment scripts, signing material and third-party artwork have not been copied. No open-source license has been assigned to this new code without an ownership decision.
+
+## CI scope
+
+`Native iOS checks` uses GitHub-hosted macOS for pure Swift unit tests and unsigned simulator/device compilation, plus a separate read-only Gitleaks job. It does not run UI interaction tests, connect a production backend, sign an IPA or upload to a store. No release credentials or build artifacts are used. A successful compile alone is not product acceptance.
