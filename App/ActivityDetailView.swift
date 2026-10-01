@@ -6,6 +6,8 @@ struct ActivityDetailView: View {
     let id: Int
     let reader: any ActivityReading
     var playReaderForActivity: ((Int)->PlaySessionReader)? = nil
+    var registrationEnabled=false
+    @State private var showsRegistration=false
     @State private var access: ActivityDetailAccess?
     @State private var loading=false
     @State private var failed=false
@@ -43,6 +45,9 @@ struct ActivityDetailView: View {
         .navigationTitle("activity.details")
         .navigationBarTitleDisplayMode(.inline)
         .task(id:id) { await load() }
+        .sheet(isPresented:$showsRegistration) {
+            if let access,case .allowed(let detail)=access { SessionRegistrationSheet(activity:detail) }
+        }
     }
     private func detailContent(_ detail:ActivityDetail) -> some View {
         List {
@@ -86,6 +91,12 @@ struct ActivityDetailView: View {
                     NavigationLink { PlaySessionView(reader:playReaderForActivity(id)) } label: {
                         Label("play.openSession",systemImage:"figure.walk")
                     }.accessibilityIdentifier("activity.openPlay")
+                }
+            }
+            if registrationEnabled {
+                Section {
+                    Button("registration.form.title") { showsRegistration=true }
+                        .accessibilityIdentifier("activity.openRegistration")
                 }
             }
             Section {

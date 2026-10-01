@@ -10,6 +10,7 @@ struct MessagingHistoryView: View {
     let conversationID: Int
     let conversation: MessagingConversation?
     let reader: any MessagingReading
+    let sender: MessageActionCoordinator?
     @State private var history: MessagingHistory
     @State private var loadedIdentity: MessagingReadIdentity?
     @State private var isLoading = true
@@ -19,8 +20,8 @@ struct MessagingHistoryView: View {
     @State private var generation: UInt64 = 0
     @State private var visibleMessageID: Int?
 
-    init(conversationID: Int, conversation: MessagingConversation? = nil, reader: any MessagingReading) {
-        self.conversationID = conversationID; self.conversation = conversation; self.reader = reader
+    init(conversationID: Int, conversation: MessagingConversation? = nil, reader: any MessagingReading, sender:MessageActionCoordinator?=nil) {
+        self.conversationID = conversationID; self.conversation = conversation; self.reader = reader;self.sender=sender
         _history = State(initialValue: MessagingHistory(conversationID: conversationID))
     }
     var body: some View {
@@ -39,6 +40,13 @@ struct MessagingHistoryView: View {
                 transcript
             } else {
                 ProgressView("messaging.loading")
+            }
+        }
+        .safeAreaInset(edge:.bottom) {
+            if let sender {
+                MessageActionComposer(coordinator:sender,identity:reader.identity,conversationReady:loadedIdentity != nil && loadedIdentity == reader.identity && !isLoading && issue == nil) { _ in
+                    Task { await reload() }
+                }
             }
         }
         .privacySensitive()
@@ -67,7 +75,7 @@ struct MessagingHistoryView: View {
     private var transcript: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 16) {
-                Text("messaging.readOnly").font(.footnote).foregroundStyle(.secondary)
+                if sender == nil { Text("messaging.readOnly").font(.footnote).foregroundStyle(.secondary) }
                 if history.hasMore {
                     if isLoadingEarlier {
                         ProgressView("messaging.loadingEarlier").accessibilityIdentifier("messaging.history.loadingEarlier")

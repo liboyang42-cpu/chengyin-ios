@@ -10,6 +10,17 @@ final class AppSession: ObservableObject {
     private let vault = KeychainTokenStore()
     private let service: AuthService?
     private let activityService: ActivityService?
+    private let registrationBackend: any RegistrationCoordinatingService
+    private var registrationIdentity: ProfileReadIdentity?
+    private lazy var retainedRegistration=RegistrationCoordinator(service:registrationBackend)
+    var registrationCoordinator: RegistrationCoordinator { synchronizeRegistration();return retainedRegistration }
+    private func synchronizeRegistration() {
+        let identity=profileReader.identity
+        guard registrationIdentity != identity else { return }
+        registrationIdentity=identity
+        if let identity,let token { try? retainedRegistration.setAccount(id:identity.accountID,token:token) }
+        else { retainedRegistration.clearAccount() }
+    }
     private let playService: PlayService?
     private struct PlayReaderKey: Hashable { let accountID:Int?;let scope:PlaySessionScope }
     private var playReaders:[PlayReaderKey:PlaySessionReader]=[:]
@@ -38,7 +49,7 @@ final class AppSession: ObservableObject {
         self.gate.invalidate()
         UserDefaults.standard.set(false,forKey:self.restoreBlockedKey)
         self.token=result.token;self.account=result.account;self.errorKey=nil
-        self.participantCoordinator.synchronizeSession()
+        self.participantCoordinator.synchronizeSession();self.synchronizeRegistration()
         return true
     })
     private let discoveryService: DiscoveryService?
@@ -59,6 +70,23 @@ final class AppSession: ObservableObject {
     private let clubService: ClubService?
     private let roamService: RoamService?
     private let messagingService: MessagingService?
+    private let messageActionService: MessageActionService?
+    private struct MessageSenderKey: Hashable { let accountID:Int;let conversationID:Int }
+    private var messageSenders:[MessageSenderKey:MessageActionCoordinator]=[:]
+    lazy var messageWriter=MessageSessionWriter(service:messageActionService,currentSession:{ [weak self] in
+        guard let self,let account=self.account,let token=self.token else { return nil }
+        return try? MessageActionSession(accountID:account.id,epoch:self.gate.currentStamp,token:token)
+    },onUnauthorized:{ [weak self] snapshot in
+        guard let self else { return }
+        self.expireIfMatching(error:APIError.unauthorized,stamp:snapshot.identity.epoch,credential:self.token)
+    })
+    func messageSender(for conversationID:Int) -> MessageActionCoordinator? {
+        guard conversationID>0,let account else { return nil }
+        let key=MessageSenderKey(accountID:account.id,conversationID:conversationID)
+        if let sender=messageSenders[key] { return sender }
+        let sender=MessageActionCoordinator(accountID:account.id,conversationID:conversationID,writer:messageWriter)
+        messageSenders[key]=sender;return sender
+    }
     lazy var messagingReader=MessagingSessionReader(service:messagingService,currentSession:{ [weak self] in
         guard let self, let account=self.account, let token=self.token else { return nil }
         return try? MessagingReadSession(accountID:account.id,epoch:self.gate.currentStamp,token:token)
@@ -105,6 +133,7 @@ final class AppSession: ObservableObject {
             service=AuthService(configuration:configuration,transport:transport)
             authChannelService=AuthChannelService(configuration:configuration,transport:transport)
             activityService=ActivityService(configuration:configuration,transport:transport)
+            registrationBackend=RegistrationService(configuration:configuration,transport:transport)
             playService=PlayService(configuration:configuration,transport:transport)
             discoveryService=DiscoveryService(configuration:configuration,transport:transport)
             profileService=ProfileService(configuration:configuration,transport:transport)
@@ -113,7 +142,8 @@ final class AppSession: ObservableObject {
             clubService=ClubService(configuration:configuration,transport:transport)
             roamService=RoamService(configuration:configuration,transport:transport)
             messagingService=MessagingService(configuration:configuration,transport:transport)
-        } else { service=nil;authChannelService=nil;activityService=nil;playService=nil;discoveryService=nil;profileService=nil;participantService=nil;merchantService=nil;clubService=nil;roamService=nil;messagingService=nil }
+            messageActionService=MessageActionService(configuration:configuration,transport:transport)
+        } else { service=nil;authChannelService=nil;activityService=nil;registrationBackend=UnconfiguredRegistrationBackend();playService=nil;discoveryService=nil;profileService=nil;participantService=nil;merchantService=nil;clubService=nil;roamService=nil;messagingService=nil;messageActionService=nil }
     }
 
     func bootstrap() async {
@@ -132,7 +162,7 @@ final class AppSession: ObservableObject {
             let restored=try await service.currentAccount(token:saved)
             guard gate.isCurrent(operation) else { return }
             token=saved;account=restored
-            participantCoordinator.synchronizeSession()
+            participantCoordinator.synchronizeSession();synchronizeRegistration()
         } catch {
             guard gate.isCurrent(operation) else { return }
             if error as? APIError == .unauthorized {
@@ -156,7 +186,7 @@ final class AppSession: ObservableObject {
             try vault.write(result.token)
             UserDefaults.standard.set(false,forKey:restoreBlockedKey)
             token=result.token;account=result.account
-            participantCoordinator.synchronizeSession()
+            participantCoordinator.synchronizeSession();synchronizeRegistration()
         } catch {
             guard gate.isCurrent(operation) else { return }
             errorKey=Self.messageKey(for:error)
@@ -175,7 +205,7 @@ final class AppSession: ObservableObject {
         // silently restore a logged-out account at the next cold start.
         UserDefaults.standard.set(true,forKey:restoreBlockedKey)
         roamArea=nil;token=nil;account=nil;isWorking=false;errorKey=nil
-        participantCoordinator.synchronizeSession()
+        participantCoordinator.synchronizeSession();synchronizeRegistration()
         do { try vault.clear() } catch { errorKey="auth.storageError" }
         if let service, let oldToken {
             // Captured old credential only. Completion cannot mutate a newer login.
@@ -215,7 +245,7 @@ final class AppSession: ObservableObject {
         gate.invalidate()
         UserDefaults.standard.set(true,forKey:restoreBlockedKey)
         roamArea=nil;token=nil;account=nil;isWorking=false;errorKey="auth.expired"
-        participantCoordinator.synchronizeSession()
+        participantCoordinator.synchronizeSession();synchronizeRegistration()
         try? vault.clear()
     }
 
@@ -294,4 +324,10 @@ extension AppSession: ClubReading {
     func clubDirectory(name:String?) async throws -> [ClubRecord] { try await clubReader.clubDirectory(name:name) }
     func clubDetail(id:Int) async throws -> ClubRecord { try await clubReader.clubDetail(id:id) }
     func clubMembers(id:Int) async throws -> ClubMemberDirectory { try await clubReader.clubMembers(id:id) }
+}
+
+@MainActor private struct UnconfiguredRegistrationBackend:RegistrationCoordinatingService {
+    func quote(_ selection:RegistrationQuoteRequest,token:String) async throws -> RegistrationQuote { throw APIError.notConfigured }
+    func create(_ intent:RegistrationCreateIntent,token:String) async throws -> RegistrationCreateResult { throw APIError.notConfigured }
+    func readStatus(registrationID:Int,token:String) async throws -> RegistrationStatusSnapshot { throw APIError.notConfigured }
 }

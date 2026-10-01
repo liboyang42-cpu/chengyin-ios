@@ -5,10 +5,11 @@ import SwiftUI
 @MainActor
 struct MessagingHomeView: View {
     let reader: any MessagingReading
+    var senderForConversation: ((Int)->MessageActionCoordinator?)? = nil
     private let identity: MessagingReadIdentity?
-    init(reader: any MessagingReading) { self.reader = reader; identity = reader.identity }
+    init(reader:any MessagingReading,senderForConversation:((Int)->MessageActionCoordinator?)?=nil) { self.reader=reader;self.senderForConversation=senderForConversation;identity=reader.identity }
     var body: some View {
-        MessagingConversationListView(reader: reader).id(identity)
+        MessagingConversationListView(reader:reader,senderForConversation:senderForConversation).id(identity)
             .navigationTitle("messaging.title")
     }
 }
@@ -16,6 +17,7 @@ struct MessagingHomeView: View {
 @MainActor
 private struct MessagingConversationListView: View {
     let reader: any MessagingReading
+    var senderForConversation: ((Int)->MessageActionCoordinator?)? = nil
     @Environment(\.locale) private var locale
     @State private var query = ""
     @State private var scope = MessagingConversationScope.all
@@ -42,7 +44,7 @@ private struct MessagingConversationListView: View {
                         Section {
                             ForEach(Array(rows.prefix(displayLimit))) { conversation in
                                 NavigationLink {
-                                    MessagingHistoryView(conversationID: conversation.id, conversation: conversation, reader: reader)
+                                    MessagingHistoryView(conversationID:conversation.id,conversation:conversation,reader:reader,sender:senderForConversation?(conversation.id))
                                 } label: { MessagingConversationRow(conversation: conversation) }
                                 .accessibilityIdentifier("messaging.conversation.\(conversation.id)")
                             }

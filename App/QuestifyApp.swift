@@ -21,6 +21,8 @@ struct QuestifyApp: App {
                     MerchantFixtureRootView(scenario:merchant)
                 } else if let club=ClubFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) {
                     ClubFixtureRootView(scenario:club)
+                } else if let registration=RegistrationFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) {
+                    RegistrationFixtureHostView(scenario:registration)
                 } else if let module=ModuleFixture.selected {
                     ModuleFixtureRootView(module:module)
                 } else if let session=sessionContainer.session {
@@ -46,7 +48,8 @@ private final class AppSessionContainer: ObservableObject {
         #if DEBUG
         if ActivityFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||
            MerchantFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil || ModuleFixture.selected != nil ||
-           ClubFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil {
+           ClubFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||
+           RegistrationFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil {
             session=nil
             return
         }
@@ -71,7 +74,7 @@ private struct SessionRootView: View {
             if session.account != nil || browsingAsGuest {
                 TabView(selection:$selectedTab) {
                     DiscoveryHomeView(reader:session).tabItem { Label("discovery.title",systemImage:"sparkle.magnifyingglass") }.tag(0)
-                    ActivityBrowserView(reader:session,playReaderForActivity:{ session.playReader(for:.activity($0)) }).tabItem { Label("activity.browse",systemImage:"map") }.tag(1)
+                    ActivityBrowserView(reader:session,playReaderForActivity:{ session.playReader(for:.activity($0)) },registrationEnabled:true).tabItem { Label("activity.browse",systemImage:"map") }.tag(1)
                     RoamBrowserView(reader:session.roamReader,onChooseArea:{ showsAreaPicker=true })
                         .tabItem { Label("roam.title",systemImage:"map") }.tag(3)
                     NavigationStack { ClubHomeView(reader:session,onSignIn:{ selectedTab=4 }) }

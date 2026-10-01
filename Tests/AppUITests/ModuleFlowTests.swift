@@ -100,15 +100,60 @@ final class ModuleFlowTests: XCTestCase {
         XCTAssertTrue(node.waitForExistence(timeout:10))
         for _ in 0..<4 { if node.isHittable { break };app.swipeUp() }
         tap(node)
+        XCTAssertTrue(app.navigationBars["Route task"].waitForExistence(timeout:5),app.debugDescription)
         let choice=app.buttons["play.option.A"]
-        XCTAssertTrue(choice.waitForExistence(timeout:5))
-        for _ in 0..<4 { if choice.isHittable { break };app.swipeUp() }
+        // Form lazily instantiates offscreen rows; reveal before querying existence.
+        for _ in 0..<6 { if choice.exists && choice.isHittable { break };app.swipeUp() }
+        XCTAssertTrue(choice.waitForExistence(timeout:5),app.debugDescription)
         tap(choice)
         let submit=app.buttons["play.answer.submit"]
-        for _ in 0..<4 { if submit.isHittable { break };app.swipeUp() }
+        for _ in 0..<6 { if submit.exists && submit.isHittable { break };app.swipeUp() }
         tap(submit)
-        XCTAssertTrue(app.descendants(matching:.any)["play.answer.receipt"].waitForExistence(timeout:10),app.debugDescription)
+        let receipt=app.descendants(matching:.any)["play.answer.receipt"]
+        for _ in 0..<4 { if receipt.exists { break };app.swipeUp() }
+        XCTAssertTrue(receipt.waitForExistence(timeout:10),app.debugDescription)
         XCTAssertFalse(app.buttons["play.answer.submit"].exists,"Server-confirmed node cannot be submitted twice")
         capture("Choice answer receipt – synthetic transport only")
+    }
+    func testTextComposerUsesSyntheticServerReceiptAndReadback() {
+        launch(["--uitesting-module","composer"])
+        XCTAssertTrue(app.staticTexts["module.fixture.notice"].waitForExistence(timeout:10))
+        let input=app.descendants(matching:.any)["message.send.input"]
+        tap(input);input.typeText("Fixture sent text")
+        tap(app.buttons["message.send.button"])
+        XCTAssertTrue(app.descendants(matching:.any)["message.send.receipt"].waitForExistence(timeout:10),app.debugDescription)
+        XCTAssertTrue(app.buttons["messaging.message.2"].waitForExistence(timeout:10),app.debugDescription)
+        XCTAssertTrue(app.buttons["messaging.message.2"].label.contains("Fixture sent text"))
+        capture("Text message receipt – synthetic memory-only store")
+    }
+    func testRegistrationProductionPolicyCannotCreate() {
+        launch(["--uitesting-registration-fixture","disabled"])
+        XCTAssertTrue(app.navigationBars["Activity registration"].waitForExistence(timeout:10))
+        let review=app.buttons["registration.form.review"]
+        for _ in 0..<8 { if review.exists && review.isHittable { break };app.swipeUp() }
+        XCTAssertTrue(review.exists,app.debugDescription)
+        XCTAssertFalse(review.isEnabled)
+        XCTAssertFalse(app.switches["registration.form.consent"].exists)
+        capture("Registration creation gate – offline fixture")
+    }
+    func testRegistrationDemoReadbackDoesNotCreateAnotherIntent() {
+        launch(["--uitesting-registration-fixture","standard"])
+        XCTAssertTrue(app.navigationBars["Activity registration"].waitForExistence(timeout:10))
+        let consent=app.switches["registration.form.consent"]
+        for _ in 0..<8 { if consent.exists && consent.isHittable { break };app.swipeUp() }
+        tap(consent)
+        tap(app.buttons["registration.form.review"])
+        XCTAssertTrue(app.alerts.firstMatch.waitForExistence(timeout:5))
+        tap(app.alerts.buttons["Create demo registration"])
+        let read=app.buttons["registration.form.readStatus"]
+        XCTAssertTrue(read.waitForExistence(timeout:10),app.debugDescription)
+        tap(read)
+        XCTAssertTrue(app.descendants(matching:.any)["registration.form.statusSnapshot"].waitForExistence(timeout:10),app.debugDescription)
+        XCTAssertFalse(app.buttons["registration.form.review"].exists)
+        capture("Registration raw status – synthetic data")
+        tap(app.buttons["registration.form.close"])
+        tap(app.buttons["registration.fixture.open"])
+        XCTAssertTrue(app.buttons["registration.form.readStatus"].waitForExistence(timeout:5))
+        XCTAssertFalse(app.buttons["registration.form.review"].exists,"Reopening must retain the original intent")
     }
 }
