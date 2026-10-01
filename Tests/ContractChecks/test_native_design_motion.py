@@ -80,7 +80,7 @@ class NativeDesignMotionGuards(unittest.TestCase):
             self.assertNotIn("minimumScaleFactor", app(name))
         source = app("QuestifyMotionComponents.swift")
         self.assertIn(".secondarySystemGroupedBackground", source)
-        self.assertIn("accessibilityContrast", source)
+        self.assertIn("colorSchemeContrast", source)
         self.assertIn("accessibilityLabel(Text(label)", source)
         for status in ("ready", "pending", "verified", "cancelled", "expired", "unknown"):
             self.assertIn("case ." + status + ":", source)

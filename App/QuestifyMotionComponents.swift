@@ -3,7 +3,7 @@ import UIKit
 
 /// Content stays on an opaque adaptive surface. System navigation owns translucent materials.
 private struct QuestifyCardSurface: ViewModifier {
-    @Environment(\.accessibilityContrast) private var contrast
+    @Environment(\.colorSchemeContrast) private var contrast
     func body(content: Content) -> some View {
         content
             .padding(16)
@@ -52,7 +52,7 @@ struct QuestifyStatusBadge: View {
     /// Only the state key animates; parent lists and unrelated content never spring on refresh.
     var stateKey = ""
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Environment(\.accessibilityContrast) private var contrast
+    @Environment(\.colorSchemeContrast) private var contrast
     var body: some View {
         Label(title, systemImage: systemImage)
             .font(.caption.weight(.semibold))
