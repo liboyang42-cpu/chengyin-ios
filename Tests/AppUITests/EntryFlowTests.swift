@@ -36,8 +36,8 @@ final class EntryFlowTests: XCTestCase {
 
     func testChinesePreferenceSurvivesRelaunchAndSwitchesBack() {
         app.buttons["welcome.settings"].tap()
-        let chinese=app.staticTexts["简体中文"].firstMatch
-        XCTAssertTrue(chinese.waitForExistence(timeout:5));chinese.tap()
+        let chinese=app.descendants(matching:.any).matching(identifier:"language.zh-Hans").firstMatch
+        XCTAssertTrue(chinese.waitForExistence(timeout:5),app.debugDescription);chinese.tap()
         let done=app.buttons["完成"]
         XCTAssertTrue(done.waitForExistence(timeout:5));done.tap()
         XCTAssertTrue(app.buttons["welcome.player"].label.contains("玩家注册"))
@@ -47,7 +47,8 @@ final class EntryFlowTests: XCTestCase {
         XCTAssertTrue(app.buttons["welcome.player"].waitForExistence(timeout:10))
         XCTAssertTrue(app.buttons["welcome.player"].label.contains("玩家注册"))
         app.buttons["welcome.settings"].tap()
-        app.staticTexts["English"].firstMatch.tap()
+        let english=app.descendants(matching:.any).matching(identifier:"language.en").firstMatch
+        XCTAssertTrue(english.waitForExistence(timeout:5),app.debugDescription);english.tap()
         XCTAssertTrue(app.buttons["Done"].waitForExistence(timeout:5));app.buttons["Done"].tap()
         XCTAssertTrue(app.buttons["welcome.player"].label.contains("Register as a player"))
     }

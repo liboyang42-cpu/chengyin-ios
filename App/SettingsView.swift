@@ -15,8 +15,11 @@ struct SettingsView: View {
                 Section {
                     Picker("settings.language", selection: language) {
                         Text("language.system").tag(AppLanguage.system)
+                            .accessibilityIdentifier("language.system")
                         Text(verbatim: "English").tag(AppLanguage.english)
+                            .accessibilityIdentifier("language.en")
                         Text(verbatim: "简体中文").tag(AppLanguage.simplifiedChinese)
+                            .accessibilityIdentifier("language.zh-Hans")
                     }
                     .pickerStyle(.inline)
                     .accessibilityIdentifier("settings.language")
