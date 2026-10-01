@@ -17,11 +17,11 @@ final class ProfileEditFlowTests: XCTestCase {
         XCTAssertTrue(review.waitForExistence(timeout: 5)); review.tap()
     }
     private func confirm() {
-        // iOS 26 exposes wrapper buttons as well: scope to the presented sheet and
-        // select the hittable leaf carrying this exact identifier, never first global match.
-        let sheet = app.sheets.firstMatch
-        XCTAssertTrue(sheet.waitForExistence(timeout: 5))
-        let leaves = sheet.buttons.matching(identifier: "profile.edit.confirm")
+        // SwiftUI sheet is rendered but is not necessarily an XCUIElementTypeSheet.
+        // Verify its title and reviewed value, then target its unique actionable control.
+        XCTAssertTrue(app.navigationBars["Review profile changes"].waitForExistence(timeout: 10), app.debugDescription)
+        XCTAssertTrue(app.staticTexts["Trail Friend Updated"].exists, app.debugDescription)
+        let leaves = app.buttons.matching(identifier: "profile.edit.confirm")
             .matching(NSPredicate(format: "hittable == true AND enabled == true"))
         XCTAssertTrue(leaves.firstMatch.waitForExistence(timeout: 5)); leaves.firstMatch.tap()
     }

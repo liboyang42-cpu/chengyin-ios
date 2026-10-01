@@ -116,7 +116,7 @@ struct RoamBrowserView: View {
             HStack {
                 Picker("roam.layer", selection: $layer) {
                     ForEach(RoamLayer.allCases, id: \.self) { value in
-                        Text(LocalizedStringKey("roam.layer.\(value.rawValue)")).tag(value)
+                        Text(LocalizedStringKey("roam.layer." + String(value.rawValue))).tag(value)
                     }
                 }
                 .accessibilityIdentifier("roam.layer")
@@ -131,13 +131,13 @@ struct RoamBrowserView: View {
             if layer == .places {
                 Picker("roam.placeFilter", selection: $placeFilter) {
                     ForEach(RoamPlaceFilter.allCases, id: \.self) { value in
-                        Text(LocalizedStringKey("roam.filter.\(value.rawValue)")).tag(value)
+                        Text(LocalizedStringKey("roam.filter." + String(value.rawValue))).tag(value)
                     }
                 }.pickerStyle(.segmented)
             } else if layer == .events {
                 Picker("roam.eventFilter", selection: $eventFilter) {
                     ForEach(RoamEventFilter.allCases, id: \.self) { value in
-                        Text(LocalizedStringKey("roam.filter.\(value.rawValue)")).tag(value)
+                        Text(LocalizedStringKey("roam.filter." + String(value.rawValue))).tag(value)
                     }
                 }.pickerStyle(.segmented)
             }

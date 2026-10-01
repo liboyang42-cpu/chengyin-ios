@@ -2,6 +2,8 @@
 import SwiftUI
 
 enum ModuleFixture: String {
+    case homeFeed = "home-feed"
+    case ticketWallet
     case discovery, profile, messaging, roam, participants, play, composer, topic, localization
     static var selected: Self? {
         let args=ProcessInfo.processInfo.arguments
@@ -21,6 +23,8 @@ struct ModuleFixtureRootView: View {
                 .frame(maxWidth:.infinity).background(.yellow.opacity(0.2))
                 .accessibilityIdentifier("module.fixture.notice")
             switch module {
+            case .homeFeed: HomeFeedFixtureHostView()
+            case .ticketWallet: TicketWalletFixtureHostView()
             case .discovery: DiscoveryHomeView(reader:discovery)
             case .profile: ProfileFixtureHostView()
             case .messaging: MessagingFixtureHostView()

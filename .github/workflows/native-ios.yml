@@ -25,6 +25,7 @@ jobs:
       - name: Check project and localization structure
         run: |
           python3 -m unittest discover -s tools/tests -v
+          python3 -m unittest discover -s Tests/ContractChecks -p 'test_*.py' -v
           python3 tools/check_scaffold.py
           plutil -lint Questify.xcodeproj/project.pbxproj
           git diff --exit-code -- Questify.xcodeproj

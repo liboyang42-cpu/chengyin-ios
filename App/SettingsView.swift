@@ -25,7 +25,7 @@ struct SettingsView: View {
                     .pickerStyle(.inline)
                 } footer: { Text("settings.languageNotice") }
             }
-            .navigationTitle("settings.title")
+            .appNavigationTitle("settings.title")
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("action.done") { dismiss() }

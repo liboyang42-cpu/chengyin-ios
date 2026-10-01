@@ -1,0 +1,13 @@
+{
+  "usApple.unavailable": {"en": "Sign in with Apple is not available in the US pilot yet.", "zh-Hans": "美区试点暂未开放 Apple 登录。"},
+  "usApple.invalidRequest": {"en": "This sign-in request could not be accepted. Start a new attempt.", "zh-Hans": "无法接受此登录请求，请重新开始登录。"},
+  "usApple.invalidChallenge": {"en": "This sign-in attempt expired or no longer matches. Start again.", "zh-Hans": "此次登录已过期或不再匹配，请重新开始。"},
+  "usApple.invalidIdentity": {"en": "Apple sign-in could not be verified. Try again when you are ready.", "zh-Hans": "无法验证 Apple 登录，请稍后重试。"},
+  "usApple.rateLimited": {"en": "Too many sign-in attempts. Please try again later.", "zh-Hans": "登录尝试过于频繁，请稍后重试。"},
+  "usApple.invalidResponse": {"en": "The sign-in response could not be verified. No session was saved.", "zh-Hans": "无法验证登录响应，未保存登录会话。"},
+  "usApple.authorizationFailed": {"en": "Apple authorization did not complete. You can try again.", "zh-Hans": "Apple 授权未完成，您可以重试。"},
+  "usApple.network": {"en": "The sign-in connection failed. Start a new attempt when your connection is ready.", "zh-Hans": "登录连接失败，网络恢复后请重新开始登录。"},
+  "usApple.sessionChanged": {"en": "Your session changed during sign-in. Start again from the current account screen.", "zh-Hans": "登录期间会话已发生变化，请从当前账号页面重新开始。"},
+  "usApple.storage": {"en": "Your sign-in could not be saved. Please try again.", "zh-Hans": "无法保存此次登录，请重试。"},
+  "usApple.working": {"en": "Signing in with Apple…", "zh-Hans": "正在通过 Apple 登录…"}
+}

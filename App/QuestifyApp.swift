@@ -89,7 +89,7 @@ private struct SessionRootView: View {
         Group {
             if session.account != nil || browsingAsGuest {
                 TabView(selection:$selectedTab) {
-                    DiscoveryHomeView(reader:session,topicBrowsingEnabled:true).tabItem { Label("discovery.title",systemImage:"sparkle.magnifyingglass") }.tag(0)
+                    SessionHomeFeedView().tabItem { Label("homeFeed.title",systemImage:"house") }.tag(0)
                     ActivityBrowserView(reader:session,playReaderForActivity:{ session.playReader(for:.activity($0)) },registrationEnabled:true).tabItem { Label("activity.browse",systemImage:"map") }.tag(1)
                     RoamBrowserView(reader:session.roamReader,onChooseArea:{ showsAreaPicker=true })
                         .tabItem { Label("roam.title",systemImage:"map") }.tag(3)

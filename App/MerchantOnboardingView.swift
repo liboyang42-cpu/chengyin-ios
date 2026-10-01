@@ -59,7 +59,7 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
             Button("merchant.onboarding.uploadConfirm.action") { Task { await model.uploadSelected() } }
             Button("action.cancel", role: .cancel) { }
         } message: { Text("merchant.onboarding.uploadConfirm.message") }
-        .confirmationDialog("merchant.onboarding.submitConfirm.title", isPresented: $showSubmitConfirmation, titleVisibility: .visible) {
+        .alert("merchant.onboarding.submitConfirm.title", isPresented: $showSubmitConfirmation) {
             Button("merchant.onboarding.submitConfirm.action") { model.submitConfirmed() }
             Button("action.cancel", role: .cancel) { model.cancelConfirmation() }
         } message: { Text("merchant.onboarding.submitConfirm.message") }
@@ -105,7 +105,7 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
     private var applicationForm: some View {
         Form {
             Section {
-                Text(LocalizedStringKey("merchant.onboarding.step.\(model.step)")).font(.headline)
+                Text(LocalizedStringKey("merchant.onboarding.step." + String(model.step))).font(.headline)
                 Text("merchant.onboarding.regionalNotice").font(.footnote).foregroundStyle(.secondary)
             }
             submissionSection
@@ -274,7 +274,7 @@ private struct MerchantOnboardingHoursView: View {
             Form {
                 Section("merchant.onboarding.days") {
                     ForEach(0..<7, id: \.self) { day in
-                        Toggle(LocalizedStringKey("merchant.onboarding.day.\(day)"), isOn: Binding(
+                        Toggle(LocalizedStringKey("merchant.onboarding.day." + String(day)), isOn: Binding(
                             get: { hours.days.contains(day) },
                             set: { selected in if selected { hours.days.insert(day) } else { hours.days.remove(day) } }))
                     }

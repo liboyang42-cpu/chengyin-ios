@@ -38,10 +38,9 @@ final class MerchantOnboardingFlowTests: XCTestCase {
         XCTAssertTrue(element("merchant.onboarding.licenseUploaded").waitForExistence(timeout: 5), app.debugDescription)
     }
     private func tapSubmissionDialogButton(_ actionTitle: String, file: StaticString = #filePath, line: UInt = #line) {
-        // iOS 26 can expose both wrapper and actionable buttons for a native
-        // confirmationDialog. Scope to its sheet and resolve a hittable descendant;
-        // application-wide label queries can select the non-hittable wrapper.
-        let dialog = app.sheets.firstMatch
+        // An alert keeps an explicit Cancel action in both compact and popover layouts.
+        // Still choose the enabled/hittable action instead of its AX wrapper.
+        let dialog = app.alerts.firstMatch
         XCTAssertTrue(dialog.waitForExistence(timeout: 5), app.debugDescription, file: file, line: line)
         XCTAssertEqual(dialog.label, "Submit this merchant application?", file: file, line: line)
         let disclosure = dialog.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "configured Chengyin service")).firstMatch

@@ -87,17 +87,17 @@ struct ClubManagementView: View {
             if let pending = confirmation {
                 NavigationStack {
                     Form {
-                        Text(LocalizedStringKey("club.management.\(pending.action.rawValue).body"))
+                        Text(LocalizedStringKey("club.management." + String(pending.action.rawValue) + ".body"))
                         LabeledContent("club.management.club") { Text(verbatim: "\(pending.clubName) (#\(pending.clubID))") }
                         LabeledContent("club.management.target") { Text(verbatim: "\(pending.memberName) (#\(pending.memberID))") }
                         Button(role: pending.action == .approve ? nil : .destructive) {
                             confirmation = nil
                             state = .submitting
                             Task { await confirm(pending) }
-                        } label: { Text(LocalizedStringKey("club.management.\(pending.action.rawValue)")) }
+                        } label: { Text(LocalizedStringKey("club.management." + String(pending.action.rawValue))) }
                         .accessibilityIdentifier("club.management.confirm")
                     }
-                    .navigationTitle(LocalizedStringKey("club.management.\(pending.action.rawValue)"))
+                    .navigationTitle(LocalizedStringKey("club.management." + String(pending.action.rawValue)))
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("club.management.cancel") { cancel() } } }
                 }
                 .accessibilityIdentifier("club.management.confirmation")
@@ -132,7 +132,7 @@ struct ClubManagementView: View {
     private func action(_ action: ClubManagementAction, memberID: Int) -> some View {
         Button(role: action == .approve ? nil : .destructive) {
             Task { await prepare(action, memberID: memberID) }
-        } label: { Text(LocalizedStringKey("club.management.\(action.rawValue)")) }
+        } label: { Text(LocalizedStringKey("club.management." + String(action.rawValue))) }
             .disabled(loading || state.preventsNewAction)
             .accessibilityIdentifier("club.management.\(action.rawValue).\(memberID)")
     }

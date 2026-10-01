@@ -4,6 +4,7 @@ struct AccountView: View {
     let account: Account
     @EnvironmentObject private var session: AppSession
     @State private var showsSettings=false
+    @State private var showsTickets=false
     @State private var confirmsLogout=false
     @State private var showsMerchantApplication=false
     private var roleLabel: LocalizedStringKey {
@@ -24,6 +25,10 @@ struct AccountView: View {
                     NavigationLink { ProfileEditView(coordinator:session.profileEditCoordinator,sessionRevision:session.sessionRevision) } label: {
                         Label("profile.edit.title",systemImage:"pencil")
                     }.accessibilityIdentifier("account.editProfile")
+                }
+                Section {
+                    Button { showsTickets=true } label: { Label("ticketWallet.title",systemImage:"ticket") }
+                        .accessibilityIdentifier("account.ticketWallet")
                 }
                 ProfileAccountLinks(reader:session.profileReader,participantCoordinator:session.participantCoordinator)
                 Section {
@@ -55,6 +60,7 @@ struct AccountView: View {
                 MerchantOnboardingView(session:session,coordinator:session.merchantOnboardingCoordinator)
             }
             .sheet(isPresented:$showsSettings) { SettingsView() }
+            .sheet(isPresented:$showsTickets) { TicketWalletView(reader:session.ticketWalletReader,onClose:{ showsTickets=false }).id(session.ticketWalletReader.scope) }
             .confirmationDialog("auth.signOutConfirm",isPresented:$confirmsLogout,titleVisibility:.visible) {
                 Button("auth.signOut",role:.destructive) { Task { await session.logout() } }
                 Button("action.cancel",role:.cancel) {}

@@ -59,6 +59,24 @@ final class AppSession: ObservableObject {
         self.merchantOnboardingCoordinator.synchronizeSession()
         return true
     })
+    private let ticketWalletService:TicketWalletService?
+    private var currentTicketWalletSession:TicketWalletReadSession? {
+        guard let account,let token else { return nil }
+        return try? TicketWalletReadSession(accountID:account.id,epoch:gate.currentStamp,token:token)
+    }
+    lazy var ticketWalletReader=TicketWalletSessionReader(service:ticketWalletService,currentSession:{ [weak self] in self?.currentTicketWalletSession },onUnauthorized:{ [weak self] captured in
+        guard let self,self.currentTicketWalletSession == captured else { return }
+        self.expireIfMatching(error:APIError.unauthorized,stamp:captured.epoch,credential:self.token)
+    })
+    private let homeFeedService:HomeFeedService?
+    private var currentHomeFeedSession:HomeFeedSession? {
+        guard let account,let token else { return nil }
+        return try? HomeFeedSession(accountID:account.id,epoch:gate.currentStamp,token:token)
+    }
+    lazy var homeFeedReader=HomeFeedSessionReader(service:homeFeedService,currentSession:{ [weak self] in self?.currentHomeFeedSession },onUnauthorized:{ [weak self] captured in
+        guard let self,self.currentHomeFeedSession == captured else { return }
+        self.expireIfMatching(error:APIError.unauthorized,stamp:captured.epoch,credential:self.token)
+    })
     private let topicService: TopicService?
     private var currentTopicSession: TopicReadSession? {
         guard let account, let token else { return nil }
@@ -216,6 +234,8 @@ final class AppSession: ObservableObject {
             activityService=ActivityService(configuration:configuration,transport:transport)
             registrationBackend=RegistrationService(configuration:configuration,transport:transport)
             playService=PlayService(configuration:configuration,transport:transport)
+            homeFeedService=HomeFeedService(configuration:configuration,transport:transport)
+            ticketWalletService=TicketWalletService(configuration:configuration,transport:transport)
             topicService=TopicService(configuration:configuration,transport:transport)
             discoveryService=DiscoveryService(configuration:configuration,transport:transport)
             profileService=ProfileService(configuration:configuration,transport:transport)
@@ -229,7 +249,7 @@ final class AppSession: ObservableObject {
             roamService=RoamService(configuration:configuration,transport:transport)
             messagingService=MessagingService(configuration:configuration,transport:transport)
             messageActionService=MessageActionService(configuration:configuration,transport:transport)
-        } else { service=nil;authChannelService=nil;activityService=nil;registrationBackend=UnconfiguredRegistrationBackend();playService=nil;topicService=nil;discoveryService=nil;profileService=nil;participantService=nil;merchantService=nil;merchantOnboardingService=nil;clubService=nil;clubManagementService=nil;profileEditService=nil;clubActionService=nil;roamService=nil;messagingService=nil;messageActionService=nil }
+        } else { service=nil;authChannelService=nil;activityService=nil;registrationBackend=UnconfiguredRegistrationBackend();playService=nil;homeFeedService=nil;ticketWalletService=nil;topicService=nil;discoveryService=nil;profileService=nil;participantService=nil;merchantService=nil;merchantOnboardingService=nil;clubService=nil;clubManagementService=nil;profileEditService=nil;clubActionService=nil;roamService=nil;messagingService=nil;messageActionService=nil }
     }
 
     func bootstrap() async {

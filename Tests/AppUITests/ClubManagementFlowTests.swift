@@ -24,10 +24,9 @@ final class ClubManagementFlowTests: XCTestCase {
     private func prepare(_ action: String, target: Int) -> XCUIElement {
         let button = app.buttons["club.management.\(action).\(target)"].firstMatch
         XCTAssertTrue(button.waitForExistence(timeout: 5)); button.tap()
-        let sheet = app.sheets.firstMatch
-        XCTAssertTrue(sheet.waitForExistence(timeout: 5), app.debugDescription)
+        let sheet = app! // SwiftUI modal can expose Other rather than XCUIElementTypeSheet.
         let title = action == "approve" ? "Approve application" : action == "reject" ? "Reject application" : "Remove member"
-        XCTAssertTrue(sheet.navigationBars[title].exists)
+        XCTAssertTrue(sheet.navigationBars[title].waitForExistence(timeout: 10), app.debugDescription)
         XCTAssertTrue(sheet.staticTexts["Fixture club (#81)"].exists)
         let name = target == 703 ? "Fixture applicant" : "Fixture member"
         XCTAssertTrue(sheet.staticTexts["\(name) (#\(target))"].exists)
@@ -70,8 +69,8 @@ final class ClubManagementFlowTests: XCTestCase {
         _ = prepare("approve", target: 703)
         // Dismiss before using fixture controls, as a real account replacement comes
         // from the host rather than a control behind a modal presentation.
-        app.sheets.firstMatch.buttons["Cancel"].firstMatch.tap()
+        app.buttons["Cancel"].firstMatch.tap()
         app.buttons["club.management.switch"].tap(); count(0)
-        XCTAssertFalse(app.sheets.firstMatch.exists)
+        XCTAssertFalse(app.buttons["club.management.confirm"].exists)
     }
 }

@@ -37,7 +37,7 @@ struct WelcomeView: View {
                 .frame(maxWidth: 620, alignment: .leading)
                 .frame(maxWidth: .infinity)
             }
-            .navigationTitle("Questify")
+            .appNavigationTitle("Questify")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {

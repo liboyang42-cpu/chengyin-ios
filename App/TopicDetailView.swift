@@ -41,7 +41,7 @@ struct TopicDetailView: View {
                 if let rating = value.averageRating { LabeledContent("topic.rating", value: String(rating)) }
             }
             Section("topic.availability") {
-                Text(LocalizedStringKey("topic.availability.\(value.availability.rawValue)"))
+                Text(LocalizedStringKey("topic.availability." + String(value.availability.rawValue)))
                 if value.merchantClosed { Label("topic.closedNotice", systemImage: "storefront") }
                 if value.selfPlay == 1 { TopicPrice(value: value.selfPlayPrice, label: "topic.selfPlayPrice") }
                 Text("topic.readOnly").font(.footnote).foregroundStyle(.secondary)
