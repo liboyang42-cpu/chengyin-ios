@@ -10,8 +10,51 @@ final class AppSession: ObservableObject {
     private let vault = KeychainTokenStore()
     private let service: AuthService?
     private let activityService: ActivityService?
+    private let playService: PlayService?
+    private struct PlayReaderKey: Hashable { let accountID:Int?;let scope:PlaySessionScope }
+    private var playReaders:[PlayReaderKey:PlaySessionReader]=[:]
+    func playReader(for scope:PlaySessionScope) -> PlaySessionReader {
+        let key=PlayReaderKey(accountID:account?.id,scope:scope)
+        if let reader=playReaders[key] { return reader }
+        let reader=PlaySessionReader(scope:scope,service:playService,answersEnabled:false,currentSession:{ [weak self] in
+            guard let self,let account=self.account,let token=self.token else { return nil }
+            return try? PlayReadSession(accountID:account.id,epoch:self.gate.currentStamp,token:token)
+        },onUnauthorized:{ [weak self] snapshot in
+            guard let self else { return }
+            self.expireIfMatching(error:APIError.unauthorized,stamp:snapshot.epoch,credential:self.token)
+        })
+        playReaders[key]=reader
+        return reader
+    }
+    private let authChannelService: AuthChannelService?
+    var authChannelSnapshot: AuthChannelSessionSnapshot {
+        AuthChannelSessionSnapshot(epoch:gate.currentStamp,accountID:account?.id,isBusy:isWorking)
+    }
+    lazy var authChannels=AuthChannelCoordinator(service:authChannelService,currentSession:{ [weak self] in
+        self?.authChannelSnapshot ?? AuthChannelSessionSnapshot(epoch:0,accountID:nil,isBusy:true)
+    },commitLogin:{ [weak self] result,expected in
+        guard let self, self.authChannelSnapshot == expected, self.account == nil, !self.isWorking else { return false }
+        try self.vault.write(result.token)
+        self.gate.invalidate()
+        UserDefaults.standard.set(false,forKey:self.restoreBlockedKey)
+        self.token=result.token;self.account=result.account;self.errorKey=nil
+        self.participantCoordinator.synchronizeSession()
+        return true
+    })
     private let discoveryService: DiscoveryService?
     private let profileService: ProfileService?
+    private let participantService: ParticipantService?
+    @Published private(set) var participantRevision: UInt64=0
+    lazy var participantWriter=ParticipantSessionWriter(service:participantService,currentSession:{ [weak self] in
+        guard let self,let account=self.account,let token=self.token else { return nil }
+        return try? ParticipantWriteSession(accountID:account.id,epoch:self.gate.currentStamp,token:token)
+    },onUnauthorized:{ [weak self] snapshot in
+        guard let self else { return }
+        self.expireIfMatching(error:APIError.unauthorized,stamp:snapshot.identity.epoch,credential:self.token)
+    })
+    lazy var participantCoordinator=ParticipantMutationCoordinator(writer:participantWriter,reader:profileReader,onParticipantsChanged:{ [weak self] in
+        self?.participantRevision &+= 1
+    })
     private let merchantService: MerchantService?
     private let clubService: ClubService?
     private let roamService: RoamService?
@@ -60,14 +103,17 @@ final class AppSession: ObservableObject {
            let url=URL(string:value), let configuration=try? APIConfiguration(baseURL:url) {
             let transport=URLSessionTransport()
             service=AuthService(configuration:configuration,transport:transport)
+            authChannelService=AuthChannelService(configuration:configuration,transport:transport)
             activityService=ActivityService(configuration:configuration,transport:transport)
+            playService=PlayService(configuration:configuration,transport:transport)
             discoveryService=DiscoveryService(configuration:configuration,transport:transport)
             profileService=ProfileService(configuration:configuration,transport:transport)
+            participantService=ParticipantService(configuration:configuration,transport:transport)
             merchantService=MerchantService(configuration:configuration,transport:transport)
             clubService=ClubService(configuration:configuration,transport:transport)
             roamService=RoamService(configuration:configuration,transport:transport)
             messagingService=MessagingService(configuration:configuration,transport:transport)
-        } else { service=nil;activityService=nil;discoveryService=nil;profileService=nil;merchantService=nil;clubService=nil;roamService=nil;messagingService=nil }
+        } else { service=nil;authChannelService=nil;activityService=nil;playService=nil;discoveryService=nil;profileService=nil;participantService=nil;merchantService=nil;clubService=nil;roamService=nil;messagingService=nil }
     }
 
     func bootstrap() async {
@@ -86,6 +132,7 @@ final class AppSession: ObservableObject {
             let restored=try await service.currentAccount(token:saved)
             guard gate.isCurrent(operation) else { return }
             token=saved;account=restored
+            participantCoordinator.synchronizeSession()
         } catch {
             guard gate.isCurrent(operation) else { return }
             if error as? APIError == .unauthorized {
@@ -98,7 +145,7 @@ final class AppSession: ObservableObject {
     }
 
     func login(username:String,password:String) async {
-        guard !isWorking else { return }
+        guard !isWorking, !authChannels.state.isWorking else { return }
         guard let service else { errorKey="auth.notConfigured";return }
         let operation=gate.begin(.login)
         isWorking=true;errorKey=nil
@@ -109,6 +156,7 @@ final class AppSession: ObservableObject {
             try vault.write(result.token)
             UserDefaults.standard.set(false,forKey:restoreBlockedKey)
             token=result.token;account=result.account
+            participantCoordinator.synchronizeSession()
         } catch {
             guard gate.isCurrent(operation) else { return }
             errorKey=Self.messageKey(for:error)
@@ -120,12 +168,14 @@ final class AppSession: ObservableObject {
     }
 
     func logout() async {
+        authChannels.cancel()
         let oldToken=token
         gate.invalidate()
         // Persist a non-secret tombstone before deletion. A Keychain failure cannot
         // silently restore a logged-out account at the next cold start.
         UserDefaults.standard.set(true,forKey:restoreBlockedKey)
         roamArea=nil;token=nil;account=nil;isWorking=false;errorKey=nil
+        participantCoordinator.synchronizeSession()
         do { try vault.clear() } catch { errorKey="auth.storageError" }
         if let service, let oldToken {
             // Captured old credential only. Completion cannot mutate a newer login.
@@ -165,6 +215,7 @@ final class AppSession: ObservableObject {
         gate.invalidate()
         UserDefaults.standard.set(true,forKey:restoreBlockedKey)
         roamArea=nil;token=nil;account=nil;isWorking=false;errorKey="auth.expired"
+        participantCoordinator.synchronizeSession()
         try? vault.clear()
     }
 

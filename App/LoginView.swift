@@ -6,6 +6,7 @@ struct LoginView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var username = ""
     @State private var password = ""
+    @State private var showsOtherSignIn=false
     @FocusState private var focusedField: Field?
     private enum Field { case username, password }
 
@@ -41,7 +42,12 @@ struct LoginView: View {
                 if let key=session.errorKey {
                     Section { Text(LocalizedStringKey(key)).foregroundStyle(.red).accessibilityIdentifier("auth.error") }
                 }
-                Section { Text("auth.registrationPending").foregroundStyle(.secondary) }
+                Section {
+                    Button("auth.channels.title") { password="";showsOtherSignIn=true }
+                        .disabled(session.isWorking)
+                        .accessibilityIdentifier("auth.otherChannels")
+                    Text("auth.registrationPending").foregroundStyle(.secondary)
+                }
             }
             .navigationTitle("auth.title")
             .toolbar {
@@ -50,6 +56,9 @@ struct LoginView: View {
                         session.cancelPendingLogin();password="";dismiss()
                     }
                 }
+            }
+            .sheet(isPresented:$showsOtherSignIn) {
+                AuthChannelView(coordinator:session.authChannels,sessionSnapshot:session.authChannelSnapshot)
             }
             .interactiveDismissDisabled(session.isWorking)
             .onChange(of:session.account?.id) { _,newID in if newID != nil { password="";dismiss() } }

@@ -79,7 +79,7 @@ jobs:
               f.write('TEST_SIMULATOR_ID='+chosen['udid']+'\n')
           print('Selected simulator:',chosen['name'])
           PY
-      - name: Test native entry, dismissal and language persistence
+      - name: Test native module flows and session boundaries
         run: |
           xcodebuild -project Questify.xcodeproj -scheme Questify \
             -configuration Debug -destination "platform=iOS Simulator,id=$TEST_SIMULATOR_ID" \

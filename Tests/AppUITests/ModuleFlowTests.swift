@@ -77,4 +77,38 @@ final class ModuleFlowTests: XCTestCase {
         XCTAssertTrue(app.navigationBars["Map details"].waitForExistence(timeout:5))
         capture("Map detail – synthetic data")
     }
+    func testParticipantCreateRequiresConfirmationAndReadsBack() {
+        launch(["--uitesting-module","participants"])
+        XCTAssertTrue(app.staticTexts["module.fixture.notice"].waitForExistence(timeout:10))
+        tap(app.buttons["participant.list.add"])
+        let name=app.textFields["participant.form.name"]
+        tap(name);name.typeText("Fixture Added Person")
+        let phone=app.textFields["participant.form.phone"]
+        tap(phone);phone.typeText("13800000001")
+        tap(app.buttons["participant.form.save"])
+        XCTAssertTrue(app.alerts.firstMatch.waitForExistence(timeout:5))
+        XCTAssertFalse(app.buttons["profile.participant.912"].exists)
+        tap(app.alerts.buttons["Save participant"])
+        XCTAssertTrue(app.buttons["profile.participant.912"].waitForExistence(timeout:10),app.debugDescription)
+        XCTAssertTrue(app.buttons["profile.participant.912"].label.contains("Fixture Added Person"))
+        capture("Participant create – synthetic memory-only store")
+    }
+    func testPlayChoiceSubmissionUsesOfflineReadback() {
+        launch(["--uitesting-module","play","--uitesting-play-scenario","choice"])
+        XCTAssertTrue(app.staticTexts["module.fixture.notice"].waitForExistence(timeout:10))
+        let node=app.buttons["play.node.701"]
+        XCTAssertTrue(node.waitForExistence(timeout:10))
+        for _ in 0..<4 { if node.isHittable { break };app.swipeUp() }
+        tap(node)
+        let choice=app.buttons["play.option.A"]
+        XCTAssertTrue(choice.waitForExistence(timeout:5))
+        for _ in 0..<4 { if choice.isHittable { break };app.swipeUp() }
+        tap(choice)
+        let submit=app.buttons["play.answer.submit"]
+        for _ in 0..<4 { if submit.isHittable { break };app.swipeUp() }
+        tap(submit)
+        XCTAssertTrue(app.descendants(matching:.any)["play.answer.receipt"].waitForExistence(timeout:10),app.debugDescription)
+        XCTAssertFalse(app.buttons["play.answer.submit"].exists,"Server-confirmed node cannot be submitted twice")
+        capture("Choice answer receipt – synthetic transport only")
+    }
 }

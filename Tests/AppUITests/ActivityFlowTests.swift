@@ -91,7 +91,9 @@ final class ActivityFlowTests: XCTestCase {
         XCTAssertFalse(element("activity.list.empty").exists,"Editing alone must not submit the draft")
         tap(search)
         search.typeText("\n")
-        waitForHittable(app.staticTexts["activity.list.empty"])
+        // ContentUnavailableView's static title is an observation, not a tap target.
+        // iOS can expose it without an activation point; asserting hittability throws.
+        XCTAssertTrue(app.staticTexts["activity.list.empty"].waitForExistence(timeout:10),app.debugDescription)
         XCTAssertTrue(app.staticTexts["No activities found"].exists)
         XCTAssertFalse(element("activity.row.601").exists)
         XCTAssertFalse(secondPage.exists)

@@ -21,7 +21,7 @@ struct AccountView: View {
                     LabeledContent("account.id",value:String(account.id))
                     LabeledContent("account.role") { Text(roleLabel) }
                 }
-                ProfileAccountLinks(reader:session.profileReader)
+                ProfileAccountLinks(reader:session.profileReader,participantCoordinator:session.participantCoordinator)
                 Section {
                     NavigationLink { MessagingHomeView(reader:session.messagingReader).id(session.messagingReader.identity) } label: {
                         Label("messaging.title",systemImage:"bubble.left.and.bubble.right")

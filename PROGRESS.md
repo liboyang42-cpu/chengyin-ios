@@ -69,3 +69,13 @@ These are partial read-only module migrations, not complete workflows. Publishin
 Club home/directory/detail/member visibility, manual-area roaming map/list/details, and conversations/history have been integrated with session-scoped readers. No location permission, GPS sampling, message sending, marking read, join/invite, payment or other remote mutation was executed. Roaming has no default real location: the manual coordinate form is empty, keeps data in memory, and explains how a configured search uses its center.
 
 114 additional synthetic domain/service tests and 214 bilingual keys were authored in this batch. Integrated totals are 315 authored domain tests and 531 catalog keys, not pass counts. The previous 1846552 batch passed 201 domain tests and both unsigned builds; its UI run passed 12/13, with a strict separate-text match for the order number failing. The updated assertion also recognizes the native combined label and retains the required reference value. It awaits revalidation along with the new module flows.
+
+## Second batch verification
+
+Run 36866520275 at e66571d passed native/domain/build and secrets jobs; UI passed 15/16. All six module smoke cases passed, including order detail, club members, messaging history and roam details. Pagination reached its empty result but XCTest could not calculate a tappable activation point for a static ContentUnavailableView title. Its assertion now checks existence and the expected text/absence of rows rather than requesting hittability of a noninteractive label. Full integrated revalidation remains pending.
+
+## Third batch: interaction foundations (awaiting CI)
+
+Phone OTP request/login is integrated behind explicit user actions and approved API configuration. Native Apple authorization remains disabled until capability/audience/legal/device verification. Source phone validation is domestic eleven-digit format; international/US support is not claimed. Participant create/edit/delete forms use confirmation, shared metadata preservation and uncertain-outcome readback; the default-address capability has no UI, preserving the retained source. Play session/task views are reachable from a selected activity, with server-gated text/choice answer logic exercised only by offline fixtures; production answer dispatch remains off pending acceptance/reconciliation. No actual SMS, OAuth, participant mutation, play submission or other backend action was executed.
+
+85 additional domain tests were authored (21 authentication, 34 participant, 30 play), bringing the authored domain total to 400. Catalog total is 652 bilingual keys. These are implementation counts, not whole-App completion or release acceptance.

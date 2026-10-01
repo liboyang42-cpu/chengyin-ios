@@ -3,6 +3,7 @@ import SwiftUI
 @MainActor
 struct ActivityBrowserView: View {
     let reader: any ActivityReading
+    var playReaderForActivity: ((Int)->PlaySessionReader)? = nil
     @State private var items: [ActivitySummary] = []
     @State private var query = ""
     // A search draft must not change the query used for the current page set.
@@ -39,7 +40,7 @@ struct ActivityBrowserView: View {
                 } else {
                     List {
                         ForEach(items) { item in
-                            NavigationLink { ActivityDetailView(id:item.id,reader:reader) } label: { ActivityRow(item:item) }
+                            NavigationLink { ActivityDetailView(id:item.id,reader:reader,playReaderForActivity:playReaderForActivity) } label: { ActivityRow(item:item) }
                                 .accessibilityIdentifier("activity.row.\(item.id)")
                         }
                         if hasMore || failed {

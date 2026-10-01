@@ -71,7 +71,7 @@ private struct SessionRootView: View {
             if session.account != nil || browsingAsGuest {
                 TabView(selection:$selectedTab) {
                     DiscoveryHomeView(reader:session).tabItem { Label("discovery.title",systemImage:"sparkle.magnifyingglass") }.tag(0)
-                    ActivityBrowserView(reader:session).tabItem { Label("activity.browse",systemImage:"map") }.tag(1)
+                    ActivityBrowserView(reader:session,playReaderForActivity:{ session.playReader(for:.activity($0)) }).tabItem { Label("activity.browse",systemImage:"map") }.tag(1)
                     RoamBrowserView(reader:session.roamReader,onChooseArea:{ showsAreaPicker=true })
                         .tabItem { Label("roam.title",systemImage:"map") }.tag(3)
                     NavigationStack { ClubHomeView(reader:session,onSignIn:{ selectedTab=4 }) }

@@ -1,0 +1,112 @@
+[
+  {
+    "key": "participant.form.add",
+    "en": "Add participant",
+    "zh-Hans": "新增参与人"
+  },
+  {
+    "key": "participant.form.edit",
+    "en": "Edit participant",
+    "zh-Hans": "编辑参与人"
+  },
+  {
+    "key": "participant.form.save",
+    "en": "Save participant",
+    "zh-Hans": "保存参与人"
+  },
+  {
+    "key": "participant.form.saving",
+    "en": "Saving…",
+    "zh-Hans": "正在保存…"
+  },
+  {
+    "key": "participant.form.delete",
+    "en": "Delete participant",
+    "zh-Hans": "删除参与人"
+  },
+  {
+    "key": "participant.form.purpose",
+    "en": "Used for registration contact and arrival verification. These details are not displayed publicly or used for delivery.",
+    "zh-Hans": "用于报名联系和到场核验，不会公开展示，也不用于配送。"
+  },
+  {
+    "key": "participant.form.phoneHint",
+    "en": "Enter an 11-digit mobile number starting with 1.",
+    "zh-Hans": "请输入以 1 开头的 11 位手机号。"
+  },
+  {
+    "key": "participant.form.confirmSave",
+    "en": "Save these participant details?",
+    "zh-Hans": "保存这位参与人的信息？"
+  },
+  {
+    "key": "participant.form.confirmSaveHint",
+    "en": "Save the following name and mobile number to your account. Any existing address details will be preserved.",
+    "zh-Hans": "将以下姓名和手机号保存到你的账号。已有的地址信息将会保留。"
+  },
+  {
+    "key": "participant.form.confirmDelete",
+    "en": "Delete this participant?",
+    "zh-Hans": "删除这位参与人？"
+  },
+  {
+    "key": "participant.form.confirmDeleteHint",
+    "en": "This deletes the shared participant record, including any saved address on the same record. This cannot be undone.",
+    "zh-Hans": "这将删除共用的参与人记录，包括同一条记录中保存的地址。此操作无法撤销。"
+  },
+  {
+    "key": "participant.form.sharedRow",
+    "en": "Participant and saved address details share one record. Deleting it removes both.",
+    "zh-Hans": "参与人与保存的地址信息共用同一条记录，删除时会一并移除。"
+  },
+  {
+    "key": "participant.form.sessionChanged",
+    "en": "Your account changed. Reload this page before making changes.",
+    "zh-Hans": "账号会话已变化。请重新加载页面后再修改。"
+  },
+  {
+    "key": "participant.form.rejected",
+    "en": "Change not accepted",
+    "zh-Hans": "修改未被接受"
+  },
+  {
+    "key": "participant.form.rejectedHint",
+    "en": "The service rejected this change. Review the details before confirming again.",
+    "zh-Hans": "服务未接受这次修改。请检查信息后重新确认。"
+  },
+  {
+    "key": "participant.form.notSent",
+    "en": "The change was not sent. Check your sign-in and review the details before confirming again.",
+    "zh-Hans": "修改尚未发送。请检查登录状态并核对信息后重新确认。"
+  },
+  {
+    "key": "participant.form.unknown",
+    "en": "Change could not be confirmed",
+    "zh-Hans": "无法确认修改结果"
+  },
+  {
+    "key": "participant.form.unknownHint",
+    "en": "The request may have reached the service. To avoid duplicate changes, further changes are paused. Check the saved records below before taking any further action.",
+    "zh-Hans": "请求可能已送达服务。为避免重复修改，后续修改已暂停。请先查看保存的记录，再决定下一步。"
+  },
+  {
+    "key": "participant.form.readBack",
+    "en": "Check saved records",
+    "zh-Hans": "查看保存的记录"
+  },
+  {
+    "key": "participant.form.readBackTitle",
+    "en": "Current saved records",
+    "zh-Hans": "当前保存的记录"
+  },
+  {
+    "key": "participant.form.readBackFailed",
+    "en": "Saved records could not be loaded. You can check again; the change will not be sent again.",
+    "zh-Hans": "暂时无法加载保存的记录。你可以再次查看，修改请求不会被重新发送。"
+  },
+  {
+    "key": "participant.form.readBackHint",
+    "en": "This is a read-only snapshot. It does not prove whether the earlier request completed, so this session keeps further changes paused.",
+    "zh-Hans": "这是只读查询结果，无法据此确认先前请求是否完成，因此本次会话仍暂停后续修改。"
+  }
+]

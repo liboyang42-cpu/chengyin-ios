@@ -41,6 +41,22 @@ final class EntryFlowTests: XCTestCase {
         XCTAssertTrue(app.buttons["welcome.player"].waitForExistence(timeout:5))
     }
 
+    func testUnconfiguredPhoneAndAppleCannotDispatch() {
+        app.buttons["welcome.player"].tap()
+        let other=app.buttons["auth.otherChannels"]
+        XCTAssertTrue(other.waitForExistence(timeout:5))
+        if !other.isHittable { app.swipeUp() }
+        other.tap()
+        let phone=app.textFields["auth.channels.phone"]
+        XCTAssertTrue(phone.waitForExistence(timeout:5))
+        XCTAssertFalse(app.buttons["auth.channels.sendCode"].isEnabled)
+        XCTAssertTrue(app.buttons["auth.channels.phoneSignIn"].exists)
+        XCTAssertFalse(app.buttons["auth.channels.phoneSignIn"].isEnabled)
+        XCTAssertFalse(app.buttons["auth.channels.appleSignIn"].exists)
+        app.navigationBars["More ways to sign in"].buttons["Close"].tap()
+        XCTAssertTrue(app.buttons["auth.otherChannels"].waitForExistence(timeout:5))
+    }
+
     func testUnconfiguredBuildCannotSubmitCredentials() {
         app.buttons["welcome.player"].tap()
         let username=app.textFields["Username"]

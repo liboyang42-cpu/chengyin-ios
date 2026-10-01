@@ -5,6 +5,7 @@ import MapKit
 struct ActivityDetailView: View {
     let id: Int
     let reader: any ActivityReading
+    var playReaderForActivity: ((Int)->PlaySessionReader)? = nil
     @State private var access: ActivityDetailAccess?
     @State private var loading=false
     @State private var failed=false
@@ -78,6 +79,13 @@ struct ActivityDetailView: View {
                                 .accessibilityIdentifier("activity.ticket.inventoryUnknown.\(ticket.id)")
                         }
                     }.padding(.vertical,4)
+                }
+            }
+            if let playReaderForActivity {
+                Section {
+                    NavigationLink { PlaySessionView(reader:playReaderForActivity(id)) } label: {
+                        Label("play.openSession",systemImage:"figure.walk")
+                    }.accessibilityIdentifier("activity.openPlay")
                 }
             }
             Section {
