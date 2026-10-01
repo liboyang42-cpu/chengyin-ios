@@ -17,6 +17,10 @@ struct QuestifyApp: App {
                 #if DEBUG
                 if let scenario=ActivityFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) {
                     ActivityFixtureRootView(scenario:scenario)
+                } else if let merchant=MerchantFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) {
+                    MerchantFixtureRootView(scenario:merchant)
+                } else if let module=ModuleFixture.selected {
+                    ModuleFixtureRootView(module:module)
                 } else if let session=sessionContainer.session {
                     SessionRootView(session:session)
                 }
@@ -38,7 +42,8 @@ private final class AppSessionContainer: ObservableObject {
 
     init() {
         #if DEBUG
-        if ActivityFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil {
+        if ActivityFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||
+           MerchantFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil || ModuleFixture.selected != nil {
             session=nil
             return
         }
@@ -51,18 +56,23 @@ private final class AppSessionContainer: ObservableObject {
 @MainActor
 private struct SessionRootView: View {
     @ObservedObject var session: AppSession
+    @State private var browsingAsGuest=false
     #if DEBUG
     @State private var showsScannerFixture = false
     #endif
 
     var body: some View {
         Group {
-            if let account = session.account {
+            if session.account != nil || browsingAsGuest {
                 TabView {
+                    DiscoveryHomeView(reader:session).tabItem { Label("discovery.title",systemImage:"sparkle.magnifyingglass") }
                     ActivityBrowserView(reader:session).tabItem { Label("activity.browse",systemImage:"map") }
-                    AccountView(account:account).tabItem { Label("account.title",systemImage:"person.crop.circle") }
-                }.id(account.id)
-            } else { WelcomeView() }
+                    Group {
+                        if let account=session.account { AccountView(account:account) }
+                        else { WelcomeView() }
+                    }.tabItem { Label("account.title",systemImage:"person.crop.circle") }
+                }.id(session.account?.id ?? 0)
+            } else { WelcomeView(onBrowse:{ browsingAsGuest=true }) }
         }
         .environmentObject(session)
         .task { await session.bootstrap() }

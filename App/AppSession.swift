@@ -10,6 +10,19 @@ final class AppSession: ObservableObject {
     private let vault = KeychainTokenStore()
     private let service: AuthService?
     private let activityService: ActivityService?
+    private let discoveryService: DiscoveryService?
+    private let profileService: ProfileService?
+    private let merchantService: MerchantService?
+    private var merchantAccessRecord: (stamp:UInt64, access:MerchantAccess)?
+    var isSignedIn: Bool { account != nil && token != nil }
+    var sessionRevision: UInt64 { gate.currentStamp }
+    lazy var profileReader = ProfileSessionReader(service:profileService, currentSession:{ [weak self] in
+        guard let self, let account=self.account, let token=self.token else { return nil }
+        return try? ProfileReadSession(accountID:account.id,epoch:self.gate.currentStamp,token:token)
+    }, onUnauthorized:{ [weak self] snapshot in
+        guard let self else { return }
+        self.expireIfMatching(error:APIError.unauthorized,stamp:snapshot.identity.epoch,credential:self.token)
+    })
     private var token: String?
     private var didBootstrap = false
     private let restoreBlockedKey = "session.preventRestore"
@@ -21,7 +34,10 @@ final class AppSession: ObservableObject {
             let transport=URLSessionTransport()
             service=AuthService(configuration:configuration,transport:transport)
             activityService=ActivityService(configuration:configuration,transport:transport)
-        } else { service=nil;activityService=nil }
+            discoveryService=DiscoveryService(configuration:configuration,transport:transport)
+            profileService=ProfileService(configuration:configuration,transport:transport)
+            merchantService=MerchantService(configuration:configuration,transport:transport)
+        } else { service=nil;activityService=nil;discoveryService=nil;profileService=nil;merchantService=nil }
     }
 
     func bootstrap() async {
@@ -133,4 +149,58 @@ final class AppSession: ObservableObject {
         default: return "auth.networkError"
         }
     }
+}
+
+// Views never own credentials; every completion is bound to the captured session.
+extension AppSession: DiscoveryReading, MerchantReading {
+    private func readDiscovery<Value>(_ operation:(DiscoveryService,String?) async throws -> Value) async throws -> Value {
+        guard let discoveryService else { throw APIError.notConfigured }
+        let stamp=gate.currentStamp, credential=token
+        do {
+            let value=try await operation(discoveryService,credential)
+            try Task.checkCancellation()
+            guard gate.isCurrent(stamp), credential == token else { throw CancellationError() }
+            return value
+        } catch {
+            guard gate.isCurrent(stamp), credential == token else { throw CancellationError() }
+            expireIfMatching(error:error,stamp:stamp,credential:credential)
+            throw error
+        }
+    }
+    func discoveryBanners() async throws -> [DiscoveryBanner] { try await readDiscovery { try await $0.banners(token:$1) } }
+    func discoveryCategories(type:Int?) async throws -> [DiscoveryCategory] { try await readDiscovery { try await $0.categories(type:type,token:$1) } }
+    func discoveryTemplateHome() async throws -> DiscoveryTemplateHome { try await readDiscovery { try await $0.templateHome(token:$1) } }
+    func discoveryPlayTemplates(keyword:String,packType:DiscoveryPackType?) async throws -> [DiscoveryPlayTemplate] { try await readDiscovery { try await $0.playTemplates(keyword:keyword,packType:packType,token:$1) } }
+    func discoveryTopicTemplates() async throws -> [DiscoveryTopicTemplate] { try await readDiscovery { try await $0.topicTemplates(token:$1) } }
+    func discoveryPlayTemplate(id:Int) async throws -> DiscoveryPlayTemplate { try await readDiscovery { try await $0.playTemplate(id:id,token:$1) } }
+
+    private func readMerchant<Value>(access:MerchantAccess?=nil,_ operation:(MerchantService,String) async throws -> Value) async throws -> Value {
+        guard let merchantService else { throw APIError.notConfigured }
+        guard account != nil, let credential=token else { throw APIError.unauthorized }
+        let stamp=gate.currentStamp
+        if let access {
+            guard let record=merchantAccessRecord, record.stamp == stamp, record.access == access else { throw MerchantReadError.accessDenied }
+        }
+        do {
+            let value=try await operation(merchantService,credential)
+            try Task.checkCancellation()
+            guard gate.isCurrent(stamp), credential == token else { throw CancellationError() }
+            return value
+        } catch {
+            guard gate.isCurrent(stamp), credential == token else { throw CancellationError() }
+            expireIfMatching(error:error,stamp:stamp,credential:credential)
+            throw error
+        }
+    }
+    func merchantAccess() async throws -> MerchantAccess {
+        merchantAccessRecord=nil
+        let access=try await readMerchant { try await $0.access(token:$1) }
+        merchantAccessRecord=(gate.currentStamp,access)
+        return access
+    }
+    func merchantDashboard(access:MerchantAccess) async throws -> MerchantDashboard { try await readMerchant(access:access) { try await $0.dashboard(access:access,token:$1) } }
+    func merchantTodo(access:MerchantAccess) async throws -> MerchantTodo { try await readMerchant(access:access) { try await $0.todo(access:access,token:$1) } }
+    func merchantEvents(access:MerchantAccess) async throws -> [MerchantEvent] { try await readMerchant(access:access) { try await $0.events(access:access,token:$1) } }
+    func merchantOrders(access:MerchantAccess,filter:MerchantOrderFilter) async throws -> [MerchantOrder] { try await readMerchant(access:access) { try await $0.orders(access:access,filter:filter,token:$1) } }
+    func merchantProjects(access:MerchantAccess) async throws -> MerchantProjectPage { try await readMerchant(access:access) { try await $0.projects(access:access,token:$1) } }
 }

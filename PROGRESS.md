@@ -52,3 +52,14 @@ An earlier UI run failed because the test queried a native Picker option as Stat
 Run 36846622633 compiled both app configurations and passed the existing five entry UI cases, but all four newly added activity cases failed. The rendered hierarchy exposed an empty detail destination before its loading task started, inherited accessibility identifiers, and scrolling obscured by the keyboard. Concrete state roots, leaf identifiers and unobscured gestures passed all four cases in run 36848589415. These failures are not excluded or relabeled as passing.
 
 Registration networking now includes source-aligned quote/create and one explicit known-ID status readback, with 25 synthetic service tests. It remains unwired to live UI/credentials/payment.
+
+## Parallel module batch (awaiting integrated CI)
+
+- Discovery home, separate route/game template shelves, play detail and read-only route preview; six source-backed public reads
+- Personal orders with fresh detail, participant information with owned detail, badge wall and badge detail; session-isolated reader
+- Merchant access/me gate, owner dashboard, permission-scoped filtered orders and hosted projects with summary sheets
+- Explicit guest browse entry; account tab returns guests to identity/login selection
+- 228 new bilingual module keys plus guest entry; the catalog now has 317 keys
+- 86 new synthetic domain/service tests authored across the modules; three offline module UI smoke cases and guest navigation case authored
+
+These are partial read-only module migrations, not complete workflows. Publishing/editing, verification/refunds, full feed, chat, club and play loops remain outstanding. The static mapping report fixes the source denominator at 130 mini-program mappings plus six extra App-route splits; it is not a work-completion percentage. The latest pre-batch a17b4ff run passed domain/build checks but timed out in one search UI expectation, so full regression remains open.

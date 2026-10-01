@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct WelcomeView: View {
+    var onBrowse: (() -> Void)? = nil
     private enum Destination: Identifiable {
         case settings, login(RegistrationIntent)
         var id: String {
@@ -27,6 +28,10 @@ struct WelcomeView: View {
                     roleButton(.player, title: "role.player", detail: "role.player.detail", symbol: "figure.walk")
                     roleButton(.merchant, title: "role.merchant", detail: "role.merchant.detail", symbol: "storefront")
                     Text("welcome.intentNotice").font(.footnote).foregroundStyle(.secondary)
+                    if let onBrowse {
+                        Button("welcome.browse", action:onBrowse)
+                            .accessibilityIdentifier("welcome.browse")
+                    }
                 }
                 .padding(24)
                 .frame(maxWidth: 620, alignment: .leading)

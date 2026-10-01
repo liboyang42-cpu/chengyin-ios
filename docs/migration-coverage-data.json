@@ -1,0 +1,2550 @@
+{
+  "auditedAtUTC": "2026-10-01T11:05:45.223206+00:00",
+  "flutterHead": "a63e9e91c82a3282e8dd7138f943b1a8cbfc021d",
+  "nativeHead": "a17b4ff40fa4f75a12f21c76f0f10f89232f5c36",
+  "scope": "Read-only static audit of retained cloud checkouts; no live server or current CI validation",
+  "manifestRows": 136,
+  "primaryMiniPages": 130,
+  "additionalAppRouteRows": 6,
+  "sourceRouteDeclarations": 178,
+  "sourceFeatureDirectories": 36,
+  "pageNamedFiles": 172,
+  "ledgerNativeCoverage": {
+    "no_native_equivalent_ui": 126,
+    "partial_ui": 3,
+    "domain_only_no_ui": 1
+  },
+  "stateLedgerAvailable": false,
+  "modules": [
+    {
+      "module": "account",
+      "miniPages": 8,
+      "routeDeclarations": 11,
+      "pageNamedFiles": 10,
+      "nativeStatus": "无对应原生业务 UI"
+    },
+    {
+      "module": "activity",
+      "miniPages": 2,
+      "routeDeclarations": 2,
+      "pageNamedFiles": 2,
+      "nativeStatus": "部分 UI：列表、只读详情；报名仅契约/服务/协调器，尚未接入 UI"
+    },
+    {
+      "module": "assets",
+      "miniPages": 1,
+      "routeDeclarations": 1,
+      "pageNamedFiles": 1,
+      "nativeStatus": "无对应原生业务 UI"
+    },
+    {
+      "module": "auth",
+      "miniPages": 0,
+      "routeDeclarations": 2,
+      "pageNamedFiles": 2,
+      "nativeStatus": "部分 UI：WelcomeView + LoginView；既有账号密码登录；新账号、手机号/短信、Apple/微信和完整同意链路待迁"
+    },
+    {
+      "module": "club",
+      "miniPages": 19,
+      "routeDeclarations": 23,
+      "pageNamedFiles": 23,
+      "nativeStatus": "无对应业务 UI；详情的会员门槛提示不等于俱乐部页"
+    },
+    {
+      "module": "coop",
+      "miniPages": 8,
+      "routeDeclarations": 12,
+      "pageNamedFiles": 11,
+      "nativeStatus": "无对应原生业务 UI"
+    },
+    {
+      "module": "coupon",
+      "miniPages": 4,
+      "routeDeclarations": 3,
+      "pageNamedFiles": 3,
+      "nativeStatus": "无对应原生业务 UI"
+    },
+    {
+      "module": "creator",
+      "miniPages": 0,
+      "routeDeclarations": 1,
+      "pageNamedFiles": 1,
+      "nativeStatus": "无对应原生业务 UI"
+    },
+    {
+      "module": "feed",
+      "miniPages": 1,
+      "routeDeclarations": 1,
+      "pageNamedFiles": 1,
+      "nativeStatus": "无对应原生业务 UI"
+    },
+    {
+      "module": "im",
+      "miniPages": 2,
+      "routeDeclarations": 2,
+      "pageNamedFiles": 2,
+      "nativeStatus": "无对应原生业务 UI"
+    },
+    {
+      "module": "legal",
+      "miniPages": 2,
+      "routeDeclarations": 1,
+      "pageNamedFiles": 1,
+      "nativeStatus": "无对应原生业务 UI"
+    },
+    {
+      "module": "mall",
+      "miniPages": 0,
+      "routeDeclarations": 3,
+      "pageNamedFiles": 3,
+      "nativeStatus": "无对应原生业务 UI"
+    },
+    {
+      "module": "map",
+      "miniPages": 0,
+      "routeDeclarations": 1,
+      "pageNamedFiles": 1,
+      "nativeStatus": "无独立地图页；活动详情中有 MapKit 位置块，不能抵扣本模块"
+    },
+    {
+      "module": "merchant",
+      "miniPages": 26,
+      "routeDeclarations": 48,
+      "pageNamedFiles": 44,
+      "nativeStatus": "无对应业务 UI；商家入口意向和账号角色显示不等于商家工作台"
+    },
+    {
+      "module": "npc",
+      "miniPages": 0,
+      "routeDeclarations": 0,
+      "pageNamedFiles": 0,
+      "nativeStatus": "无对应原生业务 UI"
+    },
+    {
+      "module": "official",
+      "miniPages": 4,
+      "routeDeclarations": 5,
+      "pageNamedFiles": 5,
+      "nativeStatus": "无对应原生业务 UI"
+    },
+    {
+      "module": "orders",
+      "miniPages": 2,
+      "routeDeclarations": 1,
+      "pageNamedFiles": 1,
+      "nativeStatus": "无对应原生业务 UI"
+    },
+    {
+      "module": "p3",
+      "miniPages": 4,
+      "routeDeclarations": 5,
+      "pageNamedFiles": 5,
+      "nativeStatus": "无对应原生业务 UI"
+    },
+    {
+      "module": "participation",
+      "miniPages": 2,
+      "routeDeclarations": 1,
+      "pageNamedFiles": 1,
+      "nativeStatus": "无对应原生业务 UI"
+    },
+    {
+      "module": "payment",
+      "miniPages": 0,
+      "routeDeclarations": 0,
+      "pageNamedFiles": 0,
+      "nativeStatus": "无支付 UI/SDK 执行；报名报价/原始状态代码不能证明支付完成"
+    },
+    {
+      "module": "play",
+      "miniPages": 3,
+      "routeDeclarations": 6,
+      "pageNamedFiles": 12,
+      "nativeStatus": "无对应原生业务 UI"
+    },
+    {
+      "module": "points",
+      "miniPages": 0,
+      "routeDeclarations": 1,
+      "pageNamedFiles": 1,
+      "nativeStatus": "无对应原生业务 UI"
+    },
+    {
+      "module": "prefab",
+      "miniPages": 1,
+      "routeDeclarations": 1,
+      "pageNamedFiles": 1,
+      "nativeStatus": "无对应原生业务 UI"
+    },
+    {
+      "module": "profile",
+      "miniPages": 3,
+      "routeDeclarations": 4,
+      "pageNamedFiles": 3,
+      "nativeStatus": "部分 UI：AccountView 仅基础账号资料、角色和退出；个人主页业务、编辑资料等待迁"
+    },
+    {
+      "module": "publish",
+      "miniPages": 6,
+      "routeDeclarations": 5,
+      "pageNamedFiles": 5,
+      "nativeStatus": "无对应原生业务 UI"
+    },
+    {
+      "module": "publisher",
+      "miniPages": 0,
+      "routeDeclarations": 0,
+      "pageNamedFiles": 0,
+      "nativeStatus": "无对应原生业务 UI"
+    },
+    {
+      "module": "roam",
+      "miniPages": 9,
+      "routeDeclarations": 10,
+      "pageNamedFiles": 9,
+      "nativeStatus": "无对应原生业务 UI"
+    },
+    {
+      "module": "search",
+      "miniPages": 3,
+      "routeDeclarations": 3,
+      "pageNamedFiles": 3,
+      "nativeStatus": "无对应原生业务 UI"
+    },
+    {
+      "module": "settings",
+      "miniPages": 2,
+      "routeDeclarations": 2,
+      "pageNamedFiles": 2,
+      "nativeStatus": "部分 UI：语言选择；完整设置菜单、关于、声音触感、隐私等待迁"
+    },
+    {
+      "module": "shell",
+      "miniPages": 0,
+      "routeDeclarations": 0,
+      "pageNamedFiles": 0,
+      "nativeStatus": "有新建两 Tab 容器；原玩家/商家主导航未迁"
+    },
+    {
+      "module": "square",
+      "miniPages": 2,
+      "routeDeclarations": 5,
+      "pageNamedFiles": 5,
+      "nativeStatus": "无对应原生业务 UI"
+    },
+    {
+      "module": "team",
+      "miniPages": 2,
+      "routeDeclarations": 3,
+      "pageNamedFiles": 1,
+      "nativeStatus": "无对应原生业务 UI"
+    },
+    {
+      "module": "template",
+      "miniPages": 5,
+      "routeDeclarations": 7,
+      "pageNamedFiles": 5,
+      "nativeStatus": "无对应原生业务 UI"
+    },
+    {
+      "module": "tickets",
+      "miniPages": 1,
+      "routeDeclarations": 3,
+      "pageNamedFiles": 3,
+      "nativeStatus": "无票夹/票详情/通行核销码 UI；活动详情票种价格不等于持有票券"
+    },
+    {
+      "module": "topic",
+      "miniPages": 3,
+      "routeDeclarations": 3,
+      "pageNamedFiles": 3,
+      "nativeStatus": "无对应原生业务 UI"
+    },
+    {
+      "module": "withdrawal",
+      "miniPages": 4,
+      "routeDeclarations": 2,
+      "pageNamedFiles": 2,
+      "nativeStatus": "无对应原生业务 UI"
+    }
+  ],
+  "primaryLedger": [
+    {
+      "miniPage": "pages/index/index",
+      "kind": "route",
+      "route": "/feed",
+      "source": "feature/feed/feed_page.dart",
+      "marker": "class FeedPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/template/index",
+      "kind": "route",
+      "route": "/template-square",
+      "source": "feature/template/template_list_page.dart",
+      "marker": "class TemplateListPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/talent/list/index",
+      "kind": "route",
+      "route": "/clubs",
+      "source": "feature/club/club_list_page.dart",
+      "marker": "class ClubListPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/member/index/index",
+      "kind": "route",
+      "route": "/profile",
+      "source": "feature/profile/profile_page.dart",
+      "marker": "class ProfilePage",
+      "nativeCoverage": "partial_ui"
+    },
+    {
+      "miniPage": "pages/roam/index",
+      "kind": "route",
+      "route": "/roam",
+      "source": "feature/roam/roam_live_page.dart",
+      "marker": "class RoamLivePage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/privacy/index",
+      "kind": "route",
+      "route": "/legal/:type",
+      "source": "feature/legal/legal_doc_page.dart",
+      "marker": "class LegalDocPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/agreement/index",
+      "kind": "route",
+      "route": "/legal/:type",
+      "source": "feature/legal/legal_doc_page.dart",
+      "marker": "class LegalDocPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/deregister/index",
+      "kind": "route",
+      "route": "/deregister",
+      "source": "feature/account/deregister_page.dart",
+      "marker": "class DeregisterPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/play/index",
+      "kind": "route",
+      "route": "/play/:activityId",
+      "source": "feature/play/play_session_page.dart",
+      "marker": "class PlaySessionPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/play/merchant/index",
+      "kind": "route",
+      "route": "/play/:activityId",
+      "source": "feature/play/play_session_page.dart",
+      "marker": "class PlaySessionPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/play/circle/index",
+      "kind": "route",
+      "route": "/play/circle/:topicId",
+      "source": "feature/play/circle_theme_play_page.dart",
+      "marker": "class CircleThemePlayPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "subpackagePrefab/index",
+      "kind": "route",
+      "route": "/play/prefab",
+      "source": "feature/prefab/prefab_life_page.dart",
+      "marker": "class PrefabLifePage",
+      "note": "《预制人生》:App 侧由 pages/play 会话首载命中 isPrefabLifeTopic 时 pushReplacement 换轨(真源 redirectTo)",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/activity/detail/index",
+      "kind": "route",
+      "route": "/activity/:id",
+      "source": "feature/activity/activity_detail_page.dart",
+      "marker": "class ActivityDetailPage",
+      "nativeCoverage": "partial_ui"
+    },
+    {
+      "miniPage": "pages/activity/baoming/baoming",
+      "kind": "component",
+      "source": "feature/activity/activity_detail_page.dart",
+      "marker": "class _SignupSheet",
+      "nativeCoverage": "domain_only_no_ui"
+    },
+    {
+      "miniPage": "pages/activity/list/index",
+      "kind": "route",
+      "route": "/official-events",
+      "source": "feature/official/official_events_page.dart",
+      "marker": "class OfficialEventsPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/activity/official-detail/index",
+      "kind": "route",
+      "route": "/official/:id",
+      "source": "feature/official/official_event_detail_page.dart",
+      "marker": "class OfficialEventDetailPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/activity/official-inbox/index",
+      "kind": "route",
+      "route": "/official-inbox",
+      "source": "feature/official/official_inbox_page.dart",
+      "marker": "class OfficialInboxPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/activity/official-mine/index",
+      "kind": "route",
+      "route": "/official-mine",
+      "source": "feature/official/official_mine_page.dart",
+      "marker": "class OfficialMinePage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "subpackageA/pages/myproject/index",
+      "kind": "route",
+      "route": "/my-projects",
+      "source": "feature/publish/my_projects_page.dart",
+      "marker": "class MyProjectsPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "subpackageA/pages/infomation/infomation",
+      "kind": "route",
+      "route": "/play-guide",
+      "source": "feature/account/play_guide_page.dart",
+      "marker": "class PlayGuidePage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "subpackageA/pages/infomationdetail/infomationdetail",
+      "kind": "route",
+      "route": "/infomation/:id",
+      "source": "feature/account/infomation_detail_page.dart",
+      "marker": "class InfomationDetailPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "subpackageA/pages/assetcenter/income-detail/income-detail",
+      "kind": "route",
+      "route": "/income",
+      "source": "feature/account/income_detail_page.dart",
+      "marker": "class IncomeDetailPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "subpackageA/pages/assetcenter/earnings/index",
+      "kind": "route",
+      "route": "/assets",
+      "source": "feature/assets/assets_page.dart",
+      "marker": "class AssetsPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "subpackageP3/pages/growthcenter/index/index",
+      "kind": "route",
+      "route": "/growth",
+      "source": "feature/p3/growth/growth_center_page.dart",
+      "marker": "class GrowthCenterPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "subpackageP3/pages/growthcenter/leaderboard/index",
+      "kind": "route",
+      "route": "/growth/leaderboard",
+      "source": "feature/p3/growth/leaderboard_page.dart",
+      "marker": "class LeaderboardPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "subpackageP3/pages/stamp-camera/index/index",
+      "kind": "route",
+      "route": "/roam/stamp-camera",
+      "source": "feature/roam/stamp_camera_page.dart",
+      "marker": "class StampCameraPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "subpackageP3/pages/stamp-album/index/index",
+      "kind": "route",
+      "route": "/roam/stamp-album",
+      "source": "feature/roam/stamp_album_page.dart",
+      "marker": "class StampAlbumPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "subpackageP3/pages/badge-wall/index/index",
+      "kind": "route",
+      "route": "/badges",
+      "source": "feature/p3/badges/badge_wall_page.dart",
+      "marker": "class BadgeWallPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "subpackageP3/pages/badge-3d/index",
+      "kind": "route",
+      "route": "/badge",
+      "source": "feature/p3/badges/badge_detail_page.dart",
+      "marker": "class BadgeDetailPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "subpackageB/pages/im/list/index",
+      "kind": "route",
+      "route": "/im",
+      "source": "feature/im/im_list_page.dart",
+      "marker": "class ImListPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "subpackageB/pages/im/chat/index",
+      "kind": "route",
+      "route": "/im/chat/:conversationId",
+      "source": "feature/im/im_chat_page.dart",
+      "marker": "class ImChatPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/publish/fabu/index",
+      "kind": "route",
+      "route": "/publish/pro",
+      "source": "feature/publish/publish_pro_page.dart",
+      "marker": "class PublishProPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/publish/simple/index",
+      "kind": "route",
+      "route": "/publish",
+      "source": "feature/publish/publish_page.dart",
+      "marker": "class PublishPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/publish/temp/index",
+      "kind": "route",
+      "route": "/template/edit",
+      "source": "feature/template/template_edit_page.dart",
+      "marker": "class TemplateEditPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/publish/activity/index",
+      "kind": "route",
+      "route": "/publish/activity",
+      "source": "feature/publish/publish_activity_page.dart",
+      "marker": "class PublishActivityPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/publish/topicadd/topicadd",
+      "kind": "route",
+      "route": "/publish/pro",
+      "source": "feature/publish/publish_pro_page.dart",
+      "marker": "class PublishProPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/publish/templateadd/templateadd",
+      "kind": "route",
+      "route": "/template/new",
+      "source": "feature/template/template_name_page.dart",
+      "marker": "class TemplateNamePage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/publish/template-intro/index",
+      "kind": "route",
+      "route": "/template/intro",
+      "source": "feature/template/template_intro_page.dart",
+      "marker": "class TemplateIntroPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/club/apply/index",
+      "kind": "route",
+      "route": "/club/apply",
+      "source": "feature/club/club_apply_page.dart",
+      "marker": "class ClubApplyPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/club/create/index",
+      "kind": "route",
+      "route": "/club/create",
+      "source": "feature/club/club_create_page.dart",
+      "marker": "class ClubCreatePage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/club/detail/index",
+      "kind": "route",
+      "route": "/club/:id",
+      "source": "feature/club/club_detail_page.dart",
+      "marker": "class ClubDetailPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/club/edit/index",
+      "kind": "route",
+      "route": "/club/:id/edit",
+      "source": "feature/club/club_edit_page.dart",
+      "marker": "class ClubEditPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/club/enroll/index",
+      "kind": "route",
+      "route": "/club/:id/enroll",
+      "source": "feature/club/club_enroll_page.dart",
+      "marker": "class ClubEnrollPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/club/group-code/index",
+      "kind": "route",
+      "route": "/club/group-code",
+      "source": "feature/club/club_group_code_page.dart",
+      "marker": "class ClubGroupCodePage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/club/join-requests/index",
+      "kind": "route",
+      "route": "/club/:id/join-requests",
+      "source": "feature/club/club_join_requests_page.dart",
+      "marker": "class ClubJoinRequestsPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/club/workbench/index",
+      "kind": "route",
+      "route": "/club/workbench",
+      "source": "feature/club/club_workbench_page.dart",
+      "marker": "class ClubWorkbenchPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/club/customers/index",
+      "kind": "route",
+      "route": "/club/:id/customers",
+      "source": "feature/club/club_customers_page.dart",
+      "marker": "class ClubCustomersPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/club/customer-detail/index",
+      "kind": "route",
+      "route": "/club/:id/customers/:memberId",
+      "source": "feature/club/club_customer_detail_page.dart",
+      "marker": "class ClubCustomerDetailPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/club/checkin-detail/index",
+      "kind": "route",
+      "route": "/club/:id/checkin/:registrationId",
+      "source": "feature/club/club_checkin_detail_page.dart",
+      "marker": "class ClubCheckinDetailPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/club/settlement/index",
+      "kind": "route",
+      "route": "/club/:id/settlement",
+      "source": "feature/club/club_settlement_page.dart",
+      "marker": "class ClubSettlementPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/club/event-ops/index",
+      "kind": "route",
+      "route": "/club/:id/event-ops",
+      "source": "feature/club/club_event_ops_page.dart",
+      "marker": "class ClubEventOpsPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/club/governance/index",
+      "kind": "route",
+      "route": "/club/:id/governance",
+      "source": "feature/club/club_governance_page.dart",
+      "marker": "class ClubGovernancePage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/club/notify/index",
+      "kind": "route",
+      "route": "/club/:id/notify",
+      "source": "feature/club/club_notify_page.dart",
+      "marker": "class ClubNotifyPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/club/roles/index",
+      "kind": "route",
+      "route": "/club/:id/roles",
+      "source": "feature/club/club_roles_page.dart",
+      "marker": "class ClubRolesPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/topic/index/index",
+      "kind": "route",
+      "route": "/topic/:id",
+      "source": "feature/topic/topic_detail_page.dart",
+      "marker": "class TopicDetailPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/topic/merchantinfo/merchantinfo",
+      "kind": "route",
+      "route": "/merchant/recruit/:topicId",
+      "source": "feature/merchant/merchant_recruit_page.dart",
+      "marker": "class MerchantRecruitPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/topic/merchantapply/index",
+      "kind": "component",
+      "source": "feature/merchant/merchant_recruit_sheets.dart",
+      "marker": "showNodeRegistrationForm(",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/topic/pricing/index",
+      "kind": "route",
+      "route": "/topic/:id/pricing",
+      "source": "feature/topic/topic_pricing_page.dart",
+      "marker": "class TopicPricingPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/topic/pricing/partner/index",
+      "kind": "route",
+      "route": "/topic/pricing/partner",
+      "source": "feature/topic/topic_pricing_partner_page.dart",
+      "marker": "class TopicPricingPartnerPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/merchant/index/index",
+      "kind": "route",
+      "route": "/merchant",
+      "source": "feature/merchant/merchant_home_page.dart",
+      "marker": "class MerchantHomePage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/merchant/apply/index",
+      "kind": "route",
+      "route": "/merchant/apply",
+      "source": "feature/merchant/merchant_apply_page.dart",
+      "marker": "class MerchantApplyPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/merchant/ledger/index",
+      "kind": "route",
+      "route": "/merchant/ledger",
+      "source": "feature/merchant/merchant_ledger_page.dart",
+      "marker": "class MerchantLedgerPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/merchant/ledger/order-detail/index",
+      "kind": "route",
+      "route": "/merchant/redemption/:type/:id",
+      "source": "feature/merchant/merchant_redemption_detail_page.dart",
+      "marker": "class MerchantRedemptionDetailPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/merchant/ledger/batch-detail/index",
+      "kind": "route",
+      "route": "/merchant/ledger/batch/:batchId",
+      "source": "feature/merchant/batch_detail_page.dart",
+      "marker": "class BatchDetailPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/merchant/profile/index",
+      "kind": "route",
+      "route": "/merchant/public-home/:id",
+      "source": "feature/merchant/merchant_public_home_page.dart",
+      "marker": "class MerchantPublicHomePage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/merchant/marketing/index",
+      "kind": "route",
+      "route": "/merchant/marketing",
+      "source": "feature/merchant/merchant_marketing_page.dart",
+      "marker": "class MerchantMarketingPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/merchant/marketing/ai-insight/index",
+      "kind": "route",
+      "route": "/merchant/marketing/ai-insight",
+      "source": "feature/merchant/merchant_ai_insight_page.dart",
+      "marker": "class MerchantAiInsightPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/merchant/relation/index",
+      "kind": "route",
+      "route": "/merchant/relations",
+      "source": "feature/merchant/merchant_relation_page.dart",
+      "marker": "class MerchantRelationPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/merchant/citynode/index",
+      "kind": "route",
+      "route": "/merchant/city-nodes",
+      "source": "feature/merchant/merchant_city_node_page.dart",
+      "marker": "class MerchantCityNodePage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/merchant/citynode/create/index",
+      "kind": "route",
+      "route": "/merchant/city-nodes/create",
+      "source": "feature/merchant/merchant_city_node_create_page.dart",
+      "marker": "class MerchantCityNodeCreatePage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/merchant/decor/index",
+      "kind": "route",
+      "route": "/merchant/decor",
+      "source": "feature/merchant/merchant_decor_page.dart",
+      "marker": "class MerchantDecorPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/merchant/decor/coop-setting/index",
+      "kind": "route",
+      "route": "/merchant/coop-profile",
+      "source": "feature/merchant/merchant_coop_profile_page.dart",
+      "marker": "class MerchantCoopProfilePage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/merchant/decor/gallery/index",
+      "kind": "route",
+      "route": "/merchant/decor/gallery",
+      "source": "feature/merchant/merchant_decor_gallery_page.dart",
+      "marker": "class MerchantDecorGalleryPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/merchant/decor/perks/index",
+      "kind": "route",
+      "route": "/coop/perk-templates",
+      "source": "feature/coop/coop_perk_template_page.dart",
+      "marker": "class CoopPerkTemplatePage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/merchant/coop-center/index",
+      "kind": "route",
+      "route": "/merchant/coop",
+      "source": "feature/merchant/merchant_coop_page.dart",
+      "marker": "class MerchantCoopPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/merchant/customer/index",
+      "kind": "route",
+      "route": "/merchant/customers",
+      "source": "feature/merchant/merchant_customer_page.dart",
+      "marker": "class MerchantCustomerPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/coop/list/index",
+      "kind": "route",
+      "route": "/coop/list",
+      "source": "feature/coop/coop_list_page.dart",
+      "marker": "class CoopListPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/coop/invite/index",
+      "kind": "route",
+      "route": "/coop/invite",
+      "source": "feature/coop/coop_invite_page.dart",
+      "marker": "class CoopInvitePage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/coop/nearby/index",
+      "kind": "route",
+      "route": "/coop/nearby",
+      "source": "feature/coop/nearby_merchants_page.dart",
+      "marker": "class NearbyMerchantsPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/coop/finance/index",
+      "kind": "route",
+      "route": "/coop-finance",
+      "source": "feature/coop/coop_finance_page.dart",
+      "marker": "class CoopFinancePage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/coop/settlement-detail/index",
+      "kind": "route",
+      "route": "/coop/settlement-detail",
+      "source": "feature/coop/coop_settlement_detail_page.dart",
+      "marker": "class CoopSettlementDetailPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/coop/invite-detail/index",
+      "kind": "route",
+      "route": "/coop/invite-detail",
+      "source": "feature/coop/coop_invite_detail_page.dart",
+      "marker": "class CoopInviteDetailPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/coop/withdraw/index",
+      "kind": "route",
+      "route": "/withdrawal",
+      "source": "feature/withdrawal/withdrawal_page.dart",
+      "marker": "class WithdrawalPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/coop/withdraw/records/index",
+      "kind": "route",
+      "route": "/withdrawal-records",
+      "source": "feature/withdrawal/withdrawal_records_page.dart",
+      "marker": "class WithdrawalRecordsPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/square/list/index",
+      "kind": "route",
+      "route": "/square",
+      "source": "feature/square/square_list_page.dart",
+      "marker": "class SquareListPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/square/detail/index",
+      "kind": "route",
+      "route": "/square/:id",
+      "source": "feature/square/square_detail_page.dart",
+      "marker": "class SquareDetailPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/search2/index",
+      "kind": "route",
+      "route": "/search",
+      "source": "feature/search/search_page.dart",
+      "marker": "class SearchPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/search2/result/index",
+      "kind": "route",
+      "route": "/search/result",
+      "source": "feature/search/search_result_page.dart",
+      "marker": "class SearchResultPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/searchmap/index",
+      "kind": "route",
+      "route": "/search/map",
+      "source": "feature/search/city_node_search_page.dart",
+      "marker": "class CityNodeSearchPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/templatedetail/templatedetail",
+      "kind": "route",
+      "route": "/template/:id",
+      "source": "feature/template/template_detail_page.dart",
+      "marker": "class TemplateDetailPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/address/address",
+      "kind": "route",
+      "route": "/address",
+      "source": "feature/account/address_list_page.dart",
+      "marker": "class AddressListPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/addressinfo/addressinfo",
+      "kind": "route",
+      "route": "/address/edit/:id",
+      "source": "feature/account/address_edit_page.dart",
+      "marker": "class AddressEditPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/shezhi/shezhi",
+      "kind": "route",
+      "route": "/settings",
+      "source": "feature/settings/settings_page.dart",
+      "marker": "class SettingsPage",
+      "nativeCoverage": "partial_ui"
+    },
+    {
+      "miniPage": "pages/shezhi/about/index",
+      "kind": "route",
+      "route": "/settings/about",
+      "source": "feature/settings/about_page.dart",
+      "marker": "class AboutPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/gerenziliao/gerenziliao",
+      "kind": "route",
+      "route": "/profile/edit",
+      "source": "feature/profile/profile_edit_page.dart",
+      "marker": "class ProfileEditPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/userinfo/userinfo",
+      "kind": "route",
+      "route": "/user/:memberId",
+      "source": "feature/profile/user_profile_page.dart",
+      "marker": "class UserProfilePage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/mylike/mylike",
+      "kind": "route",
+      "route": "/my-likes",
+      "source": "feature/account/my_likes_page.dart",
+      "marker": "class MyLikesPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/crop/index",
+      "kind": "system",
+      "reason": "App 选图由 iOS 系统相册/相机承载，不保留小程序独立 crop 路由。",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "subpackageMember/complaint/index",
+      "kind": "route",
+      "route": "/complaint",
+      "source": "feature/coop/complaint_page.dart",
+      "marker": "class ComplaintPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "subpackageMember/coupon-wallet/index",
+      "kind": "route",
+      "route": "/coupons",
+      "source": "feature/coupon/my_coupons_page.dart",
+      "marker": "class MyCouponsPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "subpackageMember/coupon-qr/index",
+      "kind": "route",
+      "route": "/coupon/:id/code",
+      "source": "feature/coupon/coupon_code_page.dart",
+      "marker": "class CouponCodePage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "subpackageMember/coupon/coupon",
+      "kind": "route",
+      "route": "/merchant/coupons",
+      "source": "feature/coupon/my_published_coupons_page.dart",
+      "marker": "class MyPublishedCouponsPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "subpackageMember/couponInfo/couponInfo",
+      "kind": "component",
+      "source": "feature/coupon/coupon_publish_sheet.dart",
+      "marker": "showCouponPublishSheet(",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "subpackageMember/mycanyu/mycanyu",
+      "kind": "route",
+      "route": "/participations",
+      "source": "feature/participation/participation_page.dart",
+      "marker": "class ParticipationPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "subpackageMember/mycanyuinfo/mycanyuinfo",
+      "kind": "component",
+      "source": "feature/participation/participation_detail_sheet.dart",
+      "marker": "showParticipationDetail(",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "subpackageMember/myinvite/myinvite",
+      "kind": "route",
+      "route": "/invites",
+      "source": "feature/account/invite_history_page.dart",
+      "marker": "class InviteHistoryPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "subpackageMember/mytemplate/mytemplate",
+      "kind": "route",
+      "route": "/my-projects",
+      "source": "feature/publish/my_projects_page.dart",
+      "marker": "class MyProjectsPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "subpackageMember/order/order",
+      "kind": "route",
+      "route": "/orders",
+      "source": "feature/orders/orders_page.dart",
+      "marker": "class OrdersPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "subpackageMember/orderinfo/orderinfo",
+      "kind": "component",
+      "source": "feature/orders/order_detail_sheet.dart",
+      "marker": "class OrderDetailSheet",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "subpackageMember/signup/index",
+      "kind": "route",
+      "route": "/tickets",
+      "source": "feature/tickets/tickets_page.dart",
+      "marker": "class TicketsPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "subpackageMember/tixian/tixian",
+      "kind": "route",
+      "route": "/withdrawal",
+      "source": "feature/withdrawal/withdrawal_page.dart",
+      "marker": "class WithdrawalPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "subpackageMember/tixianjilu/tixianjilu",
+      "kind": "route",
+      "route": "/withdrawal-records",
+      "source": "feature/withdrawal/withdrawal_records_page.dart",
+      "marker": "class WithdrawalRecordsPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "subpackageRoam/citynode-code/index",
+      "kind": "route",
+      "route": "/roam/citynode-code",
+      "source": "feature/roam/city_node_voucher_page.dart",
+      "marker": "class CityNodeVoucherPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "subpackageRoam/citystamp/index",
+      "kind": "route",
+      "route": "/roam/citystamp",
+      "source": "feature/roam/city_stamp_page.dart",
+      "marker": "class CityStampPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "subpackageRoam/history/index",
+      "kind": "route",
+      "route": "/roam/history",
+      "source": "feature/roam/roam_history_page.dart",
+      "marker": "class RoamHistoryPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "subpackageRoam/nearby/index",
+      "kind": "route",
+      "route": "/roam/nearby",
+      "source": "feature/roam/roam_hangout_page.dart",
+      "marker": "class RoamHangoutPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "subpackageRoam/poi-detail/index",
+      "kind": "route",
+      "route": "/roam/poi/:poiId",
+      "source": "feature/roam/roam_poi_detail_page.dart",
+      "marker": "class RoamPoiDetailPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "subpackageRoam/session/index",
+      "kind": "route",
+      "route": "/roam/session",
+      "source": "feature/roam/roam_session_page.dart",
+      "marker": "class RoamSessionPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/merchant/aftercare/index",
+      "kind": "route",
+      "route": "/merchant/aftercare",
+      "source": "feature/merchant/merchant_aftercare_list_page.dart",
+      "marker": "class MerchantAftercareListPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/merchant/aftercare/detail/index",
+      "kind": "route",
+      "route": "/merchant/aftercare/:refundId",
+      "source": "feature/merchant/merchant_aftercare_detail_page.dart",
+      "marker": "class MerchantAftercareDetailPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/merchant/reviews/index",
+      "kind": "route",
+      "route": "/merchant/reviews",
+      "source": "feature/merchant/merchant_reviews_page.dart",
+      "marker": "class MerchantReviewsPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/merchant/customer/detail/index",
+      "kind": "route",
+      "route": "/merchant/customers/:customerMemberId",
+      "source": "feature/merchant/merchant_customer_detail_page.dart",
+      "marker": "class MerchantCustomerDetailPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/merchant/team/index",
+      "kind": "route",
+      "route": "/merchant/team",
+      "source": "feature/merchant/merchant_operator_page.dart",
+      "marker": "class MerchantTeamRoutePage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/merchant/game-node/index",
+      "kind": "route",
+      "route": "/merchant/game-node/:activityId",
+      "source": "feature/merchant/merchant_game_node_page.dart",
+      "marker": "class MerchantGameNodePage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/merchant/decor/ai-npc/index",
+      "kind": "route",
+      "route": "/merchant/npc",
+      "source": "feature/merchant/merchant_npc_edit_page.dart",
+      "marker": "class MerchantNpcEditPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/team/detail/index",
+      "kind": "route",
+      "route": "/team/:teamId",
+      "source": "feature/team/team_pages.dart",
+      "marker": "class TeamDetailPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/team/join/index",
+      "kind": "route",
+      "route": "/team/join",
+      "source": "feature/team/team_pages.dart",
+      "marker": "class TeamJoinPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/club/topic-detail/index",
+      "kind": "route",
+      "route": "/club/:id/topic/:topicId",
+      "source": "feature/club/club_topic_detail_page.dart",
+      "marker": "class ClubTopicDetailPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/club/topic-story/index",
+      "kind": "route",
+      "route": "/club/:id/topic/:topicId/story",
+      "source": "feature/club/club_topic_story_page.dart",
+      "marker": "class ClubTopicStoryPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    },
+    {
+      "miniPage": "pages/merchant/predict/index",
+      "kind": "route",
+      "route": "/merchant/predict",
+      "source": "feature/merchant/merchant_predict_page.dart",
+      "marker": "class MerchantPredictPage",
+      "nativeCoverage": "no_native_equivalent_ui"
+    }
+  ],
+  "additionalAppRoutes": [
+    {
+      "miniPage": "pages/talent/list/index",
+      "kind": "appRoute",
+      "route": "/club-feed",
+      "source": "feature/club/club_feed_page.dart",
+      "marker": "class ClubFeedPage",
+      "reason": "App 拆分:小程序把帖文流做成 pages/talent/list 的 tab(club_feed_page.dart 头注同此口径),App 另给可深链独立页;母页落点 /clubs(ClubListPage)不变。b1-sim-club-2 N2 补登记。"
+    },
+    {
+      "miniPage": "pages/club/detail/index",
+      "kind": "appRoute",
+      "route": "/club/:id/leaderboard",
+      "source": "feature/club/club_leaderboard_page.dart",
+      "marker": "class ClubLeaderboardPage",
+      "reason": "App 拆分:本团贡献榜(/api/club/leaderboard)在小程序是俱乐部详情页内区块(pages/club/detail/index.js:1318-1325),App 拆成可深链子路由;母页落点 /club/:id 不变。b1-sim-club-2 N2 补登记。"
+    },
+    {
+      "miniPage": "pages/club/detail/index",
+      "kind": "appRoute",
+      "route": "/club/:id/edition-report",
+      "source": "feature/club/club_edition_report_page.dart",
+      "marker": "class ClubEditionReportPage",
+      "reason": "App 拆分:探店日工时填报的候选期次数据源在小程序挂在俱乐部详情页(pages/club/detail/index.js:975-982 loadShareEditions → /api/club-compensation/editions),小程序 app.json 无独立页;App 拆成可深链子路由。b1-sim-club-2 N2 补登记。"
+    },
+    {
+      "miniPage": "pages/club/edit/index",
+      "kind": "appRoute",
+      "route": "/club/:id/dissolution-blockers",
+      "source": "feature/club/club_dissolution_blockers_page.dart",
+      "marker": "class ClubDissolutionBlockersPage",
+      "reason": "解散阻塞项:后端下发 url 指向 /pages/club/dissolution-blockers/index(components/cy/scene-club-edit/index.js:360,412-415 解析),但小程序 app.json 没有该页、只内联渲染;App 按后端 url 落成独立路由,母页是俱乐部编辑/设置(pages/club/edit/index)。b1-sim-club-2 N2 补登记。"
+    },
+    {
+      "miniPage": "subpackageMember/orderinfo/orderinfo",
+      "kind": "appRoute",
+      "route": "/ticket/:id",
+      "source": "feature/tickets/ticket_detail_page.dart",
+      "marker": "class TicketDetailPage",
+      "reason": "票夹点票进详情在小程序跳 subpackageMember/orderinfo(subpackageMember/signup/index.js:106);App 票域落点是独立路由 /ticket/:id(TicketDetailPage)。母页既有 component 登记(OrderDetailSheet,订单域)不改。b1-sim-club-2 N2 补登记。"
+    },
+    {
+      "miniPage": "pages/play/index",
+      "kind": "appRoute",
+      "route": "/ticket/:id/pass",
+      "source": "feature/tickets/pass_page.dart",
+      "marker": "class PassPage",
+      "reason": "出示核销码(/api/verify/dyncode/issue)在小程序由游玩页签发(pages/play/index.js:4684;signup/index.js:130-131 FE-19 票夹直连 play 出码),App 把出码拆成独立路由挂在票域;母页落点 /play/:activityId 不变。b1-sim-club-2 N2 补登记。"
+    }
+  ],
+  "routeDeclarations": [
+    {
+      "line": 328,
+      "pathExpression": "'/splash'",
+      "source": "feature/auth/splash_page.dart",
+      "module": "auth"
+    },
+    {
+      "line": 333,
+      "pathExpression": "'/door'",
+      "source": "feature/account/door_entry_page.dart",
+      "module": "account"
+    },
+    {
+      "line": 340,
+      "pathExpression": "'/login'",
+      "source": "feature/auth/login_page.dart",
+      "module": "auth"
+    },
+    {
+      "line": 345,
+      "pathExpression": "'/search'",
+      "source": "feature/search/search_page.dart",
+      "module": "search"
+    },
+    {
+      "line": 347,
+      "pathExpression": "'/search/map'",
+      "source": "feature/search/city_node_search_page.dart",
+      "module": "search"
+    },
+    {
+      "line": 356,
+      "pathExpression": "'/search/result'",
+      "source": "feature/search/search_result_page.dart",
+      "module": "search"
+    },
+    {
+      "line": 374,
+      "pathExpression": "'/settings'",
+      "source": "feature/settings/settings_page.dart",
+      "module": "settings"
+    },
+    {
+      "line": 382,
+      "pathExpression": "'about'",
+      "source": "feature/settings/about_page.dart",
+      "module": "settings"
+    },
+    {
+      "line": 398,
+      "pathExpression": "'/legal/:type'",
+      "source": "feature/legal/legal_doc_page.dart",
+      "module": "legal"
+    },
+    {
+      "line": 403,
+      "pathExpression": "'/publish'",
+      "source": "feature/publish/publish_page.dart",
+      "module": "publish"
+    },
+    {
+      "line": 416,
+      "pathExpression": "'/publish/pro'",
+      "source": "feature/publish/publish_pro_page.dart",
+      "module": "publish"
+    },
+    {
+      "line": 437,
+      "pathExpression": "'/publish/poi'",
+      "source": "feature/publish/poi_pick_page.dart",
+      "module": "publish"
+    },
+    {
+      "line": 440,
+      "pathExpression": "'/assets'",
+      "source": "feature/assets/assets_page.dart",
+      "module": "assets"
+    },
+    {
+      "line": 442,
+      "pathExpression": "'/invites'",
+      "source": "feature/account/invite_history_page.dart",
+      "module": "account"
+    },
+    {
+      "line": 446,
+      "pathExpression": "'/income'",
+      "source": "feature/account/income_detail_page.dart",
+      "module": "account"
+    },
+    {
+      "line": 452,
+      "pathExpression": "'/creator'",
+      "source": "feature/creator/creator_center_page.dart",
+      "module": "creator"
+    },
+    {
+      "line": 456,
+      "pathExpression": "'/merchant/discover'",
+      "source": "feature/merchant/merchant_discover_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 462,
+      "pathExpression": "'/official-events'",
+      "source": "feature/official/official_events_page.dart",
+      "module": "official"
+    },
+    {
+      "line": 466,
+      "pathExpression": "'/publish/activity'",
+      "source": "feature/publish/publish_activity_page.dart",
+      "module": "publish"
+    },
+    {
+      "line": 470,
+      "pathExpression": "'/im'",
+      "source": "feature/im/im_list_page.dart",
+      "module": "im"
+    },
+    {
+      "line": 472,
+      "pathExpression": "'/im/chat/:conversationId'",
+      "source": "feature/im/im_chat_page.dart",
+      "module": "im"
+    },
+    {
+      "line": 488,
+      "pathExpression": "'/coupons'",
+      "source": "feature/coupon/my_coupons_page.dart",
+      "module": "coupon"
+    },
+    {
+      "line": 492,
+      "pathExpression": "'/coupon/:id/code'",
+      "source": "feature/coupon/coupon_code_page.dart",
+      "module": "coupon"
+    },
+    {
+      "line": 498,
+      "pathExpression": "'/points'",
+      "source": "feature/points/points_page.dart",
+      "module": "points"
+    },
+    {
+      "line": 500,
+      "pathExpression": "'/object-cards'",
+      "source": "feature/p3/object_cards/object_cards_page.dart",
+      "module": "p3"
+    },
+    {
+      "line": 505,
+      "pathExpression": "'/growth'",
+      "source": "feature/p3/growth/growth_center_page.dart",
+      "module": "p3"
+    },
+    {
+      "line": 509,
+      "pathExpression": "'/growth/leaderboard'",
+      "source": "feature/p3/growth/leaderboard_page.dart",
+      "module": "p3"
+    },
+    {
+      "line": 514,
+      "pathExpression": "'/badges'",
+      "source": "feature/p3/badges/badge_wall_page.dart",
+      "module": "p3"
+    },
+    {
+      "line": 518,
+      "pathExpression": "'/badge'",
+      "source": "feature/p3/badges/badge_detail_page.dart",
+      "module": "p3"
+    },
+    {
+      "line": 526,
+      "pathExpression": "'/activities'",
+      "source": "feature/activity/activity_list_page.dart",
+      "module": "activity"
+    },
+    {
+      "line": 530,
+      "pathExpression": "'/activity/:id'",
+      "source": "feature/activity/activity_detail_page.dart",
+      "module": "activity"
+    },
+    {
+      "line": 537,
+      "pathExpression": "'/withdrawal'",
+      "source": "feature/withdrawal/withdrawal_page.dart",
+      "module": "withdrawal"
+    },
+    {
+      "line": 541,
+      "pathExpression": "'/withdrawal-records'",
+      "source": "feature/withdrawal/withdrawal_records_page.dart",
+      "module": "withdrawal"
+    },
+    {
+      "line": 549,
+      "pathExpression": "'/topic/pricing/partner'",
+      "source": "feature/topic/topic_pricing_partner_page.dart",
+      "module": "topic"
+    },
+    {
+      "line": 561,
+      "pathExpression": "'/topic/:id/pricing'",
+      "source": "feature/topic/topic_pricing_page.dart",
+      "module": "topic"
+    },
+    {
+      "line": 569,
+      "pathExpression": "'/official/:id'",
+      "source": "feature/official/official_event_detail_page.dart",
+      "module": "official"
+    },
+    {
+      "line": 576,
+      "pathExpression": "'/official-inbox'",
+      "source": "feature/official/official_inbox_page.dart",
+      "module": "official"
+    },
+    {
+      "line": 581,
+      "pathExpression": "'/official-publish'",
+      "source": "feature/official/official_publish_page.dart",
+      "module": "official"
+    },
+    {
+      "line": 585,
+      "pathExpression": "'/official-mine'",
+      "source": "feature/official/official_mine_page.dart",
+      "module": "official"
+    },
+    {
+      "line": 590,
+      "pathExpression": "'/deregister'",
+      "source": "feature/account/deregister_page.dart",
+      "module": "account"
+    },
+    {
+      "line": 594,
+      "pathExpression": "'/merchant/decor'",
+      "source": "feature/merchant/merchant_decor_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 598,
+      "pathExpression": "'/merchant/npc'",
+      "source": "feature/merchant/merchant_npc_edit_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 603,
+      "pathExpression": "'/merchant/npc/avatar'",
+      "source": "feature/merchant/merchant_npc_avatar_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 608,
+      "pathExpression": "'/merchant/npc/voice'",
+      "source": "feature/merchant/merchant_npc_voice_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 613,
+      "pathExpression": "'/merchant/decor/story'",
+      "source": "feature/merchant/merchant_decor_story_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 618,
+      "pathExpression": "'/merchant/decor/gallery'",
+      "source": "feature/merchant/merchant_decor_gallery_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 623,
+      "pathExpression": "'/merchant/chapters'",
+      "source": "feature/merchant/merchant_chapters_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 629,
+      "pathExpression": "'/merchant/recruit/:topicId'",
+      "source": "feature/merchant/merchant_recruit_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 638,
+      "pathExpression": "'/merchant/node-npc/:nodeId'",
+      "source": "feature/merchant/merchant_node_npc_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 648,
+      "pathExpression": "'/merchant/registration/:id/edit'",
+      "source": "feature/merchant/merchant_registration_edit_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 657,
+      "pathExpression": "'/merchant/topic/:topicId/applications'",
+      "source": "feature/merchant/topic_chapter_applications_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 665,
+      "pathExpression": "'/merchant/customers/:customerMemberId'",
+      "source": "feature/merchant/merchant_customer_detail_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 681,
+      "pathExpression": "'/merchant/aftercare'",
+      "source": "feature/merchant/merchant_aftercare_list_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 688,
+      "pathExpression": "'/merchant/aftercare/:refundId'",
+      "source": "feature/merchant/merchant_aftercare_detail_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 701,
+      "pathExpression": "'/merchant/reviews'",
+      "source": "feature/merchant/merchant_reviews_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 717,
+      "pathExpression": "'/merchant/reviews/public/:merchantRowId/:ownerMemberId'",
+      "source": "feature/merchant/merchant_public_reviews_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 736,
+      "pathExpression": "'/merchant/game-node/:activityId'",
+      "source": "feature/merchant/merchant_game_node_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 750,
+      "pathExpression": "'/merchant/team'",
+      "source": "feature/merchant/merchant_operator_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 758,
+      "pathExpression": "'/user/:memberId'",
+      "source": "feature/profile/user_profile_page.dart",
+      "module": "profile"
+    },
+    {
+      "line": 765,
+      "pathExpression": "'/club-feed'",
+      "source": "feature/club/club_feed_page.dart",
+      "module": "club"
+    },
+    {
+      "line": 769,
+      "pathExpression": "'/infomation/:id'",
+      "source": "feature/account/infomation_detail_page.dart",
+      "module": "account"
+    },
+    {
+      "line": 776,
+      "pathExpression": "'/my-projects'",
+      "source": "feature/publish/my_projects_page.dart",
+      "module": "publish"
+    },
+    {
+      "line": 788,
+      "pathExpression": "'/square/compose'",
+      "source": "feature/square/square_compose_page.dart",
+      "module": "square"
+    },
+    {
+      "line": 799,
+      "pathExpression": "'/square/drafts'",
+      "source": "feature/square/square_drafts_page.dart",
+      "module": "square"
+    },
+    {
+      "line": 803,
+      "pathExpression": "'/square/governance'",
+      "source": "feature/square/square_governance_page.dart",
+      "module": "square"
+    },
+    {
+      "line": 807,
+      "pathExpression": "'/my-plays'",
+      "source": "feature/play/my_plays_page.dart",
+      "module": "play"
+    },
+    {
+      "line": 811,
+      "pathExpression": "'/participations'",
+      "source": "feature/participation/participation_page.dart",
+      "module": "participation"
+    },
+    {
+      "line": 815,
+      "pathExpression": "'/play/:activityId/ending'",
+      "source": "feature/play/play_ending_page.dart",
+      "module": "play"
+    },
+    {
+      "line": 827,
+      "pathExpression": "'/team-lead/:activityId'",
+      "source": "feature/play/team_lead_page.dart",
+      "module": "play"
+    },
+    {
+      "line": 835,
+      "pathExpression": "'/play/circle/:topicId'",
+      "source": "feature/play/circle_theme_play_page.dart",
+      "module": "play"
+    },
+    {
+      "line": 843,
+      "pathExpression": "'/team/join'",
+      "source": "feature/team/team_pages.dart",
+      "module": "team"
+    },
+    {
+      "line": 850,
+      "pathExpression": "'/team/nearby'",
+      "source": "feature/team/team_nearby_page.dart",
+      "module": "team"
+    },
+    {
+      "line": 854,
+      "pathExpression": "'/team/:teamId'",
+      "source": "feature/team/team_pages.dart",
+      "module": "team"
+    },
+    {
+      "line": 860,
+      "pathExpression": "'/play/stopwatch'",
+      "source": "feature/play/stopwatch_game_page.dart",
+      "module": "play"
+    },
+    {
+      "line": 880,
+      "pathExpression": "'/play-guide'",
+      "source": "feature/account/play_guide_page.dart",
+      "module": "account"
+    },
+    {
+      "line": 886,
+      "pathExpression": "'/play/prefab'",
+      "source": "feature/prefab/prefab_life_page.dart",
+      "module": "prefab"
+    },
+    {
+      "line": 896,
+      "pathExpression": "'/my-likes'",
+      "source": "feature/account/my_likes_page.dart",
+      "module": "account"
+    },
+    {
+      "line": 900,
+      "pathExpression": "'/participants'",
+      "source": "feature/account/participants_page.dart",
+      "module": "account"
+    },
+    {
+      "line": 904,
+      "pathExpression": "'/profile/edit'",
+      "source": "feature/profile/profile_edit_page.dart",
+      "module": "profile"
+    },
+    {
+      "line": 908,
+      "pathExpression": "'/template/new'",
+      "source": "feature/template/template_name_page.dart",
+      "module": "template"
+    },
+    {
+      "line": 916,
+      "pathExpression": "'/template/edit'",
+      "source": "feature/template/template_edit_page.dart",
+      "module": "template"
+    },
+    {
+      "line": 934,
+      "pathExpression": "'/template/intro'",
+      "source": "feature/template/template_intro_page.dart",
+      "module": "template"
+    },
+    {
+      "line": 942,
+      "pathExpression": "'/templates'",
+      "source": "feature/template/template_list_page.dart",
+      "module": "template"
+    },
+    {
+      "line": 947,
+      "pathExpression": "'/template/:id'",
+      "source": "feature/template/template_detail_page.dart",
+      "module": "template"
+    },
+    {
+      "line": 954,
+      "pathExpression": "'/coop/invite'",
+      "source": "feature/coop/coop_invite_page.dart",
+      "module": "coop"
+    },
+    {
+      "line": 981,
+      "pathExpression": "'/coop/invite/:topicId'",
+      "source": "feature/coop/coop_invite_page.dart",
+      "module": "coop"
+    },
+    {
+      "line": 1015,
+      "pathExpression": "'/coop/nearby'",
+      "source": "feature/coop/nearby_merchants_page.dart",
+      "module": "coop"
+    },
+    {
+      "line": 1027,
+      "pathExpression": "'/coop/candidates/:topicId'",
+      "source": "feature/coop/coop_candidates_page.dart",
+      "module": "coop"
+    },
+    {
+      "line": 1034,
+      "pathExpression": "'/coop-finance'",
+      "source": "feature/coop/coop_finance_page.dart",
+      "module": "coop"
+    },
+    {
+      "line": 1038,
+      "pathExpression": "'/coop-pool'",
+      "source": "feature/coop/coop_pool_page.dart",
+      "module": "coop"
+    },
+    {
+      "line": 1042,
+      "pathExpression": "'/coop/list'",
+      "source": "feature/coop/coop_list_page.dart",
+      "module": "coop"
+    },
+    {
+      "line": 1050,
+      "pathExpression": "'/coop/invite-detail'",
+      "source": "feature/coop/coop_invite_detail_page.dart",
+      "module": "coop"
+    },
+    {
+      "line": 1061,
+      "pathExpression": "'/coop/perk-templates'",
+      "source": "feature/coop/coop_perk_template_page.dart",
+      "module": "coop"
+    },
+    {
+      "line": 1066,
+      "pathExpression": "'/coop/mybiz'",
+      "source": "feature/coop/coop_mybiz_page.dart",
+      "module": "coop"
+    },
+    {
+      "line": 1070,
+      "pathExpression": "'/coop/settlement-detail'",
+      "source": "feature/coop/coop_settlement_detail_page.dart",
+      "module": "coop"
+    },
+    {
+      "line": 1079,
+      "pathExpression": "'/merchant/marketing/ai-insight'",
+      "source": "feature/merchant/merchant_ai_insight_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 1084,
+      "pathExpression": "'/merchant/city-nodes'",
+      "source": "feature/merchant/merchant_city_node_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 1089,
+      "pathExpression": "'/merchant/coop-profile'",
+      "source": "feature/merchant/merchant_coop_profile_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 1094,
+      "pathExpression": "'/project/home'",
+      "source": "feature/merchant/project_home_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 1100,
+      "pathExpression": "'/project/home/:topicId'",
+      "source": "feature/merchant/project_home_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 1109,
+      "pathExpression": "'/project/players'",
+      "source": "feature/merchant/project_players_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 1113,
+      "pathExpression": "'/project/players/:topicId'",
+      "source": "feature/merchant/project_players_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 1121,
+      "pathExpression": "'/merchant/registrations'",
+      "source": "feature/merchant/merchant_registrations_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 1126,
+      "pathExpression": "'/merchant/node-template'",
+      "source": "feature/merchant/node_template_edit_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 1131,
+      "pathExpression": "'/merchant/node-template/:id'",
+      "source": "feature/merchant/node_template_edit_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 1139,
+      "pathExpression": "'/merchant/city-nodes/redeem'",
+      "source": "feature/merchant/city_node_redeem_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 1143,
+      "pathExpression": "'/merchant/city-nodes/create'",
+      "source": "feature/merchant/merchant_city_node_create_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 1148,
+      "pathExpression": "'/merchant/customers'",
+      "source": "feature/merchant/merchant_customer_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 1153,
+      "pathExpression": "'/merchant/apply'",
+      "source": "feature/merchant/merchant_apply_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 1157,
+      "pathExpression": "'/merchant/coop'",
+      "source": "feature/merchant/merchant_coop_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 1161,
+      "pathExpression": "'/merchant/ledger'",
+      "source": "feature/merchant/merchant_ledger_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 1169,
+      "pathExpression": "'/merchant/ledger/batch/:batchId'",
+      "source": "feature/merchant/batch_detail_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 1179,
+      "pathExpression": "'/merchant/scan'",
+      "source": "feature/merchant/merchant_scan_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 1183,
+      "pathExpression": "'/merchant/edit'",
+      "source": "feature/merchant/merchant_edit_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 1187,
+      "pathExpression": "'/merchant/orders'",
+      "source": "feature/merchant/merchant_orders_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 1191,
+      "pathExpression": "'/merchant/public-home/member/:memberId'",
+      "source": "feature/merchant/merchant_public_home_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 1202,
+      "pathExpression": "'/merchant/public-home/:id'",
+      "source": "feature/merchant/merchant_public_home_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 1210,
+      "pathExpression": "'/merchant/subscription'",
+      "source": "feature/merchant/merchant_subscription_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 1215,
+      "pathExpression": "'/merchant/clubs'",
+      "source": "feature/merchant/merchant_clubs_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 1219,
+      "pathExpression": "'/merchant/coupons'",
+      "source": "feature/coupon/my_published_coupons_page.dart",
+      "module": "coupon"
+    },
+    {
+      "line": 1224,
+      "pathExpression": "'/merchant/predict'",
+      "source": "feature/merchant/merchant_predict_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 1229,
+      "pathExpression": "'/orders'",
+      "source": "feature/orders/orders_page.dart",
+      "module": "orders"
+    },
+    {
+      "line": 1237,
+      "pathExpression": "'/address'",
+      "source": "feature/account/address_list_page.dart",
+      "module": "account"
+    },
+    {
+      "line": 1241,
+      "pathExpression": "'/address/edit'",
+      "source": "feature/account/address_edit_page.dart",
+      "module": "account"
+    },
+    {
+      "line": 1245,
+      "pathExpression": "'/address/edit/:id'",
+      "source": "feature/account/address_edit_page.dart",
+      "module": "account"
+    },
+    {
+      "line": 1251,
+      "pathExpression": "'/complaint'",
+      "source": "feature/coop/complaint_page.dart",
+      "module": "coop"
+    },
+    {
+      "line": 1255,
+      "pathExpression": "'/tickets'",
+      "source": "feature/tickets/tickets_page.dart",
+      "module": "tickets"
+    },
+    {
+      "line": 1263,
+      "pathExpression": "'/ticket/:id'",
+      "source": "feature/tickets/ticket_detail_page.dart",
+      "module": "tickets"
+    },
+    {
+      "line": 1270,
+      "pathExpression": "'/ticket/:id/pass'",
+      "source": "feature/tickets/pass_page.dart",
+      "module": "tickets"
+    },
+    {
+      "line": 1277,
+      "pathExpression": "'/club/apply'",
+      "source": "feature/club/club_apply_page.dart",
+      "module": "club"
+    },
+    {
+      "line": 1281,
+      "pathExpression": "'/club/create'",
+      "source": "feature/club/club_create_page.dart",
+      "module": "club"
+    },
+    {
+      "line": 1285,
+      "pathExpression": "'/club/group-code'",
+      "source": "feature/club/club_group_code_page.dart",
+      "module": "club"
+    },
+    {
+      "line": 1296,
+      "pathExpression": "'/club/workbench'",
+      "source": "feature/club/club_workbench_page.dart",
+      "module": "club"
+    },
+    {
+      "line": 1302,
+      "pathExpression": "'/club/:id'",
+      "source": "feature/club/club_detail_page.dart",
+      "module": "club"
+    },
+    {
+      "line": 1309,
+      "pathExpression": "'/club/:id/edit'",
+      "source": "feature/club/club_edit_page.dart",
+      "module": "club"
+    },
+    {
+      "line": 1315,
+      "pathExpression": "'/club/:id/enroll'",
+      "source": "feature/club/club_enroll_page.dart",
+      "module": "club"
+    },
+    {
+      "line": 1323,
+      "pathExpression": "'/club/:id/join-requests'",
+      "source": "feature/club/club_join_requests_page.dart",
+      "module": "club"
+    },
+    {
+      "line": 1329,
+      "pathExpression": "'/club/:id/customers'",
+      "source": "feature/club/club_customers_page.dart",
+      "module": "club"
+    },
+    {
+      "line": 1335,
+      "pathExpression": "'/club/:id/customers/:memberId'",
+      "source": "feature/club/club_customer_detail_page.dart",
+      "module": "club"
+    },
+    {
+      "line": 1342,
+      "pathExpression": "'/club/:id/checkin/:registrationId'",
+      "source": "feature/club/club_checkin_detail_page.dart",
+      "module": "club"
+    },
+    {
+      "line": 1350,
+      "pathExpression": "'/club/:id/settlement'",
+      "source": "feature/club/club_settlement_page.dart",
+      "module": "club"
+    },
+    {
+      "line": 1356,
+      "pathExpression": "'/merchant/redemption/:type/:id'",
+      "source": "feature/merchant/merchant_redemption_detail_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 1365,
+      "pathExpression": "'/roam/stamp-album'",
+      "source": "feature/roam/stamp_album_page.dart",
+      "module": "roam"
+    },
+    {
+      "line": 1369,
+      "pathExpression": "'/roam/stamp-camera'",
+      "source": "feature/roam/stamp_camera_page.dart",
+      "module": "roam"
+    },
+    {
+      "line": 1373,
+      "pathExpression": "'/club/:id/leaderboard'",
+      "source": "feature/club/club_leaderboard_page.dart",
+      "module": "club"
+    },
+    {
+      "line": 1379,
+      "pathExpression": "'/club/:id/edition-report'",
+      "source": "feature/club/club_edition_report_page.dart",
+      "module": "club"
+    },
+    {
+      "line": 1385,
+      "pathExpression": "'/club/:id/dissolution-blockers'",
+      "source": "feature/club/club_dissolution_blockers_page.dart",
+      "module": "club"
+    },
+    {
+      "line": 1391,
+      "pathExpression": "'/club/:id/event-ops'",
+      "source": "feature/club/club_event_ops_page.dart",
+      "module": "club"
+    },
+    {
+      "line": 1403,
+      "pathExpression": "'/club/:id/governance'",
+      "source": "feature/club/club_governance_page.dart",
+      "module": "club"
+    },
+    {
+      "line": 1417,
+      "pathExpression": "'/club/:id/notify'",
+      "source": "feature/club/club_notify_page.dart",
+      "module": "club"
+    },
+    {
+      "line": 1426,
+      "pathExpression": "'/club/:id/roles'",
+      "source": "feature/club/club_roles_page.dart",
+      "module": "club"
+    },
+    {
+      "line": 1437,
+      "pathExpression": "'/club/:id/topic/:topicId'",
+      "source": "feature/club/club_topic_detail_page.dart",
+      "module": "club"
+    },
+    {
+      "line": 1447,
+      "pathExpression": "'/club/:id/topic/:topicId/story'",
+      "source": "feature/club/club_topic_story_page.dart",
+      "module": "club"
+    },
+    {
+      "line": 1458,
+      "pathExpression": "'/mall'",
+      "source": "feature/mall/product_list_page.dart",
+      "module": "mall"
+    },
+    {
+      "line": 1461,
+      "pathExpression": "'/cart'",
+      "source": "feature/mall/cart_page.dart",
+      "module": "mall"
+    },
+    {
+      "line": 1463,
+      "pathExpression": "'/product/:id'",
+      "source": "feature/mall/product_detail_page.dart",
+      "module": "mall"
+    },
+    {
+      "line": 1469,
+      "pathExpression": "'/square'",
+      "source": "feature/square/square_list_page.dart",
+      "module": "square"
+    },
+    {
+      "line": 1476,
+      "pathExpression": "'/square/:id'",
+      "source": "feature/square/square_detail_page.dart",
+      "module": "square"
+    },
+    {
+      "line": 1486,
+      "pathExpression": "'/topic/:id'",
+      "source": "feature/topic/topic_detail_page.dart",
+      "module": "topic"
+    },
+    {
+      "line": 1493,
+      "pathExpression": "'/play/:activityId'",
+      "source": "feature/play/play_session_page.dart",
+      "module": "play"
+    },
+    {
+      "line": 1508,
+      "pathExpression": "'/roam/poi/:poiId'",
+      "source": "feature/roam/roam_poi_detail_page.dart",
+      "module": "roam"
+    },
+    {
+      "line": 1515,
+      "pathExpression": "'/roam/citynode-code'",
+      "source": "feature/roam/city_node_voucher_page.dart",
+      "module": "roam"
+    },
+    {
+      "line": 1522,
+      "pathExpression": "'/roam/history'",
+      "source": "feature/roam/roam_history_page.dart",
+      "module": "roam"
+    },
+    {
+      "line": 1526,
+      "pathExpression": "'/roam/nearby'",
+      "source": "feature/roam/roam_hangout_page.dart",
+      "module": "roam"
+    },
+    {
+      "line": 1532,
+      "pathExpression": "'/roam/citystamp'",
+      "source": "feature/roam/city_stamp_page.dart",
+      "module": "roam"
+    },
+    {
+      "line": 1540,
+      "pathExpression": "'/roam/session'",
+      "source": "feature/roam/roam_session_page.dart",
+      "module": "roam"
+    },
+    {
+      "line": 1556,
+      "pathExpression": "kMerchantHomeRoute",
+      "source": "feature/merchant/merchant_home_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 1565,
+      "pathExpression": "'/merchant/marketing'",
+      "source": "feature/merchant/merchant_marketing_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 1574,
+      "pathExpression": "'/merchant/templates'",
+      "source": "feature/template/template_list_page.dart",
+      "module": "template"
+    },
+    {
+      "line": 1583,
+      "pathExpression": "'/merchant/relations'",
+      "source": "feature/merchant/merchant_relation_page.dart",
+      "module": "merchant"
+    },
+    {
+      "line": 1592,
+      "pathExpression": "'/merchant/profile'",
+      "source": "feature/profile/profile_page.dart",
+      "module": "profile"
+    },
+    {
+      "line": 1620,
+      "pathExpression": "'/feed'",
+      "source": "feature/feed/feed_page.dart",
+      "module": "feed"
+    },
+    {
+      "line": 1628,
+      "pathExpression": "'/roam'",
+      "source": "feature/roam/roam_live_page.dart",
+      "module": "roam"
+    },
+    {
+      "line": 1636,
+      "pathExpression": "'/template-square'",
+      "source": "feature/template/template_list_page.dart",
+      "module": "template"
+    },
+    {
+      "line": 1644,
+      "pathExpression": "'/clubs'",
+      "source": "feature/club/club_list_page.dart",
+      "module": "club"
+    },
+    {
+      "line": 1652,
+      "pathExpression": "'/profile'",
+      "source": "feature/profile/profile_page.dart",
+      "module": "profile"
+    },
+    {
+      "line": 1659,
+      "pathExpression": "'/map'",
+      "source": "feature/map/map_page.dart",
+      "module": "map"
+    },
+    {
+      "line": 1661,
+      "pathExpression": "'/roam/official'",
+      "source": "feature/roam/roam_live_page.dart",
+      "module": "roam"
+    }
+  ],
+  "sourceFileSHA256": [
+    {
+      "repository": "Flutter",
+      "file": "tool/page_parity_manifest.json",
+      "sha256": "ab5048ff1c37c87d1c626088c3eef13063eeb44da723e982747ba6677eb2c76f"
+    },
+    {
+      "repository": "Flutter",
+      "file": "tool/page_parity.py",
+      "sha256": "309a6381d58f6b9c976f38caae0f26d26b4aff0c3073f03c7874b5eb31780dae"
+    },
+    {
+      "repository": "Flutter",
+      "file": "tool/migration_plan.py",
+      "sha256": "bd62ef21a156339e841a31eb1e16940b5cfd42a1aa6ad8732823f8072a8877e3"
+    },
+    {
+      "repository": "Flutter",
+      "file": "lib/core/router/app_router.dart",
+      "sha256": "4ad5bb2e7bb2954f287a7a40fbace9bae4b50fca2728513e55e372b7e02efe8b"
+    },
+    {
+      "repository": "Flutter",
+      "file": "lib/feature/auth/login_page.dart",
+      "sha256": "973da6165409556d47af3d1ed22639031b24a3c91691cdb6c97aeb6aa73ef309"
+    },
+    {
+      "repository": "Flutter",
+      "file": "lib/feature/account/door_entry_page.dart",
+      "sha256": "20bb48b7b5f5399e89c6bf9a8a9737b2941e6a73adbf03a9008e80f893f49fe4"
+    },
+    {
+      "repository": "Flutter",
+      "file": "lib/feature/settings/settings_page.dart",
+      "sha256": "1f16223625a17b5abeb9c99c16f17c6efa202144645160288af05efb6cab0812"
+    },
+    {
+      "repository": "Flutter",
+      "file": "lib/feature/profile/profile_page.dart",
+      "sha256": "2359c97cc890ea825fafac67c6ac9d0d808be3033749235689d22b7b4be4b103"
+    },
+    {
+      "repository": "Flutter",
+      "file": "lib/feature/activity/activity_list_page.dart",
+      "sha256": "2802bd437727f8f52d46eea41f6badd93d5bb30678879829f0b671888d61e8a1"
+    },
+    {
+      "repository": "Flutter",
+      "file": "lib/feature/activity/activity_detail_page.dart",
+      "sha256": "62dbc997d0202e2bbb4ddf1d05df7ad66792d046ff842cfb8c3b2ae45c64b481"
+    },
+    {
+      "repository": "Native",
+      "file": "App/QuestifyApp.swift",
+      "sha256": "6b90a0694c8c492117ec41f1dcdebdc200544342631b79365081626b31b36ba5"
+    },
+    {
+      "repository": "Native",
+      "file": "App/WelcomeView.swift",
+      "sha256": "47f5d76868885a4d6b5eb5053bc9b533b8a4dda03126fdc032720a2978bd2d10"
+    },
+    {
+      "repository": "Native",
+      "file": "App/LoginView.swift",
+      "sha256": "099f29f59c65879dc3627a3e267e057ced101a89f4ae07e751fda2a260158fa4"
+    },
+    {
+      "repository": "Native",
+      "file": "App/SettingsView.swift",
+      "sha256": "4f0697e4e935617028be5828d54db17e0cf0143c6e6cc51effaa39e3922c3814"
+    },
+    {
+      "repository": "Native",
+      "file": "App/AccountView.swift",
+      "sha256": "46aee2c539f205abb55eceabf25fd1317d93e3c2e823bd86cfe1213d729e521a"
+    },
+    {
+      "repository": "Native",
+      "file": "App/ActivityBrowserView.swift",
+      "sha256": "2f940e2cfe422f1c71ed8f97f19f3016e96dc64abc19ea0143c1c3c90a7800ea"
+    },
+    {
+      "repository": "Native",
+      "file": "App/ActivityDetailView.swift",
+      "sha256": "a30cf117d2dd89c31795a468f8d0c59889e88393a154dfe494d2227da14e55d0"
+    },
+    {
+      "repository": "Native",
+      "file": "App/NativeQRScanner.swift",
+      "sha256": "4013a7d0f39172954951c31200139748eaf31203d18e4189f55e4d73d636a4bc"
+    },
+    {
+      "repository": "Native",
+      "file": "Core/RegistrationContracts.swift",
+      "sha256": "778438fffbb006a58abe9a40353c56f2460870258ca991f24d5cf96e6a8dd13e"
+    },
+    {
+      "repository": "Native",
+      "file": "Core/RegistrationService.swift",
+      "sha256": "8df8bb9e73da697202062d3bd0d0ea041635141fa9278f3edea466e76aab7a15"
+    },
+    {
+      "repository": "Native",
+      "file": "Core/RegistrationCoordinator.swift",
+      "sha256": "5ba5d524b9c653cf2557161f8be9ae7eb72b6ef42701549f97b002fcec689e78"
+    },
+    {
+      "repository": "Native",
+      "file": "docs/registration-coordinator.md",
+      "sha256": "5cde6f636c0e909769f40070d3dd53742b395b60458e7a76fd9881f56cf4460e"
+    },
+    {
+      "repository": "Native",
+      "file": "docs/source-inventory.json",
+      "sha256": "40f5c584077af98665ee0e06ef96c61726147026162b8f67540a2181bdd9c8c5"
+    },
+    {
+      "repository": "Native",
+      "file": "PROGRESS.md",
+      "sha256": "8c6a5e2ebe07c2a2b165c2440002fb9e1d6031aed571a998aaf8adf9e7a6302f"
+    }
+  ]
+}

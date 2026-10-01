@@ -23,6 +23,24 @@ final class EntryFlowTests: XCTestCase {
         }
     }
 
+    func testGuestBrowsingCanReturnToIdentityEntry() {
+        let browse=app.buttons["welcome.browse"]
+        XCTAssertTrue(browse.waitForExistence(timeout:10))
+        if !browse.isHittable { app.swipeUp() }
+        browse.tap()
+        let activities=app.tabBars.buttons["Activities"]
+        XCTAssertTrue(activities.waitForExistence(timeout:10));activities.tap()
+        XCTAssertTrue(app.navigationBars["Activities"].waitForExistence(timeout:5))
+        let account=app.tabBars.buttons["Account"]
+        XCTAssertTrue(account.exists);account.tap()
+        XCTAssertTrue(app.buttons["welcome.player"].waitForExistence(timeout:5))
+        XCTAssertTrue(app.buttons["welcome.merchant"].exists)
+        app.buttons["welcome.player"].tap()
+        XCTAssertTrue(app.navigationBars["Sign in"].waitForExistence(timeout:5))
+        app.buttons["Close"].tap()
+        XCTAssertTrue(app.buttons["welcome.player"].waitForExistence(timeout:5))
+    }
+
     func testUnconfiguredBuildCannotSubmitCredentials() {
         app.buttons["welcome.player"].tap()
         let username=app.textFields["Username"]

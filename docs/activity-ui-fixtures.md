@@ -43,3 +43,7 @@ The supplied UI log for run `36846622633` recorded all four new scenarios failin
 - During pagination the collection remained at 0% scroll with the keyboard open. Its AX frame extended behind the bottom search toolbar and keyboard, so default whole-element swipes missed the unobscured list. Gestures now derive their endpoints from current visible geometry and preserve the unsubmitted query.
 
 These corrections require a new simulator run. Timeouts, destination assertions, nullable-value checks, read-only checks and scenario count have not been relaxed.
+
+## Search placement follow-up
+
+Run 36851561783 passed eight UI cases but timed out acquiring the search field in the pagination case. Its accessibility tree showed the field in the adaptive bottom toolbar, with slow snapshot responses; this does not prove one underlying cause. Activity search now requests the native always-visible navigation-bar drawer to make search discovery consistent while scrolling. Existing pagination assertions remain unchanged; this adjustment awaits the next integrated UI run.

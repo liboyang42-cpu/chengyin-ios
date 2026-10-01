@@ -21,7 +21,12 @@ struct AccountView: View {
                     LabeledContent("account.id",value:String(account.id))
                     LabeledContent("account.role") { Text(roleLabel) }
                 }
-                Section { Text("account.featuresPending").foregroundStyle(.secondary) }
+                ProfileAccountLinks(reader:session.profileReader)
+                Section {
+                    NavigationLink { MerchantHomeView(reader:session) } label: {
+                        Label("merchant.title",systemImage:"storefront")
+                    }.accessibilityIdentifier("account.merchant")
+                }
                 Section {
                     Button("auth.signOut",role:.destructive) { confirmsLogout=true }
                 }

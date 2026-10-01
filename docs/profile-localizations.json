@@ -1,0 +1,387 @@
+[
+  {
+    "key": "profile.library",
+    "en": "My account",
+    "zh-Hans": "个人中心"
+  },
+  {
+    "key": "profile.unavailable",
+    "en": "Account data unavailable",
+    "zh-Hans": "个人资料暂不可用"
+  },
+  {
+    "key": "profile.signInRequired",
+    "en": "Sign in to continue",
+    "zh-Hans": "请登录后继续"
+  },
+  {
+    "key": "profile.loading",
+    "en": "Loading…",
+    "zh-Hans": "正在加载…"
+  },
+  {
+    "key": "profile.loadFailed",
+    "en": "Couldn’t load this information",
+    "zh-Hans": "暂时无法加载"
+  },
+  {
+    "key": "profile.retryHint",
+    "en": "Please try again. Your saved information is unchanged.",
+    "zh-Hans": "请重试，已保存的信息不会改变。"
+  },
+  {
+    "key": "profile.refresh",
+    "en": "Refresh",
+    "zh-Hans": "刷新"
+  },
+  {
+    "key": "profile.readOnly",
+    "en": "Read-only preview. Changes and payments aren’t available here yet.",
+    "zh-Hans": "当前仅支持查看，暂不支持修改或支付。"
+  },
+  {
+    "key": "profile.valueUnknown",
+    "en": "Not provided",
+    "zh-Hans": "未提供"
+  },
+  {
+    "key": "profile.orders.title",
+    "en": "My orders",
+    "zh-Hans": "我的订单"
+  },
+  {
+    "key": "profile.orders.empty",
+    "en": "No orders yet",
+    "zh-Hans": "暂无订单"
+  },
+  {
+    "key": "profile.orders.emptyHint",
+    "en": "Your activity and route orders will appear here, including unpaid orders.",
+    "zh-Hans": "活动和路线订单会显示在这里，包括待支付订单。"
+  },
+  {
+    "key": "profile.orders.untitled",
+    "en": "Order",
+    "zh-Hans": "订单"
+  },
+  {
+    "key": "profile.orders.summary",
+    "en": "Order summary",
+    "zh-Hans": "订单信息"
+  },
+  {
+    "key": "profile.orders.name",
+    "en": "Activity or route",
+    "zh-Hans": "活动或路线"
+  },
+  {
+    "key": "profile.orders.number",
+    "en": "Order number",
+    "zh-Hans": "订单号"
+  },
+  {
+    "key": "profile.orders.state",
+    "en": "Registration status",
+    "zh-Hans": "报名状态"
+  },
+  {
+    "key": "profile.orders.serverHint",
+    "en": "Order information",
+    "zh-Hans": "订单提示"
+  },
+  {
+    "key": "profile.orders.amount",
+    "en": "Amount due",
+    "zh-Hans": "应付金额"
+  },
+  {
+    "key": "profile.orders.ticket",
+    "en": "Ticket",
+    "zh-Hans": "票种"
+  },
+  {
+    "key": "profile.orders.quantity",
+    "en": "Quantity",
+    "zh-Hans": "数量"
+  },
+  {
+    "key": "profile.orders.organizer",
+    "en": "Organizer",
+    "zh-Hans": "主办方"
+  },
+  {
+    "key": "profile.orders.schedule",
+    "en": "Schedule and location",
+    "zh-Hans": "时间与地点"
+  },
+  {
+    "key": "profile.orders.participateDate",
+    "en": "Participation date",
+    "zh-Hans": "参加日期"
+  },
+  {
+    "key": "profile.orders.start",
+    "en": "Starts",
+    "zh-Hans": "开始时间"
+  },
+  {
+    "key": "profile.orders.end",
+    "en": "Ends",
+    "zh-Hans": "结束时间"
+  },
+  {
+    "key": "profile.orders.location",
+    "en": "Location",
+    "zh-Hans": "地点"
+  },
+  {
+    "key": "profile.orders.expires",
+    "en": "Expires",
+    "zh-Hans": "有效期至"
+  },
+  {
+    "key": "profile.orders.contact",
+    "en": "Registration contact",
+    "zh-Hans": "报名联系信息"
+  },
+  {
+    "key": "profile.orders.records",
+    "en": "Order records",
+    "zh-Hans": "订单记录"
+  },
+  {
+    "key": "profile.orders.created",
+    "en": "Created",
+    "zh-Hans": "创建时间"
+  },
+  {
+    "key": "profile.orders.paymentTime",
+    "en": "Payment time",
+    "zh-Hans": "支付时间"
+  },
+  {
+    "key": "profile.orders.paymentType",
+    "en": "Payment method",
+    "zh-Hans": "支付方式"
+  },
+  {
+    "key": "profile.orders.verifiedTime",
+    "en": "Verification time",
+    "zh-Hans": "核销时间"
+  },
+  {
+    "key": "profile.orders.verification",
+    "en": "Verification",
+    "zh-Hans": "核销状态"
+  },
+  {
+    "key": "profile.orders.verified",
+    "en": "Verified",
+    "zh-Hans": "已核销"
+  },
+  {
+    "key": "profile.orders.notVerified",
+    "en": "Not verified",
+    "zh-Hans": "待核销"
+  },
+  {
+    "key": "profile.orders.unknown",
+    "en": "Status unavailable",
+    "zh-Hans": "状态未知"
+  },
+  {
+    "key": "profile.orders.paymentCode",
+    "en": "Payment status code",
+    "zh-Hans": "支付状态码"
+  },
+  {
+    "key": "profile.orders.refund",
+    "en": "Refund status",
+    "zh-Hans": "退款状态"
+  },
+  {
+    "key": "profile.orders.refundCode",
+    "en": "Refund payout status code",
+    "zh-Hans": "退款打款状态码"
+  },
+  {
+    "key": "profile.orders.detail",
+    "en": "Order details",
+    "zh-Hans": "订单详情"
+  },
+  {
+    "key": "profile.orders.awaitingPayment",
+    "en": "Awaiting payment",
+    "zh-Hans": "待支付"
+  },
+  {
+    "key": "profile.orders.registered",
+    "en": "Registered",
+    "zh-Hans": "已报名"
+  },
+  {
+    "key": "profile.orders.cancelled",
+    "en": "Cancelled",
+    "zh-Hans": "已取消"
+  },
+  {
+    "key": "profile.orders.expired",
+    "en": "Expired",
+    "zh-Hans": "已过期"
+  },
+  {
+    "key": "profile.orders.refunding",
+    "en": "Refund in progress",
+    "zh-Hans": "退款中"
+  },
+  {
+    "key": "profile.orders.refunded",
+    "en": "Refunded",
+    "zh-Hans": "已退款"
+  },
+  {
+    "key": "profile.orders.refundProcessing",
+    "en": "Refund being processed",
+    "zh-Hans": "退款处理中"
+  },
+  {
+    "key": "profile.participants.title",
+    "en": "Participant information",
+    "zh-Hans": "参与人信息"
+  },
+  {
+    "key": "profile.participants.empty",
+    "en": "No participants yet",
+    "zh-Hans": "暂无参与人"
+  },
+  {
+    "key": "profile.participants.emptyHint",
+    "en": "Saved participant information will appear here.",
+    "zh-Hans": "已保存的参与人信息会显示在这里。"
+  },
+  {
+    "key": "profile.participants.unnamed",
+    "en": "Participant",
+    "zh-Hans": "参与人"
+  },
+  {
+    "key": "profile.participants.hint",
+    "en": "Used for registration contact and on-site verification.",
+    "zh-Hans": "用于报名联系和到场核验。"
+  },
+  {
+    "key": "profile.participants.contact",
+    "en": "Contact information",
+    "zh-Hans": "联系信息"
+  },
+  {
+    "key": "profile.participants.name",
+    "en": "Name",
+    "zh-Hans": "姓名"
+  },
+  {
+    "key": "profile.participants.phone",
+    "en": "Phone",
+    "zh-Hans": "联系电话"
+  },
+  {
+    "key": "profile.participants.savedAddress",
+    "en": "Saved address information",
+    "zh-Hans": "已保存的地址信息"
+  },
+  {
+    "key": "profile.participants.detail",
+    "en": "Participant details",
+    "zh-Hans": "参与人详情"
+  },
+  {
+    "key": "profile.badges.title",
+    "en": "My badges",
+    "zh-Hans": "我的勋章"
+  },
+  {
+    "key": "profile.badges.empty",
+    "en": "No badges yet",
+    "zh-Hans": "暂无勋章"
+  },
+  {
+    "key": "profile.badges.emptyHint",
+    "en": "Your identity cards, city medals and achievements will appear here.",
+    "zh-Hans": "身份卡、城市纪念章和成长成就会显示在这里。"
+  },
+  {
+    "key": "profile.badges.partial",
+    "en": "Some badges couldn’t be loaded",
+    "zh-Hans": "部分勋章未能加载"
+  },
+  {
+    "key": "profile.badges.partialHint",
+    "en": "Identity cards are shown. Refresh to try loading city medals and achievements again.",
+    "zh-Hans": "已显示身份卡，请刷新以重新加载城市纪念章和成长成就。"
+  },
+  {
+    "key": "profile.badges.identities",
+    "en": "City identity cards",
+    "zh-Hans": "城市身份卡"
+  },
+  {
+    "key": "profile.badges.medals",
+    "en": "City medals",
+    "zh-Hans": "城市纪念章"
+  },
+  {
+    "key": "profile.badges.achievements",
+    "en": "Achievements",
+    "zh-Hans": "成长成就"
+  },
+  {
+    "key": "profile.badges.locked",
+    "en": "Locked",
+    "zh-Hans": "未点亮"
+  },
+  {
+    "key": "profile.badges.unlocked",
+    "en": "Unlocked",
+    "zh-Hans": "已点亮"
+  },
+  {
+    "key": "profile.badges.details",
+    "en": "Badge information",
+    "zh-Hans": "勋章信息"
+  },
+  {
+    "key": "profile.badges.family",
+    "en": "Collection",
+    "zh-Hans": "类别"
+  },
+  {
+    "key": "profile.badges.category",
+    "en": "Category code",
+    "zh-Hans": "分类代码"
+  },
+  {
+    "key": "profile.badges.statement",
+    "en": "About",
+    "zh-Hans": "说明"
+  },
+  {
+    "key": "profile.badges.unlockHint",
+    "en": "Unlock condition",
+    "zh-Hans": "点亮条件"
+  },
+  {
+    "key": "profile.badges.obtained",
+    "en": "Obtained",
+    "zh-Hans": "获得时间"
+  },
+  {
+    "key": "profile.badges.condition",
+    "en": "Condition",
+    "zh-Hans": "获得条件"
+  },
+  {
+    "key": "profile.badges.detail",
+    "en": "Badge details",
+    "zh-Hans": "勋章详情"
+  }
+]

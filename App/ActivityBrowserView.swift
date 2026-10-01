@@ -54,7 +54,7 @@ struct ActivityBrowserView: View {
                 }
             }
             .navigationTitle("activity.browse")
-            .searchable(text:$query,prompt:"activity.search")
+            .searchable(text:$query,placement:.navigationBarDrawer(displayMode:.always),prompt:"activity.search")
             .onSubmit(of:.search) { Task { await load(reset:true) } }
             .task { await load(reset:true) }
         }
