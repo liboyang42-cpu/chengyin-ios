@@ -29,7 +29,7 @@ project_path=ROOT/'Questify.xcodeproj/project.pbxproj'
 project=parse_project(project_path.read_text())
 objects=project['objects']; project_obj=objects[project['rootObject']]
 assert project_obj['isa']=='PBXProject'
-refs={'baseConfigurationReference','buildConfigurationList','fileRef','mainGroup','productRefGroup','productReference'}
+refs={'baseConfigurationReference','buildConfigurationList','fileRef','mainGroup','productRefGroup','productReference','target','targetProxy','containerPortal','remoteGlobalIDString'}
 list_refs={'buildConfigurations','buildPhases','children','dependencies','files','targets'}
 for key,obj in objects.items():
     for k,v in obj.items():
@@ -39,7 +39,7 @@ for key,obj in objects.items():
     if obj['isa']=='PBXFileReference' and obj['sourceTree']=='<group>':
         assert (ROOT/obj['path']).is_file(),obj['path']
 source_paths={o['path'] for o in objects.values() if o['isa']=='PBXFileReference' and o.get('lastKnownFileType')=='sourcecode.swift'}
-assert source_paths=={str(p.relative_to(ROOT)) for folder in ['App','Core'] for p in (ROOT/folder).glob('*.swift')}
+assert source_paths=={str(p.relative_to(ROOT)) for folder in ['App','Core','Tests/AppUITests'] for p in (ROOT/folder).glob('*.swift')}
 catalog=json.loads((ROOT/'Resources/Localizable.xcstrings').read_text())
 assert catalog['sourceLanguage']=='en'
 for key,entry in catalog['strings'].items():
@@ -62,5 +62,5 @@ for ref in scheme.iter('BuildableReference'): assert ref.attrib['BlueprintIdenti
 before=hashlib.sha256(project_path.read_bytes()).hexdigest()
 subprocess.run(['python3',str(ROOT/'tools/generate_project.py')],check=True,capture_output=True)
 assert hashlib.sha256(project_path.read_bytes()).hexdigest()==before
-print(f'PASS structural checks: {len(source_paths)} app/core source files, {len(catalog["strings"])} bilingual keys, references, scheme, deterministic regeneration')
+print(f'PASS structural checks: {len(source_paths)} Swift source files, {len(catalog["strings"])} bilingual keys, references, scheme, deterministic regeneration')
 print('SCOPE: this script does not run Swift/Xcode, previews, simulator/device, accessibility or live backend checks; see separate evidence')

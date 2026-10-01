@@ -4,6 +4,13 @@ import SwiftUI
 struct QuestifyApp: App {
     @StateObject private var session = AppSession()
     @AppStorage("preferences.language") private var storedLanguage = AppLanguage.system.rawValue
+    init() {
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--uitesting-reset-language") {
+            UserDefaults.standard.removeObject(forKey: "preferences.language")
+        }
+        #endif
+    }
     var body: some Scene {
         WindowGroup {
             Group {

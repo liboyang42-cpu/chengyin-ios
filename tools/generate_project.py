@@ -32,7 +32,23 @@ def configurations(scope):
         configs.append(obj(scope+name,isa='XCBuildConfiguration',name=name,buildSettings=settings,**extra))
     return obj(scope+'configs',isa='XCConfigurationList',buildConfigurations=configs,defaultConfigurationIsVisible=0,defaultConfigurationName='Release')
 target=obj('target',isa='PBXNativeTarget',buildConfigurationList=configurations('target'),buildPhases=[src_phase,framework_phase,res_phase],buildRules=[],dependencies=[],name='Questify',productName='Questify',productReference=product,productType='com.apple.product-type.application')
-project=obj('project',isa='PBXProject',attributes={'LastUpgradeCheck':'1500'},buildConfigurationList=configurations('project'),compatibilityVersion='Xcode 14.0',developmentRegion='en',hasScannedForEncodings=0,knownRegions=['en','zh-Hans','Base'],mainGroup=group,productRefGroup=products,projectDirPath='',projectRoot='',targets=[target])
+ui_files=[]
+for path in sorted(ROOT.glob('Tests/AppUITests/*.swift')):
+    relative=str(path.relative_to(ROOT))
+    ref=obj(relative,isa='PBXFileReference',lastKnownFileType='sourcecode.swift',path=relative,sourceTree='<group>')
+    objects[group]['children'].append(ref)
+    ui_files.append(obj('build:'+relative,isa='PBXBuildFile',fileRef=ref))
+ui_product=obj('ui-product',isa='PBXFileReference',explicitFileType='wrapper.cfbundle',includeInIndex=0,path='QuestifyUITests.xctest',sourceTree='BUILT_PRODUCTS_DIR')
+objects[products]['children'].append(ui_product)
+ui_configs=[]
+for name in ['Debug','Release']:
+    ui_configs.append(obj('ui'+name,isa='XCBuildConfiguration',name=name,baseConfigurationReference=config_ref,buildSettings={'PRODUCT_NAME':'$(TARGET_NAME)','PRODUCT_BUNDLE_IDENTIFIER':'invalid.example.questify.ios.uitests','TEST_TARGET_NAME':'Questify','SWIFT_OPTIMIZATION_LEVEL':'-Onone','LD_RUNPATH_SEARCH_PATHS':'$(inherited) @executable_path/Frameworks @loader_path/Frameworks'}))
+ui_config_list=obj('uiconfigs',isa='XCConfigurationList',buildConfigurations=ui_configs,defaultConfigurationIsVisible=0,defaultConfigurationName='Release')
+ui_sources=obj('ui-sources',isa='PBXSourcesBuildPhase',buildActionMask=2147483647,files=ui_files,runOnlyForDeploymentPostprocessing=0)
+proxy=obj('ui-proxy',isa='PBXContainerItemProxy',containerPortal=ident('project'),proxyType=1,remoteGlobalIDString=target,remoteInfo='Questify')
+dependency=obj('ui-dependency',isa='PBXTargetDependency',target=target,targetProxy=proxy)
+ui_target=obj('ui-target',isa='PBXNativeTarget',buildConfigurationList=ui_config_list,buildPhases=[ui_sources],buildRules=[],dependencies=[dependency],name='QuestifyUITests',productName='QuestifyUITests',productReference=ui_product,productType='com.apple.product-type.bundle.ui-testing')
+project=obj('project',isa='PBXProject',attributes={'LastUpgradeCheck':'1500','TargetAttributes':{ui_target:{'TestTargetID':target}}},buildConfigurationList=configurations('project'),compatibilityVersion='Xcode 14.0',developmentRegion='en',hasScannedForEncodings=0,knownRegions=['en','zh-Hans','Base'],mainGroup=group,productRefGroup=products,projectDirPath='',projectRoot='',targets=[target,ui_target])
 # OpenStep property list, all strings quoted for deterministic escaping.
 def serialize(value, level=0):
     if isinstance(value,dict): return '{\n'+''.join('\t'*(level+1)+json.dumps(k)+' = '+serialize(v,level+1)+';\n' for k,v in value.items())+'\t'*level+'}'
@@ -45,6 +61,12 @@ entry={'BuildableIdentifier':'primary','BlueprintIdentifier':target,'BuildableNa
 b=ET.SubElement(scheme,'BuildAction',parallelizeBuildables='YES',buildImplicitDependencies='YES')
 e=ET.SubElement(ET.SubElement(b,'BuildActionEntries'),'BuildActionEntry',buildForTesting='YES',buildForRunning='YES',buildForProfiling='YES',buildForArchiving='YES',buildForAnalyzing='YES')
 ET.SubElement(e,'BuildableReference',**entry)
+ui_entry={'BuildableIdentifier':'primary','BlueprintIdentifier':ui_target,'BuildableName':'QuestifyUITests.xctest','BlueprintName':'QuestifyUITests','ReferencedContainer':'container:Questify.xcodeproj'}
+ui_build=ET.SubElement(b.find('BuildActionEntries'),'BuildActionEntry',buildForTesting='YES',buildForRunning='NO',buildForProfiling='NO',buildForArchiving='NO',buildForAnalyzing='NO')
+ET.SubElement(ui_build,'BuildableReference',**ui_entry)
+test_action=ET.SubElement(scheme,'TestAction',buildConfiguration='Debug',selectedDebuggerIdentifier='Xcode.DebuggerFoundation.Debugger.LLDB',selectedLauncherIdentifier='Xcode.IDEFoundation.Launcher.LLDB',shouldUseLaunchSchemeArgsEnv='YES')
+testable=ET.SubElement(ET.SubElement(test_action,'Testables'),'TestableReference',skipped='NO',parallelizable='NO')
+ET.SubElement(testable,'BuildableReference',**ui_entry)
 l=ET.SubElement(scheme,'LaunchAction',buildConfiguration='Debug',selectedDebuggerIdentifier='Xcode.DebuggerFoundation.Debugger.LLDB',selectedLauncherIdentifier='Xcode.IDEFoundation.Launcher.LLDB',launchStyle='0',useCustomWorkingDirectory='NO',ignoresPersistentStateOnLaunch='NO',debugDocumentVersioning='YES',debugServiceExtension='internal',allowLocationSimulation='YES')
 ET.SubElement(ET.SubElement(l,'BuildableProductRunnable',runnableDebuggingMode='0'),'BuildableReference',**entry)
 ET.SubElement(scheme,'AnalyzeAction',buildConfiguration='Debug')

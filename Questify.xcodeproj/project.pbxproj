@@ -162,6 +162,7 @@
 			"isa" = "PBXGroup";
 			"children" = (
 				"A8792157CB4F27FB949C035F",
+				"93E46A602338E07A8524AEF6",
 			);
 			"name" = "Products";
 			"sourceTree" = "<group>";
@@ -185,6 +186,7 @@
 				"DE5EE0876F360E797D806DD9",
 				"CAE662172FD450BB0CD710A7",
 				"0A3E27B8CA818264D75C8D81",
+				"966D2C93A8CF638AE9207040",
 			);
 			"sourceTree" = "<group>";
 		};
@@ -274,6 +276,92 @@
 			"productReference" = "A8792157CB4F27FB949C035F";
 			"productType" = "com.apple.product-type.application";
 		};
+		"966D2C93A8CF638AE9207040" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUITests/EntryFlowTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"A0D37CFDB74370E33EC5F4F6" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "966D2C93A8CF638AE9207040";
+		};
+		"93E46A602338E07A8524AEF6" = {
+			"isa" = "PBXFileReference";
+			"explicitFileType" = "wrapper.cfbundle";
+			"includeInIndex" = 0;
+			"path" = "QuestifyUITests.xctest";
+			"sourceTree" = "BUILT_PRODUCTS_DIR";
+		};
+		"156F725150A84FCB69393542" = {
+			"isa" = "XCBuildConfiguration";
+			"name" = "Debug";
+			"baseConfigurationReference" = "CAE662172FD450BB0CD710A7";
+			"buildSettings" = {
+				"PRODUCT_NAME" = "$(TARGET_NAME)";
+				"PRODUCT_BUNDLE_IDENTIFIER" = "invalid.example.questify.ios.uitests";
+				"TEST_TARGET_NAME" = "Questify";
+				"SWIFT_OPTIMIZATION_LEVEL" = "-Onone";
+				"LD_RUNPATH_SEARCH_PATHS" = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+			};
+		};
+		"C23B5A69B2E27C3E5F160FC6" = {
+			"isa" = "XCBuildConfiguration";
+			"name" = "Release";
+			"baseConfigurationReference" = "CAE662172FD450BB0CD710A7";
+			"buildSettings" = {
+				"PRODUCT_NAME" = "$(TARGET_NAME)";
+				"PRODUCT_BUNDLE_IDENTIFIER" = "invalid.example.questify.ios.uitests";
+				"TEST_TARGET_NAME" = "Questify";
+				"SWIFT_OPTIMIZATION_LEVEL" = "-Onone";
+				"LD_RUNPATH_SEARCH_PATHS" = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+			};
+		};
+		"F39F41D0F9A1459B523C2622" = {
+			"isa" = "XCConfigurationList";
+			"buildConfigurations" = (
+				"156F725150A84FCB69393542",
+				"C23B5A69B2E27C3E5F160FC6",
+			);
+			"defaultConfigurationIsVisible" = 0;
+			"defaultConfigurationName" = "Release";
+		};
+		"760DD443C1DF2461277A1FDF" = {
+			"isa" = "PBXSourcesBuildPhase";
+			"buildActionMask" = 2147483647;
+			"files" = (
+				"A0D37CFDB74370E33EC5F4F6",
+			);
+			"runOnlyForDeploymentPostprocessing" = 0;
+		};
+		"F6301EAD2AC55A883FB1AF3A" = {
+			"isa" = "PBXContainerItemProxy";
+			"containerPortal" = "244210E48437B6556980A702";
+			"proxyType" = 1;
+			"remoteGlobalIDString" = "34A04005BCAF206EEC990BD9";
+			"remoteInfo" = "Questify";
+		};
+		"8DA290C1E75835394B937A40" = {
+			"isa" = "PBXTargetDependency";
+			"target" = "34A04005BCAF206EEC990BD9";
+			"targetProxy" = "F6301EAD2AC55A883FB1AF3A";
+		};
+		"4EA0BBFB4641B4E941FBF077" = {
+			"isa" = "PBXNativeTarget";
+			"buildConfigurationList" = "F39F41D0F9A1459B523C2622";
+			"buildPhases" = (
+				"760DD443C1DF2461277A1FDF",
+			);
+			"buildRules" = (
+			);
+			"dependencies" = (
+				"8DA290C1E75835394B937A40",
+			);
+			"name" = "QuestifyUITests";
+			"productName" = "QuestifyUITests";
+			"productReference" = "93E46A602338E07A8524AEF6";
+			"productType" = "com.apple.product-type.bundle.ui-testing";
+		};
 		"73EBF6644258C120893E685D" = {
 			"isa" = "XCBuildConfiguration";
 			"name" = "Debug";
@@ -303,6 +391,11 @@
 			"isa" = "PBXProject";
 			"attributes" = {
 				"LastUpgradeCheck" = "1500";
+				"TargetAttributes" = {
+					"4EA0BBFB4641B4E941FBF077" = {
+						"TestTargetID" = "34A04005BCAF206EEC990BD9";
+					};
+				};
 			};
 			"buildConfigurationList" = "76F8DEC3DFE0BDB465198890";
 			"compatibilityVersion" = "Xcode 14.0";
@@ -319,6 +412,7 @@
 			"projectRoot" = "";
 			"targets" = (
 				"34A04005BCAF206EEC990BD9",
+				"4EA0BBFB4641B4E941FBF077",
 			);
 		};
 	};
