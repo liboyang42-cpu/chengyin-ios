@@ -5,6 +5,16 @@
 	};
 	"objectVersion" = 56;
 	"objects" = {
+		"490C9C54035456EAE4C8AA3C" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/KeychainTokenStore.swift";
+			"sourceTree" = "<group>";
+		};
+		"ECDA26536837E6D6B882ED12" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "490C9C54035456EAE4C8AA3C";
+		};
 		"44FF6526D3EDDFF8AA848DB9" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -35,6 +45,26 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "A2BE8FFFF74D7C463766EE66";
 		};
+		"DD569E269DB56BCD23E31191" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/APIConfiguration.swift";
+			"sourceTree" = "<group>";
+		};
+		"54FE7793AD08F2A7B60C1BE0" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "DD569E269DB56BCD23E31191";
+		};
+		"09D0D765E8E54736A13F3A2C" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/Account.swift";
+			"sourceTree" = "<group>";
+		};
+		"1C97DA28C6AF31AF423963EC" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "09D0D765E8E54736A13F3A2C";
+		};
 		"23B94D52B4077ADEA360A424" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -44,6 +74,36 @@
 		"EFD0C7603312157E857957E6" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "23B94D52B4077ADEA360A424";
+		};
+		"20BB6067303A0CDE2B4AC89A" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/AuthRequestBuilder.swift";
+			"sourceTree" = "<group>";
+		};
+		"A31D37224ABB224D19DD844D" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "20BB6067303A0CDE2B4AC89A";
+		};
+		"696F827999369F5AFB5AC512" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/AuthService.swift";
+			"sourceTree" = "<group>";
+		};
+		"5BFCEC69121174BE32FD2B54" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "696F827999369F5AFB5AC512";
+		};
+		"CDB2E3D2C7AB8619D5294DD1" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/SessionEpoch.swift";
+			"sourceTree" = "<group>";
+		};
+		"4D74BD501887112F7DE9C6FD" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "CDB2E3D2C7AB8619D5294DD1";
 		};
 		"DE5EE0876F360E797D806DD9" = {
 			"isa" = "PBXFileReference";
@@ -79,10 +139,16 @@
 		"19F479106CE8C3BA8C106518" = {
 			"isa" = "PBXGroup";
 			"children" = (
+				"490C9C54035456EAE4C8AA3C",
 				"44FF6526D3EDDFF8AA848DB9",
 				"26784887E03A250B06027F4D",
 				"A2BE8FFFF74D7C463766EE66",
+				"DD569E269DB56BCD23E31191",
+				"09D0D765E8E54736A13F3A2C",
 				"23B94D52B4077ADEA360A424",
+				"20BB6067303A0CDE2B4AC89A",
+				"696F827999369F5AFB5AC512",
+				"CDB2E3D2C7AB8619D5294DD1",
 				"DE5EE0876F360E797D806DD9",
 				"CAE662172FD450BB0CD710A7",
 				"0A3E27B8CA818264D75C8D81",
@@ -93,10 +159,16 @@
 			"isa" = "PBXSourcesBuildPhase";
 			"buildActionMask" = 2147483647;
 			"files" = (
+				"ECDA26536837E6D6B882ED12",
 				"D5A32CFBA3E396C0AED0C327",
 				"726B017AB0C8377AA9E03CB7",
 				"2EE67CDA63671CFD5FF1290C",
+				"54FE7793AD08F2A7B60C1BE0",
+				"1C97DA28C6AF31AF423963EC",
 				"EFD0C7603312157E857957E6",
+				"A31D37224ABB224D19DD844D",
+				"5BFCEC69121174BE32FD2B54",
+				"4D74BD501887112F7DE9C6FD",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
