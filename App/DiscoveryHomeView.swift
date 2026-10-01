@@ -55,7 +55,7 @@ struct DiscoveryHomeView: View {
                 }
             }
             .sheet(isPresented:$showsTopics) { SessionTopicBrowserView() }
-            .navigationTitle("discovery.title")
+            .appNavigationTitle("discovery.title")
             .task { if reader.isConfigured { await reload() } }
         }
     }

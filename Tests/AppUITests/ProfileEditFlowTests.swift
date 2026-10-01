@@ -22,8 +22,13 @@ final class ProfileEditFlowTests: XCTestCase {
         XCTAssertTrue(app.navigationBars["Review profile changes"].waitForExistence(timeout: 10), app.debugDescription)
         XCTAssertTrue(app.staticTexts["Trail Friend Updated"].exists, app.debugDescription)
         let leaves = app.buttons.matching(identifier: "profile.edit.confirm")
-            .matching(NSPredicate(format: "hittable == true AND enabled == true"))
-        XCTAssertTrue(leaves.firstMatch.waitForExistence(timeout: 5)); leaves.firstMatch.tap()
+        // Hittability is not supported in XCUIElementQuery's server-side predicate subset.
+        let ready=XCTNSPredicateExpectation(predicate:NSPredicate { _,_ in
+            leaves.allElementsBoundByIndex.contains { $0.exists && $0.isEnabled && $0.isHittable }
+        },object:app)
+        XCTAssertEqual(XCTWaiter.wait(for:[ready],timeout:10),.completed,app.debugDescription)
+        guard let button=leaves.allElementsBoundByIndex.reversed().first(where:{ $0.exists && $0.isEnabled && $0.isHittable }) else { XCTFail("Missing profile confirmation action");return }
+        button.tap()
     }
     func testConfirmedProfileSaveIsReadBack() {
         launch("success"); editAndReview(); confirm()

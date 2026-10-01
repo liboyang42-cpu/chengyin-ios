@@ -42,7 +42,7 @@ struct ActivityDetailView: View {
                 }
             } else { ProgressView("activity.loading") }
         }
-        .navigationTitle("activity.details")
+        .appNavigationTitle("activity.details")
         .navigationBarTitleDisplayMode(.inline)
         .task(id:id) { await load() }
         .sheet(isPresented:$showsRegistration) {

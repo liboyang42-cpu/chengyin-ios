@@ -52,7 +52,8 @@ ui='\n'.join(p.read_text() for p in (ROOT/'App').glob('*.swift'))
 localizable_ui=re.sub(r'\.accessibilityIdentifier\("(?:\\.|[^"\\])*"\)', '', ui)
 localizable_ui=re.sub(r'(?:accessibilityPrefix|identifier):\s*"(?:\\.|[^"\\])*"','',localizable_ui)
 localizable_ui=re.sub(r'\.accessibilityIdentifier\s*=\s*"(?:\\.|[^"\\])*"', '', localizable_ui)
-keys=set(re.findall(r'"((?:welcome|role|registration|settings|language|action|auth|account|activity|scanner|discovery|profile|merchant|club|roam|messaging|participant|play|message|topic|region|homeFeed|usApple|ticketWallet)\.[A-Za-z0-9.]+)"',localizable_ui))
+localizable_ui=re.sub(r'(?:systemImage|systemName):\s*"(?:\\.|[^"\\])*"', '', localizable_ui)
+keys=set(re.findall(r'"((?:welcome|role|registration|settings|language|action|auth|account|activity|scanner|discovery|profile|merchant|club|roam|messaging|participant|play|message|topic|region|homeFeed|usApple|ticketWallet|square)\.[A-Za-z0-9.]+)"',localizable_ui))
 keys={key for key in keys if not key.endswith('.')}  # Prefixes concatenate a separately validated dynamic key.
 assert not keys-set(catalog['strings']),keys-set(catalog['strings'])
 # SwiftUI environment locale does not implicitly change Foundation String(localized:).

@@ -27,9 +27,9 @@ final class ClubManagementFlowTests: XCTestCase {
         let sheet = app! // SwiftUI modal can expose Other rather than XCUIElementTypeSheet.
         let title = action == "approve" ? "Approve application" : action == "reject" ? "Reject application" : "Remove member"
         XCTAssertTrue(sheet.navigationBars[title].waitForExistence(timeout: 10), app.debugDescription)
-        XCTAssertTrue(sheet.staticTexts["Fixture club (#81)"].exists)
+        XCTAssertTrue(sheet.staticTexts.matching(NSPredicate(format:"label CONTAINS %@","Fixture club (#81)")).firstMatch.exists,app.debugDescription)
         let name = target == 703 ? "Fixture applicant" : "Fixture member"
-        XCTAssertTrue(sheet.staticTexts["\(name) (#\(target))"].exists)
+        XCTAssertTrue(sheet.staticTexts.matching(NSPredicate(format:"label CONTAINS %@","\(name) (#\(target))")).firstMatch.exists,app.debugDescription)
         count(0)
         return sheet
     }

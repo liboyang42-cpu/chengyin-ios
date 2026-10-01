@@ -51,7 +51,7 @@ struct LoginView: View {
                     Text("auth.registrationPending").foregroundStyle(.secondary)
                 }
             }
-            .navigationTitle("auth.title")
+            .appNavigationTitle("auth.title")
             .toolbar {
                 ToolbarItem(placement:.cancellationAction) {
                     Button("action.close") {

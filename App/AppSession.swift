@@ -59,6 +59,15 @@ final class AppSession: ObservableObject {
         self.merchantOnboardingCoordinator.synchronizeSession()
         return true
     })
+    private let squareService:SquareService?
+    private var currentSquareSession:SquareReadSession? {
+        guard let account,let token else { return nil }
+        return try? SquareReadSession(accountID:account.id,epoch:gate.currentStamp,token:token)
+    }
+    lazy var squareReader=SquareSessionReader(service:squareService,currentSession:{ [weak self] in self?.currentSquareSession },onUnauthorized:{ [weak self] captured in
+        guard let self,self.currentSquareSession == captured else { return }
+        self.expireIfMatching(error:APIError.unauthorized,stamp:captured.epoch,credential:self.token)
+    })
     private let ticketWalletService:TicketWalletService?
     private var currentTicketWalletSession:TicketWalletReadSession? {
         guard let account,let token else { return nil }
@@ -236,6 +245,7 @@ final class AppSession: ObservableObject {
             playService=PlayService(configuration:configuration,transport:transport)
             homeFeedService=HomeFeedService(configuration:configuration,transport:transport)
             ticketWalletService=TicketWalletService(configuration:configuration,transport:transport)
+            squareService=SquareService(configuration:configuration,transport:transport)
             topicService=TopicService(configuration:configuration,transport:transport)
             discoveryService=DiscoveryService(configuration:configuration,transport:transport)
             profileService=ProfileService(configuration:configuration,transport:transport)
@@ -249,7 +259,7 @@ final class AppSession: ObservableObject {
             roamService=RoamService(configuration:configuration,transport:transport)
             messagingService=MessagingService(configuration:configuration,transport:transport)
             messageActionService=MessageActionService(configuration:configuration,transport:transport)
-        } else { service=nil;authChannelService=nil;activityService=nil;registrationBackend=UnconfiguredRegistrationBackend();playService=nil;homeFeedService=nil;ticketWalletService=nil;topicService=nil;discoveryService=nil;profileService=nil;participantService=nil;merchantService=nil;merchantOnboardingService=nil;clubService=nil;clubManagementService=nil;profileEditService=nil;clubActionService=nil;roamService=nil;messagingService=nil;messageActionService=nil }
+        } else { service=nil;authChannelService=nil;activityService=nil;registrationBackend=UnconfiguredRegistrationBackend();playService=nil;homeFeedService=nil;ticketWalletService=nil;squareService=nil;topicService=nil;discoveryService=nil;profileService=nil;participantService=nil;merchantService=nil;merchantOnboardingService=nil;clubService=nil;clubManagementService=nil;profileEditService=nil;clubActionService=nil;roamService=nil;messagingService=nil;messageActionService=nil }
     }
 
     func bootstrap() async {

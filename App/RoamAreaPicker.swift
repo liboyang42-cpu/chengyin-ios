@@ -64,7 +64,7 @@ struct RoamAreaPicker: View {
                     Text("roam.area.memoryOnly").font(.footnote).foregroundStyle(.secondary)
                 }
             }
-            .navigationTitle("roam.area.title")
+            .appNavigationTitle("roam.area.title")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

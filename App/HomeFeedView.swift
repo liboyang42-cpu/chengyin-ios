@@ -43,10 +43,13 @@ import SwiftUI
                         }
                         if model.pagination.hasMore && !model.loadingPage && !model.pageFailed {
                             Button("homeFeed.loadMore") { Task { await model.loadMore(reader: reader) } }
+                                .frame(minHeight: 44)
                                 .accessibilityIdentifier("homeFeed.loadMore")
                         }
                     } header: { Text("homeFeed.explore") }
                 }
+                .listStyle(.insetGrouped)
+                .listSectionSpacing(20)
                 .searchable(text: $keyword, prompt: Text("homeFeed.search"))
                 .onSubmit(of: .search) { submittedKeyword = keyword.trimmingCharacters(in: .whitespacesAndNewlines) }
                 .onChange(of: keyword) { _, value in if value.isEmpty { submittedKeyword = "" } }
@@ -54,7 +57,7 @@ import SwiftUI
                 .refreshable { await model.reload(reader: reader, query: query) }
             }
         }
-        .navigationTitle("homeFeed.title")
+        .appNavigationTitle("homeFeed.title")
         .task(id: reader.scope) { model.invalidate(); if reader.isConfigured { await model.reload(reader: reader, query: query) } }
         .onDisappear { model.invalidate() }
     }
@@ -67,9 +70,17 @@ import SwiftUI
                         Button {
                             switch destination { case .activity(let id): onDestination(.activity(id)); case .topic(let id): onDestination(.topic(id)) }
                         } label: {
-                            VStack(alignment: .leading) { DiscoveryArtwork(source: banner.picUrl); Text("homeFeed.openFeatured") }
-                        }.buttonStyle(.plain)
-                    } else { DiscoveryArtwork(source: banner.picUrl) }
+                            VStack(alignment: .leading, spacing: 12) {
+                                if let url = QuestifyCardArtwork.safeURL(banner.picUrl) { QuestifyCardArtwork(url: url) }
+                                Label("homeFeed.openFeatured", systemImage: "arrow.up.right")
+                                    .font(.headline).foregroundStyle(.primary)
+                            }.questifyCardSurface()
+                        }
+                        .buttonStyle(QuestifyCardButtonStyle())
+                        .questifyCardListRow()
+                    } else if let url = QuestifyCardArtwork.safeURL(banner.picUrl) {
+                        QuestifyCardArtwork(url: url).questifyCardSurface().questifyCardListRow()
+                    }
                 }
             } header: { Text("homeFeed.featured") }
         }
@@ -93,12 +104,16 @@ import SwiftUI
     }
     private func row(_ item: HomeFeedItem, section: String) -> some View {
         Button { onDestination(item.id) } label: { HomeFeedCard(item: item, sourceTimeZone: sourceTimeZone) }
-            .buttonStyle(.plain).accessibilityIdentifier("homeFeed.\(section).\(item.accessibilityKey)")
+            .buttonStyle(QuestifyCardButtonStyle())
+            .accessibilityIdentifier("homeFeed.\(section).\(item.accessibilityKey)")
+            .questifyCardListRow()
     }
     private func retry(_ message: LocalizedStringKey, id: String, action: @escaping () async -> Void) -> some View {
         VStack(alignment: .leading) {
             Text(message)
-            Button("homeFeed.retry") { Task { await action() } }.accessibilityIdentifier("homeFeed.retry.\(id)")
+            Button("homeFeed.retry") { Task { await action() } }
+                .buttonStyle(.bordered).controlSize(.large)
+                .accessibilityIdentifier("homeFeed.retry.\(id)")
         }
     }
 }
@@ -111,28 +126,76 @@ extension HomeFeedItem {
 
 struct HomeFeedCard: View {
     let item: HomeFeedItem
-    var sourceTimeZone: TimeZone?
+    private let liveStart: Date?
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    init(item: HomeFeedItem, sourceTimeZone: TimeZone? = nil) {
+        self.item = item
+        if case .activity = item { liveStart = HomeFeedDate.parse(item.startDate, sourceTimeZone: sourceTimeZone) }
+        else { liveStart = nil }
+    }
+    private var typeTitle: LocalizedStringKey {
+        switch item { case .activity: return "homeFeed.activities"; case .topic: return "homeFeed.topics" }
+    }
+    private var typeSymbol: String {
+        switch item { case .activity: return "figure.walk"; case .topic: return "map" }
+    }
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 6) {
-                    if item.name.isEmpty { Text("homeFeed.untitled").font(.headline) }
-                    else { Text(verbatim: item.name).font(.headline) }
-                    if let description = item.introduction, !description.isEmpty { Text(verbatim: description).font(.subheadline).foregroundStyle(.secondary).lineLimit(3) }
-                    if item.isBeta { Text("homeFeed.beta").font(.caption.bold()) }
-                    TimelineView(.periodic(from: .now, by: 1)) { context in
-                        if item.isLive(at: context.date, sourceTimeZone: sourceTimeZone) { Text("homeFeed.live").font(.caption.bold()).foregroundStyle(.red) }
-                    }
-                }
-                Spacer(minLength: 8)
-                DiscoveryArtwork(source: item.imageURL).frame(width: 96, height: 100).clipped().accessibilityHidden(true)
+        VStack(alignment: .leading, spacing: 14) {
+            if let url = QuestifyCardArtwork.safeURL(item.imageURL) {
+                QuestifyCardArtwork(url: url, height: dynamicTypeSize.isAccessibilitySize ? 132 : 164)
             }
-            LabeledContent { VStack(alignment: .trailing) {
-                if let amount = item.amount, amount >= 0 { Text(amount, format: .number.precision(.fractionLength(2))); Text("homeFeed.currencyUnknown").font(.caption) }
-                else { Text("homeFeed.unknown") }
-            }} label: { Text("homeFeed.priceFrom") }
-            LabeledContent { Text(verbatim: item.startDate.flatMap { $0.isEmpty ? nil : $0 } ?? "—") } label: { Text("homeFeed.date") }
-            LabeledContent { Text(verbatim: item.place ?? "—") } label: { Text("homeFeed.place") }
-        }.padding(.vertical, 8)
+            VStack(alignment: .leading, spacing: 10) {
+                Label(typeTitle, systemImage: typeSymbol)
+                    .font(.caption.weight(.semibold)).foregroundStyle(QuestifyPalette.accent)
+                if item.name.isEmpty { Text("homeFeed.untitled").font(.title3.weight(.semibold)) }
+                else { Text(verbatim: item.name).font(.title3.weight(.semibold)) }
+                VStack(alignment: .leading, spacing: 7) {
+                    QuestifyMetadataLine(label: "homeFeed.date", value: item.startDate.flatMap { $0.isEmpty ? nil : $0 } ?? "—", systemImage: "calendar")
+                    QuestifyMetadataLine(label: "homeFeed.place", value: item.place ?? "—", systemImage: "mappin.and.ellipse")
+                }
+                if let description = item.introduction, !description.isEmpty {
+                    Text(verbatim: description).font(.subheadline).foregroundStyle(.secondary)
+                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 3)
+                }
+            }
+            Divider()
+            let layout = dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 10)) : AnyLayout(HStackLayout(alignment: .bottom, spacing: 12))
+            layout {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("homeFeed.priceFrom").font(.caption).foregroundStyle(.secondary)
+                    if let amount = item.amount, amount >= 0 {
+                        Text(amount, format: .number.precision(.fractionLength(2)))
+                            .font(.headline).monospacedDigit()
+                        Text("homeFeed.currencyUnknown").font(.caption).foregroundStyle(.secondary)
+                    } else { Text("homeFeed.unknown").font(.headline) }
+                }
+                if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 0) }
+                VStack(alignment: .leading, spacing: 6) {
+                    if item.isBeta { QuestifyStatusBadge(title: "homeFeed.beta", systemImage: "flask") }
+                    if let liveStart { HomeFeedLiveBadge(start: liveStart) }
+                }
+            }
+        }
+        .foregroundStyle(.primary)
+        .fixedSize(horizontal: false, vertical: true)
+        .questifyCardSurface()
+    }
+}
+
+/// One initial entry and, only if needed, the source start boundary. No per-card 1 Hz timer.
+private struct HomeFeedStartSchedule: TimelineSchedule {
+    let start: Date
+    func entries(from date: Date, mode: Mode) -> [Date] {
+        start > date ? [date, start] : [date]
+    }
+}
+
+private struct HomeFeedLiveBadge: View {
+    let start: Date
+    var body: some View {
+        TimelineView(HomeFeedStartSchedule(start: start)) { context in
+            // Preserves the source's start <= now rule. No timezone or end-state is inferred.
+            if start <= context.date { QuestifyStatusBadge(title: "homeFeed.live", systemImage: "clock") }
+        }
     }
 }

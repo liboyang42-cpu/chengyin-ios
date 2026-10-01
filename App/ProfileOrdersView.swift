@@ -19,7 +19,7 @@ struct ProfileOrdersView: View {
                 }
             }
         }
-        .navigationTitle("profile.orders.title")
+        .appNavigationTitle("profile.orders.title")
     }
 }
 
@@ -93,7 +93,7 @@ struct ProfileOrderDetailView: View {
                 Section { Text("profile.readOnly").foregroundStyle(.secondary) }
             }
         }
-        .navigationTitle("profile.orders.detail")
+        .appNavigationTitle("profile.orders.detail")
         .navigationBarTitleDisplayMode(.inline)
     }
 }

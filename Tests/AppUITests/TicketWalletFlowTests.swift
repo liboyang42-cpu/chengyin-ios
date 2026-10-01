@@ -18,11 +18,14 @@ final class TicketWalletFlowTests: XCTestCase {
     func testWalletDetailEntitlementsBackAndReopenNeverOffersCodeOrPayment() {
         launch()
         let row = app.buttons["ticketWallet.row.901"]
-        XCTAssertTrue(row.waitForExistence(timeout: 10)); row.tap()
+        XCTAssertTrue(row.waitForExistence(timeout: 10))
+        attachFixtureScreenshot(self,app:app,name:"Ticket wallet initial content")
+        row.tap()
         XCTAssertTrue(app.navigationBars["Ticket details"].waitForExistence(timeout: 5))
         let pending = app.descendants(matching: .any)["ticketWallet.pendingChapters"]
         reveal(pending)
         XCTAssertTrue(app.staticTexts["Sample pending chapter"].exists)
+        attachFixtureScreenshot(self,app:app,name:"Ticket detail entitlements")
         reveal(app.descendants(matching: .any)["ticketWallet.redemption.notice"])
         XCTAssertTrue(app.staticTexts["Redemption codes are not available in this native version yet"].exists)
         XCTAssertFalse(app.buttons["Show redemption code"].exists)

@@ -46,7 +46,7 @@ struct ProfileBadgesView: View {
                 }
             }
         }
-        .navigationTitle("profile.badges.title")
+        .appNavigationTitle("profile.badges.title")
     }
     private func badgeLink(_ badge: ProfileBadgeSelection, identifier: String) -> some View {
         NavigationLink { ProfileBadgeDetailView(badge: badge) } label: {
@@ -111,7 +111,7 @@ struct ProfileBadgeDetailView: View {
                 }
             }
         }
-        .navigationTitle("profile.badges.detail")
+        .appNavigationTitle("profile.badges.detail")
         .navigationBarTitleDisplayMode(.inline)
     }
 }

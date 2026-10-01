@@ -47,7 +47,7 @@ struct ClubManagementView: View {
                                         action(.reject, memberID: request.id)
                                     }
                                 }
-                                .navigationTitle("club.management.request")
+                                .appNavigationTitle("club.management.request")
                             } label: {
                                 VStack(alignment: .leading) {
                                     Text(verbatim: request.nickname ?? "#\(request.id)")
@@ -69,7 +69,7 @@ struct ClubManagementView: View {
                                         Text(verbatim: "#\(member.id)")
                                         if snapshot.allows(.remove, memberID: member.id) { action(.remove, memberID: member.id) }
                                     }
-                                    .navigationTitle("club.management.member")
+                                    .appNavigationTitle("club.management.member")
                                 } label: { Text(verbatim: member.nickname ?? "#\(member.id)") }
                                 .accessibilityIdentifier("club.management.member.\(member.id)")
                             }
@@ -82,7 +82,7 @@ struct ClubManagementView: View {
                 Text("club.management.deferred").font(.footnote).foregroundStyle(.secondary)
             }
         }
-        .navigationTitle("club.management.title")
+        .appNavigationTitle("club.management.title")
         .sheet(isPresented: Binding(get: { confirmation != nil }, set: { if !$0 { cancel() } })) {
             if let pending = confirmation {
                 NavigationStack {
@@ -97,7 +97,7 @@ struct ClubManagementView: View {
                         } label: { Text(LocalizedStringKey("club.management." + String(pending.action.rawValue))) }
                         .accessibilityIdentifier("club.management.confirm")
                     }
-                    .navigationTitle(LocalizedStringKey("club.management." + String(pending.action.rawValue)))
+                    .appNavigationTitle(key: "club.management." + pending.action.rawValue)
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("club.management.cancel") { cancel() } } }
                 }
                 .accessibilityIdentifier("club.management.confirmation")

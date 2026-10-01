@@ -17,6 +17,7 @@ final class ActivityFlowTests: XCTestCase {
         launchFixture("tickets")
         tap(element("activity.row.101"))
         waitForDetail()
+        attachFixtureScreenshot(self,app:app,name:"Activity detail ticket information")
         let unknownPrice=element("activity.ticket.price.501")
         waitForHittable(unknownPrice)
         XCTAssertEqual(unknownPrice.label,"Price unavailable")

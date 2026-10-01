@@ -18,4 +18,7 @@ extension View {
     func appNavigationTitle(_ key: String.LocalizationValue) -> some View {
         modifier(AppNavigationTitle(key: key))
     }
+    func appNavigationTitle(key: String) -> some View {
+        modifier(AppNavigationTitle(key: String.LocalizationValue(stringLiteral: key)))
+    }
 }

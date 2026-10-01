@@ -29,7 +29,7 @@ struct PlaySessionView: View {
             }
         }
         .privacySensitive()
-        .navigationTitle("play.title")
+        .appNavigationTitle("play.title")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {

@@ -39,7 +39,7 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
                 ProgressView("merchant.checkingAccess").accessibilityIdentifier("merchant.access.loading")
             }
         }
-        .navigationTitle("merchant.title")
+        .appNavigationTitle("merchant.title")
         .task(id: reader.sessionRevision) { await reload() }
     }
     private func reload() async {

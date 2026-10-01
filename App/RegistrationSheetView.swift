@@ -55,7 +55,7 @@ struct RegistrationSheetView: View {
                 }
             }
             .scrollDismissesKeyboard(.interactively)
-            .navigationTitle("registration.form.title")
+            .appNavigationTitle("registration.form.title")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

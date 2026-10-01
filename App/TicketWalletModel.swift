@@ -36,7 +36,11 @@ struct TicketWalletIssueView: View {
                 if case .server(let text) = issue { Text(verbatim: text) }
                 else { Text(LocalizedStringKey(issue.localizationKey)) }
             } icon: { Image(systemName: issue == .login ? "lock" : "exclamationmark.triangle") }
-            if let retry { Button("ticketWallet.retry", action: retry).accessibilityIdentifier("ticketWallet.retry") }
+            if let retry {
+                Button("ticketWallet.retry", action: retry)
+                    .buttonStyle(.bordered).controlSize(.large)
+                    .accessibilityIdentifier("ticketWallet.retry")
+            }
         }.padding(.vertical, 8)
     }
 }
@@ -52,7 +56,17 @@ struct TicketWalletTitle: View {
 struct TicketWalletOptionalField: View {
     let label: LocalizedStringKey
     let value: String?
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     var body: some View {
-        if let value, !value.isEmpty { LabeledContent(label) { Text(verbatim: value).textSelection(.enabled) } }
+        if let value, !value.isEmpty {
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(label).foregroundStyle(.secondary)
+                    Text(verbatim: value).textSelection(.enabled)
+                }.fixedSize(horizontal: false, vertical: true)
+            } else {
+                LabeledContent(label) { Text(verbatim: value).textSelection(.enabled).fixedSize(horizontal: false, vertical: true) }
+            }
+        }
     }
 }

@@ -70,7 +70,7 @@ struct RoamBrowserView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .navigationTitle("roam.title")
+            .appNavigationTitle("roam.title")
             .searchable(text: $query, prompt: "roam.search")
             .task(id: requestKey) { await load() }
             .onChange(of: query) { _, _ in selected = nil }

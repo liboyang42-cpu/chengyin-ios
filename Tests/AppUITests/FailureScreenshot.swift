@@ -8,3 +8,11 @@ func attachFailureScreenshot(_ test:XCTestCase,app:XCUIApplication?) {
     image.lifetime = .keepAlways
     test.add(image)
 }
+
+/// Only use with explicitly synthetic/offline fixture data.
+func attachFixtureScreenshot(_ test:XCTestCase,app:XCUIApplication,name:String) {
+    let image=XCTAttachment(screenshot:app.screenshot())
+    image.name=name + " – synthetic fixture"
+    image.lifetime = .keepAlways
+    test.add(image)
+}

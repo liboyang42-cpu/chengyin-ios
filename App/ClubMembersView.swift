@@ -30,6 +30,6 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
                     } header: { ClubName(value: directory.club.name) }
                 }
             }
-        }.navigationTitle("club.members")
+        }.appNavigationTitle("club.members")
     }
 }

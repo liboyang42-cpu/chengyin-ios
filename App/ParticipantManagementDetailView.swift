@@ -53,7 +53,7 @@ struct ParticipantManagementDetailView: View {
                 }
             }
         }
-        .navigationTitle("profile.participants.detail")
+        .appNavigationTitle("profile.participants.detail")
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(model.busy)
         .toolbar {

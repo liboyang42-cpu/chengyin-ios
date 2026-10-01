@@ -16,7 +16,9 @@ final class HomeFeedFlowTests: XCTestCase {
     func testTypedDestinationsAndPriceCurrencyDisclosure() {
         launch()
         let route = app.buttons["homeFeed.recommended.topic.7"]
-        XCTAssertTrue(route.waitForExistence(timeout: 30)); route.tap()
+        XCTAssertTrue(route.waitForExistence(timeout: 30))
+        attachFixtureScreenshot(self,app:app,name:"Home feed initial content")
+        route.tap()
         XCTAssertTrue(app.staticTexts["homeFeed.destination.topic"].waitForExistence(timeout: 15))
         app.navigationBars.buttons.firstMatch.tap()
         let activity = app.buttons["homeFeed.nearby.activity.7"]; reveal(activity); activity.tap()

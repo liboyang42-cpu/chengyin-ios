@@ -72,7 +72,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                     } else { Text("club.joinToSeeMembers").foregroundStyle(.secondary).accessibilityIdentifier("club.members.gated") }
                 }
             }
-        }.navigationTitle("club.detail")
+        }.appNavigationTitle("club.detail")
             .id(id)
             .onChange(of: reader.clubIdentity) { _, _ in actionDetail = nil; actionIdentity = nil }
     }

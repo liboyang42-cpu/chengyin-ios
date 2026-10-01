@@ -169,7 +169,7 @@ struct ParticipantFormView: View {
                 }
             }
         }
-        .navigationTitle(Text(LocalizedStringKey(model.id == nil ? "participant.form.add" : "participant.form.edit")))
+        .appNavigationTitle(key: model.id == nil ? "participant.form.add" : "participant.form.edit")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {

@@ -158,7 +158,11 @@ final class ModuleFlowTests: XCTestCase {
         let snapshot=app.descendants(matching:.any)["registration.form.statusSnapshot"].firstMatch
         for _ in 0..<5 { if snapshot.exists { break };app.swipeUp() }
         XCTAssertTrue(snapshot.waitForExistence(timeout:10),app.debugDescription)
-        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format:"label CONTAINS %@","Awaiting payment")).firstMatch.exists,app.debugDescription)
+        let paymentStatus=app.staticTexts.matching(NSPredicate(format:"label CONTAINS %@","Awaiting payment")).firstMatch
+        // The section header can exist while its lower Form rows remain uninstantiated.
+        // Reveal the actual status value, not just the header, before asserting readback.
+        for _ in 0..<6 { if paymentStatus.exists { break };app.swipeUp() }
+        XCTAssertTrue(paymentStatus.waitForExistence(timeout:10),app.debugDescription)
         XCTAssertFalse(app.buttons["registration.form.review"].exists)
         capture("Registration raw status – synthetic data")
         tap(app.buttons["registration.form.close"])

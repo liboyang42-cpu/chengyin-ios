@@ -74,7 +74,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [0, 1]
+        shard: [0, 1, 2]
     needs: native
     runs-on: macos-26
     timeout-minutes: 25
@@ -100,7 +100,7 @@ jobs:
         run: xcrun simctl bootstatus "$TEST_SIMULATOR_ID" -b
       - name: Test native module flows and session boundaries
         run: |
-          python3 tools/run_ui_shard.py --shard ${{ matrix.shard }} --count 2 \
+          python3 tools/run_ui_shard.py --shard ${{ matrix.shard }} --count 3 \
             --simulator "$TEST_SIMULATOR_ID" \
             --derived-data "$RUNNER_TEMP/questify-ui-tests" \
             --result-bundle "$RUNNER_TEMP/questify-ui-results.xcresult"

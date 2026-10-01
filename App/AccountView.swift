@@ -50,7 +50,7 @@ struct AccountView: View {
                     Button("auth.signOut",role:.destructive) { confirmsLogout=true }
                 }
             }
-            .navigationTitle("account.title")
+            .appNavigationTitle("account.title")
             .toolbar {
                 ToolbarItem(placement:.topBarTrailing) {
                     Button("settings.title",systemImage:"gearshape") { showsSettings=true }

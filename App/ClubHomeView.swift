@@ -39,7 +39,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                 }
             }
         }
-        .navigationTitle("club.title")
+        .appNavigationTitle("club.title")
     }
     private func clubSection(_ title: LocalizedStringKey, rows: [ClubRecord], empty: LocalizedStringKey,
                              identifier: String) -> some View {

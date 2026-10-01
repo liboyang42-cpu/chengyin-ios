@@ -111,7 +111,7 @@ struct AuthChannelView: View {
                     }
                 }
             }
-            .navigationTitle("auth.channels.title")
+            .appNavigationTitle("auth.channels.title")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("action.close") { model.clear(); dismiss() }

@@ -31,7 +31,7 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
                 content
             }
         }
-        .navigationTitle("merchant.onboarding.title")
+        .appNavigationTitle("merchant.onboarding.title")
         .navigationBarTitleDisplayMode(.inline)
         .task(id: session.sessionRevision) {
             // Returning from a transient sheet may restart .task without a new account.
@@ -283,7 +283,7 @@ private struct MerchantOnboardingHoursView: View {
                 DatePicker("merchant.onboarding.closes", selection: $end, displayedComponents: .hourAndMinute)
                 if hours.days.isEmpty { Text("merchant.onboarding.dayRequired").foregroundStyle(.red) }
             }
-            .navigationTitle("merchant.onboarding.hours")
+            .appNavigationTitle("merchant.onboarding.hours")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {

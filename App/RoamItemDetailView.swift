@@ -25,7 +25,7 @@ struct RoamItemDetailView: View {
                 else if let issue { RoamStatusView(issue: issue) { Task { await load() } } }
                 else { content }
             }
-            .navigationTitle("roam.detail")
+            .appNavigationTitle("roam.detail")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("roam.close") { dismiss() } } }
             .task(id: reader.identity) { await load() }

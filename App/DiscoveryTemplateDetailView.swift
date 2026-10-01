@@ -44,7 +44,7 @@ struct DiscoveryTemplateDetailView: View {
                 .accessibilityIdentifier("discovery.detail.content")
             }
         }
-        .navigationTitle("discovery.playDetails")
+        .appNavigationTitle("discovery.playDetails")
         .navigationBarTitleDisplayMode(.inline)
         .task(id: id) { if reader.isConfigured { await reload() } }
     }
@@ -71,7 +71,7 @@ struct DiscoveryTopicTemplatePreview: View {
             }
             Section { Text("discovery.topicPreviewHint").font(.footnote).foregroundStyle(.secondary) }
         }
-        .navigationTitle("discovery.topicPreview")
+        .appNavigationTitle("discovery.topicPreview")
         .navigationBarTitleDisplayMode(.inline)
         .accessibilityIdentifier("discovery.topicPreview.content")
     }

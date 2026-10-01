@@ -50,7 +50,7 @@ struct MessagingHistoryView: View {
             }
         }
         .privacySensitive()
-        .navigationTitle("messaging.history.title")
+        .appNavigationTitle("messaging.history.title")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {

@@ -48,7 +48,7 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                 MerchantFailureView(errorKey: error, identifier: "merchant.projects", retry: { Task { await reload() } })
             } else { ProgressView("merchant.loading") }
         }
-        .navigationTitle("merchant.projects")
+        .appNavigationTitle("merchant.projects")
         .task(id: reader.sessionRevision) { await reload(discardOldValue: true) }
         .onChange(of: reader.sessionRevision) { _, _ in selection = nil }
         .sheet(item: $selection) { selected in
@@ -93,6 +93,6 @@ private struct MerchantProjectSummary: View {
                     if project.viewCount > 0 { MerchantCountRow("merchant.project.views", value: project.viewCount) }
                 }
             }
-        }.navigationTitle("merchant.project.summary")
+        }.appNavigationTitle("merchant.project.summary")
     }
 }

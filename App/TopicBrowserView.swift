@@ -53,7 +53,7 @@ struct TopicBrowserView: View {
                 }
                 Section { Text("topic.readOnly").font(.footnote).foregroundStyle(.secondary) }
             }
-            .navigationTitle("topic.title")
+            .appNavigationTitle("topic.title")
             .toolbar { if let onClose { ToolbarItem(placement:.cancellationAction) { Button("action.close",action:onClose) } } }
             .searchable(text: $keyword, prompt: "topic.search")
             .task(id: key) { await load(reset: true) }

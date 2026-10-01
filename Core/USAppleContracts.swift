@@ -133,8 +133,8 @@ public struct USAppleSessionSnapshot: Equatable {
     }
 }
 
-/// Evidence produced by the future US protected-session adapter, NOT by reading JWT claims
-/// or echoing the exchange's `market` field. No current-account URL is invented here.
+/// Evidence read from the approved US protected session endpoint, NOT by reading JWT
+/// claims or echoing the exchange's `market` field. The coordinator also matches account ID.
 public struct USAppleVerifiedCurrentAccount {
     public let account: Account
     public let market: RegionalMarket

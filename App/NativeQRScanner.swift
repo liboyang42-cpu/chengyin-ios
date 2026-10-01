@@ -17,7 +17,7 @@ struct NativeQRScanner: View {
     var body: some View {
         NavigationStack {
             content
-                .navigationTitle("scanner.title")
+                .appNavigationTitle("scanner.title")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {

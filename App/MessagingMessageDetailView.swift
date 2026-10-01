@@ -54,7 +54,7 @@ struct MessagingMessageDetailView: View {
             }
         }
         .privacySensitive()
-        .navigationTitle("messaging.message.title")
+        .appNavigationTitle("messaging.message.title")
         .navigationBarTitleDisplayMode(.inline)
     }
 }

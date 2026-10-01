@@ -41,7 +41,7 @@ struct DiscoveryTemplateBrowserView: View {
                 }.refreshable { await reloadCurrent() }
             }
         }
-        .navigationTitle("discovery.browseTemplates")
+        .appNavigationTitle("discovery.browseTemplates")
         .task {
             guard reader.isConfigured, home.value == nil else { return }
             await loadHome()

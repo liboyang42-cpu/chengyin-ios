@@ -25,7 +25,7 @@ struct PlayNodeDetailView: View {
             }
         }
         .privacySensitive()
-        .navigationTitle("play.node.title")
+        .appNavigationTitle("play.node.title")
         .navigationBarTitleDisplayMode(.inline)
         .onChange(of: model.reader.identity) { _, _ in answer = "" }
         .onChange(of: model.visibleSnapshot) { _, _ in answer = "" }

@@ -40,19 +40,21 @@ import SwiftUI
                             NavigationLink {
                                 TicketWalletDetailView(id: ticket.id, reader: reader)
                             } label: { TicketWalletRow(ticket: ticket) }
+                            .buttonStyle(QuestifyCardButtonStyle())
                             .accessibilityIdentifier("ticketWallet.row.\(ticket.id)")
+                            .questifyCardListRow()
                         } else {
-                            VStack(alignment: .leading, spacing: 8) {
-                                TicketWalletRow(ticket: ticket)
-                                Text(LocalizedStringKey("ticketWallet.action." + String(ticket.action.rawValue)))
-                                    .font(.footnote).foregroundStyle(.secondary)
-                            }.accessibilityIdentifier("ticketWallet.row.\(ticket.id)")
+                            TicketWalletRow(ticket: ticket, showsActionNotice: true)
+                                .accessibilityIdentifier("ticketWallet.row.\(ticket.id)")
+                                .questifyCardListRow()
                         }
                     }
                 }
                 Section { Text("ticketWallet.readOnly").font(.footnote).foregroundStyle(.secondary) }
             }
-            .navigationTitle("ticketWallet.title")
+            .listStyle(.insetGrouped)
+            .listSectionSpacing(20)
+            .appNavigationTitle("ticketWallet.title")
             .toolbar {
                 if let onClose { ToolbarItem(placement: .cancellationAction) { Button("action.close", action: onClose) } }
                 ToolbarItem(placement: .primaryAction) {
@@ -84,13 +86,40 @@ import SwiftUI
 
 private struct TicketWalletRow: View {
     let ticket: TicketWalletTicket
+    var showsActionNotice = false
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            TicketWalletTitle(title: ticket.title).font(.headline)
-            TicketWalletOptionalField(label: "ticketWallet.participateDate", value: ticket.participateDate).font(.subheadline)
-            TicketWalletOptionalField(label: "ticketWallet.number", value: ticket.registrationNumber).font(.caption)
-            Text(LocalizedStringKey("ticketWallet.status." + String(ticket.status.rawValue)))
-                .font(.subheadline.weight(.semibold))
-        }.padding(.vertical, 4)
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .top, spacing: 12) {
+                TicketWalletStatusBadge(status: ticket.status)
+                Spacer(minLength: 0)
+                Image(systemName: "ticket")
+                    .font(.title2).foregroundStyle(QuestifyPalette.accent).accessibilityHidden(true)
+            }
+            TicketWalletTitle(title: ticket.title)
+                .font(.title3.weight(.semibold)).foregroundStyle(.primary)
+                .fixedSize(horizontal: false, vertical: true)
+            if let date = ticket.participateDate, !date.isEmpty {
+                QuestifyMetadataLine(label: "ticketWallet.participateDate", value: date, systemImage: "calendar")
+            }
+            if let place = ticket.addressName, !place.isEmpty {
+                QuestifyMetadataLine(label: "ticketWallet.place", value: place, systemImage: "mappin.and.ellipse")
+            }
+            if let number = ticket.registrationNumber, !number.isEmpty {
+                Divider()
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("ticketWallet.number").font(.caption).foregroundStyle(.secondary)
+                    Text(verbatim: number).font(.caption.monospaced()).foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            if showsActionNotice {
+                Label {
+                    Text(LocalizedStringKey("ticketWallet.action." + ticket.action.rawValue))
+                        .fixedSize(horizontal: false, vertical: true)
+                } icon: { Image(systemName: "info.circle").accessibilityHidden(true) }
+                .font(.footnote).foregroundStyle(.secondary)
+            }
+        }
+        .questifyCardSurface()
     }
 }

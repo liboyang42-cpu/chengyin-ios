@@ -3,7 +3,7 @@ import SwiftUI
 
 enum ModuleFixture: String {
     case homeFeed = "home-feed"
-    case ticketWallet
+    case ticketWallet, square
     case discovery, profile, messaging, roam, participants, play, composer, topic, localization
     static var selected: Self? {
         let args=ProcessInfo.processInfo.arguments
@@ -25,6 +25,7 @@ struct ModuleFixtureRootView: View {
             switch module {
             case .homeFeed: HomeFeedFixtureHostView()
             case .ticketWallet: TicketWalletFixtureHostView()
+            case .square: SquareFixtureHostView()
             case .discovery: DiscoveryHomeView(reader:discovery)
             case .profile: ProfileFixtureHostView()
             case .messaging: MessagingFixtureHostView()
@@ -36,6 +37,7 @@ struct ModuleFixtureRootView: View {
             case .localization: ComputedLocalizationFixtureView()
             }
         }
+        .modifier(AccessibilityFixtureOptions())
     }
 }
 #endif

@@ -24,7 +24,7 @@ struct ClubDirectoryView<Reader: ClubReading & ObservableObject>: View {
             }
         }
         .id(submittedName)
-        .navigationTitle("club.directory")
+        .appNavigationTitle("club.directory")
         .searchable(text: $searchText, prompt: "club.searchPrompt")
         .onSubmit(of: .search) { submittedName = searchText.trimmingCharacters(in: .whitespacesAndNewlines) }
         .onChange(of: searchText) { _, value in if value.isEmpty { submittedName = "" } }
@@ -53,6 +53,6 @@ struct ClubOwnedView<Reader: ClubReading & ObservableObject>: View {
                     }
                 }
             }
-        }.navigationTitle("club.owned")
+        }.appNavigationTitle("club.owned")
     }
 }

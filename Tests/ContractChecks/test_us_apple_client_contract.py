@@ -34,15 +34,33 @@ class USAppleClientSourceChecks(unittest.TestCase):
 
     def test_exact_routes_empty_challenge_and_three_exchange_fields(self):
         service = read("Core/USAppleService.swift")
-        self.assertEqual(re.findall(r'path: "([^"]+)"', service),
-                         ["api/us/auth/apple/challenges", "api/us/auth/apple/exchange"])
+        self.assertEqual(re.findall(r'"(api/us/auth/[^"]+)"', service),
+                         ["api/us/auth/apple/challenges", "api/us/auth/apple/exchange", "api/us/auth/session"])
         self.assertIn('body: Data("{}".utf8)', service)
         declaration = re.search(r"struct ExchangeBody: Encodable \{([^}]+)\}", service).group(1)
         self.assertEqual(re.findall(r"let (\w+):", declaration), ["challengeId", "state", "identityToken"])
-        self.assertNotIn('forHTTPHeaderField: "Authorization"', service)
+        post_adapter = service.split("public func currentAccount(", 1)[0]
+        self.assertNotIn('forHTTPHeaderField: "Authorization"', post_adapter)
         self.assertNotIn("AuthService(", service)
         self.assertNotIn("AuthChannelService(", service)
         self.assertIn("request.httpShouldHandleCookies = false", service)
+
+    def test_protected_session_get_bearer_server_realm_and_null_avatar_contract(self):
+        service = read("Core/USAppleService.swift")
+        proof = service.split("public func currentAccount(", 1)[1]
+        self.assertIn('guard admitted else', proof)
+        self.assertIn('request.httpMethod = "GET"', proof)
+        self.assertIn('request.setValue("Bearer \\(token)", forHTTPHeaderField: "Authorization")', proof)
+        self.assertNotIn('request.httpBody =', proof)
+        self.assertIn('response.data.market == "US"', proof)
+        self.assertIn('response.data.realm == deployment.realm', proof)
+        self.assertIn('realm: response.data.realm', proof)
+        self.assertIn('response.data.account.id > 0', proof)
+        self.assertIn('if status == 401 { throw USAppleError.invalidIdentity }', proof)
+        self.assertIn('"US_SESSION_UNAVAILABLE"', proof)
+        self.assertIn('guard status == 200, envelope.errorCode == nil', proof)
+        self.assertIn('guard values.contains(.avatar)', service)
+        self.assertIn('decodeIfPresent(String.self, forKey: .avatar) ?? ""', service)
 
     def test_nonce_fixture_is_real_lowercase_sha256_of_raw_nonce(self):
         fixtures = read("Tests/CoreTests/USAppleServiceTests.swift")

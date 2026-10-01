@@ -77,7 +77,7 @@ struct ProfileEditView: View {
                 if model.busy { ProgressView().accessibilityIdentifier("profile.edit.busy") }
             }
         }
-        .navigationTitle(Text("profile.edit.title"))
+        .appNavigationTitle("profile.edit.title")
         .task(id: sessionRevision) { await model.resetAndLoad() }
         .onDisappear {
             if let value = model.confirmation { model.coordinator.cancel(value) }
@@ -95,7 +95,7 @@ struct ProfileEditView: View {
                     Button(role: .cancel) {
                         model.coordinator.cancel(value); model.confirmation = nil
                     } label: { Text("profile.edit.cancel") }
-                }.navigationTitle(Text("profile.edit.reviewTitle"))
+                }.appNavigationTitle("profile.edit.reviewTitle")
             }.interactiveDismissDisabled(model.busy)
         }
     }

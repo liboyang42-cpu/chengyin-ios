@@ -18,7 +18,7 @@ struct TopicDetailView: View {
             else if let issue { TopicIssueView(issue: issue) { Task { await load() } } }
             else if let detail { content(detail) }
         }
-        .navigationTitle("topic.detail")
+        .appNavigationTitle("topic.detail")
         .navigationBarTitleDisplayMode(.inline)
         .task(id: key) { await load() }
         .onDisappear { generation += 1; loading = false }
@@ -155,6 +155,6 @@ struct TopicChapterView: View {
                     Section { Text("topic.readOnly").font(.footnote) }
                 }
             }
-        }.navigationTitle("topic.chapter").navigationBarTitleDisplayMode(.inline)
+        }.appNavigationTitle("topic.chapter").navigationBarTitleDisplayMode(.inline)
     }
 }

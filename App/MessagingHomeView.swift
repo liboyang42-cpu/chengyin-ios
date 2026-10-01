@@ -10,7 +10,7 @@ struct MessagingHomeView: View {
     init(reader:any MessagingReading,senderForConversation:((Int)->MessageActionCoordinator?)?=nil) { self.reader=reader;self.senderForConversation=senderForConversation;identity=reader.identity }
     var body: some View {
         MessagingConversationListView(reader:reader,senderForConversation:senderForConversation).id(identity)
-            .navigationTitle("messaging.title")
+            .appNavigationTitle("messaging.title")
     }
 }
 

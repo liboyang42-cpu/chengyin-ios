@@ -30,7 +30,7 @@ struct ProfileParticipantsView: View {
             }
         }
         .id(refreshID)
-        .navigationTitle("profile.participants.title")
+        .appNavigationTitle("profile.participants.title")
         .toolbar {
             if let coordinator, coordinator.isConfigured, reader.identity != nil {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -82,7 +82,7 @@ struct ProfileParticipantDetailView: View {
                 Section { Text("profile.readOnly").foregroundStyle(.secondary) }
             }
         }
-        .navigationTitle("profile.participants.detail")
+        .appNavigationTitle("profile.participants.detail")
         .navigationBarTitleDisplayMode(.inline)
         }
     }

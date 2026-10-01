@@ -48,7 +48,7 @@ struct MerchantOrdersView<Reader: MerchantReading>: View {
                 MerchantFailureView(errorKey: error, identifier: "merchant.orders", retry: { Task { await reload() } })
             } else { ProgressView("merchant.loading") }
         }
-        .navigationTitle("merchant.orders")
+        .appNavigationTitle("merchant.orders")
         .toolbar {
             if reader.isSignedIn && reader.isConfigured && model.errorKey != "merchant.access.denied" {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -74,7 +74,7 @@ struct MerchantOrdersView<Reader: MerchantReading>: View {
                     }
                     Button("merchant.filters.reset") { draftFilter = .init() }
                 }
-                .navigationTitle("merchant.filters")
+                .appNavigationTitle("merchant.filters")
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) { Button("merchant.cancel") { showFilters = false } }
                     ToolbarItem(placement: .confirmationAction) {
@@ -147,7 +147,7 @@ private struct MerchantOrderSummary: View {
                 LabeledContent("merchant.order.amount", value: MerchantMoney.display(order.payAmount))
                 if let value = order.createTime, !value.isEmpty { LabeledContent("merchant.order.created", value: value) }
             }
-        }.navigationTitle("merchant.order.summary")
+        }.appNavigationTitle("merchant.order.summary")
     }
 }
 
