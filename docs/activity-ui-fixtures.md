@@ -20,7 +20,7 @@ These fixtures exercise the existing SwiftUI activity list and detail through an
 3. Initial list and detail errors recover through their explicit Retry controls.
 4. After editing (but not submitting) a search draft, pagination keeps the previously applied query. The final short page stops pagination; submitting the draft resets the list and shows the empty state.
 
-Tests wait for interactive targets to be hittable and assert destination state. Bounded scroll gestures reveal offscreen rows/search controls; they do not relaunch tests or repeat a failed product action. The pagination fix snapshots `appliedQuery` when resetting and retains generation guards to discard superseded responses. This suite does not exercise out-of-order async responses, refresh races, live account changes, or real backend pagination.
+Tests wait for interactive targets to be hittable and assert destination state. Bounded scroll gestures reveal offscreen rows/search controls; their endpoints use the visible collection area after excluding the navigation bar, search toolbar and keyboard. They do not relaunch tests or repeat a failed product action. The pagination fix snapshots `appliedQuery` when resetting and retains generation guards to discard superseded responses. This suite does not exercise out-of-order async responses, refresh races, live account changes, or real backend pagination.
 
 ## Integration and verification
 
@@ -32,4 +32,14 @@ Add the following String Catalog entry in both supported locales before compilat
 
 The project generator must be rerun after the new sources are integrated. Existing workflow test discovery runs the full `QuestifyUITests` target; no workflow edit is needed. On the approved Xcode/macOS executor, run the structural/catalog checks, an unsigned Debug simulator build and Release device build, and both UI test classes on the selected iPhone simulator. A focused run uses `-only-testing:QuestifyUITests/ActivityFlowTests` with the existing `xcodebuild test` command.
 
-These files were authored in a Linux workspace with no Swift/Xcode runtime. No simulator, compile, UI-test or runtime-network-isolation result is claimed here. The source-level isolation and fixture JSON can be inspected locally, but Apple-toolchain validation remains required.
+These files were authored in a Linux workspace with no Swift/Xcode runtime. Local checks cover source-level isolation and fixture JSON only. External CI evidence is recorded below; the corrected revision still requires Apple-toolchain validation and does not yet establish runtime-network isolation.
+
+## First CI findings and corrections
+
+The supplied UI log for run `36846622633` recorded all four new scenarios failing and all five existing entry scenarios passing. These failures are not accepted as test success:
+
+- Both successful row taps pushed a blank destination with a Back button but no title or content. The detail's initial `Group` contained no child (`loading == false`, `access == nil`), leaving task/title modifiers on empty content. List and detail now have a persistent `ZStack` host; detail also renders initial loading content. Native NavigationLink and back behavior remain intact.
+- The list-error accessibility identifier propagated from `ContentUnavailableView` onto its image, title and Retry button, replacing the button's own identifier. State identifiers now live only on title `Text` leaves; Retry keeps its distinct button identifier. Tests use typed static-text queries for those states.
+- During pagination the collection remained at 0% scroll with the keyboard open. Its AX frame extended behind the bottom search toolbar and keyboard, so default whole-element swipes missed the unobscured list. Gestures now derive their endpoints from current visible geometry and preserve the unsubmitted query.
+
+These corrections require a new simulator run. Timeouts, destination assertions, nullable-value checks, read-only checks and scenario count have not been relaxed.

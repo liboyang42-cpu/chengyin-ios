@@ -15,22 +15,27 @@ struct ActivityBrowserView: View {
 
     var body: some View {
         NavigationStack {
-            Group {
+            // A concrete root keeps task/navigation modifiers alive across loading states.
+            ZStack {
                 if !reader.isConfigured {
                     ContentUnavailableView("activity.unavailable",systemImage:"network.slash",description:Text("auth.notConfigured"))
                 } else if isLoading && items.isEmpty {
                     ProgressView("activity.loading")
                 } else if failed && items.isEmpty {
                     ContentUnavailableView {
-                        Label("activity.loadFailed",systemImage:"wifi.exclamationmark")
+                        Label {
+                            Text("activity.loadFailed").accessibilityIdentifier("activity.list.error")
+                        } icon: { Image(systemName:"wifi.exclamationmark") }
                     } actions: {
                         Button("action.retry") { Task { await load(reset:true) } }
                             .accessibilityIdentifier("activity.list.retry")
                     }
-                    .accessibilityIdentifier("activity.list.error")
                 } else if items.isEmpty {
-                    ContentUnavailableView("activity.empty",systemImage:"map",description:Text("activity.emptyHint"))
-                        .accessibilityIdentifier("activity.list.empty")
+                    ContentUnavailableView {
+                        Label {
+                            Text("activity.empty").accessibilityIdentifier("activity.list.empty")
+                        } icon: { Image(systemName:"map") }
+                    } description: { Text("activity.emptyHint") }
                 } else {
                     List {
                         ForEach(items) { item in

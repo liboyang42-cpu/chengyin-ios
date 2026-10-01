@@ -10,30 +10,34 @@ struct ActivityDetailView: View {
     @State private var failed=false
     @State private var generation=0
     var body: some View {
-        Group {
+        // Group with nil access produces EmptyView, which cannot host the initial task.
+        // Keep one concrete root for the task and navigation title through every state.
+        ZStack {
             if loading { ProgressView("activity.loading") }
             else if failed {
                 ContentUnavailableView {
-                    Label("activity.loadFailed",systemImage:"wifi.exclamationmark")
+                    Label {
+                        Text("activity.loadFailed").accessibilityIdentifier("activity.detail.error")
+                    } icon: { Image(systemName:"wifi.exclamationmark") }
                 } actions: {
                     Button("action.retry") { Task { await load() } }
                         .accessibilityIdentifier("activity.detail.retry")
                 }
-                .accessibilityIdentifier("activity.detail.error")
             } else if let access {
                 switch access {
                 case .clubRequired(_,let message):
                     ContentUnavailableView {
-                        Label("activity.clubRequired",systemImage:"lock")
+                        Label {
+                            Text("activity.clubRequired").accessibilityIdentifier("activity.detail.clubGate")
+                        } icon: { Image(systemName:"lock") }
                     } description: {
                         if let message, !message.isEmpty { Text(message) }
                         else { Text("activity.clubRequiredHint") }
                     }
-                    .accessibilityIdentifier("activity.detail.clubGate")
                 case .allowed(let detail):
                     detailContent(detail)
                 }
-            }
+            } else { ProgressView("activity.loading") }
         }
         .navigationTitle("activity.details")
         .navigationBarTitleDisplayMode(.inline)
