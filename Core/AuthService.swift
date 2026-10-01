@@ -62,8 +62,8 @@ public struct AuthService {
     public func login(username: String, password: String) async throws -> LoginResult {
         guard !username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, !password.isEmpty else { throw APIError.invalidRequest }
         let response = try await execute(.password, fields: ["username":username,"password":password])
-        guard let token=response.token, !token.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-              !token.contains("\r"), !token.contains("\n"), let account=response.data, account.id > 0 else { throw APIError.malformedResponse }
+        guard let token=response.token, AuthRequestBuilder.isValidToken(token),
+              let account=response.data, account.id > 0 else { throw APIError.malformedResponse }
         return LoginResult(token: token, account: account)
     }
     public func currentAccount(token: String) async throws -> Account {

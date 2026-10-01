@@ -27,7 +27,9 @@ final class AuthFoundationTests: XCTestCase {
         let builder=try AuthRequestBuilder(configuration:config())
         XCTAssertThrowsError(try builder.make(.password,fields:["bad\r\nheader":"value"]))
         XCTAssertThrowsError(try builder.make(.password,fields:["password":"BOUNDARY"],boundary:"BOUNDARY"))
-        XCTAssertThrowsError(try builder.make(.userInfo,token:"bad\r\nheader"))
+        for token in ["bad\r\nheader", "bad\rheader", "bad\nheader", "bad\theader", "bad\0header", " ", "非ASCII"] {
+            XCTAssertThrowsError(try builder.make(.userInfo,token:token))
+        }
     }
     func testUserInfoDoesNotGainMultipartBody() throws {
         let request=try AuthRequestBuilder(configuration:config()).make(.userInfo,token:"fixture")

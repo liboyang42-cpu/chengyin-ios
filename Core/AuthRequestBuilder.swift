@@ -7,6 +7,11 @@ public struct AuthRequestBuilder {
     public let configuration: APIConfiguration
     public init(configuration: APIConfiguration) { self.configuration = configuration }
 
+    static func isValidToken(_ token: String) -> Bool {
+        !token.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        token.utf8.allSatisfy { $0 >= 0x20 && $0 < 0x7f }
+    }
+
     /// Existing Flutter AuthApi uses multipart FormData, and a raw Authorization token.
     public func make(_ endpoint: AuthEndpoint, fields: [String: String] = [:],
                      token: String? = nil, boundary: String = UUID().uuidString) throws -> URLRequest {
@@ -14,7 +19,7 @@ public struct AuthRequestBuilder {
               boundary.allSatisfy({ $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "-") }),
               fields.keys.allSatisfy({ !$0.isEmpty && $0.allSatisfy { $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "_") } }),
               fields.values.allSatisfy({ !$0.contains(boundary) }) else { throw APIError.invalidRequest }
-        if let token, token.isEmpty || token.contains("\r") || token.contains("\n") {
+        if let token, !Self.isValidToken(token) {
             throw APIError.invalidRequest
         }
         var request = URLRequest(url: configuration.url(for: endpoint))
