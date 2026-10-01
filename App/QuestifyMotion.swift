@@ -1,5 +1,23 @@
 import SwiftUI
 
+/// System preference is read-only. A DEBUG-only policy input exercises our custom
+/// animation fallback without pretending to change iOS accessibility settings.
+@propertyWrapper
+struct QuestifyReduceMotion: DynamicProperty {
+    init() {}
+    @Environment(\.accessibilityReduceMotion) private var systemValue
+    #if DEBUG
+    private static let fixtureValue=ProcessInfo.processInfo.arguments.contains("--uitesting-reduce-motion")
+    #endif
+    var wrappedValue:Bool {
+        #if DEBUG
+        return systemValue || Self.fixtureValue
+        #else
+        return systemValue
+        #endif
+    }
+}
+
 /// Small, interruptible feedback. Navigation and reads never wait for an animation.
 enum QuestifyMotion {
     static let press = Animation.easeOut(duration: 0.12)
@@ -9,7 +27,7 @@ enum QuestifyMotion {
 
 /// Native Button/NavigationLink semantics are preserved, including cancellation while scrolling.
 struct QuestifyCardButtonStyle: ButtonStyle {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @QuestifyReduceMotion private var reduceMotion
     @Environment(\.isEnabled) private var isEnabled
 
     func makeBody(configuration: Configuration) -> some View {

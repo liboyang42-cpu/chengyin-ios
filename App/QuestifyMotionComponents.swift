@@ -51,7 +51,7 @@ struct QuestifyStatusBadge: View {
     var emphasized = false
     /// Only the state key animates; parent lists and unrelated content never spring on refresh.
     var stateKey = ""
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @QuestifyReduceMotion private var reduceMotion
     @Environment(\.colorSchemeContrast) private var contrast
     var body: some View {
         Label(title, systemImage: systemImage)
@@ -71,7 +71,7 @@ struct QuestifyStatusBadge: View {
 struct QuestifyCardArtwork: View {
     let url: URL
     var height: CGFloat = 164
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @QuestifyReduceMotion private var reduceMotion
     static func safeURL(_ source: String?) -> URL? {
         guard let source, let parts = URLComponents(string: source), parts.scheme == "https",
               let host = parts.host, !host.isEmpty, parts.user == nil, parts.password == nil else { return nil }
