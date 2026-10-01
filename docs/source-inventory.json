@@ -1,0 +1,996 @@
+{
+  "sourceRepository": "liboyang42-cpu/chengyin-app-public",
+  "sourceCommit": "a63e9e91c82a3282e8dd7138f943b1a8cbfc021d",
+  "interpretation": "Lexical source inventory only: not runtime routes, pages, tested coverage, or native implementations. API filenames do not prove contract compatibility.",
+  "featureDirectories": [
+    "account",
+    "activity",
+    "assets",
+    "auth",
+    "club",
+    "coop",
+    "coupon",
+    "creator",
+    "feed",
+    "im",
+    "legal",
+    "mall",
+    "map",
+    "merchant",
+    "npc",
+    "official",
+    "orders",
+    "p3",
+    "participation",
+    "payment",
+    "play",
+    "points",
+    "prefab",
+    "profile",
+    "publish",
+    "publisher",
+    "roam",
+    "search",
+    "settings",
+    "shell",
+    "square",
+    "team",
+    "template",
+    "tickets",
+    "topic",
+    "withdrawal"
+  ],
+  "apiSourceFiles": [
+    "lib/data/api/account_api.dart",
+    "lib/data/api/activity_api.dart",
+    "lib/data/api/activity_waitlist_api.dart",
+    "lib/data/api/address_api.dart",
+    "lib/data/api/advanced_play_api.dart",
+    "lib/data/api/ai_creator_api.dart",
+    "lib/data/api/ai_npc_api.dart",
+    "lib/data/api/analytics_api.dart",
+    "lib/data/api/asset_api.dart",
+    "lib/data/api/auth_api.dart",
+    "lib/data/api/badge_wall_api.dart",
+    "lib/data/api/banner_api.dart",
+    "lib/data/api/category_api.dart",
+    "lib/data/api/city_node_api.dart",
+    "lib/data/api/club_api.dart",
+    "lib/data/api/club_compensation_api.dart",
+    "lib/data/api/club_crm_api.dart",
+    "lib/data/api/club_lead_api.dart",
+    "lib/data/api/club_ops_api.dart",
+    "lib/data/api/club_topic_ops_api.dart",
+    "lib/data/api/config_api.dart",
+    "lib/data/api/coop_api.dart",
+    "lib/data/api/coupon_api.dart",
+    "lib/data/api/creator_api.dart",
+    "lib/data/api/feed_section_api.dart",
+    "lib/data/api/game_session_api.dart",
+    "lib/data/api/group_code_api.dart",
+    "lib/data/api/growth_api.dart",
+    "lib/data/api/im_api.dart",
+    "lib/data/api/mall_api.dart",
+    "lib/data/api/map_api.dart",
+    "lib/data/api/merchant_aftercare_api.dart",
+    "lib/data/api/merchant_api.dart",
+    "lib/data/api/merchant_crm_console_api.dart",
+    "lib/data/api/merchant_customer_detail_api.dart",
+    "lib/data/api/merchant_npc_api.dart",
+    "lib/data/api/merchant_operator_api.dart",
+    "lib/data/api/merchant_predict_api.dart",
+    "lib/data/api/merchant_review_api.dart",
+    "lib/data/api/my_project_api.dart",
+    "lib/data/api/object_card_api.dart",
+    "lib/data/api/official_api.dart",
+    "lib/data/api/page_parity_api.dart",
+    "lib/data/api/participant_api.dart",
+    "lib/data/api/play_api.dart",
+    "lib/data/api/play_leaderboard_api.dart",
+    "lib/data/api/play_os_api.dart",
+    "lib/data/api/play_route_api.dart",
+    "lib/data/api/play_run_session_api.dart",
+    "lib/data/api/points_api.dart",
+    "lib/data/api/publish_api.dart",
+    "lib/data/api/publisher_identity_api.dart",
+    "lib/data/api/registration_api.dart",
+    "lib/data/api/roam_api.dart",
+    "lib/data/api/square_api.dart",
+    "lib/data/api/team_map_api.dart",
+    "lib/data/api/template_api.dart",
+    "lib/data/api/topic_api.dart",
+    "lib/data/api/withdrawal_api.dart"
+  ],
+  "routeDeclarations": [
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 328,
+      "declaration": "GoRoute(path: '/splash', builder: (context, state) => const SplashPage()),"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 333,
+      "declaration": "path: '/door',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 340,
+      "declaration": "path: '/login',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 345,
+      "declaration": "GoRoute(path: '/search', builder: (context, state) => const SearchPage()),"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 347,
+      "declaration": "path: '/search/map',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 356,
+      "declaration": "path: '/search/result',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 374,
+      "declaration": "path: '/settings',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 382,
+      "declaration": "path: 'about',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 398,
+      "declaration": "path: '/legal/:type',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 403,
+      "declaration": "path: '/publish',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 416,
+      "declaration": "path: '/publish/pro',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 437,
+      "declaration": "path: '/publish/poi',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 440,
+      "declaration": "GoRoute(path: '/assets', builder: (context, state) => const AssetsPage()),"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 442,
+      "declaration": "path: '/invites',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 446,
+      "declaration": "path: '/income',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 452,
+      "declaration": "path: '/creator',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 456,
+      "declaration": "path: '/merchant/discover',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 462,
+      "declaration": "path: '/official-events',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 466,
+      "declaration": "path: '/publish/activity',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 470,
+      "declaration": "GoRoute(path: '/im', builder: (context, state) => const ImListPage()),"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 472,
+      "declaration": "path: '/im/chat/:conversationId',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 488,
+      "declaration": "path: '/coupons',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 492,
+      "declaration": "path: '/coupon/:id/code',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 498,
+      "declaration": "GoRoute(path: '/points', builder: (context, state) => const PointsPage()),"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 500,
+      "declaration": "path: '/object-cards',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 505,
+      "declaration": "path: '/growth',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 509,
+      "declaration": "path: '/growth/leaderboard',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 514,
+      "declaration": "path: '/badges',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 518,
+      "declaration": "path: '/badge',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 526,
+      "declaration": "path: '/activities',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 530,
+      "declaration": "path: '/activity/:id',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 537,
+      "declaration": "path: '/withdrawal',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 541,
+      "declaration": "path: '/withdrawal-records',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 549,
+      "declaration": "path: '/topic/pricing/partner',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 561,
+      "declaration": "path: '/topic/:id/pricing',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 569,
+      "declaration": "path: '/official/:id',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 576,
+      "declaration": "path: '/official-inbox',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 581,
+      "declaration": "path: '/official-publish',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 585,
+      "declaration": "path: '/official-mine',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 590,
+      "declaration": "path: '/deregister',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 594,
+      "declaration": "path: '/merchant/decor',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 598,
+      "declaration": "path: '/merchant/npc',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 603,
+      "declaration": "path: '/merchant/npc/avatar',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 608,
+      "declaration": "path: '/merchant/npc/voice',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 613,
+      "declaration": "path: '/merchant/decor/story',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 618,
+      "declaration": "path: '/merchant/decor/gallery',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 623,
+      "declaration": "path: '/merchant/chapters',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 629,
+      "declaration": "path: '/merchant/recruit/:topicId',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 638,
+      "declaration": "path: '/merchant/node-npc/:nodeId',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 648,
+      "declaration": "path: '/merchant/registration/:id/edit',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 657,
+      "declaration": "path: '/merchant/topic/:topicId/applications',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 665,
+      "declaration": "path: '/merchant/customers/:customerMemberId',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 681,
+      "declaration": "path: '/merchant/aftercare',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 688,
+      "declaration": "path: '/merchant/aftercare/:refundId',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 701,
+      "declaration": "path: '/merchant/reviews',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 717,
+      "declaration": "path: '/merchant/reviews/public/:merchantRowId/:ownerMemberId',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 736,
+      "declaration": "path: '/merchant/game-node/:activityId',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 750,
+      "declaration": "path: '/merchant/team',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 758,
+      "declaration": "path: '/user/:memberId',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 765,
+      "declaration": "path: '/club-feed',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 769,
+      "declaration": "path: '/infomation/:id',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 776,
+      "declaration": "path: '/my-projects',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 788,
+      "declaration": "path: '/square/compose',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 799,
+      "declaration": "path: '/square/drafts',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 803,
+      "declaration": "path: '/square/governance',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 807,
+      "declaration": "path: '/my-plays',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 811,
+      "declaration": "path: '/participations',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 815,
+      "declaration": "path: '/play/:activityId/ending',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 827,
+      "declaration": "path: '/team-lead/:activityId',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 835,
+      "declaration": "path: '/play/circle/:topicId',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 843,
+      "declaration": "path: '/team/join',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 850,
+      "declaration": "path: '/team/nearby',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 854,
+      "declaration": "path: '/team/:teamId',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 860,
+      "declaration": "path: '/play/stopwatch',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 880,
+      "declaration": "path: '/play-guide',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 886,
+      "declaration": "path: '/play/prefab',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 896,
+      "declaration": "path: '/my-likes',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 900,
+      "declaration": "path: '/participants',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 904,
+      "declaration": "path: '/profile/edit',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 908,
+      "declaration": "path: '/template/new',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 916,
+      "declaration": "path: '/template/edit',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 934,
+      "declaration": "path: '/template/intro',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 942,
+      "declaration": "path: '/templates',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 947,
+      "declaration": "path: '/template/:id',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 954,
+      "declaration": "path: '/coop/invite',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 981,
+      "declaration": "path: '/coop/invite/:topicId',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1015,
+      "declaration": "path: '/coop/nearby',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1027,
+      "declaration": "path: '/coop/candidates/:topicId',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1034,
+      "declaration": "path: '/coop-finance',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1038,
+      "declaration": "path: '/coop-pool',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1042,
+      "declaration": "path: '/coop/list',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1050,
+      "declaration": "path: '/coop/invite-detail',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1061,
+      "declaration": "path: '/coop/perk-templates',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1066,
+      "declaration": "path: '/coop/mybiz',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1070,
+      "declaration": "path: '/coop/settlement-detail',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1079,
+      "declaration": "path: '/merchant/marketing/ai-insight',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1084,
+      "declaration": "path: '/merchant/city-nodes',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1089,
+      "declaration": "path: '/merchant/coop-profile',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1094,
+      "declaration": "path: '/project/home',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1100,
+      "declaration": "path: '/project/home/:topicId',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1109,
+      "declaration": "path: '/project/players',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1113,
+      "declaration": "path: '/project/players/:topicId',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1121,
+      "declaration": "path: '/merchant/registrations',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1126,
+      "declaration": "path: '/merchant/node-template',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1131,
+      "declaration": "path: '/merchant/node-template/:id',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1139,
+      "declaration": "path: '/merchant/city-nodes/redeem',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1143,
+      "declaration": "path: '/merchant/city-nodes/create',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1148,
+      "declaration": "path: '/merchant/customers',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1153,
+      "declaration": "path: '/merchant/apply',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1157,
+      "declaration": "path: '/merchant/coop',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1161,
+      "declaration": "path: '/merchant/ledger',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1169,
+      "declaration": "path: '/merchant/ledger/batch/:batchId',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1179,
+      "declaration": "path: '/merchant/scan',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1183,
+      "declaration": "path: '/merchant/edit',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1187,
+      "declaration": "path: '/merchant/orders',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1191,
+      "declaration": "path: '/merchant/public-home/member/:memberId',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1202,
+      "declaration": "path: '/merchant/public-home/:id',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1210,
+      "declaration": "path: '/merchant/subscription',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1215,
+      "declaration": "path: '/merchant/clubs',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1219,
+      "declaration": "path: '/merchant/coupons',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1224,
+      "declaration": "path: '/merchant/predict',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1229,
+      "declaration": "path: '/orders',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1237,
+      "declaration": "path: '/address',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1241,
+      "declaration": "path: '/address/edit',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1245,
+      "declaration": "path: '/address/edit/:id',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1251,
+      "declaration": "path: '/complaint',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1255,
+      "declaration": "path: '/tickets',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1263,
+      "declaration": "path: '/ticket/:id',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1270,
+      "declaration": "path: '/ticket/:id/pass',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1277,
+      "declaration": "path: '/club/apply',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1281,
+      "declaration": "path: '/club/create',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1285,
+      "declaration": "path: '/club/group-code',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1296,
+      "declaration": "path: '/club/workbench',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1302,
+      "declaration": "path: '/club/:id',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1309,
+      "declaration": "path: '/club/:id/edit',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1315,
+      "declaration": "path: '/club/:id/enroll',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1323,
+      "declaration": "path: '/club/:id/join-requests',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1329,
+      "declaration": "path: '/club/:id/customers',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1335,
+      "declaration": "path: '/club/:id/customers/:memberId',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1342,
+      "declaration": "path: '/club/:id/checkin/:registrationId',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1350,
+      "declaration": "path: '/club/:id/settlement',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1356,
+      "declaration": "path: '/merchant/redemption/:type/:id',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1365,
+      "declaration": "path: '/roam/stamp-album',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1369,
+      "declaration": "path: '/roam/stamp-camera',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1373,
+      "declaration": "path: '/club/:id/leaderboard',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1379,
+      "declaration": "path: '/club/:id/edition-report',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1385,
+      "declaration": "path: '/club/:id/dissolution-blockers',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1391,
+      "declaration": "path: '/club/:id/event-ops',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1403,
+      "declaration": "path: '/club/:id/governance',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1417,
+      "declaration": "path: '/club/:id/notify',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1426,
+      "declaration": "path: '/club/:id/roles',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1437,
+      "declaration": "path: '/club/:id/topic/:topicId',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1447,
+      "declaration": "path: '/club/:id/topic/:topicId/story',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1458,
+      "declaration": "path: '/mall',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1461,
+      "declaration": "GoRoute(path: '/cart', builder: (context, state) => const CartPage()),"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1463,
+      "declaration": "path: '/product/:id',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1469,
+      "declaration": "path: '/square',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1476,
+      "declaration": "path: '/square/:id',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1486,
+      "declaration": "path: '/topic/:id',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1493,
+      "declaration": "path: '/play/:activityId',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1508,
+      "declaration": "path: '/roam/poi/:poiId',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1515,
+      "declaration": "path: '/roam/citynode-code',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1522,
+      "declaration": "path: '/roam/history',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1526,
+      "declaration": "path: '/roam/nearby',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1532,
+      "declaration": "path: '/roam/citystamp',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1540,
+      "declaration": "path: '/roam/session',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1556,
+      "declaration": "path: kMerchantHomeRoute,"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1565,
+      "declaration": "path: '/merchant/marketing',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1574,
+      "declaration": "path: '/merchant/templates',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1583,
+      "declaration": "path: '/merchant/relations',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1592,
+      "declaration": "path: '/merchant/profile',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1620,
+      "declaration": "path: '/feed',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1628,
+      "declaration": "path: '/roam',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1636,
+      "declaration": "path: '/template-square',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1644,
+      "declaration": "path: '/clubs',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1652,
+      "declaration": "path: '/profile',"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1659,
+      "declaration": "GoRoute(path: '/map', builder: (context, state) => const MapPage()),"
+    },
+    {
+      "file": "lib/core/router/app_router.dart",
+      "line": 1661,
+      "declaration": "path: '/roam/official',"
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+"""Offline structural checks, NOT a Swift compiler or runtime test."""
+import hashlib, json, pathlib, re, subprocess, xml.etree.ElementTree as ET
+ROOT=pathlib.Path(__file__).resolve().parents[1]
+# Independent parser for the generated OpenStep subset (quoted keys/values, integers).
+def parse_project(text):
+    text=re.sub(r'^//.*$', '', text, flags=re.M)
+    tokens=re.findall(r'"(?:\\.|[^"\\])*"|\d+|[{}()=;,]', text)
+    index=0
+    def take(expected=None):
+        nonlocal index
+        value=tokens[index]; index+=1
+        if expected is not None: assert value==expected, (value,expected)
+        return value
+    def value():
+        token=take()
+        if token=='{':
+            result={}
+            while tokens[index]!='}':
+                key=json.loads(take()); take('='); result[key]=value(); take(';')
+            take('}'); return result
+        if token=='(':
+            result=[]
+            while tokens[index]!=')': result.append(value()); take(',')
+            take(')'); return result
+        return json.loads(token)
+    result=value(); assert index==len(tokens); return result
+project_path=ROOT/'Questify.xcodeproj/project.pbxproj'
+project=parse_project(project_path.read_text())
+objects=project['objects']; project_obj=objects[project['rootObject']]
+assert project_obj['isa']=='PBXProject'
+refs={'baseConfigurationReference','buildConfigurationList','fileRef','mainGroup','productRefGroup','productReference'}
+list_refs={'buildConfigurations','buildPhases','children','dependencies','files','targets'}
+for key,obj in objects.items():
+    for k,v in obj.items():
+        if k in refs: assert v in objects,(key,k,v)
+        if k in list_refs:
+            for ref in v: assert ref in objects,(key,k,ref)
+    if obj['isa']=='PBXFileReference' and obj['sourceTree']=='<group>':
+        assert (ROOT/obj['path']).is_file(),obj['path']
+source_paths={o['path'] for o in objects.values() if o['isa']=='PBXFileReference' and o.get('lastKnownFileType')=='sourcecode.swift'}
+assert source_paths=={str(p.relative_to(ROOT)) for folder in ['App','Core'] for p in (ROOT/folder).glob('*.swift')}
+catalog=json.loads((ROOT/'Resources/Localizable.xcstrings').read_text())
+assert catalog['sourceLanguage']=='en'
+for key,entry in catalog['strings'].items():
+    assert set(entry['localizations'])=={'en','zh-Hans'},key
+    for lang in ['en','zh-Hans']:
+        unit=entry['localizations'][lang]['stringUnit']
+        assert unit['state']=='translated' and unit['value'].strip(),(key,lang)
+ui='\n'.join(p.read_text() for p in (ROOT/'App').glob('*.swift'))
+# Every dot-separated UI string is a localized key except explicit accessibility/storage IDs.
+keys=set(re.findall(r'"((?:welcome|role|registration|settings|language|action)\.[A-Za-z.]+)"',ui))
+keys-={'welcome.settings'}
+assert not keys-set(catalog['strings']),keys-set(catalog['strings'])
+assert 'preferences.language' in ui
+assert 'UIViewControllerRepresentable' not in ui # No unnecessary platform bridge in this first slice.
+assert not any(p.suffix in {'.p8','.p12','.mobileprovision'} for p in ROOT.rglob('*'))
+config=(ROOT/'Config/Base.xcconfig').read_text()
+assert 'invalid.example.questify.ios' in config
+assert 'NSAllowsArbitraryLoads' not in config
+scheme=ET.parse(ROOT/'Questify.xcodeproj/xcshareddata/xcschemes/Questify.xcscheme')
+for ref in scheme.iter('BuildableReference'): assert ref.attrib['BlueprintIdentifier'] in objects
+before=hashlib.sha256(project_path.read_bytes()).hexdigest()
+subprocess.run(['python3',str(ROOT/'tools/generate_project.py')],check=True,capture_output=True)
+assert hashlib.sha256(project_path.read_bytes()).hexdigest()==before
+print(f'PASS structural checks: {len(source_paths)} app/core source files, {len(catalog["strings"])} bilingual keys, references, scheme, deterministic regeneration')
+print('NOT RUN: Swift compilation, Swift tests, Xcode project loading, previews, simulator/device, accessibility, live backend')
