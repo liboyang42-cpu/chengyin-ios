@@ -3,7 +3,7 @@ import XCTest
 final class ModuleFlowTests: XCTestCase {
     private var app: XCUIApplication!
     override func setUpWithError() throws { continueAfterFailure=false;app=XCUIApplication() }
-    override func tearDownWithError() throws { app.terminate();app=nil }
+    override func tearDownWithError() throws { attachFailureScreenshot(self,app:app); app.terminate();app=nil }
     private func launch(_ arguments:[String]) {
         app.launchArguments=["--uitesting-reset-language","-AppleLanguages","(en)","-AppleLocale","en_US"]+arguments
         app.launch()
@@ -155,7 +155,10 @@ final class ModuleFlowTests: XCTestCase {
         let read=app.buttons["registration.form.readStatus"]
         XCTAssertTrue(read.waitForExistence(timeout:10),app.debugDescription)
         tap(read)
-        XCTAssertTrue(app.descendants(matching:.any)["registration.form.statusSnapshot"].waitForExistence(timeout:10),app.debugDescription)
+        let snapshot=app.descendants(matching:.any)["registration.form.statusSnapshot"].firstMatch
+        for _ in 0..<5 { if snapshot.exists { break };app.swipeUp() }
+        XCTAssertTrue(snapshot.waitForExistence(timeout:10),app.debugDescription)
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format:"label CONTAINS %@","Awaiting payment")).firstMatch.exists,app.debugDescription)
         XCTAssertFalse(app.buttons["registration.form.review"].exists)
         capture("Registration raw status – synthetic data")
         tap(app.buttons["registration.form.close"])

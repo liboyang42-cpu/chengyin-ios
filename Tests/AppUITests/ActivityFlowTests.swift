@@ -9,7 +9,7 @@ final class ActivityFlowTests: XCTestCase {
     }
 
     override func tearDownWithError() throws {
-        app.terminate()
+        attachFailureScreenshot(self,app:app); app.terminate()
         app=nil
     }
 

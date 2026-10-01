@@ -116,10 +116,11 @@ struct MerchantOrdersView<Reader: MerchantReading>: View {
 }
 
 private struct MerchantOrderRow: View {
+    @Environment(\.locale) private var locale
     let order: MerchantOrder
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(order.orderSn.flatMap { $0.isEmpty ? nil : $0 } ?? String(localized: "merchant.orders"))
+            Text(order.orderSn.flatMap { $0.isEmpty ? nil : $0 } ?? appLocalized("merchant.orders",locale:locale))
                 .font(.headline)
             MerchantOrderStatusLabel(value: order.status)
             if let time = order.createTime, !time.isEmpty { Text(time).font(.caption).foregroundStyle(.secondary) }

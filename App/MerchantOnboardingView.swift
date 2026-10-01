@@ -5,6 +5,7 @@ import UIKit
 /// Host in the existing NavigationStack and retain coordinator outside this view.
 @MainActor
 struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
+    @Environment(\.locale) private var locale
     @ObservedObject var session: Session
     @StateObject private var model: MerchantOnboardingModel
     let openMerchant: (() -> Void)?
@@ -149,7 +150,7 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
         Section("merchant.onboarding.step.2") {
             TextField("merchant.onboarding.address", text: $model.draft.address, axis: .vertical)
                 .accessibilityIdentifier("merchant.onboarding.address")
-            LabeledContent("merchant.onboarding.hours", value: model.draft.businessTime.isEmpty ? String(localized: "merchant.onboarding.notSet") : displayHours(model.draft.businessTime))
+            LabeledContent("merchant.onboarding.hours", value: model.draft.businessTime.isEmpty ? appLocalized("merchant.onboarding.notSet",locale:locale) : displayHours(model.draft.businessTime))
             Button("merchant.onboarding.chooseHours") { showHours = true }
                 .accessibilityIdentifier("merchant.onboarding.hours")
             TextField("merchant.onboarding.description", text: $model.draft.description, axis: .vertical).lineLimit(3...8)
@@ -199,13 +200,13 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
     private func displayHours(_ value: String) -> String {
         let parts = value.split(separator: " ", maxSplits: 1)
         guard parts.count == 2 else { return value }
-        if parts[0] == "周一至周日" { return String(localized: "merchant.onboarding.everyDay") + " " + String(parts[1]) }
+        if parts[0] == "周一至周日" { return appLocalized("merchant.onboarding.everyDay",locale:locale) + " " + String(parts[1]) }
         guard parts[0].hasPrefix("周") else { return value }
         let labels = ["一", "二", "三", "四", "五", "六", "日"]
-        let names = [String(localized: "merchant.onboarding.day.0"), String(localized: "merchant.onboarding.day.1"),
-                     String(localized: "merchant.onboarding.day.2"), String(localized: "merchant.onboarding.day.3"),
-                     String(localized: "merchant.onboarding.day.4"), String(localized: "merchant.onboarding.day.5"),
-                     String(localized: "merchant.onboarding.day.6")]
+        let names = [appLocalized("merchant.onboarding.day.0",locale:locale), appLocalized("merchant.onboarding.day.1",locale:locale),
+                     appLocalized("merchant.onboarding.day.2",locale:locale), appLocalized("merchant.onboarding.day.3",locale:locale),
+                     appLocalized("merchant.onboarding.day.4",locale:locale), appLocalized("merchant.onboarding.day.5",locale:locale),
+                     appLocalized("merchant.onboarding.day.6",locale:locale)]
         let days = parts[0].dropFirst().split(separator: "、")
         let indexes = days.compactMap { labels.firstIndex(of: String($0)) }
         guard !days.isEmpty, indexes.count == days.count else { return value }

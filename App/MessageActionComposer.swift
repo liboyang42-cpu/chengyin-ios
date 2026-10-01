@@ -50,7 +50,7 @@ import SwiftUI
             }
             HStack(alignment:.bottom) {
                 TextField("message.send.placeholder",text:$model.draft,axis:.vertical)
-                    .lineLimit(1...5).focused($typing).disabled(!canCompose)
+                    .lineLimit(1...5).frame(minHeight:44).focused($typing).disabled(!canCompose)
                     .accessibilityIdentifier("message.send.input")
                 Button {
                     typing=false
@@ -61,7 +61,7 @@ import SwiftUI
                         if model.coordinator.pendingText == text.trimmingCharacters(in:.whitespacesAndNewlines) { model.draft="" }
                         model.update()
                     }
-                } label: { Label("message.send.button",systemImage:"arrow.up.circle.fill") }
+                } label: { Label("message.send.button",systemImage:"arrow.up.circle.fill").frame(minWidth:44,minHeight:44).contentShape(Rectangle()) }
                 .disabled(!canCompose || model.draft.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty)
                 .accessibilityIdentifier("message.send.button")
             }

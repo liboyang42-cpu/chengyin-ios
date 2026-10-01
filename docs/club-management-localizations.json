@@ -1,0 +1,162 @@
+[
+  {
+    "key": "club.management.title",
+    "en": "Club management",
+    "zh-Hans": "俱乐部管理"
+  },
+  {
+    "key": "club.management.signin",
+    "en": "Sign in to manage this club",
+    "zh-Hans": "登录后管理俱乐部"
+  },
+  {
+    "key": "club.management.unconfigured",
+    "en": "Club management is not configured",
+    "zh-Hans": "俱乐部管理尚未配置"
+  },
+  {
+    "key": "club.management.loading",
+    "en": "Loading management details",
+    "zh-Hans": "正在加载管理信息"
+  },
+  {
+    "key": "club.management.unavailable",
+    "en": "Management details are unavailable. Refresh to check your access.",
+    "zh-Hans": "暂时无法加载管理信息，请刷新确认权限。"
+  },
+  {
+    "key": "club.management.requests",
+    "en": "Join applications",
+    "zh-Hans": "入会申请"
+  },
+  {
+    "key": "club.management.empty",
+    "en": "No pending applications",
+    "zh-Hans": "暂无待审核申请"
+  },
+  {
+    "key": "club.management.request",
+    "en": "Application details",
+    "zh-Hans": "申请详情"
+  },
+  {
+    "key": "club.management.members",
+    "en": "Members",
+    "zh-Hans": "成员"
+  },
+  {
+    "key": "club.management.members_unavailable",
+    "en": "Member list is unavailable",
+    "zh-Hans": "暂时无法加载成员名单"
+  },
+  {
+    "key": "club.management.members_empty",
+    "en": "No members returned",
+    "zh-Hans": "未返回成员"
+  },
+  {
+    "key": "club.management.member",
+    "en": "Member details",
+    "zh-Hans": "成员详情"
+  },
+  {
+    "key": "club.management.refresh",
+    "en": "Refresh current state",
+    "zh-Hans": "刷新当前状态"
+  },
+  {
+    "key": "club.management.deferred",
+    "en": "Role changes, temporary bans, club dissolution and financial actions are not available in this native slice.",
+    "zh-Hans": "此原生模块暂不支持角色变更、临时封禁、解散俱乐部或资金操作。"
+  },
+  {
+    "key": "club.management.club",
+    "en": "Club",
+    "zh-Hans": "俱乐部"
+  },
+  {
+    "key": "club.management.target",
+    "en": "Member",
+    "zh-Hans": "成员"
+  },
+  {
+    "key": "club.management.cancel",
+    "en": "Cancel",
+    "zh-Hans": "取消"
+  },
+  {
+    "key": "club.management.approve",
+    "en": "Approve application",
+    "zh-Hans": "通过申请"
+  },
+  {
+    "key": "club.management.reject",
+    "en": "Reject application",
+    "zh-Hans": "拒绝申请"
+  },
+  {
+    "key": "club.management.remove",
+    "en": "Remove member",
+    "zh-Hans": "移除成员"
+  },
+  {
+    "key": "club.management.approve.body",
+    "en": "Approving lets this applicant become a member and enter the club chat.",
+    "zh-Hans": "通过后，申请人将成为正式成员并可进入俱乐部群聊。"
+  },
+  {
+    "key": "club.management.reject.body",
+    "en": "This applicant will not receive member access and may apply again.",
+    "zh-Hans": "拒绝后，申请人不会获得成员权限，可以再次申请。"
+  },
+  {
+    "key": "club.management.remove.body",
+    "en": "Remove this member from the club? Their club chat relationship will also be removed.",
+    "zh-Hans": "将此成员移出俱乐部？该成员的俱乐部群聊关系也将移除。"
+  },
+  {
+    "key": "club.management.not_sent",
+    "en": "Nothing was sent. Refresh the club before trying again.",
+    "zh-Hans": "未发送操作，请刷新俱乐部后重试。"
+  },
+  {
+    "key": "club.management.acknowledged",
+    "en": "The server acknowledged the action. Current membership is shown only after refresh.",
+    "zh-Hans": "服务器已确认操作，刷新后才显示当前成员状态。"
+  },
+  {
+    "key": "club.management.rejected",
+    "en": "The server rejected this action.",
+    "zh-Hans": "服务器拒绝了此操作。"
+  },
+  {
+    "key": "club.management.unknown",
+    "en": "The outcome is unknown. Refresh to view current state. Repeating actions is locked for this club in this session.",
+    "zh-Hans": "操作结果尚未确认。请刷新查看当前状态，此会话已锁定该俱乐部的重复操作。"
+  },
+  {
+    "key": "club.management.readback_unavailable",
+    "en": "The action was acknowledged, but the current list could not be refreshed.",
+    "zh-Hans": "操作已确认，但暂时无法刷新当前名单。"
+  },
+  {
+    "key": "club.management.fixture",
+    "en": "Offline synthetic club management fixture",
+    "zh-Hans": "离线模拟俱乐部管理"
+  },
+  {
+    "key": "club.management.switch_account",
+    "en": "Switch account",
+    "zh-Hans": "切换账号"
+  },
+  {
+    "key": "club.management.sign_out",
+    "en": "Sign out",
+    "zh-Hans": "退出登录"
+  },
+  {
+    "key": "club.management.denied",
+    "en": "The server has not granted access to this management view.",
+    "zh-Hans": "服务器未授予此管理页面的访问权限。"
+  }
+]

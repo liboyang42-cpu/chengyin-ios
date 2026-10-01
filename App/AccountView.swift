@@ -21,13 +21,16 @@ struct AccountView: View {
                     LabeledContent("account.name",value:account.nickname)
                     LabeledContent("account.id",value:String(account.id))
                     LabeledContent("account.role") { Text(roleLabel) }
+                    NavigationLink { ProfileEditView(coordinator:session.profileEditCoordinator,sessionRevision:session.sessionRevision) } label: {
+                        Label("profile.edit.title",systemImage:"pencil")
+                    }.accessibilityIdentifier("account.editProfile")
                 }
                 ProfileAccountLinks(reader:session.profileReader,participantCoordinator:session.participantCoordinator)
                 Section {
                     NavigationLink { MessagingHomeView(reader:session.messagingReader,senderForConversation:{ session.messageSender(for:$0) }).id(session.messagingReader.identity) } label: {
                         Label("messaging.title",systemImage:"bubble.left.and.bubble.right")
                     }.accessibilityIdentifier("account.messages")
-                    NavigationLink { ClubHomeView(reader:session,actionCoordinator:session.clubActionCoordinator) } label: { Label("club.title",systemImage:"person.3") }
+                    NavigationLink { ClubHomeView(reader:session,actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext) } label: { Label("club.title",systemImage:"person.3") }
                         .accessibilityIdentifier("account.clubs")
                 }
                 Section {

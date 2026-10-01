@@ -8,7 +8,7 @@ final class EntryFlowTests: XCTestCase {
         app.launchArguments=["--uitesting-reset-language","-AppleLanguages","(en)","-AppleLocale","en_US"]
         app.launch()
     }
-    override func tearDownWithError() throws { app.terminate();app=nil }
+    override func tearDownWithError() throws { attachFailureScreenshot(self,app:app); app.terminate();app=nil }
 
     func testPlayerAndMerchantEntryCanBeClosedAndRepeated() {
         for identifier in ["welcome.player","welcome.merchant","welcome.player"] {

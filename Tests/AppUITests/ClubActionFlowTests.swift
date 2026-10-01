@@ -5,7 +5,7 @@ import XCTest
 final class ClubActionFlowTests: XCTestCase {
     private var app: XCUIApplication!
     override func setUpWithError() throws { continueAfterFailure = false; app = XCUIApplication() }
-    override func tearDownWithError() throws { app.terminate(); app = nil }
+    override func tearDownWithError() throws { attachFailureScreenshot(self,app:app); app.terminate(); app = nil }
 
     private func launch(_ scenario: String) {
         app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", "(en)", "-AppleLocale", "en_US",
@@ -26,9 +26,18 @@ final class ClubActionFlowTests: XCTestCase {
         element.tap()
     }
     private func assertCount(_ count: Int, file: StaticString = #filePath, line: UInt = #line) {
+        // Resolve the known text leaf rather than scanning every AX element. The
+        // loaded CI simulator can take several seconds for a single snapshot; keep
+        // the exact count predicate, with time for that read to finish.
+        let counter = app.staticTexts.matching(identifier: "club.action.fixture.writeCount").firstMatch
         let expected = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == true AND label == %@", String(count)),
-                                                 object: element("club.action.fixture.writeCount"))
-        XCTAssertEqual(XCTWaiter.wait(for: [expected], timeout: 5), .completed, app.debugDescription, file: file, line: line)
+                                                 object: counter)
+        XCTAssertEqual(XCTWaiter.wait(for: [expected], timeout: 20), .completed, app.debugDescription, file: file, line: line)
+    }
+    private func assertMembership(_ status: String, file: StaticString = #filePath, line: UInt = #line) {
+        let membership = app.staticTexts.matching(identifier: "club.action.serverMembership").firstMatch
+        let expected = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == true AND label == %@", status), object: membership)
+        XCTAssertEqual(XCTWaiter.wait(for: [expected], timeout: 15), .completed, app.debugDescription, file: file, line: line)
     }
     private func confirm(_ action: String) {
         let button = app.buttons["club.action." + action]
@@ -70,9 +79,7 @@ final class ClubActionFlowTests: XCTestCase {
         XCTAssertTrue(leave.isEnabled)
         assertCount(1)
         XCTAssertFalse(app.buttons["club.action.join"].exists)
-        let membership = element("club.action.serverMembership")
-        XCTAssertTrue(membership.waitForExistence(timeout: 5), app.debugDescription)
-        XCTAssertTrue(membership.label.contains("Joined"), membership.label)
+        assertMembership("Joined")
         capture("Club joined – synthetic server readback")
     }
     func testApplicationStaysPendingWithoutMembershipAccess() {
@@ -84,6 +91,7 @@ final class ClubActionFlowTests: XCTestCase {
         XCTAssertTrue(pending.label.localizedCaseInsensitiveContains("pending"), pending.label)
         XCTAssertFalse(app.buttons["club.action.leave"].exists)
         XCTAssertFalse(app.buttons["club.action.apply"].exists)
+        assertMembership("Join request pending")
         let membersGate = element("club.members.gated")
         reveal(membersGate)
         XCTAssertTrue(membersGate.exists, app.debugDescription)
@@ -103,6 +111,7 @@ final class ClubActionFlowTests: XCTestCase {
         let leave = app.buttons["club.action.leave"]
         XCTAssertTrue(leave.waitForExistence(timeout: 10), app.debugDescription)
         XCTAssertFalse(leave.isEnabled, "A current Joined snapshot must not unlock an uncertain mutation")
+        assertMembership("Joined")
         XCTAssertTrue(unknown.exists)
         assertCount(1)
         tap(app.buttons["club.action.fixture.signOut"])

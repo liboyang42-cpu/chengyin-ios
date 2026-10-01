@@ -4,6 +4,7 @@ import MapKit
 /// A search-area map only: no UserAnnotation, location button, location delegate, route tracing,
 /// geocoding, coordinate-upload callbacks, or map-pan network requests.
 struct RoamMapView: View {
+    @Environment(\.locale) private var locale
     let area: RoamSearchArea
     let items: [RoamMapItem]
     let onSelect: (RoamMapItem) -> Void
@@ -22,7 +23,7 @@ struct RoamMapView: View {
                                 .overlay(Circle().stroke(.white, lineWidth: 2))
                         }
                         .buttonStyle(.plain)
-                        .accessibilityLabel(Text(item.title.isEmpty ? String(localized: "roam.unnamed") : item.title))
+                        .accessibilityLabel(Text(item.title.isEmpty ? appLocalized("roam.unnamed",locale:locale) : item.title))
                         .accessibilityHint(item.kindLabel)
                         .accessibilityIdentifier("roam.pin.\(item.id)")
                     }

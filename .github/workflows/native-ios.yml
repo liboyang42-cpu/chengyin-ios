@@ -37,6 +37,8 @@ jobs:
             -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath "$RUNNER_TEMP/questify-simulator" \
             CODE_SIGNING_ALLOWED=NO build
+      - name: Verify built CN profile metadata
+        run: python3 tools/check_built_profile.py --market CN --plist "$RUNNER_TEMP/questify-simulator/Build/Products/Debug-iphonesimulator/Questify.app/Info.plist"
       - name: Compile iOS device app (unsigned)
         run: |
           xcodebuild -project Questify.xcodeproj -scheme Questify \
@@ -52,6 +54,8 @@ jobs:
             -destination 'generic/platform=iOS' \
             -derivedDataPath "$RUNNER_TEMP/questify-us-device" \
             CODE_SIGNING_ALLOWED=NO build
+      - name: Verify built US profile metadata
+        run: python3 tools/check_built_profile.py --market US --plist "$RUNNER_TEMP/questify-us-device/Build/Products/Release-iphoneos/Questify.app/Info.plist"
   secrets:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -66,6 +70,10 @@ jobs:
           GITLEAKS_ENABLE_UPLOAD_ARTIFACT: 'false'
           GITLEAKS_ENABLE_COMMENTS: 'false'
   ui-tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1]
     needs: native
     runs-on: macos-26
     timeout-minutes: 25
@@ -91,12 +99,10 @@ jobs:
         run: xcrun simctl bootstatus "$TEST_SIMULATOR_ID" -b
       - name: Test native module flows and session boundaries
         run: |
-          xcodebuild -project Questify.xcodeproj -scheme Questify \
-            -configuration Debug -destination "platform=iOS Simulator,id=$TEST_SIMULATOR_ID" \
-            -derivedDataPath "$RUNNER_TEMP/questify-ui-tests" \
-            -resultBundlePath "$RUNNER_TEMP/questify-ui-results.xcresult" \
-            -parallel-testing-enabled NO \
-            CODE_SIGNING_ALLOWED=NO test
+          python3 tools/run_ui_shard.py --shard ${{ matrix.shard }} --count 2 \
+            --simulator "$TEST_SIMULATOR_ID" \
+            --derived-data "$RUNNER_TEMP/questify-ui-tests" \
+            --result-bundle "$RUNNER_TEMP/questify-ui-results.xcresult"
       - name: Export offline fixture screenshots
         if: always()
         run: |
@@ -109,7 +115,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: offline-ui-screenshots-${{ github.sha }}
+          name: offline-ui-screenshots-${{ github.sha }}-${{ matrix.shard }}
           path: |
             ${{ runner.temp }}/questify-ui-attachments/**/*.png
             ${{ runner.temp }}/questify-ui-attachments/**/*.jpg

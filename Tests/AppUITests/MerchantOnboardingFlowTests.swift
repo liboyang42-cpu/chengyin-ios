@@ -4,7 +4,7 @@ import XCTest
 final class MerchantOnboardingFlowTests: XCTestCase {
     private var app: XCUIApplication!
     override func setUpWithError() throws { continueAfterFailure = false; app = XCUIApplication() }
-    override func tearDownWithError() throws { app.terminate(); app = nil }
+    override func tearDownWithError() throws { attachFailureScreenshot(self,app:app); app.terminate(); app = nil }
     private func launch(_ scenario: String) {
         app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", "(en)", "-AppleLocale", "en_US",
                                "--uitesting-merchant-onboarding-fixture", scenario]
@@ -37,12 +37,35 @@ final class MerchantOnboardingFlowTests: XCTestCase {
         tap(app.buttons["merchant.onboarding.next"])
         XCTAssertTrue(element("merchant.onboarding.licenseUploaded").waitForExistence(timeout: 5), app.debugDescription)
     }
+    private func tapSubmissionDialogButton(_ actionTitle: String, file: StaticString = #filePath, line: UInt = #line) {
+        // iOS 26 can expose both wrapper and actionable buttons for a native
+        // confirmationDialog. Scope to its sheet and resolve a hittable descendant;
+        // application-wide label queries can select the non-hittable wrapper.
+        let dialog = app.sheets.firstMatch
+        XCTAssertTrue(dialog.waitForExistence(timeout: 5), app.debugDescription, file: file, line: line)
+        XCTAssertEqual(dialog.label, "Submit this merchant application?", file: file, line: line)
+        let disclosure = dialog.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "configured Chengyin service")).firstMatch
+        XCTAssertTrue(disclosure.exists, "The native confirmation must identify the submission recipient", file: file, line: line)
+        XCTAssertTrue(disclosure.label.contains("uploaded license reference"), "The confirmation must disclose the license reference being sent", file: file, line: line)
+        assertCount("merchant.onboarding.fixture.writeCount", 0)
+        assertCount("merchant.onboarding.fixture.uploadCount", 0)
+        let matches = dialog.buttons.matching(NSPredicate(format: "label == %@", actionTitle))
+        let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            matches.allElementsBoundByIndex.contains { $0.exists && $0.isEnabled && $0.isHittable }
+        }, object: dialog)
+        capture("Merchant native confirmation before " + actionTitle)
+        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 10), .completed, app.debugDescription, file: file, line: line)
+        guard let action = matches.allElementsBoundByIndex.reversed().first(where: { $0.exists && $0.isEnabled && $0.isHittable }) else {
+            XCTFail("No enabled, hittable action in the merchant confirmation sheet: " + app.debugDescription, file: file, line: line)
+            return
+        }
+        XCTAssertEqual(action.label, actionTitle, file: file, line: line)
+        action.tap()
+    }
     private func reviewAndConfirm() {
         tap(app.buttons["merchant.onboarding.next"])
         tap(app.buttons["merchant.onboarding.submit"])
-        XCTAssertTrue(app.buttons["Submit for review"].waitForExistence(timeout: 5), app.debugDescription)
-        assertCount("merchant.onboarding.fixture.writeCount", 0)
-        tap(app.buttons["Submit for review"])
+        tapSubmissionDialogButton("Submit for review")
     }
     private func capture(_ name: String) {
         let attachment = XCTAttachment(screenshot: app.screenshot())
@@ -54,10 +77,10 @@ final class MerchantOnboardingFlowTests: XCTestCase {
         tap(app.buttons["merchant.onboarding.next"])
         tap(app.buttons["merchant.onboarding.submit"])
         assertCount("merchant.onboarding.fixture.writeCount", 0)
-        tap(app.buttons["Cancel"])
+        tapSubmissionDialogButton("Cancel")
         assertCount("merchant.onboarding.fixture.writeCount", 0)
         tap(app.buttons["merchant.onboarding.submit"])
-        tap(app.buttons["Submit for review"])
+        tapSubmissionDialogButton("Submit for review")
         XCTAssertTrue(element("merchant.onboarding.submitted").waitForExistence(timeout: 10), app.debugDescription)
         let status = element("merchant.onboarding.status")
         XCTAssertTrue(status.waitForExistence(timeout: 5), app.debugDescription)

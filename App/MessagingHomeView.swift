@@ -75,16 +75,16 @@ private struct MessagingConversationListView: View {
     private func searchName(_ conversation: MessagingConversation) -> String {
         if let name = conversation.counterparty?.nickname, !name.isEmpty { return name }
         switch conversation.kind {
-        case .system: return String(localized: "messaging.system", locale: locale)
-        case .merchant: return String(localized: "messaging.official", locale: locale)
-        case .group: return String(localized: "messaging.group", locale: locale)
-        default: return String(localized: "messaging.member", locale: locale)
+        case .system: return appLocalized("messaging.system",locale:locale)
+        case .merchant: return appLocalized("messaging.official",locale:locale)
+        case .group: return appLocalized("messaging.group",locale:locale)
+        default: return appLocalized("messaging.member",locale:locale)
         }
     }
     private func searchPreview(_ conversation: MessagingConversation) -> String {
         if let text = conversation.lastMessageText, !text.isEmpty { return text }
-        if conversation.lastMessageType == 2 { return String(localized: "messaging.image", locale: locale) }
-        if conversation.lastMessageType == 3 { return String(localized: "messaging.card", locale: locale) }
+        if conversation.lastMessageType == 2 { return appLocalized("messaging.image",locale:locale) }
+        if conversation.lastMessageType == 3 { return appLocalized("messaging.card",locale:locale) }
         return ""
     }
 }

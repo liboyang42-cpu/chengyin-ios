@@ -6,6 +6,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
     @ObservedObject var reader: Reader
     var onSignIn: (() -> Void)? = nil
     var actionCoordinator: ClubActionCoordinator? = nil
+    var management:ClubManagementContext? = nil
     @State private var actionDetail: ClubRecord? = nil
     @State private var actionIdentity: ClubReadIdentity? = nil
     @State private var detailGeneration: UInt64 = 0
@@ -41,6 +42,14 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                                     onReadbackStarted: { detailGeneration &+= 1; return detailGeneration }) { detail, identity, generation in
                         guard identity == reader.clubIdentity, detail.id == id, generation == detailGeneration else { return }
                         actionDetail = detail; actionIdentity = identity
+                    }
+                }
+                if (club.isOwner || club.viewerIsAdmin),let management {
+                    Section {
+                        NavigationLink {
+                            ClubManagementView(clubID:id,identity:reader.clubIdentity,access:management.access,coordinator:management.coordinator)
+                        } label: { Label("club.management.title",systemImage:"person.2.badge.gearshape") }
+                        .accessibilityIdentifier("club.openManagement")
                     }
                 }
                 Section("club.introduction") {

@@ -6,6 +6,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
     @ObservedObject var reader: Reader
     var onSignIn: (() -> Void)? = nil
     var actionCoordinator: ClubActionCoordinator? = nil
+    var management:ClubManagementContext? = nil
     /// The home event id is a topic id in the source. Omit until native topic routing is available.
     var onTopicDestination: ((Int) -> Void)? = nil
     var body: some View {
@@ -14,11 +15,11 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
             List {
                 Section {
                     NavigationLink {
-                        ClubDirectoryView(reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator)
+                        ClubDirectoryView(reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management)
                     } label: { Label("club.directory", systemImage: "magnifyingglass") }
                         .accessibilityIdentifier("club.openDirectory")
                     NavigationLink {
-                        ClubOwnedView(reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator)
+                        ClubOwnedView(reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management)
                     } label: { Label("club.owned", systemImage: "person.crop.circle") }
                         .accessibilityIdentifier("club.openOwned")
                 }
@@ -46,7 +47,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
             if rows.isEmpty { Text(empty).foregroundStyle(.secondary).accessibilityIdentifier(identifier + ".empty") }
             ForEach(Array(rows.enumerated()), id: \.offset) { _, club in
                 NavigationLink {
-                    ClubDetailView(id: club.id, reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator)
+                    ClubDetailView(id: club.id, reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management)
                 } label: { ClubRow(club: club) }
                     .accessibilityIdentifier(identifier + ".\(club.id)")
             }

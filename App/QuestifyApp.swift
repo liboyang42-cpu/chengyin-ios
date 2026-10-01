@@ -3,7 +3,7 @@ import SwiftUI
 @main
 struct QuestifyApp: App {
     @StateObject private var sessionContainer = AppSessionContainer()
-    @AppStorage("preferences.language") private var storedLanguage:String?
+    @AppStorage("preferences.language") private var storedLanguage = RegionalLaunchConfiguration.language(nil).rawValue
     init() {
         #if DEBUG
         if ProcessInfo.processInfo.arguments.contains("--uitesting-reset-language") {
@@ -26,6 +26,10 @@ struct QuestifyApp: App {
                     MerchantOnboardingFixtureRoot(name:onboarding)
                 } else if let club=ClubFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) {
                     ClubFixtureRootView(scenario:club)
+                } else if let clubManagement=ClubManagementFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) {
+                    ClubManagementFixtureRootView(scenario:clubManagement)
+                } else if let profileEdit=ProfileEditFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) {
+                    ProfileEditFixtureHost(scenario:profileEdit)
                 } else if let clubAction=ClubActionFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) {
                     ClubActionFixtureRootView(scenario:clubAction)
                 } else if let registration=RegistrationFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) {
@@ -42,7 +46,7 @@ struct QuestifyApp: App {
                 #endif
             }
             .environment(\.locale, RegionalLaunchConfiguration.language(storedLanguage).locale)
-            .tint(.purple)
+            .tint(QuestifyPalette.accent)
         }
     }
 }
@@ -59,6 +63,8 @@ private final class AppSessionContainer: ObservableObject {
            MerchantOnboardingFixtureRoot.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||
            ClubFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||
            ClubActionFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||
+           ClubManagementFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||
+           ProfileEditFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||
            RegistrationFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil {
             session=nil
             return
@@ -87,7 +93,7 @@ private struct SessionRootView: View {
                     ActivityBrowserView(reader:session,playReaderForActivity:{ session.playReader(for:.activity($0)) },registrationEnabled:true).tabItem { Label("activity.browse",systemImage:"map") }.tag(1)
                     RoamBrowserView(reader:session.roamReader,onChooseArea:{ showsAreaPicker=true })
                         .tabItem { Label("roam.title",systemImage:"map") }.tag(3)
-                    NavigationStack { ClubHomeView(reader:session,onSignIn:{ selectedTab=4 },actionCoordinator:session.clubActionCoordinator) }
+                    NavigationStack { ClubHomeView(reader:session,onSignIn:{ selectedTab=4 },actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext) }
                         .tabItem { Label("club.title",systemImage:"person.3") }.tag(2)
                     Group {
                         if let account=session.account { AccountView(account:account) }

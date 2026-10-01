@@ -55,6 +55,7 @@ final class AppSession: ObservableObject {
         self.token=result.token;self.account=result.account;self.errorKey=nil
         self.participantCoordinator.synchronizeSession();self.synchronizeRegistration()
         self.clubActionCoordinator.synchronizeSession()
+        clubManagementCoordinator.synchronizeSession();profileEditCoordinator.synchronizeSession()
         self.merchantOnboardingCoordinator.synchronizeSession()
         return true
     })
@@ -98,6 +99,35 @@ final class AppSession: ObservableObject {
     // Retained outside navigation so unresolved submissions cannot be replayed by reopening.
     lazy var merchantOnboardingCoordinator = MerchantOnboardingCoordinator(server: merchantOnboardingAdapter)
     private let clubService: ClubService?
+    private let clubManagementService:ClubManagementService?
+    private var currentClubManagementSession:ClubManagementSession? {
+        guard let account,let token else { return nil }
+        return try? ClubManagementSession(accountID:account.id,epoch:gate.currentStamp,token:token)
+    }
+    lazy var clubManagementAccess=ClubManagementSessionAccess(service:clubManagementService,currentSession:{ [weak self] in self?.currentClubManagementSession },onUnauthorized:{ [weak self] captured in
+        guard let self,self.currentClubManagementSession == captured else { return }
+        self.expireIfMatching(error:APIError.unauthorized,stamp:captured.identity.epoch,credential:self.token)
+    })
+    lazy var clubManagementCoordinator=ClubManagementCoordinator(access:clubManagementAccess,onMembershipChanged:{ [weak self] _ in self?.clubMembershipRevision &+= 1 })
+    var clubManagementContext:ClubManagementContext { .init(access:clubManagementAccess,coordinator:clubManagementCoordinator) }
+    private let profileEditService:ProfileEditService?
+    private var currentProfileEditSession:ProfileEditSession? {
+        guard let account,let token else { return nil }
+        return try? ProfileEditSession(accountID:account.id,epoch:gate.currentStamp,token:token)
+    }
+    lazy var profileEditCoordinator=ProfileEditCoordinator(service:profileEditService,currentSession:{ [weak self] in self?.currentProfileEditSession },onUnauthorized:{ [weak self] captured in
+        guard let self,self.currentProfileEditSession == captured else { return }
+        self.expireIfMatching(error:APIError.unauthorized,stamp:captured.identity.epoch,credential:self.token)
+    },onSaved:{ [weak self] in Task { await self?.refreshOwnAccount() } })
+    private func refreshOwnAccount() async {
+        guard let service,let credential=token,let accountID=account?.id else { return }
+        let stamp=gate.currentStamp
+        do {
+            let fresh=try await service.currentAccount(token:credential)
+            guard !Task.isCancelled,gate.currentStamp == stamp,token == credential,account?.id == accountID,fresh.id == accountID else { return }
+            account=fresh
+        } catch { expireIfMatching(error:error,stamp:stamp,credential:credential) }
+    }
     private let clubActionService: ClubActionService?
     @Published private(set) var clubMembershipRevision: UInt64 = 0
     private var currentClubActionSession: ClubActionSession? {
@@ -193,11 +223,13 @@ final class AppSession: ObservableObject {
             merchantService=MerchantService(configuration:configuration,transport:transport)
             merchantOnboardingService=MerchantOnboardingService(configuration:configuration,transport:transport)
             clubService=ClubService(configuration:configuration,transport:transport)
+            clubManagementService=ClubManagementService(configuration:configuration,transport:transport)
+            profileEditService=ProfileEditService(configuration:configuration,transport:transport)
             clubActionService=ClubActionService(configuration:configuration,transport:transport)
             roamService=RoamService(configuration:configuration,transport:transport)
             messagingService=MessagingService(configuration:configuration,transport:transport)
             messageActionService=MessageActionService(configuration:configuration,transport:transport)
-        } else { service=nil;authChannelService=nil;activityService=nil;registrationBackend=UnconfiguredRegistrationBackend();playService=nil;topicService=nil;discoveryService=nil;profileService=nil;participantService=nil;merchantService=nil;merchantOnboardingService=nil;clubService=nil;clubActionService=nil;roamService=nil;messagingService=nil;messageActionService=nil }
+        } else { service=nil;authChannelService=nil;activityService=nil;registrationBackend=UnconfiguredRegistrationBackend();playService=nil;topicService=nil;discoveryService=nil;profileService=nil;participantService=nil;merchantService=nil;merchantOnboardingService=nil;clubService=nil;clubManagementService=nil;profileEditService=nil;clubActionService=nil;roamService=nil;messagingService=nil;messageActionService=nil }
     }
 
     func bootstrap() async {
@@ -210,6 +242,7 @@ final class AppSession: ObservableObject {
         }
         let operation=gate.begin(.bootstrap)
         clubActionCoordinator.synchronizeSession()
+        clubManagementCoordinator.synchronizeSession();profileEditCoordinator.synchronizeSession()
         merchantOnboardingCoordinator.synchronizeSession()
         isWorking=true
         defer { if gate.isCurrent(operation) { isWorking=false;gate.finish(operation) } }
@@ -220,6 +253,7 @@ final class AppSession: ObservableObject {
             token=saved;account=restored
             participantCoordinator.synchronizeSession();synchronizeRegistration()
             clubActionCoordinator.synchronizeSession()
+            clubManagementCoordinator.synchronizeSession();profileEditCoordinator.synchronizeSession()
             merchantOnboardingCoordinator.synchronizeSession()
         } catch {
             guard gate.isCurrent(operation) else { return }
@@ -237,6 +271,7 @@ final class AppSession: ObservableObject {
         guard let service else { errorKey="auth.notConfigured";return }
         let operation=gate.begin(.login)
         clubActionCoordinator.synchronizeSession()
+        clubManagementCoordinator.synchronizeSession();profileEditCoordinator.synchronizeSession()
         merchantOnboardingCoordinator.synchronizeSession()
         isWorking=true;errorKey=nil
         defer { if gate.isCurrent(operation) { isWorking=false;gate.finish(operation) } }
@@ -248,6 +283,7 @@ final class AppSession: ObservableObject {
             token=result.token;account=result.account
             participantCoordinator.synchronizeSession();synchronizeRegistration()
             clubActionCoordinator.synchronizeSession()
+            clubManagementCoordinator.synchronizeSession();profileEditCoordinator.synchronizeSession()
             merchantOnboardingCoordinator.synchronizeSession()
         } catch {
             guard gate.isCurrent(operation) else { return }
@@ -256,7 +292,8 @@ final class AppSession: ObservableObject {
     }
 
     func cancelPendingLogin() {
-        if gate.cancelLogin() { isWorking=false;errorKey=nil;clubActionCoordinator.synchronizeSession();merchantOnboardingCoordinator.synchronizeSession() }
+        if gate.cancelLogin() { isWorking=false;errorKey=nil;clubActionCoordinator.synchronizeSession()
+        clubManagementCoordinator.synchronizeSession();profileEditCoordinator.synchronizeSession();merchantOnboardingCoordinator.synchronizeSession() }
     }
 
     func logout() async {
@@ -269,6 +306,7 @@ final class AppSession: ObservableObject {
         roamArea=nil;token=nil;account=nil;isWorking=false;errorKey=nil
         participantCoordinator.synchronizeSession();synchronizeRegistration()
         clubActionCoordinator.synchronizeSession()
+        clubManagementCoordinator.synchronizeSession();profileEditCoordinator.synchronizeSession()
         merchantOnboardingCoordinator.synchronizeSession()
         do { try vault.clear() } catch { errorKey="auth.storageError" }
         if let service, let oldToken {
@@ -311,6 +349,7 @@ final class AppSession: ObservableObject {
         roamArea=nil;token=nil;account=nil;isWorking=false;errorKey="auth.expired"
         participantCoordinator.synchronizeSession();synchronizeRegistration()
         clubActionCoordinator.synchronizeSession()
+        clubManagementCoordinator.synchronizeSession();profileEditCoordinator.synchronizeSession()
         merchantOnboardingCoordinator.synchronizeSession()
         try? vault.clear()
     }

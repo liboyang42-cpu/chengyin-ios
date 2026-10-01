@@ -45,7 +45,7 @@ struct RegistrationSheetView: View {
                 } else {
                     activitySection
                     if flow.hasRetainedIntent {
-                        RegistrationOperationSections(flow: flow)
+                        RegistrationOperationSections(flow: flow,revision:model.revision)
                     } else {
                         participantSection
                         ticketSection
@@ -258,6 +258,7 @@ private struct RegistrationIssueText: View {
 @MainActor
 private struct RegistrationOperationSections: View {
     let flow: RegistrationUIFlow
+    let revision:UInt64
     var body: some View {
         if flow.retainedForAnotherActivity {
             Section { Text("registration.form.otherActivityIntent").foregroundStyle(.secondary) }

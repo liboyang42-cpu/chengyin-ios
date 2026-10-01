@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @AppStorage("preferences.language") private var storedLanguage:String?
+    @AppStorage("preferences.language") private var storedLanguage = RegionalLaunchConfiguration.language(nil).rawValue
     @Environment(\.dismiss) private var dismiss
 
     private var language: Binding<AppLanguage> {

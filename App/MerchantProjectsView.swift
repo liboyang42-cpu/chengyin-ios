@@ -2,6 +2,7 @@ import SwiftUI
 
 @MainActor
 struct MerchantProjectsView<Reader: MerchantReading>: View {
+    @Environment(\.locale) private var locale
     @ObservedObject var reader: Reader
     @StateObject private var model = MerchantLoadModel<MerchantProjectPage>()
     @State private var selection: ProjectSelection?
@@ -33,7 +34,7 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                     ForEach(page.rows) { project in
                         Button { selection = ProjectSelection(project: project, revision: reader.sessionRevision) } label: {
                             VStack(alignment: .leading, spacing: 8) {
-                                Text(project.title.isEmpty ? String(localized: "merchant.project.untitled") : project.title).font(.headline)
+                                Text(project.title.isEmpty ? appLocalized("merchant.project.untitled",locale:locale) : project.title).font(.headline)
                                 if let text = project.projectTypeText, !text.isEmpty { Text(text).font(.subheadline) }
                                 if let text = project.stateText, !text.isEmpty { Text(text).foregroundStyle(.secondary) }
                                 if let text = project.startTime, !text.isEmpty { Label(text, systemImage: "calendar").font(.caption) }
@@ -72,11 +73,12 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
 }
 
 private struct MerchantProjectSummary: View {
+    @Environment(\.locale) private var locale
     let project: MerchantProject
     var body: some View {
         Form {
             Section {
-                Text(project.title.isEmpty ? String(localized: "merchant.project.untitled") : project.title).font(.headline)
+                Text(project.title.isEmpty ? appLocalized("merchant.project.untitled",locale:locale) : project.title).font(.headline)
                 Text("merchant.summarySnapshot").font(.footnote).foregroundStyle(.secondary)
                 MerchantCountRow("merchant.recordID", value: project.projectID)
                 if let text = project.projectTypeText, !text.isEmpty { LabeledContent("merchant.project.type", value: text) }

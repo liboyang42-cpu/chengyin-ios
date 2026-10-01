@@ -50,6 +50,7 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
 
 @MainActor
 private struct MerchantWorkbench<Reader: MerchantReading>: View {
+    @Environment(\.locale) private var locale
     @ObservedObject var reader: Reader
     let access: MerchantAccess
     let refreshAccess: () async -> Void
@@ -60,7 +61,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
     var body: some View {
         List {
             Section {
-                Text(access.merchantName.flatMap { $0.isEmpty ? nil : $0 } ?? String(localized: "merchant.store"))
+                Text(access.merchantName.flatMap { $0.isEmpty ? nil : $0 } ?? appLocalized("merchant.store",locale:locale))
                     .font(.headline).accessibilityIdentifier("merchant.store.name")
                 if let role = access.role { Text(LocalizedStringKey(role.titleKey)).foregroundStyle(.secondary) }
                 Text("merchant.readOnly").font(.footnote).foregroundStyle(.secondary)

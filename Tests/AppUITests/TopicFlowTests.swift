@@ -4,7 +4,7 @@ import XCTest
 final class TopicFlowTests: XCTestCase {
     private var app: XCUIApplication!
     override func setUpWithError() throws { continueAfterFailure = false; app = XCUIApplication() }
-    override func tearDownWithError() throws { app.terminate(); app = nil }
+    override func tearDownWithError() throws { attachFailureScreenshot(self,app:app); app.terminate(); app = nil }
     private func launch(_ scenario: String = "content") {
         app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", "(en)", "-AppleLocale", "en_US", "--uitesting-module", "topic", "--uitesting-topic-scenario", scenario]
         app.launch()

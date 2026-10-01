@@ -84,8 +84,14 @@ struct ClubActionPanel: View {
         case .received:
             // The displayed club may come from a newer ordinary refresh. Never show
             // an older coordinator snapshot as current membership beside it.
-            Label(LocalizedStringKey(club.isOwner ? "club.role.creator" : club.isJoined ? "club.membership.joined" : club.joinPending ? "club.membership.pending" : "club.action.notJoined"), systemImage: "arrow.clockwise")
-                .accessibilityIdentifier("club.action.serverMembership")
+            Label {
+                Text(LocalizedStringKey(club.isOwner ? "club.role.creator" : club.isJoined ? "club.membership.joined" : club.joinPending ? "club.membership.pending" : "club.action.notJoined"))
+                    .accessibilityIdentifier("club.action.serverMembership")
+            } icon: {
+                // This is a status, not a Refresh action. Keep the decorative symbol
+                // out of VoiceOver and attach the status identifier only to its text.
+                Image(systemName: "arrow.clockwise").accessibilityHidden(true)
+            }
         case .unavailable: Text("club.action.readbackUnavailable").foregroundStyle(.secondary)
         default: EmptyView()
         }
