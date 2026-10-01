@@ -18,4 +18,6 @@ CODE_SIGN_STYLE = Automatic
 QUESTIFY_API_BASE_URL =
 INFOPLIST_KEY_QuestifyAPIBaseURL = $(QUESTIFY_API_BASE_URL)
 
+INFOPLIST_KEY_NSCameraUsageDescription = Use the camera to read QR codes when you choose to scan.
+
 #include? "Local.xcconfig"

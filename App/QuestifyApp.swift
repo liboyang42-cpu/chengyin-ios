@@ -3,6 +3,9 @@ import SwiftUI
 @main
 struct QuestifyApp: App {
     @StateObject private var session = AppSession()
+    #if DEBUG
+    @State private var showsScannerFixture = false
+    #endif
     @AppStorage("preferences.language") private var storedLanguage = AppLanguage.system.rawValue
     init() {
         #if DEBUG
@@ -25,6 +28,14 @@ struct QuestifyApp: App {
                 .environmentObject(session)
                 .environment(\.locale, AppLanguage(storedValue: storedLanguage).locale)
                 .task { await session.bootstrap() }
+                #if DEBUG
+                .sheet(isPresented: $showsScannerFixture) { NativeQRScanner { _ in } }
+                .onAppear {
+                    if ProcessInfo.processInfo.arguments.contains("--uitesting-scanner") {
+                        showsScannerFixture = true
+                    }
+                }
+                #endif
         }
     }
 }

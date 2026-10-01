@@ -35,7 +35,7 @@ final class EntryFlowTests: XCTestCase {
     }
 
     func testChinesePreferenceSurvivesRelaunchAndSwitchesBack() {
-        app.buttons["welcome.settings"].tap()
+        openSettings(title:"Settings")
         let chinese=app.buttons["简体中文"]
         XCTAssertTrue(chinese.waitForExistence(timeout:5),app.debugDescription);chinese.tap()
         let done=app.buttons["完成"]
@@ -46,10 +46,37 @@ final class EntryFlowTests: XCTestCase {
         app.launch()
         XCTAssertTrue(app.buttons["welcome.player"].waitForExistence(timeout:10))
         XCTAssertTrue(app.buttons["welcome.player"].label.contains("玩家注册"))
-        app.buttons["welcome.settings"].tap()
+        openSettings(title:"设置")
         let english=app.buttons["English"]
         XCTAssertTrue(english.waitForExistence(timeout:5),app.debugDescription);english.tap()
         XCTAssertTrue(app.buttons["Done"].waitForExistence(timeout:5));app.buttons["Done"].tap()
         XCTAssertTrue(app.buttons["welcome.player"].label.contains("Register as a player"))
     }
+
+    private func openSettings(title:String,file:StaticString=#filePath,line:UInt=#line) {
+        let button=app.buttons["welcome.settings"]
+        let ready=XCTNSPredicateExpectation(predicate:NSPredicate(format:"exists == true AND hittable == true"),object:button)
+        XCTAssertEqual(XCTWaiter.wait(for:[ready],timeout:10),.completed,app.debugDescription,file:file,line:line)
+        button.tap()
+        XCTAssertTrue(app.navigationBars[title].waitForExistence(timeout:10),app.debugDescription,file:file,line:line)
+    }
+
+    func testSettingsReopensAfterRepeatedColdLaunch() {
+        for _ in 0..<3 {
+            app.terminate();app.launch()
+            openSettings(title:"Settings")
+            app.buttons["Done"].tap()
+            XCTAssertTrue(app.buttons["welcome.player"].waitForExistence(timeout:5))
+        }
+    }
+
+    func testSimulatorScannerFallbackCanBeCancelled() {
+        app.terminate()
+        app.launchArguments.append("--uitesting-scanner")
+        app.launch()
+        XCTAssertTrue(app.staticTexts["Scanning Isn't Supported"].waitForExistence(timeout:10),app.debugDescription)
+        app.buttons["Cancel"].tap()
+        XCTAssertTrue(app.buttons["welcome.player"].waitForExistence(timeout:5))
+    }
+
 }
