@@ -6,7 +6,7 @@ final class AppSession: ObservableObject {
     @Published private(set) var account: Account?
     @Published private(set) var isWorking = false
     @Published private(set) var errorKey: String?
-    private var epoch = SessionEpoch()
+    private var gate = SessionOperationGate()
     private let vault = KeychainTokenStore()
     private let service: AuthService?
     private var token: String?
@@ -29,16 +29,16 @@ final class AppSession: ObservableObject {
             try? vault.clear()
             return
         }
-        let operation=epoch.advance()
+        let operation=gate.begin(.bootstrap)
         isWorking=true
-        defer { if epoch.isCurrent(operation) { isWorking=false } }
+        defer { if gate.isCurrent(operation) { isWorking=false;gate.finish(operation) } }
         do {
             guard let saved=try vault.read() else { return }
             let restored=try await service.currentAccount(token:saved)
-            guard epoch.isCurrent(operation) else { return }
+            guard gate.isCurrent(operation) else { return }
             token=saved;account=restored
         } catch {
-            guard epoch.isCurrent(operation) else { return }
+            guard gate.isCurrent(operation) else { return }
             if error as? APIError == .unauthorized {
                 UserDefaults.standard.set(true,forKey:restoreBlockedKey)
                 try? vault.clear()
@@ -51,28 +51,28 @@ final class AppSession: ObservableObject {
     func login(username:String,password:String) async {
         guard !isWorking else { return }
         guard let service else { errorKey="auth.notConfigured";return }
-        let operation=epoch.advance()
+        let operation=gate.begin(.login)
         isWorking=true;errorKey=nil
-        defer { if epoch.isCurrent(operation) { isWorking=false } }
+        defer { if gate.isCurrent(operation) { isWorking=false;gate.finish(operation) } }
         do {
             let result=try await service.login(username:username,password:password)
-            guard epoch.isCurrent(operation) else { return }
+            guard gate.isCurrent(operation) else { return }
             try vault.write(result.token)
             UserDefaults.standard.set(false,forKey:restoreBlockedKey)
             token=result.token;account=result.account
         } catch {
-            guard epoch.isCurrent(operation) else { return }
+            guard gate.isCurrent(operation) else { return }
             errorKey=Self.messageKey(for:error)
         }
     }
 
     func cancelPendingLogin() {
-        epoch.advance();isWorking=false;errorKey=nil
+        if gate.cancelLogin() { isWorking=false;errorKey=nil }
     }
 
     func logout() async {
         let oldToken=token
-        epoch.advance()
+        gate.invalidate()
         // Persist a non-secret tombstone before deletion. A Keychain failure cannot
         // silently restore a logged-out account at the next cold start.
         UserDefaults.standard.set(true,forKey:restoreBlockedKey)
