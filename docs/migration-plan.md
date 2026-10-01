@@ -15,7 +15,7 @@ Architecture: SwiftUI + necessary UIKit for iOS; retain the separate Flutter cli
 
 ## Work batches and completion evidence
 
-1. Foundation: repository, Xcode project, player/merchant chooser, language/settings, accessibility and preview scenarios. Completed source scaffold only; compile and interaction pending
+1. Foundation: repository, Xcode project, player/merchant chooser, language/settings, accessibility and preview scenarios. Source scaffold compiled on the first hosted macOS run; native interaction acceptance remains pending
 2. Account vertical slice: backend-confirmed login methods, registration intent, server roles, Keychain credentials, refresh/single-flight retry, logout, account switching, cold-start restoration. No UI may fabricate success
 3. Player primary routes: feed, roam, template square, clubs, profile. Reconcile mapping to Flutter route definitions; discovery → detail → registration → order → ticket. Empty/error/loading and interrupted routes are mandatory
 4. Play and location: foreground authorization, MapKit, location accuracy and denial, QR entry, geofence/server validation, rewards and next node. Native location alone is not proof of a successful game check-in
