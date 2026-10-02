@@ -79,7 +79,23 @@ final class TemplateCompareTests: XCTestCase {
         var draft = try draft(); draft.setGameEnabled(.coin, true); draft.setGameEnabled(.dice, true)
         let compare = draft.value["compare"]
         draft.setGameEnabled(.coin, false); XCTAssertEqual(draft.value["compare"], compare); XCTAssertTrue(draft.enabled("diceRoll"))
-        for mode in ["inline", "fullscreen"] { draft.setPresentation(mode); XCTAssertNoThrow(try draft.serialize()) }
+        // Default d6 faces are deliberately empty editor placeholders. Keep that
+        // production validation strict before completing this synthetic fixture.
+        XCTAssertTrue(draft.issues.contains("templateAuthor.validation.diceFaces"))
+        XCTAssertThrowsError(try draft.serialize())
+        for index in 0..<6 { draft.setFace(index, "Synthetic face \(index + 1)") }
+        let faces = draft.value["diceRoll"]?.object?["faces"]
+        XCTAssertTrue(draft.issues.isEmpty, draft.issues.joined(separator: ", "))
+        XCTAssertFalse(draft.presentationRequiresFullscreen)
+        for mode in ["inline", "fullscreen"] {
+            draft.setPresentation(mode)
+            let restored = try TemplateAdvancedDraft(raw: draft.serialize())
+            XCTAssertEqual(restored.explicitPresentation, mode)
+            XCTAssertEqual(restored.enabledGames, [.dice])
+            XCTAssertEqual(restored.enabledCreatorFamilies, [.compare])
+            XCTAssertEqual(restored.value["compare"], compare)
+            XCTAssertEqual(restored.value["diceRoll"]?.object?["faces"], faces)
+        }
     }
     func testAddRowAllocatesGlobalUniqueIDWithoutChangingExistingIDs() throws {
         var draft = try draft()
