@@ -20,6 +20,13 @@ final class SquareReportFlowTests: XCTestCase {
             XCTAssertTrue(revealFixtureElement(title, in: app, maximumSwipes: 16), app.debugDescription)
             title.tap(); return
         }
+        if id == "squareReport.chooseReason" {
+            XCTAssertTrue(revealFixtureElement(element, in: app), app.debugDescription)
+            XCTAssertTrue(element.isEnabled, app.debugDescription)
+            element.tap()
+            XCTAssertTrue(app.buttons["squareReport.reasonCancel"].waitForExistence(timeout: 5), app.debugDescription)
+            return
+        }
         reveal(element)
         if id != "social.post.actions" { element.tap(); return }
         // SwiftUI may expose a full-row wrapper around the native menu button.

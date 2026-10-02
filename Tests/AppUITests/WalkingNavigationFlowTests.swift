@@ -110,6 +110,8 @@ final class WalkingNavigationFlowTests: XCTestCase {
             attachFixtureScreenshot(self, app: app, name: "Walking summary maximum text \(chinese ? "Chinese" : "English")")
             tap("walking.steps.open")
             XCTAssertTrue(app.buttons["walking.steps.close"].waitForExistence(timeout: 5))
+            XCTAssertEqual(app.descendants(matching: .any)["walking.steps.list"].firstMatch.value as? String,
+                           "dynamicTypeSize=accessibility5", app.debugDescription)
             attachFixtureScreenshot(self, app: app, name: "Walking large native steps \(chinese ? "Chinese" : "English")")
             tap("walking.steps.close"); tap("walking.steps.open"); tap("walking.steps.close")
             app.terminate()

@@ -33,19 +33,18 @@ import SwiftUI
     }
 }
 @MainActor struct SquareReportFixtureHost: View {
-    private let account = SocialAccountFixtureReader(.content)
-    private let reader = SquareReportFixtureReader()
-    private let transport: SquareReportFixtureTransport
-    private let reports: SquareReportCoordinator
+    @State private var account = SocialAccountFixtureReader(.content)
+    @State private var reader = SquareReportFixtureReader()
+    @State private var reports: SquareReportCoordinator
     private let scenario: String
     @State private var epoch = 0
     init(scenario: String) {
         self.scenario = scenario
-        let transport = SquareReportFixtureTransport(scenario: scenario); self.transport = transport
+        let transport = SquareReportFixtureTransport(scenario: scenario)
         let configuration = try! APIConfiguration(baseURL: URL(string: "https://example.com")!)
         let service = scenario == "reportDisabled" ? SquareReportService(configuration: configuration, transport: transport)
             : SquareReportService(offlineConfiguration: configuration, transport: transport)
-        reports = SquareReportCoordinator(service: service, journal: .ephemeral())
+        _reports = State(initialValue: SquareReportCoordinator(service: service, journal: .ephemeral()))
     }
     var body: some View {
         let actions = SocialDisabledActionAccess(reader: reader, accountReader: account)

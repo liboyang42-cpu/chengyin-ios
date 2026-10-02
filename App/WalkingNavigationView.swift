@@ -38,6 +38,7 @@ import MapKit
             NavigationStack {
                 if let model { WalkingStepsDetail(model: model) }
             }
+            .dynamicTypeSize(typeSize)
             .presentationDetents(typeSize.isAccessibilitySize ? [.large] : [.medium, .large])
             .presentationDragIndicator(.visible)
         }
@@ -103,6 +104,7 @@ import MapKit
 /// Reads the live coordinator instead of retaining a route snapshot after invalidation.
 @MainActor private struct WalkingStepsDetail: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var typeSize
     let model: WalkingNavigationCoordinator
     #if DEBUG
     @Environment(\.walkingFixtureScopeExpiry) private var expireFixtureScope
@@ -142,6 +144,9 @@ import MapKit
                 Text("walking.foregroundOnly")
             }.font(.footnote)
         }.accessibilityIdentifier("walking.steps.list")
+            #if DEBUG
+            .accessibilityValue(Text(verbatim: typeSize == .accessibility5 ? "dynamicTypeSize=accessibility5" : "dynamicTypeSize=other"))
+            #endif
             .appNavigationTitle("walking.steps")
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {

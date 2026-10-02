@@ -6,6 +6,9 @@ final class ClubOperationsFlowTests: XCTestCase {
     override func setUpWithError() throws { continueAfterFailure = false; app = XCUIApplication() }
     override func tearDownWithError() throws { attachFailureScreenshot(self, app: app); app.terminate(); app = nil }
     private func element(_ id: String) -> XCUIElement { app.descendants(matching: .any).matching(identifier: id).firstMatch }
+    // The toolbar wrapper may retain an earlier accessibilityValue after a scope change.
+    // Read the Text leaf that displays the live fixture store's count and identity.
+    private var writeCounter: XCUIElement { app.staticTexts["club.ops.writeCount"].firstMatch }
     private func launch(_ scenario: String = "owner", chinese: Bool = false) {
         app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", chinese ? "(zh-Hans)" : "(en)", "-AppleLocale", chinese ? "zh_CN" : "en_US", "--uitesting-club-operations", scenario]
         app.launch(); XCTAssertTrue(element("club.ops.fixtureNotice").waitForExistence(timeout: 10))
@@ -28,7 +31,7 @@ final class ClubOperationsFlowTests: XCTestCase {
         return matches.firstMatch
     }
     private func count(_ value: Int) {
-        let expected = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", String(value)), object: element("club.ops.writeCount"))
+        let expected = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", String(value)), object: writeCounter)
         XCTAssertEqual(XCTWaiter.wait(for: [expected], timeout: 5), .completed)
     }
     private func reviewSetting() { tap("club.ops.openManage"); tap("club.ops.setting.publicVisible") }
@@ -111,9 +114,9 @@ final class ClubOperationsFlowTests: XCTestCase {
     }
     func testAccountSwitchDuringDelayedWriteKeepsOldOutcomeHidden() {
         launch("delayed"); reviewSetting(); tap("club.ops.confirm"); count(1)
-        XCTAssertEqual(element("club.ops.writeCount").value as? String, "account=701;finished=0")
+        XCTAssertEqual(writeCounter.value as? String, "account=701;finished=0")
         tap("club.ops.switchAccount")
-        let completed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "account=702;finished=1"), object: element("club.ops.writeCount"))
+        let completed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "account=702;finished=1"), object: writeCounter)
         XCTAssertEqual(XCTWaiter.wait(for: [completed], timeout: 5), .completed, app.debugDescription)
         XCTAssertTrue(element("club.ops.field.name").waitForExistence(timeout: 5))
         XCTAssertFalse(element("club.ops.acknowledged").exists); count(1)

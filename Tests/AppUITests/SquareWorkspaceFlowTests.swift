@@ -77,7 +77,10 @@ final class SquareWorkspaceFlowTests: XCTestCase {
         waitForExpectations(timeout: 5)
         XCTAssertEqual(editor.value as? String, "Saved first recovery draft")
         reveal(newDraft, in: app); XCTAssertTrue(newDraft.isEnabled); newDraft.tap()
-        reveal(editor, in: app, upwards: false); editor.tap(); editor.typeText("New text after recovery")
+        XCTAssertTrue(revealFixtureElement(editor, in: app, towardTop: true, maximumSwipes: 16), app.debugDescription)
+        editor.tap()
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5), app.debugDescription)
+        editor.typeText("New text after recovery")
         XCTAssertEqual(editor.value as? String, "New text after recovery")
         XCTAssertEqual(app.staticTexts["fixture.workspaceRecovery.requests"].label, "1")
     }
