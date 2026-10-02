@@ -61,6 +61,8 @@ public struct ProjectEditBlock: Identifiable, Codable, Equatable {
     public var content = ""
     public var nodeID = ""
     public var url = ""
+    /// Optional for old local envelopes; preserves supported source-only story semantics.
+    public var sourceFields: [String: ProjectEditJSON]?
     public init(kind: Kind, content: String = "", nodeID: String = "", url: String = "") {
         self.kind = kind; self.content = content; self.nodeID = nodeID; self.url = url
     }
@@ -189,7 +191,8 @@ public enum ProjectEditValidation {
         need(!draft.chapters.isEmpty, "chapters", "chapters")
         for (ci, chapter) in draft.chapters.enumerated() {
             if draft.product == .city { need(chapter.hasRealStory, "story\(ci)", "story") }
-            need(!chapter.nodes.isEmpty, "nodes\(ci)", "nodes")
+            let standaloneStory = chapter.preserved["opening"] == .bool(true) || chapter.preserved["ending"]?.object != nil
+            need(standaloneStory || !chapter.nodes.isEmpty, "nodes\(ci)", "nodes")
             need((chapter.blocks?.count ?? 0) <= 200, "blocks\(ci)", "blocks")
             let nodeIDs = chapter.nodes.map(\.id)
             need(Set(nodeIDs).count == nodeIDs.count, "nodeIDs\(ci)", "references")
@@ -199,7 +202,8 @@ public enum ProjectEditValidation {
                 if block.kind == .image { need(!block.url.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, "media\(block.id)", "media") }
             }
             for node in chapter.nodes {
-                need(node.hasUsableCoordinates, "coordinate\(node.id)", "coordinates")
+                let storyGame = chapter.blocks?.contains { $0.kind == .node && $0.nodeID == node.id && $0.sourceFields?["locationRequired"] == .bool(false) } == true
+                need(storyGame ? node.longitude.isEmpty && node.latitude.isEmpty && (node.templateID ?? 0) > 0 : node.hasUsableCoordinates, "coordinate\(node.id)", "coordinates")
                 need(!node.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, "nodeName\(node.id)", "nodeName")
                 need(node.nodeTime >= 0, "nodeTime\(node.id)", "number")
             }

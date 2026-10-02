@@ -7,6 +7,7 @@ public struct PlayAdvancedState: Equatable {
     public let readyForBase: Bool; public let deadlineAt: Int64?; public let inline: Bool
     public let config: PlayWireValue; public let draws: [PlayWireValue]; public let branch: PlayWireValue
     public let playKit: PlayWireValue; public let multiplayer: PlayWireValue
+    public let storyVariables: [String: PlayWireValue]
     public var isMultiplayer: Bool { config["multiplayer"]["enabled"].bool == true }
     public var needsUnverifiedSteps: Bool { playKit["steps"].object != nil && playKit["steps"]["reached"].bool != true }
     public init(_ raw: PlayWireValue) throws {
@@ -20,14 +21,18 @@ public struct PlayAdvancedState: Equatable {
         deadlineAt = raw["deadlineAt"].integer.flatMap { $0 > 0 ? Int64($0) : nil }
         inline = raw["present"].text == "inline"; config = raw["config"]; draws = raw["draws"].array ?? []
         branch = raw["branch"]; playKit = raw["playKit"]; multiplayer = raw["multiplayer"]
+        storyVariables = raw["vars"].object ?? [:]
     }
     public func remainingSeconds(nowMilliseconds: Int64) -> Int? {
         deadlineAt.map { Int(max(0, ceil(Double($0 - nowMilliseconds) / 1000))) }
     }
 }
 public enum PlayKitActionCatalog {
-    /// Source: playkit_host.dart. Local-only kits intentionally have an empty action set.
+    /// Source: Flutter playkit_host.dart plus the newer mini-program playkit-view action catalog.
+    /// Bingo is server progress without an action. Walk cannot manufacture encrypted step proof.
     public static let actions: [String: Set<String>] = [
+        "sort": ["SUBMIT_SORT"], "match": ["SUBMIT_MATCH"], "classify": ["SUBMIT_CLASSIFY"],
+        "compass": ["SUBMIT_COMPASS"], "shout": ["START_CHALLENGE", "SUBMIT_SHOUT"],
         "qa": ["SUBMIT_QA"], "branch": ["CHOOSE"], "estimate": ["SUBMIT_ESTIMATE"],
         "pricePair": ["SUBMIT_PRICE_PAIR"], "hiddenObject": ["SUBMIT_HIDDEN_OBJECT"],
         "countdown": ["START_CHALLENGE", "SUBMIT_COUNTDOWN"], "stopwatch": ["START_CHALLENGE", "SUBMIT_STOPWATCH"],
@@ -44,7 +49,7 @@ public enum PlayKitActionCatalog {
         switch action {
         case "FLIP_COIN", "ROLL_DICE": return [:] // Never invent a random outcome client-side.
         case "START_CHALLENGE":
-            if ["reaction", "ballShake", "quietHold", "typeIn"].contains(kind) { return ["game": .string(kind)] }
+            if ["reaction", "ballShake", "quietHold", "typeIn", "countdown", "stopwatch", "shout"].contains(kind) { return ["game": .string(kind)] }
             return detail
         case "SUBMIT_REACTION":
             guard let times = detail["times"]?.array, !times.isEmpty, times.allSatisfy({ ($0.integer ?? -1) >= 0 }) else { throw PlayExperienceError.invalidAction }
@@ -111,15 +116,34 @@ extension PlayExperienceService {
         do { try accept(await service.startAdvanced(activityID: activityID, topicID: topicID, nodeID: nodeID, token: session.token), session: session, generation: generation) }
         catch { failure(error, session: session, generation: generation) }
     }
+    public var isCurrent: Bool { owner != nil && owner == currentSession() }
+    public var canInteract: Bool { isCurrent && phase == "ready" && pending == nil && state?.status == "RUNNING" }
+    public func review(kind: String, action: String, detail: [String: PlayWireValue] = [:]) throws -> PlayKitActionReview {
+        guard canInteract, let state, let owner else { throw PlayExperienceError.staleSession }
+        guard state.playKit[kind].object != nil || state.config[kind]["enabled"].bool == true else { throw PlayExperienceError.unsupported }
+        let payload = try PlayKitActionCatalog.payload(kind: kind, action: action, detail: detail)
+        // Existing mechanical branch/random projections live outside playKit.
+        let segment: PlayWireValue
+        if state.playKit[kind].object != nil { segment = state.playKit[kind] }
+        else if kind == "branch" { segment = state.branch }
+        else if kind == "random" { segment = .object(["drawn": .array(state.draws), "drawCount": state.config["random"]["drawCount"]]) }
+        else { segment = state.config[kind] }
+        try PlayKitInputContract.validate(kind: kind, action: action, payload: payload, segment: segment)
+        return PlayKitActionReview(state: state, owner: owner, kind: kind, action: action, payload: payload)
+    }
+    @discardableResult public func submit(_ review: PlayKitActionReview) async -> Bool {
+        guard canInteract, let state, owner == review.owner, currentSession() == review.owner,
+              state.sessionID == review.sessionID, state.version == review.version else {
+            issue = .staleSession; return false
+        }
+        pending = PlayAdvancedPending(sessionID: review.sessionID, version: review.version,
+            key: review.id.uuidString, action: review.action, payload: review.payload)
+        await sendPending()
+        return pending == nil && phase == "ready" && self.state?.sessionID == review.sessionID && (self.state?.version ?? -1) > review.version
+    }
     public func submit(kind: String, action: String, detail: [String: PlayWireValue] = [:]) async {
-        guard phase == "ready", pending == nil, let state, !state.needsUnverifiedSteps, state.status == "RUNNING", owner == currentSession() else { return }
-        do {
-            // Dispatch only a server-present kit or an enabled mechanical section.
-            guard state.playKit[kind].object != nil || state.config[kind]["enabled"].bool == true else { throw PlayExperienceError.unsupported }
-            let payload = try PlayKitActionCatalog.payload(kind: kind, action: action, detail: detail)
-            pending = PlayAdvancedPending(sessionID: state.sessionID, version: state.version, key: UUID().uuidString, action: action, payload: payload)
-            await sendPending()
-        } catch { issue = error as? PlayExperienceError ?? .invalidAction }
+        do { _ = await submit(try review(kind: kind, action: action, detail: detail)) }
+        catch { issue = error as? PlayExperienceError ?? .invalidAction }
     }
     public func assignRole(memberID: Int, roleID: String) async {
         guard phase == "ready", pending == nil, let state, state.isMultiplayer, owner == currentSession(),
@@ -171,7 +195,9 @@ extension PlayExperienceService {
     }
     private func accept(_ state: PlayAdvancedState, session: PlayExperienceSession, generation: UInt64) throws {
         try validate(state, session: session, generation: generation); self.state = state; issue = nil
-        phase = state.needsUnverifiedSteps ? "unsupported" : "ready"
+        // An unresolved steps proof must not disable unrelated server-present kits.
+        // Step submission itself is separately unsupported until its proof contract is approved.
+        phase = "ready"
     }
     private func failure(_ error: Error, session: PlayExperienceSession, generation: UInt64) {
         guard self.generation == generation else { return }

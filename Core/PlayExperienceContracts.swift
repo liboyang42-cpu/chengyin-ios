@@ -71,6 +71,10 @@ public enum PlayExperienceError: Error, Equatable {
 public struct PlayExperienceDocument: Decodable, Equatable {
     public let base: PlayNodesResult
     public let extras: [Int: PlayNodeExtras]
+    public let chapterStories: [Int: ChapterStoryDocument]
+    public let storyVariables: [String: PlayWireValue]
+    public let storyVoices: [String: PlayWireValue]
+    public let storyThoughts: [PlayWireValue]
     public init(from decoder: Decoder) throws {
         base = try PlayNodesResult(from: decoder)
         let raw = try PlayWireValue(from: decoder)
@@ -80,6 +84,16 @@ public struct PlayExperienceDocument: Decodable, Equatable {
             rows[id] = PlayNodeExtras(raw: row)
         }
         extras = rows
+        var chapters: [Int: ChapterStoryDocument] = [:]
+        for rawChapter in raw["chapters"].array ?? [] {
+            let chapter = try ChapterStoryDocument(raw: rawChapter)
+            guard chapters[chapter.chapterID] == nil else { throw APIError.malformedResponse }
+            chapters[chapter.chapterID] = chapter
+        }
+        chapterStories = chapters
+        storyVariables = raw["vars"].object ?? [:]
+        storyVoices = raw["storyVoices"].object ?? [:]
+        storyThoughts = raw["routeState"]["thoughts"].array ?? []
     }
 }
 public struct PlayNodeExtras: Equatable {

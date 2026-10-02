@@ -68,7 +68,12 @@ final class MerchantMarketingUITests: XCTestCase {
             XCTAssertTrue(picker.exists)
             let sections = language == "en" ? ["Shop insights", "Entitlements", "Prediction inbox"] : ["店铺参谋", "付费权益", "竞猜待答"]
             for section in sections {
-                picker.tap(); app.buttons[section].lastMatch.tap()
+                picker.tap()
+                let options = app.buttons.matching(identifier: section)
+                guard options.firstMatch.waitForExistence(timeout: 5) else {
+                    XCTFail("Expected marketing section option: \(section)"); return
+                }
+                options.element(boundBy: options.count - 1).tap()
                 XCTAssertTrue(app.staticTexts["merchantMarketing.error"].waitForExistence(timeout: 5))
                 XCTAssertFalse(app.buttons["merchantMarketing.confirmSettlement"].exists)
             }

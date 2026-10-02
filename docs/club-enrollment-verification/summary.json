@@ -1,0 +1,22 @@
+{
+  "python_contracts": {
+    "club_enrollment": {
+      "passed": 8
+    },
+    "existing_club_governance": {
+      "passed": 12
+    }
+  },
+  "structural_mirror": "PASS: additive catalog merged and project regenerated in separate /tmp verification mirror",
+  "swift_test": "NOT_RUN: swift executable absent",
+  "xcodebuild": "NOT_RUN: xcodebuild executable absent",
+  "swift_parser": "NOT_RUN: required tree-sitter dependencies absent",
+  "ui_tests": "NOT_RUN: no Xcode/simulator",
+  "authored_domain_tests": 18,
+  "authored_ui_tests": 3,
+  "backend_calls": "NONE",
+  "financial_writes": "NONE",
+  "publication": "NONE",
+  "changed_files": 19,
+  "patch_apply_check": "PASS against immutable base"
+}

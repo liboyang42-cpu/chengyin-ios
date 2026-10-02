@@ -16,7 +16,7 @@ class WalletSourceChecks(unittest.TestCase):
     def test_all_native_paths_have_source_evidence(self):
         source = '\n'.join((SOURCE/f'data/api/{name}_api.dart').read_text() for name in ['asset','points','mall','withdrawal','registration'])
         paths = set(re.findall(r'"(api/[^"\s]+)"', self.service+self.safety))
-        self.assertEqual(len(paths), 15)
+        self.assertEqual(len(paths), 16)
         for path in paths: self.assertIn('/'+path, source)
     def test_withdrawal_source_is_read_only(self):
         source=(SOURCE/'data/api/withdrawal_api.dart').read_text()

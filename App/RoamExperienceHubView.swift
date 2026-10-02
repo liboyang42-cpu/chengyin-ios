@@ -3,12 +3,14 @@ import SwiftUI
 /// Mount inside a NavigationStack. Identity resets clear drafts, private results, navigation and tasks.
 @MainActor struct RoamExperienceHubView: View {
     let reader: any RoamExperienceReading
+    var stampDestination: (() -> AnyView)? = nil
     var body: some View {
-        RoamExperienceMenu(reader: reader).id(reader.identity)
+        RoamExperienceMenu(reader: reader, stampDestination: stampDestination).id(reader.identity)
     }
 }
 @MainActor private struct RoamExperienceMenu: View {
     let reader: any RoamExperienceReading
+    let stampDestination: (() -> AnyView)?
     var body: some View {
         List {
             Section {
@@ -27,9 +29,9 @@ import SwiftUI
                     .accessibilityIdentifier("roam.experience.live.open")
             }
             Section("roam.experience.collect") {
-                NavigationLink { RoamStampAlbumView(reader: reader) } label: { Label("roam.experience.album", systemImage: "rectangle.stack") }
+                NavigationLink { RoamStampAlbumView(reader: reader, stampDestination: stampDestination) } label: { Label("roam.experience.album", systemImage: "rectangle.stack") }
                     .accessibilityIdentifier("roam.experience.album.open")
-                NavigationLink { RoamCityStampDraftView(offline: reader.isOfflineExample) } label: { Label("roam.experience.cityStamp", systemImage: "envelope") }
+                NavigationLink { if let stampDestination { stampDestination() } else { AnyView(RoamStampCameraView()) } } label: { Label("roam.experience.cityStamp", systemImage: "camera") }
                     .accessibilityIdentifier("roam.experience.cityStamp.open")
                 NavigationLink { RoamVoucherEntryView() } label: { Label("roam.experience.voucher", systemImage: "ticket") }
                     .accessibilityIdentifier("roam.experience.voucher.open")

@@ -171,7 +171,7 @@ public struct WalletWithdrawalRecord: Decodable, Equatable, Identifiable {
     public let maskedAccount: String?
     public let createTime: String?
     public let currency: String?
-    public var statusKey: String { ["wallet.pendingReview", "wallet.approved", "wallet.paid", "wallet.rejected"][status] }
+    public var statusKey: String { ["wallet.pendingReview", "wallet.approved", "wallet.rejected", "wallet.paid"][status] }
     private enum CodingKeys: String, CodingKey { case id, withdrawalAmount, amount, status, bankAccount, createTime, currency }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)

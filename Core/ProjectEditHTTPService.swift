@@ -11,7 +11,7 @@ public struct ProjectEditCredentials: Equatable {
         self.session = session; self.token = token
     }
 }
-/// Exact publish_api.dart routes. Unknown submissions are never retried or reconciled by
+/// Legacy Flutter routes plus source-backed conditional mini-editor V2 story routes. Unknown submissions are never retried or reconciled by
 /// a guessed endpoint. The local UUID is only for review/persistence, never sent as idempotency.
 @MainActor public final class ProjectEditHTTPService: ProjectEditServing {
     private let configuration: APIConfiguration
@@ -59,7 +59,11 @@ public struct ProjectEditCredentials: Equatable {
         guard (200..<300).contains(status), envelope?["code"]?.integer == 200 else { throw ProjectEditError.invalidContract }
     }
     public func submit(_ operation: ProjectEditPending, session: ProjectEditSession) async -> ProjectEditWriteOutcome {
-        let path = operation.identity.topicID == nil ? "api/topic/create" : "api/topic/update"
+        // An already-started request stays unknown even if a later version selects a different path.
+        if operation.ownerKey == session.ownerKey, let store,
+           let persisted = try? store.pending(session: session, identity: operation.identity),
+           persisted.operationID == operation.operationID, persisted.dispatchStarted == true { return .unknown }
+        guard let path = try? ProjectEditStoryContract.path(payload: operation.payload, baseline: operation.baseline) else { return .notSent }
         guard let approval, let store, approval.allows(configuration: configuration, namespace: session.storageNamespace, accountID: session.accountID, path: path),
               let credentials = currentCredentials(), credentials.session == session,
               operation.ownerKey == session.ownerKey, operation.payload["scope"] == .string(owner.rawValue) else { return .notSent }
@@ -79,6 +83,7 @@ public struct ProjectEditCredentials: Equatable {
             if let id = operation.identity.topicID {
                 guard operation.payload["id"]?.integer == id, operation.payload["publishToCreative"] == nil || operation.payload["publishToCreative"] == .number(0) else { return .notSent }
             } else if operation.payload["id"] != nil { return .notSent }
+            try ProjectEditStoryContract.validatePayload(operation.payload, baseline: operation.baseline)
             request = try OperationAdapterHTTP.json(configuration: configuration, path: path, body: JSONEncoder().encode(operation.payload), token: credentials.token)
             try check(credentials)
             guard try store.pending(session: session, identity: operation.identity) == operation else { return .unknown }
@@ -96,6 +101,11 @@ public struct ProjectEditCredentials: Equatable {
         if status == 401 || status == 403 { return .rejected }
         guard (200..<300).contains(status), let code = envelope?["code"]?.integer else { return .unknown }
         guard code == 200 else { return .rejected }
+        guard let path = try? ProjectEditStoryContract.path(payload: operation.payload, baseline: operation.baseline) else { return .unknown }
+        if path == ProjectEditStoryContract.createPath || path == ProjectEditStoryContract.updatePath {
+            guard let acknowledgment = try? ProjectEditBundleAcknowledgment.decode(envelope?["data"], expectedTopicID: operation.identity.topicID) else { return .unknown }
+            return .acknowledged(operationID: operation.operationID, topicID: acknowledgment.topicID)
+        }
         let topicID: Int
         if let existing = operation.identity.topicID { topicID = existing }
         else { guard let created = OperationAdapterHTTP.positiveID(envelope?["data"]) else { return .unknown }; topicID = created }

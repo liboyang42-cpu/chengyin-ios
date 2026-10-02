@@ -90,6 +90,7 @@ struct AccountView: View {
                         Label("objects.title", systemImage: "rectangle.stack")
                     }.accessibilityIdentifier("account.objectCards")
                 }
+                PlayerJourneyAccountLinks()
                 ProfileAccountLinks(reader:session.profileReader,participantCoordinator:session.participantCoordinator,orderLifecycleCoordinator:session.orderLifecycleCoordinator, mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory)
                 Section {
                     NavigationLink { MessagingHomeView(reader:session.messagingReader,mediaReader:session.socialMessageMediaReader,senderForConversation:{ session.messageSender(for:$0) },expanded:session.imExpandedNavigation).id(session.messagingReader.identity) } label: {

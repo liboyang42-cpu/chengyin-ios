@@ -85,7 +85,8 @@ import SwiftUI
                 ForEach(pagination.items) { post in
                     NavigationLink {
                         SquareDetailView(id: post.id, reader: squareReader, accountReader: accountReader, actions: actions)
-                    } label: { SquarePostContent(post: post) }
+                    } label: { SquarePostContent(post: post, showImages: false) }
+                    NativeMediaGalleryEntry(sources: post.images, scope: squareReader.scope, titleKey: "media.destination.squareImages")
                 }
                 if pagination.hasLoadedPage && pagination.items.isEmpty { Text("social.noPosts") }
                 if pagination.continuationInvalid { Text("square.invalidCursor") }

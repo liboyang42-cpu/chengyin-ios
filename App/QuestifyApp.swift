@@ -153,7 +153,7 @@ private struct SessionRootView: View {
                 TabView(selection:$selectedTab) {
                     SessionHomeFeedView(onSignIn:{ selectedTab=4 }).tabItem { Label("homeFeed.title",systemImage:"house") }.tag(0)
                     ActivityBrowserView(reader:session,playReaderForActivity:{ session.playReader(for:.activity($0)) },registrationEnabled:true).tabItem { Label("activity.browse",systemImage:"map") }.tag(1)
-                    RoamBrowserView(reader:session.roamReader,onChooseArea:{ showsAreaPicker=true },experienceReader:session.roamExperienceReader, nearbyTeamsDestination: { AnyView(SessionNearbyTeamsView(context: session.nearbyTeamQueryContext)) }, mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory)
+                    RoamBrowserView(reader:session.roamReader,onChooseArea:{ showsAreaPicker=true },experienceReader:session.roamExperienceReader, nearbyTeamsDestination: { AnyView(SessionNearbyTeamsView(context: session.nearbyTeamQueryContext)) }, stampDestination: { AnyView(SessionRoamStampCameraView()) }, posterDestination: { AnyView(SessionRoamPosterView(node: $0)) }, mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory)
                         .tabItem { Label("roam.title",systemImage:"map") }.tag(3)
                     NavigationStack { ClubHomeView(reader:session,onSignIn:{ selectedTab=4 },actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext, community:session.clubCommunityContext) }
                         .tabItem { Label("club.title",systemImage:"person.3") }.tag(2)

@@ -8,6 +8,7 @@ public struct RoamPublicMerchant: Decodable, Equatable, Identifiable {
     public let storyTitle: String?
     public let description: String?
     public let tags: [String]
+    public let gallery: [String]
     public let categories: [String]
     public let businessStatus: Int?
     public let address: String?
@@ -15,7 +16,7 @@ public struct RoamPublicMerchant: Decodable, Equatable, Identifiable {
     public let capacity: Int?
     public let availableTime: String?
     enum CodingKeys: String, CodingKey {
-        case id, name, cityRole, storyTitle, description, tags, sysCategoryList
+        case id, name, cityRole, storyTitle, description, tags, gallery, sysCategoryList
         case businessStatus, address, businessTime, capacity, availableTime
     }
     public init(from decoder: Decoder) throws {
@@ -32,6 +33,10 @@ public struct RoamPublicMerchant: Decodable, Equatable, Identifiable {
         else if let json = try? c.decode(String.self, forKey: .tags),
                 let array = try? JSONDecoder().decode(RoamStringArray.self, from: Data(json.utf8)) { tags = array.values }
         else { tags = [] }
+        if let array = try? c.decode(RoamStringArray.self, forKey: .gallery) { gallery = Array(array.values.prefix(100)) }
+        else if let json = try? c.decode(String.self, forKey: .gallery), json.utf8.count <= 65536,
+                let array = try? JSONDecoder().decode(RoamStringArray.self, from: Data(json.utf8)) { gallery = Array(array.values.prefix(100)) }
+        else { gallery = [] }
         categories = try c.decodeIfPresent(RoamRows<RoamMerchantCategory>.self, forKey: .sysCategoryList)?.values.compactMap(\.categoryName) ?? []
     }
 }

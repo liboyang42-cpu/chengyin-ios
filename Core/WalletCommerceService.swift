@@ -19,6 +19,10 @@ public struct WalletCommerceService {
         guard rows.allSatisfy({ $0.id > 0 }) else { throw APIError.malformedResponse }
         return rows.filter(\.isEarnTask)
     }
+    public func withdrawalBalance(memberID: Int, token: String) async throws -> WithdrawalBalance {
+        guard memberID > 0, boundScope.map({ $0.accountID == memberID }) ?? true else { throw APIError.invalidRequest }
+        return try decodeData(WithdrawalBalance.self, await send(path: "api/user/info", fields: ["member_id": String(memberID)], token: token))
+    }
     public func stages(token: String) async throws -> WalletFundsStages {
         let data = try await send(path: "api/wallet/stages", fields: [:], token: token, json: true)
         return try decodeData(WalletFundsStages.self, data)

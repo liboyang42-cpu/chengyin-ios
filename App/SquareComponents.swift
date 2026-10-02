@@ -59,6 +59,8 @@ struct SquareImage: View {
 struct SquarePostContent: View {
     let post: SquarePost
     var compact = false
+    var showImages = true
+    var mediaScope: UUID = UUID()
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top) {
@@ -73,10 +75,12 @@ struct SquarePostContent: View {
                 }
             }
             if let contents = post.contents { Text(verbatim: contents).lineLimit(compact ? 5 : nil).textSelection(.enabled) }
-            if !compact {
-                ForEach(Array(post.images.enumerated()), id: \.offset) { _, source in SquareImage(source: source) }
-                if let routeImage = post.routeImage { SquareImage(source: routeImage) }
-            } else if let image = post.images.first { SquareImage(source: image) }
+            if showImages && !post.images.isEmpty {
+                NativeMediaGalleryEntry(sources: post.images, scope: mediaScope, titleKey: "media.destination.squareImages", compact: compact)
+            }
+            if showImages && !compact, let routeImage = post.routeImage {
+                NativeMediaGalleryEntry(sources: [routeImage], scope: mediaScope, titleKey: "media.destination.squareImages")
+            }
             if let address = post.address, !address.isEmpty { Label { Text(verbatim: address) } icon: { Image(systemName: "mappin") } }
             if let club = post.clubName { LabeledContent("square.club", value: club) }
             if let title = post.referenceTitle { LabeledContent("square.reference", value: title) }

@@ -62,6 +62,23 @@ import SwiftUI
                     Button("playx.run.end", role: .destructive) { confirmEnd = true }.accessibilityIdentifier("playx.run.end")
                     if model.remoteRunSaveFailed { Text("playx.run.saveFailed").foregroundStyle(.orange) }
                 }
+                if let snapshot = model.snapshot, model.hasCurrentMediaSnapshot {
+                    Section("chapterStory.title") {
+                        ForEach(snapshot.result.chapters) { chapter in
+                            if let node = snapshot.visibleNodes.first(where: { $0.chapterID == chapter.id && !snapshot.isLocked($0) }),
+                               model.chapterStories[chapter.id] != nil {
+                                NavigationLink {
+                                    ChapterStoryView(chapterID: chapter.id, nodeID: node.id, model: model,
+                                        advancedModel: advancedModel, deviceModel: deviceModel, mediaScope: mediaScope,
+                                        makeAudio: makeAudio, nodeDestination: { AnyView(nodeDestination($0)) })
+                                } label: {
+                                    if let title = chapter.name { Label { Text(verbatim: title) } icon: { Image(systemName: "book") } }
+                                    else { Label("chapterStory.title", systemImage: "book") }
+                                }.accessibilityIdentifier("chapterStory.open.\(chapter.id)")
+                            }
+                        }
+                    }
+                }
                 Section("playx.nodes") {
                     ForEach(model.snapshot?.visibleNodes ?? []) { node in
                         Button { selectedNode = node.id } label: {
@@ -111,11 +128,7 @@ import SwiftUI
         }
         .privacySensitive().navigationTitle("playx.title").navigationBarTitleDisplayMode(.inline)
         .accessibilityIdentifier("playx.overview")
-        .navigationDestination(item: $selectedNode) { id in
-            let configuration = try? PlayStillnessConfiguration(raw: model.extras[id]?.sensorConfig ?? .null)
-            PlayExperienceNodeView(nodeID: id, model: model, device: deviceModel?(id), advanced: advancedModel.flatMap { $0(id) },
-                                   stillness: configuration.flatMap { configuration in motionModel.flatMap { $0(id, configuration) } }, preference: preferenceModel.flatMap { $0(id) }, journey: journeyModel.flatMap { $0(id) }, shopNPC: shopNPCModel?(id), mediaScope: mediaScope, makeAudio: makeAudio, makeExternalMaps: makeExternalMaps)
-        }
+        .navigationDestination(item: $selectedNode) { id in nodeDestination(id) }
         .confirmationDialog("playx.run.end", isPresented: $confirmEnd, titleVisibility: .visible) {
             Button("playx.run.end", role: .destructive) { Task { await model.endRun(now: ProcessInfo.processInfo.systemUptime, savedAt: Self.milliseconds) } }
         } message: { Text("playx.run.end.detail") }
@@ -126,6 +139,13 @@ import SwiftUI
         .onChange(of: scenePhase) { _, next in
             if next != .active, model.clock.phase == .running { Task { await model.pauseRun(now: ProcessInfo.processInfo.systemUptime, savedAt: Self.milliseconds) } }
         }
+    }
+    private func nodeDestination(_ id: Int) -> some View {
+        let configuration = try? PlayStillnessConfiguration(raw: model.extras[id]?.sensorConfig ?? .null)
+        return PlayExperienceNodeView(nodeID: id, model: model, device: deviceModel?(id), advanced: advancedModel.flatMap { $0(id) },
+            stillness: configuration.flatMap { configuration in motionModel.flatMap { $0(id, configuration) } },
+            preference: preferenceModel.flatMap { $0(id) }, journey: journeyModel.flatMap { $0(id) }, shopNPC: shopNPCModel?(id),
+            mediaScope: mediaScope, makeAudio: makeAudio, makeExternalMaps: makeExternalMaps)
     }
     private func projectAmbient() {
         guard let result = model.snapshot?.result else { return }
@@ -214,7 +234,7 @@ import SwiftUI
                 if let stillness, node.sensorType == "still" {
                     NavigationLink("playx.stillness") { PlayStillnessStreamView(model: stillness) { prepare(.sensor(type: "still", payload: $0)) } }
                 }
-                if let advanced, node.hasAdvancedPrerequisite { NavigationLink("playx.advanced") { PlayAdvancedView(model: advanced) { state in try? model.acceptAdvanced(state) } } }
+                if let advanced, node.hasAdvancedPrerequisite { NavigationLink("playx.advanced") { PlayAdvancedView(model: advanced, device: device, mediaScope: mediaScope, makeAudio: makeAudio) { state in try? model.acceptAdvanced(state) } } }
                 if let device { PlayDeviceTaskSection(model: device, task: PlayNodeTask.resolve(mode: model.snapshot?.result.mode, node: node),
                     photoFilter: node.sensorType == "filter_shot" ? PlayPhotoFilter(rawValue: model.extras[nodeID]?.sensorConfig["filterStyle"].text ?? "") : nil,
                     unsupportedPhotoSubtype: node.validationMethod == 2 && node.sensorType?.isEmpty == false && (node.sensorType != "filter_shot" || PlayPhotoFilter(rawValue: model.extras[nodeID]?.sensorConfig["filterStyle"].text ?? "") == nil), onEvidence: prepare) }

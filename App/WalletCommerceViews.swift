@@ -63,7 +63,10 @@ private struct WalletFormatting {
             if visibility.income { NavigationLink("wallet.income") { WalletIncomeView(reader: reader, onCooperationFinance: onCooperationFinance) } }
             if visibility.points { NavigationLink("wallet.points") { WalletLedgerView(reader: reader, kind: .points) } }
             if visibility.mall { NavigationLink("wallet.mall") { WalletProductsView(reader: reader) } }
-            if visibility.withdrawalRecords { NavigationLink("wallet.withdrawals") { WalletWithdrawalsView(reader: reader) } }
+            if visibility.withdrawalRecords {
+                NavigationLink("withdrawal.support.title") { WithdrawalSupportLandingView(reader: reader) }
+                NavigationLink("wallet.withdrawals") { WalletWithdrawalsView(reader: reader) }
+            }
         }.appNavigationTitle("wallet.title")
     }
 }
@@ -90,6 +93,7 @@ private struct WalletFormatting {
                 } else { WalletIssueView(reader: reader, requiresLogin: funds.requiresLogin) { Task { await load() } } }
             }
             Section {
+                NavigationLink("withdrawal.support.title") { WithdrawalSupportLandingView(reader: reader) }
                 NavigationLink("wallet.balanceLedger") { WalletLedgerView(reader: reader, kind: .balance) }
                 NavigationLink("wallet.pointsLedger") { WalletLedgerView(reader: reader, kind: .assetPoints) }
             }
@@ -312,7 +316,7 @@ private struct WalletFormatting {
     @StateObject private var model = WalletScreen<WalletPage<WalletWithdrawalRecord>>()
     var body: some View {
         List {
-            Text("wallet.withdrawalReadOnly")
+            Text("bank.withdrawal.historyNotice")
             if model.loading { ProgressView("wallet.loading") }
             else if let page = model.value, model.loadedScope == reader.scope {
                 if page.rows.isEmpty { Text("wallet.empty") }

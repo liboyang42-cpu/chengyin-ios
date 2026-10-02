@@ -223,6 +223,16 @@ final class AppSession: ObservableObject {
         })
     }
 
+    private var currentPlayerJourneySession: PlayerJourneySession? {
+        guard let account, let token, let namespace = storageScope?.service else { return nil }
+        return try? PlayerJourneySession(accountID: account.id, epoch: gate.currentStamp, namespace: namespace, token: token)
+    }
+    lazy var playerJourneyReader = PlayerJourneySessionReader(service: regionalConfiguration?.apiConfiguration.map {
+        PlayerJourneyService(configuration: $0, transport: URLSessionTransport())
+    }, currentSession: { [weak self] in self?.currentPlayerJourneySession }, onUnauthorized: { [weak self] captured in
+        guard let self, self.currentPlayerJourneySession == captured else { return }
+        self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
+    }) // Dedicated history read grant remains off until independently accepted.
     private let playService: PlayService?
     private struct PlayReaderKey: Hashable { let accountID:Int?;let scope:PlaySessionScope }
     private var playReaders:[PlayReaderKey:PlaySessionReader]=[:]
@@ -592,6 +602,43 @@ final class AppSession: ObservableObject {
         return CouponManagementCoordinator(adapter: .init(transport: reader),
             authorizer: publisher ?? CouponPublisherUnavailable(), locks: couponManagementLocks,
             currentSession: { [weak self] in self?.couponManagementSession })
+    }
+    // Source-backed media composition remains dormant: hardware, upload origins and write grants are empty.
+    private var roamMediaScope: RetainedImageScope? {
+        guard let wallet = walletCommerceScope, let credentials = currentRetainedImageCredentials else { return nil }
+        return try? RetainedImageScope(accountID: wallet.accountID, epoch: wallet.epoch,
+            realm: credentials.realm, destination: .stamp, namespace: wallet.namespace)
+    }
+    func makeRoamStampCaptureCoordinator() -> RoamStampCaptureCoordinator? {
+        guard let scope = roamMediaScope, let configuration = regionalConfiguration?.apiConfiguration,
+              let credentials = currentRetainedImageCredentials else { return nil }
+        let current: () -> RetainedImageScope? = { [weak self] in
+            guard let self, self.currentRetainedImageCredentials == credentials else { return nil }; return self.roamMediaScope
+        }
+        let token: () -> String? = { [weak self] in self?.currentRetainedImageCredentials == credentials ? credentials.token : nil }
+        let transport = ResponseLimitedHTTPTransport()
+        let uploader = RetainedImageHTTPUploader(configuration: configuration, transport: transport,
+            enabled: false, approvedOrigins: [], currentScope: current, token: token)
+        let executor = RoamMediaMutationService(configuration: configuration, transport: transport,
+            enabled: false, approval: nil, currentScope: current, token: token)
+        let storage = StoredRoamStampPending(read: { [unowned self] in try self.imageUploadStorage.read($0) },
+            write: { [unowned self] in try self.imageUploadStorage.write($0, key: $1) })
+        return RoamStampCaptureCoordinator(scope: scope,
+            uploads: RetainedImageUploadCoordinator(uploader: uploader, journal: imageUploadJournal), executor: executor, storage: storage)
+    }
+    func makeRoamPosterCoordinator(node: RoamNodeDetail) -> RoamPosterCoordinator? {
+        guard let mediaScope = roamMediaScope, let configuration = regionalConfiguration?.apiConfiguration,
+              let credentials = currentRetainedImageCredentials,
+              let scope = try? RetainedImageScope(accountID: mediaScope.accountID, epoch: mediaScope.epoch,
+                realm: mediaScope.realm, destination: .roamPoster(poiID: node.poiId), namespace: mediaScope.namespace) else { return nil }
+        let executor = RoamMediaMutationService(configuration: configuration, transport: ResponseLimitedHTTPTransport(),
+            enabled: false, approval: nil, currentScope: { [weak self] in
+                guard let self, self.currentRetainedImageCredentials == credentials, self.roamMediaScope == mediaScope else { return nil }; return scope
+            }, token: { [weak self] in self?.currentRetainedImageCredentials == credentials ? credentials.token : nil })
+        return RoamPosterCoordinator(scope: scope, poiID: node.poiId, node: { node }, location: DisabledRoamPosterLocation(),
+            executor: executor, journal: OperationDefaultsJournal(defaults: .standard), refreshNode: { [weak self] in
+                guard let self else { throw APIError.unauthorized }; return try await self.roamReader.roamNodeDetail(id: node.poiId)
+            })
     }
     private var walletEpochCache: (stamp: UInt64, accountID: Int, epoch: UUID)?
     var walletCommerceScope: WalletCommerceScope? {
@@ -972,7 +1019,7 @@ final class AppSession: ObservableObject {
     })
     // Session-lived: unresolved operations cannot be replayed by reopening a sheet.
     lazy var clubGovernanceCoordinator = ClubGovernanceCoordinator(access: clubGovernanceAccess)
-    var clubGovernanceContext: ClubGovernanceContext { .init(access: clubGovernanceAccess, coordinator: clubGovernanceCoordinator) }
+    var clubGovernanceContext: ClubGovernanceContext { .init(access: clubGovernanceAccess, coordinator: clubGovernanceCoordinator, enrollmentProfile: .init(reader: socialAccountReader, squareReader: squareReader, actions: socialActionCoordinator)) }
     private var currentClubOperationsSession: ClubOperationsSession? {
         guard let account, let token else { return nil }
         return try? ClubOperationsSession(accountID: account.id, epoch: gate.currentStamp, token: token, storageNamespace: storageScope?.service ?? "")

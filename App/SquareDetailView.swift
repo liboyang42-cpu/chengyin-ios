@@ -31,7 +31,7 @@ import SwiftUI
                 if let detailIssue { SquareIssueView(error: detailIssue) { Task { await reload() } } }
                 if let post {
                     Section {
-                        SquarePostContent(post: post).accessibilityIdentifier("square.detailPost")
+                        SquarePostContent(post: post, mediaScope: reader.scope).accessibilityIdentifier("square.detailPost")
                         if let accountReader, post.memberID > 0 {
                             NavigationLink { SocialPublicProfileView(memberID: post.memberID, reader: accountReader, squareReader: reader, actions: actions) } label: { Label("social.viewAuthor", systemImage: "person.crop.circle") }
                                 .accessibilityIdentifier("social.viewAuthor")
@@ -99,7 +99,7 @@ import SwiftUI
             }
             if let name = comment.replyName(in: comments.items) { LabeledContent("square.replyTo", value: name).font(.caption) }
             if let contents = comment.contents { Text(verbatim: contents).textSelection(.enabled) }
-            ForEach(Array(comment.images.enumerated()), id: \.offset) { _, image in SquareImage(source: image) }
+            NativeMediaGalleryEntry(sources: comment.images, scope: reader.scope, titleKey: "media.destination.squareImages")
             LabeledContent("square.likes", value: String(max(0, comment.likeCount))).font(.caption)
             if !comment.createTime.isEmpty { Text(verbatim: comment.createTime).font(.caption).foregroundStyle(.secondary) }
         }.padding(.leading, comment.parentID == nil ? 0 : 12)

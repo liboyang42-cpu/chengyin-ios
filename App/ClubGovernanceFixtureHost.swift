@@ -7,6 +7,11 @@ import SwiftUI
         NavigationStack {
             List {
                 Text("club.gov.synthetic").accessibilityIdentifier("club.gov.synthetic")
+                NavigationLink {
+                    ClubEnrollmentView(clubID: 81, focusTopicID: 91, identity: store.identity, access: store.access, coordinator: store.coordinator)
+                        .environment(\.clubEnrollmentProfile, .init(reader: SocialAccountFixtureReader(.content), squareReader: SquareFixtureReader()))
+                        .toolbar { ToolbarItem(placement: .bottomBar) { Button("club.gov.switchAccount") { store.switchAccount() }.accessibilityIdentifier("club.gov.switchAccount") } }
+                } label: { Text("club.enroll.title") }.accessibilityIdentifier("club.enroll.fixture")
                 ClubGovernanceHomeEntries(identity: store.identity, access: store.access, coordinator: store.coordinator)
                 ClubGovernanceEntryButton(clubID: 81, identity: store.identity, access: store.access, coordinator: store.coordinator)
                 ForEach([ClubGovernanceRead.customers, .series, .roles, .topicOverview, .editions, .dissolutionBlockers, .leaderboard, .settlement, .audienceCounts, .roster], id: \.rawValue) { operation in

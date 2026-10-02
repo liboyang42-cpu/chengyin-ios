@@ -4,6 +4,7 @@ import SwiftUI
 @MainActor struct TemplateAuthoringMineView: View {
     let coordinator: TemplateAuthoringCoordinator
     let sessionRevision: UInt64
+    var memberDetail: ((MemberPlayTemplateID) -> AnyView)? = nil
     @State private var rows: [DiscoveryPlayTemplate] = []
     @State private var messageKey: String?
     @State private var review: TemplateOwnShelfReview?
@@ -21,6 +22,10 @@ import SwiftUI
             ForEach(rows) { row in
                 Section {
                     Text(verbatim: row.title).font(.headline)
+                    if let id = MemberPlayTemplateID(rawValue: row.id), let memberDetail {
+                        NavigationLink { memberDetail(id) } label: { Label("memberTemplate.title", systemImage: "doc.text.magnifyingglass") }
+                            .accessibilityIdentifier("memberTemplate.mine.\(row.id)")
+                    }
                     LabeledContent("templateAuthor.shelf.identity", value: String(row.id))
                     if let text = row.description { Text(verbatim: text) }
                     Text(LocalizedStringKey(row.status == 1 ? "templateAuthor.published" : row.status == 2 ? "templateAuthor.underReview" : "templateAuthor.unpublished"))

@@ -115,7 +115,7 @@ public enum ClubGovernanceValidation {
         case .feed:
             try require(count(value["clubCount"])); let list = try rows(value["rows"]); try unique(list, key: "id")
         case .posts: let list = try rows(value); try unique(list, key: "id")
-        case .registrations: _ = try rows(value["omsTicketList"])
+        case .registrations: _ = try ClubEnrollmentRoster(value: value, scope: scope)
         }
         return sanitize(accepted, roster: operation == .roster, publicProjection: operation == .topicOverview)
     }

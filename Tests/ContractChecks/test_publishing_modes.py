@@ -13,7 +13,8 @@ class PublishingIntegrationTests(unittest.TestCase):
   s=self.text('App/AppSession.swift');self.assertIn('publishingEpochCache?.role != role',s)
   self.assertIn('readApproval: OperationEndpointApproval? = nil',s)
   self.assertIn('lazy var publishingService: PublishingService? = makePublishingService()',s)
-  part=s.split('func makePublishingService')[1].split('private var retainedTemplateAuthors')[0]
+  # Only inspect this factory, not unrelated later factories with their own journals.
+  part=s.split('func makePublishingService',1)[1].split('\n    }',1)[0]
   self.assertNotIn('journal:',part);self.assertNotIn('PublishingAuxiliaryService(',s)
  def test_seed_preserves_existing_pending_and_restore_boundaries(self):
   s=self.text('App/ProjectEditView.swift');self.assertIn('seedSession == coordinator.session, fullEdit',s)

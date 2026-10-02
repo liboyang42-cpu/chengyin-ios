@@ -2,10 +2,12 @@ import SwiftUI
 
 @MainActor struct RoamStampAlbumView: View {
     let reader: any RoamExperienceReading
+    var stampDestination: (() -> AnyView)? = nil
     @State private var pager: RoamAlbumPager
     @State private var revision = 0
     @State private var loading = false
-    init(reader: any RoamExperienceReading) {
+    init(reader: any RoamExperienceReading, stampDestination: (() -> AnyView)? = nil) {
+        self.stampDestination = stampDestination
         self.reader = reader; _pager = State(initialValue: RoamAlbumPager(reader: reader))
     }
     var body: some View {
@@ -29,6 +31,7 @@ import SwiftUI
                 }
             }.padding()
         }.navigationTitle("roam.experience.album")
+            .toolbar { ToolbarItem(placement: .topBarTrailing) { NavigationLink { if let stampDestination { stampDestination() } else { AnyView(RoamStampCameraView()) } } label: { Label("media.stamp.title", systemImage: "camera") } } }
             .task(id: reader.identity) { await refresh() }
             .refreshable { await refresh() }
             .onDisappear { pager.cancelPending(); revision += 1; loading = false }

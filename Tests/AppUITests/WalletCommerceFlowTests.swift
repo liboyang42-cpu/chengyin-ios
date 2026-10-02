@@ -41,4 +41,26 @@ final class WalletCommerceFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Sign in to view this information"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.staticTexts["wallet.ledger.3"].exists)
     }
+    func testBankFormIsReachableAndClearlyDormant() {
+        let app = launch(); app.buttons["wallet.fixture.bankWithdrawal"].tap()
+        XCTAssertTrue(app.staticTexts["Bank-card submission is not enabled in this build. No banking details will be sent."].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.secureTextFields["bank.withdrawal.account"].exists)
+        XCTAssertFalse(app.buttons["bank.withdrawal.confirmSubmit"].exists)
+    }
+    func testBankReviewValidatesBeforeOpeningConfirmation() {
+        let app = launch(); app.buttons["wallet.fixture.bankWithdrawal"].tap()
+        let review = app.buttons["bank.withdrawal.review"]
+        if !review.isHittable { app.swipeUp() }
+        review.tap()
+        XCTAssertTrue(app.staticTexts["bank.withdrawal.issue"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["bank.withdrawal.prepare"].exists)
+    }
+    func testBankHistoryUsesServerRejectedStatusInsteadOfPaid() {
+        let app = launch(); app.buttons["wallet.fixture.withdrawals"].tap()
+        let row = app.staticTexts["wallet.withdrawal.41"]
+        XCTAssertTrue(row.waitForExistence(timeout: 5))
+        XCTAssertTrue(row.label.contains("Rejected"))
+        XCTAssertFalse(row.label.contains("Paid"))
+    }
+
 }

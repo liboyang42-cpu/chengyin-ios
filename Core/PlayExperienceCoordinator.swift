@@ -31,6 +31,10 @@ public struct PlayPendingCompletion: Equatable {
     public let scope: PlaySessionScope
     public private(set) var snapshot: PlaySnapshot?
     public private(set) var extras: [Int: PlayNodeExtras] = [:]
+    public private(set) var chapterStories: [Int: ChapterStoryDocument] = [:]
+    public private(set) var storyVariables: [String: PlayWireValue] = [:]
+    public private(set) var storyVoices: [String: PlayWireValue] = [:]
+    public private(set) var storyThoughts: [PlayWireValue] = []
     public private(set) var phase: Phase = .idle
     public private(set) var issue: PlayExperienceError?
     public private(set) var reward: PlayWireValue?
@@ -81,6 +85,7 @@ public struct PlayPendingCompletion: Equatable {
             hintUnknownNodes = Set((unknownHintRequests[PlayRunStorageKey.make(session: session, scope: scope)] ?? [:]).keys)
             leaderOutcomeUnknown = unknownLeaderKeys.contains(PlayRunStorageKey.make(session: session, scope: scope))
             authorityOwner = session
+            chapterStories = [:]; storyVariables = [:]; storyVoices = [:]; storyThoughts = []
         }
         loadedSession = nil
         do {
@@ -102,6 +107,10 @@ public struct PlayPendingCompletion: Equatable {
             unknownHintRequests[key] = hintRequests; hintUnknownNodes = Set(hintRequests.keys)
             unresolved = try recovery.read(key) != nil || !hintUnknownNodes.isEmpty || leaderOutcomeUnknown
             self.snapshot = snapshot; extras = document.extras; loadedSession = session
+            chapterStories = document.chapterStories
+            storyVariables.merge(document.storyVariables) { _, new in new }
+            storyVoices.merge(document.storyVoices) { _, new in new }
+            storyThoughts = snapshot.route?.thoughts ?? document.storyThoughts
             phase = unresolved ? .unknown : .ready
         } catch { fail(error, session: session, generation: request) }
     }
@@ -266,6 +275,7 @@ public struct PlayPendingCompletion: Equatable {
         catch { if currentSession() == session { remoteRunSaveFailed = true } }
     }
     public func invalidate() {
+        chapterStories = [:]; storyVariables = [:]; storyVoices = [:]; storyThoughts = []
         generation &+= 1; loadedSession = nil; snapshot = nil; extras = [:]; reward = nil; hint = nil
         ending = nil; leaderboard = nil; lead = nil; advancedReadyNodeIDs = []; clock.restore(nil); phase = .idle
     }

@@ -43,7 +43,7 @@ public enum ClubGovernanceFixtures {
         case .leaderboard: return json(#"[{"memberId":704,"nickname":"Fixture member","score":7,"clearCount":1,"mileage":2,"durationMin":30,"hostedCount":0,"pace":null,"completionDuration":null}]"#)
         case .feed: return json(#"{"clubCount":1,"rows":[{"id":191,"clubId":81,"content":"Synthetic club update","nickname":"Fixture member"}]}"#)
         case .posts: return value(.feed)["rows"]
-        case .registrations: return json(#"{"omsTicketList":[{"name":"Fixture ticket","totalInventory":12,"cmsRegistrationList":[{"id":121,"memberId":704,"nickname":"Fixture attendee","paymentStatus":2,"verificationStatus":0}]}]}"#)
+        case .registrations: return json(#"{"clubId":81,"topicId":91,"canRefund":false,"omsTicketList":[{"id":921,"name":"Fixture ticket","totalInventory":12,"cmsRegistrationList":[{"id":121,"memberId":704,"nickname":"Fixture attendee","paymentStatus":2,"verificationStatus":0}]}]}"#)
         }
     }
     public static func command(_ mutation: ClubGovernanceMutation, scope: ClubGovernanceScope = ClubGovernanceFixtures.scope) throws -> ClubGovernanceCommand {

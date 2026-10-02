@@ -2,11 +2,12 @@ import SwiftUI
 
 @MainActor struct PlayAdvancedView: View {
     @Bindable var model: PlayAdvancedCoordinator
+    var device: PlayDeviceCaptureCoordinator? = nil
+    var mediaScope: UUID = UUID()
+    var makeAudio: (@MainActor () -> PlatformAudioPlayback)? = nil
+    var approvedArtworkHosts: Set<String> = []
+    var makeSensorProvider: (@MainActor () -> any PlayKitSensorProviding)? = nil
     let onReady: (PlayAdvancedState) -> Void
-    @State private var reviewAction: String?
-    @State private var reviewKind: String?
-    @State private var reviewPayload: [String: PlayWireValue] = [:]
-    @State private var showReview = false
     @Environment(\.dismiss) private var dismiss
     var body: some View {
         List {
@@ -29,35 +30,32 @@ import SwiftUI
                         }
                         Text("playx.advanced.timerNotice").font(.footnote)
                     }
-                    if state.needsUnverifiedSteps { Text("playx.advanced.stepsGate") }
                     if state.readyForBase {
-                        Button("playx.advanced.continue") { onReady(state); dismiss() }.accessibilityIdentifier("playx.advanced.continue")
+                        Button("playx.advanced.continue") { onReady(state); dismiss() }
+                            .disabled(model.pending != nil || !model.isCurrent || model.phase != "ready")
+                            .accessibilityIdentifier("playx.advanced.continue")
                     }
                 }
-                ForEach(Array(state.draws.enumerated()), id: \.offset) { _, draw in
-                    Section { if let label = draw["label"].text { Text(verbatim: label).font(.headline) }; if let content = draw["content"].text { Text(verbatim: content) } }
-                }
-                if state.config["random"]["enabled"].bool == true { Section { actionButton("playx.advanced.draw", kind: "random", action: "DRAW") } }
-                if state.config["branch"]["enabled"].bool == true {
-                    Section("playx.advanced.branch") {
-                        if let title = state.branch["currentStep"]["title"].text { Text(verbatim: title).font(.headline) }
-                        if let body = state.branch["currentStep"]["body"].text { Text(verbatim: body) }
-                        ForEach(Array((state.branch["currentStep"]["options"].array ?? []).enumerated()), id: \.offset) { _, option in
-                            if let id = option["id"].text, let label = option["label"].text {
-                                Button { prepare(kind: "branch", action: "CHOOSE", payload: ["optionId": .string(id)]) } label: { Text(verbatim: label) }
-                                    .disabled(model.phase != "ready").accessibilityIdentifier("playx.advanced.choice.\(id)")
+                ForEach(PlayKitScreenKind.present(in: state)) { kind in
+                    Section {
+                        NavigationLink {
+                            PlayKitScreen(model: model, kind: kind, device: device, mediaScope: mediaScope,
+                                makeAudio: makeAudio, approvedArtworkHosts: approvedArtworkHosts, makeSensorProvider: makeSensorProvider)
+                        } label: {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(LocalizedStringKey("playkit.kind." + kind.rawValue)).font(.headline)
+                                if let title = state.playKit[kind.rawValue]["title"].text, !title.isEmpty { Text(verbatim: title).font(.subheadline) }
+                                if PlayKitScreenProjection(kind: kind, segment: state.playKit[kind.rawValue]).complete { Text("playkit.result.recorded").font(.caption) }
                             }
-                        }
+                        }.accessibilityIdentifier("playkit.open." + kind.rawValue)
                     }
                 }
-                ForEach((state.playKit.object ?? [:]).keys.sorted(), id: \.self) { kind in
+                // Existing non-screen kits remain explicitly distinct from this migration.
+                ForEach((state.playKit.object ?? [:]).keys.filter { PlayKitScreenKind(rawValue: $0) == nil }.sorted(), id: \.self) { kind in
                     Section {
                         Text(verbatim: state.playKit[kind]["title"].text ?? kind).font(.headline)
                         if let description = state.playKit[kind]["description"].text { Text(verbatim: description) }
-                        if kind == "coinFlip" { actionButton("playx.advanced.coin", kind: kind, action: "FLIP_COIN") }
-                        else if kind == "diceRoll" { actionButton("playx.advanced.dice", kind: kind, action: "ROLL_DICE") }
-                        else if kind == "dailySign" { actionButton("playx.advanced.sign", kind: kind, action: "CLAIM_DAILY_SIGN") }
-                        else { Text("playx.advanced.specialGate").font(.footnote) }
+                        Text("playx.advanced.specialGate").font(.footnote)
                     }
                 }
                 if state.isMultiplayer {
@@ -70,16 +68,5 @@ import SwiftUI
                 }
             }
         }.privacySensitive().navigationTitle("playx.advanced").accessibilityIdentifier("playx.advanced.view")
-            .confirmationDialog("playx.review", isPresented: $showReview, titleVisibility: .visible) {
-                Button("playx.submit") {
-                    if let kind = reviewKind, let action = reviewAction { Task { await model.submit(kind: kind, action: action, detail: reviewPayload) } }
-                }
-            } message: { Text("playx.advanced.review") }
-    }
-    private func actionButton(_ title: String, kind: String, action: String) -> some View {
-        Button(LocalizedStringKey(title)) { prepare(kind: kind, action: action) }.disabled(model.phase != "ready")
-    }
-    private func prepare(kind: String, action: String, payload: [String: PlayWireValue] = [:]) {
-        reviewKind = kind; reviewAction = action; reviewPayload = payload; showReview = true
     }
 }

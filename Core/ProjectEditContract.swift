@@ -7,7 +7,7 @@ public enum ProjectEditContract {
     public static let sourceDetailPath = "/api/topic/edit-detail"
     public static let sourcePrecheckPath = "/api/ai/safety/precheck"
     public static let chapterCarryOver = ["imgArr", "audioUrl", "atmospherePreset", "recruitEnabled", "termsMode", "categoryId", "category", "maxMerchant", "perkMinValue", "allowedValidationMethods", "maxNodeXp", "calculatedDistance"]
-    public static let topicCarryOver = ["publishMode", "audioUrl", "audioDuration", "selfPlay", "selfPlayPrice", "selfPlayQuota", "finishMedalName", "finishMedalImg", "completeRewardCouponId"]
+    public static let topicCarryOver = ProjectEditStoryContract.topicFields + ["publishMode", "audioUrl", "audioDuration", "selfPlay", "selfPlayPrice", "selfPlayQuota", "finishMedalName", "finishMedalImg", "completeRewardCouponId"]
     public static let whitelist = ["name", "subtitle", "description", "imgUrl", "imgArr", "categoryIds", "scope"]
 
     public static func payload(_ draft: ProjectEditDraft, topicID: Int?, scope: ProjectEditScope) throws -> [String: ProjectEditJSON] {
@@ -30,7 +30,9 @@ public enum ProjectEditContract {
         if let clubID = draft.clubID { payload["clubId"] = .number(Decimal(clubID)) }
         if draft.product == .freeExplore { payload["recruitDeadline"] = .string(ProjectEditValidation.dateTime(draft.recruitDeadline, endOfDay: true)!) }
         for key in topicCarryOver { if let value = draft.preserved[key] { payload[key] = value } }
-        payload["chapters"] = .array(try draft.chapters.map { .object(try chapterPayload($0, product: draft.product)) })
+        let storyFlow = ProjectEditStoryContract.usesV2(draft)
+        guard storyFlow || !draft.chapters.contains(where: { $0.blocks != nil && !ProjectEditStoryContract.isLegacyProjection($0) }) else { throw ProjectEditError.invalidDraft }
+        payload["chapters"] = .array(try draft.chapters.map { .object(try chapterPayload($0, product: draft.product, storyFlow: storyFlow, editing: topicID != nil)) })
         payload["tickets"] = .array(try draft.tickets.map { ticket in
             guard let price = ProjectEditValidation.decimal(ticket.price), let stock = Int(ticket.totalStock), let team = Int(ticket.teamSize) else { throw ProjectEditError.invalidDraft }
             var p: [String: ProjectEditJSON] = [
@@ -44,11 +46,12 @@ public enum ProjectEditContract {
             for (key, value) in optional where !value.isEmpty { p[key] = .string(value) }
             return .object(p)
         })
+        try ProjectEditStoryContract.validatePayload(payload)
         return payload
     }
-    private static func chapterPayload(_ chapter: ProjectEditChapter, product: ProjectEditProduct) throws -> [String: ProjectEditJSON] {
+    private static func chapterPayload(_ chapter: ProjectEditChapter, product: ProjectEditProduct, storyFlow: Bool, editing: Bool) throws -> [String: ProjectEditJSON] {
         var ordered = chapter.nodes
-        if product == .city, let blocks = chapter.blocks {
+        if storyFlow, let blocks = chapter.blocks {
             // Nodes absent from blocks retain their relative position at the end, matching source.
             let ids = blocks.filter { $0.kind == .node }.map(\.nodeID)
             let byID = Dictionary(uniqueKeysWithValues: chapter.nodes.map { ($0.id, $0) })
@@ -57,30 +60,20 @@ public enum ProjectEditContract {
         }
         var p: [String: ProjectEditJSON] = ["name": .string(chapter.name), "description": .string(chapter.description)]
         for key in chapterCarryOver { if let value = chapter.preserved[key] { p[key] = value } }
+        if editing, let id = chapter.preserved["id"] { p["id"] = id }
+        if storyFlow { for key in ["opening", "ending"] { if let value = chapter.preserved[key] { p[key] = value } } }
         p["nodes"] = .array(ordered.enumerated().map { index, node in
             var row: [String: ProjectEditJSON] = ["name": .string(node.name), "sortID": .number(Decimal(index + 1)), "nodeTime": .number(Decimal(node.nodeTime))]
             for (key, value) in ["description": node.description, "address": node.address, "longitude": node.longitude, "latitude": node.latitude, "imgUrl": node.imgUrl] where !value.isEmpty { row[key] = .string(value) }
             if let id = node.templateID, id > 0 { row["templateId"] = .number(Decimal(id)) }
+            for key in ProjectEditStoryContract.nodeFields where key != "id" || editing { if let value = node.localMetadata[key] { row[key] = value } }
+            if row["clientNodeKey"] == nil { row["clientNodeKey"] = .string(node.id) }
             return .object(row)
         })
-        if product == .city, let blocks = chapter.blocks {
-            p["description"] = .string(chapter.story)
-            p["schemaVersion"] = .number(Decimal(chapter.schemaVersion)); p["required"] = .number(Decimal(chapter.required))
-            var rows: [ProjectEditJSON] = []
-            for block in blocks {
-                switch block.kind {
-                case .text: rows.append(.object(["type": .string("text"), "content": .string(block.content)]))
-                case .node:
-                    guard let index = ordered.firstIndex(where: { $0.id == block.nodeID }) else { throw ProjectEditError.invalidDraft }
-                    rows.append(.object(["type": .string("node"), "nodeIndex": .number(Decimal(index))]))
-                case .image, .audio:
-                    let url = block.url.trimmingCharacters(in: .whitespacesAndNewlines)
-                    if block.kind == .audio && url.isEmpty { continue }
-                    guard !url.isEmpty else { throw ProjectEditError.invalidDraft }
-                    rows.append(.object(["type": .string(block.kind.rawValue), "url": .string(url)]))
-                }
-            }
-            if !rows.isEmpty { p["blocks"] = .array(rows) }
+        if storyFlow {
+            let rows = try ProjectEditStoryContract.materializedBlocks(chapter, ordered: ordered)
+            p["description"] = .string(ProjectEditStoryContract.projectedDescription(rows))
+            p["schemaVersion"] = .number(1); p["required"] = .number(1); p["blocks"] = .array(rows)
         }
         return p
     }
@@ -110,6 +103,7 @@ public enum ProjectEditContract {
             guard let source = raw.object, let nodes = (source["cmsTopicNodeList"] ?? source["nodes"])?.array else { throw ProjectEditError.invalidContract }
             var c = ProjectEditChapter(); c.id = "chapter-\(source["id"]?.integer ?? index + 1)"
             c.name = s(source, "name"); c.description = s(source, "description")
+            for key in ["id", "opening", "ending"] { if let value = source[key] { c.preserved[key] = value } }
             c.schemaVersion = source["schemaVersion"]?.integer ?? 1; c.required = source["required"]?.integer ?? 1
             for key in chapterCarryOver { if let value = source[key] { c.preserved[key] = value } }
             // Source aliases, rather than cosmetic UI colors, define the stored preset.
@@ -126,11 +120,22 @@ public enum ProjectEditContract {
                 n.nodeTime = node["nodeTime"]?.integer ?? 30; n.templateID = node["templateId"]?.integer
                 n.localMetadata = node; return n
             }
-            if let rawBlocks = source["blocks"], rawBlocks != .null {
+            if let rawStored = source["blocksJson"] {
+                guard rawStored == .null || rawStored.text != nil else { throw ProjectEditError.invalidContract }
+                c.preserved["_nativeStoredStoryFlow"] = .bool(!(rawStored.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            }
+            var storedBlocks = source["blocks"]
+            if let json = source["blocksJson"]?.text, !json.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                storedBlocks = try JSONDecoder().decode(ProjectEditJSON.self, from: Data(json.utf8))
+            }
+            if let rawBlocks = storedBlocks, rawBlocks != .null {
                 guard let blocks = rawBlocks.array else { throw ProjectEditError.invalidContract }
                 c.blocks = try blocks.enumerated().map { bi, rawBlock in
-                    guard let block = rawBlock.object, let kind = block["type"]?.text.flatMap(ProjectEditBlock.Kind.init(rawValue:)) else { throw ProjectEditError.invalidContract }
-                    var b = ProjectEditBlock(kind: kind, content: s(block, "content"), url: s(block, "url")); b.id = c.id + "-block-\(bi + 1)"
+                    guard let block = rawBlock.object, Set(block.keys).isSubset(of: ProjectEditStoryContract.blockFields), let kind = block["type"]?.text.flatMap(ProjectEditBlock.Kind.init(rawValue:)) else { throw ProjectEditError.invalidContract }
+                    var b = ProjectEditBlock(kind: kind, content: s(block, "content"), url: s(block, "url")); b.id = block["key"]?.text ?? c.id + "-block-\(bi + 1)"
+                    if kind != .node, ["nodeIndex", "nodeId", "nodeKey"].contains(where: { block[$0] != nil }) { throw ProjectEditError.invalidContract }
+                    let metadata = block.filter { ["locationRequired", "who", "level", "when"].contains($0.key) }
+                    b.sourceFields = metadata.isEmpty ? nil : metadata
                     if kind == .node {
                         if let key = block["nodeKey"]?.text, c.nodes.contains(where: { $0.id == key }) { b.nodeID = key }
                         else if let serverID = block["nodeId"]?.integer, let key = byServerID[serverID] { b.nodeID = key }
@@ -157,6 +162,7 @@ public enum ProjectEditContract {
             t.saleStartTime = s(source, "saleStartTime"); t.saleEndTime = s(source, "saleEndTime"); t.localMetadata = source
             return t
         }
+        try ProjectEditStoryContract.restoreMetadata(&d, body: body, topic: topic)
         return .init(topicID: expectedTopicID, scope: editScope, draft: d)
     }
 }

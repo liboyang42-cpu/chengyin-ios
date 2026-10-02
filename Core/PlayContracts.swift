@@ -146,9 +146,10 @@ public struct PlayRouteState: Decodable, Equatable {
     public let recommendedNodeID: Int?
     public let nodeStates: [Int: String]
     public let lockReasons: [Int: String]
+    public let thoughts: [PlayWireValue]
     public var isBranch: Bool { mode == "BRANCH_GRAPH" }
     private enum CodingKeys: String, CodingKey {
-        case routeMode, sessionId, status, version, currentNodeId, recommendedNodeId, nodeStates, lockReasons
+        case routeMode, sessionId, status, version, currentNodeId, recommendedNodeId, nodeStates, lockReasons, thoughts
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -156,6 +157,7 @@ public struct PlayRouteState: Decodable, Equatable {
         sessionID = try c.playInt(.sessionId); status = try c.decodeIfPresent(String.self, forKey: .status)
         version = try c.playInt(.version); currentNodeID = try c.playInt(.currentNodeId)
         recommendedNodeID = try c.playInt(.recommendedNodeId)
+        thoughts = try c.decodeIfPresent([PlayWireValue].self, forKey: .thoughts) ?? []
         func map(_ key: CodingKeys) throws -> [Int: String] {
             let raw = try c.decodeIfPresent([String: String].self, forKey: key) ?? [:]
             var result: [Int: String] = [:]

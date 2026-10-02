@@ -180,7 +180,8 @@ public struct WalletCommerceReview: Equatable {
         return orderID
     }
     // No public reset/force retry. Source supplies no idempotency/receipt correlation endpoint.
-    // Withdrawal create/preflight/bank-transfer methods do not exist by design (source R10).
+    // Bank withdrawal is a separate, explicitly requested app flow in BankWithdrawalAdapter.
+    // This commerce adapter remains unrelated to bank operations.
 }
 
 /// Stable ordering, raw-page pagination and no advance on failure. Filtering is only presentation.
@@ -235,7 +236,7 @@ public final class WalletCommerceApprovedReadTransport: HTTPTransport {
         try Task.checkCancellation()
         guard let current = currentSession(), current.scope == scope, current.token == token,
               request.value(forHTTPHeaderField: "Authorization") == token else { throw WalletCommerceSafetyError.staleSession }
-        let reads = ["api/wallet/stages", "api/balance/list", "api/points/list", "api/user/points/list", "api/user/balance/list",
+        let reads = ["api/user/info", "api/wallet/stages", "api/balance/list", "api/points/list", "api/user/points/list", "api/user/balance/list",
                      "api/points/result_list", "api/product/list", "api/product/info", "api/cart/list", "api/cart/settlement", "api/withdrawal/list"]
         guard request.httpMethod == "POST",
               let path = reads.first(where: { configuration.baseURL.appendingPathComponent($0) == request.url }),

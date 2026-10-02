@@ -7,6 +7,8 @@ public enum RetainedImageFailure: Error, Equatable {
 /// No IM identity crosses this boundary. Field + account + epoch + entity bind each image.
 public struct RetainedImageScope: Equatable {
     public enum Destination: Equatable {
+        case stamp
+        case roamPoster(poiID: Int)
         case publicReview(merchantRowID: Int, registrationID: Int)
         case merchant(merchantRowID: Int, field: MerchantImageField)
     }
@@ -21,6 +23,8 @@ public struct RetainedImageScope: Equatable {
         guard accountID > 0, let base = URL(string: realm), base.scheme == "https", base.host != nil,
               base.user == nil, base.password == nil else { throw RetainedImageFailure.invalid }
         switch destination {
+        case .stamp: break
+        case .roamPoster(let id): guard id > 0 else { throw RetainedImageFailure.invalid }
         case .publicReview(let merchant, let registration): guard merchant > 0, registration > 0 else { throw RetainedImageFailure.invalid }
         case .merchant(let merchant, _): guard merchant > 0 else { throw RetainedImageFailure.invalid }
         }
@@ -103,7 +107,11 @@ import FoundationNetworking
         request.setValue(auth, forHTTPHeaderField: "Authorization")
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         var body = Data("--\(boundary)\r\nContent-Disposition: form-data; name=\"file\"; filename=\"image.jpg\"\r\nContent-Type: image/jpeg\r\n\r\n".utf8)
-        body.append(review.selection.jpeg); body.append(Data("\r\n--\(boundary)--\r\n".utf8)); request.httpBody = body
+        body.append(review.selection.jpeg)
+        if case .stamp = review.scope.destination {
+            body.append(Data("\r\n--\(boundary)\r\nContent-Disposition: form-data; name=\"bizType\"\r\n\r\nstamp".utf8))
+        }
+        body.append(Data("\r\n--\(boundary)--\r\n".utf8)); request.httpBody = body
         try Task.checkCancellation()
         do {
             let (data, status) = try await transport.send(request)

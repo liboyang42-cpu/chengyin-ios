@@ -49,7 +49,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                 // V2 governance has its own access/me model, including delegated event staff.
                 if let governance = management?.governance {
                     Section {
-                        ClubGovernanceEntryButton(clubID: id, identity: reader.clubIdentity, access: governance.access, coordinator: governance.coordinator)
+                        ClubGovernanceEntryButton(clubID: id, identity: reader.clubIdentity, access: governance.access, coordinator: governance.coordinator, enrollmentProfile: governance.enrollmentProfile)
                     }
                 }
                 if (club.isOwner || club.viewerIsAdmin),let management {

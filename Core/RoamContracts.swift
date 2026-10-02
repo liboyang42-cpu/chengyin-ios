@@ -170,10 +170,12 @@ public struct RoamNodeDetail: Decodable, Equatable, Identifiable {
     public let validationMethod: Int?
     public let completed: Bool
     public let favorited: Bool
+    public let canInteract: Bool?
+    public let needRedeem: Bool
     public var isPublished: Bool { status == 1 }
     enum CodingKeys: String, CodingKey {
         case poiId, name, description, lat, lng, radiusM, nodeLevel, tags, status, merchantId
-        case merchantName, merchantAddress, templateTitle, validationMethod, completed, favorited
+        case merchantName, merchantAddress, templateTitle, validationMethod, completed, favorited, canInteract, needRedeem
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -190,6 +192,8 @@ public struct RoamNodeDetail: Decodable, Equatable, Identifiable {
         validationMethod = try c.decodeIfPresent(Int.self, forKey: .validationMethod)
         completed = (try? c.decode(Bool.self, forKey: .completed)) == true
         favorited = (try? c.decode(Bool.self, forKey: .favorited)) == true
+        canInteract = try c.decodeIfPresent(Bool.self, forKey: .canInteract)
+        needRedeem = try c.decodeIfPresent(Bool.self, forKey: .needRedeem) ?? false
     }
 }
 

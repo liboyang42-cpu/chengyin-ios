@@ -51,7 +51,10 @@ class PlayExperienceSourceChecks(unittest.TestCase):
         source_actions=set(re.findall(r"'([A-Z][A-Z0-9_]+)'",block))
         target=self.core('PlayAdvancedRuntime.swift').split('public static let actions:',1)[1].split('public static func payload',1)[0]
         target_actions=set(re.findall(r'"([A-Z][A-Z0-9_]+)"',target))
-        self.assertEqual(source_actions,target_actions)
+        # Native also covers five server-backed mini-program kinds that Flutter lacks.
+        # Keep exact legacy coverage and an explicit bounded delta, not an unrestricted superset.
+        self.assertEqual(target_actions - source_actions, {'SUBMIT_SORT', 'SUBMIT_MATCH', 'SUBMIT_CLASSIFY', 'SUBMIT_COMPASS', 'SUBMIT_SHOUT'})
+        self.assertTrue(source_actions <= target_actions)
     def test_advanced_unit_and_units_match_source(self):
         text=self.core('PlayAdvancedRuntime.swift')
         self.assertIn('unit-\\(state.sessionID)-v\\(state.version)', text)

@@ -47,8 +47,9 @@ import SwiftUI
                     if let issue { SquareIssueView(error: issue) { Task { await load(reset: !pagination.hasLoadedPage) } } }
                     if pagination.items.isEmpty && !loading && issue == nil { Text("square.empty").accessibilityIdentifier("square.empty") }
                     ForEach(pagination.items) { post in
-                        NavigationLink(value: post.id) { SquarePostContent(post: post, compact: true) }
+                        NavigationLink(value: post.id) { SquarePostContent(post: post, compact: true, showImages: false) }
                             .accessibilityIdentifier("square.row.\(post.id)")
+                        NativeMediaGalleryEntry(sources: post.images, scope: reader.scope, titleKey: "media.destination.squareImages", compact: true)
                     }
                     if pagination.continuationInvalid { Text("square.invalidCursor").accessibilityIdentifier("square.invalidCursor") }
                     if loading { ProgressView("square.loading") }

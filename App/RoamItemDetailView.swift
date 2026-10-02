@@ -7,6 +7,8 @@ struct RoamItemDetailView: View {
     let mediaScope: UUID
     var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
     private let originatingIdentity: RoamReadIdentity?
+    private let stampDestination: (() -> AnyView)?
+    private let posterDestination: ((RoamNodeDetail) -> AnyView)?
     @Environment(\.dismiss) private var dismiss
     @State private var node: RoamNodeDetail?
     @State private var merchant: RoamMerchantDetail?
@@ -14,7 +16,8 @@ struct RoamItemDetailView: View {
     @State private var loading = false
     @State private var issue: RoamScreenIssue?
     @State private var generation = 0
-    init(item: RoamMapItem, reader: any RoamReading, mediaScope: UUID = UUID(), makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil) {
+    init(item: RoamMapItem, reader: any RoamReading, mediaScope: UUID = UUID(), makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil, stampDestination: (() -> AnyView)? = nil, posterDestination: ((RoamNodeDetail) -> AnyView)? = nil) {
+        self.stampDestination = stampDestination; self.posterDestination = posterDestination
         self.mediaScope = mediaScope; self.makeExternalMaps = makeExternalMaps
         self.item = item; self.reader = reader; originatingIdentity = reader.identity
     }
@@ -72,6 +75,9 @@ struct RoamItemDetailView: View {
             Section("roam.yourStatus") {
                 Label(LocalizedStringKey(node.completed ? "roam.completed" : "roam.notCompleted"), systemImage: node.completed ? "checkmark.circle" : "circle")
                 if node.favorited { Label("roam.favorited", systemImage: "heart.fill") }
+                NavigationLink { if let posterDestination { posterDestination(node) } else { AnyView(RoamPosterScanView(node: node)) } } label: { Label("media.poster.title", systemImage: "qrcode.viewfinder") }
+                    .accessibilityIdentifier("media.poster.open")
+                NavigationLink { if let stampDestination { stampDestination() } else { AnyView(RoamStampCameraView()) } } label: { Label("media.stamp.title", systemImage: "camera") }
             }
             if let merchant { merchantContent(merchant) }
             else if merchantFailed {
@@ -90,6 +96,9 @@ struct RoamItemDetailView: View {
             if let time = merchant.businessTime { LabeledContent("roam.hours", value: time) }
             if !merchant.categories.isEmpty { Text(verbatim: merchant.categories.joined(separator: " · ")) }
             if !merchant.tags.isEmpty { Text(verbatim: merchant.tags.joined(separator: " · ")) }
+            if !merchant.gallery.isEmpty {
+                NativeMediaGalleryEntry(sources: merchant.gallery, scope: mediaScope, titleKey: "media.destination.poiGallery")
+            }
         }
         if let featured = detail.featured {
             Section("roam.featured") {

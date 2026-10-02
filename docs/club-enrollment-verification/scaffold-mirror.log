@@ -1,0 +1,5 @@
+Verification mirror only: additive catalog merged and project regenerated outside packet.
+Generated Questify.xcodeproj: 608 Swift sources, 3 catalogs
+Included 3 app-unit sources in the separate QuestifyAppUnitTests scheme
+PASS structural checks: 669 Swift source files, 5175 bilingual keys, references, scheme, deterministic regeneration
+SCOPE: this script does not run Swift/Xcode, previews, simulator/device, accessibility or live backend checks; see separate evidence

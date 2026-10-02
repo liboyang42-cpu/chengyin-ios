@@ -8,6 +8,8 @@ struct RoamBrowserView: View {
     var onChooseArea: (() -> Void)? = nil
     var experienceReader: (any RoamExperienceReading)? = nil
     var nearbyTeamsDestination: (() -> AnyView)? = nil
+    var stampDestination: (() -> AnyView)? = nil
+    var posterDestination: ((RoamNodeDetail) -> AnyView)? = nil
     var mediaScope: UUID = UUID()
     var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
     @State private var layer: RoamLayer = .places
@@ -81,13 +83,13 @@ struct RoamBrowserView: View {
             .onChange(of: placeFilter) { _, _ in selected = nil }
             .onChange(of: eventFilter) { _, _ in selected = nil }
             .sheet(item: $selected) { item in
-                RoamItemDetailView(item: item, reader: reader, mediaScope: mediaScope, makeExternalMaps: makeExternalMaps)
+                RoamItemDetailView(item: item, reader: reader, mediaScope: mediaScope, makeExternalMaps: makeExternalMaps, stampDestination: stampDestination, posterDestination: posterDestination)
             }
             .toolbar {
                 if let nearbyTeamsDestination { ToolbarItem(placement: .topBarTrailing) { NavigationLink("nearby.title", destination: nearbyTeamsDestination) } }
                 if let experienceReader {
                     ToolbarItem(placement: .topBarLeading) {
-                        NavigationLink { RoamExperienceHubView(reader: experienceReader) } label: {
+                        NavigationLink { RoamExperienceHubView(reader: experienceReader, stampDestination: stampDestination) } label: {
                             Label("roam.experience.title", systemImage: "book.closed")
                         }.accessibilityIdentifier("roam.experience.open")
                     }

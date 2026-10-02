@@ -25,12 +25,17 @@ public struct ImageUploadTarget: Codable, Equatable {
         case "merchant": guard MerchantImageField(rawValue: field) != nil else { throw ImageUploadJournalFailure.corrupt }
         case "review": guard field == "images", resourceID != nil else { throw ImageUploadJournalFailure.corrupt }
         case "im": guard field == "image", resourceID == nil else { throw ImageUploadJournalFailure.corrupt }
+        case "stamp": guard field == "picture", resourceID == nil, entityID == accountID else { throw ImageUploadJournalFailure.corrupt }
         default: throw ImageUploadJournalFailure.corrupt
         }
     }
     public init(scope: RetainedImageScope) throws {
         guard let namespace = scope.namespace else { throw ImageUploadJournalFailure.unavailable }
         switch scope.destination {
+        case .roamPoster: throw RetainedImageFailure.invalid
+        case .stamp:
+            try self.init(accountID: scope.accountID, namespace: namespace, realm: scope.realm,
+                kind: "stamp", entityID: scope.accountID, field: "picture")
         case .merchant(let id, let field):
             try self.init(accountID: scope.accountID, namespace: namespace, realm: scope.realm,
                 kind: "merchant", entityID: id, field: field.rawValue, resourceID: scope.resourceID)

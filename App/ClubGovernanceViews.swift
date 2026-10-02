@@ -6,12 +6,14 @@ struct ClubGovernanceEntryButton: View {
     let identity: ClubReadIdentity?
     let access: any ClubGovernanceAccess
     let coordinator: ClubGovernanceCoordinator
+    var enrollmentProfile: ClubEnrollmentProfileContext? = nil
     @State private var presented = false
     var body: some View {
         Button { presented = true } label: { Label("club.gov.workspace", systemImage: "person.3.sequence.fill") }
             .accessibilityIdentifier("club.gov.open")
             .sheet(isPresented: $presented) {
                 NavigationStack { ClubGovernanceWorkspaceView(clubID: clubID, identity: identity, access: access, coordinator: coordinator) }
+                    .environment(\.clubEnrollmentProfile, enrollmentProfile)
             }
     }
 }
@@ -121,6 +123,14 @@ struct ClubGovernanceReadView: View {
         NavigationLink { ClubGovernanceReadView(operation: target, scope: targetScope ?? scope, identity: identity, access: access, coordinator: coordinator) } label: { Label(LocalizedStringKey("club.gov." + target.rawValue), systemImage: "chevron.right.circle") }
             .accessibilityIdentifier("club.gov.route." + target.rawValue)
     }
+    @ViewBuilder private func enrollmentLink(focusTopicID: Int? = nil) -> some View {
+        if let clubID = scope.clubID {
+            NavigationLink {
+                ClubEnrollmentView(clubID: clubID, focusTopicID: focusTopicID, identity: identity, access: access, coordinator: coordinator)
+            } label: { Label("club.enroll.title", systemImage: "list.bullet.clipboard") }
+                .accessibilityIdentifier("club.enroll.open")
+        }
+    }
     private func edit(_ operation: ClubGovernanceMutation, scope: ClubGovernanceScope? = nil, seed: [String: ClubGovernanceValue] = [:]) -> some View {
         Button(LocalizedStringKey("club.gov.action." + operation.rawValue)) { editor = .init(operation: operation, scope: scope ?? self.scope, seed: seed) }
             .accessibilityIdentifier("club.gov.action." + operation.rawValue)
@@ -135,6 +145,7 @@ struct ClubGovernanceReadView: View {
                 }
             }
             Section("club.gov.workspace") {
+                if snapshot.permissions?.allows("club:member:list:read", scope: scope) == true { enrollmentLink() }
                 ForEach([ClubGovernanceRead.stats, .customers, .settlement, .eventTopics, .series, .bans, .cases, .roles, .audienceCounts, .topics, .editions, .dissolutionBlockers, .leaderboard, .posts], id: \.rawValue) { read in
                     if snapshot.permissions?.allows(read.permission, scope: scope) == true { link(read) }
                 }
@@ -174,7 +185,7 @@ struct ClubGovernanceReadView: View {
             } }
         } else if operation == .topicOverview {
             ClubGovernanceFactRows(value: value, fields: ["name", "title", "auditStatus", "rejectReason", "status", "startDate", "endDate", "playModeText", "storyReady", "gameConfiguredCount"])
-            Section { link(.topicStats); link(.topicSettings); link(.topicCustomers); link(.recruit); link(.registrations) }
+            Section { link(.topicStats); link(.topicSettings); link(.topicCustomers); link(.recruit); enrollmentLink(focusTopicID: scope.topicID) }
             Section("club.gov.story") {
                 NavigationLink { ClubGovernanceStoryView(value: value, scope: scope, identity: identity, access: access, coordinator: coordinator) } label: { Label("club.gov.story", systemImage: "book.pages") }.accessibilityIdentifier("club.gov.openStory")
             }
@@ -218,13 +229,7 @@ struct ClubGovernanceReadView: View {
             if operation == .topicCustomers { ForEach(Array((value["sessions"].array ?? []).enumerated()), id: \.offset) { _, session in
                 ClubGovernanceFactRows(value: session, fields: ["timeText", "name"]); dataRows(session["rows"].array ?? [])
             } }
-            if operation == .registrations { ForEach(Array((value["omsTicketList"].array ?? []).enumerated()), id: \.offset) { _, ticket in
-                ClubGovernanceFactRows(value: ticket, fields: ["name", "mode", "totalInventory", "signupDeadline", "teamStatus"])
-                ForEach(Array((ticket["cmsRegistrationList"].array ?? []).enumerated()), id: \.offset) { _, registration in
-                    ClubGovernanceFactRows(value: registration, fields: ["nickname", "paymentStatus", "verificationStatus"])
-                    if let id = registration["id"].int { link(.checkin, .init(clubID: scope.clubID, registrationID: id)) }
-                }
-            } }
+            if operation == .registrations { enrollmentLink(focusTopicID: scope.topicID) }
             if operation == .seriesDetail { edit(.updateSeries, seed: value.object ?? [:]); link(.occurrences) }
             if operation == .occurrenceStatus && value["activityCancelled"] == .bool(false) { edit(.cancelOccurrence) }
             if operation == .cases { edit(.report); edit(.appeal) }
