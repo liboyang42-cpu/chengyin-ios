@@ -1,0 +1,300 @@
+{
+  "schemaVersion": 1,
+  "timer": {
+    "enabled": false,
+    "durationSeconds": 300,
+    "timeoutResult": "FAILED"
+  },
+  "random": {
+    "enabled": false,
+    "drawCount": 1,
+    "items": [
+      {
+        "id": "item_1",
+        "label": "线索卡",
+        "weight": 1,
+        "content": ""
+      }
+    ]
+  },
+  "branch": {
+    "enabled": false,
+    "startStepId": "start",
+    "steps": [
+      {
+        "id": "start",
+        "title": "起点",
+        "body": "",
+        "terminal": true,
+        "outcomeCode": "COMPLETED",
+        "outcomeLabel": "完成节点",
+        "options": []
+      }
+    ]
+  },
+  "leaderboard": {
+    "enabled": false,
+    "metric": "ELAPSED_TIME",
+    "scope": "ACTIVITY",
+    "limit": 50
+  },
+  "multiplayer": {
+    "enabled": false,
+    "mode": "SEQUENTIAL",
+    "minPlayers": 2,
+    "maxPlayers": 4,
+    "assignment": "AUTO",
+    "requiredTurns": 1,
+    "unitScore": 0,
+    "roles": [
+      {
+        "id": "player",
+        "label": "队员",
+        "min": 1,
+        "max": 4
+      }
+    ],
+    "turnOrder": [
+      "player"
+    ]
+  },
+  "timeWindow": {
+    "enabled": false,
+    "eyebrow": "",
+    "title": "",
+    "openFrom": "20:00",
+    "openTo": "23:00",
+    "subscribeTmplId": ""
+  },
+  "blindTaste": {
+    "enabled": false,
+    "title": "",
+    "steps": "",
+    "hint": "",
+    "xp": 0,
+    "answerKey": "A",
+    "options": [
+      {
+        "key": "A",
+        "label": ""
+      },
+      {
+        "key": "B",
+        "label": ""
+      }
+    ]
+  },
+  "silentOrder": {
+    "enabled": false,
+    "title": "",
+    "rule": "",
+    "limitSeconds": 0
+  },
+  "diyName": {
+    "enabled": false,
+    "title": "",
+    "maxLength": 16,
+    "suggestions": []
+  },
+  "musicCorner": {
+    "enabled": false,
+    "title": "",
+    "trackName": "",
+    "audioUrl": "",
+    "durationSeconds": 0
+  },
+  "steps": {
+    "enabled": false,
+    "eyebrow": "",
+    "goal": 6000,
+    "xp": 0
+  },
+  "dailySign": {
+    "enabled": false,
+    "signer": "",
+    "sealText": "",
+    "poems": []
+  },
+  "estimate": {
+    "enabled": false,
+    "title": "",
+    "unit": "",
+    "reveal": "",
+    "min": 0,
+    "max": 1000,
+    "answer": 500,
+    "tolerance": 50,
+    "xp": 0
+  },
+  "pricePair": {
+    "enabled": false,
+    "title": "",
+    "xp": 0,
+    "maxTries": 0,
+    "items": [
+      {
+        "id": "pic_1",
+        "name": "",
+        "imageUrl": "",
+        "correct": true
+      },
+      {
+        "id": "pic_2",
+        "name": "",
+        "imageUrl": "",
+        "correct": false
+      },
+      {
+        "id": "pic_3",
+        "name": "",
+        "imageUrl": "",
+        "correct": false
+      }
+    ]
+  },
+  "qa": {
+    "enabled": false,
+    "mode": "TYPE",
+    "title": "",
+    "lead": "",
+    "imageUrl": "",
+    "audioUrl": "",
+    "answerText": "",
+    "reveal": false,
+    "maxTries": 0,
+    "xp": 0,
+    "options": [
+      {
+        "id": "opt_1",
+        "label": "",
+        "fb": "",
+        "correct": true
+      },
+      {
+        "id": "opt_2",
+        "label": "",
+        "fb": "",
+        "correct": false
+      }
+    ]
+  },
+  "scan": {
+    "enabled": false,
+    "kind": "TEXT",
+    "reply": "",
+    "audioUrl": "",
+    "imageUrl": "",
+    "xp": 0
+  },
+  "hiddenObject": {
+    "enabled": false,
+    "title": "",
+    "hint": "",
+    "imageUrl": "",
+    "xp": 0,
+    "hotspots": [
+      {
+        "id": "spot_1",
+        "label": "",
+        "x": 0.25,
+        "y": 0.3,
+        "r": 0.08
+      },
+      {
+        "id": "spot_2",
+        "label": "",
+        "x": 0.7,
+        "y": 0.45,
+        "r": 0.08
+      },
+      {
+        "id": "spot_3",
+        "label": "",
+        "x": 0.45,
+        "y": 0.75,
+        "r": 0.08
+      }
+    ]
+  },
+  "predict": {
+    "enabled": false,
+    "question": "",
+    "hint": "",
+    "closeAtHour": 20,
+    "xp": 0,
+    "options": [
+      {
+        "key": "A",
+        "label": ""
+      },
+      {
+        "key": "B",
+        "label": ""
+      }
+    ]
+  },
+  "coinFlip": {
+    "enabled": false,
+    "kicker": "",
+    "xp": 0,
+    "heads": {
+      "label": "正面",
+      "action": ""
+    },
+    "tails": {
+      "label": "反面",
+      "action": ""
+    }
+  },
+  "diceRoll": {
+    "enabled": false,
+    "kicker": "",
+    "diceCount": 1,
+    "xp": 0,
+    "faces": [
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  "reaction": {
+    "enabled": false,
+    "kicker": "",
+    "rounds": 3,
+    "goalMs": 320,
+    "xp": 0
+  },
+  "ballShake": {
+    "enabled": false,
+    "kicker": "",
+    "goal": 30,
+    "timed": false,
+    "seconds": 12,
+    "xp": 0
+  },
+  "quietHold": {
+    "enabled": false,
+    "kicker": "",
+    "sub": "",
+    "seconds": 15,
+    "xp": 0
+  },
+  "countdown": {
+    "enabled": false,
+    "kicker": "",
+    "seconds": 90,
+    "doneText": "",
+    "xp": 0
+  },
+  "stopwatch": {
+    "enabled": false,
+    "kicker": "",
+    "targetSeconds": 10,
+    "toleranceMs": 300,
+    "tries": 3,
+    "xp": 0
+  }
+}

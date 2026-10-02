@@ -1,0 +1,3 @@
+PASS: 60 host source assertions. Swift typecheck/tests and Apple runtime NOT_RUN.
+
+--- STDERR ---

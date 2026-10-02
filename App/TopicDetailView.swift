@@ -4,6 +4,10 @@ import SwiftUI
 struct TopicDetailView: View {
     let id: Int
     let reader: any TopicReading
+    var publicMerchant: PublicMerchantHomeContext? = nil
+    var makeAudio: (@MainActor () -> PlatformAudioPlayback)? = nil
+    var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
+    var publisherDestination: ((TopicDetail) -> AnyView)? = nil
     @State private var detail: TopicDetail?
     @State private var loadedKey: Key?
     @State private var issue: TopicScreenIssue?
@@ -31,6 +35,7 @@ struct TopicDetailView: View {
                 if value.betaFlag == 1 { Text("topic.beta") }
                 if let subtitle = value.subtitle { Text(verbatim: subtitle) }
                 if let introduction = value.introduction { Text(verbatim: introduction).textSelection(.enabled) }
+                if let audio = value.audioURL, !audio.isEmpty { PlatformAudioHost(rawURL: audio, scope: reader.scope, makeModel: makeAudio) }
                 if let club = value.clubName { Text(verbatim: club) }
                 if let initiator = value.initiatorName { LabeledContent("topic.initiator", value: initiator) }
                 if !value.categoryNames.isEmpty { Text(verbatim: value.categoryNames.joined(separator: " · ")) }
@@ -40,6 +45,7 @@ struct TopicDetailView: View {
                 if let seconds = value.totalTimeSeconds { LabeledContent("topic.durationSeconds", value: String(seconds)) }
                 if let rating = value.averageRating { LabeledContent("topic.rating", value: String(rating)) }
             }
+            if let publisherDestination { publisherDestination(value) }
             Section("topic.availability") {
                 Text(LocalizedStringKey("topic.availability." + String(value.availability.rawValue)))
                 if value.merchantClosed { Label("topic.closedNotice", systemImage: "storefront") }
@@ -57,7 +63,7 @@ struct TopicDetailView: View {
                 // Index identity preserves source order even when backend IDs are absent/duplicated.
                 ForEach(Array(value.chapters.enumerated()), id: \.offset) { _, chapter in
                     NavigationLink {
-                        TopicChapterView(chapter: chapter, reader: reader, scope: key.scope)
+                        TopicChapterView(chapter: chapter, reader: reader, scope: key.scope, publicMerchant: publicMerchant, makeExternalMaps: makeExternalMaps)
                     } label: {
                         VStack(alignment: .leading) {
                             Text(verbatim: chapter.title)
@@ -123,6 +129,8 @@ struct TopicChapterView: View {
     let chapter: TopicChapter
     let reader: any TopicReading
     let scope: UUID
+    var publicMerchant: PublicMerchantHomeContext? = nil
+    var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
     var body: some View {
         Group {
             if scope != reader.scope { TopicIssueView(issue: .unavailable) }
@@ -137,6 +145,7 @@ struct TopicChapterView: View {
                             Text(verbatim: node.name).font(.headline)
                             if let description = node.description { Text(verbatim: description).textSelection(.enabled) }
                             if let address = node.address { Text(verbatim: address) }
+                            PlatformExternalMapHost(destination: .init(name: node.name, address: node.address, latitude: node.latitude, longitude: node.longitude), scope: scope, makeModel: makeExternalMaps)
                             if let hours = node.businessTime { Text(verbatim: hours) }
                             if let template = node.template {
                                 Text(verbatim: template.title)
@@ -145,10 +154,12 @@ struct TopicChapterView: View {
                                 if let duration = template.duration { LabeledContent("topic.durationMinutes", value: String(duration)) }
                             }
                             ForEach(Array(node.merchants.enumerated()), id: \.offset) { _, merchant in
-                                VStack(alignment: .leading) {
-                                    Text(verbatim: merchant.name)
-                                    if let hours = merchant.businessTime { Text(verbatim: hours).font(.caption) }
-                                }
+                                if let owner = PublicMerchantOwnerID(merchant.memberID), let publicMerchant {
+                                    NavigationLink { PublicMerchantHomeView(target: .ownerMemberID(owner), context: publicMerchant) } label: {
+                                        Text(verbatim: merchant.name)
+                                    }.accessibilityIdentifier("merchant.publicHome.topicEntry")
+                                } else { Text(verbatim: merchant.name) }
+                                if let hours = merchant.businessTime { Text(verbatim: hours).font(.caption) }
                             }
                         }
                     }

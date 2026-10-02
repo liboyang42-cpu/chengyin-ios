@@ -1,0 +1,28 @@
+{
+  "status": "PASS",
+  "kind": "source assertions only",
+  "checks": [
+    "Default live gates off",
+    "Exact encounter GET/query",
+    "Exact action multipart fields",
+    "No fabricated receipt endpoint",
+    "Companion exact session fields",
+    "Egg collect exact fields",
+    "Server settled recovery",
+    "Durable write ahead before dispatch",
+    "Session and review fencing",
+    "Probe failure quiet single attempt",
+    "Account region session seen state",
+    "Bounded cooldown and bubble timing",
+    "No system location or random die",
+    "Normal host and eggs projection patch",
+    "Bilingual strings",
+    "Core and UI test artifacts"
+  ],
+  "swift_tests": "NOT_RUN",
+  "apple_build": "NOT_RUN",
+  "runtime": "NOT_RUN",
+  "network": "NOT_RUN"
+}
+
+--- STDERR ---

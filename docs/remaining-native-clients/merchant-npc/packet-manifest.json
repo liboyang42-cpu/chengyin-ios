@@ -1,0 +1,73 @@
+{
+  "package": "MerchantNPC",
+  "status": "FROZEN_REVIEW_REPAIRED_READY_FOR_INTEGRATION",
+  "appleValidation": "NOT_RUN",
+  "sourceChecks": "PASS_178",
+  "parser": "PASS_8_FILES",
+  "dependencies": [
+    "PublicMerchantHome",
+    "MerchantOperations",
+    "OperationAdapterSafety"
+  ],
+  "liveDefaults": "OFF",
+  "files": [
+    {
+      "path": "App/MerchantNPCFixtureView.swift",
+      "sha256": "9d6a3d1209f5e54139b0dd7ee196b28d5879477254ec3af087299cdd47ca2522"
+    },
+    {
+      "path": "App/MerchantNPCOperationsDestination.swift",
+      "sha256": "3fa6640e277fc0409f3161f1039f2f55b8c9e5198c6173ad6b8511a564817307"
+    },
+    {
+      "path": "App/MerchantNPCViews.swift",
+      "sha256": "99a36b28b61eee5c309037a5743f77bdced303902c8f9725693063ad838fb089"
+    },
+    {
+      "path": "Core/MerchantNPCContracts.swift",
+      "sha256": "4168bd24888bc5928b79f00bf08b0d7831d7052276c4c739d8082db8df28c4e5"
+    },
+    {
+      "path": "Core/MerchantNPCCoordinators.swift",
+      "sha256": "562325dfae0439198df54204a915af89f9c4f789abfd80476a7228c774fa7032"
+    },
+    {
+      "path": "Core/MerchantNPCHTTP.swift",
+      "sha256": "ea2d15c925eab5eb6adb8b0a9c58c2c45ec60bc79d95781bfc71fc6f42ef7ccb"
+    },
+    {
+      "path": "Resources/MerchantNPC.xcstrings",
+      "sha256": "847fbcdee645bceac07ec8c8198bf3a008a46517c958a38c152b2c544732bb65"
+    },
+    {
+      "path": "Tests/AppUITests/MerchantNPCFlowTests.swift",
+      "sha256": "820ddcf07490be9bb58c97c4223918c376b58f9e4bc6dd998fdb57923e94a623"
+    },
+    {
+      "path": "Tests/ContractChecks/check_merchant_npc.py",
+      "sha256": "9e3495a7554c7aee6bada0dbe7cbcda3eefec735da824ebcbd7f3bd9b7dee851"
+    },
+    {
+      "path": "Tests/CoreTests/MerchantNPCTests.swift",
+      "sha256": "09792e10f6dc9fb7704132ed94c1091ef68c69eee2e94851be4d3ca81a30a655"
+    },
+    {
+      "path": "docs/INTEGRATION.md",
+      "sha256": "b0cc4bfa7d0e4dfa10fded4069fa1c950e10954c0575f0e1077174e20e6dd0fb"
+    },
+    {
+      "path": "docs/VALIDATION.md",
+      "sha256": "cef9ba0ae28a0b31f0b358b78038a256c8d53edbc4aea97d0e045dd13d94df79"
+    },
+    {
+      "path": "docs/parser-results.txt",
+      "sha256": "a41b6640be5c86a303d62bc0a5d0b166f7ccfdcc4e455d747dfd2b07558072d2"
+    },
+    {
+      "path": "docs/source-check-results.txt",
+      "sha256": "465876fd809ab1444404289787dbc91b3db3fc0d1db57c3824448ab7a38cef4f"
+    }
+  ],
+  "revision": "2026-10-02T01:56Z",
+  "authoredCoreTests": 27
+}

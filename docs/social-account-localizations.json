@@ -1,0 +1,512 @@
+[
+  {
+    "key": "social.fixtureSwitchAccount",
+    "en": "Switch example account",
+    "zh-Hans": "切换示例账号"
+  },
+  {
+    "key": "social.notConfigured",
+    "en": "This service is not configured.",
+    "zh-Hans": "此服务尚未配置。"
+  },
+  {
+    "key": "social.signIn",
+    "en": "Sign in to continue.",
+    "zh-Hans": "请登录后继续。"
+  },
+  {
+    "key": "social.emptyText",
+    "en": "Enter some text before reviewing.",
+    "zh-Hans": "请先输入内容再预览。"
+  },
+  {
+    "key": "social.ownerRequired",
+    "en": "Only the post owner can edit this post.",
+    "zh-Hans": "只有作者可以编辑这篇动态。"
+  },
+  {
+    "key": "social.commentsClosed",
+    "en": "Comments are unavailable for this post.",
+    "zh-Hans": "此动态暂不可评论。"
+  },
+  {
+    "key": "social.changed",
+    "en": "The account or content changed. Open a new review.",
+    "zh-Hans": "账号或内容已变化，请重新预览。"
+  },
+  {
+    "key": "social.failed",
+    "en": "Unable to load this information. Try again.",
+    "zh-Hans": "暂时无法获取信息，请重试。"
+  },
+  {
+    "key": "social.offline",
+    "en": "Offline example. All people, records and outcomes here are synthetic.",
+    "zh-Hans": "离线示例。人物、记录和结果均为虚构测试数据。"
+  },
+  {
+    "key": "social.loading",
+    "en": "Loading…",
+    "zh-Hans": "正在加载…"
+  },
+  {
+    "key": "social.incompleteLink",
+    "en": "This link is incomplete. Go back to choose another item.",
+    "zh-Hans": "链接不完整，请返回选择其他内容。"
+  },
+  {
+    "key": "social.profile",
+    "en": "Public profile",
+    "zh-Hans": "公开主页"
+  },
+  {
+    "key": "social.profileSection",
+    "en": "Profile section",
+    "zh-Hans": "主页内容"
+  },
+  {
+    "key": "social.level",
+    "en": "Level",
+    "zh-Hans": "等级"
+  },
+  {
+    "key": "social.followStatus",
+    "en": "Relationship",
+    "zh-Hans": "关注关系"
+  },
+  {
+    "key": "social.following",
+    "en": "Following",
+    "zh-Hans": "已关注"
+  },
+  {
+    "key": "social.notFollowing",
+    "en": "Not following",
+    "zh-Hans": "未关注"
+  },
+  {
+    "key": "social.relationshipUnknown",
+    "en": "Sign in to see your relationship",
+    "zh-Hans": "登录后查看关注关系"
+  },
+  {
+    "key": "social.profileActionsDisabled",
+    "en": "Follow and conversation actions can be reviewed. Live actions remain unavailable.",
+    "zh-Hans": "可预览关注和发起会话操作，线上操作暂未开放。"
+  },
+  {
+    "key": "social.posts",
+    "en": "Posts",
+    "zh-Hans": "动态"
+  },
+  {
+    "key": "social.achievements",
+    "en": "Achievements",
+    "zh-Hans": "成就"
+  },
+  {
+    "key": "social.about",
+    "en": "About",
+    "zh-Hans": "关于"
+  },
+  {
+    "key": "social.published",
+    "en": "Published routes and activities",
+    "zh-Hans": "已发布路线和活动"
+  },
+  {
+    "key": "social.likes",
+    "en": "Likes received",
+    "zh-Hans": "获赞"
+  },
+  {
+    "key": "social.followers",
+    "en": "Followers",
+    "zh-Hans": "粉丝"
+  },
+  {
+    "key": "social.followingCount",
+    "en": "Following",
+    "zh-Hans": "关注人数"
+  },
+  {
+    "key": "social.introduction",
+    "en": "Introduction",
+    "zh-Hans": "个人介绍"
+  },
+  {
+    "key": "social.noIntroduction",
+    "en": "No introduction provided.",
+    "zh-Hans": "暂无个人介绍。"
+  },
+  {
+    "key": "social.interests",
+    "en": "Interests",
+    "zh-Hans": "兴趣"
+  },
+  {
+    "key": "social.noInterests",
+    "en": "No interests provided.",
+    "zh-Hans": "暂无兴趣标签。"
+  },
+  {
+    "key": "social.portfolio",
+    "en": "Exploration portfolio",
+    "zh-Hans": "探索作品"
+  },
+  {
+    "key": "social.postsSignIn",
+    "en": "Sign in to load this member’s posts.",
+    "zh-Hans": "登录后查看该用户的动态。"
+  },
+  {
+    "key": "social.noPosts",
+    "en": "No posts yet.",
+    "zh-Hans": "暂无动态。"
+  },
+  {
+    "key": "social.guide.title",
+    "en": "Play guide",
+    "zh-Hans": "玩法指南"
+  },
+  {
+    "key": "social.guide.modes",
+    "en": "Ways to explore",
+    "zh-Hans": "探索方式"
+  },
+  {
+    "key": "social.guide.classic",
+    "en": "City orienteering",
+    "zh-Hans": "城市定向"
+  },
+  {
+    "key": "social.guide.free",
+    "en": "Free exploration",
+    "zh-Hans": "自由探索"
+  },
+  {
+    "key": "social.guide.roam",
+    "en": "Roaming",
+    "zh-Hans": "漫游"
+  },
+  {
+    "key": "social.guide.classicDetail",
+    "en": "Follow checkpoints in order with your group. Good for planned meetups and story-based routes.",
+    "zh-Hans": "和队友按顺序打卡通关，适合约人同行和有剧情的路线。"
+  },
+  {
+    "key": "social.guide.freeDetail",
+    "en": "Explore open checkpoints in your own order and at your own pace.",
+    "zh-Hans": "点位全部开放，按自己的顺序和节奏探索。"
+  },
+  {
+    "key": "social.guide.roamDetail",
+    "en": "Walk and discover the city with no required finish line.",
+    "zh-Hans": "边走边探索城市，不必追赶终点。"
+  },
+  {
+    "key": "social.guide.explore",
+    "en": "Explore",
+    "zh-Hans": "去探索"
+  },
+  {
+    "key": "social.guide.information",
+    "en": "More information",
+    "zh-Hans": "更多说明"
+  },
+  {
+    "key": "social.guide.empty",
+    "en": "Published guides will appear here.",
+    "zh-Hans": "玩法说明上线后会显示在这里。"
+  },
+  {
+    "key": "social.guide.removed",
+    "en": "This guide is no longer available. Go back to the guide list.",
+    "zh-Hans": "这篇说明已不可用，请返回玩法列表。"
+  },
+  {
+    "key": "social.guide.noContent",
+    "en": "This guide does not have readable content yet.",
+    "zh-Hans": "这篇说明暂时没有正文。"
+  },
+  {
+    "key": "social.invites.title",
+    "en": "Invitation history",
+    "zh-Hans": "邀请记录"
+  },
+  {
+    "key": "social.invites.total",
+    "en": "Total invited",
+    "zh-Hans": "累计邀请"
+  },
+  {
+    "key": "social.invites.loaded",
+    "en": "Loaded records",
+    "zh-Hans": "已加载记录"
+  },
+  {
+    "key": "social.invites.partial",
+    "en": "Invitation records are available, but rewards are not fully synchronized. Missing rewards do not establish that a first purchase is pending.",
+    "zh-Hans": "邀请记录已获取，奖励流水尚未完整同步。未查到奖励不代表首购尚未完成。"
+  },
+  {
+    "key": "social.invites.otherMonth",
+    "en": "Other invitations",
+    "zh-Hans": "其他邀请"
+  },
+  {
+    "key": "social.invites.empty",
+    "en": "Your invited members will appear here after they join.",
+    "zh-Hans": "受邀用户加入后会显示在这里。"
+  },
+  {
+    "key": "social.invites.continuationInvalid",
+    "en": "The next page repeated existing records. Refresh to try again.",
+    "zh-Hans": "下一页重复了已有记录，请刷新后重试。"
+  },
+  {
+    "key": "social.invites.timeUnknown",
+    "en": "Invitation time not recorded",
+    "zh-Hans": "邀请时间暂未记录"
+  },
+  {
+    "key": "social.invites.earned",
+    "en": "First-purchase reward received",
+    "zh-Hans": "首购奖励已到账"
+  },
+  {
+    "key": "social.invites.pending",
+    "en": "Joined · first purchase pending",
+    "zh-Hans": "已加入 · 首购待完成"
+  },
+  {
+    "key": "social.invites.synchronizing",
+    "en": "Joined · reward not synchronized",
+    "zh-Hans": "已加入 · 奖励待同步"
+  },
+  {
+    "key": "social.invites.points",
+    "en": "Reward points",
+    "zh-Hans": "奖励积分"
+  },
+  {
+    "key": "social.writesDisabled",
+    "en": "Review only. Live posting, replies, reactions, reports, follows and conversation creation are disabled.",
+    "zh-Hans": "仅供预览。线上发帖、回复、互动、举报、关注和创建会话均未开放。"
+  },
+  {
+    "key": "social.targetPost",
+    "en": "Post ID",
+    "zh-Hans": "动态编号"
+  },
+  {
+    "key": "social.targetComment",
+    "en": "Comment ID",
+    "zh-Hans": "评论编号"
+  },
+  {
+    "key": "social.targetMember",
+    "en": "Member ID",
+    "zh-Hans": "用户编号"
+  },
+  {
+    "key": "social.currentAccount",
+    "en": "Current account ID",
+    "zh-Hans": "当前账号编号"
+  },
+  {
+    "key": "social.text",
+    "en": "Text",
+    "zh-Hans": "正文"
+  },
+  {
+    "key": "social.editPreservesMedia",
+    "en": "Editing text keeps the existing images and linked activity or route.",
+    "zh-Hans": "编辑文字会保留已有图片和关联活动或路线。"
+  },
+  {
+    "key": "social.actionEnabled",
+    "en": "Enable this action",
+    "zh-Hans": "开启此操作"
+  },
+  {
+    "key": "social.explicitActionHint",
+    "en": "This is the requested state, not a claim about the current saved state.",
+    "zh-Hans": "此处是希望设置的状态，不代表服务端当前状态。"
+  },
+  {
+    "key": "social.toggleHint",
+    "en": "The source action toggles the existing comment like. An uncertain result must not be retried automatically.",
+    "zh-Hans": "此操作会切换评论点赞状态。结果未确认时不能自动重试。"
+  },
+  {
+    "key": "social.reportHint",
+    "en": "Send this item to the review queue. The source endpoint accepts the item ID only, with no reason or evidence fields.",
+    "zh-Hans": "将此内容提交审核队列。源接口只接受内容编号，不接受理由或证据字段。"
+  },
+  {
+    "key": "social.followToggleHint",
+    "en": "Toggle the current follow relationship once. The server must confirm the resulting relationship; an uncertain result stays locked.",
+    "zh-Hans": "切换一次当前关注关系。结果必须由服务端确认，未确认时保留锁定。"
+  },
+  {
+    "key": "social.startChatHint",
+    "en": "Request a conversation with this member. Navigation requires a positive conversation ID from the server.",
+    "zh-Hans": "请求与该用户建立会话，只有服务端返回有效会话编号后才能打开聊天。"
+  },
+  {
+    "key": "social.review",
+    "en": "Review",
+    "zh-Hans": "预览"
+  },
+  {
+    "key": "social.reviewTarget",
+    "en": "Review target",
+    "zh-Hans": "确认操作对象"
+  },
+  {
+    "key": "social.willEnable",
+    "en": "Requested state: enabled",
+    "zh-Hans": "期望状态：开启"
+  },
+  {
+    "key": "social.willDisable",
+    "en": "Requested state: disabled",
+    "zh-Hans": "期望状态：关闭"
+  },
+  {
+    "key": "social.moderationHint",
+    "en": "An acknowledgement does not prove that content is published or visible. The server remains authoritative.",
+    "zh-Hans": "请求已确认不等于内容已发布或可见，最终结果以服务端为准。"
+  },
+  {
+    "key": "social.simulate",
+    "en": "Simulate this example",
+    "zh-Hans": "模拟示例操作"
+  },
+  {
+    "key": "social.submit",
+    "en": "Submit",
+    "zh-Hans": "提交"
+  },
+  {
+    "key": "social.notSent",
+    "en": "Nothing was sent. Start a new review when ready.",
+    "zh-Hans": "未发送任何内容，可重新预览。"
+  },
+  {
+    "key": "social.rejected",
+    "en": "The request was rejected. Review the content before trying again.",
+    "zh-Hans": "请求被拒绝，请检查内容后再操作。"
+  },
+  {
+    "key": "social.unknown",
+    "en": "The outcome is unknown. This action is locked to avoid duplicates. Returning or signing in again will not retry it.",
+    "zh-Hans": "操作结果未确认，已锁定以防重复。返回页面或重新登录不会重试。"
+  },
+  {
+    "key": "social.simulated",
+    "en": "Synthetic acknowledgement only. Nothing was sent externally.",
+    "zh-Hans": "仅为模拟确认，未向外部发送任何内容。"
+  },
+  {
+    "key": "social.acknowledged",
+    "en": "The server acknowledged the request. Refresh the original page for the current state.",
+    "zh-Hans": "服务端已确认请求，请刷新原页面查看最新状态。"
+  },
+  {
+    "key": "social.actions",
+    "en": "Actions",
+    "zh-Hans": "操作"
+  },
+  {
+    "key": "social.viewAuthor",
+    "en": "View author profile",
+    "zh-Hans": "查看作者主页"
+  },
+  {
+    "key": "social.reply",
+    "en": "Reply",
+    "zh-Hans": "回复"
+  },
+  {
+    "key": "social.editor.createPost",
+    "en": "Write a post",
+    "zh-Hans": "写动态"
+  },
+  {
+    "key": "social.editor.editPost",
+    "en": "Edit post text",
+    "zh-Hans": "编辑动态文字"
+  },
+  {
+    "key": "social.editor.comment",
+    "en": "Write a comment",
+    "zh-Hans": "写评论"
+  },
+  {
+    "key": "social.editor.like",
+    "en": "Post like",
+    "zh-Hans": "动态点赞"
+  },
+  {
+    "key": "social.editor.bookmark",
+    "en": "Bookmark",
+    "zh-Hans": "收藏动态"
+  },
+  {
+    "key": "social.editor.commentLike",
+    "en": "Toggle comment like",
+    "zh-Hans": "切换评论点赞"
+  },
+  {
+    "key": "social.editor.report",
+    "en": "Report content",
+    "zh-Hans": "举报内容"
+  },
+  {
+    "key": "social.editor.toggleFollow",
+    "en": "Follow relationship",
+    "zh-Hans": "关注关系"
+  },
+  {
+    "key": "social.editor.startChat",
+    "en": "Start a conversation",
+    "zh-Hans": "发起会话"
+  },
+  {
+    "key": "social.media.title",
+    "en": "Image preview",
+    "zh-Hans": "图片预览"
+  },
+  {
+    "key": "social.media.image",
+    "en": "Message image",
+    "zh-Hans": "消息图片"
+  },
+  {
+    "key": "social.media.disabled",
+    "en": "Live image loading awaits approved media origins and size-limited downloads.",
+    "zh-Hans": "线上图片加载需先确认媒体来源并验证下载大小限制。"
+  },
+  {
+    "key": "social.media.purpose",
+    "en": "Loading connects to the media host below without account credentials. No upload is performed.",
+    "zh-Hans": "加载时会连接下方媒体站点，不发送账号凭据，也不会上传内容。"
+  },
+  {
+    "key": "social.media.load",
+    "en": "Load image",
+    "zh-Hans": "加载图片"
+  },
+  {
+    "key": "social.media.failed",
+    "en": "The image could not be loaded or decoded safely.",
+    "zh-Hans": "图片无法加载或安全解码。"
+  },
+  {
+    "key": "social.media.invalid",
+    "en": "This message does not contain a supported secure image address.",
+    "zh-Hans": "这条消息不包含支持的安全图片地址。"
+  }
+]

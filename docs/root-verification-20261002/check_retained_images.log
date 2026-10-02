@@ -1,0 +1,3 @@
+PASS retained image source/structural checks; 10 core + 4 app-unit + 3 UI tests AUTHORED, NOT_RUN
+
+--- STDERR ---

@@ -1,0 +1,21 @@
+{
+  "files": [
+    "App/DoorReferralViews.swift",
+    "Core/DoorReferralContracts.swift",
+    "Core/DoorReferralCoordinator.swift",
+    "Core/DoorReferralService.swift",
+    "Resources/DoorReferralLocalizations.fragment.json",
+    "Tests/AppUITests/DoorReferralUITests.swift",
+    "Tests/CoreTests/DoorReferralTests.swift"
+  ],
+  "dependencies": [
+    "Core/APIConfiguration.swift",
+    "Core/AuthService.swift (HTTPTransport)",
+    "Core/AuthRequestBuilder.swift"
+  ],
+  "gates": {
+    "scanEnabled": false,
+    "bindingEnabled": false,
+    "verifiedHTTPSOrigins": []
+  }
+}

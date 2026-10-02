@@ -6,6 +6,10 @@ import SwiftUI
 struct RoamBrowserView: View {
     let reader: any RoamReading
     var onChooseArea: (() -> Void)? = nil
+    var experienceReader: (any RoamExperienceReading)? = nil
+    var nearbyTeamsDestination: (() -> AnyView)? = nil
+    var mediaScope: UUID = UUID()
+    var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
     @State private var layer: RoamLayer = .places
     @State private var radiusM = 3000
     @State private var placeFilter: RoamPlaceFilter = .all
@@ -77,9 +81,17 @@ struct RoamBrowserView: View {
             .onChange(of: placeFilter) { _, _ in selected = nil }
             .onChange(of: eventFilter) { _, _ in selected = nil }
             .sheet(item: $selected) { item in
-                RoamItemDetailView(item: item, reader: reader)
+                RoamItemDetailView(item: item, reader: reader, mediaScope: mediaScope, makeExternalMaps: makeExternalMaps)
             }
             .toolbar {
+                if let nearbyTeamsDestination { ToolbarItem(placement: .topBarTrailing) { NavigationLink("nearby.title", destination: nearbyTeamsDestination) } }
+                if let experienceReader {
+                    ToolbarItem(placement: .topBarLeading) {
+                        NavigationLink { RoamExperienceHubView(reader: experienceReader) } label: {
+                            Label("roam.experience.title", systemImage: "book.closed")
+                        }.accessibilityIdentifier("roam.experience.open")
+                    }
+                }
                 if let onChooseArea {
                     ToolbarItem(placement:.topBarLeading) {
                         Button("roam.area.title",systemImage:"mappin.and.ellipse",action:onChooseArea)

@@ -1,0 +1,91 @@
+{
+  "scope": "Authored/source counts only; Apple compiler, XCTest, XCUITest and runtime NOT_RUN",
+  "core_test_methods": 2125,
+  "ui_test_methods": 313,
+  "ui_classes": 56,
+  "app_unit_test_methods": 12,
+  "app_unit_target": "QuestifyAppUnitTests",
+  "app_unit_execution": "NOT_RUN; app-hosted target and separate CI job implemented",
+  "ui_shard_counts": [
+    52,
+    52,
+    52,
+    52,
+    53,
+    52
+  ],
+  "ui_shards": [
+    [
+      "TeamFlowTests",
+      "MerchantBusinessFlowTests",
+      "MerchantEngagementFlowTests",
+      "CooperationFlowTests",
+      "CouponManagementFlowTests",
+      "PlayDirectorPrefabFlowTests",
+      "HomeFeedFlowTests",
+      "OfficialActionUITests",
+      "DoorReferralUITests"
+    ],
+    [
+      "AccountCollectionFlowTests",
+      "ProjectEditFlowTests",
+      "SocialAccountFlowTests",
+      "PublicMerchantHomeFlowTests",
+      "CreatorContentFlowTests",
+      "SquareGovernanceFlowTests",
+      "MerchantNPCFlowTests",
+      "ProfileEditFlowTests",
+      "IMExpandedUITests"
+    ],
+    [
+      "ModuleFlowTests",
+      "SearchMapFlowTests",
+      "EntryFlowTests",
+      "OrderLifecycleUITests",
+      "JourneyContentFlowTests",
+      "WalletCommerceFlowTests",
+      "MerchantOnboardingFlowTests",
+      "PublisherLifecycleUITests",
+      "PlayPreferenceFlowTests"
+    ],
+    [
+      "SettingsNativeFlowTests",
+      "SquareFlowTests",
+      "GrowthCenterFlowTests",
+      "PlayExperienceFlowTests",
+      "MerchantOperationsFlowTests",
+      "ActivityFlowTests",
+      "ShopNPCFlowTests",
+      "RetainedImageUITests",
+      "SquareWorkspaceFlowTests"
+    ],
+    [
+      "ClubOperationsFlowTests",
+      "RoamExperienceFlowTests",
+      "MerchantContentFlowTests",
+      "ClubGovernanceFlowTests",
+      "TemplateOwnShelfFlowTests",
+      "PublishingModesFlowTests",
+      "ClubActionFlowTests",
+      "NearbyTeamUITests",
+      "AccessibilityPresentationFlowTests",
+      "TopicFlowTests"
+    ],
+    [
+      "OfficialEventFlowTests",
+      "TemplateAuthoringFlowTests",
+      "MerchantMarketingUITests",
+      "ClubManagementFlowTests",
+      "TicketWalletFlowTests",
+      "RegionalEntryFlowTests",
+      "ClubCommunityUITests",
+      "ObjectCardFlowTests",
+      "CooperationFlowUITests",
+      "WeChatAppAuthFlowTests"
+    ]
+  ],
+  "app_swift_files": 281,
+  "core_swift_files": 324,
+  "whole_tree_swift_files": 804,
+  "bilingual_keys": 5145
+}

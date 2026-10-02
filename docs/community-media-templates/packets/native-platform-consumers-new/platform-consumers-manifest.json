@@ -1,0 +1,29 @@
+{
+  "package": "platform-consumers",
+  "swiftFiles": [
+    "App/NativePlatformAdapters.swift",
+    "App/PlatformConsumerViews.swift",
+    "Core/PlatformAudioPlayback.swift",
+    "Core/PlatformChapterAudioBridge.swift",
+    "Core/PlatformExternalMaps.swift",
+    "Tests/CoreTests/PlatformChapterAudioTests.swift",
+    "Tests/CoreTests/PlatformConsumerTests.swift"
+  ],
+  "resources": [
+    "Resources/PlatformConsumers.xcstrings"
+  ],
+  "defaultEnabled": false,
+  "sharedHostEdits": false,
+  "runtime": "NOT_RUN",
+  "xctest": "NOT_RUN",
+  "compiler": "NOT_RUN",
+  "sourceConsumers": [
+    "topic_detail_page.dart",
+    "chapter_story_page.dart",
+    "order_detail_sheet.dart",
+    "roam_poi_detail_page.dart",
+    "route_preview_sheet.dart",
+    "card_detail_page.dart"
+  ],
+  "requiredParentPatch": "patches/chapter-audio-reader.patch"
+}

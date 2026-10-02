@@ -1,0 +1,117 @@
+#if DEBUG
+import SwiftUI
+
+@MainActor private final class PlayExperienceFixtureState {
+    var epoch: UInt64 = 1
+    var accountID = 9001
+    var done = false
+    var circleRecords: [PlayWireValue] = []
+    var tagRevoked = false
+    var tagConfirmed = false
+    let scenario: String
+    init(scenario: String) { self.scenario = scenario }
+    var session: PlayExperienceSession? { try? .init(accountID: accountID, epoch: epoch, namespace: "synthetic-play-cn", token: "synthetic-token") }
+    func response(_ request: URLRequest) async throws -> (Data, Int) {
+        let path = request.url?.path ?? ""
+        if path.hasSuffix("/nodes") {
+            if scenario == "preference" {
+                let json: PlayWireValue = .object(["topicId": .int(71), "topicName": .string("Synthetic preference journey"), "mode": .int(1), "playable": .bool(true), "registered": .bool(true), "nodes": .array([.object(["nodeId": .int(701), "name": .string("Synthetic preference station"), "done": .bool(done), "validationMethod": .int(6)])])])
+                return (try JSONEncoder().encode(PlayWireValue.object(["code": .int(200), "data": json])), 200)
+            }
+            if scenario == "sensor", !done {
+                return (PlayExperienceSyntheticFixtures.envelope(#"{"topicId":71,"topicName":"Synthetic stillness","mode":1,"playable":true,"registered":true,"nodes":[{"nodeId":701,"name":"Synthetic sensor station","done":false,"validationMethod":7,"sensorType":"still","sensorConfig":{"durationSec":1,"tolerance":0.02}}]}"#), 200)
+            }
+            let raw = scenario == "mode2" ? PlayExperienceSyntheticFixtures.mode2 : scenario == "branch" && !done ? PlayExperienceSyntheticFixtures.branch : done ? PlayExperienceSyntheticFixtures.complete : PlayExperienceSyntheticFixtures.classic
+            return (PlayExperienceSyntheticFixtures.envelope(raw), 200)
+        }
+        if path.hasSuffix("/route-state") { return (PlayExperienceSyntheticFixtures.envelope(PlayExperienceSyntheticFixtures.route), 200) }
+        if path.hasSuffix("/answer") || path.hasSuffix("/sensor-result") {
+            if scenario == "unknown" { throw URLError(.timedOut) }
+            done = true; return (PlayExperienceSyntheticFixtures.envelope(#"{"nodeId":701,"firstTime":true,"xp":9,"completed":true}"#), 200)
+        }
+        if path.hasSuffix("/preference/701") {
+            return (PlayExperienceSyntheticFixtures.envelope(#"{"nodeId":701,"steps":[{"key":"FIRST","type":"single","title":"Synthetic preference question","options":[{"key":"A","text":"Synthetic first option"},{"key":"B","text":"Synthetic second option"}]}],"inheritedTags":[]}"#), 200)
+        }
+        if path.hasSuffix("/preference/701/submit") {
+            done = true
+            return (PlayExperienceSyntheticFixtures.envelope(#"{"evaluation":{"resultCode":"SYNTHETIC","title":"Synthetic result","body":"Synthetic suggestion","nextStep":"Synthetic next step","nextStepDays":7},"progress":{"nodeId":701,"xp":3},"pendingTag":{"id":81,"tagCode":"SYNTHETIC","tagValue":"Synthetic tag","status":0},"tagDisclosure":{"purpose":"Synthetic personalization only","recipientLabel":"Synthetic journey service","revocable":true},"availableTagValues":["Synthetic tag","Synthetic other tag"]}"#), 200)
+        }
+        if path.hasSuffix("/tag/81/confirm") {
+            tagConfirmed = true
+            return (PlayExperienceSyntheticFixtures.envelope(#"{"id":81,"tagCode":"SYNTHETIC","tagValue":"Synthetic tag","status":1}"#), 200)
+        }
+        if path.hasSuffix("/tag/81/revoke") {
+            tagRevoked = true
+            return (PlayExperienceSyntheticFixtures.envelope(#"{"id":81,"tagValue":"Synthetic tag","status":"REVOKED"}"#), 200)
+        }
+        if path.hasSuffix("/play/os/71") {
+            return (try JSONEncoder().encode(PlayWireValue.object(["code": .int(200), "data": .object(["topicId": .int(71), "tags": .array([.object(["id": .int(81), "tagValue": .string("Synthetic tag"), "status": .string(tagRevoked ? "REVOKED" : "ACTIVE")])]), "actions7Days": .array([.string("Synthetic next-week action")])])])), 200)
+        }
+        if path.hasSuffix("/ending") { return (PlayExperienceSyntheticFixtures.envelope(done ? #"{"opener":"Synthetic ending","fragments":[{"step":1,"nodeId":701,"name":"Synthetic courtyard","text":"Your synthetic route has been read back."}]}"# : #"{"opener":"","fragments":[]}"#), 200) }
+        if path.hasSuffix("/leaderboard") { return (PlayExperienceSyntheticFixtures.envelope(PlayExperienceSyntheticFixtures.board), 200) }
+        if path.hasSuffix("/team-progress") { return (PlayExperienceSyntheticFixtures.envelope(PlayExperienceSyntheticFixtures.lead), 200) }
+        if path.hasSuffix("/hint/unlock") { return (PlayExperienceSyntheticFixtures.envelope(#"{"hint1":"Synthetic hint","hint2":"","cost":2}"#), 200) }
+        if path.hasSuffix("/run-session") { return (PlayExperienceSyntheticFixtures.envelope(#"{"runState":"PAUSED","savedAt":1000,"elapsedSeconds":12}"#), 200) }
+        if path.contains("/run-session/") || path.contains("/club/lead/") { return (PlayExperienceSyntheticFixtures.envelope("null"), 200) }
+        if path.hasSuffix("/advanced/start") || path.hasSuffix("/advanced/state") { return (PlayExperienceSyntheticFixtures.envelope(PlayExperienceSyntheticFixtures.advanced), 200) }
+        if path.hasSuffix("/advanced/action") {
+            var raw = try PlayExperienceSyntheticFixtures.wire(PlayExperienceSyntheticFixtures.advanced).object!
+            raw["version"] = .int(3); raw["readyForBase"] = .bool(true)
+            return (try JSONEncoder().encode(PlayWireValue.object(["code": .int(200), "data": .object(raw)])), 200)
+        }
+        if path.hasSuffix("/game/session/view") { return (PlayExperienceSyntheticFixtures.envelope(PlayExperienceSyntheticFixtures.player), 200) }
+        if path.hasSuffix("/offers") { return (PlayExperienceSyntheticFixtures.envelope(#"[{"id":1,"candidateCode":"A","candidateName":"Synthetic shop A"},{"id":2,"candidateCode":"B","candidateName":"Synthetic shop B"},{"id":3,"candidateCode":"C","candidateName":"Synthetic shop C"}]"#), 200) }
+        if path.hasSuffix("/circle-theme/session") || path.hasSuffix("/session/join") { return (PlayExperienceSyntheticFixtures.envelope(#"{"id":801}"#), 200) }
+        if path.hasSuffix("/801/card") {
+            return (try JSONEncoder().encode(PlayWireValue.object(["code": .int(200), "data": .object(["sessionId": .int(801), "themeCode": .string("FITNESS"), "records": .array(circleRecords), "answers": .array([])])])), 200)
+        }
+        if path.hasSuffix("/session/record"), let body = request.httpBody {
+            let json = try JSONDecoder().decode(PlayWireValue.self, from: body)
+            circleRecords.append(.object(["offerId": json["offerId"], "candidateName": .string("Synthetic recorded shop"), "note": json["note"]]))
+            return (PlayExperienceSyntheticFixtures.envelope("{}"), 200)
+        }
+        throw PlayExperienceError.unsupported
+    }
+}
+private final class PlayExperienceFixtureTransport: HTTPTransport {
+    let operation: @MainActor (URLRequest) async throws -> (Data, Int)
+    init(_ operation: @escaping @MainActor (URLRequest) async throws -> (Data, Int)) { self.operation = operation }
+    func send(_ request: URLRequest) async throws -> (Data, Int) { try await operation(request) }
+}
+@MainActor struct PlayExperienceFixtureHostView: View {
+    private let state: PlayExperienceFixtureState
+    private let model: PlayExperienceCoordinator
+    private let service: PlayExperienceService
+    @State private var revision = 0
+    init() {
+        let args = ProcessInfo.processInfo.arguments
+        let index = args.firstIndex(of: "--uitesting-play-experience-scenario")
+        let scenario = index.flatMap { args.indices.contains($0 + 1) ? args[$0 + 1] : nil } ?? "classic"
+        let state = PlayExperienceFixtureState(scenario: scenario); self.state = state
+        let service = PlayExperienceService(configuration: try! APIConfiguration(baseURL: URL(string: "https://example.com/fixture/")!), transport: PlayExperienceFixtureTransport { try await state.response($0) }, enabled: scenario == "disabled" ? [] : [.reads, .runPersistence, .classicCompletion, .hints, .leader, .advanced, .playerCommands, .circle, .preference, .tags])
+        self.service = service
+        model = PlayExperienceCoordinator(scope: .activity(41), service: service, recovery: PlayMemoryCompletionRecovery(), pausedStorage: PlayMemoryPausedStorage(), currentSession: { state.session })
+    }
+    var body: some View {
+        NavigationStack {
+            PlayExperienceView(model: model,
+                advancedModel: { PlayAdvancedCoordinator(activityID: 41, topicID: 71, nodeID: $0, service: service, currentSession: { state.session }) },
+                motionModel: { nodeID, configuration in
+                    PlayStillnessCoordinator(configuration: configuration,
+                        provider: PlaySyntheticMotionProvider(samples: (0...20).map { .init(x: 0, y: 0, z: 1, timestamp: Double($0) / 10) }),
+                        currentContext: { state.session.flatMap { try? PlayDeviceContext(session: $0, scope: .activity(41), nodeID: nodeID) } })
+                },
+                preferenceModel: { PlayPreferenceCoordinator(scope: .activity(41), nodeID: $0, service: service, currentSession: { state.session }) },
+                summaryModel: { PlayOperatingSummaryCoordinator(topicID: $0, service: service, currentSession: { state.session }) },
+                playerModel: PlayPlayerGameCoordinator(activityID: 41, service: service, currentSession: { state.session }),
+                circleModel: PlayCircleCoordinator(topicID: 71, service: service, currentSession: { state.session }))
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("playx.fixture.switch") { state.epoch += 1; state.accountID = 9002; model.invalidate(); revision += 1 }
+                            .accessibilityIdentifier("playx.fixture.switch")
+                    }
+                }
+        }.id(revision)
+    }
+}
+#endif

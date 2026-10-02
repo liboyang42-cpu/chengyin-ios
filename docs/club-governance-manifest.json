@@ -1,0 +1,23 @@
+{
+  "App/ClubGovernanceCommandForm.swift": "2f5867eaaadf7a278d47d7f8c12c02fe94dd0357103304ca81b5c7a7ce8e875b",
+  "App/ClubGovernanceContext.swift": "a5eed15d56fcc56f5e228fa3dca01fba00dad1a4b72b29712fe4a84422c3c901",
+  "App/ClubGovernanceFixtureHost.swift": "3786bf59e2b311402fa1809a4b20db398cb5604bfca28cd9516f7e433f95cf30",
+  "App/ClubGovernanceViews.swift": "ea9f0fdad12989443f88328996945d9377ca3df0235b2ca2a3d402954c83d64f",
+  "Core/ClubGovernanceCommands.swift": "5b7a7d842991aa199583185fa94f47274b9208de1833388c98a8eee11fda2f6c",
+  "Core/ClubGovernanceContracts.swift": "5a8030c8952cd30f03ab3eab1925a465fbf79b03ca0c83b5952047b613bb114b",
+  "Core/ClubGovernanceCoordinator.swift": "5fc16015adac60b0af39509f40634f16cc35f4e611c52fdd57861ba2b7f64f66",
+  "Core/ClubGovernanceFormDraft.swift": "85081a5adfb997068cda84b899c6e74600b782b9f5109bc62c91f876a3c3eafc",
+  "Core/ClubGovernanceGroupCode.swift": "b95529facbffa96e508b1211669ae3b06c73e07dca8425da04b14e10bd25119d",
+  "Core/ClubGovernanceService.swift": "e726e105d20591b3b51f342bcecf5f6c75ee497ce95e603d4c050da3d30ed3ee",
+  "Core/ClubGovernanceSyntheticFixtures.swift": "408ec93058c517659d3f7c9b9d70bd9a0caa638c2dab13095ab07f0e02fa44ac",
+  "Core/ClubGovernanceValidation.swift": "8b95b90d4981d51f9d1c49dc3b0a4a8ef06bb1211a8a5768a97090f8a043eb79",
+  "Resources/ClubGovernanceLocalizations.fragment.json": "c905742be5322e7742932a5bdd9e767b46caa71ef6980c6c2a1d6dfa29e3bc95",
+  "Tests/AppUITests/ClubGovernanceFlowTests.swift": "a0933c999365616ee22c39c7e7c661af8ff860884f6fccaca4df0c73f6e753e4",
+  "Tests/CoreTests/ClubGovernanceContractTests.swift": "66ce84dec063a13ea1b5fa698847774a57fa730ad5efa1d405b99a1cee937db9",
+  "Tests/CoreTests/ClubGovernanceCoordinatorTests.swift": "1122b97046408c3d8ff51548a25c8f72c61674bc15cee96ab3dd5f0767a1909b",
+  "docs/club-governance-integration.md": "7359adb14ea1be1bd990eddae412bedb833c588ea00730d1d49a53c448557d3e",
+  "docs/club-governance-migration.md": "150be9e43726ba5f044fe6fd5cf71e9890f367e6236210f4e2102a0731f58c03",
+  "docs/club-governance-static-evidence.json": "adbdb168b109610f3ab8a83fa8f4bd5da12e32ecf6fd0ef6c401212b11783b38",
+  "tools/build_club_governance_catalog.py": "c7d2902ea1300b8bb648bebc7df1aa9fac1ec493849fbe1ceb91392d3802c55b",
+  "tools/check_club_governance.py": "69218b96a639dfae96d57788969ce51bb4fa8f8e590efddf3309959bc4b698b8"
+}

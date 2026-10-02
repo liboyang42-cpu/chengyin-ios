@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "scope": "Static source and localization gates only; Swift/Xcode/UI runtime NOT_RUN",
+  "endpoint_count": 46,
+  "core_tests_authored": 62,
+  "ui_tests_authored": 7,
+  "bilingual_keys": 229,
+  "swift_files": 804
+}
+
+--- STDERR ---

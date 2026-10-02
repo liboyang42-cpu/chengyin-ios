@@ -47,3 +47,9 @@ Locally passed:
 - `git diff --check`
 
 These are structural checks, not a Swift compiler. Swift/Xcode and simulator execution are unavailable in this Linux worker. Parent-owned home/ticket screenshots and Chinese/dark/accessibility/Reduce Motion fixture tests must run on the integrated revision. In addition, verify press-cancel while scrolling, immediate navigation and repeated Back/reopen, image arrival, all ticket statuses, unknown and partial responses, session invalidation, accessibility-size wrapping, VoiceOver reading order, and boundary/foreground behavior before claiming acceptance.
+
+## Integration update, 2026-10-01
+
+b754 simulator captures now include home light and Chinese dark/accessibility3 states; both relevant presentation tests passed. These synthetic captures were inspected at integration. They do not prove actual VoiceOver order or system Reduce Motion behavior. `QuestifyReduceMotion` reads the real system setting and supports a DEBUG-only policy flag; it does not write the read-only environment key. Subsequent shared image-card changes still require their own runtime screenshots.
+
+The user-selected entity-card direction is full-bleed source artwork, a feathered bottom dark gradient, and white overlaid text with no outline. `QuestifyImageEntityCard` is reused for club and topic/favorites. The dark scrim grows with text; Dynamic Type does not impose a fixed text-height crop. Missing artwork uses an explicit neutral fallback, not a fabricated photograph. The supplied reference portrait, badges and counts are not app assets or product requirements. Award quality is an aspiration, not a verified certification.

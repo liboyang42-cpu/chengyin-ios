@@ -1,0 +1,146 @@
+{
+  "im.full.title": {
+    "en": "Conversation actions",
+    "zh-Hans": "会话操作"
+  },
+  "im.full.disabled": {
+    "en": "This connection is not configured.",
+    "zh-Hans": "尚未配置连接。"
+  },
+  "im.full.conversation": {
+    "en": "Conversation",
+    "zh-Hans": "会话"
+  },
+  "im.full.read": {
+    "en": "Mark as read",
+    "zh-Hans": "标记已读"
+  },
+  "im.full.mute": {
+    "en": "Mute conversation",
+    "zh-Hans": "开启免打扰"
+  },
+  "im.full.unmute": {
+    "en": "Unmute conversation",
+    "zh-Hans": "关闭免打扰"
+  },
+  "im.full.route": {
+    "en": "Route card",
+    "zh-Hans": "路线卡片"
+  },
+  "im.full.topicID": {
+    "en": "Topic ID",
+    "zh-Hans": "路线编号"
+  },
+  "im.full.review": {
+    "en": "Review",
+    "zh-Hans": "检查确认"
+  },
+  "im.full.location": {
+    "en": "Location card",
+    "zh-Hans": "位置卡片"
+  },
+  "im.full.name": {
+    "en": "Place name",
+    "zh-Hans": "地点名称"
+  },
+  "im.full.address": {
+    "en": "Address",
+    "zh-Hans": "地址"
+  },
+  "im.full.latitude": {
+    "en": "Latitude",
+    "zh-Hans": "纬度"
+  },
+  "im.full.longitude": {
+    "en": "Longitude",
+    "zh-Hans": "经度"
+  },
+  "im.full.locationConsent": {
+    "en": "Sending shares these coordinates with this conversation.",
+    "zh-Hans": "发送将向此会话分享这些坐标。"
+  },
+  "im.full.confirm": {
+    "en": "Confirm action",
+    "zh-Hans": "确认操作"
+  },
+  "im.full.submitting": {
+    "en": "Submitting…",
+    "zh-Hans": "提交中…"
+  },
+  "im.full.unknown": {
+    "en": "The outcome is unknown. Check the conversation before retrying the unchanged request.",
+    "zh-Hans": "结果未知。请先检查会话，再决定是否重试原请求。"
+  },
+  "im.full.retrySame": {
+    "en": "Retry unchanged request",
+    "zh-Hans": "重试原请求"
+  },
+  "im.full.rejected": {
+    "en": "The request was rejected.",
+    "zh-Hans": "请求未获接受。"
+  },
+  "im.full.closed": {
+    "en": "This conversation is closed.",
+    "zh-Hans": "此会话已结束。"
+  },
+  "im.full.acknowledged": {
+    "en": "The server acknowledged this action.",
+    "zh-Hans": "服务器已确认此操作。"
+  },
+  "im.full.start": {
+    "en": "Start conversation",
+    "zh-Hans": "发起会话"
+  },
+  "im.full.sendTo": {
+    "en": "Send to conversation",
+    "zh-Hans": "发送到会话"
+  },
+  "im.full.image": {
+    "en": "Image message",
+    "zh-Hans": "图片消息"
+  },
+  "im.full.reviewResult": {
+    "en": "View review result",
+    "zh-Hans": "查看处理结果"
+  },
+  "im.full.viewTopic": {
+    "en": "View route or activity",
+    "zh-Hans": "查看路线或活动"
+  },
+  "im.full.details": {
+    "en": "View details",
+    "zh-Hans": "查看详情"
+  },
+  "im.full.unsupportedAction": {
+    "en": "This action is not supported by this version.",
+    "zh-Hans": "当前版本暂不支持此操作。"
+  },
+  "im.full.memberID": {
+    "en": "Recipient member ID",
+    "zh-Hans": "接收方用户编号"
+  },
+  "im.full.imageConsent": {
+    "en": "Choose an image only after you agree to select it for this conversation.",
+    "zh-Hans": "同意为此会话选择图片后再继续。"
+  },
+  "im.full.selectImage": {
+    "en": "Agree and choose image",
+    "zh-Hans": "同意并选择图片"
+  },
+  "im.full.uploadConsent": {
+    "en": "Upload this image to the configured service? Sending it requires a separate review.",
+    "zh-Hans": "将此图片上传到已配置服务？发送前还需单独确认。"
+  },
+  "im.full.upload": {
+    "en": "Confirm image upload",
+    "zh-Hans": "确认上传图片"
+  },
+  "im.full.uploaded": {
+    "en": "Image uploaded. Review before sending.",
+    "zh-Hans": "图片已上传，请确认后再发送。"
+  },
+  "im.full.uploadUnknown": {
+    "en": "Upload outcome unknown. Check before starting another upload.",
+    "zh-Hans": "上传结果未知，请检查后再开始新的上传。"
+  }
+}

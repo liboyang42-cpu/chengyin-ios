@@ -27,7 +27,9 @@ def configurations(scope):
     for name in ['Debug','Release']:
         settings = {'SDKROOT':'iphoneos','CLANG_ENABLE_MODULES':'YES'} if scope=='project' else {'PRODUCT_NAME':'$(TARGET_NAME)','SUPPORTED_PLATFORMS':'iphoneos iphonesimulator','SWIFT_EMIT_LOC_STRINGS':'YES'}
         if scope=='target': settings.update({'SWIFT_OPTIMIZATION_LEVEL':'-Onone' if name=='Debug' else '-O','DEBUG_INFORMATION_FORMAT':'dwarf' if name=='Debug' else 'dwarf-with-dsym'})
-        if scope=='target' and name=='Debug': settings['SWIFT_ACTIVE_COMPILATION_CONDITIONS']='DEBUG $(inherited)'
+        if scope=='target' and name=='Debug':
+            settings['SWIFT_ACTIVE_COMPILATION_CONDITIONS']='DEBUG $(inherited)'
+            settings['ENABLE_TESTABILITY']='YES'
         extra={'baseConfigurationReference':config_ref} if scope=='target' else {}
         configs.append(obj(scope+name,isa='XCBuildConfiguration',name=name,buildSettings=settings,**extra))
     return obj(scope+'configs',isa='XCConfigurationList',buildConfigurations=configs,defaultConfigurationIsVisible=0,defaultConfigurationName='Release')
@@ -48,7 +50,27 @@ ui_sources=obj('ui-sources',isa='PBXSourcesBuildPhase',buildActionMask=214748364
 proxy=obj('ui-proxy',isa='PBXContainerItemProxy',containerPortal=ident('project'),proxyType=1,remoteGlobalIDString=target,remoteInfo='Questify')
 dependency=obj('ui-dependency',isa='PBXTargetDependency',target=target,targetProxy=proxy)
 ui_target=obj('ui-target',isa='PBXNativeTarget',buildConfigurationList=ui_config_list,buildPhases=[ui_sources],buildRules=[],dependencies=[dependency],name='QuestifyUITests',productName='QuestifyUITests',productReference=ui_product,productType='com.apple.product-type.bundle.ui-testing')
-project=obj('project',isa='PBXProject',attributes={'LastUpgradeCheck':'1500','TargetAttributes':{ui_target:{'TestTargetID':target}}},buildConfigurationList=configurations('project'),compatibilityVersion='Xcode 14.0',developmentRegion='en',hasScannedForEncodings=0,knownRegions=['en','zh-Hans','Base'],mainGroup=group,productRefGroup=products,projectDirPath='',projectRoot='',targets=[target,ui_target])
+# App-hosted XCTest is deliberately separate from the UI-test target and SwiftPM.
+unit_config_ref=obj('unit-base',isa='PBXFileReference',lastKnownFileType='text.xcconfig',path='Config/AppUnitTests.xcconfig',sourceTree='<group>')
+objects[group]['children'].append(unit_config_ref)
+unit_files=[]
+for path in sorted(ROOT.glob('Tests/AppUnitTests/**/*.swift')):
+    relative=str(path.relative_to(ROOT))
+    ref=obj(relative,isa='PBXFileReference',lastKnownFileType='sourcecode.swift',path=relative,sourceTree='<group>')
+    objects[group]['children'].append(ref)
+    unit_files.append(obj('build:'+relative,isa='PBXBuildFile',fileRef=ref))
+if not unit_files:
+    raise SystemExit('No app-unit sources found; refusing to generate an empty test target')
+unit_product=obj('unit-product',isa='PBXFileReference',explicitFileType='wrapper.cfbundle',includeInIndex=0,path='QuestifyAppUnitTests.xctest',sourceTree='BUILT_PRODUCTS_DIR')
+objects[products]['children'].append(unit_product)
+unit_configs=[obj('unit'+name,isa='XCBuildConfiguration',name=name,baseConfigurationReference=unit_config_ref,buildSettings={'PRODUCT_NAME':'$(TARGET_NAME)'}) for name in ['Debug','Release']]
+unit_config_list=obj('unitconfigs',isa='XCConfigurationList',buildConfigurations=unit_configs,defaultConfigurationIsVisible=0,defaultConfigurationName='Debug')
+unit_sources=obj('unit-sources',isa='PBXSourcesBuildPhase',buildActionMask=2147483647,files=unit_files,runOnlyForDeploymentPostprocessing=0)
+unit_frameworks=obj('unit-frameworks',isa='PBXFrameworksBuildPhase',buildActionMask=2147483647,files=[],runOnlyForDeploymentPostprocessing=0)
+unit_proxy=obj('unit-proxy',isa='PBXContainerItemProxy',containerPortal=ident('project'),proxyType=1,remoteGlobalIDString=target,remoteInfo='Questify')
+unit_dependency=obj('unit-dependency',isa='PBXTargetDependency',target=target,targetProxy=unit_proxy)
+unit_target=obj('unit-target',isa='PBXNativeTarget',buildConfigurationList=unit_config_list,buildPhases=[unit_sources,unit_frameworks],buildRules=[],dependencies=[unit_dependency],name='QuestifyAppUnitTests',productName='QuestifyAppUnitTests',productReference=unit_product,productType='com.apple.product-type.bundle.unit-test')
+project=obj('project',isa='PBXProject',attributes={'LastUpgradeCheck':'1500','TargetAttributes':{ui_target:{'TestTargetID':target},unit_target:{'TestTargetID':target}}},buildConfigurationList=configurations('project'),compatibilityVersion='Xcode 14.0',developmentRegion='en',hasScannedForEncodings=0,knownRegions=['en','zh-Hans','Base'],mainGroup=group,productRefGroup=products,projectDirPath='',projectRoot='',targets=[target,ui_target,unit_target])
 # OpenStep property list, all strings quoted for deterministic escaping.
 def serialize(value, level=0):
     if isinstance(value,dict): return '{\n'+''.join('\t'*(level+1)+json.dumps(k)+' = '+serialize(v,level+1)+';\n' for k,v in value.items())+'\t'*level+'}'
@@ -75,3 +97,19 @@ scheme_dir=folder/'xcshareddata/xcschemes';scheme_dir.mkdir(parents=True,exist_o
 ET.indent(scheme)
 ET.ElementTree(scheme).write(scheme_dir/'Questify.xcscheme',encoding='utf-8',xml_declaration=True)
 print(f'Generated Questify.xcodeproj: {len(sources)} Swift sources, {len(resources)} catalogs')
+
+# Dedicated shared scheme prevents app-unit tests being repeated in every UI shard.
+unit_scheme=ET.Element('Scheme',LastUpgradeVersion='1500',version='1.3')
+unit_entry={'BuildableIdentifier':'primary','BlueprintIdentifier':unit_target,'BuildableName':'QuestifyAppUnitTests.xctest','BlueprintName':'QuestifyAppUnitTests','ReferencedContainer':'container:Questify.xcodeproj'}
+unit_build=ET.SubElement(unit_scheme,'BuildAction',parallelizeBuildables='YES',buildImplicitDependencies='YES')
+unit_entries=ET.SubElement(unit_build,'BuildActionEntries')
+for reference in [entry,unit_entry]:
+    build=ET.SubElement(unit_entries,'BuildActionEntry',buildForTesting='YES',buildForRunning='NO',buildForProfiling='NO',buildForArchiving='NO',buildForAnalyzing='NO')
+    ET.SubElement(build,'BuildableReference',**reference)
+unit_action=ET.SubElement(unit_scheme,'TestAction',buildConfiguration='Debug',selectedDebuggerIdentifier='Xcode.DebuggerFoundation.Debugger.LLDB',selectedLauncherIdentifier='Xcode.IDEFoundation.Launcher.LLDB',shouldUseLaunchSchemeArgsEnv='NO')
+ET.SubElement(ET.SubElement(unit_action,'MacroExpansion'),'BuildableReference',**entry)
+unit_testable=ET.SubElement(ET.SubElement(unit_action,'Testables'),'TestableReference',skipped='NO',parallelizable='NO')
+ET.SubElement(unit_testable,'BuildableReference',**unit_entry)
+ET.indent(unit_scheme)
+ET.ElementTree(unit_scheme).write(scheme_dir/'QuestifyAppUnitTests.xcscheme',encoding='utf-8',xml_declaration=True)
+print(f'Included {len(unit_files)} app-unit sources in the separate QuestifyAppUnitTests scheme')

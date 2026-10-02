@@ -1,0 +1,22 @@
+# Durable image upload recovery and bounded transport
+
+## Integrated behavior
+
+- Merchant field, public review registration, and existing IM upload owners receive the same account/deployment Keychain-backed metadata journal. The durable target contains exact namespace, realm, account, domain, merchant/conversation ID, field, and saved template/registration ID. Epochs, access/draft revisions and new-template screen IDs are deliberately excluded from the durable lock, while existing live proof fences remain unchanged.
+- Before calling any uploader, `begin` synchronously writes and reads back a pending marker. Keychain unavailable/locked, read/write failure, invalid schema, foreign-target records, and failed verification block dispatch. Device-only unlocked Keychain items are nonsynchronizable. Logout and navigation never delete markers.
+- An accepted server upload writes `acknowledged` before exposing its memory-only proof. Neither uploaded URLs, bytes, tokens, descriptions, nor raw response/error text are persisted. This acknowledgement is not local draft application, review submission, IM send, or merchant publication.
+- The explicit Use action runs a synchronous same-scope consumer. Merchant application checks the expected field and actual updated draft, review application checks insertion, and IM checks acceptance into the exact scoped send-review owner. Only a successful consumer writes `locallyApplied`, permitting another explicit selection plus upload confirmation. Failed local consumer does not unlock; failed terminal write or a crash during the transition remains manual recovery. It does not claim the local draft itself survives a process death.
+- Recreated pending and acknowledged-but-unapplied records remain locked across relaunch/new epoch/new-template IDs. No status/receipt endpoint, replay, automatic retry, clear-record button, or fabricated reconciliation is introduced. A reviewed manual recovery procedure is still required before production activation. Source-proven rejection permits a fresh review; all other uncertain failures remain pending.
+- `ResponseLimitedHTTPTransport` is reusable and disabled by default. The retained normal host uses that disabled adapter. It creates a fresh ephemeral no-cache/no-cookie/no-credential-store session for each request, refuses redirects and body streams, and enforces advertised and per-chunk response caps before accumulating data. Default cap is 1 MiB. Network/cancellation/response-limit failures after dispatch are unknown, never evidence of a safe retry. Existing multipart/source endpoint, token, field, scope and approved-origin checks are unchanged. IM production writer remains service-nil; eventual activation must inject the bounded adapter as well.
+
+## Verification and activation
+
+Focused source checks and supplementary pinned Tree-sitter parsing are recorded under `checks/`. XCTest additions cover journal recreation, partial send, corruption/storage failure, write-ahead ordering, metadata minimization, namespace/account/template isolation, acknowledged versus local application and IM new-epoch recovery; streaming tests use only fake suspended tasks/delegate chunks. These tests are AUTHORED, not executed.
+
+Swift compiler/typechecker, Core XCTest, Xcode, iOS app-unit/UI tests, Keychain persistence/relaunch and real URLSession cancellation/memory behavior: NOT_RUN (no Swift/Apple toolchain in this environment). All live endpoint, origin, OS picker, read/write and provider grants remain OFF. No live request, upload, OS selection, provider call or configuration activation occurred.
+
+The finite remaining gates should now describe durable unknown/acknowledged recovery and bounded transport as IMPLEMENTED_OFF, retaining manual recovery policy, approved origins/media limits/OS permission and Apple runtime validation. Do not mark deployment readiness or backend recovery complete.
+
+## Applying this isolated packet
+
+`changes.patch` is an exact preimage-based patch and `manifest.json` enumerates only owned source/test/tool/doc additions and edits. Apply only this manifest. Shared-main `AppSession.swift` or app-unit test changes from other packets must be reconciled additively against the patch. In particular preserve the separate app-unit target work and any `Credentials.value` optionality repair. Regenerate the Xcode project using the repository tool so both new Core files, new app storage and Core test files are included. Do not copy this isolated checkout wholesale.

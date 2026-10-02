@@ -1,0 +1,24 @@
+{
+  "root": "native-square-workspace-new",
+  "files": [
+    "App/SquareWorkspaceFixtureHost.swift",
+    "App/SquareWorkspaceSecureStorage.swift",
+    "App/SquareWorkspaceView.swift",
+    "Core/SquareWorkspaceContracts.swift",
+    "Core/SquareWorkspaceCoordinator.swift",
+    "Core/SquareWorkspaceFixtures.swift",
+    "Core/SquareWorkspaceService.swift",
+    "Core/SquareWorkspaceStore.swift",
+    "Tests/AppUITests/SquareWorkspaceFlowTests.swift",
+    "Tests/ContractChecks/test_square_workspace.py",
+    "Tests/CoreTests/SquareWorkspaceTests.swift",
+    "docs/square-workspace-changed-files.json",
+    "docs/square-workspace-integration.md",
+    "docs/square-workspace-localizations.json",
+    "docs/square-workspace-source-results.txt",
+    "docs/square-workspace-syntax-results.txt",
+    "docs/square-workspace-verification.json",
+    "tools/merge_square_workspace_catalog.py"
+  ],
+  "shared_files_modified": []
+}

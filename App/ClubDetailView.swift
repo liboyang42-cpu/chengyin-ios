@@ -7,6 +7,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
     var onSignIn: (() -> Void)? = nil
     var actionCoordinator: ClubActionCoordinator? = nil
     var management:ClubManagementContext? = nil
+    var community: ClubCommunityContext? = nil
     @State private var actionDetail: ClubRecord? = nil
     @State private var actionIdentity: ClubReadIdentity? = nil
     @State private var detailGeneration: UInt64 = 0
@@ -44,8 +45,18 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                         actionDetail = detail; actionIdentity = identity
                     }
                 }
+                if let community { Section { ClubCommunityEntry(clubID: id, identity: reader.clubIdentity, context: community) } }
+                // V2 governance has its own access/me model, including delegated event staff.
+                if let governance = management?.governance {
+                    Section {
+                        ClubGovernanceEntryButton(clubID: id, identity: reader.clubIdentity, access: governance.access, coordinator: governance.coordinator)
+                    }
+                }
                 if (club.isOwner || club.viewerIsAdmin),let management {
                     Section {
+                        if let operations = management.operations {
+                            ClubOperationsEntryButton(target: .club(id), identity: reader.clubIdentity, access: operations.access, coordinator: operations.coordinator)
+                        }
                         NavigationLink {
                             ClubManagementView(clubID:id,identity:reader.clubIdentity,access:management.access,coordinator:management.coordinator)
                         } label: { Label("club.management.title",systemImage:"person.2.badge.gearshape") }

@@ -60,6 +60,9 @@ public struct ProfileOrder: Decodable, Equatable, Identifiable {
     public let startDate: String?
     public let endDate: String?
     public let addressName: String?
+    public let meetingPoint: String?
+    public let gatherLatitude: Double?
+    public let gatherLongitude: Double?
     public let participateDate: String?
     public let payableAmount: Decimal?
     public let realName: String?
@@ -81,7 +84,7 @@ public struct ProfileOrder: Decodable, Equatable, Identifiable {
 
     private enum CodingKeys: String, CodingKey {
         case id, ownerType, ownerId, registrationNo, registrationStatus, verificationStatus, paymentStatus
-        case cmsActivity, cmsTopic, participateDate, payableAmount, realName, phone, ticketName, orderNum
+        case cmsActivity, cmsTopic, omsTicket, participateDate, payableAmount, realName, phone, ticketName, orderNum
         case paymentTime, paymentTypeLabel, createTime, verificationTime, expiresAt, organizerName
         case statusText, orderHint, refundInfo, refundApplication
     }
@@ -91,6 +94,11 @@ public struct ProfileOrder: Decodable, Equatable, Identifiable {
         let startDate: String?
         let endDate: String?
         let addressName: String?
+    }
+    private struct MeetingTicket: Decodable {
+        let meetingPoint: String?
+        let gatherLat: Double?
+        let gatherLng: Double?
     }
     private struct RefundInfo: Decodable { let refundable: Bool? }
     private struct RefundApplication: Decodable { let payoutStatus: ProfileWireInteger? }
@@ -112,6 +120,9 @@ public struct ProfileOrder: Decodable, Equatable, Identifiable {
         startDate = owner?.startDate
         endDate = owner?.endDate
         addressName = owner?.addressName
+        let meeting = try c.decodeIfPresent(MeetingTicket.self, forKey: .omsTicket)
+        meetingPoint = meeting?.meetingPoint
+        gatherLatitude = meeting?.gatherLat; gatherLongitude = meeting?.gatherLng
         participateDate = try c.decodeIfPresent(String.self, forKey: .participateDate)
         if c.contains(.payableAmount), !(try c.decodeNil(forKey: .payableAmount)) {
             // Flutter's order projection accepts numeric amounts, not numeric strings.

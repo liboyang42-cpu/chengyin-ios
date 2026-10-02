@@ -1,0 +1,40 @@
+{
+  "files": [
+    {
+      "path": "App/PublisherAuthorityHost.swift",
+      "sha256": "120b79c9dc5efff9a00d3088ea03eb775d4864b044e175b88e1bed7c84396c02"
+    },
+    {
+      "path": "Core/PublisherAuthoritySource.swift",
+      "sha256": "fd26bdb549536bbee57296b91ca12c7ad23004d75777aae4204307833ff31fd8"
+    },
+    {
+      "path": "Core/PublisherSourceAuthorityReader.swift",
+      "sha256": "9984d895be344ebf5ff40c3ecea8706074603e355b5e7b04a38999e4131b8435"
+    },
+    {
+      "path": "Projections/Core/ActivityDetail.swift",
+      "sha256": "2c46e1067a54e3a4f246beb35c76e6d9dfe536b9afa0a15d32c83aeb9b040c2a"
+    },
+    {
+      "path": "Projections/Core/TopicContracts.swift",
+      "sha256": "b3302f36b299afcc970437f9a1583c02396c8fb744e4f7c20469eed61fbb6863"
+    },
+    {
+      "path": "Tests/CoreTests/PublisherSourceAuthorityTests.swift",
+      "sha256": "28ccd2c0c6bdd6a717bbb3620d5a933c429025eb364b8255fa8741bcb1373c71"
+    },
+    {
+      "path": "docs/INTEGRATION.md",
+      "sha256": "69ee2f4e59c5d3620ada53c5e8d535f49b35190d6b18190b18ff3ba9b362f0d7"
+    },
+    {
+      "path": "docs/reader-projections.patch",
+      "sha256": "dbc60c83fa1dd695d8a5332b012dc971b20b28add9ae053fe9eaaf0f0bcb684f"
+    },
+    {
+      "path": "tools/check_publisher_authority.py",
+      "sha256": "feba80f84bfb8f49e1bbb5018c9e4af53d9a4d50a6f3abf0050a70e6c0e0c758"
+    }
+  ]
+}

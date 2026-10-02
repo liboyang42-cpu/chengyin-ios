@@ -1,0 +1,46 @@
+{
+  "projectEdit.acknowledged": {
+    "en": "The server acknowledged this submission.",
+    "zh-Hans": "服务器已确认收到此次提交。"
+  },
+  "projectEdit.confirmLive": {
+    "en": "Submit reviewed changes",
+    "zh-Hans": "提交已核对的更改"
+  },
+  "projectEdit.confirmLiveHint": {
+    "en": "Submit these exact changes to the server. A lost response will stay locked to prevent duplicate submission.",
+    "zh-Hans": "将这些更改提交至服务器。若回执丢失，将保留锁定以避免重复提交。"
+  },
+  "club.ops.confirmLive": {
+    "en": "Confirm these changes",
+    "zh-Hans": "确认这些更改"
+  },
+  "club.ops.confirmLiveHint": {
+    "en": "Apply the reviewed club changes to the server.",
+    "zh-Hans": "将已核对的俱乐部更改提交至服务器。"
+  },
+  "merchant.operations.acknowledged": {
+    "en": "The server acknowledged the save. Review status still comes from the server.",
+    "zh-Hans": "服务器已确认保存，审核状态仍以服务器为准。"
+  },
+  "merchant.operations.partialOutcome": {
+    "en": "Some writes were acknowledged, but the whole save could not be confirmed. Editing remains locked; do not resubmit.",
+    "zh-Hans": "部分写入已获确认，但无法确认整个保存流程。编辑将保持锁定，请勿重复提交。"
+  },
+  "merchant.operations.confirmLive": {
+    "en": "Save reviewed changes",
+    "zh-Hans": "保存已核对的更改"
+  },
+  "merchant.operations.confirmLiveHint": {
+    "en": "Save these exact changes. Story title and story text are separate writes and can complete only partially.",
+    "zh-Hans": "保存这些更改。故事标题和正文分别提交，可能出现部分完成的情况。"
+  },
+  "team.acknowledged": {
+    "en": "The server acknowledged the request. Refresh for current team details.",
+    "zh-Hans": "服务器已确认收到请求。请刷新查看队伍的最新详情。"
+  },
+  "team.confirmLive": {
+    "en": "Confirm team action",
+    "zh-Hans": "确认队伍操作"
+  }
+}

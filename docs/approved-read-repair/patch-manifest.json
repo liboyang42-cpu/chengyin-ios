@@ -1,0 +1,53 @@
+{
+  "files": [
+    {
+      "path": "App/AppSession.swift",
+      "baseline_sha256": "22619e12d2d950d70547e7ee2d60ce021ba636c06ebfc67dd5a42fb0b892561d",
+      "patched_sha256": "4f5136a3c9c5b3a7741c063c97c3e5011584d995034931a036c367acffe2c2c4"
+    },
+    {
+      "path": "App/PublishingManagementViews.swift",
+      "baseline_sha256": "3bb96e2b40c15a71abb888977ed9c2a192e7c51ef73d2f2586a707023f32630f",
+      "patched_sha256": "96ebf16ac361eb452163c16d0fe9e65dc2def308c23ddd142635b13a6fd94a9f"
+    },
+    {
+      "path": "Core/PublishModesService.swift",
+      "baseline_sha256": "a1315e1c8d2792fa494eb76ed71713d8b5fe5df182a63cd539e0f300452bc4f2",
+      "patched_sha256": "8a9dbf1f85b449e2290ae7e81e5fd4b4a7e556fa18a679a832171e73fa62e216"
+    },
+    {
+      "path": "Core/WalletCommerceSafety.swift",
+      "baseline_sha256": "8481a23321a495e1fa0e09fbd451a60412ebe6c0200d30bbb73d34bcdf397fb1",
+      "patched_sha256": "e783e361b2a63fa542f27c2a84a7803cf0ca9cb3107b4fdb69b30ed77c8df643"
+    },
+    {
+      "path": "Core/WalletCommerceService.swift",
+      "baseline_sha256": "a0e1ca9095459d66e0e369a19a7d9805742e1e14a67ad9181326fe6492dc3625",
+      "patched_sha256": "ab24faf93091ef7846fa7c25e00b459a2a3218341b486639e1ec740642962d4e"
+    },
+    {
+      "path": "Tests/ContractChecks/test_publishing_modes.py",
+      "baseline_sha256": "2d7a3ed17f6b69fc6426cabdf44d9788050ac05a616b863a7c98cfcd24559f09",
+      "patched_sha256": "642b83bbf6c522fdd9c229364c9fa90f9805210db0d1c1b4e1cb2104bfbd197e"
+    },
+    {
+      "path": "Tests/ContractChecks/test_wallet_commerce_integration.py",
+      "baseline_sha256": "873329c46f64bad0476e177f43514ae5fac8e6133d7899ca07dd7b6453196d21",
+      "patched_sha256": "a4e3bf77f0cb34066fb17e49fda3c412f7d8c00b4ab805ff65cd81c07f97618f"
+    },
+    {
+      "path": "Tests/CoreTests/PublishingModesTests.swift",
+      "baseline_sha256": "66ef56f7322102539c36733747bd5c3a834b0a43fdb08cd4bceea51b3dc3d242",
+      "patched_sha256": "b309718cdc2600b9fc65ea437461fd3ef0b7775311191103b598f6d56285ed39"
+    },
+    {
+      "path": "Tests/CoreTests/WalletCommerceTests.swift",
+      "baseline_sha256": "98eac7fee05f40d7364bc062d9e3e8f647bf0f30724f1f14d3ba0039ab756b27",
+      "patched_sha256": "f2283aa9a8c26bc058ee0bbe235c0a2c27c65765305cc4cf95e051b5b1ec8fe9"
+    }
+  ],
+  "main_checkout_modified": false,
+  "compiler_tests": "NOT_RUN: Swift executable unavailable",
+  "source_tests": "PASS: 19 tests against changed-file overlay",
+  "syntax": "PASS: 7 Swift files, Tree-sitter only"
+}

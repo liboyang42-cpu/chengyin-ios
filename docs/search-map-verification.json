@@ -1,0 +1,33 @@
+{
+  "scope": "Offline local integration only; no remote or live service/provider execution",
+  "module": "global search, city-node search, nearby map and route preview",
+  "authored_module_core_methods": 21,
+  "authored_module_ui_methods": 9,
+  "module_bilingual_keys": 103,
+  "integrated_authored_core_methods": 968,
+  "integrated_authored_ui_methods": 158,
+  "integrated_ui_classes": 24,
+  "integrated_bilingual_keys": 2058,
+  "exhaustive_ui_shards": [53, 53, 52],
+  "source_structure_checks": {"status": "PASS", "count": 26},
+  "aggregate_python_contract_checks": {"status": "PASS", "count": 155},
+  "tooling_unit_checks": {"status": "PASS", "count": 15},
+  "parser_self_checks": {"status": "PASS", "count": 14},
+  "project_and_scaffold": "PASS",
+  "whitespace_check": "PASS",
+  "new_and_integration_swift_parse": {"status": "PASS", "files": 19, "scope": "Tree-sitter only, not Swift compilation"},
+  "full_tree_swift_parse": {"status": "PREEXISTING_DIAGNOSTICS_RETAINED", "files": 380, "files_with_recovery": 6, "diagnostics": 10, "scope": "Same six pre-existing files; no parser diagnostics omitted"},
+  "swift_compilation": "NOT_RUN",
+  "swift_xctest": "NOT_RUN",
+  "xcode_builds": "NOT_RUN",
+  "xcuitest_simulator": "NOT_RUN",
+  "screenshots_accessibility_device": "NOT_RUN",
+  "live_backend_and_providers": "NOT_RUN",
+  "remote_publication": "NOT_RUN",
+  "remaining_parity": [
+    "Real location consent/capture and regional coordinate-system acceptance",
+    "Live road directions, external maps and turn-by-turn guidance",
+    "Flutter merchant-search public-user-home destination parity",
+    "City-node favorite/check-in/validation mutations"
+  ]
+}

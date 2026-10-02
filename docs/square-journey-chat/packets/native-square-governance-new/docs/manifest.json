@@ -1,0 +1,105 @@
+{
+  "module": "SquareGovernance",
+  "isolated": true,
+  "live_reads_default": false,
+  "live_mutations": false,
+  "source": "app-audit/lib/data/api/square_api.dart:537-613,669-687",
+  "operations": [
+    {
+      "name": "enforcements",
+      "method": "GET",
+      "path": "/api/v1/community/me/enforcements",
+      "fields": "limit=30; optional cursor"
+    },
+    {
+      "name": "notifications",
+      "method": "GET",
+      "path": "/api/v1/community/notifications",
+      "fields": "limit=50; optional cursor"
+    },
+    {
+      "name": "preferences",
+      "method": "GET",
+      "path": "/api/v1/community/notification-preferences",
+      "fields": ""
+    },
+    {
+      "name": "appeal",
+      "method": "POST",
+      "path": "/api/v1/community/appeals",
+      "fields": "enforcementId, trimmed reason, evidenceAssetIds=[], requestId"
+    },
+    {
+      "name": "markRead",
+      "method": "POST",
+      "path": "/api/v1/community/notifications/{id}/read",
+      "fields": "requestId"
+    },
+    {
+      "name": "updatePreferences",
+      "method": "PATCH",
+      "path": "/api/v1/community/notification-preferences",
+      "fields": "optional interactionEnabled, mentionEnabled, socialEnabled; omit unspecified"
+    },
+    {
+      "name": "approveComment",
+      "method": "POST",
+      "path": "/api/v1/community/posts/{postID}/comments/{commentID}/approve",
+      "fields": "expectedVersion, requestId"
+    },
+    {
+      "name": "deleteOwnComment",
+      "method": "POST",
+      "path": "/api/comment/delete",
+      "fields": "multipart id string"
+    }
+  ],
+  "normal_entry": "SquareGovernanceEntryView(context:)",
+  "fixture_argument": "--square-governance-fixture",
+  "files": [
+    "App/SquareGovernanceFixtureHost.swift",
+    "App/SquareGovernanceSessionAccess.swift",
+    "App/SquareGovernanceViews.swift",
+    "Core/SquareGovernanceCommentProjection.swift",
+    "Core/SquareGovernanceContracts.swift",
+    "Core/SquareGovernanceCoordinator.swift",
+    "Core/SquareGovernanceService.swift",
+    "Core/SquareGovernanceSyntheticFixtures.swift",
+    "Resources/SquareGovernanceLocalizations.fragment.json",
+    "Tests/AppUITests/SquareGovernanceFlowTests.swift",
+    "Tests/CoreTests/SquareGovernanceInjectedTransportTests.swift",
+    "Tests/CoreTests/SquareGovernanceTests.swift",
+    "Tests/CoreTests/SquareGovernanceVersionProjectionTests.swift",
+    "docs/integration.md",
+    "docs/manifest.json",
+    "docs/parser-evidence.txt",
+    "docs/static-evidence.json",
+    "patches/SquareContracts.version.patch",
+    "tools/build_catalog.py",
+    "tools/check_square_governance.py",
+    "verification/SquareContracts.swift"
+  ],
+  "verification": {
+    "static": "PASS",
+    "parser": "PASS",
+    "swift_typecheck": "NOT_RUN",
+    "core_tests": "AUTHORED_NOT_RUN",
+    "apple_ui": "AUTHORED_NOT_RUN"
+  },
+  "integration_status": "ISOLATED_NOT_COPIED_TO_MAIN",
+  "optional_projection_patch": "patches/SquareContracts.version.patch",
+  "patch_check": "git apply --check PASS; not applied to main",
+  "authored_core_tests": 28,
+  "authored_ui_tests": 5,
+  "static_assertions": 52,
+  "parser_files": 13,
+  "dormant_reviewed_http_adapter": true,
+  "default_mutation_grant": "disabled",
+  "per_operation_capabilities": [
+    "appeal",
+    "markRead",
+    "preferences",
+    "approveComment",
+    "deleteOwnComment"
+  ]
+}

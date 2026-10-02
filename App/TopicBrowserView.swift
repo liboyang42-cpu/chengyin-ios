@@ -8,6 +8,9 @@ struct TopicBrowserView: View {
     var onClose:(()->Void)? = nil
     var categoryID: String? = nil
     var pageSize: Int = 10
+    var publicMerchant: PublicMerchantHomeContext? = nil
+    var makeAudio: (@MainActor () -> PlatformAudioPlayback)? = nil
+    var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
     @State private var keyword = ""
     @State private var recommend = false
     @State private var pagination = TopicPagination()
@@ -33,17 +36,26 @@ struct TopicBrowserView: View {
                     if pagination.rows.isEmpty && !loading && issue == nil { Text("topic.empty") }
                     ForEach(pagination.rows) { item in
                         NavigationLink {
-                            TopicDetailView(id: item.id, reader: reader)
+                            TopicDetailView(id: item.id, reader: reader, publicMerchant: publicMerchant, makeAudio: makeAudio, makeExternalMaps: makeExternalMaps)
                         } label: {
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text(verbatim: item.name).font(.headline)
-                                if item.betaFlag == 1 { Text("topic.beta").font(.caption) }
-                                if let intro = item.introduction { Text(verbatim: intro).lineLimit(3).foregroundStyle(.secondary) }
-                                if let address = item.addressName { Label { Text(verbatim: address) } icon: { Image(systemName: "mappin") } }
-                                if let date = item.startDate { Text(verbatim: date).font(.caption) }
-                                TopicPrice(value: item.minimumAmount, label: "topic.startingPrice")
+                            QuestifyImageEntityCard(imageSource:item.imageURL,title:item.name,
+                                                    subtitle:item.introduction,fallbackSymbol:"map") {
+                                if item.betaFlag == 1 { Text("topic.beta").font(.caption.weight(.semibold)) }
+                                if let address=item.addressName,!address.isEmpty {
+                                    QuestifyImageEntityMetadata(label:"homeFeed.place",value:address,systemImage:"mappin")
+                                }
+                                if let date=item.startDate,!date.isEmpty {
+                                    QuestifyImageEntityMetadata(label:"homeFeed.date",value:date,systemImage:"calendar")
+                                }
+                                VStack(alignment:.leading,spacing:3) {
+                                    Text("topic.startingPrice").font(.caption)
+                                    if let amount=item.minimumAmount,amount>=0 { Text(amount,format:.number.precision(.fractionLength(2))).font(.headline) }
+                                    else { Text("topic.priceUnknown") }
+                                    Text("homeFeed.currencyUnknown").font(.caption)
+                                }
                             }
-                        }.accessibilityIdentifier("topic.row.\(item.id)")
+                        }.buttonStyle(QuestifyCardButtonStyle()).questifyCardListRow()
+                        .accessibilityIdentifier("topic.row.\(item.id)")
                     }
                     if loading { ProgressView("topic.loading") }
                     else if pagination.hasMore && issue == nil {

@@ -1,0 +1,94 @@
+{
+  "package": "JourneyChecks and ambient content",
+  "status": "READY_FOR_PARENT_INTEGRATION",
+  "shared_checkout_modified": false,
+  "source_assertions": 16,
+  "swift_new_files": 9,
+  "authored_core_tests": 13,
+  "authored_ui_tests": 5,
+  "checks": {
+    "host_hook_copy_application": "PASS",
+    "source_assertions": "PASS",
+    "tree_sitter": "PASS",
+    "swift_typecheck": "NOT_RUN",
+    "swift_tests": "NOT_RUN",
+    "apple_build": "NOT_RUN",
+    "ui_runtime": "NOT_RUN",
+    "backend": "NOT_RUN",
+    "live_location_collection_roll_cost": "NOT_RUN"
+  },
+  "files": [
+    {
+      "path": "App/JourneyContentFixtureSupport.swift",
+      "sha256": "17506af8a4ead9f889303f9cf8a97b418ad04b4bcd2573ed6b9c99a02b3a357f"
+    },
+    {
+      "path": "App/PlayJourneyContentViews.swift",
+      "sha256": "3900a325185620a92e2584b60c56ca6edd1e4d9ef240719f695870557d433497"
+    },
+    {
+      "path": "Core/JourneyAmbientCoordinator.swift",
+      "sha256": "d6d5d433781a6ababd523ac1eb9b53dff5d42fa978fa6ad99f8343549c904d4c"
+    },
+    {
+      "path": "Core/JourneyCheckContracts.swift",
+      "sha256": "b4885ea47628ed0716a4062df010e5321fba9988f4ac169c0b6458c1afb4c2ec"
+    },
+    {
+      "path": "Core/JourneyCheckCoordinator.swift",
+      "sha256": "84d2ce5e2a057b099dc5e62640b7dbf520d29ba8e7ea04a6cd491aefcfd765f2"
+    },
+    {
+      "path": "Core/JourneyCheckJournal.swift",
+      "sha256": "16eb20961423d0fac3d0734ab2f69a2f414c2133660f217214f825f454814902"
+    },
+    {
+      "path": "Core/JourneyContentService.swift",
+      "sha256": "91cce2a3d6f1c75ddd2575adcde35c3ab88d36c8e8f007ccf7fc911a6ef93ac9"
+    },
+    {
+      "path": "Resources/en.lproj/JourneyContent.strings",
+      "sha256": "bf3a21c4d81f3323c9c5a609a91917a5927d3860eaf0ebd7819361589ef7bb54"
+    },
+    {
+      "path": "Resources/zh-Hans.lproj/JourneyContent.strings",
+      "sha256": "d2713ba706e416c52b1907b48a4b05fe344cead6ad511374afde7b863cb7c1a5"
+    },
+    {
+      "path": "Tests/AppUITests/JourneyContentFlowTests.swift",
+      "sha256": "bc37502478ad5b372d2098e34be2bc4648453b3615ae64f664b7a323b188a08c"
+    },
+    {
+      "path": "Tests/CoreTests/JourneyContentTests.swift",
+      "sha256": "c66de10f713e9929f4dfac8009c949e2cd6af83d9f06ad679f4d5ccf4c6af240"
+    },
+    {
+      "path": "docs/INTEGRATION.md",
+      "sha256": "2aecd1deebb732160d3497eceae69e73853eefceb356cd7eadd3c9ffd8f5f6d2"
+    },
+    {
+      "path": "docs/app-session.snippet.swift.txt",
+      "sha256": "5027217374743124efff3f1ee39ff0e5befb19f7b464ecd2f5679cb983e3e01c"
+    },
+    {
+      "path": "docs/localizations.json",
+      "sha256": "ea0cfa09489d57cd64f2ba7941eeca0e3fb9ec9200bfb23a6f033eb633adc49a"
+    },
+    {
+      "path": "docs/source-results.json",
+      "sha256": "1b4bf84943a180597c875d20921be9f8da5e6acbb529d262f4580fd16e6bc5b3"
+    },
+    {
+      "path": "docs/syntax-results.txt",
+      "sha256": "d40eae880d456416d5799a12c28b1a65c725d11b82ed9051038dbe0c1a61797b"
+    },
+    {
+      "path": "tools/apply_host_hooks.py",
+      "sha256": "56625fa9329f362729ff762f4dd7e49140063a440f4e094e3f5fbdbbd0ff5d69"
+    },
+    {
+      "path": "tools/check_source_contracts.py",
+      "sha256": "d57dcf7abe15b04ebd77a7ae0e40dfb630fec12cadb92055168b9c582a765bd2"
+    }
+  ]
+}

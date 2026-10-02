@@ -41,16 +41,21 @@ struct ActivityBrowserView: View {
                 } else {
                     List {
                         ForEach(items) { item in
-                            NavigationLink { ActivityDetailView(id:item.id,reader:reader,playReaderForActivity:playReaderForActivity,registrationEnabled:registrationEnabled) } label: { ActivityRow(item:item) }
+                            NavigationLink { ActivityDetailView(id:item.id,reader:reader,playReaderForActivity:playReaderForActivity,registrationEnabled:registrationEnabled) } label: { ActivityListCard(item:item) }
+                                .buttonStyle(QuestifyCardButtonStyle())
+                                .questifyCardListRow()
                                 .accessibilityIdentifier("activity.row.\(item.id)")
                         }
                         if hasMore || failed {
                             Button(failed ? LocalizedStringKey("action.retry") : LocalizedStringKey("activity.loadMore")) { Task { await load(reset:false) } }
+                                .frame(minHeight:44)
                                 .disabled(isLoading)
                                 .accessibilityIdentifier("activity.list.loadMore")
                         }
                         if isLoading { ProgressView() }
                     }
+                    .listStyle(.insetGrouped)
+                    .listSectionSpacing(20)
                     .refreshable { await load(reset:true) }
                     .accessibilityIdentifier("activity.list.content")
                 }
@@ -77,19 +82,6 @@ struct ActivityBrowserView: View {
             page=next;hasMore=result.count >= 10
         } catch is CancellationError { }
         catch { if generation == operation { failed=true } }
-    }
-}
-
-private struct ActivityRow: View {
-    let item: ActivitySummary
-    var body: some View {
-        VStack(alignment:.leading,spacing:8) {
-            Text(item.name).font(.headline)
-            if let start=item.startDate, !start.isEmpty { Label(start,systemImage:"calendar").font(.subheadline) }
-            if let place=item.addressName ?? item.address, !place.isEmpty { Label(place,systemImage:"mappin.and.ellipse").font(.subheadline) }
-            AmountLabel(amount:item.minimumAmount)
-        }
-        .padding(.vertical,8)
     }
 }
 

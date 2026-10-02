@@ -1,0 +1,28 @@
+{
+  "static_source_checks": "PASS",
+  "core_tests_authored": 19,
+  "ui_tests_authored": 2,
+  "bilingual_keys": 16,
+  "swift_tests": "NOT_RUN: Swift unavailable",
+  "apple_build_ui_runtime": "NOT_RUN: Xcode/simulator unavailable",
+  "source_hashes": {
+    "lib/core/router/door_entry.dart": "4b52da7121fff10f2f0fa655595f14e408476b3ae0e58a4164c65c2749a3845c",
+    "lib/data/models/scan_entry.dart": "c46e2ba82ed9180a4e48eb775bb3fc532aaec43ac4179b620d02f42fae30e19f",
+    "lib/data/api/play_api.dart": "686fd7403e0ffcbccbb6b8226383840e86a24d062f2583be1d8b9193126e8316",
+    "lib/data/api/registration_api.dart": "46b9f384d4baabf8728a0051304cbd7dd2df3d19b728ddf15ba566cfb6bad1ec",
+    "lib/feature/account/pending_inviter.dart": "6d002e48be51b4197e5c58dbcc843ea22e833c4a9ae1c64df856fff9847aac99",
+    "lib/feature/account/door_entry_page.dart": "20bb48b7b5f5399e89c6bf9a8a9737b2941e6a73adbf03a9008e80f893f49fe4",
+    "lib/core/router/app_router.dart": "4ad5bb2e7bb2954f287a7a40fbace9bae4b50fca2728513e55e372b7e02efe8b",
+    "lib/feature/account/inviter_sheet.dart": "a895b4455b3a97240e237110631a065bb1c227c03423bbc37422f554744de7bb",
+    "lib/data/models/invitation.dart": "2e37ce83e08e1e20217c516f9ba42c02899ba7105ec4afa28fcd52fad222e9ba"
+  },
+  "packet_hashes": {
+    "App/DoorReferralViews.swift": "58ca382c4e3143fa8fa5075d2cd4569c46f46f459172fa5b95a52b5d081af7e1",
+    "Core/DoorReferralContracts.swift": "410bed4c75147b0281bbf141fd87c687c78bf23798885d13911a24c3e783868b",
+    "Core/DoorReferralCoordinator.swift": "4fe9a2c608e8cda162da78d8cc2c6cff13fb6c6d428a131b41f0636ccda8878d",
+    "Core/DoorReferralService.swift": "d41e0c17423ecc951e92a43e4cefc2a47d398d712ca8f71d33c0974e79effa29",
+    "Resources/DoorReferralLocalizations.fragment.json": "a9f96d01f15be0ab871d67066b957366dfe16b811f9de3846663c9b90dc7d99b",
+    "Tests/AppUITests/DoorReferralUITests.swift": "b21271c91fa6609e664233e394da06d7ec0277f9452affcdac6b02d7f806cb3e",
+    "Tests/CoreTests/DoorReferralTests.swift": "ba62843fedff3b37dfa0d8549106ee687a029bdbdd38d170b9fd1905aa299297"
+  }
+}

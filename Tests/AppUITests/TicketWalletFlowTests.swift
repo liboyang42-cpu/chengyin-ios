@@ -26,7 +26,7 @@ final class TicketWalletFlowTests: XCTestCase {
         reveal(pending)
         XCTAssertTrue(app.staticTexts["Sample pending chapter"].exists)
         attachFixtureScreenshot(self,app:app,name:"Ticket detail entitlements")
-        reveal(app.descendants(matching: .any)["ticketWallet.redemption.notice"])
+        reveal(app.staticTexts["ticketWallet.redemption.notice"])
         XCTAssertTrue(app.staticTexts["Redemption codes are not available in this native version yet"].exists)
         XCTAssertFalse(app.buttons["Show redemption code"].exists)
         XCTAssertFalse(app.buttons["Pay"].exists)

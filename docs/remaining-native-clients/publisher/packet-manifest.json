@@ -1,0 +1,56 @@
+{
+  "package": "CreatorApplication + PublisherLifecycle",
+  "production_grants": "OFF",
+  "apple_compiler": "NOT_RUN",
+  "xctest": "AUTHORED_NOT_RUN",
+  "files": [
+    {
+      "path": "App/CreatorApplicationView.swift",
+      "sha256": "5a489f480364b5ee0dc8babf40bceeb4b3878ccdd71a26ac154d3d84db5e7665"
+    },
+    {
+      "path": "App/PublisherLifecycleFixtureSupport.swift",
+      "sha256": "bb7e2283af2c5a45d6155aae32a1d316cbe54d68ddbbc9276ee3ddec458ad3ee"
+    },
+    {
+      "path": "App/PublisherLifecycleHostHooks.swift",
+      "sha256": "f6874546f284d0a184fd041e2e2a68a6f7f91d523fa64afac86b750a761d38fc"
+    },
+    {
+      "path": "App/PublisherLifecycleViews.swift",
+      "sha256": "80db9092d5077e76d50f8ca97037c0681728e3579148a93b68a4c4182770b5a6"
+    },
+    {
+      "path": "Core/CreatorApplication.swift",
+      "sha256": "13781e439ea89b6d73e436e7819a420fba37d8eb11629a57f46d7a35e7e300ed"
+    },
+    {
+      "path": "Core/PublisherLifecycleContracts.swift",
+      "sha256": "94bb711f4f877db0b38c97429d5161c4b402d180508aab2e98ef1151fd7db3da"
+    },
+    {
+      "path": "Core/PublisherLifecycleCoordinator.swift",
+      "sha256": "945d64be979f8bb136d078fcec231275306e95f97a1fda415a05cc8113455d6e"
+    },
+    {
+      "path": "Core/PublisherLifecycleHTTP.swift",
+      "sha256": "51b8d301754baff55e282cc6c67f3ab0cd3df3c01ed947896b69bf1822339e32"
+    },
+    {
+      "path": "Tests/AppUITests/PublisherLifecycleUITests.swift",
+      "sha256": "3e1e3ff8dff8359b33df4c94b52a65bb5f30db8bee52f2598e091696530f948a"
+    },
+    {
+      "path": "Tests/CoreTests/PublisherLifecycleTests.swift",
+      "sha256": "e40f15d67d1818b9ab583c9c9832c8abe4c17934793a1638a4ebda35b2db4a73"
+    },
+    {
+      "path": "docs/INTEGRATION.md",
+      "sha256": "0719786d30a593b9eaa708c8dc5a5b5f78ad79645309bad1f67c972cda5636a0"
+    },
+    {
+      "path": "tools/check_publisher_lifecycle.py",
+      "sha256": "bdf4629cd64008c59d3e341b9e72e18705e05ce60dc117cb9db3388b629bb333"
+    }
+  ]
+}

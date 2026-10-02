@@ -60,7 +60,7 @@ final class SquareFlowTests: XCTestCase {
         launch("empty", chinese: true)
         XCTAssertTrue(app.navigationBars["广场"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.staticTexts["暂无动态"].waitForExistence(timeout: 5))
-        XCTAssertFalse(app.staticTexts["square.empty"].exists)
+        XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label == %@", "square.empty")).firstMatch.exists)
     }
     func testSearchSubmitAndClearRestoreFeed() {
         launch()

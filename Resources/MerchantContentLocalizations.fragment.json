@@ -1,0 +1,3666 @@
+{
+  "merchant.content.STATION_ACCEPT": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Accept station invitation"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "接受本站邀请"
+        }
+      }
+    }
+  },
+  "merchant.content.STATION_DECLINE": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Decline station invitation"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "拒绝本站邀请"
+        }
+      }
+    }
+  },
+  "merchant.content.STATION_PAUSE": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Pause station"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂停本站"
+        }
+      }
+    }
+  },
+  "merchant.content.STATION_READY": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Prepare station"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "准备本站"
+        }
+      }
+    }
+  },
+  "merchant.content.STATION_RESUME": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Resume station"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "恢复本站"
+        }
+      }
+    }
+  },
+  "merchant.content.VERIFY_SUBMISSION": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Review player submission"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "核验玩家提交"
+        }
+      }
+    }
+  },
+  "merchant.content.acknowledged": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The source acknowledged this request. Reload to inspect its current state."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务端已确认收到请求，请刷新核对当前状态。"
+        }
+      }
+    }
+  },
+  "merchant.content.actualSupply": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Actual chapter supply"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "章节实际供给"
+        }
+      }
+    }
+  },
+  "merchant.content.alreadyRegistered": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The server says you already registered"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务端确认您已报名"
+        }
+      }
+    }
+  },
+  "merchant.content.applications": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "My chapter applications"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "我的章节申请"
+        }
+      }
+    }
+  },
+  "merchant.content.apply": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Apply for this chapter"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "申请承接本章"
+        }
+      }
+    }
+  },
+  "merchant.content.applyTwoSteps": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This step applies for the chapter. After the source refreshes, configure the node from My chapter applications. The two submissions are separate."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此步骤提交章节申请。源数据更新后，请在“我的章节申请”配置点位。两次提交分别处理。"
+        }
+      }
+    }
+  },
+  "merchant.content.approve": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Approve"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "通过"
+        }
+      }
+    }
+  },
+  "merchant.content.auditApplication": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Review application"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "审核申请"
+        }
+      }
+    }
+  },
+  "merchant.content.auditNode": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Review node"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "审核点位"
+        }
+      }
+    }
+  },
+  "merchant.content.auditWarning": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Approval controls admission; it is not a platform endorsement."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "通过仅代表准入，不代表平台背书。"
+        }
+      }
+    }
+  },
+  "merchant.content.cancelClaim": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Withdraw claim"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "撤回认领"
+        }
+      }
+    }
+  },
+  "merchant.content.cancelRegistration": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Cancel registration"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "取消报名"
+        }
+      }
+    }
+  },
+  "merchant.content.chapters": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Chapter recruitment"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "章节招募"
+        }
+      }
+    }
+  },
+  "merchant.content.chooseReason": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Choose a reason"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "选择原因"
+        }
+      }
+    }
+  },
+  "merchant.content.chooseTemplate": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Choose a template"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "选择模板"
+        }
+      }
+    }
+  },
+  "merchant.content.circleRules": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The server rechecks current supply. Missing, duplicate or expired supply does not count as a completed review."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务端将重新核对当前供给；供给不足、重复或过期时不视为复核完成。"
+        }
+      }
+    }
+  },
+  "merchant.content.city": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "City nodes"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "城市据点"
+        }
+      }
+    }
+  },
+  "merchant.content.cityApplications": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Placement and claim applications"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "投放与认领申请"
+        }
+      }
+    }
+  },
+  "merchant.content.cityStatus": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Change city-node availability"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "变更据点上下架"
+        }
+      }
+    }
+  },
+  "merchant.content.civilTime": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Enter the service civil time as YYYY-MM-DD HH:mm. The source provides no timezone; the server validates eligibility."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请输入服务端本地时间 YYYY-MM-DD HH:mm。源数据未提供时区，时间资格由服务端校验。"
+        }
+      }
+    }
+  },
+  "merchant.content.claim": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Apply to claim"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "申请认领"
+        }
+      }
+    }
+  },
+  "merchant.content.claimIDMissing": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The source returned an application ID but no verified place ID. Claim withdrawal is unavailable."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "源数据仅返回申请编号，没有已核实的地点编号，暂不能撤回认领。"
+        }
+      }
+    }
+  },
+  "merchant.content.claimable": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Claimable places"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "可认领地点"
+        }
+      }
+    }
+  },
+  "merchant.content.codeExpired": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This live code expired. Reload to request a new code."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此现场码已过期，请刷新获取新码。"
+        }
+      }
+    }
+  },
+  "merchant.content.completeFields": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Complete the source-required fields before review"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请完成源契约要求的字段后再预览"
+        }
+      }
+    }
+  },
+  "merchant.content.confirm": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Run offline test request"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "执行离线测试请求"
+        }
+      }
+    }
+  },
+  "merchant.content.confirmAddress": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "I have checked the address and coordinates"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "我已核对店址与坐标"
+        }
+      }
+    }
+  },
+  "merchant.content.conflict": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The source changed after review. Reload and review again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "预览后源数据已发生变化，请重新加载并确认。"
+        }
+      }
+    }
+  },
+  "merchant.content.denied": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Current access does not permit this operation"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前权限不允许此操作"
+        }
+      }
+    }
+  },
+  "merchant.content.disabled": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Live actions are disabled. Edits and reviews remain local; test requests use an injected offline transport only."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "真实操作未启用。编辑和确认均保留在本地；测试请求仅使用注入的离线传输。"
+        }
+      }
+    }
+  },
+  "merchant.content.discard": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Discard and leave"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "放弃并退出"
+        }
+      }
+    }
+  },
+  "merchant.content.discardTitle": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Discard local edits?"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "放弃本地修改？"
+        }
+      }
+    }
+  },
+  "merchant.content.edit": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Edit registration"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "修改报名"
+        }
+      }
+    }
+  },
+  "merchant.content.empty": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No records returned"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "未返回记录"
+        }
+      }
+    }
+  },
+  "merchant.content.enrollVoice": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Prepare node voice request"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "准备节点录音申请"
+        }
+      }
+    }
+  },
+  "merchant.content.entryHint": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Review source records and prepare changes"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "查看源记录并准备变更"
+        }
+      }
+    }
+  },
+  "merchant.content.fallback": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Server-provided fallback plan"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务端提供的备援预案"
+        }
+      }
+    }
+  },
+  "merchant.content.field.activityDesc": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Hosting description"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "承接说明"
+        }
+      }
+    }
+  },
+  "merchant.content.field.address": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Address"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "地址"
+        }
+      }
+    }
+  },
+  "merchant.content.field.addressName": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Venue name"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "场地名称"
+        }
+      }
+    }
+  },
+  "merchant.content.field.allowedValidationMethods": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Allowed validation methods"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "允许的核验方式"
+        }
+      }
+    }
+  },
+  "merchant.content.field.applicationType": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Application type"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "申请类型"
+        }
+      }
+    }
+  },
+  "merchant.content.field.approvedCount": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Approved"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "通过数量"
+        }
+      }
+    }
+  },
+  "merchant.content.field.arrivalEnd": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Estimated arrival until"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "预计到店截止"
+        }
+      }
+    }
+  },
+  "merchant.content.field.arrivalStart": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Estimated arrival from"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "预计到店起始"
+        }
+      }
+    }
+  },
+  "merchant.content.field.arrivedCount": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Arrived players"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已到人数"
+        }
+      }
+    }
+  },
+  "merchant.content.field.arrivedPlayers": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Arrived players"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "到场玩家"
+        }
+      }
+    }
+  },
+  "merchant.content.field.auditReason": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Review reason"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "审核原因"
+        }
+      }
+    }
+  },
+  "merchant.content.field.auditRemark": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Review remarks"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "审核备注"
+        }
+      }
+    }
+  },
+  "merchant.content.field.auditStatus": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Source review status"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "源审核状态"
+        }
+      }
+    }
+  },
+  "merchant.content.field.avatar": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Avatar reference"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "角色头像引用"
+        }
+      }
+    }
+  },
+  "merchant.content.field.businessTime": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Business hours"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "营业时间"
+        }
+      }
+    }
+  },
+  "merchant.content.field.capacity": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Capacity"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "接待人数"
+        }
+      }
+    }
+  },
+  "merchant.content.field.category": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Recruiting category"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "招募品类"
+        }
+      }
+    }
+  },
+  "merchant.content.field.chapterName": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Chapter name"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "章节名称"
+        }
+      }
+    }
+  },
+  "merchant.content.field.circleReviewedAt": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Instance last reviewed"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "实例最近复核时间"
+        }
+      }
+    }
+  },
+  "merchant.content.field.circleSupplyCheckedAt": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Supply last confirmed"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "供给最近确认时间"
+        }
+      }
+    }
+  },
+  "merchant.content.field.city": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "City"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "城市"
+        }
+      }
+    }
+  },
+  "merchant.content.field.cityCode": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "City code"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "城市代码"
+        }
+      }
+    }
+  },
+  "merchant.content.field.clubName": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Club"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "俱乐部"
+        }
+      }
+    }
+  },
+  "merchant.content.field.code": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Check-in code"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "打卡码"
+        }
+      }
+    }
+  },
+  "merchant.content.field.cooperateDate": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Available hours"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "可配合时间"
+        }
+      }
+    }
+  },
+  "merchant.content.field.coverImg": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Cover reference"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "封面引用"
+        }
+      }
+    }
+  },
+  "merchant.content.field.description": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Description"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "描述"
+        }
+      }
+    }
+  },
+  "merchant.content.field.endAt": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Ends"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "结束"
+        }
+      }
+    }
+  },
+  "merchant.content.field.endDate": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Source end date"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "源结束日期"
+        }
+      }
+    }
+  },
+  "merchant.content.field.fallbackCompletedCount": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Fallback completions"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "备援完成数量"
+        }
+      }
+    }
+  },
+  "merchant.content.field.greeting": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Greeting"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "招呼语"
+        }
+      }
+    }
+  },
+  "merchant.content.field.hiddenInfoReminder": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Private-information reminder"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "隐藏信息提醒"
+        }
+      }
+    }
+  },
+  "merchant.content.field.imgUrl": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Image reference"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "图片引用"
+        }
+      }
+    }
+  },
+  "merchant.content.field.latitude": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Latitude"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "纬度"
+        }
+      }
+    }
+  },
+  "merchant.content.field.limitNum": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Capacity, blank means unlimited"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "人数限制，留空表示不限"
+        }
+      }
+    }
+  },
+  "merchant.content.field.longitude": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Longitude"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "经度"
+        }
+      }
+    }
+  },
+  "merchant.content.field.maxMerchant": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Merchant limit"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "商家名额上限"
+        }
+      }
+    }
+  },
+  "merchant.content.field.maxNodeXp": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Published XP limit"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "公示探索值上限"
+        }
+      }
+    }
+  },
+  "merchant.content.field.merchantID": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Merchant ID"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "门店编号"
+        }
+      }
+    }
+  },
+  "merchant.content.field.merchantInstruction": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Merchant instruction"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "商家执行说明"
+        }
+      }
+    }
+  },
+  "merchant.content.field.merchantName": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Merchant name"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "商家名称"
+        }
+      }
+    }
+  },
+  "merchant.content.field.merchantSignUpEndDate": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Recruitment deadline"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "商家报名截止日期"
+        }
+      }
+    }
+  },
+  "merchant.content.field.message": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Application message"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "申请说明"
+        }
+      }
+    }
+  },
+  "merchant.content.field.name": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Name"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "名称"
+        }
+      }
+    }
+  },
+  "merchant.content.field.nodeAuditReason": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Node review reason"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "节点审核原因"
+        }
+      }
+    }
+  },
+  "merchant.content.field.nodeAuditStatus": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Node review state"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "节点审核状态"
+        }
+      }
+    }
+  },
+  "merchant.content.field.nodeFilled": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Filled nodes"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已承接节点"
+        }
+      }
+    }
+  },
+  "merchant.content.field.nodeName": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Node name"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "节点名称"
+        }
+      }
+    }
+  },
+  "merchant.content.field.nodeTotal": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Total nodes"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "总节点数"
+        }
+      }
+    }
+  },
+  "merchant.content.field.normalCompletedCount": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Normal completions"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "正常完成数量"
+        }
+      }
+    }
+  },
+  "merchant.content.field.note": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Preparation note"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "准备备注"
+        }
+      }
+    }
+  },
+  "merchant.content.field.offerId": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Offer ID"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "供给编号"
+        }
+      }
+    }
+  },
+  "merchant.content.field.paidCount": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Paid players"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已付款人数"
+        }
+      }
+    }
+  },
+  "merchant.content.field.pauseEventCount": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Pauses"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂停次数"
+        }
+      }
+    }
+  },
+  "merchant.content.field.pendingCount": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Pending count"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "待处理数量"
+        }
+      }
+    }
+  },
+  "merchant.content.field.pendingVerificationCount": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Pending submissions"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "待核验提交"
+        }
+      }
+    }
+  },
+  "merchant.content.field.perkMinValue": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Minimum retail value (source amount)"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "最低零售价（源金额）"
+        }
+      }
+    }
+  },
+  "merchant.content.field.phone": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Phone supplied by server"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务端提供的电话"
+        }
+      }
+    }
+  },
+  "merchant.content.field.picUrl": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Image references, comma separated"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "图片引用，以逗号分隔"
+        }
+      }
+    }
+  },
+  "merchant.content.field.reason": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reason"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "原因"
+        }
+      }
+    }
+  },
+  "merchant.content.field.reasonCode": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reason category"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "原因类别"
+        }
+      }
+    }
+  },
+  "merchant.content.field.recordedCount": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Recorded"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已记录数量"
+        }
+      }
+    }
+  },
+  "merchant.content.field.refundedCount": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Refunded players"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已退款人数"
+        }
+      }
+    }
+  },
+  "merchant.content.field.rejectReason": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Rejection reason"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "驳回原因"
+        }
+      }
+    }
+  },
+  "merchant.content.field.rejectedCount": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Rejected"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "拒绝数量"
+        }
+      }
+    }
+  },
+  "merchant.content.field.remainingMerchantCount": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Remaining slots"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "剩余名额"
+        }
+      }
+    }
+  },
+  "merchant.content.field.required": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Required chapter flag"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "必选章节标记"
+        }
+      }
+    }
+  },
+  "merchant.content.field.resumeEta": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Expected resumption"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "预计恢复时间"
+        }
+      }
+    }
+  },
+  "merchant.content.field.revision": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Revision"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "版本"
+        }
+      }
+    }
+  },
+  "merchant.content.field.serviceEndAt": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Service ends"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务结束时间"
+        }
+      }
+    }
+  },
+  "merchant.content.field.serviceStartAt": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Service starts"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务开始时间"
+        }
+      }
+    }
+  },
+  "merchant.content.field.source": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Application source"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "申请来源"
+        }
+      }
+    }
+  },
+  "merchant.content.field.startAt": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Starts"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "开始"
+        }
+      }
+    }
+  },
+  "merchant.content.field.startDate": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Source start date"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "源开始日期"
+        }
+      }
+    }
+  },
+  "merchant.content.field.startTime": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Start time"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "开始时间"
+        }
+      }
+    }
+  },
+  "merchant.content.field.state": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Source state"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "源状态"
+        }
+      }
+    }
+  },
+  "merchant.content.field.stateText": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "State"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "状态"
+        }
+      }
+    }
+  },
+  "merchant.content.field.stationCode": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Station code"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "站点代码"
+        }
+      }
+    }
+  },
+  "merchant.content.field.stationCount": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Station count"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "站点数量"
+        }
+      }
+    }
+  },
+  "merchant.content.field.status": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Source status"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "源状态"
+        }
+      }
+    }
+  },
+  "merchant.content.field.submissionCount": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Submissions"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "提交数量"
+        }
+      }
+    }
+  },
+  "merchant.content.field.submissionId": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Submission ID"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "玩家提交编号"
+        }
+      }
+    }
+  },
+  "merchant.content.field.tags": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Tags"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "标签"
+        }
+      }
+    }
+  },
+  "merchant.content.field.teamStatus": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Team state"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "成团状态"
+        }
+      }
+    }
+  },
+  "merchant.content.field.templateTitle": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Template title"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "模板名称"
+        }
+      }
+    }
+  },
+  "merchant.content.field.termsMode": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Terms mode"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "承接档位"
+        }
+      }
+    }
+  },
+  "merchant.content.field.ticketName": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Ticket"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "票种"
+        }
+      }
+    }
+  },
+  "merchant.content.field.title": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Title"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "标题"
+        }
+      }
+    }
+  },
+  "merchant.content.field.topicName": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Route name"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "路线名称"
+        }
+      }
+    }
+  },
+  "merchant.content.field.voiceSample": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Recording reference"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "录音引用"
+        }
+      }
+    }
+  },
+  "merchant.content.field.voiceStatus": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Voice state from source"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "源声音状态"
+        }
+      }
+    }
+  },
+  "merchant.content.filter": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Registration status"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "报名状态"
+        }
+      }
+    }
+  },
+  "merchant.content.filter.0": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "All"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "全部"
+        }
+      }
+    }
+  },
+  "merchant.content.filter.1": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Ongoing"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "进行中"
+        }
+      }
+    }
+  },
+  "merchant.content.filter.2": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Under review"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "审核中"
+        }
+      }
+    }
+  },
+  "merchant.content.filter.3": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Rejected"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已驳回"
+        }
+      }
+    }
+  },
+  "merchant.content.filter.4": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Ended"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已结束"
+        }
+      }
+    }
+  },
+  "merchant.content.firstPageOnly": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "More records exist beyond this source page"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "源页面之外还有记录未加载"
+        }
+      }
+    }
+  },
+  "merchant.content.fixtureBanner": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Synthetic offline data. No business action is performed."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "离线合成数据，不执行真实业务操作。"
+        }
+      }
+    }
+  },
+  "merchant.content.fixtureRecover": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Restore test reads"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "恢复测试读取"
+        }
+      }
+    }
+  },
+  "merchant.content.fixtureSignOut": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Switch test account"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "切换测试账号"
+        }
+      }
+    }
+  },
+  "merchant.content.game": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Station workspace"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "本站工作台"
+        }
+      }
+    }
+  },
+  "merchant.content.games": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Merchant game sessions"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "商家互动场次"
+        }
+      }
+    }
+  },
+  "merchant.content.hosting": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "I am hosting"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "我主办的"
+        }
+      }
+    }
+  },
+  "merchant.content.immutableReview": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This review freezes the target and fields. Permissions and source data are checked again before dispatch."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此预览已冻结目标与字段，发送前会重新核对权限和源数据。"
+        }
+      }
+    }
+  },
+  "merchant.content.invalid": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Check the requested fields and target"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请核对请求字段与目标"
+        }
+      }
+    }
+  },
+  "merchant.content.invitable": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Eligible invitees"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "可邀请商家"
+        }
+      }
+    }
+  },
+  "merchant.content.invite": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Pre-approve and invite"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "预先批准并邀请"
+        }
+      }
+    }
+  },
+  "merchant.content.inviteWarning": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "An invitation is a pre-approved application, not just a message."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "邀请会建立预先批准的申请，并非仅发送消息。"
+        }
+      }
+    }
+  },
+  "merchant.content.joining": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "I am participating"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "我承接的"
+        }
+      }
+    }
+  },
+  "merchant.content.keepEditing": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Keep editing"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "继续编辑"
+        }
+      }
+    }
+  },
+  "merchant.content.liveCode": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Live check-in code"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "现场打卡码"
+        }
+      }
+    }
+  },
+  "merchant.content.liveCodeWarning": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Time-limited live code. It is hidden on expiry."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "现场码有有效期，到期后将隐藏。"
+        }
+      }
+    }
+  },
+  "merchant.content.loadFailed": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Could not load the source. Retry when ready."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂时无法加载源数据，请稍后重试。"
+        }
+      }
+    }
+  },
+  "merchant.content.malformed": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Source data could not be safely read"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "无法安全读取源数据"
+        }
+      }
+    }
+  },
+  "merchant.content.manageSupply": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Open cooperation supply"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "打开合作供给"
+        }
+      }
+    }
+  },
+  "merchant.content.mediaBoundary": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Existing media references only. No image, audio or location is captured or uploaded."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "仅编辑已有媒体引用；不会采集或上传图片、录音或位置。"
+        }
+      }
+    }
+  },
+  "merchant.content.noChapters": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No open chapters were returned"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "未返回开放招募的章节"
+        }
+      }
+    }
+  },
+  "merchant.content.noWorkspace": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No host or participant workspace was returned"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "未返回主办或承接工作台"
+        }
+      }
+    }
+  },
+  "merchant.content.nodeReviewWarning": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Node changes are submitted for source review. Applying does not mean winning the slot."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "点位变更提交后由服务端处理审核；报名成功不等于中标。"
+        }
+      }
+    }
+  },
+  "merchant.content.nodeReviews": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Node review"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "点位审核"
+        }
+      }
+    }
+  },
+  "merchant.content.nodes": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "My chapter nodes"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "我的章节点位"
+        }
+      }
+    }
+  },
+  "merchant.content.npc": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Chapter-node character"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "章节点位角色"
+        }
+      }
+    }
+  },
+  "merchant.content.npcBoundary": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This character belongs to this chapter node. Store-wide NPC settings are separate."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此角色属于当前章节点位，与店铺级形象分开管理。"
+        }
+      }
+    }
+  },
+  "merchant.content.npcUnconfigured": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No character has been configured for this node"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此节点尚未配置角色"
+        }
+      }
+    }
+  },
+  "merchant.content.offline": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Take offline"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "下线"
+        }
+      }
+    }
+  },
+  "merchant.content.online": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Make available"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "上架"
+        }
+      }
+    }
+  },
+  "merchant.content.place": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Submit placement application"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "提交据点投放申请"
+        }
+      }
+    }
+  },
+  "merchant.content.placement": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Place a city node"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "申请投放据点"
+        }
+      }
+    }
+  },
+  "merchant.content.placementWarning": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "A successful placement submission creates a pending application. It does not put the node online."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "投放提交成功后形成待审申请，不代表据点已上线。"
+        }
+      }
+    }
+  },
+  "merchant.content.players": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Player roster"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "玩家名单"
+        }
+      }
+    }
+  },
+  "merchant.content.poster": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Poster check-in code"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "海报打卡码"
+        }
+      }
+    }
+  },
+  "merchant.content.posterWarning": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Poster code is separate from the time-limited live code"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "海报码与限时现场码分开使用"
+        }
+      }
+    }
+  },
+  "merchant.content.project": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Project workspace"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "项目工作台"
+        }
+      }
+    }
+  },
+  "merchant.content.projects": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Hosted projects"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "我主办的项目"
+        }
+      }
+    }
+  },
+  "merchant.content.quota": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Active nodes / limit"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "在架据点 / 上限"
+        }
+      }
+    }
+  },
+  "merchant.content.reason.ANSWER_MISMATCH": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Answer mismatch"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "答案不符"
+        }
+      }
+    }
+  },
+  "merchant.content.reason.CAPACITY": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "At capacity"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "现场满员"
+        }
+      }
+    }
+  },
+  "merchant.content.reason.DUPLICATE_SUBMISSION": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Duplicate submission"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "重复提交"
+        }
+      }
+    }
+  },
+  "merchant.content.reason.EMERGENCY": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Emergency"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "现场突发情况"
+        }
+      }
+    }
+  },
+  "merchant.content.reason.EQUIPMENT": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Equipment problem"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "设备或道具异常"
+        }
+      }
+    }
+  },
+  "merchant.content.reason.EVIDENCE_UNCLEAR": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Evidence unclear"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "证据不清"
+        }
+      }
+    }
+  },
+  "merchant.content.reason.LOCATION_UNSUITABLE": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Location unsuitable"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "本站不适合承接"
+        }
+      }
+    }
+  },
+  "merchant.content.reason.RESOURCE_UNAVAILABLE": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Resources unavailable"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "现场资源不足"
+        }
+      }
+    }
+  },
+  "merchant.content.reason.SCHEDULE_CONFLICT": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Schedule conflict"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "档期冲突"
+        }
+      }
+    }
+  },
+  "merchant.content.reason.STAFF": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Staff unavailable"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "人员暂时离岗"
+        }
+      }
+    }
+  },
+  "merchant.content.reconcile": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Check the original station receipt"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "核对原本站操作回执"
+        }
+      }
+    }
+  },
+  "merchant.content.reconciled": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The original station receipt is terminal. Reload the current source state."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "原本站回执已到终态，请重新加载当前源状态。"
+        }
+      }
+    }
+  },
+  "merchant.content.recruiting": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Open recruiting routes"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "开放承接路线"
+        }
+      }
+    }
+  },
+  "merchant.content.register": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Register for this node"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "报名承接本站"
+        }
+      }
+    }
+  },
+  "merchant.content.registration": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Registration detail"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "报名详情"
+        }
+      }
+    }
+  },
+  "merchant.content.registrationContent": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Venue and registration content"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "场地与报名内容"
+        }
+      }
+    }
+  },
+  "merchant.content.registrationPreservation": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Route, node, template, award and settlement fields are fixed. Source dates remain unchanged. Empty capacity submits zero, meaning unlimited."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "路线、站点、模板、中标和结算字段不可更改；保留原日期。人数留空将提交 0，表示不限。"
+        }
+      }
+    }
+  },
+  "merchant.content.registrationUnknown": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Registration status could not be confirmed"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂时无法确认是否已报名"
+        }
+      }
+    }
+  },
+  "merchant.content.registrations": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "My registrations"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "我的报名"
+        }
+      }
+    }
+  },
+  "merchant.content.rejected": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The server rejected this request"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务端拒绝了此请求"
+        }
+      }
+    }
+  },
+  "merchant.content.resetVoice": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Clear node voice"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "清除节点声音"
+        }
+      }
+    }
+  },
+  "merchant.content.retryOriginal": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Retry the frozen station request"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "重试原冻结的本站请求"
+        }
+      }
+    }
+  },
+  "merchant.content.retryOriginalWarning": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Check the receipt, then replay only the same station request if the server still permits it?"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "先核对回执；仅当服务端仍允许时，重放同一本站请求？"
+        }
+      }
+    }
+  },
+  "merchant.content.review": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Review frozen request"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "预览冻结请求"
+        }
+      }
+    }
+  },
+  "merchant.content.reviewCircle": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Confirm instance supply review"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "确认实例供给已复核"
+        }
+      }
+    }
+  },
+  "merchant.content.reviewWarning": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "A server acknowledgement is not publication, a completed review or a successful financial result. Unknown outcomes stay locked."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务端回执不代表发布、审核通过或资金操作成功；结果未知时保持锁定。"
+        }
+      }
+    }
+  },
+  "merchant.content.reviews": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Application review"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "承接申请审核"
+        }
+      }
+    }
+  },
+  "merchant.content.saveNPC": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Edit node character"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "编辑节点角色"
+        }
+      }
+    }
+  },
+  "merchant.content.search": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Search places"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "搜索地点"
+        }
+      }
+    }
+  },
+  "merchant.content.sessionChanged": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The signed-in account or session changed. Reopen this screen."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "登录账号或会话已变更，请重新打开此页面。"
+        }
+      }
+    }
+  },
+  "merchant.content.signedOut": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Sign in again to continue"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请重新登录后继续"
+        }
+      }
+    }
+  },
+  "merchant.content.stationFailed": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The station receipt confirms this operation failed"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "本站回执确认操作失败"
+        }
+      }
+    }
+  },
+  "merchant.content.stationReviewWarning": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This affects only the selected merchant station"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此操作仅影响所选商家站点"
+        }
+      }
+    }
+  },
+  "merchant.content.storage": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Recovery state could not be saved safely. Nothing was sent."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "无法安全保存恢复状态，因此未发送请求。"
+        }
+      }
+    }
+  },
+  "merchant.content.submitNode": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Configure chapter node"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "配置章节点位"
+        }
+      }
+    }
+  },
+  "merchant.content.supplyActive": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "An active offer is recorded"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已记录生效供给"
+        }
+      }
+    }
+  },
+  "merchant.content.supplyBoundary": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Actual supply uses the separate cooperation workflow. An application ID is not an offer ID."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "实际供给由独立合作流程处理；申请编号不是供给编号。"
+        }
+      }
+    }
+  },
+  "merchant.content.supplyInactive": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No active offer is recorded"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "未记录生效供给"
+        }
+      }
+    }
+  },
+  "merchant.content.supplyLoadFailed": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Supply context could not be loaded; other recruitment information remains available"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂时无法读取供给上下文，其他招募信息仍可查看"
+        }
+      }
+    }
+  },
+  "merchant.content.supplyTermsUnknown": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Terms are unavailable for this chapter; enrollment stays closed"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "未取得本章承接档位，暂不能申报供给"
+        }
+      }
+    }
+  },
+  "merchant.content.supplyUnknown": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Active-supply status was not returned"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "未返回供给生效状态"
+        }
+      }
+    }
+  },
+  "merchant.content.template": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Owned interaction template"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "我的互动模板"
+        }
+      }
+    }
+  },
+  "merchant.content.title": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Projects & local content"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "项目与据点内容"
+        }
+      }
+    }
+  },
+  "merchant.content.unknown": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The result is unknown. Do not repeat this action. Only an exact terminal station receipt can release a station lock."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "结果未知，请勿重复操作。本站锁仅可由完全匹配的终态回执解除。"
+        }
+      }
+    }
+  },
+  "merchant.content.unlimitedSlots": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No slot limit was supplied"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "未设置名额限制"
+        }
+      }
+    }
+  },
+  "merchant.content.upcoming": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Upcoming visits"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "即将到店的场次"
+        }
+      }
+    }
+  },
+  "merchant.content.voice": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Node voice status"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "节点声音状态"
+        }
+      }
+    }
+  },
+  "merchant.content.voiceBoundary": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Node voice uses one existing recording reference. Microphone, upload and provider generation are not enabled."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "节点声音使用一段已有录音引用。麦克风、上传和供应商生成均未启用。"
+        }
+      }
+    }
+  },
+  "merchant.content.withdraw": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Withdraw application"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "撤回申请"
+        }
+      }
+    }
+  },
+  "merchant.content.xpUnavailable": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Exploration-value editing is unavailable: the retained source says the backend validates it without persisting it."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "探索值暂不可编辑：保留的源记录表明后端会校验，但不会保存。"
+        }
+      }
+    }
+  }
+}

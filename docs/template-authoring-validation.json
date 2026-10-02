@@ -1,0 +1,113 @@
+{
+  "source_root": "app-audit",
+  "source_sha256": {
+    "lib/data/models/template_draft.dart": "0a2c429338e8159480d129dfdd6cea4956c618fd5425726c3105df67bce1485c",
+    "lib/data/models/template.dart": "db98854bc247eedb37675f9063676f0f0383b1b9c5ca8d00b2a809d7e8bfd8f7",
+    "lib/data/models/advanced_play_config.dart": "9617c03d10155f635a1d6332092227fdb96eab2312caaa6668861eb3c26c7c14",
+    "lib/data/models/node_game_catalog.dart": "350ee577a25ad8c7da993056bc41c270fa41bf10ceeb8d60bf789e341c75e28a",
+    "lib/data/models/validation_method_labels.dart": "a527c40e06b1b9cf15cad164638c872a38d654b1e5a6c731734a13158a4bf838",
+    "lib/data/api/template_api.dart": "2ae1c700e81ef8be550398b7ca6660d552830afb36c30edf5bac2ef699bc22c4",
+    "lib/data/api/registration_api.dart": "46b9f384d4baabf8728a0051304cbd7dd2df3d19b728ddf15ba566cfb6bad1ec",
+    "lib/feature/template/template_creation_navigation.dart": "1e3cdbbdebabe22b734b083138cb4e0aa863407dde7612323ed16364f1264bc8",
+    "lib/feature/template/template_list_page.dart": "4e15c96f02e0649c9a020f106dcbbbd9854381e28f2c31ea64d00e3c90411128",
+    "lib/feature/template/template_intro_page.dart": "217bba7678fc9b4e93ef87998668936bfb0fc0b5db53cad397ad15bd413db48b",
+    "lib/feature/template/template_name_page.dart": "400af78b7d499a60adda7ff1e75e43e96067d68f1771303719ebf01045d3867f",
+    "lib/feature/template/template_edit_page.dart": "4ebb4631faeda60322fd982f63fab6d62ed6b44531b1fac5ea44f50b357b0e50",
+    "lib/feature/template/template_detail_page.dart": "38c7a0e94472be4e53cbcc924a283c7230b1548584e31ac073e7bbac84f83bc6",
+    "lib/feature/template/template_dict.dart": "9e1c80ebf0aaff456489e8390acabc0896f1be7d7deba818105299f64a54b96e",
+    "lib/feature/template/advanced_game_configurator.dart": "a28e2b5041f3f6ae8e5d93749ea6f4c55021b8dbbbcaa99a65e2bc9af4e9afc7",
+    "lib/feature/template/advanced_game_configurator_view.dart": "8b950ca50dd8f224b007fac825d6e1d3789e29241554d4bccc03d24de5978db0",
+    "lib/feature/prefab/prefab_story_engine.dart": "59d4404c3405a24ae29e9988e1e45e8ea6dec450f2895e04188725f0d71feab1",
+    "lib/feature/prefab/prefab_life_page.dart": "d108f6cb400c2a2338a1f22024e16aeae19dac1a42b4c4f54e2c39903b8f7915"
+  },
+  "swift_files": 16,
+  "source_structure_checks": {
+    "status": "PASS",
+    "count": 19
+  },
+  "supplementary_swift_parse": {
+    "status": "PASS",
+    "file_count": 16,
+    "typecheck": false
+  },
+  "swift_domain_tests": {
+    "status": "NOT_RUN",
+    "authored": 65
+  },
+  "ui_tests": {
+    "status": "NOT_RUN",
+    "authored": 10
+  },
+  "swift_compilation": "NOT_RUN",
+  "apple_build": "NOT_RUN",
+  "live_acceptance": "NOT_RUN",
+  "production_writes_enabled": false,
+  "shared_files_edited": true,
+  "files": [
+    "App/PrefabPreviewView.swift",
+    "App/TemplateAuthoringDetailForms.swift",
+    "App/TemplateAuthoringFixtureSupport.swift",
+    "App/TemplateAuthoringSecureStorage.swift",
+    "App/TemplateAuthoringView.swift",
+    "Core/PrefabPreviewEngine.swift",
+    "Core/TemplateAdvancedDraft.swift",
+    "Core/TemplateAuthoringContract.swift",
+    "Core/TemplateAuthoringCoordinator.swift",
+    "Core/TemplateAuthoringDomain.swift",
+    "Core/TemplateAuthoringService.swift",
+    "Core/TemplateAuthoringStorage.swift",
+    "Core/TemplateAuthoringSyntheticFixtures.swift",
+    "Core/TemplateAuthoringWireRequestBuilder.swift",
+    "Tests/AppUITests/TemplateAuthoringFlowTests.swift",
+    "Tests/ContractChecks/test_template_authoring_contracts.py",
+    "Tests/CoreTests/TemplateAuthoringTests.swift",
+    "docs/advanced-source-defaults.json",
+    "docs/source-check-results.txt",
+    "docs/swift-parse-results.txt",
+    "docs/template-authoring-localizations.json",
+    "docs/template-authoring-migration.md",
+    "docs/write_template_authoring_localizations.py"
+  ],
+  "integrated": true,
+  "module_source_checks": {
+    "status": "PASS",
+    "count": 21
+  },
+  "aggregate_source_checks": {
+    "status": "PASS",
+    "count": 207
+  },
+  "tooling_checks": {
+    "status": "PASS",
+    "count": 16
+  },
+  "parser_self_tests": {
+    "status": "PASS",
+    "count": 14
+  },
+  "integration_swift_parse": {
+    "status": "PASS",
+    "files": 23,
+    "typecheck": false
+  },
+  "full_tree_parse": {
+    "status": "KNOWN_BASELINE_DIAGNOSTICS",
+    "files": 457,
+    "files_with_recovery": 6,
+    "diagnostics": 10
+  },
+  "inventory": {
+    "core_methods": 1200,
+    "ui_methods": 193,
+    "ui_classes": 28,
+    "bilingual_keys": 2561,
+    "six_shards": [
+      33,
+      33,
+      33,
+      31,
+      31,
+      32
+    ]
+  }
+}

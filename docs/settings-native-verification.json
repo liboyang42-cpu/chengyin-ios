@@ -1,0 +1,46 @@
+{
+  "scope": "Settings/About/source-legal additive native module; no complete parity/runtime claim",
+  "sourceSha256": {
+    "lib/feature/settings/settings_page.dart": "1f16223625a17b5abeb9c99c16f17c6efa202144645160288af05efb6cab0812",
+    "lib/feature/settings/about_page.dart": "58985f69840676702045d6991bf8cd941ed8306560866d915e5eaef9948a5aea",
+    "lib/feature/settings/sound_haptics_settings.dart": "13672f55ea226e7257d4ad51a86b32221cfdd95b6c08c649c8c2abaeba8ea92f",
+    "lib/feature/settings/marketing_consent_sheet.dart": "112da09626df8207259b0fa954cc74c032c5aa5666b46cd1cd5f2b63c8670edf",
+    "lib/feature/legal/legal_docs.dart": "8a63c732b230c5511cd26d9c73923f4ef5c6a22e62c14e94581a333bf1f02761",
+    "lib/feature/legal/legal_doc_page.dart": "6a58e82eecd4f89912918f3c51d0c73ce8dbe9cf9e09838af6de6796563073da",
+    "lib/data/api/account_api.dart": "0075abd81f0368f66bc0d07581138f3709e38b6c1ccad55f2371dd1c82e428a8"
+  },
+  "passed": [
+    "exact-local-source-legal-parity",
+    "offline-attribution-parity",
+    "49-bilingual-keys",
+    "static-side-effect-boundaries",
+    "tree-sitter-10-files-zero-recovery"
+  ],
+  "authoredOnly": {
+    "xctest": 25,
+    "xcuitest": 11
+  },
+  "notRun": [
+    "Swift typecheck",
+    "Swift XCTest",
+    "Xcode build",
+    "simulator UI",
+    "physical device",
+    "network or backend",
+    "legal acceptance"
+  ],
+  "integration": "Integrated additively into latest target after project-edit integration; shared ownership released after final checks",
+  "integratedAuthoredTotals": {
+    "core": 827,
+    "ui": 122,
+    "uiClasses": 20,
+    "catalogKeys": 1630
+  },
+  "aggregateSourceChecks": {
+    "contractTests": 115,
+    "toolingTests": 15,
+    "parserSelfTests": 14,
+    "changedSwiftFilesParsed": 12,
+    "aggregateParserDiagnostics": "10 known diagnostics across 6 pre-existing files"
+  }
+}

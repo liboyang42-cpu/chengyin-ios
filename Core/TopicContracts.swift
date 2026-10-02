@@ -196,6 +196,8 @@ public struct TopicComment: Decodable, Equatable {
 }
 
 public struct TopicDetail: Decodable, Equatable, Identifiable {
+    /// Fresh source evidence stays separate from display defaults; unavailable proof stays nil.
+    public let publisherAuthoritySource: PublisherTopicAuthoritySource?
     public let categoryNames: [String]
     public let initiatorName: String?
     public let initiatorAvatar: String?
@@ -232,6 +234,7 @@ public struct TopicDetail: Decodable, Equatable, Identifiable {
     public let tickets: [TopicTicket]
     public let comments: [TopicComment]
     public init(from decoder: Decoder) throws {
+        publisherAuthoritySource = try? PublisherTopicAuthoritySource(from: decoder)
         let c = try decoder.container(keyedBy: TopicKey.self)
         let categories: [TopicCategoryRecord] = try c.list("sysCategoryList")
         categoryNames = categories.compactMap(\.categoryName).filter { !$0.isEmpty }

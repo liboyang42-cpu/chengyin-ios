@@ -1,0 +1,2082 @@
+{
+  "merchant.engagement.acceptInvitation": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Review joining the team"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "预览加入经营团队"
+        }
+      }
+    }
+  },
+  "merchant.engagement.accountID": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Signed-in account ID"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前登录账号ID"
+        }
+      }
+    }
+  },
+  "merchant.engagement.audienceBoundary": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Audience, consent, frequency limits and daily limits are recalculated by the server. A preview is not a delivery receipt."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "受众、同意、频控与每日限额均由服务端重新计算。预览不等于送达回执。"
+        }
+      }
+    }
+  },
+  "merchant.engagement.audienceScope": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Audience scope"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "受众范围"
+        }
+      }
+    }
+  },
+  "merchant.engagement.boundary": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Live messaging, exports, contact disclosure, membership changes and uploads are disabled."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "真实消息、导出、号码披露、成员变更与上传均未启用。"
+        }
+      }
+    }
+  },
+  "merchant.engagement.broadcast": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Prepare a targeted message"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "准备定向消息"
+        }
+      }
+    }
+  },
+  "merchant.engagement.broadcastContent": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Message (up to 120 UTF-16 units)"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "消息（最多120个UTF-16单元）"
+        }
+      }
+    }
+  },
+  "merchant.engagement.byteCount": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Bytes"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "字节数"
+        }
+      }
+    }
+  },
+  "merchant.engagement.captureEvidence": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Take evidence photo"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "拍摄凭证照片"
+        }
+      }
+    }
+  },
+  "merchant.engagement.channel": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Delivery channel"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "触达渠道"
+        }
+      }
+    }
+  },
+  "merchant.engagement.channel.COUPON": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Merchant coupon"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "商家优惠券"
+        }
+      }
+    }
+  },
+  "merchant.engagement.channel.IN_APP": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "In-app message"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "站内消息"
+        }
+      }
+    }
+  },
+  "merchant.engagement.choose": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Choose"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请选择"
+        }
+      }
+    }
+  },
+  "merchant.engagement.clearReceipt": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Clear this response from the screen"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "清除此页回执"
+        }
+      }
+    }
+  },
+  "merchant.engagement.clearSelection": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Clear selected image"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "清除所选图片"
+        }
+      }
+    }
+  },
+  "merchant.engagement.command.acceptInvitation": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Accept operator invitation"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "接受经营成员邀请"
+        }
+      }
+    }
+  },
+  "merchant.engagement.command.broadcast": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Send targeted message"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "发送定向消息"
+        }
+      }
+    }
+  },
+  "merchant.engagement.command.contact": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reveal contact for one purpose"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "按单一用途请求号码"
+        }
+      }
+    }
+  },
+  "merchant.engagement.command.createCampaign": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Create campaign task"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "创建触达任务"
+        }
+      }
+    }
+  },
+  "merchant.engagement.command.createExport": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Create masked export"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "创建脱敏导出"
+        }
+      }
+    }
+  },
+  "merchant.engagement.command.dispatchCampaign": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Dispatch campaign task"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "投放触达任务"
+        }
+      }
+    }
+  },
+  "merchant.engagement.command.downloadExport": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Download masked export"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "下载脱敏导出"
+        }
+      }
+    }
+  },
+  "merchant.engagement.command.retryCampaign": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Retry campaign recipients"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "重试触达收件人"
+        }
+      }
+    }
+  },
+  "merchant.engagement.command.saveSegment": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Save segment"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "保存分群"
+        }
+      }
+    }
+  },
+  "merchant.engagement.command.uploadEvidence": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Upload aftercare evidence"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "上传售后凭证"
+        }
+      }
+    }
+  },
+  "merchant.engagement.confirmSynthetic": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Confirm in offline example"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "确认离线模拟操作"
+        }
+      }
+    }
+  },
+  "merchant.engagement.consumeContact": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Use this contact response once"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "使用此联系回执一次"
+        }
+      }
+    }
+  },
+  "merchant.engagement.contact": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Customer contact action"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "客户联系操作"
+        }
+      }
+    }
+  },
+  "merchant.engagement.contact.call": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Review phone-call contact"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "预览电话联系"
+        }
+      }
+    }
+  },
+  "merchant.engagement.contact.copy": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Review copying contact number"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "预览复制联系号码"
+        }
+      }
+    }
+  },
+  "merchant.engagement.contactNotDisplayed": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The number is kept out of chat, logs and persistent storage. A separate enabled device action is required to use it."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "号码不会出现在聊天、日志或持久存储中，使用号码还需单独启用的设备操作。"
+        }
+      }
+    }
+  },
+  "merchant.engagement.contactPrivacy": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This action requests a fresh, audited number for this customer and purpose. The server checks ownership, consent and limits. Masked numbers and previous disclosures are never reused."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此操作按客户和用途请求一次新的、留有审计记录的号码。服务端检查归属、同意与限额；不会使用脱敏号或复用之前披露的号码。"
+        }
+      }
+    }
+  },
+  "merchant.engagement.contactReady": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "A one-use contact response was received."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已收到一次性联系号码回执。"
+        }
+      }
+    }
+  },
+  "merchant.engagement.count.audienceCount": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Audience count"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "受众人数"
+        }
+      }
+    }
+  },
+  "merchant.engagement.count.consentedCount": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Consented customers"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已同意客户"
+        }
+      }
+    }
+  },
+  "merchant.engagement.count.deliverableCount": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Deliverable customers"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "可触达客户"
+        }
+      }
+    }
+  },
+  "merchant.engagement.count.deliveredCount": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Delivered"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已送达人数"
+        }
+      }
+    }
+  },
+  "merchant.engagement.count.failedCount": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Failed"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "失败人数"
+        }
+      }
+    }
+  },
+  "merchant.engagement.count.filterTotalCount": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Total matching filter"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "筛选匹配总数"
+        }
+      }
+    }
+  },
+  "merchant.engagement.count.frequencyLimitedCount": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Frequency-limited customers"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "受频控限制客户"
+        }
+      }
+    }
+  },
+  "merchant.engagement.count.frequencySkippedCount": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Skipped by frequency rule"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "因频控跳过人数"
+        }
+      }
+    }
+  },
+  "merchant.engagement.count.merchantDailyLimit": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Merchant daily limit"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "商家每日上限"
+        }
+      }
+    }
+  },
+  "merchant.engagement.count.merchantDailyRemaining": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Remaining today"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "今日剩余"
+        }
+      }
+    }
+  },
+  "merchant.engagement.count.merchantDailyUsed": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Used today"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "今日已用"
+        }
+      }
+    }
+  },
+  "merchant.engagement.count.noConsentCount": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No consent"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "未同意人数"
+        }
+      }
+    }
+  },
+  "merchant.engagement.count.recipientCount": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Recipients"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "收件人数"
+        }
+      }
+    }
+  },
+  "merchant.engagement.count.recipientLimit": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Per-task recipient limit"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "单次收件人上限"
+        }
+      }
+    }
+  },
+  "merchant.engagement.count.retryableCount": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Retryable"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "可重试人数"
+        }
+      }
+    }
+  },
+  "merchant.engagement.count.totalCount": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Matching customers"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "匹配客户"
+        }
+      }
+    }
+  },
+  "merchant.engagement.createCampaign": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Prepare a campaign"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "准备触达任务"
+        }
+      }
+    }
+  },
+  "merchant.engagement.createExport": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Review export creation"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "预览创建导出"
+        }
+      }
+    }
+  },
+  "merchant.engagement.createStepBoundary": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This step creates a task only; no automatic dispatch follows."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此步骤仅创建任务，不会随后自动投放。"
+        }
+      }
+    }
+  },
+  "merchant.engagement.createdNotSent": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The task was created. Dispatch requires its own review."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "任务已创建，投放仍需单独预览确认。"
+        }
+      }
+    }
+  },
+  "merchant.engagement.currentFilter": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Current customer filters"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前客户筛选"
+        }
+      }
+    }
+  },
+  "merchant.engagement.customerID": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Customer member ID"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "客户会员ID"
+        }
+      }
+    }
+  },
+  "merchant.engagement.deviceExportDisabled": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Device file saving requires a separate host grant."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "保存到设备文件需要单独启用。"
+        }
+      }
+    }
+  },
+  "merchant.engagement.dispatchBoundary": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This reviewed action asks the service to deliver the exact task or retry its eligible recipients. The response may be partial or still processing."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此预览操作请求服务端投放指定任务，或重试其中符合条件的收件人。回执可能表示部分完成或仍在处理中。"
+        }
+      }
+    }
+  },
+  "merchant.engagement.downloadReady": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Download bytes received for this task."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已收到此任务的下载数据。"
+        }
+      }
+    }
+  },
+  "merchant.engagement.evidence": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Aftercare evidence"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "售后凭证"
+        }
+      }
+    }
+  },
+  "merchant.engagement.evidenceInvalid": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Choose a valid JPEG, PNG or GIF image within the native 20 MiB memory limit."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请选择有效的JPEG、PNG或GIF图片，且不超过原生20 MiB内存限制。"
+        }
+      }
+    }
+  },
+  "merchant.engagement.evidenceNotSubmitted": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Uploading evidence does not append an aftercare response or execute a refund. Use a separate case-response review."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "上传凭证不会追加售后意见，也不会执行退款；需要另行预览售后回应。"
+        }
+      }
+    }
+  },
+  "merchant.engagement.evidencePreview": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Selected aftercare evidence"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已选售后凭证"
+        }
+      }
+    }
+  },
+  "merchant.engagement.evidenceReady": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Evidence upload receipt received."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已收到凭证上传回执。"
+        }
+      }
+    }
+  },
+  "merchant.engagement.evidenceSelectionBoundary": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Selection stays local until an explicitly reviewed upload. Images are bound to this refund case and session."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "明确预览上传前，图片仅保留在本地，并与此售后申请和会话绑定。"
+        }
+      }
+    }
+  },
+  "merchant.engagement.exportCreated": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "An export task was created; generation may still be running."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "导出任务已创建，文件可能仍在生成。"
+        }
+      }
+    }
+  },
+  "merchant.engagement.exportFilterExact": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Export uses page 1, source page size 20, and every keyword, segment, tag, source and date filter. It does not export a client-selected ID roster."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "导出使用第1页、源页大小20及全部关键词、分群、标签、来源和日期筛选，不提交客户端选择的会员ID名单。"
+        }
+      }
+    }
+  },
+  "merchant.engagement.exportPrivacy": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Request the source service's masked workbook for exactly these filters. Download and device saving are separate explicit steps."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "仅按这些筛选条件请求源服务提供的脱敏表格。下载和保存到设备分别需要明确操作。"
+        }
+      }
+    }
+  },
+  "merchant.engagement.exports": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Masked customer export"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "脱敏客户导出"
+        }
+      }
+    }
+  },
+  "merchant.engagement.fixtureSignOut": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Sign out of example"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "退出示例账号"
+        }
+      }
+    }
+  },
+  "merchant.engagement.frozenReview": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Frozen action review"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "冻结操作预览"
+        }
+      }
+    }
+  },
+  "merchant.engagement.groupNames": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "One exact team or role name per line"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "每行填写一个准确的队伍名或角色名"
+        }
+      }
+    }
+  },
+  "merchant.engagement.history": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Campaign history"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "触达历史"
+        }
+      }
+    }
+  },
+  "merchant.engagement.invitation": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Operator invitation"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "经营成员邀请"
+        }
+      }
+    }
+  },
+  "merchant.engagement.invitationConsequence": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Acceptance can assign the role chosen by the inviter and change business access. The service remains authoritative; no local role is inferred from the token."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "接受后可能分配邀请人选择的岗位并改变经营访问权限。以服务端为准，不会从凭证推断本地岗位。"
+        }
+      }
+    }
+  },
+  "merchant.engagement.invitationSignInHint": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Sign in here to keep this invitation available for a separate acceptance review."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请在此登录，以保留邀请并另行预览接受操作。"
+        }
+      }
+    }
+  },
+  "merchant.engagement.invitationUnknownTarget": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The source invitation contract has no pre-acceptance store or role lookup. The token is hidden; this screen does not guess the destination store or assigned role."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "源邀请协议没有接受前的门店或岗位查询接口。凭证已隐藏，本页不会猜测目标门店或分配岗位。"
+        }
+      }
+    }
+  },
+  "merchant.engagement.inviteToken": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Invitation token"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "邀请凭证"
+        }
+      }
+    }
+  },
+  "merchant.engagement.localActions": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Prepare local action"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "准备本地操作"
+        }
+      }
+    }
+  },
+  "merchant.engagement.localDraft": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Local draft. Audience and permissions are checked before a frozen review."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "本地草稿。生成冻结预览前会检查受众和权限。"
+        }
+      }
+    }
+  },
+  "merchant.engagement.membershipReceipt": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The service returned an active operator membership."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务端返回了生效的经营成员记录。"
+        }
+      }
+    }
+  },
+  "merchant.engagement.messageContent": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Message (up to 500 UTF-16 units)"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "消息（最多500个UTF-16单元）"
+        }
+      }
+    }
+  },
+  "merchant.engagement.messageTitle": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Title (up to 60 UTF-16 units)"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "标题（最多60个UTF-16单元）"
+        }
+      }
+    }
+  },
+  "merchant.engagement.nativeSelectionDisabled": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Native photo and camera permissions are not enabled in this host."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前入口尚未启用原生相册与摄像头能力。"
+        }
+      }
+    }
+  },
+  "merchant.engagement.noAutomaticSharing": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No file is automatically saved, shared, emailed or uploaded elsewhere."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "不会自动保存、分享、发送邮件或另行上传此文件。"
+        }
+      }
+    }
+  },
+  "merchant.engagement.noCampaigns": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No campaign history was returned."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂无触达历史。"
+        }
+      }
+    }
+  },
+  "merchant.engagement.noSegments": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No saved segments were returned."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂无已保存分群。"
+        }
+      }
+    }
+  },
+  "merchant.engagement.openFilteredCustomers": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Open filtered customer list"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "打开筛选后的客户名单"
+        }
+      }
+    }
+  },
+  "merchant.engagement.outreach": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Audience and outreach"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "受众与触达"
+        }
+      }
+    }
+  },
+  "merchant.engagement.previewReview": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Preview and review"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "预览并核对"
+        }
+      }
+    }
+  },
+  "merchant.engagement.receipt": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Source response"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "源回执"
+        }
+      }
+    }
+  },
+  "merchant.engagement.refreshExport": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Refresh export status"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "刷新导出状态"
+        }
+      }
+    }
+  },
+  "merchant.engagement.refreshIdentity": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Refresh business identity before opening store tools; the operator ID is not a store ID."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "打开门店工具前请刷新经营身份；经营成员ID不是门店ID。"
+        }
+      }
+    }
+  },
+  "merchant.engagement.refundID": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Refund request ID"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "退款申请ID"
+        }
+      }
+    }
+  },
+  "merchant.engagement.reviewDispatch": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Review dispatch of this task"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "预览此任务投放"
+        }
+      }
+    }
+  },
+  "merchant.engagement.reviewDownload": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Review workbook download"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "预览下载表格"
+        }
+      }
+    }
+  },
+  "merchant.engagement.reviewRefresh": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The account, store, permissions, selected records and audience are checked again before dispatch. Any change requires a new review."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "提交前再次核对账号、门店、权限、所选记录与受众。任何变化都需要重新预览。"
+        }
+      }
+    }
+  },
+  "merchant.engagement.reviewRetry": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Review retryable recipients"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "预览可重试收件人"
+        }
+      }
+    }
+  },
+  "merchant.engagement.reviewUpload": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Review evidence upload"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "预览上传凭证"
+        }
+      }
+    }
+  },
+  "merchant.engagement.rowCount": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Source row count"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务端行数"
+        }
+      }
+    }
+  },
+  "merchant.engagement.saveSegment": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Save this segment"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "保存此分群"
+        }
+      }
+    }
+  },
+  "merchant.engagement.saveWorkbook": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Save workbook to Files"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "将表格保存到文件"
+        }
+      }
+    }
+  },
+  "merchant.engagement.scope.ALL": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "All matching customers"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "所有匹配客户"
+        }
+      }
+    }
+  },
+  "merchant.engagement.scope.ROLE": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Matching role names"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "匹配角色名称"
+        }
+      }
+    }
+  },
+  "merchant.engagement.scope.TEAM": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Matching team names"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "匹配队伍名称"
+        }
+      }
+    }
+  },
+  "merchant.engagement.segmentName": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Segment name (up to 30 UTF-16 units)"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "分群名称（最多30个UTF-16单元）"
+        }
+      }
+    }
+  },
+  "merchant.engagement.segmentSaved": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The segment-save response was received."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已收到保存分群回执。"
+        }
+      }
+    }
+  },
+  "merchant.engagement.segments": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Saved segments"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已保存分群"
+        }
+      }
+    }
+  },
+  "merchant.engagement.selectEvidence": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Choose evidence image"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "选择凭证图片"
+        }
+      }
+    }
+  },
+  "merchant.engagement.selectedCoupon": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Coupon"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "优惠券"
+        }
+      }
+    }
+  },
+  "merchant.engagement.selectedSegment": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Saved segment"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已保存分群"
+        }
+      }
+    }
+  },
+  "merchant.engagement.serverAudience": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Server-calculated audience"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务端计算的受众"
+        }
+      }
+    }
+  },
+  "merchant.engagement.staleHistory": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Previously loaded history may be stale. Refresh before acting."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "之前加载的历史可能已过时，请刷新后操作。"
+        }
+      }
+    }
+  },
+  "merchant.engagement.status.DELIVERED": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Delivered"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已送达"
+        }
+      }
+    }
+  },
+  "merchant.engagement.status.EXPIRED": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Expired"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已过期"
+        }
+      }
+    }
+  },
+  "merchant.engagement.status.FAILED": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Failed"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "失败"
+        }
+      }
+    }
+  },
+  "merchant.engagement.status.NO_ELIGIBLE": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No eligible recipients"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂无符合条件的收件人"
+        }
+      }
+    }
+  },
+  "merchant.engagement.status.PARTIAL_FAILED": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Partially completed"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "部分完成"
+        }
+      }
+    }
+  },
+  "merchant.engagement.status.PENDING": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Pending"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "待处理"
+        }
+      }
+    }
+  },
+  "merchant.engagement.status.READY": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Created, awaiting dispatch"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已创建，待投放"
+        }
+      }
+    }
+  },
+  "merchant.engagement.status.RUNNING": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Generating"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "生成中"
+        }
+      }
+    }
+  },
+  "merchant.engagement.status.SENDING": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Sending"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "发送中"
+        }
+      }
+    }
+  },
+  "merchant.engagement.status.SUCCESS": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Completed"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已完成"
+        }
+      }
+    }
+  },
+  "merchant.engagement.synthetic": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Offline synthetic example. No customer is contacted and no account is changed."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "离线虚构示例。不会联系真实客户，也不会变更账号。"
+        }
+      }
+    }
+  },
+  "merchant.engagement.tagID": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Store tag ID"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "店内标签ID"
+        }
+      }
+    }
+  },
+  "merchant.engagement.taskDetails": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Task and recipient results"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "任务与收件人结果"
+        }
+      }
+    }
+  },
+  "merchant.engagement.taskID": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Task ID"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "任务ID"
+        }
+      }
+    }
+  },
+  "merchant.engagement.title": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "CRM operations"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "客户运营"
+        }
+      }
+    }
+  },
+  "merchant.engagement.tokenLost": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The one-time download credential is unavailable after reopening. Task status remains readable; a running task must finish before starting another."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "重新打开后一次性下载凭证已不可用。仍可查看任务状态；运行中的任务结束后才能创建另一个。"
+        }
+      }
+    }
+  },
+  "merchant.engagement.workbookSaveFailed": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The system did not confirm saving the workbook."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "系统未确认表格已保存。"
+        }
+      }
+    }
+  },
+  "merchant.engagement.workbookSaved": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Workbook saved by the system picker."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已通过系统文件选择器保存表格。"
+        }
+      }
+    }
+  }
+}

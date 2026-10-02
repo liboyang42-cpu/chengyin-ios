@@ -1,0 +1,78 @@
+{
+  "package": "MerchantMarketing",
+  "integration": "ADDITIVE_ONLY",
+  "source_commit": "a63e9e91c82a3282e8dd7138f943b1a8cbfc021d",
+  "live_gates": {
+    "reads": false,
+    "insight": false,
+    "settlement": false
+  },
+  "apple_runtime": "NOT_RUN",
+  "dependencies": [
+    "APIConfiguration",
+    "HTTPTransport",
+    "AuthRequestBuilder",
+    "Foundation",
+    "Observation",
+    "SwiftUI"
+  ],
+  "files": [
+    {
+      "path": "App/MerchantMarketingFixtureHost.swift",
+      "sha256": "157c261caafff92c5847a457a89742b9bbce3f4ec95f5b2f4741693dc91306bd"
+    },
+    {
+      "path": "App/MerchantMarketingView.swift",
+      "sha256": "9b236fff6a207d28653b0c5f699464e0d5db8bd49d86adc6b7129fd6c8fb0834"
+    },
+    {
+      "path": "Core/MerchantMarketingCoordinator.swift",
+      "sha256": "0a6ae41ce2eb01a8f3bfa5b39ac6001a120fb9f4306a6d0cb40bca73d54a2aea"
+    },
+    {
+      "path": "Core/MerchantMarketingFixtures.swift",
+      "sha256": "7bf642f2529f2cd7bb3e1f07d74543e7b634bd71ee55d3c3bf293fc4fe36d36e"
+    },
+    {
+      "path": "Core/MerchantMarketingModels.swift",
+      "sha256": "5ded4db6aace905d620689d872e26922d51f4cf13500ee9862358a77c1ebad0f"
+    },
+    {
+      "path": "Core/MerchantMarketingService.swift",
+      "sha256": "c5cbc77408028d655a965aef03f02fbc7bf0b2c3c0ea716b3711633bf1055d48"
+    },
+    {
+      "path": "Resources/MerchantMarketingLocalizations.fragment.json",
+      "sha256": "9cb2a1818d5b8cfe09d1da5a9c7903fb85ed90db94d8fe1795d45aa648b58c33"
+    },
+    {
+      "path": "Tests/AppUITests/MerchantMarketingUITests.swift",
+      "sha256": "4a13c0d1f24dc5de51ec2d4d7eeda84094c85ecc4a4021c53427bd90df91abe7"
+    },
+    {
+      "path": "Tests/CoreTests/MerchantMarketingTests.swift",
+      "sha256": "a3e5cc4d16ed8fa307bcf99303510b72b43f2baf451f7a840d7fa6dd3de54274"
+    },
+    {
+      "path": "tools/build_merchant_marketing_localizations.py",
+      "sha256": "0f0dd92dd59804380377581630b56be10713a10320bcc5ee69f9e782511b5c9f"
+    },
+    {
+      "path": "tools/check_merchant_marketing.py",
+      "sha256": "c88a691b87623e6f52e7ed44f916e928240a78eaa57fa4fa7b8fe1b48d8ffa29"
+    }
+  ],
+  "shared_host_edits_required": [
+    "Merge string catalog fragment",
+    "Add default-off merchant entry",
+    "Publish session changes to coordinator",
+    "Add DEBUG fixture routing",
+    "Regenerate project and run Apple checks"
+  ],
+  "forbidden_overwrites": [
+    "App/AppSession.swift",
+    "Core/MerchantAccess.swift",
+    "CouponManagement",
+    "MerchantBusiness"
+  ]
+}

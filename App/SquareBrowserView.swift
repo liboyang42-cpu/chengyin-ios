@@ -3,6 +3,14 @@ import SwiftUI
 /// The session host should observe AppSession and apply .id(reader.scope) to this subtree.
 @MainActor struct SquareBrowserView: View {
     let reader: any SquareReading
+    var accountReader: (any SocialAccountReading)? = nil
+    var actions: SocialActionCoordinator? = nil
+    var workspace: SquareWorkspaceCoordinator? = nil
+    var governance: SquareGovernanceCoordinator? = nil
+    var governanceAccess: ((Int?) -> SquareGovernanceSessionAccess)? = nil
+    var onSignIn: (() -> Void)? = nil
+    @State private var showsWorkspace = false
+    @State private var showsComposer = false
     var onClose: (() -> Void)? = nil
     @State private var query = SquareQuery()
     @State private var keyword = ""
@@ -20,6 +28,11 @@ import SwiftUI
     var body: some View {
         NavigationStack(path: $path) {
             List {
+                if let workspace {
+                    Button("squareWorkspace.title") { showsWorkspace = true }.accessibilityIdentifier("square.workspace.entry")
+                        .disabled(workspace.busy)
+                }
+                if let context = governanceContext(postID: nil) { SquareGovernanceEntryView(context: context) }
                 Section {
                     if reader.isOfflineExample { Text("square.offlineExample").font(.caption) }
                     Picker("square.feed", selection: $query.mode) {
@@ -46,8 +59,22 @@ import SwiftUI
                 Section { Text("square.readOnly").font(.footnote).foregroundStyle(.secondary) }
             }
             .appNavigationTitle("square.title")
-            .navigationDestination(for: Int.self) { id in SquareDetailView(id: id, reader: reader) }
+            .navigationDestination(for: Int.self) { id in SquareDetailView(id: id, reader: reader, accountReader: accountReader, actions: actions, governanceContext: governanceContext(postID: id), workspace: workspace) }
             .toolbar { if let onClose { ToolbarItem(placement: .cancellationAction) { Button("action.close", action: onClose) } } }
+            .toolbar {
+                if let actions {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("social.editor.createPost", systemImage: "square.and.pencil") { if workspace != nil { showsWorkspace = true } else { showsComposer = true } }
+                            .disabled(actions.identity.accountID == nil).accessibilityIdentifier("social.compose")
+                    }
+                }
+            }
+            .sheet(isPresented: $showsComposer) {
+                if let actions { NavigationStack { SocialActionEditorView(purpose: .createPost, target: .newPost, coordinator: actions) }.id(actions.identity) }
+            }
+            .sheet(isPresented: $showsWorkspace) {
+                if let workspace { NavigationStack { SquareWorkspaceView(coordinator: workspace) }.id(workspace.session) }
+            }
             .searchable(text: $keyword, prompt: "square.search")
             .onSubmit(of: .search) { query.keyword = keyword.isEmpty ? nil : keyword }
             .onChange(of: keyword) { _, value in if value.isEmpty { query.keyword = nil } }
@@ -57,6 +84,12 @@ import SwiftUI
             .onDisappear { generation += 1; loading = false }
             .accessibilityIdentifier("square.browser")
         }
+    }
+    private func governanceContext(postID: Int?) -> SquareGovernanceContext? {
+        guard let governance, let governanceAccess else { return nil }
+        return .init(coordinator: governance, access: governanceAccess(postID), communityPostRead: reader.isConfigured,
+            openPost: { id in guard reader.isConfigured, id > 0 else { return }; path.append(id) },
+            openDrafts: { if workspace != nil { showsWorkspace = true } }, signIn: { onSignIn?() })
     }
     @ViewBuilder private var filters: some View {
         if query.mode == .nearby {

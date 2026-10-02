@@ -1,0 +1,126 @@
+{
+  "journey.check.title": {
+    "en": "Journey check",
+    "zh-Hans": "旅程检定"
+  },
+  "journey.advantage": {
+    "en": "Advantage",
+    "zh-Hans": "优势"
+  },
+  "journey.disadvantage": {
+    "en": "Disadvantage",
+    "zh-Hans": "劣势"
+  },
+  "journey.success": {
+    "en": "Succeeded",
+    "zh-Hans": "成功"
+  },
+  "journey.failure": {
+    "en": "Failed",
+    "zh-Hans": "失败"
+  },
+  "journey.dice": {
+    "en": "Server dice",
+    "zh-Hans": "服务端骰点"
+  },
+  "journey.kept": {
+    "en": "Kept die",
+    "zh-Hans": "保留骰点"
+  },
+  "journey.total": {
+    "en": "Total",
+    "zh-Hans": "总计"
+  },
+  "journey.dc": {
+    "en": "Difficulty",
+    "zh-Hans": "难度"
+  },
+  "journey.hp": {
+    "en": "Health",
+    "zh-Hans": "生命"
+  },
+  "journey.luck": {
+    "en": "Luck",
+    "zh-Hans": "幸运"
+  },
+  "journey.exhausted": {
+    "en": "Exhausted",
+    "zh-Hans": "已耗尽"
+  },
+  "journey.cost": {
+    "en": "Settlement cost",
+    "zh-Hans": "结算代价"
+  },
+  "journey.unknown": {
+    "en": "The outcome is unknown. Do not roll again. Review settlement to recover the server receipt.",
+    "zh-Hans": "结果尚不确定，请勿再次掷骰。可确认结算以恢复服务端回执。"
+  },
+  "journey.recover": {
+    "en": "Review settlement recovery",
+    "zh-Hans": "查看结算恢复"
+  },
+  "journey.working": {
+    "en": "Waiting for server",
+    "zh-Hans": "等待服务端"
+  },
+  "journey.disabled": {
+    "en": "Live journey actions are unavailable",
+    "zh-Hans": "旅程在线操作尚未启用"
+  },
+  "journey.close": {
+    "en": "Continue journey",
+    "zh-Hans": "继续旅程"
+  },
+  "journey.review": {
+    "en": "Review journey action",
+    "zh-Hans": "确认检定操作"
+  },
+  "journey.roll": {
+    "en": "Roll",
+    "zh-Hans": "掷骰"
+  },
+  "journey.reroll": {
+    "en": "Reroll",
+    "zh-Hans": "重掷"
+  },
+  "journey.settle": {
+    "en": "Settle",
+    "zh-Hans": "结算"
+  },
+  "journey.reroll.cost": {
+    "en": "Reroll spends one luck. The server determines the outcome.",
+    "zh-Hans": "重掷消耗一点幸运，结果由服务端决定。"
+  },
+  "journey.settle.impact": {
+    "en": "Settlement applies this check’s server-defined effects. Recovery may also settle a check that has not yet settled.",
+    "zh-Hans": "结算将应用服务端定义的检定影响。恢复操作也可能结算尚未结算的检定。"
+  },
+  "journey.confirm": {
+    "en": "Confirm",
+    "zh-Hans": "确认"
+  },
+  "journey.cancel": {
+    "en": "Cancel",
+    "zh-Hans": "取消"
+  },
+  "journey.active": {
+    "en": "Applied",
+    "zh-Hans": "生效"
+  },
+  "journey.inactive": {
+    "en": "Not applied",
+    "zh-Hans": "未生效"
+  },
+  "journey.companion": {
+    "en": "Along the way",
+    "zh-Hans": "沿途陪伴"
+  },
+  "journey.egg": {
+    "en": "Journey discovery",
+    "zh-Hans": "沿途彩蛋"
+  },
+  "journey.egg.collected": {
+    "en": "Collection confirmed",
+    "zh-Hans": "已确认收集"
+  }
+}

@@ -21,6 +21,10 @@ INFOPLIST_KEY_QuestifyMarket = $(QUESTIFY_MARKET)
 QUESTIFY_API_BASE_URL =
 INFOPLIST_KEY_QuestifyAPIBaseURL = $(QUESTIFY_API_BASE_URL)
 
-INFOPLIST_KEY_NSCameraUsageDescription = Use the camera to read QR codes when you choose to scan.
+INFOPLIST_KEY_NSCameraUsageDescription = Use the camera to scan QR codes or take aftercare evidence photos when you choose.
+
+// Explicit deployment identity for isolated local session persistence; no default realm.
+QUESTIFY_SESSION_REALM =
+INFOPLIST_KEY_QuestifySessionRealm = $(QUESTIFY_SESSION_REALM)
 
 #include? "Local.xcconfig"

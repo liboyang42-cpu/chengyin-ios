@@ -1,0 +1,15 @@
+PASS source route + fixed latest-40 form contract
+PASS owner from JWT; no owner parameter
+PASS account epoch + full credential snapshots
+PASS failed filter retains last success
+PASS frame cycling; no 3D imports
+PASS media default dormant and no AsyncImage
+PASS streaming byte bound and redirects denied
+PASS decode pixel bound and stale pixel guard
+PASS source contains no bundled 3D asset
+PASS literal UI keys bilingual
+PASS dynamic categories, tracks, rarity bilingual
+PASS Swift + UI test cases authored
+12/12 source checks passed; Swift/Xcode/device: NOT_RUN
+
+--- STDERR ---

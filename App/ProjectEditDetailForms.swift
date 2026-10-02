@@ -1,0 +1,216 @@
+import SwiftUI
+
+@MainActor struct ProjectEditChapterView: View {
+    @ObservedObject var model: ProjectEditModel
+    let chapterID: String
+    private var chapter: Binding<ProjectEditChapter> { model.chapter(chapterID) }
+    private var exists: Bool { model.draft.chapters.contains { $0.id == chapterID } }
+    var body: some View {
+        Form {
+            if exists {
+                Section("projectEdit.chapterDetails") {
+                    TextField("projectEdit.chapterName", text: chapter.name).accessibilityIdentifier("projectEdit.chapterName")
+                    if chapter.wrappedValue.blocks == nil {
+                        TextField("projectEdit.story", text: chapter.description, axis: .vertical).lineLimit(4...12)
+                            .accessibilityIdentifier("projectEdit.story")
+                        if model.draft.product == .city {
+                            Button("projectEdit.enableStoryFlow") {
+                                var c = chapter.wrappedValue
+                                c.blocks = [.init(kind: .text, content: c.description)] + c.nodes.map { .init(kind: .node, nodeID: $0.id) }
+                                chapter.wrappedValue = c
+                            }.accessibilityIdentifier("projectEdit.enableStoryFlow")
+                        }
+                    }
+                }
+                if let blocks = chapter.wrappedValue.blocks, model.draft.product == .city {
+                    Section("projectEdit.storyFlow") {
+                        ForEach(blocks) { block in
+                            switch block.kind {
+                            case .text:
+                                TextField("projectEdit.story", text: blockBinding(block.id).content, axis: .vertical).lineLimit(3...12)
+                                    .accessibilityIdentifier("projectEdit.block." + block.id)
+                            case .node:
+                                Label { Text(verbatim: chapter.wrappedValue.nodes.first { $0.id == block.nodeID }?.name ?? "") } icon: { Image(systemName: "mappin.circle") }
+                            case .image, .audio:
+                                ProjectEditReferenceField(title: LocalizedStringKey(block.kind == .image ? "projectEdit.imageReference" : "projectEdit.audioReference"), value: blockBinding(block.id).url, identifier: "projectEdit.block." + block.id)
+                            }
+                        }.onMove { from, to in
+                            var c = chapter.wrappedValue; c.blocks?.move(fromOffsets: from, toOffset: to); chapter.wrappedValue = c
+                        }.onDelete { offsets in
+                            var c = chapter.wrappedValue
+                            let deleted = offsets.compactMap { c.blocks?.indices.contains($0) == true ? c.blocks?[$0] : nil }
+                            for block in deleted where block.kind == .node { c.nodes.removeAll { $0.id == block.nodeID } }
+                            c.blocks?.remove(atOffsets: offsets); chapter.wrappedValue = c
+                        }
+                        HStack {
+                            Button("projectEdit.addText") { appendBlock(.text) }
+                            Button("projectEdit.addImage") { appendBlock(.image) }
+                            Button("projectEdit.addAudio") { appendBlock(.audio) }
+                        }.buttonStyle(.bordered).disabled(blocks.count >= 200)
+                        Text("projectEdit.storyFlowHint").font(.caption).foregroundStyle(.secondary)
+                    }
+                }
+                Section("projectEdit.nodes") {
+                    ForEach(chapter.wrappedValue.nodes) { node in
+                        NavigationLink { ProjectEditNodeView(model: model, chapterID: chapterID, nodeID: node.id) } label: {
+                            Label { ProjectEditName(value: node.name, fallback: "projectEdit.untitledNode") } icon: { Image(systemName: "mappin.circle") }
+                        }.accessibilityIdentifier("projectEdit.node." + node.id)
+                    }.onDelete { offsets in
+                        var c = chapter.wrappedValue; let ids = offsets.map { c.nodes[$0].id }
+                        for id in ids { c.removeNode(id: id) }; chapter.wrappedValue = c
+                    }.onMove { from, to in
+                        guard chapter.wrappedValue.blocks == nil else { return }
+                        var c = chapter.wrappedValue; c.nodes.move(fromOffsets: from, toOffset: to); chapter.wrappedValue = c
+                    }
+                    Button("projectEdit.addNode", systemImage: "plus") {
+                        var c = chapter.wrappedValue
+                        do { try c.addNode(product: model.draft.product); chapter.wrappedValue = c } catch { /* Inline explanation is already visible. */ }
+                    }.disabled((model.draft.product == .city && !chapter.wrappedValue.hasRealStory) || (chapter.wrappedValue.blocks?.count ?? 0) >= 200)
+                        .accessibilityIdentifier("projectEdit.addNode")
+                    if model.draft.product == .city && !chapter.wrappedValue.hasRealStory { Text("projectEdit.validation.story").foregroundStyle(.secondary) }
+                }
+                Section { Text("projectEdit.chapterCarryOver").foregroundStyle(.secondary) }
+            } else { Text("projectEdit.signIn") }
+        }.disabled(!model.fullEdit)
+            .appNavigationTitle("projectEdit.chapterDetails").navigationBarTitleDisplayMode(.inline)
+            .toolbar { EditButton().disabled(!model.fullEdit) }
+            .scrollDismissesKeyboard(.interactively)
+    }
+    private func blockBinding(_ id: String) -> Binding<ProjectEditBlock> {
+        Binding(get: { chapter.wrappedValue.blocks?.first { $0.id == id } ?? .init(kind: .text) }, set: { value in
+            var c = chapter.wrappedValue
+            guard let index = c.blocks?.firstIndex(where: { $0.id == id }) else { return }
+            c.blocks?[index] = value; chapter.wrappedValue = c
+        })
+    }
+    private func appendBlock(_ kind: ProjectEditBlock.Kind) {
+        var c = chapter.wrappedValue; guard let count = c.blocks?.count, count < 200 else { return }
+        c.blocks?.append(.init(kind: kind)); chapter.wrappedValue = c
+    }
+}
+
+@MainActor struct ProjectEditNodeView: View {
+    @ObservedObject var model: ProjectEditModel
+    let chapterID: String
+    let nodeID: String
+    private var node: Binding<ProjectEditNode> {
+        Binding(get: { model.chapter(chapterID).wrappedValue.nodes.first { $0.id == nodeID } ?? .init() }, set: { value in
+            var c = model.chapter(chapterID).wrappedValue
+            guard let i = c.nodes.firstIndex(where: { $0.id == nodeID }) else { return }
+            c.nodes[i] = value; model.chapter(chapterID).wrappedValue = c
+        })
+    }
+    var body: some View {
+        Form {
+            Section("projectEdit.nodeDetails") {
+                TextField("projectEdit.nodeName", text: node.name).accessibilityIdentifier("projectEdit.nodeName")
+                TextField("projectEdit.description", text: node.description, axis: .vertical).lineLimit(3...8)
+                TextField("projectEdit.address", text: node.address).accessibilityIdentifier("projectEdit.address")
+                TextField("projectEdit.longitude", text: node.longitude).keyboardType(.numbersAndPunctuation).accessibilityIdentifier("projectEdit.longitude")
+                TextField("projectEdit.latitude", text: node.latitude).keyboardType(.numbersAndPunctuation).accessibilityIdentifier("projectEdit.latitude")
+                Text("projectEdit.coordinatesHint").font(.caption).foregroundStyle(.secondary)
+                Stepper(value: node.nodeTime, in: 0...Int.max) {
+                    LabeledContent("projectEdit.nodeMinutes", value: String(node.wrappedValue.nodeTime))
+                }
+                ProjectEditReferenceField(title: "projectEdit.nodeImages", value: node.imgUrl, identifier: "projectEdit.nodeImages")
+            }
+            Section("projectEdit.gameplay") {
+                if let id = node.wrappedValue.templateID {
+                    LabeledContent("projectEdit.templateID", value: String(id))
+                }
+                Text("projectEdit.gameplayDeferred").foregroundStyle(.secondary)
+            }
+        }.disabled(!model.fullEdit).appNavigationTitle("projectEdit.nodeDetails")
+            .navigationBarTitleDisplayMode(.inline).scrollDismissesKeyboard(.interactively)
+    }
+}
+
+@MainActor struct ProjectEditTicketView: View {
+    @ObservedObject var model: ProjectEditModel
+    let ticketID: String
+    private var ticket: Binding<ProjectEditTicket> { model.ticket(ticketID) }
+    var body: some View {
+        Form {
+            Section("projectEdit.ticketDetails") {
+                TextField("projectEdit.ticketName", text: ticket.name).accessibilityIdentifier("projectEdit.ticketName")
+                TextField("projectEdit.ticketPrice", text: ticket.price).keyboardType(.decimalPad).accessibilityIdentifier("projectEdit.ticketPrice")
+                Text("projectEdit.priceHint").font(.caption).foregroundStyle(.secondary)
+                TextField("projectEdit.totalStock", text: ticket.totalStock).keyboardType(.numberPad).accessibilityIdentifier("projectEdit.totalStock")
+                TextField("projectEdit.teamSize", text: ticket.teamSize).keyboardType(.numberPad)
+                TextField("projectEdit.description", text: ticket.description, axis: .vertical).lineLimit(3...8)
+            }
+            Section("projectEdit.ticketSchedule") {
+                ProjectEditDateField(title: "projectEdit.ticketStart", value: ticket.startTime, identifier: "projectEdit.ticketStart")
+                ProjectEditDateField(title: "projectEdit.ticketEnd", value: ticket.endTime, identifier: "projectEdit.ticketEnd")
+                if model.draft.product == .city {
+                    TextField("projectEdit.meetingPoint", text: ticket.meetingPoint).accessibilityIdentifier("projectEdit.meetingPoint")
+                }
+                Text("projectEdit.ticketScopeHint").foregroundStyle(.secondary)
+            }
+        }.disabled(!model.fullEdit).appNavigationTitle("projectEdit.ticketDetails")
+            .navigationBarTitleDisplayMode(.inline).scrollDismissesKeyboard(.interactively)
+    }
+}
+
+struct ProjectEditReviewView: View {
+    let confirmation: ProjectEditConfirmation
+    let canSimulate: Bool
+    let canSubmit: Bool
+    let busy: Bool
+    let cancel: () -> Void
+    let confirm: () -> Void
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    Label("projectEdit.reviewHint", systemImage: "checklist")
+                    Text(LocalizedStringKey(canSimulate ? "projectEdit.fixtureNotice" : (canSubmit ? "projectEdit.confirmLiveHint" : "projectEdit.unconfigured")))
+                }
+                Section("projectEdit.basics") {
+                    row("projectEdit.name", confirmation.draft.name)
+                    row("projectEdit.subtitle", confirmation.draft.subtitle)
+                    row("projectEdit.description", confirmation.draft.description)
+                    row("projectEdit.cover", confirmation.draft.imgUrl)
+                    row("projectEdit.gallery", confirmation.draft.imgArr)
+                    row("projectEdit.categories", confirmation.draft.categoryIDs.map(String.init).joined(separator: ","))
+                    row("projectEdit.startDate", confirmation.draft.startDate)
+                    row("projectEdit.endDate", confirmation.draft.endDate)
+                    if confirmation.draft.product == .freeExplore { row("projectEdit.deadline", confirmation.draft.recruitDeadline) }
+                }
+                ForEach(confirmation.draft.chapters) { chapter in
+                    Section {
+                        row("projectEdit.chapterName", chapter.name); row("projectEdit.story", chapter.story)
+                        ForEach(chapter.nodes) { node in
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(verbatim: node.name).font(.headline)
+                                Text(verbatim: node.address)
+                                Text(verbatim: node.longitude + ", " + node.latitude).font(.caption)
+                            }
+                        }
+                    } header: { Text("projectEdit.chapterDetails") }
+                }
+                ForEach(confirmation.draft.tickets) { ticket in
+                    Section("projectEdit.ticketDetails") {
+                        row("projectEdit.ticketName", ticket.name); row("projectEdit.ticketPrice", ticket.price)
+                        row("projectEdit.totalStock", ticket.totalStock); row("projectEdit.teamSize", ticket.teamSize)
+                        row("projectEdit.ticketStart", ticket.startTime); row("projectEdit.ticketEnd", ticket.endTime)
+                        row("projectEdit.meetingPoint", ticket.meetingPoint)
+                    }
+                }
+                Section("projectEdit.visibility") {
+                    LabeledContent { Text(LocalizedStringKey(confirmation.draft.publishToCreative ? "projectEdit.yes" : "projectEdit.no")) } label: { Text("projectEdit.publishToCreative") }
+                    Text("projectEdit.advancedPreserved")
+                }
+                if canSubmit {
+                    Button(LocalizedStringKey(canSimulate ? "projectEdit.confirmSimulation" : "projectEdit.confirmLive"), action: confirm).disabled(busy)
+                        .accessibilityIdentifier("projectEdit.confirmSimulation")
+                }
+                Button("action.cancel", role: .cancel, action: cancel).accessibilityIdentifier("projectEdit.cancelReview")
+            }.appNavigationTitle("projectEdit.reviewTitle").navigationBarTitleDisplayMode(.inline)
+                .interactiveDismissDisabled(busy)
+        }
+    }
+    private func row(_ title: LocalizedStringKey, _ value: String) -> some View {
+        LabeledContent { Text(verbatim: value).multilineTextAlignment(.trailing).textSelection(.enabled) } label: { Text(title) }
+    }
+}

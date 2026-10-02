@@ -4,6 +4,8 @@ import SwiftUI
 @MainActor
 struct DiscoveryTemplateBrowserView: View {
     let reader: any DiscoveryReading
+    let authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)?
+    let authoringRevision: UInt64
     @State private var tab = Shelf.topics
     @State private var categoryID: Int?
     @State private var pack: DiscoveryPackType?
@@ -22,7 +24,9 @@ struct DiscoveryTemplateBrowserView: View {
     private var query: Query { Query(tab: tab, pack: pack, keyword: appliedKeyword) }
     private var hasGameFilter: Bool { pack != nil || !appliedKeyword.isEmpty }
 
-    init(reader: any DiscoveryReading) { self.reader = reader }
+    init(reader: any DiscoveryReading, authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)? = nil, authoringRevision: UInt64 = 0) {
+        self.reader = reader; self.authoringFactory = authoringFactory; self.authoringRevision = authoringRevision
+    }
 
     var body: some View {
         Group {
@@ -159,7 +163,7 @@ struct DiscoveryTemplateBrowserView: View {
             Section(title) {
                 ForEach(Array(rows.enumerated()), id: \.offset) { _, item in
                     NavigationLink {
-                        DiscoveryTemplateDetailView(id: item.id, reader: reader)
+                        DiscoveryTemplateDetailView(id: item.id, reader: reader, authoringFactory: authoringFactory, authoringRevision: authoringRevision)
                     } label: { DiscoveryPlayRow(item: item) }
                     .accessibilityIdentifier("discovery.play.\(item.id)")
                 }

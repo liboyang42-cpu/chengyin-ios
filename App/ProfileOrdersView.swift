@@ -3,6 +3,9 @@ import SwiftUI
 @MainActor
 struct ProfileOrdersView: View {
     let reader: any ProfileReading
+    var lifecycleCoordinator: OrderLifecycleCoordinator? = nil
+    var mediaScope: UUID = UUID()
+    var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
     var body: some View {
         ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.orders", load: { try await reader.profileOrders() }) { orders in
             if orders.isEmpty {
@@ -11,7 +14,7 @@ struct ProfileOrdersView: View {
                 List {
                     Section {
                         ForEach(orders) { order in
-                            NavigationLink { ProfileOrderDetailView(id: order.id, reader: reader) } label: {
+                            NavigationLink { ProfileOrderDetailView(id: order.id, reader: reader, lifecycleCoordinator: lifecycleCoordinator, mediaScope: mediaScope, makeExternalMaps: makeExternalMaps) } label: {
                                 ProfileOrderRow(order: order)
                             }.accessibilityIdentifier("profile.order.\(order.id)")
                         }
@@ -45,6 +48,9 @@ private struct ProfileOrderRow: View {
 struct ProfileOrderDetailView: View {
     let id: Int
     let reader: any ProfileReading
+    var lifecycleCoordinator: OrderLifecycleCoordinator? = nil
+    var mediaScope: UUID = UUID()
+    var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
     var body: some View {
         ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.order.detail", load: { try await reader.profileOrder(id: id) }) { order in
             List {
@@ -63,6 +69,7 @@ struct ProfileOrderDetailView: View {
                     ProfileOptionalRow(key: "profile.orders.start", value: order.startDate)
                     ProfileOptionalRow(key: "profile.orders.end", value: order.endDate)
                     ProfileOptionalRow(key: "profile.orders.location", value: order.addressName)
+                    PlatformExternalMapHost(destination: .init(name: order.meetingPoint ?? "", address: order.meetingPoint, latitude: order.gatherLatitude, longitude: order.gatherLongitude), scope: mediaScope, makeModel: makeExternalMaps)
                     ProfileOptionalRow(key: "profile.orders.expires", value: order.expiresAt)
                 }
                 if order.realName?.isEmpty == false || order.phone?.isEmpty == false {
@@ -88,6 +95,13 @@ struct ProfileOrderDetailView: View {
                     if let code = order.refundPayoutStatus {
                         LabeledContent("profile.orders.refund") { ProfileRefundStatus(code: code) }
                         LabeledContent("profile.orders.refundCode", value: String(code))
+                    }
+                }
+                if let lifecycleCoordinator {
+                    Section {
+                        NavigationLink { OrderLifecycleView(id: id, coordinator: lifecycleCoordinator).id(lifecycleCoordinator.scope) } label: {
+                            Label("orderLifecycle.title", systemImage: "list.bullet.rectangle")
+                        }.accessibilityIdentifier("profile.order.lifecycle")
                     }
                 }
                 Section { Text("profile.readOnly").foregroundStyle(.secondary) }

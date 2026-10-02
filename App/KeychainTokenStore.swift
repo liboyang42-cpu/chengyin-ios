@@ -1,22 +1,22 @@
 import Foundation
 import Security
 
-/// New native bundle uses its own Keychain namespace. No implicit Flutter session migration.
+/// Deployment-scoped native Keychain; no implicit legacy/Flutter/cross-realm migration.
 struct KeychainTokenStore {
-    enum StoreError: Error { case status(OSStatus), invalidToken }
-    private let service:String
-    init(market:RegionalMarket?) {
-        service=(Bundle.main.bundleIdentifier ?? "Questify") + ".session." + (market?.rawValue ?? "unconfigured")
-    }
+    enum StoreError: Error { case status(OSStatus), invalidToken, unconfigured }
+    private let scope:RegionalSessionStorageScope?
+    init(scope:RegionalSessionStorageScope?) { self.scope=scope }
     private let account = "session-token"
-    private var query: [String: Any] {
-        [kSecClass as String:kSecClassGenericPassword,
-         kSecAttrService as String:service,
+    private func query() throws -> [String: Any] {
+        guard let scope else { throw StoreError.unconfigured }
+        return [kSecClass as String:kSecClassGenericPassword,
+         kSecAttrService as String:scope.service,
          kSecAttrAccount as String:account,
          kSecAttrSynchronizable as String:false]
     }
     func read() throws -> String? {
-        var request=query
+        guard scope != nil else { return nil }
+        var request=try query()
         request[kSecReturnData as String]=true
         request[kSecMatchLimit as String]=kSecMatchLimitOne
         var result: CFTypeRef?
@@ -28,6 +28,7 @@ struct KeychainTokenStore {
     }
     func write(_ token:String) throws {
         guard !token.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else { throw StoreError.invalidToken }
+        let query=try query()
         let values:[String:Any]=[kSecValueData as String:Data(token.utf8),
                                 kSecAttrAccessible as String:kSecAttrAccessibleWhenUnlockedThisDeviceOnly]
         let status=SecItemUpdate(query as CFDictionary,values as CFDictionary)
@@ -38,6 +39,8 @@ struct KeychainTokenStore {
         } else if status != errSecSuccess { throw StoreError.status(status) }
     }
     func clear() throws {
+        guard scope != nil else { return }
+        let query=try query()
         let status=SecItemDelete(query as CFDictionary)
         guard status == errSecSuccess || status == errSecItemNotFound else { throw StoreError.status(status) }
     }

@@ -44,8 +44,11 @@ struct LoginView: View {
                 if let key=session.errorKey {
                     Section { Text(LocalizedStringKey(key)).foregroundStyle(.red).accessibilityIdentifier("auth.error") }
                 }
+                if session.operationalMarket == .china {
+                    WeChatAppAuthSection(coordinator: session.weChatAuth, context: session.authChannelSnapshot)
+                }
                 Section {
-                    Button("auth.channels.title") { password="";showsOtherSignIn=true }
+                    Button("auth.channels.title") { session.weChatAuth.cancel(); password="";showsOtherSignIn=true }
                         .disabled(session.isWorking)
                         .accessibilityIdentifier("auth.otherChannels")
                     Text("auth.registrationPending").foregroundStyle(.secondary)
@@ -64,7 +67,7 @@ struct LoginView: View {
             }
             .interactiveDismissDisabled(session.isWorking)
             .onChange(of:session.account?.id) { _,newID in if newID != nil { password="";dismiss() } }
-            .onDisappear { password="" }
+            .onDisappear { password=""; session.weChatAuth.cancel() }
         }
     }
     private func submit() {

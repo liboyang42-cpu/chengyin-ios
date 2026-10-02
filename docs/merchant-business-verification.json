@@ -1,0 +1,58 @@
+{
+  "timestampUTC": "2026-10-01T21:27:49.509761+00:00",
+  "root": "native-merchant-business-new",
+  "status": "isolated_additive_ready_for_parent_integration",
+  "sourceSnapshot": "app-audit a63e9e91 (parent audit reference)",
+  "authoredInventory": {
+    "coreSwiftFiles": 10,
+    "appSwiftFiles": 4,
+    "coreTestMethods": 72,
+    "uiTestMethods": 8,
+    "bilingualKeys": 278
+  },
+  "verification": {
+    "pythonSourceChecks": "PASS 14",
+    "treeSitter": "PASS 18 Swift files, 0 recovery diagnostics",
+    "swiftTypecheck": "NOT_RUN",
+    "swiftPackageTests": "NOT_RUN",
+    "xcodeBuild": "NOT_RUN",
+    "simulatorUITests": "NOT_RUN",
+    "backendOrRemoteActions": "NOT_RUN; no actual actions attempted"
+  },
+  "files": {
+    "App/MerchantBusinessEditor.swift": "a7da27c1395f00453535bb9ff6f6a112157b3d7da1eedd42e3e04aa5cfb3d684",
+    "App/MerchantBusinessFixtureSupport.swift": "c41550708121365289270d14951a99b4db6d9013b5cb7392f647fa39153f8677",
+    "App/MerchantBusinessRecordViews.swift": "0497e9f0c677becd2620e3a9ed446998d8b90b978c94b63112632d8d5372fc40",
+    "App/MerchantBusinessViews.swift": "502071980c0b3e37f0f559e89bf9740ac61dd99dacc5bcc9258ce9a11268ac32",
+    "Core/MerchantAftercareEvidenceAdapter.swift": "59b48e64d0f5965fea6af16d4e334d2ad611bad79e94c21d2ba3ef8aa06f865f",
+    "Core/MerchantBusinessCoordinator.swift": "c5f1a438cf0488b6e3ac4561a0689c9e65b92adfca36b721ea7b54e391dda032",
+    "Core/MerchantBusinessDocuments.swift": "c66365465f1b0809a1a367ab63e9ecc73864f733311316370f93bd1761256272",
+    "Core/MerchantBusinessMutation.swift": "4609fd7c17c486e69445c691990ef3fe803bac4c068cddd0bd5dca3b99ae5eb0",
+    "Core/MerchantBusinessQuery.swift": "8ae347444e61e6d14ad9b981701a0d73f5c6bdad9c52c31a22220a720d25de49",
+    "Core/MerchantBusinessReading.swift": "a186f0404f1818afe12deea732cd9d045899e735e1f0c223a7c77a3594b6f825",
+    "Core/MerchantBusinessService.swift": "c115bd7169d6557c1bd5e9e53533df2c3ebbcf782020fece74945a992c8870c9",
+    "Core/MerchantBusinessSyntheticFixtures.swift": "99fef43a1352bea7fd5e0fd351b0c756eebbe4514b2bf2cd180b877acfaa9ab2",
+    "Core/MerchantBusinessValue.swift": "c816c7b91d2fd7ed32c518d34211bb74058b1f721bccc595bced0f6c5d0437f1",
+    "Core/MerchantRedemptionContext.swift": "7b714f996b00014ff175f8b8f06eca6647ceea401086c9456c6eb43f9fbd7155",
+    "Resources/MerchantBusinessLocalizations.fragment.json": "01480c91cfc600fc0fcfb10b674fea297e6a0a0fc0d956434f4579ddb9f93813",
+    "Tests/AppUITests/MerchantBusinessFlowTests.swift": "9a50fed5fe379033a7eaa1cdfd699d347f0eea484a76a4682df3d5a19cb2c734",
+    "Tests/CoreTests/MerchantBusinessContractsTests.swift": "1dd718e6cf8752c2c36bef29c844d72a48f7ee917ff0e9a731b09b5677f37e8b",
+    "Tests/CoreTests/MerchantBusinessServiceTests.swift": "16efced3a1bc5f08dfd46b6b042e4ebf0e1f1d8a6ed6706d4bf52c92da35032f",
+    "Tests/CoreTests/MerchantRedemptionContextTests.swift": "2ecee4e7aa22c9aa6401b390ced9e67ba7aaa8fa0d08d25ceb23839612e41955",
+    "docs/merchant-business-module.md": "a9955ac7db73e528dc810a313ff644fdee4660fb3956917fe75f1410c34861e8",
+    "tools/build_merchant_business_localizations.py": "4ae65567026c26c69360f64a038aa617c1f0ebd0652287d19f41286906b1bb80",
+    "tools/check_merchant_business.py": "96f78c2b0a7a1f91aa648f3d76caab3e91b1ed205f74aa5cd65f468a62bd703c"
+  },
+  "sourceHashes": {
+    "app-audit/lib/data/api/merchant_api.dart": "c6279b46e413c9ee195b3dc8f7a72882641b1586e6eb8abbb591e46907b65f3f",
+    "app-audit/lib/data/api/merchant_aftercare_api.dart": "d61c3286ff858e9b95dcc098b3b5b99300cc2ebbef3e6532ef936c5df8f54825",
+    "app-audit/lib/data/api/merchant_customer_detail_api.dart": "773f842d5c5740317d7af7bcc14e6c1a0eb2eb5d14e8bde6070d5a93859d7f0d",
+    "app-audit/lib/data/api/merchant_crm_console_api.dart": "cb5fe3d48053879968627827da8a44419db95b5a4a10d57c6dfd3c6db5efbb26",
+    "app-audit/lib/data/api/merchant_review_api.dart": "55626b51df28b70979e4d8caeecee08cec7856d8ccee62d94985d3b224f5c9d1",
+    "app-audit/lib/data/api/merchant_operator_api.dart": "1642947303468bdde777734b58dc5d3c27845b56ce5cdae82d2793b5334fded4",
+    "app-audit/lib/data/api/registration_api.dart": "46b9f384d4baabf8728a0051304cbd7dd2df3d19b728ddf15ba566cfb6bad1ec",
+    "app-audit/lib/data/api/activity_api.dart": "0250571fe675c1f97b2d431cdc9c113834b0bc6a41ec04d8b6a6768d23361fa8",
+    "app-audit/lib/data/api/coupon_api.dart": "16c8b88dde2f277ca9ad793b958806d4eb51215324433b8c4f1cb9f59fba895d",
+    "app-audit/lib/data/api/group_code_api.dart": "ac1307686e8fada15a154d22a6e59d6362ce2f6e6052bd5a2703ed41db5f6cbf"
+  }
+}

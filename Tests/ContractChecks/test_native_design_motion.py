@@ -62,7 +62,7 @@ class NativeDesignMotionGuards(unittest.TestCase):
         wallet = app("TicketWalletView.swift")
         self.assertIn("ForEach(Array(snapshot.tickets.enumerated()), id: \\.offset)", wallet)
         self.assertIn("if ticket.action == .detail", wallet)
-        self.assertIn("TicketWalletDetailView(id: ticket.id, reader: reader)", wallet)
+        self.assertIn("TicketWalletDetailView(id: ticket.id, reader: reader, lifecycleCoordinator: orderLifecycleCoordinator)", wallet)
         self.assertIn("model.cancelPending()", wallet)
         detail = app("TicketWalletDetailView.swift")
         self.assertIn("ticket.id == id", detail)

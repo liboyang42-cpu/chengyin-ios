@@ -1,0 +1,85 @@
+{
+  "core_test_methods": 1998,
+  "ui_test_methods": 303,
+  "ui_classes": 52,
+  "ui_shard_counts": [
+    50,
+    51,
+    51,
+    51,
+    51,
+    49
+  ],
+  "ui_shards": [
+    [
+      "TeamFlowTests",
+      "MerchantBusinessFlowTests",
+      "MerchantEngagementFlowTests",
+      "CooperationFlowTests",
+      "CouponManagementFlowTests",
+      "PlayDirectorPrefabFlowTests",
+      "HomeFeedFlowTests",
+      "ProfileEditFlowTests"
+    ],
+    [
+      "AccountCollectionFlowTests",
+      "ProjectEditFlowTests",
+      "SocialAccountFlowTests",
+      "PublicMerchantHomeFlowTests",
+      "CreatorContentFlowTests",
+      "SquareGovernanceFlowTests",
+      "MerchantOnboardingFlowTests",
+      "AccessibilityPresentationFlowTests",
+      "IMExpandedUITests"
+    ],
+    [
+      "ModuleFlowTests",
+      "SearchMapFlowTests",
+      "EntryFlowTests",
+      "OrderLifecycleUITests",
+      "JourneyContentFlowTests",
+      "WalletCommerceFlowTests",
+      "NearbyTeamUITests",
+      "CooperationFlowUITests",
+      "PlayPreferenceFlowTests"
+    ],
+    [
+      "SettingsNativeFlowTests",
+      "SquareFlowTests",
+      "GrowthCenterFlowTests",
+      "PlayExperienceFlowTests",
+      "MerchantOperationsFlowTests",
+      "ActivityFlowTests",
+      "ShopNPCFlowTests",
+      "DoorReferralUITests",
+      "SquareWorkspaceFlowTests"
+    ],
+    [
+      "ClubOperationsFlowTests",
+      "RoamExperienceFlowTests",
+      "MerchantContentFlowTests",
+      "ClubGovernanceFlowTests",
+      "TemplateOwnShelfFlowTests",
+      "PublishingModesFlowTests",
+      "ClubActionFlowTests",
+      "ObjectCardFlowTests",
+      "TopicFlowTests"
+    ],
+    [
+      "OfficialEventFlowTests",
+      "TemplateAuthoringFlowTests",
+      "MerchantMarketingUITests",
+      "ClubManagementFlowTests",
+      "TicketWalletFlowTests",
+      "RegionalEntryFlowTests",
+      "ClubCommunityUITests",
+      "OfficialActionUITests"
+    ]
+  ],
+  "app_swift_files": 260,
+  "core_swift_files": 305,
+  "bilingual_keys": 5055,
+  "focused_swift_files": 55,
+  "swift_available": false,
+  "xcodebuild_available": false
+}

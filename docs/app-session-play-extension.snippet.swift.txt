@@ -1,0 +1,67 @@
+// Insert inside AppSession, next to the retained Play runtime factories. Do not replace the file.
+    private var retainedPlayAdvanced: [String: PlayAdvancedCoordinator] = [:]
+    private var retainedPlayPreferences: [String: PlayPreferenceCoordinator] = [:]
+    private var retainedPlaySummaries: [String: PlayOperatingSummaryCoordinator] = [:]
+    private var retainedPlayDirectors: [String: PlayDirectorCoordinator] = [:]
+    private var retainedPlayPrefabs: [String: PlayPrefabRuntimeCoordinator] = [:]
+    private lazy var prefabRuntimeStore = PlayPrefabRuntimeStore(storage: templateAuthoringSecureStorage)
+    private var currentPlayRuntimeSession: PlayExperienceSession? {
+        guard let account, let token, let namespace = storageScope?.service else { return nil }
+        return try? PlayExperienceSession(accountID: account.id, epoch: gate.currentStamp, namespace: namespace, token: token)
+    }
+    private func dormantPlayRuntimeService() -> PlayExperienceService? {
+        guard let configuration = regionalConfiguration?.apiConfiguration, storageScope != nil else { return nil }
+        return PlayExperienceService(configuration: configuration, transport: URLSessionTransport())
+    }
+    private func playRuntimeKey(_ scope: PlaySessionScope, suffix: String) -> String {
+        "\(account?.id ?? 0):\(scope.fields.keys.sorted().joined()):\(scope.id):\(suffix)"
+    }
+    func playAdvanced(scope: PlaySessionScope, nodeID: Int, topicID: Int?) -> PlayAdvancedCoordinator? {
+        guard scope.isValid, nodeID > 0, let topicID, topicID > 0, let api = dormantPlayRuntimeService() else { return nil }
+        let key = playRuntimeKey(scope, suffix: "advanced:\(nodeID)")
+        if let retained = retainedPlayAdvanced[key] { return retained }
+        let activityID: Int
+        switch scope { case .activity(let id): activityID = id; case .topic(let id): guard id == topicID else { return nil }; activityID = 0 }
+        let model = PlayAdvancedCoordinator(activityID: activityID, topicID: topicID, nodeID: nodeID, service: api,
+            currentSession: { [weak self] in self?.currentPlayRuntimeSession })
+        retainedPlayAdvanced[key] = model; return model
+    }
+    func playPreference(scope: PlaySessionScope, nodeID: Int) -> PlayPreferenceCoordinator? {
+        guard scope.isValid, nodeID > 0, let api = dormantPlayRuntimeService() else { return nil }
+        let key = playRuntimeKey(scope, suffix: "preference:\(nodeID)")
+        if let retained = retainedPlayPreferences[key] { return retained }
+        let model = PlayPreferenceCoordinator(scope: scope, nodeID: nodeID, service: api,
+            currentSession: { [weak self] in self?.currentPlayRuntimeSession })
+        retainedPlayPreferences[key] = model; return model
+    }
+    func playOperatingSummary(topicID: Int) -> PlayOperatingSummaryCoordinator? {
+        guard topicID > 0, let api = dormantPlayRuntimeService() else { return nil }
+        let key = playRuntimeKey(.topic(topicID), suffix: "summary")
+        if let retained = retainedPlaySummaries[key] { return retained }
+        let model = PlayOperatingSummaryCoordinator(topicID: topicID, service: api,
+            currentSession: { [weak self] in self?.currentPlayRuntimeSession })
+        retainedPlaySummaries[key] = model; return model
+    }
+    func playDirector(activityID: Int) -> PlayDirectorCoordinator? {
+        guard activityID > 0, let api = dormantPlayRuntimeService() else { return nil }
+        let key = playRuntimeKey(.activity(activityID), suffix: "director")
+        if let retained = retainedPlayDirectors[key] { return retained }
+        let model = PlayDirectorCoordinator(activityID: activityID, service: api,
+            currentSession: { [weak self] in self?.currentPlayRuntimeSession })
+        retainedPlayDirectors[key] = model; return model
+    }
+    func playPrefab(scope: PlaySessionScope) -> PlayPrefabRuntimeCoordinator? {
+        guard scope.isValid, let api = dormantPlayRuntimeService() else { return nil }
+        let key = playRuntimeKey(scope, suffix: "prefab")
+        if let retained = retainedPlayPrefabs[key] { return retained }
+        let model = PlayPrefabRuntimeCoordinator(scope: scope, service: api, provider: PlayDormantDeviceProvider(),
+            store: prefabRuntimeStore, currentSession: { [weak self] in self?.currentPlayRuntimeSession })
+        retainedPlayPrefabs[key] = model; return model
+    }
+    func playStillness(scope: PlaySessionScope, nodeID: Int, configuration: PlayStillnessConfiguration) -> PlayStillnessCoordinator? {
+        guard scope.isValid, nodeID > 0 else { return nil }
+        return PlayStillnessCoordinator(configuration: configuration, provider: PlayDormantMotionProvider(), currentContext: { [weak self] in
+            guard let session = self?.currentPlayRuntimeSession else { return nil }
+            return try? PlayDeviceContext(session: session, scope: scope, nodeID: nodeID)
+        })
+    }

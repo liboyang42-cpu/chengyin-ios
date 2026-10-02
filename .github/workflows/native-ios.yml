@@ -24,6 +24,7 @@ jobs:
           xcodebuild -showsdks
       - name: Check project and localization structure
         run: |
+          echo 'Native-local contracts run in this checkout. External Flutter parity assertions require a separate app-audit checkout; unavailable comparisons are explicitly SKIPPED / NOT_RUN, never passed.'
           python3 -m unittest discover -s tools/tests -v
           python3 -m unittest discover -s Tests/ContractChecks -p 'test_*.py' -v
           python3 tools/check_scaffold.py
@@ -70,11 +71,56 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_ENABLE_UPLOAD_ARTIFACT: 'false'
           GITLEAKS_ENABLE_COMMENTS: 'false'
+  app-unit-tests:
+    needs: native
+    runs-on: macos-26
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Select an available iPhone simulator
+        run: |
+          xcrun simctl list devices available --json > "$RUNNER_TEMP/simulators.json"
+          python3 - <<'PY'
+          import json, os
+          data=json.load(open(os.environ['RUNNER_TEMP']+'/simulators.json'))
+          candidates=[d for runtime,devices in data['devices'].items() if 'iOS' in runtime for d in devices if d.get('isAvailable') and d['name'].startswith('iPhone')]
+          if not candidates:
+              raise SystemExit('No available iPhone simulator; App-unit tests cannot be claimed as passed')
+          chosen=sorted(candidates,key=lambda d:d['name'])[-1]
+          with open(os.environ['GITHUB_ENV'],'a') as f:
+              f.write('TEST_SIMULATOR_ID='+chosen['udid']+'\n')
+          print('Selected simulator:',chosen['name'])
+          PY
+      - name: Boot simulator before app-unit tests
+        run: xcrun simctl bootstatus "$TEST_SIMULATOR_ID" -b
+      - name: Run all app-hosted XCTest methods (unsigned)
+        run: |
+          xcodebuild -project Questify.xcodeproj -scheme QuestifyAppUnitTests \
+            -configuration Debug -sdk iphonesimulator \
+            -destination "platform=iOS Simulator,id=$TEST_SIMULATOR_ID" \
+            -destination-timeout 60 \
+            -derivedDataPath "$RUNNER_TEMP/questify-app-unit-tests" \
+            -resultBundlePath "$RUNNER_TEMP/questify-app-unit-results.xcresult" \
+            -parallel-testing-enabled NO -maximum-concurrent-test-simulator-destinations 1 \
+            -test-timeouts-enabled YES -default-test-execution-time-allowance 60 \
+            -maximum-test-execution-time-allowance 120 \
+            -only-testing:QuestifyAppUnitTests CODE_SIGNING_ALLOWED=NO test
+      - name: Retain app-unit test results briefly
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: app-unit-results-${{ github.sha }}
+          path: ${{ runner.temp }}/questify-app-unit-results.xcresult
+          if-no-files-found: warn
+          retention-days: 1
+          compression-level: 0
   ui-tests:
     strategy:
       fail-fast: false
       matrix:
-        shard: [0, 1, 2]
+        shard: [0, 1, 2, 3, 4, 5]
     needs: native
     runs-on: macos-26
     timeout-minutes: 25
@@ -100,7 +146,7 @@ jobs:
         run: xcrun simctl bootstatus "$TEST_SIMULATOR_ID" -b
       - name: Test native module flows and session boundaries
         run: |
-          python3 tools/run_ui_shard.py --shard ${{ matrix.shard }} --count 3 \
+          python3 tools/run_ui_shard.py --shard ${{ matrix.shard }} --count 6 \
             --simulator "$TEST_SIMULATOR_ID" \
             --derived-data "$RUNNER_TEMP/questify-ui-tests" \
             --result-bundle "$RUNNER_TEMP/questify-ui-results.xcresult"

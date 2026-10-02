@@ -1,0 +1,35 @@
+{
+  "module": "wallet_commerce",
+  "integration": "normal session/host + isolated DEBUG fixture; dormant writes unmounted",
+  "authored_core_tests_total": 1602,
+  "authored_wallet_core_tests": 20,
+  "authored_ui_tests_total": 245,
+  "ui_classes": 39,
+  "bilingual_keys": 4257,
+  "ui_shards": 6,
+  "checks": {
+    "contracts": 306,
+    "tooling": 16,
+    "parser_advisory": 14,
+    "wallet_source": 11,
+    "tree_sitter_files": 12,
+    "tree_sitter_diagnostics": 0,
+    "scaffold": "PASS"
+  },
+  "runtime": {
+    "swift": "NOT_RUN",
+    "xcode": "NOT_RUN",
+    "ui": "NOT_RUN",
+    "apple_device": "NOT_RUN"
+  },
+  "remote_operations": false,
+  "default_visibility": {
+    "assets": true,
+    "income": true,
+    "withdrawalHistory": true,
+    "points": false,
+    "mall": false
+  },
+  "default_live_read_grant": null,
+  "default_write_gate": false
+}

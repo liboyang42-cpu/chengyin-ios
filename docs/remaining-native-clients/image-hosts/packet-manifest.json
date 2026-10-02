@@ -1,0 +1,121 @@
+{
+  "packet": "native-retained-image-host-integration",
+  "main_checkout_policy": "read-only",
+  "production_additions": 4,
+  "host_patches": 3,
+  "swift_files_checked": 9,
+  "test_counts": {
+    "core_authored_not_run": 8,
+    "app_unit_authored_not_run": 6
+  },
+  "files": [
+    {
+      "path": "App/MerchantRetainedImageHost.swift",
+      "sha256": "f40cbc836e8337b163ccc29ac547bc8f5396d4111ccd388f9433e3186b91cdf4",
+      "bytes": 5566,
+      "role": "additive-production"
+    },
+    {
+      "path": "App/RetainedImageContextCache.swift",
+      "sha256": "8aa6d7eb897731e7373f6b867c67c8529a3ddd7885e306d07b5ce46d92690051",
+      "bytes": 6026,
+      "role": "additive-production"
+    },
+    {
+      "path": "App/RetainedPublicMerchantReviewHost.swift",
+      "sha256": "38ad91f82bad3dd8d6310dfb67ce1d984973462b570eb68cbd87e516abe1ebdf",
+      "bytes": 6119,
+      "role": "additive-production"
+    },
+    {
+      "path": "Core/PublicMerchantReviewHostGate.swift",
+      "sha256": "f4fb9400da11aa0479d99e378ad4b14247d73ccca8a69e5d73988b2bd6448e89",
+      "bytes": 4303,
+      "role": "additive-production"
+    },
+    {
+      "path": "Tests/AppUnitTests/RetainedImageNormalHostTests.swift",
+      "sha256": "51aa77086173fb18e89c094d0e04b94945268d560bbc1c74ad3cf3593ce3c17e",
+      "bytes": 6800,
+      "role": "authored-test-not-run"
+    },
+    {
+      "path": "Tests/CoreTests/PublicMerchantReviewHostGateTests.swift",
+      "sha256": "583f99d13ee57dc38d3a3e60e2ecff767c9c82af03b26ce15a43d4bd98ac9e4d",
+      "bytes": 6985,
+      "role": "authored-test-not-run"
+    },
+    {
+      "path": "docs/AppSession.snippet.swift",
+      "sha256": "9db63690528ae6cd277213844731cf86459725364ad53b4c58124eef7167c58f",
+      "bytes": 3648,
+      "role": "manual-merge-snippet-not-build-source"
+    },
+    {
+      "path": "docs/HOST_BASELINES.json",
+      "sha256": "d1511dbe6fed8e79ad43732edcc1edb0f0500af30e663cb8309addbc791ab921",
+      "bytes": 887,
+      "role": "support"
+    },
+    {
+      "path": "docs/INTEGRATION.md",
+      "sha256": "0076a3404f3777dd470671583cdb1b008f508d6bb9428f481572a1ee96faa757",
+      "bytes": 7511,
+      "role": "support"
+    },
+    {
+      "path": "docs/VALIDATION.json",
+      "sha256": "c260cf7520c591c5f9b9f127b61360c2773cfffe66e86e85e74016afc267b0b6",
+      "bytes": 648,
+      "role": "support"
+    },
+    {
+      "path": "patched-hosts/App/MerchantOperationsEditor.swift",
+      "sha256": "901bd378920f0b3bed04baed4295a128a20a253d8a78fdd237947251b7adf6c1",
+      "bytes": 18317,
+      "role": "review-only-do-not-wholesale-copy"
+    },
+    {
+      "path": "patched-hosts/App/MerchantOperationsViews.swift",
+      "sha256": "444dc5939049a8b12f33a555d8f73ef8bc54165524a845e8ccaa0fc8868e4b49",
+      "bytes": 16326,
+      "role": "review-only-do-not-wholesale-copy"
+    },
+    {
+      "path": "patched-hosts/App/PublicMerchantReviewEditor.swift",
+      "sha256": "9d577b647bfcb52492adfc3cd24122e03cd06310250092d5a86b79f6a0dfff43",
+      "bytes": 8262,
+      "role": "review-only-do-not-wholesale-copy"
+    },
+    {
+      "path": "patches/MerchantOperationsEditor.patch",
+      "sha256": "3358aaeeaefa8e8f0425f223e77f9249720107cdcf94317063759d48339be657",
+      "bytes": 821,
+      "role": "narrow-host-patch"
+    },
+    {
+      "path": "patches/MerchantOperationsViews.patch",
+      "sha256": "fdba570351b9a55bd15110be11956a46139bb022fe81c4e1db643fdaa8279007",
+      "bytes": 6259,
+      "role": "narrow-host-patch"
+    },
+    {
+      "path": "patches/PublicMerchantReviewEditor.patch",
+      "sha256": "eec355c8893c57a566edd27c8db3f3100b3604bc9b7c21729cd192e9a3296a3a",
+      "bytes": 2663,
+      "role": "narrow-host-patch"
+    },
+    {
+      "path": "tools/build_host_patches.py",
+      "sha256": "e61d917eca3ec69dbaeeadbbdc3968e57518b28b64859476e35a405405f32658",
+      "bytes": 7640,
+      "role": "support"
+    },
+    {
+      "path": "tools/check_retained_image_hosts.py",
+      "sha256": "da3697f389fd078371766d3d133b255da776e6cf5477d2964f027dd9b56017bb",
+      "bytes": 4409,
+      "role": "support"
+    }
+  ]
+}

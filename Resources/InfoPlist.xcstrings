@@ -2,18 +2,17 @@
   "sourceLanguage": "en",
   "strings": {
     "NSCameraUsageDescription": {
-      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Use the camera to read QR codes when you choose to scan."
+            "value": "Use the camera to scan QR codes or take aftercare evidence photos when you choose."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "在你选择扫码时使用相机读取二维码。"
+            "value": "当你主动选择时，使用相机扫描二维码或拍摄售后凭证照片。"
           }
         }
       }

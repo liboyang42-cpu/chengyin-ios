@@ -1,0 +1,187 @@
+{
+  "files": [
+    {
+      "path": "App/AppSession.swift",
+      "before_sha256": "150cf2e65c91003201e563ae8e908af5d0445dee4e2dc450f46045f5e089518c",
+      "after_sha256": "fbf156485588af0e778c1e34eead339c39cf24fb74c71f20824c4b05e364a2dd",
+      "bytes": 111070
+    },
+    {
+      "path": "App/IMExpandedViews.swift",
+      "before_sha256": "9a9cc6285a10c18a5add5e088f8695df6c06a3ed929b9f575f3271690679846f",
+      "after_sha256": "340c8c24cfa243770818c71721090a638a956f75abd05b79f710a04892e31cd5",
+      "bytes": 11410
+    },
+    {
+      "path": "App/ImageUploadSecureStorage.swift",
+      "before_sha256": null,
+      "after_sha256": "978698054e9c829f4a96565bd108170e1e393a372c25c99c30332ac732ce23f4",
+      "bytes": 2001
+    },
+    {
+      "path": "App/MerchantNPCViews.swift",
+      "before_sha256": "a88a362111c2c7b823d8ef19157114e8adf536991bbfe4c2168474195bfb1fb6",
+      "after_sha256": "f1bbec95fc2e7e407b5f982b110311178b17752527fd94953925de6c4837af1d",
+      "bytes": 12237
+    },
+    {
+      "path": "App/MerchantOperationsEditor.swift",
+      "before_sha256": "901bd378920f0b3bed04baed4295a128a20a253d8a78fdd237947251b7adf6c1",
+      "after_sha256": "676cf9ac44394cf3f992c5eefc8b7a90369776d7807f2bcc229c5853f61dfdb9",
+      "bytes": 18375
+    },
+    {
+      "path": "App/PublicMerchantReviewEditor.swift",
+      "before_sha256": "ecc7f344a6ad8d4768afe93dc50d6cd33dd7fe5e655b0fedeee98e411d5b3758",
+      "after_sha256": "b8ed8738705241db95e8d93821cf46a1de08561f3d0fec27430383541bb45e0b",
+      "bytes": 8445
+    },
+    {
+      "path": "App/RetainedImageContextCache.swift",
+      "before_sha256": "f3b03844118e8c57e87d97d9dc8c37341f6d8c0b20f9f5806d6f50cc2471543e",
+      "after_sha256": "4fb5594e6d67dfaae63a5840fe0c5afd1c6102110044d48e2153b511f02ecefa",
+      "bytes": 6328
+    },
+    {
+      "path": "App/RetainedImageFixtureView.swift",
+      "before_sha256": "3ef37d7023028037c16ab66289f37226b00bff7fa90be410260b2e3c3d0243a9",
+      "after_sha256": "56db1d7fcc9b150e7129f03ff8738832a63d3bb9752c4c9ccfc7b24c7ec0b72d",
+      "bytes": 2753
+    },
+    {
+      "path": "App/RetainedImageSelectionView.swift",
+      "before_sha256": "f34d6e9f4e72c63fcc06175c45539a89a1326674046323891106eb3212ff25d6",
+      "after_sha256": "c44ca9113750921dabbc6552578b00ccccca0f204d638d09cb1050691010ef50",
+      "bytes": 4374
+    },
+    {
+      "path": "Core/IMMediaSelection.swift",
+      "before_sha256": "9bf558f50b07906e1f39f68bc73c4bd420bc52ae5c345de56a105a3c76762234",
+      "after_sha256": "3824e9fc5ae7af7f619bf538850832278fca1f5f64538fcf6852a6b1e0a33c35",
+      "bytes": 7524
+    },
+    {
+      "path": "Core/ImageUploadJournal.swift",
+      "before_sha256": null,
+      "after_sha256": "d600c199849aab8a559a726abbf658c006eb10398562c0d2579d925244681f40",
+      "bytes": 6011
+    },
+    {
+      "path": "Core/ResponseLimitedHTTPTransport.swift",
+      "before_sha256": null,
+      "after_sha256": "d89cfcf0f80ce9b625cb19b5baa3c3778bc3b425b374df0f17d39b28d7097b30",
+      "bytes": 11829
+    },
+    {
+      "path": "Core/RetainedImageContracts.swift",
+      "before_sha256": "8762f719403df2010bdf7eb0082dd41dc9602cbf6a90dade2874ca6f36d10110",
+      "after_sha256": "e4e027e39e562818ac9e67944b70b5046bafa099feb7c598a5a71401dc7383fd",
+      "bytes": 11430
+    },
+    {
+      "path": "Tests/AppUnitTests/RetainedImageNormalHostTests.swift",
+      "before_sha256": "51aa77086173fb18e89c094d0e04b94945268d560bbc1c74ad3cf3593ce3c17e",
+      "after_sha256": "9df0678c8d4a8616e5914b272205c9ae18724a8aa22bc9cfafb8a62df44ecd24",
+      "bytes": 7096
+    },
+    {
+      "path": "Tests/CoreTests/IMExpandedTests.swift",
+      "before_sha256": "9c21a83b78a8d7964492ce577a4078c30a59a7b2403609db72a8a14f1dae067a",
+      "after_sha256": "75cfb6df8c3a4f746cb18fdedf478233b7e655b58ff4d6109c2e054475e1b850",
+      "bytes": 11301
+    },
+    {
+      "path": "Tests/CoreTests/ImageUploadJournalTests.swift",
+      "before_sha256": null,
+      "after_sha256": "33af986c899f43f7e341974ce3f239f99026e3bf1c7778ccc89bd82f525c8f47",
+      "bytes": 8782
+    },
+    {
+      "path": "Tests/CoreTests/ResponseLimitedHTTPTransportTests.swift",
+      "before_sha256": null,
+      "after_sha256": "694d9123f94cfa45778dd188014db4ebf487f5d6cd8a20895f60388b1311979f",
+      "bytes": 17984
+    },
+    {
+      "path": "Tests/CoreTests/RetainedImageConsumerTests.swift",
+      "before_sha256": "d95a1d92afb06fab107623a85ccbf9a21a55d249889f0bef3c39a7004dca1e6c",
+      "after_sha256": "dc50b81f4c537b9b6309f9d62f2f156776d29e90ae6f03f086868e459aefe744",
+      "bytes": 8055
+    },
+    {
+      "path": "docs/image-upload-recovery/checks/00.txt",
+      "before_sha256": null,
+      "after_sha256": "dbc25cf8deb531a8058363849f44b37ee8423a7ff12094bf63d237e4ea4ed14a",
+      "bytes": 153
+    },
+    {
+      "path": "docs/image-upload-recovery/checks/01.txt",
+      "before_sha256": null,
+      "after_sha256": "9db1be595c790196729d6bb01d66cc4d666a192baa8e8e46a56a2e6f075b08af",
+      "bytes": 98
+    },
+    {
+      "path": "docs/image-upload-recovery/checks/02.txt",
+      "before_sha256": null,
+      "after_sha256": "e72b5ea2e7e7419d9e64334a6c20eaf4de802bf709b12c6eb18521784518e365",
+      "bytes": 95
+    },
+    {
+      "path": "docs/image-upload-recovery/checks/03.txt",
+      "before_sha256": null,
+      "after_sha256": "3e53b1eb0e457dd9c0fa1955425af146fe3cfb342e1cfcc4ea9ba78d7b5591ce",
+      "bytes": 79
+    },
+    {
+      "path": "docs/image-upload-recovery/checks/04.txt",
+      "before_sha256": null,
+      "after_sha256": "364ca0b93f5162b017c2499855565f2b0038c3dfc20bcf089068ec93470f42bb",
+      "bytes": 109
+    },
+    {
+      "path": "docs/image-upload-recovery/checks/05.txt",
+      "before_sha256": null,
+      "after_sha256": "57eae61c7a34a712551dd194e8492044c03187a1ed30118e2d6d6e8a87e904d5",
+      "bytes": 289
+    },
+    {
+      "path": "docs/image-upload-recovery/checks/06.txt",
+      "before_sha256": null,
+      "after_sha256": "404b47db5c43bfc804ef070237faaea9d7468a711f1ca58aa591b8b978565aff",
+      "bytes": 44
+    },
+    {
+      "path": "docs/image-upload-recovery/checks/07.txt",
+      "before_sha256": null,
+      "after_sha256": "71e2c559391176fb02027707c4f69d4512874ed9a89d9e991ec2afdde5194bea",
+      "bytes": 49
+    },
+    {
+      "path": "docs/image-upload-recovery/checks/results.json",
+      "before_sha256": null,
+      "after_sha256": "9f87de749f2a43b59c9c28adc868bf067369ee28281ed3b1246aceeccc4525cb",
+      "bytes": 2159
+    },
+    {
+      "path": "docs/image-upload-recovery/integration.md",
+      "before_sha256": null,
+      "after_sha256": "635d24398be526d433db0253b0a9aa4dcbb686a7bfe49a63665d10cb6531dedb",
+      "bytes": 4496
+    },
+    {
+      "path": "docs/image-upload-recovery/owned-files.json",
+      "before_sha256": null,
+      "after_sha256": "04624aee3da363ad2a8101969c852041686d1330eaa0141ed43bbd27ea19453b",
+      "bytes": 846
+    },
+    {
+      "path": "tools/check_image_upload_recovery.py",
+      "before_sha256": null,
+      "after_sha256": "1e9fca13245afb091f8152e0ac404ffa3e247a7800614f31830d2f0a8b88b4b0",
+      "bytes": 3696
+    }
+  ],
+  "apple_runtime": "NOT_RUN",
+  "permissions": "OFF",
+  "patch_sha256": "e6ee6aa68647ee3aa36657fad6e00cf4b6f44f6766212cf6203efbf358fd7b8b"
+}

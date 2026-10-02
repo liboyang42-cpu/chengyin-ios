@@ -4,7 +4,17 @@ import SwiftUI
 @MainActor
 struct MerchantHomeView<Reader: MerchantReading>: View {
     @ObservedObject var reader: Reader
+    var marketingModel: MerchantMarketingCoordinator? = nil
+    var marketingDestination: ((MerchantInsightDestination) -> AnyView)? = nil
     var openApplication: (() -> Void)? = nil
+    var operationsReader: (any MerchantOperationsReading)? = nil
+    var operationsDestinationFactory: ((MerchantOperationsDestination, MerchantOperationsAccess) -> AnyView)? = nil
+    var businessReader: (any MerchantBusinessReading)? = nil
+    var businessJournal: (any MerchantBusinessIntentStore)? = nil
+    var contentService: (any MerchantContentServing)? = nil
+    var cooperationFlowReader: (any CoopFlowReading)? = nil
+    var engagementReader: (any MerchantEngagementReading)? = nil
+    var exportRecovery: (any MerchantExportRecoveryStoring)? = nil
     @StateObject private var access = MerchantLoadModel<MerchantAccess>()
 
     var body: some View {
@@ -15,7 +25,7 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
                 ContentUnavailableView("merchant.title", systemImage: "person.crop.circle.badge.exclamationmark", description: Text("merchant.signIn"))
             } else if access.loadedRevision == reader.sessionRevision, let identity = access.value {
                 if identity.active {
-                    MerchantWorkbench(reader: reader, access: identity, refreshAccess: reload)
+                    MerchantWorkbench(reader: reader, access: identity, marketingModel: marketingModel, marketingDestination: marketingDestination, operationsReader: operationsReader, operationsDestinationFactory: operationsDestinationFactory, businessReader: businessReader, businessJournal: businessJournal, contentService: contentService, cooperationFlowReader: cooperationFlowReader, engagementReader: engagementReader, exportRecovery: exportRecovery, refreshAccess: reload)
                         .id("\(reader.sessionRevision):\(identity.merchantID ?? 0):\(identity.role?.rawValue ?? "")")
                 } else {
                     List {
@@ -53,6 +63,16 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
     @Environment(\.locale) private var locale
     @ObservedObject var reader: Reader
     let access: MerchantAccess
+    let marketingModel: MerchantMarketingCoordinator?
+    let marketingDestination: ((MerchantInsightDestination) -> AnyView)?
+    let operationsReader: (any MerchantOperationsReading)?
+    let operationsDestinationFactory: ((MerchantOperationsDestination, MerchantOperationsAccess) -> AnyView)?
+    let businessReader: (any MerchantBusinessReading)?
+    let businessJournal: (any MerchantBusinessIntentStore)?
+    let contentService: (any MerchantContentServing)?
+    let cooperationFlowReader: (any CoopFlowReading)?
+    let engagementReader: (any MerchantEngagementReading)?
+    let exportRecovery: (any MerchantExportRecoveryStoring)?
     let refreshAccess: () async -> Void
     @StateObject private var dashboard = MerchantLoadModel<MerchantDashboard>()
     @StateObject private var todo = MerchantLoadModel<MerchantTodo>()
@@ -65,6 +85,48 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                     .font(.headline).accessibilityIdentifier("merchant.store.name")
                 if let role = access.role { Text(LocalizedStringKey(role.titleKey)).foregroundStyle(.secondary) }
                 Text("merchant.readOnly").font(.footnote).foregroundStyle(.secondary)
+            }
+            if let marketingModel {
+                Section { MerchantMarketingEntry(model: marketingModel, isSourceVisible: false, suggestionDestination: marketingDestination) }
+            }
+            if let operationsReader {
+                Section {
+                    NavigationLink {
+                        MerchantOperationsHomeView(reader: operationsReader, destinationFactory: operationsDestinationFactory).id(operationsReader.scope)
+                    } label: { Label("merchant.operations.title", systemImage: "slider.horizontal.3") }
+                    .accessibilityIdentifier("merchant.operations.open")
+                }
+            }
+            if let businessReader, let businessJournal {
+                Section {
+                    NavigationLink { MerchantBusinessHomeView(reader: businessReader, journal: businessJournal).id(businessReader.scope) } label: { Label("merchant.business.title", systemImage: "building.2.crop.circle") }
+                        .accessibilityIdentifier("merchant.business.open")
+                }
+            }
+            if let engagementReader, let businessJournal, let exportRecovery {
+                Section {
+                    NavigationLink {
+                        MerchantEngagementHomeView(reader: engagementReader, journal: businessJournal,
+                            exportRecovery: exportRecovery, businessReader: businessReader)
+                            .id(engagementReader.scope)
+                    } label: { Label("merchant.engagement.title", systemImage: "person.2.crop.square.stack") }
+                    .accessibilityIdentifier("merchant.engagement.open")
+                }
+            }
+            if let contentService {
+                Section {
+                    NavigationLink { MerchantContentHomeView(service: contentService)
+                        .environment(\.merchantContentSupplyDestination, cooperationFlowReader.map { flowReader in
+                            { source in AnyView(MerchantCooperationSupplyView(source: source, reader: flowReader)) }
+                        }).id(contentService.scope) } label: { Label("merchant.content.title", systemImage: "map") }
+                        .accessibilityIdentifier("merchant.content.open")
+                }
+            }
+            if let cooperationFlowReader {
+                Section {
+                    NavigationLink { CooperationFlowWorkbench(reader: cooperationFlowReader) } label: { Label("coopflow.title", systemImage: "person.2") }
+                        .accessibilityIdentifier("merchant.cooperationFlows.open")
+                }
             }
             if access.canReadDashboard {
                 Section("merchant.revenue") {

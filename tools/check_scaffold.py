@@ -39,7 +39,7 @@ for key,obj in objects.items():
     if obj['isa']=='PBXFileReference' and obj['sourceTree']=='<group>':
         assert (ROOT/obj['path']).is_file(),obj['path']
 source_paths={o['path'] for o in objects.values() if o['isa']=='PBXFileReference' and o.get('lastKnownFileType')=='sourcecode.swift'}
-assert source_paths=={str(p.relative_to(ROOT)) for folder in ['App','Core','Tests/AppUITests'] for p in (ROOT/folder).glob('*.swift')}
+assert source_paths=={str(p.relative_to(ROOT)) for folder in ['App','Core','Tests/AppUITests','Tests/AppUnitTests'] for p in (ROOT/folder).rglob('*.swift')}
 catalog=json.loads((ROOT/'Resources/Localizable.xcstrings').read_text())
 assert catalog['sourceLanguage']=='en'
 for key,entry in catalog['strings'].items():
@@ -53,7 +53,7 @@ localizable_ui=re.sub(r'\.accessibilityIdentifier\("(?:\\.|[^"\\])*"\)', '', ui)
 localizable_ui=re.sub(r'(?:accessibilityPrefix|identifier):\s*"(?:\\.|[^"\\])*"','',localizable_ui)
 localizable_ui=re.sub(r'\.accessibilityIdentifier\s*=\s*"(?:\\.|[^"\\])*"', '', localizable_ui)
 localizable_ui=re.sub(r'(?:systemImage|systemName):\s*"(?:\\.|[^"\\])*"', '', localizable_ui)
-keys=set(re.findall(r'"((?:welcome|role|registration|settings|language|action|auth|account|activity|scanner|discovery|profile|merchant|club|roam|messaging|participant|play|message|topic|region|homeFeed|usApple|ticketWallet|square)\.[A-Za-z0-9.]+)"',localizable_ui))
+keys=set(re.findall(r'"((?:welcome|role|registration|settings|language|action|auth|account|activity|scanner|discovery|profile|merchant|club|roam|messaging|participant|play|message|topic|region|homeFeed|usApple|ticketWallet|square|cooperation|accountCollection|creatorContent|growth|official|officialAction|projectEdit|nearby|team|orderLifecycle|templateAuthor|publishModes|wallet|couponManagement|im)\.[A-Za-z0-9.]+)"',localizable_ui))
 keys={key for key in keys if not key.endswith('.')}  # Prefixes concatenate a separately validated dynamic key.
 assert not keys-set(catalog['strings']),keys-set(catalog['strings'])
 # SwiftUI environment locale does not implicitly change Foundation String(localized:).

@@ -52,11 +52,18 @@ struct ActivityDetailView: View {
     private func detailContent(_ detail:ActivityDetail) -> some View {
         List {
             Section {
-                Text(detail.summary.name).font(.title2.bold())
-                    .accessibilityIdentifier("activity.detail.name")
-                if let text=detail.summary.description, !text.isEmpty { Text(text) }
-                if let date=detail.summary.startDate { Label(date,systemImage:"calendar") }
-                if let address=detail.summary.addressName ?? detail.summary.address { Label(address,systemImage:"mappin") }
+                ActivityDetailHeader(summary:detail.summary)
+                    .questifyCardListRow()
+            }
+            if let text=ActivityPresentation.nonempty(detail.summary.description) {
+                Section("activity.about") {
+                    Text(verbatim:text)
+                        .font(.body)
+                        .fixedSize(horizontal:false,vertical:true)
+                        .textSelection(.enabled)
+                        .questifyCardSurface()
+                        .questifyCardListRow()
+                }
             }
             if detail.summary.hasValidCoordinates,
                let latitude=detail.summary.latitude, let longitude=detail.summary.longitude {
@@ -65,25 +72,22 @@ struct ActivityDetailView: View {
                     Map(initialPosition:.region(MKCoordinateRegion(center:coordinate,span:MKCoordinateSpan(latitudeDelta:0.01,longitudeDelta:0.01)))) {
                         Marker(detail.summary.name,coordinate:coordinate)
                     }.frame(height:220)
+                        .clipShape(RoundedRectangle(cornerRadius:14,style:.continuous))
                         .accessibilityLabel(Text("activity.location"))
+                        .questifyCardSurface()
+                        .questifyCardListRow()
                 }
             }
             Section("activity.tickets") {
-                if detail.tickets.isEmpty { Text("activity.noTickets").foregroundStyle(.secondary) }
+                if detail.tickets.isEmpty {
+                    Text("activity.noTickets")
+                        .foregroundStyle(.secondary)
+                        .questifyCardSurface()
+                        .questifyCardListRow()
+                }
                 ForEach(detail.tickets) { ticket in
-                    VStack(alignment:.leading,spacing:8) {
-                        Text(ticket.name).font(.headline)
-                        AmountLabel(amount:ticket.price)
-                            .accessibilityElement(children:.combine)
-                            .accessibilityIdentifier("activity.ticket.price.\(ticket.id)")
-                        if ticket.isSoldOut {
-                            Text("activity.soldOut").foregroundStyle(.secondary)
-                                .accessibilityIdentifier("activity.ticket.soldOut.\(ticket.id)")
-                        } else if ticket.remainingInventory == nil {
-                            Text("activity.inventoryUnknown").font(.caption).foregroundStyle(.secondary)
-                                .accessibilityIdentifier("activity.ticket.inventoryUnknown.\(ticket.id)")
-                        }
-                    }.padding(.vertical,4)
+                    ActivityTicketCard(ticket:ticket)
+                        .questifyCardListRow()
                 }
             }
             if let playReaderForActivity {
@@ -93,18 +97,52 @@ struct ActivityDetailView: View {
                     }.accessibilityIdentifier("activity.openPlay")
                 }
             }
-            if registrationEnabled {
+            if let session = reader as? AppSession, session.playExperience(for: .activity(id)) != nil {
                 Section {
-                    Button("registration.form.title") { showsRegistration=true }
-                        .accessibilityIdentifier("activity.openRegistration")
+                    NavigationLink { SessionPlayRuntimeView(session: session, destination: .journey(.activity(id))) } label: {
+                        Label("playx.title", systemImage: "figure.walk.circle")
+                    }.accessibilityIdentifier("activity.openPlayExperience")
+                    NavigationLink { SessionPlayRuntimeView(session: session, destination: .director(id)) } label: {
+                        Label("playx.director.title", systemImage: "person.3.sequence")
+                    }.accessibilityIdentifier("activity.openPlayDirector")
                 }
             }
             Section {
-                Text("activity.registrationPending").foregroundStyle(.secondary)
-                    .accessibilityIdentifier("activity.detail.readOnly")
+                Label {
+                    Text("activity.registrationPending")
+                        .accessibilityIdentifier("activity.detail.readOnly")
+                } icon: { Image(systemName:"info.circle").accessibilityHidden(true) }
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal:false,vertical:true)
             }
         }
+        .listStyle(.insetGrouped)
+        .listSectionSpacing(20)
         .accessibilityIdentifier("activity.detail.content")
+        .safeAreaInset(edge:.bottom,spacing:0) {
+            // This view exists only for .allowed details. Preserve the caller's
+            // existing gate; the unchanged registration sheet owns further checks.
+            if registrationEnabled { registrationAction }
+        }
+    }
+    private var registrationAction: some View {
+        VStack(spacing:0) {
+            Divider()
+            Button { showsRegistration=true } label: {
+                Text("registration.form.title")
+                    .font(.headline)
+                    .fixedSize(horizontal:false,vertical:true)
+                    .frame(maxWidth:.infinity,minHeight:44)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .tint(QuestifyPalette.accent)
+            .accessibilityIdentifier("activity.openRegistration")
+            .padding(.horizontal,16)
+            .padding(.vertical,12)
+        }
+        .background(Color(uiColor:.secondarySystemGroupedBackground))
     }
     @MainActor private func load() async {
         generation += 1

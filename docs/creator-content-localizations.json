@@ -1,0 +1,194 @@
+{
+  "creatorContent.projects": {
+    "en": "My published content",
+    "zh-Hans": "我发布的内容"
+  },
+  "creatorContent.center": {
+    "en": "Creator center",
+    "zh-Hans": "创作者中心"
+  },
+  "creatorContent.offlineExample": {
+    "en": "Synthetic offline example",
+    "zh-Hans": "离线示例数据"
+  },
+  "creatorContent.retry": {
+    "en": "Try again",
+    "zh-Hans": "重试"
+  },
+  "creatorContent.loading": {
+    "en": "Loading…",
+    "zh-Hans": "加载中…"
+  },
+  "creatorContent.empty": {
+    "en": "No published content",
+    "zh-Hans": "暂无发布内容"
+  },
+  "creatorContent.truncated": {
+    "en": "Showing the first 200 results. Narrow the filters to find more content.",
+    "zh-Hans": "仅显示前 200 条，请筛选以查找更多内容。"
+  },
+  "creatorContent.readOnly": {
+    "en": "Editing, publishing, deleting, cancellation and refunds are not available here yet.",
+    "zh-Hans": "此处暂不支持编辑、发布、删除、取消或退款。"
+  },
+  "creatorContent.centerReadOnly": {
+    "en": "Creator applications and payouts are not available here yet.",
+    "zh-Hans": "此处暂不支持创作者申请或提现。"
+  },
+  "creatorContent.untitled": {
+    "en": "Untitled",
+    "zh-Hans": "未命名"
+  },
+  "creatorContent.type": {
+    "en": "Content type",
+    "zh-Hans": "内容类型"
+  },
+  "creatorContent.owner": {
+    "en": "Publisher",
+    "zh-Hans": "发布身份"
+  },
+  "creatorContent.state": {
+    "en": "Status",
+    "zh-Hans": "状态"
+  },
+  "creatorContent.signups": {
+    "en": "Signups",
+    "zh-Hans": "报名人数"
+  },
+  "creatorContent.views": {
+    "en": "Views",
+    "zh-Hans": "浏览次数"
+  },
+  "creatorContent.contents": {
+    "en": "Content",
+    "zh-Hans": "内容数量"
+  },
+  "creatorContent.likes": {
+    "en": "Likes",
+    "zh-Hans": "点赞次数"
+  },
+  "creatorContent.metrics": {
+    "en": "Latest reported metrics",
+    "zh-Hans": "最近统计数据"
+  },
+  "creatorContent.income": {
+    "en": "Recent reported income",
+    "zh-Hans": "近期收入记录"
+  },
+  "creatorContent.noIncome": {
+    "en": "No income records returned",
+    "zh-Hans": "暂无收入记录"
+  },
+  "creatorContent.noReason": {
+    "en": "No rejection reason provided",
+    "zh-Hans": "未说明驳回原因"
+  },
+  "creatorContent.reapplyBlocked": {
+    "en": "The current service does not accept repeat applications after rejection.",
+    "zh-Hans": "当前服务不支持驳回后重新申请。"
+  },
+  "creatorContent.signInRequired": {
+    "en": "Sign in to view your content",
+    "zh-Hans": "登录后查看你的内容"
+  },
+  "creatorContent.notConfigured": {
+    "en": "This service is not configured",
+    "zh-Hans": "此服务尚未配置"
+  },
+  "creatorContent.unavailable": {
+    "en": "Content unavailable",
+    "zh-Hans": "内容不可用"
+  },
+  "creatorContent.network": {
+    "en": "Connection failed. Try again.",
+    "zh-Hans": "连接失败，请重试。"
+  },
+  "creatorContent.failed": {
+    "en": "Unable to load. Try again.",
+    "zh-Hans": "加载失败，请重试。"
+  },
+  "creatorContent.status.not_applied": {
+    "en": "Not applied",
+    "zh-Hans": "尚未申请"
+  },
+  "creatorContent.status.pending": {
+    "en": "Application under review",
+    "zh-Hans": "申请审核中"
+  },
+  "creatorContent.status.approved": {
+    "en": "Approved creator",
+    "zh-Hans": "已通过的创作者"
+  },
+  "creatorContent.status.rejected": {
+    "en": "Application rejected",
+    "zh-Hans": "申请被驳回"
+  },
+  "creatorContent.status.unknown": {
+    "en": "Unknown application status",
+    "zh-Hans": "申请状态未知"
+  },
+  "creatorContent.filter.all": {
+    "en": "All",
+    "zh-Hans": "全部"
+  },
+  "creatorContent.filter.topic": {
+    "en": "Topics",
+    "zh-Hans": "主题"
+  },
+  "creatorContent.filter.activity": {
+    "en": "Activities",
+    "zh-Hans": "活动"
+  },
+  "creatorContent.filter.template": {
+    "en": "Templates",
+    "zh-Hans": "模板"
+  },
+  "creatorContent.filter.member": {
+    "en": "Individual",
+    "zh-Hans": "个人"
+  },
+  "creatorContent.filter.club": {
+    "en": "Club",
+    "zh-Hans": "俱乐部"
+  },
+  "creatorContent.filter.merchant": {
+    "en": "Merchant",
+    "zh-Hans": "商家"
+  },
+  "creatorContent.filter.draft": {
+    "en": "Draft",
+    "zh-Hans": "草稿"
+  },
+  "creatorContent.filter.pending": {
+    "en": "Under review",
+    "zh-Hans": "审核中"
+  },
+  "creatorContent.filter.notStarted": {
+    "en": "Not started",
+    "zh-Hans": "未开始"
+  },
+  "creatorContent.filter.running": {
+    "en": "Running",
+    "zh-Hans": "进行中"
+  },
+  "creatorContent.filter.completed": {
+    "en": "Completed",
+    "zh-Hans": "已完成"
+  },
+  "creatorContent.filter.offline": {
+    "en": "Offline",
+    "zh-Hans": "已下架"
+  },
+  "creatorContent.filter.rejected": {
+    "en": "Rejected",
+    "zh-Hans": "未通过"
+  },
+  "creatorContent.fixture.signOut": {
+    "en": "Simulate sign out",
+    "zh-Hans": "模拟退出"
+  },
+  "creatorContent.fixture.recover": {
+    "en": "Recover fixture",
+    "zh-Hans": "恢复示例"
+  }
+}

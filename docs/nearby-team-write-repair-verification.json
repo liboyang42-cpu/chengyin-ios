@@ -1,0 +1,71 @@
+{
+  "scope": "isolated repair; not integrated into shared main",
+  "core_methods_added": 22,
+  "ui_methods_added": 0,
+  "keys_added": 4,
+  "nearby_core_after_integration": 44,
+  "source_checks": {
+    "repair": 12,
+    "existing_nearby": 13,
+    "status": "PASS"
+  },
+  "staged_parser": {
+    "files": 13,
+    "diagnostics": 0,
+    "status": "PASS"
+  },
+  "swift_xctest": "NOT_RUN",
+  "xcode_ui_device": "NOT_RUN",
+  "actual_network_calls": 0,
+  "remote_writes": 0,
+  "files": [
+    {
+      "path": "App/NearbyTeamViews.swift",
+      "sha256": "fd87ae6b37179886182311edd257aef0162b7f991e625b62876be2a164163a1e"
+    },
+    {
+      "path": "Core/NearbyTeamCoordinator.swift",
+      "sha256": "b9ab240087be3c7d8c7b5c75bc3413d3e515a6ff1c7e8348de5cc54156c00c59"
+    },
+    {
+      "path": "Core/NearbyTeamHTTPReadTransport.swift",
+      "sha256": "ba99c06503245967c7540556c7a7ab67776c8c783ca43ca567653fb77b2831cc"
+    },
+    {
+      "path": "Core/NearbyTeamHTTPWriteAdapter.swift",
+      "sha256": "b81771a1c9a55c6d7bca1633908b9046cd6313370c453fc0544867829e4d7d2f"
+    },
+    {
+      "path": "Core/NearbyTeamService.swift",
+      "sha256": "316e833b258080a03ca98b71171599ae8558eee17ddd8f0c96783656c1ca9ed1"
+    },
+    {
+      "path": "Resources/NearbyTeamWriteLocalizations.fragment.json",
+      "sha256": "1a874f207d289fb6627db399c189f0fad129e7edc39123bf32e481c1e4c0a033"
+    },
+    {
+      "path": "Tests/ContractChecks/test_nearby_write_adapter.py",
+      "sha256": "d66db61702f1755c73edaee8ee25bdce0414910bc522776611fed99b42670196"
+    },
+    {
+      "path": "Tests/CoreTests/NearbyTeamHTTPWriteTests.swift",
+      "sha256": "96821f824ca67076d93829e8626e539266819afbb8e86e9bb94d93cba3c17d97"
+    },
+    {
+      "path": "docs/nearby-team-write-repair.md",
+      "sha256": "0c4e911d8e76cfd4e9e4a98396dab5b1597369edc3d697e5aa99d9a650518216"
+    },
+    {
+      "path": "tools/apply_nearby_write_host_patch.py",
+      "sha256": "cf0338c633cbe0c05b85f0e6618412a543adecde9564ce15de27286f98970a28"
+    },
+    {
+      "path": "tools/check_nearby_team_module.py",
+      "sha256": "0496be752a5b2a78fd3fe1c70aea0dd7266c4445436fd7ec45b952f265a5a2a1"
+    },
+    {
+      "path": "tools/check_nearby_write_repair.py",
+      "sha256": "247774f17d900e59aa7c4a00ecc8808cfea365a6c92bbfc91e3d781532a4c11b"
+    }
+  ]
+}

@@ -1,19 +1,31 @@
 import SwiftUI
 
 /// A static detail of an already-fetched message. The source declares no message-info
-/// endpoint, so this never fabricates a fresh detail read or follows a card action.
+/// endpoint, so this never fabricates a fresh detail read. Optional card actions resolve
+/// only into typed native destinations; arbitrary payload paths remain disabled.
 @MainActor
 struct MessagingMessageDetailView: View {
     let message: MessagingMessage
     let conversation: MessagingConversation?
     let reader: any MessagingReading
     let identity: MessagingReadIdentity?
+    var mediaReader: (any SocialMessageMediaReading)? = nil
+    var expanded: IMExpandedNavigationContext? = nil
+    @State private var selectedTopicID: Int?
+    @State private var selectedReview: MessagingCardResult?
     var body: some View {
         Group {
             if identity != nil, reader.identity == identity {
                 List {
                     Section("messaging.message.content") {
                         MessagingMessageContent(message: message).textSelection(.enabled)
+                    }
+                    if message.type == 2, let mediaReader, let identity {
+                        Section {
+                            NavigationLink { SocialMessageMediaView(message: message, reader: mediaReader, expectedIdentity: identity) } label: {
+                                Label("social.media.title", systemImage: "photo.on.rectangle.angled")
+                            }.accessibilityIdentifier("messaging.message.preview")
+                        }
                     }
                     Section("messaging.message.details") {
                         LabeledContent("messaging.message.sender") {
@@ -24,6 +36,18 @@ struct MessagingMessageDetailView: View {
                         LabeledContent("messaging.message.conversation", value: String(message.conversationID))
                         if let type = message.type { LabeledContent("messaging.message.type", value: String(type)) }
                     }
+                    if expanded != nil, message.card != nil {
+                        Section("messaging.card.actions") {
+                            IMCardActionsView(message: message) { destination in
+                                guard reader.identity == identity else { return }
+                                switch destination {
+                                case .topic(let id): selectedTopicID = id
+                                case .review(let result): selectedReview = result
+                                case .unsupported: break
+                                }
+                            }
+                        }
+                    }
                     if let card = message.card {
                         if let topicID = card.topicID {
                             Section {
@@ -31,13 +55,13 @@ struct MessagingMessageDetailView: View {
                                 Text("messaging.card.routeHint").foregroundStyle(.secondary)
                             }
                         }
-                        if !card.buttonLabels.isEmpty {
+                        if expanded == nil, !card.buttonLabels.isEmpty {
                             Section("messaging.card.actions") {
                                 ForEach(Array(card.buttonLabels.enumerated()), id: \.offset) { _, label in Text(verbatim: label) }
                                 Text("messaging.card.actionsHint").font(.footnote).foregroundStyle(.secondary)
                             }
                         }
-                        if let result = card.result {
+                        if message.senderID == 0, let result = card.result {
                             Section("messaging.card.result") {
                                 MessagingOptionalRow(title: "messaging.card.taskID", value: result.taskID)
                                 MessagingOptionalRow(title: "messaging.card.businessID", value: result.businessID)
@@ -53,6 +77,24 @@ struct MessagingMessageDetailView: View {
                 MessagingIssueView(issue: .init(APIError.unauthorized), identifier: "messaging.message.signedOut", retry: {})
             }
         }
+        .navigationDestination(item: $selectedTopicID) { id in
+            if reader.identity == identity, let expanded { TopicDetailView(id: id, reader: expanded.topicReader) }
+        }
+        .sheet(isPresented: Binding(get: { selectedReview != nil }, set: { if !$0 { selectedReview = nil } })) {
+            if reader.identity == identity, let result = selectedReview {
+                NavigationStack {
+                    List {
+                        MessagingOptionalRow(title: "messaging.card.taskID", value: result.taskID)
+                        MessagingOptionalRow(title: "messaging.card.businessID", value: result.businessID)
+                        MessagingOptionalRow(title: "messaging.card.outcome", value: result.outcome)
+                        MessagingOptionalRow(title: "messaging.card.reason", value: result.reason)
+                        MessagingOptionalRow(title: "messaging.card.followUp", value: result.followUp)
+                    }.navigationTitle(Text("im.full.reviewResult"))
+                    .toolbar { Button("action.cancel") { selectedReview = nil } }
+                }.privacySensitive()
+            }
+        }
+        .onChange(of: reader.identity) { _, _ in selectedTopicID = nil; selectedReview = nil }
         .privacySensitive()
         .appNavigationTitle("messaging.message.title")
         .navigationBarTitleDisplayMode(.inline)
@@ -72,7 +114,7 @@ struct MessagingMessageContent: View {
             Label("messaging.imagePlaceholder", systemImage: "photo")
                 .foregroundStyle(.secondary).accessibilityIdentifier("messaging.message.image")
         case 3:
-            if let card = message.card { MessagingCardContent(card: card) }
+            if let card = message.card { MessagingCardContent(card: card, isTrustedSystem: message.senderID == 0) }
             else { Label("messaging.cardUnavailable", systemImage: "rectangle.slash").foregroundStyle(.secondary) }
         default:
             Label("messaging.unsupported", systemImage: "questionmark.bubble").foregroundStyle(.secondary)
@@ -82,6 +124,7 @@ struct MessagingMessageContent: View {
 
 private struct MessagingCardContent: View {
     let card: MessagingCard
+    let isTrustedSystem: Bool
     var body: some View {
         VStack(alignment: .leading, spacing: 7) {
             switch card.kind {
@@ -105,7 +148,7 @@ private struct MessagingCardContent: View {
                 else { Text("messaging.card.notification").font(.headline) }
                 if let subtitle = card.subtitle { Text(verbatim: subtitle) }
                 if let meta = card.meta { Text(verbatim: meta).font(.caption).foregroundStyle(.secondary) }
-                if card.result != nil { Label("messaging.card.hasResult", systemImage: "doc.text").font(.caption) }
+                if isTrustedSystem, card.result != nil { Label("messaging.card.hasResult", systemImage: "doc.text").font(.caption) }
             }
         }
     }

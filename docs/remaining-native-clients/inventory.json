@@ -1,0 +1,95 @@
+{
+  "core_test_methods": 2091,
+  "ui_test_methods": 313,
+  "ui_classes": 56,
+  "app_unit_test_methods": 10,
+  "app_unit_execution": "NOT_RUN; iOS app-unit target not yet established",
+  "ui_shard_counts": [
+    52,
+    52,
+    52,
+    52,
+    53,
+    52
+  ],
+  "ui_shards": [
+    [
+      "TeamFlowTests",
+      "MerchantBusinessFlowTests",
+      "MerchantEngagementFlowTests",
+      "CooperationFlowTests",
+      "CouponManagementFlowTests",
+      "PlayDirectorPrefabFlowTests",
+      "HomeFeedFlowTests",
+      "OfficialActionUITests",
+      "DoorReferralUITests"
+    ],
+    [
+      "AccountCollectionFlowTests",
+      "ProjectEditFlowTests",
+      "SocialAccountFlowTests",
+      "PublicMerchantHomeFlowTests",
+      "CreatorContentFlowTests",
+      "SquareGovernanceFlowTests",
+      "MerchantNPCFlowTests",
+      "ProfileEditFlowTests",
+      "IMExpandedUITests"
+    ],
+    [
+      "ModuleFlowTests",
+      "SearchMapFlowTests",
+      "EntryFlowTests",
+      "OrderLifecycleUITests",
+      "JourneyContentFlowTests",
+      "WalletCommerceFlowTests",
+      "MerchantOnboardingFlowTests",
+      "PublisherLifecycleUITests",
+      "PlayPreferenceFlowTests"
+    ],
+    [
+      "SettingsNativeFlowTests",
+      "SquareFlowTests",
+      "GrowthCenterFlowTests",
+      "PlayExperienceFlowTests",
+      "MerchantOperationsFlowTests",
+      "ActivityFlowTests",
+      "ShopNPCFlowTests",
+      "RetainedImageUITests",
+      "SquareWorkspaceFlowTests"
+    ],
+    [
+      "ClubOperationsFlowTests",
+      "RoamExperienceFlowTests",
+      "MerchantContentFlowTests",
+      "ClubGovernanceFlowTests",
+      "TemplateOwnShelfFlowTests",
+      "PublishingModesFlowTests",
+      "ClubActionFlowTests",
+      "NearbyTeamUITests",
+      "AccessibilityPresentationFlowTests",
+      "TopicFlowTests"
+    ],
+    [
+      "OfficialEventFlowTests",
+      "TemplateAuthoringFlowTests",
+      "MerchantMarketingUITests",
+      "ClubManagementFlowTests",
+      "TicketWalletFlowTests",
+      "RegionalEntryFlowTests",
+      "ClubCommunityUITests",
+      "ObjectCardFlowTests",
+      "CooperationFlowUITests",
+      "WeChatAppAuthFlowTests"
+    ]
+  ],
+  "app_swift_files": 278,
+  "core_swift_files": 320,
+  "bilingual_keys": 5133,
+  "changed_swift_files": 66,
+  "focused_clean_swift_files": 65,
+  "touched_historical_files": 1,
+  "whole_tree_swift_files": 793,
+  "whole_tree_parser": "FAIL; ten historical diagnostics in six files",
+  "swift_available": false,
+  "xcodebuild_available": false
+}

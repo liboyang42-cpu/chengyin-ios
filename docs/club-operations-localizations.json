@@ -1,0 +1,430 @@
+{
+  "club.ops.create": {
+    "en": "Create club",
+    "zh-Hans": "创建俱乐部"
+  },
+  "club.ops.manage": {
+    "en": "Club workspace",
+    "zh-Hans": "俱乐部工作台"
+  },
+  "club.ops.close": {
+    "en": "Close",
+    "zh-Hans": "关闭"
+  },
+  "club.ops.signedOut": {
+    "en": "Sign in to manage clubs.",
+    "zh-Hans": "登录后管理俱乐部。"
+  },
+  "club.ops.unavailable": {
+    "en": "Club operations are not configured.",
+    "zh-Hans": "俱乐部运营服务尚未配置。"
+  },
+  "club.ops.discardTitle": {
+    "en": "Leave this form?",
+    "zh-Hans": "离开此表单？"
+  },
+  "club.ops.discard": {
+    "en": "Leave form",
+    "zh-Hans": "离开表单"
+  },
+  "club.ops.keepEditing": {
+    "en": "Keep editing",
+    "zh-Hans": "继续编辑"
+  },
+  "club.ops.discardMessage": {
+    "en": "Unsaved changes will be discarded. Leaving does not cancel a request already sent. An uncertain request stays locked.",
+    "zh-Hans": "未保存的修改将丢弃。离开不会取消已发送的请求，结果不明确的请求将继续锁定。"
+  },
+  "club.ops.owner": {
+    "en": "Owner",
+    "zh-Hans": "创建者"
+  },
+  "club.ops.administrator": {
+    "en": "Administrator",
+    "zh-Hans": "管理员"
+  },
+  "club.ops.leaderRequired": {
+    "en": "Creating a club requires a server-confirmed club leader role. The leader application is not connected here.",
+    "zh-Hans": "创建俱乐部需要服务端确认的主理人身份，此处尚未接入主理人申请。"
+  },
+  "club.ops.clubLimit": {
+    "en": "You already own two clubs. Manage an existing club instead.",
+    "zh-Hans": "你已创建两个俱乐部，请管理现有俱乐部。"
+  },
+  "club.ops.reviewProfile": {
+    "en": "Review profile changes",
+    "zh-Hans": "核对资料修改"
+  },
+  "club.ops.mediaUnavailable": {
+    "en": "Media uploads are not connected. Existing logo and cover references are preserved.",
+    "zh-Hans": "图片上传尚未接入，将保留现有标志和封面。"
+  },
+  "club.ops.openSettings": {
+    "en": "Openness settings",
+    "zh-Hans": "开放设置"
+  },
+  "club.ops.publicVisible": {
+    "en": "Publicly visible",
+    "zh-Hans": "公开可见"
+  },
+  "club.ops.memberPostAllowed": {
+    "en": "Member posts allowed",
+    "zh-Hans": "允许成员发帖"
+  },
+  "club.ops.merchantUndertakeOpen": {
+    "en": "Merchant cooperation open",
+    "zh-Hans": "开放商家承接"
+  },
+  "club.ops.enabled": {
+    "en": "On",
+    "zh-Hans": "已开启"
+  },
+  "club.ops.disabled": {
+    "en": "Off",
+    "zh-Hans": "已关闭"
+  },
+  "club.ops.unknownValue": {
+    "en": "Not reported",
+    "zh-Hans": "未返回设置值"
+  },
+  "club.ops.settingsHint": {
+    "en": "Each change is reviewed separately. Only a fresh server read can establish the current setting.",
+    "zh-Hans": "每项设置单独核对，以服务端最新读取值为准。"
+  },
+  "club.ops.memberRoles": {
+    "en": "Member administration",
+    "zh-Hans": "成员管理"
+  },
+  "club.ops.membersUnavailable": {
+    "en": "The member list is unavailable or empty. No member action is inferred.",
+    "zh-Hans": "成员列表为空或暂不可用，不推断可操作的成员。"
+  },
+  "club.ops.removeAdmin": {
+    "en": "Remove administrator role",
+    "zh-Hans": "取消管理员身份"
+  },
+  "club.ops.makeAdmin": {
+    "en": "Make administrator",
+    "zh-Hans": "设为管理员"
+  },
+  "club.ops.unknownRole": {
+    "en": "No role action available",
+    "zh-Hans": "暂无可用角色操作"
+  },
+  "club.ops.adminHint": {
+    "en": "Only the owner can change legacy administrator roles. At most two non-owner administrators are supported.",
+    "zh-Hans": "仅创建者可调整旧版管理员角色，最多支持两名非创建者管理员。"
+  },
+  "club.ops.writeGated": {
+    "en": "Backend submissions are not enabled. You can inspect this form and its review, but it will not change a real club.",
+    "zh-Hans": "服务端提交尚未开放。可以填写和核对表单，但不会修改真实俱乐部。"
+  },
+  "club.ops.checking": {
+    "en": "Checking current access…",
+    "zh-Hans": "正在核对当前权限…"
+  },
+  "club.ops.notSent": {
+    "en": "Nothing was submitted. Refresh current club information before trying again.",
+    "zh-Hans": "未提交任何修改，请先刷新俱乐部信息。"
+  },
+  "club.ops.acknowledged": {
+    "en": "Request acknowledged. The current values below come from a separate read.",
+    "zh-Hans": "请求已获回执，下方当前值来自独立读取。"
+  },
+  "club.ops.clubID": {
+    "en": "Club ID",
+    "zh-Hans": "俱乐部编号"
+  },
+  "club.ops.rejected": {
+    "en": "The server rejected this request.",
+    "zh-Hans": "服务端拒绝了此请求。"
+  },
+  "club.ops.outcomeUnknown": {
+    "en": "The request outcome is unknown. Do not submit it again. Reading current values does not prove whether this request succeeded.",
+    "zh-Hans": "请求结果不明确，请勿再次提交。读取当前值不能证明本次请求是否成功。"
+  },
+  "club.ops.readbackUnavailable": {
+    "en": "Acknowledgment was received, but the latest club data could not be read. No saved value is assumed.",
+    "zh-Hans": "已收到回执，但无法读取最新俱乐部数据，不推断保存后的值。"
+  },
+  "club.ops.readBack": {
+    "en": "Read current state",
+    "zh-Hans": "读取当前状态"
+  },
+  "club.ops.retryRead": {
+    "en": "Retry reading",
+    "zh-Hans": "重新读取"
+  },
+  "club.ops.readFailed": {
+    "en": "Could not read the club information. Try again.",
+    "zh-Hans": "无法读取俱乐部信息，请重试。"
+  },
+  "club.ops.profile": {
+    "en": "Club profile",
+    "zh-Hans": "俱乐部资料"
+  },
+  "club.ops.name": {
+    "en": "Name (up to 30 characters)",
+    "zh-Hans": "名称（最多30字）"
+  },
+  "club.ops.city": {
+    "en": "City (up to 20 characters)",
+    "zh-Hans": "城市（最多20字）"
+  },
+  "club.ops.clubType": {
+    "en": "Club type",
+    "zh-Hans": "俱乐部类型"
+  },
+  "club.ops.chooseType": {
+    "en": "Choose a type",
+    "zh-Hans": "选择类型"
+  },
+  "club.ops.description": {
+    "en": "Introduction (up to 200 characters)",
+    "zh-Hans": "介绍（最多200字）"
+  },
+  "club.ops.keywords": {
+    "en": "Keywords (up to 60 characters)",
+    "zh-Hans": "关键词（最多60字）"
+  },
+  "club.ops.style": {
+    "en": "Style (up to 30 characters)",
+    "zh-Hans": "风格（最多30字）"
+  },
+  "club.ops.directions": {
+    "en": "Activity preferences",
+    "zh-Hans": "路线方向"
+  },
+  "club.ops.directionsHint": {
+    "en": "Choose up to three. Existing legacy preferences are preserved until changed.",
+    "zh-Hans": "最多选择三项，未修改的旧版方向将保留。"
+  },
+  "club.ops.signupSettings": {
+    "en": "Membership and signup",
+    "zh-Hans": "入会与报名"
+  },
+  "club.ops.prioritySignup": {
+    "en": "Member priority signup",
+    "zh-Hans": "成员优先报名"
+  },
+  "club.ops.quota": {
+    "en": "Reserved member places",
+    "zh-Hans": "成员保留名额"
+  },
+  "club.ops.joinPolicy": {
+    "en": "Joining policy",
+    "zh-Hans": "加入方式"
+  },
+  "club.ops.joinDirect": {
+    "en": "Join directly",
+    "zh-Hans": "直接加入"
+  },
+  "club.ops.joinReview": {
+    "en": "Approval required",
+    "zh-Hans": "需要审批"
+  },
+  "club.ops.joinPolicyUnavailable": {
+    "en": "This club has not reported support for changing its joining policy.",
+    "zh-Hans": "此俱乐部未声明支持修改加入方式。"
+  },
+  "club.ops.reviewTarget": {
+    "en": "Review target",
+    "zh-Hans": "核对目标"
+  },
+  "club.ops.club": {
+    "en": "Club",
+    "zh-Hans": "俱乐部"
+  },
+  "club.ops.newClub": {
+    "en": "A new club",
+    "zh-Hans": "新俱乐部"
+  },
+  "club.ops.account": {
+    "en": "Signed-in account",
+    "zh-Hans": "当前账号"
+  },
+  "club.ops.fixtureOnly": {
+    "en": "Offline synthetic club operations. No real data or backend requests.",
+    "zh-Hans": "离线合成俱乐部流程，不使用真实数据或服务端请求。"
+  },
+  "club.ops.confirmFixture": {
+    "en": "Apply to fixture",
+    "zh-Hans": "应用到演示数据"
+  },
+  "club.ops.review": {
+    "en": "Review changes",
+    "zh-Hans": "核对修改"
+  },
+  "club.ops.cancel": {
+    "en": "Cancel",
+    "zh-Hans": "取消"
+  },
+  "club.ops.current": {
+    "en": "Current",
+    "zh-Hans": "当前"
+  },
+  "club.ops.requested": {
+    "en": "Requested",
+    "zh-Hans": "拟修改为"
+  },
+  "club.ops.member": {
+    "en": "Member",
+    "zh-Hans": "成员"
+  },
+  "club.ops.roleConsequences": {
+    "en": "This would change this member’s club administration privileges. The fixture only simulates that change.",
+    "zh-Hans": "此操作会变更该成员的俱乐部管理权限，演示仅在本地模拟。"
+  },
+  "club.ops.mediaPreserved": {
+    "en": "Existing logo and cover are preserved. This review does not upload media.",
+    "zh-Hans": "保留现有标志和封面，此核对不会上传图片。"
+  },
+  "club.ops.switchAccount": {
+    "en": "Switch fixture account",
+    "zh-Hans": "切换演示账号"
+  },
+  "club.ops.signOut": {
+    "en": "Sign out fixture",
+    "zh-Hans": "退出演示账号"
+  },
+  "club.ops.settingConsequences.publicVisible": {
+    "en": "This affects whether people can discover the club publicly.",
+    "zh-Hans": "这会影响其他人是否能公开发现此俱乐部。"
+  },
+  "club.ops.settingConsequences.memberPostAllowed": {
+    "en": "This affects whether members can post in the club.",
+    "zh-Hans": "这会影响成员是否可以在俱乐部发帖。"
+  },
+  "club.ops.settingConsequences.merchantUndertakeOpen": {
+    "en": "This affects whether merchant cooperation is open for the club.",
+    "zh-Hans": "这会影响俱乐部是否开放商家承接。"
+  },
+  "club.ops.error.requiredFields": {
+    "en": "Name and city are required.",
+    "zh-Hans": "请填写名称与城市。"
+  },
+  "club.ops.error.textTooLong": {
+    "en": "One or more fields exceed the displayed character limit.",
+    "zh-Hans": "部分字段超过所示字数限制。"
+  },
+  "club.ops.error.invalidSelection": {
+    "en": "Choose a supported type and at most three distinct preferences.",
+    "zh-Hans": "请选择有效类型，路线方向最多三项且不能重复。"
+  },
+  "club.ops.error.invalidQuota": {
+    "en": "Reserved places must be a non-negative whole number.",
+    "zh-Hans": "保留名额必须为非负整数。"
+  },
+  "club.ops.error.mediaUnavailable": {
+    "en": "Media uploads are not connected. Existing logo and cover references are preserved.",
+    "zh-Hans": "图片上传尚未接入，将保留现有标志和封面。"
+  },
+  "club.ops.error.signedOut": {
+    "en": "Sign in to manage clubs.",
+    "zh-Hans": "登录后管理俱乐部。"
+  },
+  "club.ops.error.unavailable": {
+    "en": "Club operations are not configured.",
+    "zh-Hans": "俱乐部运营服务尚未配置。"
+  },
+  "club.ops.error.createUnavailable": {
+    "en": "The current account cannot create another club.",
+    "zh-Hans": "当前账号无法再创建俱乐部。"
+  },
+  "club.ops.error.forbidden": {
+    "en": "Your current club role does not allow this action.",
+    "zh-Hans": "当前俱乐部身份无权执行此操作。"
+  },
+  "club.ops.error.changed": {
+    "en": "Club data or access changed. Close and reopen the form to review current information.",
+    "zh-Hans": "俱乐部数据或权限已变化，请关闭后重新打开表单核对最新信息。"
+  },
+  "club.ops.error.adminLimit": {
+    "en": "Two administrators are already assigned. Remove an existing role before adding another.",
+    "zh-Hans": "已有两名管理员，请先取消一名管理员角色。"
+  },
+  "club.ops.error.pending": {
+    "en": "A request is already pending or has an unknown outcome. Do not submit again.",
+    "zh-Hans": "请求正在处理中或结果不明确，请勿重复提交。"
+  },
+  "club.ops.error.staleReview": {
+    "en": "This review has expired. Review current information again.",
+    "zh-Hans": "此核对已过期，请重新核对当前信息。"
+  },
+  "club.ops.error.cancelled": {
+    "en": "The local review was interrupted before submission.",
+    "zh-Hans": "本地核对已中断，未提交。"
+  },
+  "club.ops.value.校园社团": {
+    "en": "Campus club",
+    "zh-Hans": "校园社团"
+  },
+  "club.ops.value.旅行组织": {
+    "en": "Travel group",
+    "zh-Hans": "旅行组织"
+  },
+  "club.ops.value.兴趣社群": {
+    "en": "Interest community",
+    "zh-Hans": "兴趣社群"
+  },
+  "club.ops.value.商业活动组织方": {
+    "en": "Commercial event organizer",
+    "zh-Hans": "商业活动组织方"
+  },
+  "club.ops.value.内容创作团队": {
+    "en": "Content creation team",
+    "zh-Hans": "内容创作团队"
+  },
+  "club.ops.value.其他": {
+    "en": "Other",
+    "zh-Hans": "其他"
+  },
+  "club.ops.value.轻社交": {
+    "en": "Light social",
+    "zh-Hans": "轻社交"
+  },
+  "club.ops.value.深度社交": {
+    "en": "Deep social",
+    "zh-Hans": "深度社交"
+  },
+  "club.ops.value.RPG体验": {
+    "en": "RPG experience",
+    "zh-Hans": "RPG体验"
+  },
+  "club.ops.value.城市定向": {
+    "en": "City orientation",
+    "zh-Hans": "城市定向"
+  },
+  "club.ops.value.解谜路线": {
+    "en": "Puzzle routes",
+    "zh-Hans": "解谜路线"
+  },
+  "club.ops.value.沉浸式剧情": {
+    "en": "Immersive story",
+    "zh-Hans": "沉浸式剧情"
+  },
+  "club.ops.value.运动路线": {
+    "en": "Sports routes",
+    "zh-Hans": "运动路线"
+  },
+  "club.ops.value.艺术体验": {
+    "en": "Art experience",
+    "zh-Hans": "艺术体验"
+  },
+  "club.ops.value.美食体验": {
+    "en": "Food experience",
+    "zh-Hans": "美食体验"
+  },
+  "club.ops.value.主题聚会": {
+    "en": "Themed gatherings",
+    "zh-Hans": "主题聚会"
+  },
+  "club.ops.confirmLive": {
+    "en": "Confirm these changes",
+    "zh-Hans": "确认这些更改"
+  },
+  "club.ops.confirmLiveHint": {
+    "en": "Apply the reviewed club changes to the server.",
+    "zh-Hans": "将已核对的俱乐部更改提交至服务器。"
+  }
+}

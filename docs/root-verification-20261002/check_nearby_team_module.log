@@ -1,0 +1,20 @@
+
+--- STDERR ---
+test_all_source_error_codes (__main__.NearbySourceChecks.test_all_source_error_codes) ... ok
+test_bilingual (__main__.NearbySourceChecks.test_bilingual) ... ok
+test_error_message_not_state_authority (__main__.NearbySourceChecks.test_error_message_not_state_authority) ... ok
+test_identity_bridge (__main__.NearbySourceChecks.test_identity_bridge) ... ok
+test_literal_localizations_resolve (__main__.NearbySourceChecks.test_literal_localizations_resolve) ... ok
+test_no_fabricated_expiry (__main__.NearbySourceChecks.test_no_fabricated_expiry) ... ok
+test_no_join_mode_or_retired_routes (__main__.NearbySourceChecks.test_no_join_mode_or_retired_routes) ... ok
+test_no_location_access_or_network_executor (__main__.NearbySourceChecks.test_no_location_access_or_network_executor) ... ok
+test_review_and_locks (__main__.NearbySourceChecks.test_review_and_locks) ... ok
+test_swift_suite_has_interruption_and_role_tests (__main__.NearbySourceChecks.test_swift_suite_has_interruption_and_role_tests) ... ok
+test_synthetic_fixtures_parse (__main__.NearbySourceChecks.test_synthetic_fixtures_parse) ... ok
+test_wire_shapes (__main__.NearbySourceChecks.test_wire_shapes) ... ok
+test_writes_require_scoped_adapter_and_review (__main__.NearbySourceChecks.test_writes_require_scoped_adapter_and_review) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.004s
+
+OK

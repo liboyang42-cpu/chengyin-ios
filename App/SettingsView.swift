@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct SettingsView: View {
+    @EnvironmentObject private var session: AppSession
     @AppStorage("preferences.language") private var storedLanguage = RegionalLaunchConfiguration.language(nil).rawValue
     @Environment(\.dismiss) private var dismiss
 
@@ -24,6 +25,7 @@ struct SettingsView: View {
                     }
                     .pickerStyle(.inline)
                 } footer: { Text("settings.languageNotice") }
+                SettingsSupportSections(market: session.operationalMarket, complianceCoordinator: session.accountComplianceCoordinator)
             }
             .appNavigationTitle("settings.title")
             .toolbar {

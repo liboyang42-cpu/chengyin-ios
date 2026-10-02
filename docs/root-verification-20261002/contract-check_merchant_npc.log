@@ -1,0 +1,3 @@
+PASS: 178 static source/contract assertions. Apple build and runtime NOT_RUN.
+
+--- STDERR ---

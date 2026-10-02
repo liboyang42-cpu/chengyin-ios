@@ -1,0 +1,12 @@
+{
+  "source_checks": "PASS: 5 Python checks",
+  "syntax": "PASS: pinned Tree-sitter, not compiler",
+  "swift_core_tests": "AUTHORED_NOT_RUN",
+  "apple_build": "NOT_RUN",
+  "ui_tests": "AUTHORED_NOT_RUN",
+  "actual_network": "NOT_RUN",
+  "shared_main_changes": false,
+  "default_live": false,
+  "default_media": false,
+  "default_legal": false
+}

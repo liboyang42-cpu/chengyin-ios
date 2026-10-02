@@ -40,6 +40,8 @@ final class ProfileEditModel: ObservableObject {
 
 /// Parent passes its live session revision and retains the coordinator outside navigation.
 struct ProfileEditView: View {
+    private enum Field: Hashable { case name, introduction }
+    @FocusState private var focusedField: Field?
     @StateObject private var model: ProfileEditModel
     let sessionRevision: UInt64
     init(coordinator: ProfileEditCoordinator, sessionRevision: UInt64) {
@@ -56,13 +58,15 @@ struct ProfileEditView: View {
                 if model.coordinator.snapshot != nil {
                     Section {
                         TextField("profile.edit.name", text: $model.draft.name)
-                            .textContentType(.nickname).accessibilityIdentifier("profile.edit.name")
+                            .textContentType(.nickname).focused($focusedField,equals:.name)
+                            .accessibilityIdentifier("profile.edit.name")
                         TextField("profile.edit.introduction", text: $model.draft.introduction, axis: .vertical)
-                            .lineLimit(3...8).accessibilityIdentifier("profile.edit.introduction")
+                            .lineLimit(3...8).focused($focusedField,equals:.introduction)
+                            .accessibilityIdentifier("profile.edit.introduction")
                     } header: { Text("profile.edit.details") }
                         .disabled(model.busy || model.coordinator.isLocked)
                     Section { Text("profile.edit.scope").foregroundStyle(.secondary) }
-                    Button { Task { await model.prepare() } } label: { Text("profile.edit.review") }
+                    Button { focusedField=nil; Task { await model.prepare() } } label: { Text("profile.edit.review") }
                         .disabled(model.busy || model.coordinator.isLocked || !model.draft.isValid
                                   || model.draft.normalized == model.coordinator.snapshot?.draft.normalized)
                         .accessibilityIdentifier("profile.edit.review")

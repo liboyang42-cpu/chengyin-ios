@@ -4,6 +4,8 @@ import SwiftUI
 struct RoamItemDetailView: View {
     let item: RoamMapItem
     let reader: any RoamReading
+    let mediaScope: UUID
+    var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
     private let originatingIdentity: RoamReadIdentity?
     @Environment(\.dismiss) private var dismiss
     @State private var node: RoamNodeDetail?
@@ -12,7 +14,8 @@ struct RoamItemDetailView: View {
     @State private var loading = false
     @State private var issue: RoamScreenIssue?
     @State private var generation = 0
-    init(item: RoamMapItem, reader: any RoamReading) {
+    init(item: RoamMapItem, reader: any RoamReading, mediaScope: UUID = UUID(), makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil) {
+        self.mediaScope = mediaScope; self.makeExternalMaps = makeExternalMaps
         self.item = item; self.reader = reader; originatingIdentity = reader.identity
     }
     private var isCurrent: Bool { originatingIdentity != nil && reader.identity == originatingIdentity }
@@ -63,6 +66,7 @@ struct RoamItemDetailView: View {
                     LabeledContent("roam.checkInRadius") { Text(verbatim: "\(radius) m") }
                 }
                 if let xp = place.xp, xp >= 0 { LabeledContent("roam.potentialXP") { Text(xp, format: .number) } }
+                PlatformExternalMapHost(destination: .init(name: node.name, address: node.merchantAddress ?? place.address, latitude: node.coordinate?.latitude, longitude: node.coordinate?.longitude), scope: mediaScope, makeModel: makeExternalMaps)
                 if node.coordinate == nil { Label("roam.noCoordinates", systemImage: "mappin.slash") }
             }
             Section("roam.yourStatus") {

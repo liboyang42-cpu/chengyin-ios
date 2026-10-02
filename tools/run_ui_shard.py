@@ -6,6 +6,7 @@ import re
 import subprocess
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
+DEFAULT_SHARD_COUNT = 6
 
 def discover(directory):
     weights = {}
@@ -41,7 +42,7 @@ def partition(weights, count):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--shard', type=int, required=True)
-    parser.add_argument('--count', type=int, default=2)
+    parser.add_argument('--count', type=int, default=DEFAULT_SHARD_COUNT)
     parser.add_argument('--simulator')
     parser.add_argument('--derived-data')
     parser.add_argument('--result-bundle')

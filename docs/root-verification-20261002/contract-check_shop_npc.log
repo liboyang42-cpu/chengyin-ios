@@ -1,0 +1,3 @@
+PASS: 133 static source/contract assertions; Swift execution and Apple runtime NOT_RUN
+
+--- STDERR ---

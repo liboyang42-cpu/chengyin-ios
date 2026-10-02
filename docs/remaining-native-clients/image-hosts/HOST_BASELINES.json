@@ -1,0 +1,20 @@
+[
+  {
+    "path": "App/MerchantOperationsViews.swift",
+    "baseline_sha256": "1f4afb8e9806b3b27857695b30e16255ded5b49541ef19f0c5e37b07044d475d",
+    "patched_sha256": "444dc5939049a8b12f33a555d8f73ef8bc54165524a845e8ccaa0fc8868e4b49",
+    "patch": "patches/MerchantOperationsViews.patch"
+  },
+  {
+    "path": "App/MerchantOperationsEditor.swift",
+    "baseline_sha256": "dab645a8def255534c23d0479829d9a6a930d8e17f3f3c29d0d6b0aa69a7c4ec",
+    "patched_sha256": "901bd378920f0b3bed04baed4295a128a20a253d8a78fdd237947251b7adf6c1",
+    "patch": "patches/MerchantOperationsEditor.patch"
+  },
+  {
+    "path": "App/PublicMerchantReviewEditor.swift",
+    "baseline_sha256": "34ba726e879a89c27a82168b5af0e1d5e5f191a4463b5fdb1b8e2472b65df3d4",
+    "patched_sha256": "9d577b647bfcb52492adfc3cd24122e03cd06310250092d5a86b79f6a0dfff43",
+    "patch": "patches/PublicMerchantReviewEditor.patch"
+  }
+]

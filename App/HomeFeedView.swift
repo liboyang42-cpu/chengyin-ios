@@ -139,7 +139,24 @@ struct HomeFeedCard: View {
     private var typeSymbol: String {
         switch item { case .activity: return "figure.walk"; case .topic: return "map" }
     }
-    var body: some View {
+    @ViewBuilder var body: some View {
+        if case .topic = item { imageTopicCard }
+        else { standardCard }
+    }
+    private var imageTopicCard:some View {
+        QuestifyImageEntityCard(imageSource:item.imageURL,title:item.name,subtitle:item.introduction,fallbackSymbol:"map") {
+            if item.isBeta { Text("homeFeed.beta").font(.caption.weight(.semibold)) }
+            QuestifyImageEntityMetadata(label:"homeFeed.date",value:item.startDate ?? "—",systemImage:"calendar")
+            QuestifyImageEntityMetadata(label:"homeFeed.place",value:item.place ?? "—",systemImage:"mappin")
+            VStack(alignment:.leading,spacing:3) {
+                Text("homeFeed.priceFrom").font(.caption)
+                if let amount=item.amount,amount>=0 { Text(amount,format:.number.precision(.fractionLength(2))).font(.headline) }
+                else { Text("homeFeed.unknown") }
+                Text("homeFeed.currencyUnknown").font(.caption)
+            }
+        }
+    }
+    private var standardCard:some View {
         VStack(alignment: .leading, spacing: 14) {
             if let url = QuestifyCardArtwork.safeURL(item.imageURL) {
                 QuestifyCardArtwork(url: url, height: dynamicTypeSize.isAccessibilitySize ? 132 : 164)

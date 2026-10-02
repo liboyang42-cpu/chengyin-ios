@@ -1,0 +1,602 @@
+{
+  "merchant.operations.title": {
+    "en": "Store operations",
+    "zh-Hans": "门店经营"
+  },
+  "merchant.operations.profile": {
+    "en": "Store profile",
+    "zh-Hans": "店铺资料"
+  },
+  "merchant.operations.decor": {
+    "en": "Storefront design",
+    "zh-Hans": "店铺装修"
+  },
+  "merchant.operations.gallery": {
+    "en": "Store gallery",
+    "zh-Hans": "门店相册"
+  },
+  "merchant.operations.story": {
+    "en": "Brand story",
+    "zh-Hans": "品牌故事"
+  },
+  "merchant.operations.cooperation": {
+    "en": "Hosting settings",
+    "zh-Hans": "承接设置"
+  },
+  "merchant.operations.character": {
+    "en": "Store character",
+    "zh-Hans": "门店形象"
+  },
+  "merchant.operations.assets": {
+    "en": "Voice and 3D resources",
+    "zh-Hans": "声音与 3D 资源"
+  },
+  "merchant.operations.cityNodes": {
+    "en": "City locations",
+    "zh-Hans": "城市据点"
+  },
+  "merchant.operations.templates": {
+    "en": "My interaction templates",
+    "zh-Hans": "我的互动模板"
+  },
+  "merchant.operations.template": {
+    "en": "Interaction template",
+    "zh-Hans": "互动模板"
+  },
+  "merchant.operations.name": {
+    "en": "Name",
+    "zh-Hans": "名称"
+  },
+  "merchant.operations.description": {
+    "en": "Introduction",
+    "zh-Hans": "简介"
+  },
+  "merchant.operations.derivatives": {
+    "en": "Merchandise",
+    "zh-Hans": "衍生品"
+  },
+  "merchant.operations.website": {
+    "en": "Website",
+    "zh-Hans": "网站"
+  },
+  "merchant.operations.preference": {
+    "en": "Preferences",
+    "zh-Hans": "偏好"
+  },
+  "merchant.operations.logo": {
+    "en": "Store logo",
+    "zh-Hans": "店铺标志"
+  },
+  "merchant.operations.slogan": {
+    "en": "Slogan",
+    "zh-Hans": "标语"
+  },
+  "merchant.operations.cityRole": {
+    "en": "Role in the city",
+    "zh-Hans": "城市角色"
+  },
+  "merchant.operations.category": {
+    "en": "Category ID",
+    "zh-Hans": "行业编号"
+  },
+  "merchant.operations.featured": {
+    "en": "Featured type / ID",
+    "zh-Hans": "精选类型 / 编号"
+  },
+  "merchant.operations.tags": {
+    "en": "Tags",
+    "zh-Hans": "标签"
+  },
+  "merchant.operations.cover": {
+    "en": "Cover image",
+    "zh-Hans": "封面图片"
+  },
+  "merchant.operations.galleryImage": {
+    "en": "Gallery image",
+    "zh-Hans": "相册图片"
+  },
+  "merchant.operations.galleryCount": {
+    "en": "Image count",
+    "zh-Hans": "图片数量"
+  },
+  "merchant.operations.removeImage": {
+    "en": "Remove from local draft",
+    "zh-Hans": "从本地草稿移除"
+  },
+  "merchant.operations.addExampleImage": {
+    "en": "Add synthetic image placeholder",
+    "zh-Hans": "添加示例图片占位"
+  },
+  "merchant.operations.storyBody": {
+    "en": "Story text",
+    "zh-Hans": "故事正文"
+  },
+  "merchant.operations.capacity": {
+    "en": "Guest capacity",
+    "zh-Hans": "接待人数"
+  },
+  "merchant.operations.availableTime": {
+    "en": "Available times",
+    "zh-Hans": "可承接时间"
+  },
+  "merchant.operations.chargeType": {
+    "en": "Hosting fee",
+    "zh-Hans": "承接收费"
+  },
+  "merchant.operations.unspecified": {
+    "en": "Unspecified",
+    "zh-Hans": "未选择"
+  },
+  "merchant.operations.charge.free": {
+    "en": "Free hosting",
+    "zh-Hans": "免费承接"
+  },
+  "merchant.operations.charge.paid": {
+    "en": "Paid hosting",
+    "zh-Hans": "收费承接"
+  },
+  "merchant.operations.demand": {
+    "en": "Cooperation needs",
+    "zh-Hans": "合作需求"
+  },
+  "merchant.operations.greeting": {
+    "en": "Greeting",
+    "zh-Hans": "招呼语"
+  },
+  "merchant.operations.persona": {
+    "en": "Personality and speaking style",
+    "zh-Hans": "人设与说话风格"
+  },
+  "merchant.operations.knowledge": {
+    "en": "Store knowledge",
+    "zh-Hans": "店铺知识"
+  },
+  "merchant.operations.avatar": {
+    "en": "3D character",
+    "zh-Hans": "3D 形象"
+  },
+  "merchant.operations.titleField": {
+    "en": "Title",
+    "zh-Hans": "标题"
+  },
+  "merchant.operations.method": {
+    "en": "Completion method",
+    "zh-Hans": "完成方式"
+  },
+  "merchant.operations.chooseMethod": {
+    "en": "Choose a method",
+    "zh-Hans": "选择完成方式"
+  },
+  "merchant.operations.method.1": {
+    "en": "Secret word",
+    "zh-Hans": "文字暗号"
+  },
+  "merchant.operations.method.2": {
+    "en": "Photo",
+    "zh-Hans": "现场拍照"
+  },
+  "merchant.operations.method.3": {
+    "en": "Multiple-choice question",
+    "zh-Hans": "选项问答"
+  },
+  "merchant.operations.method.4": {
+    "en": "Posted QR code",
+    "zh-Hans": "张贴码"
+  },
+  "merchant.operations.method.5": {
+    "en": "GPS arrival",
+    "zh-Hans": "GPS 到达"
+  },
+  "merchant.operations.answer": {
+    "en": "Secret answer",
+    "zh-Hans": "暗号答案"
+  },
+  "merchant.operations.quiz": {
+    "en": "Question and options",
+    "zh-Hans": "题目与选项"
+  },
+  "merchant.operations.question": {
+    "en": "Question",
+    "zh-Hans": "题目"
+  },
+  "merchant.operations.optionA": {
+    "en": "Option A",
+    "zh-Hans": "选项 A"
+  },
+  "merchant.operations.optionB": {
+    "en": "Option B",
+    "zh-Hans": "选项 B"
+  },
+  "merchant.operations.optionC": {
+    "en": "Option C",
+    "zh-Hans": "选项 C"
+  },
+  "merchant.operations.optionD": {
+    "en": "Option D",
+    "zh-Hans": "选项 D"
+  },
+  "merchant.operations.correctAnswer": {
+    "en": "Correct option",
+    "zh-Hans": "正确选项"
+  },
+  "merchant.operations.feedback": {
+    "en": "Completion feedback",
+    "zh-Hans": "完成反馈"
+  },
+  "merchant.operations.reviewDraft": {
+    "en": "Review local draft",
+    "zh-Hans": "检查本地草稿"
+  },
+  "merchant.operations.frozenDraft": {
+    "en": "Draft being reviewed",
+    "zh-Hans": "待检查的草稿"
+  },
+  "merchant.operations.confirmExample": {
+    "en": "Save offline example",
+    "zh-Hans": "保存离线示例"
+  },
+  "merchant.operations.fixture.signOut": {
+    "en": "Sign out of example",
+    "zh-Hans": "退出示例账号"
+  },
+  "merchant.operations.fixture.recover": {
+    "en": "Recover example",
+    "zh-Hans": "恢复示例"
+  },
+  "merchant.operations.entryHint": {
+    "en": "View details or prepare a local draft",
+    "zh-Hans": "查看详情或准备本地草稿"
+  },
+  "merchant.operations.empty": {
+    "en": "No records",
+    "zh-Hans": "暂无记录"
+  },
+  "merchant.operations.untitled": {
+    "en": "Untitled",
+    "zh-Hans": "未命名"
+  },
+  "merchant.operations.newTemplate": {
+    "en": "New template draft",
+    "zh-Hans": "新建模板草稿"
+  },
+  "merchant.operations.nodes": {
+    "en": "My locations",
+    "zh-Hans": "我的据点"
+  },
+  "merchant.operations.applications": {
+    "en": "Applications",
+    "zh-Hans": "申请记录"
+  },
+  "merchant.operations.address": {
+    "en": "Address",
+    "zh-Hans": "地址"
+  },
+  "merchant.operations.nodeDetail": {
+    "en": "Location details",
+    "zh-Hans": "据点详情"
+  },
+  "merchant.operations.quota": {
+    "en": "Used / limit",
+    "zh-Hans": "已用 / 上限"
+  },
+  "merchant.operations.claim": {
+    "en": "Location claim",
+    "zh-Hans": "节点认领"
+  },
+  "merchant.operations.placement": {
+    "en": "Location placement",
+    "zh-Hans": "据点投放"
+  },
+  "merchant.operations.node.online": {
+    "en": "Online",
+    "zh-Hans": "在架"
+  },
+  "merchant.operations.node.offline": {
+    "en": "Offline",
+    "zh-Hans": "已下线"
+  },
+  "merchant.operations.review.pending": {
+    "en": "Under review",
+    "zh-Hans": "审核中"
+  },
+  "merchant.operations.review.approved": {
+    "en": "Approved",
+    "zh-Hans": "审核通过"
+  },
+  "merchant.operations.review.rejected": {
+    "en": "Rejected",
+    "zh-Hans": "审核未通过"
+  },
+  "merchant.operations.review.unknown": {
+    "en": "Status unconfirmed",
+    "zh-Hans": "状态未确认"
+  },
+  "merchant.operations.template.unpublished": {
+    "en": "Unpublished",
+    "zh-Hans": "未发布"
+  },
+  "merchant.operations.template.published": {
+    "en": "Published",
+    "zh-Hans": "已发布"
+  },
+  "merchant.operations.voice": {
+    "en": "Voice resource",
+    "zh-Hans": "声音资源"
+  },
+  "merchant.operations.voice.unset": {
+    "en": "Not configured",
+    "zh-Hans": "未配置"
+  },
+  "merchant.operations.voice.generating": {
+    "en": "Generating",
+    "zh-Hans": "生成中"
+  },
+  "merchant.operations.voice.ready": {
+    "en": "Ready",
+    "zh-Hans": "已就绪"
+  },
+  "merchant.operations.voice.failed": {
+    "en": "Last generation failed",
+    "zh-Hans": "上次生成失败"
+  },
+  "merchant.operations.avatar.pending": {
+    "en": "Generation pending",
+    "zh-Hans": "等待生成"
+  },
+  "merchant.operations.avatar.ready": {
+    "en": "Generation completed",
+    "zh-Hans": "生成已完成"
+  },
+  "merchant.operations.avatar.failed": {
+    "en": "Generation failed",
+    "zh-Hans": "生成失败"
+  },
+  "merchant.operations.providerAvailable": {
+    "en": "Provider reports availability",
+    "zh-Hans": "服务端报告可用"
+  },
+  "merchant.operations.providerUnavailable": {
+    "en": "Provider unavailable",
+    "zh-Hans": "供应商尚不可用"
+  },
+  "merchant.operations.style": {
+    "en": "Style",
+    "zh-Hans": "风格"
+  },
+  "merchant.operations.noAvatarJob": {
+    "en": "No generation job reported",
+    "zh-Hans": "尚无生成任务"
+  },
+  "merchant.operations.noImage": {
+    "en": "No displayable image",
+    "zh-Hans": "暂无可展示图片"
+  },
+  "merchant.operations.syntheticArtwork": {
+    "en": "Synthetic placeholder; no remote image",
+    "zh-Hans": "示例占位，不读取远程图片"
+  },
+  "merchant.operations.discardTitle": {
+    "en": "Discard local changes?",
+    "zh-Hans": "放弃本地修改？"
+  },
+  "merchant.operations.discard": {
+    "en": "Discard changes",
+    "zh-Hans": "放弃修改"
+  },
+  "merchant.operations.keepEditing": {
+    "en": "Keep editing",
+    "zh-Hans": "继续编辑"
+  },
+  "merchant.operations.discardBody": {
+    "en": "These changes have not been sent to your store.",
+    "zh-Hans": "这些修改尚未发送到门店。"
+  },
+  "merchant.operations.exampleBoundary": {
+    "en": "Synthetic offline examples. Edits never change a real store, review decision, order, or provider resource.",
+    "zh-Hans": "离线示例数据。编辑不会改变真实门店、审核结果、订单或供应商资源。"
+  },
+  "merchant.operations.liveDisabled": {
+    "en": "Live saving is unavailable. These forms only prepare local drafts.",
+    "zh-Hans": "真实保存尚未开放，这些表单仅用于准备本地草稿。"
+  },
+  "merchant.operations.loadFailed": {
+    "en": "Could not load these records. Try again.",
+    "zh-Hans": "暂时无法读取这些记录，请重试。"
+  },
+  "merchant.operations.signedOut": {
+    "en": "Sign in again to view store records.",
+    "zh-Hans": "请重新登录后查看门店记录。"
+  },
+  "merchant.operations.invalidDraft": {
+    "en": "Review the draft fields before continuing.",
+    "zh-Hans": "请先检查草稿字段。"
+  },
+  "merchant.operations.exampleSaved": {
+    "en": "Offline example saved. No real business change was made.",
+    "zh-Hans": "离线示例已保存，未产生真实业务变更。"
+  },
+  "merchant.operations.localDraftOnly": {
+    "en": "Your edits stay in memory and are not submitted or persisted.",
+    "zh-Hans": "修改仅保留在内存中，不会提交或持久保存。"
+  },
+  "merchant.operations.unknownOutcome": {
+    "en": "The example outcome is unknown. Saving is locked; reading again does not prove that the earlier operation failed.",
+    "zh-Hans": "示例结果未确认，保存已锁定；再次读取不能证明之前的操作失败。"
+  },
+  "merchant.operations.conflict": {
+    "en": "The source changed while you were reviewing. Reload before preparing another draft.",
+    "zh-Hans": "检查草稿期间来源已变更，请重新读取后再编辑。"
+  },
+  "merchant.operations.confirmExampleBody": {
+    "en": "Save this frozen draft only to the offline example for this session?",
+    "zh-Hans": "是否仅将这份草稿保存到本次会话的离线示例？"
+  },
+  "merchant.operations.reviewNoApproval": {
+    "en": "A saved draft does not mean content approval, public visibility, or activation.",
+    "zh-Hans": "草稿保存不代表内容审核通过、公开可见或业务生效。"
+  },
+  "merchant.operations.profileWhitelist": {
+    "en": "Only name, introduction, merchandise, website, preferences and the existing logo belong to this source contract.",
+    "zh-Hans": "此来源接口仅包含名称、简介、衍生品、网站、偏好及原有标志。"
+  },
+  "merchant.operations.decorPreserved": {
+    "en": "Category, featured content, service details and location fields remain as read. Their selectors need separate verified contracts.",
+    "zh-Hans": "行业、精选内容、服务信息及位置字段按读取值保留；相关选择器需要独立验证的契约。"
+  },
+  "merchant.operations.tagsHint": {
+    "en": "Separate tags with semicolons. The request preview uses a JSON array string.",
+    "zh-Hans": "以分号分隔标签，请求预览使用 JSON 数组字符串。"
+  },
+  "merchant.operations.galleryHint": {
+    "en": "Up to 9 images. Removing an item only edits this local draft.",
+    "zh-Hans": "最多 9 张图片，移除操作只修改本地草稿。"
+  },
+  "merchant.operations.uploadDisabled": {
+    "en": "Image selection, permissions and real uploads are not enabled. Existing references are preserved.",
+    "zh-Hans": "尚未开放图片选择、权限申请和真实上传，原有图片引用会保留。"
+  },
+  "merchant.operations.storyHint": {
+    "en": "Story body only, up to 300 UTF-16 units. The existing hidden title is preserved; the source save uses two separate operations.",
+    "zh-Hans": "仅编辑故事正文，最多 300 个 UTF-16 单元。保留原有隐藏标题，来源保存涉及两个独立操作。"
+  },
+  "merchant.operations.coopPreserved": {
+    "en": "Activity types and cooperation availability are hidden source fields and will be preserved.",
+    "zh-Hans": "适合活动类型与合作开放状态为隐藏来源字段，会原样保留。"
+  },
+  "merchant.operations.characterReviewHint": {
+    "en": "This is the private store character. Its review state is independent from public visibility, voice and 3D generation.",
+    "zh-Hans": "这是门店私有形象配置，其审核状态与公开展示、声音及 3D 生成分别独立。"
+  },
+  "merchant.operations.templateOwnerOnly": {
+    "en": "Private template answers are read from the owner-only detail endpoint.",
+    "zh-Hans": "模板答案仅从所有者专用详情接口读取。"
+  },
+  "merchant.operations.templateOmissions": {
+    "en": "Blank optional fields are omitted by the source contract; blanking one does not request deletion of its saved value.",
+    "zh-Hans": "来源契约会省略空的可选字段；清空输入不代表删除已存值。"
+  },
+  "merchant.operations.templatePageLimit": {
+    "en": "The source reads page 1 with up to 100 templates. This is not a complete or paginated inventory.",
+    "zh-Hans": "来源读取第 1 页，最多 100 个模板；这不是完整或可翻页的清单。"
+  },
+  "merchant.operations.cityReadOnly": {
+    "en": "Location claims, placement, withdrawal, online status changes and redemption are unavailable here.",
+    "zh-Hans": "此处尚未开放据点认领、投放、撤回、上下架和核销操作。"
+  },
+  "merchant.operations.quotaExhausted": {
+    "en": "The reported location limit has been reached.",
+    "zh-Hans": "服务端报告的据点配额已用完。"
+  },
+  "merchant.operations.resourcesBoundary": {
+    "en": "Source-reported resources only. No recording, cloning, generation, playback, download or automatic polling.",
+    "zh-Hans": "仅展示来源报告的资源状态，不录音、克隆、生成、播放、下载或自动轮询。"
+  },
+  "merchant.operations.voiceDisabled": {
+    "en": "Voice consent, microphone access, sample upload and revocation are not enabled.",
+    "zh-Hans": "声音授权、麦克风权限、样本上传及撤销尚未开放。"
+  },
+  "merchant.operations.avatarDisabled": {
+    "en": "Image upload, 3D generation and model downloads are not enabled.",
+    "zh-Hans": "图片上传、3D 生成及模型下载尚未开放。"
+  },
+  "merchant.operations.galleryLimit": {
+    "en": "Keep at most 9 gallery images.",
+    "zh-Hans": "相册最多保留 9 张图片。"
+  },
+  "merchant.operations.featuredIncomplete": {
+    "en": "Featured type and ID must be present together.",
+    "zh-Hans": "精选类型和编号必须同时存在。"
+  },
+  "merchant.operations.decorEmpty": {
+    "en": "Fill in at least one storefront field.",
+    "zh-Hans": "请至少填写一项店铺装修内容。"
+  },
+  "merchant.operations.capacityInvalid": {
+    "en": "Capacity must be a nonnegative whole number or blank.",
+    "zh-Hans": "接待人数须为非负整数，也可以留空。"
+  },
+  "merchant.operations.chargeUnknown": {
+    "en": "Choose a supported hosting fee option.",
+    "zh-Hans": "请选择受支持的承接收费方式。"
+  },
+  "merchant.operations.characterNameRequired": {
+    "en": "Give the character a name.",
+    "zh-Hans": "请为形象填写名称。"
+  },
+  "merchant.operations.characterNameLimit": {
+    "en": "Character names must be within 20 UTF-16 units.",
+    "zh-Hans": "形象名称不能超过 20 个 UTF-16 单元。"
+  },
+  "merchant.operations.characterAvatarRequired": {
+    "en": "An existing uploaded character avatar is required. Uploading is not enabled.",
+    "zh-Hans": "需要已有的已上传形象头像，当前尚未开放上传。"
+  },
+  "merchant.operations.greetingLimit": {
+    "en": "Keep the greeting within 60 UTF-16 units.",
+    "zh-Hans": "招呼语不能超过 60 个 UTF-16 单元。"
+  },
+  "merchant.operations.personaRequired": {
+    "en": "Describe the character’s personality and speaking style.",
+    "zh-Hans": "请填写形象的人设与说话风格。"
+  },
+  "merchant.operations.personaLimit": {
+    "en": "Keep the personality within 1,000 UTF-16 units.",
+    "zh-Hans": "人设不能超过 1,000 个 UTF-16 单元。"
+  },
+  "merchant.operations.knowledgeLimit": {
+    "en": "Keep store knowledge within 2,000 UTF-16 units.",
+    "zh-Hans": "店铺知识不能超过 2,000 个 UTF-16 单元。"
+  },
+  "merchant.operations.storyLimit": {
+    "en": "Keep the story within 300 UTF-16 units.",
+    "zh-Hans": "故事正文不能超过 300 个 UTF-16 单元。"
+  },
+  "merchant.operations.titleRequired": {
+    "en": "Enter a template title.",
+    "zh-Hans": "请填写模板标题。"
+  },
+  "merchant.operations.methodRequired": {
+    "en": "Choose how players complete this interaction.",
+    "zh-Hans": "请选择玩家完成互动的方式。"
+  },
+  "merchant.operations.answerRequired": {
+    "en": "Enter the secret answer.",
+    "zh-Hans": "请填写暗号答案。"
+  },
+  "merchant.operations.questionRequired": {
+    "en": "Enter the question.",
+    "zh-Hans": "请填写问答题目。"
+  },
+  "merchant.operations.optionsRequired": {
+    "en": "Fill in at least two options.",
+    "zh-Hans": "请至少填写两个选项。"
+  },
+  "merchant.operations.correctRequired": {
+    "en": "Point the correct answer to a filled A–D option.",
+    "zh-Hans": "请将正确答案指向已填写的 A–D 选项。"
+  },
+  "merchant.operations.reloadSource": {
+    "en": "Reload source",
+    "zh-Hans": "重新读取来源"
+  },
+  "merchant.operations.discardReload": {
+    "en": "Discard and reload",
+    "zh-Hans": "放弃修改并重新读取"
+  },
+  "merchant.operations.acknowledged": {
+    "en": "The server acknowledged the save. Review status still comes from the server.",
+    "zh-Hans": "服务器已确认保存，审核状态仍以服务器为准。"
+  },
+  "merchant.operations.partialOutcome": {
+    "en": "Some writes were acknowledged, but the whole save could not be confirmed. Editing remains locked; do not resubmit.",
+    "zh-Hans": "部分写入已获确认，但无法确认整个保存流程。编辑将保持锁定，请勿重复提交。"
+  },
+  "merchant.operations.confirmLive": {
+    "en": "Save reviewed changes",
+    "zh-Hans": "保存已核对的更改"
+  },
+  "merchant.operations.confirmLiveHint": {
+    "en": "Save these exact changes. Story title and story text are separate writes and can complete only partially.",
+    "zh-Hans": "保存这些更改。故事标题和正文分别提交，可能出现部分完成的情况。"
+  }
+}

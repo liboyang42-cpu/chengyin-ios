@@ -4,6 +4,7 @@ import SwiftUI
 @MainActor struct TicketWalletDetailView: View {
     let id: Int
     let reader: any TicketWalletReading
+    var lifecycleCoordinator: OrderLifecycleCoordinator? = nil
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var model = TicketWalletScreenModel<TicketWalletTicket>()
     @State private var isVisible = false
@@ -41,11 +42,18 @@ import SwiftUI
                         }
                     }
                 }
+                if let lifecycleCoordinator {
+                    Section {
+                        NavigationLink { OrderLifecycleView(id: id, coordinator: lifecycleCoordinator).id(lifecycleCoordinator.scope) } label: {
+                            Label("orderLifecycle.title", systemImage: "list.bullet.rectangle")
+                        }.accessibilityIdentifier("ticketWallet.orderLifecycle")
+                    }
+                }
                 Section("ticketWallet.redemption") {
                     Label {
                         Text(LocalizedStringKey("ticketWallet.redemption." + String(ticket.redemption.rawValue)))
+                            .accessibilityIdentifier("ticketWallet.redemption.notice")
                     } icon: { Image(systemName: "info.circle").accessibilityHidden(true) }
-                    .accessibilityIdentifier("ticketWallet.redemption.notice")
                     Text("ticketWallet.noCode").font(.footnote).foregroundStyle(.secondary)
                 }
             }

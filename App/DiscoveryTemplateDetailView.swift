@@ -4,9 +4,13 @@ import SwiftUI
 struct DiscoveryTemplateDetailView: View {
     let id: Int
     let reader: any DiscoveryReading
+    let authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)?
+    let authoringRevision: UInt64
     @StateObject private var detail = DiscoveryLoader<DiscoveryPlayTemplate>()
 
-    init(id: Int, reader: any DiscoveryReading) { self.id = id; self.reader = reader }
+    init(id: Int, reader: any DiscoveryReading, authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)? = nil, authoringRevision: UInt64 = 0) {
+        self.id = id; self.reader = reader; self.authoringFactory = authoringFactory; self.authoringRevision = authoringRevision
+    }
 
     var body: some View {
         Group {
@@ -36,6 +40,14 @@ struct DiscoveryTemplateDetailView: View {
                                 DiscoveryArtwork(source: image, height: 160)
                             }
                             Text(note).textSelection(.enabled)
+                        }
+                    }
+                    if let authoringFactory {
+                        Section {
+                            NavigationLink {
+                                TemplateAuthoringView(coordinator: authoringFactory(item), sessionRevision: authoringRevision)
+                            } label: { Label("templateAuthor.adopt", systemImage: "doc.on.doc") }
+                                .accessibilityIdentifier("templateAuthor.adopt")
                         }
                     }
                     Section { Text("discovery.readOnlyHint").font(.footnote).foregroundStyle(.secondary) }

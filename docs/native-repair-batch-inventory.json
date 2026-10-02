@@ -1,0 +1,19 @@
+{
+  "scope": "Authored inventory only; Apple compiler/XCTest/XCUITest NOT_RUN",
+  "core_test_methods": 1758,
+  "ui_test_methods": 263,
+  "ui_classes": 43,
+  "app_swift": 231,
+  "core_swift": 261,
+  "all_swift": 645,
+  "bilingual_keys": 4549,
+  "shard_count": 6,
+  "shard_test_counts": [
+    44,
+    44,
+    44,
+    45,
+    43,
+    43
+  ]
+}

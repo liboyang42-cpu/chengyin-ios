@@ -1,0 +1,3 @@
+PASS 24 source/structural invariant groups; Swift/Xcode/device runtime NOT_RUN
+
+--- STDERR ---

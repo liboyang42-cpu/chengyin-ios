@@ -1,0 +1,247 @@
+[
+  {
+    "key": "settingsNative.sound.title",
+    "en": "Sound & haptics",
+    "zh-Hans": "声音与触感"
+  },
+  {
+    "key": "settingsNative.sound.sound",
+    "en": "Sound",
+    "zh-Hans": "声音"
+  },
+  {
+    "key": "settingsNative.sound.haptics",
+    "en": "Haptics",
+    "zh-Hans": "触感"
+  },
+  {
+    "key": "settingsNative.sound.airplane",
+    "en": "Airplane ambience",
+    "zh-Hans": "飞机环境音"
+  },
+  {
+    "key": "settingsNative.sound.ocean",
+    "en": "Ocean",
+    "zh-Hans": "海洋"
+  },
+  {
+    "key": "settingsNative.sound.raindrop",
+    "en": "Raindrops",
+    "zh-Hans": "雨滴"
+  },
+  {
+    "key": "settingsNative.sound.forest",
+    "en": "Forest",
+    "zh-Hans": "森林"
+  },
+  {
+    "key": "settingsNative.sound.ambient",
+    "en": "Ambient sounds",
+    "zh-Hans": "环境音"
+  },
+  {
+    "key": "settingsNative.sound.localOnly",
+    "en": "These preferences are saved on this device. Playback and haptic feedback are not connected to them in this build. Airplane ambience does not change Airplane Mode.",
+    "zh-Hans": "这些偏好仅保存在本机。本版本的音频播放和触感反馈尚未接入这些偏好。飞机环境音不会更改系统飞行模式。"
+  },
+  {
+    "key": "settingsNative.sound.loadFailed",
+    "en": "Sound preferences could not be loaded. Existing stored data has not been replaced.",
+    "zh-Hans": "声音偏好读取失败，原有数据未被覆盖。"
+  },
+  {
+    "key": "settingsNative.sound.saveFailed",
+    "en": "The change could not be saved. Your previous preference is still shown.",
+    "zh-Hans": "更改未能保存，仍显示之前的偏好。"
+  },
+  {
+    "key": "settingsNative.loading",
+    "en": "Loading…",
+    "zh-Hans": "正在读取…"
+  },
+  {
+    "key": "settingsNative.retry",
+    "en": "Retry",
+    "zh-Hans": "重试"
+  },
+  {
+    "key": "settingsNative.legal.title",
+    "en": "Legal documents",
+    "zh-Hans": "法律文档"
+  },
+  {
+    "key": "settingsNative.legal.user_agreement",
+    "en": "User service agreement",
+    "zh-Hans": "用户服务协议"
+  },
+  {
+    "key": "settingsNative.legal.privacy_policy",
+    "en": "Privacy policy",
+    "zh-Hans": "隐私政策"
+  },
+  {
+    "key": "settingsNative.legal.cancellation_notice",
+    "en": "Account cancellation notice",
+    "zh-Hans": "账号注销须知"
+  },
+  {
+    "key": "settingsNative.legal.sourceNotice",
+    "en": "Chinese source text from the existing app. Native-app legal review is still required; an approved English version has not been supplied.",
+    "zh-Hans": "以下为原应用中的中文源文档，仍需完成原生 App 法务审阅；尚未提供经过批准的英文版本。"
+  },
+  {
+    "key": "settingsNative.legal.noAcceptance",
+    "en": "Reading this page does not record agreement or consent.",
+    "zh-Hans": "阅读此页不会记录协议接受或同意。"
+  },
+  {
+    "key": "settingsNative.legal.version",
+    "en": "Source version",
+    "zh-Hans": "源文档版本"
+  },
+  {
+    "key": "settingsNative.legal.effectiveDate",
+    "en": "Source effective date",
+    "zh-Hans": "源文档生效日期"
+  },
+  {
+    "key": "settingsNative.legal.loadFailed",
+    "en": "This document could not be loaded",
+    "zh-Hans": "文档读取失败"
+  },
+  {
+    "key": "settingsNative.legal.missingTitle",
+    "en": "Document not yet provided",
+    "zh-Hans": "文档待提供"
+  },
+  {
+    "key": "settingsNative.legal.pendingSourceText",
+    "en": "The app privacy policy is missing from the source. No substitute text is shown.",
+    "zh-Hans": "源应用尚未提供 App 隐私政策正文，此处不展示替代文本。"
+  },
+  {
+    "key": "settingsNative.legal.regionalTextNotProvided",
+    "en": "Legal documents for the US market have not been provided. Changing the display language does not change your market.",
+    "zh-Hans": "尚未提供美国市场适用的法律文档。更改界面语言不会更改运营市场。"
+  },
+  {
+    "key": "settingsNative.legal.missingMarket",
+    "en": "The app market could not be determined, so no regional legal document is selected.",
+    "zh-Hans": "无法确定应用运营市场，暂不选择地区法律文档。"
+  },
+  {
+    "key": "settingsNative.about.title",
+    "en": "About",
+    "zh-Hans": "关于"
+  },
+  {
+    "key": "settingsNative.about.nameMissing",
+    "en": "App name unavailable",
+    "zh-Hans": "应用名称不可用"
+  },
+  {
+    "key": "settingsNative.about.metadataMissing",
+    "en": "Not provided",
+    "zh-Hans": "未提供"
+  },
+  {
+    "key": "settingsNative.about.version",
+    "en": "Version",
+    "zh-Hans": "版本"
+  },
+  {
+    "key": "settingsNative.about.build",
+    "en": "Build",
+    "zh-Hans": "构建版本"
+  },
+  {
+    "key": "settingsNative.about.tagline",
+    "en": "Discover the city and a new side of yourself",
+    "zh-Hans": "发现城市，也发现新的自己"
+  },
+  {
+    "key": "settingsNative.about.playerCode",
+    "en": "My personal code",
+    "zh-Hans": "我的个人码"
+  },
+  {
+    "key": "settingsNative.about.playerCodeUnavailable",
+    "en": "Personal-code service is not connected in this build",
+    "zh-Hans": "本版本尚未接入个人码服务"
+  },
+  {
+    "key": "settingsNative.about.playerCodeHint",
+    "en": "The source app displays an authenticated code returned by its server. This build does not generate a substitute code.",
+    "zh-Hans": "源应用展示服务器返回的登录用户身份码。本版本不会生成替代码。"
+  },
+  {
+    "key": "settingsNative.about.contact",
+    "en": "Contact",
+    "zh-Hans": "联系我们"
+  },
+  {
+    "key": "settingsNative.about.contactSource",
+    "en": "Contact number listed in the CN source app. Select the number to copy it.",
+    "zh-Hans": "中国源应用中列出的联系电话，可选择并复制。"
+  },
+  {
+    "key": "settingsNative.about.contactUnavailable",
+    "en": "A contact for this market has not been provided",
+    "zh-Hans": "尚未提供此市场的联系方式"
+  },
+  {
+    "key": "settingsNative.privacy.title",
+    "en": "Privacy and account controls",
+    "zh-Hans": "隐私与账号控制"
+  },
+  {
+    "key": "settingsNative.blocked.unavailable",
+    "en": "Control not connected",
+    "zh-Hans": "此控制尚未接入"
+  },
+  {
+    "key": "settingsNative.blocked.locationConsent.title",
+    "en": "Privacy & location",
+    "zh-Hans": "隐私与定位"
+  },
+  {
+    "key": "settingsNative.blocked.locationConsent.message",
+    "en": "Location-consent withdrawal is not connected in this native build. No permission or consent changes can be made on this screen.",
+    "zh-Hans": "此原生版本尚未接入定位同意撤回流程，无法在此更改权限或同意记录。"
+  },
+  {
+    "key": "settingsNative.blocked.marketingConsent.title",
+    "en": "Marketing preferences",
+    "zh-Hans": "营销偏好"
+  },
+  {
+    "key": "settingsNative.blocked.marketingConsent.message",
+    "en": "Marketing preferences require current server records for each merchant and channel. They are not connected here; no on/off state or saved consent is assumed.",
+    "zh-Hans": "营销偏好需要读取各商家、各渠道的服务器记录。此处尚未接入，不推定开关状态或已保存的同意。"
+  },
+  {
+    "key": "settingsNative.blocked.accountDeletion.title",
+    "en": "Account cancellation",
+    "zh-Hans": "账号注销"
+  },
+  {
+    "key": "settingsNative.blocked.accountDeletion.message",
+    "en": "Account cancellation is not connected here. You can read the source notice, but this screen cannot submit or cancel an account-deletion request.",
+    "zh-Hans": "此处尚未接入账号注销流程。可以阅读源文档，但无法提交或撤销注销申请。"
+  },
+  {
+    "key": "settingsNative.attribution.title",
+    "en": "Source artwork credits",
+    "zh-Hans": "源应用素材署名"
+  },
+  {
+    "key": "settingsNative.attribution.context",
+    "en": "Credits retained from the source app. No third-party artwork was copied into this native module.",
+    "zh-Hans": "保留源应用素材署名；此原生模块未复制第三方素材。"
+  },
+  {
+    "key": "settingsNative.fixture.notice",
+    "en": "Offline settings preview; preferences stay in this test session",
+    "zh-Hans": "离线设置预览，偏好仅保留在本次测试会话"
+  }
+]

@@ -1,0 +1,4 @@
+PASS: 13 source routes, exact mutation keys, dormant adapter/locks, 48 bilingual labels
+Swift typecheck/XCTest/Apple UI runtime: NOT_RUN
+
+--- STDERR ---

@@ -1,0 +1,142 @@
+{
+  "static_source_checks": "PASS",
+  "checks": 33,
+  "swift_compilation": "NOT_RUN",
+  "swift_unit_tests": "NOT_RUN",
+  "ios_runtime": "NOT_RUN",
+  "external_requests": 0,
+  "details": [
+    {
+      "name": "source path invite",
+      "pass": true
+    },
+    {
+      "name": "separate grant invite",
+      "pass": true
+    },
+    {
+      "name": "source path handle",
+      "pass": true
+    },
+    {
+      "name": "separate grant handle",
+      "pass": true
+    },
+    {
+      "name": "source path contact",
+      "pass": true
+    },
+    {
+      "name": "separate grant contact",
+      "pass": true
+    },
+    {
+      "name": "source path complaint",
+      "pass": true
+    },
+    {
+      "name": "separate grant complaint",
+      "pass": true
+    },
+    {
+      "name": "source path enrollOffer",
+      "pass": true
+    },
+    {
+      "name": "separate grant enrollOffer",
+      "pass": true
+    },
+    {
+      "name": "all shipping defaults off",
+      "pass": true
+    },
+    {
+      "name": "real transports cannot opt in accidentally",
+      "pass": true
+    },
+    {
+      "name": "gate binds exact endpoint",
+      "pass": true
+    },
+    {
+      "name": "actual injected send",
+      "pass": true
+    },
+    {
+      "name": "permanent block replaced",
+      "pass": true
+    },
+    {
+      "name": "fresh evidence twice",
+      "pass": true
+    },
+    {
+      "name": "exact review comparison",
+      "pass": true
+    },
+    {
+      "name": "scope bound to review",
+      "pass": true
+    },
+    {
+      "name": "session epoch and token equality",
+      "pass": true
+    },
+    {
+      "name": "durable lock before dispatch",
+      "pass": true
+    },
+    {
+      "name": "no automatic unlock on errors",
+      "pass": true
+    },
+    {
+      "name": "old lock migration preserved",
+      "pass": true
+    },
+    {
+      "name": "new keys endpoint scoped and cross epoch",
+      "pass": true
+    },
+    {
+      "name": "contact validates source result",
+      "pass": true
+    },
+    {
+      "name": "raw business text",
+      "pass": true
+    },
+    {
+      "name": "financial contracts not expanded",
+      "pass": true
+    },
+    {
+      "name": "authored coverage testAllFiveExactWireRequestsThroughReviewAndFakeHTTP",
+      "pass": true
+    },
+    {
+      "name": "authored coverage testDefaultOffGlobalOffIndependentGrantsEndpointAndMarker",
+      "pass": true
+    },
+    {
+      "name": "authored coverage testEveryOperationServerUnauthorizedAndMalformedErrors",
+      "pass": true
+    },
+    {
+      "name": "authored coverage testEveryUnknownOutcomePersistsAcrossRelaunchAndEpoch",
+      "pass": true
+    },
+    {
+      "name": "authored coverage testFreshEvidenceChangePermissionLossAndSessionChangeNeverSend",
+      "pass": true
+    },
+    {
+      "name": "authored coverage testEndpointSwapInvalidatesPreparedReview",
+      "pass": true
+    },
+    {
+      "name": "authored coverage testOldUnknownLocksSurviveUpgradeToEndpointKeys",
+      "pass": true
+    }
+  ]
+}

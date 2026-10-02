@@ -5,6 +5,8 @@ import SwiftUI
     let reader: any TicketWalletReading
     var onClose: (() -> Void)? = nil
     var onSignIn: (() -> Void)? = nil
+    var makeTeamCoordinator: (() -> TeamCoordinator)? = nil
+    var orderLifecycleCoordinator: OrderLifecycleCoordinator? = nil
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var model = TicketWalletScreenModel<TicketWalletSnapshot>()
     @State private var isVisible = false
@@ -38,7 +40,7 @@ import SwiftUI
                     ForEach(Array(snapshot.tickets.enumerated()), id: \.offset) { _, ticket in
                         if ticket.action == .detail {
                             NavigationLink {
-                                TicketWalletDetailView(id: ticket.id, reader: reader)
+                                TicketWalletDetailView(id: ticket.id, reader: reader, lifecycleCoordinator: orderLifecycleCoordinator)
                             } label: { TicketWalletRow(ticket: ticket) }
                             .buttonStyle(QuestifyCardButtonStyle())
                             .accessibilityIdentifier("ticketWallet.row.\(ticket.id)")
@@ -48,6 +50,13 @@ import SwiftUI
                                 .accessibilityIdentifier("ticketWallet.row.\(ticket.id)")
                                 .questifyCardListRow()
                         }
+                    }
+                }
+                if reader.isAuthenticated, let makeTeamCoordinator {
+                    Section {
+                        NavigationLink { TeamHomeView(coordinator: makeTeamCoordinator(), makeCoordinator: makeTeamCoordinator) } label: {
+                            Label("team.title", systemImage: "person.3")
+                        }.accessibilityIdentifier("ticketWallet.teams")
                     }
                 }
                 Section { Text("ticketWallet.readOnly").font(.footnote).foregroundStyle(.secondary) }

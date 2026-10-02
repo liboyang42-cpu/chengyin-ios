@@ -31,13 +31,13 @@ struct SquareIssueView: View {
     }
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Label(key, systemImage: "exclamationmark.circle")
+            Label(key, systemImage: "exclamationmark.circle").accessibilityIdentifier("square.error")
             if let failure = error as? SquareReadFailure, case let .server(_, message) = failure, let message, !message.isEmpty {
                 // Backend messages remain verbatim, including unavailable/moderation responses.
                 Text(verbatim: message).font(.caption).textSelection(.enabled)
             }
             if let retry { Button("square.retry", action: retry).accessibilityIdentifier("square.retry") }
-        }.accessibilityIdentifier("square.error")
+        }
     }
 }
 struct SquareImage: View {

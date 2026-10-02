@@ -1,0 +1,18 @@
+{
+  "NSCameraUsageDescription": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Use the camera to scan QR codes or take aftercare evidence photos when you choose."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当你主动选择时，使用相机扫描二维码或拍摄售后凭证照片。"
+        }
+      }
+    }
+  }
+}

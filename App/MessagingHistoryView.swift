@@ -11,6 +11,8 @@ struct MessagingHistoryView: View {
     let conversation: MessagingConversation?
     let reader: any MessagingReading
     let sender: MessageActionCoordinator?
+    let mediaReader: (any SocialMessageMediaReading)?
+    let expanded: IMExpandedNavigationContext?
     @State private var history: MessagingHistory
     @State private var loadedIdentity: MessagingReadIdentity?
     @State private var isLoading = true
@@ -20,8 +22,8 @@ struct MessagingHistoryView: View {
     @State private var generation: UInt64 = 0
     @State private var visibleMessageID: Int?
 
-    init(conversationID: Int, conversation: MessagingConversation? = nil, reader: any MessagingReading, sender:MessageActionCoordinator?=nil) {
-        self.conversationID = conversationID; self.conversation = conversation; self.reader = reader;self.sender=sender
+    init(conversationID: Int, conversation: MessagingConversation? = nil, reader: any MessagingReading, sender:MessageActionCoordinator?=nil,mediaReader:(any SocialMessageMediaReading)?=nil,expanded:IMExpandedNavigationContext?=nil) {
+        self.conversationID = conversationID; self.conversation = conversation; self.reader = reader;self.sender=sender;self.mediaReader=mediaReader;self.expanded=expanded
         _history = State(initialValue: MessagingHistory(conversationID: conversationID))
     }
     var body: some View {
@@ -53,6 +55,15 @@ struct MessagingHistoryView: View {
         .appNavigationTitle("messaging.history.title")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                if loadedIdentity == reader.identity, loadedIdentity != nil, !isLoading, issue == nil,
+                   let owner = expanded?.coordinator(conversationID) {
+                    NavigationLink {
+                        IMConversationControlsView(coordinator: owner, identity: reader.identity, uploadOwner: expanded?.uploadCoordinator(conversationID)) { _ in Task { await reload() } }
+                    } label: { Label("im.full.title", systemImage: "ellipsis.circle") }
+                    .accessibilityIdentifier("im.full.controlsEntry")
+                }
+            }
             ToolbarItem(placement: .principal) {
                 if loadedIdentity == reader.identity, loadedIdentity != nil, history.conversationID == conversationID {
                     MessagingConversationName(conversation: conversation).font(.headline).lineLimit(1)
@@ -97,7 +108,7 @@ struct MessagingHistoryView: View {
                 ForEach(history.messages) { message in
                     NavigationLink {
                         MessagingMessageDetailView(message: message, conversation: conversation,
-                            reader: reader, identity: loadedIdentity)
+                            reader: reader, identity: loadedIdentity, mediaReader: mediaReader, expanded: expanded)
                     } label: {
                         MessagingBubble(message: message, conversation: conversation,
                             accountID: loadedIdentity?.accountID ?? 0)

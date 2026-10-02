@@ -1,0 +1,19 @@
+{
+  "core_test_methods": 1901,
+  "ui_test_methods": 287,
+  "ui_classes": 48,
+  "ui_shard_counts": [
+    49,
+    48,
+    48,
+    48,
+    47,
+    47
+  ],
+  "app_swift_files": 247,
+  "core_swift_files": 285,
+  "bilingual_keys": 4849,
+  "focused_swift_files": 69,
+  "swift_available": false,
+  "xcodebuild_available": false
+}

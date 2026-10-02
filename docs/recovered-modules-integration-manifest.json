@@ -1,0 +1,487 @@
+[
+  {
+    "path": "Core/PlayAdvancedRuntime.swift",
+    "sha256": "1049bed3fdbf7d88f80d1bc69f12f18d51c0d0789ad98416aa1cbaea029c0d1c",
+    "source_package": "native-complete-play-new"
+  },
+  {
+    "path": "Core/PlayCircleRuntime.swift",
+    "sha256": "56ff0ec233beef2c75cff4779299fd0ec8e5dba0941036ab5123d0be2846b8b0",
+    "source_package": "native-complete-play-new"
+  },
+  {
+    "path": "Core/PlayDirectorRecap.swift",
+    "sha256": "f533e35f847a13976326c3ec68b69cce62208bb8723e491c8d5611168732a71f",
+    "source_package": "native-complete-play-new"
+  },
+  {
+    "path": "Core/PlayDirectorRuntime.swift",
+    "sha256": "c414ba36cba1496d92fcc60921da26e1ba8cecccabff6c56c4530d437e0e49b1",
+    "source_package": "native-complete-play-new"
+  },
+  {
+    "path": "Core/PlayExperienceCoordinator.swift",
+    "sha256": "3509ce7912d213de92baee0fc97d04c806b3f99fd05010d940f9ef8b45f95fe5",
+    "source_package": "native-complete-play-new"
+  },
+  {
+    "path": "Core/PlayExperienceService.swift",
+    "sha256": "d3d3360d3d04f66b07c5ecda813a16586ed1157976fae8e2408b2f5678eec14f",
+    "source_package": "native-complete-play-new"
+  },
+  {
+    "path": "Core/PlayGameSessionRuntime.swift",
+    "sha256": "59876faa945d60ddafc7835757eb9b3388778884028155865c03f0251512f013",
+    "source_package": "native-complete-play-new"
+  },
+  {
+    "path": "Core/PlayOperatingSummary.swift",
+    "sha256": "78610c309a21377f8edfb29a9c183a6c737f68ef41bbaa45a5c3fb9983b0bf38",
+    "source_package": "native-complete-play-new"
+  },
+  {
+    "path": "Core/PlayPrefabRuntime.swift",
+    "sha256": "4bd40c4773de9019f98f6e9d24de2701621f487190d93e1a5dd7bae8cf60b8e5",
+    "source_package": "native-complete-play-new"
+  },
+  {
+    "path": "Core/PlayPrefabScenes.swift",
+    "sha256": "b17570333601c2e4786a360dde3cafe88b936add56ee201ddc054e9dd20fdf5a",
+    "source_package": "native-complete-play-new"
+  },
+  {
+    "path": "Core/PlayPreferenceRuntime.swift",
+    "sha256": "4032235b3de4c95a29a06f5e58e90429e8872fcac578dc457255974fc84b80b7",
+    "source_package": "native-complete-play-new"
+  },
+  {
+    "path": "Core/PlayStillnessRuntime.swift",
+    "sha256": "7b4687373807cb6baf884f0fc3c0be122525921aaa20f9533226dd4a41c2f052",
+    "source_package": "native-complete-play-new"
+  },
+  {
+    "path": "App/PlayAdvancedView.swift",
+    "sha256": "c89a9c95f23375ce401dc5c4ff8b7c8f9d32f33738eb8bfee5e1cd3b91008b05",
+    "source_package": "native-complete-play-new"
+  },
+  {
+    "path": "App/PlayDeviceTaskViews.swift",
+    "sha256": "74f2300f596b1b019592ad433e3c6db7621ebf2a8f804138b21f1c45fc53e9c8",
+    "source_package": "native-complete-play-new"
+  },
+  {
+    "path": "App/PlayDirectorPrefabFixtureSupport.swift",
+    "sha256": "cda716e45b088c56955260d5d14a4a3e4c6523f0602f33cba46d0da87433a291",
+    "source_package": "native-complete-play-new"
+  },
+  {
+    "path": "App/PlayDirectorView.swift",
+    "sha256": "8f3830664f6760d0d22885baeb44e56e07434c36c549ed65cce0334b2cbdab0e",
+    "source_package": "native-complete-play-new"
+  },
+  {
+    "path": "App/PlayExperienceFixtureSupport.swift",
+    "sha256": "ce35c6ce733f891c95ff4deedd2fb38100831892d72fd87344152e68daea8bf7",
+    "source_package": "native-complete-play-new"
+  },
+  {
+    "path": "App/PlayExperienceView.swift",
+    "sha256": "471e5a966eb3564cfebfd2cfe11e9e2d23da87a32207e5c467768f6a8a197100",
+    "source_package": "native-complete-play-new"
+  },
+  {
+    "path": "App/PlayPlayerAndCircleViews.swift",
+    "sha256": "aacb7560ae065dc9f7c0b0e4ab3045897db84c24a42c078c002e0caaf0050782",
+    "source_package": "native-complete-play-new"
+  },
+  {
+    "path": "App/PlayPrefabRuntimeView.swift",
+    "sha256": "e0c46b268790dd7e11c497b6e08c859e657f7473e4ead16d4f0d29329adb28f9",
+    "source_package": "native-complete-play-new"
+  },
+  {
+    "path": "App/PlayPreferenceViews.swift",
+    "sha256": "4a65a73bad6c4b4913a7872a87b2eba0e2d5d6ef26439949a236f8b066138378",
+    "source_package": "native-complete-play-new"
+  },
+  {
+    "path": "App/SessionPlayRuntimeView.swift",
+    "sha256": "2f6b06f80f8cbdeb2289988abb0174011d653bfc33874350b66928c22880465c",
+    "source_package": "native-complete-play-new"
+  },
+  {
+    "path": "Tests/CoreTests/PlayDirectorPrefabTests.swift",
+    "sha256": "d39798223fb48f1411595eb35333fa57963388f6c34db533d911a8f09a0f0c93",
+    "source_package": "native-complete-play-new"
+  },
+  {
+    "path": "Tests/CoreTests/PlayPreferenceTests.swift",
+    "sha256": "bd6eb17f9ad70feeccf1850842ef6d736fa79ae4a0ba15ac8ddea3fbcefb76ed",
+    "source_package": "native-complete-play-new"
+  },
+  {
+    "path": "Tests/AppUITests/PlayDirectorPrefabFlowTests.swift",
+    "sha256": "2c2ab9b68ed47a7e85f6d6336582093946be90c685f6628c6482cd003c45a841",
+    "source_package": "native-complete-play-new"
+  },
+  {
+    "path": "Tests/AppUITests/PlayPreferenceFlowTests.swift",
+    "sha256": "006d9ae2be954591b063df4acef28ace30730df4c02a3c7434087fcc18ac7e5c",
+    "source_package": "native-complete-play-new"
+  },
+  {
+    "path": "Tests/ContractChecks/test_play_director_prefab_contracts.py",
+    "sha256": "9153582b31d9b3e02d46ce8302e0dc77a7d4c20bfffe5481df3b0c98ac871dfa",
+    "source_package": "native-complete-play-new"
+  },
+  {
+    "path": "Tests/ContractChecks/test_play_preference_contracts.py",
+    "sha256": "7158375aa011410c8caa1372c74261b23ce6882e4ba3ec070f6f57e106195a15",
+    "source_package": "native-complete-play-new"
+  },
+  {
+    "path": "docs/app-session-play-extension.snippet.swift.txt",
+    "sha256": "5dfa27f313734d618fbe771a2ab2977fd8c4af90527581e479e6e3c9988de6b6",
+    "source_package": "native-complete-play-new"
+  },
+  {
+    "path": "docs/play-director-prefab-extension.md",
+    "sha256": "11215c40e49d97c89072a1f2ae0f98596170c2e8392a21fb224e32e26100cf89",
+    "source_package": "native-complete-play-new"
+  },
+  {
+    "path": "docs/play-experience-localizations.json",
+    "sha256": "37937970883489cd7effc0ddec137038c5f652fb783d75084a16dbe7952d0937",
+    "source_package": "native-complete-play-new"
+  },
+  {
+    "path": "Core/MerchantBusinessQuery.swift",
+    "sha256": "8ae347444e61e6d14ad9b981701a0d73f5c6bdad9c52c31a22220a720d25de49",
+    "source_package": "native-merchant-business-new"
+  },
+  {
+    "path": "Core/MerchantBusinessCoordinator.swift",
+    "sha256": "c5f1a438cf0488b6e3ac4561a0689c9e65b92adfca36b721ea7b54e391dda032",
+    "source_package": "native-merchant-business-new"
+  },
+  {
+    "path": "Core/MerchantBusinessReading.swift",
+    "sha256": "a186f0404f1818afe12deea732cd9d045899e735e1f0c223a7c77a3594b6f825",
+    "source_package": "native-merchant-business-new"
+  },
+  {
+    "path": "Core/MerchantBusinessMutation.swift",
+    "sha256": "4609fd7c17c486e69445c691990ef3fe803bac4c068cddd0bd5dca3b99ae5eb0",
+    "source_package": "native-merchant-business-new"
+  },
+  {
+    "path": "Core/MerchantBusinessSyntheticFixtures.swift",
+    "sha256": "99fef43a1352bea7fd5e0fd351b0c756eebbe4514b2bf2cd180b877acfaa9ab2",
+    "source_package": "native-merchant-business-new"
+  },
+  {
+    "path": "Core/MerchantBusinessValue.swift",
+    "sha256": "c816c7b91d2fd7ed32c518d34211bb74058b1f721bccc595bced0f6c5d0437f1",
+    "source_package": "native-merchant-business-new"
+  },
+  {
+    "path": "Core/MerchantRedemptionContext.swift",
+    "sha256": "7b714f996b00014ff175f8b8f06eca6647ceea401086c9456c6eb43f9fbd7155",
+    "source_package": "native-merchant-business-new"
+  },
+  {
+    "path": "Core/MerchantBusinessService.swift",
+    "sha256": "c115bd7169d6557c1bd5e9e53533df2c3ebbcf782020fece74945a992c8870c9",
+    "source_package": "native-merchant-business-new"
+  },
+  {
+    "path": "Core/MerchantBusinessDocuments.swift",
+    "sha256": "c66365465f1b0809a1a367ab63e9ecc73864f733311316370f93bd1761256272",
+    "source_package": "native-merchant-business-new"
+  },
+  {
+    "path": "Core/MerchantAftercareEvidenceAdapter.swift",
+    "sha256": "59b48e64d0f5965fea6af16d4e334d2ad611bad79e94c21d2ba3ef8aa06f865f",
+    "source_package": "native-merchant-business-new"
+  },
+  {
+    "path": "App/MerchantBusinessRecordViews.swift",
+    "sha256": "e8073f30c69c8f6150dc370374ae80dec6525ea65987c866cd9c52f711d0f8b1",
+    "source_package": "native-merchant-business-new"
+  },
+  {
+    "path": "App/MerchantBusinessEditor.swift",
+    "sha256": "f9d578c3a7fffd47e77e5852a5ffe4309b2899bf9fe5c1d13e7be0889880ac8e",
+    "source_package": "native-merchant-business-new"
+  },
+  {
+    "path": "App/MerchantBusinessViews.swift",
+    "sha256": "d31e96bef5cba38f6eafb4bc1d07ae0f2e021a4368a44de02da8e5a08000779c",
+    "source_package": "native-merchant-business-new"
+  },
+  {
+    "path": "App/MerchantBusinessFixtureSupport.swift",
+    "sha256": "c41550708121365289270d14951a99b4db6d9013b5cb7392f647fa39153f8677",
+    "source_package": "native-merchant-business-new"
+  },
+  {
+    "path": "Tests/AppUITests/MerchantBusinessFlowTests.swift",
+    "sha256": "9a50fed5fe379033a7eaa1cdfd699d347f0eea484a76a4682df3d5a19cb2c734",
+    "source_package": "native-merchant-business-new"
+  },
+  {
+    "path": "Tests/CoreTests/MerchantBusinessServiceTests.swift",
+    "sha256": "16efced3a1bc5f08dfd46b6b042e4ebf0e1f1d8a6ed6706d4bf52c92da35032f",
+    "source_package": "native-merchant-business-new"
+  },
+  {
+    "path": "Tests/CoreTests/MerchantRedemptionContextTests.swift",
+    "sha256": "2ecee4e7aa22c9aa6401b390ced9e67ba7aaa8fa0d08d25ceb23839612e41955",
+    "source_package": "native-merchant-business-new"
+  },
+  {
+    "path": "Tests/CoreTests/MerchantBusinessContractsTests.swift",
+    "sha256": "1dd718e6cf8752c2c36bef29c844d72a48f7ee917ff0e9a731b09b5677f37e8b",
+    "source_package": "native-merchant-business-new"
+  },
+  {
+    "path": "docs/merchant-business-module.md",
+    "sha256": "a9955ac7db73e528dc810a313ff644fdee4660fb3956917fe75f1410c34861e8",
+    "source_package": "native-merchant-business-new"
+  },
+  {
+    "path": "docs/merchant-business-verification.json",
+    "sha256": "90cf8c20c5dc73d6e38613168f3f06c8c73b30b744e5fa3e9b27c37529175007",
+    "source_package": "native-merchant-business-new"
+  },
+  {
+    "path": "Resources/MerchantBusinessLocalizations.fragment.json",
+    "sha256": "01480c91cfc600fc0fcfb10b674fea297e6a0a0fc0d956434f4579ddb9f93813",
+    "source_package": "native-merchant-business-new"
+  },
+  {
+    "path": "tools/check_merchant_business.py",
+    "sha256": "11850219ec2ed77989c416a7b839b1fdfc17963f80dd07c768ede98ce8ba03f5",
+    "source_package": "native-merchant-business-new"
+  },
+  {
+    "path": "tools/build_merchant_business_localizations.py",
+    "sha256": "4ae65567026c26c69360f64a038aa617c1f0ebd0652287d19f41286906b1bb80",
+    "source_package": "native-merchant-business-new"
+  },
+  {
+    "path": "Core/MerchantContentCommands.swift",
+    "sha256": "6810a9dcac694db8a71de5d50a8e0e7ba5cecec5fc44882a5a8361fb031194a8",
+    "source_package": "native-merchant-content-new"
+  },
+  {
+    "path": "Core/MerchantContentDomain.swift",
+    "sha256": "3b0c38a01132ed9bfbb164b0b2b5e81113df6869e0afa48376df3afded7ae19f",
+    "source_package": "native-merchant-content-new"
+  },
+  {
+    "path": "Core/MerchantContentCoordinator.swift",
+    "sha256": "34c98501c3a777449bb06862f0116fd420905f7efb5c60fda1d6c58f9f6e8626",
+    "source_package": "native-merchant-content-new"
+  },
+  {
+    "path": "Core/MerchantContentSyntheticFixtures.swift",
+    "sha256": "c491bde66076668ca9f8b5ffd0efb79aada5b5d314c9f9dd021998c8dd055d30",
+    "source_package": "native-merchant-content-new"
+  },
+  {
+    "path": "Core/MerchantStationContracts.swift",
+    "sha256": "35b9b35c841897c193cc633a1cbe347a4d40df272f2c07c4290c28881b337956",
+    "source_package": "native-merchant-content-new"
+  },
+  {
+    "path": "Core/MerchantContentService.swift",
+    "sha256": "cf85b10be41628a483a5954d37b49a03a3f88c5946fe2987e224d9c0f07e1434",
+    "source_package": "native-merchant-content-new"
+  },
+  {
+    "path": "App/MerchantContentEditor.swift",
+    "sha256": "70958f4db0c60bb3f88f49bb9ffc5775779074d3a9043fdb6624fd01aa5f85e9",
+    "source_package": "native-merchant-content-new"
+  },
+  {
+    "path": "App/MerchantContentViews.swift",
+    "sha256": "34e415338ea75196b9074b1012c577ca1cfd63345018e2c669727e5969f529fc",
+    "source_package": "native-merchant-content-new"
+  },
+  {
+    "path": "App/MerchantContentFixtureScenarioView.swift",
+    "sha256": "a42a31fa25ba7017f31094e8d15d2296f60d9780731a3fd175235f2ecff751d5",
+    "source_package": "native-merchant-content-new"
+  },
+  {
+    "path": "Tests/AppUITests/MerchantContentFlowTests.swift",
+    "sha256": "298436ee0b4c62ca705dd5989532f5a3c57316a23f18ae8d887e92cd9353dd23",
+    "source_package": "native-merchant-content-new"
+  },
+  {
+    "path": "Tests/CoreTests/MerchantContentContractTests.swift",
+    "sha256": "3ec6124be9110bb1b5f50f0c4bb1e06d4c3addcfabdc794fb748f07a2b234abf",
+    "source_package": "native-merchant-content-new"
+  },
+  {
+    "path": "docs/merchant-content-migration.md",
+    "sha256": "f0658f43317d1df99136c8e760f506ba5262055e29d1d78dfb1d32031dd880d3",
+    "source_package": "native-merchant-content-new"
+  },
+  {
+    "path": "docs/merchant-content-integration.md",
+    "sha256": "bb7283a6eaf501c79731722a1f27f0a201dfda3efd03b7aed87076d8987f208a",
+    "source_package": "native-merchant-content-new"
+  },
+  {
+    "path": "docs/merchant-content-static-evidence.json",
+    "sha256": "27cbe6815f9e887b205e756e418e2c3c53abca5db8c5c32a08dc4a33ef44e035",
+    "source_package": "native-merchant-content-new"
+  },
+  {
+    "path": "Resources/MerchantContentLocalizations.fragment.json",
+    "sha256": "fed04de2dd205f6cef118a0de7bc18f46afe98f076a7b6dbe59b9e8df8bd8060",
+    "source_package": "native-merchant-content-new"
+  },
+  {
+    "path": "tools/build_merchant_content_localizations.py",
+    "sha256": "2e86e0d184ccc7c4805d5bd12b4fbcef42dc75eefa4e28e8b219c9b8f6c09cd5",
+    "source_package": "native-merchant-content-new"
+  },
+  {
+    "path": "tools/check_merchant_content.py",
+    "sha256": "a6d2bd92fc0eb180bb7bc6ef9c56fe006fec75f42b39e9b5949ec0588b35aac9",
+    "source_package": "native-merchant-content-new"
+  },
+  {
+    "path": "Core/CooperationFlowService.swift",
+    "sha256": "64a4abd41f3adf8f2701e077ba2308cb7911ea5875ef85ebf0b034f6f460788e",
+    "source_package": "native-cooperation-flows-new"
+  },
+  {
+    "path": "Core/CooperationFlowContracts.swift",
+    "sha256": "747e91e6dfd6e21d08e1809ff2c605521cf97fd6c1049347546f4e1058e4e0d3",
+    "source_package": "native-cooperation-flows-new"
+  },
+  {
+    "path": "Core/CooperationFlowEvidenceReader.swift",
+    "sha256": "d642b21e69005f85965dd9e8c4445d3b30e7100ce3f94cc32cf3efa369502708",
+    "source_package": "native-cooperation-flows-new"
+  },
+  {
+    "path": "Core/CooperationFlowCoordinator.swift",
+    "sha256": "56147bcdce447f9b1d0cffa72ec4563dd796075933bcb25a178c8368fba2a3f8",
+    "source_package": "native-cooperation-flows-new"
+  },
+  {
+    "path": "App/CooperationFlowFixtures.swift",
+    "sha256": "630c29294b48f0de0300d7e015c0e95e92f2c9ee7be5692fb01fb77fbe268745",
+    "source_package": "native-cooperation-flows-new"
+  },
+  {
+    "path": "App/CooperationFlowWorkbench.swift",
+    "sha256": "b69118982e6f4257a7a9b638100b2b5c80b527bc5b27122f60e587c735fe915a",
+    "source_package": "native-cooperation-flows-new"
+  },
+  {
+    "path": "App/CooperationFlowEditors.swift",
+    "sha256": "e268a4ea44d60f14cb706729e349aad5989c502923b681f97b3fedc49f562315",
+    "source_package": "native-cooperation-flows-new"
+  },
+  {
+    "path": "Tests/AppUITests/CooperationFlowUITests.swift",
+    "sha256": "25c485153b3b6bdbba45db46fb16ab89c9306b9fdf3f9badc83bd407cd25bf08",
+    "source_package": "native-cooperation-flows-new"
+  },
+  {
+    "path": "Tests/CoreTests/CooperationFlowTests.swift",
+    "sha256": "f8597096c38445cb5929da2f34fa28ee6654351c6fccc12148880cc02b269749",
+    "source_package": "native-cooperation-flows-new"
+  },
+  {
+    "path": "docs/cooperation-flows/validation.json",
+    "sha256": "f38fb2f020f00f720e6bc0cc7f0283d372fb1f66eecc505ba2515c8ced026a34",
+    "source_package": "native-cooperation-flows-new"
+  },
+  {
+    "path": "docs/cooperation-flows/INTEGRATION.md",
+    "sha256": "54ee408fa40cd4332da408ed70b7f7ca07359fb917d3707608261fa362c1adde",
+    "source_package": "native-cooperation-flows-new"
+  },
+  {
+    "path": "docs/cooperation-flows/parser-check-output.txt",
+    "sha256": "0b4a3ea204791b5e0d441d6463e08b74a9dad8a97f0785933ac17f5f24303cc6",
+    "source_package": "native-cooperation-flows-new"
+  },
+  {
+    "path": "docs/cooperation-flows/static-check-output.txt",
+    "sha256": "636b2fb084b5462a4173565d0b5691733fee3a730f6a5ea459f4222c87abf141",
+    "source_package": "native-cooperation-flows-new"
+  },
+  {
+    "path": "docs/cooperation-flows/localizations.fragment.json",
+    "sha256": "ac7e480f23960a21ed1d6cbca159857f357a55c140ce3c196cd7927c12f6d14c",
+    "source_package": "native-cooperation-flows-new"
+  },
+  {
+    "path": "tools/check_cooperation_flows.py",
+    "sha256": "59e176988a0edf4d379fbd0a20632c2e4540ddf410466be6164605ddffe952e4",
+    "source_package": "native-cooperation-flows-new"
+  },
+  {
+    "path": "App/AppSession.swift",
+    "sha256": "7465bfab13bd4a8c51c1f7e3198b2fcd7203cb47c387e1b8fdf80fc4f6a70d56",
+    "source_package": "additive-host-integration"
+  },
+  {
+    "path": "App/AccountView.swift",
+    "sha256": "69e54b887472935e74e9dac81aa58073ae93f134cec4b7122385c9951518a2f1",
+    "source_package": "additive-host-integration"
+  },
+  {
+    "path": "App/MerchantHomeView.swift",
+    "sha256": "6a967691fda2b574c8fda572346bf52f060634a4969e057afcf56efe24c885f8",
+    "source_package": "additive-host-integration"
+  },
+  {
+    "path": "App/QuestifyApp.swift",
+    "sha256": "5426108e6461c3548a4a8ab215f1f89e4c7e7b5378ef41a60e14aa9706199c0f",
+    "source_package": "additive-host-integration"
+  },
+  {
+    "path": "App/ActivityDetailView.swift",
+    "sha256": "98e96fce615b41f86027a8ad1108100a0a7e7111eac62d768b41bda13b2f1e83",
+    "source_package": "additive-host-integration"
+  },
+  {
+    "path": "App/ModuleFixtureSupport.swift",
+    "sha256": "677023989e5810b87de5221753ecaf436d1ab3fd6e3dd7ca74e15d6d230bfa19",
+    "source_package": "additive-host-integration"
+  },
+  {
+    "path": "App/MerchantCooperationSupplyView.swift",
+    "sha256": "36703cb79e141c686af93dc5d087cd210e94d19b7f7f0b83b786f9c61fb5a351",
+    "source_package": "additive-host-integration"
+  },
+  {
+    "path": "Resources/Localizable.xcstrings",
+    "sha256": "dd48e8692c63b193f0b1de7ef228d8f0b0a1867c4790a410a9796b48e8f0eebb",
+    "source_package": "additive-host-integration"
+  },
+  {
+    "path": "Questify.xcodeproj/project.pbxproj",
+    "sha256": "98e2275f954224e24379c16f18140f721eafa6542535650f52b364ed7c3b149f",
+    "source_package": "additive-host-integration"
+  },
+  {
+    "path": "docs/ui-shard-inventory.json",
+    "sha256": "ab52570e8733d7997a4cb9bc01dc94922fe91c2219c08db2b9627a0232ef852a",
+    "source_package": "additive-host-integration"
+  },
+  {
+    "path": "Tests/ContractChecks/test_recovered_module_integration.py",
+    "sha256": "e94df7cf15ec87e20faa8e27342dcd08e399dce6dfb221d06e7ec9f99ac94ba3",
+    "source_package": "additive-host-integration"
+  }
+]

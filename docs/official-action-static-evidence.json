@@ -1,0 +1,16 @@
+{
+  "static_checks": "PASS",
+  "assertions": 243,
+  "core_tests_authored": 24,
+  "ui_tests_authored": 3,
+  "bilingual_keys": 74,
+  "swift_test": "NOT_RUN: Swift unavailable",
+  "xcode_ui": "NOT_RUN: Xcode/simulator unavailable",
+  "remote_actions": 0,
+  "source_sha256": {
+    "lib/data/api/official_api.dart": "eddb72f0c9e5f81c12b5291cd9f2eb141e842d0e38cda29d5655eb8c82b484f1",
+    "lib/data/models/official_event.dart": "c33f8bd20d738e56b0c7b60557b56c4d82d11e77e8282e85d02e8412b7ee5fc1",
+    "lib/feature/official/official_publish_page.dart": "c3258cdb1616497c31f0ae1e87790936510f1e407764328149b81aab14fc0dce",
+    "test/data/api/official_publisher_test.dart": "2ea430faff3c9f9d5e8100ef5dcdbbef3e5812ed0e0adad77a4832f869bb73e5"
+  }
+}

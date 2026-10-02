@@ -1,0 +1,8 @@
+# Official PyPI wheels verified 2026-10-01. CPython 3.12, Linux glibc x86_64 only.
+# --only-binary and --require-hashes intentionally prevent unreviewed source builds.
+# tree_sitter-0.26.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+tree-sitter==0.26.0 \
+    --hash=sha256:5a6b333b0282d8bb0af741f9b018bd2523d4eecb2686bf6717066a625fecfaa4
+# tree_sitter_swift-0.7.3-cp38-abi3-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl
+tree-sitter-swift==0.7.3 \
+    --hash=sha256:f38feeb4f7350c8b30d567a0dc08bf1eeaa67c241b6888d72a45a8b1a4aa7187

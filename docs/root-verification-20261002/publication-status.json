@@ -1,0 +1,12 @@
+{
+  "checked_at_utc": "2026-10-02T02:40:33+00:00",
+  "branch": "migration/native-ios",
+  "remote_commit": "b754aa1131d52cc7368185e04333d4b26fb49d16",
+  "latest_ci_run": "https://github.com/liboyang42-cpu/chengyin-ios/actions/runs/36903650207",
+  "latest_ci_head": "b754aa1131d52cc7368185e04333d4b26fb49d16",
+  "latest_ci_status": "completed",
+  "latest_ci_conclusion": "failure",
+  "new_working_source_committed_or_pushed": false,
+  "new_ci_started": false,
+  "publication_blocker": "Unresolved GitHub write confirmation; partial immutable objects are not a commit or branch update."
+}

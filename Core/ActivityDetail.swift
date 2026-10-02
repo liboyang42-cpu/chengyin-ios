@@ -21,11 +21,14 @@ public struct ActivityTicket: Decodable, Equatable, Identifiable {
 }
 
 public struct ActivityDetail: Decodable, Equatable {
+    /// Fresh source evidence stays separate from display defaults; unavailable proof stays nil.
+    public let publisherAuthoritySource: PublisherActivityAuthoritySource?
     public let summary: ActivitySummary
     public let tickets: [ActivityTicket]
     public let hostMemberID: Int?
     enum CodingKeys: String, CodingKey { case omsTicketList, memberId }
     public init(from decoder:Decoder) throws {
+        publisherAuthoritySource = try? PublisherActivityAuthoritySource(from: decoder)
         summary=try ActivitySummary(from:decoder)
         let c=try decoder.container(keyedBy:CodingKeys.self)
         tickets=try c.decodeIfPresent([ActivityTicket].self,forKey:.omsTicketList) ?? []

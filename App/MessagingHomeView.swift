@@ -5,11 +5,13 @@ import SwiftUI
 @MainActor
 struct MessagingHomeView: View {
     let reader: any MessagingReading
+    var mediaReader: (any SocialMessageMediaReading)? = nil
     var senderForConversation: ((Int)->MessageActionCoordinator?)? = nil
+    var expanded: IMExpandedNavigationContext? = nil
     private let identity: MessagingReadIdentity?
-    init(reader:any MessagingReading,senderForConversation:((Int)->MessageActionCoordinator?)?=nil) { self.reader=reader;self.senderForConversation=senderForConversation;identity=reader.identity }
+    init(reader:any MessagingReading,mediaReader:(any SocialMessageMediaReading)?=nil,senderForConversation:((Int)->MessageActionCoordinator?)?=nil,expanded:IMExpandedNavigationContext?=nil) { self.reader=reader;self.mediaReader=mediaReader;self.senderForConversation=senderForConversation;self.expanded=expanded;identity=reader.identity }
     var body: some View {
-        MessagingConversationListView(reader:reader,senderForConversation:senderForConversation).id(identity)
+        MessagingConversationListView(reader:reader,mediaReader:mediaReader,senderForConversation:senderForConversation,expanded:expanded).id(identity)
             .appNavigationTitle("messaging.title")
     }
 }
@@ -17,7 +19,10 @@ struct MessagingHomeView: View {
 @MainActor
 private struct MessagingConversationListView: View {
     let reader: any MessagingReading
+    var mediaReader: (any SocialMessageMediaReading)? = nil
     var senderForConversation: ((Int)->MessageActionCoordinator?)? = nil
+    var expanded: IMExpandedNavigationContext? = nil
+    @State private var newConversation: Int?
     @Environment(\.locale) private var locale
     @State private var query = ""
     @State private var scope = MessagingConversationScope.all
@@ -44,7 +49,7 @@ private struct MessagingConversationListView: View {
                         Section {
                             ForEach(Array(rows.prefix(displayLimit))) { conversation in
                                 NavigationLink {
-                                    MessagingHistoryView(conversationID:conversation.id,conversation:conversation,reader:reader,sender:senderForConversation?(conversation.id))
+                                    MessagingHistoryView(conversationID:conversation.id,conversation:conversation,reader:reader,sender:senderForConversation?(conversation.id),mediaReader:mediaReader,expanded:expanded)
                                 } label: { MessagingConversationRow(conversation: conversation) }
                                 .accessibilityIdentifier("messaging.conversation.\(conversation.id)")
                             }
@@ -57,6 +62,19 @@ private struct MessagingConversationListView: View {
                     .listStyle(.plain)
                 }
             }
+        }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                if let starter = expanded?.starter() {
+                    NavigationLink {
+                        IMStartConversationView(owner: starter, identity: reader.identity) { newConversation = $0 }
+                    } label: { Label("im.full.start", systemImage: "square.and.pencil") }
+                    .accessibilityIdentifier("im.full.startEntry")
+                }
+            }
+        }
+        .navigationDestination(item: $newConversation) { id in
+            MessagingHistoryView(conversationID: id, reader: reader, sender: senderForConversation?(id), mediaReader: mediaReader, expanded: expanded)
         }
         .searchable(text: $query, prompt: "messaging.search")
         .onChange(of: query) { _, _ in displayLimit = 30 }

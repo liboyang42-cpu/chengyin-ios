@@ -14,6 +14,7 @@ private final class RegistrationSheetModel: ObservableObject {
 /// The default quote gate is off, and production creation is unconditionally disabled.
 @MainActor
 struct RegistrationSheetView: View {
+    @Environment(\.complianceSignupDestination) private var complianceSignupDestination
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
     @StateObject private var model: RegistrationSheetModel
@@ -207,6 +208,10 @@ struct RegistrationSheetView: View {
                 Label("registration.form.creationDisabled", systemImage: "lock")
                     .accessibilityIdentifier("registration.form.creationDisabled")
                 Text("registration.form.creationDisabledHint").font(.callout).foregroundStyle(.secondary)
+                if let complianceSignupDestination {
+                    NavigationLink { complianceSignupDestination() } label: { Text("compliance.title") }
+                        .accessibilityIdentifier("compliance.signup.reviewSource")
+                }
             }
             if flow.block == .confirmationChanged { Text("registration.form.confirmationChanged").foregroundStyle(.secondary) }
             Button {

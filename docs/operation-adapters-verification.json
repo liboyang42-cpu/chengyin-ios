@@ -1,0 +1,36 @@
+{
+  "scope": "Source/structure only; no live operations or approvals",
+  "authored_core_methods": 1224,
+  "authored_ui_methods": 193,
+  "bilingual_keys": 2572,
+  "new_fake_transport_methods": 24,
+  "source_contract_checks": {
+    "status": "PASS",
+    "count": 214
+  },
+  "tooling_tests": {
+    "status": "PASS",
+    "count": 16
+  },
+  "parser_self_tests": {
+    "status": "PASS",
+    "count": 14
+  },
+  "changed_swift_parse": {
+    "status": "PASS",
+    "files": 22
+  },
+  "full_swift_parse": {
+    "status": "KNOWN_PREEXISTING_DIAGNOSTICS",
+    "files": 461,
+    "diagnostics": 10,
+    "affected_files": 6
+  },
+  "swift_compile": "NOT_RUN",
+  "xctest_runtime": "NOT_RUN",
+  "xcode_build": "NOT_RUN",
+  "ui_runtime": "NOT_RUN",
+  "live_acceptance": "NOT_RUN",
+  "production_write_approvals": "NONE",
+  "remote_operations": "NONE"
+}

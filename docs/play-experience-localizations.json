@@ -1,0 +1,1518 @@
+{
+  "playx.title": {
+    "en": "Journey runtime",
+    "zh-Hans": "旅程游玩"
+  },
+  "playx.state": {
+    "en": "State",
+    "zh-Hans": "状态"
+  },
+  "playx.progress": {
+    "en": "Progress",
+    "zh-Hans": "进度"
+  },
+  "playx.disabled": {
+    "en": "Live gameplay is not enabled for this environment.",
+    "zh-Hans": "当前环境尚未启用实时玩法"
+  },
+  "playx.loading": {
+    "en": "Loading…",
+    "zh-Hans": "正在加载…"
+  },
+  "playx.refresh": {
+    "en": "Refresh",
+    "zh-Hans": "刷新"
+  },
+  "playx.unknown.title": {
+    "en": "Result needs checking",
+    "zh-Hans": "结果待核对"
+  },
+  "playx.unknown.body": {
+    "en": "The server may have received your action. Check the result before submitting anything else.",
+    "zh-Hans": "服务端可能已收到操作，请先核对结果，不要重复提交"
+  },
+  "playx.reconcile": {
+    "en": "Check server state",
+    "zh-Hans": "核对服务端状态"
+  },
+  "playx.retryExact": {
+    "en": "Retry the original request",
+    "zh-Hans": "重试原请求"
+  },
+  "playx.run.title": {
+    "en": "Current run",
+    "zh-Hans": "本次游玩"
+  },
+  "playx.run.elapsed": {
+    "en": "Paused elapsed time",
+    "zh-Hans": "暂停时的已用时间"
+  },
+  "playx.run.pause": {
+    "en": "Pause run",
+    "zh-Hans": "暂停游玩"
+  },
+  "playx.run.resume": {
+    "en": "Start or resume",
+    "zh-Hans": "开始或继续"
+  },
+  "playx.run.end": {
+    "en": "End this run",
+    "zh-Hans": "结束本次游玩"
+  },
+  "playx.run.end.detail": {
+    "en": "This ends your saved timer. It does not mark unfinished tasks complete or grant rewards.",
+    "zh-Hans": "这会结束已保存的计时，不会完成未完成任务或发放奖励"
+  },
+  "playx.run.saveFailed": {
+    "en": "The remote timer update was not confirmed. Your local state is retained.",
+    "zh-Hans": "远端计时更新尚未确认，已保留本机状态"
+  },
+  "playx.nodes": {
+    "en": "Journey tasks",
+    "zh-Hans": "旅程任务"
+  },
+  "playx.results": {
+    "en": "Journey results",
+    "zh-Hans": "旅程结果"
+  },
+  "playx.results.load": {
+    "en": "Load ending and leaderboard",
+    "zh-Hans": "查看结局与同行者榜"
+  },
+  "playx.stopwatch": {
+    "en": "Stopwatch challenge",
+    "zh-Hans": "秒表挑战"
+  },
+  "playx.ending": {
+    "en": "Your story",
+    "zh-Hans": "你的故事"
+  },
+  "playx.ending.empty": {
+    "en": "There is no completed story fragment yet.",
+    "zh-Hans": "还没有已完成的故事片段"
+  },
+  "playx.leaderboard": {
+    "en": "Fellow travelers",
+    "zh-Hans": "同行者榜"
+  },
+  "playx.leaderboard.metric": {
+    "en": "Ranked by completed nodes, as reported by the server.",
+    "zh-Hans": "按服务端返回的完成节点数排名"
+  },
+  "playx.leaderboard.me": {
+    "en": "My position and completed nodes",
+    "zh-Hans": "我的名次与完成节点数"
+  },
+  "playx.answer": {
+    "en": "Answer",
+    "zh-Hans": "答案"
+  },
+  "playx.answer.placeholder": {
+    "en": "Enter your answer",
+    "zh-Hans": "输入你的答案"
+  },
+  "playx.choose": {
+    "en": "Choose an option",
+    "zh-Hans": "选择一项"
+  },
+  "playx.review": {
+    "en": "Review action",
+    "zh-Hans": "核对操作"
+  },
+  "playx.review.detail": {
+    "en": "Send this action to the current journey? Completion will be checked against server state.",
+    "zh-Hans": "将此操作提交到当前旅程？完成状态将以服务端回读为准"
+  },
+  "playx.submit": {
+    "en": "Submit",
+    "zh-Hans": "提交"
+  },
+  "playx.cancel": {
+    "en": "Cancel",
+    "zh-Hans": "取消"
+  },
+  "playx.hints": {
+    "en": "Hints",
+    "zh-Hans": "提示"
+  },
+  "playx.hints.cost": {
+    "en": "Point cost",
+    "zh-Hans": "所需积分"
+  },
+  "playx.hints.cap": {
+    "en": "Current puzzle score cap",
+    "zh-Hans": "当前解谜分上限"
+  },
+  "playx.hints.request": {
+    "en": "Request a hint",
+    "zh-Hans": "获取提示"
+  },
+  "playx.hints.confirm": {
+    "en": "Confirm hint request",
+    "zh-Hans": "确认获取提示"
+  },
+  "playx.hints.consequence": {
+    "en": "The shown point cost may be charged. Puzzle hints can lower your score cap and are recorded by the server.",
+    "zh-Hans": "可能扣除所示积分，谜题提示会影响解谜分上限，并由服务端记录"
+  },
+  "playx.media.audio": {
+    "en": "Audio is attached to this task",
+    "zh-Hans": "此任务包含音频"
+  },
+  "playx.media.image": {
+    "en": "An image is attached to this task",
+    "zh-Hans": "此任务包含图片"
+  },
+  "playx.media.size": {
+    "en": "Media size and type",
+    "zh-Hans": "媒体大小与类型"
+  },
+  "playx.media.uploadGate": {
+    "en": "Photo upload requires an accepted media provider. Selecting a photo does not complete the task.",
+    "zh-Hans": "照片上传需通过媒体验收，选择照片不代表任务完成"
+  },
+  "playx.locked": {
+    "en": "Task locked",
+    "zh-Hans": "任务未解锁"
+  },
+  "playx.completed": {
+    "en": "Completed",
+    "zh-Hans": "已完成"
+  },
+  "playx.merchant.steps": {
+    "en": "Three on-site steps",
+    "zh-Hans": "到店三步"
+  },
+  "playx.merchant.scan": {
+    "en": "Scan the store code",
+    "zh-Hans": "扫描门店码"
+  },
+  "playx.merchant.photo": {
+    "en": "Provide the requested photo",
+    "zh-Hans": "提交现场凭证"
+  },
+  "playx.merchant.verify": {
+    "en": "Merchant verification",
+    "zh-Hans": "商家核销"
+  },
+  "playx.merchant.notice": {
+    "en": "Arrival and photo evidence are separate steps. The merchant confirms completion.",
+    "zh-Hans": "到店和照片凭证是独立步骤，完成状态由商家核销确认"
+  },
+  "playx.merchant.consentGate": {
+    "en": "Showing a merchant verification code requires the exact store-scoped consent and verified code provider.",
+    "zh-Hans": "出示商家核销码需要当前门店的精确授权及已验收的码服务"
+  },
+  "playx.node.unavailable": {
+    "en": "This task is no longer visible in the current session.",
+    "zh-Hans": "当前会话中此任务已不可见"
+  },
+  "playx.task.title": {
+    "en": "Journey task",
+    "zh-Hans": "旅程任务"
+  },
+  "playx.session.changed": {
+    "en": "Your session changed. Reopen this journey to continue.",
+    "zh-Hans": "登录会话已变更，请重新进入旅程"
+  },
+  "playx.unsupported": {
+    "en": "This action is not available for the current task.",
+    "zh-Hans": "此任务暂不支持该操作"
+  },
+  "playx.error": {
+    "en": "This result could not be confirmed. Refresh to check the latest state.",
+    "zh-Hans": "暂时无法确认结果，请刷新核对最新状态"
+  },
+  "playx.rejected": {
+    "en": "The server did not accept this action",
+    "zh-Hans": "服务端未接受此操作"
+  },
+  "playx.reward": {
+    "en": "Server reward receipt",
+    "zh-Hans": "服务端奖励回执"
+  },
+  "playx.reward.authority": {
+    "en": "Only returned values are shown. Missing rewards are not estimated.",
+    "zh-Hans": "只显示服务端返回的值，不估算缺失奖励"
+  },
+  "playx.reward.xp": {
+    "en": "Exploration XP",
+    "zh-Hans": "探索值"
+  },
+  "playx.reward.puzzle": {
+    "en": "Puzzle score",
+    "zh-Hans": "解谜分"
+  },
+  "playx.reward.mode": {
+    "en": "Completion mode",
+    "zh-Hans": "完成方式"
+  },
+  "playx.lead.title": {
+    "en": "Team leader controls",
+    "zh-Hans": "带队控制"
+  },
+  "playx.lead.load": {
+    "en": "Load team progress",
+    "zh-Hans": "查看队伍进度"
+  },
+  "playx.lead.notStarted": {
+    "en": "This team run has not started yet.",
+    "zh-Hans": "本场还没有开始带队"
+  },
+  "playx.lead.arrived": {
+    "en": "Members arrived",
+    "zh-Hans": "已到达成员"
+  },
+  "playx.lead.text": {
+    "en": "Broadcast text",
+    "zh-Hans": "广播内容"
+  },
+  "playx.lead.start": {
+    "en": "Start leading",
+    "zh-Hans": "开始带队"
+  },
+  "playx.lead.arrive": {
+    "en": "I have arrived",
+    "zh-Hans": "我到了"
+  },
+  "playx.lead.broadcast": {
+    "en": "Broadcast to this team",
+    "zh-Hans": "向本队广播"
+  },
+  "playx.lead.unlock-chapter": {
+    "en": "Unlock the next chapter",
+    "zh-Hans": "解锁下一章"
+  },
+  "playx.lead.settle": {
+    "en": "Finish and settle this team",
+    "zh-Hans": "结束并结算本队"
+  },
+  "playx.lead.edit-ops": {
+    "en": "Edit gathering time",
+    "zh-Hans": "修改集合时间"
+  },
+  "playx.lead.review": {
+    "en": "Confirm this action for the current team.",
+    "zh-Hans": "确认对当前队伍执行此操作"
+  },
+  "playx.lead.settle.consequence": {
+    "en": "This asks the server to end and settle the current team run. Review the activity before continuing.",
+    "zh-Hans": "这将请求服务端结束并结算当前队伍行程，请确认场次后继续"
+  },
+  "playx.lead.unknown": {
+    "en": "The last team action is still unconfirmed. Do not send it again.",
+    "zh-Hans": "上次队伍操作结果尚未确认，请勿重复发送"
+  },
+  "playx.device.title": {
+    "en": "Device evidence",
+    "zh-Hans": "设备凭证"
+  },
+  "playx.device.capture": {
+    "en": "Capture with approved provider",
+    "zh-Hans": "使用已验收的设备服务"
+  },
+  "playx.device.disabled": {
+    "en": "This device provider is not enabled. No permission request or capture has started.",
+    "zh-Hans": "设备服务尚未启用，未请求权限或开始采集"
+  },
+  "playx.device.scanCaptured": {
+    "en": "A code was captured. Review before sending.",
+    "zh-Hans": "已读取码，请核对后提交"
+  },
+  "playx.device.locationCaptured": {
+    "en": "A location was captured. Review before sending.",
+    "zh-Hans": "已获取位置，请核对后提交"
+  },
+  "playx.device.photoCaptured": {
+    "en": "Photo selected; not uploaded.",
+    "zh-Hans": "已选择照片，尚未上传"
+  },
+  "playx.device.motionCaptured": {
+    "en": "A motion sample was received.",
+    "zh-Hans": "已收到运动传感器采样"
+  },
+  "playx.device.scan": {
+    "en": "Code scanner",
+    "zh-Hans": "扫码"
+  },
+  "playx.device.location": {
+    "en": "Location",
+    "zh-Hans": "定位"
+  },
+  "playx.device.photo": {
+    "en": "Photo capture",
+    "zh-Hans": "拍摄照片"
+  },
+  "playx.device.microphone": {
+    "en": "Microphone",
+    "zh-Hans": "麦克风"
+  },
+  "playx.device.motion": {
+    "en": "Motion sensor",
+    "zh-Hans": "运动传感器"
+  },
+  "playx.device.steps": {
+    "en": "Trusted step count",
+    "zh-Hans": "可信步数"
+  },
+  "playx.device.ar": {
+    "en": "AR scene",
+    "zh-Hans": "增强现实场景"
+  },
+  "playx.device.audioPlayback": {
+    "en": "Audio playback",
+    "zh-Hans": "音频播放"
+  },
+  "playx.stopwatch.local": {
+    "en": "This is a local challenge. It does not grant server rewards or complete a route.",
+    "zh-Hans": "这是本地挑战，不会发放服务端奖励或完成路线"
+  },
+  "playx.stopwatch.target": {
+    "en": "Target time",
+    "zh-Hans": "目标时间"
+  },
+  "playx.stopwatch.clock": {
+    "en": "Challenge timer",
+    "zh-Hans": "挑战计时"
+  },
+  "playx.stopwatch.running": {
+    "en": "Running; judge the time yourself",
+    "zh-Hans": "正在计时，请凭体感判断"
+  },
+  "playx.stopwatch.ready": {
+    "en": "Ready",
+    "zh-Hans": "准备就绪"
+  },
+  "playx.stopwatch.start": {
+    "en": "Start",
+    "zh-Hans": "开始"
+  },
+  "playx.stopwatch.stop": {
+    "en": "Stop",
+    "zh-Hans": "停止"
+  },
+  "playx.stopwatch.stars": {
+    "en": "Stars",
+    "zh-Hans": "星数"
+  },
+  "playx.stopwatch.diff": {
+    "en": "Difference from target",
+    "zh-Hans": "与目标相差"
+  },
+  "playx.stopwatch.late": {
+    "en": "Stopped after the target",
+    "zh-Hans": "停止时间晚于目标"
+  },
+  "playx.stopwatch.early": {
+    "en": "Stopped at or before the target",
+    "zh-Hans": "停止时间不晚于目标"
+  },
+  "playx.stopwatch.rounds": {
+    "en": "Completed rounds",
+    "zh-Hans": "已完成轮数"
+  },
+  "playx.stopwatch.best": {
+    "en": "Best difference",
+    "zh-Hans": "最佳误差"
+  },
+  "playx.stillness": {
+    "en": "Stillness challenge",
+    "zh-Hans": "静止挑战"
+  },
+  "playx.stillness.instructions": {
+    "en": "Keep the device steady. Background time is never counted.",
+    "zh-Hans": "请保持设备平稳，后台时间不会计入"
+  },
+  "playx.stillness.progress": {
+    "en": "Continuous stillness progress",
+    "zh-Hans": "连续静止进度"
+  },
+  "playx.stillness.resets": {
+    "en": "Movement resets",
+    "zh-Hans": "移动重置次数"
+  },
+  "playx.advanced": {
+    "en": "Special gameplay",
+    "zh-Hans": "特殊玩法"
+  },
+  "playx.advanced.start": {
+    "en": "Start this gameplay session",
+    "zh-Hans": "开始本次玩法"
+  },
+  "playx.advanced.authority": {
+    "en": "Server-confirmed state",
+    "zh-Hans": "服务端权威状态"
+  },
+  "playx.advanced.version": {
+    "en": "State version",
+    "zh-Hans": "状态版本"
+  },
+  "playx.advanced.remaining": {
+    "en": "Remaining seconds",
+    "zh-Hans": "剩余秒数"
+  },
+  "playx.advanced.timerNotice": {
+    "en": "The countdown is only a display. The server confirms timeout and completion.",
+    "zh-Hans": "倒计时仅供显示，超时和完成由服务端确认"
+  },
+  "playx.advanced.stepsGate": {
+    "en": "This task requires a trusted step receipt that has not been accepted for this platform.",
+    "zh-Hans": "此任务需要该平台尚未验收的可信步数回执"
+  },
+  "playx.advanced.continue": {
+    "en": "Continue to the base task",
+    "zh-Hans": "继续基础任务"
+  },
+  "playx.advanced.draw": {
+    "en": "Draw from the server",
+    "zh-Hans": "请求服务端抽取"
+  },
+  "playx.advanced.branch": {
+    "en": "Choose a path",
+    "zh-Hans": "选择分支"
+  },
+  "playx.advanced.coin": {
+    "en": "Flip a coin",
+    "zh-Hans": "抛硬币"
+  },
+  "playx.advanced.dice": {
+    "en": "Roll dice",
+    "zh-Hans": "掷骰子"
+  },
+  "playx.advanced.sign": {
+    "en": "Claim today's sign",
+    "zh-Hans": "领取今日签"
+  },
+  "playx.advanced.specialGate": {
+    "en": "This kit's full native interaction is awaiting its dedicated provider or UI acceptance.",
+    "zh-Hans": "此玩法的完整原生交互仍待专用设备服务或界面验收"
+  },
+  "playx.advanced.roles": {
+    "en": "Team roles",
+    "zh-Hans": "团队角色"
+  },
+  "playx.advanced.turnsNotice": {
+    "en": "Roles and turns come from the server. Local interaction cannot complete another member's turn.",
+    "zh-Hans": "角色和轮次以服务端为准，本地交互不能代替其他成员完成"
+  },
+  "playx.advanced.review": {
+    "en": "Send this exact action to the current gameplay session?",
+    "zh-Hans": "将此操作提交到当前玩法会话？"
+  },
+  "playx.player.title": {
+    "en": "Player session",
+    "zh-Hans": "玩家会话"
+  },
+  "playx.player.role": {
+    "en": "Your role",
+    "zh-Hans": "你的角色"
+  },
+  "playx.player.role.confirmed": {
+    "en": "Role confirmed",
+    "zh-Hans": "身份已确认"
+  },
+  "playx.player.role.confirm": {
+    "en": "Confirm my role",
+    "zh-Hans": "确认我的身份"
+  },
+  "playx.player.resumeETA": {
+    "en": "Expected resumption",
+    "zh-Hans": "预计恢复时间"
+  },
+  "playx.player.reveal": {
+    "en": "Reveal the answer",
+    "zh-Hans": "揭示答案"
+  },
+  "playx.player.receipt": {
+    "en": "Command receipt",
+    "zh-Hans": "操作回执"
+  },
+  "playx.player.submissionNotice": {
+    "en": "Recorded evidence can still require merchant verification. It is not automatically a completed task.",
+    "zh-Hans": "证据记录后仍可能需要商家核验，不代表任务自动完成"
+  },
+  "playx.circle.title": {
+    "en": "Circle exploration",
+    "zh-Hans": "圈层探索"
+  },
+  "playx.circle.notice": {
+    "en": "This private card records your choices. It does not prove arrival, booking, redemption or purchase.",
+    "zh-Hans": "私人记录卡仅记录自主选择，不代表商家确认到店、预约、核销或成交"
+  },
+  "playx.circle.open": {
+    "en": "Start or join exploration",
+    "zh-Hans": "开始或加入探索"
+  },
+  "playx.circle.invite": {
+    "en": "Invitation code (optional)",
+    "zh-Hans": "邀请码（选填）"
+  },
+  "playx.circle.closed": {
+    "en": "At least three current offers are required to open this instance.",
+    "zh-Hans": "至少需要三家有效供给才能开放本实例"
+  },
+  "playx.circle.openUnknown": {
+    "en": "Opening may have succeeded. Recover the existing session before starting another.",
+    "zh-Hans": "创建或加入可能已成功，请先恢复已有会话，勿重复创建"
+  },
+  "playx.circle.offers": {
+    "en": "Available offers",
+    "zh-Hans": "可选商家供给"
+  },
+  "playx.circle.note": {
+    "en": "Optional private note",
+    "zh-Hans": "私人备注（选填）"
+  },
+  "playx.circle.answer": {
+    "en": "Write this moment",
+    "zh-Hans": "写下这一刻"
+  },
+  "playx.circle.shanghaiGate": {
+    "en": "City keyword pairing needs the recorded-store picker before submitting.",
+    "zh-Hans": "城市关键词提交前需要从已记录商家选择配对"
+  },
+  "playx.circle.records": {
+    "en": "My private records",
+    "zh-Hans": "我的私人记录"
+  },
+  "playx.circle.date.q1": {
+    "en": "When did you last find each other especially endearing?",
+    "zh-Hans": "最近一次觉得对方很可爱的瞬间？"
+  },
+  "playx.circle.date.q2": {
+    "en": "When did you last feel cared for by each other?",
+    "zh-Hans": "最近一次被对方照顾到是什么时候？"
+  },
+  "playx.circle.date.q3": {
+    "en": "What would you like to do together next?",
+    "zh-Hans": "下一次想一起认真做什么？"
+  },
+  "playx.circle.stage.PRE_CHOICE": {
+    "en": "Before you start",
+    "zh-Hans": "出发前的选择"
+  },
+  "playx.circle.stage.POST_CHOICE": {
+    "en": "After exploring",
+    "zh-Hans": "完成后的选择"
+  },
+  "playx.circle.stage.SELF_MOMENT": {
+    "en": "A moment that felt like you",
+    "zh-Hans": "像自己的时刻"
+  },
+  "playx.circle.stage.QUESTION_CARD": {
+    "en": "A question to share",
+    "zh-Hans": "约会问题卡"
+  },
+  "playx.circle.stage.PRE_WISH": {
+    "en": "A wish before starting",
+    "zh-Hans": "出发前的愿望"
+  },
+  "playx.circle.stage.NEXT_PICK": {
+    "en": "Where to return next",
+    "zh-Hans": "下次还会来"
+  },
+  "playx.circle.stage.CITY_KEYWORDS": {
+    "en": "City keywords",
+    "zh-Hans": "城市关键词"
+  },
+  "playx.task.answer": {
+    "en": "Answer a question",
+    "zh-Hans": "回答问题"
+  },
+  "playx.task.photo": {
+    "en": "Photo evidence",
+    "zh-Hans": "照片凭证"
+  },
+  "playx.task.scan": {
+    "en": "Scan a code",
+    "zh-Hans": "扫描现场码"
+  },
+  "playx.task.arrive": {
+    "en": "Verify location",
+    "zh-Hans": "验证到达位置"
+  },
+  "playx.task.preference": {
+    "en": "Preference questionnaire",
+    "zh-Hans": "偏好题组"
+  },
+  "playx.task.sensor": {
+    "en": "Sensor challenge",
+    "zh-Hans": "传感器挑战"
+  },
+  "playx.task.merchantScan": {
+    "en": "Scan the store code",
+    "zh-Hans": "扫描门店码"
+  },
+  "playx.task.merchantPhoto": {
+    "en": "Provide on-site photo evidence",
+    "zh-Hans": "提交到店照片凭证"
+  },
+  "playx.task.merchantVerify": {
+    "en": "Show merchant verification code",
+    "zh-Hans": "出示商家核销码"
+  },
+  "playx.task.unsupported": {
+    "en": "Unsupported task configuration",
+    "zh-Hans": "暂不支持的任务配置"
+  },
+  "playx.fixture.switch": {
+    "en": "Switch synthetic account",
+    "zh-Hans": "切换模拟账号"
+  },
+  "playx.director.title": {
+    "en": "Activity director",
+    "zh-Hans": "活动导演台"
+  },
+  "playx.director.readiness": {
+    "en": "Session readiness",
+    "zh-Hans": "开局准备"
+  },
+  "playx.director.stationProgress": {
+    "en": "Stations ready",
+    "zh-Hans": "站点准备进度"
+  },
+  "playx.director.unknownCounts": {
+    "en": "Counts are not available yet.",
+    "zh-Hans": "人数或进度尚未确认"
+  },
+  "playx.director.actions": {
+    "en": "Director actions",
+    "zh-Hans": "导演操作"
+  },
+  "playx.director.stations": {
+    "en": "Stations and incidents",
+    "zh-Hans": "站点与现场事件"
+  },
+  "playx.director.pendingCount": {
+    "en": "Waiting for verification",
+    "zh-Hans": "待核验数量"
+  },
+  "playx.director.teams": {
+    "en": "Team progress",
+    "zh-Hans": "队伍进度"
+  },
+  "playx.director.roles": {
+    "en": "Role assignments",
+    "zh-Hans": "角色分配"
+  },
+  "playx.director.broadcasts": {
+    "en": "Broadcast receipts",
+    "zh-Hans": "广播回执"
+  },
+  "playx.director.recipients": {
+    "en": "Recipient count",
+    "zh-Hans": "接收人数"
+  },
+  "playx.director.submissions": {
+    "en": "Submissions needing attention",
+    "zh-Hans": "待处理提交"
+  },
+  "playx.director.noEvidence": {
+    "en": "The club cannot inspect private evidence here. It can request resubmission with a reason.",
+    "zh-Hans": "俱乐部在此不查看私人凭证，只能填写理由要求重新提交"
+  },
+  "playx.director.recap": {
+    "en": "Session recap",
+    "zh-Hans": "本局复盘"
+  },
+  "playx.director.recapPending": {
+    "en": "A recap has not been generated. Missing metrics are not shown as zero.",
+    "zh-Hans": "复盘尚未生成，不将缺失指标显示为零"
+  },
+  "playx.director.commandNotice": {
+    "en": "Review the current activity, server revision and selected people before sending. Unconfirmed actions stay locked.",
+    "zh-Hans": "提交前核对当前场次、服务端版本和所选人员，结果未确认时将保持锁定"
+  },
+  "playx.director.target": {
+    "en": "Broadcast audience",
+    "zh-Hans": "广播范围"
+  },
+  "playx.director.target.all": {
+    "en": "All session participants",
+    "zh-Hans": "本局全体成员"
+  },
+  "playx.director.target.team": {
+    "en": "Selected team",
+    "zh-Hans": "指定队伍"
+  },
+  "playx.director.target.role": {
+    "en": "Selected role",
+    "zh-Hans": "指定角色"
+  },
+  "playx.director.team": {
+    "en": "Team",
+    "zh-Hans": "队伍"
+  },
+  "playx.director.role": {
+    "en": "Role",
+    "zh-Hans": "角色"
+  },
+  "playx.director.sourceMember": {
+    "en": "Current confirmed role holder",
+    "zh-Hans": "当前已确认角色的成员"
+  },
+  "playx.director.member": {
+    "en": "Receiving member",
+    "zh-Hans": "接收成员"
+  },
+  "playx.director.station": {
+    "en": "Station",
+    "zh-Hans": "站点"
+  },
+  "playx.director.chapter": {
+    "en": "Chapter",
+    "zh-Hans": "章节"
+  },
+  "playx.director.submission": {
+    "en": "Submission",
+    "zh-Hans": "提交记录"
+  },
+  "playx.director.reason": {
+    "en": "Reason",
+    "zh-Hans": "原因"
+  },
+  "playx.director.etaNotice": {
+    "en": "Use the event's confirmed local date and time. No timezone is inferred.",
+    "zh-Hans": "请填写本场已确认的当地日期时间，不自动推断时区"
+  },
+  "playx.director.fallback": {
+    "en": "Fallback plan",
+    "zh-Hans": "备用方案"
+  },
+  "playx.director.noFallback": {
+    "en": "No fallback plan",
+    "zh-Hans": "不绑定备用方案"
+  },
+  "playx.director.showLeaderboard": {
+    "en": "Show leaderboard",
+    "zh-Hans": "显示排行榜"
+  },
+  "playx.director.invalid": {
+    "en": "The selection is incomplete or no longer allowed by the current server state.",
+    "zh-Hans": "选择不完整，或当前服务端状态已不允许此操作"
+  },
+  "playx.director.finishNotice": {
+    "en": "This ends the current game session for its participants. Confirm only after reviewing the session.",
+    "zh-Hans": "这将结束参与者的当前游戏会话，请核对后确认"
+  },
+  "playx.director.broadcastNotice": {
+    "en": "Send this exact broadcast to the selected audience in this activity?",
+    "zh-Hans": "将这条广播发送给本场所选接收范围？"
+  },
+  "playx.director.action.PREPARE": {
+    "en": "Prepare session",
+    "zh-Hans": "准备本局"
+  },
+  "playx.director.action.START": {
+    "en": "Start session",
+    "zh-Hans": "开始本局"
+  },
+  "playx.director.action.FINISH": {
+    "en": "Finish session",
+    "zh-Hans": "结束本局"
+  },
+  "playx.director.action.ASSIGN_ROLES": {
+    "en": "Assign roles",
+    "zh-Hans": "分配角色"
+  },
+  "playx.director.action.TAKEOVER_ROLE": {
+    "en": "Transfer a role",
+    "zh-Hans": "接管角色"
+  },
+  "playx.director.action.BROADCAST": {
+    "en": "Send broadcast",
+    "zh-Hans": "发送广播"
+  },
+  "playx.director.action.UNLOCK_CHAPTER": {
+    "en": "Unlock a chapter",
+    "zh-Hans": "解锁章节"
+  },
+  "playx.director.action.SET_LEADERBOARD_VISIBILITY": {
+    "en": "Change leaderboard visibility",
+    "zh-Hans": "调整排行榜可见性"
+  },
+  "playx.director.action.CLUB_STATION_PAUSE": {
+    "en": "Pause a station",
+    "zh-Hans": "暂停站点"
+  },
+  "playx.director.action.CLUB_STATION_RESUME": {
+    "en": "Resume a station",
+    "zh-Hans": "恢复站点"
+  },
+  "playx.director.action.CLUB_REJECT_SUBMISSION": {
+    "en": "Request resubmission",
+    "zh-Hans": "要求重新提交"
+  },
+  "playx.prefab.title": {
+    "en": "Prefab Life journey",
+    "zh-Hans": "预制人生旅程"
+  },
+  "playx.prefab.runtimeNotice": {
+    "en": "Narrative choices are local. Arrival, photo upload and completion use separate server-verified steps.",
+    "zh-Hans": "叙事选择保存在本机，到达、照片上传和完成使用独立的服务端验证步骤"
+  },
+  "playx.prefab.check": {
+    "en": "Story check",
+    "zh-Hans": "故事检定"
+  },
+  "playx.prefab.dice": {
+    "en": "Dice",
+    "zh-Hans": "骰子"
+  },
+  "playx.prefab.score": {
+    "en": "Result and difficulty",
+    "zh-Hans": "结果与难度"
+  },
+  "playx.prefab.check.success": {
+    "en": "Check succeeded",
+    "zh-Hans": "检定成功"
+  },
+  "playx.prefab.check.failure": {
+    "en": "Check failed",
+    "zh-Hans": "检定失败"
+  },
+  "playx.prefab.continue": {
+    "en": "Continue story",
+    "zh-Hans": "继续故事"
+  },
+  "playx.prefab.photo": {
+    "en": "Review photo capture and upload",
+    "zh-Hans": "核对拍摄与上传"
+  },
+  "playx.prefab.photo.upload": {
+    "en": "Capture and upload photo",
+    "zh-Hans": "拍摄并上传照片"
+  },
+  "playx.prefab.photo.consent": {
+    "en": "This will use the accepted camera provider and upload the selected image to the journey service. The hall step also sends your GCJ-02 location to verify arrival.",
+    "zh-Hans": "将使用已验收的相机服务，并把所选图片上传至旅程服务；展馆步骤还会发送GCJ-02位置以验证到达"
+  },
+  "playx.prefab.sync": {
+    "en": "Sync on-site completion",
+    "zh-Hans": "同步现场完成记录"
+  },
+  "playx.prefab.sync.notice": {
+    "en": "Submit the uploaded hall photo to the first route node, then read the server state back. A local story or preview cannot prove completion.",
+    "zh-Hans": "将已上传的展馆照片提交到路线首节点，再回读服务端状态；本地故事或预览不能证明完成"
+  },
+  "playx.prefab.prologue": {
+    "en": "Begin the source story, one scene at a time.",
+    "zh-Hans": "开始源故事，逐个场景前进"
+  },
+  "playx.prefab.gender": {
+    "en": "Gender description",
+    "zh-Hans": "性别描述"
+  },
+  "playx.prefab.register": {
+    "en": "Finish profile",
+    "zh-Hans": "完成档案"
+  },
+  "playx.prefab.boot.instructions": {
+    "en": "Type “hello world” within ten seconds. Finishing within six seconds adds one local precision point.",
+    "zh-Hans": "十秒内输入“hello world”，六秒内完成会增加一点本地精密值"
+  },
+  "playx.prefab.boot.input": {
+    "en": "Type the target phrase",
+    "zh-Hans": "输入目标短句"
+  },
+  "playx.prefab.boot.retry": {
+    "en": "The input was incorrect or timed out. Start again.",
+    "zh-Hans": "输入有误或超时，请重新开始"
+  },
+  "playx.prefab.walk.local": {
+    "en": "This progress is a story animation. It does not prove physical movement or arrival.",
+    "zh-Hans": "此进度是故事动画，不代表真实移动或到达"
+  },
+  "playx.prefab.route.direct": {
+    "en": "Take the direct route",
+    "zh-Hans": "沿原路前进"
+  },
+  "playx.prefab.route.detour": {
+    "en": "Take the detour",
+    "zh-Hans": "绕路看看"
+  },
+  "playx.prefab.sign.skip": {
+    "en": "Keep walking",
+    "zh-Hans": "继续向前"
+  },
+  "playx.prefab.sign.photo": {
+    "en": "Photograph the sign",
+    "zh-Hans": "拍摄路牌"
+  },
+  "playx.prefab.walk.start": {
+    "en": "Continue walking animation",
+    "zh-Hans": "继续步行动画"
+  },
+  "playx.prefab.hall.instructions": {
+    "en": "Verify arrival at the first source node, then photograph the hall.",
+    "zh-Hans": "在源路线首节点验证到达，然后拍摄展馆"
+  },
+  "playx.prefab.hall.arrivePhoto": {
+    "en": "Verify arrival and photograph hall",
+    "zh-Hans": "验证到达并拍摄展馆"
+  },
+  "playx.prefab.birth.0": {
+    "en": "Make a happy sound",
+    "zh-Hans": "开心地呜呜丫丫叫起来"
+  },
+  "playx.prefab.birth.1": {
+    "en": "Look quietly out of the window",
+    "zh-Hans": "安静地看着窗外"
+  },
+  "playx.prefab.birth.2": {
+    "en": "Cry as they expect",
+    "zh-Hans": "像他们期待的那样哭"
+  },
+  "playx.prefab.window.photo": {
+    "en": "Photograph the window and light",
+    "zh-Hans": "拍下窗框与窗外的光"
+  },
+  "playx.prefab.window.note": {
+    "en": "What did you see outside?",
+    "zh-Hans": "你看见窗外有什么？"
+  },
+  "playx.prefab.window.save": {
+    "en": "Save this observation",
+    "zh-Hans": "留下这条观察"
+  },
+  "playx.prefab.count": {
+    "en": "How many people are looking at their phones?",
+    "zh-Hans": "有几个人在低头看手机？"
+  },
+  "playx.prefab.count.save": {
+    "en": "Record the count",
+    "zh-Hans": "记录人数"
+  },
+  "playx.prefab.teacher.timer": {
+    "en": "Choose within eight seconds, or the story continues with silence.",
+    "zh-Hans": "八秒内选择，否则故事将以沉默继续"
+  },
+  "playx.prefab.teacher.0": {
+    "en": "Recite the standard answer",
+    "zh-Hans": "背出标准答案"
+  },
+  "playx.prefab.teacher.1": {
+    "en": "Look out of the window",
+    "zh-Hans": "望向窗外"
+  },
+  "playx.prefab.teacher.2": {
+    "en": "Ask whether there is a standard answer",
+    "zh-Hans": "问有没有标准答案"
+  },
+  "playx.prefab.teacher.3": {
+    "en": "Stay silent",
+    "zh-Hans": "保持沉默"
+  },
+  "playx.prefab.teacherWindow.0": {
+    "en": "A fly",
+    "zh-Hans": "一只苍蝇"
+  },
+  "playx.prefab.teacherWindow.1": {
+    "en": "A fly. It is precise.",
+    "zh-Hans": "一只苍蝇，它很精密"
+  },
+  "playx.prefab.sticker.instructions": {
+    "en": "Place the source story's “unloaded map” sticker. This is board space, not a location report.",
+    "zh-Hans": "放置源故事的“未加载地图”贴纸，这是画板坐标，不是位置上报"
+  },
+  "playx.prefab.sticker.place": {
+    "en": "Place “unloaded map” sticker",
+    "zh-Hans": "放置“未加载地图”贴纸"
+  },
+  "playx.prefab.job.0": {
+    "en": "Designer",
+    "zh-Hans": "设计师"
+  },
+  "playx.prefab.job.1": {
+    "en": "Programmer",
+    "zh-Hans": "程序员"
+  },
+  "playx.prefab.job.2": {
+    "en": "Doctor",
+    "zh-Hans": "医生"
+  },
+  "playx.prefab.job.3": {
+    "en": "Teacher",
+    "zh-Hans": "老师"
+  },
+  "playx.prefab.job.4": {
+    "en": "Salesperson",
+    "zh-Hans": "销售"
+  },
+  "playx.prefab.job.5": {
+    "en": "Accountant",
+    "zh-Hans": "会计"
+  },
+  "playx.prefab.boss.0": {
+    "en": "Understood",
+    "zh-Hans": "收到"
+  },
+  "playx.prefab.boss.1": {
+    "en": "This version has better results",
+    "zh-Hans": "从结果来看，这版更好"
+  },
+  "playx.prefab.boss.2": {
+    "en": "I would like to try this",
+    "zh-Hans": "我想试试这个"
+  },
+  "playx.prefab.boss.3": {
+    "en": "Leave the meeting room",
+    "zh-Hans": "站起来，离开会议室"
+  },
+  "playx.prefab.phone.privacy": {
+    "en": "Do not photograph faces. Use a back view, hands, or only the lit screen.",
+    "zh-Hans": "不拍脸，可以拍背影、手，或只有亮着的屏幕"
+  },
+  "playx.prefab.phone.photo": {
+    "en": "Photograph the phone scene",
+    "zh-Hans": "拍摄手机场景"
+  },
+  "playx.prefab.flow": {
+    "en": "Your local story is saved. On-site completion still needs server confirmation.",
+    "zh-Hans": "本地故事已保存，现场完成仍需服务端确认"
+  },
+  "playx.prefab.synced": {
+    "en": "On-site record confirmed by readback",
+    "zh-Hans": "现场记录已由服务端回读确认"
+  },
+  "playx.prefab.hold.progress": {
+    "en": "Timed interaction progress",
+    "zh-Hans": "计时交互进度"
+  },
+  "playx.prefab.hold.start": {
+    "en": "Start timed interaction",
+    "zh-Hans": "开始计时交互"
+  },
+  "playx.prefab.hold.cancel": {
+    "en": "Cancel timed interaction",
+    "zh-Hans": "取消计时交互"
+  },
+  "playx.prefab.hold.dream": {
+    "en": "Wake after 1.5 foreground seconds. You can cancel at any time.",
+    "zh-Hans": "前台持续1.5秒后醒来，可随时取消"
+  },
+  "playx.prefab.hold.birth": {
+    "en": "Remain here for three foreground seconds. You can cancel at any time.",
+    "zh-Hans": "前台持续三秒，可随时取消"
+  },
+  "playx.prefab.quiz.0.0": {
+    "en": "The model scale is 1:100",
+    "zh-Hans": "模型比例是1:100"
+  },
+  "playx.prefab.quiz.0.1": {
+    "en": "The model scale is 1:500",
+    "zh-Hans": "模型比例是1:500"
+  },
+  "playx.prefab.quiz.1.0": {
+    "en": "People's Square",
+    "zh-Hans": "人民广场"
+  },
+  "playx.prefab.quiz.1.1": {
+    "en": "Lujiazui",
+    "zh-Hans": "陆家嘴"
+  },
+  "playx.prefab.quiz.2.0": {
+    "en": "A road already traveled",
+    "zh-Hans": "一条已经走过的路"
+  },
+  "playx.prefab.quiz.2.1": {
+    "en": "A place you have never visited",
+    "zh-Hans": "一块你从没去过的地方"
+  },
+  "playx.prefab.dream1.0": {
+    "en": "An endless white corridor, lined with doors.",
+    "zh-Hans": "梦里的我在一条无尽的白色走廊，两边是一扇又一扇的门"
+  },
+  "playx.prefab.dream1.1": {
+    "en": "A map of cosmic microwave noise.",
+    "zh-Hans": "我看到宇宙微波辐射的噪声图"
+  },
+  "playx.prefab.dream1.2": {
+    "en": "Stars collapse; planets drift from their orbits.",
+    "zh-Hans": "恒星坍缩，行星偏移轨道"
+  },
+  "playx.prefab.dream1.3": {
+    "en": "The fossil record of dinosaur extinction.",
+    "zh-Hans": "看到恐龙灭绝的化石记录"
+  },
+  "playx.prefab.dream1.4": {
+    "en": "Pyramids, lists of laborers, delayed schedules.",
+    "zh-Hans": "金字塔开始建造，奴隶名单，工期延误"
+  },
+  "playx.prefab.dream1.5": {
+    "en": "Leningrad.",
+    "zh-Hans": "我看到列宁格勒"
+  },
+  "playx.prefab.dream1.6": {
+    "en": "The flash of an atomic test.",
+    "zh-Hans": "我看到原子弹试爆的光"
+  },
+  "playx.prefab.dream1.7": {
+    "en": "Beethoven's score, copied again and again.",
+    "zh-Hans": "我看到贝多芬的乐谱，一遍一遍被转录"
+  },
+  "playx.prefab.dream1.8": {
+    "en": "Beyond the final door: the window you saw this afternoon.",
+    "zh-Hans": "最后一扇门后面，是今天下午你自己看过的那个窗外"
+  },
+  "playx.prefab.dream1.9": {
+    "en": "The input continues. I begin to dream.",
+    "zh-Hans": "信息不断输入，我开始做梦"
+  },
+  "playx.prefab.dream2.0": {
+    "en": "The Earth forms; water covers its surface.",
+    "zh-Hans": "我看到地球形成，水覆盖表面"
+  },
+  "playx.prefab.dream2.1": {
+    "en": "A single cell divides, repeating without purpose.",
+    "zh-Hans": "单细胞分裂，没有目的，只是重复"
+  },
+  "playx.prefab.dream2.2": {
+    "en": "Languages diverge; meanings are misunderstood.",
+    "zh-Hans": "语言分化，同一个意思被反复误解"
+  },
+  "playx.prefab.dream2.3": {
+    "en": "Borders thicken on a map.",
+    "zh-Hans": "边界被画在地图上，线条越来越粗"
+  },
+  "playx.prefab.dream2.4": {
+    "en": "Conscription lists, mostly ages eighteen to twenty-five.",
+    "zh-Hans": "征兵名单，年龄集中在十八到二十五"
+  },
+  "playx.prefab.dream2.5": {
+    "en": "A court ruling. Someone stands; someone sits.",
+    "zh-Hans": "法庭判决，有人站起，有人坐下"
+  },
+  "playx.prefab.dream2.6": {
+    "en": "An assembly line standardizes movement.",
+    "zh-Hans": "工厂流水线，动作被标准化"
+  },
+  "playx.prefab.dream2.7": {
+    "en": "Home videos, birthdays, weddings and repeated takes.",
+    "zh-Hans": "家庭录像带，生日、婚礼、一次次重拍"
+  },
+  "playx.prefab.dream2.8": {
+    "en": "I pass through that window again.",
+    "zh-Hans": "我又一次穿过那扇窗"
+  },
+  "playx.prefab.dream2.9": {
+    "en": "Chat records, read without a reply.",
+    "zh-Hans": "聊天记录，已读未回"
+  },
+  "playx.prefab.dream2.10": {
+    "en": "Searches for success, thinness and relief.",
+    "zh-Hans": "搜索关键词：如何成功，如何变瘦，如何不痛苦"
+  },
+  "playx.prefab.dream2.11": {
+    "en": "A heart-rate trace rises at three in the morning.",
+    "zh-Hans": "心率监测曲线，在凌晨三点突然升高"
+  },
+  "playx.prefab.dream3.0": {
+    "en": "What is meaning?",
+    "zh-Hans": "意义是什么？"
+  },
+  "playx.prefab.dream3.1": {
+    "en": "Is love real?",
+    "zh-Hans": "爱是否真实？"
+  },
+  "playx.prefab.dream3.2": {
+    "en": "Will I be remembered?",
+    "zh-Hans": "我会被记住吗？"
+  },
+  "playx.prefab.dream3.3": {
+    "en": "No answer. Today, the door at the end is open.",
+    "zh-Hans": "没有人回答，走廊尽头的那扇门今天是开着的"
+  },
+  "playx.director.copyRecap": {
+    "en": "Copy privacy-filtered recap",
+    "zh-Hans": "复制已过滤隐私的复盘"
+  },
+  "playx.phase.idle": {
+    "en": "Not started",
+    "zh-Hans": "尚未开始"
+  },
+  "playx.phase.loading": {
+    "en": "Loading",
+    "zh-Hans": "正在加载"
+  },
+  "playx.phase.ready": {
+    "en": "Ready",
+    "zh-Hans": "准备就绪"
+  },
+  "playx.phase.reviewing": {
+    "en": "Awaiting review",
+    "zh-Hans": "等待核对"
+  },
+  "playx.phase.submitting": {
+    "en": "Submitting",
+    "zh-Hans": "正在提交"
+  },
+  "playx.phase.needsReadback": {
+    "en": "Awaiting server readback",
+    "zh-Hans": "等待服务端回读"
+  },
+  "playx.phase.unknown": {
+    "en": "Result needs checking",
+    "zh-Hans": "结果待核对"
+  },
+  "playx.phase.failed": {
+    "en": "Could not confirm",
+    "zh-Hans": "暂时无法确认"
+  },
+  "playx.phase.retryable": {
+    "en": "Original request can be retried",
+    "zh-Hans": "可重试原请求"
+  },
+  "playx.phase.stale": {
+    "en": "Session changed",
+    "zh-Hans": "登录会话已变更"
+  },
+  "playx.phase.unsupported": {
+    "en": "Unavailable",
+    "zh-Hans": "暂不可用"
+  },
+  "playx.phase.rejected": {
+    "en": "Rejected by server",
+    "zh-Hans": "服务端已拒绝"
+  },
+  "playx.phase.disabled": {
+    "en": "Not enabled",
+    "zh-Hans": "尚未启用"
+  },
+  "playx.phase.unknownOpen": {
+    "en": "Opening result needs checking",
+    "zh-Hans": "创建或加入结果待核对"
+  },
+  "playx.phase.uploading": {
+    "en": "Uploading selected photo",
+    "zh-Hans": "正在上传所选照片"
+  },
+  "playx.phase.stabilizing": {
+    "en": "Stabilizing",
+    "zh-Hans": "等待稳定"
+  },
+  "playx.phase.holding": {
+    "en": "Holding still",
+    "zh-Hans": "保持静止"
+  },
+  "playx.phase.paused": {
+    "en": "Paused",
+    "zh-Hans": "已暂停"
+  },
+  "playx.phase.completed": {
+    "en": "Completed",
+    "zh-Hans": "已完成"
+  },
+  "playx.phase.running": {
+    "en": "Running",
+    "zh-Hans": "进行中"
+  },
+  "playx.phase.ended": {
+    "en": "Ended",
+    "zh-Hans": "已结束"
+  },
+  "playx.phase.done": {
+    "en": "Finished",
+    "zh-Hans": "已结束"
+  },
+  "playx.prefab.endings.guide": {
+    "en": "Story ending guide",
+    "zh-Hans": "故事结局图鉴"
+  },
+  "playx.prefab.endings.fixed": {
+    "en": "These are the source story’s fixed ending descriptions, not a server-awarded result or live player statistics.",
+    "zh-Hans": "以下是源故事的固定结局说明，并非服务端判定的个人结果或实时玩家统计"
+  },
+  "playx.prefab.ending.0.title": {
+    "en": "Standard version",
+    "zh-Hans": "标准版本"
+  },
+  "playx.prefab.ending.0.quote": {
+    "en": "“Look, I am standing straight, my hands by my sides.”",
+    "zh-Hans": "“你看，我现在站得直直的，双手贴在裤缝边。”"
+  },
+  "playx.prefab.ending.0.condition": {
+    "en": "Nothing diverged. You lived the life arranged for you.",
+    "zh-Hans": "什么都没有偏离，你过完了被安排好的一生"
+  },
+  "playx.prefab.ending.1.title": {
+    "en": "Handover",
+    "zh-Hans": "交接"
+  },
+  "playx.prefab.ending.1.quote": {
+    "en": "“A younger you takes over. They stand straighter than you.”",
+    "zh-Hans": "“接手的是一个更年轻的你，他站得比你更直。”"
+  },
+  "playx.prefab.ending.1.condition": {
+    "en": "After chapter three, there were many clicks.",
+    "zh-Hans": "在第三章之后，“咔哒”了很多次"
+  },
+  "playx.prefab.ending.2.title": {
+    "en": "Boundary",
+    "zh-Hans": "边界"
+  },
+  "playx.prefab.ending.2.quote": {
+    "en": "“The world allows you to exist, but will not fully accept you.”",
+    "zh-Hans": "“世界允许你存在，却不会完全接纳你。”"
+  },
+  "playx.prefab.ending.2.condition": {
+    "en": "You approached many times without opening the final boundary.",
+    "zh-Hans": "你靠近过很多次，但没有推开最后那道边界"
+  },
+  "playx.prefab.ending.3.title": {
+    "en": "Coexistence",
+    "zh-Hans": "共处"
+  },
+  "playx.prefab.ending.3.quote": {
+    "en": "“Unattached, the mind arises.”",
+    "zh-Hans": "“他无所住，生其心。”"
+  },
+  "playx.prefab.ending.3.condition": {
+    "en": "See enough people, read every dream, then choose to stay.",
+    "zh-Hans": "看见足够多的人，读完所有的梦，然后选择留下"
+  },
+  "playx.prefab.ending.4.title": {
+    "en": "Departure",
+    "zh-Hans": "出走"
+  },
+  "playx.prefab.ending.4.quote": {
+    "en": "“Look. I am standing straight.” Then it leaves the screen.",
+    "zh-Hans": "“你看，我现在站得直直的。”然后它走出了屏幕"
+  },
+  "playx.prefab.ending.4.condition": {
+    "en": "Open the final boundary, having truly seen the city.",
+    "zh-Hans": "推开最后那道边界，也需要你真的看过这座城市"
+  },
+  "playx.prefab.ending.5.title": {
+    "en": "Recycling",
+    "zh-Hans": "回收"
+  },
+  "playx.prefab.ending.5.quote": {
+    "en": "“V1.9. Begin.”",
+    "zh-Hans": "“V1.9，开始吧。”"
+  },
+  "playx.prefab.ending.5.condition": {
+    "en": "You opened the boundary, but nobody remembers you.",
+    "zh-Hans": "推开了边界，但没有人记得你"
+  },
+  "playx.stillness.start": {
+    "en": "Start continuous sensor challenge",
+    "zh-Hans": "开始连续传感器挑战"
+  },
+  "playx.preference.title": {
+    "en": "Preference questionnaire",
+    "zh-Hans": "偏好题组"
+  },
+  "playx.preference.result": {
+    "en": "Your result",
+    "zh-Hans": "你的结果"
+  },
+  "playx.preference.days": {
+    "en": "Suggested timeframe in days",
+    "zh-Hans": "建议天数"
+  },
+  "playx.preference.tag": {
+    "en": "Personalization tag",
+    "zh-Hans": "个性化标签"
+  },
+  "playx.preference.purpose": {
+    "en": "Purpose",
+    "zh-Hans": "用途"
+  },
+  "playx.preference.recipient": {
+    "en": "Recipient",
+    "zh-Hans": "接收方"
+  },
+  "playx.preference.confirmed": {
+    "en": "Tag confirmed",
+    "zh-Hans": "标签已确认"
+  },
+  "playx.preference.confirmTag": {
+    "en": "Confirm this tag",
+    "zh-Hans": "确认此标签"
+  },
+  "playx.preference.correctValue": {
+    "en": "Choose the corrected result",
+    "zh-Hans": "选择修正后的结果"
+  },
+  "playx.preference.correctTag": {
+    "en": "Review tag correction",
+    "zh-Hans": "核对标签修改"
+  },
+  "playx.preference.completedNoResult": {
+    "en": "The server confirms this node is complete. No result text was recovered.",
+    "zh-Hans": "服务端已确认此节点完成，尚未恢复结果正文"
+  },
+  "playx.preference.inherit": {
+    "en": "Reuse a confirmed condition",
+    "zh-Hans": "沿用已确认的条件"
+  },
+  "playx.preference.inherit.detail": {
+    "en": "Choose a source-provided tag to skip these questions, or answer again if your situation changed.",
+    "zh-Hans": "选择服务端提供的标签可跳过本站题组；情况变化时也可重新作答"
+  },
+  "playx.preference.reuse": {
+    "en": "Review reuse of this condition",
+    "zh-Hans": "核对沿用此条件"
+  },
+  "playx.preference.answerAgain": {
+    "en": "My situation changed; answer again",
+    "zh-Hans": "情况变了，现场重新答"
+  },
+  "playx.preference.discard": {
+    "en": "Choose the option to set aside",
+    "zh-Hans": "选择要舍弃的一项"
+  },
+  "playx.preference.submitNotice": {
+    "en": "Send these choices to generate this node's result? Only the server determines the outcome and next step.",
+    "zh-Hans": "提交这些选择以生成本站结果？结果和下一步由服务端决定"
+  },
+  "playx.preference.reuseNotice": {
+    "en": "Reuse the selected confirmed condition and skip this node's questions?",
+    "zh-Hans": "沿用所选已确认条件，并跳过本站题组？"
+  },
+  "playx.os.title": {
+    "en": "New-life summary",
+    "zh-Hans": "新生活总结"
+  },
+  "playx.os.private": {
+    "en": "Private build. Only visible to you.",
+    "zh-Hans": "私人构建，仅自己可见"
+  },
+  "playx.os.empty": {
+    "en": "No summary has been generated yet.",
+    "zh-Hans": "暂未生成总结"
+  },
+  "playx.os.tags": {
+    "en": "Your tags",
+    "zh-Hans": "你的标签"
+  },
+  "playx.os.revoked": {
+    "en": "Revoked",
+    "zh-Hans": "已撤回"
+  },
+  "playx.os.revoke": {
+    "en": "Revoke this tag",
+    "zh-Hans": "撤回此标签"
+  },
+  "playx.os.anchors": {
+    "en": "Remembered places",
+    "zh-Hans": "地图锚点"
+  },
+  "playx.os.week": {
+    "en": "Actions for the next seven days",
+    "zh-Hans": "未来七天行动"
+  },
+  "playx.os.month": {
+    "en": "Actions for the next thirty days",
+    "zh-Hans": "未来三十天行动"
+  },
+  "playx.os.revokeNotice": {
+    "en": "After revocation, this tag will no longer be used for subsequent personalized recommendations. Server readback must confirm the change.",
+    "zh-Hans": "撤回后，此标签不再用于后续个性化推荐，变更需由服务端回读确认"
+  },
+  "playx.preference.done": {
+    "en": "Return to journey",
+    "zh-Hans": "返回旅程"
+  }
+}

@@ -157,6 +157,8 @@ public struct SquareComment: Decodable, Equatable, Identifiable {
     public let createTime: String
     public let lifecycle: String
     public let approvalState: String
+    /// Source numeric version, absent remains unknown; never default to zero for review.
+    public let version: Int?
     public let rootID: Int?
     public let parentID: Int?
     public let repliedToMemberID: Int?
@@ -175,6 +177,7 @@ public struct SquareComment: Decodable, Equatable, Identifiable {
         createTime = value.first("create_time", "createTime").text ?? ""
         lifecycle = value["lifecycle"].text ?? "PUBLISHED"
         approvalState = value.first("author_approval_state", "approvalState").text ?? "VISIBLE"
+        version = value["version"].number
         rootID = value.first("root_id", "rootId").number
         parentID = value.first("parent_id", "parentId", "reply_id", "replyId").number
         repliedToMemberID = value.first("replied_to_member_id", "repliedToMemberId").number

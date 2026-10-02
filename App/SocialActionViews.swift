@@ -1,0 +1,172 @@
+import SwiftUI
+
+public enum SocialEditorPurpose: String, Identifiable {
+    case createPost, editPost, comment, like, bookmark, commentLike, report, toggleFollow, startChat
+    public var id: String { rawValue }
+}
+@MainActor struct SocialActionEditorView: View {
+    let purpose: SocialEditorPurpose
+    let target: SocialActionTarget
+    let coordinator: SocialActionCoordinator
+    var initialText = ""
+    @Environment(\.dismiss) private var dismiss
+    @State private var text = ""
+    @State private var enabled = true
+    @State private var ownerID = UUID()
+    @State private var sessionIdentity: SocialAccountIdentity?
+    @State private var review: SocialActionReview?
+    @State private var heldReview: SocialActionReview?
+    @State private var issue: Error?
+    @State private var preparing = false
+    @State private var revision = 0
+    private var hasText: Bool { [.createPost, .editPost, .comment].contains(purpose) }
+    private var state: SocialActionState { _ = revision; return coordinator.state(target: target) }
+    private var title: String { "social.editor.\(purpose.rawValue)" }
+    var body: some View {
+        Form {
+            Section {
+                if coordinator.availability == .syntheticOnly { Text("social.offline").font(.footnote) }
+                else { Text("social.writesDisabled").font(.footnote) }
+                if coordinator.identity.accountID == nil { SocialIssueView(error: SocialActionBlock.signIn) }
+                if let memberID = target.memberID { LabeledContent("social.targetMember", value: String(memberID)) }
+                if let postID = target.postID { LabeledContent("social.targetPost", value: String(postID)) }
+                if let commentID = target.commentID { LabeledContent("social.targetComment", value: String(commentID)) }
+            }
+            if hasText {
+                Section("social.text") {
+                    TextEditor(text: $text).frame(minHeight: 160).accessibilityLabel("social.text")
+                        .accessibilityIdentifier("social.editor.text").disabled(state.locksForm)
+                    if purpose == .editPost { Text("social.editPreservesMedia").font(.footnote).foregroundStyle(.secondary) }
+                }
+            }
+            if purpose == .like || purpose == .bookmark {
+                Section {
+                    Toggle("social.actionEnabled", isOn: $enabled).disabled(state.locksForm)
+                    Text("social.explicitActionHint").font(.footnote).foregroundStyle(.secondary)
+                }
+            }
+            if purpose == .toggleFollow { Section { Text("social.followToggleHint").font(.footnote) } }
+            if purpose == .startChat { Section { Text("social.startChatHint").font(.footnote) } }
+            if purpose == .commentLike { Section { Text("social.toggleHint").font(.footnote) } }
+            if purpose == .report { Section { Text("social.reportHint").font(.footnote) } }
+            if let issue { SocialIssueView(error: issue) }
+            SocialActionStateView(state: state)
+            Section {
+                Button("social.review") { Task { await prepare() } }
+                    .disabled(preparing || state.locksForm || coordinator.identity.accountID == nil || (hasText && SocialText.nonempty(text) == nil))
+                    .accessibilityIdentifier("social.editor.review")
+            }
+        }
+        .appNavigationTitle(key: title).privacySensitive()
+        .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { dismiss() } } }
+        .onAppear { sessionIdentity = coordinator.identity; text = initialText }
+        .onChange(of: coordinator.identity) { _, _ in clearForSessionChange() }
+        .onDisappear {
+            if let identity = sessionIdentity { coordinator.leaveScreen(target: target, expectedIdentity: identity, ownerID: ownerID) }
+            text = ""; review = nil; heldReview = nil; preparing = false
+        }
+        .sheet(item: $review, onDismiss: {
+            if let heldReview { coordinator.cancel(heldReview) }; heldReview = nil; revision += 1
+        }) { item in
+            NavigationStack {
+                SocialActionReviewView(review: item, coordinator: coordinator, onClose: { review = nil; revision += 1 })
+            }
+        }
+        .accessibilityIdentifier("social.editor")
+    }
+    private func command() -> SocialActionCommand {
+        switch purpose {
+        case .createPost: return .newPost(text: text)
+        case .editPost: return .editPost(text: text)
+        case .comment: return .comment(text: text)
+        case .like: return .action(.like, enabled: enabled)
+        case .bookmark: return .action(.bookmark, enabled: enabled)
+        case .commentLike: return .toggleCommentLike
+        case .report: return .report
+        case .toggleFollow: return .toggleFollow
+        case .startChat: return .startChat
+        }
+    }
+    private func prepare() async {
+        guard !preparing else { return }
+        let identity = coordinator.identity; preparing = true; issue = nil
+        defer { preparing = false; revision += 1 }
+        do {
+            let value = try await coordinator.prepare(command(), target: target, ownerID: ownerID, expectedIdentity: identity)
+            guard !Task.isCancelled, coordinator.identity == identity, sessionIdentity == identity else { coordinator.cancel(value); return }
+            heldReview = value; review = value
+        } catch { if coordinator.identity == identity, sessionIdentity == identity { issue = error } }
+    }
+    private func clearForSessionChange() {
+        if let heldReview { coordinator.cancel(heldReview) }
+        coordinator.synchronizeSession(); text = ""; review = nil; heldReview = nil; issue = nil
+        sessionIdentity = coordinator.identity; revision += 1
+    }
+}
+@MainActor private struct SocialActionReviewView: View {
+    let review: SocialActionReview
+    let coordinator: SocialActionCoordinator
+    let onClose: () -> Void
+    @State private var busy = false
+    @State private var revision = 0
+    private var current: Bool { coordinator.identity == review.identity }
+    private var state: SocialActionState { _ = revision; return coordinator.state(target: review.target) }
+    var body: some View {
+        List {
+            if !current { SocialIssueView(error: SocialActionBlock.changed) }
+            else {
+                Section("social.reviewTarget") {
+                    if let account = review.identity.accountID { LabeledContent("social.currentAccount", value: String(account)) }
+                    if let profile = review.snapshot.profile { LabeledContent("social.targetMember", value: String(profile.id)); if let name = profile.nickname { Text(verbatim: name) } }
+                    if let post = review.snapshot.post { LabeledContent("social.targetPost", value: String(post.id)) }
+                    if let comment = review.snapshot.comment {
+                        LabeledContent("social.targetComment", value: String(comment.id))
+                        if let body = comment.contents { Text(verbatim: body) }
+                    }
+                }
+                if let text = review.command.text { Section("social.text") { Text(verbatim: text).textSelection(.enabled) } }
+                Section {
+                    switch review.command {
+                    case .postAction(let action, let enabled, _):
+                        Text(LocalizedStringKey(action == .like ? "social.editor.like" : "social.editor.bookmark"))
+                        Text(LocalizedStringKey(enabled ? "social.willEnable" : "social.willDisable"))
+                    case .toggleCommentLike: Text("social.toggleHint")
+                    case .report: Text("social.reportHint")
+                    case .toggleFollow: Text("social.followToggleHint")
+                    case .startChat: Text("social.startChatHint")
+                    default: Text("social.moderationHint")
+                    }
+                    if coordinator.availability == .disabled { Text("social.writesDisabled") }
+                }
+                SocialActionStateView(state: state)
+                if coordinator.availability == .syntheticOnly {
+                    Button("social.simulate") {
+                        busy = true
+                        Task { await coordinator.confirm(review); busy = false; revision += 1 }
+                    }.disabled(busy || state != .reviewing).accessibilityIdentifier("social.review.confirm")
+                } else {
+                    Button("social.submit") {}.disabled(true).accessibilityIdentifier("social.review.disabled")
+                }
+            }
+        }.appNavigationTitle("social.review")
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close", action: onClose) } }
+            .onChange(of: coordinator.identity) { _, _ in coordinator.synchronizeSession(); revision += 1 }
+            .privacySensitive().accessibilityIdentifier("social.review")
+    }
+}
+private struct SocialActionStateView: View {
+    let state: SocialActionState
+    var body: some View {
+        Group {
+            switch state {
+            case .idle, .reviewing: EmptyView()
+            case .preparing, .preflighting, .submitting: ProgressView("social.loading")
+            case .notSent: Text("social.notSent").accessibilityIdentifier("social.state.notSent")
+            case .rejected: Text("social.rejected").accessibilityIdentifier("social.state.rejected")
+            case .outcomeUnknown: Text("social.unknown").accessibilityIdentifier("social.state.unknown")
+            case .acknowledged(let receipt):
+                Text(LocalizedStringKey(receipt.synthetic ? "social.simulated" : "social.acknowledged")).accessibilityIdentifier("social.state.acknowledged")
+            }
+        }.font(.footnote).accessibilityElement(children: .combine)
+    }
+}

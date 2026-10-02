@@ -1,0 +1,92 @@
+{
+  "scope": "Local source, exact dormant adapters and in-memory fake transport authoring; no live actions",
+  "authored_core_total": 1582,
+  "authored_ui_total": 240,
+  "ui_classes": 38,
+  "catalog_keys": 4177,
+  "publishing_core_added": 39,
+  "publishing_ui_added": 4,
+  "publishing_keys_added": 98,
+  "contract_checks": {
+    "status": "PASS",
+    "count": 299
+  },
+  "publishing_source_checks": {
+    "status": "PASS",
+    "count": 10
+  },
+  "tooling_tests": {
+    "status": "PASS",
+    "count": 16
+  },
+  "parser_self_tests": {
+    "status": "PASS",
+    "count": 14
+  },
+  "focused_parser": {
+    "status": "PASS",
+    "files": 18,
+    "diagnostics": 0
+  },
+  "full_parser": {
+    "status": "FAIL_EXISTING_DIAGNOSTICS",
+    "files": 580,
+    "affected_files": 6,
+    "diagnostics": 10,
+    "paths": [
+      "App/AuthChannelView.swift",
+      "App/MerchantHomeView.swift",
+      "App/MessagingComponents.swift",
+      "App/RegistrationSheetView.swift",
+      "Core/RegistrationUIForm.swift",
+      "Tests/CoreTests/ParticipantCoordinatorTests.swift"
+    ]
+  },
+  "structural_check": "PASS",
+  "module_checks": {
+    "club_governance": "PASS",
+    "cooperation_flows": "PASS",
+    "merchant_business": "PASS",
+    "merchant_content": "PASS",
+    "nearby_team": "PASS",
+    "official_actions": "PASS",
+    "search_map": "PASS",
+    "settings_native": "PASS",
+    "team_native": "PASS"
+  },
+  "shards": [
+    40,
+    40,
+    41,
+    41,
+    39,
+    39
+  ],
+  "swift_compiler": "NOT_RUN",
+  "xctest": "NOT_RUN",
+  "xcode_ui_device_accessibility": "NOT_RUN",
+  "live_network_actions": 0,
+  "remote_writes": 0,
+  "default_publication_read_grant": false,
+  "default_mutation_approval": false,
+  "default_auxiliary_client_mounted": false,
+  "default_map_provider_enabled": false,
+  "identity_payload_persistence": false,
+  "integration": [
+    "Creator host from account/home publishing entry",
+    "Stable account/role/epoch scope",
+    "Typed topic/activity/template destinations",
+    "ProjectEdit guarded seed intake",
+    "Topic reward binding and validation",
+    "Account/mode-scoped secure draft save/restore",
+    "Debug fixture excludes AppSession creation",
+    "Exact executable AI/identity client, dormant and separately approved"
+  ],
+  "remaining": [
+    "Apple compilation/runtime/visual/accessibility validation",
+    "Live read, MapKit, publication, AI, identity and upload approvals are not enabled",
+    "US identity/provider legal contracts unavailable",
+    "Identity collection UI remains an explicit secure-flow handoff; no sensitive data is collected by mounted views",
+    "No source-backed automatic outcome reconciliation endpoint"
+  ]
+}

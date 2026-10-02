@@ -1,0 +1,86 @@
+{
+  "packet": "merchant-npc-voice-samples",
+  "source_revision": "b754aa1131d52cc7368185e04333d4b26fb49d16",
+  "status": "FROZEN_READY_FOR_ADDITIVE_INTEGRATION",
+  "checks": {
+    "source_structural": "PASS",
+    "pinned_swift_parser": "PASS 9 files, 0 recovery",
+    "swift_typecheck": "NOT_RUN",
+    "apple_build": "NOT_RUN",
+    "core_tests": "AUTHORED 9; NOT_RUN",
+    "app_unit_tests": "AUTHORED 2; NOT_RUN",
+    "ui_runtime": "NOT_RUN",
+    "microphone_playback_network_provider_actions": "NONE"
+  },
+  "integration": "Apply host patch additively; reconcile concurrent Bool-returning retained-image closure. Preserve image scopes. Merge localization fragment. Register injected sample coordinator with existing session owner and use same resource journal. All normal grants remain OFF.",
+  "files": [
+    {
+      "path": "App/MerchantNPCOperationsDestination.swift",
+      "sha256": "a63f307aeafa9ada5a78e4dcf8a96a56de5ddd736d4cde34010e80ef18fb79c3",
+      "operation": "overlay",
+      "preimage_sha256": "3fa6640e277fc0409f3161f1039f2f55b8c9e5198c6173ad6b8511a564817307"
+    },
+    {
+      "path": "App/MerchantNPCSessionOwner.swift",
+      "sha256": "ef8b0f9a8a7deec93ada2acb06e2d30efeb0bae11d10e5345f3d0231582eb9e9",
+      "operation": "overlay",
+      "preimage_sha256": "439985f6095ef6b29a456f447a63db3e67afbfbaeebc049f9aca0c3a6c43caf1"
+    },
+    {
+      "path": "App/MerchantNPCViews.swift",
+      "sha256": "9908b6cac19e235843581fff14a815b91a4c2d899ac8db3d9cbee1c6f85f9bd7",
+      "operation": "overlay",
+      "preimage_sha256": "a88a362111c2c7b823d8ef19157114e8adf536991bbfe4c2168474195bfb1fb6"
+    },
+    {
+      "path": "App/MerchantNPCVoiceDevice.swift",
+      "sha256": "18edbae29c1f920f8662c771c02e7c5c9198d801ba4873e2a180034e4639cbac",
+      "operation": "add"
+    },
+    {
+      "path": "App/MerchantNPCVoiceSamplesView.swift",
+      "sha256": "2c5bc4d868c441c745b40d3b97901456d29233b27f71dea4a66699ec24c8819e",
+      "operation": "add"
+    },
+    {
+      "path": "Core/MerchantNPCVoiceSamples.swift",
+      "sha256": "fcef7dbe64ef274141d2e1c8a5cd8f9b85288c06ee9c0ea677e7d4d40c9736c6",
+      "operation": "add"
+    },
+    {
+      "path": "Core/MerchantNPCVoiceUpload.swift",
+      "sha256": "4940f3692c16753e0e4521d460e2802abee8b5c6d61a01ac7f69724a06a1121e",
+      "operation": "add"
+    },
+    {
+      "path": "Resources/MerchantNPCVoiceSamples.fragment.json",
+      "sha256": "d88678450349a31625bcca4b9562de3a6b3d07f865b770157b35f4d140afb5c5",
+      "operation": "add"
+    },
+    {
+      "path": "Tests/AppUnitTests/MerchantNPCVoiceDeviceTests.swift",
+      "sha256": "970906e6f6d615919294a43004ea4da2a248a8803df68e592a80d7cec0dfd16d",
+      "operation": "add"
+    },
+    {
+      "path": "Tests/CoreTests/MerchantNPCVoiceSamplesTests.swift",
+      "sha256": "8f55cbc4d94e39aeb87273b74fe07a3ac9a81017b7beb6ee369588c27ec22974",
+      "operation": "add"
+    },
+    {
+      "path": "docs/merchant-npc-voice-samples.md",
+      "sha256": "55ec3eeb7f831a320b5d91e639675c3cd344a81b3e915150f16625aecc9bd36f",
+      "operation": "add"
+    },
+    {
+      "path": "docs/merchant-voice-host.patch",
+      "sha256": "8405ad58376e1650e923807aa1d67b5983b3978626b26ad8f68cfba8dce6d517",
+      "operation": "add"
+    },
+    {
+      "path": "tools/check_merchant_voice_samples.py",
+      "sha256": "7395bf8e12948cd74499a02009990c19376d07bd25140fe3b0b7bb2e6a243c94",
+      "operation": "add"
+    }
+  ]
+}

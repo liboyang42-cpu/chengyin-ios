@@ -13,3 +13,8 @@ class HomeCompositionTests(unittest.TestCase):
         self.assertNotIn('showsSquare=true',template_modal)
         self.assertIn('placement:.cancellationAction',template_modal)
         self.assertIn('showsTemplates=false',template_modal)
+
+    def test_unzoned_content_does_not_guess_timezone_from_market(self):
+        source=(ROOT/'App/SessionHomeFeedView.swift').read_text()
+        self.assertNotIn('TimeZone(identifier:',source)
+        self.assertNotIn('TimeZone.current',source)

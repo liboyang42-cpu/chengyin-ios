@@ -17,7 +17,10 @@ public enum PlaySessionScope: Hashable {
 public struct PlayNode: Decodable, Equatable, Identifiable {
     public let id: Int
     public let name: String?
+    public let npc: PlayNPCBrief?
     public let address: String?
+    public let latitude: Double?
+    public let longitude: Double?
     public let sortID: Int?
     public let done: Bool?
     public let arrived: Bool?
@@ -55,7 +58,7 @@ public struct PlayNode: Decodable, Equatable, Identifiable {
     public let advancedConfig: PlayJSONValue?
 
     private enum CodingKeys: String, CodingKey {
-        case nodeId, name, address, sortId, done, arrived, selfReported, locked, validationMethod
+        case nodeId, name, npc, address, latitude, longitude, sortId, done, arrived, selfReported, locked, validationMethod
         case needScan, needAnswer, needGps, question, questionImg, questionAudio, options, description
         case hookText, storyText, gameTitle, ruleInstructions, requiredMaterials, duration, difficulty
         case players, photoRequireDesc, businessTime, openStatus, routeNodeState, lockReason
@@ -65,8 +68,11 @@ public struct PlayNode: Decodable, Equatable, Identifiable {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         guard let nodeID = try c.playInt(.nodeId), nodeID > 0 else { throw APIError.malformedResponse }
         id = nodeID
+        // Malformed or unnamed NPC data offers no entrance; never infer from merchantId.
+        npc = try? c.decode(PlayNPCBrief.self, forKey: .npc)
         name = try c.decodeIfPresent(String.self, forKey: .name)
         address = try c.decodeIfPresent(String.self, forKey: .address)
+        latitude = c.playCoordinate(.latitude); longitude = c.playCoordinate(.longitude)
         sortID = try c.playInt(.sortId)
         done = try c.playBool(.done); arrived = try c.playBool(.arrived)
         selfReported = try c.playBool(.selfReported); locked = try c.playBool(.locked)
@@ -119,12 +125,15 @@ public struct PlayChapter: Decodable, Equatable, Identifiable {
     public let id: Int
     public let name: String?
     public let description: String?
-    private enum CodingKeys: String, CodingKey { case chapterId, name, description }
+    /// Narration from the same authorized /api/play/nodes response.
+    public let audioURL: String?
+    private enum CodingKeys: String, CodingKey { case chapterId, name, description, audioUrl }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         guard let id = try c.playInt(.chapterId), id > 0 else { throw APIError.malformedResponse }
         self.id = id; name = try c.decodeIfPresent(String.self, forKey: .name)
         description = try c.decodeIfPresent(String.self, forKey: .description)
+        audioURL = try c.decodeIfPresent(String.self, forKey: .audioUrl)
     }
 }
 
@@ -166,6 +175,7 @@ public struct PlayRouteState: Decodable, Equatable {
 }
 
 public struct PlayNodesResult: Decodable, Equatable {
+    public let eggs: [JourneyEgg]
     public let topicID: Int?
     public let topicName: String?
     public let topicDescription: String?
@@ -183,10 +193,11 @@ public struct PlayNodesResult: Decodable, Equatable {
     public let routeState: PlayRouteState?
     private enum CodingKeys: String, CodingKey {
         case topicId, topicName, topicDesc, mode, playable, registered, selfPlay, total, doneCount
-        case timeNote, expiresAt, nodes, chapters, routeState
+        case timeNote, expiresAt, nodes, chapters, routeState, eggs
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
+        eggs = JourneyEgg.project((try? c.decode(PlayWireValue.self, forKey: .eggs)) ?? .null)
         topicID = try c.playInt(.topicId); topicName = try c.decodeIfPresent(String.self, forKey: .topicName)
         topicDescription = try c.decodeIfPresent(String.self, forKey: .topicDesc)
         mode = try c.playInt(.mode); playable = try c.playBool(.playable)
@@ -236,6 +247,10 @@ public indirect enum PlayJSONValue: Decodable, Equatable {
 }
 
 extension KeyedDecodingContainer {
+    func playCoordinate(_ key: Key) -> Double? {
+        let value = (try? decode(Double.self, forKey: key)) ?? (try? decode(String.self, forKey: key)).flatMap(Double.init)
+        return value.flatMap { $0.isFinite ? $0 : nil }
+    }
     func playInt(_ key: Key) throws -> Int? {
         if !contains(key) { return nil }
         if try decodeNil(forKey: key) { return nil }

@@ -1,0 +1,227 @@
+{
+  "checked_at_utc": "2026-10-02T02:41:17.465164+00:00",
+  "ui_shards": [
+    {
+      "command": [
+        "python3",
+        "tools/run_ui_shard.py",
+        "--shard",
+        "0",
+        "--count",
+        "6",
+        "--dry-run"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "python3",
+        "tools/run_ui_shard.py",
+        "--shard",
+        "1",
+        "--count",
+        "6",
+        "--dry-run"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "python3",
+        "tools/run_ui_shard.py",
+        "--shard",
+        "2",
+        "--count",
+        "6",
+        "--dry-run"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "python3",
+        "tools/run_ui_shard.py",
+        "--shard",
+        "3",
+        "--count",
+        "6",
+        "--dry-run"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "python3",
+        "tools/run_ui_shard.py",
+        "--shard",
+        "4",
+        "--count",
+        "6",
+        "--dry-run"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "python3",
+        "tools/run_ui_shard.py",
+        "--shard",
+        "5",
+        "--count",
+        "6",
+        "--dry-run"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "ui_inventory": {
+    "scope": "Authored inventory only; Apple compiler/XCTest/XCUITest NOT_RUN",
+    "total_tests": 313,
+    "total_classes": 56,
+    "classes": {
+      "AccessibilityPresentationFlowTests": 2,
+      "AccountCollectionFlowTests": 11,
+      "ActivityFlowTests": 4,
+      "ClubActionFlowTests": 3,
+      "ClubCommunityUITests": 3,
+      "ClubGovernanceFlowTests": 6,
+      "ClubManagementFlowTests": 6,
+      "ClubOperationsFlowTests": 10,
+      "CooperationFlowTests": 6,
+      "CooperationFlowUITests": 2,
+      "CouponManagementFlowTests": 5,
+      "CreatorContentFlowTests": 5,
+      "DoorReferralUITests": 2,
+      "EntryFlowTests": 7,
+      "GrowthCenterFlowTests": 7,
+      "HomeFeedFlowTests": 3,
+      "IMExpandedUITests": 2,
+      "JourneyContentFlowTests": 5,
+      "MerchantBusinessFlowTests": 8,
+      "MerchantContentFlowTests": 7,
+      "MerchantEngagementFlowTests": 8,
+      "MerchantMarketingUITests": 7,
+      "MerchantNPCFlowTests": 3,
+      "MerchantOnboardingFlowTests": 3,
+      "MerchantOperationsFlowTests": 5,
+      "ModuleFlowTests": 11,
+      "NearbyTeamUITests": 3,
+      "ObjectCardFlowTests": 3,
+      "OfficialActionUITests": 3,
+      "OfficialEventFlowTests": 10,
+      "OrderLifecycleUITests": 7,
+      "PlayDirectorPrefabFlowTests": 5,
+      "PlayExperienceFlowTests": 7,
+      "PlayPreferenceFlowTests": 2,
+      "ProfileEditFlowTests": 3,
+      "ProjectEditFlowTests": 9,
+      "PublicMerchantHomeFlowTests": 6,
+      "PublisherLifecycleUITests": 3,
+      "PublishingModesFlowTests": 4,
+      "RegionalEntryFlowTests": 4,
+      "RetainedImageUITests": 3,
+      "RoamExperienceFlowTests": 10,
+      "SearchMapFlowTests": 9,
+      "SettingsNativeFlowTests": 11,
+      "ShopNPCFlowTests": 4,
+      "SocialAccountFlowTests": 8,
+      "SquareFlowTests": 9,
+      "SquareGovernanceFlowTests": 5,
+      "SquareWorkspaceFlowTests": 2,
+      "TeamFlowTests": 12,
+      "TemplateAuthoringFlowTests": 10,
+      "TemplateOwnShelfFlowTests": 6,
+      "TicketWalletFlowTests": 6,
+      "TopicFlowTests": 2,
+      "WalletCommerceFlowTests": 5,
+      "WeChatAppAuthFlowTests": 1
+    },
+    "shards": [
+      [
+        "TeamFlowTests",
+        "MerchantBusinessFlowTests",
+        "MerchantEngagementFlowTests",
+        "CooperationFlowTests",
+        "CouponManagementFlowTests",
+        "PlayDirectorPrefabFlowTests",
+        "HomeFeedFlowTests",
+        "OfficialActionUITests",
+        "DoorReferralUITests"
+      ],
+      [
+        "AccountCollectionFlowTests",
+        "ProjectEditFlowTests",
+        "SocialAccountFlowTests",
+        "PublicMerchantHomeFlowTests",
+        "CreatorContentFlowTests",
+        "SquareGovernanceFlowTests",
+        "MerchantNPCFlowTests",
+        "ProfileEditFlowTests",
+        "IMExpandedUITests"
+      ],
+      [
+        "ModuleFlowTests",
+        "SearchMapFlowTests",
+        "EntryFlowTests",
+        "OrderLifecycleUITests",
+        "JourneyContentFlowTests",
+        "WalletCommerceFlowTests",
+        "MerchantOnboardingFlowTests",
+        "PublisherLifecycleUITests",
+        "PlayPreferenceFlowTests"
+      ],
+      [
+        "SettingsNativeFlowTests",
+        "SquareFlowTests",
+        "GrowthCenterFlowTests",
+        "PlayExperienceFlowTests",
+        "MerchantOperationsFlowTests",
+        "ActivityFlowTests",
+        "ShopNPCFlowTests",
+        "RetainedImageUITests",
+        "SquareWorkspaceFlowTests"
+      ],
+      [
+        "ClubOperationsFlowTests",
+        "RoamExperienceFlowTests",
+        "MerchantContentFlowTests",
+        "ClubGovernanceFlowTests",
+        "TemplateOwnShelfFlowTests",
+        "PublishingModesFlowTests",
+        "ClubActionFlowTests",
+        "NearbyTeamUITests",
+        "AccessibilityPresentationFlowTests",
+        "TopicFlowTests"
+      ],
+      [
+        "OfficialEventFlowTests",
+        "TemplateAuthoringFlowTests",
+        "MerchantMarketingUITests",
+        "ClubManagementFlowTests",
+        "TicketWalletFlowTests",
+        "RegionalEntryFlowTests",
+        "ClubCommunityUITests",
+        "ObjectCardFlowTests",
+        "CooperationFlowUITests",
+        "WeChatAppAuthFlowTests"
+      ]
+    ],
+    "shard_test_counts": [
+      52,
+      52,
+      52,
+      52,
+      53,
+      52
+    ]
+  },
+  "deterministic_project": {
+    "exit_code": 0,
+    "unchanged": true,
+    "hashes": {
+      "Questify.xcodeproj/project.pbxproj": "55d18cb5f6b7952a82bc50ed64ffaa200d0c131b99f92a25332f65632235a7ab",
+      "Questify.xcodeproj/xcshareddata/xcschemes/Questify.xcscheme": "41d92b9e86e1c30d9ab44589467782b7db30097e28520c08baeb187d63c31680",
+      "Questify.xcodeproj/xcshareddata/xcschemes/QuestifyAppUnitTests.xcscheme": "e52272e31041dd7e5b5a90a12724d7ac29573d0f90f8bc646d5cec8cca7057ca"
+    }
+  }
+}

@@ -1,0 +1,3 @@
+PASS retained normal image host source assertions; 8 core + 6 app-unit tests AUTHORED, NOT_RUN
+
+--- STDERR ---
