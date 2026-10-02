@@ -36,19 +36,27 @@ def normalize_paths(value, products):
         return {key: normalize_paths(child, products) for key, child in value.items()}
     if isinstance(value, list):
         return [normalize_paths(child, products) for child in value]
-    if isinstance(value, str) and value.startswith(str(products) + '/'):
-        return '__TESTROOT__/' + value[len(str(products)) + 1:]
+    if isinstance(value, str):
+        # macOS commonly exposes the same temporary directory through /var and
+        # /private/var. Preserve both the caller's spelling and canonical root.
+        aliases = {str(pathlib.Path(products).absolute()), str(pathlib.Path(products).resolve())}
+        for prefix in sorted(aliases, key=len, reverse=True):
+            if value == prefix:
+                value = '__TESTROOT__'
+            value = value.replace(prefix + '/', '__TESTROOT__/')
+        return value
     return value
 
 
 def inventory(products, normalize=False):
-    products = pathlib.Path(products).resolve()
+    source_root = pathlib.Path(products).absolute()
+    products = source_root.resolve()
     found = {target: [] for target in TARGETS}
     for path in sorted(products.glob('*.xctestrun')):
         with path.open('rb') as source:
             data = plistlib.load(source)
         if normalize:
-            data = normalize_paths(data, products)
+            data = normalize_paths(data, source_root)
             with path.open('wb') as destination:
                 plistlib.dump(data, destination)
         for node in walk(data):
@@ -75,11 +83,12 @@ def inventory(products, normalize=False):
 
 
 def pack(products, archive, commit, identity):
-    products = pathlib.Path(products).resolve()
+    source_root = pathlib.Path(products).absolute()
+    products = source_root.resolve()
     archive = pathlib.Path(archive).resolve()
     if not commit or len(commit) != 40 or any(c not in '0123456789abcdef' for c in commit):
         raise ValueError('Exact commit SHA required')
-    manifest = {'commit': commit, 'toolchain': identity, 'targets': inventory(products, normalize=True)}
+    manifest = {'commit': commit, 'toolchain': identity, 'targets': inventory(source_root, normalize=True)}
     (products / MANIFEST).write_text(json.dumps(manifest, sort_keys=True) + '\n')
     archive.parent.mkdir(parents=True, exist_ok=True)
     with tarfile.open(archive, 'w:gz', compresslevel=1) as output:

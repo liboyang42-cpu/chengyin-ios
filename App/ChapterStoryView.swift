@@ -8,6 +8,7 @@ import UIKit
     let nodeID: Int
     @Bindable var model: PlayExperienceCoordinator
     var advancedModel: ((Int) -> PlayAdvancedCoordinator?)? = nil
+    var journeyModel: ((Int) -> JourneyCheckCoordinator?)? = nil
     var deviceModel: ((Int) -> PlayDeviceCaptureCoordinator)? = nil
     var mediaScope: UUID = UUID()
     var makeAudio: (@MainActor () -> PlatformAudioPlayback)? = nil
@@ -115,6 +116,10 @@ import UIKit
                 if let description { Text(verbatim: description) }
             }.padding().background(.quaternary, in: RoundedRectangle(cornerRadius: 16))
         case .game(let id):
+            if let journey = journeyModel?(id) {
+                JourneyRoleViewInlineHost(model: journey.roleContent, sessionIdentity: model.identity,
+                    runID: model.snapshot?.route?.sessionID, stateVersion: model.snapshot?.route?.version)
+            }
             if let node = model.snapshot?.visibleNodes.first(where: { $0.id == id }),
                node.hasAdvancedPrerequisite, let advanced = advancedModel?(id) {
                 ChapterStoryGameHost(advanced: advanced, device: deviceModel?(id), mediaScope: mediaScope,

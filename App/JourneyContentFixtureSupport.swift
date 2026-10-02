@@ -9,7 +9,17 @@ private final class JourneyFixtureHTTP: HTTPTransport {
         if scenario == "probeFailure" { throw URLError(.notConnectedToInternet) }
         if scenario == "unknown", path.hasSuffix("/roll") { throw URLError(.networkConnectionLost) }
         let json: String
-        if path.hasSuffix("/encounter") {
+        if path.hasSuffix("/encounter"), scenario.hasPrefix("role") {
+            let role: String
+            switch scenario {
+            case "roleA": role = #"{"role":"A","otherRoleLabel":"Other character","views":[{"roleId":"A","title":"Synthetic A clue","body":"Only A may see this","items":[{"label":"Detail","text":"A detail"}]}]}"#
+            case "roleB": role = #"{"role":"B","otherRoleLabel":"Other character","views":[{"roleId":"B","title":"Synthetic B clue","body":"Only B may see this","items":[]}]}"#
+            case "roleSolo": role = #"{"role":"SOLO","views":[{"roleId":"A","title":"Synthetic A clue","body":"A half","items":[]},{"roleId":"B","title":"Synthetic B clue","body":"B half","items":[]}]}"#
+            case "roleMissing": role = #"{"roleMissing":true,"views":[]}"#
+            default: role = #"{"role":"A","views":[{"roleId":"A","title":"Must not render A","body":"Private A"},{"roleId":"B","title":"Must not render B","body":"Private B"}]}"#
+            }
+            json = #"{"code":200,"data":{"nodeId":701,"runId":101,"stateVersion":1,"allowedActions":[],"roleView":"# + role + "}}"
+        } else if path.hasSuffix("/encounter") {
             json = #"{"code":200,"data":{"allowedActions":["check"],"check":{"checkId":"fixture-check","skill":"Observation","tier":"medium","advantage":true,"mods":[{"label":"Synthetic torch","value":2,"held":true}]}}}"#
         } else if path.hasSuffix("/settle") {
             json = #"{"code":200,"data":{"settled":true,"rerolled":false,"success":false,"dice":[7],"kept":7,"total":9,"hp":5,"luck":1,"text":"Synthetic server narrative","failCostLabel":"Synthetic server cost"}}"#
@@ -37,7 +47,8 @@ private final class JourneyFixtureHTTP: HTTPTransport {
                 PlayJourneyCheckView(model: model, nodeDone: false)
                 Button("Main task remains available") {}.accessibilityIdentifier("journey.fixture.mainTask")
             }.navigationTitle("journey.check.title")
-                .task { await model.probe(nodeDone: false) }
+                .task { await model.probe(nodeDone: false); await model.roleContent.load() }
+                .onDisappear { model.roleContent.close() }
         }
     }
 }

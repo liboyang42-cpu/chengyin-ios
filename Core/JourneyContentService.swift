@@ -17,6 +17,18 @@ public struct JourneyContentService {
         return JourneyCheckProblem(encounter: try await api.request("api/play/encounter",
             query: ["topicId": String(topicID), "nodeId": String(nodeID)], capability: .reads, token: token))
     }
+    /// Scope is required: activity-specific role assignment must never fall back to a topic-only run.
+    public func roleView(scope: PlaySessionScope, topicID: Int, nodeID: Int, token: String) async throws -> JourneyRoleProjection? {
+        guard readsEnabled else { throw PlayExperienceError.disabled }
+        guard scope.isValid, topicID > 0, nodeID > 0 else { throw APIError.invalidRequest }
+        var query = ["topicId": String(topicID), "nodeId": String(nodeID)]
+        switch scope {
+        case .topic(let id): guard id == topicID else { throw APIError.invalidRequest }
+        case .activity(let id): query["activityId"] = String(id)
+        }
+        let raw = try await api.request("api/play/encounter", query: query, capability: .reads, token: token)
+        return try JourneyRoleProjection(encounter: raw, expectedNodeID: nodeID)
+    }
     public func act(_ review: JourneyCheckReview) async throws -> JourneyCheckReceipt {
         guard checksEnabled else { throw PlayExperienceError.disabled }
         guard review.topicID > 0, review.nodeID > 0, !review.checkID.isEmpty else { throw APIError.invalidRequest }

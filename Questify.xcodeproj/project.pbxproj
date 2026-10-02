@@ -805,6 +805,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "43116F48AC6A8934EE7E9FB1";
 		};
+		"74798D6149F3691AEA089DD2" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/JourneyRoleViewSection.swift";
+			"sourceTree" = "<group>";
+		};
+		"1BDA0481D33C334F921AC712" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "74798D6149F3691AEA089DD2";
+		};
 		"490C9C54035456EAE4C8AA3C" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -4268,6 +4278,26 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "2E6F5DE1DAE1287273753959";
 		};
+		"F8117075C80D9C8E5B0D4806" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/JourneyRoleView.swift";
+			"sourceTree" = "<group>";
+		};
+		"141581A32E2C526B3A8D9EE6" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "F8117075C80D9C8E5B0D4806";
+		};
+		"9B226562C4F9775935C3EE8A" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/JourneyRoleViewCoordinator.swift";
+			"sourceTree" = "<group>";
+		};
+		"82A003054B057230DE319668" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "9B226562C4F9775935C3EE8A";
+		};
 		"2D6692C677B3DB516C719642" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -7116,6 +7146,7 @@
 				"0F114A68230A563CF7BB12EB",
 				"80850B92D75D7B2875395BAA",
 				"43116F48AC6A8934EE7E9FB1",
+				"74798D6149F3691AEA089DD2",
 				"490C9C54035456EAE4C8AA3C",
 				"B435788993D860E24976C9CE",
 				"5B21019EB445C27900333954",
@@ -7462,6 +7493,8 @@
 				"015E684D20754478FEB09205",
 				"61375B817EEEF19F46F83DD5",
 				"2E6F5DE1DAE1287273753959",
+				"F8117075C80D9C8E5B0D4806",
+				"9B226562C4F9775935C3EE8A",
 				"2D6692C677B3DB516C719642",
 				"487B9F263023B1BE7410F729",
 				"BE135455D0D86AAC67045BFD",
@@ -7760,6 +7793,7 @@
 				"E7FFC0558153B83961C841B6",
 				"95853A622629483EA8AE6FA0",
 				"6BC5473E996B1ED55C8526D5",
+				"CE1FECADCECA44CB0F07D12B",
 				"7A3FDE9B54073E5D8C074C6C",
 				"5C3244E57B1E9BC4B62EB5E7",
 				"3B515EE18C55B496B47ADBFD",
@@ -7896,6 +7930,7 @@
 				"A7B5A62265A72285A5F484AF",
 				"75B03D35A074A6DF9176FD0A",
 				"51BFF7193A3080388160745E",
+				"1BDA0481D33C334F921AC712",
 				"ECDA26536837E6D6B882ED12",
 				"7F1BDE17F75E817CC8DBFD44",
 				"EAF45624F6A5EA5383808932",
@@ -8242,6 +8277,8 @@
 				"534D26D4CA081E23BF8870C2",
 				"A9A82E266BD7CDD4F6E79AC2",
 				"AF4718D7BC8241D4A65C8DB5",
+				"141581A32E2C526B3A8D9EE6",
+				"82A003054B057230DE319668",
 				"091FC6ADAE21B7C46765DFC6",
 				"58CFAB4A5471414361EDC7A3",
 				"A90C68395D92E7A0D5397A7E",
@@ -8796,6 +8833,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "6BC5473E996B1ED55C8526D5";
 		};
+		"CE1FECADCECA44CB0F07D12B" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUITests/JourneyRoleViewFlowTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"7364EAE5075D0E72286FE4D9" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "CE1FECADCECA44CB0F07D12B";
+		};
 		"7A3FDE9B54073E5D8C074C6C" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -9271,6 +9318,7 @@
 				"980E081A57B5E7A71180092D",
 				"F7F7D31AD12B7974D1993CBA",
 				"8B27A722E63BD2F4EE2AE684",
+				"7364EAE5075D0E72286FE4D9",
 				"F740534FFE9D68E4B3563F3B",
 				"D861D911C2BDE09C5EE4C558",
 				"5C29AF2F73DD35D2B3778DB1",

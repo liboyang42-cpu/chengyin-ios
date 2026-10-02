@@ -88,5 +88,24 @@ class TestProductTransferTests(unittest.TestCase):
             path.write_bytes(plistlib.dumps(data))
             with self.assertRaises(ValueError): module.inventory(products, normalize=True)
 
+    def test_source_root_symlink_aliases_are_portable(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = pathlib.Path(tmp).resolve()
+            products = self.setup_products(root)
+            alias = root / 'source-alias'
+            alias.symlink_to(products.parent, target_is_directory=True)
+            aliased_products = alias / 'Products'
+            path = products / 'QuestifyAppUnitTests.xctestrun'
+            data = plistlib.loads(path.read_bytes())
+            data['QuestifyAppUnitTests']['TestHostPath'] = str(aliased_products / 'Debug-iphonesimulator/Questify.app')
+            data['QuestifyAppUnitTests']['EnvironmentVariables'] = {'DYLD_FRAMEWORK_PATH': str(aliased_products / 'Frameworks') + ':' + str(products / 'OtherFrameworks')}
+            path.write_bytes(plistlib.dumps(data))
+            archive = root / 'products.tar.gz'
+            module.pack(aliased_products, archive, self.sha, self.identity)
+            result = module.restore(archive, root / 'restored', self.sha, self.identity)
+            final = plistlib.loads(pathlib.Path(result['APP_UNIT_XCTESTRUN']).read_bytes())['QuestifyAppUnitTests']
+            self.assertEqual(final['TestHostPath'], '__TESTROOT__/Debug-iphonesimulator/Questify.app')
+            self.assertEqual(final['EnvironmentVariables']['DYLD_FRAMEWORK_PATH'], '__TESTROOT__/Frameworks:__TESTROOT__/OtherFrameworks')
+
 
 if __name__ == '__main__': unittest.main()

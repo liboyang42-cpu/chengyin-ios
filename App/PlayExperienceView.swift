@@ -72,7 +72,7 @@ import SwiftUI
                                model.chapterStories[chapter.id] != nil {
                                 NavigationLink {
                                     ChapterStoryView(chapterID: chapter.id, nodeID: node.id, model: model,
-                                        advancedModel: advancedModel, deviceModel: deviceModel, mediaScope: mediaScope,
+                                        advancedModel: advancedModel, journeyModel: journeyModel, deviceModel: deviceModel, mediaScope: mediaScope,
                                         makeAudio: makeAudio, approvedArtworkHosts: approvedArtworkHosts, makeSensorProvider: makeSensorProvider, spatialApproval: spatialApproval, nodeDestination: { AnyView(nodeDestination($0)) })
                                 } label: {
                                     if let title = chapter.name { Label { Text(verbatim: title) } icon: { Image(systemName: "book") } }
@@ -252,8 +252,12 @@ import SwiftUI
         }
         .privacySensitive().navigationTitle("playx.task.title")
         // The optional check initially renders no rows, so its probe belongs to this stable host.
-        .task(id: [model.identity, node.map { String($0.id) }]) {
-            if let node { await journey?.probe(nodeDone: node.done == true) }
+        .task(id: [model.identity, node.map { String($0.id) }, (model.snapshot?.route?.sessionID).map(String.init), (model.snapshot?.route?.version).map(String.init)]) {
+            if let node {
+                await journey?.probe(nodeDone: node.done == true)
+                guard !Task.isCancelled, self.node?.id == node.id, model.hasCurrentMediaSnapshot else { journey?.roleContent.close(); return }
+                await journey?.roleContent.load(expectedRunID: model.snapshot?.route?.sessionID, minimumStateVersion: model.snapshot?.route?.version)
+            } else { journey?.roleContent.close() }
         }
         .onChange(of: node?.done) { _, _ in
             if let node { journey?.updateNodeDone(node.done == true) }
@@ -268,7 +272,7 @@ import SwiftUI
                 Task { await model.requestHint(nodeID: nodeID, level: extra?.puzzleScoring == true ? min(2, (extra?.puzzleHintLevel ?? 0) + 1) : nil) }
             }
         } message: { Text("playx.hints.consequence") }
-        .onDisappear { device?.cancel(); model.cancelReview(); review = nil; answer = "" }
+        .onDisappear { journey?.roleContent.close(); device?.cancel(); model.cancelReview(); review = nil; answer = "" }
     }
     private func stateRow(_ key: String, done: Bool) -> some View { Label(LocalizedStringKey(key), systemImage: done ? "checkmark.circle.fill" : "circle") }
     private func prepare(_ evidence: PlayCompletionEvidence) {

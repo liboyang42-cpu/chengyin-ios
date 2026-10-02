@@ -6,6 +6,7 @@ import SwiftUI
     let nodeDone: Bool
     var body: some View {
         Group {
+            JourneyRoleViewSection(model: model.roleContent)
             if model.visible, let problem = model.problem {
                 Section("journey.check.title") {
                     Text(verbatim: problem.skill).font(.headline).accessibilityIdentifier("journey.check.stage")

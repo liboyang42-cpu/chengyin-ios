@@ -3,6 +3,7 @@ import Observation
 
 @MainActor @Observable public final class JourneyCheckCoordinator {
     public let scope: PlaySessionScope; public let topicID: Int; public let nodeID: Int
+    public let roleContent: JourneyRoleViewCoordinator
     public private(set) var problem: JourneyCheckProblem?
     public private(set) var receipt: JourneyCheckReceipt?
     public private(set) var review: JourneyCheckReview?
@@ -22,11 +23,13 @@ import Observation
     public init(scope: PlaySessionScope, topicID: Int, nodeID: Int, service: JourneyContentService,
                 journal: (any JourneyCheckJournal)? = nil, currentSession: @escaping () -> PlayExperienceSession?, onUnauthorized: @escaping (PlayExperienceSession) -> Void = { _ in }) {
         self.scope = scope; self.topicID = topicID; self.nodeID = nodeID; self.service = service
+        roleContent = JourneyRoleViewCoordinator(scope: scope, topicID: topicID, nodeID: nodeID, service: service, currentSession: currentSession, onUnauthorized: onUnauthorized)
         self.journal = journal ?? JourneyMemoryCheckJournal(); self.currentSession = currentSession; unauthorized = onUnauthorized; identity = currentSession()
     }
     public var canRecover: Bool { unknown && pending != nil && !acting && available }
     public var available: Bool { service.checksEnabled && !nodeDone && currentSession() != nil }
     public func synchronize() {
+        roleContent.synchronize()
         guard identity != currentSession() else { return }
         generation &+= 1; identity = currentSession(); problem = nil; receipt = nil
         review = nil; pending = nil; visible = false; unknown = false; acting = false; probed = false; issue = nil
