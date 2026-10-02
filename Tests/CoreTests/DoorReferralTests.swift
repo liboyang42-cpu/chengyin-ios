@@ -133,7 +133,12 @@ import FoundationNetworking
         let queue = DoorReferralQueue(store: store, service: fake, currentSession: { scope })
         try queue.capture("9")
         fake.bindHook = {
-            XCTAssertThrowsError(try queue.capture("10")) { XCTAssertEqual($0 as? DoorReferralFailure, .busy) }
+            do {
+                try queue.capture("10")
+                XCTFail("Busy capture replaced the in-flight claim")
+            } catch {
+                XCTAssertEqual(error as? DoorReferralFailure, .busy)
+            }
         }
         try await queue.replay(); XCTAssertEqual(store.value.accounts["7"]?.inviter, 9)
     }

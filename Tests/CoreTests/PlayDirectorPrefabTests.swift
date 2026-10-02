@@ -24,7 +24,7 @@ import FoundationNetworking
         XCTAssertFalse(projection.allows(command))
     }
     func testDirectorReceiptRejectsOtherActionAndForeignActivity() throws {
-        let command = try PlayDirectorCommand(activityID: 41, nodeID: nil, requestID: "synthetic-prepare", expectedRevision: 0, action: .prepare, payload: [:])
+        let command = try PlayDirectorCommand(activityID: 41, nodeID: nil, expectedRevision: 0, requestID: "synthetic-prepare", action: .prepare, payload: [:])
         XCTAssertThrowsError(try PlayDirectorReceipt(wire(#"{"activityId":42,"requestId":"synthetic-prepare","action":"PREPARE","outcome":"APPLIED","receiptId":1,"revision":1}"#), command: command))
         XCTAssertThrowsError(try PlayDirectorReceipt(wire(#"{"activityId":41,"requestId":"synthetic-prepare","action":"START","outcome":"APPLIED","receiptId":1,"revision":1}"#), command: command))
     }

@@ -32,7 +32,7 @@ private final class JournalUploadTransport: HTTPTransport {
     func scope(account: Int = 8, epoch: UUID = UUID(), resource: Int? = nil, namespace: String = "deployment-one") throws -> RetainedImageScope {
         try .init(accountID: account, epoch: epoch, realm: "https://api.example.com", destination: .merchant(merchantRowID: 73, field: .imgUrl), accessRevision: UUID(), resourceID: resource, namespace: namespace)
     }
-    func owner(_ scope: RetainedImageScope, _ storage: ImageJournalTestStorage, _ transport: JournalUploadTransport) throws -> RetainedImageUploadCoordinator {
+    private func owner(_ scope: RetainedImageScope, _ storage: ImageJournalTestStorage, _ transport: JournalUploadTransport) throws -> RetainedImageUploadCoordinator {
         let uploader = try RetainedImageHTTPUploader(configuration: .init(baseURL: URL(string: scope.realm)!), transport: transport,
             enabled: true, approvedOrigins: ["https://media.example.com"], currentScope: { scope }, token: { "fixture-token" })
         return RetainedImageUploadCoordinator(uploader: uploader, journal: storage.journal())

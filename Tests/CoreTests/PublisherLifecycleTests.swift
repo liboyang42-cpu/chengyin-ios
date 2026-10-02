@@ -28,14 +28,14 @@ private actor LifecycleFakeHTTP: HTTPTransport {
 @MainActor final class PublisherLifecycleTests: XCTestCase {
     let floor = "{\"code\":200,\"data\":{\"priceMin\":12.5,\"lineup\":[]}}"
     let paid = "{\"code\":200,\"data\":{\"paidPlayers\":3}}"
-    func setup(_ transport: LifecycleFakeHTTP, active: Bool = true) throws -> PublisherLifecycleHTTP {
+    private func setup(_ transport: LifecycleFakeHTTP, active: Bool = true) throws -> PublisherLifecycleHTTP {
         let config = try APIConfiguration(baseURL: URL(string: "https://example.com/test/")!)
         let session = PublishingSession(namespace: "fixture", accountID: 7, epoch: UUID(), role: "member", region: .china)
         let credentials = try PublishingCredentials(session: session, token: "fixture-token")
         let grant = try OperationEndpointApproval(baseURL: config.baseURL, namespace: "fixture", accountID: 7, paths: ["api/topic/pricing/preview", "api/topic/pricing/confirm", "api/topic/cancel_preview", "api/activity/cancel_preview", "api/topic/cancel", "api/activity/cancel", "api/topic/xp-budget", "api/topic/transfer-to-club", "api/topic/beta/graduate", "api/creator/apply", "api/club/detail", "api/merchant/public-detail"])
         return PublisherLifecycleHTTP(configuration: config, transport: transport, grants: active ? .init(reads: grant, pricing: grant, cancellationRefunds: grant, ownership: grant, graduation: grant, creatorApplication: grant) : .dormant, credentials: { credentials })
     }
-    func coordinator(_ client: PublisherLifecycleHTTP, journal: LifecycleJournal? = nil) -> PublisherLifecycleCoordinator {
+    private func coordinator(_ client: PublisherLifecycleHTTP, journal: LifecycleJournal? = nil) -> PublisherLifecycleCoordinator {
         PublisherLifecycleCoordinator(client: client, journal: journal ?? LifecycleJournal()) { resource, _ in
             PublisherAuthority(resource: resource, ownerAccountID: 7, revision: "fixture-server-version-1", beta: true, eligibleClubIDs: [9])
         }
