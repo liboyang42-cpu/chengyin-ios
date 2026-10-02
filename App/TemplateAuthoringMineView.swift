@@ -5,6 +5,7 @@ import SwiftUI
     let coordinator: TemplateAuthoringCoordinator
     let sessionRevision: UInt64
     var memberDetail: ((MemberPlayTemplateID) -> AnyView)? = nil
+    var fixtureSignOut: (() -> Void)? = nil
     @State private var rows: [DiscoveryPlayTemplate] = []
     @State private var messageKey: String?
     @State private var review: TemplateOwnShelfReview?
@@ -63,10 +64,20 @@ import SwiftUI
                             }.disabled(busy).accessibilityIdentifier("templateAuthor.shelf.confirm")
                         } else { Text("templateAuthor.unavailable") }
                     }.navigationTitle("templateAuthor.reviewTitle")
-                        .toolbar { ToolbarItem(placement: .cancellationAction) {
-                            Button("templateAuthor.cancel") { coordinator.cancelShelfReview(); review = nil }
-                                .accessibilityIdentifier("templateAuthor.shelf.cancel")
-                        } }
+                        .toolbar {
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button("templateAuthor.cancel") { coordinator.cancelShelfReview(); review = nil }
+                                    .accessibilityIdentifier("templateAuthor.shelf.cancel")
+                            }
+                            #if DEBUG
+                            ToolbarItem(placement: .topBarTrailing) {
+                                if let fixtureSignOut {
+                                    Button("templateAuthor.fixture.signOut", action: fixtureSignOut)
+                                        .accessibilityIdentifier("fixtureTemplate.review.signOut")
+                                }
+                            }
+                            #endif
+                        }
                 }
             }
     }

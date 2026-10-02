@@ -2,6 +2,9 @@ import XCTest
 
 /// Requires the host app's --cooperation-flow-fixture branch (documented integration step).
 final class CooperationFlowUITests: XCTestCase {
+    private var app: XCUIApplication?
+    override func setUpWithError() throws { continueAfterFailure = false }
+    override func tearDownWithError() throws { attachFailureScreenshot(self, app: app); app?.terminate(); app = nil }
     func testSyntheticFinanceAndDormantReview() {
         let app = launch()
         XCTAssertTrue(app.descendants(matching: .any)["coopflow.workbench"].waitForExistence(timeout: 5))
@@ -27,7 +30,7 @@ final class CooperationFlowUITests: XCTestCase {
         app.launchArguments += ["--uitesting-reset-language", "--cooperation-flow-fixture", "-AppleLanguages", "(\(language))",
                                 "-AppleLocale", language == "en" ? "en_US" : "zh_CN"]
         if denied { app.launchArguments += ["--cooperation-flow-denied"] }
-        app.launch()
+        app.launch(); self.app = app
         let title = language == "en" ? "Cooperation center" : "合作中心"
         XCTAssertTrue(app.navigationBars[title].waitForExistence(timeout: 5), app.debugDescription)
         return app
@@ -71,11 +74,19 @@ final class CooperationFlowUITests: XCTestCase {
         XCTAssertTrue(revealFixtureElement(submit, in: app, requiresHittable: false))
         XCTAssertTrue(submit.exists); XCTAssertFalse(submit.isEnabled)
         attachFixtureScreenshot(self, app: app, name: "Cooperation invitation local review")
-        app.navigationBars.buttons.element(boundBy: 0).tap()
+        // Scope Back to the review's sheet navigation stack, not the covered host bar.
+        let reviewBar = app.navigationBars["Review this request"]
+        XCTAssertTrue(reviewBar.waitForExistence(timeout: 5), app.debugDescription)
+        let reviewBack = reviewBar.buttons["BackButton"]
+        XCTAssertTrue(reviewBack.isHittable, app.debugDescription)
+        reviewBack.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        XCTAssertTrue(app.navigationBars["Prepare invitation"].waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertTrue(revealFixtureElement(field, in: app, towardTop: true), app.debugDescription)
         XCTAssertEqual(field.value as? String, "Keep this local draft")
         app.buttons["coopflow.invite.cancel"].tap()
         attachFixtureScreenshot(self, app: app, name: "Cooperation unsaved draft discard decision")
         app.buttons["Keep editing"].tap()
+        XCTAssertTrue(revealFixtureElement(field, in: app, towardTop: true), app.debugDescription)
         XCTAssertEqual(field.value as? String, "Keep this local draft")
         app.buttons["coopflow.invite.cancel"].tap()
         app.buttons["Discard draft"].tap()

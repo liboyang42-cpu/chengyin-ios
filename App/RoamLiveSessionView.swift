@@ -93,7 +93,7 @@ import SwiftUI
             }
         }
         .confirmationDialog("roam.live.finishConfirm", isPresented: $confirmFinish, titleVisibility: .visible) {
-            Button("roam.live.finish") { Task { await owner.finish() } }
+            Button("roam.live.finish") { Task { await owner.finish() } }.accessibilityIdentifier("roam.live.finish.confirm")
             Button("action.cancel", role: .cancel) {}
         } message: { Text("roam.live.finishHint") }
         .sheet(isPresented: $showRules) { NavigationStack { RoamLiveRulesView() } }

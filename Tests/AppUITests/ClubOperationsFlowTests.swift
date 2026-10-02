@@ -69,6 +69,20 @@ final class ClubOperationsFlowTests: XCTestCase {
         launch("unverified"); reviewSetting()
         XCTAssertTrue(element("club.ops.reviewSheet").waitForExistence(timeout: 5)); XCTAssertFalse(element("club.ops.confirm").exists)
     }
+    func testPopulatedMemberQuotaKeepsItsVisibleLabelInBothLanguages() {
+        for chinese in [false, true] {
+            launch(chinese: chinese); tap("club.ops.openManage")
+            let field = element("club.ops.field.quota")
+            XCTAssertTrue(revealFixtureElement(field, in: app), app.debugDescription)
+            XCTAssertEqual(field.value as? String, "4")
+            let label = app.staticTexts["clubQuota.visibleLabel"]
+            XCTAssertTrue(label.exists, app.debugDescription)
+            XCTAssertEqual(label.label, chinese ? "成员保留名额" : "Reserved member places")
+            count(0)
+            attachFixtureScreenshot(self, app: app, name: chinese ? "Populated member quota Chinese" : "Populated member quota English")
+            app.terminate()
+        }
+    }
     func testMemberRoleConfirmationIdentifiesTarget() {
         launch(); tap("club.ops.openManage")
         let member = app.buttons["club.ops.member.704"].firstMatch

@@ -17,7 +17,7 @@ final class TeamFlowTests: XCTestCase {
         XCTAssertTrue(element.isHittable, app.debugDescription, file: file, line: line)
     }
     private func assertSimulationCompleted() {
-        let message = app.descendants(matching: .any).matching(identifier: "team.message").firstMatch
+        let message = app.staticTexts["team.message"]
         for _ in 0..<12 { if message.exists && message.isHittable { break }; app.swipeDown() }
         XCTAssertTrue(message.exists, app.debugDescription)
         XCTAssertTrue(message.label.contains("Offline simulation completed. No real team, ticket or invitation changed."), app.debugDescription)

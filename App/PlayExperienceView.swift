@@ -264,9 +264,17 @@ import SwiftUI
             if let node { journey?.updateNodeDone(node.done == true) }
         }
         .confirmationDialog("playx.review", isPresented: $showReview, titleVisibility: .visible) {
-            Button("playx.submit") { if let review { Task { await model.submit(review); self.review = nil } } }.accessibilityIdentifier("playx.confirm")
+            Button("playx.submit") {
+                guard let review else { return }
+                self.review = nil // Consume before adaptive dismissal, which otherwise means cancellation.
+                Task { await model.submit(review) }
+            }.accessibilityIdentifier("playx.confirm")
             Button("playx.cancel", role: .cancel) { model.cancelReview(); review = nil }
         } message: { Text("playx.review.detail") }
+        .onChange(of: showReview) { _, visible in
+            // A popover's outside-tap dismissal has no visible Cancel button.
+            if !visible, review != nil { model.cancelReview(); review = nil }
+        }
         .confirmationDialog("playx.hints.request", isPresented: $showHint, titleVisibility: .visible) {
             Button("playx.hints.confirm") {
                 let extra = model.extras[nodeID]

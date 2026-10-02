@@ -23,25 +23,9 @@ final class SettingsNativeFlowTests: XCTestCase {
         XCTAssertEqual(XCTWaiter.wait(for: [expected], timeout: 5), .completed, app.debugDescription)
     }
     private func tapNativeSwitch(_ element: XCUIElement, file: StaticString = #filePath, line: UInt = #line) {
-        XCTAssertTrue(element.waitForExistence(timeout: 5), app.debugDescription, file: file, line: line)
-        // On iOS 26 a SwiftUI Switch can report hittable while below the Form's
-        // viewport. Its semantic activation point can also land on the label row.
-        // Scroll the actual frame into view, then touch inside the trailing track.
-        for _ in 0..<10 {
-            let frame = element.frame
-            let top = app.navigationBars.firstMatch.frame.maxY + 8
-            let bottom = app.frame.maxY - 40
-            if element.isHittable && frame.minY > top && frame.maxY < bottom { break }
-            if frame.minY <= top { app.swipeDown() } else { app.swipeUp() }
-        }
-        let frame = element.frame
-        XCTAssertTrue(element.isEnabled, app.debugDescription, file: file, line: line)
-        XCTAssertTrue(element.isHittable, app.debugDescription, file: file, line: line)
-        XCTAssertGreaterThan(frame.minY, app.navigationBars.firstMatch.frame.maxY + 8, app.debugDescription, file: file, line: line)
-        XCTAssertLessThan(frame.maxY, app.frame.maxY - 40, app.debugDescription, file: file, line: line)
-        element.coordinate(withNormalizedOffset: CGVector(dx: 1, dy: 0.5))
-            .withOffset(CGVector(dx: -min(24, frame.width / 2), dy: 0)).tap()
+        tapFixtureNativeSwitch(element, in: app, file: file, line: line)
     }
+
     func testSoundSixDefaultsSaveBackAndReopen() {
         launch(); open("settingsNative.openSound")
         let sound = app.switches["settingsNative.sound.sound"]

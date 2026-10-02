@@ -12,12 +12,12 @@ import SwiftUI
                     .id(coordinator.scope)
             } else {
                 ContentUnavailableView {
-                    Label("verificationCode.ticket.title", systemImage: "ticket")
+                    Label("verificationCode.ticket.title", systemImage: "ticket").accessibilityIdentifier("orderLifecycle.pass.preview")
                 } description: {
                     Text("verificationCode.phase.disabled").accessibilityIdentifier("verificationCode.disabled")
                 }
             }
-        }.accessibilityIdentifier("orderLifecycle.pass.preview")
+        }
     }
 }
 

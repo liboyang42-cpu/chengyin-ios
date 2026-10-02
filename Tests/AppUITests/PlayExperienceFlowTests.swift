@@ -6,7 +6,7 @@ final class PlayExperienceFlowTests: XCTestCase {
     override func tearDownWithError() throws { attachFailureScreenshot(self, app: runningApp); runningApp?.terminate(); runningApp = nil }
     private func launch(_ scenario: String = "classic", language: String = "en") -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitesting-module", "playExperience", "--uitesting-play-experience-scenario", scenario, "-AppleLanguages", "(\(language))", "-AppleLocale", language == "en" ? "en_US" : "zh_CN"]
+        app.launchArguments = ["--uitesting-reset-language", "--uitesting-module", "playExperience", "--uitesting-play-experience-scenario", scenario, "-AppleLanguages", "(\(language))", "-AppleLocale", language == "en" ? "en_US" : "zh_CN"]
         runningApp = app; app.launch(); return app
     }
     private func reveal(_ element: XCUIElement, app: XCUIApplication) {
@@ -19,7 +19,18 @@ final class PlayExperienceFlowTests: XCTestCase {
         let field = app.descendants(matching: .any).matching(identifier: "playx.answer.field").firstMatch
         reveal(field, app: app); field.tap(); field.typeText("Synthetic answer")
         let review = app.buttons["playx.answer.review"]; reveal(review, app: app); review.tap()
-        app.buttons["Cancel"].tap(); XCTAssertTrue(review.exists)
+        let cancel = app.buttons["Cancel"]
+        if cancel.exists && cancel.isHittable { cancel.tap() }
+        else {
+            // Native confirmation popovers dismiss outside their bubble instead of rendering Cancel.
+            XCTAssertTrue(app.buttons["playx.confirm"].waitForExistence(timeout: 3), app.debugDescription)
+            app.navigationBars["Journey task"].coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        }
+        let editable = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == true AND enabled == true"), object: review)
+        XCTAssertEqual(XCTWaiter.wait(for: [editable], timeout: 5), .completed, app.debugDescription)
+        XCTAssertFalse(app.buttons["playx.confirm"].exists)
+        XCTAssertEqual(field.value as? String, "Synthetic answer")
+        attachFixtureScreenshot(self, app: app, name: "Classic review cancelled with answer retained")
     }
     func testBranchDoesNotRevealHiddenTask() {
         let app = launch("branch"); XCTAssertTrue(app.buttons["playx.node.701"].waitForExistence(timeout: 5))

@@ -10,6 +10,7 @@ import UIKit
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     @State private var manualCode = ""
+    @FocusState private var manualFocused: Bool
     @State private var command: PlayPlayerCommand?
     @State private var review = false
     @State private var uploadReview = false
@@ -27,7 +28,14 @@ import UIKit
                 }
                 if target.kind == .scan { scanFields } else { photoFields }
             }.navigationTitle(target.kind == .scan ? "playerEvidence.scan.title" : "playerEvidence.photo.title")
-                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("nativeNav.close") { clear(); dismiss() } } }
+                .scrollDismissesKeyboard(.interactively)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) { Button("nativeNav.close") { clear(); dismiss() } }
+                    ToolbarItemGroup(placement: .keyboard) {
+                        Spacer()
+                        Button("action.done") { manualFocused = false }.accessibilityIdentifier("playerEvidence.keyboard.done")
+                    }
+                }
                 .confirmationDialog("playx.review", isPresented: $review, titleVisibility: .visible) {
                     Button("playx.submit") {
                         guard valid, let command, player.projection?.allows(command) == true else { issue = .staleSession; return }
@@ -53,7 +61,7 @@ import UIKit
                 Button("playx.review") { prepareCapturedScan() }.disabled(!valid || device?.busy == true)
             }
             TextField("playerEvidence.scan.manual", text: $manualCode, axis: .vertical)
-                .textInputAutocapitalization(.never).autocorrectionDisabled().disabled(!valid)
+                .textInputAutocapitalization(.never).autocorrectionDisabled().disabled(!valid).focused($manualFocused)
                 .accessibilityIdentifier("playerEvidence.manual")
             Text("playerEvidence.scan.manualDetail").font(.footnote)
             Button("playerEvidence.scan.reviewManual") { prepare(scan: manualCode) }
@@ -84,8 +92,9 @@ import UIKit
         guard case .scan(let code) = device?.output, device?.busy == false else { return }; prepare(scan: code)
     }
     private func prepare(scan: String? = nil, photo: PlayCompletionEvidence? = nil) {
+        manualFocused = false
         do { command = try player.reviewEvidence(target, scan: scan, photo: photo); issue = nil; review = true }
         catch { issue = error as? PlayExperienceError ?? .invalidAction }
     }
-    private func clear() { device?.cancel(); manualCode = ""; command = nil; review = false; uploadReview = false }
+    private func clear() { manualFocused = false; device?.cancel(); manualCode = ""; command = nil; review = false; uploadReview = false }
 }

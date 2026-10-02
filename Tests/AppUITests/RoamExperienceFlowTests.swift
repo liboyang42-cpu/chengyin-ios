@@ -1,12 +1,14 @@
 import XCTest
 
 final class RoamExperienceFlowTests: XCTestCase {
+    private var runningApp: XCUIApplication?
+    override func tearDown() { attachFailureScreenshot(self, app: runningApp); runningApp?.terminate(); runningApp = nil; super.tearDown() }
     override func setUp() { super.setUp(); continueAfterFailure = false }
     private func app(_ scenario: String = "content", language: String = "en") -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--uitesting-roam-experience", "--uitesting-roam-experience-scenario", scenario,
                                "--uitesting-reset-language", "-AppleLanguages", "(\(language))", "-AppleLocale", language == "en" ? "en_US" : "zh_CN"]
-        app.launch(); return app
+        runningApp = app; app.launch(); return app
     }
     private func open(_ suffix: String, in app: XCUIApplication) {
         let link = app.buttons["roam.experience.\(suffix).open"]
@@ -90,26 +92,32 @@ final class RoamExperienceFlowTests: XCTestCase {
         XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "roam.experience.hub").firstMatch.waitForExistence(timeout: 5))
     }
     private func tapVisible(_ element: XCUIElement, app: XCUIApplication) {
-        XCTAssertTrue(element.waitForExistence(timeout: 5))
-        for _ in 0..<4 { if element.isHittable { break }; app.swipeUp() }
-        XCTAssertTrue(element.isHittable); element.tap()
+        XCTAssertTrue(revealFixtureElement(element, in: app), app.debugDescription)
+        XCTAssertTrue(element.isEnabled, app.debugDescription); element.tap()
     }
     func testOfflineLiveExplicitStartPauseResumeAndConfirmedFinish() {
         let app = app("liveSession"); open("live", in: app)
-        XCTAssertFalse(app.buttons["roam.live.start"].isEnabled)
-        tapVisible(app.switches["roam.live.consent"], app: app)
+        let start = app.buttons["roam.live.start"]
+        XCTAssertTrue(revealFixtureElement(start, in: app, requiresHittable: false), app.debugDescription)
+        XCTAssertFalse(start.isEnabled)
+        let consent = app.switches["roam.live.consent"]
+        tapFixtureNativeSwitch(consent, in: app)
+        XCTAssertEqual(consent.value as? String, "1", app.debugDescription)
         tapVisible(app.buttons["roam.live.start"], app: app)
         tapVisible(app.buttons["roam.live.pause"], app: app)
         XCTAssertTrue(app.staticTexts["Paused; no location collection"].waitForExistence(timeout: 5))
         tapVisible(app.buttons["roam.live.resume"], app: app)
         tapVisible(app.buttons["roam.live.finish"], app: app)
-        tapVisible(app.buttons["Finish and check results"].firstMatch, app: app)
+        let confirm = app.buttons["roam.live.finish.confirm"]
+        XCTAssertTrue(confirm.waitForExistence(timeout: 5), app.debugDescription); XCTAssertTrue(confirm.isHittable); confirm.tap()
         XCTAssertTrue(app.staticTexts["Settled and saved"].waitForExistence(timeout: 5))
         XCTAssertEqual(app.alerts.count, 0)
     }
     func testOfflineLiveUnknownBootstrapIsRecoveredBeforeExplicitResume() {
         let app = app("liveUnknown"); open("live", in: app)
-        tapVisible(app.switches["roam.live.consent"], app: app)
+        let consent = app.switches["roam.live.consent"]
+        tapFixtureNativeSwitch(consent, in: app)
+        XCTAssertEqual(consent.value as? String, "1", app.debugDescription)
         tapVisible(app.buttons["roam.live.start"], app: app)
         XCTAssertTrue(app.staticTexts["Status needs checking"].waitForExistence(timeout: 5))
         tapVisible(app.buttons["roam.live.recover"], app: app)

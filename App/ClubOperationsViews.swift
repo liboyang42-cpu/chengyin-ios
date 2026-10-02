@@ -271,7 +271,11 @@ private struct ClubOperationsProfileForm: View {
         if !isCreate {
             Section("club.ops.signupSettings") {
                 Toggle("club.ops.prioritySignup", isOn: $draft.prioritySignupEnabled).accessibilityIdentifier("club.ops.prioritySignup")
-                field("quota", text: $draft.memberReservedQuota).keyboardType(.numberPad)
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("club.ops.quota").font(.subheadline)
+                        .accessibilityIdentifier("clubQuota.visibleLabel")
+                    field("quota", text: $draft.memberReservedQuota).keyboardType(.numberPad)
+                }
                 if joinPolicySupported {
                     Picker("club.ops.joinPolicy", selection: $draft.joinPolicy) {
                         Text("club.ops.joinDirect").tag(0); Text("club.ops.joinReview").tag(1)

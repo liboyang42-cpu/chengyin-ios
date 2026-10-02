@@ -56,3 +56,19 @@ func revealFixtureElement(_ element: XCUIElement, in app: XCUIApplication,
     }
     return false
 }
+
+/// SwiftUI can expose a row-sized Switch around the actual native switch track.
+/// Validate and tap that descendant, whose frame excludes the label and row padding.
+func tapFixtureNativeSwitch(_ element: XCUIElement, in app: XCUIApplication,
+                            file: StaticString = #filePath, line: UInt = #line) {
+    guard element.exists || revealFixtureElement(element, in: app) else {
+        XCTFail(app.debugDescription, file: file, line: line); return
+    }
+    let nativeTrack = element.descendants(matching: .switch).firstMatch
+    let control = nativeTrack.exists ? nativeTrack : element
+    guard revealFixtureElement(control, in: app), element.isEnabled, control.isEnabled else {
+        XCTFail("Native switch track is not enabled and visible. " + app.debugDescription, file: file, line: line)
+        return
+    }
+    control.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+}

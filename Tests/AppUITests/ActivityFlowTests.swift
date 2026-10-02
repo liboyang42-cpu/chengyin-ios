@@ -35,7 +35,12 @@ final class ActivityFlowTests: XCTestCase {
 
         let detail=element("activity.detail.content")
         scrollTo(element("activity.detail.readOnly"),in:detail)
-        XCTAssertEqual(detail.buttons.count,0,"The fixture detail must expose no booking or payment actions")
+        // A review composer is a separate allowed action; detail still cannot book or pay.
+        XCTAssertFalse(app.buttons["activity.openRegistration"].exists)
+        XCTAssertFalse(app.buttons["payment.pay"].exists)
+        XCTAssertFalse(app.buttons["scanner.open"].exists)
+        let review = app.buttons["activity.openReview"]
+        scrollTo(review, in: detail); XCTAssertTrue(review.exists)
         XCTAssertFalse(app.maps.firstMatch.exists,"Coordinate-free fixtures must not construct a map")
         goBackToList()
         tap(element("activity.row.101"))

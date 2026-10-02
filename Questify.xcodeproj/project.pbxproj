@@ -8186,6 +8186,7 @@
 				"05D7BCEEF2EC3E9C37ABE8C9",
 				"D3D83E11D9A48DB01B7B4B30",
 				"568227BB26391F77842D217F",
+				"F7881F64F4E6C3EB28AF0786",
 				"37E91F53B88552F549C2FCC5",
 				"2A7711E5C3C0179D7B7C0504",
 			);
@@ -9864,6 +9865,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "568227BB26391F77842D217F";
 		};
+		"F7881F64F4E6C3EB28AF0786" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/TemplateCompositionLifecycleTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"76967FE3D7E4A63CF327292F" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "F7881F64F4E6C3EB28AF0786";
+		};
 		"37E91F53B88552F549C2FCC5" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -9928,6 +9939,7 @@
 				"CF2FB10154B347FFCF3AA51E",
 				"CF961AD0D16DB75F91513B39",
 				"A0904AE445B37A5940C3BC24",
+				"76967FE3D7E4A63CF327292F",
 				"93739874E8417B7C10A6C562",
 				"6C5EB325CE3A25F5BEE0AC8C",
 			);

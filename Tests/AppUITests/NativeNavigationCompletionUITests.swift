@@ -1,10 +1,12 @@
 import XCTest
 
 final class NativeNavigationCompletionUITests: XCTestCase {
+    private var runningApp: XCUIApplication?
+    override func tearDown() { attachFailureScreenshot(self, app: runningApp); runningApp?.terminate(); runningApp = nil; super.tearDown() }
     override func setUp() { super.setUp(); continueAfterFailure = false }
     private func launch(_ mode: String) -> XCUIApplication {
-        let app = XCUIApplication(); app.launchArguments += ["--native-navigation-fixture", mode, "-AppleLanguages", "(en)"]
-        app.launch(); return app
+        let app = XCUIApplication(); app.launchArguments += ["--uitesting-reset-language", "--native-navigation-fixture", mode, "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
+        runningApp = app; app.launch(); return app
     }
     func testGlobalFallbackHasHomeAndCloseWithoutRawRoute() {
         let app = launch("error")
@@ -30,6 +32,9 @@ final class NativeNavigationCompletionUITests: XCTestCase {
         XCTAssertTrue(open.waitForExistence(timeout: 5)); open.tap()
         let field = app.textFields["playerEvidence.manual"]
         XCTAssertTrue(revealFixtureElement(field, in: app)); field.tap(); field.typeText("SYNTHETIC-CODE")
+        let done = app.buttons["playerEvidence.keyboard.done"]
+        XCTAssertTrue(done.waitForExistence(timeout: 3), app.debugDescription); done.tap()
+        XCTAssertFalse(app.keyboards.firstMatch.exists, app.debugDescription)
         let manualReview = app.buttons["playerEvidence.manual.review"]
         XCTAssertTrue(revealFixtureElement(manualReview, in: app)); XCTAssertTrue(manualReview.isEnabled)
         app.buttons["Close"].tap(); XCTAssertTrue(open.waitForExistence(timeout: 5))

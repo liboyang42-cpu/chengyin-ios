@@ -30,12 +30,49 @@ class NativeUIAccessibilitySemanticsChecks(unittest.TestCase):
         self.assertIn('Text("settingsNative.legal.sourceNotice").font(.footnote).foregroundStyle(.primary)', view)
         self.assertIn('}.font(.caption).foregroundStyle(.secondary)', view)
 
+    def test_adaptive_review_cancel_preserves_answer_and_consumes_submission_first(self):
+        view = source('App/PlayExperienceView.swift')
+        consume = view.index('self.review = nil // Consume before adaptive dismissal')
+        send = view.index('Task { await model.submit(review) }', consume)
+        self.assertLess(consume, send)
+        self.assertIn('if !visible, review != nil { model.cancelReview(); review = nil }', view)
+        tests = source('Tests/AppUITests/PlayExperienceFlowTests.swift')
+        self.assertIn('XCTAssertEqual(field.value as? String, "Synthetic answer")', tests)
+        self.assertIn('exists == true AND enabled == true', tests)
+
+    def test_player_manual_input_has_explicit_keyboard_exit(self):
+        view = source('App/PlayerTaskEvidenceView.swift')
+        for value in ['@FocusState private var manualFocused', '.focused($manualFocused)',
+                      '.scrollDismissesKeyboard(.interactively)', 'playerEvidence.keyboard.done',
+                      'private func clear() { manualFocused = false; device?.cancel();']:
+            self.assertIn(value, view)
+        tests = source('Tests/AppUITests/NativeNavigationCompletionUITests.swift')
+        self.assertIn('XCTAssertFalse(app.keyboards.firstMatch.exists', tests)
+        self.assertIn('XCTAssertFalse(manualReview.isEnabled)', tests)
+
+    def test_receipt_and_disabled_pass_identifiers_target_semantic_leaves(self):
+        self.assertIn('let message = app.staticTexts["team.message"]', source('Tests/AppUITests/TeamFlowTests.swift'))
+        view = source('App/OrderPassPreviewView.swift')
+        self.assertNotIn('}.accessibilityIdentifier("orderLifecycle.pass.preview")', view)
+        self.assertIn('Text("verificationCode.phase.disabled").accessibilityIdentifier("verificationCode.disabled")', view)
+
+    def test_shelf_account_event_is_delivered_inside_active_review(self):
+        fixture = source('App/TemplateAuthoringFixtureSupport.swift')
+        self.assertIn('fixtureSignOut: { context.signOut() }', fixture)
+        tests = source('Tests/AppUITests/TemplateOwnShelfFlowTests.swift')
+        self.assertIn('fixtureTemplate.review.signOut', tests)
+        self.assertIn('XCTAssertFalse(app.buttons["templateAuthor.shelf.confirm"].exists)', tests)
+
+
     def test_switch_taps_require_visible_frames_and_preserve_exact_outcomes(self):
         tests = source('Tests/AppUITests/SettingsNativeFlowTests.swift')
-        for expected in ['frame.minY > top && frame.maxY < bottom',
-                         'if frame.minY <= top { app.swipeDown() } else { app.swipeUp() }',
-                         'coordinate(withNormalizedOffset: CGVector(dx: 1, dy: 0.5))',
-                         'XCTAssertTrue(element.isEnabled',
+        helper = source('Tests/AppUITests/FailureScreenshot.swift')
+        for expected in ['element.descendants(matching: .switch).firstMatch',
+                         'revealFixtureElement(control, in: app)',
+                         'element.isEnabled, control.isEnabled',
+                         'control.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()']:
+            self.assertIn(expected, helper)
+        for expected in ['tapFixtureNativeSwitch(element, in: app, file: file, line: line)',
                          'reveal(app.staticTexts["settingsNative.sound.error"])',
                          'expectSwitch(sound, value: "1")', 'expectSwitch(sound, value: "0")',
                          'back(); open("settingsNative.openSound")']:

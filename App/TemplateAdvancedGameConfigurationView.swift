@@ -8,8 +8,7 @@ import SwiftUI
         Form {
             Section {
                 Toggle("templateAuthor.moduleEnabled", isOn: Binding(get: { model.draft.advanced.enabled(game.section) }, set: { enabled in
-                    model.draft.advanced.setGameEnabled(game, enabled)
-                    if enabled { model.draft.validationMethod = .manual }
+                    model.setGameEnabled(game, enabled)
                 })).accessibilityIdentifier("creatorComposition.enabled." + game.rawValue)
                 Text("creatorComposition.coexist").font(.caption).foregroundStyle(.secondary)
             }

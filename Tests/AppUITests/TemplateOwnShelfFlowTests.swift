@@ -44,9 +44,13 @@ import XCTest
     func testAccountChangeDismissesReviewAndSignoutClearsShelf() {
         let app = app(); defer { attachFailureScreenshot(self, app: app); app.terminate() }; let button = app.buttons["templateAuthor.shelf.library.901"]
         XCTAssertTrue(button.waitForExistence(timeout: 3)); button.tap()
-        app.swipeDown(); app.buttons["templateAuthor.fixture.signOut"].tap()
-        XCTAssertFalse(app.buttons["templateAuthor.shelf.library.901"].exists)
+        let signOut = app.buttons["fixtureTemplate.review.signOut"]
+        XCTAssertTrue(signOut.waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertTrue(signOut.isHittable, app.debugDescription); signOut.tap()
+        let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: button)
+        XCTAssertEqual(XCTWaiter.wait(for: [gone], timeout: 5), .completed, app.debugDescription)
         XCTAssertFalse(app.buttons["templateAuthor.shelf.confirm"].exists)
+        XCTAssertFalse(app.buttons["fixtureTemplate.review.signOut"].exists)
     }
     func testDefaultDisabledHasNoMutationConfirmation() {
         let app = app(["--template-author-disabled"])

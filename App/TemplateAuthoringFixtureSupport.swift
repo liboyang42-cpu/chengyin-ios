@@ -40,7 +40,7 @@ import SwiftUI
                 .dynamicTypeSize(.large)
             NavigationStack {
                 if ProcessInfo.processInfo.arguments.contains("--template-author-shelf") {
-                    TemplateAuthoringMineView(coordinator: context.coordinator, sessionRevision: context.revision)
+                    TemplateAuthoringMineView(coordinator: context.coordinator, sessionRevision: context.revision, fixtureSignOut: { context.signOut() })
                 } else { TemplateAuthoringView(coordinator: context.coordinator, sessionRevision: context.revision) }
             }.id(context.mount)
         }

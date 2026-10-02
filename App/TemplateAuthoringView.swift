@@ -14,6 +14,14 @@ import SwiftUI
         guard canEdit else { draft = coordinator.draft; return }
         coordinator.change(draft); review = nil; revision += 1
     }
+    func setGameEnabled(_ game: TemplateAdvancedGame, _ enabled: Bool) {
+        guard canEdit else { return }
+        draft.advanced.setGameEnabled(game, enabled)
+        if enabled { draft.validationMethod = .manual }
+        // A pushed editor can outlive the parent Form's onChange observation.
+        // Commit before returning to the parent, whose task reloads the coordinator.
+        changed()
+    }
     func restore() { coordinator.restoreDraft(); draft = coordinator.draft; revision += 1 }
     func discard() { coordinator.discardLocal(); draft = coordinator.draft; revision += 1 }
     func save() { guard canEdit else { return }; coordinator.change(draft); coordinator.saveLocal(); revision += 1 }

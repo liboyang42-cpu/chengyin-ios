@@ -1,7 +1,9 @@
 import XCTest
 final class MerchantNPCFlowTests: XCTestCase {
+    private var runningApp: XCUIApplication?
+    override func tearDown() { attachFailureScreenshot(self, app: runningApp); runningApp?.terminate(); runningApp = nil; super.tearDown() }
     override func setUp() { super.setUp(); continueAfterFailure = false }
-    private func launch() -> XCUIApplication { let app = XCUIApplication(); app.launchArguments = ["--merchant-npc-fixture"]; app.launch(); return app }
+    private func launch() -> XCUIApplication { let app = XCUIApplication(); app.launchArguments = ["--merchant-npc-fixture"]; runningApp = app; app.launch(); return app }
     func testMerchantChatCompleteReply() {
         let app = launch(); app.buttons["merchantNPC.fixture.chat"].tap()
         let input = app.textFields["merchantNPC.input"]; XCTAssertTrue(input.waitForExistence(timeout: 5)); input.tap(); input.typeText("Hello merchant")
@@ -29,6 +31,12 @@ final class MerchantNPCFlowTests: XCTestCase {
     func testBackgroundClearsChat() {
         let app = launch(); app.buttons["merchantNPC.fixture.chat"].tap()
         let input = app.textFields["merchantNPC.input"]; XCTAssertTrue(input.waitForExistence(timeout: 5)); input.tap(); input.typeText("Private unsent")
-        XCUIDevice.shared.press(.home); app.activate(); XCTAssertFalse(app.textFields["merchantNPC.input"].exists)
+        XCUIDevice.shared.press(.home)
+        XCTAssertTrue(app.wait(for: .runningBackground, timeout: 5), app.debugDescription)
+        app.activate()
+        let cleared = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: input)
+        XCTAssertEqual(XCTWaiter.wait(for: [cleared], timeout: 5), .completed, app.debugDescription)
+        XCTAssertFalse(app.staticTexts["Private unsent"].exists)
+        XCTAssertFalse(app.staticTexts["merchantNPC.reply"].exists)
     }
 }

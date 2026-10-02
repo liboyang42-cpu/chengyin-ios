@@ -2,8 +2,12 @@ import XCTest
 
 /// Synthetic fixture flows; execution requires the Apple simulator pipeline.
 @MainActor final class TemplateCompositionFlowTests: XCTestCase {
+    private var app: XCUIApplication?
+    override func setUpWithError() throws { continueAfterFailure = false }
+    override func tearDownWithError() throws { attachFailureScreenshot(self, app: app); app?.terminate(); app = nil }
     private func launch() -> XCUIApplication {
-        let app = XCUIApplication(); app.launchArguments = ["--ui-template-authoring", "--template-author-compound", "-AppleLanguages", "(en)"]; app.launch()
+        let app = XCUIApplication(); app.launchArguments = ["--uitesting-reset-language", "--ui-template-authoring", "--template-author-compound", "-AppleLanguages", "(en)"]; app.launch()
+        self.app = app
         tap("templateAuthor.begin", app); tap("templateAuthor.continue", app); return app
     }
     private func tap(_ id: String, _ app: XCUIApplication) {
@@ -12,9 +16,17 @@ import XCTest
         XCTAssertTrue(item.waitForExistence(timeout: 3), id); XCTAssertTrue(item.isHittable, id); item.tap()
     }
     private func back(_ app: XCUIApplication) { app.navigationBars.buttons.element(boundBy: 0).tap() }
+    private func disableCoin(_ app: XCUIApplication) {
+        let coin = app.switches["creatorComposition.enabled.coin"]
+        XCTAssertTrue(coin.waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertEqual(coin.value as? String, "1", app.debugDescription)
+        tapFixtureNativeSwitch(coin, in: app)
+        let disabled = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "0"), object: coin)
+        XCTAssertEqual(XCTWaiter.wait(for: [disabled], timeout: 5), .completed, app.debugDescription)
+    }
     func testOpeningAndDisablingCoinKeepsDiceAndQuietEnabled() {
         let app = launch(); tap("creatorComposition.open", app); tap("templateAuthor.game.coin", app)
-        let coin = app.switches["creatorComposition.enabled.coin"]; XCTAssertEqual(coin.value as? String, "1"); coin.tap(); back(app)
+        disableCoin(app); back(app)
         tap("templateAuthor.game.dice", app); XCTAssertEqual(app.switches["creatorComposition.enabled.dice"].value as? String, "1"); back(app)
         tap("templateAuthor.game.quiet", app); XCTAssertEqual(app.switches["creatorComposition.enabled.quiet"].value as? String, "1")
     }
@@ -26,7 +38,7 @@ import XCTest
     }
     func testLocalSaveReopenRetainsIndependentToggleChange() {
         let app = launch(); tap("creatorComposition.open", app); tap("templateAuthor.game.coin", app)
-        app.switches["creatorComposition.enabled.coin"].tap(); back(app); back(app)
+        disableCoin(app); back(app); back(app)
         tap("templateAuthor.saveLocal", app); tap("templateAuthor.fixture.reopen", app); tap("templateAuthor.restore", app)
         tap("creatorComposition.open", app); tap("templateAuthor.game.coin", app)
         XCTAssertEqual(app.switches["creatorComposition.enabled.coin"].value as? String, "0"); back(app)
