@@ -103,7 +103,7 @@ class AppUnitTargetTests(unittest.TestCase):
         native=workflow.split('  native:\n',1)[1].split('  secrets:\n',1)[0]
         self.assertIn('for scheme in Questify QuestifyAppUnitTests; do', native)
         self.assertIn('-configuration Debug', native)
-        self.assertIn('CODE_SIGNING_ALLOWED=NO build-for-testing', native)
+        self.assertIn('CODE_SIGNING_ALLOWED=NO ONLY_ACTIVE_ARCH=NO build-for-testing', native)
         self.assertIn('test-without-building', job)
         self.assertIn('-maximum-test-execution-time-allowance 120', job)
         self.assertIn('-resultBundlePath', job)

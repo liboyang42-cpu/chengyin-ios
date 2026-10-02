@@ -68,13 +68,15 @@ jobs:
         run: |
           # Catch shared test-source errors before allocating all runtime shards.
           # Actual XCTest execution remains in the independent jobs below.
+          # Keep app, tests and nested frameworks on the same universal simulator slices.
+          # The vendor Debug default otherwise rebuilds only the selected active slice.
           for scheme in Questify QuestifyAppUnitTests; do
             xcodebuild -project Questify.xcodeproj -scheme "$scheme" \
               -configuration Debug -sdk iphonesimulator \
               -destination "platform=iOS Simulator,id=$BUILD_TEST_SIMULATOR_ID" \
               -destination-timeout 60 \
               -derivedDataPath "$RUNNER_TEMP/questify-simulator" \
-              CODE_SIGNING_ALLOWED=NO build-for-testing
+              CODE_SIGNING_ALLOWED=NO ONLY_ACTIVE_ARCH=NO build-for-testing
           done
       - name: Package exact-commit unsigned test products
         run: |

@@ -17,8 +17,15 @@ class TestBundlePreflightTests(unittest.TestCase):
         self.assertIn('BUILD_TEST_SIMULATOR_ID=', self.native)
         self.assertIn("d.get('isAvailable')", self.native)
         self.assertIn('for scheme in Questify QuestifyAppUnitTests; do', self.native)
-        self.assertIn('CODE_SIGNING_ALLOWED=NO build-for-testing', self.native)
+        self.assertIn('CODE_SIGNING_ALLOWED=NO ONLY_ACTIVE_ARCH=NO build-for-testing', self.native)
         self.assertIn('platform=iOS Simulator,id=$BUILD_TEST_SIMULATOR_ID', self.native)
+
+    def test_test_bundles_keep_app_and_nested_framework_architectures_aligned(self):
+        loop = self.native.split('for scheme in Questify QuestifyAppUnitTests; do', 1)[1].split('done', 1)[0]
+        self.assertIn('ONLY_ACTIVE_ARCH=NO build-for-testing', loop)
+        self.assertNotIn('EXCLUDED_ARCHS', loop)
+        self.assertNotIn('ARCHS=', loop)
+        self.assertIn('-derivedDataPath "$RUNNER_TEMP/questify-simulator"', loop)
 
     def test_builder_keeps_all_shared_gates_and_uploads_after_both_bundles(self):
         checks = ['ci_gates.py fingerprint', 'unittest discover -s tools/tests',
