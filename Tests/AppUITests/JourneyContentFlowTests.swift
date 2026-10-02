@@ -3,7 +3,7 @@ final class JourneyContentFlowTests: XCTestCase {
     override func setUp() { super.setUp(); continueAfterFailure = false }
     private func launch(_ scenario: String = "default", language: String = "en") -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitesting-module", "journeyContent", "--uitesting-journey-scenario", scenario,
+        app.launchArguments = ["--uitesting-reset-language", "--uitesting-module", "journeyContent", "--uitesting-journey-scenario", scenario,
                                "-AppleLanguages", "(\(language))", "-AppleLocale", language == "en" ? "en_US" : "zh_CN"]
         app.launch(); return app
     }

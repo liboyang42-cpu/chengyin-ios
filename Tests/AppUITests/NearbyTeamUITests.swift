@@ -3,7 +3,7 @@ import XCTest
 /// Requires the host's DEBUG-only `--nearby-team-fixture` branch. Never opens a live location/session.
 final class NearbyTeamUITests: XCTestCase {
     private func launch(language: String = "en") -> XCUIApplication {
-        let app = XCUIApplication(); app.launchArguments = ["--nearby-team-fixture", "-AppleLanguages", "(\(language))", "-AppleLocale", language == "en" ? "en_US" : "zh_CN"]
+        let app = XCUIApplication(); app.launchArguments = ["--uitesting-reset-language", "--nearby-team-fixture", "-AppleLanguages", "(\(language))", "-AppleLocale", language == "en" ? "en_US" : "zh_CN"]
         app.launch(); return app
     }
     func testManualContextAndReviewCancellation() {

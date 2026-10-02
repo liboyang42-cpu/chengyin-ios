@@ -44,9 +44,25 @@ public struct MerchantEngagementReview: Equatable, Identifiable {
     public let proof: MerchantEngagementProof
     public let scope: MerchantBusinessScope
     public let requestID: String
+    public let authorizationGeneration: UUID?
+    public let journalRealm: String
+}
+/// Only the coordinator can mint this ticket, after durable reservation and fresh review checks.
+@MainActor public final class MerchantEngagementDispatchAuthorization {
+    private let review: MerchantEngagementReview
+    private let validity: () throws -> Void
+    private var consumed = false
+    fileprivate init(_ review: MerchantEngagementReview, check: @escaping () throws -> Void) { self.review = review; validity = check }
+    func consume(_ review: MerchantEngagementReview) throws {
+        guard !consumed, self.review == review else { throw MerchantBusinessFailure.stale }
+        consumed = true; try validity()
+    }
+    func validate(_ review: MerchantEngagementReview) throws {
+        guard consumed, self.review == review else { throw MerchantBusinessFailure.stale }; try validity()
+    }
 }
 @MainActor public protocol MerchantContactDelivering {
-    /// Injected platform action. Default app host does not create a dialer or clipboard adapter.
+    /// Injected platform action. Production consumption additionally requires an exact device grant.
     func deliverSynthetic(phone: String, purpose: MerchantContactPurpose) async throws
 }
 @MainActor public final class MerchantEngagementCoordinator {
@@ -56,7 +72,8 @@ public struct MerchantEngagementReview: Equatable, Identifiable {
     public private(set) var review: MerchantEngagementReview?
     public private(set) var receipt: MerchantEngagementReceipt?
     public private(set) var receiptScope: MerchantBusinessScope?
-    private var receiptMerchantID: Int?
+    public private(set) var receiptMerchantID: Int?
+    private var receiptAuthorizationGeneration: UUID?
     public private(set) var exportTicket: MerchantExportTicket?
     public private(set) var exportScope: MerchantBusinessScope?
     public private(set) var exportMerchantID: Int?
@@ -67,56 +84,72 @@ public struct MerchantEngagementReview: Equatable, Identifiable {
     public init(reader: any MerchantEngagementReading, journal: any MerchantBusinessIntentStore, exportRecovery: any MerchantExportRecoveryStoring) {
         self.reader = reader; self.journal = journal; exports = exportRecovery
     }
-    public func cancelReview() { review = nil }
-    public func invalidate() {
-        generation += 1; review = nil; receipt = nil; receiptScope = nil; receiptMerchantID = nil; exportTicket = nil; exportScope = nil; exportMerchantID = nil; failure = nil; busy = false
+    private func journalScope(_ scope: MerchantBusinessScope) -> MerchantBusinessScope {
+        .init(realm: reader.journalRealm ?? scope.realm, accountID: scope.accountID, epoch: scope.epoch)
     }
-    public func clearSensitiveReceipt() { receipt = nil; receiptScope = nil; receiptMerchantID = nil }
+    public func cancelReview() { generation += 1; review = nil; busy = false }
+    public func invalidate() {
+        generation += 1; review = nil; receipt = nil; receiptScope = nil; receiptMerchantID = nil; receiptAuthorizationGeneration = nil; exportTicket = nil; exportScope = nil; exportMerchantID = nil; failure = nil; busy = false
+    }
+    public func clearSensitiveReceipt() { receipt = nil; receiptScope = nil; receiptMerchantID = nil; receiptAuthorizationGeneration = nil }
     public func prepare(_ command: MerchantEngagementCommand) async {
         guard !busy else { return }
-        generation += 1; let stamp = generation, scope = reader.scope
-        review = nil; receipt = nil; receiptScope = nil; receiptMerchantID = nil; failure = nil; busy = true
+        generation += 1; let stamp = generation, scope = reader.scope, authorizationGeneration = reader.authorizationGeneration
+        review = nil; receipt = nil; receiptScope = nil; receiptMerchantID = nil; receiptAuthorizationGeneration = nil; failure = nil; busy = true
         defer { if generation == stamp { busy = false } }
         do {
             guard let scope else { throw MerchantBusinessFailure.stale }
             let proof = try await reader.proof(command)
-            guard generation == stamp, reader.scope == scope, !Task.isCancelled else { return }
+            guard generation == stamp, reader.scope == scope, reader.authorizationGeneration == authorizationGeneration, !Task.isCancelled else { return }
             let requestID = "crm-" + command.key + "-" + UUID().uuidString.lowercased()
             _ = try command.request(requestID: requestID)
-            let intent = MerchantBusinessIntent(scope: scope, merchantID: proof.access.merchantID ?? 0, target: command.lockTarget, requestID: requestID)
+            let intent = MerchantBusinessIntent(scope: journalScope(scope), merchantID: proof.access.merchantID ?? 0, target: command.lockTarget, requestID: requestID)
             guard try !journal.intents().contains(where: { $0.sameTarget(as: intent) }) else { throw MerchantBusinessFailure.pending }
             if case .createExport = command {
-                let saved = try exports.read().first { $0.realm == scope.realm && $0.accountID == scope.accountID && $0.merchantID == proof.access.merchantID }
+                let saved = try exports.read().first { $0.realm == journalScope(scope).realm && $0.accountID == scope.accountID && $0.merchantID == proof.access.merchantID }
                 if let saved {
                     guard case .exportStatus(let task) = try await reader.read(.exportStatus(saved.taskID)), !task.isRunning else { throw MerchantBusinessFailure.pending }
                     guard reader.scope == scope, generation == stamp else { return }
                 }
             }
-            review = .init(id: UUID(), command: command, proof: proof, scope: scope, requestID: requestID)
+            guard generation == stamp, reader.scope == scope, reader.authorizationGeneration == authorizationGeneration, !Task.isCancelled else { return }
+            review = .init(id: UUID(), command: command, proof: proof, scope: scope, requestID: requestID, authorizationGeneration: authorizationGeneration, journalRealm: journalScope(scope).realm)
         } catch { if generation == stamp, reader.scope == scope { failure = error as? MerchantBusinessFailure ?? .invalid } }
     }
     public func confirm(_ frozen: MerchantEngagementReview) async {
         guard !busy, review == frozen, reader.scope == frozen.scope else { failure = .stale; return }
-        guard reader.isSyntheticEnabled else { failure = .disabled; return }
+        guard reader.canExecute(frozen.command, merchantID: frozen.proof.access.merchantID ?? 0),
+              reader.isSyntheticEnabled || journal.isDurable else { failure = .disabled; return }
+        if !reader.isSyntheticEnabled {
+            do { try frozen.command.validateProductionProof(frozen.proof) } catch { failure = error as? MerchantBusinessFailure ?? .disabled; return }
+        }
         busy = true; review = nil; let stamp = generation
         defer { if stamp == generation { busy = false } }
         do {
             let fresh = try await reader.proof(frozen.command)
-            guard stamp == generation, reader.scope == frozen.scope, !Task.isCancelled else { throw MerchantBusinessFailure.stale }
+            guard stamp == generation, reader.scope == frozen.scope, reader.authorizationGeneration == frozen.authorizationGeneration, !Task.isCancelled else { throw MerchantBusinessFailure.stale }
             guard fresh == frozen.proof else { throw MerchantBusinessFailure.conflict }
         } catch { if stamp == generation { failure = error as? MerchantBusinessFailure ?? .stale }; return }
-        let intent = MerchantBusinessIntent(scope: frozen.scope, merchantID: frozen.proof.access.merchantID ?? 0, target: frozen.command.lockTarget, requestID: frozen.requestID)
+        let intent = MerchantBusinessIntent(scope: .init(realm: frozen.journalRealm, accountID: frozen.scope.accountID, epoch: frozen.scope.epoch), merchantID: frozen.proof.access.merchantID ?? 0, target: frozen.command.lockTarget, requestID: frozen.requestID)
         do { try journal.reserve(intent) } catch { failure = error as? MerchantBusinessFailure ?? .journal; return }
         locked = true
         do {
-            let result = try await reader.execute(frozen.command, requestID: frozen.requestID, proof: frozen.proof, scope: frozen.scope)
-            guard stamp == generation, reader.scope == frozen.scope, !Task.isCancelled else { return }
+            func check() throws {
+                guard stamp == generation, reader.scope == frozen.scope, reader.authorizationGeneration == frozen.authorizationGeneration,
+                      reader.journalRealm == frozen.journalRealm, !Task.isCancelled else { throw MerchantBusinessFailure.stale }
+            }
+            try check()
+            let result = try await reader.execute(frozen, authorization: MerchantEngagementDispatchAuthorization(frozen, check: check), check: check)
+            guard stamp == generation, reader.scope == frozen.scope, reader.authorizationGeneration == frozen.authorizationGeneration, !Task.isCancelled else { return }
             if case .exportCreated(let ticket) = result {
                 guard let merchant = frozen.proof.access.merchantID else { throw MerchantBusinessFailure.malformed }
-                try exports.save(.init(scope: frozen.scope, merchantID: merchant, taskID: ticket.task.id, requestID: frozen.requestID))
-                exportTicket = ticket; exportScope = frozen.scope; exportMerchantID = merchant
+                try exports.save(.init(scope: .init(realm: frozen.journalRealm, accountID: frozen.scope.accountID, epoch: frozen.scope.epoch), merchantID: merchant, taskID: ticket.task.id, requestID: frozen.requestID))
+                try check(); exportTicket = ticket; exportScope = frozen.scope; exportMerchantID = merchant
             }
-            try journal.complete(intent); receipt = result; receiptScope = frozen.scope; receiptMerchantID = frozen.proof.access.merchantID; locked = false; failure = nil
+            try check(); try journal.complete(intent); try check()
+            receipt = result; receiptScope = frozen.scope; receiptMerchantID = frozen.proof.access.merchantID
+            receiptAuthorizationGeneration = frozen.authorizationGeneration; locked = false; failure = nil
+            if case .exportDownloaded = result { exportTicket = nil; exportScope = nil; exportMerchantID = nil }
         } catch {
             let definite = MerchantMutationFailureDisposition.provesNoDispatch(error)
             if definite { do { try journal.complete(intent) } catch { if stamp == generation { failure = .journal }; return } }
@@ -132,7 +165,7 @@ public struct MerchantEngagementReview: Equatable, Identifiable {
             let access = try await reader.access(); try access.require(["merchant:crm:read", "merchant:crm:export"])
             guard stamp == generation, reader.scope == scope, let merchant = access.merchantID else { return }
             if exportScope != scope || exportMerchantID != merchant { exportTicket = nil; exportScope = nil; exportMerchantID = nil }
-            guard let record = try exports.read().first(where: { $0.realm == scope.realm && $0.accountID == scope.accountID && $0.merchantID == merchant }) else { return }
+            guard let record = try exports.read().first(where: { $0.realm == journalScope(scope).realm && $0.accountID == scope.accountID && $0.merchantID == merchant }) else { return }
             guard case .exportStatus(let status) = try await reader.read(.exportStatus(record.taskID)) else { throw MerchantBusinessFailure.malformed }
             guard stamp == generation, reader.scope == scope, !Task.isCancelled else { return }
             if exportScope == scope, exportMerchantID == merchant, let current = exportTicket, current.task.id == status.id {
@@ -150,15 +183,33 @@ public struct MerchantEngagementReview: Equatable, Identifiable {
     }
     /// The receiving aftercare form supplies its fresh exact context. Upload does not itself submit an opinion.
     public func takeEvidenceForResponse(refundID: MerchantRefundID, scope: MerchantBusinessScope, merchantID: Int) -> MerchantAftercareEvidenceReceipt? {
-        guard reader.scope == scope, receiptScope == scope, receiptMerchantID == merchantID,
+        guard reader.scope == scope, receiptScope == scope, receiptMerchantID == merchantID, reader.authorizationGeneration == receiptAuthorizationGeneration,
               let receipt, case .evidenceUploaded(let returnedRefund, _, let evidence) = receipt, returnedRefund == refundID else { return nil }
         clearSensitiveReceipt(); return evidence
     }
+    public func authorizeExportSave(taskID: Int) async -> Bool {
+        guard let captured = receiptScope, let merchant = receiptMerchantID,
+              let currentReceipt = receipt, case .exportDownloaded(let id, _) = currentReceipt, id == taskID,
+              reader.permitsDevice(.saveExport(taskID), merchantID: merchant) else { return false }
+        let stamp = generation, authorizationGeneration = receiptAuthorizationGeneration
+        do {
+            let access = try await reader.access(); try access.require(["merchant:crm:read", "merchant:crm:export"])
+            guard stamp == generation, !Task.isCancelled, reader.scope == captured, receiptScope == captured,
+                  reader.authorizationGeneration == authorizationGeneration, access.merchantID == merchant,
+                  let latestReceipt = receipt, case .exportDownloaded(let currentID, _) = latestReceipt, currentID == taskID else { return false }
+            return reader.permitsDevice(.saveExport(taskID), merchantID: merchant)
+        } catch { clearSensitiveReceipt(); return false }
+    }
     public func consumeContact(using delivery: any MerchantContactDelivering) async throws {
-        guard reader.isSyntheticEnabled, let receipt, case .contact(let contact) = receipt, let captured = receiptScope else { throw MerchantBusinessFailure.disabled }
+        guard let receipt, case .contact(let contact) = receipt, let captured = receiptScope, let merchant = receiptMerchantID else { throw MerchantBusinessFailure.disabled }
+        guard reader.isSyntheticEnabled || reader.permitsDevice(.contact(contact.customerID, contact.purpose), merchantID: merchant) else { throw MerchantBusinessFailure.disabled }
+        let stamp = generation, authorizationGeneration = receiptAuthorizationGeneration
         guard reader.scope == captured else { clearSensitiveReceipt(); throw MerchantBusinessFailure.stale }
+        // Reserve consumption before awaiting access so two taps cannot disclose the same number twice.
+        clearSensitiveReceipt()
         let access = try await reader.access(); try access.require(["merchant:crm:read", "merchant:crm:sensitive:read"])
-        guard reader.scope == captured, access.merchantID == receiptMerchantID else { clearSensitiveReceipt(); throw MerchantBusinessFailure.stale }
+        guard stamp == generation, !Task.isCancelled, reader.scope == captured, reader.authorizationGeneration == authorizationGeneration, access.merchantID == merchant,
+              reader.isSyntheticEnabled || reader.permitsDevice(.contact(contact.customerID, contact.purpose), merchantID: merchant) else { clearSensitiveReceipt(); throw MerchantBusinessFailure.stale }
         // One-shot consumption: no retry using a cached number, even if the device action fails.
         clearSensitiveReceipt()
         try await delivery.deliverSynthetic(phone: contact.phone, purpose: contact.purpose)

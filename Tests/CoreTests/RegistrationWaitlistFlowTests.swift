@@ -12,11 +12,20 @@ import XCTest
     var selections: [RegistrationQuoteRequest] = []
     var creates: [RegistrationCreateIntent] = []
     var statusContinuation: CheckedContinuation<RegistrationWaitlistStatus, Error>?
+    private var statusWaiter: CheckedContinuation<Void, Never>?
     var suspendStatus = false
     func status(_ scope: RegistrationWaitlistScope) async throws -> RegistrationWaitlistStatus {
         statuses += 1
-        if suspendStatus { return try await withCheckedThrowingContinuation { statusContinuation = $0 } }
+        if suspendStatus {
+            return try await withCheckedThrowingContinuation {
+                statusContinuation = $0; statusWaiter?.resume(); statusWaiter = nil
+            }
+        }
         return statusValue
+    }
+    func waitForSuspendedStatus() async {
+        if statusContinuation != nil { return }
+        await withCheckedContinuation { statusWaiter = $0 }
     }
     func join(_ scope: RegistrationWaitlistScope) async throws -> RegistrationWaitlistStatus {
         joins += 1; if failMutation { throw URLError(.timedOut) }; return statusValue
@@ -121,5 +130,124 @@ import XCTest
         XCTAssertTrue(service.creates.isEmpty); XCTAssertEqual(flow.confirmationBlock, .sessionChanged)
         flow.open(); XCTAssertNil(flow.waitlistStatus)
     }
+    func testReadTaskKeyTracksOpenedSessionEvenWhenTheTicketIsUnchanged() async throws {
+        let service = WaitlistFlowFixture(); service.statusValue = try status()
+        var identity: ProfileReadIdentity? = .init(accountID: 1, epoch: 1)
+        let coordinator = try coordinator(service)
+        let flow = try RegistrationUIFlow(activity: activity(), coordinator: coordinator, currentIdentity: { identity },
+            quoteEnabled: true, creationPolicy: .offlineFixture, waitlistService: service,
+            now: { self.expiry.addingTimeInterval(-3600) })
+        XCTAssertNil(flow.waitlistReadKey)
+        ready(flow)
+        let originalKey = try XCTUnwrap(flow.waitlistReadKey)
+        await flow.reviewWaitlistOffer()
+        XCTAssertTrue(flow.hasActiveWaitlistOffer)
+        let readCount = service.statuses
+        identity = .init(accountID: 1, epoch: 2)
+        try coordinator.setAccount(id: 1, token: "fixture-replaced-token")
+        XCTAssertNil(flow.waitlistReadKey, "A replaced external identity must not launch a read using the old opened form")
+        flow.open()
+        XCTAssertEqual(flow.selectedTicketID, 11)
+        XCTAssertNotEqual(flow.waitlistReadKey, originalKey, "The task must restart even though ticket ID 11 is unchanged")
+        XCTAssertNil(flow.waitlistStatus); XCTAssertNil(flow.activeWaitlistOffer)
+        XCTAssertNil(flow.confirmation); XCTAssertFalse(flow.consented)
+        XCTAssertEqual(flow.quoteState, .idle)
+        XCTAssertEqual(service.statuses, readCount, "Computing the key and opening the form perform no request")
+        await flow.loadWaitlist() // The view's keyed task performs this read only.
+        XCTAssertEqual(service.statuses, readCount + 1)
+        XCTAssertEqual(flow.waitlistStatus?.state, .offered)
+        XCTAssertNil(flow.activeWaitlistOffer, "Reading an offer must not select or reuse it")
+        XCTAssertEqual(service.joins, 0); XCTAssertEqual(service.cancellations, 0); XCTAssertTrue(service.creates.isEmpty)
+    }
+    func testReadTaskKeyChangesForTicketAndClearsOnLeaveButNotContactOrPoints() throws {
+        let service = WaitlistFlowFixture()
+        let flow = try RegistrationUIFlow(activity: activity(), coordinator: coordinator(service),
+            currentIdentity: { .init(accountID: 1, epoch: 1) }, creationPolicy: .offlineFixture, waitlistService: service)
+        ready(flow)
+        let originalKey = try XCTUnwrap(flow.waitlistReadKey)
+        flow.setName("Edited fixture contact"); XCTAssertTrue(flow.setUsePoints(true))
+        XCTAssertEqual(flow.waitlistReadKey, originalKey)
+        XCTAssertTrue(flow.selectTicket(id: 12)); XCTAssertNotEqual(flow.waitlistReadKey, originalKey)
+        flow.leave(); XCTAssertNil(flow.waitlistReadKey)
+        XCTAssertEqual(service.statuses, 0); XCTAssertEqual(service.joins, 0)
+        XCTAssertEqual(service.cancellations, 0); XCTAssertTrue(service.creates.isEmpty)
+    }
+
+    func testCanceledSuccessfulReadClearsOnlyItsSpinnerAndAllowsExplicitRefresh() async throws {
+        let service = WaitlistFlowFixture(); service.suspendStatus = true
+        let flow = try RegistrationUIFlow(activity: activity(), coordinator: coordinator(service),
+            currentIdentity: { .init(accountID: 1, epoch: 1) }, creationPolicy: .offlineFixture, waitlistService: service)
+        ready(flow)
+        let originalKey = flow.waitlistReadKey
+        let read = Task { await flow.loadWaitlist() }
+        await service.waitForSuspendedStatus()
+        XCTAssertTrue(flow.isReadingWaitlist)
+        read.cancel()
+        service.statusContinuation?.resume(returning: try status()); service.statusContinuation = nil
+        await read.value
+        XCTAssertEqual(flow.waitlistReadKey, originalKey)
+        XCTAssertFalse(flow.isReadingWaitlist, "Canceled same-key success must not strand manual refresh")
+        XCTAssertNil(flow.waitlistStatus); XCTAssertNil(flow.activeWaitlistOffer); XCTAssertNil(flow.block)
+        service.suspendStatus = false; service.statusValue = try status("WAITING")
+        await flow.loadWaitlist()
+        XCTAssertEqual(service.statuses, 2); XCTAssertEqual(flow.waitlistStatus?.state, .waiting)
+        XCTAssertEqual(service.joins, 0); XCTAssertEqual(service.cancellations, 0); XCTAssertTrue(service.creates.isEmpty)
+    }
+    func testCanceledThrowingReadPreservesPriorStatusAndClearsItsSpinner() async throws {
+        let service = WaitlistFlowFixture(); service.statusValue = try status("WAITING")
+        let flow = try RegistrationUIFlow(activity: activity(), coordinator: coordinator(service),
+            currentIdentity: { .init(accountID: 1, epoch: 1) }, creationPolicy: .offlineFixture, waitlistService: service)
+        ready(flow); await flow.loadWaitlist()
+        let originalStatus = flow.waitlistStatus
+        service.suspendStatus = true
+        let read = Task { await flow.loadWaitlist() }
+        await service.waitForSuspendedStatus(); read.cancel()
+        service.statusContinuation?.resume(throwing: CancellationError()); service.statusContinuation = nil
+        await read.value
+        XCTAssertFalse(flow.isReadingWaitlist); XCTAssertEqual(flow.waitlistStatus, originalStatus)
+        XCTAssertNil(flow.activeWaitlistOffer); XCTAssertNil(flow.block)
+        XCTAssertEqual(service.joins, 0); XCTAssertEqual(service.cancellations, 0); XCTAssertTrue(service.creates.isEmpty)
+    }
+    func testCanceledOlderGenerationCannotClearANewerSameKeyReadSpinner() async throws {
+        let service = WaitlistFlowFixture(); service.suspendStatus = true
+        let flow = try RegistrationUIFlow(activity: activity(), coordinator: coordinator(service),
+            currentIdentity: { .init(accountID: 1, epoch: 1) }, creationPolicy: .offlineFixture, waitlistService: service)
+        ready(flow)
+        let originalKey = flow.waitlistReadKey
+        let oldRead = Task { await flow.loadWaitlist() }
+        await service.waitForSuspendedStatus()
+        let oldContinuation = try XCTUnwrap(service.statusContinuation); service.statusContinuation = nil
+        flow.open()
+        XCTAssertEqual(flow.waitlistReadKey, originalKey)
+        let newRead = Task { await flow.loadWaitlist() }
+        await service.waitForSuspendedStatus()
+        oldRead.cancel(); oldContinuation.resume(returning: try status()); await oldRead.value
+        XCTAssertTrue(flow.isReadingWaitlist, "The older generation must not finish the new read")
+        XCTAssertNil(flow.waitlistStatus); XCTAssertNil(flow.activeWaitlistOffer)
+        service.statusContinuation?.resume(returning: try status("WAITING")); service.statusContinuation = nil
+        await newRead.value
+        XCTAssertFalse(flow.isReadingWaitlist); XCTAssertEqual(flow.waitlistStatus?.state, .waiting)
+        XCTAssertEqual(service.statuses, 2)
+    }
+    func testCanceledOlderTicketReadCannotClearNewerStampSpinner() async throws {
+        let service = WaitlistFlowFixture(); service.suspendStatus = true
+        let flow = try RegistrationUIFlow(activity: activity(), coordinator: coordinator(service),
+            currentIdentity: { .init(accountID: 1, epoch: 1) }, creationPolicy: .offlineFixture, waitlistService: service)
+        ready(flow)
+        let oldRead = Task { await flow.loadWaitlist() }
+        await service.waitForSuspendedStatus()
+        let oldContinuation = try XCTUnwrap(service.statusContinuation); service.statusContinuation = nil
+        XCTAssertTrue(flow.selectTicket(id: 12))
+        let newRead = Task { await flow.loadWaitlist() }
+        await service.waitForSuspendedStatus()
+        oldRead.cancel(); oldContinuation.resume(returning: try status()); await oldRead.value
+        XCTAssertTrue(flow.isReadingWaitlist, "A different ticket read owns the current spinner")
+        XCTAssertNil(flow.waitlistStatus); XCTAssertNil(flow.activeWaitlistOffer)
+        service.statusContinuation?.resume(returning: try status("WAITING", ticket: 12)); service.statusContinuation = nil
+        await newRead.value
+        XCTAssertFalse(flow.isReadingWaitlist); XCTAssertEqual(flow.waitlistStatus?.ticketID, 12)
+        XCTAssertEqual(service.joins, 0); XCTAssertEqual(service.cancellations, 0); XCTAssertTrue(service.creates.isEmpty)
+    }
+
 }
 #endif

@@ -3,7 +3,7 @@ import XCTest
 final class ClubEnrollmentFlowTests: XCTestCase {
     override func setUp() { super.setUp(); continueAfterFailure = false }
     private func launch(_ language: String = "en") -> XCUIApplication {
-        let app = XCUIApplication(); app.launchArguments = ["--uitesting-club-governance", "-AppleLanguages", "(\(language))", "-AppleLocale", language]; app.launch()
+        let app = XCUIApplication(); app.launchArguments = ["--uitesting-reset-language", "--uitesting-club-governance", "-AppleLanguages", "(\(language))", "-AppleLocale", language]; app.launch()
         let entry = app.buttons["club.enroll.fixture"]; XCTAssertTrue(entry.waitForExistence(timeout: 5)); entry.tap(); return app
     }
     func testFocusedRosterOpensTicketAndCheckinReturnsToRoster() {

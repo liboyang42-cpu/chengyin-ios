@@ -100,7 +100,7 @@ struct RegistrationSheetView: View {
                 async let quote: Void = flow.requestQuote()
                 _ = await (participants, quote)
             }
-            .task(id: flow.selectedTicketID) { await flow.loadWaitlist() }
+            .task(id: flow.waitlistReadKey) { await flow.loadWaitlist() }
             .task(id: flow.waitlistStatus?.expiresAt) {
                 guard let deadline = flow.waitlistStatus?.expiresAt else { return }
                 while deadline > Date() {

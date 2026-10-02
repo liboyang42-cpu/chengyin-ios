@@ -1,5 +1,12 @@
 import Foundation
 
+/// Identity of an opened form read, separate from the current external session. This
+/// changes only after open() has installed the new session and exact ticket scope.
+public struct RegistrationWaitlistReadKey: Hashable {
+    let identity: ProfileReadIdentity
+    let scope: RegistrationWaitlistScope
+}
+
 public enum RegistrationUIParticipantsState: Equatable { case idle, loading, received, unavailable }
 public enum RegistrationUIBlock: Equatable {
     case sessionChanged, quotingDisabled, creationDisabled, invalidForm, missingConsent
@@ -260,6 +267,10 @@ public final class RegistrationUIFlow {
         } catch { guard matches(stamp, identity) else { return }; block = .quoteUnavailable }
         isReadingStatus = false; changed()
     }
+    public var waitlistReadKey: RegistrationWaitlistReadKey? {
+        guard hasCurrentSession, let openedIdentity, let scope = waitlistScope else { return nil }
+        return .init(identity: openedIdentity, scope: scope)
+    }
     public var waitlistAvailable: Bool { waitlistService != nil && selectedTicketID != nil }
     public var hasActiveWaitlistOffer: Bool {
         guard let activeWaitlistOffer, let waitlistStatus, let scope = waitlistScope else { return false }
@@ -277,6 +288,13 @@ public final class RegistrationUIFlow {
         waitlistGeneration &+= 1
         let stamp = generation, waitlistStamp = waitlistGeneration, identity = openedIdentity
         isReadingWaitlist = true; invalidateConfirmation(); changed()
+        defer {
+            // Cancellation may be ignored by the transport. Finish only this read's
+            // presentation state, including canceled success, never a newer read's spinner.
+            if matches(stamp, identity), waitlistStamp == waitlistGeneration, waitlistScope == scope {
+                isReadingWaitlist = false; changed()
+            }
+        }
         do {
             let result = try await waitlistService.status(scope)
             guard matches(stamp, identity), waitlistStamp == waitlistGeneration, waitlistScope == scope, !Task.isCancelled else { return }
@@ -286,13 +304,12 @@ public final class RegistrationUIFlow {
                 self.activeWaitlistOffer = nil; consented = false; applySelection()
             }
         } catch {
-            guard matches(stamp, identity), waitlistStamp == waitlistGeneration else { return }
+            guard matches(stamp, identity), waitlistStamp == waitlistGeneration,
+                  waitlistScope == scope, !Task.isCancelled else { return }
             waitlistStatus = nil; activeWaitlistOffer = nil; consented = false; applySelection()
             if error is RegistrationPendingFailure { waitlistOutcomeUnknown = true }
             block = .waitlistUnavailable
         }
-        guard matches(stamp, identity), waitlistStamp == waitlistGeneration else { return }
-        isReadingWaitlist = false; changed()
     }
     public func recordSignupConsent() async {
         guard canEdit, consented, case .approved = creationPolicy,

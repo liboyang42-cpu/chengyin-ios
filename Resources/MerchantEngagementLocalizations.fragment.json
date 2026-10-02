@@ -2078,5 +2078,85 @@
         }
       }
     }
+  },
+  "merchant.engagement.productionReview": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This exact action is enabled for the reviewed account and store. Confirm only after reviewing its content, audience, privacy and consent obligations."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此项操作仅对已审核的账户与门店启用。请核对内容、受众、隐私和同意义务后再确认。"
+        }
+      }
+    }
+  },
+  "merchant.engagement.confirmProduction": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Confirm reviewed action"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "确认已审核操作"
+        }
+      }
+    }
+  },
+  "merchant.engagement.scopedBoundary": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Live actions are off by default. Each reviewed account, store, action and device effect requires its own authorization."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "真实操作默认关闭。账户、门店、具体操作和设备行为均需分别授权。"
+        }
+      }
+    }
+  },
+  "merchant.engagement.actionUnavailable": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This action is not enabled for this reviewed account and store."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前已审核账户与门店尚未启用此操作。"
+        }
+      }
+    }
+  },
+  "merchant.engagement.messageUnavailable": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The server has not supplied the full message and frozen recipient list needed for a send review. Dispatch and retry remain unavailable."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务端尚未提供发送审核所需的完整消息与冻结收件人名单，暂不支持发送或重试。"
+        }
+      }
+    }
   }
 }

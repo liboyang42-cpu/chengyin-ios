@@ -6,7 +6,7 @@ final class PlayDirectorPrefabFlowTests: XCTestCase {
     override func tearDownWithError() throws { attachFailureScreenshot(self, app: runningApp); runningApp?.terminate(); runningApp = nil }
     private func launch(_ module: String, language: String = "en") -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitesting-module", module, "-AppleLanguages", "(\(language))", "-AppleLocale", language == "en" ? "en_US" : "zh_CN"]
+        app.launchArguments = ["--uitesting-reset-language", "--uitesting-module", module, "-AppleLanguages", "(\(language))", "-AppleLocale", language == "en" ? "en_US" : "zh_CN"]
         runningApp = app; app.launch(); return app
     }
     func testDirectorOnlyShowsSourceAllowedActions() {

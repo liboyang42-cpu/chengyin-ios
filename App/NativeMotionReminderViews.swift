@@ -8,6 +8,7 @@ import SwiftUI
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Label("nativePlatform.steps.title", systemImage: "figure.walk").font(.title2.bold())
+                .accessibilityIdentifier("nativePlatform.steps.host")
             Text("nativePlatform.steps.boundary").font(.footnote)
             if let goal = segment["goal"].integer { LabeledContent("playkit.walk.goal") { Text(verbatim: String(goal)) } }
             if let enrollment = runtime?.enrollment {
@@ -16,7 +17,7 @@ import SwiftUI
             }
             if let stage, let runtime { NativeStepsControls(stage: stage, advanced: advanced, privacyURL: runtime.acceptance.privacyNoticeURL) }
             else { Label("nativePlatform.disabled", systemImage: "lock.shield").accessibilityIdentifier("nativePlatform.steps.disabled") }
-        }.accessibilityIdentifier("nativePlatform.steps.host")
+        }
         .task(id: advanced.state?.sessionID) { await runtime?.enrollment?.load(); if let id = advanced.state?.sessionID { stage = runtime?.stepModel(for: id) } }
     }
 }
@@ -96,6 +97,7 @@ import SwiftUI
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Label("nativePlatform.reminder.title", systemImage: "bell").font(.title2.bold())
+                .accessibilityIdentifier("nativePlatform.reminder.host")
             if let opens = segment["openFrom"].text { LabeledContent("playkitLegacy.window.opens") { Text(verbatim: opens) } }
             if let closes = segment["openTo"].text { LabeledContent("playkitLegacy.window.closes") { Text(verbatim: closes) } }
             Text("nativePlatform.reminder.boundary").font(.footnote)
@@ -119,7 +121,7 @@ import SwiftUI
                 Button("nativePlatform.reminder.refresh") { Task { await refresh() } }.disabled(!active)
                     .accessibilityIdentifier("nativePlatform.reminder.refresh")
             } else { Label("nativePlatform.disabled", systemImage: "lock.shield").accessibilityIdentifier("nativePlatform.reminder.disabled") }
-        }.accessibilityIdentifier("nativePlatform.reminder.host")
+        }
         .task(id: "\(advanced.activityID):\(advanced.topicID):\(advanced.nodeID)") {
             stage = runtime?.reminderModel(activityID: advanced.activityID, topicID: advanced.topicID, nodeID: advanced.nodeID); await refresh()
         }

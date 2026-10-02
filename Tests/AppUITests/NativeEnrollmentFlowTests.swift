@@ -6,7 +6,7 @@ final class NativeEnrollmentFlowTests: XCTestCase {
     override func tearDownWithError() throws { attachFailureScreenshot(self, app: runningApp); runningApp?.terminate(); runningApp = nil }
     private func launch(_ scenario: String = "ready", language: String = "en") -> XCUIApplication {
         let app = XCUIApplication(); runningApp = app
-        app.launchArguments = ["--uitesting-module", "nativeEnrollment", "--uitesting-enrollment-scenario", scenario, "-AppleLanguages", "(\(language))", "-AppleLocale", language == "en" ? "en_US" : "zh_CN"]
+        app.launchArguments = ["--uitesting-reset-language", "--uitesting-module", "nativeEnrollment", "--uitesting-enrollment-scenario", scenario, "-AppleLanguages", "(\(language))", "-AppleLocale", language == "en" ? "en_US" : "zh_CN"]
         app.launch(); return app
     }
     private func tap(_ id: String, app: XCUIApplication) {

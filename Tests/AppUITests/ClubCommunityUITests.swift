@@ -6,7 +6,7 @@ final class ClubCommunityUITests: XCTestCase {
     override func setUp() { super.setUp(); continueAfterFailure = false }
     private func app(_ locale: String = "en") -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments += ["--club-community-fixture", "-AppleLanguages", "(\(locale))", "-AppleLocale", locale]
+        app.launchArguments += ["--uitesting-reset-language", "--club-community-fixture", "-AppleLanguages", "(\(locale))", "-AppleLocale", locale]
         app.launch(); return app
     }
     func testFeedCommentAndHistoryNavigation() {

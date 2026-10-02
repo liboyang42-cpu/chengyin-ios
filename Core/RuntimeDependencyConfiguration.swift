@@ -11,6 +11,7 @@ public struct RuntimeDependencyConfiguration {
     public let play: Set<PlayExperienceCapability>
     public let journeyReads: Bool
     public let journeyChecks: Bool
+    public let journeyAsks: Bool
     public let journeyCollect: Bool
     public let publisherReads: Bool
     public let nearbyLocation: Bool
@@ -21,11 +22,12 @@ public struct RuntimeDependencyConfiguration {
     public let shopNPCWrites: Bool
     public init(market: RegionalMarket, endpoints: OperationEndpointApproval,
                 play: Set<PlayExperienceCapability> = [], journeyReads: Bool = false,
-                journeyChecks: Bool = false, journeyCollect: Bool = false,
+                journeyChecks: Bool = false, journeyCollect: Bool = false, journeyAsks: Bool = false,
                 publisherReads: Bool = false, nearbyLocation: Bool = false,
                 devices: Set<PlayDeviceKind> = [], sensors: Set<PlayKitSensorKind> = [],
                 artworkHosts: Set<String> = [], spatial: PlayKitSpatialApproval = .init(), shopNPCWrites: Bool = false) {
         self.market = market; self.endpoints = endpoints; self.play = play
+        self.journeyAsks = journeyAsks
         self.journeyReads = journeyReads; self.journeyChecks = journeyChecks; self.journeyCollect = journeyCollect
         self.publisherReads = publisherReads; self.nearbyLocation = nearbyLocation
         self.devices = devices; self.sensors = sensors; self.artworkHosts = artworkHosts; self.spatial = spatial
@@ -96,6 +98,10 @@ public struct RuntimeDependencyContext: Equatable {
         JourneyContentService(configuration: api, transport: transport,
             readsEnabled: accepted?.journeyReads == true, checksEnabled: accepted?.journeyChecks == true,
             collectEnabled: accepted?.journeyCollect == true)
+    }
+    public func journeyNarrativeService() -> JourneyNarrativeService {
+        .init(configuration: api, transport: transport,
+              readsEnabled: accepted?.journeyReads == true, asksEnabled: accepted?.journeyAsks == true)
     }
     public var publisherGrants: PublisherLifecycleGrants {
         // Pricing mutations, refunds, ownership and applications remain independently off.

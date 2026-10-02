@@ -16,14 +16,20 @@ final class ClubManagementFlowTests: XCTestCase {
         XCTAssertEqual(XCTWaiter.wait(for: [expected], timeout: 10), .completed, app.debugDescription)
     }
     private func open(_ type: String, _ id: Int) {
-        let row = element("club.management.\(type).\(id)")
-        XCTAssertTrue(row.waitForExistence(timeout: 5))
-        for _ in 0..<5 { if row.isHittable { break }; app.swipeUp() }
-        row.tap()
+        let row = app.buttons["club.management.\(type).\(id)"].firstMatch
+        XCTAssertTrue(row.waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertTrue(revealFixtureElement(row, in: app, maximumSwipes: 5), app.debugDescription)
+        XCTAssertTrue(row.isEnabled, app.debugDescription)
+        row.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
     }
     private func prepare(_ action: String, target: Int) -> XCUIElement {
         let button = app.buttons["club.management.\(action).\(target)"].firstMatch
-        XCTAssertTrue(button.waitForExistence(timeout: 5)); button.tap()
+        let detail = app.navigationBars[action == "remove" ? "Member details" : "Application details"]
+        let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            detail.exists && button.exists && button.isEnabled
+        }, object: app)
+        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 5), .completed, app.debugDescription)
+        button.tap()
         let sheet = app! // SwiftUI modal can expose Other rather than XCUIElementTypeSheet.
         let title = action == "approve" ? "Approve application" : action == "reject" ? "Reject application" : "Remove member"
         XCTAssertTrue(sheet.navigationBars[title].waitForExistence(timeout: 10), app.debugDescription)
@@ -35,12 +41,28 @@ final class ClubManagementFlowTests: XCTestCase {
     }
     private func submit(_ sheet: XCUIElement) {
         let matches = sheet.buttons.matching(identifier: "club.management.confirm")
+        let bar = sheet.navigationBars.matching(NSPredicate(format: "identifier IN %@",
+            ["Approve application", "Reject application", "Remove member"])).firstMatch
+        func visibleActions() -> [XCUIElement] {
+            guard bar.exists else { return [] }
+            let bounds = app.frame.insetBy(dx: 4, dy: 4)
+            let contentTop = bar.frame.maxY
+            return matches.allElementsBoundByIndex.filter { button in
+                let frame = button.frame
+                return !frame.isEmpty && bounds.contains(frame) && frame.minY >= contentTop
+                    && button.descendants(matching: .button).count == 0
+                    && button.label == bar.identifier && button.isEnabled
+            }
+        }
         let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
-            matches.allElementsBoundByIndex.contains { $0.exists && $0.isEnabled && $0.isHittable }
+            visibleActions().count == 1
         }, object: sheet)
-        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 5), .completed)
-        guard let leaf = matches.allElementsBoundByIndex.reversed().first(where: { $0.exists && $0.isEnabled && $0.isHittable }) else { XCTFail("Missing actionable sheet button"); return }
-        leaf.tap()
+        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 5), .completed, app.debugDescription)
+        let actions = visibleActions()
+        guard actions.count == 1, let leaf = actions.first else { XCTFail("Expected one visible confirmation action"); return }
+        // The native sheet's AX activation point can be invalid despite a visible row.
+        // Use its verified leaf frame; the caller still requires exactly one write.
+        leaf.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
     }
     func testApproveRequiresTargetConfirmation() {
         launch("owner"); open("request", 703)

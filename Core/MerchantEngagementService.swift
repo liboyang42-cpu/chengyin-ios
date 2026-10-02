@@ -7,10 +7,54 @@ public struct MerchantEngagementService {
     private let configuration: APIConfiguration
     private let reads: any HTTPTransport
     private let actions: (any MerchantBusinessTestTransport)?
+    private let productionTransport: MerchantEngagementProductionTransport?
     public var realm: String { configuration.baseURL.absoluteString }
     public var isSyntheticEnabled: Bool { actions != nil }
     public init(configuration: APIConfiguration, readTransport: any HTTPTransport, testingActionTransport: (any MerchantBusinessTestTransport)? = nil) {
-        self.configuration = configuration; reads = readTransport; actions = testingActionTransport
+        self.configuration = configuration; reads = readTransport; actions = testingActionTransport; productionTransport = nil
+    }
+    init(productionConfiguration: APIConfiguration, productionTransport: MerchantEngagementProductionTransport) {
+        configuration = productionConfiguration; reads = productionTransport; actions = nil; self.productionTransport = productionTransport
+    }
+    @MainActor public func permits(_ command: MerchantEngagementCommand, merchantID: Int) -> Bool {
+        actions != nil || productionTransport?.permits(command, merchantID: merchantID) == true
+    }
+    /// Canonical request for exact reconstruction; upload bytes and export credentials stay memory-only.
+    public func actionRequest(_ command: MerchantEngagementCommand, requestID: String, token: String) throws -> URLRequest {
+        var result = try request(command.request(requestID: requestID), token: token)
+        if case .downloadExport(let ticket, _, _) = command {
+            guard let credential = ticket.downloadToken, ticket.canDownload else { throw MerchantBusinessFailure.invalid }
+            result.setValue(credential, forHTTPHeaderField: "X-CRM-Export-Token")
+        }
+        if case .uploadEvidence(let refund, let selection, _, _) = command {
+            let boundary = "MerchantEvidence-" + requestID
+            result.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+            var data = Data("--\(boundary)\r\nContent-Disposition: form-data; name=\"bizType\"\r\n\r\nmerchant_aftercare_evidence\r\n--\(boundary)\r\nContent-Disposition: form-data; name=\"refundId\"\r\n\r\n\(refund.rawValue)\r\n--\(boundary)\r\nContent-Disposition: form-data; name=\"file\"; filename=\"\(selection.filename)\"\r\nContent-Type: \(selection.mimeType)\r\n\r\n".utf8)
+            data.append(selection.bytes); data.append(Data("\r\n--\(boundary)--\r\n".utf8)); result.httpBody = data
+        }
+        return result
+    }
+    @MainActor func executeReviewed(_ review: MerchantEngagementReview, authorization: MerchantEngagementDispatchAuthorization, token: String) async throws -> MerchantEngagementReceipt {
+        guard let productionTransport else {
+            return try await execute(review.command, requestID: review.requestID, access: review.proof.access, token: token)
+        }
+        try productionTransport.authorize(review, authorization: authorization)
+        let request = try actionRequest(review.command, requestID: review.requestID, token: token)
+        let (bytes, status) = try await productionTransport.send(request)
+        if status == 401 { throw APIError.unauthorized }; if status == 403 { throw MerchantBusinessFailure.denied }
+        guard (200..<300).contains(status) else { throw APIError.httpStatus(status) }
+        if case .downloadExport(let ticket, _, _) = review.command {
+            guard !bytes.isEmpty, bytes.count <= MerchantEngagementProductionFactory.maximumDownloadBytes,
+                  bytes.starts(with: [0x50, 0x4b, 0x03, 0x04]) else { throw MerchantBusinessFailure.malformed }
+            return .exportDownloaded(taskID: ticket.task.id, bytes: bytes)
+        }
+        guard let body = try JSONDecoder().decode(MerchantBusinessValue.self, from: bytes).object else { throw MerchantBusinessFailure.malformed }
+        if case .uploadEvidence(let refund, let selection, _, _) = review.command {
+            let code = try body.mbInt("code")
+            guard code == 200 else { throw MerchantBusinessFailure.rejected(code, body.mbText("msg")) }
+            return .evidenceUploaded(refundID: refund, selectionID: selection.id, try .init(objectKey: body.mbRequiredText("fileName")))
+        }
+        return try .init(command: review.command, value: MerchantBusinessService.unwrap(body))
     }
     public func request(_ descriptor: MerchantEngagementRequest, token: String) throws -> URLRequest {
         guard AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }

@@ -16,7 +16,7 @@ final class MerchantMarketingUITests: XCTestCase {
     }
     private func launch(_ surface: String, scenario: String = "normal", language: String = "en") -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments += ["--merchant-marketing-fixture", surface, "--merchant-marketing-scenario", scenario, "-AppleLanguages", "(\(language))", "-AppleLocale", language == "en" ? "en_US" : "zh_CN"]
+        app.launchArguments += ["--uitesting-reset-language", "--merchant-marketing-fixture", surface, "--merchant-marketing-scenario", scenario, "-AppleLanguages", "(\(language))", "-AppleLocale", language == "en" ? "en_US" : "zh_CN"]
         app.launch(); return app
     }
     func testDashboardSyntheticAndNoFalseZeroRate() {
@@ -88,7 +88,7 @@ final class MerchantMarketingUITests: XCTestCase {
     func testNormalMerchantWorkbenchOpensDormantMarketingInBothLanguages() {
         for language in ["en", "zh-Hans"] {
             let app = XCUIApplication()
-            app.launchArguments += ["--uitesting-merchant-fixture", "owner", "-AppleLanguages", "(\(language))",
+            app.launchArguments += ["--uitesting-reset-language", "--uitesting-merchant-fixture", "owner", "-AppleLanguages", "(\(language))",
                                     "-AppleLocale", language == "en" ? "en_US" : "zh_CN"]
             app.launch()
             let entry = app.buttons["merchantMarketing.entry"]
@@ -117,7 +117,7 @@ final class MerchantMarketingUITests: XCTestCase {
     }
     func testInactiveMerchantDoesNotExposeMarketing() {
         let app = XCUIApplication()
-        app.launchArguments += ["--uitesting-merchant-fixture", "inactive", "-AppleLanguages", "(en)"]
+        app.launchArguments += ["--uitesting-reset-language", "--uitesting-merchant-fixture", "inactive", "-AppleLanguages", "(en)"]
         app.launch()
         XCTAssertTrue(app.staticTexts["merchant.access.inactive"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["merchantMarketing.entry"].exists)

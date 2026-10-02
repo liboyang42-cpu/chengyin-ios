@@ -3,7 +3,7 @@ import XCTest
 final class OrderLifecycleUITests: XCTestCase {
     private func launch(_ scenario: String = "pending", language: String = "en") -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitesting-order-lifecycle-fixture", "--uitesting-order-lifecycle-scenario", scenario, "-AppleLanguages", "(\(language))", "-AppleLocale", language == "en" ? "en_US" : "zh_CN"]
+        app.launchArguments = ["--uitesting-reset-language", "--uitesting-order-lifecycle-fixture", "--uitesting-order-lifecycle-scenario", scenario, "-AppleLanguages", "(\(language))", "-AppleLocale", language == "en" ? "en_US" : "zh_CN"]
         app.launch()
         return app
     }

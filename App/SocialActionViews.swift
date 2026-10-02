@@ -19,6 +19,10 @@ public enum SocialEditorPurpose: String, Identifiable {
     @State private var issue: Error?
     @State private var preparing = false
     @State private var revision = 0
+    @State private var initialized = false
+    @State private var confirmsDiscard = false
+    @FocusState private var textFocused: Bool
+    private var hasDraft: Bool { hasText && text != initialText }
     private var hasText: Bool { [.createPost, .editPost, .comment].contains(purpose) }
     private var state: SocialActionState { _ = revision; return coordinator.state(target: target) }
     private var title: String { "social.editor.\(purpose.rawValue)" }
@@ -35,7 +39,7 @@ public enum SocialEditorPurpose: String, Identifiable {
             if hasText {
                 Section("social.text") {
                     TextEditor(text: $text).frame(minHeight: 160).accessibilityLabel("social.text")
-                        .accessibilityIdentifier("social.editor.text").disabled(state.locksForm)
+                        .accessibilityIdentifier("social.editor.text").focused($textFocused).disabled(state.locksForm)
                     if purpose == .editPost { Text("social.editPreservesMedia").font(.footnote).foregroundStyle(.secondary) }
                 }
             }
@@ -52,16 +56,41 @@ public enum SocialEditorPurpose: String, Identifiable {
             if let issue { SocialIssueView(error: issue) }
             SocialActionStateView(state: state)
             Section {
-                Button("social.review") { Task { await prepare() } }
+                Button("social.review") { textFocused = false; Task { await prepare() } }
                     .disabled(preparing || state.locksForm || coordinator.identity.accountID == nil || (hasText && SocialText.nonempty(text) == nil))
                     .accessibilityIdentifier("social.editor.review")
             }
         }
         .appNavigationTitle(key: title).privacySensitive()
-        .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { dismiss() } } }
-        .onAppear { sessionIdentity = coordinator.identity; text = initialText }
+        .scrollDismissesKeyboard(.interactively)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("action.close") {
+                    textFocused = false
+                    if hasDraft { confirmsDiscard = true } else { dismiss() }
+                }.accessibilityIdentifier("social.editor.close")
+            }
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("action.done") { textFocused = false }.accessibilityIdentifier("social.editor.keyboardDone")
+            }
+        }
+        .interactiveDismissDisabled(hasDraft || preparing)
+        .confirmationDialog("social.editor.discardTitle", isPresented: $confirmsDiscard, titleVisibility: .visible) {
+            Button("social.editor.discard", role: .destructive) { text = ""; dismiss() }
+                .accessibilityIdentifier("social.editor.discard")
+            Button("social.editor.keepEditing", role: .cancel) {}
+                .accessibilityIdentifier("social.editor.keepEditing")
+        } message: { Text("social.editor.discardMessage") }
+        .onAppear {
+            sessionIdentity = coordinator.identity
+            if !initialized { text = initialText; initialized = true }
+        }
         .onChange(of: coordinator.identity) { _, _ in clearForSessionChange() }
         .onDisappear {
+            // A nested review is still this editor's presentation, not an abandoned draft.
+            guard review == nil else { return }
+            textFocused = false; confirmsDiscard = false
             if let identity = sessionIdentity { coordinator.leaveScreen(target: target, expectedIdentity: identity, ownerID: ownerID) }
             text = ""; review = nil; heldReview = nil; preparing = false
         }
@@ -99,7 +128,8 @@ public enum SocialEditorPurpose: String, Identifiable {
     }
     private func clearForSessionChange() {
         if let heldReview { coordinator.cancel(heldReview) }
-        coordinator.synchronizeSession(); text = ""; review = nil; heldReview = nil; issue = nil
+        coordinator.synchronizeSession(); textFocused = false; confirmsDiscard = false
+        text = ""; review = nil; heldReview = nil; issue = nil
         sessionIdentity = coordinator.identity; revision += 1
     }
 }
@@ -149,7 +179,8 @@ public enum SocialEditorPurpose: String, Identifiable {
                 }
             }
         }.appNavigationTitle("social.review")
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close", action: onClose) } }
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close", action: onClose).disabled(busy).accessibilityIdentifier("social.review.close") } }
+            .interactiveDismissDisabled(busy)
             .onChange(of: coordinator.identity) { _, _ in coordinator.synchronizeSession(); revision += 1 }
             .privacySensitive().accessibilityIdentifier("social.review")
     }

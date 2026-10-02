@@ -222,3 +222,10 @@ public struct ClubGovernanceSnapshot: Equatable {
         self.operation = operation; self.scope = scope; self.permissions = permissions; self.value = value
     }
 }
+
+/// Topic enrollment status is a different domain from the club-wide CRM filters.
+public enum ClubTopicCustomerFilter: String, CaseIterable, Equatable {
+    case all = "", pending, contacted, verified
+    public var localizationKey: String { "club.gov.topicFilter." + (self == .all ? "all" : rawValue) }
+    public var options: [String: ClubGovernanceValue] { ["filter": .string(rawValue)] }
+}

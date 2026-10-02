@@ -52,13 +52,18 @@ actor MerchantEngagementFixtureTransport: MerchantBusinessTestTransport {
         }
     }
 }
+/// Explicit offline UI-only wrapper. It never creates URLSession or a backend connection.
+private struct MerchantEngagementOrdinaryFixtureTransport: HTTPTransport {
+    let fixture: MerchantEngagementFixtureTransport
+    func send(_ request: URLRequest) async throws -> (Data, Int) { try await fixture.send(request) }
+}
 @MainActor final class MerchantEngagementFixtureSession {
     var current: MerchantBusinessSession? = try? .init(accountID: 99001, epoch: 1, token: "synthetic-token")
 }
 @MainActor struct MerchantEngagementFixtureHostView: View {
     private let holder: MerchantEngagementFixtureSession
     private let reader: MerchantEngagementSessionReader
-    private let journal = MerchantBusinessMemoryIntentStore()
+    private let journal: any MerchantBusinessIntentStore
     private let recovery = MerchantExportMemoryRecoveryStore()
     private let scenario: String
     @State private var revision = 0
@@ -69,8 +74,27 @@ actor MerchantEngagementFixtureTransport: MerchantBusinessTestTransport {
         let holder = MerchantEngagementFixtureSession(), transport = MerchantEngagementFixtureTransport(scenario: scenario)
         self.holder = holder
         let configuration = try! APIConfiguration(baseURL: URL(string: "https://example.com")!)
-        let service = MerchantEngagementService(configuration: configuration, readTransport: transport, testingActionTransport: scenario == "disabled" ? nil : transport)
-        reader = .init(service: service, session: { holder.current })
+        if scenario == "productionFactory" {
+            let wire = MerchantEngagementOrdinaryFixtureTransport(fixture: transport)
+            let command = MerchantEngagementCommand.saveSegment(name: "Example segment", filter: .init())
+            let approval = try! MerchantEngagementProductionApproval(market: .china,
+                endpoints: .init(baseURL: configuration.baseURL, namespace: "offline-ui", accountID: 99001, paths: ["api/merchant/crm/segments"]),
+                grants: [.init(merchantID: 710, command: command)], reviewedPolicyVersion: "offline-ui-policy")
+            func current() -> RuntimeDependencyContext? {
+                guard let session = holder.current else { return nil }
+                return .init(market: .china, baseURL: configuration.baseURL, role: "merchant",
+                    session: try! .init(accountID: session.accountID, epoch: session.epoch, namespace: "offline-ui", token: "synthetic-token"))
+            }
+            reader = .init(service: .init(configuration: configuration, readTransport: wire), session: { holder.current },
+                productionService: { command, merchantID in
+                    MerchantEngagementProductionFactory(api: configuration, approval: approval, transport: wire, current: current).service(for: command, merchantID: merchantID)
+                }, runtimeContext: current)
+            journal = MerchantBusinessFileIntentStore(url: FileManager.default.temporaryDirectory.appendingPathComponent("merchant-engagement-ui-" + UUID().uuidString).appendingPathComponent("intents.json"))
+        } else {
+            let service = MerchantEngagementService(configuration: configuration, readTransport: transport, testingActionTransport: scenario == "disabled" ? nil : transport)
+            reader = .init(service: service, session: { holder.current })
+            journal = MerchantBusinessMemoryIntentStore()
+        }
     }
     var body: some View {
         VStack {

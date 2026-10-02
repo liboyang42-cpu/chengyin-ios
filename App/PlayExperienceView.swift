@@ -14,6 +14,8 @@ import SwiftUI
     var prefabModel: PlayPrefabRuntimeCoordinator? = nil
     var journeyModel: ((Int) -> JourneyCheckCoordinator?)? = nil
     var ambientModel: JourneyAmbientCoordinator? = nil
+    var narrativeModel: ((JourneyNarrativeQuery) -> JourneyNarrativeCoordinator?)? = nil
+    var narrativeImageReader: (any RetainedPublicImageReading)? = nil
     var shopNPCModel: ((Int) -> ShopNPCNodeHost?)? = nil
     var invalidateShopNPC: (() -> Void)? = nil
     var mediaScope: UUID = UUID()
@@ -54,6 +56,18 @@ import SwiftUI
             }
             if let ambientModel { PlayAmbientView(model: ambientModel) }
             if model.snapshot != nil {
+                if let snapshot = model.snapshot, model.hasCurrentMediaSnapshot {
+                    Section("journey.record.title") {
+                        narrativeLink(.casebook); narrativeLink(.backpack)
+                        ForEach(snapshot.result.chapters) { chapter in
+                            let nodes = snapshot.visibleNodes.filter { $0.chapterID == chapter.id }
+                            if !nodes.isEmpty, nodes.allSatisfy({ snapshot.isDone($0) && !snapshot.isLocked($0) }) {
+                                narrativeLink(.stage(chapterID: chapter.id), subtitle: chapter.name)
+                            }
+                        }
+                        if snapshot.availability == .completed { narrativeLink(.ending) }
+                    }
+                }
                 Section("playx.run.title") {
                     LabeledContent("playx.run.elapsed") { Text(verbatim: "\(model.clock.elapsedSeconds) s").monospacedDigit() }
                     if model.clock.phase == .running {
@@ -144,11 +158,20 @@ import SwiftUI
             if next != .active, model.clock.phase == .running { Task { await model.pauseRun(now: ProcessInfo.processInfo.systemUptime, savedAt: Self.milliseconds) } }
         }
     }
+    @ViewBuilder private func narrativeLink(_ query: JourneyNarrativeQuery, subtitle: String? = nil) -> some View {
+        if let narrative = narrativeModel?(query) {
+            NavigationLink {
+                JourneyNarrativeView(model: narrative, imageReader: narrativeImageReader, makeAudio: makeAudio, mediaScope: mediaScope)
+            } label: {
+                VStack(alignment: .leading) { Text(LocalizedStringKey(query.titleKey)); if let subtitle { Text(verbatim: subtitle).font(.caption) } }
+            }.accessibilityIdentifier("journey.record.open." + query.key)
+        }
+    }
     private func nodeDestination(_ id: Int) -> some View {
         let configuration = try? PlayStillnessConfiguration(raw: model.extras[id]?.sensorConfig ?? .null)
         return PlayExperienceNodeView(nodeID: id, model: model, device: deviceModel?(id), advanced: advancedModel.flatMap { $0(id) },
             stillness: configuration.flatMap { configuration in motionModel.flatMap { $0(id, configuration) } },
-            preference: preferenceModel.flatMap { $0(id) }, journey: journeyModel.flatMap { $0(id) }, shopNPC: shopNPCModel?(id),
+            preference: preferenceModel.flatMap { $0(id) }, journey: journeyModel.flatMap { $0(id) }, narrative: narrativeModel?(.questions(nodeID: id)), shopNPC: shopNPCModel?(id),
             mediaScope: mediaScope, makeAudio: makeAudio, makeExternalMaps: makeExternalMaps, approvedArtworkHosts: approvedArtworkHosts, makeSensorProvider: makeSensorProvider, spatialApproval: spatialApproval)
     }
     private func projectAmbient() {
@@ -166,6 +189,7 @@ import SwiftUI
     let stillness: PlayStillnessCoordinator?
     let preference: PlayPreferenceCoordinator?
     let journey: JourneyCheckCoordinator?
+    let narrative: JourneyNarrativeCoordinator?
     let shopNPC: ShopNPCNodeHost?
     let mediaScope: UUID
     var makeAudio: (@MainActor () -> PlatformAudioPlayback)? = nil
@@ -183,6 +207,11 @@ import SwiftUI
         List {
             if let node {
                 if let journey { PlayJourneyCheckView(model: journey, nodeDone: node.done == true) }
+                if let narrative, model.hasCurrentMediaSnapshot, model.snapshot?.isLocked(node) == false {
+                    NavigationLink("journey.record.questions") {
+                        JourneyNarrativeView(model: narrative, onChanged: { await model.load() })
+                    }.accessibilityIdentifier("journey.record.open.questions.\(nodeID)")
+                }
                 Section {
                     Text(verbatim: node.name ?? "#\(node.id)").font(.title2.bold())
                     if let body = node.storyText ?? node.description { Text(verbatim: body) }

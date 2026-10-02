@@ -2,7 +2,7 @@ import XCTest
 final class JourneyRoleViewFlowTests: XCTestCase {
     override func setUp() { super.setUp(); continueAfterFailure = false }
     private func launch(_ scenario: String, language: String = "en") -> XCUIApplication {
-        let app = XCUIApplication(); app.launchArguments = ["--uitesting-module", "journeyContent", "--uitesting-journey-scenario", scenario, "-AppleLanguages", "(\(language))", "-AppleLocale", language == "en" ? "en_US" : "zh_CN"]; app.launch(); return app
+        let app = XCUIApplication(); app.launchArguments = ["--uitesting-reset-language", "--uitesting-module", "journeyContent", "--uitesting-journey-scenario", scenario, "-AppleLanguages", "(\(language))", "-AppleLocale", language == "en" ? "en_US" : "zh_CN"]; app.launch(); return app
     }
     private func tap(_ id: String, _ app: XCUIApplication) {
         let button = app.buttons[id]; for _ in 0..<6 { if button.exists && button.isHittable { break }; app.swipeUp() }; XCTAssertTrue(button.waitForExistence(timeout: 3)); button.tap()

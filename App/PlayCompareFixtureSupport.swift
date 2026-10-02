@@ -56,14 +56,16 @@ import Observation
         inline = args.contains("--compare-inline")
     }
     var body: some View {
-        NavigationStack {
-            VStack {
-                Text(verbatim: String(transport.writes)).accessibilityIdentifier("compare.fixture.writes")
+        VStack(spacing: 0) {
+            // Keep the fixture receipt count visible after a navigation push, rather
+            // than querying an accessibility-hidden root behind the gameplay screen.
+            Text(verbatim: String(transport.writes)).accessibilityIdentifier("compare.fixture.writes")
+            NavigationStack {
                 if inline {
                     ScrollView { PlayKitInlineHost(model: model, kind: .compare).padding() }
                 } else { PlayAdvancedView(model: model, onReady: { _ in }) }
-            }.task { await model.start() }
-        }
+            }
+        }.task { await model.start() }
     }
 }
 #endif

@@ -22,7 +22,7 @@ import SwiftUI
     var body: some View {
         List {
             Section {
-                Text(reader.isSyntheticEnabled ? "merchant.engagement.synthetic" : "merchant.engagement.boundary").font(.footnote).foregroundStyle(.secondary)
+                Text(LocalizedStringKey(reader.isSyntheticEnabled ? "merchant.engagement.synthetic" : "merchant.engagement.scopedBoundary")).font(.footnote).foregroundStyle(.secondary)
                 if let name = model.access?.identity?.name { Text(name).font(.headline) }
                 if let issue = model.issue { Text(LocalizedStringKey(issue)); Text("merchant.engagement.staleHistory").font(.footnote) }
                 if let failure = state.failure { Text(LocalizedStringKey(failure.key)).accessibilityIdentifier("merchant.engagement.error") }
@@ -103,8 +103,8 @@ import SwiftUI
                     TextField("merchant.engagement.refundID", text: $refundIDText).keyboardType(.numberPad)
                     if let raw = Int(refundIDText), let id = try? MerchantRefundID(raw), let selectedScope = reader.scope, let merchantID = model.access?.merchantID {
                         NavigationLink {
-                            MerchantEvidenceSelectionView(refundID: id, selectedScope: selectedScope, currentScope: { reader.scope }, nativeSelectionEnabled: false) { selection in
-                                Task { await model.prepare(.uploadEvidence(id, selection, scope: selectedScope, merchantID: merchantID)) }
+                            MerchantEvidenceSelectionView(refundID: id, selectedScope: selectedScope, currentScope: { reader.permitsDevice(.selectEvidence(id), merchantID: merchantID) ? reader.scope : nil }, nativeSelectionEnabled: reader.permitsDevice(.selectEvidence(id), merchantID: merchantID)) { selection in
+                                pending = .uploadEvidence(id, selection, scope: selectedScope, merchantID: merchantID)
                             }
                         } label: { Label("merchant.engagement.selectEvidence", systemImage: "photo.badge.plus") }
                     }
@@ -118,15 +118,18 @@ import SwiftUI
             Button("merchant.business.refresh") { Task { await model.load() } }.accessibilityIdentifier("merchant.engagement.refresh")
         }
         .appNavigationTitle("merchant.engagement.title")
-        .task(id: reader.scope) { model.invalidate(); await model.load() }
+        .task(id: reader.scope) {
+            model.invalidate(); await model.load()
+            if let command = pending, !Task.isCancelled { pending = nil; await model.prepare(command) }
+        }
         .task(id: state.exportTicket?.task.isRunning == true ? state.exportTicket?.task.id : nil) { await model.pollExportsWhileVisible() }
         .onChange(of: reader.scope) { _, _ in pending = nil; editor = nil; model.invalidate() }
-        .onDisappear { model.clearReceipt() }
+        .onDisappear { model.cancel(); model.clearReceipt() }
         .sheet(item: $editor, onDismiss: { if let command = pending { pending = nil; Task { await model.prepare(command) } } }) { context in
             MerchantEngagementComposer(context: context, filter: filter, segments: model.segments, coupons: model.coupons, canCoupon: allowed("merchant:coupon:manage")) { command in pending = command; editor = nil }
         }
-        .sheet(item: Binding(get: { state.review }, set: { if $0 == nil { model.cancel() } })) { review in
-            MerchantEngagementReviewView(review: review, enabled: reader.isSyntheticEnabled, busy: state.busy, cancel: model.cancel) { Task { await model.confirm(review) } }
+        .sheet(item: Binding(get: { state.review }, set: { if $0 == nil && !state.busy { model.cancel() } })) { review in
+            MerchantEngagementReviewView(review: review, enabled: reader.canExecute(review.command, merchantID: review.proof.access.merchantID ?? 0), synthetic: reader.isSyntheticEnabled, busy: state.busy, cancel: model.cancel) { Task { await model.confirm(review) } }
         }
     }
     @ViewBuilder private var receiptSection: some View {
@@ -141,11 +144,18 @@ import SwiftUI
                 case .exportDownloaded(let id, let bytes):
                     Text("merchant.engagement.downloadReady"); LabeledContent("merchant.engagement.taskID", value: String(id)); LabeledContent("merchant.engagement.byteCount", value: String(bytes.count))
                     Text("merchant.engagement.noAutomaticSharing").font(.footnote)
-                    MerchantExportSaveView(taskID: id, bytes: bytes)
+                    MerchantExportSaveView(taskID: id, bytes: bytes,
+                        deviceExportAllowed: state.receiptMerchantID.map { reader.permitsDevice(.saveExport(id), merchantID: $0) } == true,
+                        authorize: { await state.authorizeExportSave(taskID: id) })
                 case .contact:
                     Text("merchant.engagement.contactReady"); Text("merchant.engagement.contactNotDisplayed").font(.footnote)
                     if let contactDelivery {
                         Button("merchant.engagement.consumeContact") { Task { try? await state.consumeContact(using: contactDelivery); model.objectWillChange.send() } }
+                    } else if case .contact(let contact) = receipt, let merchant = state.receiptMerchantID,
+                              reader.permitsDevice(.contact(contact.customerID, contact.purpose), merchantID: merchant) {
+                        Button("merchant.engagement.consumeContact") {
+                            Task { try? await state.consumeContact(using: MerchantContactDeviceAdapter(deviceEffectsAllowed: true)); model.objectWillChange.send() }
+                        }
                     }
                 case .invitationAccepted(let member): Text("merchant.engagement.membershipReceipt"); Text(LocalizedStringKey("merchant.business.role." + (member.fields.mbText("roleCode") ?? ""))); Text("merchant.engagement.refreshIdentity").font(.footnote)
                 case .evidenceUploaded(_, _, let result): Text("merchant.engagement.evidenceReady"); Text(result.objectKey).font(.caption).textSelection(.enabled); Text("merchant.engagement.evidenceNotSubmitted").font(.footnote)
@@ -187,6 +197,7 @@ struct MerchantCampaignTaskFields: View {
     let task: MerchantCampaignTask
     var body: some View {
         LabeledContent("merchant.engagement.taskID", value: String(task.id)); if let title = task.title { Text(title).font(.headline) }
+        if let content = task.source["content"]?.string { Text(content) }
         MerchantEngagementStatus(value: task.status); MerchantEngagementCounts(counts: task.counts)
         if !task.recipients.isEmpty {
             ForEach(task.recipients) { recipient in

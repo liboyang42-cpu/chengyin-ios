@@ -77,6 +77,8 @@ private struct WithdrawalSupportContactView: View {
                 Text("withdrawal.support.explanation")
                 if let contact {
                     LabeledContent("withdrawal.support.weChat") { Text(verbatim: contact.weChatID).textSelection(.enabled) }
+                    NativeCopyTextButton(text: contact.weChatID, title: "withdrawal.support.copyWeChat",
+                        identifier: "withdrawal.support.copyWeChat")
                     Text("withdrawal.support.manualContact")
                 } else { Label("withdrawal.support.unconfigured", systemImage: "exclamationmark.bubble") }
             }.navigationTitle("withdrawal.support.contact")

@@ -132,4 +132,24 @@ final class SettingsNativeFlowTests: XCTestCase {
         tapNativeSwitch(forest); expectSwitch(forest, value: "1")
         attachFixtureScreenshot(self, app: app, name: "Chinese sound preferences at maximum accessibility text size")
     }
+    func testContactCopyFeedbackClearsOnBackAndReopenWithoutCalling() {
+        launch(); open("settingsNative.openAbout"); open("settingsNative.about.copyPhone")
+        XCTAssertTrue(app.staticTexts["settingsNative.about.copyPhone.copied"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["Call"].exists)
+        attachFixtureScreenshot(self, app: app, name: "Settings contact explicit local copy feedback")
+        back(); open("settingsNative.openAbout")
+        reveal(app.buttons["settingsNative.about.copyPhone"])
+        XCTAssertFalse(app.staticTexts["settingsNative.about.copyPhone.copied"].exists)
+    }
+    func testChineseLargeTextContactCopyFailureOffersManualRecovery() {
+        launch("copyFailure", language: "zh-Hans", extra: ["--uitesting-large-text", "--uitesting-dark-mode"])
+        open("settingsNative.openAbout"); open("settingsNative.about.copyPhone")
+        let failure = app.staticTexts["settingsNative.about.copyPhone.failed"]
+        reveal(failure)
+        XCTAssertEqual(failure.label, "复制失败，请选择文字后手动复制。")
+        XCTAssertFalse(app.staticTexts["settingsNative.about.copyPhone.copied"].exists)
+        XCTAssertTrue(app.staticTexts["settingsNative.about.contactPhone"].exists)
+        attachFixtureScreenshot(self, app: app, name: "Settings local copy failure Chinese large text dark mode")
+    }
+
 }

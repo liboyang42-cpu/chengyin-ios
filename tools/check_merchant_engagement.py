@@ -45,7 +45,9 @@ class Checks(unittest.TestCase):
  def test_native_device_grants_default_off(self):
   self.assertIn('deviceEffectsAllowed: Bool = false',APP)
   self.assertIn('var deviceExportAllowed = false',APP)
-  self.assertIn('nativeSelectionEnabled: false',APP)
+  self.assertIn('reader.permitsDevice(.selectEvidence(id), merchantID: merchantID)',APP)
+  production=(ROOT/'Core/MerchantEngagementProduction.swift').read_text()
+  self.assertIn('deviceGrants: [MerchantEngagementDeviceGrant] = []',production)
   self.assertIn('var cameraSelectionEnabled = false',APP)
  def test_invite_route_exact_and_token_hidden(self):
   self.assertIn('path == "/merchant/team"',CORE)

@@ -26,8 +26,9 @@ final class PlayExperienceFlowTests: XCTestCase {
             XCTAssertTrue(app.buttons["playx.confirm"].waitForExistence(timeout: 3), app.debugDescription)
             dismissFixtureConfirmationPopover(in: app)
         }
+        let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: app.sheets["Review action"])
         let editable = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == true AND enabled == true"), object: review)
-        XCTAssertEqual(XCTWaiter.wait(for: [editable], timeout: 5), .completed, app.debugDescription)
+        XCTAssertEqual(XCTWaiter.wait(for: [dismissed, editable], timeout: 5), .completed, app.debugDescription)
         XCTAssertFalse(app.buttons["playx.confirm"].exists)
         XCTAssertEqual(field.value as? String, "Synthetic answer")
         attachFixtureScreenshot(self, app: app, name: "Classic review cancelled with answer retained")

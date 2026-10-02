@@ -35,14 +35,17 @@ struct MerchantExportFileDocument: FileDocument {
     let taskID: Int
     let bytes: Data
     var deviceExportAllowed = false
+    var authorize: @MainActor () async -> Bool = { false }
     @State private var presenting = false
     @State private var outcome: String?
     var body: some View {
         VStack(alignment: .leading) {
-            Button("merchant.engagement.saveWorkbook") { presenting = true }.disabled(!deviceExportAllowed)
+            Button("merchant.engagement.saveWorkbook") { Task { if deviceExportAllowed, await authorize() { presenting = true } } }.disabled(!deviceExportAllowed)
             if !deviceExportAllowed { Text("merchant.engagement.deviceExportDisabled").font(.footnote).foregroundStyle(.secondary) }
             if let outcome { Text(LocalizedStringKey(outcome)).font(.footnote) }
         }
+        .onDisappear { presenting = false }
+        .onChange(of: deviceExportAllowed) { _, allowed in if !allowed { presenting = false } }
         .fileExporter(isPresented: $presenting, document: MerchantExportFileDocument(bytes: bytes), contentType: UTType(filenameExtension: "xlsx") ?? .data,
                       defaultFilename: "merchant-customers-\(taskID).xlsx") { result in
             switch result { case .success: outcome = "merchant.engagement.workbookSaved"; case .failure: outcome = "merchant.engagement.workbookSaveFailed" }

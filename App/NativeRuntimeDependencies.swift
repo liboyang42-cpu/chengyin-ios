@@ -12,6 +12,7 @@ import Foundation
     let bankDocument: (any BankWithdrawalCurrentDocumentProviding)?
     let verificationCodeApproval: VerificationCodeApproval?
     let couponCodeApproval: CouponCodeApproval?
+    let merchantEngagementApproval: MerchantEngagementProductionApproval?
     let merchantBusinessApproval: MerchantBusinessProductionApproval?
     let clubGovernanceApproval: ClubGovernanceProductionApproval?
     let ownerRefundApproval: ClubOwnerRefundApproval?
@@ -19,14 +20,17 @@ import Foundation
     let transport: (any HTTPTransport)?
     let location: (any RoamDeviceLocationProviding)?
     let shopNPCGrants: ShopNPCGrants
+    let journeyNarrativeImageReader: (any RetainedPublicImageReading)?
     let motion: (any PlayMotionSampleProviding)?
     init(configuration: RuntimeDependencyConfiguration? = nil, businessConfiguration: BusinessRuntimeConfiguration? = nil, bankDocument: (any BankWithdrawalCurrentDocumentProviding)? = nil, signupDocument: (any TopicSelfPlayDocumentProviding)? = nil, selfPlayPayment: (any TopicSelfPlayPaymentProviding)? = nil, weChatPaymentConfiguration: WeChatSDKPaymentConfiguration? = nil, transport: (any HTTPTransport)? = nil,
          location: (any RoamDeviceLocationProviding)? = nil, shopNPCGrants: ShopNPCGrants = .init(), motion: (any PlayMotionSampleProviding)? = nil,
          verificationCodeApproval: VerificationCodeApproval? = nil, couponCodeApproval: CouponCodeApproval? = nil,
-         ownerRefundApproval: ClubOwnerRefundApproval? = nil, nativePlatform: NativePlatformAcceptance? = nil, clubGovernanceApproval: ClubGovernanceProductionApproval? = nil, merchantBusinessApproval: MerchantBusinessProductionApproval? = nil, orderLifecycleConfiguration: OrderLifecycleProductionConfiguration? = nil) {
+         ownerRefundApproval: ClubOwnerRefundApproval? = nil, nativePlatform: NativePlatformAcceptance? = nil, clubGovernanceApproval: ClubGovernanceProductionApproval? = nil, merchantBusinessApproval: MerchantBusinessProductionApproval? = nil, merchantEngagementApproval: MerchantEngagementProductionApproval? = nil, orderLifecycleConfiguration: OrderLifecycleProductionConfiguration? = nil, journeyNarrativeImageReader: (any RetainedPublicImageReading)? = nil) {
+        self.journeyNarrativeImageReader = journeyNarrativeImageReader
         self.nativePlatform = nativePlatform
         self.weChatPaymentConfiguration = weChatPaymentConfiguration
         self.signupDocument = signupDocument; self.selfPlayPayment = selfPlayPayment
+        self.merchantEngagementApproval = merchantEngagementApproval
         self.merchantBusinessApproval = merchantBusinessApproval
         self.clubGovernanceApproval = clubGovernanceApproval
         self.orderLifecycleConfiguration = orderLifecycleConfiguration

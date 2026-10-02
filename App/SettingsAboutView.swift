@@ -1,9 +1,11 @@
 import SwiftUI
+import UIKit
 
 @MainActor struct SettingsAboutView: View {
     let market: RegionalMarket?
     let appInformation: SettingsAppInformation
     let legalReader: any SettingsLegalReading
+    var copyText: (String) throws -> Void = { UIPasteboard.general.string = $0 }
     var body: some View {
         Form {
             Section {
@@ -51,6 +53,8 @@ import SwiftUI
                     Text("settingsNative.about.contactSource").font(.footnote).foregroundStyle(.secondary)
                     Text(verbatim: phone).textSelection(.enabled)
                         .accessibilityIdentifier("settingsNative.about.contactPhone")
+                    NativeCopyTextButton(text: phone, title: "settingsNative.about.copyPhone",
+                        identifier: "settingsNative.about.copyPhone", copyText: copyText)
                 } else {
                     Text("settingsNative.about.contactUnavailable").foregroundStyle(.secondary)
                 }

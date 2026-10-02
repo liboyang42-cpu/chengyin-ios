@@ -41,6 +41,25 @@ class RegistrationWaitlistCompositionTests(unittest.TestCase):
     def test_inline_native_waitlist_and_relaunch_readback(self):
         source = self.read('App/RegistrationSheetView.swift')
         for marker in ('waitlistSection', 'TimelineView', 'await flow.reviewWaitlistOffer()', 'await flow.cancelWaitlist()', 'await flow.readDurableStatus()', 'await flow.recordSignupConsent()'): self.assertIn(marker, source)
+    def test_waitlist_read_task_is_keyed_to_the_opened_session_and_ticket(self):
+        view = self.read('App/RegistrationSheetView.swift')
+        self.assertIn('.task(id: flow.waitlistReadKey) { await flow.loadWaitlist() }', view)
+        self.assertNotIn('.task(id: flow.selectedTicketID)', view)
+        flow = self.read('Core/RegistrationUIFlow.swift')
+        key = flow.split('public var waitlistReadKey:')[1].split('public var waitlistAvailable:')[0]
+        self.assertIn('guard hasCurrentSession, let openedIdentity, let scope = waitlistScope', key)
+        self.assertIn('.init(identity: openedIdentity, scope: scope)', key)
+        for mutation in ('joinWaitlist', 'cancelWaitlist', 'confirm(', 'reviewWaitlistOffer'):
+            self.assertNotIn(mutation, key)
+    def test_waitlist_read_cleanup_is_deferred_and_fenced_to_its_own_read(self):
+        flow = self.read('Core/RegistrationUIFlow.swift')
+        read = flow.split('public func loadWaitlist()')[1].split('public func recordSignupConsent()')[0]
+        cleanup = read.split('defer {')[1].split('        do {')[0]
+        self.assertIn('matches(stamp, identity), waitlistStamp == waitlistGeneration, waitlistScope == scope', cleanup)
+        self.assertIn('isReadingWaitlist = false; changed()', cleanup)
+        self.assertEqual(read.count('isReadingWaitlist = false'), 1)
+        self.assertIn('waitlistScope == scope, !Task.isCancelled else { return }', read)
+        self.assertNotIn('waitlistStatus =', cleanup)
     def test_state_catalog_is_bilingual(self):
         entries = json.loads(self.read('Resources/Localizable.xcstrings'))['strings']
         for suffix in ('NONE', 'WAITING', 'OFFERED', 'CLAIMED', 'CONVERTED', 'CANCELLED', 'EXPIRED'):

@@ -4,7 +4,7 @@ import XCTest
 final class WalletCommerceFlowTests: XCTestCase {
     private func launch(_ extra: [String] = []) -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["--wallet-commerce-fixture", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"] + extra
+        app.launchArguments = ["--uitesting-reset-language", "--wallet-commerce-fixture", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"] + extra
         app.launch(); return app
     }
     func testFundsStagesUnknownCurrencyAndZeroRemainDistinct() {

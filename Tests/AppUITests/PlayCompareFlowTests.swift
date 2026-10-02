@@ -6,7 +6,7 @@ final class PlayCompareFlowTests: XCTestCase {
     override func tearDownWithError() throws { attachFailureScreenshot(self, app: runningApp); runningApp?.terminate(); runningApp = nil }
     private func launch(inline: Bool = false, unknown: Bool = false, language: String = "en") -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitesting-module", "compareGame", "-AppleLanguages", "(\(language))", "-AppleLocale", language == "en" ? "en_US" : "zh_CN"]
+        app.launchArguments = ["--uitesting-reset-language", "--uitesting-module", "compareGame", "-AppleLanguages", "(\(language))", "-AppleLocale", language == "en" ? "en_US" : "zh_CN"]
         if inline { app.launchArguments.append("--compare-inline") }
         if unknown { app.launchArguments.append("--compare-unknown") }
         runningApp = app; app.launch()
@@ -18,6 +18,12 @@ final class PlayCompareFlowTests: XCTestCase {
         return app
     }
     private func tap(_ id: String, _ app: XCUIApplication) {
+        if id == "playkit.close" {
+            let close = app.navigationBars.buttons[id]
+            XCTAssertTrue(close.waitForExistence(timeout: 5), app.debugDescription)
+            XCTAssertTrue(close.isEnabled && close.isHittable, app.debugDescription)
+            close.tap(); return
+        }
         let element = app.buttons[id]
         XCTAssertTrue(revealFixtureElement(element, in: app), app.debugDescription); element.tap()
     }
@@ -54,7 +60,9 @@ final class PlayCompareFlowTests: XCTestCase {
         XCTAssertEqual(app.staticTexts["compare.fixture.writes"].label, "1")
         XCTAssertFalse(app.buttons["playkit.submit.compare"].isEnabled)
         tap("playkit.compare.reload", app)
-        app.buttons["playkit.compare.reload.confirm"].tap()
+        let reloadSheet = app.sheets.firstMatch
+        XCTAssertTrue(reloadSheet.waitForExistence(timeout: 3), app.debugDescription)
+        tapFixtureSheetAction("Replace selection with latest receipt", in: reloadSheet, app: app)
         confirm(app)
         XCTAssertEqual(app.staticTexts["compare.fixture.writes"].label, "2")
         XCTAssertFalse(app.buttons["playkit.submit.compare"].exists)
@@ -83,7 +91,11 @@ final class PlayCompareFlowTests: XCTestCase {
         let app = launch(language: "zh-Hans")
         XCTAssertTrue(app.navigationBars["时间轴对照"].exists)
         tap("playkit.compare.item.left_gate", app); tap("playkit.close", app)
-        XCTAssertTrue(app.buttons["继续编辑"].waitForExistence(timeout: 3)); app.buttons["继续编辑"].tap()
+        let keep = app.buttons["继续编辑"]
+        if keep.exists && keep.isHittable { keep.tap() }
+        else { dismissFixtureConfirmationPopover(in: app) }
         XCTAssertTrue(app.buttons["playkit.submit.compare"].exists)
+        XCTAssertEqual(app.buttons["playkit.compare.item.left_gate"].value as? String, "已标记")
+        XCTAssertEqual(app.staticTexts["compare.fixture.writes"].label, "0")
     }
 }

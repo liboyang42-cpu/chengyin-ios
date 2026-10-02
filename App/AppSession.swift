@@ -298,6 +298,27 @@ final class AppSession: ObservableObject {
         return coordinator
     }
     // Journey extras are independent of task completion, advanced games and local dice.
+    private var retainedJourneyNarratives: [String: JourneyNarrativeCoordinator] = [:]
+    var journeyNarrativeImageReader: (any RetainedPublicImageReading)? { runtimeDependencies.journeyNarrativeImageReader }
+    private lazy var journeyNarrativeJournal = JourneyStoredNarrativeJournal(
+        read: { [weak self] key in try self?.templateAuthoringSecureStorage.read(key) },
+        write: { [weak self] data, key in
+            guard let self else { throw APIError.notConfigured }
+            try self.templateAuthoringSecureStorage.write(data, key: key)
+        })
+    func journeyNarrative(scope: PlaySessionScope, topicID: Int?, query: JourneyNarrativeQuery) -> JourneyNarrativeCoordinator? {
+        guard let topicID, let target = try? JourneyNarrativeScope(scope: scope, topicID: topicID),
+              let factory = runtimeDependencyFactory else { return nil }
+        let key = playRuntimeKey(scope, suffix: "journey-narrative:\(topicID):\(query.key)")
+        if let model = retainedJourneyNarratives[key] { model.synchronize(); return model }
+        let model = JourneyNarrativeCoordinator(scope: target, query: query, service: factory.journeyNarrativeService(),
+            journal: journeyNarrativeJournal, currentSession: { [weak self] in self?.currentPlayRuntimeSession },
+            onUnauthorized: { [weak self] captured in
+                guard let self else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: captured.token)
+            })
+        retainedJourneyNarratives[key] = model; return model
+    }
     private var retainedJourneyChecks: [String: JourneyCheckCoordinator] = [:]
     private var retainedJourneyAmbient: [String: JourneyAmbientCoordinator] = [:]
     private lazy var journeySeenStore = JourneyPersistentEggSeenStorage(
@@ -1226,10 +1247,18 @@ final class AppSession: ObservableObject {
     lazy var merchantEngagementReader = MerchantEngagementSessionReader(
         service: merchantEngagementService,
         session: { [weak self] in self?.currentMerchantBusinessSession },
+        productionService: { [weak self] command, merchantID in self?.merchantEngagementFactory?.service(for: command, merchantID: merchantID) },
+        devicePermission: { [weak self] action, merchantID in self?.merchantEngagementFactory?.permitsDevice(action, merchantID: merchantID) == true },
+        runtimeContext: { [weak self] in self?.currentRuntimeDependencyContext },
         onUnauthorized: { [weak self] captured in
             guard let self, self.currentMerchantBusinessSession == captured else { return }
             self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
         })
+    private var merchantEngagementFactory: MerchantEngagementProductionFactory? {
+        guard let api = regionalConfiguration?.apiConfiguration else { return nil }
+        return .init(api: api, approval: runtimeDependencies.merchantEngagementApproval,
+                     transport: runtimeHTTPTransport, current: { [weak self] in self?.currentRuntimeDependencyContext })
+    }
     lazy var merchantExportRecovery = MerchantExportFileRecoveryStore(
         url: FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent((storageScope?.service ?? "unconfigured") + "/MerchantBusiness/export-tasks-v1.json"))

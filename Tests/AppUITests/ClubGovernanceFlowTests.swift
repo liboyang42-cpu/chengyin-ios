@@ -2,7 +2,7 @@ import XCTest
 
 final class ClubGovernanceFlowTests: XCTestCase {
     private func launch(_ language: String = "en") -> XCUIApplication {
-        let app = XCUIApplication(); app.launchArguments = ["--uitesting-club-governance", "-AppleLanguages", "(\(language))", "-AppleLocale", language]; app.launch(); return app
+        let app = XCUIApplication(); app.launchArguments = ["--uitesting-reset-language", "--uitesting-club-governance", "-AppleLanguages", "(\(language))", "-AppleLocale", language]; app.launch(); return app
     }
     private func open(_ name: String, app: XCUIApplication) {
         let button = app.buttons["club.gov.fixture." + name]

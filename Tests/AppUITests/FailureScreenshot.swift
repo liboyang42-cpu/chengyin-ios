@@ -91,7 +91,7 @@ func tapFixtureSheetAction(_ label: String, in sheet: XCUIElement, app: XCUIAppl
     button.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
 }
 
-/// Use the observed system dismissal region, outside the popover and above a keyboard.
+/// Use the system dismissal region, outside the popover and all keyboard surfaces.
 func dismissFixtureConfirmationPopover(in app: XCUIApplication,
                                        file: StaticString = #filePath, line: UInt = #line) {
     let outside = app.otherElements["PopoverDismissRegion"]
@@ -99,10 +99,18 @@ func dismissFixtureConfirmationPopover(in app: XCUIApplication,
     guard outside.exists, popover.exists else {
         XCTFail("Expected an adaptive confirmation popover: " + app.debugDescription, file: file, line: line); return
     }
-    var bottom = app.frame.maxY - 60
-    if app.keyboards.firstMatch.exists { bottom = min(bottom, app.keyboards.firstMatch.frame.minY - 16) }
+    // The Keyboard AX frame excludes the prediction/accessory strip above its keys.
+    // A tap in that strip reaches the input window instead of PopoverDismissRegion.
+    let inputElements = app.keyboards.allElementsBoundByIndex + app.otherElements.matching(
+        NSPredicate(format: "identifier == %@ OR identifier == %@ OR label == %@",
+                    "inputView", "SystemInputAssistantView", "Typing Predictions")
+    ).allElementsBoundByIndex
+    let inputFrames = inputElements.map { $0.frame.intersection(app.frame) }
+        .filter { !$0.isNull && !$0.isEmpty }
+    let bottom = inputFrames.reduce(app.frame.maxY - 60) { min($0, $1.minY - 16) }
     let point = CGPoint(x: app.frame.maxX - 16, y: bottom)
-    guard app.frame.contains(point), outside.frame.contains(point), !popover.frame.contains(point) else {
+    guard app.frame.contains(point), outside.frame.contains(point), !popover.frame.contains(point),
+          inputFrames.allSatisfy({ !$0.contains(point) }) else {
         XCTFail("No safe outside-popover dismissal point: " + app.debugDescription, file: file, line: line); return
     }
     outside.coordinate(withNormalizedOffset: .zero)

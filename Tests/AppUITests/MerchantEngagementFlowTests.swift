@@ -55,6 +55,24 @@ final class MerchantEngagementFlowTests: XCTestCase {
         reveal(receipt, app: app)
         XCTAssertTrue(receipt.waitForExistence(timeout: 5))
     }
+    func testOrdinaryHTTPProductionFactoryReviewUsesExplicitConfirmation() {
+        let app = launch("productionFactory"); prepareSegment(app)
+        let confirm = app.buttons["merchant.engagement.confirm"]
+        reveal(confirm, app: app)
+        XCTAssertEqual(confirm.label, "Confirm reviewed action")
+        confirm.tap()
+        let receipt = app.staticTexts["The segment-save response was received."]
+        reveal(receipt, app: app)
+        XCTAssertTrue(receipt.waitForExistence(timeout: 5))
+    }
+    func testChineseOrdinaryHTTPProductionReviewCanBeCancelled() {
+        let app = launch("productionFactory", language: "zh-Hans"); prepareSegment(app)
+        let confirm = app.buttons["merchant.engagement.confirm"]
+        reveal(confirm, app: app)
+        XCTAssertEqual(confirm.label, "确认已审核操作")
+        tap("merchant.engagement.cancelReview", app: app)
+        XCTAssertFalse(app.buttons["merchant.engagement.confirm"].exists)
+    }
     func testInactiveIdentityCanPrepareInvitationWithoutStoreGuess() {
         let app = launch("inactive"); tap("merchant.engagement.acceptInvitation",app:app)
         let field = app.secureTextFields["merchant.engagement.editor.inviteToken"]; XCTAssertTrue(field.waitForExistence(timeout:5)); field.tap(); field.typeText("synthetic-invitation-token")

@@ -62,6 +62,11 @@ class GroupPollContracts(unittest.TestCase):
             self.assertTrue(catalog[key]['localizations']['zh-Hans']['stringUnit']['value'])
         for evidence in ['owner.cancelReview()', 'owner.suspend()', '.focused($focused)', '.confirmationDialog', '.privacySensitive()', 'poll.confirm']:
             self.assertIn(evidence, source)
+    def test_option_label_identifier_does_not_override_choose_button(self):
+        source = read('App/GroupPollViews.swift')
+        self.assertIn('Text(verbatim: option.content).frame(maxWidth: .infinity, alignment: .leading)\n                            .accessibilityIdentifier("poll.result.option.\\(option.id)")', source)
+        self.assertNotIn('}.accessibilityIdentifier("poll.result.option.\\(option.id)")', source)
+        self.assertIn('}.accessibilityIdentifier("poll.choose.\\(option.id)")', source)
     def test_fixture_has_no_transport_and_excludes_production_session(self):
         fixture = read('App/GroupPollFixture.swift')
         self.assertTrue(fixture.startswith('#if DEBUG'))

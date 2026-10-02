@@ -3,7 +3,7 @@ import XCTest
 final class OfficialActionUITests: XCTestCase {
     private func launch() -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments += ["--official-action-fixture", "-AppleLanguages", "(en)"]
+        app.launchArguments += ["--uitesting-reset-language", "--official-action-fixture", "-AppleLanguages", "(en)"]
         app.launch(); return app
     }
     func testPublishReviewImmutableAndOffline() {

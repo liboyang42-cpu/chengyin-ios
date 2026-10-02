@@ -18,7 +18,9 @@ final class SocialAccountFlowTests: XCTestCase {
     private func enterReview() {
         let editor = app.textViews["social.editor.text"]
         XCTAssertTrue(editor.waitForExistence(timeout: 5)); editor.tap(); editor.typeText("Synthetic offline draft")
-        app.swipeUp()
+        let done = app.buttons["social.editor.keyboardDone"]
+        XCTAssertTrue(done.waitForExistence(timeout: 5)); done.tap()
+        XCTAssertFalse(app.keyboards.firstMatch.exists)
         let button = app.buttons["social.editor.review"]; reveal(button); button.tap()
     }
     func testGuestPublicProfileShowsUnknownRelationshipWithoutPostsRequest() {
@@ -78,4 +80,41 @@ final class SocialAccountFlowTests: XCTestCase {
         let roam = app.buttons["social.guide.roam"]; reveal(roam); roam.tap()
         XCTAssertTrue(text("Fixture destination: roam").exists)
     }
+    func testDraftSurvivesNestedReviewAndCancelThenDiscardReopensEmpty() {
+        launch("editorSheet")
+        let open = app.buttons["social.fixture.openEditor"]
+        XCTAssertTrue(open.waitForExistence(timeout: 5)); open.tap()
+        enterReview()
+        let closeReview = app.buttons["social.review.close"]
+        XCTAssertTrue(closeReview.waitForExistence(timeout: 5)); closeReview.tap()
+        let editor = app.textViews["social.editor.text"]
+        XCTAssertTrue(editor.waitForExistence(timeout: 5))
+        XCTAssertEqual(editor.value as? String, "Synthetic offline draft")
+        app.buttons["social.editor.close"].tap()
+        let keep = app.buttons["social.editor.keepEditing"]
+        XCTAssertTrue(keep.waitForExistence(timeout: 5)); keep.tap()
+        XCTAssertEqual(editor.value as? String, "Synthetic offline draft")
+        attachFixtureScreenshot(self, app: app, name: "Social draft preserved after nested review and cancel")
+        app.buttons["social.editor.close"].tap()
+        app.buttons["social.editor.discard"].tap()
+        XCTAssertTrue(open.waitForExistence(timeout: 5)); open.tap()
+        XCTAssertTrue(editor.waitForExistence(timeout: 5))
+        XCTAssertEqual(editor.value as? String, "")
+    }
+    func testChineseLargeTextDraftCancelKeepsTextAndKeyboardDismisses() {
+        launch("editorSheet", language: "zh-Hans", extra: ["--uitesting-large-text", "--uitesting-dark-mode"])
+        let open = app.buttons["social.fixture.openEditor"]
+        XCTAssertTrue(open.waitForExistence(timeout: 5)); open.tap()
+        let editor = app.textViews["social.editor.text"]
+        XCTAssertTrue(editor.waitForExistence(timeout: 5)); editor.tap(); editor.typeText("Native draft")
+        let done = app.buttons["social.editor.keyboardDone"]
+        XCTAssertTrue(done.waitForExistence(timeout: 5)); done.tap()
+        XCTAssertFalse(app.keyboards.firstMatch.exists)
+        app.buttons["social.editor.close"].tap()
+        let keep = app.buttons["social.editor.keepEditing"]
+        XCTAssertTrue(keep.waitForExistence(timeout: 5)); XCTAssertEqual(keep.label, "继续编辑"); keep.tap()
+        XCTAssertEqual(editor.value as? String, "Native draft")
+        attachFixtureScreenshot(self, app: app, name: "Chinese social draft large text dark mode after keyboard dismissal")
+    }
+
 }

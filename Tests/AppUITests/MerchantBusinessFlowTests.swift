@@ -4,7 +4,7 @@ final class MerchantBusinessFlowTests: XCTestCase {
     override func setUp() { super.setUp(); continueAfterFailure = false }
     private func launch(_ scenario: String = "ready", language: String = "en") -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments += ["--uitesting-merchant-business-fixture", "--uitesting-merchant-business-scenario", scenario, "-AppleLanguages", "(\(language))", "-AppleLocale", "\(language)_US"]
+        app.launchArguments += ["--uitesting-reset-language", "--uitesting-merchant-business-fixture", "--uitesting-merchant-business-scenario", scenario, "-AppleLanguages", "(\(language))", "-AppleLocale", "\(language)_US"]
         app.launch(); return app
     }
     private func reveal(_ element: XCUIElement, app: XCUIApplication) {

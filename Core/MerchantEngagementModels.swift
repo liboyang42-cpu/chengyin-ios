@@ -66,6 +66,11 @@ public struct MerchantCampaignTask: Equatable, Identifiable {
         recipients = try rows.enumerated().map { try .init($0.element, index: $0.offset) }
         guard Set(recipients.map(\.id)).count == recipients.count else { throw MerchantBusinessFailure.malformed }
     }
+    public var hasReviewableMessage: Bool {
+        guard let content = source.mbText("content"), !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+              let count = counts["recipientCount"], count == recipients.count else { return false }
+        return recipients.allSatisfy { $0.source["recipientId"]?.integer.map { $0 > 0 } == true }
+    }
     public var canDispatch: Bool { status == "READY" && channel != nil && counts["recipientCount"] != nil }
     public var canRetry: Bool { status == "PARTIAL_FAILED" && channel != nil && (counts["retryableCount"] ?? 0) > 0 }
 }

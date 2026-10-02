@@ -20,20 +20,58 @@ public struct MerchantEngagementProof: Equatable {
     var scope: MerchantBusinessScope? { get }
     var isConfigured: Bool { get }
     var isSyntheticEnabled: Bool { get }
+    var authorizationGeneration: UUID? { get }
+    var journalRealm: String? { get }
+    func canExecute(_ command: MerchantEngagementCommand, merchantID: Int) -> Bool
+    func permitsDevice(_ action: MerchantEngagementDeviceGrant.Action, merchantID: Int) -> Bool
+    func execute(_ review: MerchantEngagementReview, authorization: MerchantEngagementDispatchAuthorization, check: () throws -> Void) async throws -> MerchantEngagementReceipt
     func access() async throws -> MerchantEngagementAccess
     func read(_ query: MerchantEngagementQuery) async throws -> MerchantEngagementPayload
     func proof(_ command: MerchantEngagementCommand) async throws -> MerchantEngagementProof
     func execute(_ command: MerchantEngagementCommand, requestID: String, proof: MerchantEngagementProof, scope: MerchantBusinessScope) async throws -> MerchantEngagementReceipt
 }
+public extension MerchantEngagementReading {
+    var authorizationGeneration: UUID? { nil }
+    var journalRealm: String? { scope?.realm }
+    func canExecute(_ command: MerchantEngagementCommand, merchantID: Int) -> Bool { isSyntheticEnabled }
+    func permitsDevice(_ action: MerchantEngagementDeviceGrant.Action, merchantID: Int) -> Bool { false }
+    func execute(_ review: MerchantEngagementReview, authorization: MerchantEngagementDispatchAuthorization, check: () throws -> Void) async throws -> MerchantEngagementReceipt {
+        guard isSyntheticEnabled else { throw MerchantBusinessFailure.disabled }
+        try authorization.consume(review); try check()
+        return try await execute(review.command, requestID: review.requestID, proof: review.proof, scope: review.scope)
+    }
+}
 @MainActor public final class MerchantEngagementSessionReader: MerchantEngagementReading {
     private let service: MerchantEngagementService?
     private let session: () -> MerchantBusinessSession?
+    private let productionService: (MerchantEngagementCommand, Int) -> MerchantEngagementService?
+    private let devicePermission: (MerchantEngagementDeviceGrant.Action, Int) -> Bool
+    private let runtimeContext: () -> RuntimeDependencyContext?
+    private var observedContext: RuntimeDependencyContext?
+    private var contextGeneration = UUID()
+    public var authorizationGeneration: UUID? {
+        let context = runtimeContext()
+        if context != observedContext { observedContext = context; contextGeneration = UUID() }
+        return context == nil ? nil : contextGeneration
+    }
+    public var journalRealm: String? {
+        guard let context = runtimeContext() else { return scope?.realm }
+        return "\(context.market)|\(context.baseURL.absoluteString)|\(context.session.namespace)"
+    }
+    public func canExecute(_ command: MerchantEngagementCommand, merchantID: Int) -> Bool {
+        isSyntheticEnabled || productionService(command, merchantID)?.permits(command, merchantID: merchantID) == true
+    }
+    public func permitsDevice(_ action: MerchantEngagementDeviceGrant.Action, merchantID: Int) -> Bool { devicePermission(action, merchantID) }
     private let unauthorized: (MerchantBusinessSession) -> Void
     public var isConfigured: Bool { service != nil }
     public var isSyntheticEnabled: Bool { service?.isSyntheticEnabled == true }
     public var scope: MerchantBusinessScope? { guard let session = session(), let service else { return nil }; return .init(realm: service.realm, accountID: session.accountID, epoch: session.epoch) }
-    public init(service: MerchantEngagementService?, session: @escaping () -> MerchantBusinessSession?, onUnauthorized: @escaping (MerchantBusinessSession) -> Void = { _ in }) {
+    public init(service: MerchantEngagementService?, session: @escaping () -> MerchantBusinessSession?,
+                productionService: @escaping (MerchantEngagementCommand, Int) -> MerchantEngagementService? = { _, _ in nil },
+                devicePermission: @escaping (MerchantEngagementDeviceGrant.Action, Int) -> Bool = { _, _ in false },
+                runtimeContext: @escaping () -> RuntimeDependencyContext? = { nil }, onUnauthorized: @escaping (MerchantBusinessSession) -> Void = { _ in }) {
         self.service = service; self.session = session; unauthorized = onUnauthorized
+        self.productionService = productionService; self.devicePermission = devicePermission; self.runtimeContext = runtimeContext
     }
     public func access() async throws -> MerchantEngagementAccess { try await perform { service, captured in try await service.access(token: captured.token) } }
     public func read(_ query: MerchantEngagementQuery) async throws -> MerchantEngagementPayload {
@@ -88,6 +126,26 @@ public struct MerchantEngagementProof: Equatable {
     public func execute(_ command: MerchantEngagementCommand, requestID: String, proof: MerchantEngagementProof, scope: MerchantBusinessScope) async throws -> MerchantEngagementReceipt {
         guard self.scope == scope else { throw MerchantBusinessFailure.stale }
         return try await perform { service, captured in try await service.execute(command, requestID: requestID, access: proof.access, token: captured.token) }
+    }
+    public func execute(_ review: MerchantEngagementReview, authorization: MerchantEngagementDispatchAuthorization, check: () throws -> Void) async throws -> MerchantEngagementReceipt {
+        try authorization.consume(review); try check()
+        guard let captured = session(), scope == review.scope, authorizationGeneration == review.authorizationGeneration else { throw MerchantBusinessFailure.stale }
+        // Re-read every source permission and target after the durable reservation.
+        let fresh = try await proof(review.command)
+        try check(); try self.check(captured)
+        guard fresh == review.proof, authorizationGeneration == review.authorizationGeneration else { throw MerchantBusinessFailure.conflict }
+        if !isSyntheticEnabled { try review.command.validateProductionProof(fresh) }
+        let selected = isSyntheticEnabled ? service : productionService(review.command, fresh.access.merchantID ?? 0)
+        guard let selected, selected.permits(review.command, merchantID: fresh.access.merchantID ?? 0) else { throw MerchantBusinessFailure.disabled }
+        try check()
+        do {
+            let receipt = try await selected.executeReviewed(review, authorization: authorization, token: captured.token)
+            try check(); try self.check(captured)
+            return receipt
+        } catch {
+            if session() == captured, error as? APIError == .unauthorized { unauthorized(captured) }
+            throw error
+        }
     }
     private func check(_ captured: MerchantBusinessSession) throws { guard session() == captured, !Task.isCancelled else { throw MerchantBusinessFailure.stale } }
     private func perform<T>(_ work: @MainActor (MerchantEngagementService, MerchantBusinessSession) async throws -> T) async throws -> T {

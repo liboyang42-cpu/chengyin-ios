@@ -60,7 +60,7 @@ class SocialAccountSourceTests(unittest.TestCase):
  def test_bilingual_keys_fixture_isolation_and_real_guide_tab_mapping(self):
   catalog=json.loads(self.read('Resources/Localizable.xcstrings'))['strings']
   keys={key:entry for key,entry in catalog.items() if key.startswith('social.')}
-  self.assertEqual(len(keys),102)
+  self.assertEqual(len(keys),106)
   for key,entry in keys.items():
    for language in ['en','zh-Hans']:self.assertTrue(entry['localizations'][language]['stringUnit']['value'].strip(),key)
   fixture=self.read('App/SocialAccountFixtureSupport.swift'); self.assertTrue(fixture.startswith('#if DEBUG'))

@@ -119,6 +119,7 @@ import SwiftUI
                 VStack(alignment: .leading, spacing: 6) {
                     HStack(alignment: .firstTextBaseline) {
                         Text(verbatim: option.content).frame(maxWidth: .infinity, alignment: .leading)
+                            .accessibilityIdentifier("poll.result.option.\(option.id)")
                         if poll.myOptionId == option.id { Label("poll.yourVote", systemImage: "checkmark.circle.fill").font(.caption) }
                         if poll.hasResults, let count = option.voteCount { Text(verbatim: String(count)).monospacedDigit() }
                     }
@@ -131,7 +132,7 @@ import SwiftUI
                             Label(LocalizedStringKey(selectedOption == option.id ? "poll.selected" : "poll.choose"), systemImage: selectedOption == option.id ? "largecircle.fill.circle" : "circle")
                         }.accessibilityIdentifier("poll.choose.\(option.id)")
                     }
-                }.accessibilityIdentifier("poll.result.option.\(option.id)")
+                }
             }
             if let total = poll.totalVoters { LabeledContent("poll.total", value: String(total)).accessibilityIdentifier("poll.total") }
             else { Text("poll.awaitResults").accessibilityIdentifier("poll.awaitResults") }

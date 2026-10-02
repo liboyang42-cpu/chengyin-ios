@@ -243,5 +243,10 @@
     "key": "settingsNative.fixture.notice",
     "en": "Offline settings preview; preferences stay in this test session",
     "zh-Hans": "离线设置预览，偏好仅保留在本次测试会话"
+  },
+  {
+    "key": "settingsNative.about.copyPhone",
+    "en": "Copy phone number",
+    "zh-Hans": "复制电话号码"
   }
 ]

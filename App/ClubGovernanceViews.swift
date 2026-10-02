@@ -63,6 +63,7 @@ struct ClubGovernanceReadView: View {
     @State private var loading = false
     @State private var generation: UInt64 = 0
     @State private var filter = "all"
+    @State private var topicCustomerFilter: ClubTopicCustomerFilter = .all
     @State private var keyword = ""
     @State private var sort = "composite"
     @State private var page = 1
@@ -79,8 +80,20 @@ struct ClubGovernanceReadView: View {
                     Picker("club.gov.filter", selection: $filter) {
                         ForEach(["all", "repeat", "new", "remark"], id: \.self) { Text(LocalizedStringKey("club.gov.filter." + $0)).tag($0) }
                     }
+                    .onChange(of: filter) { _, _ in Task { await load() } }
                     TextField("club.gov.keyword", text: $keyword).submitLabel(.search).onSubmit { Task { await load() } }
                     Button("club.gov.search") { Task { await load() } }.disabled(loading)
+                }
+            }
+            if operation == .topicCustomers {
+                Section {
+                    Picker("club.gov.filter", selection: $topicCustomerFilter) {
+                        ForEach(ClubTopicCustomerFilter.allCases, id: \.rawValue) { item in
+                            Text(LocalizedStringKey(item.localizationKey)).tag(item)
+                        }
+                    }.accessibilityIdentifier("club.gov.topicCustomers.filter")
+                        .onChange(of: topicCustomerFilter) { _, _ in Task { await load() } }
+                    Text("club.gov.topicCustomers.countScope").font(.footnote).foregroundStyle(.secondary)
                 }
             }
             if operation == .leaderboard {
@@ -112,6 +125,7 @@ struct ClubGovernanceReadView: View {
         guard expected?.isSignedIn == true else { loading = false; failure = .signedOut; return }
         var options: [String: ClubGovernanceValue] = [:]
         if operation == .customers { options = ["filter": .string(filter), "keyword": .string(keyword)] }
+        if operation == .topicCustomers { options = topicCustomerFilter.options }
         if operation == .leaderboard { options = ["sortBy": .string(sort)] }
         if [.feed, .posts].contains(operation) { options = ["pageNum": .integer(page), "pageSize": .integer(20)] }
         do {
@@ -237,7 +251,9 @@ struct ClubGovernanceReadView: View {
                     }
                 } }
             }
-            if operation == .topicCustomers { ForEach(Array((value["sessions"].array ?? []).enumerated()), id: \.offset) { _, session in
+            if operation == .topicCustomers {
+                ClubGovernanceFactRows(value: value, fields: ["soldCount", "pendingCount", "verifiedCount"], showUnknown: true)
+                ForEach(Array((value["sessions"].array ?? []).enumerated()), id: \.offset) { _, session in
                 ClubGovernanceFactRows(value: session, fields: ["timeText", "name"]); dataRows(session["rows"].array ?? [])
             } }
             if operation == .checkin, let clubID = scope.clubID, let registrationID = scope.registrationID,

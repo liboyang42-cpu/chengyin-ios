@@ -64,9 +64,21 @@ class TestBundlePreflightTests(unittest.TestCase):
             self.assertIn('CODE_SIGNING_ALLOWED=NO build', job)
             self.assertNotIn('test_products.py restore', job)
         self.assertNotIn('-xcconfig', device)
-        self.assertIn('-xcconfig Config/UnitedStates.xcconfig', us)
+        self.assertNotIn('-xcconfig', us)
+        self.assertIn('QUESTIFY_MARKET=US QUESTIFY_API_BASE_URL= CODE_SIGNING_ALLOWED=NO build', us)
         self.assertIn('check_built_profile.py --market US', us)
         self.assertIn('check_gltf_linked.py --app "$RUNNER_TEMP/questify-us-device/', us)
+
+    def test_us_profile_overrides_only_app_defined_regional_variables(self):
+        profile = (ROOT / 'Config/UnitedStates.xcconfig').read_text()
+        base = (ROOT / 'Config/Base.xcconfig').read_text()
+        self.assertIn('QUESTIFY_MARKET = US', profile)
+        self.assertIn('QUESTIFY_API_BASE_URL =\n', profile)
+        self.assertIn('INFOPLIST_KEY_QuestifyMarket = $(QUESTIFY_MARKET)', base)
+        self.assertIn('INFOPLIST_KEY_QuestifyAPIBaseURL = $(QUESTIFY_API_BASE_URL)', base)
+        us = self.jobs['us-build']
+        for setting in ['INFOPLIST_FILE=', 'PRODUCT_BUNDLE_IDENTIFIER=', 'GENERATE_INFOPLIST_FILE=']:
+            self.assertNotIn(setting, us)
 
     def test_runtime_app_unit_and_all_ui_shards_are_still_required(self):
         self.assertIn('-only-testing:QuestifyAppUnitTests test-without-building', self.jobs['app-unit-tests'])

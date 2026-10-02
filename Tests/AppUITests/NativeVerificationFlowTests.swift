@@ -6,7 +6,7 @@ final class NativeVerificationFlowTests: XCTestCase {
     override func tearDownWithError() throws { attachFailureScreenshot(self, app: runningApp); runningApp?.terminate(); runningApp = nil }
     private func launch(_ scenario: String = "success") -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["--native-verification-fixture", scenario, "-AppleLanguages", "(en)"]
+        app.launchArguments = ["--uitesting-reset-language", "--native-verification-fixture", scenario, "-AppleLanguages", "(en)"]
         runningApp = app; app.launch(); return app
     }
     private func review(_ app: XCUIApplication) {

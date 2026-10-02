@@ -47,7 +47,6 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
             if dirty { leaveReview = true } else { dismiss() }
         }))
         .privacySensitive()
-        .accessibilityIdentifier("playkit.screen." + kind.rawValue)
         .sheet(item: $review) { item in
             NavigationStack {
                 Form {
@@ -95,7 +94,10 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
     }
     @ViewBuilder private var screenContainer: some View {
         if presentation == .inline { contents }
-        else { ScrollView { contents.padding().frame(maxWidth: 720).frame(maxWidth: .infinity) } }
+        else {
+            ScrollView { contents.padding().frame(maxWidth: 720).frame(maxWidth: .infinity) }
+                .accessibilityIdentifier("playkit.screen." + kind.rawValue)
+        }
     }
     private var contents: some View {
         VStack(alignment: .leading, spacing: 24) {

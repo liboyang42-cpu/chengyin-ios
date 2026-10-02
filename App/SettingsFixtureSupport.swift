@@ -45,7 +45,8 @@ import SwiftUI
                 SettingsSupportSections(
                     market: scenario == "missingMarket" ? nil : RegionalLaunchConfiguration.market,
                     soundStore: store, legalReader: reader,
-                    appInformation: scenario == "missingMetadata" ? SettingsAppInformation(info: [:]) : .current()
+                    appInformation: scenario == "missingMetadata" ? SettingsAppInformation(info: [:]) : .current(),
+                    copyText: { _ in if scenario == "copyFailure" { throw SettingsSoundStoreError.writeFailed } }
                 )
             }
             .appNavigationTitle("settings.title")

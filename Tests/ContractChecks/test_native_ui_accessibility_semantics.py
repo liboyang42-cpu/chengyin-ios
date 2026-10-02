@@ -10,6 +10,13 @@ def source(path):
 
 
 class NativeUIAccessibilitySemanticsChecks(unittest.TestCase):
+    def test_motion_reminder_host_ids_do_not_override_interactive_children(self):
+        view = source('App/NativeMotionReminderViews.swift')
+        for family in ['steps', 'reminder']:
+            self.assertNotIn('}.accessibilityIdentifier("nativePlatform.' + family + '.host")', view)
+            self.assertIn('.font(.title2.bold())\n                .accessibilityIdentifier("nativePlatform.' + family + '.host")', view)
+        for key in ['steps.read', 'steps.disabled', 'steps.count', 'reminder.enable', 'reminder.issue']:
+            self.assertIn('.accessibilityIdentifier("nativePlatform.' + key + '")', view)
     def test_sound_switch_has_control_sized_frame_and_retains_transactional_storage(self):
         view = source('App/SettingsSupportSections.swift')
         toggle = view[view.index('private func soundToggle'):view.index('@MainActor struct SettingsUnavailableFeatureView')]

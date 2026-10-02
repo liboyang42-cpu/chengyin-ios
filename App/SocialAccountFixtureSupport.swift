@@ -82,6 +82,7 @@ import SwiftUI
     private let destination: String
     @State private var revision = 0
     @State private var selectedGuideDestination: SocialGuideDestination?
+    @State private var showsEditor = false
     init() {
         let args = ProcessInfo.processInfo.arguments
         func value(_ flag: String) -> String? { args.firstIndex(of: flag).flatMap { args.indices.contains($0 + 1) ? args[$0 + 1] : nil } }
@@ -97,6 +98,12 @@ import SwiftUI
                     switch destination {
                     case "guide": SocialPlayGuideView(reader: reader, onOpenDestination: { selectedGuideDestination = $0 })
                     case "invites": SocialInviteHistoryView(reader: reader, squareReader: square, actions: actions)
+                    case "editorSheet":
+                        Button("social.editor.createPost") { showsEditor = true }
+                            .accessibilityIdentifier("social.fixture.openEditor")
+                            .sheet(isPresented: $showsEditor) {
+                                NavigationStack { SocialActionEditorView(purpose: .createPost, target: .newPost, coordinator: actions) }
+                            }
                     case "editor": SocialActionEditorView(purpose: .createPost, target: .newPost, coordinator: actions)
                     case "square": SquareDetailView(id: 701, reader: square, accountReader: reader, actions: actions)
                     case "media":

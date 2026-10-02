@@ -96,6 +96,7 @@ struct MerchantCRMFilterSummary: View {
 @MainActor struct MerchantEngagementReviewView: View {
     let review: MerchantEngagementReview
     let enabled: Bool
+    var synthetic = true
     let busy: Bool
     let cancel: () -> Void
     let confirm: () -> Void
@@ -116,10 +117,13 @@ struct MerchantCRMFilterSummary: View {
                 }
                 if let task = review.proof.campaign { Section("merchant.engagement.taskDetails") { MerchantCampaignTaskFields(task: task) } }
                 Text("merchant.engagement.reviewRefresh").font(.footnote)
-                if enabled {
-                    Text("merchant.engagement.synthetic")
-                    Button("merchant.engagement.confirmSynthetic", action: confirm).disabled(busy).accessibilityIdentifier("merchant.engagement.confirm")
-                } else { Text("merchant.engagement.boundary").accessibilityIdentifier("merchant.engagement.liveDisabled") }
+                if enabled && (synthetic || (try? review.command.validateProductionProof(review.proof)) != nil) {
+                    Text(LocalizedStringKey(synthetic ? "merchant.engagement.synthetic" : "merchant.engagement.productionReview"))
+                    Button(LocalizedStringKey(synthetic ? "merchant.engagement.confirmSynthetic" : "merchant.engagement.confirmProduction"), action: confirm).disabled(busy).accessibilityIdentifier("merchant.engagement.confirm")
+                } else {
+                    Text("merchant.engagement.actionUnavailable").accessibilityIdentifier("merchant.engagement.liveDisabled")
+                    if !synthetic, let task = review.proof.campaign, !task.hasReviewableMessage { Text("merchant.engagement.messageUnavailable").font(.footnote) }
+                }
                 Button("action.cancel", action: cancel).disabled(busy).accessibilityIdentifier("merchant.engagement.cancelReview")
             }.navigationTitle("merchant.engagement.previewReview").interactiveDismissDisabled(busy)
         }

@@ -3,7 +3,7 @@ import XCTest
 /// Authored, NOT_RUN. Integrator must mount PublishingModesFixtureHost for this flag.
 @MainActor final class PublishingModesFlowTests: XCTestCase {
     private func launch(_ language: String = "en") -> XCUIApplication {
-        let app = XCUIApplication(); app.launchArguments = ["--ui-publishing-modes", "-AppleLanguages", "(\(language))"]; app.launch(); return app
+        let app = XCUIApplication(); app.launchArguments = ["--uitesting-reset-language", "--ui-publishing-modes", "-AppleLanguages", "(\(language))"]; app.launch(); return app
     }
     func testQuickDraftCannotSkipPlaceConfirmation() {
         let app = launch(); app.buttons["Quick route setup"].tap()

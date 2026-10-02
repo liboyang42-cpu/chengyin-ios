@@ -83,6 +83,19 @@ class CompareGameContracts(unittest.TestCase):
             self.assertIn(token, tests)
         ui = self.read('Tests/AppUITests/PlayCompareFlowTests.swift')
         self.assertEqual(len(re.findall(r'func test', ui)), 6)
+    def test_inline_screen_does_not_override_child_action_identifiers(self):
+        source = self.read('App/PlayKitScreen.swift')
+        container = source.split('private var screenContainer: some View {')[1].split('private var contents:')[0]
+        self.assertIn('if presentation == .inline { contents }', container)
+        self.assertIn('.accessibilityIdentifier("playkit.screen." + kind.rawValue)', container)
+        self.assertEqual(source.count('.accessibilityIdentifier("playkit.screen." + kind.rawValue)'), 1)
+    def test_fixture_counter_survives_navigation_and_toolbar_close_is_not_scrolled(self):
+        host = self.read('App/PlayCompareFixtureSupport.swift').split('var body: some View {')[1]
+        self.assertLess(host.index('accessibilityIdentifier("compare.fixture.writes")'), host.index('NavigationStack'))
+        ui = self.read('Tests/AppUITests/PlayCompareFlowTests.swift')
+        self.assertIn('let close = app.navigationBars.buttons[id]', ui)
+        self.assertIn('dismissFixtureConfirmationPopover(in: app)', ui)
+        self.assertIn('XCTAssertEqual(app.buttons["playkit.compare.item.left_gate"].value as? String, "已标记")', ui)
     def test_optional_private_source_matches_exact_current_contract(self):
         root = os.environ.get('CHENGYIN_COMPARE_BACKEND_SOURCE_ROOT')
         if not root: self.skipTest('NOT_RUN: optional current backend source checkout not supplied')

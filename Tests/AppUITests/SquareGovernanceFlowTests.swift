@@ -2,7 +2,7 @@ import XCTest
 
 final class SquareGovernanceFlowTests: XCTestCase {
     func launch() -> XCUIApplication {
-        let app = XCUIApplication(); app.launchArguments += ["--square-governance-fixture", "-AppleLanguages", "(en)"]; app.launch()
+        let app = XCUIApplication(); app.launchArguments += ["--uitesting-reset-language", "--square-governance-fixture", "-AppleLanguages", "(en)"]; app.launch()
         app.buttons["square.gov.entry"].tap(); return app
     }
     func testNormalEntryReachesPreferencesAndGovernance() {

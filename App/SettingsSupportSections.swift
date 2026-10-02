@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// Insert these sections inside the existing SettingsView Form. No language picker, new root
 /// NavigationStack, regional override, credentials, or session service is created here.
@@ -8,13 +9,15 @@ import SwiftUI
     let soundStore: any SettingsSoundStoring
     let legalReader: any SettingsLegalReading
     let appInformation: SettingsAppInformation
+    let copyText: (String) throws -> Void
     init(market: RegionalMarket?, complianceCoordinator: AccountComplianceCoordinator? = nil, soundStore: (any SettingsSoundStoring)? = nil,
          legalReader: (any SettingsLegalReading)? = nil,
-         appInformation: SettingsAppInformation = .current()) {
+         appInformation: SettingsAppInformation = .current(),
+         copyText: @escaping (String) throws -> Void = { UIPasteboard.general.string = $0 }) {
         self.complianceCoordinator = complianceCoordinator
         self.market = market; self.soundStore = soundStore ?? SettingsLocalSoundStore()
         self.legalReader = legalReader ?? SettingsBundledLegalReader()
-        self.appInformation = appInformation
+        self.appInformation = appInformation; self.copyText = copyText
     }
     var body: some View {
         Section {
@@ -23,7 +26,7 @@ import SwiftUI
             } label: { Label("settingsNative.sound.title", systemImage: "speaker.wave.2") }
             .accessibilityIdentifier("settingsNative.openSound")
             NavigationLink {
-                SettingsAboutView(market: market, appInformation: appInformation, legalReader: legalReader)
+                SettingsAboutView(market: market, appInformation: appInformation, legalReader: legalReader, copyText: copyText)
             } label: { Label("settingsNative.about.title", systemImage: "info.circle") }
             .accessibilityIdentifier("settingsNative.openAbout")
         }
