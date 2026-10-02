@@ -60,6 +60,7 @@ final class SquareWorkspaceFlowTests: XCTestCase {
         expectation(for: NSPredicate(format: "label == %@", "Synthetic recovery suspended"), evaluatedWith: state)
         waitForExpectations(timeout: 5)
         let second = app.buttons["squareWorkspace.resume.synthetic-square-002"]
+        XCTAssertTrue(revealFixtureElement(second, in: app, requiresHittable: false), app.debugDescription)
         XCTAssertTrue(second.exists); XCTAssertFalse(second.isEnabled)
         let newDraft = app.buttons["squareWorkspace.newDraft"]
         XCTAssertTrue(revealFixtureElement(newDraft, in: app, towardTop: true, maximumSwipes: 16, requiresHittable: false), app.debugDescription)

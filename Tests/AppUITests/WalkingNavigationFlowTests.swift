@@ -27,8 +27,8 @@ final class WalkingNavigationFlowTests: XCTestCase {
         launch(); tap("walking.start")
         XCTAssertTrue(app.staticTexts["Synthetic authorized stop"].waitForExistence(timeout: 5))
         tap("walking.steps.open")
-        XCTAssertTrue(revealFixtureElement(app.descendants(matching: .any)["walking.step.0"], in: app))
-        XCTAssertTrue(revealFixtureElement(app.staticTexts["walking.provider"], in: app))
+        revealStep(app.descendants(matching: .any)["walking.step.0"])
+        revealStep(app.staticTexts["walking.provider"])
         XCTAssertEqual(app.staticTexts["walking.provider"].label, "Apple Maps")
         tap("walking.steps.close")
         tap("walking.steps.open")
@@ -38,6 +38,18 @@ final class WalkingNavigationFlowTests: XCTestCase {
         XCTAssertFalse(app.staticTexts["Synthetic authorized stop"].exists)
         tap("walking.start")
         XCTAssertTrue(app.staticTexts["Synthetic authorized stop"].waitForExistence(timeout: 5))
+    }
+    private func revealStep(_ element: XCUIElement) {
+        let list = app.descendants(matching: .any)["walking.steps.list"].firstMatch
+        XCTAssertTrue(list.waitForExistence(timeout: 5))
+        for _ in 0..<12 {
+            if element.exists && element.isHittable && element.frame.maxY < app.frame.maxY - 40 { break }
+            // Begin inside the foreground sheet, never in the presenting map/summary.
+            list.swipeUp()
+        }
+        XCTAssertTrue(element.exists, app.debugDescription)
+        XCTAssertTrue(element.isHittable, app.debugDescription)
+        XCTAssertLessThan(element.frame.maxY, app.frame.maxY - 40)
     }
     func testPermissionDeniedNeverShowsRouteSteps() {
         launch("permissionDenied"); tap("walking.start")

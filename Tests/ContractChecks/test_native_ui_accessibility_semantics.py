@@ -28,9 +28,9 @@ class NativeUIAccessibilitySemanticsChecks(unittest.TestCase):
                          'if !revealed { attachFixtureScreenshot(self, app: app,',
                          'XCTAssertTrue(revealed, app.debugDescription)',
                          'testAudienceUnknownIsNotZeroAndReviewRequiresContent',
-                         'XCTAssertTrue(presentingToolbar.isHittable)',
+                         'XCTAssertTrue(presentingAction.isHittable)',
                          'XCTAssertTrue(modalBar.isHittable)',
-                         'if presentingToolbar.exists { XCTAssertFalse(presentingToolbar.isHittable) }',
+                         'if presentingAction.exists { XCTAssertFalse(presentingAction.isHittable) }',
                          'XCTAssertTrue(app.staticTexts["club.gov.formError"].waitForExistence(timeout: 5))',
                          'XCTAssertFalse(app.buttons["club.gov.confirm"].exists)',
                          'attachFixtureScreenshot(self, app: app, name: "Club notification rejects missing content")']:

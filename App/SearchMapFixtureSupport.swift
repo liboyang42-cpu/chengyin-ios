@@ -9,6 +9,14 @@ import SwiftUI
     var isConfigured: Bool { scenario != .unconfigured }
     var isOfflineExample: Bool { true }
     private var searches = 0
+    private var pendingCitySearches: [UUID: CheckedContinuation<Void, Error>] = [:]
+    func releaseCitySearch() {
+        let pending = pendingCitySearches.values; pendingCitySearches = [:]
+        for continuation in pending { continuation.resume() }
+    }
+    private func cancelCitySearch(_ id: UUID) {
+        pendingCitySearches.removeValue(forKey: id)?.resume(throwing: CancellationError())
+    }
     init(scenario: Scenario = .content) { self.scenario = scenario; isAuthenticated = scenario != .guest }
     func becomeGuest() { isAuthenticated = false; scope = UUID() }
     func switchAccount() { isAuthenticated = true; scope = UUID() }
@@ -33,7 +41,17 @@ import SwiftUI
     func citySearch(_ query: CityNodeSearchQuery) async throws -> CityNodeSearchResults {
         try check(); searches += 1
         if scenario == .retry && searches == 1 { throw APIError.httpStatus(503) }
-        if scenario == .delayed { try await Task.sleep(for: .milliseconds(1200)) }
+        if scenario == .delayed {
+            let id = UUID()
+            try await withTaskCancellationHandler(operation: {
+                try Task.checkCancellation()
+                try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                    if Task.isCancelled { continuation.resume(throwing: CancellationError()) }
+                    else { pendingCitySearches[id] = continuation }
+                }
+            }, onCancel: { Task { @MainActor [weak self] in self?.cancelCitySearch(id) } })
+            try Task.checkCancellation()
+        }
         if scenario == .empty { return CityNodeSearchResults(activities: [], nodes: []) }
         let activities = try decode([ActivitySummary].self, SearchMapSyntheticFixtures.activities).filter {
             query.filter.matches(kind: .activity, date: $0.startDate, price: $0.minimumAmount.map { NSDecimalNumber(decimal: $0).doubleValue })
@@ -58,6 +76,7 @@ import SwiftUI
     }
 }
 @MainActor struct SearchMapFixtureHostView: View {
+    @Environment(\.dynamicTypeSize) private var typeSize
     @State private var reader: SearchMapFixtureReader
     @State private var scope: UUID
     private let entry: String
@@ -75,8 +94,16 @@ import SwiftUI
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Button("searchMap.fixtureGuest") { reader.becomeGuest(); walking.context = nil; scope = reader.scope }.accessibilityIdentifier("searchMap.fixture.guest")
-                Button("searchMap.fixtureAccount") { reader.switchAccount(); walking.context = nil; scope = reader.scope }.accessibilityIdentifier("searchMap.fixture.account")
+                Button { reader.becomeGuest(); walking.context = nil; scope = reader.scope } label: {
+                    fixtureLabel("searchMap.fixtureGuest", symbol: "person.crop.circle.badge.minus")
+                }.accessibilityIdentifier("searchMap.fixture.guest")
+                Button { reader.switchAccount(); walking.context = nil; scope = reader.scope } label: {
+                    fixtureLabel("searchMap.fixtureAccount", symbol: "person.2")
+                }.accessibilityIdentifier("searchMap.fixture.account")
+                if entry == "city", reader.scenario == .delayed {
+                    Button("Release synthetic search") { reader.releaseCitySearch() }
+                        .accessibilityIdentifier("searchMap.fixture.releaseCitySearch")
+                }
             }.buttonStyle(.bordered).frame(minHeight: 44)
             NavigationStack {
                 if entry == "cards" {
@@ -88,15 +115,20 @@ import SwiftUI
                 } else if entry == "walking" {
                     SearchRoutePreviewView(origin: syntheticArea.coordinate, destination: RoamCoordinate(latitude: 1.004, longitude: 1.006)!, name: "Synthetic stop", scope: reader.scope,
                         navigationReference: try? WalkingTargetReference(kind: .cityNode, id: 71), offline: true)
-                        .environment(\.walkingNavigationFactory, walking.factory)
-                        .environment(\.walkingFixtureScopeExpiry, walking.scopeExpiryAction)
                 } else if entry == "route" {
                     SearchRoutePreviewView(origin: syntheticArea.coordinate, destination: RoamCoordinate(latitude: 1.004, longitude: 1.006)!, name: "Synthetic stop", scope: reader.scope, offline: true)
                 } else {
                     GlobalSearchView(reader: reader, destination: detail)
                 }
-            }.id(scope)
+            }
+            .environment(\.walkingNavigationFactory, walking.factory)
+            .environment(\.walkingFixtureScopeExpiry, walking.scopeExpiryAction)
+            .id(scope)
         }
+    }
+    @ViewBuilder private func fixtureLabel(_ key: LocalizedStringKey, symbol: String) -> some View {
+        if typeSize.isAccessibilitySize { Label(key, systemImage: symbol).labelStyle(.iconOnly) }
+        else { Text(key) }
     }
     private var syntheticArea: RoamSearchArea { RoamSearchArea(coordinate: RoamCoordinate(latitude: 1, longitude: 1)!, label: "Synthetic area") }
     @ViewBuilder private func detail(_ destination: SearchMapDestination) -> some View {

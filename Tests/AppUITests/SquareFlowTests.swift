@@ -12,7 +12,7 @@ final class SquareFlowTests: XCTestCase {
     }
     private func reveal(_ element: XCUIElement, file: StaticString = #filePath, line: UInt = #line) {
         _ = element.waitForExistence(timeout: 4)
-        for _ in 0..<10 { if element.exists && element.isHittable { break }; app.swipeUp() }
+        XCTAssertTrue(revealFixtureElement(element, in: app), app.debugDescription, file: file, line: line)
         XCTAssertTrue(element.exists, app.debugDescription, file: file, line: line)
         XCTAssertTrue(element.isHittable, app.debugDescription, file: file, line: line)
         XCTAssertTrue(element.isEnabled, app.debugDescription, file: file, line: line)
@@ -43,7 +43,7 @@ final class SquareFlowTests: XCTestCase {
     func testPageFailureRetainsRowsAndRetriesSameCursor() {
         launch("pageFailure")
         reveal(app.buttons["square.loadMore"])
-        for _ in 0..<10 { if app.buttons["square.retry"].exists && app.buttons["square.retry"].isHittable { break }; app.swipeDown() }
+        XCTAssertTrue(revealFixtureElement(app.buttons["square.retry"], in: app, towardTop: true), app.debugDescription)
         reveal(app.buttons["square.retry"])
         reveal(app.buttons["square.row.703"])
         XCTAssertTrue(app.navigationBars["Post details"].waitForExistence(timeout: 5))

@@ -118,6 +118,8 @@ final class SearchMapFlowTests: XCTestCase {
     func testCityLoadingRetryAndScopeChangeNeverKeepSelectedPlace() {
         launch("delayed", entry: "city"); app.buttons["searchMap.searchArea"].tap()
         XCTAssertTrue(app.descendants(matching: .any)["searchMap.loading"].waitForExistence(timeout: 2))
+        XCTAssertFalse(app.buttons["searchMap.city.node.71"].exists)
+        app.buttons["searchMap.fixture.releaseCitySearch"].tap()
         XCTAssertTrue(app.buttons["searchMap.city.node.71"].waitForExistence(timeout: 5))
         app.terminate()
         launch("retry", entry: "city"); app.buttons["searchMap.searchArea"].tap()

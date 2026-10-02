@@ -1,14 +1,20 @@
 import XCTest
 
 final class OrderLifecycleUITests: XCTestCase {
+    private var activeApp: XCUIApplication?
+    override func setUpWithError() throws { continueAfterFailure = false }
+    override func tearDownWithError() throws {
+        attachFailureScreenshot(self, app: activeApp)
+        activeApp?.terminate(); activeApp = nil
+    }
     private func launch(_ scenario: String = "pending", language: String = "en") -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--uitesting-reset-language", "--uitesting-order-lifecycle-fixture", "--uitesting-order-lifecycle-scenario", scenario, "-AppleLanguages", "(\(language))", "-AppleLocale", language == "en" ? "en_US" : "zh_CN"]
-        app.launch()
+        activeApp = app; app.launch()
         return app
     }
     private func reveal(_ element: XCUIElement, app: XCUIApplication) {
-        for _ in 0..<8 { if element.exists && element.isHittable { break }; app.swipeUp() }
+        XCTAssertTrue(revealFixtureElement(element, in: app), app.debugDescription)
         XCTAssertTrue(element.exists, app.debugDescription)
         XCTAssertTrue(element.isHittable, app.debugDescription)
     }
@@ -16,6 +22,8 @@ final class OrderLifecycleUITests: XCTestCase {
         let app = launch()
         XCTAssertTrue(app.staticTexts["orderLifecycle.state"].waitForExistence(timeout: 5))
         let review = app.buttons["orderLifecycle.review.cancel"]; reveal(review, app: app); review.tap()
+        XCTAssertTrue(app.buttons["orderLifecycle.review.close"].waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertTrue(revealFixtureElement(app.buttons["orderLifecycle.review.disabled"], in: app, requiresHittable: false), app.debugDescription)
         XCTAssertTrue(app.buttons["orderLifecycle.review.disabled"].waitForExistence(timeout: 3))
         XCTAssertFalse(app.buttons["orderLifecycle.review.disabled"].isEnabled)
         app.buttons["orderLifecycle.review.close"].tap()

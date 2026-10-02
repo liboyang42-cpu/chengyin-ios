@@ -14,7 +14,7 @@ final class PlayExperienceFlowTests: XCTestCase {
     }
     func testClassicReviewCancelDoesNotCompleteTask() {
         let app = launch(); let node = app.buttons["playx.node.701"]
-        XCTAssertTrue(node.waitForExistence(timeout: 5)); reveal(node, app: app); node.tap()
+        reveal(node, app: app); XCTAssertTrue(node.waitForExistence(timeout: 5)); node.tap()
         XCTAssertTrue(app.navigationBars["Journey task"].waitForExistence(timeout: 5), app.debugDescription)
         let field = app.descendants(matching: .any).matching(identifier: "playx.answer.field").firstMatch
         reveal(field, app: app); field.tap(); field.typeText("Synthetic answer")
@@ -34,7 +34,8 @@ final class PlayExperienceFlowTests: XCTestCase {
         attachFixtureScreenshot(self, app: app, name: "Classic review cancelled with answer retained")
     }
     func testBranchDoesNotRevealHiddenTask() {
-        let app = launch("branch"); XCTAssertTrue(app.buttons["playx.node.701"].waitForExistence(timeout: 5))
+        let app = launch("branch"); let node = app.buttons["playx.node.701"]
+        reveal(node, app: app); XCTAssertTrue(node.waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["playx.node.702"].exists); XCTAssertFalse(app.staticTexts["Hidden synthetic node"].exists)
     }
     func testDormantEnvironmentShowsNoDevicePermissionPrompt() {
@@ -43,7 +44,7 @@ final class PlayExperienceFlowTests: XCTestCase {
     }
     func testMode2ShowsSeparateVerificationStep() {
         let app = launch("mode2"); let node = app.buttons["playx.node.701"]
-        XCTAssertTrue(node.waitForExistence(timeout: 5)); reveal(node, app: app); node.tap()
+        reveal(node, app: app); XCTAssertTrue(node.waitForExistence(timeout: 5)); node.tap()
         XCTAssertTrue(app.navigationBars["Journey task"].waitForExistence(timeout: 5), app.debugDescription)
         let steps = app.staticTexts["Three on-site steps"]; reveal(steps, app: app)
         XCTAssertTrue(steps.exists, app.debugDescription)
@@ -59,7 +60,8 @@ final class PlayExperienceFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Completed rounds"].exists)
     }
     func testChineseJourneyLabels() {
-        let app = launch(language: "zh-Hans"); XCTAssertTrue(app.buttons["playx.node.701"].waitForExistence(timeout: 5))
+        let app = launch(language: "zh-Hans"); let node = app.buttons["playx.node.701"]
+        reveal(node, app: app); XCTAssertTrue(node.waitForExistence(timeout: 5))
         XCTAssertTrue(app.navigationBars["旅程游玩"].exists)
     }
 }

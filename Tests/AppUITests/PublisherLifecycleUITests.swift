@@ -8,7 +8,11 @@ final class PublisherLifecycleUITests: XCTestCase {
         let app = launch(); app.buttons["publisher.fixturePricing"].tap()
         app.buttons["publisher.preview"].tap()
         XCTAssertTrue(app.textFields["publisher.finalPrice"].waitForExistence(timeout: 3))
-        app.buttons["publisher.reviewPrice"].tap(); app.buttons["publisher.confirmPrice"].tap()
+        let review = app.buttons["publisher.reviewPrice"]
+        XCTAssertTrue(revealFixtureElement(review, in: app)); review.tap()
+        let confirm = app.buttons["publisher.confirmPrice"]
+        XCTAssertTrue(revealFixtureElement(confirm, in: app)); confirm.tap()
+        XCTAssertTrue(app.staticTexts["publisher.message"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["publisher.message"].label.contains("Not sent"))
     }
     func testPaidPlayersAppearBeforeRefundConfirmation() {

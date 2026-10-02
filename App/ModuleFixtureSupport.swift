@@ -30,7 +30,12 @@ struct ModuleFixtureRootView: View {
     @State private var roam=RoamFixtureReader()
     var body: some View {
         VStack(spacing:0) {
-            Text("activity.fixtureNotice").font(.caption.bold()).padding(8)
+            // Keep fixture chrome compact while the actual content retains accessibility5.
+            Group {
+                if ProcessInfo.processInfo.arguments.contains("--uitesting-max-text") {
+                    Label("activity.fixtureNotice", systemImage: "testtube.2").labelStyle(.iconOnly)
+                } else { Text("activity.fixtureNotice") }
+            }.font(.caption.bold()).padding(8)
                 .frame(maxWidth:.infinity).background(.yellow.opacity(0.2))
                 .accessibilityIdentifier("module.fixture.notice")
             switch module {

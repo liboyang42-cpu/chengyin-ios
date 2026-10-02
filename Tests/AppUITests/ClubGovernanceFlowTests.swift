@@ -71,9 +71,10 @@ final class ClubGovernanceFlowTests: XCTestCase {
     }
     func testAudienceUnknownIsNotZeroAndReviewRequiresContent() {
         let app = launch(); open("audienceCounts", app: app)
-        let presentingToolbar = app.toolbars.containing(.button, identifier: "club.gov.switchAccount").firstMatch
-        XCTAssertTrue(presentingToolbar.waitForExistence(timeout: 5))
-        XCTAssertTrue(presentingToolbar.isHittable)
+        // UIKit can expose this toolbar action under Other instead of a Toolbar node.
+        let presentingAction = app.buttons["club.gov.switchAccount"]
+        XCTAssertTrue(presentingAction.waitForExistence(timeout: 5))
+        XCTAssertTrue(presentingAction.isHittable)
         let compose = app.buttons["club.gov.action.sendNotification"]
         reveal(compose, app: app); compose.tap()
         let modalBar = app.navigationBars["Compose member notification"]
@@ -81,7 +82,7 @@ final class ClubGovernanceFlowTests: XCTestCase {
         XCTAssertTrue(modalBar.isHittable)
         // Some iOS versions retain the presenter's toolbar in the modal AX tree.
         // It must not shorten the sheet's viewport while covered by that sheet.
-        if presentingToolbar.exists { XCTAssertFalse(presentingToolbar.isHittable) }
+        if presentingAction.exists { XCTAssertFalse(presentingAction.isHittable) }
         tap("club.gov.prepare", app: app)
         XCTAssertTrue(app.staticTexts["club.gov.formError"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["club.gov.confirm"].exists)

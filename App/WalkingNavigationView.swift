@@ -141,7 +141,8 @@ import MapKit
                 Text("walking.arrivalBoundary")
                 Text("walking.foregroundOnly")
             }.font(.footnote)
-        }.appNavigationTitle("walking.steps")
+        }.accessibilityIdentifier("walking.steps.list")
+            .appNavigationTitle("walking.steps")
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("walking.closeSteps") { dismiss() }.accessibilityIdentifier("walking.steps.close")

@@ -5,7 +5,11 @@ import SwiftUI
     func perform(_ request: ShopNPCHTTPRequest) async throws -> ShopNPCHTTPResponse {
         let args = ProcessInfo.processInfo.arguments
         if args.contains("--reference-npc-unknown") { throw ShopNPCFailure.unknownOutcome }
-        if args.contains("--reference-npc-failed") { throw ShopNPCFailure.server(code: 503, message: "Synthetic failure / 测试失败") }
+        if args.contains("--reference-npc-failed") {
+            // A known rejection arrives in a decoded response. Thrown transport failures
+            // intentionally remain unknown outcomes in the shipping HTTP client.
+            return .init(status: 200, body: Data(#"{"code":503,"msg":"Synthetic failure / 测试失败"}"#.utf8))
+        }
         if args.contains("--reference-npc-pending") { try await Task.sleep(for: .seconds(30)) }
         return .init(status: 200, body: Data(#"{"code":200,"data":{"text":"Fixture reply / 测试回答"},"asr":"Fixture question / 测试问题"}"#.utf8))
     }

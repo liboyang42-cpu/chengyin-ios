@@ -39,6 +39,8 @@ final class ReferenceChatTaskFlowTests: XCTestCase {
         let app = launch(["--shop-npc-fixture", "enabled", "--reference-npc-failed"]); reviewNPC(app)
         app.buttons["shopNPC.confirmSend"].tap(); reveal(element("shopNPC.error", app), app)
         XCTAssertTrue(app.staticTexts["Synthetic failure / 测试失败"].exists)
+        XCTAssertEqual(element("shopNPC.input", app).value as? String, "Draft retained / 保留草稿")
+        XCTAssertTrue(app.staticTexts["Draft retained / 保留草稿"].exists)
         XCTAssertFalse(app.staticTexts["Fixture reply / 测试回答"].exists)
         XCTAssertTrue(app.buttons["shopNPC.cancel"].exists)
     }
