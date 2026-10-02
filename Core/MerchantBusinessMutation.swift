@@ -27,7 +27,7 @@ public enum MerchantBusinessMutation: Equatable {
     public var permissions: [String] {
         switch self {
         case .addNote, .hideNote, .assignTag, .removeTag, .batchTag: return ["merchant:crm:read", "merchant:crm:segment"]
-        case .aftercare: return ["merchant:aftercare:read", "merchant:aftercare:respond"]
+        case .aftercare(_, let decision, _, _): return ["merchant:aftercare:read", decision == .evidence ? "merchant:aftercare:evidence" : "merchant:aftercare:decide"]
         case .review: return [] // The source row's explicit can* fields are checked below.
         case .inviteOperator, .operatorRole, .removeOperator, .revokeInvite: return ["merchant:operator:manage"]
         }
@@ -123,6 +123,8 @@ public enum MerchantBusinessMutation: Equatable {
             guard case .customers = document.query else { throw MerchantBusinessFailure.conflict }
             for id in ids { _ = try find(.customer, id.rawValue) }
         case .aftercare(let id, let decision, _, _):
+            let roles = decision == .evidence ? ["MERCHANT_OWNER", "MERCHANT_MANAGER", "MERCHANT_FINANCE"] : ["MERCHANT_OWNER", "MERCHANT_MANAGER"]
+            guard roles.contains(access.role) else { throw MerchantBusinessFailure.denied }
             guard document.query == .refund(id) else { throw MerchantBusinessFailure.conflict }
             let row = try find(.refund, id.rawValue)
             guard try row.mbBool("canRespond"), try row.mbStrings("allowedDecisions").contains(decision.rawValue) else { throw MerchantBusinessFailure.denied }

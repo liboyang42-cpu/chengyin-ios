@@ -1,8 +1,8 @@
 {
   "read_adapters": 34,
   "dormant_mutation_adapters": 23,
-  "bilingual_keys": 327,
-  "authored_core_tests": 58,
+  "bilingual_keys": 328,
+  "authored_core_tests": 73,
   "authored_ui_tests": 6,
   "swift_test": "NOT_RUN: Swift toolchain absent",
   "xcode_ui": "NOT_RUN: Xcode/simulator absent",

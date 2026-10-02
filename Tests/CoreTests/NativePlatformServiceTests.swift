@@ -67,18 +67,18 @@ import FoundationNetworking
     func testSubmitRejectsBackendAssertionAndStepCountOverflowBeforeSending() async throws {
         let owner = try nativeOwner(), transport = NativePlatformHTTPRecorder()
         let service = NativePlatformService(configuration: try APIConfiguration(baseURL: URL(string: "https://example.com/synthetic")!), transport: transport, owner: owner, stepsEnabled: true, current: { owner })
-        for (steps, assertion) in [(100_001, Data([1]).base64EncodedString()), (-1, Data([1]).base64EncodedString()), (1, Data(repeating: 1, count: 12_289).base64EncodedString())] {
+        for (steps, assertion) in [(100_001, Data([1]).base64EncodedString()), (-1, Data([1]).base64EncodedString()), (1, Data(repeating: 1, count: 4_097).base64EncodedString())] {
             do { _ = try await service.action(submit(steps: steps, assertion: assertion)); XCTFail() }
             catch { XCTAssertEqual(error as? NativePlatformIssue, .invalidContract) }
         }
         XCTAssertTrue(transport.requests.isEmpty)
     }
-    func testSubmitAcceptsPublishedContractExactUpperBounds() async throws {
+    func testSubmitAcceptsEnrolledVerifierExactUpperBounds() async throws {
         let owner = try nativeOwner(), transport = NativePlatformHTTPRecorder()
         transport.response = .object(["sessionId": .int(11), "activityId": .int(0), "topicId": .int(71), "nodeId": .int(701), "version": .int(2), "status": .string("RUNNING")])
         let service = NativePlatformService(configuration: try APIConfiguration(baseURL: URL(string: "https://example.com/synthetic")!), transport: transport, owner: owner, stepsEnabled: true, current: { owner })
-        let assertion = Data(repeating: 1, count: 12_288).base64EncodedString()
-        XCTAssertEqual(assertion.count, 16_384)
+        let assertion = Data(repeating: 1, count: 4_096).base64EncodedString()
+        XCTAssertEqual(Data(base64Encoded: assertion)?.count, 4_096)
         _ = try await service.action(submit(steps: 100_000, assertion: assertion))
         XCTAssertEqual(transport.requests.count, 1)
     }

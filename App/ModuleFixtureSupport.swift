@@ -3,6 +3,7 @@ import SwiftUI
 
 enum ModuleFixture: String {
     case playDirector, playPrefab, playPrefabBoot
+    case nativeEnrollment
     case nativePlatform
     case playExperience, compareGame
     case journeyContent
@@ -36,6 +37,7 @@ struct ModuleFixtureRootView: View {
             case .playDirector: PlayDirectorPrefabFixtureHostView(scenario: "director")
             case .playPrefab: PlayDirectorPrefabFixtureHostView(scenario: "prefab")
             case .playPrefabBoot: PlayDirectorPrefabFixtureHostView(scenario: "prefabBoot")
+            case .nativeEnrollment: NativeEnrollmentFixtureHost()
             case .nativePlatform: NativePlatformFixtureHost()
             case .playExperience: PlayExperienceFixtureHostView()
             case .compareGame: PlayCompareFixtureHost()

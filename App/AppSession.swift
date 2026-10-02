@@ -166,9 +166,36 @@ final class AppSession: ObservableObject {
         guard let self, self.currentSearchMapContext == captured else { return }
         self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
     })
+    private let registrationApproval: RegistrationProductionApproval?
+    private let registrationStorefront: () -> String?
+    private let registrationJournal = OperationDefaultsJournal(defaults: .standard)
+    private var currentRegistrationProductionSession: RegistrationProductionSession? {
+        guard let identity = profileReader.identity, let namespace = storageScope?.service,
+              let market = regionalConfiguration?.market, let storefront = registrationStorefront(), let token else { return nil }
+        return try? .init(identity: identity, namespace: namespace, market: market, storefront: storefront, token: token)
+    }
+    private lazy var productionRegistrationService: RegistrationProductionService? = {
+        guard let configuration = regionalConfiguration?.apiConfiguration else { return nil }
+        return RegistrationProductionFactory.make(configuration: configuration, approval: registrationApproval,
+            journal: registrationJournal, current: { [weak self] in self?.currentRegistrationProductionSession })
+    }()
+    func registrationWaitlistService(activityID: Int) -> (any RegistrationWaitlistServing)? {
+        guard case .approved = registrationCreationPolicy(activityID: activityID) else { return nil }
+        return productionRegistrationService
+    }
+    func registrationCreationPolicy(activityID: Int) -> RegistrationUICreationPolicy {
+        guard let service = productionRegistrationService, let current = currentRegistrationProductionSession,
+              current.identity == service.approval.identity, current.storefront == service.approval.storefront,
+              current.market == service.approval.market, current.namespace == service.approval.endpoint.namespace,
+              activityID == service.approval.activityID, Date() < service.approval.expiresAt else { return .disabled }
+        return .approved(service.approval)
+    }
     private let registrationBackend: any RegistrationCoordinatingService
     private var registrationIdentity: ProfileReadIdentity?
-    private lazy var retainedRegistration=RegistrationCoordinator(service:registrationBackend)
+    private lazy var retainedRegistration: RegistrationCoordinator = {
+        let backend: any RegistrationCoordinatingService = productionRegistrationService.map { $0 as any RegistrationCoordinatingService } ?? registrationBackend
+        return RegistrationCoordinator(service: backend)
+    }()
     var registrationCoordinator: RegistrationCoordinator { synchronizeRegistration();return retainedRegistration }
     private func synchronizeRegistration() {
         let identity=profileReader.identity
@@ -426,7 +453,9 @@ final class AppSession: ObservableObject {
         guard let owner = currentPlayRuntimeSession, let api = regionalConfiguration?.apiConfiguration,
               let factory = runtimeDependencyFactory, let accepted = factory.accepted,
               let approval = runtimeDependencies.nativePlatform, approval.validPurpose,
-              (approval.stepsEnabled || approval.localRemindersEnabled),
+              (approval.stepsEnabled || approval.localRemindersEnabled || approval.enrollment?.enabled == true),
+              (approval.enrollment?.requiredPaths ?? []).isSubset(of: accepted.endpoints.paths),
+              (approval.enrollment?.enabled != true || approval.enrollment?.isValid == true),
               (!approval.stepsEnabled || accepted.endpoints.paths.contains(NativePlatformService.actionPath)),
               (!approval.localRemindersEnabled || accepted.endpoints.paths.contains(NativePlatformService.windowPath)) else {
             retainedNativePlatform?.invalidate(); retainedNativePlatform = nil; return nil
@@ -436,10 +465,13 @@ final class AppSession: ObservableObject {
         let current = { [weak self] in self?.currentPlayRuntimeSession }
         let service = NativePlatformService(configuration: api, transport: factory.transport, owner: owner,
             stepsEnabled: approval.stepsEnabled, remindersEnabled: approval.localRemindersEnabled, current: current)
+        let enrollment = NativeEnrollmentComposition.make(owner: owner, api: api, transport: factory.transport, approval: approval, current: current)
+        guard approval.enrollment?.enabled != true || enrollment != nil else { return nil }
         let runtime = NativePlatformRuntime(owner: owner, acceptance: approval, service: service, current: current,
             makePedometer: { IPhonePedometerProvider(enabled: approval.stepsEnabled) },
             assertion: AppAttestStepAssertionProvider(deviceKeyID: approval.enrolledAppAttestKeyID ?? "", enabled: approval.stepsEnabled),
-            reminders: AppleLocalReminderProvider(enabled: approval.localRemindersEnabled))
+            reminders: AppleLocalReminderProvider(enabled: approval.localRemindersEnabled),
+            enrollment: enrollment)
         retainedNativePlatform = runtime; return runtime
     }
     var playKitArtworkHosts: Set<String> { runtimeDependencyFactory?.accepted?.artworkHosts ?? [] }
@@ -724,10 +756,13 @@ final class AppSession: ObservableObject {
     private lazy var nativeWeChatPaymentAdapter = WeChatSDKPaymentAdapter(driver: nativeWeChatPaymentDriver,
         configuration: runtimeDependencies.weChatPaymentConfiguration,
         allowed: { [weak self] in
-            guard let self, let factory = self.businessRuntimeFactory else { return false }
+            guard let self else { return false }
             if let auth = self.weChatSDKConfiguration, let payment = self.runtimeDependencies.weChatPaymentConfiguration,
                auth.appID != payment.sdk.appID || auth.universalLink != payment.sdk.universalLink { return false }
-            return factory.configuration.selfPlayExternalCheckoutApproved && factory.configuration.selfPlayPayment && factory.permits(.topicSelfPlayPay)
+            let selfPlayAllowed = self.businessRuntimeFactory.map {
+                $0.configuration.selfPlayExternalCheckoutApproved && $0.configuration.selfPlayPayment && $0.permits(.topicSelfPlayPay)
+            } ?? false
+            return selfPlayAllowed || self.orderLifecyclePaymentProviderAllowed
         }, context: { [weak self] in self?.currentRuntimeDependencyContext })
     private let selfPlayOperationGate = TopicSelfPlayOperationGate()
     private var retainedSelfPlayFlows: [String: TopicSelfPlayFlow] = [:]
@@ -1095,7 +1130,10 @@ final class AppSession: ObservableObject {
     private let orderLifecycleService: OrderLifecycleService?
     private var currentOrderLifecycleSession: OrderLifecycleSession? {
         guard let account, let token else { return nil }
-        return try? OrderLifecycleSession(accountID: account.id, epoch: gate.currentStamp, token: token)
+        let contextID = currentRuntimeDependencyContext.map {
+            [$0.market.rawValue, $0.baseURL.absoluteString, $0.session.namespace, $0.role].map { "\($0.utf8.count):\($0)" }.joined(separator: "|")
+        } ?? account.effectiveRole
+        return try? OrderLifecycleSession(accountID: account.id, epoch: gate.currentStamp, token: token, contextID: contextID)
     }
     lazy var orderLifecycleReader = OrderLifecycleSessionReader(service: orderLifecycleService,
         currentSession: { [weak self] in self?.currentOrderLifecycleSession },
@@ -1103,9 +1141,30 @@ final class AppSession: ObservableObject {
             guard let self, self.currentOrderLifecycleSession == captured else { return }
             self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
         })
-    // One retained coordinator keeps per-account/order unknown-outcome locks across sheets.
-    // The dormant command adapter is deliberately not constructed by AppSession.
-    lazy var orderLifecycleCoordinator = OrderLifecycleCoordinator(reader: orderLifecycleReader)
+    // Default nil configuration cannot construct a writer. One file survives account
+    // switches/relaunch; its keys bind exact origin, market, namespace, account and order.
+    private lazy var orderLifecycleJournal: OrderLifecycleFileJournal? = {
+        guard let directory = safetyDirectory("OrderLifecycle") else { return nil }
+        return OrderLifecycleFileJournal(url: directory.appendingPathComponent("orders-v1.json"))
+    }()
+    private var orderLifecyclePaymentProviderAllowed: Bool {
+        guard let configuration = runtimeDependencies.orderLifecycleConfiguration,
+              let context = currentRuntimeDependencyContext, configuration.matches(context),
+              configuration.externalCheckoutApproved, configuration.devicePaymentApproved else { return false }
+        return configuration.approvals.contains { $0.action == .payment && $0.expiresAt > Date() }
+    }
+    private func makeOrderLifecycleDispatcher() -> OrderLifecycleProductionDispatcher? {
+        guard let api = regionalConfiguration?.apiConfiguration, let journal = orderLifecycleJournal else { return nil }
+        return OrderLifecycleProductionFactory.make(configuration: runtimeDependencies.orderLifecycleConfiguration,
+            api: api, transport: runtimeHTTPTransport, journal: journal,
+            document: runtimeDependencies.signupDocument,
+            provider: runtimeDependencies.selfPlayPayment ?? nativeWeChatPaymentAdapter,
+            sharedGate: selfPlayOperationGate, selfPlayJournal: TopicSelfPlayDefaultsJournal(defaults: .standard),
+            current: { [weak self] in self?.currentRuntimeDependencyContext },
+            reviewScope: { [weak self] in self?.orderLifecycleReader.scope ?? UUID() })
+    }
+    lazy var orderLifecycleCoordinator = OrderLifecycleCoordinator(reader: orderLifecycleReader,
+        production: { [weak self] in self?.makeOrderLifecycleDispatcher() })
     func makeVerificationCodeCoordinator(target: VerificationCodeTarget) -> VerificationCodeCoordinator {
         VerificationCodeCoordinator(target: target,
             service: VerificationCodeHTTPService(configuration: regionalConfiguration?.apiConfiguration,
@@ -1180,6 +1239,11 @@ final class AppSession: ObservableObject {
     lazy var merchantBusinessReader = MerchantBusinessSessionReader(service: merchantBusinessService,
         verificationService: { [weak self] in self?.makeMerchantVerificationService() },
         currentSession: { [weak self] in self?.currentMerchantBusinessSession },
+        productionService: { [weak self] mutation, merchantID in
+            guard let self, let api = self.regionalConfiguration?.apiConfiguration else { return nil }
+            return MerchantBusinessProductionFactory(api: api, approval: self.runtimeDependencies.merchantBusinessApproval,
+                transport: self.runtimeHTTPTransport, current: { [weak self] in self?.currentRuntimeDependencyContext }).service(for: mutation, merchantID: merchantID)
+        }, runtimeContext: { [weak self] in self?.currentRuntimeDependencyContext },
         onUnauthorized: { [weak self] captured in
             guard let self, self.currentMerchantBusinessSession == captured else { return }
             self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
@@ -1281,12 +1345,18 @@ final class AppSession: ObservableObject {
     }
     lazy var clubGovernanceAccess = ClubGovernanceSessionAccess(service: clubGovernanceService, currentSession: { [weak self] in
         self?.currentClubGovernanceSession
-    }, onUnauthorized: { [weak self] identity in
+    }, productionService: { [weak self] command in
+        guard let self, let api = self.regionalConfiguration?.apiConfiguration else { return nil }
+        return ClubGovernanceProductionFactory(api: api, approval: self.runtimeDependencies.clubGovernanceApproval,
+            transport: self.runtimeHTTPTransport, current: { [weak self] in self?.currentRuntimeDependencyContext }).service(for: command)
+    }, runtimeContext: { [weak self] in self?.currentRuntimeDependencyContext }, onUnauthorized: { [weak self] identity in
         guard let self, self.currentClubGovernanceSession?.identity == identity else { return }
         self.expireIfMatching(error: APIError.unauthorized, stamp: identity.epoch, credential: self.token)
     })
     // Session-lived: unresolved operations cannot be replayed by reopening a sheet.
-    lazy var clubGovernanceCoordinator = ClubGovernanceCoordinator(access: clubGovernanceAccess)
+    lazy var clubGovernanceCoordinator = ClubGovernanceCoordinator(access: clubGovernanceAccess,
+        journal: ClubGovernanceFileIntentStore(directory: FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("ClubGovernanceIntents", isDirectory: true)))
     lazy var clubOwnerRefundCoordinator = ClubOwnerRefundCoordinator(
         access: ClubOwnerRefundConfiguredAccess(fallback: ClubOwnerRefundReadOnlyAccess(governance: clubGovernanceAccess),
             configuration: regionalConfiguration?.apiConfiguration, approval: runtimeDependencies.ownerRefundApproval,
@@ -1691,7 +1761,10 @@ final class AppSession: ObservableObject {
     private let restoreBlockedKey:String
     var isConfigured: Bool { storageScope != nil }
 
-    init(runtimeDependencies: NativeRuntimeDependencies? = nil, roamLiveDependencies: NativeRoamLiveDependencies? = nil) {
+    init(runtimeDependencies: NativeRuntimeDependencies? = nil, roamLiveDependencies: NativeRoamLiveDependencies? = nil,
+         registrationApproval: RegistrationProductionApproval? = nil,
+         registrationStorefront: @escaping () -> String? = { nil }) {
+        self.registrationApproval = registrationApproval; self.registrationStorefront = registrationStorefront
         self.roamLiveDependencies = roamLiveDependencies ?? .dormant
         self.runtimeDependencies = runtimeDependencies ?? .dormant
         let regional=RegionalLaunchConfiguration.configuration

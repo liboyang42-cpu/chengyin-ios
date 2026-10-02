@@ -4,6 +4,7 @@ import CryptoKit
 /// Independent release/legal acceptance, never inferred from an OS permission,
 /// API response, Info.plist flag or language. Shipped dependency remains nil.
 struct NativePlatformAcceptance {
+    var enrollment: NativeEnrollmentAcceptance? = nil
     var stepsEnabled = false
     var localRemindersEnabled = false
     var purposeVersion: String = ""
@@ -25,6 +26,7 @@ extension EnvironmentValues {
 /// Session-owned runtime installed at the ordinary journey host. SwiftUI's
 /// environment carries it through both navigation and chapter-inline bodies.
 @MainActor final class NativePlatformRuntime {
+    let enrollment: NativeEnrollmentCoordinator?
     let owner: PlayExperienceSession
     let ownerKey: String
     let acceptance: NativePlatformAcceptance
@@ -39,9 +41,11 @@ extension EnvironmentValues {
     init(owner: PlayExperienceSession, acceptance: NativePlatformAcceptance, service: any NativePlatformServing,
          current: @escaping () -> PlayExperienceSession?,
          makePedometer: @escaping () -> any NativePedometerProviding,
-         assertion: any NativeStepAssertionProviding, reminders: any NativeLocalReminderProviding) {
+         assertion: any NativeStepAssertionProviding, reminders: any NativeLocalReminderProviding, enrollment: NativeEnrollmentCoordinator? = nil) {
         self.owner = owner; self.acceptance = acceptance; self.service = service; self.current = current
-        self.makePedometer = makePedometer; self.assertion = assertion; self.reminders = reminders
+        self.makePedometer = makePedometer; self.reminders = reminders; self.enrollment = enrollment
+        if let enrollment { self.assertion = EnrolledNativeStepAssertionProvider(enrollment: enrollment, enabled: acceptance.stepsEnabled) }
+        else { self.assertion = assertion }
         ownerKey = SHA256.hash(data: Data("\(owner.namespace)|\(owner.accountID)|\(owner.epoch)|\(owner.token)".utf8)).map { String(format: "%02x", $0) }.joined()
     }
     var isCurrent: Bool { current() == owner }
@@ -61,13 +65,14 @@ extension EnvironmentValues {
         let value = NativeLocalReminderCoordinator(identifier: id, owner: ownerKey, provider: reminders, current: { [weak self] in self?.isCurrent == true })
         windows[scope] = value; return value
     }
-    func suspendMotion() { steps.values.forEach { $0.interrupt() } }
+    func suspendMotion() { enrollment?.suspend(); steps.values.forEach { $0.interrupt() } }
     func clockChanged() {
         steps.values.forEach { $0.interrupt(.clockChanged) }
         windows.values.forEach { $0.clockChanged() }
         reminders.cancelAllOwned(owner: ownerKey)
     }
     func invalidate() {
+        enrollment?.invalidate()
         steps.values.forEach { $0.invalidate() }; steps.removeAll()
         windows.values.forEach { $0.invalidate() }; windows.removeAll(); windowScopes.removeAll()
         assertion.cancel(); reminders.cancelAllOwned(owner: ownerKey)

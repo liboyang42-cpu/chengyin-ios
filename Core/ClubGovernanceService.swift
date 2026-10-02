@@ -3,20 +3,27 @@ import Foundation
 import FoundationNetworking
 #endif
 
-/// Only offline transports with canned data should conform. Production construction
-/// cannot enable writes, even with a configured base URL and valid credentials.
+/// Only offline transports with canned data should conform. Production writes use the
+/// separate typed factory, exact target grants and durable coordinator journal.
 public protocol ClubGovernanceOfflineTransport: HTTPTransport {}
 
 public struct ClubGovernanceService {
     private let configuration: APIConfiguration
     private let transport: any HTTPTransport
     private let offlineRisks: Set<String>
+    private let productionTransport: ClubGovernanceProductionTransport?
     public var allowsOfflineWrites: Bool { !offlineRisks.isEmpty }
     public init(configuration: APIConfiguration, transport: any HTTPTransport) {
-        self.configuration = configuration; self.transport = transport; offlineRisks = []
+        self.configuration = configuration; self.transport = transport; offlineRisks = []; productionTransport = nil
     }
     public init(offlineConfiguration: APIConfiguration, offlineTransport: any ClubGovernanceOfflineTransport, risks: Set<ClubGovernanceRisk> = [.administrative]) {
-        configuration = offlineConfiguration; transport = offlineTransport; offlineRisks = Set(risks.map(\.rawValue))
+        configuration = offlineConfiguration; transport = offlineTransport; offlineRisks = Set(risks.map(\.rawValue)); productionTransport = nil
+    }
+    init(productionConfiguration: APIConfiguration, productionTransport: ClubGovernanceProductionTransport) {
+        configuration = productionConfiguration; transport = productionTransport; offlineRisks = []; self.productionTransport = productionTransport
+    }
+    @MainActor public func permits(_ command: ClubGovernanceCommand) -> Bool {
+        offlineRisks.contains(command.operation.risk.rawValue) || productionTransport?.permits(command) == true
     }
     func request(path: String, fields: [String: ClubGovernanceValue], form: Bool, token: String) throws -> URLRequest {
         // This method is internal request construction only. Dispatch paths are closed enums.
@@ -68,9 +75,13 @@ public struct ClubGovernanceService {
         try check()
         return .init(operation: operation, scope: scope, permissions: permissions, value: value)
     }
-    func dispatch(_ command: ClubGovernanceCommand, session: ClubGovernanceSession, check: () throws -> Void) async throws -> ClubGovernanceValue {
-        guard offlineRisks.contains(command.operation.risk.rawValue) else { throw ClubGovernanceFailure.notConfigured }
-        let request = try request(path: command.operation.path, fields: command.fields, form: [.chapterRecruit, .chapterFinish].contains(command.operation), token: session.token)
+    @MainActor func dispatch(_ command: ClubGovernanceCommand, session: ClubGovernanceSession, authorization: ClubGovernanceDispatchAuthorization? = nil, check: () throws -> Void) async throws -> ClubGovernanceValue {
+        guard permits(command) else { throw ClubGovernanceFailure.notConfigured }
+        let request: URLRequest
+        if let productionTransport {
+            guard let authorization else { throw ClubGovernanceFailure.notConfigured }
+            request = try productionTransport.request(for: command, token: session.token, authorization: authorization)
+        } else { request = try self.request(path: command.operation.path, fields: command.fields, form: [.chapterRecruit, .chapterFinish].contains(command.operation), token: session.token) }
         try check()
         // Once send starts, ANY ambiguous transport, cancellation or malformed receipt
         // may have committed. Never automatically repeat, replace the key, or reset it.
@@ -134,19 +145,53 @@ public struct ClubGovernanceSession: Equatable {
     var isConfigured: Bool { get }
     var storageNamespace: String { get }
     var allowsOfflineWrites: Bool { get }
+    var authorizationGeneration: UUID? { get }
+    var journalRealm: String { get }
+    func canDispatch(_ command: ClubGovernanceCommand) -> Bool
     func read(_ operation: ClubGovernanceRead, scope: ClubGovernanceScope, options: [String: ClubGovernanceValue]) async throws -> ClubGovernanceSnapshot
     func send(_ review: ClubGovernanceReview) async throws -> ClubGovernanceValue
+    func send(_ review: ClubGovernanceReview, check: () throws -> Void) async throws -> ClubGovernanceValue
+    func send(_ review: ClubGovernanceReview, authorization: ClubGovernanceDispatchAuthorization, check: () throws -> Void) async throws -> ClubGovernanceValue
+}
+public extension ClubGovernanceAccess {
+    var authorizationGeneration: UUID? { nil }
+    var journalRealm: String { storageNamespace }
+    func send(_ review: ClubGovernanceReview, check: () throws -> Void) async throws -> ClubGovernanceValue {
+        guard allowsOfflineWrites else { throw ClubGovernanceFailure.notConfigured }; try check(); return try await send(review)
+    }
+    func send(_ review: ClubGovernanceReview, authorization: ClubGovernanceDispatchAuthorization, check: () throws -> Void) async throws -> ClubGovernanceValue {
+        try authorization.consume(review); try check(); return try await send(review)
+    }
+    func canDispatch(_ command: ClubGovernanceCommand) -> Bool { allowsOfflineWrites }
 }
 @MainActor public final class ClubGovernanceSessionAccess: ClubGovernanceAccess {
     private let service: ClubGovernanceService?
     private let currentSession: () -> ClubGovernanceSession?
+    private let productionService: (ClubGovernanceCommand) -> ClubGovernanceService?
+    private let runtimeContext: () -> RuntimeDependencyContext?
+    private var observedContext: RuntimeDependencyContext?
+    private var contextGeneration = UUID()
+    public var authorizationGeneration: UUID? {
+        let context = runtimeContext()
+        if observedContext != context { observedContext = context; contextGeneration = UUID() }
+        return context == nil ? nil : contextGeneration
+    }
+    public var journalRealm: String {
+        guard let context = runtimeContext() else { return storageNamespace }
+        return "\(context.market)|\(context.baseURL.absoluteString)|\(context.session.namespace)"
+    }
+    public func canDispatch(_ command: ClubGovernanceCommand) -> Bool {
+        if allowsOfflineWrites { return service?.permits(command) == true }
+        return productionService(command)?.permits(command) == true
+    }
     private let onUnauthorized: (ClubReadIdentity) -> Void
     public var identity: ClubReadIdentity? { currentSession()?.identity }
     public var isConfigured: Bool { service != nil }
     public var storageNamespace: String { currentSession()?.storageNamespace ?? "" }
     public var allowsOfflineWrites: Bool { service?.allowsOfflineWrites == true }
-    public init(service: ClubGovernanceService?, currentSession: @escaping () -> ClubGovernanceSession?, onUnauthorized: @escaping (ClubReadIdentity) -> Void = { _ in }) {
+    public init(service: ClubGovernanceService?, currentSession: @escaping () -> ClubGovernanceSession?, productionService: @escaping (ClubGovernanceCommand) -> ClubGovernanceService? = { _ in nil }, runtimeContext: @escaping () -> RuntimeDependencyContext? = { nil }, onUnauthorized: @escaping (ClubReadIdentity) -> Void = { _ in }) {
         self.service = service; self.currentSession = currentSession; self.onUnauthorized = onUnauthorized
+        self.productionService = productionService; self.runtimeContext = runtimeContext
     }
     private func check(_ snapshot: ClubGovernanceSession) throws {
         try Task.checkCancellation(); guard currentSession() == snapshot else { throw CancellationError() }
@@ -157,19 +202,32 @@ public struct ClubGovernanceSession: Equatable {
         do { return try await service.read(operation, scope: scope, options: options, session: session) { try self.check(session) } }
         catch { try check(session); if (error as? ClubGovernanceFailure) == .signedOut || (error as? APIError) == .unauthorized { onUnauthorized(session.identity) }; throw error }
     }
-    public func send(_ review: ClubGovernanceReview) async throws -> ClubGovernanceValue {
-        guard let service, service.allowsOfflineWrites else { throw ClubGovernanceFailure.notConfigured }
+    public func send(_ review: ClubGovernanceReview) async throws -> ClubGovernanceValue { try await send(review, check: {}) }
+    public func send(_ review: ClubGovernanceReview, check: () throws -> Void) async throws -> ClubGovernanceValue {
+        guard allowsOfflineWrites else { throw ClubGovernanceFailure.notConfigured }
+        return try await sendReviewed(review, check: check)
+    }
+    public func send(_ review: ClubGovernanceReview, authorization: ClubGovernanceDispatchAuthorization, check: () throws -> Void) async throws -> ClubGovernanceValue {
+        try authorization.consume(review)
+        return try await sendReviewed(review, authorization: authorization, check: check)
+    }
+    private func sendReviewed(_ review: ClubGovernanceReview, authorization: ClubGovernanceDispatchAuthorization? = nil, check reviewCheck: () throws -> Void) async throws -> ClubGovernanceValue {
+        try reviewCheck()
+        let selected = allowsOfflineWrites ? service : (productionService(review.command) ?? service)
+        guard let service = selected, service.permits(review.command) else { throw ClubGovernanceFailure.notConfigured }
         guard let session = currentSession(), session.identity == review.identity, session.storageNamespace == review.storageNamespace else { throw ClubGovernanceFailure.staleReview }
+        guard authorizationGeneration == review.authorizationGeneration else { throw ClubGovernanceFailure.staleReview }
         let command = review.command
-        let snapshot = try await service.read(command.operation.reviewRead, scope: command.scope, options: command.reviewOptions, session: session) { try self.check(session) }
+        let snapshot = try await service.read(command.operation.reviewRead, scope: command.scope, options: command.reviewOptions, session: session) { try self.check(session); try reviewCheck() }
         try command.validateReview(snapshot, accountID: session.identity.accountID ?? 0)
         guard snapshot == review.snapshot else { throw ClubGovernanceFailure.staleReview }
         if [.createSeries, .updateSeries, .assignRole].contains(command.operation) {
-            let members = try await service.read(.members, scope: command.scope, session: session) { try self.check(session) }
+            let members = try await service.read(.members, scope: command.scope, session: session) { try self.check(session); try reviewCheck() }
             let target = command.fields[command.operation == .assignRole ? "targetMemberId" : "defaultLeadMemberId"]?.int
             guard members == review.supportingMembers, let target, (members.value.array ?? []).contains(where: { $0["memberId"].int == target && (command.operation != .assignRole || $0["isOwner"] == .bool(false)) }) else { throw ClubGovernanceFailure.targetChanged }
         }
-        do { return try await service.dispatch(command, session: session) { try self.check(session) } }
+        guard authorizationGeneration == review.authorizationGeneration else { throw ClubGovernanceFailure.staleReview }
+        do { return try await service.dispatch(command, session: session, authorization: authorization) { try self.check(session); try reviewCheck() } }
         catch {
             if currentSession() == session, let failure = error as? ClubGovernanceFailure, case .rejected(let code, _) = failure, code == 401 { onUnauthorized(session.identity) }
             throw error

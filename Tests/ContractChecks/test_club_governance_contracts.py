@@ -17,7 +17,7 @@ class ClubGovernanceSourceChecks(unittest.TestCase):
     def test_default_writes_and_media_are_off(self):
         service=self.text('Core/ClubGovernanceService.swift')
         self.assertIn('offlineRisks = []',service)
-        self.assertIn('guard offlineRisks.contains(command.operation.risk.rawValue)',service)
+        self.assertIn('guard permits(command)',service)
         self.assertIn('public protocol ClubGovernanceOfflineTransport: HTTPTransport',service)
         self.assertIn('transport = nil; approvedHosts = []',self.text('Core/ClubGovernanceGroupCode.swift'))
     def test_no_fabricated_financial_or_reconciliation_endpoints(self):
@@ -65,7 +65,7 @@ class ClubGovernanceSourceChecks(unittest.TestCase):
     def test_complete_bilingual_fragment_merged(self):
         fragment=json.loads(self.text('Resources/ClubGovernanceLocalizations.fragment.json'))['strings']
         catalog=json.loads(self.text('Resources/Localizable.xcstrings'))['strings']
-        self.assertEqual(len(fragment),327)
+        self.assertEqual(len(fragment),328)
         for key,value in fragment.items():
             self.assertEqual(catalog[key],value)
             for language in ['en','zh-Hans']:
@@ -74,6 +74,6 @@ class ClubGovernanceSourceChecks(unittest.TestCase):
         evidence=json.loads(self.text('docs/club-governance-static-evidence.json'))
         self.assertTrue(evidence['swift_test'].startswith('NOT_RUN'))
         self.assertTrue(evidence['xcode_ui'].startswith('NOT_RUN'))
-        self.assertEqual(evidence['authored_core_tests'],58)
+        self.assertEqual(evidence['authored_core_tests'],73)
         self.assertEqual(evidence['authored_ui_tests'],6)
 if __name__=='__main__':unittest.main()

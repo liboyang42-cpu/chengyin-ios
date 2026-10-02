@@ -109,7 +109,7 @@ import SwiftUI
             if state.isLocked { Text("merchant.business.unknownResult").accessibilityIdentifier("merchant.business.locked") }
             if let receipt = state.receipt {
                 Section("merchant.business.receipt") {
-                    Text("merchant.business.syntheticSaved")
+                    Text(reader.isOfflineExample ? "merchant.business.syntheticSaved" : "merchant.business.productionSaved")
                     if let message = receipt.message { Text(message) }
                     if case .refund = query { Text(receipt.refundActuallyConfirmed ? "merchant.business.platformRefunded" : "merchant.business.opinionOnly") }
                     Button("action.retry") { Task { await reload() } }
@@ -152,10 +152,11 @@ import SwiftUI
             })
         }
         .sheet(item: Binding(get: { state.confirmation }, set: { if $0 == nil { model.cancel() } })) { review in
-            MerchantBusinessReviewSheet(review: review, canExecute: reader.canExecuteSyntheticMutation, busy: state.isBusy,
+            MerchantBusinessReviewSheet(review: review, canExecute: reader.canExecute(review.mutation, merchantID: review.baseline.access.merchantID), isSynthetic: reader.isOfflineExample, busy: state.isBusy,
                 issue: state.failureKey, cancel: model.cancel, confirm: { Task { await model.confirm(review) } })
         }
         .onChange(of: reader.scope) { _, _ in editor = nil; pendingMutation = nil; selection = []; model.invalidate() }
+        .onDisappear { editor = nil; pendingMutation = nil; model.invalidate() }
     }
     @ViewBuilder private var filters: some View {
         if case .customers = query {

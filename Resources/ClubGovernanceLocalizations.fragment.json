@@ -993,13 +993,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Financial effects remain disabled. These records do not prove funds have settled"
+            "value": "Financial actions require separate exact-action approval. These records do not prove funds have settled"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "资金相关操作尚未启用，这些记录不代表资金已结清"
+            "value": "资金操作需要单独的具体操作授权。这些记录不代表资金已结清"
           }
         }
       }
@@ -1044,13 +1044,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Live administrative changes are disabled pending endpoint and recovery acceptance"
+            "value": "Administrative changes require exact-action approval and current server permissions"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "真实管理写入尚未启用，需要接口与恢复流程验收"
+            "value": "管理操作需要具体操作授权及当前服务端权限"
           }
         }
       }
@@ -1429,6 +1429,23 @@
         }
       }
     },
+    "club.gov.confirmProduction": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm action"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认操作"
+          }
+        }
+      }
+    },
     "club.gov.cancelReview": {
       "extractionState": "manual",
       "localizations": {
@@ -1622,13 +1639,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Synthetic group code issued"
+            "value": "Group code issued"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "模拟团码已签发"
+            "value": "团码已签发"
           }
         }
       }

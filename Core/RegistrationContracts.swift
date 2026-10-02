@@ -5,24 +5,31 @@ public struct RegistrationQuoteRequest: Encodable, Equatable {
     public let ownerID: Int
     public let ticketID: Int?
     public let usePoints: Bool
+    public let waitlistOffer: RegistrationWaitlistOffer?
     public var ownerType: Int { 2 }
 
-    public init(ownerID: Int, ticketID: Int? = nil, usePoints: Bool = false) throws {
+    public init(ownerID: Int, ticketID: Int? = nil, usePoints: Bool = false, waitlistOffer: RegistrationWaitlistOffer? = nil) throws {
         guard ownerID > 0, ticketID.map({ $0 > 0 }) ?? true else {
             throw APIError.invalidRequest
         }
         self.ownerID = ownerID
         self.ticketID = ticketID
+        guard waitlistOffer == nil || ticketID != nil else { throw APIError.invalidRequest }
         self.usePoints = usePoints
+        self.waitlistOffer = waitlistOffer
     }
 
-    private enum CodingKeys: String, CodingKey { case ownerType, ownerId, ticketId, isUsePoint }
+    private enum CodingKeys: String, CodingKey { case ownerType, ownerId, ticketId, isUsePoint, waitlistOfferId, waitlistOfferToken }
     public func encode(to encoder: Encoder) throws {
         var c = encoder.container(keyedBy: CodingKeys.self)
         try c.encode(ownerType, forKey: .ownerType)
         try c.encode(ownerID, forKey: .ownerId)
         try c.encodeIfPresent(ticketID, forKey: .ticketId)
         try c.encode(usePoints ? 1 : 0, forKey: .isUsePoint)
+        if let waitlistOffer {
+            try c.encode(waitlistOffer.id, forKey: .waitlistOfferId)
+            try c.encode(waitlistOffer.token, forKey: .waitlistOfferToken)
+        }
     }
 }
 
@@ -114,6 +121,7 @@ public struct RegistrationCreateIntent: Encodable, Equatable {
         self.usesAppPaymentChannel = usesAppPaymentChannel
         self.requestID = requestID
         self.quoteSign = quote.quoteSign
+        guard selection.waitlistOffer == nil || selection.waitlistOffer == waitlistOffer else { throw APIError.invalidRequest }
         self.waitlistOffer = waitlistOffer
     }
 

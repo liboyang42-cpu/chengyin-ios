@@ -50,7 +50,7 @@ public struct NativePlatformPending: Equatable {
             guard let start = pending.payload["sampleStartAt"]?.integer, let end = pending.payload["sampleEndAt"]?.integer,
                   start > 0, end > start, let count = pending.payload["cumulativeSteps"]?.integer, (0...100_000).contains(count),
                   pending.payload["challengeId"]?.text?.isEmpty == false, pending.payload["dayKey"]?.text?.isEmpty == false,
-                  let assertion = pending.payload["assertion"]?.text, Data(base64Encoded: assertion) != nil, assertion.count <= 16_384 else { throw NativePlatformIssue.invalidContract }
+                  let assertion = pending.payload["assertion"]?.text, NativeEnrollmentWire.canonicalBase64(assertion, count: 1...4096) != nil else { throw NativePlatformIssue.invalidContract }
         }
         let raw = try await service.request(Self.actionPath, json: ["sessionId": .int(pending.sessionID), "version": .int(pending.version),
             "idempotencyKey": .string(pending.key), "action": .string(pending.action.rawValue), "payload": .object(pending.payload)], capability: .advanced, token: owner.token)

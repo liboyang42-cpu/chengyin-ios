@@ -1,0 +1,62 @@
+{
+  "scope": "Default-OFF native device enrollment/status/revoke/recovery code only",
+  "base": {
+    "native_prepared_tree": "1a02f549b654af1860886b2b1cea6e3b8227ec70",
+    "integration": "integration-56",
+    "manifest_sha256": "cbb750599d1c53495456cfb1d2da6cadcb7e83d374db6fd658d7c953a039525d",
+    "original_motion_packet_modified": false
+  },
+  "backend": {
+    "enrollment_document_sha256": "54241c96c3a028bf8056f7c19f239d3d8d08a58b19b233ec578a2cac4d23278a",
+    "enrollment_publication_verified": false,
+    "prior_platform_commit": "2cd0d28327daf46e417d4673aca621a27a244ff7",
+    "prior_platform_pr": "https://github.com/liboyang42-cpu/chengyin/pull/1188",
+    "deployed": false,
+    "reward_enabled": false,
+    "genuine_device_compatibility_verified": false
+  },
+  "synthetic_fixture": {
+    "path": "docs/native-app-attest-enrollment-v1.json",
+    "sha256": "115aa88dfdfb973f47a4848a6144c1272c2ef39e09ed4b457a2ff618375e26cc",
+    "decoded_nonce_sha256": "630dcd2966c4336691125448bbb25b4ff412a49c732db2c8abc1b8581bd710dd",
+    "genuine_attestation": false
+  },
+  "offline_checks": {
+    "enrollment_contracts": 22,
+    "existing_motion_contracts": 22,
+    "tree_sitter_files": 19,
+    "tree_sitter_errors": 0,
+    "generated_project": "PASS",
+    "scaffold": "PASS",
+    "normal_runtime_hosts": "PASS",
+    "ui_discovery": "PASS"
+  },
+  "authored_tests": {
+    "Tests/AppUITests/NativeEnrollmentFlowTests.swift": 6,
+    "Tests/AppUnitTests/NativeEnrollmentAppTests.swift": 3,
+    "Tests/CoreTests/NativeEnrollmentServiceTests.swift": 4,
+    "Tests/CoreTests/NativeEnrollmentTests.swift": 16
+  },
+  "execution": {
+    "swift_core": "NOT_RUN",
+    "apple_compile": "NOT_RUN",
+    "app_unit": "NOT_RUN",
+    "ui": "NOT_RUN",
+    "real_device": "NOT_RUN",
+    "real_key_generation": "NOT_RUN",
+    "real_enrollment": "NOT_RUN",
+    "real_revocation": "NOT_RUN"
+  },
+  "default_flags": {
+    "enrollment": false,
+    "key_creation": false,
+    "revocation": false,
+    "motion_rewards": false
+  },
+  "limitations": [
+    "Apple build and all authored Swift tests require the sole integrator CI cycle",
+    "Backend production signing/trust/distribution policies and genuine-device positive vectors remain unaccepted",
+    "Keychain or callback persistence failures can require an explicit new key; no automatic retry or revocation",
+    "Server ACTIVE confirms account/app/key binding, not physical walking or independent iPhone hardware class"
+  ]
+}

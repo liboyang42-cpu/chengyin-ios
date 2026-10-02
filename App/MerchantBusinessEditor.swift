@@ -91,6 +91,7 @@ struct MerchantBusinessEditorContext: Identifiable {
 @MainActor struct MerchantBusinessReviewSheet: View {
     let review: MerchantBusinessConfirmation
     let canExecute: Bool
+    let isSynthetic: Bool
     let busy: Bool
     let issue: String?
     let cancel: () -> Void
@@ -112,8 +113,8 @@ struct MerchantBusinessEditorContext: Identifiable {
                 }
                 if let issue { Text(LocalizedStringKey(issue)) }
                 if canExecute {
-                    Text("merchant.business.synthetic")
-                    Button("merchant.business.confirmSynthetic", action: confirm).disabled(busy).accessibilityIdentifier("merchant.business.confirm")
+                    if isSynthetic { Text("merchant.business.synthetic") }
+                    Button(isSynthetic ? "merchant.business.confirmSynthetic" : "merchant.business.confirmProduction", action: confirm).disabled(busy).accessibilityIdentifier("merchant.business.confirm")
                 } else { Text("merchant.business.disabled").accessibilityIdentifier("merchant.business.dispatchDisabled") }
                 Button("action.cancel", action: cancel).disabled(busy).accessibilityIdentifier("merchant.business.cancelReview")
             }.navigationTitle("merchant.business.reviewDraft").interactiveDismissDisabled(busy)

@@ -12,13 +12,16 @@ public struct MerchantBusinessIntent: Codable, Equatable {
     public func sameTarget(as other: Self) -> Bool { realm == other.realm && accountID == other.accountID && merchantID == other.merchantID && target == other.target }
 }
 @MainActor public protocol MerchantBusinessIntentStore: AnyObject {
+    var isDurable: Bool { get }
     func intents() throws -> [MerchantBusinessIntent]
     func reserve(_ intent: MerchantBusinessIntent) throws
     func complete(_ intent: MerchantBusinessIntent) throws
 }
+public extension MerchantBusinessIntentStore { var isDurable: Bool { false } }
 /// Persists only operation identity, never tokens, phone numbers, text drafts or QR payloads.
 /// Corrupt or inaccessible data blocks dispatch; unknown operations have no time-based expiry.
 @MainActor public final class MerchantBusinessFileIntentStore: MerchantBusinessIntentStore {
+    public let isDurable = true
     private let url: URL
     public init(url: URL) { self.url = url }
     public func intents() throws -> [MerchantBusinessIntent] {
@@ -53,11 +56,29 @@ public struct MerchantBusinessIntent: Codable, Equatable {
 }
 public struct MerchantBusinessConfirmation: Equatable, Identifiable {
     public let id: UUID
+    public let authorizationGeneration: UUID?
+    public let journalRealm: String
     public let mutation: MerchantBusinessMutation
     public let requestID: String
     public let request: MerchantBusinessRequest
     public let scope: MerchantBusinessScope
     public let baseline: MerchantBusinessSnapshot
+}
+/// A prepared review alone cannot authorize production dispatch. Only this file's
+/// coordinator can mint a one-shot ticket after the durable reservation and fences.
+@MainActor public final class MerchantBusinessDispatchAuthorization {
+    private let review: MerchantBusinessConfirmation
+    private var consumed = false
+    private let validity: () throws -> Void
+    fileprivate init(_ review: MerchantBusinessConfirmation, check: @escaping () throws -> Void) { self.review = review; validity = check }
+    func consume(_ review: MerchantBusinessConfirmation) throws {
+        guard !consumed, self.review == review else { throw MerchantBusinessFailure.stale }
+        consumed = true; try validity()
+    }
+    func validate(_ mutation: MerchantBusinessMutation, merchantID: Int) throws {
+        guard consumed, review.mutation == mutation, review.baseline.access.merchantID == merchantID else { throw MerchantBusinessFailure.stale }
+        try validity()
+    }
 }
 @MainActor public final class MerchantBusinessCoordinator {
     public let reader: any MerchantBusinessReading
@@ -71,13 +92,14 @@ public struct MerchantBusinessConfirmation: Equatable, Identifiable {
     public private(set) var isLocked = false
     public private(set) var loadedScope: MerchantBusinessScope?
     private var generation = 0
+    private var confirmationGeneration = 0
     public init(reader: any MerchantBusinessReading, journal: any MerchantBusinessIntentStore) { self.reader = reader; self.journal = journal }
     public var isCurrent: Bool { loadedScope != nil && loadedScope == reader.scope }
     public func invalidate() {
         generation += 1; snapshot = nil; loadedScope = nil; confirmation = nil; receipt = nil; failure = nil; failureKey = nil; isBusy = false
         // Journal remains intact across refresh, navigation, logout, replacement and relaunch.
     }
-    public func cancelConfirmation() { confirmation = nil }
+    public func cancelConfirmation() { confirmationGeneration += 1; confirmation = nil }
     public func load(_ query: MerchantBusinessQuery) async {
         invalidate(); let generation = self.generation, scope = reader.scope
         isBusy = true
@@ -87,39 +109,50 @@ public struct MerchantBusinessConfirmation: Equatable, Identifiable {
             guard generation == self.generation, scope == reader.scope, !Task.isCancelled else { return }
             self.snapshot = snapshot; loadedScope = scope
             let intents = try journal.intents()
-            isLocked = intents.contains { $0.realm == scope?.realm && $0.accountID == scope?.accountID && $0.merchantID == snapshot.access.merchantID }
+            isLocked = intents.contains { $0.realm == (reader.journalRealm ?? scope?.realm) && $0.accountID == scope?.accountID && $0.merchantID == snapshot.access.merchantID }
         } catch { if generation == self.generation, scope == reader.scope { set(error) } }
     }
     public func prepare(_ mutation: MerchantBusinessMutation) {
+        confirmationGeneration += 1
         confirmation = nil; receipt = nil; failure = nil; failureKey = nil
         guard isCurrent, !isBusy, let scope = loadedScope, let snapshot else { set(MerchantBusinessFailure.stale); return }
         do {
             try mutation.validate(in: snapshot.document, access: snapshot.access, roles: snapshot.roles)
             let requestID = "mb-" + UUID().uuidString.lowercased()
-            let intent = MerchantBusinessIntent(scope: scope, merchantID: snapshot.access.merchantID, target: mutation.targetKey, requestID: requestID)
+            let journalScope = MerchantBusinessScope(realm: reader.journalRealm ?? scope.realm, accountID: scope.accountID, epoch: scope.epoch)
+            let intent = MerchantBusinessIntent(scope: journalScope, merchantID: snapshot.access.merchantID, target: mutation.targetKey, requestID: requestID)
             guard try !journal.intents().contains(where: { $0.sameTarget(as: intent) }) else { throw MerchantBusinessFailure.pending }
-            confirmation = .init(id: UUID(), mutation: mutation, requestID: requestID, request: try mutation.request(requestID: requestID), scope: scope, baseline: snapshot)
+            confirmation = .init(id: UUID(), authorizationGeneration: reader.authorizationGeneration, journalRealm: journalScope.realm, mutation: mutation, requestID: requestID, request: try mutation.request(requestID: requestID), scope: scope, baseline: snapshot)
         } catch { set(error) }
     }
     public func confirm(_ review: MerchantBusinessConfirmation) async {
         guard !isBusy, confirmation == review, isCurrent, reader.scope == review.scope else { set(MerchantBusinessFailure.stale); return }
-        guard reader.canExecuteSyntheticMutation else { set(MerchantBusinessFailure.disabled); return }
+        guard reader.canExecute(review.mutation, merchantID: review.baseline.access.merchantID), reader.canExecuteSyntheticMutation || journal.isDurable else { set(MerchantBusinessFailure.disabled); return }
         confirmation = nil; isBusy = true
-        let generation = self.generation
+        let generation = self.generation, confirmationGeneration = self.confirmationGeneration
         defer { if generation == self.generation { isBusy = false } }
         // Fresh access, exact owner store and fresh target/version; no dispatch while stale.
         do {
             let latest = try await reader.snapshot(review.baseline.document.query)
-            guard generation == self.generation, reader.scope == review.scope, !Task.isCancelled else { throw MerchantBusinessFailure.stale }
+            guard generation == self.generation, confirmationGeneration == self.confirmationGeneration, reader.scope == review.scope, reader.authorizationGeneration == review.authorizationGeneration, !Task.isCancelled else { throw MerchantBusinessFailure.stale }
             guard latest == review.baseline else { throw MerchantBusinessFailure.conflict }
             try review.mutation.validate(in: latest.document, access: latest.access, roles: latest.roles)
         } catch { if generation == self.generation { set(error) }; return }
-        let intent = MerchantBusinessIntent(scope: review.scope, merchantID: review.baseline.access.merchantID, target: review.mutation.targetKey, requestID: review.requestID)
+        let journalScope = MerchantBusinessScope(realm: review.journalRealm, accountID: review.scope.accountID, epoch: review.scope.epoch)
+        let intent = MerchantBusinessIntent(scope: journalScope, merchantID: review.baseline.access.merchantID, target: review.mutation.targetKey, requestID: review.requestID)
         do { try journal.reserve(intent) } catch { set(error); return }
         isLocked = true
+        // A journal implementation may reenter. Check cancellation and the exact review
+        // again after reservation, then propagate the fence through final fresh reads.
         do {
-            let result = try await reader.execute(review.mutation, requestID: review.requestID, scope: review.scope)
-            guard generation == self.generation, reader.scope == review.scope, !Task.isCancelled else { return }
+            func check() throws {
+                guard generation == self.generation, confirmationGeneration == self.confirmationGeneration,
+                      reader.scope == review.scope, reader.authorizationGeneration == review.authorizationGeneration,
+                      !Task.isCancelled else { throw MerchantBusinessFailure.stale }
+            }
+            try check()
+            let result = try await reader.execute(review, authorization: MerchantBusinessDispatchAuthorization(review, check: check), check: check)
+            guard generation == self.generation, confirmationGeneration == self.confirmationGeneration, reader.scope == review.scope, reader.authorizationGeneration == review.authorizationGeneration, !Task.isCancelled else { return }
             // Only a confirmed response from this dispatch clears its exact journal record.
             try journal.complete(intent); receipt = result; isLocked = false; snapshot = nil; loadedScope = nil
         } catch {

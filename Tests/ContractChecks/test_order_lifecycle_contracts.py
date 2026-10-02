@@ -21,9 +21,10 @@ class OrderLifecycleSourceTests(unittest.TestCase):
   self.assertNotIn('"requestId":',adapter);self.assertNotIn('"quoteSign":',adapter)
  def test_immutable_review_session_and_target_guards(self):
   s=self.read('Core/OrderLifecycleCoordinator.swift')
-  for guard in ['detail.id == orderID','review.scope == reader.scope','review.accountID == reader.accountID','review.detail == detail','now() < review.expiresAt','records[key] == nil','outcomeUnknown']:
+  for guard in ['detail.id == orderID','review.scope == reader.scope','review.accountID == reader.accountID','review.detail == detail','now() < review.expiresAt','!isAttemptBlocking(review.action, orderID: review.detail.id)','outcomeUnknown']:
    self.assertIn(guard,s)
-  self.assertNotIn('records.remove',s)
+  self.assertIn('if try dispatcher.pending(orderID: review.detail.id) != nil',s)
+  self.assertIn('catch { records[key] = .outcomeUnknown',s)
  def test_ui_has_no_credentials_provider_or_scanner_dispatch(self):
   s='\n'.join(self.read('App/'+file) for file in ['OrderLifecycleView.swift','OrderPassPreviewView.swift'])
   for value in ['AsyncImage','openURL','UIPasteboard','AVCaptureSession','qrcodeUrl','quoteSign','nonceStr']:
@@ -37,7 +38,8 @@ class OrderLifecycleSourceTests(unittest.TestCase):
    self.assertIn(value,team)
  def test_session_owned_and_isolated_fixture_mounting(self):
   app=self.read('App/AppSession.swift');self.assertIn('self.currentOrderLifecycleSession == captured',app)
-  self.assertIn('OrderLifecycleCoordinator(reader: orderLifecycleReader)',app)
+  self.assertIn('OrderLifecycleCoordinator(reader: orderLifecycleReader,',app)
+  self.assertIn('production: { [weak self] in self?.makeOrderLifecycleDispatcher() }',app)
   self.assertEqual(self.read('App/QuestifyApp.swift').count('--uitesting-order-lifecycle-fixture'),2)
   self.assertIn('lifecycleCoordinator: orderLifecycleCoordinator',self.read('App/TicketWalletView.swift'))
  def test_payment_timeout_and_cancellation_cannot_become_paid(self):

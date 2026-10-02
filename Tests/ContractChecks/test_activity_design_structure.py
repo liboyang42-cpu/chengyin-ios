@@ -36,7 +36,9 @@ class ActivityDesignStructureTests(unittest.TestCase):
         self.assertIn(".buttonStyle(.borderedProminent)", source)
         self.assertIn(".frame(maxWidth:.infinity,minHeight:44)", source)
         self.assertIn("if let access,case .allowed(let detail)=access { SessionRegistrationSheet(activity:detail) }", source)
-        self.assertIn("creationPolicy:.disabled", app("SessionRegistrationSheet.swift"))
+        self.assertIn("creationPolicy:session.registrationCreationPolicy(activityID:activity.summary.id)", app("SessionRegistrationSheet.swift"))
+        self.assertIn("registrationApproval: RegistrationProductionApproval? = nil", app("AppSession.swift"))
+        self.assertIn('registrationStorefront: @escaping () -> String? = { nil }', app("AppSession.swift"))
         # The primary action must not be attached to an error/loading/club-gate root.
         self.assertLess(source.index("private func detailContent"), source.index(".safeAreaInset"))
 

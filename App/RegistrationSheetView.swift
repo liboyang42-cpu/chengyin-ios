@@ -11,7 +11,7 @@ private final class RegistrationSheetModel: ObservableObject {
 }
 
 /// Inject the stable session-owned coordinator; never allocate one in a sheet builder.
-/// The default quote gate is off, and production creation is unconditionally disabled.
+/// Production needs an independent scoped grant; default creation and waitlist writes stay off.
 @MainActor
 struct RegistrationSheetView: View {
     @Environment(\.complianceSignupDestination) private var complianceSignupDestination
@@ -30,12 +30,13 @@ struct RegistrationSheetView: View {
          participantCoordinator: ParticipantMutationCoordinator? = nil,
          currentIdentity: @escaping () -> ProfileReadIdentity?, quoteEnabled: Bool = false,
          creationPolicy: RegistrationUICreationPolicy = .disabled,
+         waitlistService: (any RegistrationWaitlistServing)? = nil,
          onReadback: @escaping (RegistrationStatusSnapshot) -> Void = { _ in }) {
         self.participantReader = participantReader; self.participantCoordinator = participantCoordinator
         _model = StateObject(wrappedValue: RegistrationSheetModel(flow: RegistrationUIFlow(
             activity: activity, coordinator: coordinator, participantReader: participantReader,
             currentIdentity: currentIdentity, quoteEnabled: quoteEnabled,
-            creationPolicy: creationPolicy, onReadback: onReadback)))
+            creationPolicy: creationPolicy, waitlistService: waitlistService, onReadback: onReadback)))
     }
     private var flow: RegistrationUIFlow { model.flow }
     var body: some View {
@@ -43,7 +44,7 @@ struct RegistrationSheetView: View {
         let _ = model.revision
         NavigationStack {
             Form {
-                if flow.creationPolicy.permitsCreation {
+                if flow.creationPolicy.isOfflineFixture {
                     Section { Label("registration.form.fixtureNotice", systemImage: "testtube.2").font(.callout) }
                 }
                 if !flow.hasCurrentSession {
@@ -52,9 +53,22 @@ struct RegistrationSheetView: View {
                     activitySection
                     if flow.hasRetainedIntent {
                         RegistrationOperationSections(flow: flow,revision:model.revision)
+                    } else if case .pending(let registrationID) = flow.durableCreation {
+                        Section("registration.form.outcomeUnknown") {
+                            Text("registration.waitlist.retainedOrder")
+                            if registrationID != nil {
+                                Button("registration.waitlist.readRetainedOrder") { Task { await flow.readDurableStatus() } }
+                                    .disabled(flow.isReadingStatus)
+                            }
+                            if let snapshot = flow.durableStatus {
+                                Text(LocalizedStringKey(RegistrationUIStatus.registrationKey(snapshot.registrationStatus)))
+                                Text("registration.waitlist.orderReadback").font(.caption).foregroundStyle(.secondary)
+                            }
+                        }
                     } else {
                         participantSection
                         ticketSection
+                        waitlistSection
                         quoteSection
                         confirmationSection
                     }
@@ -69,12 +83,12 @@ struct RegistrationSheetView: View {
                         .accessibilityIdentifier("registration.form.close")
                 }
             }
-            .alert("registration.form.confirmTitle", isPresented: $showingConfirmation) {
-                Button("registration.form.confirmCreate") { Task { await flow.confirm() } }
+            .alert(LocalizedStringKey(flow.creationPolicy.isOfflineFixture ? "registration.form.confirmTitle" : "registration.waitlist.confirmTitle"), isPresented: $showingConfirmation) {
+                Button(LocalizedStringKey(flow.creationPolicy.isOfflineFixture ? "registration.form.confirmCreate" : "registration.waitlist.confirmCreate")) { Task { await flow.confirm() } }
                 Button("action.cancel", role: .cancel) { flow.cancelConfirmation() }
             } message: {
                 if let review = flow.confirmation {
-                    Text("registration.form.confirmHint")
+                    Text(LocalizedStringKey(flow.creationPolicy.isOfflineFixture ? "registration.form.confirmHint" : "registration.waitlist.confirmHint"))
                     + Text(verbatim: "\n\(flow.activity.summary.name)\n\(flow.selectedTicket?.name ?? "")\n\(review.draft.trimmedName)\n\(review.draft.trimmedPhone)\n")
                     + Text(verbatim: RegistrationUIMoney.display(review.quote.payAmount, locale: locale) ?? "—")
                 }
@@ -85,6 +99,14 @@ struct RegistrationSheetView: View {
                 async let participants: Void = flow.loadParticipants()
                 async let quote: Void = flow.requestQuote()
                 _ = await (participants, quote)
+            }
+            .task(id: flow.selectedTicketID) { await flow.loadWaitlist() }
+            .task(id: flow.waitlistStatus?.expiresAt) {
+                guard let deadline = flow.waitlistStatus?.expiresAt else { return }
+                while deadline > Date() {
+                    do { try await Task.sleep(for: .seconds(min(deadline.timeIntervalSinceNow, 86_400))) } catch { return }
+                }
+                flow.checkWaitlistDeadline()
             }
             .sheet(isPresented: $showingAddParticipant) {
                 if let participantReader, let participantCoordinator {
@@ -180,6 +202,51 @@ struct RegistrationSheetView: View {
             }
         }
     }
+    @ViewBuilder private var waitlistSection: some View {
+        if flow.selectedTicket?.isSoldOut == true || flow.waitlistStatus != nil {
+            Section("registration.waitlist.title") {
+                if !flow.waitlistAvailable {
+                    Text("registration.waitlist.disabled").foregroundStyle(.secondary)
+                } else {
+                    if flow.isReadingWaitlist || flow.isMutatingWaitlist { ProgressView("registration.waitlist.loading") }
+                    if flow.waitlistOutcomeUnknown { Text("registration.waitlist.unknown").foregroundStyle(.secondary) }
+                    if let status = flow.waitlistStatus {
+                        Text(LocalizedStringKey("registration.waitlist.state." + status.state.rawValue))
+                        if status.eligibility != .eligible {
+                            Text(LocalizedStringKey("registration.waitlist.eligibility." + status.eligibility.rawValue)).foregroundStyle(.secondary)
+                        }
+                        if status.state == .offered, let deadline = status.expiresAt {
+                            TimelineView(.periodic(from: .now, by: 1)) { context in
+                                if deadline > context.date {
+                                    LabeledContent("registration.waitlist.remaining") {
+                                        Text(timerInterval: context.date...deadline, countsDown: true).monospacedDigit()
+                                    }
+                                } else { Text("registration.waitlist.state.EXPIRED") }
+                            }
+                            Text("registration.waitlist.singleTicket").font(.caption).foregroundStyle(.secondary)
+                            Button("registration.waitlist.reviewOffer") { Task { await flow.reviewWaitlistOffer() } }
+                                .disabled(!flow.canEdit || flow.isReadingWaitlist)
+                                .accessibilityIdentifier("registration.waitlist.reviewOffer")
+                        }
+                        if status.registrationID != nil {
+                            Text("registration.waitlist.orderReadback").font(.caption).foregroundStyle(.secondary)
+                        }
+                    } else if flow.block == .waitlistUnavailable { Text("registration.waitlist.unavailable") }
+                    Button("registration.waitlist.refresh") { Task { await flow.loadWaitlist() } }
+                        .disabled(!flow.canEdit || flow.isReadingWaitlist)
+                        .accessibilityIdentifier("registration.waitlist.refresh")
+                    if flow.canJoinWaitlist {
+                        Button("registration.waitlist.join") { Task { await flow.joinWaitlist() } }
+                            .accessibilityIdentifier("registration.waitlist.join")
+                    }
+                    if flow.canCancelWaitlist {
+                        Button("registration.waitlist.cancel", role: .destructive) { Task { await flow.cancelWaitlist() } }
+                            .accessibilityIdentifier("registration.waitlist.cancel")
+                    }
+                }
+            } footer: { Text("registration.waitlist.noAutoPayment") }
+        }
+    }
     private var quoteSection: some View {
         Section {
             if !flow.quoteEnabled {
@@ -220,8 +287,21 @@ struct RegistrationSheetView: View {
     private var confirmationSection: some View {
         Section {
             if flow.creationPolicy.permitsCreation {
-                Toggle("registration.form.fixtureConsent", isOn: Binding(get: { flow.consented }, set: flow.setConsent))
+                if case .approved(let grant) = flow.creationPolicy {
+                    Link("registration.waitlist.legalNotice", destination: grant.noticeURL)
+                    if let complianceSignupDestination {
+                        NavigationLink { complianceSignupDestination() } label: { Text("compliance.title") }
+                    }
+                }
+                Toggle(LocalizedStringKey(flow.creationPolicy.isOfflineFixture ? "registration.form.fixtureConsent" : "registration.waitlist.reviewConsent"), isOn: Binding(get: { flow.consented }, set: flow.setConsent))
                     .disabled(!flow.canEdit).accessibilityIdentifier("registration.form.consent")
+                if case .approved = flow.creationPolicy {
+                    Button("registration.waitlist.recordConsent") { Task { await flow.recordSignupConsent() } }
+                        .disabled(!flow.canEdit || !flow.consented)
+                        .accessibilityIdentifier("registration.waitlist.recordConsent")
+                    if flow.isRecordingConsent { ProgressView("registration.waitlist.recordingConsent") }
+                    if flow.block == .missingConsent { Text("registration.waitlist.consentUnknown").foregroundStyle(.secondary) }
+                }
             } else {
                 Label("registration.form.creationDisabled", systemImage: "lock")
                     .accessibilityIdentifier("registration.form.creationDisabled")

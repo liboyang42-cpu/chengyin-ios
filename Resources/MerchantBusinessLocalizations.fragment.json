@@ -132,13 +132,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Read source records and prepare local drafts. Live business changes are disabled."
+          "value": "Read current records and review actions. Availability depends on scoped approval and current permissions."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "读取服务端记录并准备本地草稿。真实业务变更暂未启用。"
+          "value": "读取当前记录并预览操作。是否可提交取决于限定授权和当前权限。"
         }
       }
     }
@@ -235,6 +235,22 @@
         "stringUnit": {
           "state": "translated",
           "value": "选择服务端提供的岗位"
+        }
+      }
+    }
+  },
+  "merchant.business.confirmProduction": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Confirm action"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "确认操作"
         }
       }
     }
@@ -2443,6 +2459,22 @@
         "stringUnit": {
           "state": "translated",
           "value": "上一页"
+        }
+      }
+    }
+  },
+  "merchant.business.productionSaved": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Server response received"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已收到服务端回执"
         }
       }
     }

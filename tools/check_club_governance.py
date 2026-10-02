@@ -18,7 +18,7 @@ assert len(set(write_paths))==23
 assert not any('withdraw' in p or 'reconcile' in p for p in read_paths+write_paths)
 service=(root/'Core/ClubGovernanceService.swift').read_text()
 assert 'offlineRisks = []' in service
-assert 'guard offlineRisks.contains(command.operation.risk.rawValue)' in service
+assert 'guard permits(command)' in service
 assert 'try await transport.send(request)' in service
 assert 'guard snapshot == review.snapshot' in service
 assert 'session.storageNamespace == review.storageNamespace' in service

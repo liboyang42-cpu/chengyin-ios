@@ -3,19 +3,27 @@ import Foundation
 import FoundationNetworking
 #endif
 
-/// General mutations remain synthetic-only. The separate production verification transport
-/// admits only source verification paths and an independently scoped deployment grant.
+/// General writes and verification use separate typed production transports and grants.
+/// Ordinary construction remains read-only; test transport conformance never enables production.
 public protocol MerchantBusinessTestTransport: HTTPTransport {}
 public struct MerchantBusinessService {
     private let configuration: APIConfiguration
     private let readTransport: any HTTPTransport
     private let verificationTransport: MerchantVerificationHTTPTransport?
+    private let productionTransport: MerchantBusinessProductionTransport?
     private let mutationTransport: (any MerchantBusinessTestTransport)?
     public var canExecuteSyntheticMutation: Bool { mutationTransport != nil }
     public var canExecuteVerificationMutation: Bool { mutationTransport != nil || verificationTransport != nil }
     public var realm: String { configuration.baseURL.absoluteString }
     public init(configuration: APIConfiguration, readTransport: any HTTPTransport, testingMutationTransport: (any MerchantBusinessTestTransport)? = nil, verificationTransport: MerchantVerificationHTTPTransport? = nil) {
-        self.configuration = configuration; self.readTransport = readTransport; mutationTransport = testingMutationTransport; self.verificationTransport = verificationTransport
+        self.configuration = configuration; self.readTransport = readTransport; mutationTransport = testingMutationTransport; self.verificationTransport = verificationTransport; productionTransport = nil
+    }
+    init(productionConfiguration: APIConfiguration, productionTransport: MerchantBusinessProductionTransport) {
+        configuration = productionConfiguration; readTransport = productionTransport; self.productionTransport = productionTransport
+        verificationTransport = nil; mutationTransport = nil
+    }
+    @MainActor public func permits(_ mutation: MerchantBusinessMutation) -> Bool {
+        mutationTransport != nil || productionTransport?.permits(mutation) == true
     }
     public func makeRequest(_ descriptor: MerchantBusinessRequest, token: String) throws -> URLRequest {
         guard AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
@@ -59,11 +67,26 @@ public struct MerchantBusinessService {
         let body = try await envelope(query.request(), token: token, transport: readTransport)
         return try .init(query: query, payload: Self.unwrap(body))
     }
-    public func execute(_ mutation: MerchantBusinessMutation, requestID: String, token: String) async throws -> MerchantBusinessReceipt {
+    /// The legacy public command API remains test-only. Production callers must use
+    /// the reviewed coordinator path, which supplies a freshly verified snapshot.
+    @MainActor public func execute(_ mutation: MerchantBusinessMutation, requestID: String, token: String) async throws -> MerchantBusinessReceipt {
         guard let mutationTransport else { throw MerchantBusinessFailure.disabled }
         let descriptor = try mutation.request(requestID: requestID)
         let body = try await envelope(descriptor, token: token, transport: mutationTransport)
         return try .init(mutation: mutation, message: body.mbText("msg"), data: Self.unwrap(body))
+    }
+    @MainActor func executeReviewed(_ review: MerchantBusinessConfirmation, latest: MerchantBusinessSnapshot, token: String, authorization: MerchantBusinessDispatchAuthorization? = nil, check: () throws -> Void) async throws -> MerchantBusinessReceipt {
+        try check()
+        guard latest == review.baseline else { throw MerchantBusinessFailure.conflict }
+        try review.mutation.validate(in: latest.document, access: latest.access, roles: latest.roles)
+        guard let productionTransport else { return try await execute(review.mutation, requestID: review.requestID, token: token) }
+        guard productionTransport.permits(review.mutation, merchantID: latest.access.merchantID), let authorization else { throw MerchantBusinessFailure.disabled }
+        try productionTransport.authorize(authorization)
+        let descriptor = try review.mutation.request(requestID: review.requestID)
+        try check()
+        let body = try await envelope(descriptor, token: token, transport: productionTransport)
+        try check()
+        return try .init(mutation: review.mutation, message: body.mbText("msg"), data: Self.unwrap(body))
     }
     func verificationEnvelope(_ descriptor: MerchantBusinessRequest, token: String) async throws -> MerchantBusinessObject {
         if let verificationTransport { return try await envelope(descriptor, token: token, transport: verificationTransport) }

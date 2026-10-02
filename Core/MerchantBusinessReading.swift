@@ -28,13 +28,28 @@ public struct MerchantBusinessSnapshot: Equatable {
     var isConfigured: Bool { get }
     var isOfflineExample: Bool { get }
     var canExecuteSyntheticMutation: Bool { get }
+    var authorizationGeneration: UUID? { get }
+    var journalRealm: String? { get }
+    func canExecute(_ mutation: MerchantBusinessMutation, merchantID: Int) -> Bool
     var canExecuteVerificationMutation: Bool { get }
     func access() async throws -> MerchantBusinessAccess
     func cityNodeRedemption(journal: any MerchantBusinessIntentStore) -> CityNodeRedemptionCoordinator
     func snapshot(_ query: MerchantBusinessQuery) async throws -> MerchantBusinessSnapshot
     func execute(_ mutation: MerchantBusinessMutation, requestID: String, scope: MerchantBusinessScope) async throws -> MerchantBusinessReceipt
+    func execute(_ review: MerchantBusinessConfirmation, check: () throws -> Void) async throws -> MerchantBusinessReceipt
+    func execute(_ review: MerchantBusinessConfirmation, authorization: MerchantBusinessDispatchAuthorization, check: () throws -> Void) async throws -> MerchantBusinessReceipt
 }
 public extension MerchantBusinessReading {
+    var authorizationGeneration: UUID? { nil }
+    var journalRealm: String? { scope?.realm }
+    func canExecute(_ mutation: MerchantBusinessMutation, merchantID: Int) -> Bool { canExecuteSyntheticMutation }
+    func execute(_ review: MerchantBusinessConfirmation, check: () throws -> Void) async throws -> MerchantBusinessReceipt {
+        guard canExecuteSyntheticMutation else { throw MerchantBusinessFailure.disabled }
+        try check(); return try await execute(review.mutation, requestID: review.requestID, scope: review.scope)
+    }
+    func execute(_ review: MerchantBusinessConfirmation, authorization: MerchantBusinessDispatchAuthorization, check: () throws -> Void) async throws -> MerchantBusinessReceipt {
+        try authorization.consume(review); try check(); return try await execute(review.mutation, requestID: review.requestID, scope: review.scope)
+    }
     var canExecuteVerificationMutation: Bool { canExecuteSyntheticMutation }
     func cityNodeRedemption(journal: any MerchantBusinessIntentStore) -> CityNodeRedemptionCoordinator {
         .init(service: nil, journal: journal, currentSession: { nil })
@@ -44,6 +59,23 @@ public extension MerchantBusinessReading {
     private let service: MerchantBusinessService?
     private let verificationService: (() -> MerchantBusinessService?)?
     private let currentSession: () -> MerchantBusinessSession?
+    private let productionService: (MerchantBusinessMutation, Int) -> MerchantBusinessService?
+    private let runtimeContext: () -> RuntimeDependencyContext?
+    private var observedContext: RuntimeDependencyContext?
+    private var contextGeneration = UUID()
+    public var authorizationGeneration: UUID? {
+        let context = runtimeContext()
+        if context != observedContext { observedContext = context; contextGeneration = UUID() }
+        return context == nil ? nil : contextGeneration
+    }
+    public var journalRealm: String? {
+        guard let context = runtimeContext() else { return scope?.realm }
+        return "\(context.market)|\(context.baseURL.absoluteString)|\(context.session.namespace)"
+    }
+    public func canExecute(_ mutation: MerchantBusinessMutation, merchantID: Int) -> Bool {
+        if canExecuteSyntheticMutation { return service?.permits(mutation) == true }
+        return productionService(mutation, merchantID)?.permits(mutation) == true
+    }
     private let unauthorized: (MerchantBusinessSession) -> Void
     public var isConfigured: Bool { service != nil }
     public var isOfflineExample: Bool { service?.canExecuteSyntheticMutation == true }
@@ -53,8 +85,9 @@ public extension MerchantBusinessReading {
         guard let session = currentSession(), let service else { return nil }
         return .init(realm: service.realm, accountID: session.accountID, epoch: session.epoch)
     }
-    public init(service: MerchantBusinessService?, verificationService: (() -> MerchantBusinessService?)? = nil, currentSession: @escaping () -> MerchantBusinessSession?, onUnauthorized: @escaping (MerchantBusinessSession) -> Void = { _ in }) {
+    public init(service: MerchantBusinessService?, verificationService: (() -> MerchantBusinessService?)? = nil, currentSession: @escaping () -> MerchantBusinessSession?, productionService: @escaping (MerchantBusinessMutation, Int) -> MerchantBusinessService? = { _, _ in nil }, runtimeContext: @escaping () -> RuntimeDependencyContext? = { nil }, onUnauthorized: @escaping (MerchantBusinessSession) -> Void = { _ in }) {
         self.service = service; self.verificationService = verificationService; self.currentSession = currentSession; unauthorized = onUnauthorized
+        self.productionService = productionService; self.runtimeContext = runtimeContext
     }
     public func cityNodeRedemption(journal: any MerchantBusinessIntentStore) -> CityNodeRedemptionCoordinator {
         .init(service: verificationService?() ?? service, journal: journal, currentSession: currentSession, onUnauthorized: unauthorized)
@@ -74,6 +107,35 @@ public extension MerchantBusinessReading {
     public func execute(_ mutation: MerchantBusinessMutation, requestID: String, scope expected: MerchantBusinessScope) async throws -> MerchantBusinessReceipt {
         guard scope == expected else { throw MerchantBusinessFailure.stale }
         return try await read { try await $0.execute(mutation, requestID: requestID, token: $1.token) }
+    }
+    public func execute(_ review: MerchantBusinessConfirmation, check: () throws -> Void) async throws -> MerchantBusinessReceipt {
+        guard canExecuteSyntheticMutation else { throw MerchantBusinessFailure.disabled }
+        return try await executeReviewed(review, check: check)
+    }
+    public func execute(_ review: MerchantBusinessConfirmation, authorization: MerchantBusinessDispatchAuthorization, check: () throws -> Void) async throws -> MerchantBusinessReceipt {
+        try authorization.consume(review)
+        return try await executeReviewed(review, authorization: authorization, check: check)
+    }
+    private func executeReviewed(_ review: MerchantBusinessConfirmation, authorization: MerchantBusinessDispatchAuthorization? = nil, check: () throws -> Void) async throws -> MerchantBusinessReceipt {
+        try check()
+        guard scope == review.scope, authorizationGeneration == review.authorizationGeneration,
+              let session = currentSession() else { throw MerchantBusinessFailure.disabled }
+        // This final read happens after the durable reservation. Never trust a cached
+        // canRespond, allowedDecisions, employee role or optimistic version.
+        let latest = try await snapshot(review.baseline.document.query)
+        try check()
+        guard latest == review.baseline, scope == review.scope, currentSession() == session,
+              authorizationGeneration == review.authorizationGeneration else { throw MerchantBusinessFailure.conflict }
+        try review.mutation.validate(in: latest.document, access: latest.access, roles: latest.roles)
+        let candidate = canExecuteSyntheticMutation ? service : (productionService(review.mutation, latest.access.merchantID) ?? service)
+        guard let selected = candidate, selected.permits(review.mutation) else { throw MerchantBusinessFailure.disabled }
+        try check()
+        do {
+            return try await selected.executeReviewed(review, latest: latest, token: session.token, authorization: authorization, check: check)
+        } catch {
+            if currentSession() == session, error as? APIError == .unauthorized { unauthorized(session) }
+            throw error
+        }
     }
     private func read<Value>(_ block: (MerchantBusinessService, MerchantBusinessSession) async throws -> Value) async throws -> Value {
         guard let session = currentSession() else { throw APIError.unauthorized }

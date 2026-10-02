@@ -3,7 +3,7 @@ import Foundation
 public enum RegistrationUIParticipantsState: Equatable { case idle, loading, received, unavailable }
 public enum RegistrationUIBlock: Equatable {
     case sessionChanged, quotingDisabled, creationDisabled, invalidForm, missingConsent
-    case soldOut, quoteUnavailable, confirmationChanged, intentAlreadySubmitted
+    case soldOut, quoteUnavailable, confirmationChanged, intentAlreadySubmitted, waitlistUnavailable
 }
 
 /// Immutable review snapshot. This is local UI confirmation, not legal consent evidence.
@@ -36,6 +36,18 @@ public final class RegistrationUIFlow {
     public private(set) var isQuoting = false
     public private(set) var isSubmitting = false
     public private(set) var isReadingStatus = false
+    public private(set) var waitlistStatus: RegistrationWaitlistStatus?
+    public private(set) var isRecordingConsent = false
+    public private(set) var isReadingWaitlist = false
+    public private(set) var isMutatingWaitlist = false
+    public private(set) var waitlistOutcomeUnknown = false
+    public private(set) var durableCreation: RegistrationDurableCreation = .none
+    public private(set) var durableStatus: RegistrationStatusSnapshot?
+    public private(set) var activeWaitlistOffer: RegistrationWaitlistOffer?
+    private let waitlistService: (any RegistrationWaitlistServing)?
+    private let now: () -> Date
+    private var quoteReceivedAt: Date?
+    private var waitlistGeneration: UInt64 = 0
     private let participantReader: (any ProfileReading)?
     private let currentIdentity: () -> ProfileReadIdentity?
     private let onReadback: (RegistrationStatusSnapshot) -> Void
@@ -49,8 +61,10 @@ public final class RegistrationUIFlow {
                 participantReader: (any ProfileReading)? = nil,
                 currentIdentity: @escaping () -> ProfileReadIdentity?, quoteEnabled: Bool = false,
                 creationPolicy: RegistrationUICreationPolicy = .disabled,
+                waitlistService: (any RegistrationWaitlistServing)? = nil, now: @escaping () -> Date = Date.init,
                 onReadback: @escaping (RegistrationStatusSnapshot) -> Void = { _ in }) {
         self.activity = activity; self.coordinator = coordinator
+        self.waitlistService = waitlistService; self.now = now
         self.participantReader = participantReader; self.currentIdentity = currentIdentity
         self.quoteEnabled = quoteEnabled; self.creationPolicy = creationPolicy; self.onReadback = onReadback
     }
@@ -63,7 +77,7 @@ public final class RegistrationUIFlow {
     public var retainedForAnotherActivity: Bool {
         hasRetainedIntent && coordinator.retainedIntent?.selection.ownerID != activity.summary.id
     }
-    public var canEdit: Bool { hasCurrentSession && !hasRetainedIntent && !isSubmitting }
+    public var canEdit: Bool { hasCurrentSession && !hasRetainedIntent && !isSubmitting && !isMutatingWaitlist && !isRecordingConsent && durableCreation == .none }
     public var selectedTicket: ActivityTicket? { activity.tickets.first { $0.id == selectedTicketID } }
     public var quoteState: RegistrationQuoteState {
         hasCurrentSession && coordinator.selection == expectedSelection ? coordinator.quoteState : .idle
@@ -77,9 +91,13 @@ public final class RegistrationUIFlow {
     }
     public var confirmationBlock: RegistrationUIBlock? {
         if !hasCurrentSession { return .sessionChanged }
-        if hasRetainedIntent { return .intentAlreadySubmitted }
-        if !creationPolicy.permitsCreation { return .creationDisabled }
-        if selectedTicket?.isSoldOut == true { return .soldOut }
+        if hasRetainedIntent || durableCreation != .none { return .intentAlreadySubmitted }
+        if !creationPolicy.permits(identity: openedIdentity, activityID: activity.summary.id, ticketID: selectedTicketID, now: now()) { return .creationDisabled }
+        if isRecordingConsent { return .missingConsent }
+        if isReadingWaitlist || isMutatingWaitlist || waitlistOutcomeUnknown { return .waitlistUnavailable }
+        if activeWaitlistOffer != nil && !hasActiveWaitlistOffer { return .soldOut }
+        if selectedTicket?.isSoldOut == true && !hasActiveWaitlistOffer { return .soldOut }
+        if case .approved = creationPolicy, quoteReceivedAt.map({ now().timeIntervalSince($0) >= 0 && now().timeIntervalSince($0) < 120 }) != true { return .quoteUnavailable }
         if draft.validation != nil { return .invalidForm }
         if !consented { return .missingConsent }
         if isQuoting || !coordinator.canConfirm { return .quoteUnavailable }
@@ -98,6 +116,7 @@ public final class RegistrationUIFlow {
             selectedTicketID = activity.tickets.first?.id; usePoints = false
             applySelection()
         }
+        refreshCreationLock()
         changed()
     }
     public func setName(_ value: String) {
@@ -135,7 +154,7 @@ public final class RegistrationUIFlow {
     @discardableResult public func selectTicket(id: Int?) -> Bool {
         guard canEdit, (id == nil ? activity.tickets.isEmpty : activity.tickets.contains(where: { $0.id == id })) else { return false }
         guard selectedTicketID != id else { return false }
-        selectedTicketID = id; applySelection(); changed(); return true
+        selectedTicketID = id; resetWaitlist(); refreshCreationLock(); applySelection(); changed(); return true
     }
     @discardableResult public func setUsePoints(_ value: Bool) -> Bool {
         guard canEdit, value != usePoints else { return false }
@@ -176,7 +195,9 @@ public final class RegistrationUIFlow {
         isQuoting = true; invalidateConfirmation(); changed()
         _ = await coordinator.requestQuote()
         guard matches(stamp, identity), quoteStamp == quoteGeneration else { return }
-        isQuoting = false; changed()
+        isQuoting = false
+        if case .received = coordinator.quoteState { quoteReceivedAt = now() }
+        changed()
     }
     @discardableResult public func prepareConfirmation() -> Bool {
         if let reason = confirmationBlock { block = reason; changed(); return false }
@@ -200,7 +221,7 @@ public final class RegistrationUIFlow {
         guard creationPolicy.permitsCreation else { block = .creationDisabled; changed(); return }
         let stamp = generation, identity = openedIdentity
         confirmation = nil; isSubmitting = true; changed()
-        _ = await coordinator.confirm(review.draft.participantDetails)
+        _ = await coordinator.confirm(review.draft.details(waitlistOffer: review.selection.waitlistOffer))
         guard matches(stamp, identity) else { return }
         isSubmitting = false; changed()
     }
@@ -220,11 +241,117 @@ public final class RegistrationUIFlow {
         generation &+= 1; quoteGeneration &+= 1; participantGeneration &+= 1
         clearForm(); openedIdentity = nil; changed()
     }
+    private func refreshCreationLock() {
+        durableStatus = nil
+        guard case .approved = creationPolicy, let service = waitlistService as? any RegistrationPendingServing, let scope = waitlistScope else { durableCreation = .none; return }
+        do { durableCreation = try service.creationLock(scope) }
+        catch { durableCreation = .pending(registrationID: nil) }
+    }
+    public func readDurableStatus() async {
+        guard hasCurrentSession, !isReadingStatus, case .pending(let id) = durableCreation, id != nil,
+              let scope = waitlistScope, let service = waitlistService as? any RegistrationPendingServing else { return }
+        let stamp = generation, identity = openedIdentity
+        isReadingStatus = true; changed()
+        do {
+            let snapshot = try await service.readRetainedStatus(scope)
+            guard matches(stamp, identity), waitlistScope == scope, !Task.isCancelled else { return }
+            guard snapshot.registrationID == id else { throw APIError.malformedResponse }
+            durableStatus = snapshot; onReadback(snapshot)
+        } catch { guard matches(stamp, identity) else { return }; block = .quoteUnavailable }
+        isReadingStatus = false; changed()
+    }
+    public var waitlistAvailable: Bool { waitlistService != nil && selectedTicketID != nil }
+    public var hasActiveWaitlistOffer: Bool {
+        guard let activeWaitlistOffer, let waitlistStatus, let scope = waitlistScope else { return false }
+        return waitlistStatus.offer(at: now()) == activeWaitlistOffer && waitlistStatus.matches(scope, accountID: openedIdentity?.accountID ?? 0)
+    }
+    public var canJoinWaitlist: Bool { canEdit && !isReadingWaitlist && !waitlistOutcomeUnknown && waitlistStatus?.canJoin == true && selectedTicket?.isSoldOut == true }
+    public var canCancelWaitlist: Bool { canEdit && !isReadingWaitlist && !waitlistOutcomeUnknown && waitlistStatus?.canCancel == true }
+    private var waitlistScope: RegistrationWaitlistScope? {
+        guard let selectedTicketID else { return nil }
+        return try? .init(activityID: activity.summary.id, ticketID: selectedTicketID)
+    }
+    /// A fresh authoritative read stays in the existing form; never auto-claims or pays.
+    public func loadWaitlist() async {
+        guard canEdit, !isReadingWaitlist, let scope = waitlistScope, let waitlistService else { return }
+        waitlistGeneration &+= 1
+        let stamp = generation, waitlistStamp = waitlistGeneration, identity = openedIdentity
+        isReadingWaitlist = true; invalidateConfirmation(); changed()
+        do {
+            let result = try await waitlistService.status(scope)
+            guard matches(stamp, identity), waitlistStamp == waitlistGeneration, waitlistScope == scope, !Task.isCancelled else { return }
+            guard result.matches(scope, accountID: identity?.accountID ?? 0) else { throw APIError.malformedResponse }
+            waitlistStatus = result; waitlistOutcomeUnknown = false
+            if let activeWaitlistOffer, result.offer(at: now()) != activeWaitlistOffer {
+                self.activeWaitlistOffer = nil; consented = false; applySelection()
+            }
+        } catch {
+            guard matches(stamp, identity), waitlistStamp == waitlistGeneration else { return }
+            waitlistStatus = nil; activeWaitlistOffer = nil; consented = false; applySelection()
+            if error is RegistrationPendingFailure { waitlistOutcomeUnknown = true }
+            block = .waitlistUnavailable
+        }
+        guard matches(stamp, identity), waitlistStamp == waitlistGeneration else { return }
+        isReadingWaitlist = false; changed()
+    }
+    public func recordSignupConsent() async {
+        guard canEdit, consented, case .approved = creationPolicy,
+              let scope = waitlistScope, let service = waitlistService as? any RegistrationLegalServing else { return }
+        let stamp = generation, identity = openedIdentity
+        isRecordingConsent = true; invalidateConfirmation(); changed()
+        do {
+            try await service.agreeToSignupNotice(scope)
+            guard matches(stamp, identity), waitlistScope == scope, !Task.isCancelled else { return }
+            isRecordingConsent = false; changed()
+            await requestQuote()
+        } catch {
+            guard matches(stamp, identity) else { return }
+            isRecordingConsent = false; block = .missingConsent; changed()
+        }
+    }
+    public func joinWaitlist() async { guard canJoinWaitlist else { return }; await mutateWaitlist(join: true) }
+    public func cancelWaitlist() async { guard canCancelWaitlist else { return }; await mutateWaitlist(join: false) }
+    private func mutateWaitlist(join: Bool) async {
+        guard let scope = waitlistScope, let waitlistService else { return }
+        let stamp = generation, identity = openedIdentity
+        isMutatingWaitlist = true; activeWaitlistOffer = nil; consented = false; applySelection(); changed()
+        do {
+            let result: RegistrationWaitlistStatus
+            if join { result = try await waitlistService.join(scope) }
+            else { result = try await waitlistService.cancel(scope) }
+            guard matches(stamp, identity), waitlistScope == scope, !Task.isCancelled else { return }
+            guard result.matches(scope, accountID: identity?.accountID ?? 0) else { throw APIError.malformedResponse }
+            waitlistStatus = result; waitlistOutcomeUnknown = false
+        } catch {
+            guard matches(stamp, identity) else { return }
+            waitlistStatus = nil; waitlistOutcomeUnknown = true; block = .waitlistUnavailable
+        }
+        guard matches(stamp, identity) else { return }
+        isMutatingWaitlist = false; changed()
+    }
+    public func reviewWaitlistOffer() async {
+        guard canEdit, !isReadingWaitlist else { return }
+        let scope = waitlistScope, identity = openedIdentity, stamp = generation
+        await loadWaitlist()
+        guard matches(stamp, identity), waitlistScope == scope, canEdit, !waitlistOutcomeUnknown, let offer = waitlistStatus?.offer(at: now()) else { return }
+        activeWaitlistOffer = offer; consented = false; applySelection(); changed()
+        await requestQuote()
+    }
+    /// Local countdown expiry only removes capability; only the backend releases inventory.
+    public func checkWaitlistDeadline() {
+        if activeWaitlistOffer != nil && !hasActiveWaitlistOffer {
+            activeWaitlistOffer = nil; consented = false; applySelection(); changed()
+        }
+    }
+    private func resetWaitlist() {
+        waitlistGeneration &+= 1; waitlistStatus = nil; activeWaitlistOffer = nil; consented = false
+        waitlistOutcomeUnknown = false; isReadingWaitlist = false; isMutatingWaitlist = false; isRecordingConsent = false
+    }
     private var expectedSelection: RegistrationQuoteRequest? {
-        try? RegistrationQuoteRequest(ownerID: activity.summary.id, ticketID: selectedTicketID, usePoints: usePoints)
+        try? RegistrationQuoteRequest(ownerID: activity.summary.id, ticketID: selectedTicketID, usePoints: usePoints, waitlistOffer: activeWaitlistOffer)
     }
     private func applySelection() {
-        quoteGeneration &+= 1; isQuoting = false; invalidateConfirmation()
+        quoteGeneration &+= 1; isQuoting = false; quoteReceivedAt = nil; invalidateConfirmation()
         if let selection = expectedSelection { _ = coordinator.select(selection) }
     }
     private func applyParticipant(_ participant: ProfileParticipant) {
@@ -236,6 +363,7 @@ public final class RegistrationUIFlow {
     }
     private func invalidateConfirmation() { confirmation = nil; block = nil }
     private func clearForm() {
+        resetWaitlist(); quoteReceivedAt = nil; durableCreation = .none; durableStatus = nil
         draft = .init(); participants = []; participantsState = .idle; selectedParticipantID = nil
         selectedTicketID = nil; usePoints = false; consented = false; confirmation = nil; block = nil
         manuallyEdited = false; isQuoting = false; isSubmitting = false; isReadingStatus = false

@@ -29,7 +29,7 @@ import UIKit
                         guard let self, self.generation == token, let continuation = self.pending else { return }
                         self.pending = nil
                         if let error { continuation.resume(throwing: error) }
-                        else if let data, !data.isEmpty { continuation.resume(returning: data.base64EncodedString()) }
+                        else if let data, (1...4096).contains(data.count) { continuation.resume(returning: data.base64EncodedString()) }
                         else { continuation.resume(throwing: NativePlatformIssue.invalidContract) }
                     }
                 }

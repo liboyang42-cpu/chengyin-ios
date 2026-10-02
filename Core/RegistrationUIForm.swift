@@ -20,26 +20,41 @@ public struct RegistrationUIFormDraft: Equatable {
         }
         return nil
     }
-    public var participantDetails: RegistrationParticipantDetails {
-        RegistrationParticipantDetails(realName: trimmedName, phone: trimmedPhone)
+    public var participantDetails: RegistrationParticipantDetails { details(waitlistOffer: nil) }
+    public func details(waitlistOffer: RegistrationWaitlistOffer?) -> RegistrationParticipantDetails {
+        RegistrationParticipantDetails(realName: trimmedName, phone: trimmedPhone, waitlistOffer: waitlistOffer)
     }
 }
 
 public enum RegistrationUIValidation: Equatable { case nameRequired, phoneRequired, invalidPhone }
 
-/// No production-enabled case exists. A UI checkbox is not a server consent receipt,
-/// and in-memory intent retention is not adequate for live checkout after a restart.
+/// UI confirmation is separate from the current server consent receipt. The production
+/// service independently checks the scoped grant and maintains a durable replay lock.
 public enum RegistrationUICreationPolicy: Equatable {
     case disabled
+    case approved(RegistrationProductionApproval)
     #if DEBUG
     case offlineFixture
     #endif
     public var permitsCreation: Bool {
+        switch self {
+        case .disabled: return false
+        case .approved(let grant): return Date() < grant.expiresAt
+        #if DEBUG
+        case .offlineFixture: return true
+        #endif
+        }
+    }
+    public var isOfflineFixture: Bool {
         #if DEBUG
         return self == .offlineFixture
         #else
         return false
         #endif
+    }
+    public func permits(identity: ProfileReadIdentity?, activityID: Int, ticketID: Int?, now: Date) -> Bool {
+        if case .approved(let grant) = self { return grant.permits(identity: identity, activityID: activityID, ticketID: ticketID, now: now) }
+        return isOfflineFixture
     }
 }
 

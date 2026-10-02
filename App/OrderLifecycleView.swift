@@ -7,7 +7,8 @@ import SwiftUI
     func load(id: Int) async { revision += 1; await coordinator.load(id: id); revision += 1 }
     func prepare(_ action: OrderLifecycleAction, orderID: Int) { coordinator.prepare(action, orderID: orderID); revision += 1 }
     func dismiss() { coordinator.dismissReview(); revision += 1 }
-    func invalidate() { coordinator.invalidateVisible(); revision += 1 }
+    func closePayment() { coordinator.closePaymentReturn(); revision += 1 }
+    func invalidate() { coordinator.becameInactive(); revision += 1 }
     func confirm(_ id: UUID) async { revision += 1; await coordinator.confirm(reviewID: id); revision += 1 }
 }
 
@@ -46,7 +47,7 @@ import SwiftUI
                     }.accessibilityIdentifier("orderLifecycle.pass.open")
                 }
             }
-            Section { Text("orderLifecycle.hardOff").font(.footnote).foregroundStyle(.secondary) }
+            Section { Text("orderLifecycle.production.caution").font(.footnote).foregroundStyle(.secondary) }
         }
         .listStyle(.insetGrouped)
         .appNavigationTitle("orderLifecycle.title")
@@ -63,11 +64,14 @@ import SwiftUI
         .onDisappear { model.dismiss() }
         .onChange(of: phase) { _, value in
             if value != .active { model.invalidate() }
-            else { Task { await model.load(id: id) } }
+            else if !coordinator.isWaitingForPaymentProvider && coordinator.paymentReturn == nil { Task { await model.load(id: id) } }
         }
         .sheet(item: Binding(get: { coordinator.review }, set: { if $0 == nil { model.dismiss() } })) { review in
-            OrderLifecycleReviewView(review: review, canSimulate: coordinator.canSimulate,
+            OrderLifecycleReviewView(review: review, canSimulate: coordinator.canSimulate, canDispatch: coordinator.canDispatch,
                 confirm: { Task { await model.confirm(review.id) } }, close: model.dismiss)
+        }
+        .sheet(item: Binding(get: { coordinator.paymentReturn }, set: { if $0 == nil { model.closePayment() } })) { flow in
+            PaymentProviderReturnSheet(flow: flow) { _ in model.closePayment() }
         }
         .accessibilityIdentifier("orderLifecycle.detail")
     }
@@ -126,14 +130,20 @@ import SwiftUI
                 if OrderLifecycleCoordinator.isReviewable(action, detail: detail) {
                     Button { model.prepare(action, orderID: id) } label: { Text(LocalizedStringKey("orderLifecycle.review." + action.rawValue)) }
                         .accessibilityIdentifier("orderLifecycle.review." + action.rawValue)
-                        .disabled(coordinator.attempt(orderID: detail.id) != nil)
+                        .disabled(coordinator.isAttemptBlocking(action, orderID: detail.id))
                 }
             }
             if let attempt = coordinator.attempt(orderID: detail.id) {
                 switch attempt {
                 case .submitted: ProgressView("orderLifecycle.attempt.submitted")
                 case .outcomeUnknown: Text("orderLifecycle.attempt.unknown").accessibilityIdentifier("orderLifecycle.attempt.unknown")
+                case .acknowledged:
+                    Text("orderLifecycle.production.acknowledged")
+                    if let message = coordinator.serverMessage { Text(verbatim: message) }
+                case .paymentObserved(_, let observation):
+                    Text(LocalizedStringKey("orderLifecycle.payment." + observation.rawValue))
                 case .responseReceived(_, let observation):
+                    if let message = coordinator.serverMessage { Text(verbatim: message) }
                     Text("orderLifecycle.attempt.received").accessibilityIdentifier("orderLifecycle.attempt.received")
                     OrderLifecycleField(label: "orderLifecycle.attempt.cancellation", value: observation.cancellationStatus)
                     OrderLifecycleField(label: "orderLifecycle.attempt.cash", value: observation.cashRefundStatus)
@@ -161,6 +171,7 @@ struct OrderLifecycleField: View {
 @MainActor private struct OrderLifecycleReviewView: View {
     let review: OrderLifecycleReview
     let canSimulate: Bool
+    let canDispatch: Bool
     let confirm: () -> Void
     let close: () -> Void
     var body: some View {
@@ -176,8 +187,11 @@ struct OrderLifecycleField: View {
                 Section {
                     Text("orderLifecycle.review.snapshot")
                     Text("orderLifecycle.refund.caution")
-                    Text("orderLifecycle.hardOff").font(.footnote).foregroundStyle(.secondary)
-                    if canSimulate && review.action != .payment {
+                    Text("orderLifecycle.production.caution").font(.footnote).foregroundStyle(.secondary)
+                    if canDispatch {
+                        Button(LocalizedStringKey("orderLifecycle.production.confirm." + review.action.rawValue), action: confirm)
+                            .accessibilityIdentifier("orderLifecycle.review.confirmProduction")
+                    } else if canSimulate && review.action != .payment {
                         Button("orderLifecycle.review.simulate", action: confirm).accessibilityIdentifier("orderLifecycle.review.confirmFixture")
                     } else {
                         Button("orderLifecycle.review.disabled", action: {}).disabled(true).accessibilityIdentifier("orderLifecycle.review.disabled")

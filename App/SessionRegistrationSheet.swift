@@ -9,6 +9,8 @@ import SwiftUI
                               participantReader:session.profileReader,
                               participantCoordinator:session.participantCoordinator,
                               currentIdentity:{ session.profileReader.identity },
-                              quoteEnabled:session.isConfigured,creationPolicy:.disabled)
+                              quoteEnabled:session.isConfigured,
+                              creationPolicy:session.registrationCreationPolicy(activityID:activity.summary.id),
+                              waitlistService:session.registrationWaitlistService(activityID:activity.summary.id))
     }
 }

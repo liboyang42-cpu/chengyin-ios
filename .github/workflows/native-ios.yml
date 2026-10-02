@@ -11,12 +11,19 @@ concurrency:
   cancel-in-progress: true
 jobs:
   native:
+    name: native-products
     runs-on: macos-26
-    timeout-minutes: 25
+    # Bounded headroom for Core, source-built GLTF, test bundles and packaging.
+    timeout-minutes: 15
+    outputs:
+      build_fingerprint: ${{ steps.identity.outputs.build_fingerprint }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
+      - name: Bind builder to exact checked-out SHA and Apple toolchain
+        id: identity
+        run: python3 tools/ci_gates.py fingerprint --github-output "$GITHUB_OUTPUT"
       - name: Record Apple toolchain
         run: |
           xcodebuild -version
@@ -84,6 +91,22 @@ jobs:
           if-no-files-found: error
           retention-days: 1
           compression-level: 0
+  device-build:
+    needs: native
+    runs-on: macos-26
+    # Cold VM and full SDK-specific source compilation; no cross-SDK cache.
+    timeout-minutes: 10
+    env:
+      EXPECTED_BUILD_FINGERPRINT: ${{ needs.native.outputs.build_fingerprint }}
+    outputs:
+      build_fingerprint: ${{ steps.identity.outputs.build_fingerprint }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Verify exact builder SHA and Apple toolchain before work
+        id: identity
+        run: python3 tools/ci_gates.py verify-build --github-output "$GITHUB_OUTPUT"
       - name: Compile iOS device app (unsigned)
         run: |
           xcodebuild -project Questify.xcodeproj -scheme Questify \
@@ -91,6 +114,22 @@ jobs:
             -destination 'generic/platform=iOS' \
             -derivedDataPath "$RUNNER_TEMP/questify-device" \
             CODE_SIGNING_ALLOWED=NO build
+  us-build:
+    needs: native
+    runs-on: macos-26
+    # Cold VM and full SDK-specific source compilation; no cross-SDK cache.
+    timeout-minutes: 10
+    env:
+      EXPECTED_BUILD_FINGERPRINT: ${{ needs.native.outputs.build_fingerprint }}
+    outputs:
+      build_fingerprint: ${{ steps.identity.outputs.build_fingerprint }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Verify exact builder SHA and Apple toolchain before work
+        id: identity
+        run: python3 tools/ci_gates.py verify-build --github-output "$GITHUB_OUTPUT"
       - name: Compile US regional profile (unsigned)
         run: |
           xcodebuild -project Questify.xcodeproj -scheme Questify \
@@ -128,12 +167,19 @@ jobs:
           gitleaks git --redact --exit-code=2 --log-opts="--full-history -m HEAD"
   app-unit-tests:
     needs: native
+    env:
+      EXPECTED_BUILD_FINGERPRINT: ${{ needs.native.outputs.build_fingerprint }}
+    outputs:
+      build_fingerprint: ${{ steps.identity.outputs.build_fingerprint }}
     runs-on: macos-26
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
+      - name: Verify exact builder SHA and Apple toolchain before work
+        id: identity
+        run: python3 tools/ci_gates.py verify-build --github-output "$GITHUB_OUTPUT"
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
           name: test-products-${{ github.sha }}
@@ -184,6 +230,15 @@ jobs:
       matrix:
         shard: [0, 1, 2, 3, 4, 5]
     needs: native
+    env:
+      EXPECTED_BUILD_FINGERPRINT: ${{ needs.native.outputs.build_fingerprint }}
+    outputs:
+      shard_0: ${{ steps.completion.outputs.shard_0 }}
+      shard_1: ${{ steps.completion.outputs.shard_1 }}
+      shard_2: ${{ steps.completion.outputs.shard_2 }}
+      shard_3: ${{ steps.completion.outputs.shard_3 }}
+      shard_4: ${{ steps.completion.outputs.shard_4 }}
+      shard_5: ${{ steps.completion.outputs.shard_5 }}
     runs-on: macos-26
     # Run49 spent 9–13 minutes on setup/build/launch before executing methods.
     # Reuse products; keep a bounded margin for the full shard and result export.
@@ -192,6 +247,9 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
+      - name: Verify exact builder SHA and Apple toolchain before work
+        id: identity
+        run: python3 tools/ci_gates.py verify-build --github-output "$GITHUB_OUTPUT"
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
           name: test-products-${{ github.sha }}
@@ -248,3 +306,21 @@ jobs:
           if-no-files-found: warn
           retention-days: 1
           compression-level: 0
+      - name: Record successful exact-build UI shard completion
+        id: completion
+        run: python3 tools/ci_gates.py complete-ui --shard ${{ matrix.shard }} --github-output "$GITHUB_OUTPUT"
+  required-native-gates:
+    # Keep the pre-split required check name on the complete aggregate.
+    name: native
+    if: ${{ always() }}
+    needs: [native, device-build, us-build, secrets, app-unit-tests, ui-tests]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Require every same-SHA native gate and UI shard to succeed
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+        run: python3 tools/ci_gates.py aggregate

@@ -46,8 +46,8 @@ struct ClubGovernanceCommandForm: View {
                 Section("club.gov.review") {
                     ClubGovernanceFactRows(value: .object(review.command.fields), fields: Array(review.command.fields.keys).sorted(), showUnknown: true)
                     if route.operation == .sendNotification { ClubGovernanceFactRows(value: review.snapshot.value, fields: ["recipientCount", "inApp", "wechatSubscription"]) }
-                    Button("club.gov.confirmOffline") { Task { await confirm(review) } }
-                        .disabled(!access.allowsOfflineWrites || busy || locked).accessibilityIdentifier("club.gov.confirm")
+                    Button(access.allowsOfflineWrites ? "club.gov.confirmOffline" : "club.gov.confirmProduction") { Task { await confirm(review) } }
+                        .disabled(!access.canDispatch(review.command) || busy || locked).accessibilityIdentifier("club.gov.confirm")
                     Button("club.gov.cancelReview") { self.review = nil; coordinator.cancelReview() }.disabled(busy)
                 }
             } else if receipt == nil {

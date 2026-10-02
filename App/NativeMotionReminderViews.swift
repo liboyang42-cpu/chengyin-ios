@@ -10,10 +10,14 @@ import SwiftUI
             Label("nativePlatform.steps.title", systemImage: "figure.walk").font(.title2.bold())
             Text("nativePlatform.steps.boundary").font(.footnote)
             if let goal = segment["goal"].integer { LabeledContent("playkit.walk.goal") { Text(verbatim: String(goal)) } }
+            if let enrollment = runtime?.enrollment {
+                NavigationLink("nativeEnrollment.manage") { NativeEnrollmentView(model: enrollment, privacyURL: runtime?.acceptance.privacyNoticeURL) }
+                    .accessibilityIdentifier("nativeEnrollment.open")
+            }
             if let stage, let runtime { NativeStepsControls(stage: stage, advanced: advanced, privacyURL: runtime.acceptance.privacyNoticeURL) }
             else { Label("nativePlatform.disabled", systemImage: "lock.shield").accessibilityIdentifier("nativePlatform.steps.disabled") }
         }.accessibilityIdentifier("nativePlatform.steps.host")
-        .task(id: advanced.state?.sessionID) { if let id = advanced.state?.sessionID { stage = runtime?.stepModel(for: id) } }
+        .task(id: advanced.state?.sessionID) { await runtime?.enrollment?.load(); if let id = advanced.state?.sessionID { stage = runtime?.stepModel(for: id) } }
     }
 }
 

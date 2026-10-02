@@ -50,11 +50,13 @@ import Observation
         guard current() == owner, phase == "review", pending == nil, let challenge, let reading else { return }
         let token = generation; phase = "signing"
         do {
+            guard assertion.deviceKeyID == challenge.deviceKeyID else { throw NativePlatformIssue.staleSession }
             try validateClock(); try challenge.validate(reading, now: now())
             let key = UUID().uuidString
             let data = try NativeStepCanonical.clientData(challenge: challenge, reading: reading, idempotencyKey: key)
             let signature = try await assertion.assertion(clientData: data)
             guard current() == owner, generation == token, !Task.isCancelled else { throw NativePlatformIssue.staleSession }
+            guard assertion.deviceKeyID == challenge.deviceKeyID else { throw NativePlatformIssue.staleSession }
             try validateClock(); try challenge.validate(reading, now: now())
             var payload = challenge.unsignedPayload(reading); payload["assertion"] = .string(signature)
             pending = try NativePlatformPending(sessionID: challenge.sessionID, version: challenge.sessionVersion,

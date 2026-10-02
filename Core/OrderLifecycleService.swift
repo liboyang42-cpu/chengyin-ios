@@ -58,10 +58,11 @@ public struct OrderLifecycleService {
 public struct OrderLifecycleSession: Equatable {
     public let accountID: Int
     public let epoch: UInt64
+    public let contextID: String
     fileprivate let token: String
-    public init(accountID: Int, epoch: UInt64, token: String) throws {
+    public init(accountID: Int, epoch: UInt64, token: String, contextID: String = "") throws {
         guard accountID > 0, AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
-        self.accountID = accountID; self.epoch = epoch; self.token = token
+        self.accountID = accountID; self.epoch = epoch; self.token = token; self.contextID = contextID
     }
 }
 @MainActor public protocol OrderLifecycleReading: AnyObject {

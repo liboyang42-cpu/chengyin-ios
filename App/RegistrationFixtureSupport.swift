@@ -4,6 +4,8 @@ import SwiftUI
 enum RegistrationFixtureScenario: String, CaseIterable {
     case standard, noPaymentParameters, unknownAmounts, quoteError, participantsError
     case createTimeout, readbackError, conflictingStatus, soldOut, disabled
+    case waitlistWaiting, waitlistOffer
+    var isWaitlist: Bool { self == .waitlistWaiting || self == .waitlistOffer }
     static func selected(arguments: [String]) -> Self? {
         guard let index = arguments.firstIndex(of: "--uitesting-registration-fixture"),
               arguments.indices.contains(index + 1) else { return nil }
@@ -14,12 +16,14 @@ enum RegistrationFixtureScenario: String, CaseIterable {
 /// Explicit offline fixtures only. Every response is in-memory synthetic JSON. No URL,
 /// HTTP transport, production credential, consent endpoint or payment SDK is referenced.
 @MainActor
-private final class RegistrationFixtureStore: RegistrationCoordinatingService, ProfileReading {
+private final class RegistrationFixtureStore: RegistrationCoordinatingService, ProfileReading, RegistrationWaitlistServing {
     let scenario: RegistrationFixtureScenario
     let isConfigured = true
     let identity: ProfileReadIdentity? = .init(accountID: 9400, epoch: 1)
+    private var waitlistState = "NONE"
+    private let offerDeadline = ISO8601DateFormatter().string(from: Date().addingTimeInterval(3600))
     private var quotes = 0
-    init(_ scenario: RegistrationFixtureScenario) { self.scenario = scenario }
+    init(_ scenario: RegistrationFixtureScenario) { self.scenario = scenario; if scenario == .waitlistOffer { waitlistState = "OFFERED" } }
     func quote(_ selection: RegistrationQuoteRequest, token: String) async throws -> RegistrationQuote {
         quotes += 1
         if scenario == .quoteError, quotes == 1 { throw URLError(.notConnectedToInternet) }
@@ -33,6 +37,10 @@ private final class RegistrationFixtureStore: RegistrationCoordinatingService, P
         """)
     }
     func create(_ intent: RegistrationCreateIntent, token: String) async throws -> RegistrationCreateResult {
+        if scenario == .waitlistOffer {
+            guard intent.selection.waitlistOffer == intent.waitlistOffer, intent.waitlistOffer?.id == 9405,
+                  intent.waitlistOffer?.token == "offline-only-offer" else { throw APIError.invalidRequest }
+        }
         if scenario == .createTimeout { throw URLError(.timedOut) }
         if scenario == .noPaymentParameters || intent.selection.ticketID == 9403 {
             return try decode(#"{"registrationId":9401,"registrationNo":"OFFLINE-9401","payableAmount":0}"#)
@@ -45,6 +53,17 @@ private final class RegistrationFixtureStore: RegistrationCoordinatingService, P
         if scenario == .readbackError { throw URLError(.notConnectedToInternet) }
         if scenario == .conflictingStatus { return try decode(#"{"id":9401,"registrationStatus":3,"paymentStatus":2,"verificationStatus":0}"#) }
         return try decode(#"{"id":9401,"registrationStatus":1,"paymentStatus":1,"verificationStatus":0}"#)
+    }
+    func status(_ scope: RegistrationWaitlistScope) async throws -> RegistrationWaitlistStatus {
+        guard scope.activityID == 9400, scope.ticketID == 9401 else { throw APIError.invalidRequest }
+        let offer = waitlistState == "OFFERED" ? ",\"offerToken\":\"offline-only-offer\",\"offerExpiresAt\":\"\(offerDeadline)\"" : ""
+        return try decode("{\"id\":9405,\"activityId\":9400,\"ticketId\":9401,\"memberId\":9400,\"state\":\"\(waitlistState)\",\"eligibilityState\":\"ELIGIBLE\",\"waitlistJoinAllowed\":true\(offer)}")
+    }
+    func join(_ scope: RegistrationWaitlistScope) async throws -> RegistrationWaitlistStatus {
+        waitlistState = "WAITING"; return try await status(scope)
+    }
+    func cancel(_ scope: RegistrationWaitlistScope) async throws -> RegistrationWaitlistStatus {
+        waitlistState = "CANCELLED"; return try await status(scope)
     }
     func profileParticipants() async throws -> [ProfileParticipant] {
         if scenario == .participantsError { throw URLError(.notConnectedToInternet) }
@@ -72,7 +91,7 @@ private final class RegistrationFixtureModel: ObservableObject {
         activity = try? JSONDecoder().decode(ActivityDetail.self, from: Data("""
         {"id":9400,"name":"Offline fixture activity","startDate":"2026-10-12","endDate":"2026-10-12",
          "addressName":"Synthetic meeting point","omsTicketList":[
-         {"id":9401,"name":"Standard fixture ticket","price":12.5,"remainingInventory":\(scenario == .soldOut ? 0 : 4)},
+         {"id":9401,"name":"Standard fixture ticket","price":12.5,"remainingInventory":\(scenario == .soldOut || scenario.isWaitlist ? 0 : 4)},
          {"id":9402,"name":"Unknown-price fixture ticket","price":null,"remainingInventory":null},
          {"id":9403,"name":"Zero-price fixture ticket","price":0,"remainingInventory":2}]}
         """.utf8))
@@ -98,7 +117,8 @@ struct RegistrationFixtureHostView: View {
                 RegistrationSheetView(activity: activity, coordinator: model.coordinator,
                                       participantReader: model.store, currentIdentity: { model.store.identity },
                                       quoteEnabled: true,
-                                      creationPolicy: model.scenario == .disabled ? .disabled : .offlineFixture)
+                                      creationPolicy: model.scenario == .disabled ? .disabled : .offlineFixture,
+                                      waitlistService: model.scenario.isWaitlist ? model.store : nil)
             }
         }
     }

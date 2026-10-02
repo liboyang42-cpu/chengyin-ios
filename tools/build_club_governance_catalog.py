@@ -63,10 +63,10 @@ eventID %lld|Event #%lld|场次 #%lld
 hostMerchantBlocked|Merchant accounts cannot apply as club hosts|商家账号不能申请成为俱乐部主理人
 hostExisting|This account is already a club host|此账号已成为主理人
 identityGate|Host submission requires an approved identity-registration flow. Identity documents are not collected here|主理人提交需要已批准的实名登记流程，此处不采集证件号码
-financialGate|Financial effects remain disabled. These records do not prove funds have settled|资金相关操作尚未启用，这些记录不代表资金已结清
+financialGate|Financial actions require separate exact-action approval. These records do not prove funds have settled|资金操作需要单独的具体操作授权。这些记录不代表资金已结清
 compensationGate|Reported hours and evidence require platform review. No confirmation or reconciliation endpoint is available in the source|自报工时与证据需要平台审核，源代码未提供确认或对账接口
 providerGate|Live group-code issuance, refresh, redemption and saving require separate provider acceptance|真实团码签发、刷新、核销与保存需要单独完成服务验收
-writeGate|Live administrative changes are disabled pending endpoint and recovery acceptance|真实管理写入尚未启用，需要接口与恢复流程验收
+writeGate|Administrative changes require exact-action approval and current server permissions|管理操作需要具体操作授权及当前服务端权限
 registered|Registered|已报名
 waitlist|Waitlist|候补
 arrived|Arrived|已到场
@@ -89,6 +89,7 @@ localDraft|Local draft and immutable review|本地草稿与固定审核内容
 target|Target|操作目标
 review|Review exact changes|审核具体修改
 confirmOffline|Confirm synthetic operation|确认模拟操作
+confirmProduction|Confirm action|确认操作
 cancelReview|Return to editing|返回编辑
 acknowledged|Request acknowledged|请求已受理
 acknowledgedBody|The receipt below is the server acknowledgment. Delivery, refunds and settlement are separate results|以下是服务端受理回执，送达、退款及结算是独立结果
@@ -100,7 +101,7 @@ synthetic|Synthetic fixtures only. No real club actions|仅模拟数据，不操
 switchAccount|Switch synthetic account|切换模拟账号
 simulateUnknown|Simulate an unconfirmed outcome|模拟结果未确认
 expiredCode|This code has expired. Do not reuse it|此团码已过期，请勿复用
-codeAvailable|Synthetic group code issued|模拟团码已签发'''.splitlines():
+codeAvailable|Group code issued|团码已签发'''.splitlines():
     add(*row.split('|'))
 actions='''hostApply|Apply as host|申请成为主理人
 saveCustomer|Edit tags and remark|编辑标签与备注
