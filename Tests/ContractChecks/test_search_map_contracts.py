@@ -24,6 +24,18 @@ class SearchMapSourceChecks(unittest.TestCase):
         for view in ['ActivityDetailView','TopicDetailView','ClubDetailView','SearchMapMerchantDetailView','SearchMapCityDetailView']:self.assertIn(view,app)
         self.assertNotIn('MerchantHomeView',app)
         self.assertNotIn('templateID',app)
+    def test_city_node_related_destination_has_explicit_builder_and_merchant_only_boundary(self):
+        # Source regression only: the generic stored closure is not itself a ViewBuilder.
+        app=self.text('App/SessionGlobalSearchView.swift')
+        self.assertIn('SearchMapCityDetailView(id: id, reader: session.searchMapReader, destination: cityNodeRelatedDestination)',app)
+        marker='@ViewBuilder private func cityNodeRelatedDestination(_ related: SearchMapDestination) -> some View {'
+        self.assertIn(marker,app)
+        helper=app.split(marker,1)[1]
+        self.assertIn('if case .merchant(let merchantID) = related {',helper)
+        self.assertIn('SearchMapMerchantDetailView(id: merchantID, reader: session.searchMapReader)',helper)
+        # With no else branch, unsupported related destinations remain empty.
+        for forbidden in ['else', 'destination(', '.activity', '.topic', '.club', '.cityNode', 'templateID']:
+            self.assertNotIn(forbidden,helper)
     def test_no_location_permission_or_provider_actions(self):
         app='\n'.join(p.read_text() for p in (ROOT/'App').glob('*Search*swift'))
         for action in ['CLLocationManager','requestWhenInUseAuthorization','startUpdatingLocation','MKDirections(','openInMaps(','openURL(']:self.assertNotIn(action,app)

@@ -15,10 +15,13 @@ import SwiftUI
         case .topic(let id): SessionTopicDetailView(id: id, session: session)
         case .club(let id): ClubDetailView(id: id, reader: session, onSignIn: onSignIn, actionCoordinator: session.clubActionCoordinator, management: session.clubManagementContext, community: session.clubCommunityContext)
         case .merchant(let id): SearchMapMerchantDetailView(id: id, reader: session.searchMapReader)
-        case .cityNode(let id): SearchMapCityDetailView(id: id, reader: session.searchMapReader) { related in
-            // City-node related links are only merchant IDs, never template IDs masquerading as topics.
-            if case .merchant(let merchantID) = related { SearchMapMerchantDetailView(id: merchantID, reader: session.searchMapReader) }
+        case .cityNode(let id): SearchMapCityDetailView(id: id, reader: session.searchMapReader, destination: cityNodeRelatedDestination)
         }
+    }
+    @ViewBuilder private func cityNodeRelatedDestination(_ related: SearchMapDestination) -> some View {
+        // City-node related links are only merchant IDs, never template IDs masquerading as topics.
+        if case .merchant(let merchantID) = related {
+            SearchMapMerchantDetailView(id: merchantID, reader: session.searchMapReader)
         }
     }
 }
