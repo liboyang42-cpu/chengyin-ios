@@ -204,7 +204,7 @@ struct RegistrationSheetView: View {
     }
     @ViewBuilder private var waitlistSection: some View {
         if flow.selectedTicket?.isSoldOut == true || flow.waitlistStatus != nil {
-            Section("registration.waitlist.title") {
+            Section {
                 if !flow.waitlistAvailable {
                     Text("registration.waitlist.disabled").foregroundStyle(.secondary)
                 } else {
@@ -244,7 +244,7 @@ struct RegistrationSheetView: View {
                             .accessibilityIdentifier("registration.waitlist.cancel")
                     }
                 }
-            } footer: { Text("registration.waitlist.noAutoPayment") }
+            } header: { Text("registration.waitlist.title") } footer: { Text("registration.waitlist.noAutoPayment") }
         }
     }
     private var quoteSection: some View {

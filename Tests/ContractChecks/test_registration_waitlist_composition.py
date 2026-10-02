@@ -47,4 +47,10 @@ class RegistrationWaitlistCompositionTests(unittest.TestCase):
             entry = entries['registration.waitlist.state.' + suffix]
             self.assertEqual(set(entry['localizations']), {'en', 'zh-Hans'})
             for value in entry['localizations'].values(): self.assertTrue(value['stringUnit']['value'])
+    def test_waitlist_section_uses_explicit_header_with_footer(self):
+        source = self.read('App/RegistrationSheetView.swift')
+        section = source.split('private var waitlistSection: some View {')[1].split('private var quoteSection:')[0]
+        self.assertNotIn('Section("registration.waitlist.title")', section)
+        self.assertIn('header: { Text("registration.waitlist.title") }', section)
+        self.assertIn('footer: { Text("registration.waitlist.noAutoPayment") }', section)
 if __name__ == '__main__': unittest.main()
