@@ -203,10 +203,35 @@ private final class LiveTransport: HTTPTransport {
         var session: RoamExperienceSession? = try RoamExperienceSession(scope: scope, epoch: 1, token: "test-token")
         let approval = RoamLiveApproval(endpoints: try OperationEndpointApproval(baseURL: url, namespace: scope.namespace, accountID: 7, paths: RoamLiveApproval.requiredPaths), foregroundLocation: true)
         let service = RoamLiveService(api: api, approval: approval, transport: transport, currentSession: { session })
-        _ = try await service.reveal(sessionID: nil, clientSessionKey: String(repeating: "a", count: 32), tiles: ["wtw3sjq"])
-        let request = try XCTUnwrap(transport.requests.first), body = String(data: try XCTUnwrap(request.httpBody), encoding: .utf8)!
-        XCTAssertEqual(request.httpMethod, "POST"); XCTAssertTrue(body.contains("clientSessionKey=")); XCTAssertTrue(body.contains("sessionId=0")); XCTAssertFalse(service.presenceAvailable)
+        let clientKey = String(repeating: "a", count: 32)
+        let receipt = try await service.reveal(sessionID: nil, clientSessionKey: clientKey, tiles: ["wtw3sjq"])
+        XCTAssertEqual(receipt.sessionId, 12)
+        let request = try XCTUnwrap(transport.requests.first)
+        let body = try XCTUnwrap(String(data: try XCTUnwrap(request.httpBody), encoding: .utf8))
+        let contentType = try XCTUnwrap(request.value(forHTTPHeaderField: "Content-Type"))
+        let prefix = "multipart/form-data; boundary="
+        XCTAssertTrue(contentType.hasPrefix(prefix))
+        let boundary = String(contentType.dropFirst(prefix.count))
+        XCTAssertFalse(boundary.isEmpty)
+        // The shared source-backed builder emits multipart FormData, not URL-encoded fields.
+        // Compare the entire payload so missing, duplicated or substituted recovery fields fail.
+        let expectedFields = ["clientSessionKey": clientKey, "sessionId": "0", "tiles": "wtw3sjq"]
+        let expectedBody = expectedFields.keys.sorted().map {
+            "--\(boundary)\r\nContent-Disposition: form-data; name=\"\($0)\"\r\n\r\n\(expectedFields[$0]!)\r\n"
+        }.joined() + "--\(boundary)--\r\n"
+        XCTAssertEqual(body, expectedBody)
+        XCTAssertEqual(request.httpMethod, "POST")
+        XCTAssertEqual(request.url, url.appendingPathComponent("api/roam/reveal"))
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "test-token")
+        XCTAssertFalse(service.presenceAvailable)
         session = try RoamExperienceSession(scope: scope, epoch: 1, token: "rotated-token")
         XCTAssertFalse(service.isAvailable)
+        do {
+            _ = try await service.reveal(sessionID: 12, clientSessionKey: clientKey, tiles: ["wtw3sjq"])
+            XCTFail("The captured service must not dispatch after credential rotation")
+        } catch {
+            XCTAssertEqual(error as? RoamLiveFailure, .unavailable)
+        }
+        XCTAssertEqual(transport.requests.count, 1)
     }
 }

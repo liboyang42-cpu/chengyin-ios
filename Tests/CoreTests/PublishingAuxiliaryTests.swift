@@ -57,9 +57,48 @@ private final class PublishingAuxFakeTransport: HTTPTransport {
         let review = try api.prepare(.theme(idea: "synthetic"), session: s); let result = await api.confirm(review)
         XCTAssertEqual(result, .notSent); XCTAssertTrue(t.requests.isEmpty)
     }
-    func testPlayerCannotPrepareProviderCall() throws {
+    func testPlayerThemePlanningStillCannotDispatchWithoutProviderGrant() async throws {
+        // Current backend gateThemeDraftRole permits players for theme drafting only.
+        let s = session(role: "player"), t = PublishingAuxFakeTransport(), api = try client(t, session: s, approved: false)
+        let current = try api.prepare(.themeForProduct(idea: "synthetic", product: .freeExplore), session: s)
+        XCTAssertEqual(current.request.path, "api/ai/theme/draft")
+        XCTAssertEqual(current.request.fields, ["idea": .string("synthetic"), "productType": .number(2)])
+        XCTAssertTrue(t.requests.isEmpty)
+        let result = await api.confirm(current)
+        XCTAssertEqual(result, .notSent); XCTAssertTrue(t.requests.isEmpty)
+        // The retained descriptor has the same backend role gate, but no normal-host grant.
+        let legacy = try api.prepare(.theme(idea: "synthetic"), session: s)
+        api.cancel(legacy); XCTAssertTrue(t.requests.isEmpty)
+    }
+    func testPlayerCannotPrepareClubTemplateOrSafetyEvenWithGenericApproval() throws {
         let s = session(role: "player"), t = PublishingAuxFakeTransport(), api = try client(t, session: s)
-        XCTAssertThrowsError(try api.prepare(.theme(idea: "synthetic"), session: s)); XCTAssertTrue(t.requests.isEmpty)
+        let restricted: [PublishingAssistance] = [
+            .template(shopName: "Synthetic", extraNote: "Synthetic", category: "", reward: "", playStyle: "", validationMethod: nil),
+            .club(idea: "Synthetic", style: nil, minutes: nil), .safety(["text": .string("Synthetic")])
+        ]
+        for operation in restricted { XCTAssertThrowsError(try api.prepare(operation, session: s)) }
+        XCTAssertTrue(t.requests.isEmpty)
+    }
+    func testPlayerThemeRequiresExactPathGrantAndDurableJournal() async throws {
+        let s = session(role: "player"), t = PublishingAuxFakeTransport()
+        let credential = try PublishingCredentials(session: s, token: "synthetic")
+        let wrongPath = try OperationEndpointApproval(baseURL: config().baseURL, namespace: s.namespace, accountID: s.accountID, paths: ["api/ai/club/design"])
+        let wrongPathClient = try PublishingAuxiliaryService(configuration: config(), transport: t, approval: wrongPath,
+            journal: PublishingAuxJournal(), credentials: { credential })
+        let first = try wrongPathClient.prepare(.themeForProduct(idea: "Synthetic", product: .city), session: s)
+        let deniedPath = await wrongPathClient.confirm(first); XCTAssertEqual(deniedPath, .notSent)
+        let themePath = try OperationEndpointApproval(baseURL: config().baseURL, namespace: s.namespace, accountID: s.accountID, paths: ["api/ai/theme/draft"])
+        let noJournalClient = try PublishingAuxiliaryService(configuration: config(), transport: t, approval: themePath, credentials: { credential })
+        let second = try noJournalClient.prepare(.themeForProduct(idea: "Synthetic", product: .city), session: s)
+        let deniedJournal = await noJournalClient.confirm(second); XCTAssertEqual(deniedJournal, .notSent)
+        XCTAssertTrue(t.requests.isEmpty)
+    }
+    func testUnknownRoleCannotPrepareThemeAndUSPlayerCannotDispatch() async throws {
+        let unknown = session(role: "unknown"), t = PublishingAuxFakeTransport(), unknownClient = try client(t, session: unknown)
+        XCTAssertThrowsError(try unknownClient.prepare(.themeForProduct(idea: "Synthetic", product: .city), session: unknown))
+        let us = session(region: .unitedStates, role: "player"), usClient = try client(t, session: us)
+        let review = try usClient.prepare(.themeForProduct(idea: "Synthetic", product: .city), session: us)
+        let result = await usClient.confirm(review); XCTAssertEqual(result, .notSent); XCTAssertTrue(t.requests.isEmpty)
     }
     func testChinaIdentityExecutesExactTransientBodyAfterStatusRead() async throws {
         let s = session(), j = PublishingAuxJournal(), t = PublishingAuxFakeTransport([#"{"code":200,"data":{"registered":false}}"#, #"{"code":200}"#]), api = try client(t, session: s, journal: j)

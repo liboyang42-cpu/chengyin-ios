@@ -17,7 +17,8 @@ class PlayExperienceSourceChecks(unittest.TestCase):
         for path in ['api/play/nodes','api/play/route-state','api/play/sensor-result','api/play/ending','api/play/hint/unlock','api/play/puzzle/hint','api/play/puzzle/reveal']:
             self.assertIn(path, service)
         self.assertIn('AuthRequestBuilder.makeFormRequest', service)
-        self.assertIn('JSONEncoder().encode(json)', service)
+        self.assertIn('encoder.outputFormatting = [.sortedKeys]', service)
+        self.assertIn('request.httpBody = try encoder.encode(json)', service)
     def test_classic_paths_external_flutter_parity(self):
         source=read_flutter_source(self, 'data/api/play_api.dart')
         for path in ['api/play/nodes','api/play/route-state','api/play/sensor-result','api/play/ending','api/play/hint/unlock','api/play/puzzle/hint','api/play/puzzle/reveal']:

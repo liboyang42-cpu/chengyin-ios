@@ -154,6 +154,20 @@ import FoundationNetworking
         XCTAssertThrowsError(try model.review(kind:"steps",action:"SUBMIT_STEPS",detail:["steps":.int(5000)]))
         XCTAssertEqual(model.state?.storyVariables["name"],.string("Synthetic"))
     }
+    func testExactAdvancedRequestUsesStableNestedJSONKeyOrder() async throws {
+        let transport = PlayKitTestTransport { _ in try (self.response(version: 2), 200) }
+        let api = PlayExperienceService(configuration: try APIConfiguration(baseURL: URL(string: "https://example.com")!),
+            transport: transport, enabled: [.advanced])
+        let pending = PlayAdvancedPending(sessionID: 1, version: 1, key: "synthetic-replay-key",
+            action: "SUBMIT_CLASSIFY", payload: ["placement": .object(["b": .string("two"), "a": .string("one")])])
+        for _ in 0..<8 { _ = try await api.advancedAction(pending, token: "synthetic-token") }
+        let expected = #"{"action":"SUBMIT_CLASSIFY","idempotencyKey":"synthetic-replay-key","payload":{"placement":{"a":"one","b":"two"}},"sessionId":1,"version":1}"#
+        XCTAssertEqual(transport.requests.count, 8)
+        for request in transport.requests {
+            XCTAssertEqual(request.url?.path, "/api/play/advanced/action")
+            XCTAssertEqual(request.httpBody, Data(expected.utf8))
+        }
+    }
     func testUnknownWriteLocksNewActionsAndRetainsFrozenPayload() async throws {
         let session = try session(); var writes = 0
         let transport = PlayKitTestTransport { request in

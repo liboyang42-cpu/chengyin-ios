@@ -81,3 +81,11 @@ Combined local checks: 660 Python contracts discovered, 618 passed and 42 explic
 ## 2026-10-02 10:24 UTC test-compilation correction
 
 Run 52 on `42184686597bb13b705e7f847092fbcacfac74f6` passed full-history secret scanning and macOS structural/tooling checks, then stopped during Core test compilation. One new verification-code test omitted the required `of:` argument label in `String.replacingOccurrences`. The one-call correction changes no production code, fixtures, assertions, grants or response classification. No Core method execution, app build or UI pass is established for that run; a fresh exact-commit run is required.
+
+## 2026-10-02 10:35 UTC deterministic replay and fixture repairs
+
+Run 53 on `2d29d806eb89c47865ed2269fb2c161c1f41a093` compiled and executed all 2,698 Core methods: three methods failed with four assertions; full-history secret scanning and structural/tooling checks passed. App builds, app-hosted tests and UI execution were skipped after the Core gate.
+
+The exact PlayKit retry test exposed nondeterministic dictionary key ordering in JSON request encoding. JSON bodies now use sorted keys, preserving the strict byte-equality assertion and adding a nested-key repeated-request regression. An obsolete blanket player-AI denial test is replaced with explicit current-source theme-planning permission plus negative club/template/safety, unknown-role, US, exact-path and journal tests; production permission guards are unchanged. The Roam bootstrap test now asserts the actual complete multipart contract and post-token-rotation dispatch denial instead of URL-encoded substrings; the service is unchanged. The Python encoding assertion now requires sorted-key encoding rather than the former one-shot encoder syntax.
+
+The public Python gate remains 618 passed / 42 explicit skips / 660 discovered, scaffold passes, and four changed Swift files pass supplementary parsing. Current authored Core count is 2,702; UI 350 and app-unit 32 remain unchanged. These newer assertions and deterministic encoding require a fresh Apple CI run. No later feature packet or live grant is included in this repair.

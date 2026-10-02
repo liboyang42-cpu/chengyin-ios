@@ -164,7 +164,9 @@ public struct PlayExperienceService {
             request = try AuthRequestBuilder.makeFormRequest(url: request.url!, fields: form, token: token)
         } else if let json {
             request.httpMethod = "POST"; request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.httpBody = try JSONEncoder().encode(json)
+            // Re-encoding an exact reviewed retry must not reorder dictionary keys.
+            let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]
+            request.httpBody = try encoder.encode(json)
         } else { request.httpMethod = postWithoutBody ? "POST" : "GET" }
         try Task.checkCancellation()
         let (data, status) = try await transport.send(request)
