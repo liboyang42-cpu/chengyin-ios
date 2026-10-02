@@ -54,23 +54,41 @@ public struct OrderLifecycleService {
     }
 }
 
+/// Stable deployment identity for replay locks. Account/order are separate key fields.
+/// Authentication epoch, token and role intentionally do not change this identity.
+public struct OrderLifecycleReplayContext: Hashable {
+    public let market: RegionalMarket
+    public let baseURL: URL
+    public let namespace: String
+    public init(context: RuntimeDependencyContext) {
+        market = context.market; baseURL = context.baseURL; namespace = context.session.namespace
+    }
+}
+
 /// Session token never enters a review, UI, navigation identifier or fixture.
 public struct OrderLifecycleSession: Equatable {
     public let accountID: Int
     public let epoch: UInt64
     public let contextID: String
+    public let replayContext: OrderLifecycleReplayContext?
     fileprivate let token: String
-    public init(accountID: Int, epoch: UInt64, token: String, contextID: String = "") throws {
+    public init(accountID: Int, epoch: UInt64, token: String, contextID: String = "", replayContext: OrderLifecycleReplayContext? = nil) throws {
         guard accountID > 0, AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
-        self.accountID = accountID; self.epoch = epoch; self.token = token; self.contextID = contextID
+        self.accountID = accountID; self.epoch = epoch; self.token = token; self.contextID = contextID; self.replayContext = replayContext
     }
 }
 @MainActor public protocol OrderLifecycleReading: AnyObject {
     var accountID: Int? { get }
     var scope: UUID { get }
+    var replayContext: OrderLifecycleReplayContext? { get }
     var isConfigured: Bool { get }
     var isOfflineExample: Bool { get }
     func detail(id: Int) async throws -> OrderLifecycleDetail
+}
+public extension OrderLifecycleReading {
+    /// Isolated fixture/read-only readers have no deployment identity. The app's
+    /// authenticated production reader always supplies its explicit deployment context.
+    var replayContext: OrderLifecycleReplayContext? { nil }
 }
 @MainActor public final class OrderLifecycleSessionReader: OrderLifecycleReading {
     private let service: OrderLifecycleService?
@@ -79,6 +97,7 @@ public struct OrderLifecycleSession: Equatable {
     private var previous: OrderLifecycleSession?
     private var stamp = UUID()
     public var accountID: Int? { currentSession()?.accountID }
+    public var replayContext: OrderLifecycleReplayContext? { currentSession()?.replayContext }
     public var isConfigured: Bool { service != nil }
     public var isOfflineExample: Bool { false }
     public var scope: UUID {

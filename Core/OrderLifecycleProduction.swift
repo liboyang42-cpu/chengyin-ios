@@ -162,7 +162,25 @@ public enum OrderLifecycleProductionResult {
         self.sharedGate = sharedGate; self.selfPlayJournal = selfPlayJournal; self.now = now
         self.currentReviewScope = reviewScope; self.openedReviewScope = reviewScope()
     }
-    public func pending(orderID: Int) throws -> OrderLifecycleReservation? { try journal.pending(owner: owner, orderID: orderID) }
+    public var isCurrent: Bool { current() == captured && currentReviewScope() == openedReviewScope }
+    /// A fixture/read-only reader without an explicit deployment must never borrow a
+    /// production factory, nor may a reader and factory disagree about their owner.
+    public func matchesReader(_ reader: any OrderLifecycleReading) -> Bool {
+        guard !reader.isOfflineExample, let replayContext = reader.replayContext else { return false }
+        return isCurrent && reader.scope == openedReviewScope && reader.accountID == captured.session.accountID &&
+            replayContext == OrderLifecycleReplayContext(context: captured)
+    }
+    /// Visible lookup must not reveal the captured owner's journal through a stale factory.
+    public func pending(orderID: Int) throws -> OrderLifecycleReservation? {
+        guard isCurrent else { return nil }
+        return try journal.pending(owner: owner, orderID: orderID)
+    }
+    /// Error cleanup inspects the original reservation even after logout/context change.
+    /// This is separate from public lookup and may only update the captured review's key.
+    func capturedReservation(for review: OrderLifecycleReview) throws -> OrderLifecycleReservation? {
+        guard review.accountID == captured.session.accountID, review.scope == openedReviewScope else { throw OrderLifecycleFailure.stale }
+        return try journal.pending(owner: owner, orderID: review.detail.id)
+    }
     /// Server-confirmed payment can permit a separately approved refund. It cannot permit
     /// another payment or remove any historical attempt; registration acceptance is insufficient.
     public func observePaid(_ flow: PaymentProviderReturnFlow) throws {

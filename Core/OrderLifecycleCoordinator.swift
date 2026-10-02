@@ -84,7 +84,13 @@ public enum OrderLifecycleCoordinatorIssue: String, Equatable {
     private var storedDetail: OrderLifecycleDetail?
     private var storedReview: OrderLifecycleReview?
     private var records: [AttemptKey: OrderLifecycleAttemptState] = [:]
-    private struct AttemptKey: Hashable { let accountID: Int; let orderID: Int; let scope: UUID }
+    // Replay ownership survives reauthentication; only receipt visibility uses the UUID.
+    private struct AttemptKey: Hashable {
+        let accountID: Int
+        let orderID: Int
+        let replayContext: OrderLifecycleReplayContext?
+    }
+    private var recordScopes: [AttemptKey: UUID] = [:]
     private var loading = false
     private var storedIssue: OrderLifecycleCoordinatorIssue?
     private var storedServerMessage: String?
@@ -110,7 +116,11 @@ public enum OrderLifecycleCoordinatorIssue: String, Equatable {
     public var issue: OrderLifecycleCoordinatorIssue? { visibleScope == reader.scope ? storedIssue : nil }
     public var serverMessage: String? { visibleScope == reader.scope ? storedServerMessage : nil }
     public var isLoading: Bool { visibleScope == reader.scope && loading }
-    public var canDispatch: Bool { !reader.isOfflineExample && (review.map { production()?.canDispatch($0) == true } ?? false) }
+    private func currentProduction() -> OrderLifecycleProductionDispatcher? {
+        guard let dispatcher = production(), dispatcher.matchesReader(reader) else { return nil }
+        return dispatcher
+    }
+    public var canDispatch: Bool { !reader.isOfflineExample && (review.map { currentProduction()?.canDispatch($0) == true } ?? false) }
     public var paymentReturn: PaymentProviderReturnFlow? { visibleScope == reader.scope ? storedPaymentReturn : nil }
     public var canSimulate: Bool {
         #if DEBUG
@@ -121,15 +131,31 @@ public enum OrderLifecycleCoordinatorIssue: String, Equatable {
     }
     public func attempt(orderID: Int) -> OrderLifecycleAttemptState? {
         guard let accountID = reader.accountID else { return nil }
-        if let local = records[AttemptKey(accountID: accountID, orderID: orderID, scope: reader.scope)] { return local }
+        let key = AttemptKey(accountID: accountID, orderID: orderID, replayContext: reader.replayContext)
+        if let local = records[key] {
+            guard recordScopes[key] == reader.scope else {
+                // Keep the original no-repeat marker, never a prior session's receipt.
+                switch local {
+                case .submitted(let id), .outcomeUnknown(let id), .acknowledged(let id),
+                     .responseReceived(let id, _), .paymentObserved(let id, _):
+                    return .outcomeUnknown(localAttemptID: id)
+                }
+            }
+            return local
+        }
         do {
-            if let pending = try production()?.pending(orderID: orderID) { return .outcomeUnknown(localAttemptID: pending.attemptID) }
+            if let pending = try currentProduction()?.pending(orderID: orderID) { return .outcomeUnknown(localAttemptID: pending.attemptID) }
         } catch { return .outcomeUnknown(localAttemptID: UUID()) }
         return nil
     }
     public func isAttemptBlocking(_ action: OrderLifecycleAction, orderID: Int) -> Bool {
-        if action == .refund, let state = attempt(orderID: orderID), case .paymentObserved(_, .paid) = state {
-            do { return try production()?.pending(orderID: orderID) != nil } catch { return true }
+        if action == .refund, let accountID = reader.accountID,
+           let state = records[AttemptKey(accountID: accountID, orderID: orderID, replayContext: reader.replayContext)],
+           case .paymentObserved(_, .paid) = state {
+            // Preserve the existing terminal-paid transition; an unavailable/stale factory
+            // is never proof that a journal is empty or that an unknown attempt is resolved.
+            guard let dispatcher = currentProduction(), dispatcher.isCurrent else { return true }
+            do { return try dispatcher.pending(orderID: orderID) != nil } catch { return true }
         }
         return attempt(orderID: orderID) != nil
     }
@@ -179,12 +205,13 @@ public enum OrderLifecycleCoordinatorIssue: String, Equatable {
         guard let review, review.id == reviewID, review.scope == reader.scope,
               review.accountID == reader.accountID, review.detail == detail else { storedIssue = .stale; return }
         guard now() < review.expiresAt else { storedReview = nil; storedIssue = .expiredReview; return }
-        let key = AttemptKey(accountID: review.accountID, orderID: review.detail.id, scope: review.scope)
+        let key = AttemptKey(accountID: review.accountID, orderID: review.detail.id, replayContext: reader.replayContext)
         guard !isAttemptBlocking(review.action, orderID: review.detail.id) else { storedIssue = .alreadyAttempted; return }
         guard !Task.isCancelled else { storedIssue = .cancelled; return }
-        if !reader.isOfflineExample, let dispatcher = production(), dispatcher.canDispatch(review) {
+        if !reader.isOfflineExample, let dispatcher = currentProduction(), dispatcher.canDispatch(review) {
             let stamp = generation
             records[key] = .submitted(localAttemptID: review.localAttemptID)
+            recordScopes[key] = review.scope
             storedReview = nil
             do {
                 let result = try await dispatcher.dispatch(review, visible: { [weak self] in
@@ -211,9 +238,9 @@ public enum OrderLifecycleCoordinatorIssue: String, Equatable {
                 // Preflight failures can be reviewed again only if no durable reservation exists.
                 // After a reservation every failure is unknown and keeps the order locked.
                 do {
-                    if try dispatcher.pending(orderID: review.detail.id) != nil {
-                        records[key] = .outcomeUnknown(localAttemptID: review.localAttemptID)
-                    } else { records.removeValue(forKey: key) }
+                    if let pending = try dispatcher.capturedReservation(for: review) {
+                        records[key] = .outcomeUnknown(localAttemptID: pending.attemptID)
+                    } else { records.removeValue(forKey: key); recordScopes.removeValue(forKey: key) }
                 } catch { records[key] = .outcomeUnknown(localAttemptID: review.localAttemptID) }
                 if stamp == generation { storedIssue = OrderLifecycleCoordinatorIssue(error) }
             }
@@ -223,6 +250,7 @@ public enum OrderLifecycleCoordinatorIssue: String, Equatable {
         guard reader.isOfflineExample, let fixtureSimulator, review.action != .payment else { storedIssue = .dispatchDisabled; return }
         let stamp = generation
         records[key] = .submitted(localAttemptID: review.localAttemptID)
+        recordScopes[key] = review.scope
         storedReview = nil
         do {
             let observation = try await fixtureSimulator.simulate(review)
@@ -248,8 +276,8 @@ public enum OrderLifecycleCoordinatorIssue: String, Equatable {
         }
         if let detail = flow.detail, detail.id == flow.registrationID, let accountID = reader.accountID {
             storedDetail = detail; loadedAt = now()
-            if let state = records[AttemptKey(accountID: accountID, orderID: detail.id, scope: reader.scope)], case .outcomeUnknown(let attemptID) = state {
-                records[AttemptKey(accountID: accountID, orderID: detail.id, scope: reader.scope)] = .paymentObserved(localAttemptID: attemptID,
+            if let state = records[AttemptKey(accountID: accountID, orderID: detail.id, replayContext: reader.replayContext)], case .outcomeUnknown(let attemptID) = state {
+                records[AttemptKey(accountID: accountID, orderID: detail.id, replayContext: reader.replayContext)] = .paymentObserved(localAttemptID: attemptID,
                     observation: OrderPaymentObservation(payment: detail.paymentStatus, registration: detail.registrationStatus))
             }
         }

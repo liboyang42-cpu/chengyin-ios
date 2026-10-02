@@ -23,7 +23,7 @@ class OrderLifecycleSourceTests(unittest.TestCase):
   s=self.read('Core/OrderLifecycleCoordinator.swift')
   for guard in ['detail.id == orderID','review.scope == reader.scope','review.accountID == reader.accountID','review.detail == detail','now() < review.expiresAt','!isAttemptBlocking(review.action, orderID: review.detail.id)','outcomeUnknown']:
    self.assertIn(guard,s)
-  self.assertIn('if try dispatcher.pending(orderID: review.detail.id) != nil',s)
+  self.assertIn('if let pending = try dispatcher.capturedReservation(for: review)',s)
   self.assertIn('catch { records[key] = .outcomeUnknown',s)
  def test_ui_has_no_credentials_provider_or_scanner_dispatch(self):
   s='\n'.join(self.read('App/'+file) for file in ['OrderLifecycleView.swift','OrderPassPreviewView.swift'])

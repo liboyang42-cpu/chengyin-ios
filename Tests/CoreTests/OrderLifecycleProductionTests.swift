@@ -254,6 +254,250 @@ import FoundationNetworking
         session = try .init(accountID: 7, epoch: 1, token: "synthetic-only", contextID: "CN|origin|namespace|club")
         XCTAssertNotEqual(reader.scope, first)
     }
+    private func replayConfiguration(_ context: RuntimeDependencyContext, actions: [OrderLifecycleAction] = [.cancel]) throws -> OrderLifecycleProductionConfiguration {
+        try .init(market: context.market, baseURL: context.baseURL, namespace: context.session.namespace,
+            accountID: context.session.accountID, role: context.role, sourceRevision: OrderLifecycleSourceContract.revision,
+            approvals: actions.map { action in
+                try .init(orderID: 77, ownerType: 2, ownerID: 88, action: action, expiresAt: date.addingTimeInterval(120),
+                          signupDocument: action == .payment ? Document.value : nil)
+            }, externalCheckoutApproved: true, devicePaymentApproved: true)
+    }
+    private func replayHarness(actions: [OrderLifecycleAction] = [.cancel]) throws -> ReplayHarness {
+        let captured = try context()
+        return ReplayHarness(context: captured, configuration: try replayConfiguration(captured, actions: actions),
+                             detail: try order(), data: orderData(), date: date)
+    }
+    func testProductionUnknownLockSurvivesReloginAndUnavailableFactory() async throws {
+        let harness = try replayHarness(); defer { harness.cleanup() }
+        harness.http.failMutation = true
+        let coordinator = harness.coordinator
+        await coordinator.load(id: 77); coordinator.prepare(.cancel, orderID: 77)
+        let review = try XCTUnwrap(coordinator.review)
+        await coordinator.confirm(reviewID: review.id)
+        XCTAssertEqual(harness.http.mutations, 1)
+        XCTAssertEqual(coordinator.attempt(orderID: 77), .outcomeUnknown(localAttemptID: review.localAttemptID))
+        harness.enabled = false; harness.holder.value = nil; coordinator.invalidateVisible()
+        let old = try context()
+        harness.holder.value = RuntimeDependencyContext(market: old.market, baseURL: old.baseURL, role: old.role,
+            session: try .init(accountID: 7, epoch: 2, namespace: old.session.namespace, token: "synthetic-new-token"))
+        await coordinator.load(id: 77); coordinator.prepare(.cancel, orderID: 77)
+        XCTAssertNil(coordinator.review); XCTAssertEqual(coordinator.issue, .alreadyAttempted)
+        XCTAssertEqual(coordinator.attempt(orderID: 77), .outcomeUnknown(localAttemptID: review.localAttemptID))
+        harness.enabled = true
+        let freshDispatcher = try XCTUnwrap(harness.dispatcher())
+        XCTAssertEqual(try freshDispatcher.pending(orderID: 77)?.attemptID, review.localAttemptID)
+        await coordinator.confirm(reviewID: review.id)
+        XCTAssertEqual(harness.http.mutations, 1)
+    }
+    func testProductionReplayOwnerSeparatesAccountMarketOriginAndNamespace() async throws {
+        let harness = try replayHarness(); defer { harness.cleanup() }
+        harness.http.failMutation = true
+        let coordinator = harness.coordinator, original = try context()
+        await coordinator.load(id: 77); coordinator.prepare(.cancel, orderID: 77)
+        let review = try XCTUnwrap(coordinator.review), staleDispatcher = try XCTUnwrap(harness.dispatcher())
+        await coordinator.confirm(reviewID: review.id)
+        harness.retainedDispatcher = staleDispatcher
+        let alternatives = [try context(account: 8), try context(namespace: "other"),
+            RuntimeDependencyContext(market: .china, baseURL: URL(string: "https://example.com/other/")!, role: original.role, session: original.session),
+            RuntimeDependencyContext(market: .unitedStates, baseURL: original.baseURL, role: original.role, session: original.session)]
+        for other in alternatives {
+            harness.holder.value = other
+            XCTAssertNil(try staleDispatcher.pending(orderID: 77))
+            XCTAssertNil(coordinator.attempt(orderID: 77)); XCTAssertNil(coordinator.detail)
+            XCTAssertNil(coordinator.serverMessage); XCTAssertNil(coordinator.review)
+        }
+        harness.holder.value = try context(epoch: 3)
+        XCTAssertNil(try staleDispatcher.pending(orderID: 77))
+        XCTAssertEqual(coordinator.attempt(orderID: 77), .outcomeUnknown(localAttemptID: review.localAttemptID))
+        harness.retainedDispatcher = nil
+        XCTAssertEqual(try XCTUnwrap(harness.dispatcher()).pending(orderID: 77)?.attemptID, review.localAttemptID)
+        XCTAssertEqual(harness.http.mutations, 1)
+    }
+    func testSameOrderInDifferentDeploymentCanReserveWithoutConsumingOriginalLock() async throws {
+        let harness = try replayHarness(); defer { harness.cleanup() }
+        harness.http.failMutation = true
+        let coordinator = harness.coordinator
+        await coordinator.load(id: 77); coordinator.prepare(.cancel, orderID: 77)
+        let first = try XCTUnwrap(coordinator.review)
+        await coordinator.confirm(reviewID: first.id)
+        let other = try context(namespace: "independent-deployment")
+        harness.holder.value = other; harness.configuration = try replayConfiguration(other)
+        await coordinator.load(id: 77); coordinator.prepare(.cancel, orderID: 77)
+        let second = try XCTUnwrap(coordinator.review)
+        XCTAssertNotEqual(first.localAttemptID, second.localAttemptID)
+        await coordinator.confirm(reviewID: second.id)
+        XCTAssertEqual(coordinator.attempt(orderID: 77), .outcomeUnknown(localAttemptID: second.localAttemptID))
+        harness.holder.value = try context(epoch: 2); harness.configuration = try replayConfiguration(context(epoch: 2))
+        await coordinator.load(id: 77); coordinator.prepare(.cancel, orderID: 77)
+        XCTAssertNil(coordinator.review)
+        XCTAssertEqual(coordinator.attempt(orderID: 77), .outcomeUnknown(localAttemptID: first.localAttemptID))
+        XCTAssertEqual(try XCTUnwrap(harness.dispatcher()).pending(orderID: 77)?.attemptID, first.localAttemptID)
+        XCTAssertEqual(harness.http.mutations, 2)
+    }
+    func testRoleChangeCannotUnlockProductionUnknownAttempt() async throws {
+        let harness = try replayHarness(); defer { harness.cleanup() }
+        harness.http.failMutation = true
+        let coordinator = harness.coordinator, original = try context()
+        await coordinator.load(id: 77); coordinator.prepare(.cancel, orderID: 77)
+        let review = try XCTUnwrap(coordinator.review)
+        await coordinator.confirm(reviewID: review.id)
+        let changed = RuntimeDependencyContext(market: original.market, baseURL: original.baseURL, role: "club", session: original.session)
+        harness.holder.value = changed; harness.configuration = try replayConfiguration(changed)
+        await coordinator.load(id: 77); coordinator.prepare(.cancel, orderID: 77)
+        XCTAssertNil(coordinator.review); XCTAssertEqual(coordinator.issue, .alreadyAttempted)
+        XCTAssertEqual(coordinator.attempt(orderID: 77), .outcomeUnknown(localAttemptID: review.localAttemptID))
+        XCTAssertEqual(harness.http.mutations, 1)
+    }
+    func testProductionLateResponseKeepsCapturedOwnerLockWithoutExposingReceipt() async throws {
+        let harness = try replayHarness(); defer { harness.cleanup() }
+        let coordinator = harness.coordinator, replacement = try context(account: 8)
+        harness.http.response = #"{"code":200,"data":{"registrationId":77,"cancellationStatus":"PRIVATE-SYNTHETIC-STATUS"}}"#
+        harness.http.onRequest = { request in
+            if request.url?.path.hasSuffix("/cancel") == true { harness.holder.value = replacement }
+        }
+        await coordinator.load(id: 77); coordinator.prepare(.cancel, orderID: 77)
+        let review = try XCTUnwrap(coordinator.review)
+        await coordinator.confirm(reviewID: review.id)
+        XCTAssertNil(coordinator.attempt(orderID: 77)); XCTAssertNil(coordinator.detail); XCTAssertNil(coordinator.serverMessage)
+        harness.holder.value = try context(epoch: 2); harness.enabled = false
+        XCTAssertEqual(coordinator.attempt(orderID: 77), .outcomeUnknown(localAttemptID: review.localAttemptID))
+        await coordinator.load(id: 77); coordinator.prepare(.cancel, orderID: 77)
+        XCTAssertNil(coordinator.review); XCTAssertEqual(harness.http.mutations, 1)
+        harness.enabled = true
+        XCTAssertEqual(try XCTUnwrap(harness.dispatcher()).pending(orderID: 77)?.attemptID, review.localAttemptID)
+    }
+    func testPaidHistoryAfterReloginPermitsOnlySeparatelyApprovedRefund() async throws {
+        let harness = try replayHarness(actions: [.payment, .refund]); defer { harness.cleanup() }
+        let coordinator = harness.coordinator
+        await coordinator.load(id: 77); coordinator.prepare(.payment, orderID: 77)
+        let paymentReview = try XCTUnwrap(coordinator.review)
+        await coordinator.confirm(reviewID: paymentReview.id)
+        let flow = try XCTUnwrap(coordinator.paymentReturn)
+        harness.http.detail = orderData(paid: true); harness.reader.value = try order(paid: true)
+        await flow.reconcile(); XCTAssertEqual(flow.phase, .paid); coordinator.closePaymentReturn()
+        XCTAssertNil(try XCTUnwrap(harness.dispatcher()).pending(orderID: 77))
+        harness.holder.value = try context(epoch: 2)
+        XCTAssertEqual(coordinator.attempt(orderID: 77), .outcomeUnknown(localAttemptID: paymentReview.localAttemptID))
+        await coordinator.load(id: 77)
+        XCTAssertTrue(coordinator.isAttemptBlocking(.payment, orderID: 77))
+        XCTAssertTrue(coordinator.isAttemptBlocking(.cancel, orderID: 77))
+        XCTAssertFalse(coordinator.isAttemptBlocking(.refund, orderID: 77))
+        coordinator.prepare(.refund, orderID: 77)
+        let refundReview = try XCTUnwrap(coordinator.review)
+        await coordinator.confirm(reviewID: refundReview.id)
+        XCTAssertEqual(harness.http.requests.filter { $0.url?.path.hasSuffix("/pay/app") == true }.count, 1)
+        XCTAssertEqual(harness.http.requests.filter { $0.url?.path.hasSuffix("/cancel-refund") == true }.count, 1)
+        XCTAssertEqual(try XCTUnwrap(harness.dispatcher()).pending(orderID: 77)?.attemptID, refundReview.localAttemptID)
+    }
+    func testRawPaidReadbackCannotUnlockUnknownPaymentAfterRelogin() async throws {
+        let harness = try replayHarness(actions: [.payment, .refund]); defer { harness.cleanup() }
+        harness.http.failMutation = true
+        let coordinator = harness.coordinator
+        await coordinator.load(id: 77); coordinator.prepare(.payment, orderID: 77)
+        let review = try XCTUnwrap(coordinator.review)
+        await coordinator.confirm(reviewID: review.id)
+        harness.http.detail = orderData(paid: true); harness.reader.value = try order(paid: true)
+        harness.holder.value = try context(epoch: 2)
+        await coordinator.load(id: 77); coordinator.prepare(.refund, orderID: 77)
+        XCTAssertNil(coordinator.review); XCTAssertEqual(coordinator.issue, .alreadyAttempted)
+        XCTAssertEqual(coordinator.attempt(orderID: 77), .outcomeUnknown(localAttemptID: review.localAttemptID))
+        XCTAssertEqual(try XCTUnwrap(harness.dispatcher()).pending(orderID: 77)?.attemptID, review.localAttemptID)
+        XCTAssertEqual(harness.http.mutations, 1)
+    }
+    func testProductionFactoryRequiresExplicitMatchingReplayContextAndAccount() async throws {
+        let harness = try replayHarness(); defer { harness.cleanup() }
+        harness.http.failMutation = true
+        let coordinator = harness.coordinator
+        await coordinator.load(id: 77); coordinator.prepare(.cancel, orderID: 77)
+        await coordinator.confirm(reviewID: try XCTUnwrap(coordinator.review).id)
+        let dispatcher = try XCTUnwrap(harness.dispatcher())
+        let replay = OrderLifecycleReplayContext(context: try context())
+        let other = OrderLifecycleReplayContext(context: try context(namespace: "other"))
+        let mismatches: [(Int, OrderLifecycleReplayContext?)] = [(7, nil), (8, replay), (7, other)]
+        for (accountID, replayContext) in mismatches {
+            let reader = MisboundReader(accountID: accountID, scope: harness.reader.scope, replayContext: replayContext, value: try order())
+            let unrelated = OrderLifecycleCoordinator(reader: reader, now: { self.date }, production: { dispatcher })
+            XCTAssertNil(unrelated.attempt(orderID: 77))
+            await unrelated.load(id: 77); unrelated.prepare(.cancel, orderID: 77)
+            let review = try XCTUnwrap(unrelated.review)
+            XCTAssertFalse(unrelated.canDispatch)
+            await unrelated.confirm(reviewID: review.id)
+            XCTAssertEqual(unrelated.issue, .dispatchDisabled); XCTAssertNil(unrelated.attempt(orderID: 77))
+        }
+        XCTAssertEqual(harness.http.mutations, 1)
+    }
+    func testStableReplayContextExcludesEpochTokenAndRoleButSeparatesDeployment() throws {
+        let original = try context()
+        let replay = OrderLifecycleReplayContext(context: original)
+        let changedSession = try PlayExperienceSession(accountID: 7, epoch: 99, namespace: original.session.namespace, token: "synthetic-new-token")
+        let changed = RuntimeDependencyContext(market: original.market, baseURL: original.baseURL, role: "club", session: changedSession)
+        XCTAssertEqual(OrderLifecycleReplayContext(context: changed), replay)
+        XCTAssertNotEqual(OrderLifecycleReplayContext(context: try context(namespace: "other")), replay)
+        var session: OrderLifecycleSession? = try .init(accountID: 7, epoch: 1, token: "synthetic-only", contextID: "player", replayContext: replay)
+        let reader = OrderLifecycleSessionReader(service: nil, currentSession: { session })
+        let oldScope = reader.scope
+        session = try .init(accountID: 7, epoch: 99, token: "synthetic-new-token", contextID: "club", replayContext: replay)
+        XCTAssertNotEqual(reader.scope, oldScope); XCTAssertEqual(reader.replayContext, replay)
+    }
+    @MainActor private final class MisboundReader: OrderLifecycleReading {
+        let accountID: Int?
+        let scope: UUID
+        let replayContext: OrderLifecycleReplayContext?
+        let value: OrderLifecycleDetail
+        var isConfigured: Bool { true }
+        var isOfflineExample: Bool { false }
+        init(accountID: Int, scope: UUID, replayContext: OrderLifecycleReplayContext?, value: OrderLifecycleDetail) {
+            self.accountID = accountID; self.scope = scope; self.replayContext = replayContext; self.value = value
+        }
+        func detail(id: Int) async throws -> OrderLifecycleDetail { value }
+    }
+    @MainActor private final class ReplayReader: OrderLifecycleReading {
+        let holder: Holder
+        var value: OrderLifecycleDetail
+        private var previous: RuntimeDependencyContext?
+        private var stamp = UUID()
+        init(holder: Holder, value: OrderLifecycleDetail) { self.holder = holder; self.value = value; previous = holder.value }
+        var accountID: Int? { holder.value?.session.accountID }
+        var replayContext: OrderLifecycleReplayContext? { holder.value.map { OrderLifecycleReplayContext(context: $0) } }
+        var scope: UUID {
+            if previous != holder.value { previous = holder.value; stamp = UUID() }
+            return stamp
+        }
+        var isConfigured: Bool { true }
+        var isOfflineExample: Bool { false }
+        func detail(id: Int) async throws -> OrderLifecycleDetail { value }
+    }
+    @MainActor private final class ReplayHarness {
+        let holder: Holder
+        let http: HTTP
+        let reader: ReplayReader
+        let journal: OrderLifecycleFileJournal
+        let directory: URL
+        let date: Date
+        let gate = TopicSelfPlayOperationGate()
+        let topicJournal = TopicJournal()
+        let provider = Provider()
+        var configuration: OrderLifecycleProductionConfiguration?
+        var enabled = true
+        var retainedDispatcher: OrderLifecycleProductionDispatcher?
+        lazy var coordinator = OrderLifecycleCoordinator(reader: reader, now: { [date = self.date] in date }, production: { [weak self] in self?.dispatcher() })
+        init(context: RuntimeDependencyContext, configuration: OrderLifecycleProductionConfiguration, detail: OrderLifecycleDetail, data: Data, date: Date) {
+            let holder = Holder(context)
+            self.holder = holder; reader = ReplayReader(holder: holder, value: detail); http = HTTP(detail: data)
+            let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+            self.directory = directory; journal = OrderLifecycleFileJournal(url: directory.appendingPathComponent("orders.json"))
+            self.configuration = configuration; self.date = date
+        }
+        func dispatcher() -> OrderLifecycleProductionDispatcher? {
+            guard enabled else { return nil }
+            if let retainedDispatcher { return retainedDispatcher }
+            guard let context = holder.value, let api = try? APIConfiguration(baseURL: context.baseURL) else { return nil }
+            return OrderLifecycleProductionFactory.make(configuration: configuration, api: api, transport: http, journal: journal,
+                document: Document(), provider: provider, sharedGate: gate, selfPlayJournal: topicJournal,
+                current: { [weak self] in self?.holder.value }, reviewScope: { [weak self] in self?.reader.scope ?? UUID() }, now: { [date = self.date] in date })
+        }
+        func cleanup() { try? FileManager.default.removeItem(at: directory) }
+    }
     @MainActor private final class OfflineReader: OrderLifecycleReading {
         let value: OrderLifecycleDetail
         var accountID: Int? { 7 }; let scope: UUID; var isConfigured: Bool { true }; var isOfflineExample: Bool { true }

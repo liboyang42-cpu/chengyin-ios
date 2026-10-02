@@ -1133,7 +1133,9 @@ final class AppSession: ObservableObject {
         let contextID = currentRuntimeDependencyContext.map {
             [$0.market.rawValue, $0.baseURL.absoluteString, $0.session.namespace, $0.role].map { "\($0.utf8.count):\($0)" }.joined(separator: "|")
         } ?? account.effectiveRole
-        return try? OrderLifecycleSession(accountID: account.id, epoch: gate.currentStamp, token: token, contextID: contextID)
+        let replayContext = currentRuntimeDependencyContext.map { OrderLifecycleReplayContext(context: $0) }
+        return try? OrderLifecycleSession(accountID: account.id, epoch: gate.currentStamp, token: token,
+            contextID: contextID, replayContext: replayContext)
     }
     lazy var orderLifecycleReader = OrderLifecycleSessionReader(service: orderLifecycleService,
         currentSession: { [weak self] in self?.currentOrderLifecycleSession },

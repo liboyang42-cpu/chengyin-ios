@@ -144,3 +144,24 @@ import XCTest
         XCTAssertNil(c.serverMessage)
     }
 }
+
+@MainActor extension OrderLifecycleCoordinatorTests {
+    func testPriorSessionReceiptIsRedactedWhileReplayLockSurvives() async throws {
+        let reader = LifecycleTestReader(), simulator = LifecycleTestSimulator()
+        let coordinator = OrderLifecycleCoordinator(reader: reader, fixtureSimulator: simulator)
+        await coordinator.load(id: 9701); coordinator.prepare(.cancel, orderID: 9701)
+        let review = try XCTUnwrap(coordinator.review)
+        let task = Task { await coordinator.confirm(reviewID: review.id) }
+        while simulator.pending == nil { await Task.yield() }
+        let receipt = try JSONDecoder().decode(OrderCancellationObservation.self,
+            from: Data(#"{"registrationId":9701,"cancellationStatus":"CANCELLED","cashRefundStatus":"PRIVATE-SYNTHETIC-STATUS"}"#.utf8))
+        simulator.pending?.resume(returning: receipt); simulator.pending = nil; await task.value
+        XCTAssertEqual(coordinator.attempt(orderID: 9701), .responseReceived(localAttemptID: review.localAttemptID, observation: receipt))
+        reader.replace(accountID: 100)
+        XCTAssertNil(coordinator.detail); XCTAssertNil(coordinator.serverMessage)
+        XCTAssertEqual(coordinator.attempt(orderID: 9701), .outcomeUnknown(localAttemptID: review.localAttemptID))
+        await coordinator.load(id: 9701); coordinator.prepare(.cancel, orderID: 9701)
+        XCTAssertNil(coordinator.review); XCTAssertEqual(coordinator.issue, .alreadyAttempted)
+        XCTAssertEqual(simulator.calls, 1)
+    }
+}
