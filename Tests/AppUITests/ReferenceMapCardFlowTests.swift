@@ -17,8 +17,19 @@ final class ReferenceMapCardFlowTests: XCTestCase {
                 XCTAssertTrue(app.staticTexts[title].waitForExistence(timeout: 5))
                 XCTAssertTrue(app.descendants(matching: .any)["reference.card.missing"].exists)
                 attachFixtureScreenshot(self, app: app, name: "Image card top \(chinese ? "Chinese" : "English") \(maximum ? "maximum dark" : "normal light")")
-                app.swipeUp(); app.swipeUp()
-                XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "不能省略最后一段")).firstMatch.exists)
+                let subtitle = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "不能省略最后一段")).firstMatch
+                XCTAssertTrue(subtitle.exists)
+                // A maximum-size subtitle is taller than the viewport. Observe its final
+                // line rather than claiming a full-text screenshot from AX existence alone.
+                let bottom = app.frame.maxY - 45
+                for _ in 0..<30 {
+                    if subtitle.frame.maxY <= bottom { break }
+                    app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.80))
+                        .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.60)))
+                }
+                XCTAssertLessThanOrEqual(subtitle.frame.maxY, bottom)
+                XCTAssertGreaterThan(subtitle.frame.maxY, app.navigationBars.firstMatch.frame.maxY)
+                XCTAssertTrue(subtitle.label.hasSuffix("不能省略最后一段。"))
                 attachFixtureScreenshot(self, app: app, name: "Image card full subtitle \(chinese ? "Chinese" : "English") \(maximum ? "maximum" : "normal")")
                 app.terminate()
             }

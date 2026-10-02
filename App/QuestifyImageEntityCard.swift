@@ -33,15 +33,15 @@ struct QuestifyImageEntityCard<Details:View>:View {
                 if let subtitle,!subtitle.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty {
                     Text(verbatim:subtitle).font(.subheadline).lineLimit(nil)
                         .fixedSize(horizontal:false,vertical:true)
-                        .foregroundStyle(.white.opacity(0.92))
+                        .foregroundStyle(.white)
                 }
                 details().font(.subheadline).lineLimit(nil).fixedSize(horizontal:false,vertical:true)
             }
             .foregroundStyle(.white)
             .padding(20)
             .frame(maxWidth:.infinity,alignment:.leading)
-            // A strong scrim sits directly behind every text row, including large text.
-            .background(LinearGradient(colors:[.black.opacity(scrimOpacity),.black.opacity(0.94)],startPoint:.top,endPoint:.bottom))
+            // Opaque backing keeps text contrast independent of artwork and compositing.
+            .background(.black)
         }
         .frame(maxWidth:.infinity,minHeight:minimumHeight,alignment:.bottomLeading)
         .background {
@@ -78,7 +78,7 @@ struct QuestifyImageEntityMetadata:View {
     let systemImage:String
     var body:some View {
         Label { Text(verbatim:value).fixedSize(horizontal:false,vertical:true) } icon: { Image(systemName:systemImage).accessibilityHidden(true) }
-            .foregroundStyle(.white.opacity(0.92))
+            .foregroundStyle(.white)
             .accessibilityElement(children:.ignore)
             .accessibilityLabel(Text(label)+Text(verbatim:": "+value))
     }

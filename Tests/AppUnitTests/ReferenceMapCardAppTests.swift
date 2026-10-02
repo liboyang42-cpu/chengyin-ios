@@ -14,6 +14,9 @@ import SwiftUI
             let card = QuestifyImageEntityCard(imageSource: nil, title: title, subtitle: subtitle, minimumHeight: 230) {
                 QuestifyImageEntityMetadata(label: "searchMap.kind.merchant", value: "商户 Merchant", systemImage: "storefront")
             }.dynamicTypeSize(size)
+                // Match the unbounded vertical proposal used by the shipping ScrollView.
+                // A finite 20,000pt proposal otherwise expands the card's flexible Spacer.
+                .fixedSize(horizontal: false, vertical: true)
             let host = UIHostingController(rootView: card)
             host.traitOverrides.accessibilityContrast = .high
             XCTAssertEqual(host.traitCollection.accessibilityContrast, .high)
@@ -25,6 +28,8 @@ import SwiftUI
         XCTAssertGreaterThan(long, short)
         XCTAssertGreaterThan(maximum, long)
         XCTAssertTrue(maximum.isFinite)
+        XCTAssertGreaterThanOrEqual(short, 230)
+        XCTAssertLessThan(maximum, 10_000, "Intrinsic content must not fill the measurement proposal")
     }
     func testSummaryConstructionNeverStartsLocationOrDirections() throws {
         let fixture = WalkingNavigationFixtureSupport()
