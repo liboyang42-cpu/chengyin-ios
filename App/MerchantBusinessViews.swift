@@ -40,6 +40,9 @@ import SwiftUI
                     if access.allows("merchant:verify") {
                         NavigationLink { MerchantScanPreviewView() } label: { Label("merchant.business.scan", systemImage: "qrcode.viewfinder") }
                             .accessibilityIdentifier("merchant.business.open.scan")
+                        NavigationLink { CityNodeRedeemView(reader: reader, journal: journal) } label: {
+                            Label("merchant.cityRedeem.title", systemImage: "qrcode")
+                        }.accessibilityIdentifier("merchant.cityRedeem.entry")
                     }
                 }
             } else if loading { ProgressView("merchant.checkingAccess") }
@@ -136,7 +139,7 @@ import SwiftUI
             }
             if !state.isBusy { Button("merchant.business.refresh") { Task { await reload() } }.accessibilityIdentifier("merchant.business.refresh") }
         }
-        .appNavigationTitle(query.titleKey)
+        .appNavigationTitle(key: query.titleKey)
         .task(id: reader.scope) { await reload() }
         .refreshable { await reload() }
         .sheet(item: $editor, onDismiss: { if let mutation = pendingMutation { pendingMutation = nil; model.prepare(mutation) } }) { context in

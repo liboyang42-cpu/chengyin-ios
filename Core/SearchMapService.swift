@@ -11,6 +11,12 @@ public struct SearchMapService {
     public init(configuration: APIConfiguration, transport: any HTTPTransport) {
         self.configuration = configuration; self.transport = transport
     }
+    /// MerchantDiscoverPage uses name:"" for All and tags for each tonal filter.
+    /// The public response is a bare data list, not a rows page or a B2B merchant list.
+    public func merchantDiscovery(tag: MerchantDiscoveryTag, token: String? = nil) async throws -> [MerchantDiscoveryRow] {
+        let data = try await json("api/merchant/list", fields: tag.fields, token: token)
+        return try decode(SearchMapValue<[MerchantDiscoveryRow]>.self, data).data
+    }
     public func categories(token: String? = nil) async throws -> [DiscoveryCategory] {
         let data = try await form("api/category/list", fields: ["parentid":"0", "type":"1"], token: token)
         return try decode(SearchMapValue<[DiscoveryCategory]>.self, data).data

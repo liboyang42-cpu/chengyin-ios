@@ -29,8 +29,14 @@ public struct MerchantBusinessSnapshot: Equatable {
     var isOfflineExample: Bool { get }
     var canExecuteSyntheticMutation: Bool { get }
     func access() async throws -> MerchantBusinessAccess
+    func cityNodeRedemption(journal: any MerchantBusinessIntentStore) -> CityNodeRedemptionCoordinator
     func snapshot(_ query: MerchantBusinessQuery) async throws -> MerchantBusinessSnapshot
     func execute(_ mutation: MerchantBusinessMutation, requestID: String, scope: MerchantBusinessScope) async throws -> MerchantBusinessReceipt
+}
+public extension MerchantBusinessReading {
+    func cityNodeRedemption(journal: any MerchantBusinessIntentStore) -> CityNodeRedemptionCoordinator {
+        .init(service: nil, journal: journal, currentSession: { nil })
+    }
 }
 @MainActor public final class MerchantBusinessSessionReader: MerchantBusinessReading {
     private let service: MerchantBusinessService?
@@ -45,6 +51,9 @@ public struct MerchantBusinessSnapshot: Equatable {
     }
     public init(service: MerchantBusinessService?, currentSession: @escaping () -> MerchantBusinessSession?, onUnauthorized: @escaping (MerchantBusinessSession) -> Void = { _ in }) {
         self.service = service; self.currentSession = currentSession; unauthorized = onUnauthorized
+    }
+    public func cityNodeRedemption(journal: any MerchantBusinessIntentStore) -> CityNodeRedemptionCoordinator {
+        .init(service: service, journal: journal, currentSession: currentSession, onUnauthorized: unauthorized)
     }
     public func access() async throws -> MerchantBusinessAccess { try await read { try await $0.access(token: $1.token) } }
     public func snapshot(_ query: MerchantBusinessQuery) async throws -> MerchantBusinessSnapshot {

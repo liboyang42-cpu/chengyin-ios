@@ -167,3 +167,58 @@ private final class CoopFlowFakeTransport: HTTPTransport {
         XCTAssertEqual(executor.calls, 1)
     }
 }
+
+final class CooperationInvitationEntryTests: XCTestCase {
+    private let row: [String: CoopFlowJSON] = [
+        "status": .id(0), "topicId": .id(8), "applyId": .id(7), "clubId": .id(103),
+        "clubName": .string("Synthetic club"), "scope": .string("MERCHANT")
+    ]
+    func testPendingReceivedApplicationPreservesTypedRecipientAndSourceScope() throws {
+        let session = try CoopFlowSession(accountID: 101, epoch: 1, token: "synthetic")
+        let context = try XCTUnwrap(CoopFlowInvitationContext(receivedApplication: .object(row), session: session))
+        let invitation = try context.invitation(message: "Local draft", compensation: .traffic, currentSession: session)
+        let body = try CoopFlowMutation.invite(invitation).body()
+        XCTAssertEqual(body["toType"], .string("club")); XCTAssertEqual(body["toId"], .id(103))
+        XCTAssertEqual(body["topicId"], .id(8)); XCTAssertEqual(body["originApplyId"], .id(7))
+        XCTAssertEqual(body["scope"], .string("MERCHANT"))
+    }
+    func testMissingForeignIDsTerminalApplicationAndUnknownScopeCannotOpenEditor() throws {
+        let session = try CoopFlowSession(accountID: 101, epoch: 1, token: "synthetic")
+        XCTAssertNil(CoopFlowInvitationContext(receivedApplication: .object(row), session: nil))
+        for key in ["topicId", "applyId", "clubId"] {
+            var missing = row; missing.removeValue(forKey: key)
+            missing["id"] = .id(99); missing["memberId"] = .id(999)
+            XCTAssertNil(CoopFlowInvitationContext(receivedApplication: .object(missing), session: session), key)
+            missing[key] = .id(0)
+            XCTAssertNil(CoopFlowInvitationContext(receivedApplication: .object(missing), session: session), key)
+        }
+        for status in [1, 2, 3, 4, 99] {
+            var ended = row; ended["status"] = .id(status)
+            XCTAssertNil(CoopFlowInvitationContext(receivedApplication: .object(ended), session: session))
+        }
+        var unknown = row; unknown["scope"] = .string("UNKNOWN")
+        XCTAssertNil(CoopFlowInvitationContext(receivedApplication: .object(unknown), session: session))
+        unknown["scope"] = .id(1)
+        XCTAssertNil(CoopFlowInvitationContext(receivedApplication: .object(unknown), session: session))
+    }
+    func testAbsentScopeStaysAbsentAndInvalidFixedCompensationIsRejected() throws {
+        let session = try CoopFlowSession(accountID: 101, epoch: 1, token: "synthetic")
+        var personal = row; personal.removeValue(forKey: "scope")
+        let context = try XCTUnwrap(CoopFlowInvitationContext(receivedApplication: .object(personal), session: session))
+        XCTAssertNil(context.scope)
+        XCTAssertThrowsError(try context.invitation(message: "", compensation: .fixed(0), currentSession: session))
+    }
+    func testSignOutAccountEpochAndTokenChangesInvalidateLocalReview() throws {
+        let session = try CoopFlowSession(accountID: 101, epoch: 1, token: "synthetic")
+        let context = try XCTUnwrap(CoopFlowInvitationContext(receivedApplication: .object(row), session: session))
+        let alternatives: [CoopFlowSession?] = [nil,
+            try CoopFlowSession(accountID: 102, epoch: 1, token: "synthetic"),
+            try CoopFlowSession(accountID: 101, epoch: 2, token: "synthetic"),
+            try CoopFlowSession(accountID: 101, epoch: 1, token: "replacement")]
+        for other in alternatives {
+            XCTAssertThrowsError(try context.invitation(message: "Local draft", compensation: .traffic, currentSession: other)) {
+                XCTAssertEqual($0 as? CoopFlowFailure, .stale)
+            }
+        }
+    }
+}

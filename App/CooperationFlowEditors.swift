@@ -129,36 +129,70 @@ struct CoopFlowOfferEditor: View {
         }.navigationTitle("coopflow.offer.title")
     }
 }
-/// Only caller-supplied current topic/recipient selections are allowed; never type a merchant ID into member space.
-struct CoopFlowInviteEditor: View {
-    let kind: CoopFlowTargetKind
-    let recipient: CoopFlowIdentity
-    let recipientName: String
-    let topicID: Int
-    let originApplyID: Int?
-    let scope: String?
+/// A bounded composition sheet; the immutable local review pushes within this same stack.
+@MainActor struct CoopFlowInviteEditor: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
+    let reader: any CoopFlowReading
+    let context: CoopFlowInvitationContext
     @State private var message = ""
     @State private var fixed = false
     @State private var fee = ""
+    @State private var confirmDiscard = false
+    private enum Field: Hashable { case message, fee }
+    @FocusState private var focusedField: Field?
+    private var hasDraft: Bool { !message.isEmpty || fixed || !fee.isEmpty }
     private var draft: CoopFlowInvitation? {
+        let compensation: CoopFlowCompensation
         if fixed {
             guard let amount = Decimal(string: fee, locale: Locale(identifier: "en_US_POSIX")) else { return nil }
-            return try? CoopFlowInvitation(kind: kind, recipient: recipient, topicID: topicID, message: message, compensation: .fixed(amount), originApplyID: originApplyID, scope: scope)
-        }
-        return try? CoopFlowInvitation(kind: kind, recipient: recipient, topicID: topicID, message: message, originApplyID: originApplyID, scope: scope)
+            compensation = .fixed(amount)
+        } else { compensation = .traffic }
+        return try? context.invitation(message: message, compensation: compensation, currentSession: reader.session)
     }
     var body: some View {
-        Form {
-            LabeledContent("coopflow.field.toId", value: recipientName)
-            LabeledContent("coopflow.field.toType", value: kind.wire)
-            LabeledContent("coopflow.field.topicId", value: String(topicID))
-            TextField("coopflow.field.message", text: $message, axis: .vertical)
-            Toggle("coopflow.fixed", isOn: $fixed)
-            if fixed { TextField("coopflow.field.fixedFee", text: $fee).keyboardType(.decimalPad); Text("coopflow.currency") }
-            if let draft { NavigationLink("coopflow.reviewAction") { CoopFlowRequestPreview(operation: .invite(draft)) } }
-            Text("coopflow.invite.rules")
-            CoopFlowSafetyNotice()
-        }.navigationTitle("coopflow.invite.title")
+        Group {
+            if reader.session == context.session {
+                Form {
+                    LabeledContent("coopflow.field.toId", value: context.recipientName.isEmpty ? appLocalized("coopflow.unnamed", locale: locale) : context.recipientName)
+                    LabeledContent("coopflow.field.toType", value: appLocalized("coopflow.invite.club", locale: locale))
+                    LabeledContent("coopflow.field.topicId", value: String(context.topicID))
+                    TextField("coopflow.field.message", text: $message, axis: .vertical)
+                        .focused($focusedField, equals: .message).accessibilityIdentifier("coopflow.invite.message")
+                    Toggle("coopflow.fixed", isOn: $fixed)
+                    if fixed {
+                        TextField("coopflow.field.fixedFee", text: $fee).keyboardType(.decimalPad).focused($focusedField, equals: .fee)
+                        Text("coopflow.currency")
+                    }
+                    if let draft {
+                        NavigationLink("coopflow.reviewAction") { CoopFlowRequestPreview(operation: .invite(draft)) }
+                            .accessibilityIdentifier("coopflow.invite.review")
+                    }
+                    Text("coopflow.invite.rules")
+                    CoopFlowSafetyNotice()
+                }.scrollDismissesKeyboard(.interactively)
+            } else { Text("coopflow.invite.sessionChanged") }
+        }
+        .navigationTitle("coopflow.invite.title")
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("coopflow.invite.cancel") {
+                    focusedField = nil
+                    if hasDraft { confirmDiscard = true } else { dismiss() }
+                }.accessibilityIdentifier("coopflow.invite.cancel")
+            }
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer(); Button("coopflow.invite.done") { focusedField = nil }
+            }
+        }
+        .interactiveDismissDisabled(hasDraft)
+        .confirmationDialog("coopflow.invite.discardPrompt", isPresented: $confirmDiscard, titleVisibility: .visible) {
+            Button("coopflow.invite.discard", role: .destructive) { dismiss() }
+            Button("coopflow.invite.keepEditing", role: .cancel) {}
+        }
+        .onChange(of: reader.session) { _, _ in
+            message = ""; fee = ""; fixed = false; focusedField = nil; dismiss()
+        }
     }
 }
 struct CoopFlowReviewEditor: View {

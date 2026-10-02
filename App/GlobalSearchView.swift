@@ -3,6 +3,7 @@ import SwiftUI
 @MainActor struct GlobalSearchView<Destination: View>: View {
     let reader: any SearchMapReading
     var historyNamespace: String? = nil
+    var publicMerchant = PublicMerchantHomeContext()
     var onSignIn: (() -> Void)? = nil
     let destination: (SearchMapDestination) -> Destination
     @State private var filter = GlobalSearchQuery()
@@ -40,6 +41,10 @@ import SwiftUI
                     NavigationLink { SearchMapExplorerView(reader: reader, mode: .city, initialFilter: filter, onSignIn: onSignIn, destination: destination) } label: { Label("searchMap.citySearch", systemImage: "mappin.and.ellipse") }
                     NavigationLink { SearchMapExplorerView(reader: reader, mode: .nearby, onSignIn: onSignIn, destination: destination) } label: { Label("searchMap.nearby", systemImage: "map") }
                 }.buttonStyle(.bordered).frame(minHeight: 44)
+                NavigationLink {
+                    MerchantDiscoverView(reader: reader, publicMerchant: publicMerchant)
+                } label: { Label("merchant.discover.title", systemImage: "storefront") }
+                    .frame(minHeight: 44).accessibilityIdentifier("merchant.discover.entry")
                 if !reader.isConfigured { SearchMapIssue(key: "searchMap.notConfigured") }
                 else if loading { ProgressView("searchMap.loading").frame(maxWidth: .infinity) }
                 else if let issue { SearchMapIssue(key: issue) { Task { await search() } } }

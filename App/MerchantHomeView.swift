@@ -87,7 +87,8 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                 Text("merchant.readOnly").font(.footnote).foregroundStyle(.secondary)
             }
             if let marketingModel {
-                Section { MerchantMarketingEntry(model: marketingModel, isSourceVisible: false, suggestionDestination: marketingDestination) }
+                // Source merchant tools expose this entry. Visibility is separate from service/AI/settlement grants.
+                Section { MerchantMarketingEntry(model: marketingModel, isSourceVisible: true, suggestionDestination: marketingDestination) }
             }
             if let operationsReader {
                 Section {

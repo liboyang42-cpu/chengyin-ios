@@ -5,7 +5,7 @@ import SwiftUI
     @EnvironmentObject private var session: AppSession
     var onSignIn: (() -> Void)? = nil
     var body: some View {
-        GlobalSearchView(reader: session.searchMapReader, historyNamespace: session.searchMapHistoryNamespace,
+        GlobalSearchView(reader: session.searchMapReader, historyNamespace: session.searchMapHistoryNamespace, publicMerchant: session.publicMerchantHomeContext,
                          onSignIn: onSignIn, destination: destination)
             .id(session.searchMapReader.scope)
     }

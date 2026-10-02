@@ -102,6 +102,38 @@ public struct CoopFlowInvitation: Equatable {
         self.compensation = compensation; self.originApplyID = originApplyID; self.scope = scope
     }
 }
+/// Local review entry derived only from a received, pending application in the current session.
+/// A club ID is never substituted with a merchant/member/application ID. This is not a write grant.
+public struct CoopFlowInvitationContext: Identifiable, Equatable {
+    public let session: CoopFlowSession
+    public let recipient: CoopFlowIdentity
+    public let recipientName: String
+    public let topicID: Int
+    public let originApplyID: Int
+    public let scope: String?
+    public var id: String { "\(session.accountID):\(session.epoch):\(originApplyID):\(topicID):\(recipient.id)" }
+
+    public init?(receivedApplication row: CoopFlowJSON, session: CoopFlowSession?) {
+        guard let session, row["status"].integer == 0,
+              let topic = row["topicId"].integer, topic > 0,
+              let apply = row["applyId"].integer, apply > 0,
+              let club = row["clubId"].integer, let recipient = try? CoopFlowIdentity(.club, club) else { return nil }
+        let scope = row["scope"].text?.trimmingCharacters(in: .whitespacesAndNewlines)
+        // Unknown ownership scopes are not downgraded to personal authority.
+        guard row["scope"] == .null || scope == "" || scope == "MERCHANT" else { return nil }
+        self.session = session; self.recipient = recipient
+        self.recipientName = row["clubName"].text ?? ""
+        self.topicID = topic; self.originApplyID = apply; self.scope = scope == "MERCHANT" ? scope : nil
+    }
+
+    public func invitation(message: String, compensation: CoopFlowCompensation,
+                           currentSession: CoopFlowSession?) throws -> CoopFlowInvitation {
+        guard currentSession == session else { throw CoopFlowFailure.stale }
+        return try CoopFlowInvitation(kind: .club, recipient: recipient, topicID: topicID, message: message,
+                                      compensation: compensation, originApplyID: originApplyID, scope: scope)
+    }
+}
+
 public struct CoopFlowPerkTemplate: Equatable {
     public let name: String
     public let type: Int

@@ -17,11 +17,16 @@ public struct SearchMapContext: Equatable {
     var isOfflineExample: Bool { get }
     var scope: UUID { get }
     func categories() async throws -> [DiscoveryCategory]
+    func merchantDiscovery(tag: MerchantDiscoveryTag) async throws -> [MerchantDiscoveryRow]
     func search(_ query: GlobalSearchQuery) async throws -> GlobalSearchResults
     func citySearch(_ query: CityNodeSearchQuery) async throws -> CityNodeSearchResults
     func nearby(area: RoamSearchArea) async throws -> SearchMapNearbyResults
     func cityNode(id: Int) async throws -> SearchMapCityNode
     func merchant(id: Int) async throws -> RoamMerchantDetail
+}
+/// Older fixture readers have no discovery data; do not invent empty successful results.
+public extension SearchMapReading {
+    func merchantDiscovery(tag: MerchantDiscoveryTag) async throws -> [MerchantDiscoveryRow] { throw APIError.notConfigured }
 }
 @MainActor public final class SearchMapSessionReader: SearchMapReading {
     private let service: SearchMapService?
@@ -41,6 +46,9 @@ public struct SearchMapContext: Equatable {
                 onUnauthorized: @escaping (SearchMapContext) -> Void = { _ in }) {
         self.service = service; self.currentContext = currentContext; self.onUnauthorized = onUnauthorized
         snapshot = currentContext()
+    }
+    public func merchantDiscovery(tag: MerchantDiscoveryTag) async throws -> [MerchantDiscoveryRow] {
+        try await read { try await $0.merchantDiscovery(tag: tag, token: $1) }
     }
     public func categories() async throws -> [DiscoveryCategory] { try await read { try await $0.categories(token: $1) } }
     public func search(_ query: GlobalSearchQuery) async throws -> GlobalSearchResults {

@@ -54,4 +54,37 @@ final class MerchantMarketingUITests: XCTestCase {
         app.buttons["merchantMarketing.option.A"].tap()
         XCTAssertTrue(app.switches["merchantMarketing.acknowledgeEffects"].exists)
     }
+
+    func testNormalMerchantWorkbenchOpensDormantMarketingInBothLanguages() {
+        for language in ["en", "zh-Hans"] {
+            let app = XCUIApplication()
+            app.launchArguments += ["--uitesting-merchant-fixture", "owner", "-AppleLanguages", "(\(language))",
+                                    "-AppleLocale", language == "en" ? "en_US" : "zh_CN"]
+            app.launch()
+            let entry = app.buttons["merchantMarketing.entry"]
+            XCTAssertTrue(entry.waitForExistence(timeout: 5)); entry.tap()
+            XCTAssertTrue(app.staticTexts["merchantMarketing.error"].waitForExistence(timeout: 5))
+            let picker = app.buttons["merchantMarketing.sectionPicker"]
+            XCTAssertTrue(picker.exists)
+            let sections = language == "en" ? ["Shop insights", "Entitlements", "Prediction inbox"] : ["店铺参谋", "付费权益", "竞猜待答"]
+            for section in sections {
+                picker.tap(); app.buttons[section].lastMatch.tap()
+                XCTAssertTrue(app.staticTexts["merchantMarketing.error"].waitForExistence(timeout: 5))
+                XCTAssertFalse(app.buttons["merchantMarketing.confirmSettlement"].exists)
+            }
+            let screen = XCTAttachment(screenshot: app.screenshot())
+            screen.name = "Normal merchant dormant destination \(language)"; screen.lifetime = .keepAlways; add(screen)
+            XCTAssertFalse(app.buttons["merchantMarketing.confirmSettlement"].exists)
+            XCTAssertFalse(app.buttons["Purchase"].exists)
+            app.navigationBars.buttons.element(boundBy: 0).tap()
+            XCTAssertTrue(entry.exists); app.terminate()
+        }
+    }
+    func testInactiveMerchantDoesNotExposeMarketing() {
+        let app = XCUIApplication()
+        app.launchArguments += ["--uitesting-merchant-fixture", "inactive", "-AppleLanguages", "(en)"]
+        app.launch()
+        XCTAssertTrue(app.staticTexts["merchant.access.inactive"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["merchantMarketing.entry"].exists)
+    }
 }

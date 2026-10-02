@@ -14,13 +14,15 @@ enum MerchantFixtureScenario: String {
 @MainActor
 struct MerchantFixtureRootView: View {
     @StateObject private var reader: MerchantFixtureReader
+    private let marketing = MerchantMarketingCoordinator(service: MerchantMarketingService(
+        configuration: nil, transport: MerchantMarketingFixtureTransport(), currentSession: { nil }))
     init(scenario: MerchantFixtureScenario) { _reader = StateObject(wrappedValue: MerchantFixtureReader(scenario: scenario)) }
     var body: some View {
         VStack(spacing: 0) {
             Text("merchant.fixtureNotice").font(.caption.bold()).padding(8)
                 .frame(maxWidth: .infinity).background(.yellow.opacity(0.2))
                 .accessibilityIdentifier("merchant.fixture.notice")
-            NavigationStack { MerchantHomeView(reader: reader) }
+            NavigationStack { MerchantHomeView(reader: reader, marketingModel: marketing) }
         }
     }
 }

@@ -35,7 +35,7 @@ class AccountMarketingEntryIntegrationChecks(unittest.TestCase):
         s=self.read('App/NativeEntryLandingView.swift')
         for case in ['case .topicCooperation:', 'case .decoration:', 'case .content:']: self.assertIn(case,s)
         self.assertNotIn('openURL',s)
-        self.assertIn('isSourceVisible: false',self.read('App/MerchantHomeView.swift'))
+        self.assertIn('isSourceVisible: true',self.read('App/MerchantHomeView.swift'))
         self.assertIn('iOSCheckoutAvailable: Bool { false }',self.read('Core/MerchantMarketingModels.swift'))
     def test_compliance_legal_stays_missing_and_signup_does_not_grant_creation(self):
         s=self.read('App/AccountComplianceViews.swift')

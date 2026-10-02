@@ -1,0 +1,206 @@
+{
+  "coopflow.nearby.purpose": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Location helps find nearby business partners"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "定位用于查找附近的合作商家"
+        }
+      }
+    }
+  },
+  "coopflow.nearby.unavailable": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Nearby search and its location provider are not enabled in this build."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前版本尚未启用附近商家查询和定位服务。"
+        }
+      }
+    }
+  },
+  "coopflow.nearby.privacy": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No location has been requested or shared. When enabled, this search will explain its purpose and ask you before accessing your foreground location."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "尚未请求或共享你的位置信息。启用后，查询会先说明用途并征得你的同意，再获取前台位置。"
+        }
+      }
+    }
+  },
+  "coopflow.invite.reply": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Prepare a reply invitation"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "拟定回复邀约"
+        }
+      }
+    }
+  },
+  "coopflow.invite.club": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Club"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "俱乐部"
+        }
+      }
+    }
+  },
+  "coopflow.invite.sessionChanged": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Your account changed. Reopen the application to prepare a new invitation."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "账号已变化，请重新打开申请后拟定邀约。"
+        }
+      }
+    }
+  },
+  "coopflow.invite.cancel": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Cancel"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "取消"
+        }
+      }
+    }
+  },
+  "coopflow.invite.done": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Done"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "完成"
+        }
+      }
+    }
+  },
+  "coopflow.invite.discardPrompt": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Discard this invitation draft?"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "放弃这份邀约草稿？"
+        }
+      }
+    }
+  },
+  "coopflow.invite.discard": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Discard draft"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "放弃草稿"
+        }
+      }
+    }
+  },
+  "coopflow.invite.keepEditing": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Keep editing"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "继续编辑"
+        }
+      }
+    }
+  },
+  "coopflow.fixture.signOut": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Sign out of offline fixture"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "退出离线演示账号"
+        }
+      }
+    }
+  }
+}

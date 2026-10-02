@@ -3,7 +3,6 @@ import SwiftUI
 /// Injectable cooperation routes. Compose with existing inbox/pool/candidate readers; no automatic writes.
 @MainActor struct CooperationFlowWorkbench: View {
     let reader: any CoopFlowReading
-    var authorizedCoordinates: (longitude: Double, latitude: Double)? = nil
     var body: some View {
         List {
             Section("coopflow.business") {
@@ -11,9 +10,8 @@ import SwiftUI
                 link("coopflow.mybiz", resource: .myBusiness)
                 link("coopflow.relations", resource: .relations)
                 link("coopflow.clubs", resource: .clubs(name: nil))
-                if let coordinates = authorizedCoordinates {
-                    link("coopflow.nearby", resource: .nearby(longitude: coordinates.longitude, latitude: coordinates.latitude))
-                }
+                NavigationLink { CoopFlowNearbyGate(reader: reader) } label: { Text("coopflow.nearby") }
+                    .accessibilityIdentifier("coopflow.route.coopflow.nearby")
             }
             Section("coopflow.supply") {
                 link("coopflow.templates", resource: .templates)
@@ -34,6 +32,22 @@ import SwiftUI
         NavigationLink { CoopFlowReadView(reader: reader, resource: resource, title: key) } label: { Text(LocalizedStringKey(key)) }.accessibilityIdentifier("coopflow.route.\(key)")
     }
 }
+/// Reachable before a location provider is approved. Opening this page never requests permission.
+@MainActor struct CoopFlowNearbyGate: View {
+    let reader: any CoopFlowReading
+    var body: some View {
+        List {
+            Section {
+                Label("coopflow.nearby.purpose", systemImage: "location")
+                if reader.session == nil { Text("cooperation.login") }
+                else { Text("coopflow.nearby.unavailable") }
+            }
+            Section { Text("coopflow.nearby.privacy"); CoopFlowSafetyNotice() }
+        }.navigationTitle("coopflow.nearby")
+            .accessibilityIdentifier("coopflow.nearby.gate")
+    }
+}
+
 struct CoopFlowSafetyNotice: View {
     var body: some View {
         Label("coopflow.dormant", systemImage: "lock.shield")
@@ -50,6 +64,7 @@ struct CoopFlowSafetyNotice: View {
     @State private var issue: String?
     @State private var generation = UUID()
     @State private var refresh = UUID()
+    @State private var inviteContext: CoopFlowInvitationContext?
     var body: some View {
         List {
             if reader.session == nil { Text("cooperation.login") }
@@ -66,6 +81,10 @@ struct CoopFlowSafetyNotice: View {
         .task(id: "\(reader.session?.accountID ?? 0):\(reader.session?.epoch ?? 0):\(refresh)") { await load() }
         .refreshable { await load() }
         .onDisappear { generation = UUID() }
+        .sheet(item: $inviteContext) { context in
+            NavigationStack { CoopFlowInviteEditor(reader: reader, context: context) }
+        }
+        .onChange(of: reader.session) { _, _ in inviteContext = nil; refresh = UUID() }
     }
     private func load() async {
         let stamp = UUID(); generation = stamp; value = nil; issue = nil; loadedSession = nil
@@ -176,6 +195,11 @@ struct CoopFlowSafetyNotice: View {
             case .applications:
                 if row["status"].integer == 0, let id = row["topicId"].integer { preview(.withdraw(topicID: id), label: "coopflow.withdraw") }
             case .receivedApplications:
+                if loadedSession == reader.session,
+                   let context = CoopFlowInvitationContext(receivedApplication: row, session: loadedSession) {
+                    Button("coopflow.invite.reply") { inviteContext = context }
+                        .accessibilityIdentifier("coopflow.invite.reply")
+                }
                 if row["status"].integer == 0, let id = row["applyId"].integer { preview(.decline(applyID: id, scope: row["scope"].text), label: "coopflow.decline") }
             case .registrations:
                 if row["auditStatus"].integer == 0, let id = row["id"].integer {
