@@ -71,6 +71,16 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_ENABLE_UPLOAD_ARTIFACT: 'false'
           GITLEAKS_ENABLE_COMMENTS: 'false'
+          GITLEAKS_VERSION: '8.24.3'
+      - name: Scan full checked-out branch history
+        shell: bash
+        run: |
+          set -euo pipefail
+          # The pinned action installs this version and adds its directory to PATH.
+          command -v gitleaks >/dev/null
+          test "$(gitleaks version)" = '8.24.3'
+          # Include merge-parent diffs; do not scan unrelated branch tips with --all.
+          gitleaks git --redact --exit-code=2 --log-opts="--full-history -m HEAD"
   app-unit-tests:
     needs: native
     runs-on: macos-26

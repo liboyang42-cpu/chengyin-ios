@@ -80,8 +80,8 @@ import Foundation
         readScope = nil; script = nil; review = nil
         if outcome == .reviewed { outcome = .idle }
     }
-    public init(scope: MerchantNPCScope, client: MerchantNPCHTTPClient, reader: any MerchantOperationsReading, journal: any OperationPendingJournal = OperationDefaultsJournal(defaults: .standard), currentScope: @escaping () -> MerchantNPCScope?, grants: @escaping () -> MerchantNPCGrants) {
-        self.scope = scope; self.client = client; self.reader = reader; self.journal = journal; self.currentScope = currentScope; self.grants = grants
+    public init(scope: MerchantNPCScope, client: MerchantNPCHTTPClient, reader: any MerchantOperationsReading, journal: (any OperationPendingJournal)? = nil, currentScope: @escaping () -> MerchantNPCScope?, grants: @escaping () -> MerchantNPCGrants) {
+        self.scope = scope; self.client = client; self.reader = reader; self.journal = journal ?? OperationDefaultsJournal(defaults: .standard); self.currentScope = currentScope; self.grants = grants
         if hasUnresolvedWrite { outcome = .unknown }
     }
     public var isCurrent: Bool { active && currentScope() == scope && reader.isAuthenticated }

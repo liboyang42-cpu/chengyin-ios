@@ -48,7 +48,7 @@ public struct MerchantEngagementProof: Equatable {
             let grant = try await service.access(token: captured.token); try check(captured)
             if case .acceptInvitation = command { return .init(access: grant) }
             try grant.require(command.permissions)
-            func fetch(_ query: MerchantEngagementQuery) async throws -> MerchantEngagementPayload {
+            @MainActor func fetch(_ query: MerchantEngagementQuery) async throws -> MerchantEngagementPayload {
                 try check(captured); let result = try await service.read(query, access: grant, token: captured.token); try check(captured); return result
             }
             switch command {
@@ -90,7 +90,7 @@ public struct MerchantEngagementProof: Equatable {
         return try await perform { service, captured in try await service.execute(command, requestID: requestID, access: proof.access, token: captured.token) }
     }
     private func check(_ captured: MerchantBusinessSession) throws { guard session() == captured, !Task.isCancelled else { throw MerchantBusinessFailure.stale } }
-    private func perform<T>(_ work: (MerchantEngagementService, MerchantBusinessSession) async throws -> T) async throws -> T {
+    private func perform<T>(_ work: @MainActor (MerchantEngagementService, MerchantBusinessSession) async throws -> T) async throws -> T {
         guard let captured = session() else { throw APIError.unauthorized }; guard let service else { throw APIError.notConfigured }
         do { try check(captured); let value = try await work(service, captured); try check(captured); return value }
         catch { try check(captured); if error as? APIError == .unauthorized { unauthorized(captured) }; throw error }

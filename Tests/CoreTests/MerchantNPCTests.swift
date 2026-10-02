@@ -33,7 +33,9 @@ import XCTest
     func grants() -> MerchantNPCGrants { var g = MerchantNPCGrants(); g.server = true; g.provider = true; g.legal = true; g.resourceOwnership = true; g.voiceCloning = true; g.mediaTransmission = true; return g }
     func body(_ http: HTTP) throws -> [String: Any] { try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(http.requests.last).body) as? [String: Any]) }
     func media(_ kind: MerchantNPCMediaReference.Kind) throws -> MerchantNPCMediaReference { try .init(scope: scope, selectionID: UUID(), kind: kind, url: URL(string: "https://synthetic.invalid/sample")!, approvedHosts: ["synthetic.invalid"]) }
-    func resource(_ http: HTTP, reader: MerchantOperationsFixtureReader = .init(), journal: any OperationPendingJournal = Journal()) throws -> MerchantNPCResourcesCoordinator {
+    func resource(_ http: HTTP, reader: MerchantOperationsFixtureReader? = nil, journal: (any OperationPendingJournal)? = nil) throws -> MerchantNPCResourcesCoordinator {
+        let reader = reader ?? MerchantOperationsFixtureReader()
+        let journal = journal ?? Journal()
         let voice = try JSONDecoder().decode(MerchantVoiceResource.self, from: Data(#"{"voiceStatus":0}"#.utf8))
         let avatar = try JSONDecoder().decode(MerchantAvatarResource.self, from: Data(#"{"available":true,"styles":["realistic"],"job":null}"#.utf8))
         reader.replace(.assets, with: .assets(.init(voice: voice, avatar: avatar)))

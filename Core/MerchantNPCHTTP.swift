@@ -21,7 +21,7 @@ public struct MerchantNPCHTTPResponse {
 }
 @MainActor public struct MerchantNPCHTTPClient {
     private let transport: any MerchantNPCHTTPTransport
-    public init(transport: any MerchantNPCHTTPTransport = MerchantNPCDormantTransport()) { self.transport = transport }
+    public init(transport: (any MerchantNPCHTTPTransport)? = nil) { self.transport = transport ?? MerchantNPCDormantTransport() }
     private struct Envelope<T: Decodable>: Decodable { let code: Int; let msg: String?; let data: T? }
     private struct Empty: Decodable { init(from decoder: Decoder) throws {} }
     private func post<T: Decodable>(_ path: String, fields: [String: Any], scope: MerchantNPCScope, as type: T.Type) async throws -> (T?, String?) {
