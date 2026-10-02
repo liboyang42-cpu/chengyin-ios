@@ -4,9 +4,10 @@ import XCTest
 import FoundationNetworking
 #endif
 
+/// Reserved .test endpoints are used only with the injected fake transports below.
 @MainActor final class MerchantNPCVoiceSamplesTests: XCTestCase {
     @MainActor final class Fixture {
-        let scope = MerchantNPCScope(accountID: 901, namespace: "synthetic.invalid", epoch: UUID(), merchantRowID: PublicMerchantRowID(31)!, accessRevision: UUID())
+        let scope = MerchantNPCScope(accountID: 901, namespace: "synthetic.test", epoch: UUID(), merchantRowID: PublicMerchantRowID(31)!, accessRevision: UUID())
         func grants() -> MerchantNPCGrants { var g = MerchantNPCGrants(); g.server = true; g.provider = true; g.legal = true; g.resourceOwnership = true; g.voiceCloning = true; g.mediaTransmission = true; return g }
         func resource(_ http: MerchantNPCTests.HTTP, journal: any OperationPendingJournal) throws -> MerchantNPCResourcesCoordinator {
             let reader = MerchantOperationsFixtureReader()
@@ -26,20 +27,20 @@ import FoundationNetworking
         func cancel() { cancels += 1 }
     }
     final class Upload: MerchantNPCVoiceUploading {
-        var destination = "https://synthetic.invalid/api/common/uploadOSS"
+        var destination = "https://synthetic.test/api/common/uploadOSS"
         var calls: [Int] = []; var unknown = false
         func upload(_ clip: MerchantNPCVoiceClip, index: Int, scope: MerchantNPCScope) async throws -> MerchantNPCMediaReference {
             calls.append(index); if unknown { throw MerchantNPCFailure.unknownOutcome }
-            return try .init(scope: scope, selectionID: clip.id, kind: .voiceSample(index: index), url: URL(string: "https://synthetic.invalid/\(index).m4a")!, approvedHosts: ["synthetic.invalid"])
+            return try .init(scope: scope, selectionID: clip.id, kind: .voiceSample(index: index), url: URL(string: "https://synthetic.test/\(index).m4a")!, approvedHosts: ["synthetic.test"])
         }
     }
     final class HTTP: HTTPTransport {
         var requests: [URLRequest] = []
-        var json = #"{"code":200,"url":"https://synthetic.invalid/sample.m4a"}"#
+        var json = #"{"code":200,"url":"https://synthetic.test/sample.m4a"}"#
         var after: (() -> Void)?
         func send(_ request: URLRequest) async throws -> (Data, Int) { requests.append(request); after?(); return (Data(json.utf8), 200) }
     }
-    func limits() throws -> MerchantNPCVoiceConfiguration { try .init(sampleRate: 16000, channels: 1, bitRate: 32000, minDuration: 1, maxDuration: 10, maxBytes: 1000, approvedHosts: ["synthetic.invalid"]) }
+    func limits() throws -> MerchantNPCVoiceConfiguration { try .init(sampleRate: 16000, channels: 1, bitRate: 32000, minDuration: 1, maxDuration: 10, maxBytes: 1000, approvedHosts: ["synthetic.test"]) }
     func clip() -> MerchantNPCVoiceClip { .init(bytes: Data([0,0,0,12]) + Data("ftypM4A ".utf8), duration: 2) }
     func local() -> MerchantNPCVoiceLocalGrants { var g = MerchantNPCVoiceLocalGrants(); g.capture = true; g.playback = true; return g }
     func consumer(_ helper: Fixture, device: Device, upload: Upload, journal: MerchantNPCTests.Journal, localEnabled: Bool = true) async throws -> MerchantNPCVoiceSamplesCoordinator {
@@ -88,7 +89,7 @@ import FoundationNetworking
         c.attest(ownsVoice: false, consent: false); XCTAssertTrue(c.clips.isEmpty); XCTAssertNil(c.review); XCTAssertFalse(c.ready)
     }
     func adapter(_ h: Fixture, _ http: HTTP, enabled: Bool, scope: @escaping () -> MerchantNPCScope?) throws -> MerchantNPCVoiceUpload {
-        let config = try APIConfiguration(baseURL: URL(string: "https://synthetic.invalid")!)
+        let config = try APIConfiguration(baseURL: URL(string: "https://synthetic.test")!)
         return .init(configuration: config, limits: try limits(), transport: http, enabled: enabled, approval: try .init(baseURL: config.baseURL, namespace: h.scope.namespace, accountID: h.scope.accountID, paths: ["api/common/uploadOSS"]), currentScope: scope, token: { "synthetic-token" }, grants: { h.grants() })
     }
     func testUploadDisabledWithoutCallingHTTP() async throws {
@@ -106,7 +107,7 @@ import FoundationNetworking
     func testNestedURLAndStaleScopeAreUnknown() async throws {
         let h = Fixture(), http = HTTP(); var current: MerchantNPCScope? = h.scope
         let a = try adapter(h, http, enabled: true, scope: { current })
-        http.json = #"{"code":200,"data":{"url":"https://synthetic.invalid/a.m4a"}}"#
+        http.json = #"{"code":200,"data":{"url":"https://synthetic.test/a.m4a"}}"#
         do { _ = try await a.upload(clip(), index: 0, scope: h.scope); XCTFail() } catch { XCTAssertEqual(error as? MerchantNPCFailure, .unknownOutcome) }
         http.after = { current = nil }
         do { _ = try await a.upload(clip(), index: 0, scope: h.scope); XCTFail() } catch { XCTAssertEqual(error as? MerchantNPCFailure, .unknownOutcome) }

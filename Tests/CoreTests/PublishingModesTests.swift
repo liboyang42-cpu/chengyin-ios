@@ -32,7 +32,8 @@ private let publishingClub = #"{"code":200,"data":{"role":"club"}}"#
 private let publishingPlayer = #"{"code":200,"data":{"role":"player"}}"#
 @MainActor final class PublishingModesTests: XCTestCase {
     private func session(role: String = "club", account: Int = 901, region: PublishingRegion = .china) -> PublishingSession { .init(namespace: "synthetic-cn", accountID: account, epoch: UUID(), role: role, region: region) }
-    private func configuration() throws -> APIConfiguration { try .init(baseURL: URL(string: "https://example.invalid")!) }
+    // Reserved .test endpoint; all requests are captured by PublishingFakeTransport.
+    private func configuration() throws -> APIConfiguration { try .init(baseURL: URL(string: "https://example.test")!) }
     private func draft() -> ActivityPublishDraft {
         var d = ActivityPublishDraft(); d.name = "Synthetic activity"; d.description = "Synthetic description"; d.coverURL = "fixture://cover"; d.addressName = "Synthetic place"
         d.start = "2030-05-01 10:00:00"; d.end = "2030-05-01 12:00:00"; d.playTemplateID = .init(rawValue: 8); d.categoryIDs = [2, 3]
@@ -212,7 +213,7 @@ private let publishingPlayer = #"{"code":200,"data":{"role":"player"}}"#
         let reader = PublishingApprovedReadTransport(configuration: c, approval: grant, transport: t, currentCredentials: { try? PublishingCredentials(session: s, token: "synthetic-token") })
         var request = URLRequest(url: c.baseURL.appendingPathComponent("api/publish/home")); request.httpMethod = "POST"; request.setValue("synthetic-token", forHTTPHeaderField: "Authorization")
         _ = try await reader.send(request, credential: try PublishingCredentials(session: s, token: "synthetic-token")); XCTAssertEqual(t.requests.count, 1)
-        request.url = URL(string: "https://other.invalid/api/publish/home")
+        request.url = URL(string: "https://other.test/api/publish/home")
         do { _ = try await reader.send(request, credential: try PublishingCredentials(session: s, token: "synthetic-token")); XCTFail("Unapproved host") } catch { XCTAssertEqual(error as? PublishModesError, .unavailable) }
         XCTAssertEqual(t.requests.count, 1)
     }

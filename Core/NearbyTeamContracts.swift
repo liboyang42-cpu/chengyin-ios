@@ -137,7 +137,7 @@ public struct NearbyErrorEffect: Equatable {
     public static func resolve(operation: String, errorCode: String) -> Self {
         var effect = Self()
         switch (operation, errorCode) {
-        case ("apply", "TICKET_REQUIRED"): effect.status = .none; effect.ticket = false
+        case ("apply", "TICKET_REQUIRED"): effect.status = NearbyViewerStatus.none; effect.ticket = false
         case ("apply", "APPLY_REJECTED"): effect.status = .rejected
         case ("apply", "APPLY_PENDING"): effect.status = .pending
         case ("apply", "ALREADY_JOINED"): effect.status = .joined

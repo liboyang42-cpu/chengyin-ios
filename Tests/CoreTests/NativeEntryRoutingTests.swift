@@ -3,17 +3,26 @@ import XCTest
 @testable import QuestifyCore
 
 final class NativeEntryRoutingTests: XCTestCase {
-    func testDefaultPolicyAcceptsNothing() { XCTAssertNil(NativeEntryLinkPolicy().parse(URL(string: "https://example.test/door?scene=abcdef0123456789abcdef0123456789ab")!)) }
+    func testDefaultPolicyAcceptsNothing() { XCTAssertNil(NativeEntryLinkPolicy().parse(URL(string: "https://example.test/door?scene=abcdef0123456789abcdef0123456789")!)) }
     func testApprovedDoorPreservesRawOneDecode() {
         let policy = NativeEntryLinkPolicy(verifiedHTTPSOrigins: ["https://example.test"])
-        guard case .door(let intent) = policy.parse(URL(string: "https://example.test/door?scene=abcdef0123456789abcdef0123456789ab&inviter=42")!) else { return XCTFail() }
+        guard case .door(let intent) = policy.parse(URL(string: "https://example.test/door?scene=abcdef0123456789abcdef0123456789&inviter=42")!) else { return XCTFail() }
         XCTAssertEqual(intent.inviter, "42")
-        XCTAssertEqual(DoorParsing.scene(intent.scene), "abcdef0123456789abcdef0123456789ab")
+        XCTAssertEqual(DoorParsing.scene(intent.scene), "abcdef0123456789abcdef0123456789")
     }
     func testInvitationIsTypedWithoutMerchantGuess() {
         let policy = NativeEntryLinkPolicy(verifiedHTTPSOrigins: ["https://example.test"])
-        guard case .merchantInvitation(let route) = policy.parse(URL(string: "https://example.test/merchant/team?invite=synthetic-token")!) else { return XCTFail() }
-        XCTAssertEqual(route.invitation.token, "synthetic-token")
+        guard case .merchantInvitation(let route) = policy.parse(URL(string: "https://example.test/merchant/team?invite=synthetic-invite-token")!) else { return XCTFail() }
+        XCTAssertEqual(route.invitation.token, "synthetic-invite-token")
+    }
+    func testOverlongSceneRemainsUnresolved() {
+        let policy = NativeEntryLinkPolicy(verifiedHTTPSOrigins: ["https://example.test"])
+        guard case .door(let intent) = policy.parse(URL(string: "https://example.test/door?scene=abcdef0123456789abcdef0123456789ab")!) else { return XCTFail() }
+        XCTAssertNil(DoorParsing.scene(intent.scene))
+    }
+    func testShortInvitationTokenIsRejected() {
+        let policy = NativeEntryLinkPolicy(verifiedHTTPSOrigins: ["https://example.test"])
+        XCTAssertNil(policy.parse(URL(string: "https://example.test/merchant/team?invite=synthetic-token")!))
     }
     func testRejectsSpoofingAndUnsupportedRoutes() {
         let policy = NativeEntryLinkPolicy(verifiedHTTPSOrigins: ["https://example.test"])

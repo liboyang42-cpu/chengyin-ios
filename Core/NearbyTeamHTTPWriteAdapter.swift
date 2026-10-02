@@ -18,7 +18,7 @@ public struct NearbyTeamWriteEvidence: Equatable {
         if let team, team.id != action.teamID { return false }
         if let application, application.id != action.teamID { return false }
         switch action {
-        case .apply: return team?.viewerStatus == .none && team?.viewerHasTicket == true
+        case .apply: return team?.viewerStatus == NearbyViewerStatus.none && team?.viewerHasTicket == true
         case .withdraw:
             if let team { return team.viewerStatus == .pending }
             return application?.status == .pending

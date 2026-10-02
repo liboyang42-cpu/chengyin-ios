@@ -253,8 +253,35 @@ final class MerchantOperationsCoordinatorTests: XCTestCase {
         let reader = MerchantOperationsFixtureReader(), model: MerchantOperationsCoordinator; reader.saveFailure = .outcomeUnknown
         model = .init(reader: reader, destination: .profile); await model.load(); model.edit(try edited(model)); model.prepare()
         await model.confirm(try XCTUnwrap(model.confirmation)); XCTAssertTrue(model.isLocked); XCTAssertFalse(model.exampleSaved)
+        reader.saveFailure = nil // A now-working transport does not authorize replay.
         await model.load(); model.edit(try edited(model)); model.prepare(); XCTAssertNil(model.confirmation); XCTAssertEqual(reader.saveCount, 1)
+        XCTAssertTrue(model.isLocked); XCTAssertEqual(model.draft, model.baseline); XCTAssertFalse(model.canReview)
+        // Even a readback matching the attempted save is not its acknowledgment.
+        reader.replace(.profile, with: .draft(try edited(model)))
         model.leaveScreen(); await model.load(); XCTAssertTrue(model.isLocked)
+        model.prepare(); XCTAssertNil(model.confirmation); XCTAssertEqual(reader.saveCount, 1); XCTAssertFalse(model.exampleSaved)
+    }
+    func testPartialOutcomeRemainsLockedAcrossRefreshAndReentry() async throws {
+        let reader = MerchantOperationsFixtureReader(); reader.saveFailure = .partial(acknowledgedSteps: 1)
+        let model = MerchantOperationsCoordinator(reader: reader, destination: .story)
+        await model.load()
+        guard case .story(var story) = model.draft else { XCTFail("Expected story draft"); return }
+        story.profile.description = "Edited synthetic story"; model.edit(.story(story)); model.prepare()
+        await model.confirm(try XCTUnwrap(model.confirmation))
+        XCTAssertTrue(model.isLocked); XCTAssertEqual(model.issue, .key("merchant.operations.partialOutcome")); XCTAssertEqual(reader.saveCount, 1)
+        await model.load(); XCTAssertTrue(model.isLocked); model.prepare(); XCTAssertNil(model.confirmation)
+        model.leaveScreen(); await model.load(); XCTAssertTrue(model.isLocked); XCTAssertEqual(reader.saveCount, 1)
+    }
+    func testNotSentAllowsFreshReviewAfterRefresh() async throws {
+        let reader = MerchantOperationsFixtureReader(); reader.saveFailure = .notSent
+        let model = MerchantOperationsCoordinator(reader: reader, destination: .profile)
+        await model.load(); model.edit(try edited(model)); model.prepare()
+        await model.confirm(try XCTUnwrap(model.confirmation))
+        XCTAssertFalse(model.isLocked); XCTAssertTrue(model.isDirty); XCTAssertEqual(reader.saveCount, 1)
+        reader.saveFailure = nil
+        await model.load(); model.edit(try edited(model)); model.prepare()
+        XCTAssertFalse(model.isLocked); await model.confirm(try XCTUnwrap(model.confirmation))
+        XCTAssertTrue(model.exampleSaved); XCTAssertFalse(model.isLocked); XCTAssertEqual(reader.saveCount, 2)
     }
     func testContentRejectionRetainsDraftAndServerMessage() async throws {
         let reader = MerchantOperationsFixtureReader(), model: MerchantOperationsCoordinator
@@ -262,6 +289,8 @@ final class MerchantOperationsCoordinatorTests: XCTestCase {
         model = .init(reader: reader, destination: .profile); await model.load(); model.edit(try edited(model)); model.prepare()
         await model.confirm(try XCTUnwrap(model.confirmation))
         XCTAssertFalse(model.isLocked); XCTAssertTrue(model.isDirty); XCTAssertEqual(model.issue, .server("Synthetic rejected text"))
+        reader.saveFailure = nil; model.prepare(); await model.confirm(try XCTUnwrap(model.confirmation))
+        XCTAssertTrue(model.exampleSaved); XCTAssertFalse(model.isLocked); XCTAssertEqual(reader.saveCount, 2)
     }
     func testSignOutHidesOldContentAndPreventsConfirmation() async throws {
         let reader = MerchantOperationsFixtureReader(), model: MerchantOperationsCoordinator

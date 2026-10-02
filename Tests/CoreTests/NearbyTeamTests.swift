@@ -50,6 +50,7 @@ import XCTest
         XCTAssertEqual(NearbyErrorEffect.resolve(operation: "apply", errorCode: "TEAM_FULL").dropTeam, true)
         for code in ["TEAM_FULL", "ACTIVITY_STARTED", "TEAM_UNDER_REVIEW", "TEAM_NOT_PUBLIC"] { XCTAssertTrue(NearbyErrorEffect.resolve(operation: "apply", errorCode: code).dropTeam) }
         XCTAssertEqual(NearbyErrorEffect.resolve(operation: "apply", errorCode: "TICKET_REQUIRED").ticket, false)
+        XCTAssertEqual(NearbyErrorEffect.resolve(operation: "apply", errorCode: "TICKET_REQUIRED").status, NearbyViewerStatus.none)
         XCTAssertEqual(NearbyErrorEffect.resolve(operation: "apply", errorCode: "APPLY_REJECTED").status, .rejected)
         XCTAssertEqual(NearbyErrorEffect.resolve(operation: "apply", errorCode: "APPLY_PENDING").status, .pending)
         XCTAssertEqual(NearbyErrorEffect.resolve(operation: "apply", errorCode: "ALREADY_JOINED").status, .joined)
@@ -67,6 +68,42 @@ import XCTest
         XCTAssertFalse(service.configured); XCTAssertFalse(service.synthetic)
         do { _ = try await service.nearby(context, session: session); XCTFail() } catch { XCTAssertEqual(error as? NearbyTeamFailure, .unconfigured) }
         let outcome = await service.submit(.apply(.init(1)), session: session); XCTAssertEqual(outcome, .notSent)
+    }
+    func testApplyRequiresPresentNoneStatusAndTicketEvidence() async throws {
+        let (model, fake) = model([.response(response(NearbyTeamSyntheticFixtures.teams))])
+        XCTAssertFalse(model.allowed(.apply(.init(501))))
+        await model.loadNearby(context)
+        XCTAssertTrue(model.allowed(.apply(.init(501))))
+        for id in [502, 503, 504, 505, 506, 999] { XCTAssertFalse(model.allowed(.apply(.init(id)))) }
+        model.prepare(.apply(.init(501)))
+        let review = try XCTUnwrap(model.review)
+        let original = try XCTUnwrap(review.team)
+        XCTAssertEqual(original.viewerStatus, NearbyViewerStatus.none); XCTAssertTrue(original.viewerHasTicket)
+        // NONE is a concrete server status, not Optional.none. Both review and dispatch require it.
+        for status in [NearbyViewerStatus.none, .pending, .joined, .leader, .rejected, .unknown] {
+            for ticket in [false, true] {
+                var team = original; team.patch(status: status, ticket: ticket)
+                let snapshot = NearbyTeamReview(id: UUID(), action: review.action, session: session, revision: review.revision, team: team, applicant: nil, application: nil)
+                let evidence = NearbyTeamWriteEvidence(session: session, team: team)
+                XCTAssertEqual(evidence.validates(snapshot, now: Date()), status == NearbyViewerStatus.none && ticket)
+            }
+        }
+        let missing = NearbyTeamReview(id: UUID(), action: review.action, session: session, revision: review.revision, team: nil, applicant: nil, application: nil)
+        XCTAssertFalse(NearbyTeamWriteEvidence(session: session, team: nil).validates(missing, now: Date()))
+        XCTAssertEqual(fake.requests.count, 1)
+    }
+    func testWithdrawResetsStatusAndExpiryWithoutAllowingReplay() async throws {
+        let (model, fake) = model([.response(response(NearbyTeamSyntheticFixtures.teams)), .response(response(NearbyTeamSyntheticFixtures.applications)), .response(response("{\"code\":200}"))])
+        await model.loadNearby(context); await model.loadMine()
+        model.prepare(.withdraw(.init(502)))
+        let review = try XCTUnwrap(model.review)
+        XCTAssertEqual(review.team?.viewerStatus, .pending); XCTAssertNotNil(review.team?.applyExpireTime)
+        await model.confirm(review)
+        let team = try XCTUnwrap(model.teams.first { $0.id == .init(502) })
+        XCTAssertEqual(team.viewerStatus, NearbyViewerStatus.none); XCTAssertNil(team.applyExpireTime)
+        XCTAssertEqual(model.myApplications.map(\.id), [.init(506)])
+        XCTAssertFalse(model.allowed(.withdraw(.init(502))))
+        await model.confirm(review); XCTAssertEqual(fake.requests.count, 3)
     }
     func testApplyCopiesOnlyServerExpiryAndPreventsReplay() async throws {
         let (model, fake) = model([.response(response(NearbyTeamSyntheticFixtures.teams)), .response(response("{\"code\":200,\"data\":{\"applyExpireTime\":\"2099-10-02T01:00:00Z\"}}"))])

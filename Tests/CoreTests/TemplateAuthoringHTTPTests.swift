@@ -6,6 +6,7 @@ import FoundationNetworking
 @testable import QuestifyCore
 
 /// Authored only. Fake URLRequest transport: no socket/session/provider is created.
+/// Reserved .test endpoints exercise valid configuration without a real service.
 @MainActor final class TemplateAuthoringHTTPTests: XCTestCase {
     final class HTTP: HTTPTransport {
         var requests: [URLRequest] = []
@@ -31,7 +32,7 @@ import FoundationNetworking
         "{\"code\":200,\"data\":[{\"id\":\(id),\"title\":\"\(title)\",\"publishStatus\":\(status)}]}"
     }
     func adapter(_ http: HTTP, credentials: Credentials, enabled: Bool = true) throws -> TemplateAuthoringAdapter {
-        .init(transport: TemplateAuthoringHTTPTransport(configuration: try .init(baseURL: XCTUnwrap(URL(string: "https://example.invalid"))), http: http, session: try XCTUnwrap(credentials.session), enabled: enabled, credentials: {
+        .init(transport: TemplateAuthoringHTTPTransport(configuration: try .init(baseURL: XCTUnwrap(URL(string: "https://example.test"))), http: http, session: try XCTUnwrap(credentials.session), enabled: enabled, credentials: {
             credentials.session.map { (session: $0, token: credentials.token) }
         }))
     }
@@ -179,7 +180,7 @@ import FoundationNetworking
         XCTAssertEqual(try store.pending(session: XCTUnwrap(credentials.session), identity: identity), legacy)
     }
     func testBuilderRejectsGenericIDAndExistingEdit() throws {
-        let config = try APIConfiguration(baseURL: XCTUnwrap(URL(string: "https://example.invalid")))
+        let config = try APIConfiguration(baseURL: XCTUnwrap(URL(string: "https://example.test")))
         XCTAssertThrowsError(try TemplateAuthoringWireRequestBuilder.make(.init(path: "/api/template/delete", body: .form(["id":"42"]), mutates: true), configuration: config, token: "fake"))
         XCTAssertThrowsError(try TemplateAuthoringWireRequestBuilder.make(.init(path: "/api/template/draft", body: .json(["id":.number(42),"title":.string("Edit")]), mutates: true), configuration: config, token: "fake"))
     }

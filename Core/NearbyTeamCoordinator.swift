@@ -82,7 +82,7 @@ public struct NearbyTeamReview: Identifiable, Equatable {
         guard authenticated, !locked, !settledActions.contains(.init(action)) else { return false }
         let team = teams.first { $0.id == action.teamID }
         switch action {
-        case .apply: return team?.viewerStatus == .none && team?.viewerHasTicket == true
+        case .apply: return team?.viewerStatus == NearbyViewerStatus.none && team?.viewerHasTicket == true
         case .withdraw:
             if let team { return team.viewerStatus == .pending }; return myApplications.contains { $0.id == action.teamID && $0.status == .pending }
         case .handle(_, let applicant, _):
@@ -124,7 +124,7 @@ public struct NearbyTeamReview: Identifiable, Equatable {
             switch snapshot.action {
             case .apply(let id): if let index = teams.firstIndex(where: { $0.id == id }) { teams[index].patch(status: .pending, expiry: expiry, replaceExpiry: true) }
             case .withdraw(let id):
-                if let index = teams.firstIndex(where: { $0.id == id }) { teams[index].patch(status: .none, replaceExpiry: true) }
+                if let index = teams.firstIndex(where: { $0.id == id }) { teams[index].patch(status: NearbyViewerStatus.none, replaceExpiry: true) }
                 myApplications.removeAll { $0.id == id }
             case .handle(_, let id, let approved): applicants.removeAll { $0.id == id }; refreshRequired = approved
             }

@@ -65,13 +65,35 @@ private final class JourneyFakeHTTP: HTTPTransport {
         XCTAssertEqual(http.requests.count, 1); XCTAssertFalse(model.visible); XCTAssertNil(model.issue)
     }
     func testReviewCancellationAndSettledRecovery() async throws {
-        let http = JourneyFakeHTTP(); http.responses = [(encounter, 200), (#"{"code":409,"msg":"这次检定已经结算过了"}"#, 200), (settled, 200)]
-        let owner = try session(), model = JourneyCheckCoordinator(scope: .activity(5), topicID: 12, nodeID: 34, service: try api(http), currentSession: { owner })
-        await model.probe(nodeDone: false); try model.prepare(.roll); model.cancelReview()
+        // Source recovery recognizes the exact “已结算” marker, not a paraphrase.
+        let http = JourneyFakeHTTP(); http.responses = [(encounter, 200), (#"{"code":409,"msg":"这次检定已结算过了"}"#, 200), (settled, 200)]
+        let journal = JourneyMemoryCheckJournal(), owner = try session()
+        let model = JourneyCheckCoordinator(scope: .activity(5), topicID: 12, nodeID: 34, service: try api(http), journal: journal, currentSession: { owner })
+        await model.probe(nodeDone: false); try model.prepare(.roll)
+        let cancelled = try XCTUnwrap(model.review); model.cancelReview(); await model.confirm(cancelled)
+        XCTAssertNil(model.review); XCTAssertNil(model.pending)
+        XCTAssertNil(try journal.pending(session: owner, scope: .activity(5), topicID: 12, nodeID: 34))
         XCTAssertEqual(http.requests.count, 1)
-        try model.prepare(.roll); await model.confirm(model.review!)
+        try model.prepare(.roll); let approved = try XCTUnwrap(model.review)
+        await model.confirm(cancelled); XCTAssertEqual(model.review, approved); XCTAssertEqual(http.requests.count, 1)
+        await model.confirm(approved)
         XCTAssertTrue(model.receipt?.settled == true); XCTAssertEqual(http.requests.last?.url?.path, "/api/play/check/settle")
         XCTAssertEqual(http.requests.count, 3)
+        XCTAssertEqual(http.requests.map { $0.url?.path }, ["/api/play/encounter", "/api/play/check/roll", "/api/play/check/settle"])
+        let recovery = try XCTUnwrap(http.requests.last), body = String(decoding: try XCTUnwrap(recovery.httpBody), as: UTF8.self)
+        for (key, value) in ["topicId": "12", "nodeId": "34", "checkId": "c&1"] {
+            XCTAssertTrue(body.contains("name=\"\(key)\"\r\n\r\n\(value)\r\n"))
+        }
+        XCTAssertFalse(model.unknown); XCTAssertNil(model.pending)
+        XCTAssertNil(try journal.pending(session: owner, scope: .activity(5), topicID: 12, nodeID: 34))
+    }
+    func testUnrecognizedRollRejectionDoesNotAttemptSettlement() async throws {
+        let http = JourneyFakeHTTP(); http.responses = [(encounter, 200), (#"{"code":409,"msg":"这次检定已经结算过了"}"#, 200)]
+        let owner = try session(), model = JourneyCheckCoordinator(scope: .topic(12), topicID: 12, nodeID: 34, service: try api(http), currentSession: { owner })
+        await model.probe(nodeDone: false); try model.prepare(.roll); await model.confirm(try XCTUnwrap(model.review))
+        XCTAssertEqual(model.issue, "这次检定已经结算过了"); XCTAssertNil(model.receipt)
+        XCTAssertFalse(model.unknown); XCTAssertNil(model.pending)
+        XCTAssertEqual(http.requests.count, 2); XCTAssertEqual(http.requests.last?.url?.path, "/api/play/check/roll")
     }
     func testUnknownOutcomeLocksRollAndSurvivesClose() async throws {
         let http = JourneyFakeHTTP(); http.responses = [(encounter, 200)]

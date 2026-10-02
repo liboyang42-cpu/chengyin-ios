@@ -130,7 +130,10 @@ public struct MerchantOperationsConfirmation: Identifiable, Equatable {
         do {
             let result = try await reader.document(destination)
             guard !Task.isCancelled, operation == generation, reader.scope == scope, reader.isAuthenticated else { return }
-            document = result; loadedScope = scope; isLocked = reader.hasPending(destination)
+            document = result; loadedScope = scope
+            // A successful read is not reconciliation of an uncertain write. Keep the
+            // coordinator's lock, and also restore any durable lock from the reader.
+            isLocked = isLocked || reader.hasPending(destination)
             if case .draft(let value) = result { baseline = value; draft = value }
         } catch {
             guard !Task.isCancelled, !(error is CancellationError), operation == generation, reader.scope == scope else { return }

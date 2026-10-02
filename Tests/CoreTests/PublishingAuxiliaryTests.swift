@@ -23,7 +23,8 @@ private final class PublishingAuxFakeTransport: HTTPTransport {
 }
 @MainActor final class PublishingAuxiliaryTests: XCTestCase {
     private func session(region: PublishingRegion = .china, role: String = "club") -> PublishingSession { .init(namespace: "synthetic", accountID: 901, epoch: UUID(), role: role, region: region) }
-    private func config() throws -> APIConfiguration { try .init(baseURL: URL(string: "https://example.invalid")!) }
+    // Reserved .test endpoint; all requests are captured by PublishingAuxFakeTransport.
+    private func config() throws -> APIConfiguration { try .init(baseURL: URL(string: "https://example.test")!) }
     private func client(_ transport: PublishingAuxFakeTransport, session: PublishingSession, journal: PublishingAuxJournal? = nil, approved: Bool = true) throws -> PublishingAuxiliaryService {
         let credential = try PublishingCredentials(session: session, token: "synthetic")
         let approval = try OperationEndpointApproval(baseURL: config().baseURL, namespace: session.namespace, accountID: session.accountID,
