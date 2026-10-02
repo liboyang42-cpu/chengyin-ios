@@ -45,6 +45,7 @@ class SquareReportContractChecks(unittest.TestCase):
         self.assertIn('comment.generation == .communityV1', read('Core/SquareGovernanceService.swift'))
     def test_reason_keyboard_cancel_localizations_and_synthetic_capture_hooks(self):
         view = read('App/SquareReportView.swift')
+        self.assertIn('review = nil; self.reasonCode = nil; self.snapshot = nil', view)
         for token in ['squareReport.reasonCancel', 'squareReport.keyboardDone', 'squareReport.reviewBack', 'selectedReason == nil || !validDescription', '.interactiveDismissDisabled(hasDraft || busy)', 'reasonCode = nil; snapshot = nil']:
             self.assertIn(token, view)
         fragment = json.loads(read('Resources/SquareReportLocalizations.fragment.json'))

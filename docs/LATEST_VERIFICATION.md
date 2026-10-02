@@ -185,3 +185,7 @@ The existing six-shard class assignment now uses the 379 successful measured run
 ## 2026-10-02 17:44 UTC explicit social fixture transport type
 
 Run64 on `87063be406be9f2ace999286bfbd0543dc47023f` passed portable structure/contracts and full-history secret scanning. The production Core sources compiled, but Swift rejected a lazy test transport's circular inferred type because its initializer closure refers to that property. The fixture now declares its concrete transport type explicitly. Every test body and production guard is unchanged. No XCTest methods or downstream Apple app/UI gates executed in this run; the exact repaired commit requires a fresh run.
+
+## 2026-10-02 17:52 UTC Square state-name compilation repair
+
+Run65 on `82272bb2dc44fc7948975c2fd659056f4285602d` executed all 3,162 Core tests with zero failures, and full-history secret scanning passed. The simulator app compiler then rejected stale-report recovery assigning nil to a locally unwrapped `reasonCode`. The correction explicitly clears `self.reasonCode`, the optional view state, while preserving the immutable local value used for the reviewed request. A source regression asserts the qualified state reset. App builds, app-hosted tests and all UI methods remain pending on the repaired source; no runtime acceptance is inferred from parsing.

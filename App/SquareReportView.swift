@@ -192,7 +192,7 @@ extension EnvironmentValues {
         catch {
             message = failureKey(error)
             if error as? SquareReportFailure == .stale {
-                review = nil; reasonCode = nil; self.snapshot = nil
+                review = nil; self.reasonCode = nil; self.snapshot = nil
                 let identity = context.access.identity
                 actionTask = Task {
                     await load()
