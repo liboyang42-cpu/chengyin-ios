@@ -2,7 +2,7 @@
 import SwiftUI
 
 @MainActor final class SocialAccountFixtureReader: SocialAccountReading {
-    enum Scenario: String { case content, reportPolicyChanged, reportUnknown, reportDisabled, guest, empty, partial, failure, delayed, unknown, rejected, disabled, removed, unconfigured }
+    enum Scenario: String { case content, reportPolicyChanged, reportContentChanged, reportUnknown, reportDisabled, guest, empty, partial, failure, delayed, unknown, rejected, disabled, removed, unconfigured }
     let scenario: Scenario
     var identity: SocialAccountIdentity
     var isConfigured: Bool { scenario != .unconfigured }
@@ -91,12 +91,18 @@ import SwiftUI
         destination = value("--uitesting-social-destination") ?? "profile"
     }
     var body: some View {
+        if destination == "reports" {
+            // SquareBrowserView owns navigation and the report context. An outer
+            // stack can claim its destination and discard that scoped host.
+            SquareReportFixtureHost(scenario: reader.scenario.rawValue)
+        } else { accountFixture }
+    }
+    private var accountFixture: some View {
         VStack(spacing: 0) {
             Button("social.fixtureSwitchAccount") { reader.switchAccount(); actions.synchronizeSession(); revision += 1 }.accessibilityIdentifier("social.fixture.switch")
             NavigationStack {
                 Group {
                     switch destination {
-                    case "reports": SquareReportFixtureHost(scenario: reader.scenario.rawValue)
                     case "guide": SocialPlayGuideView(reader: reader, onOpenDestination: { selectedGuideDestination = $0 })
                     case "invites": SocialInviteHistoryView(reader: reader, squareReader: square, actions: actions)
                     case "editorSheet":

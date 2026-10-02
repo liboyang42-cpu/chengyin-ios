@@ -222,3 +222,71 @@ final class CooperationInvitationEntryTests: XCTestCase {
         }
     }
 }
+
+final class CooperationRequestPresentationTests: XCTestCase {
+    private func context(name: String = "Synthetic club", session: CoopFlowSession) throws -> CoopFlowInvitationContext {
+        try XCTUnwrap(CoopFlowInvitationContext(receivedApplication: .object([
+            "status": .id(0), "topicId": .id(8), "applyId": .id(7), "clubId": .id(103),
+            "clubName": .string(name), "scope": .string("MERCHANT")
+        ]), session: session))
+    }
+    private func value(_ id: String, in review: CoopFlowRequestReviewContext) -> CoopFlowRequestReviewValue? {
+        review.rows.first { $0.id == id }?.value
+    }
+    func testVerifiedRecipientModesAndSourceIDsBindToExactUnchangedWireBody() throws {
+        let session = try CoopFlowSession(accountID: 101, epoch: 1, token: "synthetic")
+        let source = try context(session: session)
+        for compensation: CoopFlowCompensation in [.traffic, .fixed(20)] {
+            let invitation = try source.invitation(message: " Local draft ", compensation: compensation, currentSession: session)
+            let operation = CoopFlowMutation.invite(invitation)
+            let before = try operation.body().canonical()
+            let review = try CoopFlowRequestReviewContext(operation: operation, invitationContext: source, currentSession: session)
+            XCTAssertEqual(review.operation, operation)
+            XCTAssertEqual(try review.requestBody.canonical(), before)
+            XCTAssertEqual(try operation.body().canonical(), before)
+            XCTAssertEqual(value("toId", in: review), .recipient(name: "Synthetic club", identity: source.recipient))
+            XCTAssertEqual(value("inviteType", in: review), .localized(key: "coopflow.invite.club", rawValue: "1"))
+            XCTAssertEqual(value("toType", in: review), .localized(key: "coopflow.invite.club", rawValue: "club"))
+            XCTAssertEqual(value("scope", in: review), .localized(key: "coopflow.review.scope.merchant", rawValue: "MERCHANT"))
+            XCTAssertEqual(value("originApplyId", in: review), .text("7"))
+            XCTAssertEqual(value("topicId", in: review), .text("8"))
+            XCTAssertEqual(value("message", in: review), .text("Local draft"))
+            XCTAssertEqual(Set(review.rows.map(\.id)), Set(["toId", "toType", "inviteType", "shareMode", "scope", "originApplyId", "topicId", "message"] + (compensation == .traffic ? [] : ["fixedFee"])))
+            XCTAssertEqual(value("shareMode", in: review), compensation == .traffic
+                ? .localized(key: "coopflow.review.traffic", rawValue: "0")
+                : .localized(key: "coopflow.fixed", rawValue: "2"))
+        }
+    }
+    func testNoVerifiedNameFallsBackToExactTypedIdentityAndUnknownScopeIsNotMerchant() throws {
+        let session = try CoopFlowSession(accountID: 101, epoch: 1, token: "synthetic")
+        let source = try context(name: "  ", session: session)
+        let operation = CoopFlowMutation.invite(try source.invitation(message: "", compensation: .traffic, currentSession: session))
+        for review in [try CoopFlowRequestReviewContext(operation: operation), try CoopFlowRequestReviewContext(operation: operation, invitationContext: source, currentSession: session)] {
+            XCTAssertEqual(value("toId", in: review), .recipient(name: nil, identity: source.recipient))
+        }
+        let unknown = try CoopFlowRequestReviewContext(operation: .decline(applyID: 7, scope: "FUTURE_SCOPE"))
+        XCTAssertEqual(value("scope", in: unknown), .localized(key: "coopflow.review.unknownValue", rawValue: "FUTURE_SCOPE"))
+        XCTAssertEqual(unknown.requestBody["scope"], .string("FUTURE_SCOPE"))
+        XCTAssertThrowsError(try CoopFlowRequestReviewContext(operation: .enrollOffer(fields: ["chapterId": .id(1), "termsMode": .string("FUTURE_MODE")])))
+    }
+    func testMismatchedSourceAndReplacedSessionCannotLendARecipientName() throws {
+        let session = try CoopFlowSession(accountID: 101, epoch: 1, token: "synthetic")
+        let source = try context(session: session)
+        let original = try source.invitation(message: "", compensation: .traffic, currentSession: session)
+        for current in [nil, try CoopFlowSession(accountID: 102, epoch: 1, token: "synthetic"),
+                        try CoopFlowSession(accountID: 101, epoch: 2, token: "synthetic"),
+                        try CoopFlowSession(accountID: 101, epoch: 1, token: "replaced")] {
+            XCTAssertThrowsError(try CoopFlowRequestReviewContext(operation: .invite(original), invitationContext: source, currentSession: current))
+        }
+        let mismatches = [
+            try CoopFlowInvitation(kind: .club, recipient: CoopFlowIdentity(.club, 104), topicID: 8, message: "", originApplyID: 7, scope: "MERCHANT"),
+            try CoopFlowInvitation(kind: .club, recipient: source.recipient, topicID: 9, message: "", originApplyID: 7, scope: "MERCHANT"),
+            try CoopFlowInvitation(kind: .club, recipient: source.recipient, topicID: 8, message: "", originApplyID: 9, scope: "MERCHANT"),
+            try CoopFlowInvitation(kind: .club, recipient: source.recipient, topicID: 8, message: "", originApplyID: 7, scope: nil),
+            try CoopFlowInvitation(kind: .merchant, recipient: CoopFlowIdentity(.member, 103), topicID: 8, message: "", scope: "MERCHANT")
+        ]
+        for invitation in mismatches {
+            XCTAssertThrowsError(try CoopFlowRequestReviewContext(operation: .invite(invitation), invitationContext: source, currentSession: session))
+        }
+    }
+}

@@ -100,12 +100,15 @@ import UniformTypeIdentifiers
                         Group {
                             if entry.draft.body.isEmpty { Text("squareWorkspace.untitled") }
                             else { Text(verbatim: entry.draft.body) }
-                        }.lineLimit(2)
+                        }.lineLimit(2).accessibilityIdentifier("squareWorkspace.local.\(entry.id)")
                         if entry.pending { Text("squareWorkspace.pending").font(.caption) }
                         Button("squareWorkspace.resume") { run { let resumed = try await coordinator.resume(entry); draft = resumed; lane = entry.lane; coordinator.cancelReview() } }
+                            .buttonStyle(.borderless).frame(minHeight: 44)
                             .accessibilityIdentifier("squareWorkspace.resume.\(entry.id)")
-                        Button("squareWorkspace.discard", role: .destructive) { run { try coordinator.discard(entry) } }.disabled(entry.pending)
-                    }.accessibilityIdentifier("squareWorkspace.local.\(entry.id)")
+                        Button("squareWorkspace.discard", role: .destructive) { run { try coordinator.discard(entry) } }
+                            .buttonStyle(.borderless).frame(minHeight: 44).disabled(entry.pending)
+                            .accessibilityIdentifier("squareWorkspace.discard.\(entry.id)")
+                    }
                 }
             }
             Section("squareWorkspace.serverDrafts") {

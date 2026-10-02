@@ -24,9 +24,9 @@ class RecoveredModuleIntegrationTests(unittest.TestCase):
   s=self.text('App/MerchantCooperationSupplyView.swift');self.assertIn('guard let raw = source.termsMode',s);self.assertIn('TermsMode(rawValue: raw)',s);self.assertIn('supplyTermsUnknown',s);self.assertNotIn('?? .traffic',s)
  def test_supply_perks_require_read_and_session_fence(self):
   s=self.text('App/MerchantCooperationSupplyView.swift');self.assertIn('reader.read(.templates)',s);self.assertIn('reader.session == captured',s);self.assertIn('source.canEnroll',s);self.assertIn('source.canReconfirmOrPause',s)
- def test_six_shards_cover_every_class_once(self):
+ def test_configured_shards_cover_every_class_once(self):
   spec=importlib.util.spec_from_file_location('shards',ROOT/'tools/run_ui_shard.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
-  w=m.discover(ROOT/'Tests/AppUITests');groups=m.partition(w,6);flat=sum(groups,[]);self.assertEqual(len(flat),len(set(flat)));self.assertEqual(set(flat),set(w))
+  w=m.discover(ROOT/'Tests/AppUITests');groups=m.partition(w,m.DEFAULT_SHARD_COUNT);flat=sum(groups,[]);self.assertEqual(len(flat),len(set(flat)));self.assertEqual(set(flat),set(w))
  def test_expected_platform_floors_preserved(self):
   s=self.text('Package.swift');self.assertIn('.macOS(.v14)',s);self.assertIn('.iOS(.v17)',s)
  def test_no_second_cooperation_runtime_table(self):

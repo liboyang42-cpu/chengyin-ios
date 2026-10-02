@@ -1,0 +1,158 @@
+{
+  "walking.title": {
+    "en": "In-app walking navigation",
+    "zh-Hans": "App 内步行导航"
+  },
+  "walking.foregroundOnly": {
+    "en": "Foreground walking guidance. Location permission must already be enabled; leaving the app pauses navigation.",
+    "zh-Hans": "仅在前台提供步行指引；需要已授权定位，离开 App 将暂停导航"
+  },
+  "walking.previewUnavailable": {
+    "en": "Walking route unavailable. No walkable path has been verified.",
+    "zh-Hans": "步行路线不可用，尚未确认可通行道路"
+  },
+  "walking.businessTime": {
+    "en": "Business hours",
+    "zh-Hans": "营业时间"
+  },
+  "walking.offlineFixture": {
+    "en": "Synthetic route preview; map network disabled",
+    "zh-Hans": "合成路线演示，地图网络已禁用"
+  },
+  "walking.routeDistance": {
+    "en": "Walking route distance",
+    "zh-Hans": "步行路程"
+  },
+  "walking.routeETA": {
+    "en": "Route time (minutes)",
+    "zh-Hans": "预计全程（分钟）"
+  },
+  "walking.progress": {
+    "en": "Estimated route progress",
+    "zh-Hans": "估计路线进度"
+  },
+  "walking.remaining": {
+    "en": "Estimated distance remaining",
+    "zh-Hans": "估计剩余路程"
+  },
+  "walking.remainingETA": {
+    "en": "Estimated time remaining (minutes)",
+    "zh-Hans": "估计剩余时间（分钟）"
+  },
+  "walking.estimateNotice": {
+    "en": "Progress and remaining time are approximate. Follow signs and actual road conditions.",
+    "zh-Hans": "进度与剩余时间为估计，请遵循现场标识和实际路况"
+  },
+  "walking.accuracy": {
+    "en": "Location accuracy",
+    "zh-Hans": "定位精度"
+  },
+  "walking.arrivalBoundary": {
+    "en": "Being near the destination does not complete a task or grant rewards. Return to the current task to verify it.",
+    "zh-Hans": "接近目的地不会完成任务或发放奖励，请返回当前任务进行验证"
+  },
+  "walking.openVerification": {
+    "en": "Open task verification",
+    "zh-Hans": "打开任务验证"
+  },
+  "walking.start": {
+    "en": "Start walking guidance",
+    "zh-Hans": "开始步行指引"
+  },
+  "walking.resume": {
+    "en": "Resume / retry with a fresh route",
+    "zh-Hans": "重新获取路线并继续"
+  },
+  "walking.pause": {
+    "en": "Pause navigation",
+    "zh-Hans": "暂停导航"
+  },
+  "walking.cancel": {
+    "en": "Cancel navigation",
+    "zh-Hans": "取消导航"
+  },
+  "walking.safety": {
+    "en": "Check crossings, closures and building entrances. No indoor, background or voice guidance is provided.",
+    "zh-Hans": "注意路口、封路与建筑入口；当前不提供室内、后台或语音指引"
+  },
+  "walking.ready": {
+    "en": "Ready to request the current allowed destination",
+    "zh-Hans": "等待获取当前允许导航的目的地"
+  },
+  "walking.authorizing": {
+    "en": "Checking destination access…",
+    "zh-Hans": "正在检查目的地权限…"
+  },
+  "walking.locating": {
+    "en": "Checking foreground location…",
+    "zh-Hans": "正在获取前台位置…"
+  },
+  "walking.routing": {
+    "en": "Planning a walking route…",
+    "zh-Hans": "正在规划步行路线…"
+  },
+  "walking.navigating": {
+    "en": "Walking guidance active",
+    "zh-Hans": "步行指引进行中"
+  },
+  "walking.nearDestination": {
+    "en": "Near the destination; verification is still required",
+    "zh-Hans": "已接近目的地，仍需进行任务验证"
+  },
+  "walking.paused": {
+    "en": "Navigation paused; resuming refreshes the destination and route",
+    "zh-Hans": "导航已暂停；继续时重新获取目的地和路线"
+  },
+  "walking.cancelled": {
+    "en": "Navigation cancelled",
+    "zh-Hans": "导航已取消"
+  },
+  "walking.error.unavailable": {
+    "en": "Walking navigation is not enabled for this account and environment.",
+    "zh-Hans": "当前账号与环境尚未启用步行导航"
+  },
+  "walking.error.targetUnavailable": {
+    "en": "This destination is no longer available. Refresh the current task.",
+    "zh-Hans": "当前目的地不可用，请刷新当前任务"
+  },
+  "walking.error.coordinateUnsupported": {
+    "en": "This coordinate and map-provider combination has not been verified.",
+    "zh-Hans": "此坐标基准与地图供应商组合尚未验证"
+  },
+  "walking.error.permissionRequired": {
+    "en": "Location permission has not been granted. Enable it through the separate location-permission flow.",
+    "zh-Hans": "尚未授权定位，请通过独立定位授权流程开启"
+  },
+  "walking.error.permissionDenied": {
+    "en": "Location permission is denied. You can change it in system settings.",
+    "zh-Hans": "定位权限被拒绝，可在系统设置中修改"
+  },
+  "walking.error.weakGPS": {
+    "en": "Location is inaccurate or outdated. Wait in a safe open area and retry.",
+    "zh-Hans": "定位精度不足或已过期，请在安全开阔处等待后重试"
+  },
+  "walking.error.noRoute": {
+    "en": "No walking route is available.",
+    "zh-Hans": "没有可用的步行路线"
+  },
+  "walking.error.network": {
+    "en": "The route service is unavailable. A cached or straight-line route will not be used.",
+    "zh-Hans": "路线服务暂不可用，不会用缓存路线或直线代替"
+  },
+  "walking.error.throttled": {
+    "en": "Route requests are cooling down. Wait before retrying.",
+    "zh-Hans": "路线请求冷却中，请稍后重试"
+  },
+  "walking.error.cancelled": {
+    "en": "Navigation cancelled",
+    "zh-Hans": "导航已取消"
+  },
+  "walking.error.staleContext": {
+    "en": "Your session changed. Reopen navigation from the current account.",
+    "zh-Hans": "登录状态已变化，请从当前账号重新打开导航"
+  },
+  "walking.error.replanLimit": {
+    "en": "Automatic replanning limit reached. Pause safely and request a new route.",
+    "zh-Hans": "已达到自动重新规划上限，请安全停步后重新获取路线"
+  }
+}

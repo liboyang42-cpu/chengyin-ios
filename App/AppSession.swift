@@ -386,6 +386,8 @@ final class AppSession: ObservableObject {
     private var retainedPlayPrefabs: [String: PlayPrefabRuntimeCoordinator] = [:]
     private lazy var prefabRuntimeStore = PlayPrefabRuntimeStore(storage: templateAuthoringSecureStorage)
     private let runtimeDependencies: NativeRuntimeDependencies
+    lazy var walkingNavigationFactory = NativeWalkingNavigationFactory(
+        dependencies: runtimeDependencies.walkingNavigation, context: { [weak self] in self?.currentRuntimeDependencyContext })
     private lazy var runtimeHTTPTransport: any HTTPTransport = runtimeDependencies.transport ?? URLSessionTransport()
     private var currentRuntimeDependencyContext: RuntimeDependencyContext? {
         guard let regionalConfiguration, let api = regionalConfiguration.apiConfiguration,

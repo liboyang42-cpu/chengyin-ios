@@ -10,7 +10,7 @@ import json
 import math
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-DEFAULT_SHARD_COUNT = 6
+DEFAULT_SHARD_COUNT = 10
 
 def discover(directory):
     weights = {}
@@ -31,17 +31,20 @@ def discover(directory):
     return weights
 
 def measured_weights(directory, profile):
-    """Timing affects grouping only. Current source remains the exhaustive inventory."""
+    """Observed/declared estimated costs affect grouping only; source defines every case."""
     counts = discover(directory)
     data = json.loads(pathlib.Path(profile).read_text())
     if data.get('version') != 1 or not isinstance(data.get('method_seconds'), dict):
         raise ValueError('Invalid UI duration profile')
     default = data.get('unobserved_method_seconds')
     timings = data['method_seconds']
+    estimates = data.get('estimated_method_seconds', {})
+    if not isinstance(estimates, dict):
+        raise ValueError('Invalid estimated UI duration profile')
     def valid(value):
         return type(value) in (int, float) and math.isfinite(value) and 0 < value <= 900
     if not valid(default) or any(not re.fullmatch(r'[A-Za-z_]\w*\.test\w+', name) or not valid(seconds)
-                                 for name, seconds in timings.items()):
+                                 for name, seconds in list(timings.items()) + list(estimates.items())):
         raise ValueError('Invalid UI duration or method identity')
     result = {}
     for path in sorted(pathlib.Path(directory).glob('*.swift')):
@@ -50,7 +53,7 @@ def measured_weights(directory, profile):
         if not methods:
             continue
         name = re.findall(r'\bclass\s+(\w+)\s*:\s*XCTestCase\b', source)[0]
-        result[name] = sum(timings.get(name + '.' + method, default) for method in methods)
+        result[name] = sum(timings.get(name + '.' + method, estimates.get(name + '.' + method, default)) for method in methods)
     assert set(result) == set(counts)
     return result
 

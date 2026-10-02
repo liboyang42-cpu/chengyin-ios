@@ -64,7 +64,7 @@ class NativeCIGateTests(unittest.TestCase):
             with self.subTest(value=value), self.assertRaises(ValueError):
                 module.validated_fingerprint(value, self.sha)
 
-    def test_aggregate_accepts_all_success_and_all_six_exact_build_shards(self):
+    def test_aggregate_accepts_all_success_and_all_ten_exact_build_shards(self):
         module.aggregate(self.needs, self.sha)
 
     def test_every_required_job_rejects_failure_cancelled_skipped_and_missing_result(self):
@@ -104,16 +104,16 @@ class NativeCIGateTests(unittest.TestCase):
                     module.aggregate(needs, self.sha)
             needs = copy.deepcopy(self.needs); del needs['ui-tests']['outputs'][f'shard_{index}']
             with self.subTest(missing=index), self.assertRaises(ValueError): module.aggregate(needs, self.sha)
-        needs = copy.deepcopy(self.needs); needs['ui-tests']['outputs']['shard_6'] = 'a' * 64
+        needs = copy.deepcopy(self.needs); needs['ui-tests']['outputs']['shard_10'] = 'a' * 64
         with self.assertRaises(ValueError): module.aggregate(needs, self.sha)
 
     def test_ui_completion_uses_unique_shard_keys_and_canonical_fingerprint_hash(self):
-        outputs = [module.ui_completion(index, self.value, self.sha) for index in range(6)]
-        self.assertEqual([key for key, _ in outputs], [f'shard_{index}' for index in range(6)])
+        outputs = [module.ui_completion(index, self.value, self.sha) for index in range(10)]
+        self.assertEqual([key for key, _ in outputs], [f'shard_{index}' for index in range(10)])
         self.assertEqual(len({value for _, value in outputs}), 1)
         equivalent = json.dumps(json.loads(self.value), indent=2)
         self.assertEqual(module.completion_digest(equivalent, self.sha), outputs[0][1])
-        for index in [-1, 6, True, '0']:
+        for index in [-1, 10, True, '0']:
             with self.subTest(shard=index), self.assertRaises(ValueError):
                 module.ui_completion(index, self.value, self.sha)
 

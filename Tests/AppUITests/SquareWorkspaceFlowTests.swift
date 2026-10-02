@@ -8,8 +8,8 @@ final class SquareWorkspaceFlowTests: XCTestCase {
             if element.exists && element.isHittable { break }
             if upwards { app.swipeUp() } else { app.swipeDown() }
         }
-        XCTAssertTrue(element.exists, app.debugDescription)
-        XCTAssertTrue(element.isHittable, app.debugDescription)
+        XCTAssertTrue(element.exists, "Expected control \(element.identifier): " + app.debugDescription)
+        XCTAssertTrue(element.isHittable, "Expected hittable control \(element.identifier): " + app.debugDescription)
     }
     private func launch(chinese: Bool = false, extra: [String] = []) -> XCUIApplication {
         let app = XCUIApplication()
@@ -42,7 +42,10 @@ final class SquareWorkspaceFlowTests: XCTestCase {
         let app = launch(extra: ["--uitesting-workspace-delayed-recovery"])
         defer { attachFailureScreenshot(self, app: app); app.terminate() }
         let first = app.buttons["squareWorkspace.resume.synthetic-square-001"]
-        reveal(first, in: app); first.tap()
+        reveal(first, in: app)
+        XCTAssertEqual(first.label, "Resume editing", app.debugDescription)
+        XCTAssertTrue(app.buttons["squareWorkspace.discard.synthetic-square-001"].exists)
+        first.tap()
         let state = app.staticTexts["fixture.workspaceRecovery.state"]
         expectation(for: NSPredicate(format: "label == %@", "Synthetic recovery suspended"), evaluatedWith: state)
         waitForExpectations(timeout: 5)

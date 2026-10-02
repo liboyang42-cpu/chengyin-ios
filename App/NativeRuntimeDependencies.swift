@@ -3,6 +3,7 @@ import Foundation
 /// Composition-only injection, never an Info.plist switch or remote feature toggle.
 /// The regional registry, login/legal acceptance and exact endpoint approvals stay independent.
 @MainActor struct NativeRuntimeDependencies {
+    let walkingNavigation: NativeWalkingNavigationDependencies?
     let officialActionApproval: OfficialActionProductionApproval?
     let socialMemberActionApprovals: [SocialMemberActionApproval]
     let nativePlatform: NativePlatformAcceptance?
@@ -29,12 +30,13 @@ import Foundation
     let shopNPCGrants: ShopNPCGrants
     let journeyNarrativeImageReader: (any RetainedPublicImageReading)?
     let motion: (any PlayMotionSampleProviding)?
-    init(officialActionApproval: OfficialActionProductionApproval? = nil, socialMemberActionApprovals: [SocialMemberActionApproval] = [], configuration: RuntimeDependencyConfiguration? = nil, businessConfiguration: BusinessRuntimeConfiguration? = nil, bankDocument: (any BankWithdrawalCurrentDocumentProviding)? = nil, signupDocument: (any TopicSelfPlayDocumentProviding)? = nil, selfPlayPayment: (any TopicSelfPlayPaymentProviding)? = nil, weChatPaymentConfiguration: WeChatSDKPaymentConfiguration? = nil, transport: (any HTTPTransport)? = nil,
+    init(officialActionApproval: OfficialActionProductionApproval? = nil, socialMemberActionApprovals: [SocialMemberActionApproval] = [], configuration: RuntimeDependencyConfiguration? = nil, walkingNavigation: NativeWalkingNavigationDependencies? = nil, businessConfiguration: BusinessRuntimeConfiguration? = nil, bankDocument: (any BankWithdrawalCurrentDocumentProviding)? = nil, signupDocument: (any TopicSelfPlayDocumentProviding)? = nil, selfPlayPayment: (any TopicSelfPlayPaymentProviding)? = nil, weChatPaymentConfiguration: WeChatSDKPaymentConfiguration? = nil, transport: (any HTTPTransport)? = nil,
          location: (any RoamDeviceLocationProviding)? = nil, shopNPCGrants: ShopNPCGrants = .init(), motion: (any PlayMotionSampleProviding)? = nil,
          verificationCodeApproval: VerificationCodeApproval? = nil, couponCodeApproval: CouponCodeApproval? = nil, socialReaderApproval: SocialReaderProductionApproval? = nil,
          clubOpsTimeApproval: ClubOpsTimeApproval? = nil, contextualReviewApproval: ContextualReviewApproval? = nil,
          ownerRefundApproval: ClubOwnerRefundApproval? = nil, nativePlatform: NativePlatformAcceptance? = nil, clubGovernanceApproval: ClubGovernanceProductionApproval? = nil, merchantBusinessApproval: MerchantBusinessProductionApproval? = nil, merchantEngagementApproval: MerchantEngagementProductionApproval? = nil, orderLifecycleConfiguration: OrderLifecycleProductionConfiguration? = nil, journeyNarrativeImageReader: (any RetainedPublicImageReading)? = nil, merchantPublicApproval: MerchantPublicProductionApproval? = nil, merchantNPCGrants: MerchantNPCGrants = .init()) {
         self.clubOpsTimeApproval = clubOpsTimeApproval; self.contextualReviewApproval = contextualReviewApproval
+        self.walkingNavigation = walkingNavigation
         self.officialActionApproval = officialActionApproval
         self.socialMemberActionApprovals = socialMemberActionApprovals
         self.merchantPublicApproval = merchantPublicApproval; self.merchantNPCGrants = merchantNPCGrants

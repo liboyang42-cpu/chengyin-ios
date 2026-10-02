@@ -38,6 +38,13 @@ struct RegistrationSheetView: View {
             currentIdentity: currentIdentity, quoteEnabled: quoteEnabled,
             creationPolicy: creationPolicy, waitlistService: waitlistService, onReadback: onReadback)))
     }
+    #if DEBUG
+    /// Offline fixture-only injection keeps the real view/controller clock and guards intact.
+    init(fixtureFlow: RegistrationUIFlow) {
+        participantReader = nil; participantCoordinator = nil
+        _model = StateObject(wrappedValue: RegistrationSheetModel(flow: fixtureFlow))
+    }
+    #endif
     private var flow: RegistrationUIFlow { model.flow }
     var body: some View {
         // Observe the controller notification even though its fields live in a reference type.
@@ -194,7 +201,12 @@ struct RegistrationSheetView: View {
                     RegistrationAmountRow(key: "registration.form.ticketPrice", amount: ticket.price)
                     if let description = ticket.description, !description.isEmpty { Text(verbatim: description) }
                     if ticket.isSoldOut {
-                        Text("registration.form.soldOutHint").foregroundStyle(.secondary)
+                        TimelineView(.periodic(from: .now, by: 1)) { context in
+                            Text(LocalizedStringKey(RegistrationUIWaitlistGuidance.soldOutKey(
+                                available: flow.waitlistAvailable, status: flow.waitlistStatus,
+                                outcomeUnknown: flow.waitlistOutcomeUnknown, now: context.date)))
+                                .foregroundStyle(.secondary).accessibilityIdentifier("registration.form.soldOutGuidance")
+                        }
                     } else if ticket.remainingInventory == nil {
                         Text("registration.form.inventoryUnknown").foregroundStyle(.secondary)
                     }
@@ -259,7 +271,9 @@ struct RegistrationSheetView: View {
                     RegistrationAmountRow(key: "registration.form.memberDiscount", amount: quote.memberDiscountYuan, deduction: true, currencyCode: RegistrationUIMoney.yuanCurrencyCode)
                     RegistrationAmountRow(key: "registration.form.couponDiscount", amount: quote.couponDeductYuan, deduction: true, currencyCode: RegistrationUIMoney.yuanCurrencyCode)
                     RegistrationAmountRow(key: "registration.form.pointsDiscount", amount: quote.pointsDeductYuan, deduction: true, currencyCode: RegistrationUIMoney.yuanCurrencyCode)
-                    LabeledContent("registration.form.pointsUsed", value: String(quote.pointsUsed))
+                    LabeledContent("registration.form.pointsUsed") {
+                        Text(verbatim: String(quote.pointsUsed)).foregroundStyle(Color.primary)
+                    }
                     if quote.pointsUsable {
                         Toggle("registration.form.usePoints", isOn: Binding(
                             get: { flow.usePoints },
@@ -333,9 +347,10 @@ private struct RegistrationAmountRow: View {
             if let text = RegistrationUIMoney.display(amount, locale: locale, currencyCode: currencyCode) {
                 VStack(alignment: .trailing, spacing: 2) {
                     Text(verbatim: deduction && amount != .zero ? "−\(text)" : text)
+                        .foregroundStyle(Color.primary).accessibilityIdentifier(key + ".amount")
                     if currencyCode == nil { Text("registration.form.currencyUnknown").font(.caption).foregroundStyle(.primary) }
                 }
-            } else { Text("registration.form.unknownAmount") }
+            } else { Text("registration.form.unknownAmount").foregroundStyle(Color.primary) }
         } label: { Text(LocalizedStringKey(key)) }
     }
 }

@@ -4,8 +4,9 @@ import SwiftUI
 enum RegistrationFixtureScenario: String, CaseIterable {
     case standard, noPaymentParameters, unknownAmounts, quoteError, participantsError
     case createTimeout, readbackError, conflictingStatus, soldOut, disabled
-    case waitlistWaiting, waitlistOffer
-    var isWaitlist: Bool { self == .waitlistWaiting || self == .waitlistOffer }
+    case waitlistWaiting, waitlistOffer, waitlistExpiringOffer
+    var isWaitlist: Bool { self == .waitlistWaiting || isOffer }
+    var isOffer: Bool { self == .waitlistOffer || self == .waitlistExpiringOffer }
     static func selected(arguments: [String]) -> Self? {
         guard let index = arguments.firstIndex(of: "--uitesting-registration-fixture"),
               arguments.indices.contains(index + 1) else { return nil }
@@ -21,9 +22,17 @@ private final class RegistrationFixtureStore: RegistrationCoordinatingService, P
     let isConfigured = true
     let identity: ProfileReadIdentity? = .init(accountID: 9400, epoch: 1)
     private var waitlistState = "NONE"
-    private let offerDeadline = ISO8601DateFormatter().string(from: Date().addingTimeInterval(3600))
+    private var offerDeadline: String
     private var quotes = 0
-    init(_ scenario: RegistrationFixtureScenario) { self.scenario = scenario; if scenario == .waitlistOffer { waitlistState = "OFFERED" } }
+    init(_ scenario: RegistrationFixtureScenario) {
+        self.scenario = scenario
+        offerDeadline = ISO8601DateFormatter().string(from: scenario == .waitlistExpiringOffer ? Date.distantFuture : Date().addingTimeInterval(3600))
+        if scenario.isOffer { waitlistState = "OFFERED" }
+    }
+    func armOfferExpiry() {
+        guard scenario == .waitlistExpiringOffer else { return }
+        offerDeadline = ISO8601DateFormatter().string(from: Date().addingTimeInterval(20))
+    }
     func quote(_ selection: RegistrationQuoteRequest, token: String) async throws -> RegistrationQuote {
         quotes += 1
         if scenario == .quoteError, quotes == 1 { throw URLError(.notConnectedToInternet) }
@@ -37,7 +46,7 @@ private final class RegistrationFixtureStore: RegistrationCoordinatingService, P
         """)
     }
     func create(_ intent: RegistrationCreateIntent, token: String) async throws -> RegistrationCreateResult {
-        if scenario == .waitlistOffer {
+        if scenario.isOffer {
             guard intent.selection.waitlistOffer == intent.waitlistOffer, intent.waitlistOffer?.id == 9405,
                   intent.waitlistOffer?.token == "offline-only-offer" else { throw APIError.invalidRequest }
         }
@@ -82,6 +91,8 @@ private final class RegistrationFixtureModel: ObservableObject {
     let coordinator: RegistrationCoordinator
     let activity: ActivityDetail?
     let scenario: RegistrationFixtureScenario
+    private(set) var expiryFlow: RegistrationUIFlow?
+    @Published private(set) var expiryArmed = false
     init(scenario: RegistrationFixtureScenario) {
         self.scenario = scenario
         let store = RegistrationFixtureStore(scenario)
@@ -95,6 +106,18 @@ private final class RegistrationFixtureModel: ObservableObject {
          {"id":9402,"name":"Unknown-price fixture ticket","price":null,"remainingInventory":null},
          {"id":9403,"name":"Zero-price fixture ticket","price":0,"remainingInventory":2}]}
         """.utf8))
+        if scenario == .waitlistExpiringOffer, let activity {
+            expiryFlow = RegistrationUIFlow(activity: activity, coordinator: coordinator,
+                participantReader: store, currentIdentity: { store.identity }, quoteEnabled: true,
+                creationPolicy: .offlineFixture, waitlistService: store)
+        }
+    }
+    func armOfferExpiry() async {
+        guard scenario == .waitlistExpiringOffer, let expiryFlow, !expiryArmed else { return }
+        expiryArmed = true
+        store.armOfferExpiry()
+        // Refresh only the synthetic status once, then let the unchanged real clock expire it.
+        await expiryFlow.loadWaitlist()
     }
 }
 
@@ -113,12 +136,23 @@ struct RegistrationFixtureHostView: View {
                 .accessibilityIdentifier("registration.fixture.open")
         }
         .sheet(isPresented: $presented) {
-            if let activity = model.activity {
+            if let flow = model.expiryFlow {
+                RegistrationSheetView(fixtureFlow: flow)
+                    .safeAreaInset(edge: .bottom) {
+                        if !model.expiryArmed {
+                            Button("Arm synthetic offer expiry") { Task { await model.armOfferExpiry() } }
+                                .buttonStyle(.borderedProminent)
+                                .accessibilityIdentifier("registration.fixture.armExpiry")
+                        }
+                    }
+                    .modifier(AccessibilityFixtureOptions())
+            } else if let activity = model.activity {
                 RegistrationSheetView(activity: activity, coordinator: model.coordinator,
                                       participantReader: model.store, currentIdentity: { model.store.identity },
                                       quoteEnabled: true,
                                       creationPolicy: model.scenario == .disabled ? .disabled : .offlineFixture,
                                       waitlistService: model.scenario.isWaitlist ? model.store : nil)
+                    .modifier(AccessibilityFixtureOptions())
             }
         }
     }

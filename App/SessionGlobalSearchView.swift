@@ -7,6 +7,7 @@ import SwiftUI
     var body: some View {
         GlobalSearchView(reader: session.searchMapReader, historyNamespace: session.searchMapHistoryNamespace, publicMerchant: session.publicMerchantHomeContext,
                          onSignIn: onSignIn, destination: destination)
+            .environment(\.walkingNavigationFactory, session.walkingNavigationFactory)
             .id(session.searchMapReader.scope)
     }
     @ViewBuilder private func destination(_ value: SearchMapDestination) -> some View {

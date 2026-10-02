@@ -38,10 +38,14 @@ final class CooperationFlowUITests: XCTestCase {
     private func reveal(_ element: XCUIElement, app: XCUIApplication) {
         XCTAssertTrue(revealFixtureElement(element, in: app), app.debugDescription)
     }
-    private func openReceivedApplications(_ app: XCUIApplication) {
+    private func openReceivedApplications(_ app: XCUIApplication, language: String = "en") {
         let entry = app.buttons["coopflow.route.coopflow.receivedApplications"]
         reveal(entry, app: app); entry.tap()
-        XCTAssertTrue(app.navigationBars["Received club applications"].waitForExistence(timeout: 5), app.debugDescription)
+        if language == "en" {
+            XCTAssertTrue(app.navigationBars["Received club applications"].waitForExistence(timeout: 5), app.debugDescription)
+        } else {
+            XCTAssertTrue(app.navigationBars["收到的俱乐部申请"].waitForExistence(timeout: 5), app.debugDescription)
+        }
     }
     func testNormalNearbyEntryExplainsUnavailableLocationWithoutPermissionPrompt() {
         for language in ["en", "zh-Hans"] {
@@ -126,4 +130,29 @@ final class CooperationFlowUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Sign in to view your cooperation"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["coopflow.invite.reply"].exists)
     }
+    func testInvitationReviewRetainsReadableBoundIdentityAndTermsInBothLanguages() {
+        for language in ["en", "zh-Hans"] {
+            let app = launch(language: language)
+            openReceivedApplications(app, language: language)
+            XCTAssertTrue(app.buttons["coopflow.row.0"].waitForExistence(timeout: 5))
+            app.buttons["coopflow.row.0"].tap()
+            let reply = app.buttons["coopflow.invite.reply"]; reveal(reply, app: app); reply.tap()
+            let review = app.buttons["coopflow.invite.review"]; reveal(review, app: app); review.tap()
+            XCTAssertTrue(app.navigationBars[language == "en" ? "Review this request" : "核对本次请求"].waitForExistence(timeout: 5))
+            XCTAssertTrue(app.staticTexts["Synthetic club"].exists, app.debugDescription)
+            XCTAssertTrue(app.staticTexts[language == "en" ? "Club ID 103" : "俱乐部 ID 103"].exists, app.debugDescription)
+            let traffic = app.staticTexts[language == "en" ? "Traffic cooperation" : "引流合作"]
+            reveal(traffic, app: app)
+            XCTAssertTrue(traffic.exists)
+            let scope = app.staticTexts[language == "en" ? "Merchant workspace" : "商家工作台"]
+            reveal(scope, app: app); XCTAssertTrue(app.staticTexts["MERCHANT"].exists)
+            attachFixtureScreenshot(self, app: app, name: "Typed invitation recipient and terms \(language) – synthetic")
+            let submit = app.buttons["coopflow.submit.disabled"]
+            XCTAssertTrue(revealFixtureElement(submit, in: app, requiresHittable: false)); XCTAssertFalse(submit.isEnabled)
+            XCTAssertTrue(app.descendants(matching: .any)["coopflow.review.field.originApplyId"].exists)
+            XCTAssertTrue(app.descendants(matching: .any)["coopflow.review.field.topicId"].exists)
+            app.terminate()
+        }
+    }
+
 }

@@ -9,14 +9,45 @@ final class SquareReportFlowTests: XCTestCase {
     private func reveal(_ element: XCUIElement) {
         _ = element.waitForExistence(timeout: 5)
         for _ in 0..<10 { if element.isHittable { break }; app.swipeUp() }
-        XCTAssertTrue(element.isHittable, app.debugDescription)
+        XCTAssertTrue(element.isHittable, "Expected visible control \(element.identifier): " + app.debugDescription)
     }
-    private func tap(_ id: String) { let element = app.buttons[id]; reveal(element); element.tap() }
+    private func tap(_ id: String) {
+        let element = app.buttons[id]; reveal(element)
+        // SwiftUI may expose a full-row wrapper around the native menu button.
+        // Only tap a unique enabled leaf; never the wrapper's empty center.
+        let leaves = element.descendants(matching: .button).allElementsBoundByIndex.filter {
+            $0.descendants(matching: .button).count == 0 && $0.isEnabled && $0.isHittable
+        }
+        let control = leaves.count == 1 ? leaves[0] : element
+        XCTAssertTrue(control.isEnabled && control.isHittable, app.debugDescription)
+        control.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+    }
     private func launch(_ scenario: String = "content", language: String = "en", extra: [String] = []) {
         app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", "(\(language))", "-AppleLocale", language == "en" ? "en_US" : "zh_CN", "--uitesting-module", "socialAccount", "--uitesting-social-destination", "reports", "--uitesting-social-scenario", scenario] + extra
-        app.launch(); tap("square.row.701")
+        app.launch()
+        let fixture = app.staticTexts["squareReport.fixture.scenario"]
+        XCTAssertTrue(fixture.waitForExistence(timeout: 5)); XCTAssertEqual(fixture.label, scenario)
+        tap("square.row.701")
+        XCTAssertTrue(app.buttons["squareReport.fixture.switch"].exists, "The scoped report host must survive navigation: " + app.debugDescription)
     }
-    private func openReport() { tap("social.post.actions"); tap("squareReport.postEntry") }
+    private func openReport() {
+        tap("social.post.actions")
+        XCTAssertTrue(app.buttons["squareReport.postEntry"].waitForExistence(timeout: 5), "Actions must present the report menu entry: " + app.debugDescription)
+        tap("squareReport.postEntry")
+        XCTAssertTrue(app.staticTexts["squareReport.boundary"].waitForExistence(timeout: 5), app.debugDescription)
+    }
+    private func keepDraft() {
+        let dialog = app.sheets.matching(NSPredicate(format: "label == %@", "Discard this draft?")).firstMatch
+        XCTAssertTrue(dialog.waitForExistence(timeout: 5), app.debugDescription)
+        let keep = dialog.buttons["squareReport.keepEditing"]
+        if keep.exists && keep.isHittable { keep.tap() }
+        else { dismissFixtureConfirmationPopover(in: app) }
+        let restored = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            !dialog.exists && self.app.textViews["squareReport.description"].value as? String == "Synthetic report facts"
+                && self.app.buttons["squareReport.review"].isEnabled
+        }, object: app)
+        XCTAssertEqual(XCTWaiter.wait(for: [restored], timeout: 5), .completed, app.debugDescription)
+    }
     private func chooseReason(_ code: String = "SPAM") {
         tap("squareReport.chooseReason"); tap("squareReport.reason." + code)
     }
@@ -34,7 +65,7 @@ final class SquareReportFlowTests: XCTestCase {
         tap("squareReport.reviewBack")
         XCTAssertEqual(app.textViews["squareReport.description"].value as? String, "Synthetic report facts")
         XCTAssertTrue(app.buttons["squareReport.chooseReason"].label.contains("Spam"))
-        tap("squareReport.close"); tap("squareReport.keepEditing")
+        tap("squareReport.close"); keepDraft()
         XCTAssertEqual(app.textViews["squareReport.description"].value as? String, "Synthetic report facts")
     }
     func testSyntheticAcknowledgementReadsBackExactCaseWithoutResubmission() {

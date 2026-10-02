@@ -181,7 +181,7 @@ import SwiftUI
                 NavigationLink { destination(.topic(topicID)) } label: { Text("searchMap.relatedTopic") }
             }
             if let coordinate = node.coordinate {
-                NavigationLink { SearchRoutePreviewView(origin: area.coordinate, destination: coordinate, name: node.addressName, scope: reader.scope, offline: reader.isOfflineExample) } label: { Text("searchMap.routePreview") }.accessibilityIdentifier("searchMap.openRoute")
+                NavigationLink { SearchRoutePreviewView(origin: area.coordinate, destination: coordinate, name: node.addressName, scope: reader.scope, navigationReference: try? WalkingTargetReference(kind: .nearbyNode, id: node.id), offline: reader.isOfflineExample) } label: { Text("searchMap.routePreview") }.accessibilityIdentifier("searchMap.openRoute")
             }
             Text("searchMap.routeNodeDomain").font(.footnote).foregroundStyle(.secondary)
         }.appNavigationTitle("searchMap.nodeDetail")

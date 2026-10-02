@@ -42,7 +42,7 @@ import SwiftUI
                         }
                     }
                     if let origin, let coordinate = detail.coordinate {
-                        NavigationLink { SearchRoutePreviewView(origin: origin, destination: coordinate, name: detail.name, scope: reader.scope, offline: reader.isOfflineExample) } label: { Label("searchMap.routePreview", systemImage: "point.topleft.down.to.point.bottomright.curvepath") }
+                        NavigationLink { SearchRoutePreviewView(origin: origin, destination: coordinate, name: detail.name, scope: reader.scope, navigationReference: try? WalkingTargetReference(kind: .cityNode, id: detail.id), offline: reader.isOfflineExample) } label: { Label("searchMap.routePreview", systemImage: "point.topleft.down.to.point.bottomright.curvepath") }
                             .accessibilityIdentifier("searchMap.openRoute")
                     }
                     Text("searchMap.nodeReadOnly").font(.footnote).foregroundStyle(.secondary)

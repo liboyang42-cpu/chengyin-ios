@@ -3,16 +3,20 @@ import SwiftUI
 /// A local immutable review, never a permission grant or agreement signature.
 struct CoopFlowRequestPreview: View {
     @Environment(\.locale) private var locale
-    let operation: CoopFlowMutation
+    private let review: CoopFlowRequestReviewContext?
+    init(operation: CoopFlowMutation, invitationContext: CoopFlowInvitationContext? = nil,
+         currentSession: CoopFlowSession? = nil) {
+        review = try? CoopFlowRequestReviewContext(operation: operation, invitationContext: invitationContext,
+                                                  currentSession: currentSession)
+    }
     var body: some View {
         List {
             Section("coopflow.reviewAction") {
-                if let body = try? operation.body(), case .object(let fields) = body {
-                    ForEach(fields.keys.sorted(), id: \.self) { key in
-                        LabeledContent(LocalizedStringKey("coopflow.field." + String(key))) {
-                            Text(fields[key]?.text ?? fields[key]?.rows?.compactMap(\.text).joined(separator: ", ") ?? appLocalized("coopflow.notProvided", locale: locale))
-                                .textSelection(.enabled)
-                        }
+                if let review {
+                    ForEach(review.rows) { row in
+                        LabeledContent(LocalizedStringKey(row.labelKey)) {
+                            reviewValue(row.value).textSelection(.enabled).foregroundStyle(Color.primary)
+                        }.accessibilityIdentifier("coopflow.review.field." + row.id)
                     }
                 } else { Text("coopflow.invalid") }
             }
@@ -20,7 +24,25 @@ struct CoopFlowRequestPreview: View {
             Button("coopflow.submit") {}.disabled(true).accessibilityIdentifier("coopflow.submit.disabled")
         }.navigationTitle("coopflow.reviewAction").accessibilityIdentifier("coopflow.review")
     }
+    @ViewBuilder private func reviewValue(_ value: CoopFlowRequestReviewValue) -> some View {
+        switch value {
+        case .text(let text): Text(verbatim: text)
+        case .localized(let key, let raw):
+            VStack(alignment: .trailing, spacing: 2) {
+                Text(LocalizedStringKey(key))
+                if let raw { Text(verbatim: raw).font(.caption) }
+            }
+        case .recipient(let name, let identity):
+            VStack(alignment: .trailing, spacing: 2) {
+                if let name { Text(verbatim: name) }
+                Text(verbatim: appLocalized("coopflow.review.identity." + identity.domain.rawValue, locale: locale) + " " + String(identity.id))
+                    .font(name == nil ? .body : .caption)
+            }
+        case .notProvided: Text("coopflow.notProvided")
+        }
+    }
 }
+
 struct CoopFlowTemplateEditor: View {
     @State private var name = ""
     @State private var type = 0
@@ -165,7 +187,7 @@ struct CoopFlowOfferEditor: View {
                         Text("coopflow.currency")
                     }
                     if let draft {
-                        NavigationLink("coopflow.reviewAction") { CoopFlowRequestPreview(operation: .invite(draft)) }
+                        NavigationLink("coopflow.reviewAction") { CoopFlowRequestPreview(operation: .invite(draft), invitationContext: context, currentSession: reader.session) }
                             .accessibilityIdentifier("coopflow.invite.review")
                     }
                     Text("coopflow.invite.rules")

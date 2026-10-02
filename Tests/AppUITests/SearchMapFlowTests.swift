@@ -62,10 +62,10 @@ final class SearchMapFlowTests: XCTestCase {
         launch("cityFallback", entry: "nearby"); app.buttons["searchMap.searchArea"].tap()
         let node = app.buttons["searchMap.nearby.node.71"]; reveal(node); node.tap()
         app.buttons["searchMap.openRoute"].tap()
-        XCTAssertTrue(app.descendants(matching: .any)["searchMap.route.fallback"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Walking route unavailable. No walkable path has been verified."].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["Start navigation"].exists)
-        app.segmentedControls.buttons["Driving"].tap()
-        XCTAssertTrue(app.descendants(matching: .any)["searchMap.route.fallback"].exists)
+        XCTAssertFalse(app.segmentedControls.buttons["Driving"].exists)
+        XCTAssertFalse(app.descendants(matching: .any)["searchMap.route.fallback"].exists)
     }
     func testSessionSwitchClearsResultsAndCityData() {
         launch(); search(); XCTAssertTrue(app.buttons["searchMap.result.topic-71"].waitForExistence(timeout: 5))
@@ -82,7 +82,7 @@ final class SearchMapFlowTests: XCTestCase {
         for chinese in [false,true] {
             launch(entry: "route", chinese: chinese, accessible: true)
             XCTAssertTrue(app.navigationBars[chinese ? "路线预览" : "Route preview"].waitForExistence(timeout: 5))
-            reveal(app.descendants(matching: .any)["searchMap.route.fallback"])
+            reveal(app.staticTexts[chinese ? "步行路线不可用，尚未确认可通行道路" : "Walking route unavailable. No walkable path has been verified."])
             app.terminate()
         }
     }

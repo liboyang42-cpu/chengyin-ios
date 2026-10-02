@@ -1,7 +1,7 @@
 {
   "version": 1,
   "unit": "seconds",
-  "unobserved_method_seconds": 30,
+  "unobserved_method_seconds": 60,
   "source_runs": [
     {
       "run": 54,
@@ -20,7 +20,7 @@
       "commit": "a1283c096e62b91543b6a8773781878e6746c464"
     }
   ],
-  "scope": "Measured case duration influences exhaustive class grouping only; source discovery determines every selected method. Missing new methods get the explicit fallback; no test is skipped.",
+  "scope": "Successful observed method_seconds remain primary. Explicit estimated_method_seconds are declared unmeasured assumptions; missing cases use the conservative fallback. Grouping only: every source-discovered method executes exactly once.",
   "method_seconds": {
     "AccessibilityPresentationFlowTests.testHomeChineseDarkLargeTextRemainsNavigable": 41.116,
     "AccessibilityPresentationFlowTests.testTicketWalletChineseDarkLargeTextKeepsDetailEntry": 15.969,
@@ -402,5 +402,198 @@
     "WalletCommerceFlowTests.testSignOutHidesAccountData": 10.321,
     "WeChatAppAuthFlowTests.testDormantBilingualEntryCanCloseAndReopen": 33.948
   },
-  "selection_policy": "Most recent successful XCTest case completion in runs 62 and 63; run 63 takes precedence. Failed observations do not replace successful or historical weights. Retain prior runs 54/55 values for methods without a recent successful observation, then use unobserved_method_seconds for source-discovered methods absent from the profile. Case duration excludes Xcode setup and result finalization; estimates are not process-deadline guarantees."
+  "selection_policy": "Most recent successful XCTest case completion in runs 62 and 63; run 63 takes precedence. Failed observations do not replace successful or historical weights. Retain prior runs 54/55 values for methods without a recent successful observation, then use unobserved_method_seconds for source-discovered methods absent from the profile. Case duration excludes Xcode setup and result finalization; estimates are not process-deadline guarantees.",
+  "estimated_method_seconds": {
+    "CooperationFlowUITests.testInvitationReviewRetainsReadableBoundIdentityAndTermsInBothLanguages": 120,
+    "MerchantEngagementFlowTests.testChineseOrdinaryHTTPProductionReviewCanBeCancelled": 60,
+    "MerchantTemplateAssistFlowTests.testCancelReviewDoesNotFillAndReopenHasNoCandidate": 60,
+    "MerchantTemplateAssistFlowTests.testDefaultOffSheetStillExplainsManualDraftPath": 60,
+    "MerchantTemplateAssistFlowTests.testPermissionErrorHasNoEnabledRetryWhileProviderErrorDoes": 60,
+    "MerchantTemplateAssistFlowTests.testReviewExplicitApplyReturnsToSameUnsavedTemplate": 60,
+    "RegistrationWaitlistUITests.testEssentialQuoteAmountCaptureInLightAndDarkBothLanguages": 240,
+    "RegistrationWaitlistUITests.testSoldOutGuidanceMatchesCapabilityAndStateInBothLanguages": 360,
+    "RegistrationWaitlistUITests.testUnreviewedOfferGuidanceExpiresWhileFormRemainsOpen": 60,
+    "SocialAccountFlowTests.testChineseLargeTextDraftCancelKeepsTextAndKeyboardDismisses": 60,
+    "SocialAccountFlowTests.testDraftSurvivesNestedReviewAndCancelThenDiscardReopensEmpty": 60,
+    "SquareReportFlowTests.testChangedContentRefreshesQualifiedTargetAndRequiresAnotherReview": 60,
+    "SquareReportFlowTests.testChangedPolicyClearsReasonAndDoesNotAcknowledgeSubmission": 60,
+    "SquareReportFlowTests.testChineseLargeTextReasonSheetCancelsWithoutSelecting": 60,
+    "SquareReportFlowTests.testNormalEntryRequiresReasonAndFactsAndReviewBackPreservesBoth": 60,
+    "SquareReportFlowTests.testSyntheticAcknowledgementReadsBackExactCaseWithoutResubmission": 60,
+    "SquareReportFlowTests.testUnknownOutcomeRemainsLockedAfterCloseAndReopen": 60,
+    "SquareWorkspaceFlowTests.testSuspendedRecoveryDisablesNewDraftTypingAndCompetingResume": 60,
+    "WalkingNavigationFlowTests.testChinesePauseAndAccountChangeClearRoute": 60,
+    "WalkingNavigationFlowTests.testFactoryRouteShowsStepsDistanceETAAndCancelResume": 60,
+    "WalkingNavigationFlowTests.testLockedTargetDoesNotRevealDestinationOrRoute": 60,
+    "WalkingNavigationFlowTests.testNoRouteIsUnavailableWithoutStraightLineFallback": 60,
+    "WalkingNavigationFlowTests.testPermissionDeniedNeverShowsRouteSteps": 60
+  },
+  "estimate_provenance": {
+    "basis": "Conservative grouping assumptions for the 402-case trial, not executed case timings. Successful measurements take priority.",
+    "baseline_commit": "47ebc42c9dba1a6c9c4e93df0253a3a98da81c83",
+    "reference": "docs/ci-ui-topology-trial.md",
+    "methods": [
+      {
+        "method": "CooperationFlowUITests.testInvitationReviewRetainsReadableBoundIdentityAndTermsInBothLanguages",
+        "seconds": 120,
+        "source": "pending9",
+        "basis": "60 seconds per known source launch \u00d7 2",
+        "measured": false
+      },
+      {
+        "method": "MerchantEngagementFlowTests.testChineseOrdinaryHTTPProductionReviewCanBeCancelled",
+        "seconds": 60,
+        "source": "existing14",
+        "basis": "60-second unmeasured baseline",
+        "measured": false
+      },
+      {
+        "method": "MerchantTemplateAssistFlowTests.testCancelReviewDoesNotFillAndReopenHasNoCandidate",
+        "seconds": 60,
+        "source": "existing14",
+        "basis": "60-second unmeasured baseline",
+        "measured": false
+      },
+      {
+        "method": "MerchantTemplateAssistFlowTests.testDefaultOffSheetStillExplainsManualDraftPath",
+        "seconds": 60,
+        "source": "existing14",
+        "basis": "60-second unmeasured baseline",
+        "measured": false
+      },
+      {
+        "method": "MerchantTemplateAssistFlowTests.testPermissionErrorHasNoEnabledRetryWhileProviderErrorDoes",
+        "seconds": 60,
+        "source": "existing14",
+        "basis": "60-second unmeasured baseline",
+        "measured": false
+      },
+      {
+        "method": "MerchantTemplateAssistFlowTests.testReviewExplicitApplyReturnsToSameUnsavedTemplate",
+        "seconds": 60,
+        "source": "existing14",
+        "basis": "60-second unmeasured baseline",
+        "measured": false
+      },
+      {
+        "method": "RegistrationWaitlistUITests.testEssentialQuoteAmountCaptureInLightAndDarkBothLanguages",
+        "seconds": 240,
+        "source": "pending9",
+        "basis": "60 seconds per known source launch \u00d7 4",
+        "measured": false
+      },
+      {
+        "method": "RegistrationWaitlistUITests.testSoldOutGuidanceMatchesCapabilityAndStateInBothLanguages",
+        "seconds": 360,
+        "source": "pending9",
+        "basis": "60 seconds per known source launch \u00d7 6",
+        "measured": false
+      },
+      {
+        "method": "RegistrationWaitlistUITests.testUnreviewedOfferGuidanceExpiresWhileFormRemainsOpen",
+        "seconds": 60,
+        "source": "pending9",
+        "basis": "60 seconds per known source launch \u00d7 1",
+        "measured": false
+      },
+      {
+        "method": "SocialAccountFlowTests.testChineseLargeTextDraftCancelKeepsTextAndKeyboardDismisses",
+        "seconds": 60,
+        "source": "existing14",
+        "basis": "60-second unmeasured baseline",
+        "measured": false
+      },
+      {
+        "method": "SocialAccountFlowTests.testDraftSurvivesNestedReviewAndCancelThenDiscardReopensEmpty",
+        "seconds": 60,
+        "source": "existing14",
+        "basis": "60-second unmeasured baseline",
+        "measured": false
+      },
+      {
+        "method": "SquareReportFlowTests.testChangedContentRefreshesQualifiedTargetAndRequiresAnotherReview",
+        "seconds": 60,
+        "source": "existing14",
+        "basis": "60-second unmeasured baseline",
+        "measured": false
+      },
+      {
+        "method": "SquareReportFlowTests.testChangedPolicyClearsReasonAndDoesNotAcknowledgeSubmission",
+        "seconds": 60,
+        "source": "existing14",
+        "basis": "60-second unmeasured baseline",
+        "measured": false
+      },
+      {
+        "method": "SquareReportFlowTests.testChineseLargeTextReasonSheetCancelsWithoutSelecting",
+        "seconds": 60,
+        "source": "existing14",
+        "basis": "60-second unmeasured baseline",
+        "measured": false
+      },
+      {
+        "method": "SquareReportFlowTests.testNormalEntryRequiresReasonAndFactsAndReviewBackPreservesBoth",
+        "seconds": 60,
+        "source": "existing14",
+        "basis": "60-second unmeasured baseline",
+        "measured": false
+      },
+      {
+        "method": "SquareReportFlowTests.testSyntheticAcknowledgementReadsBackExactCaseWithoutResubmission",
+        "seconds": 60,
+        "source": "existing14",
+        "basis": "60-second unmeasured baseline",
+        "measured": false
+      },
+      {
+        "method": "SquareReportFlowTests.testUnknownOutcomeRemainsLockedAfterCloseAndReopen",
+        "seconds": 60,
+        "source": "existing14",
+        "basis": "60-second unmeasured baseline",
+        "measured": false
+      },
+      {
+        "method": "SquareWorkspaceFlowTests.testSuspendedRecoveryDisablesNewDraftTypingAndCompetingResume",
+        "seconds": 60,
+        "source": "existing14",
+        "basis": "60-second unmeasured baseline",
+        "measured": false
+      },
+      {
+        "method": "WalkingNavigationFlowTests.testChinesePauseAndAccountChangeClearRoute",
+        "seconds": 60,
+        "source": "pending9",
+        "basis": "60-second unmeasured baseline",
+        "measured": false
+      },
+      {
+        "method": "WalkingNavigationFlowTests.testFactoryRouteShowsStepsDistanceETAAndCancelResume",
+        "seconds": 60,
+        "source": "pending9",
+        "basis": "60-second unmeasured baseline",
+        "measured": false
+      },
+      {
+        "method": "WalkingNavigationFlowTests.testLockedTargetDoesNotRevealDestinationOrRoute",
+        "seconds": 60,
+        "source": "pending9",
+        "basis": "60-second unmeasured baseline",
+        "measured": false
+      },
+      {
+        "method": "WalkingNavigationFlowTests.testNoRouteIsUnavailableWithoutStraightLineFallback",
+        "seconds": 60,
+        "source": "pending9",
+        "basis": "60-second unmeasured baseline",
+        "measured": false
+      },
+      {
+        "method": "WalkingNavigationFlowTests.testPermissionDeniedNeverShowsRouteSteps",
+        "seconds": 60,
+        "source": "pending9",
+        "basis": "60-second unmeasured baseline",
+        "measured": false
+      }
+    ]
+  }
 }

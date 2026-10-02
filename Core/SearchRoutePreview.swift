@@ -5,8 +5,11 @@ public struct SearchRouteRequest: Hashable {
     public let origin: RoamCoordinate
     public let destination: RoamCoordinate
     public let mode: SearchRouteMode
-    public init(origin: RoamCoordinate, destination: RoamCoordinate, mode: SearchRouteMode) {
+    public let datum: WalkingCoordinateDatum
+    public let region: String?
+    public init(origin: RoamCoordinate, destination: RoamCoordinate, mode: SearchRouteMode, datum: WalkingCoordinateDatum = .gcj02, region: String? = nil) {
         self.origin = origin; self.destination = destination; self.mode = mode
+        self.datum = datum; self.region = region
     }
 }
 public struct SearchRouteStep: Equatable {
@@ -22,18 +25,21 @@ public struct SearchRoutePreview: Equatable {
     public let etaSeconds: Double?
     public let steps: [SearchRouteStep]
     public let isStraightLine: Bool
-    public init(coordinates: [RoamCoordinate], distanceMeters: Double, etaSeconds: Double?, steps: [SearchRouteStep], isStraightLine: Bool) throws {
+    public let datum: WalkingCoordinateDatum
+    public let provider: WalkingProviderEvidence?
+    public init(coordinates: [RoamCoordinate], distanceMeters: Double, etaSeconds: Double?, steps: [SearchRouteStep], isStraightLine: Bool, datum: WalkingCoordinateDatum = .gcj02, provider: WalkingProviderEvidence? = nil) throws {
         guard coordinates.count >= 2, distanceMeters.isFinite, distanceMeters >= 0,
               etaSeconds.map({ $0.isFinite && $0 >= 0 }) ?? true,
               steps.allSatisfy({ $0.distanceMeters.isFinite && $0.distanceMeters >= 0 }) else { throw APIError.invalidRequest }
         self.coordinates = coordinates; self.distanceMeters = distanceMeters
         self.etaSeconds = isStraightLine ? nil : etaSeconds
         self.steps = isStraightLine ? [] : steps; self.isStraightLine = isStraightLine
+        self.datum = datum; self.provider = isStraightLine ? nil : provider
     }
     public static func straightLine(_ request: SearchRouteRequest) -> SearchRoutePreview {
         // Failable coordinate construction upstream guarantees finite bounded inputs.
         try! SearchRoutePreview(coordinates: [request.origin, request.destination],
-            distanceMeters: distance(request.origin, request.destination), etaSeconds: nil, steps: [], isStraightLine: true)
+            distanceMeters: distance(request.origin, request.destination), etaSeconds: nil, steps: [], isStraightLine: true, datum: request.datum)
     }
     public static func distance(_ a: RoamCoordinate, _ b: RoamCoordinate) -> Double {
         let lat1 = a.latitude * .pi / 180, lat2 = b.latitude * .pi / 180
@@ -42,8 +48,10 @@ public struct SearchRoutePreview: Equatable {
         return 2 * 6_371_000 * asin(sqrt(min(1, max(0, value))))
     }
 }
-/// Explicit injected provider only. The native migration does not construct or run a live
-/// location/directions provider. Production defaults to an honest, local straight-line preview.
+/// Provider boundary shared by previews and foreground walking. No provider is enabled by
+/// default. A straight-line diagnostic never qualifies as a navigable walking route.
 @MainActor public protocol SearchRoutePlanning {
     func preview(_ request: SearchRouteRequest) async throws -> SearchRoutePreview
+    func cancel()
 }
+public extension SearchRoutePlanning { func cancel() {} }

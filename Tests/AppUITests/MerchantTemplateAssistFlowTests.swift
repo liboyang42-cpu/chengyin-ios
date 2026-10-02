@@ -19,7 +19,14 @@ final class MerchantTemplateAssistFlowTests: XCTestCase {
     }
     private func generate(_ app: XCUIApplication) {
         let shop = app.textFields["merchant.assist.shopName"]; shop.tap(); shop.typeText("Synthetic shop")
-        let prompt = app.textViews["merchant.assist.prompt"]; prompt.tap(); prompt.typeText("A riddle by the door")
+        // Xcode 26.6 reports SwiftUI.VerticalTextView as legacy TextField and modern
+        // TextView. Resolve the unique accessibility identifier without either type filter.
+        let prompt = app.descendants(matching: .any)["merchant.assist.prompt"].firstMatch
+        XCTAssertTrue(prompt.waitForExistence(timeout: 4), app.debugDescription)
+        XCTAssertTrue(revealFixtureElement(prompt, in: app), app.debugDescription)
+        XCTAssertTrue(prompt.isEnabled)
+        prompt.tap(); prompt.typeText("A riddle by the door")
+        XCTAssertEqual(prompt.value as? String, "A riddle by the door")
         let done = app.buttons["Done"]; if done.isHittable { done.tap() }
         let button = app.buttons["merchant.assist.generate"]
         XCTAssertTrue(revealFixtureElement(button, in: app)); button.tap()

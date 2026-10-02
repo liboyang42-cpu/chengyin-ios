@@ -110,8 +110,8 @@ class AppUnitTargetTests(unittest.TestCase):
         self.assertIn('simctl bootstatus', job)
         self.assertEqual(workflow.count('-only-testing:' + TARGET), 1)
         self.assertIn('run: swift test', workflow)
-        self.assertIn('shard: [0, 1, 2, 3, 4, 5]', workflow)
-        self.assertIn('--count 6', workflow)
+        self.assertIn('shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]', workflow)
+        self.assertIn('--count 10', workflow)
 
     def test_generation_is_deterministic_and_committed_outputs_match(self):
         paths = ['project.pbxproj', 'xcshareddata/xcschemes/Questify.xcscheme', f'xcshareddata/xcschemes/{TARGET}.xcscheme']

@@ -90,3 +90,15 @@ public enum RegistrationUIStatus {
         }
     }
 }
+
+/// Presentation only: capability and current status do not grant access or permit purchase.
+public enum RegistrationUIWaitlistGuidance {
+    public static func soldOutKey(available: Bool, status: RegistrationWaitlistStatus?,
+                                  outcomeUnknown: Bool, now: Date) -> String {
+        guard available else { return "registration.form.soldOutHint" }
+        guard !outcomeUnknown else { return "registration.waitlist.unknown" }
+        if status?.state == .waiting { return "registration.form.soldOutWaiting" }
+        if status?.offer(at: now) != nil { return "registration.form.soldOutOffer" }
+        return "registration.form.soldOutAvailable"
+    }
+}

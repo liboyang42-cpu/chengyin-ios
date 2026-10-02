@@ -81,7 +81,7 @@ import SwiftUI
     @ViewBuilder private func postActions(_ post: SquarePost, actions: SocialActionCoordinator) -> some View {
         if actions.identity.accountID != nil {
             Button("social.editor.comment") { editor = .init(purpose: .comment, target: .post(post.id), text: "") }.disabled(!post.viewerCanComment)
-            Menu("social.actions") {
+            Menu {
                 Button("social.editor.like") { editor = .init(purpose: .like, target: .post(post.id), text: "") }
                 Button("social.editor.bookmark") { editor = .init(purpose: .bookmark, target: .post(post.id), text: "") }
                     .disabled(post.generation != .communityV1)
@@ -94,7 +94,10 @@ import SwiftUI
                     else if let target = try? SquareReportTarget(post: post) { reportTarget = .init(target: target) }
                 }.disabled(post.generation == .unknown)
                     .accessibilityIdentifier("squareReport.postEntry")
-            }.accessibilityIdentifier("social.post.actions")
+            } label: {
+                Text("social.actions").frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                    .contentShape(Rectangle())
+            }.buttonStyle(.borderless).accessibilityIdentifier("social.post.actions")
             if post.generation == .legacySquare { Text("squareReport.legacyBookmarkBoundary").font(.footnote).foregroundStyle(.secondary) }
         } else { Text("social.signIn").font(.footnote) }
     }
@@ -106,7 +109,7 @@ import SwiftUI
                 NavigationLink { SocialPublicProfileView(memberID: comment.memberID, reader: accountReader, squareReader: reader, actions: actions) } label: { Text("social.viewAuthor") }
             }
             if let actions, actions.identity.accountID != nil {
-                Menu("social.actions") {
+                Menu {
                     Button("social.reply") { editor = .init(purpose: .comment, target: .comment(postID: id, commentID: comment.id), text: "") }.disabled(post?.viewerCanComment != true)
                     Button("social.editor.commentLike") { editor = .init(purpose: .commentLike, target: .comment(postID: id, commentID: comment.id), text: "", enabled: comment.isLiked == 0) }
                     Button("social.editor.report") {
@@ -114,7 +117,10 @@ import SwiftUI
                         else if let post, let target = try? SquareReportTarget(post: post, comment: comment) { reportTarget = .init(target: target) }
                     }.disabled(comment.generation == .unknown)
                         .accessibilityIdentifier("squareReport.commentEntry.\(comment.id)")
-                }.accessibilityIdentifier("social.comment.actions.\(comment.id)")
+                } label: {
+                    Text("social.actions").frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                        .contentShape(Rectangle())
+                }.buttonStyle(.borderless).accessibilityIdentifier("social.comment.actions.\(comment.id)")
             }
             if let name = comment.replyName(in: comments.items) { LabeledContent("square.replyTo", value: name).font(.caption) }
             if let contents = comment.contents { Text(verbatim: contents).textSelection(.enabled) }

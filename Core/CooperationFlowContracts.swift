@@ -141,6 +141,84 @@ public struct CoopFlowInvitationContext: Identifiable, Equatable {
     }
 }
 
+/// Typed display values are separate from the immutable request and its wire encoding.
+public enum CoopFlowRequestReviewValue: Equatable {
+    case text(String)
+    case localized(key: String, rawValue: String?)
+    case recipient(name: String?, identity: CoopFlowIdentity)
+    case notProvided
+}
+public struct CoopFlowRequestReviewRow: Identifiable, Equatable {
+    public let id: String
+    public let value: CoopFlowRequestReviewValue
+    public var labelKey: String { "coopflow.field." + id }
+}
+
+/// A local presentation snapshot, never a submission grant or a replacement fingerprint.
+/// The optional human name is accepted only with its matching, current source context.
+public struct CoopFlowRequestReviewContext: Equatable {
+    public let operation: CoopFlowMutation
+    public let requestBody: CoopFlowJSON
+    public let rows: [CoopFlowRequestReviewRow]
+    public init(operation: CoopFlowMutation, invitationContext: CoopFlowInvitationContext? = nil,
+                currentSession: CoopFlowSession? = nil) throws {
+        let body = try operation.body()
+        guard case .object(let fields) = body else { throw CoopFlowFailure.invalid("review") }
+        var name: String?
+        if let context = invitationContext {
+            guard context.session == currentSession, case .invite(let invitation) = operation,
+                  invitation.recipient == context.recipient, invitation.kind == context.kind,
+                  invitation.topicID == context.topicID, invitation.originApplyID == context.originApplyID,
+                  invitation.scope == context.scope else { throw CoopFlowFailure.stale }
+            let verifiedName = context.recipientName.trimmingCharacters(in: .whitespacesAndNewlines)
+            name = verifiedName.isEmpty ? nil : verifiedName
+        }
+        self.operation = operation; self.requestBody = body
+        // Show who/what first; retain every remaining serialized field, including source IDs.
+        let priority = ["toId", "toType", "inviteType", "shareMode", "fixedFee", "scope", "originApplyId", "topicId"]
+        let keys = priority.filter { fields[$0] != nil } + fields.keys.filter { !priority.contains($0) }.sorted()
+        self.rows = keys.map { key in
+            let raw = fields[key] ?? .null
+            var value: CoopFlowRequestReviewValue = raw.text.map(CoopFlowRequestReviewValue.text)
+                ?? raw.rows.map { .text($0.compactMap(\.text).joined(separator: ", ")) } ?? .notProvided
+            if key == "scope", let scope = raw.text {
+                value = .localized(key: scope == "MERCHANT" ? "coopflow.review.scope.merchant" : "coopflow.review.unknownValue", rawValue: scope)
+            }
+            switch operation {
+            case .invite(let invitation):
+                switch key {
+                case "toId": value = .recipient(name: name, identity: invitation.recipient)
+                case "toType", "inviteType":
+                    value = .localized(key: invitation.kind == .club ? "coopflow.invite.club" : "context.coop.merchant", rawValue: raw.text)
+                case "shareMode":
+                    switch invitation.compensation {
+                    case .traffic: value = .localized(key: "coopflow.review.traffic", rawValue: raw.text)
+                    case .fixed: value = .localized(key: "coopflow.fixed", rawValue: raw.text)
+                    }
+                default: break
+                }
+            case .handle(_, let action, _):
+                if key == "status" { value = .localized(key: "coopflow.handle." + String(action.rawValue), rawValue: raw.text) }
+            case .createTemplate(let template):
+                if key == "perkType" { value = .localized(key: "coopflow.perk." + String(template.type), rawValue: raw.text) }
+            case .enrollOffer:
+                if key == "termsMode", let mode = raw.text {
+                    let label: String
+                    switch mode {
+                    case "TRAFFIC": label = "coopflow.review.traffic"
+                    case "PERK": label = "coopflow.review.perk"
+                    case "REVSHARE": label = "coopflow.review.revshare"
+                    default: label = "coopflow.review.unknownValue"
+                    }
+                    value = .localized(key: label, rawValue: mode)
+                }
+            default: break
+            }
+            return CoopFlowRequestReviewRow(id: key, value: value)
+        }
+    }
+}
+
 public struct CoopFlowPerkTemplate: Equatable {
     public let name: String
     public let type: Int

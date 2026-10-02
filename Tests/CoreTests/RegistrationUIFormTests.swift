@@ -38,4 +38,28 @@ final class RegistrationUIFormTests: XCTestCase {
         XCTAssertEqual(RegistrationUIStatus.registrationKey(nil), "registration.form.unknownStatus")
         XCTAssertEqual(RegistrationUIStatus.registrationKey(99), "registration.form.unknownStatus")
     }
+    func testSoldOutGuidanceUsesRealCapabilityAndCurrentEligibleOffer() throws {
+        let now = Date(timeIntervalSince1970: 1_700_000_000)
+        func status(_ state: String, eligibility: String = "ELIGIBLE", deadline: Date? = nil) throws -> RegistrationWaitlistStatus {
+            let expiry = ISO8601DateFormatter().string(from: deadline ?? now.addingTimeInterval(300))
+            let json = """
+            {"id":9,"activityId":8,"ticketId":7,"memberId":6,"state":"\(state)",
+             "eligibilityState":"\(eligibility)","waitlistJoinAllowed":\(eligibility == "ELIGIBLE"),
+             "offerExpiresAt":"\(expiry)","offerToken":"synthetic-offer"}
+            """
+            return try JSONDecoder().decode(RegistrationWaitlistStatus.self, from: Data(json.utf8))
+        }
+        let waiting = try status("WAITING"), offered = try status("OFFERED")
+        for value in [nil, waiting, offered] {
+            XCTAssertEqual(RegistrationUIWaitlistGuidance.soldOutKey(available: false, status: value, outcomeUnknown: false, now: now), "registration.form.soldOutHint")
+        }
+        XCTAssertEqual(RegistrationUIWaitlistGuidance.soldOutKey(available: true, status: waiting, outcomeUnknown: false, now: now), "registration.form.soldOutWaiting")
+        XCTAssertEqual(RegistrationUIWaitlistGuidance.soldOutKey(available: true, status: offered, outcomeUnknown: false, now: now), "registration.form.soldOutOffer")
+        XCTAssertEqual(RegistrationUIWaitlistGuidance.soldOutKey(available: true, status: offered, outcomeUnknown: false, now: now.addingTimeInterval(300)), "registration.form.soldOutAvailable")
+        for value in [nil, try status("CANCELLED"), try status("EXPIRED"), try status("OFFERED", deadline: now), try status("OFFERED", eligibility: "BLOCKED")] {
+            XCTAssertEqual(RegistrationUIWaitlistGuidance.soldOutKey(available: true, status: value, outcomeUnknown: false, now: now), "registration.form.soldOutAvailable")
+        }
+        XCTAssertEqual(RegistrationUIWaitlistGuidance.soldOutKey(available: true, status: offered, outcomeUnknown: true, now: now), "registration.waitlist.unknown")
+    }
+
 }

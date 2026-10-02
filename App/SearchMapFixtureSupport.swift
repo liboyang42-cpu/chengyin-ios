@@ -59,6 +59,7 @@ import SwiftUI
     @State private var reader: SearchMapFixtureReader
     @State private var scope: UUID
     private let entry: String
+    @State private var walking: WalkingNavigationFixtureSupport
     init() {
         let args = ProcessInfo.processInfo.arguments
         func argument(_ name: String) -> String? {
@@ -67,18 +68,23 @@ import SwiftUI
         let value = SearchMapFixtureReader(scenario: argument("--uitesting-search-map-scenario").flatMap(SearchMapFixtureReader.Scenario.init(rawValue:)) ?? .content)
         _reader = State(initialValue: value); _scope = State(initialValue: value.scope)
         entry = argument("--uitesting-search-map-entry") ?? "global"
+        _walking = State(initialValue: WalkingNavigationFixtureSupport(scenario: argument("--uitesting-walking-scenario") ?? "content"))
     }
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Button("searchMap.fixtureGuest") { reader.becomeGuest(); scope = reader.scope }.accessibilityIdentifier("searchMap.fixture.guest")
-                Button("searchMap.fixtureAccount") { reader.switchAccount(); scope = reader.scope }.accessibilityIdentifier("searchMap.fixture.account")
+                Button("searchMap.fixtureGuest") { reader.becomeGuest(); walking.context = nil; scope = reader.scope }.accessibilityIdentifier("searchMap.fixture.guest")
+                Button("searchMap.fixtureAccount") { reader.switchAccount(); walking.context = nil; scope = reader.scope }.accessibilityIdentifier("searchMap.fixture.account")
             }.buttonStyle(.bordered).frame(minHeight: 44)
             NavigationStack {
                 if entry == "city" {
                     SearchMapExplorerView(reader: reader, mode: .city, initialArea: syntheticArea, destination: detail)
                 } else if entry == "nearby" {
                     SearchMapExplorerView(reader: reader, mode: .nearby, initialArea: syntheticArea, destination: detail)
+                } else if entry == "walking" {
+                    SearchRoutePreviewView(origin: syntheticArea.coordinate, destination: RoamCoordinate(latitude: 1.004, longitude: 1.006)!, name: "Synthetic stop", scope: reader.scope,
+                        navigationReference: try? WalkingTargetReference(kind: .cityNode, id: 71), offline: true)
+                        .environment(\.walkingNavigationFactory, walking.factory)
                 } else if entry == "route" {
                     SearchRoutePreviewView(origin: syntheticArea.coordinate, destination: RoamCoordinate(latitude: 1.004, longitude: 1.006)!, name: "Synthetic stop", scope: reader.scope, offline: true)
                 } else {
