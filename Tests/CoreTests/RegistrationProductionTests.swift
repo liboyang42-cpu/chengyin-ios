@@ -66,7 +66,7 @@ private final class RegistrationProductionWire: HTTPTransport {
     func testFactoryHasNoDefaultGrantAndRejectsDifferentOrigin() throws {
         let journal = RegistrationProductionJournal(), current = try session()
         XCTAssertNil(RegistrationProductionFactory.make(configuration: configuration, approval: nil, journal: journal, current: { current }))
-        XCTAssertNil(RegistrationProductionFactory.make(configuration: try .init(baseURL: URL(string: "https://other.example.com")!), approval: grant(), journal: journal, current: { current }))
+        XCTAssertNil(RegistrationProductionFactory.make(configuration: try .init(baseURL: URL(string: "https://other.example.com")!), approval: try grant(), journal: journal, current: { current }))
     }
     func testGrantRequiresExactAccountCNStorefrontAndKnownPaths() {
         XCTAssertThrowsError(try grant(account: 2))
