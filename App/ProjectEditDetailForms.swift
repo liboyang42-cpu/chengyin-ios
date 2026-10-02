@@ -13,7 +13,7 @@ import SwiftUI
                     if chapter.wrappedValue.blocks == nil {
                         TextField("projectEdit.story", text: chapter.description, axis: .vertical).lineLimit(4...12)
                             .accessibilityIdentifier("projectEdit.story")
-                        if model.draft.product == .city {
+                        if model.draft.product == .city || ProjectEditStoryContract.usesV2(model.draft) {
                             Button("projectEdit.enableStoryFlow") {
                                 var c = chapter.wrappedValue
                                 c.blocks = [.init(kind: .text, content: c.description)] + c.nodes.map { .init(kind: .node, nodeID: $0.id) }
@@ -22,31 +22,49 @@ import SwiftUI
                         }
                     }
                 }
-                if let blocks = chapter.wrappedValue.blocks, model.draft.product == .city {
+                ProjectEditChapterStorySettings(chapter: chapter, isFirst: model.draft.chapters.first?.id == chapterID)
+                if let blocks = chapter.wrappedValue.blocks {
                     Section("projectEdit.storyFlow") {
                         ForEach(blocks) { block in
                             switch block.kind {
                             case .text:
                                 TextField("projectEdit.story", text: blockBinding(block.id).content, axis: .vertical).lineLimit(3...12)
                                     .accessibilityIdentifier("projectEdit.block." + block.id)
+                                NavigationLink("projectEdit.rich.editDetails") { ProjectEditRichBlockEditor(model: model, block: blockBinding(block.id), chapterID: chapterID) }
                             case .node:
-                                Label { Text(verbatim: chapter.wrappedValue.nodes.first { $0.id == block.nodeID }?.name ?? "") } icon: { Image(systemName: "mappin.circle") }
+                                NavigationLink { ProjectEditRichBlockEditor(model: model, block: blockBinding(block.id), chapterID: chapterID) } label: {
+                                    Label { Text(verbatim: chapter.wrappedValue.nodes.first { $0.id == block.nodeID }?.name ?? "") } icon: { Image(systemName: "mappin.circle") }
+                                }
                             case .image, .audio:
                                 ProjectEditReferenceField(title: LocalizedStringKey(block.kind == .image ? "projectEdit.imageReference" : "projectEdit.audioReference"), value: blockBinding(block.id).url, identifier: "projectEdit.block." + block.id)
+                            case .dream, .mood, .thought, .voice, .odd, .reveal:
+                                NavigationLink { ProjectEditRichBlockEditor(model: model, block: blockBinding(block.id), chapterID: chapterID) } label: { ProjectEditRichBlockSummary(block: block, nodes: chapter.wrappedValue.nodes) }
+                                    .accessibilityIdentifier("projectEdit.rich.block." + block.id)
                             }
                         }.onMove { from, to in
                             var c = chapter.wrappedValue; c.blocks?.move(fromOffsets: from, toOffset: to); chapter.wrappedValue = c
                         }.onDelete { offsets in
                             var c = chapter.wrappedValue
                             let deleted = offsets.compactMap { c.blocks?.indices.contains($0) == true ? c.blocks?[$0] : nil }
-                            for block in deleted where block.kind == .node { c.nodes.removeAll { $0.id == block.nodeID } }
-                            c.blocks?.remove(atOffsets: offsets); chapter.wrappedValue = c
+                            let removedIDs = Set(deleted.map(\.id))
+                            for block in deleted where block.kind == .node { c.removeNode(id: block.nodeID) }
+                            c.blocks?.removeAll { removedIDs.contains($0.id) }; chapter.wrappedValue = c
                         }
                         HStack {
                             Button("projectEdit.addText") { appendBlock(.text) }
                             Button("projectEdit.addImage") { appendBlock(.image) }
                             Button("projectEdit.addAudio") { appendBlock(.audio) }
                         }.buttonStyle(.bordered).disabled(blocks.count >= 200)
+                        Menu("projectEdit.rich.addBlock") {
+                            ForEach(ProjectEditRichStoryContract.richKinds, id: \.self) { kind in
+                                Button(LocalizedStringKey("projectEdit.rich.kind." + kind.rawValue)) { appendBlock(kind) }
+                            }
+                        }.disabled(blocks.count >= 200).accessibilityIdentifier("projectEdit.rich.addBlock")
+                        Button("projectEdit.rich.addNarrative") {
+                            guard let node = chapter.wrappedValue.nodes.last else { return }
+                            var block = ProjectEditBlock(kind: .text); block.selectBeat(.outcome); block.setField("field", .string("line")); block.nodeID = node.id
+                            var c = chapter.wrappedValue; c.blocks?.append(block); chapter.wrappedValue = c
+                        }.disabled(blocks.count >= 200 || chapter.wrappedValue.nodes.isEmpty)
                         Text("projectEdit.storyFlowHint").font(.caption).foregroundStyle(.secondary)
                     }
                 }
@@ -65,7 +83,7 @@ import SwiftUI
                     Button("projectEdit.addNode", systemImage: "plus") {
                         var c = chapter.wrappedValue
                         do { try c.addNode(product: model.draft.product); chapter.wrappedValue = c } catch { /* Inline explanation is already visible. */ }
-                    }.disabled((model.draft.product == .city && !chapter.wrappedValue.hasRealStory) || (chapter.wrappedValue.blocks?.count ?? 0) >= 200)
+                    }.disabled(chapter.wrappedValue.preserved["ending"]?.object != nil || (model.draft.product == .city && !chapter.wrappedValue.hasRealStory) || (chapter.wrappedValue.blocks?.count ?? 0) >= 200)
                         .accessibilityIdentifier("projectEdit.addNode")
                     if model.draft.product == .city && !chapter.wrappedValue.hasRealStory { Text("projectEdit.validation.story").foregroundStyle(.secondary) }
                 }
@@ -85,7 +103,7 @@ import SwiftUI
     }
     private func appendBlock(_ kind: ProjectEditBlock.Kind) {
         var c = chapter.wrappedValue; guard let count = c.blocks?.count, count < 200 else { return }
-        c.blocks?.append(.init(kind: kind)); chapter.wrappedValue = c
+        c.blocks?.append(ProjectEditRichStoryContract.defaultBlock(kind)); chapter.wrappedValue = c
     }
 }
 
@@ -180,6 +198,18 @@ struct ProjectEditReviewView: View {
                 ForEach(confirmation.draft.chapters) { chapter in
                     Section {
                         row("projectEdit.chapterName", chapter.name); row("projectEdit.story", chapter.story)
+                        if chapter.preserved["opening"] == .bool(true) { Text("projectEdit.rich.opening") }
+                        if let ending = chapter.preserved["ending"]?.object {
+                            Text("projectEdit.rich.ending")
+                            if ending["fallback"] == .bool(true) { Text("projectEdit.rich.fallback") }
+                            ForEach(Array((ending["when"]?.array ?? []).enumerated()), id: \.offset) { _, raw in
+                                if let condition = raw.object {
+                                    Text(verbatim: [condition["op"]?.text, condition["var"]?.text, condition["value"]?.text,
+                                        condition["value"]?.integer.map(String.init), condition["nodeId"]?.integer.map(String.init)].compactMap { $0 }.joined(separator: " ")).font(.caption)
+                                }
+                            }
+                        }
+                        ForEach(chapter.blocks ?? []) { ProjectEditRichBlockSummary(block: $0, nodes: chapter.nodes) }
                         ForEach(chapter.nodes) { node in
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(verbatim: node.name).font(.headline)

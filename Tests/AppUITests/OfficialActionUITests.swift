@@ -12,7 +12,10 @@ final class OfficialActionUITests: XCTestCase {
         title.tap(); title.typeText("Synthetic event")
         app.swipeUp(); app.buttons["officialAction.reviewPublish"].tap()
         XCTAssertTrue(app.staticTexts["officialAction.reviewPayload"].waitForExistence(timeout: 3))
-        XCTAssertFalse(app.buttons["officialAction.confirm"].isEnabled)
+        let confirm = app.buttons["officialAction.confirm"]
+        for _ in 0..<8 { if confirm.exists { break }; app.swipeUp() }
+        XCTAssertTrue(confirm.exists, app.debugDescription)
+        XCTAssertFalse(confirm.isEnabled)
     }
     func testBroadcastCannotReviewImplicitAudience() {
         let app = launch(); app.buttons["officialAction.openBroadcast"].tap(); app.swipeUp()

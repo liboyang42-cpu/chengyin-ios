@@ -13,10 +13,20 @@ import XCTest
     }
     func testActivityIsDistinctFromQuickRoute() {
         let app = launch(); app.buttons["Publish an activity"].tap()
-        XCTAssertTrue(app.textFields["publishModes.activity.start"].exists)
+        XCTAssertTrue(app.textFields["publishModes.activity.start"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["publishModes.quick.continue"].exists)
-        app.buttons["publishModes.activity.review"].tap()
-        XCTAssertTrue(app.staticTexts["publishModes.message"].exists)
+        // Activity review follows the category, template, collaborator and local-draft
+        // sections. The Form does not materialize this button in its initial viewport.
+        let review = app.buttons["publishModes.activity.review"]
+        for _ in 0..<8 { if review.exists && review.isHittable { break }; app.swipeUp() }
+        XCTAssertTrue(review.exists, app.debugDescription)
+        XCTAssertTrue(review.isHittable, app.debugDescription)
+        XCTAssertTrue(review.isEnabled); review.tap()
+        let message = app.staticTexts["publishModes.message"]
+        XCTAssertTrue(message.waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertEqual(message.label, "Check the required fields, event times and ticket windows. Publishing also requires a current club-leader role.")
+        XCTAssertFalse(app.buttons["publishModes.quick.continue"].exists)
+        XCTAssertFalse(app.staticTexts["publishModes.fixture.seed"].exists)
     }
     func testIdentityNeverCollectsSensitiveID() {
         let app = launch(); app.buttons["Publisher registration"].tap()

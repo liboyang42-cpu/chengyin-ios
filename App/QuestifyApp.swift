@@ -18,7 +18,11 @@ struct QuestifyApp: App {
         WindowGroup {
             Group {
                 #if DEBUG
-                if ProcessInfo.processInfo.arguments.contains("--merchant-npc-fixture") {
+                if ProcessInfo.processInfo.arguments.contains("--native-navigation-fixture") {
+                    NativeNavigationFixtureView(mode: fixtureArgument("--native-navigation-fixture") ?? "error")
+                } else if ProcessInfo.processInfo.arguments.contains("--native-verification-fixture") {
+                    NativeVerificationFixtureView(scenario: fixtureArgument("--native-verification-fixture") ?? "success")
+                } else if ProcessInfo.processInfo.arguments.contains("--merchant-npc-fixture") {
                     NavigationStack { MerchantNPCFixtureView() }
                 } else if ProcessInfo.processInfo.arguments.contains("--publisher-lifecycle-fixture") {
                     PublisherLifecycleFixtureRoot()
@@ -108,7 +112,7 @@ private final class AppSessionContainer: ObservableObject {
 
     init() {
         #if DEBUG
-        if ProcessInfo.processInfo.arguments.contains("--merchant-npc-fixture") || ProcessInfo.processInfo.arguments.contains("--publisher-lifecycle-fixture") || ProcessInfo.processInfo.arguments.contains("--retained-images-fixture") || ProcessInfo.processInfo.arguments.contains("--square-governance-fixture") || ProcessInfo.processInfo.arguments.contains("--shop-npc-fixture") || ProcessInfo.processInfo.arguments.contains("--club-community-fixture") || ProcessInfo.processInfo.arguments.contains("--public-merchant-home-fixture") || ProcessInfo.processInfo.arguments.contains("--door-referral-fixture") || ProcessInfo.processInfo.arguments.contains("--merchant-marketing-fixture") || ProcessInfo.processInfo.arguments.contains("--im-expanded-fixture") || ProcessInfo.processInfo.arguments.contains("--ui-coupon-management") || WalletCommerceFixtureHost.selected || ProcessInfo.processInfo.arguments.contains("--ui-publishing-modes") ||
+        if ProcessInfo.processInfo.arguments.contains("--native-navigation-fixture") || ProcessInfo.processInfo.arguments.contains("--native-verification-fixture") || ProcessInfo.processInfo.arguments.contains("--merchant-npc-fixture") || ProcessInfo.processInfo.arguments.contains("--publisher-lifecycle-fixture") || ProcessInfo.processInfo.arguments.contains("--retained-images-fixture") || ProcessInfo.processInfo.arguments.contains("--square-governance-fixture") || ProcessInfo.processInfo.arguments.contains("--shop-npc-fixture") || ProcessInfo.processInfo.arguments.contains("--club-community-fixture") || ProcessInfo.processInfo.arguments.contains("--public-merchant-home-fixture") || ProcessInfo.processInfo.arguments.contains("--door-referral-fixture") || ProcessInfo.processInfo.arguments.contains("--merchant-marketing-fixture") || ProcessInfo.processInfo.arguments.contains("--im-expanded-fixture") || ProcessInfo.processInfo.arguments.contains("--ui-coupon-management") || WalletCommerceFixtureHost.selected || ProcessInfo.processInfo.arguments.contains("--ui-publishing-modes") ||
            ProcessInfo.processInfo.arguments.contains("--nearby-team-fixture") ||
            ProcessInfo.processInfo.arguments.contains("--official-action-fixture") ||
            ProcessInfo.processInfo.arguments.contains("--uitesting-club-governance") ||
@@ -168,10 +172,13 @@ private struct SessionRootView: View {
             if session.account != nil { RetainedImagePresenterHost(host: session.retainedImagePickerHost).frame(width: 0, height: 0) }
         }
         .environmentObject(session)
+        .environment(\.couponCodeFactory, { session.makeCouponCodeCoordinator(historyID: $0) })
+        .environment(\.cooperationNearbyDestination, { AnyView(SessionNearbyMerchantsView(session: session)) })
         .environment(\.complianceSignupDestination, { AnyView(SessionComplianceSignupView(session: session)) })
         .environment(\.merchantCouponManagementDestination, { AnyView(SessionCouponManagementView()) })
         .task { await session.bootstrap() }
         .onOpenURL { session.receiveNativeURL($0) }
+        .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { session.receiveWeChatUserActivity($0) }
         .sheet(item: Binding(get: { session.nativeEntry }, set: { if $0 == nil { session.dismissNativeEntry() } })) { entry in
             NativeEntryLandingView(entry: entry, session: session, goHome: { browsingAsGuest = true; selectedTab = 0 })
         }

@@ -10,7 +10,11 @@ final class IMExpandedUITests: XCTestCase {
     }
     func testSyntheticRouteReviewIsExplicit() throws {
         let app = XCUIApplication(); app.launchArguments = ["--im-expanded-fixture", "route-review"]; app.launch()
-        XCTAssertTrue(app.buttons["im.full.confirm"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.buttons["im.full.confirm"].isEnabled)
+        XCTAssertTrue(app.descendants(matching: .any)["im.full.controls"].waitForExistence(timeout: 5))
+        let confirm = app.buttons["im.full.confirm"]
+        for _ in 0..<8 { if confirm.exists && confirm.isHittable { break }; app.swipeUp() }
+        XCTAssertTrue(confirm.exists, app.debugDescription)
+        XCTAssertTrue(confirm.isHittable, app.debugDescription)
+        XCTAssertTrue(confirm.isEnabled)
     }
 }

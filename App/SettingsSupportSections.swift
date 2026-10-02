@@ -95,12 +95,24 @@ import SwiftUI
         .task { await model.load() }
     }
     private func soundToggle(_ key: SettingsSoundKey, preferences: SettingsSoundPreferences) -> some View {
-        Toggle(LocalizedStringKey(key.titleKey), isOn: Binding(
-            get: { model.state.preferences?[key] ?? preferences[key] },
-            set: { value in Task { await model.set(key, to: value) } }
-        ))
-        .disabled(model.state.isBusy)
-        .accessibilityIdentifier("settingsNative.sound.\(key.rawValue)")
+        HStack {
+            Text(LocalizedStringKey(key.titleKey)).fixedSize(horizontal: false, vertical: true)
+                .accessibilityHidden(true) // The native switch supplies this spoken label.
+            Spacer(minLength: 16)
+            // Keep the native switch's accessibility/hit frame on the control itself.
+            // A Form Toggle can otherwise expose the entire label row as a Switch.
+            Toggle(LocalizedStringKey(key.titleKey), isOn: Binding(
+                get: { model.state.preferences?[key] ?? preferences[key] },
+                set: { value in Task { await model.set(key, to: value) } }
+            ))
+            .labelsHidden()
+            .toggleStyle(.switch)
+            .fixedSize()
+            .disabled(model.state.isBusy)
+            .accessibilityLabel(Text(LocalizedStringKey(key.titleKey)))
+            .accessibilityIdentifier("settingsNative.sound.\(key.rawValue)")
+        }
+        .frame(minHeight: 44)
     }
 }
 

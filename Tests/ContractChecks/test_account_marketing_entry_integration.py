@@ -8,7 +8,13 @@ class AccountMarketingEntryIntegrationChecks(unittest.TestCase):
     def test_empty_policy_and_concrete_dormant_platform_hook(self):
         s=self.read('App/AppSession.swift'); root=self.read('App/QuestifyApp.swift')
         self.assertIn('NativeEntryLinkPolicy(verifiedHTTPSOrigins: [])',s)
-        self.assertIn('guard let intent = nativeEntryLinkPolicy.parse(url) else { return }',s)
+        receiver=s[s.index('func receiveNativeURL('):s.index('func receiveWeChatUserActivity(')]
+        self.assertIn('if weChatSDKDriver.handle(url, adapter: weChatSDKAdapter) { return }',receiver)
+        self.assertIn('guard let intent = nativeEntryLinkPolicy.parse(url) else {\n            receiveNativeIntent(.routeError(.unsupported)); return\n        }',receiver)
+        self.assertLess(receiver.index('weChatSDKDriver.handle'),receiver.index('nativeEntryLinkPolicy.parse'))
+        self.assertIn('receiveNativeIntent(intent)',receiver)
+        for forbidden in ['openURL(', 'transport.send', 'token']:
+            self.assertNotIn(forbidden,receiver)
         self.assertIn('.onOpenURL { session.receiveNativeURL($0) }',root)
         for forbidden in ['CFBundleURLTypes','AssociatedDomains','applinks:']: self.assertNotIn(forbidden,root)
     def test_existing_session_and_explicit_disabled_gates(self):

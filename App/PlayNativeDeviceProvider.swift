@@ -4,23 +4,58 @@ import CoreLocation
 import CoreMotion
 import Vision
 import CoreImage
+import AVFoundation
+import PhotosUI
 
 /// OS access remains opt-in. Construction, sheet hosting and supported inspection
 /// do not request permissions, start a sensor, or open a camera.
-@MainActor @Observable final class PlayNativeDeviceProvider: NSObject, PlayDeviceProviding, CLLocationManagerDelegate {
+@MainActor @Observable final class PlayNativeDeviceProvider: NSObject, PlayKitFramedPhotoProviding, PlayKitPhotoLibraryProviding, PlayDevicePermissionStateProviding, CLLocationManagerDelegate {
     let supported: Set<PlayDeviceKind>
     var showingCamera = false
+    var showingLibraryPicker = false
+    private(set) var photoFrame: PlayKitPhotoFrame?
+    private(set) var authorizationInFlight = false
+    private var cameraGeneration: UInt64 = 0
+    var cameraOperationGeneration: UInt64 { cameraGeneration }
     private var cameraReply: CheckedContinuation<Data, Error>?
     private var locationReply: CheckedContinuation<PlayDeviceOutput, Error>?
     private var motionReply: CheckedContinuation<PlayDeviceOutput, Error>?
     private var locationManager: CLLocationManager?
     private var motionManager: CMMotionManager?
     init(grants: Set<PlayDeviceKind> = []) { supported = grants.intersection([.photo, .scan, .location, .motion]); super.init() }
+    func captureLibraryPhoto(context: PlayDeviceContext) async throws -> PlayDeviceOutput {
+        guard supported.contains(.photo) else { throw PlayExperienceError.disabled }
+        guard cameraReply == nil, !authorizationInFlight, UIApplication.shared.applicationState == .active else { throw PlayExperienceError.busy }
+        cameraGeneration &+= 1
+        let bytes: Data = try await withCheckedThrowingContinuation { cameraReply = $0; showingLibraryPicker = true }
+        return .photo(bytes, mimeType: "image/jpeg")
+    }
+    func capturePhoto(frame: PlayKitPhotoFrame, context: PlayDeviceContext) async throws -> PlayDeviceOutput {
+        guard supported.contains(.photo) else { throw PlayExperienceError.disabled }
+        guard cameraReply == nil, !authorizationInFlight else { throw PlayExperienceError.busy }
+        photoFrame = frame
+        defer { photoFrame = nil }
+        return try await capture(.photo, context: context)
+    }
     func capture(_ kind: PlayDeviceKind, context: PlayDeviceContext) async throws -> PlayDeviceOutput {
         guard supported.contains(kind) else { throw PlayExperienceError.disabled }
         switch kind {
         case .photo, .scan:
-            guard cameraReply == nil, UIImagePickerController.isSourceTypeAvailable(.camera) else { throw PlayExperienceError.unsupported }
+            guard cameraReply == nil, !authorizationInFlight, UIImagePickerController.isSourceTypeAvailable(.camera), UIImagePickerController.isCameraDeviceAvailable(.rear) else { throw PlayExperienceError.unsupported }
+            guard let purpose = Bundle.main.object(forInfoDictionaryKey: "NSCameraUsageDescription") as? String, !purpose.isEmpty else { throw PlayExperienceError.disabled }
+            cameraGeneration &+= 1; let generation = cameraGeneration
+            let allowed: Bool
+            switch AVCaptureDevice.authorizationStatus(for: .video) {
+            case .authorized: allowed = true
+            case .notDetermined:
+                authorizationInFlight = true
+                allowed = await AVCaptureDevice.requestAccess(for: .video)
+            default: allowed = false
+            }
+            guard cameraGeneration == generation else { throw CancellationError() }
+            authorizationInFlight = false
+            guard allowed else { throw PlayExperienceError.disabled }
+            guard !Task.isCancelled, UIApplication.shared.applicationState == .active else { throw CancellationError() }
             let bytes: Data = try await withCheckedThrowingContinuation { cameraReply = $0; showingCamera = true }
             if kind == .photo { return .photo(bytes, mimeType: "image/jpeg") }
             let request = VNDetectBarcodesRequest(); request.symbologies = [.qr]
@@ -54,8 +89,9 @@ import CoreImage
         default: throw PlayExperienceError.unsupported
         }
     }
-    func finishCamera(_ image: UIImage?) {
-        let reply = cameraReply; cameraReply = nil; showingCamera = false
+    func finishCamera(_ image: UIImage?, generation: UInt64? = nil) {
+        if let generation, generation != cameraGeneration { return }
+        let reply = cameraReply; cameraReply = nil; showingCamera = false; showingLibraryPicker = false
         if let bytes = image?.jpegData(compressionQuality: 0.9) { reply?.resume(returning: bytes) }
         else { reply?.resume(throwing: CancellationError()) }
     }
@@ -80,6 +116,7 @@ import CoreImage
         let reply = locationReply; locationReply = nil; locationManager = nil; reply?.resume(throwing: error)
     }
     func cancel() {
+        cameraGeneration &+= 1; authorizationInFlight = false
         finishCamera(nil); locationManager?.stopUpdatingLocation(); locationManager = nil
         let location = locationReply; locationReply = nil; location?.resume(throwing: CancellationError())
         motionManager?.stopAccelerometerUpdates(); motionManager = nil
@@ -93,15 +130,27 @@ import CoreImage
     func makeUIViewController(context: Context) -> UIImagePickerController {
         let picker = UIImagePickerController(); picker.sourceType = .camera
         picker.cameraDevice = .rear; picker.mediaTypes = ["public.image"]; picker.delegate = context.coordinator
+        context.coordinator.installFrame(provider.photoFrame, in: picker)
         return picker
     }
     func updateUIViewController(_ controller: UIImagePickerController, context: Context) {}
     final class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
         let provider: PlayNativeDeviceProvider
-        init(_ provider: PlayNativeDeviceProvider) { self.provider = provider }
-        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) { provider.finishCamera(nil) }
+        let generation: UInt64
+        private var frameHost: UIHostingController<PlayKitViewfinderFrame>?
+        func installFrame(_ frame: PlayKitPhotoFrame?, in picker: UIImagePickerController) {
+            guard let frame else { return }
+            let host = UIHostingController(rootView: PlayKitViewfinderFrame(frame: frame))
+            host.view.backgroundColor = .clear; host.view.isUserInteractionEnabled = false
+            host.view.frame = picker.view.bounds; host.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            frameHost = host; picker.cameraOverlayView = host.view
+            // Camera output remains UIImagePickerController.originalImage. The guide
+            // is never burned into, uploaded with, or scored as part of the photo.
+        }
+        init(_ provider: PlayNativeDeviceProvider) { self.provider = provider; generation = provider.cameraOperationGeneration }
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) { provider.finishCamera(nil, generation: generation) }
         func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
-            provider.finishCamera(info[.originalImage] as? UIImage)
+            provider.finishCamera(info[.originalImage] as? UIImage, generation: generation)
         }
     }
 }

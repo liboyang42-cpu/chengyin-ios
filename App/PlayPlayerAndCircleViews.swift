@@ -2,6 +2,8 @@ import SwiftUI
 
 @MainActor struct PlayPlayerSessionView: View {
     @Bindable var model: PlayPlayerGameCoordinator
+    var deviceModel: ((Int) -> PlayDeviceCaptureCoordinator)? = nil
+    @State private var evidenceTarget: PlayerTaskEvidenceTarget?
     @State private var evidence: [Int: String] = [:]
     @State private var review: PlayPlayerCommand?
     @State private var showReview = false
@@ -46,7 +48,12 @@ import SwiftUI
                                     prepare(.submit, projection: projection, nodeID: node.id, payload: ["taskCode": node.task["taskCode"], "evidenceUrls": .array([.string(value)])])
                                 } catch { issue = .invalidAction }
                             }.disabled(model.phase != "ready")
-                        } else if node.task["inputType"].text == "PHOTO" || node.task["inputType"].text == "SCAN" { Text("playx.device.disabled") }
+                        } else if node.task["inputType"].text == "PHOTO" || node.task["inputType"].text == "SCAN" {
+                            Button(node.task["inputType"].text == "SCAN" ? "playerEvidence.scan.title" : "playerEvidence.photo.title") {
+                                do { evidenceTarget = try model.evidenceTarget(nodeID: node.id) }
+                                catch { issue = .invalidAction }
+                            }.disabled(model.phase != "ready").accessibilityIdentifier("playerEvidence.open.\(node.id)")
+                        }
                         ForEach(Array(node.choices.enumerated()), id: \.offset) { _, choice in
                             if let id = choice["id"].text, let label = choice["label"].text {
                                 Button { prepare(.choice, projection: projection, nodeID: node.id, payload: ["choiceId": .string(id)]) } label: { Text(verbatim: label) }
@@ -83,6 +90,9 @@ import SwiftUI
             }
         }.privacySensitive().navigationTitle("playx.player.title").accessibilityIdentifier("playx.player.view")
             .task { await model.load() }
+            .navigationDestination(item: $evidenceTarget) { target in
+                PlayerTaskEvidenceView(target: target, player: model, device: deviceModel?(target.nodeID))
+            }
             .confirmationDialog("playx.review", isPresented: $showReview, titleVisibility: .visible) {
                 Button("playx.submit") { if let review { Task { await model.submit(review); self.review = nil } } }
                 Button("playx.cancel", role: .cancel) { review = nil }

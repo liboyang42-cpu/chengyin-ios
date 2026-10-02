@@ -19,6 +19,9 @@ import SwiftUI
     var mediaScope: UUID = UUID()
     var makeAudio: (@MainActor () -> PlatformAudioPlayback)? = nil
     var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
+    var approvedArtworkHosts: Set<String> = []
+    var makeSensorProvider: (@MainActor () -> any PlayKitSensorProviding)? = nil
+    var spatialApproval = PlayKitSpatialApproval()
     @State private var selectedNode: Int?
     @State private var confirmEnd = false
     @Environment(\.scenePhase) private var scenePhase
@@ -70,7 +73,7 @@ import SwiftUI
                                 NavigationLink {
                                     ChapterStoryView(chapterID: chapter.id, nodeID: node.id, model: model,
                                         advancedModel: advancedModel, deviceModel: deviceModel, mediaScope: mediaScope,
-                                        makeAudio: makeAudio, nodeDestination: { AnyView(nodeDestination($0)) })
+                                        makeAudio: makeAudio, approvedArtworkHosts: approvedArtworkHosts, makeSensorProvider: makeSensorProvider, spatialApproval: spatialApproval, nodeDestination: { AnyView(nodeDestination($0)) })
                                 } label: {
                                     if let title = chapter.name { Label { Text(verbatim: title) } icon: { Image(systemName: "book") } }
                                     else { Label("chapterStory.title", systemImage: "book") }
@@ -96,11 +99,12 @@ import SwiftUI
                     NavigationLink("playx.stopwatch") { PlayStopwatchView() }
                     if let topicID = model.snapshot?.result.topicID, let factory = summaryModel, let summary = factory(topicID) {
                         NavigationLink("playx.os.title") { PlayOperatingSummaryView(model: summary) }
+                            .accessibilityIdentifier("playx.os.open")
                     }
                     if PrefabPreviewState.isPrefabTopic(name: model.snapshot?.result.topicName), let prefabModel {
                         NavigationLink("playx.prefab.title") { PlayPrefabRuntimeView(model: prefabModel) }
                     }
-                    if let playerModel { NavigationLink("playx.player.title") { PlayPlayerSessionView(model: playerModel) } }
+                    if let playerModel { NavigationLink("playx.player.title") { PlayPlayerSessionView(model: playerModel, deviceModel: deviceModel) } }
                     if let circleModel { NavigationLink("playx.circle.title") { PlayCircleView(model: circleModel) } }
                 }
                 if let reward = model.reward { PlayRewardSection(reward: reward) }
@@ -145,7 +149,7 @@ import SwiftUI
         return PlayExperienceNodeView(nodeID: id, model: model, device: deviceModel?(id), advanced: advancedModel.flatMap { $0(id) },
             stillness: configuration.flatMap { configuration in motionModel.flatMap { $0(id, configuration) } },
             preference: preferenceModel.flatMap { $0(id) }, journey: journeyModel.flatMap { $0(id) }, shopNPC: shopNPCModel?(id),
-            mediaScope: mediaScope, makeAudio: makeAudio, makeExternalMaps: makeExternalMaps)
+            mediaScope: mediaScope, makeAudio: makeAudio, makeExternalMaps: makeExternalMaps, approvedArtworkHosts: approvedArtworkHosts, makeSensorProvider: makeSensorProvider, spatialApproval: spatialApproval)
     }
     private func projectAmbient() {
         guard let result = model.snapshot?.result else { return }
@@ -166,6 +170,9 @@ import SwiftUI
     let mediaScope: UUID
     var makeAudio: (@MainActor () -> PlatformAudioPlayback)? = nil
     var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
+    var approvedArtworkHosts: Set<String> = []
+    var makeSensorProvider: (@MainActor () -> any PlayKitSensorProviding)? = nil
+    var spatialApproval = PlayKitSpatialApproval()
     @State private var answer = ""
     @State private var review: PlayCompletionReview?
     @State private var showReview = false
@@ -230,11 +237,12 @@ import SwiftUI
                 if let hint = model.hint { Section("playx.hints") { ForEach(Array(hint.hints.enumerated()), id: \.offset) { _, text in Text(verbatim: text) } } }
                 if let preference, node.validationMethod == 6 {
                     NavigationLink("playx.preference.title") { PlayPreferenceView(model: preference) { Task { await model.load() } } }
+                        .accessibilityIdentifier("playx.preference.open")
                 }
                 if let stillness, node.sensorType == "still" {
                     NavigationLink("playx.stillness") { PlayStillnessStreamView(model: stillness) { prepare(.sensor(type: "still", payload: $0)) } }
                 }
-                if let advanced, node.hasAdvancedPrerequisite { NavigationLink("playx.advanced") { PlayAdvancedView(model: advanced, device: device, mediaScope: mediaScope, makeAudio: makeAudio) { state in try? model.acceptAdvanced(state) } } }
+                if let advanced, node.hasAdvancedPrerequisite { NavigationLink("playx.advanced") { PlayAdvancedView(model: advanced, device: device, mediaScope: mediaScope, makeAudio: makeAudio, approvedArtworkHosts: approvedArtworkHosts, makeSensorProvider: makeSensorProvider, spatialApproval: spatialApproval) { state in try? model.acceptAdvanced(state) } } }
                 if let device { PlayDeviceTaskSection(model: device, task: PlayNodeTask.resolve(mode: model.snapshot?.result.mode, node: node),
                     photoFilter: node.sensorType == "filter_shot" ? PlayPhotoFilter(rawValue: model.extras[nodeID]?.sensorConfig["filterStyle"].text ?? "") : nil,
                     unsupportedPhotoSubtype: node.validationMethod == 2 && node.sensorType?.isEmpty == false && (node.sensorType != "filter_shot" || PlayPhotoFilter(rawValue: model.extras[nodeID]?.sensorConfig["filterStyle"].text ?? "") == nil), onEvidence: prepare) }
@@ -243,6 +251,13 @@ import SwiftUI
             if let localIssue { PlayExperienceIssueView(issue: localIssue) }
         }
         .privacySensitive().navigationTitle("playx.task.title")
+        // The optional check initially renders no rows, so its probe belongs to this stable host.
+        .task(id: [model.identity, node.map { String($0.id) }]) {
+            if let node { await journey?.probe(nodeDone: node.done == true) }
+        }
+        .onChange(of: node?.done) { _, _ in
+            if let node { journey?.updateNodeDone(node.done == true) }
+        }
         .confirmationDialog("playx.review", isPresented: $showReview, titleVisibility: .visible) {
             Button("playx.submit") { if let review { Task { await model.submit(review); self.review = nil } } }.accessibilityIdentifier("playx.confirm")
             Button("playx.cancel", role: .cancel) { model.cancelReview(); review = nil }

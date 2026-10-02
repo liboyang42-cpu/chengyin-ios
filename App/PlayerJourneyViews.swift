@@ -1,6 +1,6 @@
 import SwiftUI
 
-enum PlayerJourneyRoute: Hashable { case play(ParticipationPlayEntry), history(PlaySessionScope), memberTemplate(MemberPlayTemplateID) }
+enum PlayerJourneyRoute: Hashable { case play(ParticipationPlayEntry), history(PlaySessionScope), memberTemplate(MemberPlayTemplateID), verification, support }
 
 @MainActor struct PlayerJourneyAccountLinks: View {
     var body: some View {
@@ -43,6 +43,8 @@ enum PlayerJourneyRoute: Hashable { case play(ParticipationPlayEntry), history(P
                             .accessibilityIdentifier("playerJourney.play.ticket")
                         }
                     }
+            case .support: ParticipationSupportView()
+            case .verification: SessionNativeVerificationView()
             case .memberTemplate(let id): SessionMemberTemplateDetailView(id: id)
             case .history(let scope):
                 switch scope {
@@ -158,6 +160,8 @@ private struct ParticipationRow: View {
                         PlayerJourneyCount(label: "playerJourney.pending", value: detail.pending)
                         PlayerJourneyCount(label: "playerJourney.verified", value: detail.verified)
                         PlayerJourneyCount(label: "playerJourney.total", value: detail.total)
+                        Button("verification.title", systemImage: "qrcode.viewfinder") { open(.verification) }
+                            .accessibilityIdentifier("playerJourney.verification")
                     }
                 }
                 if let rules = detail.rules { Section("playerJourney.rules") { Text(verbatim: rules) } }
@@ -179,6 +183,10 @@ private struct ParticipationRow: View {
                     if detail.needsModification {
                         // Player registration IDs cannot address the separate merchant-registration table.
                         Text("playerJourney.modifyNeedsReview").foregroundStyle(.secondary)
+                    }
+                    if !detail.canCancel(), !detail.needsModification {
+                        Button("participationSupport.title", systemImage: "message") { open(.support) }
+                            .accessibilityIdentifier("playerJourney.support")
                     }
                 }
             }

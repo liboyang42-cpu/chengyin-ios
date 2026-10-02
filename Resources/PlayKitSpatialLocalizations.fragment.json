@@ -1,0 +1,329 @@
+{
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "playkitSpatial.open": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open spatial view"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开空间视图"
+          }
+        }
+      }
+    },
+    "playkitSpatial.loading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparing approved AR images"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在准备已批准的 AR 图片"
+          }
+        }
+      }
+    },
+    "playkitSpatial.purpose": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use the camera for spatial placement?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用相机进行空间放置？"
+          }
+        }
+      }
+    },
+    "playkitSpatial.purposeDetail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recognize a real surface or the configured image, then anchor the returned artwork in the camera view. No camera frames are saved or uploaded, and recognition does not prove arrival or award a result."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "识别真实平面或配置的图像，将返回的图片固定在相机空间中。不会保存或上传相机画面，识别也不作为到店凭证或奖励判定。"
+          }
+        }
+      }
+    },
+    "playkitSpatial.findMarker": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Point the camera at the configured reference image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将相机对准配置的识别图"
+          }
+        }
+      }
+    },
+    "playkitSpatial.findPlane": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move slowly to find a horizontal surface"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "缓慢移动手机，寻找水平面"
+          }
+        }
+      }
+    },
+    "playkitSpatial.tapPlane": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap a detected surface to place the card"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点击已识别的平面放置卡片"
+          }
+        }
+      }
+    },
+    "playkitSpatial.noEvidence": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spatial display is visual only; task acceptance remains on the server"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "空间展示仅用于观看，任务是否通过仍由服务端决定"
+          }
+        }
+      }
+    },
+    "playkitSpatial.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spatial reveal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "空间显形"
+          }
+        }
+      }
+    },
+    "playkitSpatial.fallback": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View regular image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看普通图片"
+          }
+        }
+      }
+    },
+    "playkitSpatial.error.disabled": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spatial rendering has not been enabled for this session"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前会话尚未启用空间渲染"
+          }
+        }
+      }
+    },
+    "playkitSpatial.error.unvalidatedScan": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The scan must be validated by the server first"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先由服务端验证扫码结果"
+          }
+        }
+      }
+    },
+    "playkitSpatial.error.unsupportedMode": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This spatial mode is not supported"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂不支持这种空间模式"
+          }
+        }
+      }
+    },
+    "playkitSpatial.error.unsupportedModel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No approved decoder is configured for this 3D model. Use the returned image instead."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未为这个三维模型配置已批准的解码器，请改看返回的图片。"
+          }
+        }
+      }
+    },
+    "playkitSpatial.error.assetUnavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An approved image could not be loaded. The static fallback remains available."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已批准的图片未能加载，仍可使用静态图片回落。"
+          }
+        }
+      }
+    },
+    "playkitSpatial.error.markerCalibrationRequired": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The reference image needs an accepted physical-width calibration before native tracking can start"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原生图像追踪开始前，需要提供并验收识别图的实际宽度"
+          }
+        }
+      }
+    },
+    "playkitSpatial.error.permissionDenied": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Camera permission was not granted; use the image fallback"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "相机权限未获准，请使用图片回落"
+          }
+        }
+      }
+    },
+    "playkitSpatial.error.deviceUnavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AR could not start or track reliably on this device. Use the image fallback."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此设备未能启动或稳定追踪 AR，请使用图片回落。"
+          }
+        }
+      }
+    },
+    "playkitSpatial.error.interrupted": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spatial viewing was interrupted. No task result was submitted."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "空间观看已中断，没有提交任务结果。"
+          }
+        }
+      }
+    }
+  }
+}

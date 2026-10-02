@@ -6,12 +6,16 @@ import SwiftUI
     let makeCoordinator: () -> TeamCoordinator
     var onLogin: (() -> Void)?
     var nearbyDestination: (([OwnedTeam]) -> AnyView)?
-    init(coordinator: TeamCoordinator, makeCoordinator: @escaping () -> TeamCoordinator, onLogin: (() -> Void)? = nil, nearbyDestination: (([OwnedTeam]) -> AnyView)? = nil) {
-        _model = StateObject(wrappedValue: TeamScreenModel(coordinator)); self.makeCoordinator = makeCoordinator; self.onLogin = onLogin; self.nearbyDestination = nearbyDestination
+    var onOpenInvitation: ((TeamInvitationRoute) -> Void)?
+    init(coordinator: TeamCoordinator, makeCoordinator: @escaping () -> TeamCoordinator, onLogin: (() -> Void)? = nil, nearbyDestination: (([OwnedTeam]) -> AnyView)? = nil, onOpenInvitation: ((TeamInvitationRoute) -> Void)? = nil) {
+        _model = StateObject(wrappedValue: TeamScreenModel(coordinator)); self.makeCoordinator = makeCoordinator; self.onLogin = onLogin; self.nearbyDestination = nearbyDestination; self.onOpenInvitation = onOpenInvitation
     }
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 18) {
+                NavigationLink {
+                    TeamInvitationEntryView(makeCoordinator: makeCoordinator, onLogin: onLogin, onOpen: onOpenInvitation)
+                } label: { Label("nativeNav.team.open", systemImage: "person.badge.plus") }
                 TeamNotice(coordinator: model.coordinator)
                 if !model.coordinator.authenticated {
                     if let onLogin { Button("team.signIn", action: onLogin).frame(minHeight: 44) }

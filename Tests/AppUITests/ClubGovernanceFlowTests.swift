@@ -6,24 +6,35 @@ final class ClubGovernanceFlowTests: XCTestCase {
     }
     private func open(_ name: String, app: XCUIApplication) {
         let button = app.buttons["club.gov.fixture." + name]
-        for _ in 0..<8 where !button.isHittable { app.swipeUp() }
+        reveal(button, app: app)
         XCTAssertTrue(button.waitForExistence(timeout: 5)); button.tap()
+    }
+    private func fact(_ key: String, containing text: String, app: XCUIApplication) -> XCUIElement {
+        // LabeledContent exposes its label and value together on some iOS versions.
+        app.descendants(matching: .any).matching(NSPredicate(
+            format: "identifier == %@ AND (label CONTAINS %@ OR value CONTAINS %@)",
+            "club.gov.fact." + key, text, text)).firstMatch
+    }
+    private func reveal(_ element: XCUIElement, app: XCUIApplication) {
+        XCTAssertTrue(revealFixtureElement(element, in: app), app.debugDescription)
     }
     private func tap(_ identifier: String, app: XCUIApplication) {
         let element = app.buttons[identifier]
-        for _ in 0..<10 where !element.isHittable { app.swipeUp() }
+        reveal(element, app: app)
         XCTAssertTrue(element.waitForExistence(timeout: 5)); XCTAssertTrue(element.isHittable); element.tap()
     }
     func testCustomerListDetailAndLocalRemarkReview() {
         let app = launch(); open("customers", app: app)
-        XCTAssertTrue(app.buttons["club.gov.route.customer"].waitForExistence(timeout: 5)); app.buttons["club.gov.route.customer"].tap()
+        tap("club.gov.route.customer", app: app)
         let edit = app.buttons["club.gov.action.saveCustomer"]
-        for _ in 0..<6 where !edit.isHittable { app.swipeUp() }; edit.tap()
+        reveal(edit, app: app); edit.tap()
         let tags = app.textFields["club.gov.input.tags"]
-        for _ in 0..<6 where !tags.isHittable { app.swipeUp() }
+        reveal(tags, app: app)
         XCTAssertTrue(tags.waitForExistence(timeout: 5))
         tap("club.gov.prepare", app: app)
-        XCTAssertTrue(app.buttons["club.gov.confirm"].waitForExistence(timeout: 5))
+        let confirm = app.buttons["club.gov.confirm"]
+        reveal(confirm, app: app)
+        XCTAssertTrue(confirm.waitForExistence(timeout: 5))
     }
     func testEventRolesAreDistinctFromLegacyAdministratorFlag() {
         let app = launch(); open("roles", app: app)
@@ -33,16 +44,23 @@ final class ClubGovernanceFlowTests: XCTestCase {
     func testClubStoryUsesOwnRouteAndProtectedAnswer() {
         let app = launch(); open("topicOverview", app: app)
         let story = app.buttons["club.gov.openStory"]
-        for _ in 0..<8 where !story.isHittable { app.swipeUp() }; story.tap()
-        XCTAssertTrue(app.staticTexts["Fixture chapter"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts["Fixture puzzle"].exists)
+        reveal(story, app: app); story.tap()
+        let chapter = fact("title", containing: "Fixture chapter", app: app)
+        reveal(chapter, app: app)
+        XCTAssertTrue(chapter.waitForExistence(timeout: 5))
+        let puzzle = fact("title", containing: "Fixture puzzle", app: app)
+        reveal(puzzle, app: app)
+        XCTAssertTrue(puzzle.waitForExistence(timeout: 5))
     }
     func testSwitchAccountClearsCustomerPII() {
         let app = launch(); open("customers", app: app)
-        XCTAssertTrue(app.staticTexts["Fixture customer"].waitForExistence(timeout: 5))
+        let customer = fact("displayName", containing: "Fixture customer", app: app)
+        reveal(customer, app: app)
+        XCTAssertTrue(customer.waitForExistence(timeout: 5))
         app.buttons["club.gov.switchAccount"].tap()
         XCTAssertTrue(app.staticTexts["club.gov.error"].waitForExistence(timeout: 5))
-        XCTAssertFalse(app.staticTexts["Fixture customer"].exists)
+        XCTAssertFalse(customer.exists)
+        XCTAssertFalse(app.buttons["club.gov.route.customer"].exists)
     }
     func testChineseSettlementPreservesUnverifiedAmount() {
         let app = launch("zh-Hans"); open("settlement", app: app)
@@ -52,7 +70,7 @@ final class ClubGovernanceFlowTests: XCTestCase {
     func testAudienceUnknownIsNotZeroAndReviewRequiresContent() {
         let app = launch(); open("audienceCounts", app: app)
         let compose = app.buttons["club.gov.action.sendNotification"]
-        for _ in 0..<6 where !compose.isHittable { app.swipeUp() }; compose.tap()
+        reveal(compose, app: app); compose.tap()
         tap("club.gov.prepare", app: app)
         XCTAssertTrue(app.staticTexts["club.gov.formError"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["club.gov.confirm"].exists)

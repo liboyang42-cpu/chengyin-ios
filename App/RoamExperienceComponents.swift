@@ -23,7 +23,8 @@ struct RoamExperienceIssue: View {
             if let retry, error as? APIError != .unauthorized, error as? APIError != .notConfigured {
                 Button("action.retry", action: retry).accessibilityIdentifier("roam.experience.retry")
             }
-        }.accessibilityIdentifier("roam.experience.error")
+        }.accessibilityElement(children: .contain)
+            .accessibilityIdentifier("roam.experience.error")
     }
 }
 struct RoamExperienceCard<Content: View>: View {

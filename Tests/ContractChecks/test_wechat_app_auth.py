@@ -13,7 +13,9 @@ class WeChatAuthSourceChecks(unittest.TestCase):
         for field in ['sdkVerified','providerVerified','legalVerified','appleAlternativeVerified','liveExchangeApproved']:
             self.assertIn(f'var {field} = false', source)
         host = (ROOT/'App/AppSession.swift').read_text()
-        self.assertIn('lazy var weChatAuth = WeChatAppAuthCoordinator(context:', host)
+        self.assertIn('lazy var weChatAuth = WeChatAppAuthCoordinator(adapter: weChatSDKAdapter, gate:', host)
+        self.assertIn('private let weChatSDKConfiguration: WeChatSDKConfiguration? = nil', host)
+        self.assertIn('private let weChatSDKGate = WeChatAppAuthGate()', host)
         self.assertIn('return try self.commitChannelLogin(result, expected: expected.session)', host)
     def test_callback_claim_precedes_exchange(self):
         source = (ROOT/'Core/WeChatAppAuth.swift').read_text()

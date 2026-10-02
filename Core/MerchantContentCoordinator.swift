@@ -20,6 +20,9 @@ public struct MerchantContentReview: Identifiable, Equatable {
     private var generation = 0
     public var isCurrent: Bool { loadedScope == service.scope && service.isAuthenticated }
     public init(service: any MerchantContentServing, query: MerchantContentQuery) { self.service = service; self.query = query }
+    /// Keep navigation source rows while a destination is pushed. In-flight completions and
+    /// reviews are invalidated; unresolved write locks and scoped display state are preserved.
+    public func suspend() { generation += 1; review = nil; busy = false }
     public func invalidate() { generation += 1; snapshot = nil; review = nil; receipt = nil; issue = nil; serverMessage = nil; loadedScope = nil; busy = false; locked = false }
     public func cancelReview() { review = nil }
     public func load() async {

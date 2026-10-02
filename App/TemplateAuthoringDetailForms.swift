@@ -101,18 +101,26 @@ import SwiftUI
             }
             if let game = selected {
                 Section(LocalizedStringKey(game.labelKey)) {
+                    if game.isMiniProgramAddition { TemplateMiniGameConfigurationView(model: model, game: game) }
+                    else {
                     field(game.section, "kicker")
                     field(game.section, "xp")
                     switch game {
                     case .coin:
                         nested("heads", "label"); nested("heads", "action"); nested("tails", "label"); nested("tails", "action")
                     case .dice:
+                        Picker("creatorRoot.diceMode", selection: Binding(get: { model.draft.advanced.diceMode }, set: { model.draft.advanced.setDiceMode($0) })) {
+                            Text("creatorRoot.d6").tag("d6"); Text("creatorRoot.d20").tag("d20")
+                        }
+                        if model.draft.advanced.diceMode == "d20" { TemplateD20ConfigurationView(model: model) }
+                        else {
                         field(game.section, "diceCount")
                         ForEach(0..<6, id: \.self) { index in
                             TextField(LocalizedStringKey("templateAuthor.diceFace." + String(index + 1)), text: .init(get: {
                                 let faces = model.draft.advanced.value["diceRoll"]?.object?["faces"]?.array ?? []
                                 return faces.indices.contains(index) ? faces[index].string ?? "" : ""
                             }, set: { model.draft.advanced.setFace(index, $0) }))
+                        }
                         }
                     case .react: field(game.section, "rounds"); field(game.section, "goalMs")
                     case .shake:
@@ -122,8 +130,29 @@ import SwiftUI
                     case .quiet: field(game.section, "sub"); field(game.section, "seconds")
                     case .countdown: field(game.section, "seconds"); field(game.section, "doneText")
                     case .stopwatch: field(game.section, "targetSeconds"); field(game.section, "toleranceMs"); field(game.section, "tries")
+                    case .sort, .match, .classify, .compass, .shout: EmptyView()
+                    }
                     }
                 }
+                Section("playkitAuthor.presentation") {
+                    Picker("playkitAuthor.presentation", selection: Binding(get: { model.draft.advanced.explicitPresentation }, set: { model.draft.advanced.setPresentation($0) })) {
+                        Text("playkitAuthor.presentation.default").tag("")
+                        Text("playkitAuthor.presentation.inline").tag("inline")
+                        Text("playkitAuthor.presentation.focused").tag("fullscreen")
+                    }
+                    if !game.allowsInline { Text("playkitAuthor.presentation.focusedRequired").font(.footnote) }
+                }
+            }
+            Section("creatorRoot.rules") {
+                NavigationLink("creatorRoot.rules") { TemplateRootAuthoringView(model: model) }
+            }
+            Section("creator.modules") {
+                ForEach(TemplateCreatorFamily.allCases) { family in
+                    NavigationLink { TemplateCreatorConfigurationView(model: model, family: family) } label: {
+                        HStack { Text(LocalizedStringKey(family.labelKey)); Spacer(); if model.draft.advanced.enabled(family.rawValue) { Image(systemName: "checkmark.circle.fill") } }
+                    }
+                }
+                Text("creator.coexist").font(.caption).foregroundStyle(.secondary)
             }
             Section("templateAuthor.timer") {
                 Toggle("templateAuthor.moduleEnabled", isOn: .init(get: { model.draft.advanced.enabled("timer") }, set: { model.draft.advanced.set("timer", "enabled", .bool($0)) }))

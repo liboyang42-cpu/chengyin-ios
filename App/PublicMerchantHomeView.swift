@@ -34,7 +34,8 @@ import SwiftUI
         .navigationTitle("merchant.publicHome.title")
         .navigationBarTitleDisplayMode(.inline)
         .task(id: key) { await load() }
-        .onDisappear { generation += 1; loadedKey = nil; home = nil; loading = false }
+        // Preserve the link backing a pushed reviews screen; key fencing still hides stale data.
+        .onDisappear { generation += 1; loading = false }
     }
     @ViewBuilder private func issue(_ failure: PublicMerchantHomeFailure) -> some View {
         Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier(failure.localizationKey)

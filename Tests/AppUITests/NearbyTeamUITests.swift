@@ -10,7 +10,7 @@ final class NearbyTeamUITests: XCTestCase {
         let app = launch()
         XCTAssertTrue(app.textFields["nearby.latitude"].waitForExistence(timeout: 5))
         let apply = app.buttons["nearby.apply.501"]
-        for _ in 0..<5 where !apply.isHittable { app.swipeUp() }
+        XCTAssertTrue(revealFixtureElement(apply, in: app), app.debugDescription)
         XCTAssertTrue(apply.isHittable); apply.tap()
         XCTAssertTrue(app.buttons["nearby.confirm"].waitForExistence(timeout: 3))
         app.buttons["nearby.cancel"].tap(); XCTAssertFalse(app.buttons["nearby.confirm"].exists)
@@ -19,7 +19,7 @@ final class NearbyTeamUITests: XCTestCase {
     func testSimulationUsesPendingStateAndNoLocationAlert() {
         let app = launch(); let apply = app.buttons["nearby.apply.501"]
         XCTAssertTrue(app.textFields["nearby.latitude"].waitForExistence(timeout: 5))
-        for _ in 0..<5 where !apply.isHittable { app.swipeUp() }; apply.tap()
+        XCTAssertTrue(revealFixtureElement(apply, in: app), app.debugDescription); apply.tap()
         app.buttons["nearby.confirm"].tap()
         XCTAssertTrue(app.buttons["nearby.withdraw.501"].waitForExistence(timeout: 3))
         XCTAssertEqual(app.alerts.count, 0)
@@ -28,7 +28,9 @@ final class NearbyTeamUITests: XCTestCase {
         let app = launch(language: "zh-Hans")
         XCTAssertTrue(app.segmentedControls["nearby.section"].waitForExistence(timeout: 5))
         app.segmentedControls["nearby.section"].buttons.element(boundBy: 1).tap()
-        XCTAssertTrue(app.buttons["nearby.withdraw.502"].waitForExistence(timeout: 3))
+        let withdraw = app.buttons["nearby.withdraw.502"]
+        XCTAssertTrue(revealFixtureElement(withdraw, in: app), app.debugDescription)
+        XCTAssertTrue(withdraw.waitForExistence(timeout: 3))
         XCTAssertFalse(app.staticTexts["nearby.mine.empty"].exists)
     }
 }

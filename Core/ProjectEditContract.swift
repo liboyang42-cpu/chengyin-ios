@@ -31,6 +31,7 @@ public enum ProjectEditContract {
         if draft.product == .freeExplore { payload["recruitDeadline"] = .string(ProjectEditValidation.dateTime(draft.recruitDeadline, endOfDay: true)!) }
         for key in topicCarryOver { if let value = draft.preserved[key] { payload[key] = value } }
         let storyFlow = ProjectEditStoryContract.usesV2(draft)
+        if storyFlow, let story = payload["journeyStory"] { payload["journeyStory"] = try ProjectEditRichStoryContract.journeyStoryWithoutStandaloneEndingList(story) }
         guard storyFlow || !draft.chapters.contains(where: { $0.blocks != nil && !ProjectEditStoryContract.isLegacyProjection($0) }) else { throw ProjectEditError.invalidDraft }
         payload["chapters"] = .array(try draft.chapters.map { .object(try chapterPayload($0, product: draft.product, storyFlow: storyFlow, editing: topicID != nil)) })
         payload["tickets"] = .array(try draft.tickets.map { ticket in
@@ -133,15 +134,20 @@ public enum ProjectEditContract {
                 c.blocks = try blocks.enumerated().map { bi, rawBlock in
                     guard let block = rawBlock.object, Set(block.keys).isSubset(of: ProjectEditStoryContract.blockFields), let kind = block["type"]?.text.flatMap(ProjectEditBlock.Kind.init(rawValue:)) else { throw ProjectEditError.invalidContract }
                     var b = ProjectEditBlock(kind: kind, content: s(block, "content"), url: s(block, "url")); b.id = block["key"]?.text ?? c.id + "-block-\(bi + 1)"
-                    if kind != .node, ["nodeIndex", "nodeId", "nodeKey"].contains(where: { block[$0] != nil }) { throw ProjectEditError.invalidContract }
-                    let metadata = block.filter { ["locationRequired", "who", "level", "when"].contains($0.key) }
+                    let narrative = kind == .text && !(block["beat"]?.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    if kind != .node && !narrative, ["nodeIndex", "nodeId", "nodeKey"].contains(where: { block[$0] != nil }) { throw ProjectEditError.invalidContract }
+                    let metadata = block.filter { ProjectEditStoryContract.metadataFields.contains($0.key) }
                     b.sourceFields = metadata.isEmpty ? nil : metadata
-                    if kind == .node {
+                    if kind == .node || narrative {
                         if let key = block["nodeKey"]?.text, c.nodes.contains(where: { $0.id == key }) { b.nodeID = key }
                         else if let serverID = block["nodeId"]?.integer, let key = byServerID[serverID] { b.nodeID = key }
                         else if let index = block["nodeIndex"]?.integer, c.nodes.indices.contains(index) { b.nodeID = c.nodes[index].id }
                         else { throw ProjectEditError.invalidContract }
                     }
+                    var shape = block
+                    shape.removeValue(forKey: "nodeId"); shape.removeValue(forKey: "nodeKey")
+                    if kind == .node || narrative, let nodeIndex = c.nodes.firstIndex(where: { $0.id == b.nodeID }) { shape["nodeIndex"] = .number(Decimal(nodeIndex)) }
+                    try ProjectEditRichStoryContract.validateShape(shape, kind: kind)
                     return b
                 }
             }

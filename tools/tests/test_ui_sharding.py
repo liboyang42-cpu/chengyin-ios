@@ -3,6 +3,7 @@ import pathlib
 import re
 import tempfile
 import unittest
+from unittest import mock
 
 spec=importlib.util.spec_from_file_location('ui_shard',pathlib.Path(__file__).resolve().parents[1]/'run_ui_shard.py')
 module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
@@ -41,3 +42,26 @@ class UIShardingTests(unittest.TestCase):
     def test_empty_inventory_is_failure(self):
         with tempfile.TemporaryDirectory() as directory:
             with self.assertRaises(ValueError):module.discover(directory)
+    def test_prebuilt_mode_keeps_all_selected_classes_without_rebuild(self):
+        with tempfile.TemporaryDirectory() as directory:
+            run=pathlib.Path(directory)/'fixture.xctestrun';run.touch()
+            args=['run_ui_shard.py','--shard','0','--count','6','--simulator','synthetic',
+                  '--result-bundle',str(pathlib.Path(directory)/'result'),'--xctestrun',str(run)]
+            process=mock.Mock();process.wait.return_value=0
+            with mock.patch('sys.argv',args),mock.patch.object(module.subprocess,'Popen',return_value=process) as start:
+                self.assertEqual(module.main(),0)
+            command=start.call_args.args[0]
+            self.assertIn('test-without-building',command);self.assertIn('-xctestrun',command)
+            self.assertNotIn('-project',command);self.assertNotIn('-derivedDataPath',command)
+            groups=module.partition(module.discover(module.ROOT/'Tests/AppUITests'),6)
+            self.assertEqual([v for v in command if v.startswith('-only-testing:')],
+                             [f'-only-testing:QuestifyUITests/{name}' for name in groups[0]])
+    def test_deadline_never_turns_partial_execution_into_success(self):
+        with tempfile.TemporaryDirectory() as directory:
+            run=pathlib.Path(directory)/'fixture.xctestrun';run.touch()
+            args=['run_ui_shard.py','--shard','0','--simulator','synthetic','--result-bundle','fixture',
+                  '--xctestrun',str(run),'--deadline-seconds','1']
+            process=mock.Mock();process.wait.side_effect=[module.subprocess.TimeoutExpired('xcodebuild',1),0]
+            with mock.patch('sys.argv',args),mock.patch.object(module.subprocess,'Popen',return_value=process):
+                self.assertEqual(module.main(),124)
+            process.send_signal.assert_called_once_with(module.signal.SIGINT)

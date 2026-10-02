@@ -302,6 +302,39 @@ final class MerchantContentContractTests: XCTestCase {
         let review = try XCTUnwrap(c.review); await c.confirm(review); await c.confirm(review)
         XCTAssertEqual(t.requests.filter { $0.url?.path.hasSuffix("npc/save") == true }.count, 1)
     }
+    func testCoordinatorSuspensionKeepsNavigationSnapshotAndCancelsReview() async throws {
+        let t = MerchantContentFixtureTransport(), box = SessionBox()
+        let s = try service(t, box: box, journal: MerchantContentMemoryPendingStorage(), enabled: true)
+        let c = MerchantContentCoordinator(service: s, query: .npc(nodeID: 62))
+        await c.load(); let snapshot = try XCTUnwrap(c.snapshot)
+        c.prepare(.saveNPC(nodeID: 62, name: "Frozen", avatar: "asset", greeting: ""))
+        let review = try XCTUnwrap(c.review)
+        c.suspend()
+        XCTAssertEqual(c.snapshot?.value, snapshot.value); XCTAssertTrue(c.isCurrent)
+        XCTAssertNil(c.review); XCTAssertFalse(c.busy)
+        await c.confirm(review)
+        XCTAssertFalse(t.requests.contains { $0.url?.path.hasSuffix("npc/save") == true })
+    }
+    func testCoordinatorSuspensionDoesNotReleaseUnknownWriteLock() async throws {
+        let t = MerchantContentFixtureTransport(), box = SessionBox()
+        let s = try service(t, box: box, journal: MerchantContentMemoryPendingStorage(), enabled: true)
+        let c = MerchantContentCoordinator(service: s, query: .npc(nodeID: 62))
+        await c.load(); c.prepare(.saveNPC(nodeID: 62, name: "Frozen", avatar: "asset", greeting: ""))
+        t.unknownWrite = true; await c.confirm(try XCTUnwrap(c.review))
+        XCTAssertTrue(c.locked); c.suspend(); XCTAssertTrue(c.locked)
+        XCTAssertEqual(c.issue, "merchant.content.unknown"); XCTAssertEqual(try s.pending().count, 1)
+        await c.load(); c.prepare(.saveNPC(nodeID: 62, name: "Again", avatar: "asset", greeting: ""))
+        XCTAssertTrue(c.locked); XCTAssertNil(c.review)
+        XCTAssertEqual(t.requests.filter { $0.url?.path.hasSuffix("npc/save") == true }.count, 1)
+    }
+    func testCoordinatorSuspendedSnapshotCannotOutliveAccountScope() async throws {
+        let t = MerchantContentFixtureTransport(), box = SessionBox()
+        let s = try service(t, box: box, journal: MerchantContentMemoryPendingStorage())
+        let c = MerchantContentCoordinator(service: s, query: .projects)
+        await c.load(); XCTAssertNotNil(c.snapshot); c.suspend()
+        box.value = nil; XCTAssertFalse(c.isCurrent)
+        c.invalidate(); XCTAssertNil(c.snapshot); XCTAssertNil(c.loadedScope)
+    }
     func testCoordinatorCancelledReviewCannotDispatch() async throws {
         let t = MerchantContentFixtureTransport(), box = SessionBox(), journal = MerchantContentMemoryPendingStorage()
         let s = try service(t, box: box, journal: journal, enabled: true), c = MerchantContentCoordinator(service: s, query: .npc(nodeID: 62))

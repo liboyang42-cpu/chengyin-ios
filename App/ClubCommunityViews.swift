@@ -34,9 +34,12 @@ final class ClubCommunityViewModel: ObservableObject {
         await prepare(draft.0, clubID: draft.1, post: draft.2)
     }
     init(context: ClubCommunityContext) { self.context = context }
-    func invalidate() {
-        generation &+= 1; pendingDraft = nil; snapshot = nil; review = nil; notice = nil; loading = false
+    func suspend() {
+        generation &+= 1; pendingDraft = nil; review = nil; loading = false
         context.coordinator?.cancel()
+    }
+    func invalidate() {
+        suspend(); snapshot = nil; notice = nil
     }
     func load(_ operation: ClubCommunityRead) async {
         generation &+= 1; let ticket = generation
@@ -128,7 +131,9 @@ struct ClubCommunityFeedView: View {
         .navigationTitle(Text("club.community.posts"))
         .task(id: identity) { model.invalidate(); page = 1; await model.load(operation) }
         .task(id: page) { await model.load(operation) }
-        .onDisappear { model.invalidate() }
+        // Pushing a row destination must not remove the NavigationLink that owns it.
+        // Identity changes still clear all private snapshots in the task above.
+        .onDisappear { model.suspend() }
         .sheet(isPresented: $composing, onDismiss: { Task { await model.reviewPendingDraft() } }) {
             if let clubID { ClubCommunityComposer(model: model, clubID: clubID, post: nil) }
         }
@@ -176,6 +181,7 @@ struct ClubCommunityPostTile: View {
                     Button { Task { await model.prepare(.toggleLike, clubID: clubID, post: post) } } label: { Label("club.community.like", systemImage: post.liked ? "heart.fill" : "heart") }
                         .disabled(!identity.isSignedIn || model.busy || model.context.coordinator?.permitsInjectedWrites != true)
                     NavigationLink { ClubCommunityCommentsView(context: model.context, identity: identity, clubID: clubID, post: post) } label: { Label("club.community.comments", systemImage: "bubble") }
+                        .accessibilityIdentifier("club.community.comments.\(post.id)")
                 }
                 Menu {
                     if allows(.update(content: post.content, images: post.images, requestID: "display")) { Button("club.community.edit") { editing = true } }
@@ -186,7 +192,10 @@ struct ClubCommunityPostTile: View {
                     .disabled(!identity.isSignedIn || model.busy || model.context.coordinator?.permitsInjectedWrites != true)
             }
             NavigationLink { ClubCommunityHistoryView(context: model.context, identity: identity, postID: post.id) } label: { Text("club.community.history") }
+                .accessibilityIdentifier("club.community.history.\(post.id)")
         }
+        .buttonStyle(.borderless)
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("club.community.post.\(post.id)")
         .task(id: identity) {
             evidence = nil
@@ -305,7 +314,8 @@ struct ClubCommunityCommentsView: View {
                             Task { await model.prepare(canDelete ? .deleteComment : .reportComment, clubID: clubID, post: post, comment: comment) }
                         }.disabled(model.busy || model.context.coordinator?.permitsInjectedWrites != true)
                     }
-                }.accessibilityIdentifier("club.community.comment.\(comment.id)")
+                }.accessibilityElement(children: .contain)
+                    .accessibilityIdentifier("club.community.comment.\(comment.id)")
             }
             HStack {
                 Button("club.community.previous") { page = max(1, page - 1) }.disabled(page == 1)

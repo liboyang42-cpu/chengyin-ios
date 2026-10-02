@@ -8,7 +8,9 @@ final class OrderLifecycleUITests: XCTestCase {
         return app
     }
     private func reveal(_ element: XCUIElement, app: XCUIApplication) {
-        for _ in 0..<8 { if element.isHittable { return }; app.swipeUp() }
+        for _ in 0..<8 { if element.exists && element.isHittable { break }; app.swipeUp() }
+        XCTAssertTrue(element.exists, app.debugDescription)
+        XCTAssertTrue(element.isHittable, app.debugDescription)
     }
     func testOrderReviewDoesNotDispatchAndCanDismiss() {
         let app = launch()
@@ -22,7 +24,8 @@ final class OrderLifecycleUITests: XCTestCase {
     func testUnknownOutcomeCannotBeResubmitted() {
         let app = launch("unknown")
         let review = app.buttons["orderLifecycle.review.cancel"]
-        XCTAssertTrue(review.waitForExistence(timeout: 5)); reveal(review, app: app); review.tap()
+        XCTAssertTrue(app.staticTexts["orderLifecycle.state"].waitForExistence(timeout: 5))
+        reveal(review, app: app); review.tap()
         app.buttons["orderLifecycle.review.confirmFixture"].tap()
         XCTAssertTrue(app.staticTexts["orderLifecycle.attempt.unknown"].waitForExistence(timeout: 3))
         XCTAssertFalse(app.buttons["orderLifecycle.review.cancel"].isEnabled)
@@ -32,7 +35,8 @@ final class OrderLifecycleUITests: XCTestCase {
     func testPassPreviewContainsNoCodeIssuance() {
         let app = launch("paid")
         let pass = app.buttons["orderLifecycle.pass.open"]
-        XCTAssertTrue(pass.waitForExistence(timeout: 5)); reveal(pass, app: app); pass.tap()
+        XCTAssertTrue(app.staticTexts["orderLifecycle.state"].waitForExistence(timeout: 5))
+        reveal(pass, app: app); pass.tap()
         XCTAssertTrue(app.staticTexts["Redemption code unavailable"].waitForExistence(timeout: 3))
         XCTAssertFalse(app.buttons["scanner.open"].exists)
     }

@@ -1,0 +1,78 @@
+{
+  "playkitSpatial.open": {
+    "en": "Open spatial view",
+    "zh-Hans": "打开空间视图"
+  },
+  "playkitSpatial.loading": {
+    "en": "Preparing approved AR images",
+    "zh-Hans": "正在准备已批准的 AR 图片"
+  },
+  "playkitSpatial.purpose": {
+    "en": "Use the camera for spatial placement?",
+    "zh-Hans": "使用相机进行空间放置？"
+  },
+  "playkitSpatial.purposeDetail": {
+    "en": "Recognize a real surface or the configured image, then anchor the returned artwork in the camera view. No camera frames are saved or uploaded, and recognition does not prove arrival or award a result.",
+    "zh-Hans": "识别真实平面或配置的图像，将返回的图片固定在相机空间中。不会保存或上传相机画面，识别也不作为到店凭证或奖励判定。"
+  },
+  "playkitSpatial.findMarker": {
+    "en": "Point the camera at the configured reference image",
+    "zh-Hans": "将相机对准配置的识别图"
+  },
+  "playkitSpatial.findPlane": {
+    "en": "Move slowly to find a horizontal surface",
+    "zh-Hans": "缓慢移动手机，寻找水平面"
+  },
+  "playkitSpatial.tapPlane": {
+    "en": "Tap a detected surface to place the card",
+    "zh-Hans": "点击已识别的平面放置卡片"
+  },
+  "playkitSpatial.noEvidence": {
+    "en": "Spatial display is visual only; task acceptance remains on the server",
+    "zh-Hans": "空间展示仅用于观看，任务是否通过仍由服务端决定"
+  },
+  "playkitSpatial.title": {
+    "en": "Spatial reveal",
+    "zh-Hans": "空间显形"
+  },
+  "playkitSpatial.fallback": {
+    "en": "View regular image",
+    "zh-Hans": "查看普通图片"
+  },
+  "playkitSpatial.error.disabled": {
+    "en": "Spatial rendering has not been enabled for this session",
+    "zh-Hans": "当前会话尚未启用空间渲染"
+  },
+  "playkitSpatial.error.unvalidatedScan": {
+    "en": "The scan must be validated by the server first",
+    "zh-Hans": "请先由服务端验证扫码结果"
+  },
+  "playkitSpatial.error.unsupportedMode": {
+    "en": "This spatial mode is not supported",
+    "zh-Hans": "暂不支持这种空间模式"
+  },
+  "playkitSpatial.error.unsupportedModel": {
+    "en": "No approved decoder is configured for this 3D model. Use the returned image instead.",
+    "zh-Hans": "尚未为这个三维模型配置已批准的解码器，请改看返回的图片。"
+  },
+  "playkitSpatial.error.assetUnavailable": {
+    "en": "An approved image could not be loaded. The static fallback remains available.",
+    "zh-Hans": "已批准的图片未能加载，仍可使用静态图片回落。"
+  },
+  "playkitSpatial.error.markerCalibrationRequired": {
+    "en": "The reference image needs an accepted physical-width calibration before native tracking can start",
+    "zh-Hans": "原生图像追踪开始前，需要提供并验收识别图的实际宽度"
+  },
+  "playkitSpatial.error.permissionDenied": {
+    "en": "Camera permission was not granted; use the image fallback",
+    "zh-Hans": "相机权限未获准，请使用图片回落"
+  },
+  "playkitSpatial.error.deviceUnavailable": {
+    "en": "AR could not start or track reliably on this device. Use the image fallback.",
+    "zh-Hans": "此设备未能启动或稳定追踪 AR，请使用图片回落。"
+  },
+  "playkitSpatial.error.interrupted": {
+    "en": "Spatial viewing was interrupted. No task result was submitted.",
+    "zh-Hans": "空间观看已中断，没有提交任务结果。"
+  }
+}

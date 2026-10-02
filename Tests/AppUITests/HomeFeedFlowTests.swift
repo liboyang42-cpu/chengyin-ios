@@ -10,8 +10,18 @@ final class HomeFeedFlowTests: XCTestCase {
         app.launch()
     }
     private func reveal(_ element: XCUIElement) {
-        for _ in 0..<12 { if element.exists && element.isHittable { return }; app.swipeUp() }
-        XCTAssertTrue(element.exists, app.debugDescription); XCTAssertTrue(element.isHittable)
+        // A tall card can be reported hittable when only its top edge is visible.
+        // Bring its activation point clear of the navigation bar and bottom safe area.
+        for _ in 0..<12 {
+            if element.exists && element.isHittable {
+                let top = app.navigationBars.firstMatch.frame.maxY
+                if element.frame.midY > top + 12 && element.frame.midY < app.frame.maxY - 80 { return }
+                if element.frame.midY <= top + 12 { app.swipeDown(); continue }
+            }
+            app.swipeUp()
+        }
+        XCTAssertTrue(element.exists, app.debugDescription); XCTAssertTrue(element.isHittable, app.debugDescription)
+        XCTAssertLessThan(element.frame.midY, app.frame.maxY - 80, app.debugDescription)
     }
     func testTypedDestinationsAndPriceCurrencyDisclosure() {
         launch()
@@ -22,7 +32,8 @@ final class HomeFeedFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["homeFeed.destination.topic"].waitForExistence(timeout: 15))
         app.navigationBars.buttons.firstMatch.tap()
         let activity = app.buttons["homeFeed.nearby.activity.7"]; reveal(activity); activity.tap()
-        XCTAssertTrue(app.staticTexts["homeFeed.destination.activity"].waitForExistence(timeout: 15))
+        XCTAssertTrue(app.staticTexts["homeFeed.destination.activity"].waitForExistence(timeout: 15), app.debugDescription)
+        XCTAssertEqual(app.staticTexts["homeFeed.destination.activity"].label, "Synthetic activity destination 7")
         app.navigationBars.buttons.firstMatch.tap()
         XCTAssertTrue(app.staticTexts["Currency not provided"].firstMatch.waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["Buy"].exists); XCTAssertFalse(app.buttons["Start playing"].exists)

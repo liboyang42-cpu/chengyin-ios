@@ -1,0 +1,26 @@
+{
+  "native_python_contracts": {
+    "refund": 12,
+    "enrollment": 8,
+    "governance": 12
+  },
+  "structural_mirror": "PASS: both additive fragments merged, project regenerated, scaffold checked in separate /tmp mirror",
+  "swift_test": "NOT_RUN: swift executable absent",
+  "xcodebuild": "NOT_RUN: xcodebuild executable absent",
+  "swift_parser": "NOT_RUN: required tree-sitter dependencies absent",
+  "ui_runtime": "NOT_RUN: no Xcode/simulator",
+  "authored_refund_domain_tests": 32,
+  "authored_refund_ui_tests": 4,
+  "shipping_financial_dispatch": "HARD_OFF: read-only access has no token/transport, send throws disabled",
+  "backend_calls": "NONE",
+  "provider_calls": "NONE",
+  "publication": "NONE",
+  "patch_apply_check": "PASS against frozen enrollment packet",
+  "review_corrections": [
+    "All post-dispatch non-success/malformed replies retain locks; no lock-release operation exists",
+    "Exact nonblank source parent order is hashed and locked alongside preserved registration key",
+    "Both locks checked/acquired before dispatch; partial acquisition retained; sibling unknown/acknowledged replay tests authored",
+    "OWNER requires active matching club plus CLUB_OWNER; source eligibility PENDING/CONTACTED plus current owner",
+    "After both exclusive lock acquisitions, recheck account/namespace/generation and exact pending review before entering send; injectable acquisition cancellation test proves zero sends with both locks retained"
+  ]
+}

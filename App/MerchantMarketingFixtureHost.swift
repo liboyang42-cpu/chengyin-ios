@@ -3,12 +3,18 @@ import SwiftUI
 
 @MainActor private final class MerchantMarketingFixtureStore: ObservableObject {
     var session: MerchantMarketingScope? = try! MerchantMarketingScope(namespace: "synthetic-cn", accountID: 700, epoch: 1, token: "synthetic-token")
+    @Published private(set) var settlementCount = 0
     let transport: MerchantMarketingFixtureTransport
     let locks = MerchantPredictionMemoryLocks()
     lazy var service = MerchantMarketingService(configuration: try! APIConfiguration(baseURL: URL(string: "https://merchant-marketing.example")!), transport: transport,
         gates: .init(reads: true, insight: true, settlement: true), locks: locks, currentSession: { [weak self] in self?.session })
     lazy var model = MerchantMarketingCoordinator(service: service)
-    init(scenario: String) { transport = MerchantMarketingFixtureTransport(scenario: scenario) }
+    init(scenario: String) {
+        transport = MerchantMarketingFixtureTransport(scenario: scenario)
+        transport.beforeReply = { [weak self] request in
+            if request.url?.path == "/api/merchant/predict/settle" { self?.settlementCount += 1 }
+        }
+    }
     func signOut() { session = nil; model.sessionChanged() }
 }
 @MainActor struct MerchantMarketingFixtureHost: View {
@@ -21,7 +27,10 @@ import SwiftUI
         NavigationStack {
             MerchantMarketingView(model: store.model, initialSurface: initialSurface)
                 .safeAreaInset(edge: .top) { Text("merchantMarketing.synthetic").font(.caption).accessibilityIdentifier("merchantMarketing.synthetic") }
-                .toolbar { ToolbarItem(placement: .bottomBar) { Button("merchantMarketing.fixtureSignOut") { store.signOut() }.accessibilityIdentifier("merchantMarketing.fixtureSignOut") } }
+                .toolbar { ToolbarItemGroup(placement: .bottomBar) {
+                    Button("merchantMarketing.fixtureSignOut") { store.signOut() }.accessibilityIdentifier("merchantMarketing.fixtureSignOut")
+                    Text(verbatim: String(store.settlementCount)).accessibilityIdentifier("merchantMarketing.fixtureSettlementCount")
+                } }
         }
     }
 }

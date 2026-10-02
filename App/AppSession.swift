@@ -179,8 +179,8 @@ final class AppSession: ObservableObject {
     }
     // Shop NPC remains node-addressed and dormant. No grant derives from a role/name/image.
     private let shopNPCSessionOwner = ShopNPCSessionOwner()
-    private let shopNPCGrants = ShopNPCGrants()
-    private let shopNPCProductionWritesEnabled = false
+    private var shopNPCGrants: ShopNPCGrants { runtimeDependencyFactory?.accepted != nil ? runtimeDependencies.shopNPCGrants : ShopNPCGrants() }
+    private var shopNPCProductionWritesEnabled: Bool { runtimeDependencyFactory?.accepted?.shopNPCWrites == true }
     func invalidateShopNPCConversations() { shopNPCSessionOwner.invalidate() }
     private func currentShopNPCSession(scope: PlaySessionScope, nodeID: Int,
                                        runtime: PlayExperienceCoordinator, npc: PlayNPCBrief) -> ShopNPCHostSession? {
@@ -207,7 +207,7 @@ final class AppSession: ObservableObject {
                 guard let self, let runtime else { return nil }
                 return self.currentShopNPCSession(scope: scope, nodeID: nodeID, runtime: runtime, npc: npc)
             }
-            let adapter = ShopNPCAuthenticatedHTTPTransport(configuration: configuration, transport: URLSessionTransport(),
+            let adapter = ShopNPCAuthenticatedHTTPTransport(configuration: configuration, transport: self?.runtimeDependencyFactory?.transport ?? RuntimeDependencyTransport(configuration: nil, captured: nil, transport: URLSessionTransport(), current: { nil }),
                 productionWritesEnabled: self?.shopNPCProductionWritesEnabled ?? false, currentSession: current,
                 currentGrants: { [weak self] in self?.shopNPCGrants ?? .init() },
                 onUnauthorized: { [weak self] old in
@@ -234,10 +234,10 @@ final class AppSession: ObservableObject {
         self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
     }) // Dedicated history read grant remains off until independently accepted.
     private let playService: PlayService?
-    private struct PlayReaderKey: Hashable { let accountID:Int?;let scope:PlaySessionScope }
+    private struct PlayReaderKey: Hashable { let accountID:Int?;let epoch:UInt64;let role:String?;let scope:PlaySessionScope }
     private var playReaders:[PlayReaderKey:PlaySessionReader]=[:]
     func playReader(for scope:PlaySessionScope) -> PlaySessionReader {
-        let key=PlayReaderKey(accountID:account?.id,scope:scope)
+        let key=PlayReaderKey(accountID:account?.id,epoch:gate.currentStamp,role:account?.effectiveRole,scope:scope)
         if let reader=playReaders[key] { return reader }
         let reader=PlaySessionReader(scope:scope,service:playService,answersEnabled:false,currentSession:{ [weak self] in
             guard let self,let account=self.account,let token=self.token else { return nil }
@@ -254,10 +254,10 @@ final class AppSession: ObservableObject {
     private let playExperienceRecovery = PlayMemoryCompletionRecovery()
     private let playExperiencePausedStorage = PlayMemoryPausedStorage()
     func playExperience(for scope: PlaySessionScope) -> PlayExperienceCoordinator? {
-        guard scope.isValid, let configuration = regionalConfiguration?.apiConfiguration, storageScope != nil else { return nil }
-        let key = PlayReaderKey(accountID: account?.id, scope: scope)
+        guard scope.isValid, regionalConfiguration?.apiConfiguration != nil, storageScope != nil else { return nil }
+        let key = PlayReaderKey(accountID: account?.id, epoch: gate.currentStamp, role: account?.effectiveRole, scope: scope)
         if let retained = playExperienceCoordinators[key] { return retained }
-        let api = PlayExperienceService(configuration: configuration, transport: URLSessionTransport())
+        guard let api = runtimeDependencyFactory?.playService() else { return nil }
         let coordinator = PlayExperienceCoordinator(scope: scope, service: api,
             recovery: playExperienceRecovery, pausedStorage: playExperiencePausedStorage,
             currentSession: { [weak self] in
@@ -286,8 +286,8 @@ final class AppSession: ObservableObject {
             try self.templateAuthoringSecureStorage.write(data, key: key)
         })
     private func dormantJourneyService() -> JourneyContentService? {
-        guard let configuration = regionalConfiguration?.apiConfiguration, storageScope != nil else { return nil }
-        return JourneyContentService(configuration: configuration, transport: URLSessionTransport())
+        guard regionalConfiguration?.apiConfiguration != nil, storageScope != nil else { return nil }
+        return runtimeDependencyFactory?.journeyService()
     }
     func journeyCheck(scope: PlaySessionScope, topicID: Int?, nodeID: Int) -> JourneyCheckCoordinator? {
         guard scope.isValid, let topicID, topicID > 0, nodeID > 0, let service = dormantJourneyService() else { return nil }
@@ -316,16 +316,30 @@ final class AppSession: ObservableObject {
     private var retainedPlayDirectors: [String: PlayDirectorCoordinator] = [:]
     private var retainedPlayPrefabs: [String: PlayPrefabRuntimeCoordinator] = [:]
     private lazy var prefabRuntimeStore = PlayPrefabRuntimeStore(storage: templateAuthoringSecureStorage)
+    private let runtimeDependencies: NativeRuntimeDependencies
+    private lazy var runtimeHTTPTransport: any HTTPTransport = runtimeDependencies.transport ?? URLSessionTransport()
+    private var currentRuntimeDependencyContext: RuntimeDependencyContext? {
+        guard let regionalConfiguration, let api = regionalConfiguration.apiConfiguration,
+              let session = currentPlayRuntimeSession, let account else { return nil }
+        return RuntimeDependencyContext(market: regionalConfiguration.market, baseURL: api.baseURL,
+            role: account.effectiveRole, session: session)
+    }
+    private var runtimeDependencyFactory: RuntimeDependencyFactory? {
+        guard let api = regionalConfiguration?.apiConfiguration, storageScope != nil else { return nil }
+        return RuntimeDependencyFactory(api: api, configuration: runtimeDependencies.configuration,
+            transport: runtimeHTTPTransport,
+            current: { [weak self] in self?.currentRuntimeDependencyContext })
+    }
     private var currentPlayRuntimeSession: PlayExperienceSession? {
         guard let account, let token, let namespace = storageScope?.service else { return nil }
         return try? PlayExperienceSession(accountID: account.id, epoch: gate.currentStamp, namespace: namespace, token: token)
     }
     private func dormantPlayRuntimeService() -> PlayExperienceService? {
-        guard let configuration = regionalConfiguration?.apiConfiguration, storageScope != nil else { return nil }
-        return PlayExperienceService(configuration: configuration, transport: URLSessionTransport())
+        guard regionalConfiguration?.apiConfiguration != nil, storageScope != nil else { return nil }
+        return runtimeDependencyFactory?.playService()
     }
     private func playRuntimeKey(_ scope: PlaySessionScope, suffix: String) -> String {
-        "\(storageScope?.service ?? "none"):\(gate.currentStamp):\(account?.id ?? 0):\(scope.fields.keys.sorted().joined()):\(scope.id):\(suffix)"
+        "\(storageScope?.service ?? "none"):\(gate.currentStamp):\(account?.id ?? 0):\(account?.effectiveRole ?? "none"):\(scope.fields.keys.sorted().joined()):\(scope.id):\(suffix)"
     }
     func playAdvanced(scope: PlaySessionScope, nodeID: Int, topicID: Int?) -> PlayAdvancedCoordinator? {
         guard scope.isValid, nodeID > 0, let topicID, topicID > 0, let api = dormantPlayRuntimeService() else { return nil }
@@ -365,7 +379,7 @@ final class AppSession: ObservableObject {
         guard scope.isValid, let api = dormantPlayRuntimeService() else { return nil }
         let key = playRuntimeKey(scope, suffix: "prefab")
         if let retained = retainedPlayPrefabs[key] { return retained }
-        let model = PlayPrefabRuntimeCoordinator(scope: scope, service: api, provider: PlayDormantDeviceProvider(),
+        let model = PlayPrefabRuntimeCoordinator(scope: scope, service: api, provider: scopedPlayDeviceProvider(),
             store: prefabRuntimeStore, currentSession: { [weak self] in self?.currentPlayRuntimeSession })
         retainedPlayPrefabs[key] = model; return model
     }
@@ -374,7 +388,7 @@ final class AppSession: ObservableObject {
         guard scope.isValid, nodeID > 0 else { return nil }
         let key = playRuntimeKey(scope, suffix: "stillness:\(nodeID):\(configuration.durationSeconds):\(configuration.tolerance)")
         if let retained = retainedPlayStillness[key] { return retained }
-        let model = PlayStillnessCoordinator(configuration: configuration, provider: PlayDormantMotionProvider(), currentContext: { [weak self] in
+        let model = PlayStillnessCoordinator(configuration: configuration, provider: makeRuntimeMotionProvider(), currentContext: { [weak self] in
             guard let session = self?.currentPlayRuntimeSession else { return nil }
             return try? PlayDeviceContext(session: session, scope: scope, nodeID: nodeID)
         })
@@ -384,7 +398,43 @@ final class AppSession: ObservableObject {
     private var retainedPlayPlayers: [String: PlayPlayerGameCoordinator] = [:]
     private var retainedPlayCircles: [String: PlayCircleCoordinator] = [:]
     private var retainedPlayDevices: [String: PlayDeviceCaptureCoordinator] = [:]
-    let playNativeDeviceProvider = PlayNativeDeviceProvider(grants: [])
+    private let unconfiguredPlayNativeDeviceProvider = PlayNativeDeviceProvider(grants: [])
+    private var retainedNativePlayDevice: (context: RuntimeDependencyContext, provider: PlayNativeDeviceProvider)?
+    var playNativeDeviceProvider: PlayNativeDeviceProvider {
+        guard let context = currentRuntimeDependencyContext, let accepted = runtimeDependencyFactory?.accepted else { return unconfiguredPlayNativeDeviceProvider }
+        if let retainedNativePlayDevice, retainedNativePlayDevice.context == context { return retainedNativePlayDevice.provider }
+        retainedNativePlayDevice?.provider.cancel()
+        let provider = PlayNativeDeviceProvider(grants: accepted.devices.intersection([.photo, .scan, .motion]))
+        retainedNativePlayDevice = (context, provider); return provider
+    }
+    private func scopedPlayDeviceProvider() -> any PlayDeviceProviding {
+        guard let captured = currentRuntimeDependencyContext, let accepted = runtimeDependencyFactory?.accepted else { return PlayDormantDeviceProvider() }
+        return RuntimePlayDeviceProvider(native: playNativeDeviceProvider,
+            location: runtimeDependencies.location ?? RuntimeNativeLocationProvider(enabled: accepted.devices.contains(.location)),
+            grants: accepted.devices, isCurrent: { [weak self] in self?.currentRuntimeDependencyContext == captured })
+    }
+    var playKitArtworkHosts: Set<String> { runtimeDependencyFactory?.accepted?.artworkHosts ?? [] }
+    var playKitSpatialApproval: PlayKitSpatialApproval { runtimeDependencyFactory?.accepted?.spatial ?? .init() }
+    private var runtimeSensorProviders: [RuntimeSensorReference] = []
+    var playKitSensorFactory: (@MainActor () -> any PlayKitSensorProviding)? {
+        guard let captured = currentRuntimeDependencyContext, let accepted = runtimeDependencyFactory?.accepted,
+              !accepted.sensors.isEmpty else { return nil }
+        return { [weak self] in
+            guard self?.currentRuntimeDependencyContext == captured else { return PlayKitDormantSensorProvider() }
+            let provider = RuntimePlayKitSensorProvider(provider: PlayKitNativeSensorProvider(grants: accepted.sensors),
+                isCurrent: { [weak self] in self?.currentRuntimeDependencyContext == captured })
+            self?.runtimeSensorProviders.removeAll { $0.value == nil }
+            self?.runtimeSensorProviders.append(RuntimeSensorReference(provider))
+            return provider
+        }
+    }
+    private func makeRuntimeMotionProvider() -> any PlayMotionSampleProviding {
+        guard let captured = currentRuntimeDependencyContext, let accepted = runtimeDependencyFactory?.accepted,
+              accepted.sensors.contains(.acceleration) else { return PlayDormantMotionProvider() }
+        if let injected = runtimeDependencies.motion { return injected }
+        return RuntimeMotionSampleProvider(provider: PlayKitNativeSensorProvider(grants: [.acceleration]),
+            isCurrent: { [weak self] in self?.currentRuntimeDependencyContext == captured })
+    }
     func playPlayer(scope: PlaySessionScope) -> PlayPlayerGameCoordinator? {
         guard case .activity(let id) = scope, id > 0, let api = dormantPlayRuntimeService() else { return nil }
         let key = playRuntimeKey(scope, suffix: "player")
@@ -403,7 +453,7 @@ final class AppSession: ObservableObject {
         let key = playRuntimeKey(scope, suffix: "device:\(nodeID)")
         if let retained = retainedPlayDevices[key] { return retained }
         let api = dormantPlayRuntimeService()
-        let model = PlayDeviceCaptureCoordinator(provider: playNativeDeviceProvider, filter: PlayNativePhotoFilter.render,
+        let model = PlayDeviceCaptureCoordinator(provider: scopedPlayDeviceProvider(), filter: PlayNativePhotoFilter.render,
             upload: api?.enabled.contains(.mediaUpload) == true ? { [weak self] bytes, mime, context in
                 guard let self, let session = self.currentPlayRuntimeSession,
                       (try? PlayDeviceContext(session: session, scope: scope, nodeID: nodeID)) == context,
@@ -416,13 +466,22 @@ final class AppSession: ObservableObject {
             })
         retainedPlayDevices[key] = model; return model
     }
-    // Native App WeChat host: no SDK, transport, or live/legal grants by default.
+    // Native App WeChat host: the adapter is mounted but all provider configuration,
+    // SDK opt-in, service transport and live/legal grants remain unconfigured.
+    private let weChatSDKDriver = WeChatNativeSDKDriver()
+    private let weChatSDKConfiguration: WeChatSDKConfiguration? = nil
+    private let weChatSDKGate = WeChatAppAuthGate()
+    private lazy var weChatSDKAdapter = WeChatSDKAuthAdapter(driver: weChatSDKDriver,
+        configuration: weChatSDKConfiguration, gate: { [weak self] in self?.weChatSDKGate ?? .init() },
+        context: { [weak self] in
+            self?.weChatContext ?? WeChatAppAuthContext(session: .init(epoch: 0, accountID: nil, isBusy: true), market: nil, namespace: nil)
+        })
     private var weChatContext: WeChatAppAuthContext {
         WeChatAppAuthContext(session: AuthChannelSessionSnapshot(epoch: gate.currentStamp,
             accountID: account?.id, isBusy: isWorking || authChannels.state.isWorking),
             market: operationalMarket, namespace: storageScope?.service)
     }
-    lazy var weChatAuth = WeChatAppAuthCoordinator(context: { [weak self] in
+    lazy var weChatAuth = WeChatAppAuthCoordinator(adapter: weChatSDKAdapter, gate: { [weak self] in self?.weChatSDKGate ?? .init() }, context: { [weak self] in
         self?.weChatContext ?? WeChatAppAuthContext(session: .init(epoch: 0, accountID: nil, isBusy: true), market: nil, namespace: nil)
     }, commit: { [weak self] result, expected in
         guard let self, self.weChatContext == expected, expected.permitsLogin else { return false }
@@ -542,7 +601,9 @@ final class AppSession: ObservableObject {
         }
         if let retainedPublisherLifecycle, retainedPublisherLifecycle.session == publishingSession { return retainedPublisherLifecycle.context }
         retainedPublisherLifecycle?.context.invalidate()
-        let context = PublisherLifecycleHostContext(configuration: configuration, transport: URLSessionTransport(), creatorReader: creatorContentReader,
+        guard let factory = runtimeDependencyFactory else { return nil }
+        let context = PublisherLifecycleHostContext(configuration: configuration, transport: factory.transport, creatorReader: creatorContentReader,
+            grants: factory.publisherGrants,
             credentials: { [weak self] in
                 guard let self, let session = self.publishingSession, let token = self.token else { return nil }
                 return try? PublishingCredentials(session: session, token: token)
@@ -717,6 +778,16 @@ final class AppSession: ObservableObject {
             guard let self, self.currentObjectCardSession == captured else { return }
             self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
         })
+    private var currentCouponCodeSession: CouponCodeSession? {
+        guard let account, let token, let namespace = storageScope?.service else { return nil }
+        return try? CouponCodeSession(accountID: account.id, epoch: gate.currentStamp, namespace: namespace, role: account.effectiveRole, token: token)
+    }
+    func makeCouponCodeCoordinator(historyID: Int) -> CouponCodeCoordinator {
+        CouponCodeCoordinator(historyID: historyID,
+            service: CouponCodeHTTPService(configuration: regionalConfiguration?.apiConfiguration,
+                transport: URLSessionTransport(), enabled: false, approvedImageHosts: []),
+            currentSession: { [weak self] in self?.currentCouponCodeSession })
+    }
     private let accountCollectionService:AccountCollectionService?
     private var currentAccountCollectionSession:AccountCollectionReadSession? {
         guard let account,let token else { return nil }
@@ -958,6 +1029,11 @@ final class AppSession: ObservableObject {
     lazy var merchantBusinessJournal = MerchantBusinessFileIntentStore(
         url: FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent((storageScope?.service ?? "unconfigured") + "/MerchantBusiness/intents-v1.json"))
+    lazy var nativeVerificationFlow = NativeVerificationWorkflow(reader: merchantBusinessReader, journal: merchantBusinessJournal,
+        redemption: merchantBusinessService.map { service in
+            MerchantRedemptionCoordinator(service: service, journal: merchantBusinessJournal,
+                currentSession: { [weak self] in self?.currentMerchantBusinessSession })
+        }) // Production service has no mutation transport; camera is separately disabled.
     private var currentMerchantContentSession: MerchantContentSession? {
         guard let account, let token, let storageScope else { return nil }
         return try? MerchantContentSession(accountID: account.id, epoch: gate.currentStamp,
@@ -969,6 +1045,22 @@ final class AppSession: ObservableObject {
             guard let self, self.currentMerchantContentSession == captured else { return }
             self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
         })
+    private var retainedNearbyMerchants: (context: RuntimeDependencyContext, coordinator: NearbyMerchantCoordinator)?
+    var nearbyMerchantCoordinator: NearbyMerchantCoordinator? {
+        guard let captured = currentRuntimeDependencyContext, let api = regionalConfiguration?.apiConfiguration,
+              let factory = runtimeDependencyFactory else { return nil }
+        if let retainedNearbyMerchants, retainedNearbyMerchants.context == captured { return retainedNearbyMerchants.coordinator }
+        retainedNearbyMerchants?.coordinator.cancel()
+        let reader = CoopFlowSessionReader(service: CoopFlowService(configuration: api, transport: factory.transport),
+            current: { [weak self] in self?.currentCooperationFlowSession }, unauthorized: { [weak self] old in
+                guard let self, self.currentCooperationFlowSession == old else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: old.epoch, credential: self.token)
+            })
+        let model = NearbyMerchantCoordinator(reader: reader,
+            location: runtimeDependencies.location ?? RuntimeNativeLocationProvider(enabled: factory.allowsNearbyLocation),
+            approved: { [weak self] in factory.allowsNearbyLocation && self?.currentRuntimeDependencyContext == captured })
+        retainedNearbyMerchants = (captured, model); return model
+    }
     private let cooperationFlowService: CoopFlowService?
     private var currentCooperationFlowSession: CoopFlowSession? {
         guard let account, let token else { return nil }
@@ -1019,7 +1111,10 @@ final class AppSession: ObservableObject {
     })
     // Session-lived: unresolved operations cannot be replayed by reopening a sheet.
     lazy var clubGovernanceCoordinator = ClubGovernanceCoordinator(access: clubGovernanceAccess)
-    var clubGovernanceContext: ClubGovernanceContext { .init(access: clubGovernanceAccess, coordinator: clubGovernanceCoordinator, enrollmentProfile: .init(reader: socialAccountReader, squareReader: squareReader, actions: socialActionCoordinator)) }
+    lazy var clubOwnerRefundCoordinator = ClubOwnerRefundCoordinator(
+        access: ClubOwnerRefundReadOnlyAccess(governance: clubGovernanceAccess),
+        locks: ClubOwnerRefundFileLocks(directory: FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first?.appendingPathComponent("ClubOwnerRefundLocks", isDirectory: true)))
+    var clubGovernanceContext: ClubGovernanceContext { .init(access: clubGovernanceAccess, coordinator: clubGovernanceCoordinator, enrollmentProfile: .init(reader: socialAccountReader, squareReader: squareReader, actions: socialActionCoordinator), ownerRefund: clubOwnerRefundCoordinator) }
     private var currentClubOperationsSession: ClubOperationsSession? {
         guard let account, let token else { return nil }
         return try? ClubOperationsSession(accountID: account.id, epoch: gate.currentStamp, token: token, storageNamespace: storageScope?.service ?? "")
@@ -1254,8 +1349,14 @@ final class AppSession: ObservableObject {
     var doorReferralQueue: DoorReferralQueue? { prepareDoorRuntime(); return retainedDoorQueue }
     var doorEntryCoordinator: DoorEntryCoordinator? { prepareDoorRuntime(); return retainedDoorCoordinator }
     func receiveNativeURL(_ url: URL) {
-        guard let intent = nativeEntryLinkPolicy.parse(url) else { return }
+        if weChatSDKDriver.handle(url, adapter: weChatSDKAdapter) { return }
+        guard let intent = nativeEntryLinkPolicy.parse(url) else {
+            receiveNativeIntent(.routeError(.unsupported)); return
+        }
         receiveNativeIntent(intent)
+    }
+    func receiveWeChatUserActivity(_ activity: NSUserActivity) {
+        _ = weChatSDKDriver.handle(activity, adapter: weChatSDKAdapter)
     }
     func receiveNativeIntent(_ intent: NativeEntryIntent) {
         if case .door(let door) = intent {
@@ -1270,6 +1371,13 @@ final class AppSession: ObservableObject {
     private func synchronizeAccountMarketingEntry() {
         let identityChanged = entryObservedStamp != gate.currentStamp || entryObservedAccountID != account?.id || entryObservedToken != token || entryObservedRole != account?.effectiveRole
         if identityChanged {
+            runtimeSensorProviders.forEach { $0.value?.cancel() }; runtimeSensorProviders.removeAll()
+            retainedNativePlayDevice?.provider.cancel(); retainedNativePlayDevice = nil
+            retainedPlayDevices.values.forEach { $0.cancel() }; retainedPlayDevices.removeAll()
+            retainedPlayStillness.values.forEach { $0.pause() }; retainedPlayStillness.removeAll()
+            retainedPlayPrefabs.values.forEach { $0.cancelDeviceWork() }; retainedPlayPrefabs.removeAll()
+            playExperienceCoordinators.values.forEach { $0.invalidate() }; playExperienceCoordinators.removeAll()
+            retainedNearbyMerchants?.coordinator.cancel(); retainedNearbyMerchants = nil
             publicMerchantReviewEpoch = UUID(); retainedPublicMerchantReviews?.invalidate(); retainedImageContextCache?.invalidate()
             retainedPublisherLifecycle?.context.invalidate(); retainedPublisherLifecycle = nil
             merchantNPCSessionOwner.invalidate(); merchantNPCAccess = nil
@@ -1292,7 +1400,8 @@ final class AppSession: ObservableObject {
     private let restoreBlockedKey:String
     var isConfigured: Bool { storageScope != nil }
 
-    init() {
+    init(runtimeDependencies: NativeRuntimeDependencies? = nil) {
+        self.runtimeDependencies = runtimeDependencies ?? .dormant
         let regional=RegionalLaunchConfiguration.configuration
         regionalConfiguration=regional
         let scope=regional.flatMap { try? RegionalSessionStorageScope(configuration:$0,

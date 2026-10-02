@@ -1,6 +1,7 @@
 import XCTest
 
 final class RoamExperienceFlowTests: XCTestCase {
+    override func setUp() { super.setUp(); continueAfterFailure = false }
     private func app(_ scenario: String = "content", language: String = "en") -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--uitesting-roam-experience", "--uitesting-roam-experience-scenario", scenario,
@@ -16,7 +17,8 @@ final class RoamExperienceFlowTests: XCTestCase {
         let app = app(); open("history", in: app)
         let record = app.buttons.matching(identifier: "roam.experience.history.record").firstMatch
         XCTAssertTrue(record.waitForExistence(timeout: 5)); record.tap()
-        XCTAssertTrue(app.otherElements["roam.experience.session"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "roam.experience.session").firstMatch.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Saved local journey"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["Share"].exists)
     }
     func testCorruptHistoryIsErrorNotEmpty() {
@@ -24,11 +26,13 @@ final class RoamExperienceFlowTests: XCTestCase {
         XCTAssertTrue(app.otherElements["roam.experience.error"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.otherElements["roam.experience.history.empty"].exists)
         XCTAssertTrue(app.buttons["roam.experience.retry"].exists)
+        XCTAssertTrue(app.staticTexts["Your roaming records could not be read. They have not been replaced."].exists)
     }
     func testEmptyHistoryIsNotAnError() {
         let app = app("empty"); open("history", in: app)
         XCTAssertTrue(app.otherElements["roam.experience.history.empty"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.otherElements["roam.experience.error"].exists)
+        XCTAssertTrue(app.staticTexts["No local roaming records"].exists)
     }
     func testRecoveryNeedsIDAndOnlyDisplaysServerResultAfterRead() {
         let app = app(); open("recovery", in: app)
@@ -65,10 +69,17 @@ final class RoamExperienceFlowTests: XCTestCase {
         XCTAssertFalse(app.buttons["Start roaming"].exists)
     }
     func testCaptionDraftOnlyAndLengthValidation() {
-        let app = app(); open("cityStamp", in: app)
-        let field = app.textViews["roam.experience.stamp.caption"]
+        let app = app("captionDraft"); open("cityStamp", in: app)
+        let field = app.textFields["roam.experience.stamp.caption"]
         XCTAssertTrue(field.waitForExistence(timeout: 5)); field.tap(); field.typeText(String(repeating: "a", count: 31))
         XCTAssertFalse(app.buttons["roam.experience.stamp.preview"].isEnabled)
+        XCTAssertEqual(app.alerts.count, 0)
+    }
+    func testDefaultCityStampEntryKeepsCameraDisabled() {
+        let app = app(); open("cityStamp", in: app)
+        let capture = app.buttons["media.stamp.capture"]
+        XCTAssertTrue(capture.waitForExistence(timeout: 5)); XCTAssertFalse(capture.isEnabled)
+        XCTAssertFalse(app.textFields["roam.experience.stamp.caption"].exists)
         XCTAssertEqual(app.alerts.count, 0)
     }
     func testSignOutRemovesPrivateAlbumAndChineseLoads() {
@@ -76,6 +87,6 @@ final class RoamExperienceFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Synthetic city stamp"].waitForExistence(timeout: 5))
         app.buttons["roam.experience.fixture.signOut"].tap()
         XCTAssertFalse(app.staticTexts["Synthetic city stamp"].exists)
-        XCTAssertTrue(app.otherElements["roam.experience.hub"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "roam.experience.hub").firstMatch.waitForExistence(timeout: 5))
     }
 }

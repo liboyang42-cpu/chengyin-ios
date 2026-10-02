@@ -1,0 +1,24 @@
+{
+  "packet": "v6-source-reconciliation",
+  "runtime_fix": "Actual server verdict/attempt evidence, never configuration tries or photo degradation/fallback misclassification",
+  "retirement_correction": "gameTimer/stickerBook excluded as retired source orphans, not marked implemented",
+  "new_authored_core_tests": 6,
+  "python_contracts": {
+    "run": 476,
+    "passed": 468,
+    "skipped": 8,
+    "failed": 0
+  },
+  "external_retirement_comparison": "PASS against explicitly supplied current mini-program source",
+  "python_tools": {
+    "run": 33,
+    "passed": 33,
+    "skipped": 0,
+    "failed": 0
+  },
+  "project_scaffold": "PASS",
+  "swift_tests": "NOT_RUN",
+  "ios_build": "NOT_RUN",
+  "visual_device_backend": "NOT_RUN",
+  "grants": "unchanged/off"
+}

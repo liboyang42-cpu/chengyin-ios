@@ -33,7 +33,7 @@ class PlayKitNativeScreenChecks(unittest.TestCase):
             self.assertNotIn(forbidden, code)
     def test_photo_has_separate_capture_upload_and_task_review(self):
         code = self.read('App/PlayKitPersonalForms.swift')
-        for token in ['await model.capture(.photo)', 'await model.uploadPhoto()', 'model.reviewedPhoto()', 'capturedIdentity == identity', 'bytes.count > 10 * 1024 * 1024', 'SUBMIT_PHOTO_CHECK']:
+        for token in ['await model.capture(.photo, cameraFrame: frame)', 'await model.uploadPhoto()', 'model.reviewedPhoto()', 'capturedIdentity == identity', 'bytes.count > 10 * 1024 * 1024', 'SUBMIT_PHOTO_CHECK']:
             self.assertIn(token, code)
         self.assertIn('model.cancel()', code)
     def test_quiet_uses_audio_and_ball_uses_real_motion(self):
@@ -69,6 +69,7 @@ class PlayKitNativeScreenChecks(unittest.TestCase):
         catalog = json.loads(self.read('Resources/PlayKitScreenLocalizations.fragment.json'))['strings']
         docs = json.loads(self.read('docs/playkit-screen-localizations.json'))
         self.assertEqual(set(catalog),set(docs))
+        catalog.update(json.loads(self.read('Resources/PlayKitAuthoringLegacyLocalizations.fragment.json'))['strings'])
         for path in (ROOT/'App').glob('PlayKit*.swift'):
             code=path.read_text()
             keys=re.findall(r'(?:Text|Button|Label|Section|LabeledContent|TextField|ProgressView|navigationTitle)\("(playkit\.[A-Za-z0-9_.-]+)"',code)

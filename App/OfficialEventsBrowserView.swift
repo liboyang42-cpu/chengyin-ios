@@ -45,7 +45,8 @@ import SwiftUI
                 }
             }
             .task(id: reader.scope) { await checkPublisherPermission() }
-            .accessibilityIdentifier("official.browser")
+            // Keep IDs on the search, filter, and action leaves. A VStack ID can
+            // propagate to those controls and hide their individual identifiers.
         }
     }
     private func eventList(_ rows: [OfficialEvent]) -> some View {

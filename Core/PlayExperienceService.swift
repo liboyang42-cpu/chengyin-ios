@@ -4,7 +4,7 @@ import FoundationNetworking
 #endif
 
 public enum PlayExperienceCapability: Hashable {
-    case directorCommands, reads, runPersistence, classicCompletion, hints, leader, advanced, playerCommands, circle, preference, tags, mediaUpload
+    case directorCommands, reads, runPersistence, classicCompletion, hints, leader, advanced, playerCommands, circle, preference, tags, mediaUpload, thoughtClaims
 }
 public enum PlayCompletionEvidence: Equatable {
     case answer(String)

@@ -102,7 +102,7 @@ import SwiftUI
     var body: some View {
         List {
             Section {
-                Text("playx.os.private").font(.footnote)
+                Text("playx.os.private").font(.footnote).accessibilityIdentifier("playx.os.private")
                 PlayRuntimePhaseText(phase: model.phase)
                 if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
                 Button("playx.refresh") { Task { await model.load() } }.disabled(model.phase == "submitting")
@@ -114,7 +114,7 @@ import SwiftUI
                 Section("playx.os.tags") {
                     ForEach(summary.tags) { tag in
                         VStack(alignment: .leading) {
-                            Text(verbatim: tag.value)
+                            Text(verbatim: tag.value).accessibilityIdentifier("playx.os.tag.\(tag.id)")
                             if tag.revoked { Text("playx.os.revoked").font(.caption) }
                             else { Button("playx.os.revoke", role: .destructive) { revokeID = tag.id; confirm = true }.disabled(model.phase != "ready") }
                         }

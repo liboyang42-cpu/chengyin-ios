@@ -35,6 +35,11 @@ public struct PlayPendingCompletion: Equatable {
     public private(set) var storyVariables: [String: PlayWireValue] = [:]
     public private(set) var storyVoices: [String: PlayWireValue] = [:]
     public private(set) var storyThoughts: [PlayWireValue] = []
+    public private(set) var thoughtSyncPhase: ChapterThoughtSyncPhase = .idle
+    public private(set) var pendingThoughtKeys: Set<String> = []
+    private var thoughtClaimSessionID: Int?
+    private var thoughtSyncInFlight = false
+    private var thoughtSyncNonce = UUID()
     public private(set) var phase: Phase = .idle
     public private(set) var issue: PlayExperienceError?
     public private(set) var reward: PlayWireValue?
@@ -67,7 +72,7 @@ public struct PlayPendingCompletion: Equatable {
     public var hasCurrentMediaSnapshot: Bool {
         snapshot != nil && loadedSession != nil && loadedSession == currentSession() && (phase == .ready || phase == .unknown)
     }
-    public var canWrite: Bool { phase == .ready && !unresolved && loadedSession != nil && loadedSession == currentSession() }
+    public var canWrite: Bool { phase == .ready && !unresolved && !thoughtSyncInFlight && pendingThoughtKeys.isEmpty && loadedSession != nil && loadedSession == currentSession() }
     public init(scope: PlaySessionScope, service: PlayExperienceService, recovery: any PlayCompletionRecoveryStore,
                 pausedStorage: any PlayPausedStorage, currentSession: @escaping () -> PlayExperienceSession?,
                 onUnauthorized: @escaping (PlayExperienceSession) -> Void = { _ in }) {
@@ -86,6 +91,7 @@ public struct PlayPendingCompletion: Equatable {
             leaderOutcomeUnknown = unknownLeaderKeys.contains(PlayRunStorageKey.make(session: session, scope: scope))
             authorityOwner = session
             chapterStories = [:]; storyVariables = [:]; storyVoices = [:]; storyThoughts = []
+            pendingThoughtKeys = []; thoughtClaimSessionID = nil; thoughtSyncInFlight = false; thoughtSyncPhase = .idle; thoughtSyncNonce = UUID()
         }
         loadedSession = nil
         do {
@@ -111,8 +117,42 @@ public struct PlayPendingCompletion: Equatable {
             storyVariables.merge(document.storyVariables) { _, new in new }
             storyVoices.merge(document.storyVoices) { _, new in new }
             storyThoughts = snapshot.route?.thoughts ?? document.storyThoughts
+            if let previous = thoughtClaimSessionID, let current = snapshot.route?.sessionID, previous != current {
+                pendingThoughtKeys = []; thoughtClaimSessionID = nil; thoughtSyncPhase = .idle
+            }
+            if !pendingThoughtKeys.isEmpty {
+                pendingThoughtKeys.subtract(storyThoughts.compactMap { $0["key"].text })
+                thoughtSyncPhase = pendingThoughtKeys.isEmpty ? .synced : .needsReadback
+                unresolved = unresolved || !pendingThoughtKeys.isEmpty
+            }
             phase = unresolved ? .unknown : .ready
         } catch { fail(error, session: session, generation: request) }
+    }
+    public func claimVisibleThoughts(chapterID: Int) async {
+        guard canWrite, hasCurrentMediaSnapshot, let snapshot, snapshot.availability == .active,
+              let chapter = chapterStories[chapterID], let topicID = snapshot.result.topicID,
+              let routeSessionID = snapshot.route?.sessionID, let version = snapshot.route?.version,
+              let session = loadedSession, session == currentSession(), !thoughtSyncInFlight, pendingThoughtKeys.isEmpty else { return }
+        let claims = ChapterStoryProjection.claimableThoughtKeys(chapter: chapter, snapshot: snapshot, thoughts: storyThoughts)
+        guard !claims.isEmpty else { return }
+        guard service.enabled.contains(.thoughtClaims) else { thoughtSyncPhase = .disabled; return }
+        let nonce = UUID(); thoughtSyncNonce = nonce; thoughtSyncInFlight = true
+        let request = generation
+        pendingThoughtKeys = Set(claims); thoughtClaimSessionID = routeSessionID; thoughtSyncPhase = .syncing
+        defer { if thoughtSyncNonce == nonce { thoughtSyncInFlight = false } }
+        do {
+            _ = try await service.syncChapterThoughts(scope: scope, topicID: topicID, claims: claims,
+                sessionID: routeSessionID, previousVersion: version, token: session.token)
+            try check(session, request)
+            thoughtSyncPhase = .needsReadback
+            await load() // Only a fresh nodes + route read projects names and completion facts.
+        } catch {
+            guard thoughtSyncNonce == nonce, currentSession() == session else { return }
+            if error as? PlayExperienceError == .unauthorized { onUnauthorized(session); invalidate(); return }
+            // No implicit retry after a possibly committed claim. Reopening must read first.
+            thoughtSyncPhase = pendingThoughtKeys.isEmpty ? .synced : .needsReadback
+            unresolved = unresolved || !pendingThoughtKeys.isEmpty
+        }
     }
     /// Called only from an accepted advanced state, never a local timer or preview.
     public func acceptAdvanced(_ state: PlayAdvancedState) throws {
@@ -275,6 +315,7 @@ public struct PlayPendingCompletion: Equatable {
         catch { if currentSession() == session { remoteRunSaveFailed = true } }
     }
     public func invalidate() {
+        thoughtSyncNonce = UUID(); thoughtSyncInFlight = false; pendingThoughtKeys = []; thoughtClaimSessionID = nil; thoughtSyncPhase = .idle
         chapterStories = [:]; storyVariables = [:]; storyVoices = [:]; storyThoughts = []
         generation &+= 1; loadedSession = nil; snapshot = nil; extras = [:]; reward = nil; hint = nil
         ending = nil; leaderboard = nil; lead = nil; advancedReadyNodeIDs = []; clock.restore(nil); phase = .idle

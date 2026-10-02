@@ -7,6 +7,7 @@ struct ClubGovernanceEntryButton: View {
     let access: any ClubGovernanceAccess
     let coordinator: ClubGovernanceCoordinator
     var enrollmentProfile: ClubEnrollmentProfileContext? = nil
+    var ownerRefund: ClubOwnerRefundCoordinator? = nil
     @State private var presented = false
     var body: some View {
         Button { presented = true } label: { Label("club.gov.workspace", systemImage: "person.3.sequence.fill") }
@@ -14,6 +15,7 @@ struct ClubGovernanceEntryButton: View {
             .sheet(isPresented: $presented) {
                 NavigationStack { ClubGovernanceWorkspaceView(clubID: clubID, identity: identity, access: access, coordinator: coordinator) }
                     .environment(\.clubEnrollmentProfile, enrollmentProfile)
+                    .environment(\.clubOwnerRefundCoordinator, ownerRefund)
             }
     }
 }
@@ -229,6 +231,12 @@ struct ClubGovernanceReadView: View {
             if operation == .topicCustomers { ForEach(Array((value["sessions"].array ?? []).enumerated()), id: \.offset) { _, session in
                 ClubGovernanceFactRows(value: session, fields: ["timeText", "name"]); dataRows(session["rows"].array ?? [])
             } }
+            if operation == .checkin, let clubID = scope.clubID, let registrationID = scope.registrationID,
+               let target = try? ClubOwnerRefundTarget(clubID: clubID, registrationID: registrationID) {
+                Section {
+                    ClubOwnerRefundPanel(target: target, identity: identity, sourceCanRefund: value["canRefund"] == .bool(true), onReadback: { Task { await load() } })
+                }
+            }
             if operation == .registrations { enrollmentLink(focusTopicID: scope.topicID) }
             if operation == .seriesDetail { edit(.updateSeries, seed: value.object ?? [:]); link(.occurrences) }
             if operation == .occurrenceStatus && value["activityCancelled"] == .bool(false) { edit(.cancelOccurrence) }

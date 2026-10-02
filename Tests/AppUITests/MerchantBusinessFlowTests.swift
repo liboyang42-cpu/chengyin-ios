@@ -1,25 +1,34 @@
 import XCTest
 
 final class MerchantBusinessFlowTests: XCTestCase {
+    override func setUp() { super.setUp(); continueAfterFailure = false }
     private func launch(_ scenario: String = "ready", language: String = "en") -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments += ["--uitesting-merchant-business-fixture", "--uitesting-merchant-business-scenario", scenario, "-AppleLanguages", "(\(language))", "-AppleLocale", "\(language)_US"]
         app.launch(); return app
     }
     private func reveal(_ element: XCUIElement, app: XCUIApplication) {
-        for _ in 0..<10 { if element.isHittable { return }; app.swipeUp() }
+        // List materializes lower rows only after scrolling; waiting first is not a visibility check.
+        for _ in 0..<10 {
+            if element.waitForExistence(timeout: 0.3) && element.isHittable { return }
+            app.swipeUp()
+        }
     }
     private func tap(_ identifier: String, app: XCUIApplication) {
-        let button = app.buttons[identifier]; XCTAssertTrue(button.waitForExistence(timeout: 5)); reveal(button, app: app); button.tap()
+        let button = app.buttons[identifier]; reveal(button, app: app)
+        XCTAssertTrue(button.waitForExistence(timeout: 3), app.debugDescription)
+        XCTAssertTrue(button.isHittable, app.debugDescription); button.tap()
     }
     private func openCustomer(_ app: XCUIApplication) {
-        let entry = app.buttons["merchant.business.open.customers"]; XCTAssertTrue(entry.waitForExistence(timeout: 5)); entry.tap()
-        let row = app.buttons["merchant.business.row.customer.61001"]; XCTAssertTrue(row.waitForExistence(timeout: 5)); row.tap()
+        tap("merchant.business.open.customers", app: app)
+        tap("merchant.business.row.customer.61001", app: app)
     }
     func testCRMCustomerAndTimelineAreReachable() {
         let app = launch(); openCustomer(app)
-        XCTAssertTrue(app.staticTexts["Example follow-up"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.buttons["merchant.business.addNote"].exists)
+        let timeline = app.staticTexts["Example follow-up"]; reveal(timeline, app: app)
+        XCTAssertTrue(timeline.waitForExistence(timeout: 5))
+        let addNote = app.buttons["merchant.business.addNote"]; reveal(addNote, app: app)
+        XCTAssertTrue(addNote.exists)
     }
     func testLocalNoteReviewCanBeCancelledWithoutSuccess() {
         let app = launch(); openCustomer(app); tap("merchant.business.addNote", app: app)
@@ -36,14 +45,17 @@ final class MerchantBusinessFlowTests: XCTestCase {
     }
     func testAftercareSeparatesOpinionFromRefund() {
         let app = launch(); tap("merchant.business.open.aftercare", app: app)
-        let row = app.buttons["merchant.business.row.refund.62001"]; XCTAssertTrue(row.waitForExistence(timeout: 5)); row.tap()
-        XCTAssertTrue(app.buttons["merchant.business.respond"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts["A merchant opinion does not execute a refund. The platform determines the outcome."].exists)
+        tap("merchant.business.row.refund.62001", app: app)
+        let respond = app.buttons["merchant.business.respond"]; reveal(respond, app: app)
+        XCTAssertTrue(respond.waitForExistence(timeout: 5))
+        let boundary = app.staticTexts["A merchant opinion does not execute a refund. The platform determines the outcome."]
+        reveal(boundary, app: app); XCTAssertTrue(boundary.exists)
     }
     func testBatchDetailKeepsNegativeAdjustments() {
         let app = launch(); tap("merchant.business.open.batches", app: app)
-        let row = app.buttons["merchant.business.row.batch.66001"]; XCTAssertTrue(row.waitForExistence(timeout: 5)); row.tap()
-        XCTAssertTrue(app.staticTexts["CNY -12.00"].waitForExistence(timeout: 5))
+        tap("merchant.business.row.batch.66001", app: app)
+        let adjustment = app.staticTexts["CNY -12.00"]; reveal(adjustment, app: app)
+        XCTAssertTrue(adjustment.waitForExistence(timeout: 5))
     }
     func testScanOnlyClassifiesWithoutCameraOrRedemptionButton() {
         let app = launch(); tap("merchant.business.open.scan", app: app)

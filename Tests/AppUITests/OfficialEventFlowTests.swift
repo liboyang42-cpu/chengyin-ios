@@ -17,6 +17,12 @@ final class OfficialEventFlowTests: XCTestCase {
         XCTAssertTrue(element.exists, app.debugDescription, file: file, line: line)
         XCTAssertTrue(element.isHittable, app.debugDescription, file: file, line: line)
     }
+    private func expectUnspecifiedPrice() {
+        let price = app.descendants(matching: .any)["official.price"].firstMatch
+        reveal(price)
+        XCTAssertEqual(price.label, "Price")
+        XCTAssertEqual(price.value as? String, "Price not provided by the source")
+    }
     private func select(_ title: String) {
         let picker = app.descendants(matching: .any)["official.filter"].firstMatch
         XCTAssertTrue(picker.waitForExistence(timeout: 5)); picker.tap()
@@ -27,7 +33,7 @@ final class OfficialEventFlowTests: XCTestCase {
         let first = app.buttons["official.event.71"]
         XCTAssertTrue(first.waitForExistence(timeout: 10)); first.tap()
         XCTAssertTrue(app.navigationBars["Official event details"].waitForExistence(timeout: 5))
-        reveal(app.staticTexts["Price not provided by the source"])
+        expectUnspecifiedPrice()
         XCTAssertFalse(app.buttons["Sign up"].exists)
         app.navigationBars["Official event details"].buttons.firstMatch.tap()
         XCTAssertTrue(first.waitForExistence(timeout: 5)); first.tap()
@@ -42,7 +48,7 @@ final class OfficialEventFlowTests: XCTestCase {
     func testSearchIsLocalAndMineDoesNotRetainInvisibleFilter() {
         launch()
         let field = app.textFields["official.search"]
-        XCTAssertTrue(field.waitForExistence(timeout: 10)); field.tap(); field.typeText("No synthetic match\n")
+        XCTAssertTrue(field.waitForExistence(timeout: 10), app.debugDescription); field.tap(); field.typeText("No synthetic match\n")
         XCTAssertTrue(app.staticTexts["No matching official events"].waitForExistence(timeout: 5))
         select("Joined")
         XCTAssertTrue(app.buttons["official.event.71"].waitForExistence(timeout: 5))
@@ -84,15 +90,17 @@ final class OfficialEventFlowTests: XCTestCase {
     }
     func testRetryRecoversWithoutStaleContent() {
         launch("retry")
-        XCTAssertTrue(app.buttons["official.retry"].waitForExistence(timeout: 10))
-        app.buttons["official.retry"].tap()
+        let retry = app.buttons["official.retry"]
+        XCTAssertTrue(retry.waitForExistence(timeout: 10), app.debugDescription)
+        XCTAssertFalse(app.buttons["official.event.71"].exists)
+        retry.tap()
         XCTAssertTrue(app.buttons["official.event.71"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["official.retry"].exists)
     }
     func testUnknownFactsDoNotBecomeFreeOrAvailable() {
         launch("unknown", destination: "detail")
         XCTAssertTrue(app.staticTexts["Status not provided"].waitForExistence(timeout: 10))
-        reveal(app.staticTexts["Price not provided by the source"])
+        expectUnspecifiedPrice()
         reveal(app.staticTexts["No rewards configured"])
         XCTAssertFalse(app.staticTexts["Free"].exists)
     }

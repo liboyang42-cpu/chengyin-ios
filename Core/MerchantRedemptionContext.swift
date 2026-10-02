@@ -17,6 +17,11 @@ public struct MerchantRedemptionContext: Equatable {
             if ["activity", "topic"].contains(type) { return .init(kind: .dynamicTicket, code: code, legacyType: nil) }
             throw MerchantRedemptionFailure.unsupported
         }
+        // Current source also accepts signed coupon presentation codes directly.
+        // Prefix classification is never proof of authenticity; only the server verifies it.
+        if code.hasPrefix("cq1."), code.split(separator: ".", omittingEmptySubsequences: false).count == 4 {
+            return .init(kind: .coupon, code: code, legacyType: nil)
+        }
         guard let object = try? JSONDecoder().decode(MerchantBusinessValue.self, from: Data(code.utf8)).object,
               let type = object.mbText("type"), let inner = object.mbText("code") else { throw MerchantBusinessFailure.invalid }
         if type == "coupon" { return .init(kind: .coupon, code: inner, legacyType: nil) }
@@ -101,34 +106,39 @@ public struct MerchantRedemptionResult: Equatable {
     private var pending: (context: MerchantRedemptionContext, result: MerchantRedemptionResult, session: MerchantBusinessSession, merchantID: Int)?
     public private(set) var result: MerchantRedemptionResult?
     public private(set) var busy = false
+    private var generation: UInt64 = 0
     public init(service: MerchantBusinessService, journal: any MerchantBusinessIntentStore, currentSession: @escaping () -> MerchantBusinessSession?) {
         self.service = service; self.journal = journal; self.currentSession = currentSession
     }
-    public func begin(_ context: MerchantRedemptionContext) async throws {
+    public func begin(_ context: MerchantRedemptionContext, expectedMerchantID: Int? = nil) async throws {
         guard !busy, pending == nil else { throw MerchantBusinessFailure.pending }
+        guard expectedMerchantID.map({ $0 > 0 }) ?? true else { throw MerchantBusinessFailure.invalid }
         guard let session = currentSession() else { throw APIError.unauthorized }
-        try await perform(context, choice: nil, session: session, expectedMerchantID: nil)
+        try await perform(context, choice: nil, session: session, expectedMerchantID: expectedMerchantID, generation: generation)
     }
     public func choose(_ choice: MerchantRedemptionChoice.Target) async throws {
         guard !busy, let pending, pending.result.choices.contains(where: { $0.target == choice }), pending.session == currentSession() else { throw MerchantBusinessFailure.stale }
         self.pending = nil
-        try await perform(pending.context, choice: choice, session: pending.session, expectedMerchantID: pending.merchantID)
+        try await perform(pending.context, choice: choice, session: pending.session, expectedMerchantID: pending.merchantID, generation: generation)
     }
-    public func cancelChoice() { pending = nil; result = nil }
-    private func perform(_ context: MerchantRedemptionContext, choice: MerchantRedemptionChoice.Target?, session: MerchantBusinessSession, expectedMerchantID: Int?) async throws {
+    public func cancelChoice() { generation &+= 1; pending = nil; result = nil }
+    private func perform(_ context: MerchantRedemptionContext, choice: MerchantRedemptionChoice.Target?, session: MerchantBusinessSession, expectedMerchantID: Int?, generation: UInt64) async throws {
         guard service.canExecuteSyntheticMutation else { throw MerchantBusinessFailure.disabled }
         busy = true; result = nil; defer { busy = false }
         let access = try await service.access(token: session.token)
         try access.require(["merchant:verify"])
-        guard session == currentSession(), !Task.isCancelled, expectedMerchantID == nil || expectedMerchantID == access.merchantID else { throw MerchantBusinessFailure.stale }
+        guard self.generation == generation, session == currentSession(), !Task.isCancelled, expectedMerchantID == nil || expectedMerchantID == access.merchantID else { throw MerchantBusinessFailure.stale }
         let scope = MerchantBusinessScope(realm: service.realm, accountID: session.accountID, epoch: session.epoch)
         // Coarse merchant redemption lock intentionally blocks scanning any next code after an uncertain result.
         let intent = MerchantBusinessIntent(scope: scope, merchantID: access.merchantID, target: "redemption", requestID: "local-" + UUID().uuidString)
         try journal.reserve(intent)
         do {
+            // Even an injected storage callback may change the session while reserving.
+            // Recheck immediately before transport; a reserved lock is retained conservatively.
+            guard self.generation == generation, session == currentSession(), !Task.isCancelled else { throw MerchantBusinessFailure.stale }
             let body = try await service.syntheticEnvelope(context.request(choice: choice), token: session.token)
             let value = try MerchantRedemptionResult(body: body, kind: context.kind)
-            guard session == currentSession(), !Task.isCancelled else { throw MerchantBusinessFailure.stale }
+            guard self.generation == generation, session == currentSession(), !Task.isCancelled else { throw MerchantBusinessFailure.stale }
             // needsChoice explicitly means no redemption; it is safe to reserve a new second-step intent.
             if choice != nil, value.outcome == .needsChoice { throw MerchantBusinessFailure.malformed }
             try journal.complete(intent); result = value

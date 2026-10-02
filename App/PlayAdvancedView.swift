@@ -7,6 +7,7 @@ import SwiftUI
     var makeAudio: (@MainActor () -> PlatformAudioPlayback)? = nil
     var approvedArtworkHosts: Set<String> = []
     var makeSensorProvider: (@MainActor () -> any PlayKitSensorProviding)? = nil
+    var spatialApproval = PlayKitSpatialApproval()
     let onReady: (PlayAdvancedState) -> Void
     @Environment(\.dismiss) private var dismiss
     var body: some View {
@@ -40,7 +41,7 @@ import SwiftUI
                     Section {
                         NavigationLink {
                             PlayKitScreen(model: model, kind: kind, device: device, mediaScope: mediaScope,
-                                makeAudio: makeAudio, approvedArtworkHosts: approvedArtworkHosts, makeSensorProvider: makeSensorProvider)
+                                makeAudio: makeAudio, approvedArtworkHosts: approvedArtworkHosts, makeSensorProvider: makeSensorProvider, spatialApproval: spatialApproval)
                         } label: {
                             VStack(alignment: .leading, spacing: 6) {
                                 Text(LocalizedStringKey("playkit.kind." + kind.rawValue)).font(.headline)

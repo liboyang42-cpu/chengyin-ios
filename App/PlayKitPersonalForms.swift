@@ -21,7 +21,7 @@ extension PlayKitScreen {
                     } else {
                         TextField("playkit.profile.answer", text: Binding(get: { answers[key] ?? "" }, set: {
                             let maxLength = question["maxLength"].integer ?? 0
-                            answers[key] = String($0.prefix(maxLength > 0 ? maxLength : 4096)); dirty = true
+                            answers[key] = PlayKitInputContract.limitText($0, toUTF16: maxLength > 0 ? maxLength : 4096); dirty = true
                         }), axis: .vertical).textFieldStyle(.roundedBorder).disabled(!enabled)
                     }
                 }
@@ -42,23 +42,23 @@ extension PlayKitScreen {
             }
         }
         ForEach(Array((raw["presets"].array ?? []).enumerated()), id: \.offset) { _, value in
-            if let preset = value.text { Button { text = String(preset.prefix(limit)); dirty = true } label: { Text(verbatim: preset) }.buttonStyle(.bordered).disabled(!enabled) }
+            if let preset = value.text { Button { text = PlayKitInputContract.limitText(preset, toUTF16: limit); dirty = true } label: { Text(verbatim: preset) }.buttonStyle(.bordered).disabled(!enabled) }
         }
         TextField("playkit.note.placeholder", text: textBinding(limit: limit), axis: .vertical).lineLimit(3...8).textFieldStyle(.roundedBorder).disabled(!enabled)
-        LabeledContent("playkit.characters") { Text(verbatim: "\(text.count) / \(limit)").monospacedDigit() }
+        LabeledContent("playkit.characters") { Text(verbatim: "\(text.utf16.count) / \(limit)").monospacedDigit() }
         Text("playkit.note.audience").font(.footnote)
         submitButton("SUBMIT_NOTE", payload: ["text": .string(text)], valid: !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
     }
     @ViewBuilder var photoCheckForm: some View {
         if let note = raw["shotNote"].text, !note.isEmpty { Text(verbatim: note).font(.title3) }
-        if let frame = raw["frameUrl"].text, !frame.isEmpty { artwork(frame); Text("playkit.photo.frameGuide").font(.footnote) }
+        if let frame = raw["frameUrl"].text, !frame.isEmpty { artwork(frame); Text("playkitCamera.frameGuide").font(.footnote) }
         if let prior = raw["lastUrl"].text, !prior.isEmpty { artwork(prior) }
-        if raw["degraded"].bool != true, raw["passed"].bool != true, let reason = raw["lastReason"].text, !reason.isEmpty { Text(verbatim: reason) }
+        if raw["degraded"].bool != true, raw["passed"].bool != true, raw["flagged"].bool != true, (raw["tries"].integer ?? 0) > 0, let reason = raw["lastReason"].text, !reason.isEmpty { Text(verbatim: reason) }
         if let used = raw["tries"].integer, let cap = raw["maxTries"].integer, cap > 0 {
             LabeledContent("playkit.photo.remaining") { Text(verbatim: String(max(0, cap - used))) }
         }
         if raw["flagged"].bool == true { Text("playkit.photo.fallbackRecorded") }
-        photoInput { url in prepare("SUBMIT_PHOTO_CHECK", ["imageUrl": .string(url)]) }
+        photoInput(frame: PlayKitPhotoFrame(source: raw["frameUrl"].text, opacityPercent: raw["frameOpacity"].double, approvedHosts: approvedArtworkHosts)) { url in prepare("SUBMIT_PHOTO_CHECK", ["imageUrl": .string(url)]) }
         Text("playkit.photo.serverOnly").font(.footnote)
     }
     @ViewBuilder var scanForm: some View {
@@ -66,15 +66,25 @@ extension PlayKitScreen {
             if let reply = raw["reply"].text, !reply.isEmpty { Text(verbatim: reply).font(.title3) }
             artwork(raw["imageUrl"].text)
             PlatformAudioHost(rawURL: raw["audioUrl"].text, scope: mediaScope, makeModel: makeAudio)
-            if raw["kind"].text == "OVERLAY" || raw["overlayUrl"].text?.isEmpty == false { Text("playkit.scan.overlayGate") }
+            if raw["kind"].text == "OVERLAY" || raw["overlayUrl"].text?.isEmpty == false {
+                if let overlay = PlayKitScanOverlay(segment: raw, approvedHosts: approvedArtworkHosts) {
+                    PlayKitCameraOverlayButton(overlay: overlay, identity: runtimeIdentity,
+                        cameraEnabled: device?.supports(.scan) == true, active: model.isCurrent)
+                }
+                artwork(raw["overlayUrl"].text)
+                Text("playkitLegacy.scan.staticFallback").font(.footnote)
+                if ["PLANE", "MARKER"].contains(raw["arMode"].text ?? "") {
+                    PlayKitSpatialRevealButton(segment: raw, approval: spatialApproval, identity: runtimeIdentity, active: model.isCurrent)
+                }
+            }
         } else if let device {
             PlayKitScanInput(model: device, identity: evidenceIdentity, enabled: enabled, onDirty: { dirty = true }) { code in prepare("SUBMIT_SCAN", ["code": .string(code)]) }
         } else { Label("playkit.camera.gated", systemImage: "camera") }
     }
-    func photoInput(onURL: @escaping (String) -> Void) -> some View {
+    func photoInput(frame: PlayKitPhotoFrame? = nil, onURL: @escaping (String) -> Void) -> some View {
         Group {
             if let device {
-                PlayKitPhotoInput(model: device, identity: evidenceIdentity, enabled: enabled, onDirty: { dirty = true }, onURL: onURL)
+                PlayKitPhotoInput(model: device, identity: evidenceIdentity, enabled: enabled, frame: frame, onDirty: { dirty = true }, onURL: onURL)
             } else { Label("playkit.camera.gated", systemImage: "camera") }
         }
     }
@@ -86,7 +96,7 @@ extension PlayKitScreen {
 
 @MainActor struct PlayKitPhotoInput: View {
     @Bindable var model: PlayDeviceCaptureCoordinator
-    let identity: String; let enabled: Bool; let onDirty: () -> Void; let onURL: (String) -> Void
+    let identity: String; let enabled: Bool; var frame: PlayKitPhotoFrame? = nil; let onDirty: () -> Void; let onURL: (String) -> Void
     @State private var capturedIdentity: String?
     @State private var cameraPurpose = false
     @State private var uploadReview = false
@@ -95,6 +105,14 @@ extension PlayKitScreen {
         VStack(alignment: .leading, spacing: 12) {
             Button("playkit.photo.capture") { cameraPurpose = true }
                 .disabled(!enabled || model.busy || !model.supports(.photo))
+            Button("playkitCamera.choosePhoto") {
+                let expected = identity; capturedIdentity = expected
+                Task {
+                    await model.capture(.photo, usePhotoLibrary: true)
+                    if !mounted || identity != expected { model.cancel() }
+                    else if let output = model.output, case .photo = output { onDirty() }
+                }
+            }.disabled(!enabled || model.busy || !model.supportsLibraryPhotos)
             if !model.supports(.photo) { Text("playkit.camera.gated").font(.footnote) }
             if model.busy { ProgressView("playkit.photo.working") }
             if capturedIdentity == identity, let output = model.output, case .photo(let bytes, _) = output {
@@ -114,7 +132,7 @@ extension PlayKitScreen {
             Button("playkit.photo.capture") {
                 let expected = identity; capturedIdentity = expected
                 Task {
-                    await model.capture(.photo)
+                    await model.capture(.photo, cameraFrame: frame)
                     if !mounted || identity != expected { model.cancel() }
                     else if let output = model.output, case .photo = output { onDirty() }
                 }

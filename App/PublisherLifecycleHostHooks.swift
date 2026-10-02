@@ -8,9 +8,9 @@ import SwiftUI
     let application: CreatorApplicationCoordinator
     let creatorReader: any CreatorContentReading
     init(configuration: APIConfiguration, transport: any HTTPTransport,
-         creatorReader: any CreatorContentReading, credentials: @escaping () -> PublishingCredentials?,
+         creatorReader: any CreatorContentReading, grants: PublisherLifecycleGrants = .dormant, credentials: @escaping () -> PublishingCredentials?,
          freshAuthority: @escaping (PublishedResource, PublishingSession) async throws -> PublisherAuthority) {
-        let client = PublisherLifecycleHTTP(configuration: configuration, transport: transport, grants: .dormant, credentials: credentials)
+        let client = PublisherLifecycleHTTP(configuration: configuration, transport: transport, grants: grants, credentials: credentials)
         self.client = client; self.creatorReader = creatorReader
         coordinator = PublisherLifecycleCoordinator(client: client, authority: freshAuthority)
         application = CreatorApplicationCoordinator(client: client, reader: creatorReader)

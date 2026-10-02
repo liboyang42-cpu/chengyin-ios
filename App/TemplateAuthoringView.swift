@@ -188,7 +188,22 @@ struct TemplateAuthoringPreviewView: View {
                 Text(LocalizedStringKey(draft.validationMethod.labelKey))
                 if let question = draft.questionName { Text(verbatim: question) }
                 if draft.validationMethod == .choice { ForEach([draft.questionA, draft.questionB, draft.questionC, draft.questionD].compactMap { $0 }, id: \.self) { Text(verbatim: $0) } }
-                if let game = draft.advanced.selected { Text(LocalizedStringKey(game.labelKey)); Text("templateAuthor.noGameplay").foregroundStyle(.secondary) }
+                if let game = draft.advanced.selected {
+                    Text(LocalizedStringKey(game.labelKey))
+                    if game.isMiniProgramAddition { NavigationLink("playkitAuthor.preview") { TemplateMiniGamePreviewView(draft: draft.advanced, game: game) } }
+                    else if game == .dice && draft.advanced.diceMode == "d20" { NavigationLink("creatorRoot.d20Preview") { TemplateD20RehearsalView(draft: draft.advanced) } }
+                    else { Text("templateAuthor.noGameplay").foregroundStyle(.secondary) }
+                }
+            }
+            if draft.advanced.hasRootAuthoringConfiguration {
+                Section("creatorRoot.rules") { NavigationLink("creatorRoot.rehearse") { TemplateRootRehearsalView(draft: draft.advanced) } }
+            }
+            if !draft.advanced.enabledCreatorFamilies.isEmpty {
+                Section("creator.modules") {
+                    ForEach(draft.advanced.enabledCreatorFamilies) { family in
+                        NavigationLink(LocalizedStringKey(family.labelKey)) { TemplateCreatorRehearsalView(draft: draft.advanced, family: family) }
+                    }
+                }
             }
             if draft.storyEnabled {
                 Section("templateAuthor.story") {

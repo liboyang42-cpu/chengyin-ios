@@ -19,8 +19,13 @@ import ImageIO
                             Button(LocalizedStringKey(category.localizationKey)) { Task { await model.load(category: category, reader: reader) } }
                                 .accessibilityIdentifier("objects.category.\(category.localizationKey)")
                         }
-                    } label: { Label(LocalizedStringKey(model.category.localizationKey), systemImage: "line.3.horizontal.decrease.circle") }
-                        .disabled(model.loading).accessibilityIdentifier("objects.filter")
+                    } label: {
+                        Label(LocalizedStringKey(model.category.localizationKey), systemImage: "line.3.horizontal.decrease.circle")
+                            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.borderless)
+                    .disabled(model.loading).accessibilityIdentifier("objects.filter")
                     Text("objects.limit").font(.caption).foregroundStyle(.secondary)
                     if model.loading { ProgressView("objects.loading") }
                     if model.failed {

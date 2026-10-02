@@ -36,7 +36,11 @@ import SwiftUI
                     if items.isEmpty { Text("merchant.publicHome.noReviews").accessibilityIdentifier("merchant.publicHome.noReviews") }
                     ForEach(Array(items.enumerated()), id: \.offset) { _, item in
                         Section {
-                            Group { if let name = item.authorNickname, !name.isEmpty { Text(verbatim: name) } else { Text("merchant.publicHome.player") } }.font(.headline)
+                            Group { if let name = item.authorNickname, !name.isEmpty { Text(verbatim: name) } else { Text("merchant.publicHome.player") } }
+                                .font(.headline)
+                                // Keep the review ID on its heading, not on the Section: List
+                                // section identifiers can override the nested Report action ID.
+                                .accessibilityIdentifier("merchant.publicHome.review.\(item.id)")
                             LabeledContent("merchant.publicHome.rating", value: "\(item.rating) / 5")
                             if item.verifiedRedemption { Label("merchant.publicHome.verified", systemImage: "checkmark.seal") }
                             if let content = item.content { Text(verbatim: content).textSelection(.enabled) }
@@ -51,7 +55,7 @@ import SwiftUI
                                 LabeledContent("merchant.publicHome.reply", value: reply)
                                 if let time = item.repliedAt { Text(verbatim: time).font(.caption) }
                             }
-                        }.accessibilityIdentifier("merchant.publicHome.review.\(item.id)")
+                        }
                     }
                     if snapshot.hasMore, failure == nil {
                         Button("merchant.publicHome.more") { Task { await load(page: snapshot.pageNum + 1) } }.disabled(loading).accessibilityIdentifier("merchant.publicHome.more")
@@ -66,7 +70,9 @@ import SwiftUI
         }
         .navigationTitle("merchant.publicHome.reviews")
         .task(id: key) { await load(page: 1) }
-        .onDisappear { generation += 1; snapshot = nil; items = []; itemPages = [:]; loadedKey = nil; loading = false }
+        // Pushing the editor must not delete the NavigationLink that owns it.
+        // loadedKey == key still hides every retained row after a target/session change.
+        .onDisappear { generation += 1; loading = false }
     }
     private func load(page: Int) async {
         guard reader.isConfigured else { return }

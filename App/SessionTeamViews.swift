@@ -2,9 +2,11 @@ import SwiftUI
 
 @MainActor struct SessionTeamHomeView: View {
     @EnvironmentObject private var session: AppSession
+    @State private var login = false
     var body: some View {
-        TeamHomeView(coordinator: session.makeTeamCoordinator(), makeCoordinator: { session.makeTeamCoordinator() }, nearbyDestination: { teams in AnyView(SessionNearbyTeamsView(context: session.nearbyTeamQueryContext, joinedTeams: teams)) })
+        TeamHomeView(coordinator: session.makeTeamCoordinator(), makeCoordinator: { session.makeTeamCoordinator() }, onLogin: { login = true }, nearbyDestination: { teams in AnyView(SessionNearbyTeamsView(context: session.nearbyTeamQueryContext, joinedTeams: teams)) }, onOpenInvitation: { session.receiveNativeIntent(.teamInvitation($0)) })
             .id(session.teamViewIdentity)
+            .sheet(isPresented: $login) { LoginView(intent: .player) }
     }
 }
 /// Integration destination for a verified internal team ID or parsed invitation code.

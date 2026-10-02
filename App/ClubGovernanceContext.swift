@@ -4,4 +4,5 @@ import SwiftUI
     let access: any ClubGovernanceAccess
     let coordinator: ClubGovernanceCoordinator
     var enrollmentProfile: ClubEnrollmentProfileContext? = nil
+    var ownerRefund: ClubOwnerRefundCoordinator? = nil
 }

@@ -1,10 +1,10 @@
 import SwiftUI
 
-/// Metadata-only details, including past/invalid records. They deliberately differ from the
-/// source's code screen: no redemption URL, token, QR, code generation, or polling occurs.
+/// Owned metadata stays separate from the explicitly reviewed, short-lived code screen.
 @MainActor struct AccountCollectionCouponDetailView: View {
     let id: Int
     let reader: any AccountCollectionReading
+    @Environment(\.couponCodeFactory) private var makeCode
     @StateObject private var model = AccountCollectionScreenModel<AccountCollectionCoupon>()
     private var key: AccountCollectionLoadKey { AccountCollectionLoadKey(reader: reader, id: id) }
     var body: some View {
@@ -20,6 +20,13 @@ import SwiftUI
                     AccountCollectionCouponRow(coupon: coupon)
                         .questifyCardListRow()
                         .accessibilityIdentifier("accountCollection.coupon.detail.header")
+                }
+                if coupon.status == .unused, let makeCode {
+                    Section {
+                        NavigationLink { CouponCodeView(model: makeCode(coupon.id)).id(reader.scope) } label: {
+                            Label("couponCode.show", systemImage: "qrcode")
+                        }.accessibilityIdentifier("couponCode.open")
+                    }
                 }
                 Section("accountCollection.coupon.validity") {
                     AccountCollectionCouponDate(label: "accountCollection.coupon.validFrom", value: coupon.startTime)

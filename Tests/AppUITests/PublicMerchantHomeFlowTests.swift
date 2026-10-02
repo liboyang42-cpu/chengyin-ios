@@ -2,6 +2,12 @@ import XCTest
 
 /// Authored Apple-host tests. Requires DEBUG --public-merchant-home-fixture <scenario> host hook.
 final class PublicMerchantHomeFlowTests: XCTestCase {
+    override func setUpWithError() throws { continueAfterFailure = false }
+    private func reveal(_ element: XCUIElement, in app: XCUIApplication) {
+        for _ in 0..<8 { if element.exists && element.isHittable { break }; app.swipeUp() }
+        XCTAssertTrue(element.exists, app.debugDescription)
+        XCTAssertTrue(element.isHittable, app.debugDescription)
+    }
     private func launch(_ scenario: String) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments += ["--public-merchant-home-fixture", scenario]
@@ -42,7 +48,8 @@ final class PublicMerchantHomeFlowTests: XCTestCase {
         let reviews = app.buttons["merchant.publicHome.reviews"]
         XCTAssertTrue(reviews.waitForExistence(timeout: 5)); reviews.tap()
         let report = app.buttons["merchant.publicHome.report.9"]
-        XCTAssertTrue(report.waitForExistence(timeout: 5)); report.tap()
+        XCTAssertTrue(app.staticTexts["Fixture review"].waitForExistence(timeout: 5), app.debugDescription)
+        reveal(report, in: app); report.tap()
         let text = app.textViews["merchant.publicHome.editorText"]
         if text.exists { text.tap(); text.typeText("Fixture report reason") }
         else { let field = app.textFields["merchant.publicHome.editorText"]; field.tap(); field.typeText("Fixture report reason") }

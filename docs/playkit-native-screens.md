@@ -1,5 +1,7 @@
 # Native PlayKit screens: source-backed implementation, not acceptance
 
+The later `playkit-authoring-legacy.md` increment supersedes the legacy-runtime and five-kind creator gaps listed in this original packet.
+
 ## Bounded scope
 
 This packet replaces generic controls with genuine native task bodies for the 22 dedicated Flutter PlayKit screens and adds five newer mini-program-only kinds: sort, match, classify, compass and shout. The server `steps` segment uses the walking progress UI; it is not counted as another migrated full-screen page. This is implementation coverage within that set, not a claim that the application, every source page, every advanced segment or any live business flow is complete.
@@ -56,7 +58,7 @@ Important divergences resolved: Flutter incorrectly treated bingo as local/empty
 - WeChat encrypted step proof has no approved native alternative; the genuine progress screen cannot submit a native pedometer number as equivalent proof
 - Scan overlay/AR reply rendering and in-camera photo framing overlays remain gated; text/image/approved audio paths and honest notices are present
 - Media hosts and audio/sensor factories need independent approval/configuration. A configured endpoint is not evidence of deployed acceptance
-- Existing advanced segments outside the dedicated screen set (for example blindTaste, diyName, silentOrder, slowTask, musicCorner and timeWindow), plus separate gameTimer/stickerBook sheets, are not declared covered by this packet
-- New mini-program game authoring/configurator UI is outside this player-runtime packet
+- The v3 increment now implements blindTaste, diyName, silentOrder, slowTask, musicCorner and timeWindow bodies. gameTimer/stickerBook are retired mini-program orphan families retained only as stale Flutter references, not active implementation gaps
+- The v3 increment now implements creator configuration/rehearsal for the five mini-program-only kinds. Other advanced creator panels remain separate work
 
 See `playkit-screen-verification.json` for authored-vs-executed evidence. Python checks are source/schema checks, not a Swift compiler or proof of a working device flow.

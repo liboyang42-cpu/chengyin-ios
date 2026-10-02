@@ -67,6 +67,21 @@ jobs:
               -derivedDataPath "$RUNNER_TEMP/questify-simulator" \
               CODE_SIGNING_ALLOWED=NO build-for-testing
           done
+      - name: Package exact-commit unsigned test products
+        run: |
+          python3 tools/test_products.py pack \
+            --products "$RUNNER_TEMP/questify-simulator/Build/Products" \
+            --archive "$RUNNER_TEMP/questify-test-products.tar.gz" --commit "$GITHUB_SHA"
+      - name: Share test products within this workflow run
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: test-products-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/questify-test-products.tar.gz
+            ${{ runner.temp }}/questify-test-products.tar.gz.sha256
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
       - name: Compile iOS device app (unsigned)
         run: |
           xcodebuild -project Questify.xcodeproj -scheme Questify \
@@ -115,6 +130,15 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: test-products-${{ github.sha }}
+          path: ${{ runner.temp }}/test-product-transfer
+      - name: Verify and restore same-run test products
+        run: |
+          python3 tools/test_products.py restore \
+            --archive "$RUNNER_TEMP/test-product-transfer/questify-test-products.tar.gz" \
+            --destination "$RUNNER_TEMP/prebuilt-tests" --commit "$GITHUB_SHA" --github-env "$GITHUB_ENV"
       - name: Select an available iPhone simulator
         run: |
           xcrun simctl list devices available --json > "$RUNNER_TEMP/simulators.json"
@@ -133,16 +157,14 @@ jobs:
         run: xcrun simctl bootstatus "$TEST_SIMULATOR_ID" -b
       - name: Run all app-hosted XCTest methods (unsigned)
         run: |
-          xcodebuild -project Questify.xcodeproj -scheme QuestifyAppUnitTests \
-            -configuration Debug -sdk iphonesimulator \
+          xcodebuild -xctestrun "$APP_UNIT_XCTESTRUN" \
             -destination "platform=iOS Simulator,id=$TEST_SIMULATOR_ID" \
             -destination-timeout 60 \
-            -derivedDataPath "$RUNNER_TEMP/questify-app-unit-tests" \
             -resultBundlePath "$RUNNER_TEMP/questify-app-unit-results.xcresult" \
             -parallel-testing-enabled NO -maximum-concurrent-test-simulator-destinations 1 \
             -test-timeouts-enabled YES -default-test-execution-time-allowance 60 \
             -maximum-test-execution-time-allowance 120 \
-            -only-testing:QuestifyAppUnitTests CODE_SIGNING_ALLOWED=NO test
+            -only-testing:QuestifyAppUnitTests test-without-building
       - name: Retain app-unit test results briefly
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -159,11 +181,22 @@ jobs:
         shard: [0, 1, 2, 3, 4, 5]
     needs: native
     runs-on: macos-26
-    timeout-minutes: 25
+    # Run49 spent 9–13 minutes on setup/build/launch before executing methods.
+    # Reuse products; keep a bounded margin for the full shard and result export.
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: test-products-${{ github.sha }}
+          path: ${{ runner.temp }}/test-product-transfer
+      - name: Verify and restore same-run test products
+        run: |
+          python3 tools/test_products.py restore \
+            --archive "$RUNNER_TEMP/test-product-transfer/questify-test-products.tar.gz" \
+            --destination "$RUNNER_TEMP/prebuilt-tests" --commit "$GITHUB_SHA" --github-env "$GITHUB_ENV"
       - name: Select an available iPhone simulator
         run: |
           xcrun simctl list devices available --json > "$RUNNER_TEMP/simulators.json"
@@ -184,15 +217,19 @@ jobs:
         run: |
           python3 tools/run_ui_shard.py --shard ${{ matrix.shard }} --count 6 \
             --simulator "$TEST_SIMULATOR_ID" \
-            --derived-data "$RUNNER_TEMP/questify-ui-tests" \
+            --xctestrun "$UI_XCTESTRUN" --deadline-seconds 1680 \
             --result-bundle "$RUNNER_TEMP/questify-ui-results.xcresult"
       - name: Export offline fixture screenshots
         if: always()
         run: |
-          if [ -d "$RUNNER_TEMP/questify-ui-results.xcresult" ]; then
+          mkdir -p "$RUNNER_TEMP/questify-ui-attachments"
+          if [ -f "$RUNNER_TEMP/questify-ui-results.xcresult/Info.plist" ]; then
             xcrun xcresulttool export attachments \
               --path "$RUNNER_TEMP/questify-ui-results.xcresult" \
               --output-path "$RUNNER_TEMP/questify-ui-attachments"
+          else
+            echo 'No finalized xcresult. Runtime job remains failed/incomplete; capturing only the current simulator screen for diagnosis.'
+            xcrun simctl io "$TEST_SIMULATOR_ID" screenshot "$RUNNER_TEMP/questify-ui-attachments/incomplete-shard-${{ matrix.shard }}.png"
           fi
       - name: Retain synthetic UI screenshots briefly
         if: always()

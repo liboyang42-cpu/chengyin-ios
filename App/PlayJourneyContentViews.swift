@@ -8,7 +8,7 @@ import SwiftUI
         Group {
             if model.visible, let problem = model.problem {
                 Section("journey.check.title") {
-                    Text(verbatim: problem.skill).font(.headline)
+                    Text(verbatim: problem.skill).font(.headline).accessibilityIdentifier("journey.check.stage")
                     Text(verbatim: problem.tier)
                     if problem.advantage { Label("journey.advantage", systemImage: "plus.circle") }
                     if problem.disadvantage { Label("journey.disadvantage", systemImage: "minus.circle") }
@@ -39,13 +39,11 @@ import SwiftUI
                     if model.acting { ProgressView("journey.working") }
                     if !model.available { Text("journey.disabled") }
                     Button("journey.close") { model.close() }.accessibilityIdentifier("journey.check.close")
-                }.accessibilityIdentifier("journey.check.stage")
+                }
             } else if model.problem != nil && !model.nodeDone {
                 Button("journey.check.title") { model.reopen() }.accessibilityIdentifier("journey.check.reopen")
             }
         }
-        .task { await model.probe(nodeDone: nodeDone) }
-        .onChange(of: nodeDone) { _, done in model.updateNodeDone(done) }
         .sheet(item: Binding(get: { model.review }, set: { if $0 == nil { model.cancelReview() } })) { review in
             NavigationStack {
                 Form {

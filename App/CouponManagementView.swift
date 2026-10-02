@@ -181,7 +181,7 @@ import SwiftUI
     @ObservedObject var model: CouponManagementScreenModel
     let review: CouponManagementReview
     var body: some View {
-        Section("couponManagement.review") {
+        Section {
             switch review.intent {
             case .publish(let draft):
                 Text(draft.name).font(.headline)
@@ -198,6 +198,8 @@ import SwiftUI
             Button(LocalizedStringKey(model.core.canSimulate ? "couponManagement.simulate" : "couponManagement.confirmSubmission")) { model.run { await model.core.confirm(review) } }
                 .disabled(model.working || !model.core.canSubmit).accessibilityIdentifier("couponManagement.confirm")
             Button("couponManagement.cancel") { model.cancelReview() }.disabled(model.working)
-        }.accessibilityIdentifier("couponManagement.review")
+        } header: {
+            Text("couponManagement.review").accessibilityIdentifier("couponManagement.review")
+        }
     }
 }

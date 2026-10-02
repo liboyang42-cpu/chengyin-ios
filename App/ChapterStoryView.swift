@@ -11,6 +11,9 @@ import UIKit
     var deviceModel: ((Int) -> PlayDeviceCaptureCoordinator)? = nil
     var mediaScope: UUID = UUID()
     var makeAudio: (@MainActor () -> PlatformAudioPlayback)? = nil
+    var approvedArtworkHosts: Set<String> = []
+    var makeSensorProvider: (@MainActor () -> any PlayKitSensorProviding)? = nil
+    var spatialApproval = PlayKitSpatialApproval()
     var imageReader: (any RetainedPublicImageReading)? = nil
     let nodeDestination: (Int) -> AnyView
     @State private var advancedVariables: [String: PlayWireValue] = [:]
@@ -43,6 +46,14 @@ import UIKit
                         segmentBody(segment).frame(maxWidth: .infinity, alignment: .leading)
                             .accessibilityIdentifier("chapterStory.segment." + segment.id)
                     }
+                    if model.thoughtSyncPhase == .syncing { ProgressView("chapterStory.thought.syncing") }
+                    if model.thoughtSyncPhase == .disabled { Text("chapterStory.thought.disabled").font(.footnote).foregroundStyle(.secondary) }
+                    if model.thoughtSyncPhase == .needsReadback {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("chapterStory.thought.readback")
+                            Button("playx.refresh") { Task { await model.load() } }
+                        }.accessibilityIdentifier("chapterStory.thought.readback")
+                    }
                     audioSelection
                     if audioURL != nil { PlatformAudioHost(rawURL: audioURL, scope: mediaScope, makeModel: makeAudio) }
                     Text("chapterStory.end").font(.footnote).foregroundStyle(.secondary)
@@ -66,6 +77,8 @@ import UIKit
             Button("chapterStory.discard", role: .destructive) { dirtyNodes = []; dismiss() }
             Button("chapterStory.keepEditing", role: .cancel) {}
         } message: { Text("chapterStory.discardBody") }
+        .task(id: "\(model.identity ?? ""):chapter=\(chapterID)") { if visible { await model.claimVisibleThoughts(chapterID: chapterID) } }
+        .onChange(of: model.snapshot) { _, _ in if visible { Task { await model.claimVisibleThoughts(chapterID: chapterID) } } }
         .onChange(of: model.storyVariables) { _, next in advancedVariables.merge(next) { _, new in new } }
         .onChange(of: model.identity) { _, _ in advancedVariables = [:]; dirtyNodes = []; activeInlineNodeID = nil; audioURL = nil }
         .onChange(of: scenePhase) { _, phase in if phase != .active { audioURL = nil } }
@@ -105,7 +118,7 @@ import UIKit
             if let node = model.snapshot?.visibleNodes.first(where: { $0.id == id }),
                node.hasAdvancedPrerequisite, let advanced = advancedModel?(id) {
                 ChapterStoryGameHost(advanced: advanced, device: deviceModel?(id), mediaScope: mediaScope,
-                    makeAudio: makeAudio, fallback: { nodeDestination(id) },
+                    makeAudio: makeAudio, approvedArtworkHosts: approvedArtworkHosts, makeSensorProvider: makeSensorProvider, spatialApproval: spatialApproval, fallback: { nodeDestination(id) },
                     variables: { advancedVariables.merge($0) { _, new in new } },
                     ready: { try? model.acceptAdvanced($0) },
                     inline: { activeInlineNodeID = id },
@@ -132,18 +145,34 @@ import UIKit
     let device: PlayDeviceCaptureCoordinator?
     let mediaScope: UUID
     let makeAudio: (@MainActor () -> PlatformAudioPlayback)?
+    var approvedArtworkHosts: Set<String> = []
+    var makeSensorProvider: (@MainActor () -> any PlayKitSensorProviding)? = nil
+    var spatialApproval = PlayKitSpatialApproval()
     let fallback: () -> AnyView
     let variables: ([String: PlayWireValue]) -> Void
     let ready: (PlayAdvancedState) -> Void
     let inline: () -> Void
     let dirty: (Bool) -> Void
+    @State private var selection = ChapterInlineKitSelection()
+    @State private var hasDraft = false
+    @State private var requestedKind: PlayKitScreenKind?
+    @State private var confirmSwitch = false
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             if let state = advanced.state, advanced.isCurrent {
-                if state.inline, let kind = PlayKitScreenKind.present(in: state).first {
+                if state.inline, let kind = selection.selected ?? ChapterInlineKitSelection.preferred(in: state) {
+                    kindNavigation(state, current: kind)
                     PlayKitInlineHost(model: advanced, kind: kind, device: device, mediaScope: mediaScope,
-                        makeAudio: makeAudio, reportDirty: dirty)
+                        makeAudio: makeAudio, approvedArtworkHosts: approvedArtworkHosts, reportDirty: { value in
+                            // A disappearing previous form must not clear a newer form's draft flag.
+                            guard selection.sessionID == state.sessionID, selection.selected == kind else { return }
+                            hasDraft = value; dirty(value)
+                        }, makeSensorProvider: makeSensorProvider, spatialApproval: spatialApproval)
+                        .id("\(state.sessionID):\(kind.rawValue)")
                 } else {
+                    if state.inline {
+                        ContentUnavailableView("playkit.unavailable", systemImage: "rectangle.slash")
+                    }
                     NavigationLink { fallback() } label: { Label("chapterStory.play", systemImage: "play.circle") }
                 }
             } else if advanced.phase == "loading" { ProgressView("chapterStory.loadingGame") }
@@ -154,10 +183,51 @@ import UIKit
         }
         .task { await advanced.start(); publish() }
         .onChange(of: advanced.state) { _, _ in publish() }
+        .confirmationDialog("chapterStory.switchQuestion", isPresented: $confirmSwitch, titleVisibility: .visible) {
+            Button("chapterStory.switchDiscard", role: .destructive) {
+                if let requestedKind { switchKind(requestedKind) }
+                requestedKind = nil
+            }
+            Button("chapterStory.keepEditing", role: .cancel) { requestedKind = nil }
+        } message: { Text("chapterStory.switchBody") }
         .onDisappear { device?.cancel(); dirty(false) }
+    }
+    @ViewBuilder private func kindNavigation(_ state: PlayAdvancedState, current: PlayKitScreenKind) -> some View {
+        let kinds = PlayKitScreenKind.present(in: state)
+        if !kinds.isEmpty && (kinds.count > 1 || !kinds.contains(current)) {
+            Menu {
+                ForEach(kinds) { kind in
+                    Button { requestKind(kind) } label: {
+                        Label(LocalizedStringKey("playkit.kind." + kind.rawValue), systemImage: kind == current ? "circle.inset.filled" : ChapterInlineKitSelection.complete(kind, in: state) ? "checkmark.circle" : "circle")
+                    }
+                }
+            } label: { Label("chapterStory.chooseTask", systemImage: "list.bullet") }
+                .disabled(advanced.pending != nil || advanced.phase != "ready")
+                .accessibilityIdentifier("chapterStory.chooseTask")
+            if ChapterInlineKitSelection.complete(current, in: state),
+               let next = ChapterInlineKitSelection.preferred(in: state, excluding: current) {
+                Button("chapterStory.nextTask") { requestKind(next) }
+                    .disabled(advanced.pending != nil || advanced.phase != "ready")
+                    .accessibilityIdentifier("chapterStory.nextTask")
+            }
+        }
+    }
+    private func requestKind(_ kind: PlayKitScreenKind) {
+        guard kind != selection.selected, advanced.isCurrent, advanced.pending == nil, advanced.phase == "ready" else { return }
+        if hasDraft { requestedKind = kind; confirmSwitch = true }
+        else { switchKind(kind) }
+    }
+    private func switchKind(_ kind: PlayKitScreenKind) {
+        guard advanced.isCurrent, advanced.pending == nil, advanced.phase == "ready", let state = advanced.state,
+              selection.select(kind, in: state) else { return }
+        device?.cancel(); hasDraft = false; dirty(false)
+        // Only this local form's identity changes. The authoritative state and pending journal are untouched.
     }
     private func publish() {
         guard advanced.isCurrent, let state = advanced.state else { return }
+        if selection.sessionID != state.sessionID { hasDraft = false; requestedKind = nil; confirmSwitch = false; dirty(false) }
+        // Keep the frozen action's recovery screen even if a readback removes its segment.
+        selection.reconcile(state, preservingDraft: hasDraft || advanced.pending != nil)
         if state.inline { inline() }
         variables(state.storyVariables)
         if state.readyForBase { ready(state) }

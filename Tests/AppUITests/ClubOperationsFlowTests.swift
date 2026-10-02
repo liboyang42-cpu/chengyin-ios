@@ -11,15 +11,21 @@ final class ClubOperationsFlowTests: XCTestCase {
         app.launch(); XCTAssertTrue(element("club.ops.fixtureNotice").waitForExistence(timeout: 10))
     }
     private func tap(_ id: String) {
-        let control = reveal(id)
-        XCTAssertTrue(control.exists, app.debugDescription)
-        XCTAssertTrue(control.isHittable, app.debugDescription); control.tap()
+        _ = reveal(id)
+        let buttons = app.buttons.matching(identifier: id)
+        guard let control = buttons.allElementsBoundByIndex.reversed().first(where: { $0.exists && $0.isHittable }) else {
+            XCTFail("Missing presented button: \(id). \(app.debugDescription)"); return
+        }
+        XCTAssertTrue(control.isEnabled, app.debugDescription); control.tap()
     }
     private func reveal(_ id: String) -> XCUIElement {
-        let control = element(id)
-        for _ in 0..<14 { if control.exists && control.isHittable { return control }; app.swipeUp() }
-        for _ in 0..<14 { if control.exists && control.isHittable { return control }; app.swipeDown() }
-        return control
+        let matches = app.descendants(matching: .any).matching(identifier: id)
+        func visible() -> XCUIElement? {
+            matches.allElementsBoundByIndex.reversed().first { $0.exists && $0.isHittable }
+        }
+        for _ in 0..<14 { if let control = visible() { return control }; app.swipeUp() }
+        for _ in 0..<14 { if let control = visible() { return control }; app.swipeDown() }
+        return matches.firstMatch
     }
     private func count(_ value: Int) {
         let expected = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", String(value)), object: element("club.ops.writeCount"))
@@ -36,9 +42,13 @@ final class ClubOperationsFlowTests: XCTestCase {
     }
     func testUnknownReadbackDoesNotUnlockAndReopenDoesNotReplay() {
         launch("unknown"); reviewSetting(); tap("club.ops.confirm"); count(1)
-        tap("club.ops.readBack"); XCTAssertTrue(element("club.ops.outcomeUnknown").exists)
+        tap("club.ops.readBack"); XCTAssertTrue(reveal("club.ops.outcomeUnknown").exists)
+        XCTAssertFalse(element("club.ops.acknowledged").exists); count(1)
         tap("club.ops.close"); app.buttons["Leave form"].tap(); tap("club.ops.openManage")
-        XCTAssertTrue(element("club.ops.outcomeUnknown").waitForExistence(timeout: 5)); count(1)
+        XCTAssertTrue(reveal("club.ops.outcomeUnknown").exists); count(1)
+        _ = reveal("club.ops.setting.publicVisible")
+        let setting = app.buttons["club.ops.setting.publicVisible"].firstMatch
+        XCTAssertTrue(setting.exists); XCTAssertFalse(setting.isEnabled)
     }
     func testAdminProfileHasNoOwnerSettingsOrRoleActions() {
         launch("admin"); tap("club.ops.openManage")
@@ -61,7 +71,9 @@ final class ClubOperationsFlowTests: XCTestCase {
     }
     func testMemberRoleConfirmationIdentifiesTarget() {
         launch(); tap("club.ops.openManage"); tap("club.ops.member.704")
-        XCTAssertTrue(app.staticTexts["Fixture member (#704)"].waitForExistence(timeout: 5))
+        // LabeledContent exposes a combined localized label and value.
+        let target = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "Fixture member (#704)")).firstMatch
+        XCTAssertTrue(target.waitForExistence(timeout: 5), app.debugDescription)
         tap("club.ops.confirm"); count(1)
     }
     func testChineseProfileValidationAndDiscard() {
@@ -73,7 +85,13 @@ final class ClubOperationsFlowTests: XCTestCase {
     }
     func testAccountSwitchDuringDelayedWriteKeepsOldOutcomeHidden() {
         launch("delayed"); reviewSetting(); tap("club.ops.confirm"); count(1)
+        XCTAssertEqual(element("club.ops.writeCount").value as? String, "account=701;finished=0")
         tap("club.ops.switchAccount")
-        XCTAssertFalse(element("club.ops.acknowledged").exists)
+        let completed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "account=702;finished=1"), object: element("club.ops.writeCount"))
+        XCTAssertEqual(XCTWaiter.wait(for: [completed], timeout: 5), .completed, app.debugDescription)
+        XCTAssertTrue(element("club.ops.field.name").waitForExistence(timeout: 5))
+        XCTAssertFalse(element("club.ops.acknowledged").exists); count(1)
+        tap("club.ops.switchAccount")
+        XCTAssertTrue(reveal("club.ops.outcomeUnknown").exists); count(1)
     }
 }

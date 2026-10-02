@@ -1,0 +1,86 @@
+{
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "chapterStory.switchQuestion": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Switch tasks?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "切换任务？"
+          }
+        }
+      }
+    },
+    "chapterStory.switchDiscard": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard this draft and switch"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "舍弃当前草稿并切换"
+          }
+        }
+      }
+    },
+    "chapterStory.switchBody": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your unsent changes will be discarded. Submitted results and pending outcomes stay unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将舍弃当前尚未提交的修改。已提交结果和待确认结果不会改变。"
+          }
+        }
+      }
+    },
+    "chapterStory.chooseTask": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a task"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择任务"
+          }
+        }
+      }
+    },
+    "chapterStory.nextTask": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next unfinished task"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下一个未完成任务"
+          }
+        }
+      }
+    }
+  }
+}

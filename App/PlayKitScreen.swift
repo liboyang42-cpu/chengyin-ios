@@ -16,6 +16,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
     // Empty by default. Backend/device/media acceptance is independent of having UI.
     var approvedArtworkHosts: Set<String> = []
     var makeSensorProvider: (@MainActor () -> any PlayKitSensorProviding)? = nil
+    var spatialApproval = PlayKitSpatialApproval()
     @State var text = ""
     @State var selected = Set<String>()
     @State var answers: [String: String] = [:]
@@ -33,10 +34,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
     @Environment(\.scenePhase) private var scenePhase
     private var segment: PlayWireValue {
         guard let state = model.state else { return .null }
-        if state.playKit[kind.rawValue].object != nil { return state.playKit[kind.rawValue] }
-        if kind == .branch { return state.branch }
-        if kind == .random { return .object(["drawn": .array(state.draws), "drawCount": state.config["random"]["drawCount"], "deckName": state.config["random"]["deckName"]]) }
-        return .null
+        return ChapterInlineKitSelection.segment(kind, in: state)
     }
     var projection: PlayKitScreenProjection { .init(kind: kind, segment: segment) }
     var raw: PlayWireValue { segment }
@@ -84,7 +82,13 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
         }
         .onChange(of: model.isCurrent) { _, current in if !current { clearTransient() } }
         .onChange(of: scenePhase) { _, phase in
-            if phase != .active { review = nil; reviewedCompletion = nil; device?.cancel(); childReset = UUID() }
+            if phase != .active {
+                review = nil; reviewedCompletion = nil
+                if phase == .background || device?.isAuthorizing != true { device?.cancel() }
+                // Specialized children own interruption semantics. Destroying a sensor
+                // child on OS-permission inactivity would cancel its first-use grant.
+                if phase == .background { childReset = UUID() }
+            }
         }
         .onDisappear { clearTransient() }
     }
@@ -138,6 +142,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
                 revisionIdentity: runtimeIdentity, currentRevisionIdentity: { model.state.map { "\($0.sessionID):\($0.version)" } ?? "" })
                 .id(childReset)
         case .sort, .match, .classify: reasoningForm
+        case .blindTaste, .diyName, .silentOrder, .slowTask, .musicCorner, .timeWindow: legacyBody
         case .ballShake, .quietHold, .compass, .shout:
             PlayKitSensorChallengeView(kind: kind, segment: segment, enabled: enabled, active: model.isCurrent,
                 onDirty: { dirty = true }, requestReview: prepare,
@@ -149,8 +154,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
     @ViewBuilder var authoritativeResult: some View {
         if kind == .photoCheck, segment["degraded"].bool == true {
             Label("playkit.photo.noVerdict", systemImage: "exclamationmark.bubble")
-        } else if let passed = segment["passed"].bool,
-                  projection.complete || (segment["attempts"].integer ?? segment["tries"].integer ?? 0) > 0 {
+        } else if let passed = projection.reportedPass {
             Label(passed ? "playkit.result.passed" : "playkit.result.notPassed", systemImage: passed ? "checkmark.circle" : "info.circle")
         } else if projection.complete { Label("playkit.result.recorded", systemImage: "checkmark.circle") }
         if let feedback = projection.feedback, !feedback.isEmpty { Text(verbatim: feedback) }
@@ -178,11 +182,12 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
         PlayKitArtwork(source: url, approvedHosts: approvedArtworkHosts)
     }
     func textBinding(limit: Int = 4096) -> Binding<String> {
-        Binding(get: { text }, set: { text = String($0.prefix(max(1, limit))); dirty = true })
+        Binding(get: { text }, set: { text = PlayKitInputContract.limitText($0, toUTF16: max(1, limit)); dirty = true })
     }
     private func loadInitial() {
         guard !loaded else { return }; loaded = true; sessionIdentity = model.state?.sessionID
         if kind == .note { text = segment["mine"].text ?? segment["mine"]["text"].text ?? "" }
+        if kind == .diyName { text = segment["name"].text ?? "" }
         if kind == .dailySign { text = segment["myText"].text ?? "" }
         if kind == .profile { answers = (segment["answers"].object ?? [:]).compactMapValues(\.text); avatarURL = segment["avatarUrl"].text ?? "" }
     }
@@ -248,8 +253,9 @@ private struct PlayKitScreenChrome: ViewModifier {
     var approvedArtworkHosts: Set<String> = []
     var reportDirty: ((Bool) -> Void)? = nil
     var makeSensorProvider: (@MainActor () -> any PlayKitSensorProviding)? = nil
+    var spatialApproval = PlayKitSpatialApproval()
     var body: some View {
         PlayKitScreen(model: model, kind: kind, presentation: .inline, reportDirty: reportDirty,
-            device: device, mediaScope: mediaScope, makeAudio: makeAudio, approvedArtworkHosts: approvedArtworkHosts, makeSensorProvider: makeSensorProvider)
+            device: device, mediaScope: mediaScope, makeAudio: makeAudio, approvedArtworkHosts: approvedArtworkHosts, makeSensorProvider: makeSensorProvider, spatialApproval: spatialApproval)
     }
 }

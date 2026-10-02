@@ -235,6 +235,24 @@ final class ClubOperationsServiceTests: XCTestCase {
         guard case .outcomeUnknown = coordinator.state(target: target) else { return XCTFail() }
         XCTAssertEqual(coordinator.readback(target: target), .idle)
     }
+    func testHeldWriteFinishesOnlyAfterAccountSwitchAndKeepsUnknownLock() async throws {
+        let access = ClubOperationsFixtureAccess(scenario: .delayed), coordinator = ClubOperationsCoordinator(access: access)
+        var release: CheckedContinuation<Void, Never>?
+        var finished = false
+        access.delayedWriteGate = { await withCheckedContinuation { release = $0 } }
+        access.onWriteFinished = { finished = true }
+        let review = try await prepare(access, coordinator)
+        let task = Task { await coordinator.confirm(review) }
+        for _ in 0..<1000 { if release != nil { break }; await Task.yield() }
+        guard let pending = release else { task.cancel(); return XCTFail("Synthetic write never reached its gate") }
+        XCTAssertEqual(access.writeCount, 1); XCTAssertFalse(finished)
+        access.switchAccount(); coordinator.synchronizeSession(); pending.resume()
+        await task.value
+        XCTAssertTrue(finished); XCTAssertEqual(coordinator.state(target: target), .idle)
+        access.switchAccount(); coordinator.synchronizeSession()
+        guard case .outcomeUnknown = coordinator.state(target: target) else { return XCTFail() }
+        XCTAssertEqual(access.writeCount, 1)
+    }
     func testCancellationBeforeConfirmationDispatchSendsNothing() async throws {
         let access = ClubOperationsFixtureAccess(scenario: .owner), coordinator = ClubOperationsCoordinator(access: access)
         let review = try await prepare(access, coordinator)

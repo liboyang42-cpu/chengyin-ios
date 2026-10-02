@@ -1,0 +1,23 @@
+{
+  "new_authored_core_tests": 12,
+  "python_contracts": {
+    "run": 472,
+    "passed": 464,
+    "skipped": 8,
+    "failed": 0
+  },
+  "python_tools": {
+    "run": 33,
+    "passed": 33,
+    "skipped": 0,
+    "failed": 0
+  },
+  "project_scaffold": "PASS",
+  "swift_tests": "NOT_RUN",
+  "ios_build": "NOT_RUN",
+  "ui_tests": "NOT_RUN",
+  "device_tracking_permissions": "NOT_RUN",
+  "backend_acceptance": "NOT_RUN",
+  "activation": "Empty spatial modes, approved hosts and marker calibrations by default",
+  "remaining": "GLB model decoder/asset policy; marker calibration and all device/Apple/live acceptance"
+}

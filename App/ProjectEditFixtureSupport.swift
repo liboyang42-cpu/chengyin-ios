@@ -15,11 +15,12 @@ import SwiftUI
         disabled = arguments.contains("--project-edit-disabled")
         let scope: ProjectEditScope = arguments.contains("--project-edit-whitelist") ? .whitelist : .full
         var existing = ProjectEditSyntheticFixtures.snapshot(scope: scope)
+        if arguments.contains("--project-edit-rich-story") { existing.draft = ProjectEditRichStoryFixtures.draft(); existing.draft.baseRevision = "fixture-r1"; existing.draft.publishToCreative = false }
         if arguments.contains("--project-edit-free-explore") { existing.draft.product = .freeExplore }
         service = ProjectEditSyntheticService(scenario: arguments.contains("--project-edit-unknown") ? .unknown : .accepted, snapshot: existing)
         if arguments.contains("--project-edit-edit") || scope == .whitelist { initial = existing }
         else {
-            let draft = arguments.contains("--project-edit-blank") ? ProjectEditDraft(product: existing.draft.product) : ProjectEditSyntheticFixtures.draft(product: existing.draft.product)
+            let draft = arguments.contains("--project-edit-blank") ? ProjectEditDraft(product: existing.draft.product) : (arguments.contains("--project-edit-rich-story") ? ProjectEditRichStoryFixtures.draft() : ProjectEditSyntheticFixtures.draft(product: existing.draft.product))
             initial = .init(draft: draft)
         }
     }

@@ -16,6 +16,13 @@ final class TeamFlowTests: XCTestCase {
         XCTAssertTrue(element.exists, app.debugDescription, file: file, line: line)
         XCTAssertTrue(element.isHittable, app.debugDescription, file: file, line: line)
     }
+    private func assertSimulationCompleted() {
+        let message = app.descendants(matching: .any).matching(identifier: "team.message").firstMatch
+        for _ in 0..<12 { if message.exists && message.isHittable { break }; app.swipeDown() }
+        XCTAssertTrue(message.exists, app.debugDescription)
+        XCTAssertTrue(message.label.contains("Offline simulation completed. No real team, ticket or invitation changed."), app.debugDescription)
+        XCTAssertFalse(app.buttons["team.review.confirm"].exists)
+    }
     private func reviewLeave() {
         let button = app.buttons["team.leave"]; reveal(button); button.tap()
         XCTAssertTrue(app.buttons["team.review.confirm"].waitForExistence(timeout: 5))
@@ -41,13 +48,13 @@ final class TeamFlowTests: XCTestCase {
         reveal(app.buttons["team.review.cancel"]); app.buttons["team.review.cancel"].tap()
         XCTAssertTrue(app.navigationBars["Team details"].waitForExistence(timeout: 5))
         reviewLeave(); reveal(app.buttons["team.review.confirm"]); app.buttons["team.review.confirm"].tap()
-        XCTAssertTrue(app.staticTexts["Offline simulation completed. No real team, ticket or invitation changed."].waitForExistence(timeout: 5))
+        assertSimulationCompleted()
     }
     func testInvitationJoinReviewAndSimulation() {
         launch("invitation", destination: "invitation")
         let join = app.buttons["team.join"]; reveal(join); join.tap()
         reveal(app.buttons["team.review.confirm"]); app.buttons["team.review.confirm"].tap()
-        XCTAssertTrue(app.staticTexts["Offline simulation completed. No real team, ticket or invitation changed."].waitForExistence(timeout: 5))
+        assertSimulationCompleted()
         XCTAssertFalse(app.buttons["Purchase"].exists)
     }
     func testUnknownOutcomeCannotReplayAfterSameAccountReauthentication() {
@@ -89,7 +96,7 @@ final class TeamFlowTests: XCTestCase {
         reveal(app.buttons["team.review.cancel"]); app.buttons["team.review.cancel"].tap()
         XCTAssertEqual(toggle.value as? String, "1")
         reveal(review); review.tap(); reveal(app.buttons["team.review.confirm"]); app.buttons["team.review.confirm"].tap()
-        XCTAssertTrue(app.staticTexts["Offline simulation completed. No real team, ticket or invitation changed."].waitForExistence(timeout: 5))
+        assertSimulationCompleted()
     }
     func testMissingInviteShowsRecoverableInvalidLinkState() {
         launch(destination: "missing")

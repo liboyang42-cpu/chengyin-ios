@@ -6,14 +6,17 @@ def ident(name): return hashlib.sha256(name.encode()).hexdigest()[:24].upper()
 objects = {}
 def obj(object_key, **fields):
     key = ident(object_key); objects[key] = fields; return key
-sources = sorted([*ROOT.glob('App/*.swift'), *ROOT.glob('Core/*.swift')])
+sources = sorted([*ROOT.glob('App/*.swift'), *ROOT.glob('App/*.m'), *ROOT.glob('Core/*.swift')])
+headers = sorted(ROOT.glob('App/*.h'))
 resources = sorted(ROOT.glob('Resources/*.xcstrings'))
 refs, source_builds, resource_builds = [], [], []
-for path in sources + resources:
+for path in sources + resources + headers:
     relative = str(path.relative_to(ROOT))
-    ref = obj(relative, isa='PBXFileReference', lastKnownFileType='sourcecode.swift' if path.suffix == '.swift' else 'text.json.xcstrings', path=relative, sourceTree='<group>')
+    ref = obj(relative, isa='PBXFileReference', lastKnownFileType={'.swift': 'sourcecode.swift', '.m': 'sourcecode.c.objc', '.h': 'sourcecode.c.h'}.get(path.suffix, 'text.json.xcstrings'), path=relative, sourceTree='<group>')
     refs.append(ref)
-    build = obj('build:'+relative, isa='PBXBuildFile', fileRef=ref)
+    if path in headers: continue
+    options = {'settings': {'COMPILER_FLAGS': '-fobjc-arc'}} if path.suffix == '.m' else {}
+    build = obj('build:'+relative, isa='PBXBuildFile', fileRef=ref, **options)
     (source_builds if path in sources else resource_builds).append(build)
 config_ref = obj('base', isa='PBXFileReference', lastKnownFileType='text.xcconfig', path='Config/Base.xcconfig', sourceTree='<group>')
 product = obj('product', isa='PBXFileReference', explicitFileType='wrapper.application', includeInIndex=0, path='Questify.app', sourceTree='BUILT_PRODUCTS_DIR')
@@ -26,6 +29,7 @@ def configurations(scope):
     configs=[]
     for name in ['Debug','Release']:
         settings = {'SDKROOT':'iphoneos','CLANG_ENABLE_MODULES':'YES'} if scope=='project' else {'PRODUCT_NAME':'$(TARGET_NAME)','SUPPORTED_PLATFORMS':'iphoneos iphonesimulator','SWIFT_EMIT_LOC_STRINGS':'YES'}
+        if scope=='target': settings['SWIFT_OBJC_BRIDGING_HEADER']='$(SRCROOT)/App/Questify-Bridging-Header.h'
         if scope=='target': settings.update({'SWIFT_OPTIMIZATION_LEVEL':'-Onone' if name=='Debug' else '-O','DEBUG_INFORMATION_FORMAT':'dwarf' if name=='Debug' else 'dwarf-with-dsym'})
         if scope=='target' and name=='Debug':
             settings['SWIFT_ACTIVE_COMPILATION_CONDITIONS']='DEBUG $(inherited)'
@@ -96,7 +100,7 @@ ET.SubElement(scheme,'ArchiveAction',buildConfiguration='Release',revealArchiveI
 scheme_dir=folder/'xcshareddata/xcschemes';scheme_dir.mkdir(parents=True,exist_ok=True)
 ET.indent(scheme)
 ET.ElementTree(scheme).write(scheme_dir/'Questify.xcscheme',encoding='utf-8',xml_declaration=True)
-print(f'Generated Questify.xcodeproj: {len(sources)} Swift sources, {len(resources)} catalogs')
+print(f'Generated Questify.xcodeproj: {len(sources)} native sources, {len(resources)} catalogs')
 
 # Dedicated shared scheme prevents app-unit tests being repeated in every UI shard.
 unit_scheme=ET.Element('Scheme',LastUpgradeVersion='1500',version='1.3')

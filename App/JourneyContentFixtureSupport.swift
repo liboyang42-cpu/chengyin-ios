@@ -37,6 +37,7 @@ private final class JourneyFixtureHTTP: HTTPTransport {
                 PlayJourneyCheckView(model: model, nodeDone: false)
                 Button("Main task remains available") {}.accessibilityIdentifier("journey.fixture.mainTask")
             }.navigationTitle("journey.check.title")
+                .task { await model.probe(nodeDone: false) }
         }
     }
 }

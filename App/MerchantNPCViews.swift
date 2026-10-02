@@ -91,6 +91,7 @@ import SwiftUI
                     Toggle("merchantNPC.consent", isOn: $consent).accessibilityIdentifier("merchantNPC.consent")
                     Button("merchantNPC.reviewEnroll") { prepare(.enroll(samples: samples, requestID: UUID())) }
                         .disabled(!model.coordinator.canEnroll || samples.count != 5 || !ownsVoice || !consent)
+                        .accessibilityIdentifier("merchantNPC.reviewEnroll")
                     Button("merchantNPC.reviewRevoke", role: .destructive) { prepare(.revoke(requestID: UUID())) }.disabled(!consent)
                 }
                 Section("merchantNPC.avatar") {

@@ -3,6 +3,7 @@ import XCTest
 /// Authored integration tests. Host must mount ClubCommunityFixture under this flag.
 /// Apple simulator/build/runtime: NOT_RUN in this Linux delivery.
 final class ClubCommunityUITests: XCTestCase {
+    override func setUp() { super.setUp(); continueAfterFailure = false }
     private func app(_ locale: String = "en") -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments += ["--club-community-fixture", "-AppleLanguages", "(\(locale))", "-AppleLocale", locale]
@@ -11,11 +12,18 @@ final class ClubCommunityUITests: XCTestCase {
     func testFeedCommentAndHistoryNavigation() {
         let app = app()
         XCTAssertTrue(app.otherElements["club.community.post.20"].waitForExistence(timeout: 5))
-        app.buttons["Comments"].firstMatch.tap()
+        app.buttons["club.community.comments.20"].tap()
         XCTAssertTrue(app.otherElements["club.community.comment.30"].waitForExistence(timeout: 5))
         app.navigationBars.buttons.element(boundBy: 0).tap()
-        app.buttons["Edit history"].firstMatch.tap()
+        XCTAssertTrue(app.otherElements["club.community.post.20"].waitForExistence(timeout: 5))
+        let history = app.buttons["club.community.history.20"]
+        for _ in 0..<4 { if history.exists && history.isHittable { break }; app.swipeUp() }
+        XCTAssertTrue(history.exists); history.tap()
         XCTAssertTrue(app.staticTexts["Previous public content"].waitForExistence(timeout: 5))
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        let comments = app.buttons["club.community.comments.20"]
+        XCTAssertTrue(comments.waitForExistence(timeout: 5)); comments.tap()
+        XCTAssertTrue(app.otherElements["club.community.comment.30"].waitForExistence(timeout: 5))
     }
     func testComposerCancelAndImmutableReview() {
         let app = app()

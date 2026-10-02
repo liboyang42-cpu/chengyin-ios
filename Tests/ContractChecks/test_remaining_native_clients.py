@@ -20,7 +20,7 @@ class RemainingNativeClients(unittest.TestCase):
  def test_normal_publisher_uses_fresh_existing_readers(self):
   s=read('App/AppSession.swift')
   for text in ['PublisherSourceAuthorityReader(topics: topicReader, clubs: self','PublisherLifecycleHostContext(configuration: configuration','freshPublisherAuthority(resource, session: captured)']: self.assertIn(text,s)
-  self.assertIn('grants: .dormant',read('App/PublisherLifecycleHostHooks.swift'))
+  self.assertIn('grants: PublisherLifecycleGrants = .dormant',read('App/PublisherLifecycleHostHooks.swift'))
   self.assertIn('CreatorApplicationHostLink(context: publisherContext',read('App/CreatorContentViews.swift'))
   self.assertIn('PublisherLifecycleNavigationLink',read('App/PlatformConsumerSessionOwner.swift'))
  def test_saved_topic_xp_preserves_editor(self):

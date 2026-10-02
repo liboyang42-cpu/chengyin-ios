@@ -7,8 +7,9 @@ public enum PlayKitScreenKind: String, CaseIterable, Identifiable {
     case qa, branch, estimate, pricePair, hiddenObject, predict, random, scan, walk, bingo
     case profile, photoCheck, note, typeIn, dailySign, steps
     case sort, match, classify, compass, shout
+    case blindTaste, diyName, silentOrder, slowTask, musicCorner, timeWindow
     /// Source priority, preserving main tasks before ambient topic progress.
-    public static let priority: [Self] = [.qa, .branch, .predict, .random, .estimate, .pricePair, .sort, .match, .classify, .hiddenObject, .scan, .profile, .photoCheck, .note, .typeIn, .coinFlip, .diceRoll, .reaction, .ballShake, .quietHold, .compass, .shout, .countdown, .stopwatch, .steps, .walk, .dailySign, .bingo]
+    public static let priority: [Self] = [.qa, .branch, .predict, .random, .estimate, .pricePair, .sort, .match, .classify, .hiddenObject, .scan, .profile, .photoCheck, .note, .typeIn, .coinFlip, .diceRoll, .reaction, .ballShake, .quietHold, .compass, .shout, .countdown, .stopwatch, .blindTaste, .diyName, .silentOrder, .steps, .walk, .slowTask, .musicCorner, .dailySign, .timeWindow, .bingo]
     public static func present(in state: PlayAdvancedState) -> [Self] {
         priority.filter { state.playKit[$0.rawValue].object != nil || ($0 == .branch && state.config["branch"]["enabled"].bool == true) || ($0 == .random && state.config["random"]["enabled"].bool == true) }
     }
@@ -40,6 +41,10 @@ public struct PlayKitScreenProjection: Equatable {
         case .estimate: return segment["submitted"].bool == true
         case .predict: return !(segment["myOptionKey"].text ?? "").isEmpty
         case .scan: return segment["scanned"].bool == true
+        case .blindTaste: return segment["solved"].bool == true
+        case .diyName: return !(segment["name"].text ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        case .slowTask: return segment["claimed"].bool == true
+        case .musicCorner, .silentOrder, .timeWindow: return false
         case .profile, .note, .compass: return segment["done"].bool == true
         case .photoCheck: return segment["passed"].bool == true || segment["flagged"].bool == true
         case .typeIn:
@@ -60,9 +65,22 @@ public struct PlayKitScreenProjection: Equatable {
         case .reaction, .ballShake, .quietHold, .countdown, .stopwatch, .shout: return segment["submitted"].bool == true
         }
     }
+    /// An attempt cap is configuration, not proof an attempt occurred. In
+    /// particular stopwatch exposes tries before it has an attempts field.
+    public var reportedPass: Bool? {
+        if kind == .photoCheck {
+            if segment["degraded"].bool == true { return nil }
+            if segment["passed"].bool == true { return true }
+            if segment["flagged"].bool == true { return nil } // Explicit fallback readback has its own wording.
+            return (segment["tries"].integer ?? 0) > 0 ? segment["passed"].bool : nil
+        }
+        let hasAttempt = (segment["attempts"].integer ?? 0) > 0
+        guard complete || segment["submitted"].bool == true || segment["finished"].bool == true || hasAttempt else { return nil }
+        return segment["passed"].bool
+    }
     public var feedback: String? { segment["lastFeedback"].text ?? segment["feedback"].text }
     public var options: [PlayKitOption] {
-        if kind == .predict { return PlayKitOption.read(segment["options"], idKey: "key") }
+        if kind == .predict || kind == .blindTaste { return PlayKitOption.read(segment["options"], idKey: "key") }
         if kind == .branch { return PlayKitOption.read(segment["currentStep"]["options"]) }
         if kind == .pricePair { return PlayKitOption.read(segment["items"], labelKey: "name") }
         return PlayKitOption.read(segment["options"])
@@ -113,7 +131,7 @@ public enum PlayKitInputContract {
         func require(_ condition: Bool) throws { if !condition { throw PlayExperienceError.invalidAction } }
         func text(_ key: String, max: Int = 4096) -> Bool {
             guard let value = payload[key]?.text else { return false }
-            return !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && value.count <= max
+            return !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && value.utf16.count <= max
         }
         func finite(_ key: String, range: ClosedRange<Double>) -> Bool {
             guard let value = payload[key]?.double else { return false }; return value.isFinite && range.contains(value)
@@ -150,7 +168,7 @@ public enum PlayKitInputContract {
                 // Current mini-program projection marks every profile question required.
                 try require(!answer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 let limit = question["maxLength"].integer ?? 0
-                try require(answer.count <= (limit > 0 ? limit : 4096))
+                try require(answer.utf16.count <= (limit > 0 ? limit : 4096))
                 if question["kind"].text == "pick" { try require(PlayKitOption.read(question["options"], idKey: "key").contains { $0.id == answer }) }
             }
             let avatar = payload["avatarUrl"]?.text ?? ""
@@ -185,8 +203,26 @@ public enum PlayKitInputContract {
             let placement = payload["placement"]?.object ?? [:]
             try require(keys == ["placement"] && !items.isEmpty && Set(placement.keys) == items && placement.values.allSatisfy { bins.contains($0.text ?? "") })
         case .compass: try require(keys == ["bearing"] && finite("bearing", range: 0...359))
+        case .blindTaste: try require(keys == ["key"] && projection.options.contains { $0.id == payload["key"]?.text })
+        case .diyName: try require(keys == ["name"] && text("name", max: max(1, segment["maxLength"].integer ?? 16)))
+        case .slowTask:
+            try require(payload.isEmpty)
+            if action == "START_SLOW_TASK" { try require(segment["started"].bool != true) }
+            else if action == "CLAIM_SLOW_TASK" { try require(segment["started"].bool == true && segment["daysLeft"].integer == 0) }
+            else { throw PlayExperienceError.unsupported }
+        case .silentOrder, .musicCorner, .timeWindow: throw PlayExperienceError.unsupported
         case .bingo, .walk, .steps: throw PlayExperienceError.unsupported // WeChat encrypted step proof has no approved native replacement.
         }
+    }
+    /// Match the backend's UTF-16 limits without splitting a visible grapheme.
+    public static func limitText(_ text: String, toUTF16 limit: Int) -> String {
+        var result = "", used = 0
+        for character in text {
+            let value = String(character), units = value.utf16.count
+            guard used + units <= max(0, limit) else { break }
+            result += value; used += units
+        }
+        return result
     }
     /// Aspect-fit image hit testing. Letterboxing and out-of-image taps are rejected,
     /// not clamped into a valid-looking corner hit.

@@ -1,5 +1,6 @@
 import XCTest
 final class JourneyContentFlowTests: XCTestCase {
+    override func setUp() { super.setUp(); continueAfterFailure = false }
     private func launch(_ scenario: String = "default", language: String = "en") -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--uitesting-module", "journeyContent", "--uitesting-journey-scenario", scenario,

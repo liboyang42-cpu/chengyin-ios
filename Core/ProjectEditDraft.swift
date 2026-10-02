@@ -55,7 +55,7 @@ public struct ProjectEditNode: Identifiable, Codable, Equatable {
     }
 }
 public struct ProjectEditBlock: Identifiable, Codable, Equatable {
-    public enum Kind: String, Codable, CaseIterable { case text, node, image, audio }
+    public enum Kind: String, Codable, CaseIterable, Hashable { case text, node, image, audio, dream, mood, thought, voice, odd, reveal }
     public var id = UUID().uuidString
     public var kind: Kind
     public var content = ""
@@ -88,12 +88,13 @@ public struct ProjectEditChapter: Identifiable, Codable, Equatable {
         return !value.isEmpty && !["暂无描述", "暂无", "无"].contains(value)
     }
     public mutating func addNode(product: ProjectEditProduct) throws {
+        guard preserved["ending"]?.object == nil else { throw ProjectEditError.invalidDraft }
         guard product != .city || hasRealStory else { throw ProjectEditError.storyRequired }
         let node = ProjectEditNode(); nodes.append(node)
         if blocks != nil { blocks?.append(.init(kind: .node, nodeID: node.id)) }
     }
     public mutating func removeNode(id: String) {
-        nodes.removeAll { $0.id == id }; blocks?.removeAll { $0.kind == .node && $0.nodeID == id }
+        nodes.removeAll { $0.id == id }; blocks?.removeAll { ($0.kind == .node || $0.isNarrative) && $0.nodeID == id }
     }
 }
 public struct ProjectEditTicket: Identifiable, Codable, Equatable {
@@ -190,8 +191,8 @@ public enum ProjectEditValidation {
         if draft.product == .freeExplore { need(dateTime(draft.recruitDeadline, endOfDay: true) != nil, "deadline", "deadline") }
         need(!draft.chapters.isEmpty, "chapters", "chapters")
         for (ci, chapter) in draft.chapters.enumerated() {
-            if draft.product == .city { need(chapter.hasRealStory, "story\(ci)", "story") }
             let standaloneStory = chapter.preserved["opening"] == .bool(true) || chapter.preserved["ending"]?.object != nil
+            if draft.product == .city && !standaloneStory { need(chapter.hasRealStory, "story\(ci)", "story") }
             need(standaloneStory || !chapter.nodes.isEmpty, "nodes\(ci)", "nodes")
             need((chapter.blocks?.count ?? 0) <= 200, "blocks\(ci)", "blocks")
             let nodeIDs = chapter.nodes.map(\.id)

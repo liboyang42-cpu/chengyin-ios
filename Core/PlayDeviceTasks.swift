@@ -175,20 +175,35 @@ public enum PlayDeviceOutput: Equatable {
     public func reviewedPhoto() -> PlayCompletionEvidence? {
         guard capturedContext == current(), !busy else { return nil }; return uploadedPhoto
     }
+    public var supportsLibraryPhotos: Bool { supports(.photo) && provider is any PlayKitPhotoLibraryProviding }
+    public var isAuthorizing: Bool { (provider as? any PlayDevicePermissionStateProviding)?.authorizationInFlight == true }
     public func supports(_ kind: PlayDeviceKind) -> Bool { provider.supported.contains(kind) }
-    public func capture(_ kind: PlayDeviceKind, photoFilter: PlayPhotoFilter? = nil) async {
+    public func capture(_ kind: PlayDeviceKind, photoFilter: PlayPhotoFilter? = nil, cameraFrame: PlayKitPhotoFrame? = nil, usePhotoLibrary: Bool = false) async {
         guard !busy, let context = current(), supports(kind) else { issue = .unsupported; return }
         generation &+= 1; let generation = generation; busy = true; output = nil; uploadedPhoto = nil; capturedContext = nil; issue = nil
         defer { if self.generation == generation { busy = false } }
         do {
-            var result = try await provider.capture(kind, context: context)
+            var result: PlayDeviceOutput
+            if usePhotoLibrary {
+                guard kind == .photo, let library = provider as? any PlayKitPhotoLibraryProviding else { throw PlayExperienceError.unsupported }
+                result = try await library.captureLibraryPhoto(context: context)
+            } else if kind == .photo, let cameraFrame, let framed = provider as? any PlayKitFramedPhotoProviding {
+                result = try await framed.capturePhoto(frame: cameraFrame, context: context)
+            } else {
+                // Framing is optional assistance, never a gate on ordinary evidence.
+                result = try await provider.capture(kind, context: context)
+            }
             if let photoFilter {
                 guard kind == .photo, case .photo(let bytes, _) = result, let filter else { throw PlayExperienceError.unsupported }
                 result = .photo(try filter(bytes, photoFilter), mimeType: "image/png")
             }
             guard self.generation == generation, current() == context, !Task.isCancelled else { return }
             output = result; capturedContext = context
-        } catch { if self.generation == generation, current() == context { issue = .unknownResult } }
+        } catch {
+            if self.generation == generation, current() == context {
+                issue = error is CancellationError ? nil : (error as? PlayExperienceError ?? .unknownResult)
+            }
+        }
         if self.generation == generation { busy = false }
     }
     public func cancel() { generation &+= 1; provider.cancel(); output = nil; uploadedPhoto = nil; capturedContext = nil; busy = false }

@@ -13,6 +13,7 @@ import SwiftUI
                 else if !loaded { ProgressView("roam.loading") }
                 else if records.isEmpty {
                     ContentUnavailableView("roam.experience.historyEmpty", systemImage: "figure.walk", description: Text("roam.experience.historyEmptyHint"))
+                        .accessibilityElement(children: .contain)
                         .accessibilityIdentifier("roam.experience.history.empty")
                 } else {
                     let summary = RoamHistorySummary(records)

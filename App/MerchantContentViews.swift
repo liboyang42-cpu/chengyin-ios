@@ -35,6 +35,7 @@ import SwiftUI
     func confirm(_ r: MerchantContentReview) async { revision += 1; await coordinator.confirm(r); revision += 1 }
     func reconcile() async { revision += 1; await coordinator.reconcile(); revision += 1 }
     func retryStation() async { revision += 1; await coordinator.retryStation(); revision += 1 }
+    func suspend() { coordinator.suspend(); revision += 1 }
     func invalidate() { coordinator.invalidate(); revision += 1 }
 }
 struct MerchantContentBoundary: View {
@@ -60,7 +61,9 @@ struct MerchantContentBoundary: View {
         .appNavigationTitle(key: "merchant.content." + query.key)
         .task(id: service.scope) { await model.load() }
         .refreshable { await model.load() }
-        .onDisappear { model.invalidate() }
+        // Clearing the source rows here would remove the pushed NavigationLink's owner.
+        // Scope changes still invalidate via load(), and isCurrent rejects stale display data.
+        .onDisappear { model.suspend() }
         .sheet(item: Binding(get: { c.isCurrent ? c.review : nil }, set: { if $0 == nil { model.cancel() } })) { MerchantContentReviewView(model: model, review: $0) }
     }
     @ViewBuilder private func content(_ s: MerchantContentSnapshot) -> some View {
@@ -176,6 +179,7 @@ struct MerchantContentFields: View {
                 actions(row)
             }.padding().frame(maxWidth: .infinity, alignment: .leading)
                 .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20))
+                .accessibilityElement(children: .contain)
                 .accessibilityIdentifier("merchant.content.row." + String(index))
         }
     }

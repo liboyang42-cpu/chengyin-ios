@@ -24,7 +24,8 @@ class ClubEnrollmentContractChecks(unittest.TestCase):
         code = self.text('Core/ClubEnrollmentReader.swift') + self.text('App/ClubEnrollmentView.swift')
         for fragment in ['access.send(', 'cancel-by-owner', 'coordinator.confirm(', 'refund()']:
             self.assertNotIn(fragment, code)
-        self.assertIn('club.enroll.refundUnavailable', code)
+        self.assertIn('ClubOwnerRefundPanel(', self.text('App/ClubGovernanceViews.swift'))
+        self.assertIn('ClubOwnerRefundReadOnlyAccess(governance:', self.text('App/AppSession.swift'))
     def test_identity_and_generations_gate_all_receipts(self):
         code = self.text('Core/ClubEnrollmentReader.swift')
         for fragment in ['access.identity == expected', 'generation == revision', '!Task.isCancelled', 'detailGenerations[topicID] == detailRevision', 'if clearsSnapshot(issue) { clear()', '"club:member:list:read"']:

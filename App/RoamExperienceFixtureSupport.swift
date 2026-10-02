@@ -2,7 +2,7 @@
 import SwiftUI
 
 @MainActor final class RoamExperienceFixtureReader: RoamExperienceReading {
-    enum Scenario: String { case content, empty, failure, historyCorrupt, active, incomplete, missing, unauthorized, unconfigured, pageFailure, sessionChange }
+    enum Scenario: String { case content, empty, failure, historyCorrupt, active, incomplete, missing, unauthorized, unconfigured, pageFailure, sessionChange, captionDraft }
     let scenario: Scenario
     private var signedOut = false
     private var epoch: UInt64 = 1
@@ -59,13 +59,17 @@ import SwiftUI
         let raw = index.flatMap { args.indices.contains($0 + 1) ? args[$0 + 1] : nil }
         _reader = State(initialValue: RoamExperienceFixtureReader(scenario: raw.flatMap(RoamExperienceFixtureReader.Scenario.init(rawValue:)) ?? .content))
     }
+    private var stampDestination: (() -> AnyView)? {
+        guard reader.scenario == .captionDraft else { return nil }
+        return { AnyView(RoamCityStampDraftView(offline: true)) }
+    }
     var body: some View {
         VStack(spacing: 0) {
             if reader.scenario == .sessionChange {
                 Button("roam.experience.fixtureSignOut") { reader.signOut(); revision += 1 }
                     .accessibilityIdentifier("roam.experience.fixture.signOut")
             }
-            NavigationStack { RoamExperienceHubView(reader: reader) }.id(revision)
+            NavigationStack { RoamExperienceHubView(reader: reader, stampDestination: stampDestination) }.id(revision)
         }
     }
 }

@@ -43,11 +43,18 @@ import SwiftUI
         Section("growth.score") {
             if let board = overview.rank.value {
                 LabeledContent("growth.currentPoints") { GrowthCenterInteger(value: board.me.score).font(.title2.bold()) }
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(Text("growth.currentPoints"))
+                    .accessibilityValue(pointsValue(board.me.score))
                     .accessibilityIdentifier("growth.points")
                 LabeledContent("growth.myRank") {
                     if let rank = board.me.rank { Text(rank, format: .number).monospacedDigit() }
                     else { Text("growth.unranked") }
-                }.accessibilityIdentifier("growth.myRank")
+                }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(Text("growth.myRank"))
+                .accessibilityValue(rankValue(board.me.rank))
+                .accessibilityIdentifier("growth.myRank")
                 if let percentage = GrowthCenterFormatting.nonempty(board.me.rankPercentage) { Text(verbatim: percentage).font(.caption) }
             } else if let issue = overview.rank.issue { GrowthCenterIssueView(issue: issue) }
             NavigationLink { GrowthLeaderboardView(reader: reader) } label: {
@@ -90,6 +97,14 @@ import SwiftUI
                 }
             }
         }
+    }
+    private func pointsValue(_ value: Int?) -> Text {
+        if let value = GrowthCenterFormatting.nonnegative(value) { return Text(value, format: .number) }
+        return Text("growth.unknownValue")
+    }
+    private func rankValue(_ rank: Int?) -> Text {
+        if let rank { return Text(rank, format: .number) }
+        return Text("growth.unranked")
     }
     private func load() async {
         guard reader.isAuthenticated, reader.isConfigured else { model.invalidate(); return }

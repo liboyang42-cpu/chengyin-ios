@@ -68,7 +68,10 @@ final class SettingsNativeFlowTests: XCTestCase {
         XCTAssertFalse(app.staticTexts["settingsNative.legal.sourceNotice"].exists)
         XCTAssertFalse(app.staticTexts["settingsNative.legal.version"].exists)
         back(); open("settingsNative.openAbout")
-        XCTAssertEqual(app.staticTexts["settingsNative.about.market"].label, "US")
+        let market = app.descendants(matching: .any)["settingsNative.about.market"].firstMatch
+        XCTAssertTrue(market.waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertEqual(market.label, "运营地区")
+        XCTAssertEqual(market.value as? String, "US")
         XCTAssertFalse(app.staticTexts["settingsNative.about.contactPhone"].exists)
     }
     func testMissingMarketShowsNoRegionalLegalContent() {

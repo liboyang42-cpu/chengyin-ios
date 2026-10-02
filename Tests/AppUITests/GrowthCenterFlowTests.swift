@@ -12,6 +12,12 @@ final class GrowthCenterFlowTests: XCTestCase {
     private func matchingText(_ text: String) -> XCUIElement {
         app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS %@", text)).firstMatch
     }
+    private func expectPoints(_ value: String) {
+        let points = app.descendants(matching: .any)["growth.points"].firstMatch
+        XCTAssertTrue(points.waitForExistence(timeout: 10), app.debugDescription)
+        XCTAssertEqual(points.label, "Current points")
+        XCTAssertEqual(points.value as? String, value)
+    }
     private func openBoard() {
         let link = app.buttons["growth.openLeaderboard"]
         XCTAssertTrue(link.waitForExistence(timeout: 10), app.debugDescription); link.tap()
@@ -23,7 +29,7 @@ final class GrowthCenterFlowTests: XCTestCase {
     }
     func testCenterBoardBackAndRefresh() {
         launch()
-        XCTAssertTrue(app.staticTexts["640"].waitForExistence(timeout: 10))
+        expectPoints("640")
         XCTAssertFalse(app.staticTexts["700"].exists)
         openBoard()
         XCTAssertTrue(matchingText("Sample North").waitForExistence(timeout: 5))
@@ -44,7 +50,7 @@ final class GrowthCenterFlowTests: XCTestCase {
     }
     func testPartialSourceFailureDoesNotClaimEmptyBadgesOrZeroGrowth() {
         launch("partialCenter")
-        XCTAssertTrue(app.staticTexts["640"].waitForExistence(timeout: 10))
+        expectPoints("640")
         XCTAssertFalse(app.staticTexts["No badges yet"].exists)
         let unavailable = app.staticTexts["This growth information is temporarily unavailable"]
         reveal(unavailable)
@@ -52,8 +58,10 @@ final class GrowthCenterFlowTests: XCTestCase {
     }
     func testMissingRankIsNeutralAndFullBoardOmitsPersonalRankRow() {
         launch("unranked")
-        XCTAssertTrue(app.staticTexts["Not ranked yet"].waitForExistence(timeout: 10))
-        XCTAssertTrue(app.staticTexts["640"].exists)
+        let rank = app.descendants(matching: .any)["growth.myRank"].firstMatch
+        XCTAssertTrue(rank.waitForExistence(timeout: 10), app.debugDescription)
+        XCTAssertEqual(rank.value as? String, "Not ranked yet")
+        expectPoints("640")
         openBoard()
         XCTAssertTrue(matchingText("Sample North").waitForExistence(timeout: 5))
         XCTAssertFalse(app.otherElements["growth.board.me.0"].exists)
@@ -73,7 +81,7 @@ final class GrowthCenterFlowTests: XCTestCase {
         XCTAssertTrue(matchingText("Sample North").waitForExistence(timeout: 10))
         app.buttons["growth.fixture.signOut"].tap()
         XCTAssertTrue(app.staticTexts["Sign in to see your growth and rankings"].waitForExistence(timeout: 5))
-        XCTAssertFalse(matchingText("Sample North").exists); XCTAssertFalse(app.staticTexts["640"].exists)
+        XCTAssertFalse(matchingText("Sample North").exists); XCTAssertFalse(app.descendants(matching: .any)["growth.points"].firstMatch.exists)
     }
     func testChineseAndAccessibilityLayoutsRemainReachable() {
         launch(language: "zh-Hans", extra: ["--uitesting-dark", "--uitesting-large-text"])

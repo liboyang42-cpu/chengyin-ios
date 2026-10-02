@@ -96,6 +96,7 @@ extension EnvironmentValues {
             ForEach(roster.tickets) { ticket in
                 VStack(alignment: .leading, spacing: 8) {
                     title(ticket.name, fallback: "club.enroll.unnamedTicket").font(.headline)
+                        .accessibilityIdentifier("club.enroll.ticket.\(ticket.id)")
                     HStack {
                         Text(ticket.registrants.count, format: .number)
                         if let capacity = ticket.capacity, capacity > 0 { Text(verbatim: "/"); Text(capacity, format: .number) }
@@ -103,7 +104,7 @@ extension EnvironmentValues {
                     }.accessibilityIdentifier("club.enroll.capacity.\(ticket.id)")
                     if ticket.registrants.isEmpty { Text("club.enroll.emptyRegistrants").foregroundStyle(.secondary) }
                     ForEach(ticket.registrants) { registrant in row(registrant) }
-                }.padding(.vertical, 6).accessibilityIdentifier("club.enroll.ticket.\(ticket.id)")
+                }.padding(.vertical, 6)
             }
         }
     }
@@ -116,7 +117,6 @@ extension EnvironmentValues {
             } else { attendee(registrant) }
             NavigationLink {
                 ClubGovernanceReadView(operation: .checkin, scope: .init(clubID: clubID, registrationID: registrant.id), identity: identity, access: access, coordinator: coordinator)
-                    .safeAreaInset(edge: .bottom) { Text("club.enroll.refundUnavailable").font(.footnote).padding().frame(maxWidth: .infinity).background(.bar) }
                     .onAppear { returningFromCheckin = true }
             } label: {
                 Label(LocalizedStringKey("club.enroll.checkin." + registrant.checkin.rawValue), systemImage: registrant.checkin == .done ? "checkmark.circle" : "ticket")

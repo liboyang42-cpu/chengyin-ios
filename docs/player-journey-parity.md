@@ -8,7 +8,7 @@ Source inspection (read-only, 2026-10-02): mini `subpackageMember/mycanyu/mycany
 
 Current mini detail lines 315–323 supersede Flutter's obsolete three-day cancellation rule: pending orders or a not-started/in-progress order summary show self-service cancellation. Paid selection is `paymentStatus == 2`, preserving cancel-refund rather than cancel. Existing order lifecycle review/disabled adapters remain the cancellation outlet. Missing counts remain unknown rather than invented zero.
 
-Participation preserves registrationId when entering gameplay and exposes the exact ticket-detail reader from that route. The current mini still forwards a needs-modification player ID to merchantapply, but backend tables prove that cross-link is unsafe: player info reads CmsRegistration; merchant info requires PROJECT_MANAGE and reads CmsRegistrationMerchant through ViewRegistrationMerchant. Native does not reproduce this numeric-ID conflation. Player modification, direct verification scan, contact support and the scope=my template action are not completed by this packet; scope=my requires api/template/myinfo, so the public template reader must not be substituted. No provider/contact information is fabricated and no live financial action is enabled.
+Participation preserves registrationId when entering gameplay and exposes the exact ticket-detail reader from that route. The current mini still forwards a needs-modification player ID to merchantapply, but backend tables prove that cross-link is unsafe: player info reads CmsRegistration; merchant info requires PROJECT_MANAGE and reads CmsRegistrationMerchant through ViewRegistrationMerchant. Native does not reproduce this numeric-ID conflation. Player modification remains blocked by that missing contract. Follow-on slices now implement direct verification review/readback, configurable support UI and the scope=my template reader; live verification and support configuration remain gated. The scope=my action requires api/template/myinfo, so the public template reader must not be substituted. No provider/contact information is fabricated and no live financial action is enabled.
 
 ## Chapter gameplay body
 
@@ -28,7 +28,7 @@ Native navigation/scrolling, Dynamic Type text and explicit disclosures replace 
 
 Audio uses explicit narration/guide/passage selection with one mounted playback host, rather than starting sound automatically. Images use injected bounded no-redirect media reads, with no origin grant by default. These are product presentation choices and must be visually/device-reviewed, not described as proven acceptance.
 
-Thought auto-claim, bespoke mood/odd visual effects, chapter autoplay and media provider activation are not included. Existing gameplay network/device/recovery acceptance limits still apply.
+A follow-on implements claim-only thought synchronization with its own default-off service grant, as described in chapter-thought-sync.md. Bespoke mood/odd visual effects, chapter autoplay and media provider activation remain separate presentation/acceptance boundaries. Existing gameplay network/device/recovery acceptance limits still apply.
 
 ## Evidence
 

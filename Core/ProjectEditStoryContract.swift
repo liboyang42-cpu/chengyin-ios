@@ -1,14 +1,15 @@
 import Foundation
 
 /// Current mini editor + server V2 chapter-flow contract. Evidence is not a deployment grant.
-/// Advanced narrative block types/beat metadata are deliberately rejected until the editor
-/// can preserve them. Unsupported content must never be silently flattened on replacement.
+/// Rich block and beat schemas are validated by ProjectEditRichStoryContract. Unknown content
+/// must never be silently flattened on replacement.
 public enum ProjectEditStoryContract {
     public static let createPath = "api/topic/v2/create"
     public static let updatePath = "api/topic/v2/update"
     static let topicFields = ["configVersion", "routeMode", "routeGraphJson", "journeyRules", "journeyStory"]
     static let nodeFields = ["id", "clientNodeKey", "businessTime", "hookText", "cardHookLong", "fragmentText"]
-    static let blockFields: Set<String> = ["type", "key", "content", "nodeIndex", "nodeId", "nodeKey", "url", "locationRequired", "who", "level", "when"]
+    static let metadataFields: Set<String> = Set(["locationRequired", "who", "level", "when"]).union(ProjectEditRichStoryContract.extraFields)
+    static let blockFields: Set<String> = Set(["type", "key", "content", "nodeIndex", "nodeId", "nodeKey", "url", "locationRequired", "who", "level", "when"]).union(ProjectEditRichStoryContract.extraFields)
 
     public static func usesV2(_ draft: ProjectEditDraft) -> Bool {
         draft.preserved["publishMode"] == .string("pro") && (draft.product == .city || draft.chapters.contains {
@@ -51,15 +52,24 @@ public enum ProjectEditStoryContract {
         var rows: [ProjectEditJSON] = []
         for block in blocks {
             if block.kind == .audio && block.url.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { continue }
-            var row = block.sourceFields ?? [:]
-            guard Set(row.keys).isSubset(of: ["locationRequired", "who", "level", "when"]) else { throw ProjectEditError.invalidDraft }
+            if block.kind == .dream, block.sourceFields?["images"]?.array?.isEmpty == true, block.sourceFields?["title"] == nil { continue }
+            var row = (block.sourceFields ?? [:]).filter { $0.value != .null }
+            guard Set(row.keys).isSubset(of: metadataFields) else { throw ProjectEditError.invalidDraft }
             row["key"] = .string(block.id); row["type"] = .string(block.kind.rawValue)
             switch block.kind {
-            case .text: row["content"] = .string(block.content)
+            case .text:
+                row["content"] = .string(block.content)
+                if block.isNarrative {
+                    guard let index = ordered.firstIndex(where: { $0.id == block.nodeID }) else { throw ProjectEditError.invalidDraft }
+                    row["nodeIndex"] = .number(Decimal(index))
+                }
             case .node:
                 guard let index = ordered.firstIndex(where: { $0.id == block.nodeID }) else { throw ProjectEditError.invalidDraft }
                 row["nodeIndex"] = .number(Decimal(index))
             case .image, .audio: row["url"] = .string(block.url.trimmingCharacters(in: .whitespacesAndNewlines))
+            case .voice, .reveal: row["content"] = .string(block.content)
+            case .mood: row["mood"] = .string(try ProjectEditRichStoryContract.normalizedMood(block.fieldText("mood")))
+            case .dream, .thought, .odd: break
             }
             rows.append(.object(row))
         }
@@ -68,7 +78,7 @@ public enum ProjectEditStoryContract {
 
     static func projectedDescription(_ rows: [ProjectEditJSON]) -> String {
         rows.prefix { $0.object?["type"] != .string("node") }.compactMap { raw -> String? in
-            guard let row = raw.object, row["type"] == .string("text"), row["when"] == nil || row["when"] == .null else { return nil }
+            guard let row = raw.object, row["type"] == .string("text"), (row["beat"]?.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, row["when"] == nil || row["when"] == .null else { return nil }
             return row["content"]?.text
         }.joined(separator: "\n")
     }
@@ -115,16 +125,19 @@ public enum ProjectEditStoryContract {
                 guard let ending = endingValue.object, !opening, nodes.isEmpty, chapter["recruitEnabled"]?.integer != 1,
                       Set(ending.keys).isSubset(of: ["fallback", "when"]) else { throw ProjectEditError.invalidDraft }
                 endingCount += 1
+                if let fallback = ending["fallback"], fallback != .bool(true), fallback != .bool(false), fallback != .null { throw ProjectEditError.invalidDraft }
                 if ending["fallback"] == .bool(true) { fallbackCount += 1 }
-                else { guard let when = ending["when"]?.array, !when.isEmpty, when.allSatisfy({ $0.object != nil }) else { throw ProjectEditError.invalidDraft } }
+                else {
+                    guard let when = ending["when"]?.array, !when.isEmpty, when.count <= 16 else { throw ProjectEditError.invalidDraft }
+                    for condition in when { try ProjectEditRichStoryContract.validateCondition(condition, ending: true) }
+                }
             }
-            var keys = Set<String>(), references = Set<Int>()
+            var keys = Set<String>(), references = Set<Int>(), thoughtKeys = Set<String>()
             for rawBlock in blocks {
                 guard let block = rawBlock.object, Set(block.keys).isSubset(of: blockFields.subtracting(["nodeId", "nodeKey"])),
                       let key = block["key"]?.text, matches(key, "^[A-Za-z0-9_-]{1,64}$"), keys.insert(key).inserted,
                       let kind = block["type"]?.text.flatMap(ProjectEditBlock.Kind.init(rawValue:)) else { throw ProjectEditError.invalidDraft }
-                if kind != .node, block["locationRequired"] != nil { throw ProjectEditError.invalidDraft }
-                if kind != .text, ["who", "level", "when"].contains(where: { block[$0] != nil }) { throw ProjectEditError.invalidDraft }
+                try ProjectEditRichStoryContract.validateShape(block, kind: kind)
                 switch kind {
                 case .node:
                     guard block["content"] == nil, block["url"] == nil,
@@ -138,18 +151,23 @@ public enum ProjectEditStoryContract {
                               (node["latitude"]?.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw ProjectEditError.invalidDraft }
                     }
                 case .text:
-                    guard block["nodeIndex"] == nil, block["url"] == nil, let content = block["content"]?.text, content.utf16.count <= 5000 else { throw ProjectEditError.invalidDraft }
+                    let narrative = !(block["beat"]?.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    guard (narrative || block["nodeIndex"] == nil), block["url"] == nil, let content = block["content"]?.text, content.utf16.count <= 5000 else { throw ProjectEditError.invalidDraft }
                     if let who = block["who"], who != .null { guard let text = who.text, text.trimmingCharacters(in: .whitespacesAndNewlines).utf16.count <= 20 else { throw ProjectEditError.invalidDraft } }
                     if let level = block["level"], level != .null { guard let n = level.integer, (0...3).contains(n) else { throw ProjectEditError.invalidDraft } }
-                    if let when = block["when"], when != .null {
+                    if !narrative, let when = block["when"], when != .null {
                         guard let condition = when.object, condition["op"] == .string("HAS_TAG"),
                               let value = condition["value"]?.text, matches(value, "^(tag\\.[a-z][a-z0-9_]{0,47}|thought\\.[a-z][a-z0-9_]{0,47}\\.done)$") else { throw ProjectEditError.invalidDraft }
                     }
                 case .image, .audio:
                     guard block["content"] == nil, block["nodeIndex"] == nil, let url = block["url"]?.text,
                           !url.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, url.utf16.count <= 500 else { throw ProjectEditError.invalidDraft }
+                case .thought:
+                    guard thoughtKeys.insert(ProjectEditRichStoryContract.trim(block["thoughtKey"])).inserted else { throw ProjectEditError.invalidDraft }
+                case .dream, .mood, .voice, .odd, .reveal: break
                 }
             }
+            try ProjectEditRichStoryContract.validateNarrative(blocks, nodeCount: nodes.count)
             guard references.count == nodes.count, projectedDescription(blocks).utf16.count <= 8000,
                   try JSONEncoder().encode(blocks).count <= 64 * 1024 else { throw ProjectEditError.invalidDraft }
         }
@@ -190,17 +208,7 @@ public enum ProjectEditStoryContract {
         }
         if let rawEndings = story["ending"]?.object?["endings"] {
             guard let endings = rawEndings.array else { throw ProjectEditError.invalidContract }
-            var seen = Set<Int>()
-            for raw in endings {
-                guard let ending = raw.object, let id = ending["chapterId"]?.integer,
-                      seen.insert(id).inserted, let index = draft.chapters.firstIndex(where: { $0.preserved["id"]?.integer == id }) else {
-                    // Legacy non-chapter endings need an explicit migration UI; never discard them.
-                    throw ProjectEditError.invalidContract
-                }
-                var fields: [String: ProjectEditJSON] = [:]
-                for key in ["fallback", "when"] { if let value = ending[key] { fields[key] = value } }
-                draft.chapters[index].preserved["ending"] = .object(fields)
-            }
+            try ProjectEditRichStoryContract.attachEndings(endings, draft: &draft)
         }
     }
 }

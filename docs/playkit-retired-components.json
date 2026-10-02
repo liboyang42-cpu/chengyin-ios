@@ -1,0 +1,48 @@
+{
+  "status": "source_retirement_correction_not_implementation",
+  "source_miniprogram_snapshot": "fad4d6bd7e3c3e501441fe19c8de9a9cd78230fc",
+  "source_flutter_commit": "a63e9e91c82a3282e8dd7138f943b1a8cbfc021d",
+  "retired_on_as_recorded_in_source": "2026-09-20",
+  "components": [
+    {
+      "name": "gameTimer",
+      "mini_type": "gametimer",
+      "classification": "retired_source_stale_flutter_builder",
+      "flutter_reference": "lib/feature/play/advanced/playkit_fullscreen.dart:131-133",
+      "native_action_catalog": "historical empty row only; no screen dispatch or business action"
+    },
+    {
+      "name": "stickerBook",
+      "mini_type": "stickerbook",
+      "classification": "retired_source_stale_flutter_builder",
+      "flutter_reference": "lib/feature/play/advanced/playkit_fullscreen.dart:134-136",
+      "native_action_catalog": "historical empty row only; no screen dispatch or business action"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "tests/unit/playkit-view-contract.test.js",
+      "lines": "430-434",
+      "finding": "Source explicitly records orphan-family deletion on 2026-09-20"
+    },
+    {
+      "path": "tests/unit/scratch-and-steps-contract.test.js",
+      "lines": "93-96",
+      "finding": "Source denominator reduced after stickerbook deletion"
+    },
+    {
+      "path": "pages/play/components/playkit/index.js",
+      "finding": "Current KIT_TYPES omits gametimer and stickerbook"
+    },
+    {
+      "path": "pages/play/components/playkit/index.json",
+      "finding": "No component registrations"
+    },
+    {
+      "path": "pages/play/components/playkit/index.wxml",
+      "finding": "No rendering branches"
+    }
+  ],
+  "counting_rule": "Exclude both from active missing business functions; do not mark them migrated or accepted",
+  "correction": "Earlier v1-v5 remaining-work prose incorrectly listed these as active missing utilities; the later exact source review supersedes that classification."
+}

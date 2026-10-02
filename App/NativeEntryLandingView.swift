@@ -30,6 +30,19 @@ import SwiftUI
         NavigationStack {
             Group {
                 switch entry.intent {
+                case .routeError(let failure):
+                    NativeRouteErrorView(failure: failure, goHome: { session.dismissNativeEntry(); goHome() })
+                case .badge(let parameters):
+                    ObjectBadgeRoutePreview(parameters: parameters, expectedScope: entry.id, currentScope: { session.nativeEntry?.id ?? UUID() })
+                case .teamInvitation(let route):
+                    if session.account == nil {
+                        VStack(spacing: 16) {
+                            Text("nativeNav.team.signInDetail")
+                            Button("team.signIn") { showsLogin = true }
+                        }.padding()
+                    } else {
+                        SessionTeamDetailView(lookup: .invitation(route.code)).id(session.teamViewIdentity)
+                    }
                 case .publicMerchant(let target):
                     PublicMerchantHomeView(target: target, context: session.publicMerchantHomeContext).id(session.sessionRevision)
                 case .merchantInvitation(let route):
@@ -50,7 +63,10 @@ import SwiftUI
                 }
             }
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("door.close") { session.dismissNativeEntry() } } }
-            .sheet(isPresented: $showsLogin) { LoginView(intent: .merchant) }
+            .sheet(isPresented: $showsLogin) {
+                if case .teamInvitation = entry.intent { LoginView(intent: .player) }
+                else { LoginView(intent: .merchant) }
+            }
         }
         .onDisappear { session.doorEntryCoordinator?.cancel() }
     }

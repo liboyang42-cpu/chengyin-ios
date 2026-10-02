@@ -14,6 +14,10 @@ import SwiftUI
                     LabeledContent("official.end") { OfficialEventTimeValue(value: event.activityEnd) }
                     if let participants = event.participants { LabeledContent("official.participants", value: String(participants)) }
                     LabeledContent("official.price") { Text("official.priceNotProvided") }
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel(Text("official.price"))
+                        .accessibilityValue(Text("official.priceNotProvided"))
+                        .accessibilityIdentifier("official.price")
                 }
                 if let story = event.story, !story.isEmpty {
                     Section("official.story") { Text(verbatim: story).textSelection(.enabled) }

@@ -114,6 +114,7 @@ struct AccountView: View {
                 }
             }
             .appNavigationTitle("account.title")
+            .environment(\.nativeVerificationDestination, { AnyView(SessionNativeVerificationView()) })
             .toolbar {
                 ToolbarItem(placement:.topBarTrailing) {
                     Button("settings.title",systemImage:"gearshape") { showsSettings=true }

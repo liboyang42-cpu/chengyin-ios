@@ -25,7 +25,9 @@ import SwiftUI
                         ambientModel: session.journeyAmbient(scope: scope), shopNPCModel: { session.shopNPCNodeHost(scope: scope, nodeID: $0, runtime: model) },
                         invalidateShopNPC: session.invalidateShopNPCConversations,
                         mediaScope: session.platformConsumers.scope,
-                        makeAudio: session.platformConsumers.audioFactory, makeExternalMaps: session.platformConsumers.mapsFactory)
+                        makeAudio: session.platformConsumers.audioFactory, makeExternalMaps: session.platformConsumers.mapsFactory,
+                        approvedArtworkHosts: session.playKitArtworkHosts, makeSensorProvider: session.playKitSensorFactory,
+                        spatialApproval: session.playKitSpatialApproval)
                 } else { Text("playx.disabled") }
             case .director(let activityID):
                 if let model = session.playDirector(activityID: activityID) { PlayDirectorView(model: model) }
@@ -38,8 +40,11 @@ import SwiftUI
         .sheet(isPresented: Binding(get: { session.playNativeDeviceProvider.showingCamera }, set: { if !$0 { session.playNativeDeviceProvider.cancel() } })) {
             PlayNativeCameraSheet(provider: session.playNativeDeviceProvider).ignoresSafeArea()
         }
+        .sheet(isPresented: Binding(get: { session.playNativeDeviceProvider.showingLibraryPicker }, set: { if !$0 { session.playNativeDeviceProvider.cancel() } })) {
+            PlayKitNativePhotoLibrarySheet(provider: session.playNativeDeviceProvider)
+        }
         .onChange(of: session.sessionRevision) { _, _ in session.playNativeDeviceProvider.cancel() }
-        .onChange(of: scenePhase) { _, phase in if phase != .active { session.playNativeDeviceProvider.cancel() } }
+        .onChange(of: scenePhase) { _, phase in if phase == .background || (phase != .active && !session.playNativeDeviceProvider.authorizationInFlight) { session.playNativeDeviceProvider.cancel() } }
         .onDisappear { session.playNativeDeviceProvider.cancel() }
     }
 }

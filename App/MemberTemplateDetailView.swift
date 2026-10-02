@@ -37,8 +37,10 @@ import SwiftUI
                         if draft == 0 { Text("memberTemplate.draft") }
                         else if draft == 1 { Text("memberTemplate.published") }
                     }
-                    if let imageReader, !detail.gallery.isEmpty { RetainedPublicReviewImages(urls: detail.gallery, reader: imageReader) }
-                    else if !detail.gallery.isEmpty { Label("memberTemplate.mediaUnavailable", systemImage: "photo") }
+                    if !detail.gallery.isEmpty {
+                        NativeMediaGalleryEntry(sources: detail.gallery, scope: reader.scope,
+                            titleKey: "memberTemplate.title", reader: imageReader)
+                    }
                 }
                 textSection("discovery.introduction", value: item.description)
                 textSection("discovery.rules", value: item.ruleInstructions)
@@ -51,7 +53,10 @@ import SwiftUI
                             VStack(alignment: .leading, spacing: 10) {
                                 if let tag = part.tag { Text(verbatim: tag).font(.caption.weight(.semibold)) }
                                 if let text = part.text { Text(verbatim: text).textSelection(.enabled) }
-                                if let imageReader, !part.images.isEmpty { RetainedPublicReviewImages(urls: part.images, reader: imageReader) }
+                                if !part.images.isEmpty {
+                                    NativeMediaGalleryEntry(sources: part.images, scope: reader.scope,
+                                        titleKey: "memberTemplate.story", reader: imageReader)
+                                }
                             }
                         }
                     }

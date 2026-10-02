@@ -34,8 +34,13 @@ import SwiftUI
 }
 /// Reachable before a location provider is approved. Opening this page never requests permission.
 @MainActor struct CoopFlowNearbyGate: View {
+    @Environment(\.cooperationNearbyDestination) private var nearbyDestination
     let reader: any CoopFlowReading
     var body: some View {
+        if let nearbyDestination { nearbyDestination() }
+        else { gate }
+    }
+    private var gate: some View {
         List {
             Section {
                 Label("coopflow.nearby.purpose", systemImage: "location")

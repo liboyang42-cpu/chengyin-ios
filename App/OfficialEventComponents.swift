@@ -69,7 +69,9 @@ struct OfficialIssueView: View {
             requestID: requestID, isPrivate: isPrivate)
     }
     var body: some View {
-        Group {
+        // Own loading/cancellation on a stable container, not Group's changing
+        // branches, which can restart the initial read when an error appears.
+        ZStack(alignment: .topLeading) {
             if isPrivate && !reader.isAuthenticated { OfficialIssueView(issue: .unauthorized, onLogin: onLogin) }
             else if !reader.isConfigured { OfficialIssueView(issue: .unconfigured) }
             else if loadedKey != key || loading { ProgressView("official.loading").frame(maxWidth: .infinity, maxHeight: .infinity) }

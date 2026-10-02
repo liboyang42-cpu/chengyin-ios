@@ -6,7 +6,7 @@ final class CooperationFlowUITests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments += ["--cooperation-flow-fixture", "-AppleLanguages", "(en)"]
         app.launch()
-        XCTAssertTrue(app.otherElements["coopflow.workbench"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any)["coopflow.workbench"].waitForExistence(timeout: 5))
         app.buttons["coopflow.route.coopflow.finance"].tap()
         app.buttons["coopflow.settlement.finance.8"].tap()
         XCTAssertTrue(app.staticTexts["Amount not confirmed"].exists)
@@ -31,10 +31,12 @@ final class CooperationFlowUITests: XCTestCase {
         app.launch(); return app
     }
     private func reveal(_ element: XCUIElement, app: XCUIApplication) {
-        for _ in 0..<8 {
-            if element.exists && element.isHittable { return }
-            app.swipeUp()
-        }
+        XCTAssertTrue(revealFixtureElement(element, in: app), app.debugDescription)
+    }
+    private func openReceivedApplications(_ app: XCUIApplication) {
+        let entry = app.buttons["coopflow.route.coopflow.receivedApplications"]
+        reveal(entry, app: app); entry.tap()
+        XCTAssertTrue(app.navigationBars["Received club applications"].waitForExistence(timeout: 5), app.debugDescription)
     }
     func testNormalNearbyEntryExplainsUnavailableLocationWithoutPermissionPrompt() {
         for language in ["en", "zh-Hans"] {
@@ -51,8 +53,7 @@ final class CooperationFlowUITests: XCTestCase {
     }
     func testReceivedApplicationOpensDraftAndReviewBackPreservesText() {
         let app = launch()
-        let applications = app.buttons["coopflow.route.coopflow.receivedApplications"]
-        reveal(applications, app: app); applications.tap()
+        openReceivedApplications(app)
         XCTAssertTrue(app.buttons["coopflow.row.0"].waitForExistence(timeout: 5))
         app.buttons["coopflow.row.0"].tap()
         let reply = app.buttons["coopflow.invite.reply"]
@@ -65,7 +66,7 @@ final class CooperationFlowUITests: XCTestCase {
         attachFixtureScreenshot(self, app: app, name: "Cooperation invitation composer after keyboard dismissal")
         app.buttons["coopflow.invite.review"].tap()
         let submit = app.buttons["coopflow.submit.disabled"]
-        reveal(submit, app: app)
+        XCTAssertTrue(revealFixtureElement(submit, in: app, requiresHittable: false))
         XCTAssertTrue(submit.exists); XCTAssertFalse(submit.isEnabled)
         attachFixtureScreenshot(self, app: app, name: "Cooperation invitation local review")
         app.navigationBars.buttons.element(boundBy: 0).tap()
@@ -85,19 +86,17 @@ final class CooperationFlowUITests: XCTestCase {
     }
     func testDeniedReceivedApplicationsHaveNoInvitationReview() {
         let app = launch(denied: true)
-        let applications = app.buttons["coopflow.route.coopflow.receivedApplications"]
-        reveal(applications, app: app); applications.tap()
+        openReceivedApplications(app)
         XCTAssertTrue(app.staticTexts["coopflow.issue"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["coopflow.invite.reply"].exists)
     }
     func testSessionChangeDropsNavigationAndReceivedApplicationData() {
         let app = launch()
-        let applications = app.buttons["coopflow.route.coopflow.receivedApplications"]
-        reveal(applications, app: app); applications.tap()
+        openReceivedApplications(app)
         XCTAssertTrue(app.buttons["coopflow.row.0"].waitForExistence(timeout: 5))
         app.buttons["coopflow.fixture.signOut"].tap()
         XCTAssertFalse(app.buttons["coopflow.row.0"].exists)
-        reveal(applications, app: app); applications.tap()
+        openReceivedApplications(app)
         XCTAssertTrue(app.staticTexts["Sign in to view your cooperation"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["coopflow.invite.reply"].exists)
     }

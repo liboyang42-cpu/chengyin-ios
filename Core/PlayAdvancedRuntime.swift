@@ -42,7 +42,7 @@ public enum PlayKitActionCatalog {
         "reaction": ["START_CHALLENGE", "SUBMIT_REACTION"], "ballShake": ["START_CHALLENGE", "SUBMIT_BALL_SHAKE"],
         "quietHold": ["START_CHALLENGE", "SUBMIT_QUIET_HOLD"], "random": ["DRAW"], "scan": ["SUBMIT_SCAN"],
         "profile": ["SUBMIT_PROFILE"], "photoCheck": ["SUBMIT_PHOTO_CHECK"], "note": ["SUBMIT_NOTE"],
-        "typeIn": ["START_CHALLENGE", "SUBMIT_TYPE_IN"], "timeWindow": [], "walk": [], "gameTimer": [], "stickerBook": [], "bingo": []
+        "typeIn": ["START_CHALLENGE", "SUBMIT_TYPE_IN"], "timeWindow": [], "musicCorner": [], "walk": [], "gameTimer": [], "stickerBook": [], "bingo": []
     ]
     public static func payload(kind: String, action: String, detail: [String: PlayWireValue]) throws -> [String: PlayWireValue] {
         guard actions[kind]?.contains(action) == true else { throw PlayExperienceError.unsupported }

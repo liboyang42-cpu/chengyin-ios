@@ -53,7 +53,7 @@ class SquareJourneyChatIntegration(unittest.TestCase):
   self.assertIn('nodeId:',s)
  def test_shop_npc_normal_host_requires_fresh_node_authority(self):
   s=read('App/AppSession.swift')
-  for x in ['runtime.hasCurrentMediaSnapshot','snapshot.availability == .active','node.npc == npc','account.effectiveRole','shopNPCSessionOwner.accessRevision','private let shopNPCProductionWritesEnabled = false','private let shopNPCGrants = ShopNPCGrants()']:self.assertIn(x,s)
+  for x in ['runtime.hasCurrentMediaSnapshot','snapshot.availability == .active','node.npc == npc','account.effectiveRole','shopNPCSessionOwner.accessRevision','runtimeDependencyFactory?.accepted?.shopNPCWrites == true','runtimeDependencyFactory?.accepted != nil ? runtimeDependencies.shopNPCGrants : ShopNPCGrants()']:self.assertIn(x,s)
   self.assertIn('session.shopNPCNodeHost(scope: scope, nodeID: $0, runtime: model)',read('App/SessionPlayRuntimeView.swift'))
   self.assertIn('ShopNPCNodeEntrance(name: shopNPC.name',read('App/PlayExperienceView.swift'))
  def test_shop_npc_owned_destination_and_observable_invalidation(self):

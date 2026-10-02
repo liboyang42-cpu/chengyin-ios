@@ -2,20 +2,22 @@ import Foundation
 
 public enum TemplateAdvancedGame: String, Codable, CaseIterable, Identifiable {
     case coin, dice, react, shake, quiet, countdown, stopwatch
+    case sort, match, classify, compass, shout
     public var id: String { rawValue }
     public var section: String {
         switch self { case .coin: return "coinFlip"; case .dice: return "diceRoll"; case .react: return "reaction"
-        case .shake: return "ballShake"; case .quiet: return "quietHold"; case .countdown: return "countdown"; case .stopwatch: return "stopwatch" }
+        case .shake: return "ballShake"; case .quiet: return "quietHold"; case .countdown: return "countdown"; case .stopwatch: return "stopwatch"
+        case .sort, .match, .classify, .compass, .shout: return rawValue }
     }
     public var supportsTimer: Bool { self != .coin && self != .dice }
     public var labelKey: String { "templateAuthor.game." + rawValue }
 }
-/// Source-enabled seven scalar panels + timer. Other sections survive locally, but an
-/// enabled unsupported section blocks network serialization rather than losing its data.
+/// All 37 active source configuration sections have structured authoring. Unknown
+/// extensions survive snapshots and fail closed at network serialization.
 public struct TemplateAdvancedDraft: Codable, Equatable {
     public var value: [String: TemplateAuthoringJSON]
     public init() { value = Self.defaults }
-    public static let gameSections = ["qa", "branch", "estimate", "pricePair", "hiddenObject", "predict", "random", "steps", "reaction", "ballShake", "quietHold", "countdown", "stopwatch", "coinFlip", "diceRoll", "scan"]
+    public static let gameSections = ["qa", "branch", "estimate", "pricePair", "hiddenObject", "predict", "random", "steps", "reaction", "ballShake", "quietHold", "countdown", "stopwatch", "coinFlip", "diceRoll", "scan", "sort", "match", "classify", "compass", "shout"]
     public static let defaults: [String: TemplateAuthoringJSON] = [
         "schemaVersion": .number(1),
         "timer": .object(["enabled": .bool(false), "durationSeconds": .number(300), "timeoutResult": .string("FAILED")]),
@@ -43,16 +45,21 @@ public struct TemplateAdvancedDraft: Codable, Equatable {
         "quietHold": .object(["enabled": .bool(false), "kicker": .string(""), "sub": .string(""), "seconds": .number(15), "xp": .number(0)]),
         "countdown": .object(["enabled": .bool(false), "kicker": .string(""), "seconds": .number(90), "doneText": .string(""), "xp": .number(0)]),
         "stopwatch": .object(["enabled": .bool(false), "kicker": .string(""), "targetSeconds": .number(10), "toleranceMs": .number(300), "tries": .number(3), "xp": .number(0)]),
-    ]
+    ].merging(miniGameDefaults) { _, extra in extra }.merging(creatorDefaults) { existing, addition in
+        .object((addition.object ?? [:]).merging(existing.object ?? [:]) { _, existing in existing })
+    }
     public init(raw: String?) throws {
         self.init()
         guard let raw, !raw.isEmpty else { return }
         let incoming = try JSONDecoder().decode([String: TemplateAuthoringJSON].self, from: Data(raw.utf8))
         guard (incoming["schemaVersion"]?.integer ?? 1) == 1 else { throw TemplateAuthoringError.invalidContract }
         for (key, entry) in incoming where key != "schemaVersion" {
+            if key == "present" { value[key] = entry; continue }
+            if !Self.defaults.keys.contains(key) { value[key] = entry; continue }
             guard let fields = entry.object else { throw TemplateAuthoringError.invalidContract }
             var base = value[key]?.object ?? [:]; base.merge(fields) { _, new in new }; value[key] = .object(base)
         }
+        retainCreatorSecretAbsence(incoming)
         if let blind = incoming["blindTaste"]?.object, blind["answerKey"] == nil { set("blindTaste", "answerKey", .string("")) }
     }
     public var selected: TemplateAdvancedGame? { TemplateAdvancedGame.allCases.first { enabled($0.section) } }
@@ -67,7 +74,7 @@ public struct TemplateAdvancedDraft: Codable, Equatable {
         var fields = value[section]?.object ?? [:]; fields[field] = entry; value[section] = .object(fields)
     }
     public mutating func select(_ game: TemplateAdvancedGame?) {
-        for section in Self.gameSections { set(section, "enabled", .bool(game?.section == section)) }
+        for section in TemplateAdvancedGame.allCases.map(\.section) { set(section, "enabled", .bool(game?.section == section)) }
         // Source selection does not mutate modifier toggles. UI explains non-timed games.
     }
     public mutating func setNested(_ section: String, _ side: String, _ field: String, _ text: String) {
@@ -86,13 +93,18 @@ public struct TemplateAdvancedDraft: Codable, Equatable {
             guard let n = value[section]?.object?[field]?.number, n.isFinite, n >= lower, n <= upper, !integer || n.rounded() == n else { issue(section + "." + field); return }
         }
         if value["schemaVersion"]?.integer != 1 { issue("advancedSchema") }
-        let supported = Set(TemplateAdvancedGame.allCases.map(\.section) + ["timer"])
-        for (section, entry) in value where section != "schemaVersion" {
-            if !Self.defaults.keys.contains(section) || (entry.object?["enabled"]?.bool == true && !supported.contains(section)) { issue("advancedUnsupported") }
+        let supported = Set(TemplateAdvancedGame.allCases.map(\.section) + TemplateCreatorFamily.allCases.map(\.rawValue) + ["timer"])
+        for (section, entry) in value where section != "schemaVersion" && section != "present" {
+            if (!Self.defaults.keys.contains(section) && !Self.rootCreatorKeys.contains(section)) || (entry.object?["enabled"]?.bool == true && !supported.contains(section) && !Self.rootCreatorKeys.contains(section)) { issue("advancedUnsupported") }
         }
-        if Self.gameSections.filter({ enabled($0) }).count > 1 { issue("oneGame") }
+        if value["present"] != nil {
+            if !["inline", "fullscreen"].contains(explicitPresentation) { result.append("playkitAuthor.validation.presentation") }
+            if explicitPresentation == "inline", selected?.allowsInline == false { result.append("playkitAuthor.validation.fullscreenOnly") }
+        }
+        if TemplateAdvancedGame.allCases.filter({ enabled($0.section) }).count > 1 { issue("oneGame") }
         if enabled("timer") { range("timer", "durationSeconds", 10, 86400, integer: true) }
         for game in TemplateAdvancedGame.allCases where enabled(game.section) {
+            if game.isMiniProgramAddition { result += miniGameIssues(game); continue }
             if text(game.section, "kicker").utf16.count > 32 { issue("kicker") }
             // Source XP normalization defaults malformed values to zero; native accepts only safe finite values.
             if let n = value[game.section]?.object?["xp"]?.number, !n.isFinite { issue("number") }
@@ -105,9 +117,10 @@ public struct TemplateAdvancedDraft: Codable, Equatable {
                     if (fields["label"]?.string ?? "").trimmingCharacters(in: .whitespacesAndNewlines).utf16.count > 16 { issue("coinLabel") }
                 }
             case .dice:
+                if diceMode == "d20" { break }
                 let faces = value[game.section]?.object?["faces"]?.array ?? []
                 if faces.count != 6 || faces.contains(where: { v in let s = (v.string ?? "").trimmingCharacters(in: .whitespacesAndNewlines); return s.isEmpty || s.utf16.count > 60 }) { issue("diceFaces") }
-            case .react: range(game.section, "rounds", 1, 10); range(game.section, "goalMs", 120, 2000)
+            case .react: range(game.section, "rounds", 1, 10); range(game.section, "goalMs", 120, 3000)
             case .shake:
                 range(game.section, "goal", 1, 200)
                 if value[game.section]?.object?["timed"]?.bool == true { range(game.section, "seconds", 3, 300) }
@@ -116,16 +129,22 @@ public struct TemplateAdvancedDraft: Codable, Equatable {
                 range(game.section, "seconds", 5, 3600)
                 let done = text(game.section, "doneText"); if done.isEmpty || done.utf16.count > 60 { issue("countdownText") }
             case .stopwatch: range(game.section, "targetSeconds", 3, 120); range(game.section, "toleranceMs", 50, 5000); range(game.section, "tries", 0, 10)
+            case .sort, .match, .classify, .compass, .shout: break
             }
         }
+        result += enabledCreatorFamilies.flatMap { creatorIssues($0).map(\.labelKey) }
+        result += creatorUnknownIssues.map(\.labelKey)
+        result += legacyVariantIssues.map(\.labelKey)
+        result += rootCreatorIssues.map(\.labelKey)
         return result
     }
     public func serialize() throws -> String {
         guard issues.isEmpty else { throw TemplateAuthoringError.invalidDraft }
-        guard value.keys.contains(where: { enabled($0) }) else { return "" }
+        guard value.keys.contains(where: { enabled($0) }) || hasRootAuthoringConfiguration else { return "" }
         var normalized = self
         for game in TemplateAdvancedGame.allCases where enabled(game.section) {
             let section = game.section
+            if game.isMiniProgramAddition { normalized.normalizeMiniGame(game); continue }
             normalized.set(section, "kicker", .string(text(section, "kicker").trimmingCharacters(in: .whitespacesAndNewlines)))
             normalized.set(section, "xp", .number(value[section]?.object?["xp"]?.number ?? 0))
             let numberFields: [TemplateAdvancedGame: [String]] = [.react: ["rounds", "goalMs"], .shake: ["goal"], .quiet: ["seconds"], .countdown: ["seconds"], .stopwatch: ["targetSeconds", "toleranceMs", "tries"]]
@@ -145,12 +164,16 @@ public struct TemplateAdvancedDraft: Codable, Equatable {
                     normalized.setNested(section, side, field, (value[section]?.object?[side]?.object?[field]?.string ?? "").trimmingCharacters(in: .whitespacesAndNewlines))
                 } }
             }
-            if game == .dice {
+            if game == .dice && diceMode != "d20" {
                 normalized.set(section, "diceCount", .number(value[section]?.object?["diceCount"]?.number == 2 ? 2 : 1))
                 normalized.set(section, "faces", .array((value[section]?.object?["faces"]?.array ?? []).prefix(6).map { .string(($0.string ?? "").trimmingCharacters(in: .whitespacesAndNewlines)) }))
             }
         }
+        normalized.normalizeCreatorFamilies()
+        normalized.normalizeRootAuthoring()
         let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]
-        return String(decoding: try encoder.encode(normalized.value), as: UTF8.self)
+        let data = try encoder.encode(normalized.value)
+        guard data.count <= 65_536 else { throw TemplateAuthoringError.invalidDraft }
+        return String(decoding: data, as: UTF8.self)
     }
 }

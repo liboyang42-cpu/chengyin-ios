@@ -5,7 +5,7 @@ final class CouponManagementFlowTests: XCTestCase {
         let app = XCUIApplication(); app.launchArguments += ["--ui-coupon-management", "-AppleLanguages", "(en)"] + extras; app.launch(); return app
     }
     private func reveal(_ element: XCUIElement, app: XCUIApplication) {
-        for _ in 0..<8 { if element.isHittable { return }; app.swipeUp() }
+        for _ in 0..<8 { if element.exists && element.isHittable { return }; app.swipeUp() }
     }
     func testPublishedDefinitionsAndSourceStopReview() {
         let app = launch()

@@ -1,0 +1,48 @@
+{
+  "sdk_version": "2.0.5",
+  "checked_at_utc": "2026-10-02T07:39:00Z",
+  "archive_url": "https://dldir1.qq.com/WechatWebDev/opensdk/XCFramework/OpenSDK2.0.5.zip",
+  "archive_sha256": "00e7c16d76de05cae3f96fd051b928147a17e2047169a5a6e10631a293f0dd14",
+  "archive_bytes": 4415542,
+  "digest_provenance": "Locally measured after HTTPS download from the Tencent origin; not a vendor-published checksum.",
+  "registry_spec_url": "https://github.com/CocoaPods/Specs/blob/5c861788f2507084fd41f5a9a365b4b36305e7e1/Specs/9/7/f/WechatOpenSDK-XCFramework/2.0.5/WechatOpenSDK-XCFramework.podspec.json",
+  "registry_commit": "5c861788f2507084fd41f5a9a365b4b36305e7e1",
+  "registry_author": "weixin-open",
+  "registry_license_notice": "Copyright 2020 tencent.com. All rights reserved.",
+  "header_copyright_notice": "Copyright (c) 2012 Tencent. All rights reserved.",
+  "framework_module": "WechatOpenSDK",
+  "extracted_text_files": [
+    {
+      "archive_path": "WechatOpenSDK.xcframework/README.txt",
+      "sha256": "128b1a1d879dbc2c74f2b9d17d18e4db7670ab3773e79f6614b1ff4ef37aea87"
+    },
+    {
+      "archive_path": "WechatOpenSDK.xcframework/PrivacyInfo.xcprivacy",
+      "sha256": "dc8d7e1f9a7da7f3381f30746b59206ee62ce225b69fe3bcbb66234f8459be35"
+    },
+    {
+      "archive_path": "WechatOpenSDK.xcframework/ios-arm64/WechatOpenSDK.framework/Headers/WXApi.h",
+      "sha256": "124f15d10fece25f2517ac55a82d8dd17457bf3c79e901a7e710d40e6968778f"
+    },
+    {
+      "archive_path": "WechatOpenSDK.xcframework/ios-arm64/WechatOpenSDK.framework/Headers/WXApiObject.h",
+      "sha256": "140af3b6b76a0bacc5cb0ff0533175f1752a5c7c3f2e8af3730a535742536a4d"
+    },
+    {
+      "archive_path": "WechatOpenSDK.xcframework/ios-arm64/WechatOpenSDK.framework/Headers/WechatOpenSDK.h",
+      "sha256": "4fe88232acfe06245a21a04f18959dd7e762af4947e711dba5df0ce222da5520"
+    },
+    {
+      "archive_path": "WechatOpenSDK.xcframework/ios-arm64/WechatOpenSDK.framework/Modules/module.modulemap",
+      "sha256": "21b015268e0a8321610ba0cc57c226d68365f7e70110bb945f3f0f13d346158f"
+    }
+  ],
+  "evidence_not_redistributed": "Archive and vendor headers stay outside the publication tree; no binary or complete vendor source is included.",
+  "sdk_installed": false,
+  "sdk_linked_build": "NOT_RUN",
+  "default_bridge_build": "NOT_RUN_LOCALLY",
+  "xctest_execution": "NOT_RUN_LOCALLY",
+  "live_login": "NOT_RUN",
+  "new_legal_terms_accepted": false,
+  "official_docs_status": "Developer documentation returned Site Unavailable; exact method signatures came from the official downloaded SDK archive instead."
+}

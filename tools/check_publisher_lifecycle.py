@@ -10,7 +10,7 @@ allcode='\n'.join(files.values())
 sourcecode='\n'.join((source/name).read_text() for name in ['topic_api.dart','activity_api.dart','creator_api.dart','club_api.dart','roam_api.dart'])
 paths=['api/topic/pricing/preview','api/topic/pricing/confirm','api/topic/cancel','api/topic/cancel_preview','api/activity/cancel','api/activity/cancel_preview','api/topic/transfer-to-club','api/topic/beta/graduate','api/topic/xp-budget','api/creator/apply','api/club/detail','api/merchant/public-detail']
 for p in paths: assert p in sourcecode and p in allcode,p
-assert 'grants: .dormant' in files['App/PublisherLifecycleHostHooks.swift']
+assert 'grants: PublisherLifecycleGrants = .dormant' in files['App/PublisherLifecycleHostHooks.swift']
 assert 'case .number' in files['Core/PublisherLifecycleContracts.swift']
 assert 'center.status == .notApplied' in files['Core/CreatorApplication.swift']
 assert 'paidPlayers' in files['Core/PublisherLifecycleCoordinator.swift']

@@ -25,8 +25,12 @@ import SwiftUI
                     } else { Text("settingsNative.about.metadataMissing") }
                 }
                 LabeledContent("region.market") {
-                    Text(verbatim: market?.rawValue ?? "—").accessibilityIdentifier("settingsNative.about.market")
+                    Text(verbatim: market?.rawValue ?? "—")
                 }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(Text("region.market"))
+                .accessibilityValue(Text(verbatim: market?.rawValue ?? "—"))
+                .accessibilityIdentifier("settingsNative.about.market")
             }
             Section("settingsNative.about.playerCode") {
                 Label {

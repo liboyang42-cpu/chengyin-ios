@@ -24,7 +24,10 @@ class TestBundlePreflightTests(unittest.TestCase):
         self.assertNotIn('-skip-testing', self.native)
 
     def test_runtime_app_unit_and_all_ui_shards_are_still_required(self):
-        self.assertIn('-only-testing:QuestifyAppUnitTests CODE_SIGNING_ALLOWED=NO test', self.workflow)
+        self.assertIn('-only-testing:QuestifyAppUnitTests test-without-building', self.workflow)
+        self.assertIn('--xctestrun "$UI_XCTESTRUN"', self.workflow)
+        self.assertEqual(self.workflow.count('name: test-products-${{ github.sha }}'), 3)
+        self.assertNotIn('-skip-testing', self.workflow)
         self.assertIn('shard: [0, 1, 2, 3, 4, 5]', self.workflow)
         self.assertIn('python3 tools/run_ui_shard.py --shard ${{ matrix.shard }} --count 6', self.workflow)
         self.assertEqual(self.workflow.count('    needs: native'), 2)

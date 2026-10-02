@@ -1,12 +1,13 @@
 import XCTest
 
 final class MerchantContentFlowTests: XCTestCase {
+    override func setUp() { super.setUp(); continueAfterFailure = false }
     private func launch(_ arguments: [String] = []) -> XCUIApplication {
         let app = XCUIApplication(); app.launchArguments = ["--uitesting-merchant-content-fixture"] + arguments; app.launch(); return app
     }
     private func tap(_ identifier: String, in app: XCUIApplication) {
         let button = app.buttons[identifier]
-        for _ in 0..<10 where !button.isHittable { app.swipeUp() }
+        XCTAssertTrue(revealFixtureElement(button, in: app), app.debugDescription)
         XCTAssertTrue(button.waitForExistence(timeout: 4)); button.tap()
     }
     func testRecruitmentReviewIsCancelledWithoutSubmission() {
@@ -28,8 +29,9 @@ final class MerchantContentFlowTests: XCTestCase {
     }
     func testCityClaimDoesNotTreatApplicationIDAsPOIID() {
         let app = launch(); tap("merchant.content.entry.city", in: app)
-        for _ in 0..<5 { app.swipeUp() }
-        XCTAssertTrue(app.staticTexts["merchant.content.claimIDMissing"].exists)
+        let missingID = app.staticTexts["merchant.content.claimIDMissing"]
+        XCTAssertTrue(revealFixtureElement(missingID, in: app, requiresHittable: false), app.debugDescription)
+        XCTAssertTrue(missingID.exists)
         XCTAssertFalse(app.buttons["merchant.content.cancelClaim"].exists)
     }
     func testDeniedAccessDoesNotShowBusinessRows() {
@@ -40,14 +42,22 @@ final class MerchantContentFlowTests: XCTestCase {
     func testUnknownMutationLocksReloadAndDuplicateSubmission() {
         let app = launch(["--merchant-content-unknown"]); tap("merchant.content.entry.applications", in: app)
         tap("merchant.content.withdraw", in: app); tap("merchant.content.confirm", in: app)
-        XCTAssertTrue(app.staticTexts["merchant.content.issue"].waitForExistence(timeout: 4))
+        let issue = app.staticTexts["merchant.content.issue"]
+        XCTAssertTrue(revealFixtureElement(issue, in: app, towardTop: true, requiresHittable: false))
+        XCTAssertTrue(issue.waitForExistence(timeout: 4))
+        let unknownMessage = issue.label
         tap("merchant.content.reload", in: app)
         tap("merchant.content.withdraw", in: app)
         XCTAssertFalse(app.buttons["merchant.content.confirm"].exists)
+        XCTAssertTrue(revealFixtureElement(issue, in: app, towardTop: true, requiresHittable: false))
+        XCTAssertEqual(issue.label, unknownMessage)
     }
     func testAccountSwitchClearsPushedMerchantContent() {
         let app = launch(); tap("merchant.content.entry.projects", in: app); tap("merchant.content.open.project", in: app)
-        tap("merchant.content.fixture.signOut", in: app)
+        XCTAssertTrue(app.staticTexts["Synthetic route"].waitForExistence(timeout: 4))
+        // Fixture account controls sit outside and above the navigation viewport.
+        let signOut = app.buttons["merchant.content.fixture.signOut"]
+        XCTAssertTrue(signOut.isHittable); signOut.tap()
         XCTAssertFalse(app.staticTexts["Synthetic route"].exists)
         XCTAssertFalse(app.staticTexts["Contact sharing consent is unavailable"].exists)
     }

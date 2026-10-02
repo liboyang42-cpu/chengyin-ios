@@ -1,0 +1,406 @@
+{
+  "projectEdit.rich.addBlock": {
+    "en": "Add story block",
+    "zh-Hans": "添加故事块"
+  },
+  "projectEdit.rich.addCondition": {
+    "en": "Add ending condition",
+    "zh-Hans": "添加结局条件"
+  },
+  "projectEdit.rich.addImage": {
+    "en": "Add album image",
+    "zh-Hans": "添加相册图片"
+  },
+  "projectEdit.rich.addNarrative": {
+    "en": "Add node narrative",
+    "zh-Hans": "添加节点叙事"
+  },
+  "projectEdit.rich.afterNodeHint": {
+    "en": "Place this segment after its node block.",
+    "zh-Hans": "请将这段放在对应节点块之后。"
+  },
+  "projectEdit.rich.beforeNodeHint": {
+    "en": "Place this segment before its node block.",
+    "zh-Hans": "请将这段放在对应节点块之前。"
+  },
+  "projectEdit.rich.album": {
+    "en": "Dream album",
+    "zh-Hans": "梦境相册"
+  },
+  "projectEdit.rich.albumHint": {
+    "en": "Use 1–6 existing image references. Captions allow 80 characters; the album title allows 20.",
+    "zh-Hans": "使用 1–6 个已有图片引用。每张配文最多 80 字，相册名最多 20 字。"
+  },
+  "projectEdit.rich.albumTitle": {
+    "en": "Album title",
+    "zh-Hans": "相册名称"
+  },
+  "projectEdit.rich.beat": {
+    "en": "Narrative segment",
+    "zh-Hans": "叙事段"
+  },
+  "projectEdit.rich.chapterRole": {
+    "en": "Chapter role",
+    "zh-Hans": "章节角色"
+  },
+  "projectEdit.rich.chapterRoleHint": {
+    "en": "Opening must be first. Ending chapters have no nodes or recruitment; exactly one ending is the fallback.",
+    "zh-Hans": "开局必须在第一章。结局章不含节点且不能招商；所有结局中恰好一个兜底。"
+  },
+  "projectEdit.rich.claimLater": {
+    "en": "Claim later",
+    "zh-Hans": "稍后领取"
+  },
+  "projectEdit.rich.condition": {
+    "en": "Display condition",
+    "zh-Hans": "显示条件"
+  },
+  "projectEdit.rich.conditionEnabled": {
+    "en": "Use a condition",
+    "zh-Hans": "设置条件"
+  },
+  "projectEdit.rich.content": {
+    "en": "Story content",
+    "zh-Hans": "故事内容"
+  },
+  "projectEdit.rich.editDetails": {
+    "en": "Presentation and narrative",
+    "zh-Hans": "表现与叙事设置"
+  },
+  "projectEdit.rich.effect": {
+    "en": "Text effect level",
+    "zh-Hans": "文字效果档位"
+  },
+  "projectEdit.rich.ending": {
+    "en": "Ending chapter",
+    "zh-Hans": "结局章"
+  },
+  "projectEdit.rich.fallback": {
+    "en": "Fallback ending",
+    "zh-Hans": "兜底结局"
+  },
+  "projectEdit.rich.field": {
+    "en": "Narrative field",
+    "zh-Hans": "叙事正文位"
+  },
+  "projectEdit.rich.imageCaption": {
+    "en": "Image caption",
+    "zh-Hans": "图片配文"
+  },
+  "projectEdit.rich.location": {
+    "en": "Node location",
+    "zh-Hans": "节点地点"
+  },
+  "projectEdit.rich.locationRequired": {
+    "en": "Arrival at a place required",
+    "zh-Hans": "需要到达地点"
+  },
+  "projectEdit.rich.media": {
+    "en": "Media reference",
+    "zh-Hans": "媒体引用"
+  },
+  "projectEdit.rich.mood": {
+    "en": "Atmosphere",
+    "zh-Hans": "氛围"
+  },
+  "projectEdit.rich.narrative": {
+    "en": "Node narrative",
+    "zh-Hans": "节点叙事"
+  },
+  "projectEdit.rich.narrativeHint": {
+    "en": "Narrative text allows 200 characters. Questions and answers share an ID; delivery requires a reward line. Node and NPC IDs remain server-authorized.",
+    "zh-Hans": "叙事正文最多 200 字。问答使用同一标识；领取段必须有奖励正文。节点和 NPC 归属仍由服务端校验。"
+  },
+  "projectEdit.rich.nodeNarrative": {
+    "en": "Attach text to a node",
+    "zh-Hans": "将正文关联到节点"
+  },
+  "projectEdit.rich.npcID": {
+    "en": "Speaker NPC ID (optional)",
+    "zh-Hans": "说话 NPC ID（可选）"
+  },
+  "projectEdit.rich.opening": {
+    "en": "Opening chapter",
+    "zh-Hans": "开局章"
+  },
+  "projectEdit.rich.operator": {
+    "en": "Condition rule",
+    "zh-Hans": "条件规则"
+  },
+  "projectEdit.rich.questionID": {
+    "en": "Question pair ID",
+    "zh-Hans": "问答配对标识"
+  },
+  "projectEdit.rich.removeCondition": {
+    "en": "Remove condition",
+    "zh-Hans": "删除条件"
+  },
+  "projectEdit.rich.removeImage": {
+    "en": "Remove image",
+    "zh-Hans": "删除图片"
+  },
+  "projectEdit.rich.savedNodeHint": {
+    "en": "Use an existing saved node ID. New server IDs are never guessed.",
+    "zh-Hans": "填写已有节点的服务端 ID，不会猜测新节点 ID。"
+  },
+  "projectEdit.rich.savedNodeID": {
+    "en": "Saved node ID",
+    "zh-Hans": "已保存节点 ID"
+  },
+  "projectEdit.rich.selectNode": {
+    "en": "Select a node",
+    "zh-Hans": "选择节点"
+  },
+  "projectEdit.rich.speaker": {
+    "en": "Speaker",
+    "zh-Hans": "说话者"
+  },
+  "projectEdit.rich.stateHint": {
+    "en": "Use a registered clue, relation or counter key, or a supported read-only system variable. Values range from −99 to 99.",
+    "zh-Hans": "使用已登记的 clue、relation、counter 状态键或支持的只读系统变量。数值范围为 −99 至 99。"
+  },
+  "projectEdit.rich.stateValue": {
+    "en": "Comparison value",
+    "zh-Hans": "比较数值"
+  },
+  "projectEdit.rich.stateVariable": {
+    "en": "State variable",
+    "zh-Hans": "状态变量"
+  },
+  "projectEdit.rich.storyGameHint": {
+    "en": "A story game requires a saved template and no coordinates. Arrival-based templates remain subject to server validation.",
+    "zh-Hans": "故事玩法必须绑定已有模板且不含坐标。到达类模板仍受服务端校验。"
+  },
+  "projectEdit.rich.tag": {
+    "en": "Tag key",
+    "zh-Hans": "标签键"
+  },
+  "projectEdit.rich.tagHint": {
+    "en": "Use tag.name with a lowercase named key.",
+    "zh-Hans": "使用 tag.name 格式的小写具名键。"
+  },
+  "projectEdit.rich.tagThoughtHint": {
+    "en": "Use tag.name or thought.name.done.",
+    "zh-Hans": "使用 tag.name 或 thought.name.done。"
+  },
+  "projectEdit.rich.targetNode": {
+    "en": "Narrative node",
+    "zh-Hans": "叙事所属节点"
+  },
+  "projectEdit.rich.thoughtHint": {
+    "en": "Reference a thought already defined in this project’s journey rules.",
+    "zh-Hans": "引用本主题旅程规则中已定义的念头。"
+  },
+  "projectEdit.rich.thoughtKey": {
+    "en": "Thought key",
+    "zh-Hans": "念头标识"
+  },
+  "projectEdit.rich.kind.text": {
+    "en": "Text",
+    "zh-Hans": "正文"
+  },
+  "projectEdit.rich.kind.node": {
+    "en": "Node",
+    "zh-Hans": "节点"
+  },
+  "projectEdit.rich.kind.image": {
+    "en": "Image",
+    "zh-Hans": "图片"
+  },
+  "projectEdit.rich.kind.audio": {
+    "en": "Audio",
+    "zh-Hans": "音频"
+  },
+  "projectEdit.rich.kind.dream": {
+    "en": "Dream album",
+    "zh-Hans": "梦境相册"
+  },
+  "projectEdit.rich.kind.mood": {
+    "en": "Atmosphere",
+    "zh-Hans": "氛围"
+  },
+  "projectEdit.rich.kind.thought": {
+    "en": "Thought",
+    "zh-Hans": "念头"
+  },
+  "projectEdit.rich.kind.voice": {
+    "en": "Inner voice",
+    "zh-Hans": "内心声音"
+  },
+  "projectEdit.rich.kind.odd": {
+    "en": "Unusual effect",
+    "zh-Hans": "异常效果"
+  },
+  "projectEdit.rich.kind.reveal": {
+    "en": "Reveal",
+    "zh-Hans": "反转"
+  },
+  "projectEdit.rich.beat.brief": {
+    "en": "Brief",
+    "zh-Hans": "出发简报"
+  },
+  "projectEdit.rich.beat.route": {
+    "en": "Route",
+    "zh-Hans": "途中"
+  },
+  "projectEdit.rich.beat.enter": {
+    "en": "Arrival",
+    "zh-Hans": "到达"
+  },
+  "projectEdit.rich.beat.outcome": {
+    "en": "Outcome",
+    "zh-Hans": "结果"
+  },
+  "projectEdit.rich.beat.deliver": {
+    "en": "Delivery",
+    "zh-Hans": "领取"
+  },
+  "projectEdit.rich.beat.unlock": {
+    "en": "Unlock",
+    "zh-Hans": "解锁"
+  },
+  "projectEdit.rich.beat.revisit": {
+    "en": "Revisit",
+    "zh-Hans": "重访"
+  },
+  "projectEdit.rich.field.question": {
+    "en": "Question",
+    "zh-Hans": "问题"
+  },
+  "projectEdit.rich.field.body": {
+    "en": "Body",
+    "zh-Hans": "正文"
+  },
+  "projectEdit.rich.field.carry": {
+    "en": "Carry item",
+    "zh-Hans": "随身物"
+  },
+  "projectEdit.rich.field.walk": {
+    "en": "Walk",
+    "zh-Hans": "行走说明"
+  },
+  "projectEdit.rich.field.todo": {
+    "en": "To do",
+    "zh-Hans": "待办"
+  },
+  "projectEdit.rich.field.opener": {
+    "en": "Opening line",
+    "zh-Hans": "开场白"
+  },
+  "projectEdit.rich.field.aside": {
+    "en": "Aside",
+    "zh-Hans": "旁白"
+  },
+  "projectEdit.rich.field.q": {
+    "en": "Question line",
+    "zh-Hans": "提问"
+  },
+  "projectEdit.rich.field.a": {
+    "en": "Answer line",
+    "zh-Hans": "回答"
+  },
+  "projectEdit.rich.field.title": {
+    "en": "Title",
+    "zh-Hans": "标题"
+  },
+  "projectEdit.rich.field.line": {
+    "en": "Line",
+    "zh-Hans": "台词"
+  },
+  "projectEdit.rich.field.lineIfFail": {
+    "en": "Failure line",
+    "zh-Hans": "失败台词"
+  },
+  "projectEdit.rich.field.fact": {
+    "en": "Fact",
+    "zh-Hans": "事实"
+  },
+  "projectEdit.rich.field.open": {
+    "en": "Open",
+    "zh-Hans": "开启"
+  },
+  "projectEdit.rich.field.reward": {
+    "en": "Reward",
+    "zh-Hans": "奖励"
+  },
+  "projectEdit.rich.field.hook": {
+    "en": "Hook",
+    "zh-Hans": "引子"
+  },
+  "projectEdit.rich.field.change": {
+    "en": "Change",
+    "zh-Hans": "变化"
+  },
+  "projectEdit.rich.mood.DEFAULT": {
+    "en": "Black",
+    "zh-Hans": "黑"
+  },
+  "projectEdit.rich.mood.BLUE": {
+    "en": "Blue",
+    "zh-Hans": "蓝"
+  },
+  "projectEdit.rich.mood.RED": {
+    "en": "Red",
+    "zh-Hans": "红"
+  },
+  "projectEdit.rich.mood.YELLOW": {
+    "en": "Yellow",
+    "zh-Hans": "黄"
+  },
+  "projectEdit.rich.mood.WHITE": {
+    "en": "White",
+    "zh-Hans": "白"
+  },
+  "projectEdit.rich.op.HAS_TAG": {
+    "en": "Has tag",
+    "zh-Hans": "持有标签"
+  },
+  "projectEdit.rich.op.NODE_COMPLETED": {
+    "en": "Node completed",
+    "zh-Hans": "已完成节点"
+  },
+  "projectEdit.rich.op.EQ": {
+    "en": "Equals",
+    "zh-Hans": "等于"
+  },
+  "projectEdit.rich.op.NE": {
+    "en": "Does not equal",
+    "zh-Hans": "不等于"
+  },
+  "projectEdit.rich.op.GT": {
+    "en": "Greater than",
+    "zh-Hans": "大于"
+  },
+  "projectEdit.rich.op.GTE": {
+    "en": "At least",
+    "zh-Hans": "大于等于"
+  },
+  "projectEdit.rich.op.LT": {
+    "en": "Less than",
+    "zh-Hans": "小于"
+  },
+  "projectEdit.rich.op.LTE": {
+    "en": "At most",
+    "zh-Hans": "小于等于"
+  },
+  "projectEdit.rich.voice.0": {
+    "en": "Rules",
+    "zh-Hans": "规矩"
+  },
+  "projectEdit.rich.voice.1": {
+    "en": "Window",
+    "zh-Hans": "窗外"
+  },
+  "projectEdit.rich.voice.2": {
+    "en": "Heart",
+    "zh-Hans": "心"
+  },
+  "projectEdit.rich.voice.3": {
+    "en": "Precision",
+    "zh-Hans": "精密"
+  },
+  "projectEdit.rich.voice.4": {
+    "en": "Click",
+    "zh-Hans": "咔哒"
+  }
+}

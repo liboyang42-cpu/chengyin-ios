@@ -1,5 +1,7 @@
 # Project editor: current V2 story contract
 
+The later [rich-flow follow-on](project-edit-rich-story.md) closes the rich-block, beat-metadata and legacy-ending omissions described in this initial repair. Its source/UI changes and remaining acceptance gates are documented separately.
+
 ## Finding and bounded implementation
 
 The current mini editor chooses `/api/topic/v2/create` or `/api/topic/v2/update` for professional city stories and professional opening/ending chapters. The audited Flutter implementation still uses legacy create/update for every professional submission. The native baseline inherited that choice while already emitting chapter blocks. This is an actual contract conflict: both legacy backend entry points explicitly reject block payloads; legacy update also rejects already-materialized flows. Legacy plain/simple requests remain supported.

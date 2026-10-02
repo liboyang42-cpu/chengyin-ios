@@ -1,0 +1,370 @@
+{
+  "playkitAuthor.instructions.sort": {
+    "en": "Enter items in the correct order. The server will shuffle them for players.",
+    "zh-Hans": "请按正确顺序录入条目，服务端会为玩家打乱顺序。"
+  },
+  "playkitAuthor.instructions.match": {
+    "en": "Each entered left/right row is a correct pair. Players receive a shuffled right column.",
+    "zh-Hans": "每行的左、右两项组成正确配对，玩家看到的右侧条目由服务端打乱。"
+  },
+  "playkitAuthor.instructions.classify": {
+    "en": "Define categories, then assign every item to its correct category.",
+    "zh-Hans": "先定义类别，再为每个条目指定正确类别。"
+  },
+  "playkitAuthor.compass.boundary": {
+    "en": "A direction is required. Compass alignment awards configured points only; it is not proof of arrival. Native sensor permission and device acceptance are separate.",
+    "zh-Hans": "必须明确填写目标方位。罗盘对准仅按配置计分，不能作为到店凭证。原生传感器权限与真机验收是独立步骤。"
+  },
+  "playkitAuthor.shout.boundary": {
+    "en": "Participants must agree to microphone use and sustain the sound continuously. Consider the location and other people before choosing this task.",
+    "zh-Hans": "参与者需要同意使用麦克风并持续发声。选择此玩法前，请考虑现场环境与周围的人。"
+  },
+  "playkitAuthor.preview": {
+    "en": "Preview this game",
+    "zh-Hans": "预览此玩法"
+  },
+  "playkitAuthor.rowLabel": {
+    "en": "Item text",
+    "zh-Hans": "条目文案"
+  },
+  "playkitAuthor.remove": {
+    "en": "Remove",
+    "zh-Hans": "移除"
+  },
+  "playkitAuthor.addItem": {
+    "en": "Add item",
+    "zh-Hans": "添加条目"
+  },
+  "playkitAuthor.left": {
+    "en": "Left item",
+    "zh-Hans": "左侧条目"
+  },
+  "playkitAuthor.right": {
+    "en": "Matching right item",
+    "zh-Hans": "配对的右侧条目"
+  },
+  "playkitAuthor.removePair": {
+    "en": "Remove pair",
+    "zh-Hans": "移除这一对"
+  },
+  "playkitAuthor.balancePairs": {
+    "en": "Add blank rows to the shorter column",
+    "zh-Hans": "为较短的一列补充空白条目"
+  },
+  "playkitAuthor.addPair": {
+    "en": "Add pair",
+    "zh-Hans": "添加一对"
+  },
+  "playkitAuthor.categories": {
+    "en": "Categories",
+    "zh-Hans": "类别"
+  },
+  "playkitAuthor.addCategory": {
+    "en": "Add category",
+    "zh-Hans": "添加类别"
+  },
+  "playkitAuthor.items": {
+    "en": "Items",
+    "zh-Hans": "条目"
+  },
+  "playkitAuthor.correctCategory": {
+    "en": "Correct category",
+    "zh-Hans": "正确类别"
+  },
+  "playkitAuthor.previewBoundary": {
+    "en": "Author rehearsal only. No request is sent, no live session is created and no reward is awarded. Secret answers are removed from these player controls.",
+    "zh-Hans": "仅供作者试用。不会发送请求、创建真实会话或发放奖励。此处的玩家控件已移除答案字段。"
+  },
+  "playkitAuthor.previewPayload": {
+    "en": "Values this rehearsal would submit",
+    "zh-Hans": "本次试用拟提交的值"
+  },
+  "playkitAuthor.sensorPreviewBoundary": {
+    "en": "This shows the configured sensor task and its native controls. Hardware stays off in author preview; use an accepted device-testing configuration to measure real input.",
+    "zh-Hans": "这里展示配置的传感器任务与原生控件。作者预览中不启动硬件，真实输入需在获准的真机测试配置中验证。"
+  },
+  "playkitAuthor.presentation": {
+    "en": "Player presentation",
+    "zh-Hans": "玩家呈现方式"
+  },
+  "playkitAuthor.presentation.default": {
+    "en": "Server default",
+    "zh-Hans": "由服务端按规则决定"
+  },
+  "playkitAuthor.presentation.inline": {
+    "en": "Within the story",
+    "zh-Hans": "嵌入故事"
+  },
+  "playkitAuthor.presentation.focused": {
+    "en": "Dedicated game screen",
+    "zh-Hans": "独立玩法页面"
+  },
+  "playkitAuthor.presentation.focusedRequired": {
+    "en": "This game requires a dedicated screen. An inline selection must be changed before saving.",
+    "zh-Hans": "此玩法需要独立页面，保存前请将内嵌选择改为独立页面。"
+  },
+  "playkitAuthor.validation.presentation": {
+    "en": "Choose a supported presentation value",
+    "zh-Hans": "请选择受支持的呈现方式"
+  },
+  "playkitAuthor.validation.fullscreenOnly": {
+    "en": "This game cannot be embedded in the story",
+    "zh-Hans": "此玩法不能嵌入故事流"
+  },
+  "playkitAuthor.validation.row": {
+    "en": "Every item must have the expected object shape",
+    "zh-Hans": "每个条目都必须符合对象结构"
+  },
+  "playkitAuthor.validation.id": {
+    "en": "Item IDs must be unique, 1–32 letters, digits, underscores or hyphens",
+    "zh-Hans": "条目 ID 必须唯一，使用 1 至 32 位字母、数字、下划线或短横线"
+  },
+  "playkitAuthor.validation.label": {
+    "en": "Every item needs 1–40 UTF-16 units of text",
+    "zh-Hans": "每个条目需填写 1 至 40 个 UTF-16 单位的文案"
+  },
+  "playkitAuthor.validation.image": {
+    "en": "An item image must use a valid HTTPS address",
+    "zh-Hans": "条目图片需使用有效的 HTTPS 地址"
+  },
+  "playkitAuthor.validation.prompt": {
+    "en": "Enter a question of 1–200 UTF-16 units",
+    "zh-Hans": "请填写 1 至 200 个 UTF-16 单位的题干"
+  },
+  "playkitAuthor.validation.sort.items.count": {
+    "en": "Sorting needs 2–8 items",
+    "zh-Hans": "排序需要 2 至 8 个条目"
+  },
+  "playkitAuthor.validation.match.left.count": {
+    "en": "Matching needs 2–6 left items",
+    "zh-Hans": "配对左列需要 2 至 6 个条目"
+  },
+  "playkitAuthor.validation.match.right.count": {
+    "en": "Matching needs 2–6 right items",
+    "zh-Hans": "配对右列需要 2 至 6 个条目"
+  },
+  "playkitAuthor.validation.match.sameCount": {
+    "en": "The matching columns must contain the same number of items",
+    "zh-Hans": "配对两列的条目数必须相同"
+  },
+  "playkitAuthor.validation.classify.bins.count": {
+    "en": "Classification needs 2–4 categories",
+    "zh-Hans": "分类需要 2 至 4 个类别"
+  },
+  "playkitAuthor.validation.classify.items.count": {
+    "en": "Classification needs 2–10 items",
+    "zh-Hans": "分类需要 2 至 10 个条目"
+  },
+  "playkitAuthor.validation.classify.answer": {
+    "en": "Assign every item to an existing category, with no extra answers",
+    "zh-Hans": "请为每个条目指定现有类别，并移除多余答案"
+  },
+  "playkitAuthor.validation.kicker": {
+    "en": "The heading must be at most 32 UTF-16 units",
+    "zh-Hans": "标题不能超过 32 个 UTF-16 单位"
+  },
+  "playkitAuthor.validation.compass.bearing": {
+    "en": "Enter an integer direction from 0 to 359 degrees",
+    "zh-Hans": "请填写 0 至 359 度的整数方位"
+  },
+  "playkitAuthor.validation.compass.tolerance": {
+    "en": "Compass tolerance must be an integer from 5 to 90 degrees",
+    "zh-Hans": "罗盘容差须为 5 至 90 度的整数"
+  },
+  "playkitAuthor.validation.compass.holdSeconds": {
+    "en": "Compass hold time must be an integer from 1 to 10 seconds",
+    "zh-Hans": "罗盘保持时长须为 1 至 10 秒的整数"
+  },
+  "playkitAuthor.validation.compass.hint": {
+    "en": "The compass hint must be at most 60 UTF-16 units",
+    "zh-Hans": "罗盘提示不能超过 60 个 UTF-16 单位"
+  },
+  "playkitAuthor.validation.compass.xp": {
+    "en": "Compass points must be an integer from 0 to 1000",
+    "zh-Hans": "罗盘奖励分须为 0 至 1000 的整数"
+  },
+  "playkitAuthor.validation.shout.seconds": {
+    "en": "Continuous voice duration must be 5–300 seconds",
+    "zh-Hans": "持续发声时长须为 5 至 300 秒"
+  },
+  "playkitAuthor.validation.shout.xp": {
+    "en": "Voice challenge points must be an integer from 0 to 1000",
+    "zh-Hans": "发声挑战奖励分须为 0 至 1000 的整数"
+  },
+  "templateAuthor.game.sort": {
+    "en": "Put in order",
+    "zh-Hans": "排序"
+  },
+  "templateAuthor.game.match": {
+    "en": "Match pairs",
+    "zh-Hans": "配对"
+  },
+  "templateAuthor.game.classify": {
+    "en": "Classify items",
+    "zh-Hans": "分类"
+  },
+  "templateAuthor.game.compass": {
+    "en": "Compass alignment",
+    "zh-Hans": "罗盘指向"
+  },
+  "templateAuthor.game.shout": {
+    "en": "Continuous voice challenge",
+    "zh-Hans": "持续发声挑战"
+  },
+  "templateAuthor.field.prompt": {
+    "en": "Question",
+    "zh-Hans": "题干"
+  },
+  "templateAuthor.field.bearing": {
+    "en": "Target direction, 0–359°",
+    "zh-Hans": "目标方位，0 至 359°"
+  },
+  "templateAuthor.field.tolerance": {
+    "en": "Direction tolerance, 5–90°",
+    "zh-Hans": "方位容差，5 至 90°"
+  },
+  "templateAuthor.field.holdSeconds": {
+    "en": "Continuous hold, 1–10 seconds",
+    "zh-Hans": "连续保持，1 至 10 秒"
+  },
+  "templateAuthor.field.compassHint": {
+    "en": "Direction hint",
+    "zh-Hans": "方位提示"
+  },
+  "templateAuthor.advancedScope": {
+    "en": "Seven Flutter scalar panels and five newer source-backed reasoning/sensor panels are available. Other sections are preserved, but unsupported enabled sections still block publishing.",
+    "zh-Hans": "已提供七个 Flutter 参数面板和五个新增的推理／传感器配置面板。其他配置会保留，但启用未支持的配置仍会阻止发布。"
+  },
+  "playkit.kind.blindTaste": {
+    "en": "Blind tasting",
+    "zh-Hans": "盲品"
+  },
+  "playkit.kind.diyName": {
+    "en": "Name your creation",
+    "zh-Hans": "作品命名"
+  },
+  "playkit.kind.silentOrder": {
+    "en": "Silent ordering",
+    "zh-Hans": "沉默点单"
+  },
+  "playkit.kind.slowTask": {
+    "en": "Slow task",
+    "zh-Hans": "跨日慢任务"
+  },
+  "playkit.kind.musicCorner": {
+    "en": "Music corner",
+    "zh-Hans": "音乐角"
+  },
+  "playkit.kind.timeWindow": {
+    "en": "Opening window",
+    "zh-Hans": "开放时段"
+  },
+  "playkitLegacy.scan.staticFallback": {
+    "en": "The returned overlay is shown as a regular image. No camera anchoring or AR placement is claimed.",
+    "zh-Hans": "返回的叠加图以普通图片展示，不代表已贴合相机画面或完成 AR 放置。"
+  },
+  "playkitLegacy.scan.arGate": {
+    "en": "Plane and marker AR need an accepted renderer and asset configuration. The returned image remains available as the fallback.",
+    "zh-Hans": "平面与图像识别 AR 需要已验收的渲染器和素材配置，当前仍可查看返回的图片。"
+  },
+  "playkitLegacy.music.duration": {
+    "en": "Track duration",
+    "zh-Hans": "曲目时长"
+  },
+  "playkitLegacy.music.boundary": {
+    "en": "Listening is optional. Playback does not submit completion or promise points.",
+    "zh-Hans": "可以自由聆听，播放不会提交完成状态，也不承诺奖励分。"
+  },
+  "playkitLegacy.silent.noWitnessCode": {
+    "en": "The service has not supplied a witness code",
+    "zh-Hans": "服务端尚未提供见证码"
+  },
+  "playkitLegacy.window.opens": {
+    "en": "Opens",
+    "zh-Hans": "开放时间"
+  },
+  "playkitLegacy.window.closes": {
+    "en": "Closes",
+    "zh-Hans": "结束时间"
+  },
+  "playkitLegacy.window.authority": {
+    "en": "The server decides whether this time window is open. These are the configured clock labels, not a device-time unlock.",
+    "zh-Hans": "是否开放由服务端决定。这里展示配置的时刻，不使用设备时间自动解锁。"
+  },
+  "playkitLegacy.window.subscribed": {
+    "en": "The source service reports a reminder subscription",
+    "zh-Hans": "源服务显示已登记提醒订阅"
+  },
+  "playkitLegacy.window.providerGate": {
+    "en": "The source reminder uses WeChat subscription authorization. No equivalent native permission or subscription has been approved.",
+    "zh-Hans": "源提醒依赖微信订阅授权，尚未批准等效的原生权限或订阅链路。"
+  },
+  "playkitLegacy.window.subscribe": {
+    "en": "Enable reminder",
+    "zh-Hans": "开启提醒"
+  },
+  "playkitLegacy.blind.instructions": {
+    "en": "Choose what you tasted. The answer stays on the server.",
+    "zh-Hans": "选择你品尝到的选项，答案由服务端保管。"
+  },
+  "playkitLegacy.blind.tryAgain": {
+    "en": "That choice was not solved. You can choose again.",
+    "zh-Hans": "这个选择尚未答对，可以重新选择。"
+  },
+  "playkitLegacy.name.placeholder": {
+    "en": "Name this creation",
+    "zh-Hans": "给作品起个名字"
+  },
+  "playkitLegacy.name.audience": {
+    "en": "The name can be shown publicly and is checked by the service before it is saved.",
+    "zh-Hans": "作品名可能公开展示，保存前会由服务端进行内容审核。"
+  },
+  "playkitLegacy.slow.emptyReadback": {
+    "en": "The server recorded the claim but returned no reveal text",
+    "zh-Hans": "服务端已记录领取，但未返回揭示文案"
+  },
+  "playkitLegacy.slow.reveal": {
+    "en": "Reveal the returned discovery",
+    "zh-Hans": "查看这次返回的发现"
+  },
+  "playkitLegacy.slow.daysLeft": {
+    "en": "Days remaining",
+    "zh-Hans": "还需等待天数"
+  },
+  "playkitLegacy.slow.ready": {
+    "en": "The server says this discovery can be claimed",
+    "zh-Hans": "服务端显示这次发现已可领取"
+  },
+  "playkitLegacy.slow.claim": {
+    "en": "Review and claim",
+    "zh-Hans": "核对并领取"
+  },
+  "playkitLegacy.slow.start": {
+    "en": "Review and begin",
+    "zh-Hans": "核对并开始"
+  },
+  "playkitLegacy.slow.authority": {
+    "en": "Waiting and availability come from the server. Changing your device date cannot unlock this task.",
+    "zh-Hans": "等待天数和可领取状态由服务端返回，修改设备日期不能解锁任务。"
+  },
+  "playkitLegacy.silent.boundary": {
+    "en": "This clock is only a companion. It never proves a result, completes an order or awards points.",
+    "zh-Hans": "这个计时器仅作陪伴展示，不作为结果凭证，不完成订单，也不发放奖励。"
+  },
+  "playkitLegacy.silent.elapsed": {
+    "en": "Local performance time",
+    "zh-Hans": "本地表演时长"
+  },
+  "playkitLegacy.silent.stopped": {
+    "en": "The local clock has stopped",
+    "zh-Hans": "本地计时已停止"
+  },
+  "playkitLegacy.silent.start": {
+    "en": "Start the local clock",
+    "zh-Hans": "开始本地计时"
+  },
+  "playkitLegacy.silent.giveUp": {
+    "en": "Stop and speak",
+    "zh-Hans": "停止计时并说话"
+  }
+}

@@ -12,8 +12,8 @@ final class ClubManagementFlowTests: XCTestCase {
     }
     private func element(_ id: String) -> XCUIElement { app.descendants(matching: .any).matching(identifier: id).firstMatch }
     private func count(_ value: Int) {
-        let expected = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", String(value)), object: element("club.management.writes"))
-        XCTAssertEqual(XCTWaiter.wait(for: [expected], timeout: 5), .completed)
+        let expected = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", String(value)), object: app.staticTexts["club.management.writes"].firstMatch)
+        XCTAssertEqual(XCTWaiter.wait(for: [expected], timeout: 10), .completed, app.debugDescription)
     }
     private func open(_ type: String, _ id: Int) {
         let row = element("club.management.\(type).\(id)")

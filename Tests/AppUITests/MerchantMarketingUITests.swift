@@ -1,6 +1,19 @@
 import XCTest
 
 final class MerchantMarketingUITests: XCTestCase {
+    override func setUpWithError() throws { continueAfterFailure = false }
+    private func reveal(_ element: XCUIElement, app: XCUIApplication, upwards: Bool = true) {
+        for _ in 0..<12 {
+            if element.exists && element.isHittable { break }
+            if upwards { app.swipeUp() } else { app.swipeDown() }
+        }
+        XCTAssertTrue(element.exists, app.debugDescription)
+        XCTAssertTrue(element.isHittable, app.debugDescription)
+    }
+    private func waitForLabel(_ element: XCUIElement, _ value: String) {
+        let expected = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", value), object: element)
+        XCTAssertEqual(XCTWaiter.wait(for: [expected], timeout: 5), .completed)
+    }
     private func launch(_ surface: String, scenario: String = "normal", language: String = "en") -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments += ["--merchant-marketing-fixture", surface, "--merchant-marketing-scenario", scenario, "-AppleLanguages", "(\(language))", "-AppleLocale", language == "en" ? "en_US" : "zh_CN"]
@@ -36,15 +49,32 @@ final class MerchantMarketingUITests: XCTestCase {
         let app = launch("predictions", scenario: "unknown")
         let option = app.buttons["merchantMarketing.option.A"]
         XCTAssertTrue(option.waitForExistence(timeout: 5)); option.tap()
-        app.switches["merchantMarketing.acknowledgeEffects"].tap()
-        app.buttons["merchantMarketing.confirmSettlement"].tap()
-        XCTAssertTrue(app.staticTexts["merchantMarketing.error"].waitForExistence(timeout: 5))
-        XCTAssertTrue(option.exists); XCTAssertFalse(app.staticTexts["merchantMarketing.winners"].exists)
-        option.tap(); XCTAssertFalse(app.buttons["merchantMarketing.confirmSettlement"].exists)
+        let effects = app.switches["merchantMarketing.acknowledgeEffects"]
+        XCTAssertTrue(effects.waitForExistence(timeout: 5))
+        // The SwiftUI switch's accessibility frame includes its multiline label.
+        // Touch its trailing native control, then verify the state before confirming.
+        effects.coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap()
+        let acknowledged = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "1"), object: effects)
+        XCTAssertEqual(XCTWaiter.wait(for: [acknowledged], timeout: 5), .completed, app.debugDescription)
+        let confirm = app.buttons["merchantMarketing.confirmSettlement"]
+        XCTAssertTrue(confirm.isEnabled); confirm.tap()
+        let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: confirm)
+        XCTAssertEqual(XCTWaiter.wait(for: [dismissed], timeout: 5), .completed, app.debugDescription)
+        let error = app.staticTexts["merchantMarketing.error"]
+        reveal(error, app: app, upwards: false)
+        XCTAssertEqual(error.label, "The outcome is unconfirmed. Resubmission is locked; do not settle this round again.")
+        XCTAssertFalse(app.staticTexts["merchantMarketing.winners"].exists)
+        waitForLabel(app.staticTexts["merchantMarketing.fixtureSettlementCount"], "1")
+        reveal(option, app: app); option.tap()
+        reveal(error, app: app, upwards: false)
+        XCTAssertEqual(error.label, "This round has a submission record. Further settlement is blocked.")
+        XCTAssertFalse(confirm.exists)
+        waitForLabel(app.staticTexts["merchantMarketing.fixtureSettlementCount"], "1")
     }
     func testSessionChangeClearsReview() {
         let app = launch("insight")
-        XCTAssertTrue(app.staticTexts["Synthetic suggestion"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["merchantMarketing.synthetic"].waitForExistence(timeout: 5))
+        reveal(app.staticTexts["Synthetic suggestion"], app: app)
         app.buttons["merchantMarketing.fixtureSignOut"].tap()
         XCTAssertFalse(app.staticTexts["Synthetic suggestion"].exists)
     }

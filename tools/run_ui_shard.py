@@ -4,6 +4,8 @@ import argparse
 import pathlib
 import re
 import subprocess
+import os
+import signal
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 DEFAULT_SHARD_COUNT = 6
@@ -46,6 +48,8 @@ def main():
     parser.add_argument('--simulator')
     parser.add_argument('--derived-data')
     parser.add_argument('--result-bundle')
+    parser.add_argument('--xctestrun')
+    parser.add_argument('--deadline-seconds', type=int)
     parser.add_argument('--dry-run', action='store_true')
     args = parser.parse_args()
     weights = discover(ROOT / 'Tests/AppUITests')
@@ -57,15 +61,42 @@ def main():
           f'{sum(weights[name] for name in selected)} tests in {selected}', flush=True)
     if args.dry_run:
         return 0
-    if not all([args.simulator, args.derived_data, args.result_bundle]):
-        parser.error('simulator, derived-data and result-bundle are required')
-    command = ['xcodebuild', '-project', 'Questify.xcodeproj', '-scheme', 'Questify',
-               '-configuration', 'Debug', '-destination', f'platform=iOS Simulator,id={args.simulator}',
-               '-derivedDataPath', args.derived_data, '-resultBundlePath', args.result_bundle,
+    if not all([args.simulator, args.result_bundle]) or not (args.xctestrun or args.derived_data):
+        parser.error('simulator, result-bundle and xctestrun or derived-data are required')
+    if args.deadline_seconds is not None and args.deadline_seconds < 1:
+        parser.error('deadline-seconds must be positive')
+    if args.xctestrun:
+        if not pathlib.Path(args.xctestrun).is_file():
+            parser.error('Verified xctestrun is missing; refusing an implicit rebuild')
+        command = ['xcodebuild', '-xctestrun', args.xctestrun]
+        action = 'test-without-building'
+    else:
+        command = ['xcodebuild', '-project', 'Questify.xcodeproj', '-scheme', 'Questify',
+                   '-configuration', 'Debug', '-derivedDataPath', args.derived_data]
+        action = 'test'
+    command += ['-destination', f'platform=iOS Simulator,id={args.simulator}',
+               '-resultBundlePath', args.result_bundle,
                '-parallel-testing-enabled', 'NO']
     command += [f'-only-testing:QuestifyUITests/{name}' for name in selected]
-    command += ['CODE_SIGNING_ALLOWED=NO', 'test']
-    return subprocess.run(command, cwd=ROOT, check=False).returncode
+    command += ['CODE_SIGNING_ALLOWED=NO', action]
+    process = subprocess.Popen(command, cwd=ROOT, start_new_session=True)
+    try:
+        return process.wait(timeout=args.deadline_seconds)
+    except subprocess.TimeoutExpired:
+        # Give xcodebuild time to finalize partial results before the job limit.
+        # A partial run always fails, even if its graceful interrupt returns zero.
+        print('UI shard deadline reached: incomplete, never passed; requesting result finalization', flush=True)
+        process.send_signal(signal.SIGINT)
+        try:
+            process.wait(timeout=60)
+        except subprocess.TimeoutExpired:
+            os.killpg(process.pid, signal.SIGTERM)
+            try:
+                process.wait(timeout=15)
+            except subprocess.TimeoutExpired:
+                os.killpg(process.pid, signal.SIGKILL)
+                process.wait()
+        return 124
 
 if __name__ == '__main__':
     raise SystemExit(main())

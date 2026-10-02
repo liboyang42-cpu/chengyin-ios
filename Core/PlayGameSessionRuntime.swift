@@ -79,8 +79,8 @@ public struct PlayPlayerCommand: Equatable {
             let encoded = String(value.dropFirst(5)); guard let decoded = encoded.removingPercentEncoding else { return false }
             return (try? textEvidence(decoded, scan: value.hasPrefix("scan:"))) == value
         }
-        guard PlayExperienceService.validHTTPS(value), let url = URL(string: value) else { return false }
-        return ["jpg", "jpeg", "png", "webp"].contains(url.pathExtension.lowercased())
+        // uploadOSS may return a signed or extensionless HTTPS URL; source accepts it.
+        return PlayExperienceService.validHTTPS(value)
     }
     var json: [String: PlayWireValue] { ["activityId": .int(activityID), "nodeId": nodeID.map(PlayWireValue.int) ?? .null,
         "requestId": .string(requestID), "expectedRevision": .int(expectedRevision), "action": .string(action.rawValue), "payload": .object(payload)] }
@@ -126,6 +126,7 @@ extension PlayExperienceService {
     public init(activityID: Int, service: PlayExperienceService, currentSession: @escaping () -> PlayExperienceSession?) {
         self.activityID = activityID; self.service = service; self.currentSession = currentSession
     }
+    public var hasCurrentProjection: Bool { owner != nil && owner == currentSession() }
     public func load() async {
         guard phase != "submitting", let session = currentSession() else { return }
         if owner != nil && owner != session { projection = nil; receipt = nil; phase = "stale"; return }

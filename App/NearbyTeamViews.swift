@@ -147,7 +147,8 @@ import SwiftUI
                         if !application.leaderName.isEmpty { LabeledContent("nearby.leader") { Text(verbatim: application.leaderName) } }
                         if application.status == .pending { expiry(application.applyExpireTime); actionButton(.withdraw(application.id)) }
                         else { Text("nearby.rejected.foot"); Button("nearby.lookNearby") { tab = 0 }.frame(minHeight: 44) }
-                    }.accessibilityIdentifier("nearby.application.\(application.id.rawValue)")
+                    }.accessibilityElement(children: .contain)
+                        .accessibilityIdentifier("nearby.application.\(application.id.rawValue)")
                 }
             }
         }

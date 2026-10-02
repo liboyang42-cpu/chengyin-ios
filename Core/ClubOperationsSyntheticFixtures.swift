@@ -11,6 +11,10 @@ public enum ClubOperationsFixtureScenario: String, CaseIterable {
     public var writeAvailability: ClubOperationsWriteAvailability { scenario == .unverified ? .unverified : .syntheticOnly }
     public private(set) var writeCount = 0
     public var onWrite: (() -> Void)?
+    public var onWriteFinished: (() -> Void)?
+    /// UI fixtures can hold a dispatched write until an explicit account switch,
+    /// so simulator scheduling cannot turn a race test into a post-completion switch.
+    public var delayedWriteGate: (() async -> Void)?
     public private(set) var readCount = 0
     public let scenario: ClubOperationsFixtureScenario
     private var payload: [String: Any]
@@ -57,10 +61,14 @@ public enum ClubOperationsFixtureScenario: String, CaseIterable {
         catch { throw ClubActionWriteError.eligibilityChanged }
         guard !Task.isCancelled else { throw ClubActionWriteError.cancelledBeforeDispatch }
         writeCount += 1; onWrite?()
+        defer { onWriteFinished?() }
         if scenario == .denied { throw ClubActionWriteError.rejected(.init(code: 403, message: "Fixture server rejected this change")) }
         if scenario == .delayed {
-            do { try await Task.sleep(nanoseconds: 2_000_000_000) }
-            catch { throw ClubActionWriteError.outcomeUnknown(.cancelled) }
+            if let delayedWriteGate { await delayedWriteGate() }
+            else {
+                do { try await Task.sleep(nanoseconds: 2_000_000_000) }
+                catch { throw ClubActionWriteError.outcomeUnknown(.cancelled) }
+            }
         }
         guard identity == expectedIdentity else { throw ClubActionWriteError.outcomeUnknown(.accountChanged) }
         let receipt: ClubOperationsReceipt

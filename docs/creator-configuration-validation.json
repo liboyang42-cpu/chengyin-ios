@@ -1,0 +1,47 @@
+{
+  "scope": "24 remaining structured creator sections; 37 combined section families, not complete business/runtime coverage",
+  "local_validation": {
+    "source_synthetic_fixtures": {
+      "accepted": 24,
+      "rejected": 0
+    },
+    "source_boundary_mutations": {
+      "rejected": 12,
+      "normalized_away_by_mini": 1,
+      "native_policy": "Incompatible scan/AR model data is retained and rejected rather than silently removed."
+    },
+    "python_contracts": {
+      "run": 538,
+      "passed": 498,
+      "skipped": 40
+    },
+    "tooling_tests": {
+      "run": 36,
+      "passed": 36
+    },
+    "scaffold": "PASS",
+    "swift_parse": {
+      "files": 10,
+      "recovery_nodes": 0,
+      "scope": "Tree-sitter syntax only"
+    },
+    "authored_swift_test_cases": 21,
+    "swift_test": "NOT_RUN",
+    "xcodebuild": "NOT_RUN",
+    "app_unit": "NOT_RUN",
+    "visual_device_live_backend": "NOT_RUN"
+  },
+  "source_evidence": {
+    "mini_registry": "pages/publish/utils/publish/advanced-game-config.js:1-37",
+    "mini_default_and_normalization": "pages/publish/utils/publish/advanced-game-config.js:386-606,704-1229",
+    "mini_validation": "pages/publish/utils/publish/advanced-game-config.js:1245-1936",
+    "backend_validation": "AdvancedGameConfigValidator.java:537-740,1545-1761,1773-1866,2004-2059,2380-2385"
+  },
+  "live_state": "All existing grants and transport locks unchanged/off",
+  "known_out_of_scope": [
+    "Root mistakeTier/variants/role-view capabilities beyond the 37-section registry",
+    "Newer variants of the original seven game families",
+    "Real WeChat steps, vision, QR/AR, server clock/state providers",
+    "Apple/device rendering and original-image tap-geometry acceptance"
+  ]
+}

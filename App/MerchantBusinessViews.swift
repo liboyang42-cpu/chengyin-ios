@@ -12,6 +12,7 @@ import SwiftUI
 }
 
 @MainActor struct MerchantBusinessHomeView: View {
+    @Environment(\.nativeVerificationDestination) private var nativeVerificationDestination
     let reader: any MerchantBusinessReading
     let journal: any MerchantBusinessIntentStore
     @State private var access: MerchantBusinessAccess?
@@ -38,7 +39,10 @@ import SwiftUI
                         }
                     }
                     if access.allows("merchant:verify") {
-                        NavigationLink { MerchantScanPreviewView() } label: { Label("merchant.business.scan", systemImage: "qrcode.viewfinder") }
+                        NavigationLink {
+                            if let nativeVerificationDestination { nativeVerificationDestination() }
+                            else { MerchantScanPreviewView() }
+                        } label: { Label("merchant.business.scan", systemImage: "qrcode.viewfinder") }
                             .accessibilityIdentifier("merchant.business.open.scan")
                         NavigationLink { CityNodeRedeemView(reader: reader, journal: journal) } label: {
                             Label("merchant.cityRedeem.title", systemImage: "qrcode")
@@ -219,7 +223,8 @@ import SwiftUI
                 Text(row.title).font(.headline)
                 MerchantBusinessRecordFields(row: row, access: access, compact: false)
                 rowActions(row, access: access)
-            }.accessibilityIdentifier("merchant.business.row.\(row.kind.rawValue).\(row.id)")
+            }.accessibilityElement(children: .contain)
+                .accessibilityIdentifier("merchant.business.row.\(row.kind.rawValue).\(row.id)")
         }
     }
     @ViewBuilder private func rowActions(_ row: MerchantBusinessRecord, access: MerchantBusinessAccess) -> some View {

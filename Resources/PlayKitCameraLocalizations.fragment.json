@@ -1,0 +1,159 @@
+{
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "playkitCamera.frameGuide": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The guide can appear over the camera preview. It is never included in the photo or used as proof."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "轮廓可以叠加在相机预览上，但不会写入照片，也不作为判定凭证。"
+          }
+        }
+      }
+    },
+    "playkitCamera.openOverlay": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View over the camera"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在相机画面上查看"
+          }
+        }
+      }
+    },
+    "playkitCamera.configGate": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Camera overlay is not enabled for this session"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前会话尚未启用相机叠图"
+          }
+        }
+      }
+    },
+    "playkitCamera.failedFallback": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The camera did not open. You can still view the returned image below."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "相机未能打开，你仍可查看下方返回的图片。"
+          }
+        }
+      }
+    },
+    "playkitCamera.authorizing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting for camera permission"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等待相机权限"
+          }
+        }
+      }
+    },
+    "playkitCamera.purpose": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use the camera for this view?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "为当前视图使用相机？"
+          }
+        }
+      }
+    },
+    "playkitCamera.overlayPurpose": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show the server-returned image over the rear-camera preview. No photo or video is saved or uploaded, and this does not submit task completion."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将服务端返回的图片叠在后置相机预览上。不会保存或上传照片、视频，也不会提交任务完成状态。"
+          }
+        }
+      }
+    },
+    "playkitCamera.screenSpaceOnly": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Screen-space overlay, not spatial AR"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "屏幕叠图，并非空间 AR"
+          }
+        }
+      }
+    },
+    "playkitCamera.choosePhoto": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a photo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择照片"
+          }
+        }
+      }
+    }
+  }
+}

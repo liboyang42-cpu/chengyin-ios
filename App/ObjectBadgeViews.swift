@@ -43,6 +43,7 @@ import SwiftUI
                 }
             }
         }.appNavigationTitle("profile.badges.title")
+            .toolbar { NavigationLink("nativeNav.badge.open") { BadgeRouteEntryView(reader: reader, media: media) } }
     }
     private func link(_ badge: ProfileBadgeSelection, identifier: String) -> some View {
         let capturedIdentity = reader.identity
@@ -124,7 +125,8 @@ import SwiftUI
             if currentScope() == expectedScope {
                 ObjectCardArtwork(url: parameters.image, label: parameters.name, media: media,
                     expectedScope: expectedScope, currentScope: currentScope).frame(height: 200)
-                Text(verbatim: parameters.name).font(.headline)
+                if parameters.name.isEmpty { Text("profile.badges.detail").font(.headline) }
+                else { Text(verbatim: parameters.name).font(.headline) }
                 if !parameters.subtitle.isEmpty { Text(verbatim: parameters.subtitle).font(.caption) }
                 Text(LocalizedStringKey("objects.rarity." + String(parameters.rarity)))
                 Text(parameters.style == "enamel" ? "objects.enamel" : "objects.glow")

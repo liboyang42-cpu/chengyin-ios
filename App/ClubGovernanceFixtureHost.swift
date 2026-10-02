@@ -7,6 +7,9 @@ import SwiftUI
         NavigationStack {
             List {
                 Text("club.gov.synthetic").accessibilityIdentifier("club.gov.synthetic")
+                NavigationLink { ClubOwnerRefundFixtureView(scenario: .accepted) } label: { Text("club.refund.fixtureAccepted") }.accessibilityIdentifier("club.refund.fixtureAccepted")
+                NavigationLink { ClubOwnerRefundFixtureView(scenario: .unknown) } label: { Text("club.refund.fixtureUnknown") }.accessibilityIdentifier("club.refund.fixtureUnknown")
+                NavigationLink { ClubOwnerRefundFixtureView(scenario: .disabled) } label: { Text("club.refund.fixtureDisabled") }.accessibilityIdentifier("club.refund.fixtureDisabled")
                 NavigationLink {
                     ClubEnrollmentView(clubID: 81, focusTopicID: 91, identity: store.identity, access: store.access, coordinator: store.coordinator)
                         .environment(\.clubEnrollmentProfile, .init(reader: SocialAccountFixtureReader(.content), squareReader: SquareFixtureReader()))

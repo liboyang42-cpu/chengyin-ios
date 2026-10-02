@@ -68,6 +68,7 @@ class ProjectEditContracts(unittest.TestCase):
             value=(ROOT/name).read_text().strip(); self.assertTrue(value.startswith('#if DEBUG')); self.assertTrue(value.endswith('#endif'))
     def test_catalog_bilingual_and_all_static_user_keys(self):
         catalog=json.loads((ROOT/'docs/project-edit-localizations.json').read_text())
+        catalog.update(json.loads((ROOT/'docs/project-edit-rich-localizations.json').read_text()))
         for key,value in catalog.items(): self.assertEqual(set(value),{'en','zh-Hans'},key); self.assertTrue(all(value.values()))
         identifiers={'projectEdit.status','projectEdit.restoreStatus','projectEdit.cancelReview','projectEdit.openCity','projectEdit.openFreeExplore','projectEdit.openPublishingModes'}
         for folder in ['App','Core']:
