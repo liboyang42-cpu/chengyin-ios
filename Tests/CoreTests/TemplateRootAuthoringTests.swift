@@ -9,10 +9,10 @@ final class TemplateRootAuthoringTests: XCTestCase {
     private func d20() -> TemplateAdvancedDraft {
         var draft = TemplateAdvancedDraft(); draft.setGameEnabled(.dice, true); draft.setDiceMode("d20"); draft.set("diceRoll", "successText", .string("Door opens")); draft.set("diceRoll", "failText", .string("Try the other path")); return draft
     }
-    func testRootFeaturesDoNotInflateThirtySevenFamilyRegistry() {
+    func testRootFeaturesDoNotInflateThirtyEightFamilyRegistry() {
         XCTAssertEqual(TemplateRootCapability.allCases.count, 3)
-        XCTAssertEqual(TemplateCreatorFamily.allCases.count, 24)
-        XCTAssertEqual(TemplateAdvancedDraft.defaults.count, 38)
+        XCTAssertEqual(TemplateCreatorFamily.allCases.count, 25)
+        XCTAssertEqual(TemplateAdvancedDraft.defaults.count, 39)
     }
     func testAllMistakeTiersRoundtripWithoutEnablingAGame() throws {
         for tier in ["easy", "medium", "hard"] { var draft = TemplateAdvancedDraft(); draft.value["mistakeTier"] = .string(tier); let raw = try draft.serialize(); XCTAssertFalse(raw.isEmpty); XCTAssertEqual(try TemplateAdvancedDraft(raw: raw).serialize(), raw) }

@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// Observes the actual AppSession publisher so logout/relogin tears down all displayed
 /// journey data even while a nested runtime destination is visible. Factories remain off.
@@ -37,6 +38,9 @@ import SwiftUI
                 else { Text("playx.disabled") }
             }
         }.id(session.sessionRevision).privacySensitive()
+        .environment(\.nativePlatformRuntime, session.nativePlatformRuntime)
+        .task(id: session.sessionRevision) { await session.nativePlatformRuntime?.reconcileOwnedRequests() }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in session.nativePlatformRuntime?.clockChanged() }
         .sheet(isPresented: Binding(get: { session.playNativeDeviceProvider.showingCamera }, set: { if !$0 { session.playNativeDeviceProvider.cancel() } })) {
             PlayNativeCameraSheet(provider: session.playNativeDeviceProvider).ignoresSafeArea()
         }
@@ -44,7 +48,7 @@ import SwiftUI
             PlayKitNativePhotoLibrarySheet(provider: session.playNativeDeviceProvider)
         }
         .onChange(of: session.sessionRevision) { _, _ in session.playNativeDeviceProvider.cancel() }
-        .onChange(of: scenePhase) { _, phase in if phase == .background || (phase != .active && !session.playNativeDeviceProvider.authorizationInFlight) { session.playNativeDeviceProvider.cancel() } }
+        .onChange(of: scenePhase) { _, phase in if phase == .background { session.nativePlatformRuntime?.suspendMotion() }; if phase == .active { Task { await session.nativePlatformRuntime?.reconcileOwnedRequests() } }; if phase == .background || (phase != .active && !session.playNativeDeviceProvider.authorizationInFlight) { session.playNativeDeviceProvider.cancel() } }
         .onDisappear { session.playNativeDeviceProvider.cancel() }
     }
 }

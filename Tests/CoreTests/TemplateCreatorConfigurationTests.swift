@@ -5,6 +5,7 @@ final class TemplateCreatorConfigurationTests: XCTestCase {
     private func fixture(_ family: TemplateCreatorFamily) throws -> TemplateAdvancedDraft {
         let raw: String
         switch family {
+        case .compare: raw = #"{"compare":{"enabled":true,"prompt":"Mark changes","left":{"label":"Left","items":[{"id":"l1","time":"09:00","text":"Open"},{"id":"l2","time":"10:00","text":"Bell"}]},"right":{"label":"Right","items":[{"id":"r1","time":"09:00","text":"Closed"},{"id":"r2","time":"10:00","text":"Bell"}]},"answer":["l1","r1"]}}"#
         case .random: raw = #"{"random":{"deckName":"Sample cards","drawCount":1,"items":[{"id":"card_1","label":"Look up","weight":1,"content":"Observe the sky"}],"enabled":true}}"#
         case .branch: raw = #"{"branch":{"startStepId":"start","steps":[{"id":"start","title":"Choose a path","body":"Choose the exit","terminal":false,"options":[{"id":"go","label":"Continue","nextStepId":"end","score":0,"effects":[]}]},{"id":"end","title":"End","body":"Finished","terminal":true,"outcomeCode":"COMPLETED","outcomeLabel":"Finished","options":[]}],"enabled":true}}"#
         case .leaderboard: raw = #"{"leaderboard":{"metric":"SCORE","scope":"ACTIVITY","limit":10,"enabled":true}}"#
@@ -32,8 +33,8 @@ final class TemplateCreatorConfigurationTests: XCTestCase {
         }
         return try TemplateAdvancedDraft(raw: raw)
     }
-    func testAllTwentyFourFamiliesSerializeReopenAndReserialize() throws {
-        XCTAssertEqual(TemplateCreatorFamily.allCases.count, 24)
+    func testAllTwentyFiveFamiliesSerializeReopenAndReserialize() throws {
+        XCTAssertEqual(TemplateCreatorFamily.allCases.count, 25)
         for family in TemplateCreatorFamily.allCases {
             let draft = try fixture(family)
             XCTAssertTrue(draft.creatorIssues(family).isEmpty, "\(family): \(draft.creatorIssues(family))")
@@ -43,9 +44,9 @@ final class TemplateCreatorConfigurationTests: XCTestCase {
             XCTAssertEqual(try reopened.serialize(), first, family.rawValue)
         }
     }
-    func testThirtySevenSectionsHaveStructuredAuthoring() {
+    func testThirtyEightSectionsHaveStructuredAuthoring() {
         let supported = Set(TemplateCreatorFamily.allCases.map(\.rawValue) + TemplateAdvancedGame.allCases.map(\.section) + ["timer"])
-        XCTAssertEqual(supported.count, 37)
+        XCTAssertEqual(supported.count, 38)
         XCTAssertEqual(Set(TemplateAdvancedDraft.defaults.keys).subtracting(["schemaVersion"]), supported)
         XCTAssertFalse(supported.contains("gameTimer")); XCTAssertFalse(supported.contains("stickerBook"))
     }

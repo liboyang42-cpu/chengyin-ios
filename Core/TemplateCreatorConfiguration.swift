@@ -18,6 +18,13 @@ extension TemplateAdvancedDraft {
                 var rows = fields["steps"]?.array ?? []; var row = rows.first?.object ?? [:]
                 row["id"] = .string("start"); rows = [.object(row)]; fields["steps"] = .array(rows)
             }
+            if family == .compare {
+                for side in ["left", "right"] {
+                    var part = fields[side]?.object ?? [:]
+                    part["items"] = .array((1...2).map { .object(["id": .string(side + "_" + String($0)), "time": .string(""), "text": .string("")]) })
+                    fields[side] = .object(part)
+                }
+            }
             if family == .multiplayer {
                 fields["roles"] = .array([.object(["id": .string("player"), "label": .string("队员"), "min": .number(1), "max": .number(4)])])
                 fields["turnOrder"] = .array([.string("player")])
@@ -63,7 +70,8 @@ extension TemplateAdvancedDraft {
         var rows = creatorValue(family, path: path)?.array ?? []; guard rows.count < maximum else { return }
         var row = TemplateCreatorSchema.defaults(fields)
         if let identity {
-            let used = Set(rows.compactMap { $0.object?[identity]?.string }); var index = 1
+            let identityRows = family == .compare ? ["left", "right"].flatMap { value["compare"]?.object?[$0]?.object?["items"]?.array ?? [] } : rows
+            let used = Set(identityRows.compactMap { $0.object?[identity]?.string }); var index = 1
             while used.contains("\(field.id)_\(index)") { index += 1 }
             row[identity] = .string("\(field.id)_\(index)")
         }
@@ -91,6 +99,7 @@ extension TemplateAdvancedDraft {
                     (family == .profile && path.contains("questions[") && !path.contains("options[") && ((field.id == "options" || field.id == "override") && string(fields, "kind") != "pick" || field.id == "maxLength" && string(fields, "kind") == "pick"))
                 if inactive { continue }
                 if field.id == "override" && (fields[field.id] == nil || fields[field.id] == .null) { continue }
+                if family == .compare && path.isEmpty && ["maxAttempts", "effects"].contains(field.id) && (fields[field.id] == nil || fields[field.id] == .null) { continue }
                 let raw = fields[field.id] ?? field.initial
                 let requiredRowNumber = ["weight", "x", "y", "r"].contains(field.id) || (family == .multiplayer && path.hasPrefix("roles[") && ["min", "max"].contains(field.id))
                 if requiredRowNumber && fields[field.id] == nil { fail(p, "required") }
@@ -156,6 +165,13 @@ extension TemplateAdvancedDraft {
         func num(_ key: String) -> Double { fields[key]?.number ?? .nan }
         func rows(_ key: String) -> [[String: TemplateAuthoringJSON]] { (fields[key]?.array ?? []).compactMap(\.object) }
         switch family {
+        case .compare:
+            let allItems = ["left", "right"].flatMap { fields[$0]?.object?["items"]?.array ?? [] }
+            let ids = allItems.compactMap { $0.object?["id"]?.string?.trimmingCharacters(in: .whitespacesAndNewlines) }
+            if Set(ids).count != ids.count { fail("left/right.items", "duplicate") }
+            let answer = (fields["answer"]?.array ?? []).compactMap(\.string)
+            if Set(answer).count != answer.count { fail("answer", "duplicate") }
+            if !Set(answer).isSubset(of: Set(ids)) { fail("answer", "reference") }
         case .random: if num("drawCount") > Double(rows("items").count) { fail("drawCount", "reference") }
         case .branch:
             let steps = rows("steps"); let ids = Set(steps.compactMap { $0["id"]?.string })
@@ -295,7 +311,7 @@ extension TemplateAdvancedDraft {
     }
     /// An imported public projection must never receive an invented secret default.
     public mutating func retainCreatorSecretAbsence(_ incoming: [String: TemplateAuthoringJSON]) {
-        let protected: [String: [String]] = ["estimate": ["answer", "tolerance"], "blindTaste": ["answerKey"], "dailySign": ["poems"], "qa": ["answerText"]]
+        let protected: [String: [String]] = ["estimate": ["answer", "tolerance"], "blindTaste": ["answerKey"], "dailySign": ["poems"], "qa": ["answerText"], "compare": ["answer"]]
         for (section, keys) in protected {
             guard let fields = incoming[section]?.object, fields["enabled"]?.bool == true else { continue }
             for key in keys where fields[key] == nil {

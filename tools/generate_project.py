@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate a dependency-free Xcode project. Does not install tools or invoke Xcode."""
+"""Generate the app and pinned, source-only GLTFKit2 framework dependency. Does not install tools or invoke Xcode."""
 import hashlib, json, pathlib, xml.etree.ElementTree as ET
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 def ident(name): return hashlib.sha256(name.encode()).hexdigest()[:24].upper()
@@ -8,11 +8,11 @@ def obj(object_key, **fields):
     key = ident(object_key); objects[key] = fields; return key
 sources = sorted([*ROOT.glob('App/*.swift'), *ROOT.glob('App/*.m'), *ROOT.glob('Core/*.swift')])
 headers = sorted(ROOT.glob('App/*.h'))
-resources = sorted(ROOT.glob('Resources/*.xcstrings'))
+resources = sorted([*ROOT.glob('Resources/*.xcstrings'), *ROOT.glob('Resources/*Notices.txt')])
 refs, source_builds, resource_builds = [], [], []
 for path in sources + resources + headers:
     relative = str(path.relative_to(ROOT))
-    ref = obj(relative, isa='PBXFileReference', lastKnownFileType={'.swift': 'sourcecode.swift', '.m': 'sourcecode.c.objc', '.h': 'sourcecode.c.h'}.get(path.suffix, 'text.json.xcstrings'), path=relative, sourceTree='<group>')
+    ref = obj(relative, isa='PBXFileReference', lastKnownFileType={'.swift': 'sourcecode.swift', '.m': 'sourcecode.c.objc', '.h': 'sourcecode.c.h'}.get(path.suffix, 'text.json.xcstrings' if path.suffix == '.xcstrings' else 'text'), path=relative, sourceTree='<group>')
     refs.append(ref)
     if path in headers: continue
     options = {'settings': {'COMPILER_FLAGS': '-fobjc-arc'}} if path.suffix == '.m' else {}
@@ -24,11 +24,24 @@ products = obj('products', isa='PBXGroup', children=[product], name='Products', 
 group = obj('main-group', isa='PBXGroup', children=refs+[config_ref,products], sourceTree='<group>')
 src_phase=obj('sources',isa='PBXSourcesBuildPhase',buildActionMask=2147483647,files=source_builds,runOnlyForDeploymentPostprocessing=0)
 res_phase=obj('resources',isa='PBXResourcesBuildPhase',buildActionMask=2147483647,files=resource_builds,runOnlyForDeploymentPostprocessing=0)
-framework_phase=obj('frameworks',isa='PBXFrameworksBuildPhase',buildActionMask=2147483647,files=[],runOnlyForDeploymentPostprocessing=0)
+# Vendored, immutable official source only. No SwiftPM binary target, package
+# resolution, downloaded codecs or build scripts are allowed in this target.
+gltf_project=obj('gltf-project',isa='PBXFileReference',lastKnownFileType='wrapper.pb-project',path='Vendor/GLTFKit2/GLTFKit2.xcodeproj',sourceTree='<group>')
+objects[group]['children'].append(gltf_project)
+gltf_product_proxy=obj('gltf-product-proxy',isa='PBXContainerItemProxy',containerPortal=gltf_project,proxyType=2,remoteGlobalIDString='834FF1C425C27938001887C2',remoteInfo='GLTFKit2')
+gltf_product=obj('gltf-product',isa='PBXReferenceProxy',fileType='wrapper.framework',path='GLTFKit2.framework',remoteRef=gltf_product_proxy,sourceTree='BUILT_PRODUCTS_DIR')
+gltf_products=obj('gltf-products',isa='PBXGroup',children=[gltf_product],name='Products',sourceTree='<group>')
+gltf_target_proxy=obj('gltf-target-proxy',isa='PBXContainerItemProxy',containerPortal=gltf_project,proxyType=1,remoteGlobalIDString='834FF1C325C27938001887C2',remoteInfo='GLTFKit2')
+gltf_dependency=obj('gltf-dependency',isa='PBXTargetDependency',name='GLTFKit2',targetProxy=gltf_target_proxy)
+gltf_link=obj('gltf-link',isa='PBXBuildFile',fileRef=gltf_product)
+gltf_embed=obj('gltf-embed',isa='PBXBuildFile',fileRef=gltf_product,settings={'ATTRIBUTES':['CodeSignOnCopy','RemoveHeadersOnCopy']})
+embed_phase=obj('embed-frameworks',isa='PBXCopyFilesBuildPhase',buildActionMask=2147483647,dstPath='',dstSubfolderSpec=10,files=[gltf_embed],name='Embed Frameworks',runOnlyForDeploymentPostprocessing=0)
+framework_phase=obj('frameworks',isa='PBXFrameworksBuildPhase',buildActionMask=2147483647,files=[gltf_link],runOnlyForDeploymentPostprocessing=0)
 def configurations(scope):
     configs=[]
     for name in ['Debug','Release']:
         settings = {'SDKROOT':'iphoneos','CLANG_ENABLE_MODULES':'YES'} if scope=='project' else {'PRODUCT_NAME':'$(TARGET_NAME)','SUPPORTED_PLATFORMS':'iphoneos iphonesimulator','SWIFT_EMIT_LOC_STRINGS':'YES'}
+        if scope=='target': settings.update({'FRAMEWORK_SEARCH_PATHS':'$(inherited) $(BUILT_PRODUCTS_DIR)','LD_RUNPATH_SEARCH_PATHS':'$(inherited) @executable_path/Frameworks'})
         if scope=='target': settings['SWIFT_OBJC_BRIDGING_HEADER']='$(SRCROOT)/App/Questify-Bridging-Header.h'
         if scope=='target': settings.update({'SWIFT_OPTIMIZATION_LEVEL':'-Onone' if name=='Debug' else '-O','DEBUG_INFORMATION_FORMAT':'dwarf' if name=='Debug' else 'dwarf-with-dsym'})
         if scope=='target' and name=='Debug':
@@ -37,7 +50,7 @@ def configurations(scope):
         extra={'baseConfigurationReference':config_ref} if scope=='target' else {}
         configs.append(obj(scope+name,isa='XCBuildConfiguration',name=name,buildSettings=settings,**extra))
     return obj(scope+'configs',isa='XCConfigurationList',buildConfigurations=configs,defaultConfigurationIsVisible=0,defaultConfigurationName='Release')
-target=obj('target',isa='PBXNativeTarget',buildConfigurationList=configurations('target'),buildPhases=[src_phase,framework_phase,res_phase],buildRules=[],dependencies=[],name='Questify',productName='Questify',productReference=product,productType='com.apple.product-type.application')
+target=obj('target',isa='PBXNativeTarget',buildConfigurationList=configurations('target'),buildPhases=[src_phase,framework_phase,res_phase,embed_phase],buildRules=[],dependencies=[gltf_dependency],name='Questify',productName='Questify',productReference=product,productType='com.apple.product-type.application')
 ui_files=[]
 for path in sorted(ROOT.glob('Tests/AppUITests/*.swift')):
     relative=str(path.relative_to(ROOT))
@@ -74,7 +87,7 @@ unit_frameworks=obj('unit-frameworks',isa='PBXFrameworksBuildPhase',buildActionM
 unit_proxy=obj('unit-proxy',isa='PBXContainerItemProxy',containerPortal=ident('project'),proxyType=1,remoteGlobalIDString=target,remoteInfo='Questify')
 unit_dependency=obj('unit-dependency',isa='PBXTargetDependency',target=target,targetProxy=unit_proxy)
 unit_target=obj('unit-target',isa='PBXNativeTarget',buildConfigurationList=unit_config_list,buildPhases=[unit_sources,unit_frameworks],buildRules=[],dependencies=[unit_dependency],name='QuestifyAppUnitTests',productName='QuestifyAppUnitTests',productReference=unit_product,productType='com.apple.product-type.bundle.unit-test')
-project=obj('project',isa='PBXProject',attributes={'LastUpgradeCheck':'1500','TargetAttributes':{ui_target:{'TestTargetID':target},unit_target:{'TestTargetID':target}}},buildConfigurationList=configurations('project'),compatibilityVersion='Xcode 14.0',developmentRegion='en',hasScannedForEncodings=0,knownRegions=['en','zh-Hans','Base'],mainGroup=group,productRefGroup=products,projectDirPath='',projectRoot='',targets=[target,ui_target,unit_target])
+project=obj('project',isa='PBXProject',attributes={'LastUpgradeCheck':'1500','TargetAttributes':{ui_target:{'TestTargetID':target},unit_target:{'TestTargetID':target}}},buildConfigurationList=configurations('project'),compatibilityVersion='Xcode 14.0',developmentRegion='en',hasScannedForEncodings=0,knownRegions=['en','zh-Hans','Base'],mainGroup=group,productRefGroup=products,projectDirPath='',projectRoot='',projectReferences=[{'ProductGroup':gltf_products,'ProjectRef':gltf_project}],targets=[target,ui_target,unit_target])
 # OpenStep property list, all strings quoted for deterministic escaping.
 def serialize(value, level=0):
     if isinstance(value,dict): return '{\n'+''.join('\t'*(level+1)+json.dumps(k)+' = '+serialize(v,level+1)+';\n' for k,v in value.items())+'\t'*level+'}'

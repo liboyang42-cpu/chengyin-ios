@@ -72,3 +72,39 @@ func tapFixtureNativeSwitch(_ element: XCUIElement, in app: XCUIApplication,
     }
     control.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
 }
+
+
+/// System confirmation popovers can expose a row-sized Button around its native leaf.
+func tapFixtureSheetAction(_ label: String, in sheet: XCUIElement, app: XCUIApplication,
+                           file: StaticString = #filePath, line: UInt = #line) {
+    let query = sheet.buttons.matching(NSPredicate(format: "label == %@", label))
+    func leaves() -> [XCUIElement] {
+        query.allElementsBoundByIndex.filter {
+            $0.descendants(matching: .button).count == 0 && $0.isEnabled && $0.isHittable
+        }
+    }
+    let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in leaves().count == 1 }, object: sheet)
+    guard XCTWaiter.wait(for: [ready], timeout: 5) == .completed, let button = leaves().first else {
+        XCTFail("Expected one enabled native action in the presented sheet: " + app.debugDescription, file: file, line: line)
+        return
+    }
+    button.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+}
+
+/// Use the observed system dismissal region, outside the popover and above a keyboard.
+func dismissFixtureConfirmationPopover(in app: XCUIApplication,
+                                       file: StaticString = #filePath, line: UInt = #line) {
+    let outside = app.otherElements["PopoverDismissRegion"]
+    let popover = app.popovers.firstMatch
+    guard outside.exists, popover.exists else {
+        XCTFail("Expected an adaptive confirmation popover: " + app.debugDescription, file: file, line: line); return
+    }
+    var bottom = app.frame.maxY - 60
+    if app.keyboards.firstMatch.exists { bottom = min(bottom, app.keyboards.firstMatch.frame.minY - 16) }
+    let point = CGPoint(x: app.frame.maxX - 16, y: bottom)
+    guard app.frame.contains(point), outside.frame.contains(point), !popover.frame.contains(point) else {
+        XCTFail("No safe outside-popover dismissal point: " + app.debugDescription, file: file, line: line); return
+    }
+    outside.coordinate(withNormalizedOffset: .zero)
+        .withOffset(CGVector(dx: point.x - outside.frame.minX, dy: point.y - outside.frame.minY)).tap()
+}

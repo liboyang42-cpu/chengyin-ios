@@ -5,7 +5,7 @@ import Foundation
 public enum TemplateCreatorFamily: String, CaseIterable, Codable, Identifiable {
     case random, branch, leaderboard, multiplayer, timeWindow, blindTaste, silentOrder, diyName
     case musicCorner, steps, dailySign, slowTask, estimate, pricePair, hiddenObject, predict, qa, scan
-    case album, profile, photoCheck, check, note, typeIn
+    case album, profile, photoCheck, check, note, typeIn, compare
     public var id: String { rawValue }
     public var labelKey: String { "creator.family." + rawValue }
     public var providerKey: String {
@@ -33,8 +33,9 @@ public struct TemplateCreatorField: Identifiable {
     public let id: String
     public let kind: Kind
     public let initial: TemplateAuthoringJSON
-    public var labelKey: String { "creator.field." + id }
-    public init(_ id: String, _ kind: Kind, _ initial: TemplateAuthoringJSON) { self.id = id; self.kind = kind; self.initial = initial }
+    private let customLabelKey: String?
+    public var labelKey: String { customLabelKey ?? ("creator.field." + id) }
+    public init(_ id: String, _ kind: Kind, _ initial: TemplateAuthoringJSON, labelKey: String? = nil) { self.id = id; self.kind = kind; self.initial = initial; customLabelKey = labelKey }
 }
 public enum TemplateCreatorSchema {
     public typealias Field = TemplateCreatorField
@@ -66,6 +67,12 @@ public enum TemplateCreatorSchema {
     static func effectList(_ key: String) -> Field { a(key, effects, 0, 16) }
     public static func fields(_ family: TemplateCreatorFamily) -> [Field] {
         switch family {
+        case .compare:
+            let item = [t("id", 32, true, pattern: "^[A-Za-z0-9_-]{1,32}$"), t("time", 16, true), t("text", 200, true)]
+            let side = [t("label", 20, true), a("items", item, 2, 20, identity: "id", count: 2)]
+            return [t("prompt", 200, true), o("left", side), o("right", side), .init("answer", .strings(min: 1, max: 40, length: 32), .array([]), labelKey: "creator.compare.answer"),
+                .init("maxAttempts", .number(min: 1, max: 10, integer: true), .null), xp(),
+                .init("effects", .strings(min: 0, max: 0, length: 32), .null)]
         case .random:
             return [t("deckName", 20), n("drawCount", 1, 50, 1), a("items", [id(), t("label", 40, true), n("weight", 1, 100000, 1), t("content", 500), media("audioUrl", 500)], 1, 50, identity: "id", count: 1)]
         case .branch:

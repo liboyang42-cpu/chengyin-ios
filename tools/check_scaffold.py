@@ -29,15 +29,22 @@ project_path=ROOT/'Questify.xcodeproj/project.pbxproj'
 project=parse_project(project_path.read_text())
 objects=project['objects']; project_obj=objects[project['rootObject']]
 assert project_obj['isa']=='PBXProject'
-refs={'baseConfigurationReference','buildConfigurationList','fileRef','mainGroup','productRefGroup','productReference','target','targetProxy','containerPortal','remoteGlobalIDString'}
+refs={'baseConfigurationReference','buildConfigurationList','fileRef','mainGroup','productRefGroup','productReference','target','targetProxy','containerPortal','remoteGlobalIDString','remoteRef'}
 list_refs={'buildConfigurations','buildPhases','children','dependencies','files','targets'}
 for key,obj in objects.items():
     for k,v in obj.items():
-        if k in refs: assert v in objects,(key,k,v)
+        if k=='remoteGlobalIDString' and objects[obj['containerPortal']]['isa']=='PBXFileReference':
+            reference=objects[obj['containerPortal']]
+            assert reference.get('lastKnownFileType')=='wrapper.pb-project',reference
+            upstream=(ROOT/reference['path']/'project.pbxproj').read_text()
+            assert re.search(r'\b'+re.escape(v)+r'\s*/\*[^*]+\*/\s*=\s*\{',upstream),(key,k,v)
+        elif k in refs: assert v in objects,(key,k,v)
         if k in list_refs:
             for ref in v: assert ref in objects,(key,k,ref)
     if obj['isa']=='PBXFileReference' and obj['sourceTree']=='<group>':
-        assert (ROOT/obj['path']).is_file(),obj['path']
+        if obj.get('lastKnownFileType')=='wrapper.pb-project':
+            assert (ROOT/obj['path']/'project.pbxproj').is_file(),obj['path']
+        else: assert (ROOT/obj['path']).is_file(),obj['path']
 source_paths={o['path'] for o in objects.values() if o['isa']=='PBXFileReference' and o.get('lastKnownFileType')=='sourcecode.swift'}
 assert source_paths=={str(p.relative_to(ROOT)) for folder in ['App','Core','Tests/AppUITests','Tests/AppUnitTests'] for p in (ROOT/folder).rglob('*.swift')}
 catalog=json.loads((ROOT/'Resources/Localizable.xcstrings').read_text())

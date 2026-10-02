@@ -16,12 +16,7 @@ extension PlayKitScreen {
             if let qr = raw["qrUrl"].text, !qr.isEmpty { artwork(qr) }
             else { Label("playkitLegacy.silent.noWitnessCode", systemImage: "qrcode") }
         case .timeWindow:
-            LabeledContent("playkitLegacy.window.opens") { Text(verbatim: raw["openFrom"].text ?? "—") }
-            LabeledContent("playkitLegacy.window.closes") { Text(verbatim: raw["openTo"].text ?? "—") }
-            Text("playkitLegacy.window.authority").font(.footnote)
-            if raw["subscribed"].bool == true { Label("playkitLegacy.window.subscribed", systemImage: "bell.badge") }
-            Text("playkitLegacy.window.providerGate").font(.footnote)
-            Button("playkitLegacy.window.subscribe") {}.disabled(true)
+            NativeTimeWindowHostView(advanced: model, segment: raw)
         default: EmptyView()
         }
     }

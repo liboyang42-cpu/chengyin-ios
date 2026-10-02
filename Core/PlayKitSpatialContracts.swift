@@ -9,14 +9,16 @@ public enum PlayKitSpatialError: String, Error, Equatable {
 public struct PlayKitSpatialApproval: Equatable {
     public let modes: Set<PlayKitSpatialMode>
     public let artworkHosts: Set<String>
+    public let modelHosts: Set<String>
     public let markerWidthsMeters: [String: Double]
-    public init(modes: Set<PlayKitSpatialMode> = [], artworkHosts: Set<String> = [], markerWidthsMeters: [String: Double] = [:]) {
-        self.modes = modes; self.artworkHosts = artworkHosts; self.markerWidthsMeters = markerWidthsMeters
+    public init(modes: Set<PlayKitSpatialMode> = [], artworkHosts: Set<String> = [], modelHosts: Set<String> = [], markerWidthsMeters: [String: Double] = [:]) {
+        self.modes = modes; self.artworkHosts = artworkHosts; self.modelHosts = modelHosts; self.markerWidthsMeters = markerWidthsMeters
     }
 }
 public struct PlayKitSpatialRequest: Equatable {
     public let mode: PlayKitSpatialMode
     public let imageURL: URL
+    public let modelURL: URL?
     public let markerURL: URL?
     public let markerWidthMeters: Double?
     public let reply: String
@@ -24,7 +26,12 @@ public struct PlayKitSpatialRequest: Equatable {
         guard segment["scanned"].bool == true, segment["kind"].text == "OVERLAY" else { throw PlayKitSpatialError.unvalidatedScan }
         guard let mode = PlayKitSpatialMode(rawValue: segment["arMode"].text ?? "NONE") else { throw PlayKitSpatialError.unsupportedMode }
         guard approval.modes.contains(mode) else { throw PlayKitSpatialError.disabled }
-        guard (segment["modelUrl"].text ?? "").isEmpty else { throw PlayKitSpatialError.unsupportedModel }
+        let model = segment["modelUrl"].text ?? ""
+        if model.isEmpty { modelURL = nil }
+        else {
+            guard let url = PlayKitGLBPolicy.approvedURL(model, hosts: approval.modelHosts) else { throw PlayKitSpatialError.unsupportedModel }
+            modelURL = url
+        }
         guard let image = PlayKitCameraAssets.approvedURL(segment["overlayUrl"].text, hosts: approval.artworkHosts) else { throw PlayKitSpatialError.assetUnavailable }
         self.mode = mode; imageURL = image; reply = segment["reply"].text ?? ""
         if mode == .marker {
@@ -34,6 +41,7 @@ public struct PlayKitSpatialRequest: Equatable {
         } else { markerURL = nil; markerWidthMeters = nil }
     }
     /// Source plane cards are 0.4 m wide. Marker cards use the accepted marker size.
+    public var modelLongestSideMeters: Double { mode == .plane ? 0.4 : 0.8 * (markerWidthMeters ?? 0) }
     public var cardWidthMeters: Double { mode == .plane ? 0.4 : (markerWidthMeters ?? 0) }
     public func cardHeightMeters(imageWidth: Double, imageHeight: Double) throws -> Double {
         guard imageWidth.isFinite, imageHeight.isFinite, imageWidth > 0, imageHeight > 0 else { throw PlayKitSpatialError.assetUnavailable }

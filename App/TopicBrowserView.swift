@@ -11,6 +11,7 @@ struct TopicBrowserView: View {
     var publicMerchant: PublicMerchantHomeContext? = nil
     var makeAudio: (@MainActor () -> PlatformAudioPlayback)? = nil
     var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
+    var selfPlayDestination: ((TopicDetail) -> AnyView)? = nil
     @State private var keyword = ""
     @State private var recommend = false
     @State private var pagination = TopicPagination()
@@ -36,7 +37,7 @@ struct TopicBrowserView: View {
                     if pagination.rows.isEmpty && !loading && issue == nil { Text("topic.empty") }
                     ForEach(pagination.rows) { item in
                         NavigationLink {
-                            TopicDetailView(id: item.id, reader: reader, publicMerchant: publicMerchant, makeAudio: makeAudio, makeExternalMaps: makeExternalMaps)
+                            TopicDetailView(id: item.id, reader: reader, publicMerchant: publicMerchant, makeAudio: makeAudio, makeExternalMaps: makeExternalMaps, selfPlayDestination: selfPlayDestination)
                         } label: {
                             QuestifyImageEntityCard(imageSource:item.imageURL,title:item.name,
                                                     subtitle:item.introduction,fallbackSymbol:"map") {

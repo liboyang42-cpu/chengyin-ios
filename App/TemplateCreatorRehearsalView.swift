@@ -10,6 +10,7 @@ import SwiftUI
     @State private var sampleIndex = 0
     @State private var profileAnswers: [String: String] = [:]
     private var fields: [String: TemplateAuthoringJSON] { draft.value[family.rawValue]?.object ?? [:] }
+    private var compareQuestion: [String: TemplateAuthoringJSON] { (try? draft.comparePublicConfiguration())?.object ?? [:] }
     private func text(_ key: String) -> String { fields[key]?.string ?? "" }
     private func rows(_ key: String) -> [[String: TemplateAuthoringJSON]] { (fields[key]?.array ?? []).compactMap(\.object) }
     var body: some View {
@@ -32,6 +33,28 @@ import SwiftUI
     }
     @ViewBuilder private var interaction: some View {
         switch family {
+        case .compare:
+            Text(verbatim: compareQuestion["prompt"]?.string ?? "")
+            Text("creator.compare.instructions").font(.footnote)
+            ForEach(["left", "right"], id: \.self) { side in
+                let part = compareQuestion[side]?.object ?? [:]
+                Text(verbatim: part["label"]?.string ?? "").font(.headline)
+                ForEach(Array((part["items"]?.array ?? []).enumerated()), id: \.offset) { _, item in
+                    let id = item.object?["id"]?.string ?? ""
+                    Button {
+                        if selected.contains(id) { selected.remove(id) } else { selected.insert(id) }
+                    } label: {
+                        HStack(alignment: .top) {
+                            Image(systemName: selected.contains(id) ? "checkmark.circle.fill" : "circle")
+                            VStack(alignment: .leading) {
+                                Text(verbatim: item.object?["time"]?.string ?? "").font(.caption.bold())
+                                Text(verbatim: item.object?["text"]?.string ?? "")
+                            }
+                        }
+                    }.accessibilityIdentifier("creator.compare.item." + id)
+                }
+            }
+            evaluateButton
         case .estimate:
             Text(verbatim: text("unit")); TextField("creator.input", text: $input).keyboardType(.numbersAndPunctuation); evaluateButton
         case .blindTaste: options(rows("options"), identity: "key", label: "label", multiple: false); evaluateButton

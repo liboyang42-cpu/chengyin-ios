@@ -15,6 +15,11 @@ public struct TemplateCreatorRehearsal: Equatable {
         let fields = draft.value[family.rawValue]?.object ?? [:]
         func string(_ key: String) -> String { fields[key]?.string ?? "" }
         switch family {
+        case .compare:
+            let known = Set(["left", "right"].flatMap { fields[$0]?.object?["items"]?.array ?? [] }.compactMap { $0.object?["id"]?.string })
+            guard selected.isSubset(of: known) else { result = .invalid; return }
+            let correct = Set((fields["answer"]?.array ?? []).compactMap(\.string))
+            result = selected == correct ? .matched : .missed
         case .estimate:
             guard let guess = Double(text), guess.isFinite, let answer = fields["answer"]?.number, let tolerance = fields["tolerance"]?.number else { result = .missed; return }
             result = abs(guess - answer) <= tolerance ? .matched : .missed

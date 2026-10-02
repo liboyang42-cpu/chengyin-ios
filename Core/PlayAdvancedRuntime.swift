@@ -32,6 +32,7 @@ public enum PlayKitActionCatalog {
     /// Bingo is server progress without an action. Walk cannot manufacture encrypted step proof.
     public static let actions: [String: Set<String>] = [
         "sort": ["SUBMIT_SORT"], "match": ["SUBMIT_MATCH"], "classify": ["SUBMIT_CLASSIFY"],
+        "compare": ["SUBMIT_COMPARE"], // Current backend-only family, absent from historical client hosts.
         "compass": ["SUBMIT_COMPASS"], "shout": ["START_CHALLENGE", "SUBMIT_SHOUT"],
         "qa": ["SUBMIT_QA"], "branch": ["CHOOSE"], "estimate": ["SUBMIT_ESTIMATE"],
         "pricePair": ["SUBMIT_PRICE_PAIR"], "hiddenObject": ["SUBMIT_HIDDEN_OBJECT"],

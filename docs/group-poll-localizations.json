@@ -1,0 +1,218 @@
+{
+  "poll.createAnother": {
+    "en": "Create another poll",
+    "zh-Hans": "发起新的投票"
+  },
+  "poll.deadlinePassed": {
+    "en": "Deadline reached; refresh status",
+    "zh-Hans": "已到截止时间，请刷新状态"
+  },
+  "poll.title": {
+    "en": "Group poll",
+    "zh-Hans": "群投票"
+  },
+  "poll.create": {
+    "en": "Create poll",
+    "zh-Hans": "发起投票"
+  },
+  "poll.rules": {
+    "en": "Single choice · Public poll · One vote per member. Votes cannot be changed.",
+    "zh-Hans": "单选 · 公开投票 · 每位成员只能投一票，提交后不能改票。"
+  },
+  "poll.stale": {
+    "en": "Your session changed. Reopen this screen to continue.",
+    "zh-Hans": "登录或身份已变更，请重新进入。"
+  },
+  "poll.question": {
+    "en": "Question",
+    "zh-Hans": "投票问题"
+  },
+  "poll.questionPrompt": {
+    "en": "What would you like the group to decide?",
+    "zh-Hans": "想请群成员决定什么？"
+  },
+  "poll.options": {
+    "en": "Options",
+    "zh-Hans": "选项"
+  },
+  "poll.optionPrompt": {
+    "en": "Option",
+    "zh-Hans": "选项内容"
+  },
+  "poll.removeOption": {
+    "en": "Remove option",
+    "zh-Hans": "删除选项"
+  },
+  "poll.addOption": {
+    "en": "Add option",
+    "zh-Hans": "添加选项"
+  },
+  "poll.optionLimit": {
+    "en": "2–10 options, up to 100 UTF-16 characters each.",
+    "zh-Hans": "2–10 个选项，每项最多 100 个 UTF-16 字符。"
+  },
+  "poll.useDeadline": {
+    "en": "Set a deadline",
+    "zh-Hans": "设置截止时间"
+  },
+  "poll.deadline": {
+    "en": "Deadline",
+    "zh-Hans": "截止时间"
+  },
+  "poll.reviewCreate": {
+    "en": "Review poll",
+    "zh-Hans": "预览投票"
+  },
+  "poll.disabled": {
+    "en": "Group polls are not enabled for this deployment. Nothing has been sent.",
+    "zh-Hans": "当前环境尚未启用群投票，未发送任何内容。"
+  },
+  "poll.keyboardDone": {
+    "en": "Done",
+    "zh-Hans": "完成"
+  },
+  "poll.discard": {
+    "en": "Discard this draft?",
+    "zh-Hans": "放弃本次草稿？"
+  },
+  "poll.discardConfirm": {
+    "en": "Discard draft",
+    "zh-Hans": "放弃草稿"
+  },
+  "poll.open": {
+    "en": "Open",
+    "zh-Hans": "进行中"
+  },
+  "poll.closed": {
+    "en": "Closed",
+    "zh-Hans": "已结束"
+  },
+  "poll.yourVote": {
+    "en": "Your vote",
+    "zh-Hans": "你的选择"
+  },
+  "poll.selected": {
+    "en": "Selected",
+    "zh-Hans": "已选择"
+  },
+  "poll.choose": {
+    "en": "Choose",
+    "zh-Hans": "选择"
+  },
+  "poll.total": {
+    "en": "Total voters",
+    "zh-Hans": "总投票人数"
+  },
+  "poll.awaitResults": {
+    "en": "Poll created. Refresh to load current results before voting.",
+    "zh-Hans": "投票已创建，请刷新读取当前结果后再投票。"
+  },
+  "poll.reviewVote": {
+    "en": "Review vote",
+    "zh-Hans": "确认所选选项"
+  },
+  "poll.reviewClose": {
+    "en": "End poll…",
+    "zh-Hans": "结束投票…"
+  },
+  "poll.historical": {
+    "en": "Results are visible under the server’s access rules. Voting and closing require current group membership.",
+    "zh-Hans": "可按服务器权限查看结果；投票与结束操作需要当前群成员资格。"
+  },
+  "poll.confirmCreateTitle": {
+    "en": "Post this poll to the group?",
+    "zh-Hans": "将此投票发到群聊？"
+  },
+  "poll.confirmVoteTitle": {
+    "en": "Submit this vote?",
+    "zh-Hans": "提交这一票？"
+  },
+  "poll.noRevote": {
+    "en": "You cannot withdraw or change this vote.",
+    "zh-Hans": "提交后无法撤回或修改这一票。"
+  },
+  "poll.confirmCloseTitle": {
+    "en": "End this poll?",
+    "zh-Hans": "结束此投票？"
+  },
+  "poll.closeWarning": {
+    "en": "Only the poll creator can close it. No more votes will be accepted.",
+    "zh-Hans": "仅发起人可结束投票，结束后将不再接受投票。"
+  },
+  "poll.confirm": {
+    "en": "Confirm",
+    "zh-Hans": "确认"
+  },
+  "poll.loading": {
+    "en": "Checking…",
+    "zh-Hans": "正在核验…"
+  },
+  "poll.unknown": {
+    "en": "The outcome is uncertain. Do not submit another vote. Refresh results, or reopen the poll message to check a submitted creation.",
+    "zh-Hans": "操作结果暂不确定，请勿重复投票。请刷新结果，或打开群内投票消息核对创建结果。"
+  },
+  "poll.retryCreate": {
+    "en": "Retry the same poll",
+    "zh-Hans": "重试同一投票"
+  },
+  "poll.failed": {
+    "en": "Could not load the poll. Refresh to try again.",
+    "zh-Hans": "投票读取失败，请刷新重试。"
+  },
+  "poll.rejected": {
+    "en": "The poll or your membership changed. Refresh and review again.",
+    "zh-Hans": "投票或成员资格已变更，请刷新后重新确认。"
+  },
+  "poll.blocked": {
+    "en": "This action is unavailable. Check your membership or unresolved submission.",
+    "zh-Hans": "当前无法操作，请检查成员资格或尚未确定的提交。"
+  },
+  "poll.acknowledged": {
+    "en": "The server confirmed this action.",
+    "zh-Hans": "服务器已确认本次操作。"
+  },
+  "poll.openResults": {
+    "en": "Open poll and results",
+    "zh-Hans": "查看投票与结果"
+  },
+  "poll.cardHint": {
+    "en": "Open to load the current options and results",
+    "zh-Hans": "打开后读取当前选项与结果"
+  },
+  "poll.invalidCard": {
+    "en": "Poll reference unavailable",
+    "zh-Hans": "投票信息不可用"
+  },
+  "club.chat.title": {
+    "en": "Club group chat",
+    "zh-Hans": "俱乐部群聊"
+  },
+  "club.chat.explanation": {
+    "en": "Enter your club’s group chat. The server will create the group if needed and check your current membership.",
+    "zh-Hans": "进入俱乐部群聊。服务器将核验当前成员资格，并在需要时创建群聊。"
+  },
+  "club.chat.disabled": {
+    "en": "Club chat entry is not enabled for this deployment. No group has been created.",
+    "zh-Hans": "当前环境尚未启用俱乐部群聊入口，未创建群聊。"
+  },
+  "club.chat.enter": {
+    "en": "Enter group chat",
+    "zh-Hans": "进入群聊"
+  },
+  "club.chat.retry": {
+    "en": "Retry this club’s chat",
+    "zh-Hans": "重试进入此俱乐部群聊"
+  },
+  "club.chat.loading": {
+    "en": "Opening group chat…",
+    "zh-Hans": "正在进入群聊…"
+  },
+  "club.chat.unknown": {
+    "en": "The group may already exist. Retry checks the same club’s group; it does not request a different group.",
+    "zh-Hans": "群聊可能已经创建。重试只会核对同一俱乐部群聊。"
+  },
+  "club.chat.rejected": {
+    "en": "Current club membership is required. Refresh the club before trying again.",
+    "zh-Hans": "需要当前俱乐部成员资格，请刷新俱乐部后重试。"
+  }
+}

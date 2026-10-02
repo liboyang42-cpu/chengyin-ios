@@ -21,6 +21,7 @@ struct MessagingHistoryView: View {
     @State private var earlierIssue: MessagingLoadIssue?
     @State private var generation: UInt64 = 0
     @State private var visibleMessageID: Int?
+    @State private var showingPollComposer = false
 
     init(conversationID: Int, conversation: MessagingConversation? = nil, reader: any MessagingReading, sender:MessageActionCoordinator?=nil,mediaReader:(any SocialMessageMediaReading)?=nil,expanded:IMExpandedNavigationContext?=nil) {
         self.conversationID = conversationID; self.conversation = conversation; self.reader = reader;self.sender=sender;self.mediaReader=mediaReader;self.expanded=expanded
@@ -51,6 +52,12 @@ struct MessagingHistoryView: View {
                 }
             }
         }
+        .sheet(isPresented: $showingPollComposer) {
+            NavigationStack {
+                if let owner = expanded?.pollCoordinator?(conversationID, nil) { GroupPollView(owner: owner, creating: true) }
+                else { GroupPollUnavailableView().toolbar { Button("action.cancel") { showingPollComposer = false } } }
+            }
+        }
         .privacySensitive()
         .appNavigationTitle("messaging.history.title")
         .navigationBarTitleDisplayMode(.inline)
@@ -64,6 +71,12 @@ struct MessagingHistoryView: View {
                     .accessibilityIdentifier("im.full.controlsEntry")
                 }
             }
+            ToolbarItem(placement: .topBarTrailing) {
+                if conversation?.supportsGroupPolls == true, loadedIdentity != nil, loadedIdentity == reader.identity, !isLoading, issue == nil {
+                    Button("poll.create", systemImage: "chart.bar.xaxis") { showingPollComposer = true }
+                        .accessibilityIdentifier("poll.createEntry")
+                }
+            }
             ToolbarItem(placement: .principal) {
                 if loadedIdentity == reader.identity, loadedIdentity != nil, history.conversationID == conversationID {
                     MessagingConversationName(conversation: conversation).font(.headline).lineLimit(1)
@@ -75,6 +88,7 @@ struct MessagingHistoryView: View {
                     .accessibilityIdentifier("messaging.history.refresh")
             }
         }
+        .onChange(of: reader.identity) { _, _ in showingPollComposer = false }
         .refreshable { if issue?.isTerminal != true { await reload() } }
         .task(id: MessagingHistoryLoadKey(identity: reader.identity, conversationID: conversationID)) {
             // Returning from a message detail keeps earlier pages and the visible anchor.

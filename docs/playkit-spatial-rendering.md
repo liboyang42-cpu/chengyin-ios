@@ -15,7 +15,7 @@ The regular image and v4 screen-space camera overlay remain distinct fallback pa
 
 `PlayKitSpatialApproval()` grants no modes or origins. Marker requests additionally require an accepted physical width keyed to the exact reference-image URL. The current source wire fields do not provide that measurement, so native code does not assume a meter or add an invented backend field.
 
-Configured 3D `modelUrl` assets are rejected into the image/camera fallback until a GLB decoder and asset-compatibility policy are approved. The image-only renderer does not silently pretend to render a model.
+Configured 3D `modelUrl` assets now use the pinned source-only GLTFKit2 adapter under a separate default-empty model-origin approval. Only bounded, embedded, static GLB assets are supported. Unsupported models retain image/camera fallback. See [GLB integration and limits](playkit-glb-integration.md).
 
 ## Evidence
 

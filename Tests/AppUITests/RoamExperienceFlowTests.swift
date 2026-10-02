@@ -108,8 +108,11 @@ final class RoamExperienceFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Paused; no location collection"].waitForExistence(timeout: 5))
         tapVisible(app.buttons["roam.live.resume"], app: app)
         tapVisible(app.buttons["roam.live.finish"], app: app)
-        let confirm = app.buttons["roam.live.finish.confirm"]
-        XCTAssertTrue(confirm.waitForExistence(timeout: 5), app.debugDescription); XCTAssertTrue(confirm.isHittable); confirm.tap()
+        // Query the presented native action instead of the unscoped SwiftUI action identifier.
+        let confirmation = app.sheets["Finish this walk?"]
+        XCTAssertTrue(confirmation.waitForExistence(timeout: 5), app.debugDescription)
+        attachFixtureScreenshot(self, app: app, name: "Roam explicit finish native confirmation")
+        tapFixtureSheetAction("Finish and check results", in: confirmation, app: app)
         XCTAssertTrue(app.staticTexts["Settled and saved"].waitForExistence(timeout: 5))
         XCTAssertEqual(app.alerts.count, 0)
     }

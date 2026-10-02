@@ -68,10 +68,18 @@ import SwiftUI
         if field.id == "nodeId" && object["op"]?.string != "NODE_COMPLETED" { return true }
         if field.id == "value" && object["op"]?.string == "NODE_COMPLETED" { return true }
         if family == .hiddenObject && field.id == "r" { return true }
+        if family == .compare && field.id == "effects" { return true }
         return false
     }
     var body: some View {
-        if !hidden { control.accessibilityIdentifier("creator.field." + family.rawValue + "." + field.id) }
+        if !hidden {
+            if family == .compare && field.id == "maxAttempts" {
+                Toggle("creator.compare.limitAttempts", isOn: Binding(get: { current != .null }, set: { write($0 ? .number(3) : nil) }))
+                    .accessibilityIdentifier("creator.compare.limitAttempts")
+                if current != .null { control.accessibilityIdentifier("creator.field.compare.maxAttempts") }
+                else { Text("creator.compare.unlimited").font(.footnote) }
+            } else { control.accessibilityIdentifier("creator.field." + family.rawValue + "." + field.id) }
+        }
     }
     @ViewBuilder private var control: some View {
         switch field.kind {

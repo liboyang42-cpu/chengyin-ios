@@ -421,6 +421,27 @@ final class AppSession: ObservableObject {
             location: runtimeDependencies.location ?? RuntimeNativeLocationProvider(enabled: accepted.devices.contains(.location)),
             grants: accepted.devices, isCurrent: { [weak self] in self?.currentRuntimeDependencyContext == captured })
     }
+    private var retainedNativePlatform: NativePlatformRuntime?
+    var nativePlatformRuntime: NativePlatformRuntime? {
+        guard let owner = currentPlayRuntimeSession, let api = regionalConfiguration?.apiConfiguration,
+              let factory = runtimeDependencyFactory, let accepted = factory.accepted,
+              let approval = runtimeDependencies.nativePlatform, approval.validPurpose,
+              (approval.stepsEnabled || approval.localRemindersEnabled),
+              (!approval.stepsEnabled || accepted.endpoints.paths.contains(NativePlatformService.actionPath)),
+              (!approval.localRemindersEnabled || accepted.endpoints.paths.contains(NativePlatformService.windowPath)) else {
+            retainedNativePlatform?.invalidate(); retainedNativePlatform = nil; return nil
+        }
+        if let retainedNativePlatform, retainedNativePlatform.owner == owner { return retainedNativePlatform }
+        retainedNativePlatform?.invalidate()
+        let current = { [weak self] in self?.currentPlayRuntimeSession }
+        let service = NativePlatformService(configuration: api, transport: factory.transport, owner: owner,
+            stepsEnabled: approval.stepsEnabled, remindersEnabled: approval.localRemindersEnabled, current: current)
+        let runtime = NativePlatformRuntime(owner: owner, acceptance: approval, service: service, current: current,
+            makePedometer: { IPhonePedometerProvider(enabled: approval.stepsEnabled) },
+            assertion: AppAttestStepAssertionProvider(deviceKeyID: approval.enrolledAppAttestKeyID ?? "", enabled: approval.stepsEnabled),
+            reminders: AppleLocalReminderProvider(enabled: approval.localRemindersEnabled))
+        retainedNativePlatform = runtime; return runtime
+    }
     var playKitArtworkHosts: Set<String> { runtimeDependencyFactory?.accepted?.artworkHosts ?? [] }
     var playKitSpatialApproval: PlayKitSpatialApproval { runtimeDependencyFactory?.accepted?.spatial ?? .init() }
     private var runtimeSensorProviders: [RuntimeSensorReference] = []
@@ -698,6 +719,45 @@ final class AppSession: ObservableObject {
             guard let self, let session = self.publishingSession, let token = self.token else { return nil }
             return try? PublishingCredentials(session: session, token: token)
         })
+    }
+    private let nativeWeChatPaymentDriver = WeChatNativePaymentDriver()
+    private lazy var nativeWeChatPaymentAdapter = WeChatSDKPaymentAdapter(driver: nativeWeChatPaymentDriver,
+        configuration: runtimeDependencies.weChatPaymentConfiguration,
+        allowed: { [weak self] in
+            guard let self, let factory = self.businessRuntimeFactory else { return false }
+            if let auth = self.weChatSDKConfiguration, let payment = self.runtimeDependencies.weChatPaymentConfiguration,
+               auth.appID != payment.sdk.appID || auth.universalLink != payment.sdk.universalLink { return false }
+            return factory.configuration.selfPlayExternalCheckoutApproved && factory.configuration.selfPlayPayment && factory.permits(.topicSelfPlayPay)
+        }, context: { [weak self] in self?.currentRuntimeDependencyContext })
+    private let selfPlayOperationGate = TopicSelfPlayOperationGate()
+    private var retainedSelfPlayFlows: [String: TopicSelfPlayFlow] = [:]
+    func topicSelfPlayFlow(topic: TopicDetail) -> TopicSelfPlayFlow? {
+        guard let factory = businessRuntimeFactory, let configuration = regionalConfiguration?.apiConfiguration,
+              factory.configuration.selfPlayExternalCheckoutApproved, factory.permits(.topicSelfPlayRead), factory.permits(.topicSelfPlayCreate),
+              factory.permits(.topicSelfPlayConsentRead), factory.permits(.topicSelfPlayConsentWrite),
+              let document = runtimeDependencies.signupDocument, let directory = safetyDirectory("TopicSelfPlayConsent"),
+              let session = publishingSession, ["player", "club"].contains(session.role), topic.selfPlay == 1 else { return nil }
+        let captured = factory.captured
+        let key = "\(session.storageKey)|\(session.epoch)|\(topic.id)"
+        if let retained = retainedSelfPlayFlows[key] { return retained }
+        let features: Set<BusinessRuntimeFeature> = [.topicSelfPlayRead, .topicSelfPlayCreate, .topicSelfPlayPay, .topicSelfPlayConsentRead, .topicSelfPlayConsentWrite]
+        let transport = TopicSelfPlayRuntimeTransport(baseURL: configuration.baseURL, transport: factory.client(features))
+        let compliance = AccountComplianceService(configuration: configuration, transport: transport,
+            journal: ComplianceFileJournal(url: directory.appendingPathComponent("operations-v1.json")),
+            current: { [weak self] in self?.currentRuntimeDependencyContext == captured ? self?.complianceSession : nil },
+            token: { [weak self] in self?.currentRuntimeDependencyContext == captured ? self?.token : nil },
+            readsEnabled: true, writesEnabled: true,
+            legalApproved: { [weak self] subject, scope in subject == .signup && self?.currentRuntimeDependencyContext == captured && self?.complianceSession == scope })
+        let client = TopicSelfPlayHTTPClient(configuration: configuration, transport: transport, consent: compliance,
+            complianceSession: { [weak self] in self?.complianceSession }, documentProvider: document, captured: captured,
+            current: { [weak self] in self?.currentRuntimeDependencyContext }, credentials: { [weak self] in
+                guard let self, self.currentRuntimeDependencyContext == captured, let session = self.publishingSession, let token = self.token else { return nil }
+                return try? PublishingCredentials(session: session, token: token)
+            })
+        let payment: (any TopicSelfPlayPaymentProviding)? = factory.configuration.selfPlayPayment && factory.permits(.topicSelfPlayPay)
+            ? (runtimeDependencies.selfPlayPayment ?? nativeWeChatPaymentAdapter) : nil
+        let flow = TopicSelfPlayFlow(topic: topic, client: client, provider: payment, journal: TopicSelfPlayDefaultsJournal(defaults: .standard), operationGate: selfPlayOperationGate)
+        retainedSelfPlayFlows[key] = flow; return flow
     }
     var couponManagementSession: CouponManagementSession? {
         guard let account, token != nil, let storageScope else { return nil }
@@ -1401,6 +1461,52 @@ final class AppSession: ObservableObject {
         let owner = IMConversationStarter(identity: identity, writer: imExpandedWriter)
         imStarters[identity] = owner; return owner
     }
+    private var clubChatOwners: [Int: ClubChatCoordinator] = [:]
+    func clubChatCoordinator(clubID: Int) -> ClubChatCoordinator? {
+        if let owner = clubChatOwners[clubID], owner.isCurrent { return owner }
+        guard let account, let token, let configuration = regionalConfiguration?.apiConfiguration,
+              let snapshot = try? GroupPollSession(accountID: account.id, epoch: gate.currentStamp, token: token) else { return nil }
+        let captured = currentRuntimeDependencyContext, factory = businessRuntimeFactory
+        let transport: any HTTPTransport
+        if let factory { transport = factory.client([.clubChat]) } else { transport = runtimeHTTPTransport }
+        let service = ClubChatService(configuration: configuration, transport: transport, enabled: factory?.permits(.clubChat) == true,
+            session: { [weak self] in
+                guard let self, self.currentRuntimeDependencyContext == captured, let account = self.account, let token = self.token else { return nil }
+                return try? GroupPollSession(accountID: account.id, epoch: self.gate.currentStamp, token: token)
+            }, onUnauthorized: { [weak self] value in
+                guard let self, self.currentRuntimeDependencyContext == captured else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: value.identity.epoch, credential: self.token)
+            })
+        guard let owner = try? ClubChatCoordinator(clubID: clubID, identity: snapshot.identity, service: service, clubs: clubReader, messages: messagingReader) else { return nil }
+        clubChatOwners[clubID] = owner; return owner
+    }
+    private struct GroupPollOwnerKey: Hashable { let scope: IMScope; let reference: GroupPollReference? }
+    private var groupPollOwners: [GroupPollOwnerKey: GroupPollCoordinator] = [:]
+    func groupPollCoordinator(conversationID: Int, reference: GroupPollReference?) -> GroupPollCoordinator? {
+        guard let account, let token, let namespace = storageScope?.service,
+              let configuration = regionalConfiguration?.apiConfiguration,
+              let snapshot = try? GroupPollSession(accountID: account.id, epoch: gate.currentStamp, token: token),
+              let scope = try? IMScope(identity: snapshot.identity, conversationID: conversationID) else { return nil }
+        let key = GroupPollOwnerKey(scope: scope, reference: reference)
+        if let owner = groupPollOwners[key] { return owner }
+        let captured = currentRuntimeDependencyContext
+        let features: Set<BusinessRuntimeFeature> = [.imPollResult, .imPollCreate, .imPollVote, .imPollClose]
+        let service: GroupPollService?
+        if let factory = businessRuntimeFactory {
+            service = GroupPollService(configuration: configuration, transport: factory.client(features),
+                enabledPaths: Set(factory.routes(features).map(\.path)))
+        } else { service = nil }
+        let client = GroupPollSessionClient(service: service, session: { [weak self] in
+            guard let self, self.currentRuntimeDependencyContext == captured, let account = self.account, let token = self.token else { return nil }
+            return try? GroupPollSession(accountID: account.id, epoch: self.gate.currentStamp, token: token)
+        }, onUnauthorized: { [weak self] value in
+            guard let self, self.currentRuntimeDependencyContext == captured else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: value.identity.epoch, credential: self.token)
+        })
+        guard let owner = try? GroupPollCoordinator(scope: scope, reference: reference, client: client,
+            reader: messagingReader, journal: OperationDefaultsJournal(defaults: .standard), namespace: namespace, realm: configuration.baseURL) else { return nil }
+        groupPollOwners[key] = owner; return owner
+    }
     private let messagingService: MessagingService?
     private let messageActionService: MessageActionService?
     private struct MessageSenderKey: Hashable { let accountID:Int;let conversationID:Int }
@@ -1526,6 +1632,7 @@ final class AppSession: ObservableObject {
     var doorReferralQueue: DoorReferralQueue? { prepareDoorRuntime(); return retainedDoorQueue }
     var doorEntryCoordinator: DoorEntryCoordinator? { prepareDoorRuntime(); return retainedDoorCoordinator }
     func receiveNativeURL(_ url: URL) {
+        if nativeWeChatPaymentDriver.handle(url, adapter: nativeWeChatPaymentAdapter) { return }
         if weChatSDKDriver.handle(url, adapter: weChatSDKAdapter) { return }
         guard let intent = nativeEntryLinkPolicy.parse(url) else {
             receiveNativeIntent(.routeError(.unsupported)); return
@@ -1533,6 +1640,7 @@ final class AppSession: ObservableObject {
         receiveNativeIntent(intent)
     }
     func receiveWeChatUserActivity(_ activity: NSUserActivity) {
+        if nativeWeChatPaymentDriver.handle(activity, adapter: nativeWeChatPaymentAdapter) { return }
         _ = weChatSDKDriver.handle(activity, adapter: weChatSDKAdapter)
     }
     func receiveNativeIntent(_ intent: NativeEntryIntent) {
@@ -1550,9 +1658,10 @@ final class AppSession: ObservableObject {
         if identityChanged {
             retainedNativeVerification?.flow.deactivate(); retainedNativeVerification = nil
             retainedPublishingService?.service.invalidateReviews(); retainedPublishingService = nil
-            retainedIMWriter = nil; imExpandedCoordinators.removeAll(); imImageCoordinators.removeAll(); imStarters.removeAll()
+            clubChatOwners.removeAll(); groupPollOwners.removeAll(); retainedIMWriter = nil; imExpandedCoordinators.removeAll(); imImageCoordinators.removeAll(); imStarters.removeAll()
             retainedProjectEditors.values.forEach { $0.synchronizeSession() }; retainedProjectEditors.removeAll()
             retainedRoamLiveSession?.invalidate(); retainedRoamLiveSession = nil
+            retainedNativePlatform?.invalidate(); retainedNativePlatform = nil
             runtimeSensorProviders.forEach { $0.value?.cancel() }; runtimeSensorProviders.removeAll()
             retainedNativePlayDevice?.provider.cancel(); retainedNativePlayDevice = nil
             retainedPlayDevices.values.forEach { $0.cancel() }; retainedPlayDevices.removeAll()
@@ -1697,12 +1806,14 @@ final class AppSession: ObservableObject {
     }
 
     func cancelPendingLogin() {
+        nativeWeChatPaymentAdapter.cancelPending()
         weChatAuth.cancel()
         if gate.cancelLogin() { isWorking=false;errorKey=nil;clubActionCoordinator.synchronizeSession()
         clubManagementCoordinator.synchronizeSession();clubOperationsCoordinator.synchronizeSession();clubGovernanceCoordinator.cancelReview();profileEditCoordinator.synchronizeSession();merchantOnboardingCoordinator.synchronizeSession() }
     }
 
     func logout() async {
+        nativeWeChatPaymentAdapter.cancelPending()
         weChatAuth.cancel()
         authChannels.cancel()
         let oldToken=token
@@ -1751,6 +1862,7 @@ final class AppSession: ObservableObject {
     private func expireIfMatching(error:Error,stamp:UInt64,credential:String?) {
         guard error as? APIError == .unauthorized, credential != nil,
               gate.isCurrent(stamp), credential == token else { return }
+        nativeWeChatPaymentAdapter.cancelPending()
         gate.invalidate()
         UserDefaults.standard.set(true,forKey:restoreBlockedKey)
         roamArea=nil;token=nil;account=nil;isWorking=false;errorKey="auth.expired"

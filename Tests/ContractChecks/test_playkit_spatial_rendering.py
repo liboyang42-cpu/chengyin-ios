@@ -9,7 +9,7 @@ class PlayKitSpatialRenderingChecks(unittest.TestCase):
             self.assertIn(token,core)
     def test_glb_is_not_silently_accepted(self):
         core=self.read('Core/PlayKitSpatialContracts.swift')
-        self.assertIn('guard (segment["modelUrl"].text ?? "").isEmpty',core)
+        self.assertIn('PlayKitGLBPolicy.approvedURL(model, hosts: approval.modelHosts)',core)
         self.assertIn('throw PlayKitSpatialError.unsupportedModel',core)
     def test_plane_uses_real_raycast_and_marker_actual_anchor(self):
         ui=self.read('App/PlayKitSpatialRevealView.swift')

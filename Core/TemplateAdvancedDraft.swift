@@ -11,12 +11,12 @@ public enum TemplateAdvancedGame: String, Codable, CaseIterable, Identifiable {
     }
     public var labelKey: String { "templateAuthor.game." + rawValue }
 }
-/// All 37 active source configuration sections have structured authoring. Unknown
+/// All 38 active source configuration sections have structured authoring. Unknown
 /// extensions survive snapshots and fail closed at network serialization.
 public struct TemplateAdvancedDraft: Codable, Equatable {
     public var value: [String: TemplateAuthoringJSON]
     public init() { value = Self.defaults }
-    public static let gameSections = ["qa", "branch", "estimate", "pricePair", "hiddenObject", "predict", "random", "steps", "reaction", "ballShake", "quietHold", "countdown", "stopwatch", "coinFlip", "diceRoll", "scan", "sort", "match", "classify", "compass", "shout"]
+    public static let gameSections = ["qa", "branch", "estimate", "pricePair", "hiddenObject", "predict", "random", "steps", "reaction", "ballShake", "quietHold", "countdown", "stopwatch", "coinFlip", "diceRoll", "scan", "sort", "match", "classify", "compare", "compass", "shout"]
     public static let defaults: [String: TemplateAuthoringJSON] = [
         "schemaVersion": .number(1),
         "timer": .object(["enabled": .bool(false), "durationSeconds": .number(300), "timeoutResult": .string("FAILED")]),

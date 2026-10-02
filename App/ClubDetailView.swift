@@ -45,6 +45,12 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                         actionDetail = detail; actionIdentity = identity
                     }
                 }
+                if (club.isOwner || club.isJoined), reader.clubIdentity.isSignedIn, let session = reader as? AppSession {
+                    Section {
+                        NavigationLink { SessionClubChatView(clubID: id, session: session) } label: { Label("club.chat.title", systemImage: "person.3") }
+                            .accessibilityIdentifier("club.chat.entry")
+                    }
+                }
                 if club.isOwner, let session = reader as? AppSession {
                     Section { NavigationLink("context.ai.title") { SessionClubAIDesignView(session: session, clubID: id) }.accessibilityIdentifier("club.context.openAI") }
                 }

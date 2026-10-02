@@ -41,6 +41,8 @@ jobs:
             CODE_SIGNING_ALLOWED=NO build
       - name: Verify built CN profile metadata
         run: python3 tools/check_built_profile.py --market CN --plist "$RUNNER_TEMP/questify-simulator/Build/Products/Debug-iphonesimulator/Questify.app/Info.plist"
+      - name: Verify real source-built GLTFKit2 link and notices (CN)
+        run: python3 tools/check_gltf_linked.py --app "$RUNNER_TEMP/questify-simulator/Build/Products/Debug-iphonesimulator/Questify.app"
       - name: Select an available simulator for XCTest compilation
         run: |
           xcrun simctl list devices available --json > "$RUNNER_TEMP/build-simulators.json"
@@ -99,6 +101,8 @@ jobs:
             CODE_SIGNING_ALLOWED=NO build
       - name: Verify built US profile metadata
         run: python3 tools/check_built_profile.py --market US --plist "$RUNNER_TEMP/questify-us-device/Build/Products/Release-iphoneos/Questify.app/Info.plist"
+      - name: Verify real source-built GLTFKit2 link and notices (US)
+        run: python3 tools/check_gltf_linked.py --app "$RUNNER_TEMP/questify-us-device/Build/Products/Release-iphoneos/Questify.app"
   secrets:
     runs-on: ubuntu-24.04
     timeout-minutes: 10

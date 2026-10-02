@@ -101,7 +101,15 @@ public struct TemplateAuthoringReview: Equatable, Identifiable {
             // Both active pointer and full intent must survive before the transport is called.
             try store.save(draft, session: session, identity: identity)
             let intent = TemplateAuthoringPending(operationID: value.id, ownerKey: session.ownerKey, identity: identity, request: value.request, createdAt: Date())
-            try store.savePending(intent, session: session); pending = intent; state = .submitting
+            try store.savePending(intent, session: session)
+            guard active(session, stamp) else {
+                // Preserve the durable lock without restoring old-owner state into a new session.
+                if currentSession() == session, captured == session, identity == value.identity {
+                    pending = intent; state = .uncertain; messageKey = "templateAuthor.uncertain"
+                }
+                return
+            }
+            pending = intent; state = .submitting
             let outcome = await adapter.submit(value.request)
             guard active(session, stamp) else { return }
             switch outcome {

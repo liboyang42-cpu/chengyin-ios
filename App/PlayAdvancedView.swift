@@ -9,6 +9,7 @@ import SwiftUI
     var makeSensorProvider: (@MainActor () -> any PlayKitSensorProviding)? = nil
     var spatialApproval = PlayKitSpatialApproval()
     let onReady: (PlayAdvancedState) -> Void
+    @Environment(\.nativePlatformRuntime) private var nativePlatform
     @Environment(\.dismiss) private var dismiss
     var body: some View {
         List {
@@ -19,6 +20,9 @@ import SwiftUI
                 if model.state != nil && model.pending == nil { Button("playx.refresh") { Task { await model.refreshAuthoritative() } } }
                 if model.phase == "unknown" { Button("playx.reconcile") { Task { await model.recover() } } }
                 if model.phase == "retryable" { Button("playx.retryExact") { Task { await model.retryExact() } } }
+            }
+            if model.state == nil, nativePlatform?.acceptance.localRemindersEnabled == true {
+                Section { NativeTimeWindowHostView(advanced: model, segment: .null) }
             }
             if let state = model.state {
                 Section("playx.advanced.authority") {

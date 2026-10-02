@@ -6,8 +6,10 @@ import FoundationNetworking
 public enum BusinessRuntimeFeature: Hashable {
     case bankConsentRead, bankPrepare, bankCreate, stampUpload, stampCreate
     case imStart, imRead, imMute, imSend, imUpload
+    case imPollResult, imPollCreate, imPollVote, imPollClose, clubChat
     case publishingRead, publishingWrite, projectRead, projectWrite, directVerification
     case publishingAIQuota, publishingAITheme, publishingAIClub
+    case topicSelfPlayRead, topicSelfPlayCreate, topicSelfPlayPay, topicSelfPlayConsentRead, topicSelfPlayConsentWrite
 }
 public struct BusinessRuntimeRoute: Hashable {
     public let method: String
@@ -33,16 +35,18 @@ public struct BusinessRuntimeConfiguration {
     public let imImageSelection: Bool
     public let stampCamera: Bool
     public let verificationCamera: Bool
+    public let selfPlayPayment: Bool
+    public let selfPlayExternalCheckoutApproved: Bool
     public init(market: RegionalMarket, baseURL: URL, namespace: String, accountID: Int,
                 routes: [BusinessRuntimeFeature: Set<BusinessRuntimeRoute>] = [:],
                 bankChallengeActions: Set<BankWithdrawalServerAction> = [], stampImageOrigins: Set<String> = [],
-                imMediaOrigins: Set<String> = [], imImageSelection: Bool = false, stampCamera: Bool = false, verificationCamera: Bool = false) throws {
+                imMediaOrigins: Set<String> = [], imImageSelection: Bool = false, stampCamera: Bool = false, verificationCamera: Bool = false, selfPlayPayment: Bool = false, selfPlayExternalCheckoutApproved: Bool = false) throws {
         _ = try APIConfiguration(baseURL: baseURL)
         guard !namespace.isEmpty, accountID > 0, routes.allSatisfy({ feature, values in values.allSatisfy { feature.accepts($0) } }) else { throw APIError.invalidConfiguration }
         self.market = market; self.baseURL = baseURL; self.namespace = namespace; self.accountID = accountID
         self.routes = routes; self.bankChallengeActions = bankChallengeActions
         self.stampImageOrigins = stampImageOrigins; self.imMediaOrigins = imMediaOrigins
-        self.imImageSelection = imImageSelection; self.stampCamera = stampCamera; self.verificationCamera = verificationCamera
+        self.imImageSelection = imImageSelection; self.stampCamera = stampCamera; self.verificationCamera = verificationCamera; self.selfPlayPayment = selfPlayPayment; self.selfPlayExternalCheckoutApproved = selfPlayExternalCheckoutApproved
     }
     public func matches(_ context: RuntimeDependencyContext) -> Bool {
         market == .china && context.market == market && baseURL == context.baseURL &&
@@ -123,11 +127,21 @@ public extension BusinessRuntimeFeature {
         case .bankCreate: paths = ["api/withdrawal/create"]
         case .stampUpload, .imUpload: paths = ["api/common/uploadOSS"]
         case .stampCreate: paths = ["api/roam/stamp/create"]
+        case .clubChat: paths = ["api/club/chat"]
+        case .imPollResult: paths = ["api/im/poll/result"]
+        case .imPollCreate: paths = ["api/im/poll/create"]
+        case .imPollVote: paths = ["api/im/poll/vote"]
+        case .imPollClose: paths = ["api/im/poll/close"]
         case .imStart: paths = ["api/im/start"]
         case .imRead: paths = ["api/im/read"]
         case .imMute: paths = ["api/im/mute"]
         case .imSend: paths = ["api/im/send"]
         case .publishingRead: paths = ["api/publish/home", "api/publisher/identity/status", "api/category/list", "api/user/list", "api/template/my-list", "api/project/my", "api/ai/theme/draft/quota"]
+        case .topicSelfPlayRead: paths = ["api/topic/info-to-user", "api/registration/info"]
+        case .topicSelfPlayCreate: paths = ["api/registration/create"]
+        case .topicSelfPlayPay: paths = ["api/registration/pay/app"]
+        case .topicSelfPlayConsentRead: paths = ["api/compliance/consents/latest"]
+        case .topicSelfPlayConsentWrite: paths = ["api/compliance/consents"]
         case .publishingAIQuota: paths = ["api/ai/theme/draft/quota"]
         case .publishingAITheme: paths = ["api/ai/theme/draft"]
         case .publishingAIClub: paths = ["api/ai/club/design"]

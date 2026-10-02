@@ -822,5 +822,69 @@
   "playkit.compass.waitingHeading": {
     "en": "Waiting for an actual compass reading",
     "zh-Hans": "正在等待真实罗盘读数"
+  },
+  "playkit.kind.compare": {
+    "en": "Compare timelines",
+    "zh-Hans": "时间轴对照"
+  },
+  "playkit.compare.instructions": {
+    "en": "Compare both records and mark every missing or changed entry. You can select entries from either timeline.",
+    "zh-Hans": "对照两份记录，标出所有缺失或被改动的条目，可从任一侧多选。"
+  },
+  "playkit.compare.remaining": {
+    "en": "Submissions remaining",
+    "zh-Hans": "剩余提交次数"
+  },
+  "playkit.compare.unlimited": {
+    "en": "No submission limit",
+    "zh-Hans": "不限提交次数"
+  },
+  "playkit.compare.attempts": {
+    "en": "Submissions recorded",
+    "zh-Hans": "已记录提交次数"
+  },
+  "playkit.compare.correct": {
+    "en": "The server marked the complete selection correct.",
+    "zh-Hans": "服务端判定整组标记正确。"
+  },
+  "playkit.compare.incorrect": {
+    "en": "The server marked the complete selection incorrect. Individual answers are not revealed.",
+    "zh-Hans": "服务端判定整组标记有误，不揭示单条答案。"
+  },
+  "playkit.compare.changed": {
+    "en": "The session has changed. Your selection has not been submitted for this version. Load the latest receipt before editing again.",
+    "zh-Hans": "会话版本已更新，当前选择未针对新版本提交。继续编辑前请载入最新回执。"
+  },
+  "playkit.compare.reload": {
+    "en": "Replace selection with latest receipt",
+    "zh-Hans": "用最新回执替换选择"
+  },
+  "playkit.compare.reloadQuestion": {
+    "en": "Replace your unsent selection with the server’s last recorded selection?",
+    "zh-Hans": "用服务端最近记录的选择替换未提交的选择？"
+  },
+  "playkit.compare.marked": {
+    "en": "Entries marked",
+    "zh-Hans": "已标记条目"
+  },
+  "playkit.compare.invalid": {
+    "en": "The comparison question is incomplete or inconsistent. Refresh the server state before continuing.",
+    "zh-Hans": "对照题数据不完整或不一致，请刷新服务端状态后继续。"
+  },
+  "playkit.compare.selected": {
+    "en": "Marked",
+    "zh-Hans": "已标记"
+  },
+  "playkit.compare.unselected": {
+    "en": "Not marked",
+    "zh-Hans": "未标记"
+  },
+  "playkit.compare.reviewBoundary": {
+    "en": "These exact entries will be submitted together. One submission is recorded; only the server decides the result.",
+    "zh-Hans": "将一起提交以下条目并计作一次作答，结果仅由服务端判定。"
+  },
+  "playkit.compare.none": {
+    "en": "No entries marked. Submitting still counts as an attempt.",
+    "zh-Hans": "未标记任何条目，提交仍计作一次作答。"
   }
 }

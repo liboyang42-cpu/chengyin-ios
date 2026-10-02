@@ -53,6 +53,9 @@ import simd
         loadTask = Task {
             do {
                 let image = try await PlayKitSpatialAssets.loadImage(configuration.imageURL, approvedHosts: approval.artworkHosts)
+                let model: SCNScene?
+                if let url = configuration.modelURL { model = try await PlayKitGLBPreparation.load(url, approvedHosts: approval.modelHosts) }
+                else { model = nil }
                 let marker: UIImage?
                 if let url = configuration.markerURL { marker = try await PlayKitSpatialAssets.loadImage(url, approvedHosts: approval.artworkHosts) }
                 else { marker = nil }
@@ -67,7 +70,7 @@ import simd
                 guard token == generation else { return }; authorizing = false
                 guard allowed else { throw PlayKitSpatialError.permissionDenied }
                 guard UIApplication.shared.applicationState == .active, !Task.isCancelled else { throw PlayKitSpatialError.interrupted }
-                working = false; prepared = Prepared(request: configuration, image: image, marker: marker)
+                working = false; prepared = Prepared(request: configuration, image: image, marker: marker, model: model)
             } catch {
                 guard token == generation else { return }
                 working = false; authorizing = false; issue = error as? PlayKitSpatialError ?? .assetUnavailable
@@ -76,7 +79,7 @@ import simd
     }
     private func cancel() { generation = UUID(); loadTask?.cancel(); loadTask = nil; working = false; authorizing = false; prepared = nil; purpose = false }
     struct Prepared: Identifiable {
-        let id = UUID(); let request: PlayKitSpatialRequest; let image: UIImage; let marker: UIImage?
+        let id = UUID(); let request: PlayKitSpatialRequest; let image: UIImage; let marker: UIImage?; let model: SCNScene?
     }
 }
 
@@ -172,6 +175,12 @@ import simd
             Task { @MainActor [weak self] in guard let self, !self.stopped else { return }; self.placement.fail(); self.onFailure() }
         }
         func finishDecorativeMotion() {
+            if prepared.model != nil {
+                content?.childNodes.first?.removeAllActions()
+                content?.childNodes.first?.position.y = 0
+                content?.childNodes.first?.scale = SCNVector3(1, 1, 1)
+                return
+            }
             guard let face = content?.childNodes.first,
                   let height = try? prepared.request.cardHeightMeters(imageWidth: Double(prepared.image.size.width), imageHeight: Double(prepared.image.size.height)) else { return }
             face.removeAllActions(); face.position.y = Float(height / 2); face.scale = SCNVector3(1, 1, 1)
@@ -180,12 +189,35 @@ import simd
             guard let view, let height = try? prepared.request.cardHeightMeters(imageWidth: Double(prepared.image.size.width), imageHeight: Double(prepared.image.size.height)) else { onFailure(); return }
             content?.removeFromParentNode()
             let root = SCNNode(); root.simdPosition = SIMD3(transform.columns.3.x, transform.columns.3.y, transform.columns.3.z)
+            if let model = prepared.model {
+                let body = SCNNode(), fitted = SCNNode()
+                for child in model.rootNode.childNodes { fitted.addChildNode(child.clone()) }
+                let bounds = fitted.boundingBox
+                guard let fit = try? PlayKitModelFit(min: (Double(bounds.min.x), Double(bounds.min.y), Double(bounds.min.z)),
+                    max: (Double(bounds.max.x), Double(bounds.max.y), Double(bounds.max.z)), targetMeters: prepared.request.modelLongestSideMeters) else { onFailure(); return }
+                fitted.scale = SCNVector3(Float(fit.scale), Float(fit.scale), Float(fit.scale))
+                fitted.position = SCNVector3(Float(fit.x), Float(fit.y), Float(fit.z))
+                // World upright with +Z facing the camera once. No billboard for a
+                // model: the player can walk around it, even after marker loss.
+                if let camera = view.pointOfView {
+                    let delta = camera.simdWorldPosition - root.simdPosition
+                    if hypot(delta.x, delta.z) > 0.0001 { body.eulerAngles.y = atan2(delta.x, delta.z) }
+                }
+                body.addChildNode(fitted); root.addChildNode(body)
+                view.scene.rootNode.addChildNode(root); content = root
+                view.autoenablesDefaultLighting = true
+                animate(body)
+                return
+            }
             let board = SCNPlane(width: CGFloat(prepared.request.cardWidthMeters), height: CGFloat(height))
             let material = SCNMaterial(); material.diffuse.contents = prepared.image; material.isDoubleSided = true; material.lightingModel = .constant
             board.materials = [material]
             let face = SCNNode(geometry: board); face.position.y = Float(height / 2)
             let billboard = SCNBillboardConstraint(); billboard.freeAxes = .Y; face.constraints = [billboard]
             root.addChildNode(face); view.scene.rootNode.addChildNode(root); content = root
+            animate(face)
+        }
+        private func animate(_ face: SCNNode) {
             guard !reduceMotion else { return }
             if prepared.request.mode == .plane {
                 face.position.y += 0.3

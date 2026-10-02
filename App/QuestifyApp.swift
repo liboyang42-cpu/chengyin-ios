@@ -18,7 +18,9 @@ struct QuestifyApp: App {
         WindowGroup {
             Group {
                 #if DEBUG
-                if ProcessInfo.processInfo.arguments.contains("--native-navigation-fixture") {
+                if ProcessInfo.processInfo.arguments.contains("--group-poll-fixture") {
+                    GroupPollFixtureRoot(scenario: fixtureArgument("--group-poll-fixture") ?? "success")
+                } else if ProcessInfo.processInfo.arguments.contains("--native-navigation-fixture") {
                     NativeNavigationFixtureView(mode: fixtureArgument("--native-navigation-fixture") ?? "error")
                 } else if ProcessInfo.processInfo.arguments.contains("--native-verification-fixture") {
                     NativeVerificationFixtureView(scenario: fixtureArgument("--native-verification-fixture") ?? "success")
@@ -112,7 +114,7 @@ private final class AppSessionContainer: ObservableObject {
 
     init() {
         #if DEBUG
-        if ProcessInfo.processInfo.arguments.contains("--native-navigation-fixture") || ProcessInfo.processInfo.arguments.contains("--native-verification-fixture") || ProcessInfo.processInfo.arguments.contains("--merchant-npc-fixture") || ProcessInfo.processInfo.arguments.contains("--publisher-lifecycle-fixture") || ProcessInfo.processInfo.arguments.contains("--retained-images-fixture") || ProcessInfo.processInfo.arguments.contains("--square-governance-fixture") || ProcessInfo.processInfo.arguments.contains("--shop-npc-fixture") || ProcessInfo.processInfo.arguments.contains("--club-community-fixture") || ProcessInfo.processInfo.arguments.contains("--public-merchant-home-fixture") || ProcessInfo.processInfo.arguments.contains("--door-referral-fixture") || ProcessInfo.processInfo.arguments.contains("--merchant-marketing-fixture") || ProcessInfo.processInfo.arguments.contains("--im-expanded-fixture") || ProcessInfo.processInfo.arguments.contains("--ui-coupon-management") || WalletCommerceFixtureHost.selected || ProcessInfo.processInfo.arguments.contains("--ui-publishing-modes") ||
+        if ProcessInfo.processInfo.arguments.contains("--group-poll-fixture") || ProcessInfo.processInfo.arguments.contains("--native-navigation-fixture") || ProcessInfo.processInfo.arguments.contains("--native-verification-fixture") || ProcessInfo.processInfo.arguments.contains("--merchant-npc-fixture") || ProcessInfo.processInfo.arguments.contains("--publisher-lifecycle-fixture") || ProcessInfo.processInfo.arguments.contains("--retained-images-fixture") || ProcessInfo.processInfo.arguments.contains("--square-governance-fixture") || ProcessInfo.processInfo.arguments.contains("--shop-npc-fixture") || ProcessInfo.processInfo.arguments.contains("--club-community-fixture") || ProcessInfo.processInfo.arguments.contains("--public-merchant-home-fixture") || ProcessInfo.processInfo.arguments.contains("--door-referral-fixture") || ProcessInfo.processInfo.arguments.contains("--merchant-marketing-fixture") || ProcessInfo.processInfo.arguments.contains("--im-expanded-fixture") || ProcessInfo.processInfo.arguments.contains("--ui-coupon-management") || WalletCommerceFixtureHost.selected || ProcessInfo.processInfo.arguments.contains("--ui-publishing-modes") ||
            ProcessInfo.processInfo.arguments.contains("--nearby-team-fixture") ||
            ProcessInfo.processInfo.arguments.contains("--official-action-fixture") ||
            ProcessInfo.processInfo.arguments.contains("--uitesting-club-governance") ||

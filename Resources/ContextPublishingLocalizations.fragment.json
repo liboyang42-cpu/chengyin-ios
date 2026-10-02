@@ -415,13 +415,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The project page will show review and publication status."
+            "value": "This receipt does not confirm review approval or public availability."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "审核与发布状态以项目页面回读为准。"
+            "value": "此回执不代表审核通过或已对外上架。"
           }
         }
       }
@@ -439,6 +439,601 @@
           "stringUnit": {
             "state": "translated",
             "value": "预览玩家看到的"
+          }
+        }
+      }
+    },
+    "contextSelfPlay.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Self-play pass"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自玩通行证"
+          }
+        }
+      }
+    },
+    "contextSelfPlay.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pass checkout needs approved account, signup notice and payment configuration. Check existing orders before trying again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通行证购买需通过账号、报名告知与支付配置验收，请先检查已有订单。"
+          }
+        }
+      }
+    },
+    "contextSelfPlay.validity": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The source pass is valid for 90 days. Follow the route’s safety guidance and take care around traffic."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通行证有效期为 90 天。请遵守路线安全须知，注意交通与人身安全。"
+          }
+        }
+      }
+    },
+    "contextSelfPlay.paymentNotice": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One-time CNY order for this route. Any payment uses the approved WeChat app-payment provider. Review the current notice before confirming."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本路线为人民币单次订单。付款仅使用已验收的微信 App 支付服务，确认前请阅读当前告知。"
+          }
+        }
+      }
+    },
+    "contextSelfPlay.participant": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Participant details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参与者资料"
+          }
+        }
+      }
+    },
+    "contextSelfPlay.name": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Real name"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "真实姓名"
+          }
+        }
+      }
+    },
+    "contextSelfPlay.phone": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mobile phone"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "联系手机号"
+          }
+        }
+      }
+    },
+    "contextSelfPlay.noticeLink": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read the current signup data-sharing notice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "阅读当前报名信息提供告知"
+          }
+        }
+      }
+    },
+    "contextSelfPlay.documentUnavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The current notice has not been verified. Checkout is unavailable."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前告知尚未验证，暂不可建单。"
+          }
+        }
+      }
+    },
+    "contextSelfPlay.consent": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I agree to provide these registration details to the organizer for this signup"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我同意为本次报名向主办方提供报名资料"
+          }
+        }
+      }
+    },
+    "contextSelfPlay.consentRequired": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read the notice and select the separate consent before continuing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请阅读告知并单独勾选同意后继续。"
+          }
+        }
+      }
+    },
+    "contextSelfPlay.invalid": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check your name, 11-digit mainland mobile number, and pass availability."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请检查姓名、11 位大陆手机号及通行证可售状态。"
+          }
+        }
+      }
+    },
+    "contextSelfPlay.review": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review pass order"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "核对通行证订单"
+          }
+        }
+      }
+    },
+    "contextSelfPlay.confirm": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm and create order"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认并建单"
+          }
+        }
+      }
+    },
+    "contextSelfPlay.consentReview": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The name and phone shown above will be submitted for this route. Consent is recorded before the order is created."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以上姓名和手机号将用于本路线报名。同意记录确认后才会建单。"
+          }
+        }
+      }
+    },
+    "contextSelfPlay.creating": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Processing the reviewed order…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在处理已核对的订单…"
+          }
+        }
+      }
+    },
+    "contextSelfPlay.notCreated": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The order was not sent. Availability, price or consent could not be confirmed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "订单尚未发送，可售状态、价格或同意记录未能确认。"
+          }
+        }
+      }
+    },
+    "contextSelfPlay.retained": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An existing intent is retained. Check its order status before taking another action."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已有购买意图被保留，请先查询订单状态。"
+          }
+        }
+      }
+    },
+    "contextSelfPlay.order": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Order ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "订单编号"
+          }
+        }
+      }
+    },
+    "contextSelfPlay.checkOrder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check order status"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查询订单状态"
+          }
+        }
+      }
+    },
+    "contextSelfPlay.orders": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My orders"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我的订单"
+          }
+        }
+      }
+    },
+    "contextSelfPlay.tickets": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ticket wallet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "票夹"
+          }
+        }
+      }
+    },
+    "contextSelfPlay.paymentUnavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The order is retained. Native payment is not configured; check the order or ticket wallet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "订单已保留，原生支付尚未配置。请查看订单或票夹。"
+          }
+        }
+      }
+    },
+    "contextSelfPlay.unknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The result is not confirmed. Do not create or pay again. Check the existing order or ticket wallet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果尚未确认，请勿重复建单或付款。请查询原订单或票夹。"
+          }
+        }
+      }
+    },
+    "contextSelfPlay.checking": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking the order with the server…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在向服务器核对订单…"
+          }
+        }
+      }
+    },
+    "contextSelfPlay.paymentConfirmed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Payment confirmed by the server"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务器已确认付款"
+          }
+        }
+      }
+    },
+    "contextSelfPlay.passConfirmed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pass confirmed by the server"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务器已确认通行证"
+          }
+        }
+      }
+    },
+    "contextSelfPlay.ready": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your pass is confirmed. Open the ticket wallet to continue."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通行证已确认，可前往票夹继续。"
+          }
+        }
+      }
+    },
+    "contextSelfPlay.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server reports an unsuccessful or closed order. Check My orders for the next step."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务器显示订单未成功或已关闭，请前往我的订单查看后续处理。"
+          }
+        }
+      }
+    },
+    "contextSelfPlay.changed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The account or access changed. Reopen the order under the correct account."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账号或访问权限已变化，请用正确账号重新打开订单。"
+          }
+        }
+      }
+    },
+    "contextSelfPlay.busy": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Another pass checkout is already in progress."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已有通行证购买正在处理中。"
+          }
+        }
+      }
+    },
+    "contextSelfPlay.continuePayment": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review existing-order payment"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "核对原订单付款"
+          }
+        }
+      }
+    },
+    "contextSelfPlay.sameOrder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This uses the existing order. It does not create another pass order."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次操作使用原订单，不会新建通行证订单。"
+          }
+        }
+      }
+    },
+    "contextSelfPlay.reviewNewOrder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review a new pass after order closure"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "订单关闭后重新核对通行证"
+          }
+        }
+      }
+    },
+    "contextSelfPlay.closedCanReview": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server confirmed the old order is closed. Enter your details and review a new order before submitting."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务器已确认原订单关闭，请重新填写资料并核对新订单后提交。"
           }
         }
       }

@@ -6,10 +6,10 @@ public enum PlayKitScreenKind: String, CaseIterable, Identifiable {
     case coinFlip, diceRoll, reaction, ballShake, quietHold, countdown, stopwatch
     case qa, branch, estimate, pricePair, hiddenObject, predict, random, scan, walk, bingo
     case profile, photoCheck, note, typeIn, dailySign, steps
-    case sort, match, classify, compass, shout
+    case sort, match, classify, compare, compass, shout
     case blindTaste, diyName, silentOrder, slowTask, musicCorner, timeWindow
     /// Source priority, preserving main tasks before ambient topic progress.
-    public static let priority: [Self] = [.qa, .branch, .predict, .random, .estimate, .pricePair, .sort, .match, .classify, .hiddenObject, .scan, .profile, .photoCheck, .note, .typeIn, .coinFlip, .diceRoll, .reaction, .ballShake, .quietHold, .compass, .shout, .countdown, .stopwatch, .blindTaste, .diyName, .silentOrder, .steps, .walk, .slowTask, .musicCorner, .dailySign, .timeWindow, .bingo]
+    public static let priority: [Self] = [.qa, .branch, .predict, .random, .estimate, .pricePair, .sort, .match, .classify, .compare, .hiddenObject, .scan, .profile, .photoCheck, .note, .typeIn, .coinFlip, .diceRoll, .reaction, .ballShake, .quietHold, .compass, .shout, .countdown, .stopwatch, .blindTaste, .diyName, .silentOrder, .steps, .walk, .slowTask, .musicCorner, .dailySign, .timeWindow, .bingo]
     public static func present(in state: PlayAdvancedState) -> [Self] {
         priority.filter { state.playKit[$0.rawValue].object != nil || ($0 == .branch && state.config["branch"]["enabled"].bool == true) || ($0 == .random && state.config["random"]["enabled"].bool == true) }
     }
@@ -36,7 +36,7 @@ public struct PlayKitScreenProjection: Equatable {
     public var title: String { segment["title"].text ?? segment["question"].text ?? segment["kicker"].text ?? "" }
     public var complete: Bool {
         switch kind {
-        case .qa, .pricePair, .sort: return segment["finished"].bool == true
+        case .qa, .pricePair, .sort, .compare: return segment["finished"].bool == true
         case .branch: return segment["currentStep"]["terminal"].bool == true || segment["ended"].bool == true
         case .estimate: return segment["submitted"].bool == true
         case .predict: return !(segment["myOptionKey"].text ?? "").isEmpty
@@ -116,10 +116,12 @@ public struct PlayKitActionReview: Equatable, Identifiable {
     public let sessionID: Int; public let version: Int
     public let kind: String; public let action: String
     public let payload: [String: PlayWireValue]
+    public let compareQuestion: PlayCompareQuestion?
     let owner: PlayExperienceSession
     init(state: PlayAdvancedState, owner: PlayExperienceSession, kind: String, action: String, payload: [String: PlayWireValue]) {
         id = UUID(); sessionID = state.sessionID; version = state.version
         self.owner = owner; self.kind = kind; self.action = action; self.payload = payload
+        compareQuestion = kind == "compare" ? (try? PlayCompareQuestion(state.playKit["compare"])) : nil
     }
 }
 
@@ -202,6 +204,9 @@ public enum PlayKitInputContract {
             let items = Set(PlayKitOption.read(segment["items"]).map(\.id)), bins = Set(PlayKitOption.read(segment["bins"]).map(\.id))
             let placement = payload["placement"]?.object ?? [:]
             try require(keys == ["placement"] && !items.isEmpty && Set(placement.keys) == items && placement.values.allSatisfy { bins.contains($0.text ?? "") })
+        case .compare:
+            try require(action == "SUBMIT_COMPARE")
+            try PlayCompareQuestion(segment).validate(payload)
         case .compass: try require(keys == ["bearing"] && finite("bearing", range: 0...359))
         case .blindTaste: try require(keys == ["key"] && projection.options.contains { $0.id == payload["key"]?.text })
         case .diyName: try require(keys == ["name"] && text("name", max: max(1, segment["maxLength"].integer ?? 16)))

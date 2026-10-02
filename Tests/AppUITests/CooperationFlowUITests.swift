@@ -85,11 +85,20 @@ final class CooperationFlowUITests: XCTestCase {
         XCTAssertEqual(field.value as? String, "Keep this local draft")
         app.buttons["coopflow.invite.cancel"].tap()
         attachFixtureScreenshot(self, app: app, name: "Cooperation unsaved draft discard decision")
-        app.buttons["Keep editing"].tap()
+        let discardSheet = app.sheets["Discard this invitation draft?"]
+        XCTAssertTrue(discardSheet.waitForExistence(timeout: 5), app.debugDescription)
+        let keep = discardSheet.buttons["Keep editing"]
+        if keep.exists && keep.isHittable { keep.tap() }
+        else {
+            // In a native popover, the cancel role is represented by outside dismissal.
+            dismissFixtureConfirmationPopover(in: app)
+        }
+        let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: discardSheet)
+        XCTAssertEqual(XCTWaiter.wait(for: [dismissed], timeout: 5), .completed, app.debugDescription)
         XCTAssertTrue(revealFixtureElement(field, in: app, towardTop: true), app.debugDescription)
         XCTAssertEqual(field.value as? String, "Keep this local draft")
         app.buttons["coopflow.invite.cancel"].tap()
-        app.buttons["Discard draft"].tap()
+        tapFixtureSheetAction("Discard draft", in: discardSheet, app: app)
         XCTAssertTrue(reply.waitForExistence(timeout: 5))
         reply.tap()
         XCTAssertTrue(field.waitForExistence(timeout: 5))

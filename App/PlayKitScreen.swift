@@ -55,7 +55,8 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
                         Text(LocalizedStringKey("playkit.kind." + kind.rawValue))
                         Text(verbatim: item.action).font(.caption)
                         Text("playkit.reviewBoundary")
-                        PlayKitPayloadReadback(payload: item.payload)
+                        if let question = item.compareQuestion { PlayCompareReview(question: question, marked: (item.payload["marked"]?.array ?? []).compactMap(\.text)) }
+                        else { PlayKitPayloadReadback(payload: item.payload) }
                         LabeledContent("playkit.version") { Text(verbatim: String(item.version)) }
                         Button("playkit.confirm") {
                             let completion = reviewedCompletion
@@ -131,7 +132,9 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
         case .photoCheck: photoCheckForm
         case .scan: scanForm
         case .bingo: bingoBoard
-        case .walk, .steps: walkProgress
+        case .walk: walkProgress
+        case .steps:
+            NativeStepsHostView(advanced: model, segment: raw)
         case .coinFlip: coinFace
         case .diceRoll: diceFaces
         case .dailySign: dailySignForm
@@ -142,6 +145,10 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
                 revisionIdentity: runtimeIdentity, currentRevisionIdentity: { model.state.map { "\($0.sessionID):\($0.version)" } ?? "" })
                 .id(childReset)
         case .sort, .match, .classify: reasoningForm
+        case .compare:
+            PlayCompareView(segment: segment, revision: runtimeIdentity, enabled: enabled,
+                currentRevision: { runtimeIdentity }, onDirty: { dirty = true }, requestReview: prepare)
+                .id(childReset)
         case .blindTaste, .diyName, .silentOrder, .slowTask, .musicCorner, .timeWindow: legacyBody
         case .ballShake, .quietHold, .compass, .shout:
             PlayKitSensorChallengeView(kind: kind, segment: segment, enabled: enabled, active: model.isCurrent,
@@ -163,10 +170,10 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
     @ViewBuilder private var recovery: some View {
         if model.phase == "submitting" || model.phase == "loading" { ProgressView("playkit.sending") }
         if model.pending != nil { Text("playkit.pendingBoundary").font(.footnote) }
-        if model.phase == "unknown" { Button("playkit.reconcile") { Task { await model.recover() } } }
-        if model.phase == "retryable" { Button("playkit.retryExact") { Task { await model.retryExact() } } }
+        if model.phase == "unknown" { Button("playkit.reconcile") { Task { await model.recover() } }.accessibilityIdentifier("playkit." + kind.rawValue + ".reconcile") }
+        if model.phase == "retryable" { Button("playkit.retryExact") { Task { await model.retryExact() } }.accessibilityIdentifier("playkit." + kind.rawValue + ".retryExact") }
         if model.pending == nil && model.isCurrent && model.phase != "submitting" {
-            Button("playkit.refresh") { Task { await model.refreshAuthoritative() } }
+            Button("playkit.refresh") { Task { await model.refreshAuthoritative() } }.accessibilityIdentifier("playkit." + kind.rawValue + ".refresh")
         }
     }
     func prepare(_ action: String, _ payload: [String: PlayWireValue] = [:], _ completion: @escaping () -> Void = {}) {

@@ -52,8 +52,8 @@
     "zh-Hans": "暂不支持这种空间模式"
   },
   "playkitSpatial.error.unsupportedModel": {
-    "en": "No approved decoder is configured for this 3D model. Use the returned image instead.",
-    "zh-Hans": "尚未为这个三维模型配置已批准的解码器，请改看返回的图片。"
+    "en": "This model is outside the approved GLB profile or asset origins. Use the returned image instead.",
+    "zh-Hans": "这个模型不符合已批准的 GLB 格式或资源来源要求，请改看返回的图片。"
   },
   "playkitSpatial.error.assetUnavailable": {
     "en": "An approved image could not be loaded. The static fallback remains available.",

@@ -28,3 +28,6 @@ QUESTIFY_SESSION_REALM =
 INFOPLIST_KEY_QuestifySessionRealm = $(QUESTIFY_SESSION_REALM)
 
 #include? "Local.xcconfig"
+
+// Declares the explicit iPhone step-reading purpose; does not grant or enable access.
+INFOPLIST_KEY_NSMotionUsageDescription = Read step counts from this iPhone when you choose to review a walking activity. Counts are not proof of walking and do not unlock rewards.

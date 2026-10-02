@@ -24,7 +24,7 @@ final class PlayExperienceFlowTests: XCTestCase {
         else {
             // Native confirmation popovers dismiss outside their bubble instead of rendering Cancel.
             XCTAssertTrue(app.buttons["playx.confirm"].waitForExistence(timeout: 3), app.debugDescription)
-            app.navigationBars["Journey task"].coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            dismissFixtureConfirmationPopover(in: app)
         }
         let editable = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == true AND enabled == true"), object: review)
         XCTAssertEqual(XCTWaiter.wait(for: [editable], timeout: 5), .completed, app.debugDescription)

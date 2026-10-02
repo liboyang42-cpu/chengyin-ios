@@ -229,13 +229,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No approved decoder is configured for this 3D model. Use the returned image instead."
+            "value": "This model is outside the approved GLB profile or asset origins. Use the returned image instead."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "尚未为这个三维模型配置已批准的解码器，请改看返回的图片。"
+            "value": "这个模型不符合已批准的 GLB 格式或资源来源要求，请改看返回的图片。"
           }
         }
       }

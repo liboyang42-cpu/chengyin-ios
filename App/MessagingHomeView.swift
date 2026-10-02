@@ -102,6 +102,7 @@ private struct MessagingConversationListView: View {
     private func searchPreview(_ conversation: MessagingConversation) -> String {
         if let text = conversation.lastMessageText, !text.isEmpty { return text }
         if conversation.lastMessageType == 2 { return appLocalized("messaging.image",locale:locale) }
+        if conversation.lastMessageType == 4 { return appLocalized("poll.title",locale:locale) }
         if conversation.lastMessageType == 3 { return appLocalized("messaging.card",locale:locale) }
         return ""
     }

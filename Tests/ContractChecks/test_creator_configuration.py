@@ -2,7 +2,7 @@
 import json, re, unittest
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
-FAMILIES=set('random branch leaderboard multiplayer timeWindow blindTaste silentOrder diyName musicCorner steps dailySign slowTask estimate pricePair hiddenObject predict qa scan album profile photoCheck check note typeIn'.split())
+FAMILIES=set('random branch leaderboard multiplayer timeWindow blindTaste silentOrder diyName musicCorner steps dailySign slowTask estimate pricePair hiddenObject predict qa scan album profile photoCheck check note typeIn compare'.split())
 class CreatorConfigurationChecks(unittest.TestCase):
     @classmethod
     def setUpClass(c):
@@ -64,4 +64,4 @@ class CreatorConfigurationChecks(unittest.TestCase):
     def test_authored_swift_tests_cover_every_family(self):
         tests=(ROOT/'Tests/CoreTests/TemplateCreatorConfigurationTests.swift').read_text()
         self.assertEqual(set(re.findall(r'case \.(\w+): raw =',tests)),FAMILIES)
-        for name in ['testAllTwentyFourFamiliesSerializeReopenAndReserialize','testEveryTopLevelNumberRejectsOutOfBoundsAndBlank','testUnknownNestedFieldsSurviveSnapshotAndBlockReserialization','testMissingProviderDoesNotPreventAuthoringOrInventVerification']:self.assertIn(name,tests)
+        for name in ['testAllTwentyFiveFamiliesSerializeReopenAndReserialize','testEveryTopLevelNumberRejectsOutOfBoundsAndBlank','testUnknownNestedFieldsSurviveSnapshotAndBlockReserialization','testMissingProviderDoesNotPreventAuthoringOrInventVerification']:self.assertIn(name,tests)

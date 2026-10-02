@@ -10,6 +10,8 @@ struct TopicDetailView: View {
     var publisherDestination: ((TopicDetail) -> AnyView)? = nil
     var reviewOwner: ContextualReviewCoordinator? = nil
     @State private var showsReview = false
+    var selfPlayDestination: ((TopicDetail) -> AnyView)? = nil
+    @State private var showingSelfPlay = false
     @State private var detail: TopicDetail?
     @State private var loadedKey: Key?
     @State private var issue: TopicScreenIssue?
@@ -30,6 +32,13 @@ struct TopicDetailView: View {
         .onDisappear { generation += 1; loading = false }
         .sheet(isPresented: $showsReview) {
             NavigationStack { ContextualReviewComposer(target: .topic(id), owner: reviewOwner) { Task { await load() } } }
+        }
+        .onChange(of: key) { _, _ in showingSelfPlay = false }
+        .sheet(isPresented: $showingSelfPlay) {
+            if let detail {
+                if let selfPlayDestination { selfPlayDestination(detail) }
+                else { TopicSelfPlayUnavailableSheet(topic: detail) }
+            }
         }
     }
     private func content(_ value: TopicDetail) -> some View {
@@ -54,7 +63,11 @@ struct TopicDetailView: View {
             Section("topic.availability") {
                 Text(LocalizedStringKey("topic.availability." + String(value.availability.rawValue)))
                 if value.merchantClosed { Label("topic.closedNotice", systemImage: "storefront") }
-                if value.selfPlay == 1 { TopicPrice(value: value.selfPlayPrice, label: "topic.selfPlayPrice") }
+                if value.selfPlay == 1 {
+                    TopicPrice(value: value.selfPlayPrice, label: "topic.selfPlayPrice")
+                    Button("contextSelfPlay.title") { showingSelfPlay = true }
+                        .disabled(!value.canOfferPurchase).accessibilityIdentifier("contextSelfPlay.open")
+                }
                 Text("topic.readOnly").font(.footnote).foregroundStyle(.secondary)
             }
             if value.showStoryPaywall {

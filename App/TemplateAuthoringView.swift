@@ -7,9 +7,17 @@ import SwiftUI
     @Published var revision = 0
     @Published var busy = false
     private var epoch: TemplateAuthoringSession?
+    private var draftIdentity: TemplateAuthoringIdentity?
     init(coordinator: TemplateAuthoringCoordinator) { self.coordinator = coordinator }
-    var canEdit: Bool { coordinator.session != nil && epoch == coordinator.session && !coordinator.locked && coordinator.restore == .missing }
-    func load() { coordinator.synchronizeSession(); coordinator.open(); draft = coordinator.draft; epoch = coordinator.session; review = nil; revision += 1 }
+    var canEdit: Bool { coordinator.session != nil && epoch == coordinator.session && draftIdentity == coordinator.identity && !coordinator.locked && coordinator.restore == .missing }
+    func load() {
+        // Child editors mutate the shared local draft while the parent Form is offscreen.
+        // Preserve those edits before a same-owner reappearance reload, never across identity changes.
+        if canEdit, draft != coordinator.draft { coordinator.change(draft) }
+        coordinator.synchronizeSession(); coordinator.open()
+        draft = coordinator.draft; epoch = coordinator.session; draftIdentity = coordinator.identity
+        review = nil; revision += 1
+    }
     func changed() {
         guard canEdit else { draft = coordinator.draft; return }
         coordinator.change(draft); review = nil; revision += 1

@@ -23,6 +23,32 @@ import XCTest
         }
         XCTAssertEqual(reopened.draft.advanced.value["coinFlip"]?.object?["heads"], seed.advanced.value["coinFlip"]?.object?["heads"])
     }
+    func testNestedCreatorFieldAndRootEditsSurviveParentReappearance() throws {
+        let owner = try session()
+        let store = TemplateAuthoringLocalStore(storage: TemplateAuthoringMemoryStorage())
+        let coordinator = TemplateAuthoringCoordinator(store: store, currentSession: { owner })
+        coordinator.open(seed: TemplateAuthoringSyntheticFixtures.compoundDraft())
+        let model = TemplateAuthoringModel(coordinator: coordinator); model.load()
+        model.leave()
+        model.draft.description = "Child field edit"
+        model.draft.advanced.setCreatorEnabled(.compare, true)
+        let expected = model.draft
+        model.load(); model.save()
+        XCTAssertEqual(model.draft, expected); XCTAssertEqual(coordinator.draft, expected)
+        let reopened = TemplateAuthoringCoordinator(store: store, currentSession: { owner })
+        reopened.open(); reopened.restoreDraft(); XCTAssertEqual(reopened.draft, expected)
+    }
+    func testUnsynchronizedChildDraftDoesNotCrossSameAccountEpoch() throws {
+        var owner: TemplateAuthoringSession? = try session()
+        let coordinator = TemplateAuthoringCoordinator(store: .init(storage: TemplateAuthoringMemoryStorage()), currentSession: { owner })
+        coordinator.open(seed: TemplateAuthoringSyntheticFixtures.compoundDraft())
+        let model = TemplateAuthoringModel(coordinator: coordinator); model.load()
+        model.draft.description = "Previous epoch private draft"
+        owner = try .init(accountID: 901, namespace: "composition-lifecycle-fixture", epoch: 2, authorizationRevision: "member")
+        model.load()
+        XCTAssertNotEqual(model.draft.description, "Previous epoch private draft")
+        XCTAssertEqual(model.draft, coordinator.draft)
+    }
     func testChildToggleCannotMutateAfterSessionChange() throws {
         var owner: TemplateAuthoringSession? = try session()
         let coordinator = TemplateAuthoringCoordinator(store: .init(storage: TemplateAuthoringMemoryStorage()), currentSession: { owner })

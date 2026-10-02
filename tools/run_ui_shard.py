@@ -6,6 +6,8 @@ import re
 import subprocess
 import os
 import signal
+import json
+import math
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 DEFAULT_SHARD_COUNT = 6
@@ -27,6 +29,31 @@ def discover(directory):
     if not weights:
         raise ValueError('No UI tests discovered')
     return weights
+
+def measured_weights(directory, profile):
+    """Timing affects grouping only. Current source remains the exhaustive inventory."""
+    counts = discover(directory)
+    data = json.loads(pathlib.Path(profile).read_text())
+    if data.get('version') != 1 or not isinstance(data.get('method_seconds'), dict):
+        raise ValueError('Invalid UI duration profile')
+    default = data.get('unobserved_method_seconds')
+    timings = data['method_seconds']
+    def valid(value):
+        return type(value) in (int, float) and math.isfinite(value) and 0 < value <= 900
+    if not valid(default) or any(not re.fullmatch(r'[A-Za-z_]\w*\.test\w+', name) or not valid(seconds)
+                                 for name, seconds in timings.items()):
+        raise ValueError('Invalid UI duration or method identity')
+    result = {}
+    for path in sorted(pathlib.Path(directory).glob('*.swift')):
+        source = path.read_text()
+        methods = re.findall(r'\bfunc\s+(test\w+)\s*\(', source)
+        if not methods:
+            continue
+        name = re.findall(r'\bclass\s+(\w+)\s*:\s*XCTestCase\b', source)[0]
+        result[name] = sum(timings.get(name + '.' + method, default) for method in methods)
+    assert set(result) == set(counts)
+    return result
+
 
 def partition(weights, count):
     if count < 1 or count > len(weights):
@@ -51,14 +78,16 @@ def main():
     parser.add_argument('--xctestrun')
     parser.add_argument('--deadline-seconds', type=int)
     parser.add_argument('--dry-run', action='store_true')
+    parser.add_argument('--duration-profile', type=pathlib.Path, default=ROOT/'tools/ui_duration_weights.json')
     args = parser.parse_args()
     weights = discover(ROOT / 'Tests/AppUITests')
-    groups = partition(weights, args.count)
+    costs = measured_weights(ROOT / 'Tests/AppUITests', args.duration_profile)
+    groups = partition(costs, args.count)
     if not 0 <= args.shard < args.count:
         parser.error('shard index out of range')
     selected = groups[args.shard]
     print(f'Inventory: {sum(weights.values())} tests in {len(weights)} classes; shard {args.shard}: '
-          f'{sum(weights[name] for name in selected)} tests in {selected}', flush=True)
+          f'{sum(weights[name] for name in selected)} tests, estimated {sum(costs[name] for name in selected):.1f}s in {selected}', flush=True)
     if args.dry_run:
         return 0
     if not all([args.simulator, args.result_bundle]) or not (args.xctestrun or args.derived_data):

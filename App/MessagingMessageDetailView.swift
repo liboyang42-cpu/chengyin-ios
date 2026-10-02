@@ -27,6 +27,15 @@ struct MessagingMessageDetailView: View {
                             }.accessibilityIdentifier("messaging.message.preview")
                         }
                     }
+                    if let reference = message.pollReference {
+                        Section {
+                            NavigationLink {
+                                if let owner = expanded?.pollCoordinator?(message.conversationID, reference) { GroupPollView(owner: owner) }
+                                else { GroupPollUnavailableView() }
+                            } label: { Label("poll.openResults", systemImage: "chart.bar.xaxis") }
+                            .accessibilityIdentifier("poll.messageEntry")
+                        }
+                    }
                     Section("messaging.message.details") {
                         LabeledContent("messaging.message.sender") {
                             MessagingSenderName(message: message, conversation: conversation, accountID: identity?.accountID ?? 0)
@@ -116,6 +125,13 @@ struct MessagingMessageContent: View {
         case 3:
             if let card = message.card { MessagingCardContent(card: card, isTrustedSystem: message.senderID == 0) }
             else { Label("messaging.cardUnavailable", systemImage: "rectangle.slash").foregroundStyle(.secondary) }
+        case 4:
+            if message.pollReference != nil {
+                VStack(alignment: .leading, spacing: 6) {
+                    Label("poll.title", systemImage: "chart.bar.xaxis").font(.headline)
+                    Text("poll.cardHint").font(.caption)
+                }.accessibilityIdentifier("poll.messageCard")
+            } else { Label("poll.invalidCard", systemImage: "exclamationmark.bubble").accessibilityIdentifier("poll.invalidCard") }
         default:
             Label("messaging.unsupported", systemImage: "questionmark.bubble").foregroundStyle(.secondary)
         }

@@ -160,6 +160,7 @@ struct MessagingPreview: View {
     var body: some View {
         if let text = conversation.lastMessageText, !text.isEmpty { Text(verbatim: text) }
         else if conversation.lastMessageType == 2 { Text("messaging.image") }
+        else if conversation.lastMessageType == 4 { Text("poll.title") }
         else if conversation.lastMessageType == 3 { Text("messaging.card") }
     }
 }

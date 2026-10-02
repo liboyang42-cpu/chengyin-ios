@@ -1,0 +1,1010 @@
+{
+  "nativePlatform.disabled": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This native feature awaits service and privacy approval."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此原生功能尚待服务与隐私审核通过。"
+        }
+      }
+    }
+  },
+  "nativePlatform.cancel": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Cancel"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "取消"
+        }
+      }
+    }
+  },
+  "nativePlatform.working": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Working"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "正在处理"
+        }
+      }
+    }
+  },
+  "nativePlatform.privacy": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Privacy notice"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "隐私说明"
+        }
+      }
+    }
+  },
+  "nativePlatform.timeZone": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Service time zone"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务时区"
+        }
+      }
+    }
+  },
+  "nativePlatform.steps.title": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Steps from this iPhone"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此 iPhone 的步数"
+        }
+      }
+    }
+  },
+  "nativePlatform.steps.boundary": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This native record is for auditing only. It does not complete the task or unlock points or rewards."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "原生步数仅用于审核记录，不会完成任务或解锁积分及奖励。"
+        }
+      }
+    }
+  },
+  "nativePlatform.steps.day": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Service day"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务日期"
+        }
+      }
+    }
+  },
+  "nativePlatform.steps.baseline": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Server baseline"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务器基准步数"
+        }
+      }
+    }
+  },
+  "nativePlatform.steps.delta": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Server accepted increase"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务器接受的新增步数"
+        }
+      }
+    }
+  },
+  "nativePlatform.steps.read": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Review iPhone steps"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "查看 iPhone 步数"
+        }
+      }
+    }
+  },
+  "nativePlatform.steps.send": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Send this audit sample"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "提交此审核样本"
+        }
+      }
+    }
+  },
+  "nativePlatform.steps.sharePurpose": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Send this count and its time interval to the activity service with a device-integrity assertion. No health or Apple Watch data is included."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "将此步数与时间区间及设备完整性凭据提交至活动服务。不包含健康或 Apple Watch 数据。"
+        }
+      }
+    }
+  },
+  "nativePlatform.steps.purposeTitle": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Before reading steps"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "读取步数前"
+        }
+      }
+    }
+  },
+  "nativePlatform.steps.purpose": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Read cumulative steps measured by this iPhone from the start of the service day. You can review the number before sending it. The first accepted sample establishes a baseline; no reward is granted."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "读取此 iPhone 从服务日期开始累计的步数。发送前可查看数据。首个接受的样本用于建立基准，不发放奖励。"
+        }
+      }
+    }
+  },
+  "nativePlatform.steps.integrity": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Apple App Attest checks app and device integrity. It cannot prove that a person walked. Existing enrolled keys are required."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Apple App Attest 检查应用与设备完整性，不能证明用户实际行走。此功能需要已登记的密钥。"
+        }
+      }
+    }
+  },
+  "nativePlatform.steps.continue": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Continue to iPhone step access"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "继续访问 iPhone 步数"
+        }
+      }
+    }
+  },
+  "nativePlatform.steps.retryExact": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Check or retry the same request"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "查询或重试同一请求"
+        }
+      }
+    }
+  },
+  "nativePlatform.steps.unknownBoundary": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The service result is unknown. Only this exact request can be retried; a new sample stays locked."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务结果尚不确定。只能重试原请求，暂不能创建新样本。"
+        }
+      }
+    }
+  },
+  "nativePlatform.reminder.title": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Remind me on this iPhone"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "在此 iPhone 上提醒我"
+        }
+      }
+    }
+  },
+  "nativePlatform.reminder.boundary": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "One local reminder for the next service opening. This is separate from WeChat subscriptions and does not open or complete the activity."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "仅在下次服务开放时发送一次本机提醒。它独立于微信订阅，不会开放或完成活动。"
+        }
+      }
+    }
+  },
+  "nativePlatform.reminder.next": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Next opening"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "下次开放"
+        }
+      }
+    }
+  },
+  "nativePlatform.reminder.open": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The service is open now"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务当前已开放"
+        }
+      }
+    }
+  },
+  "nativePlatform.reminder.closed": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Waiting for the service window"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "等待服务时段"
+        }
+      }
+    }
+  },
+  "nativePlatform.reminder.scheduled": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Confirmed on this device"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已在本机确认安排"
+        }
+      }
+    }
+  },
+  "nativePlatform.reminder.cancel": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Cancel this local reminder"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "取消本机提醒"
+        }
+      }
+    }
+  },
+  "nativePlatform.reminder.enable": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Set a one-time reminder"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "设置一次性提醒"
+        }
+      }
+    }
+  },
+  "nativePlatform.reminder.refresh": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Refresh service time and device status"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "刷新服务时间与设备状态"
+        }
+      }
+    }
+  },
+  "nativePlatform.reminder.purposeTitle": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Allow a local reminder?"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "允许本机提醒？"
+        }
+      }
+    }
+  },
+  "nativePlatform.reminder.purpose": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Allow an alert and sound on this device for the exact service time shown. No push token is sent. Delivery depends on iPhone settings. If the service changes while this app is closed, the reminder may be outdated; reopening the app checks the time again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "允许在所示的服务时间于本机显示提醒并播放声音。不发送推送令牌。送达取决于 iPhone 设置。应用关闭期间若服务时间更改，提醒可能过时；重新打开应用会再次核对。"
+        }
+      }
+    }
+  },
+  "nativePlatform.reminder.confirm": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Allow and set this reminder"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "允许并设置此提醒"
+        }
+      }
+    }
+  },
+  "nativePlatform.reminder.notificationTitle": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Activity reminder"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "活动提醒"
+        }
+      }
+    }
+  },
+  "nativePlatform.reminder.notificationBody": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "An activity window may be opening. Open the app to check its current status."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "活动时段可能即将开放，请打开应用查看当前状态。"
+        }
+      }
+    }
+  },
+  "nativePlatform.steps.phase.idle": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Ready to review"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "可查看步数"
+        }
+      }
+    }
+  },
+  "nativePlatform.steps.phase.reading": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reading this iPhone"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "正在读取此 iPhone"
+        }
+      }
+    }
+  },
+  "nativePlatform.steps.phase.review": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Review before sending"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "发送前查看"
+        }
+      }
+    }
+  },
+  "nativePlatform.steps.phase.signing": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Preparing device integrity"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "正在准备设备完整性凭据"
+        }
+      }
+    }
+  },
+  "nativePlatform.steps.phase.submitting": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Sending audit sample"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "正在提交审核样本"
+        }
+      }
+    }
+  },
+  "nativePlatform.steps.phase.unknown": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Result not yet confirmed"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "结果尚未确认"
+        }
+      }
+    }
+  },
+  "nativePlatform.steps.phase.recorded": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Audit sample recorded by service"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务已记录审核样本"
+        }
+      }
+    }
+  },
+  "nativePlatform.steps.phase.blocked": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Access unavailable"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂时无法访问"
+        }
+      }
+    }
+  },
+  "nativePlatform.steps.phase.failed": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Could not complete this request"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "无法完成此请求"
+        }
+      }
+    }
+  },
+  "nativePlatform.steps.phase.interrupted": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Start a fresh reading"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请重新读取"
+        }
+      }
+    }
+  },
+  "nativePlatform.steps.phase.stale": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Sign in again to continue"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请重新登录后继续"
+        }
+      }
+    }
+  },
+  "nativePlatform.issue.disabled": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Service approval is not enabled."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务审核尚未启用。"
+        }
+      }
+    }
+  },
+  "nativePlatform.issue.unsupported": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This feature requires a supported iPhone and an enrolled device-integrity key."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此功能需要支持计步的 iPhone 与已登记的设备完整性密钥。"
+        }
+      }
+    }
+  },
+  "nativePlatform.issue.denied": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Permission is off. You can change it in iPhone Settings."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "权限已关闭，可在 iPhone 设置中更改。"
+        }
+      }
+    }
+  },
+  "nativePlatform.issue.restricted": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Device restrictions prevent access."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "设备限制阻止了访问。"
+        }
+      }
+    }
+  },
+  "nativePlatform.issue.purposeMissing": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The motion privacy purpose is missing."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "缺少运动数据隐私用途说明。"
+        }
+      }
+    }
+  },
+  "nativePlatform.issue.staleSession": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This sign-in session changed."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前登录会话已改变。"
+        }
+      }
+    }
+  },
+  "nativePlatform.issue.interrupted": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The reading was interrupted. Start again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "读取已中断，请重新开始。"
+        }
+      }
+    }
+  },
+  "nativePlatform.issue.clockChanged": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The device clock changed. Refresh the service time."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "设备时间已改变，请刷新服务时间。"
+        }
+      }
+    }
+  },
+  "nativePlatform.issue.reset": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The device reading reset. A new service baseline is required."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "设备读数已重置，需要新的服务基准。"
+        }
+      }
+    }
+  },
+  "nativePlatform.issue.expired": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This time or challenge expired. Refresh to continue."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "时间或校验挑战已过期，请刷新后继续。"
+        }
+      }
+    }
+  },
+  "nativePlatform.issue.invalidContract": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The service returned incompatible native data."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务返回了不兼容的原生数据。"
+        }
+      }
+    }
+  },
+  "nativePlatform.issue.unknownResult": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The result is unknown. Check the same request."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "结果未知，请查询原请求。"
+        }
+      }
+    }
+  },
+  "nativePlatform.issue.notificationMissing": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The device could not confirm this reminder."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "设备未能确认此提醒。"
+        }
+      }
+    }
+  },
+  "nativePlatform.issue.windowChanged": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The service window changed. The old reminder was cancelled; review the new time."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务时段已更改，旧提醒已取消，请查看新时间。"
+        }
+      }
+    }
+  },
+  "nativePlatform.issue.network": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Could not refresh the service. Try again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "无法刷新服务，请重试。"
+        }
+      }
+    }
+  },
+  "nativePlatform.fixture.controls": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Fixture controls"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "测试控制"
+        }
+      }
+    }
+  },
+  "nativePlatform.fixture.change": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Change service window"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "改变服务时段"
+        }
+      }
+    }
+  },
+  "nativePlatform.fixture.logout": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Fixture sign out"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "测试退出登录"
+        }
+      }
+    }
+  },
+  "nativePlatform.issue.openingRequired": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Enter the journey’s opening first, then refresh to set a reminder."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请先进入主题开局，再刷新并设置提醒。"
+        }
+      }
+    }
+  }
+}
