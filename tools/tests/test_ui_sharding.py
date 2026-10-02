@@ -128,6 +128,10 @@ class UIShardingTests(unittest.TestCase):
         self.assertEqual(module.DEFAULT_SHARD_COUNT,10)
         self.assertEqual(data['unobserved_method_seconds'],60)
         records=data['estimate_provenance']['methods']
-        self.assertEqual(len(records),23)
+        self.assertEqual(data['estimate_provenance']['baseline_estimate_count'],23)
+        self.assertEqual(sum(record['source'] in ['existing14','pending9'] for record in records),23)
+        self.assertEqual(sum(record['source'] == 'reference11' for record in records),11)
+        self.assertEqual(sum(record['source'] == 'referenceChatTask16' for record in records),16)
+        self.assertEqual(len(records),len({record['method'] for record in records}))
         self.assertTrue(all(record['measured'] is False and record['basis'] for record in records))
         self.assertEqual(data['estimated_method_seconds'],{x['method']:x['seconds'] for x in records})

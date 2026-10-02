@@ -8,7 +8,7 @@ struct AccessibilityFixtureOptions: ViewModifier {
     func body(content: Content) -> some View {
         content
             .preferredColorScheme(args.contains("--uitesting-dark") ? .dark : nil)
-            .dynamicTypeSize(args.contains("--uitesting-large-text") ? .accessibility3 : size)
+            .dynamicTypeSize(args.contains("--uitesting-max-text") ? .accessibility5 : (args.contains("--uitesting-large-text") ? .accessibility3 : size))
     }
 }
 #endif

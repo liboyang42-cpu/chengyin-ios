@@ -10,7 +10,6 @@ struct QuestifyImageEntityCard<Details:View>:View {
     var fallbackSymbol:String="photo"
     var minimumHeight:CGFloat=340
     private let details:()->Details
-    @Environment(\.dynamicTypeSize) private var typeSize
     @QuestifyReduceMotion private var reduceMotion
     @Environment(\.colorSchemeContrast) private var contrast
     private var scrimOpacity:Double { contrast == .increased ? 0.94 : 0.86 }
@@ -29,14 +28,14 @@ struct QuestifyImageEntityCard<Details:View>:View {
             LinearGradient(colors:[.clear,.black.opacity(scrimOpacity)],startPoint:.top,endPoint:.bottom)
                 .frame(height:72).accessibilityHidden(true)
             VStack(alignment:.leading,spacing:10) {
-                if title.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty { Text(fallbackTitle).font(.title2.weight(.bold)) }
-                else { Text(verbatim:title).font(.title2.weight(.bold)).fixedSize(horizontal:false,vertical:true) }
+                if title.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty { Text(fallbackTitle).font(.title2.weight(.bold)).lineLimit(nil).fixedSize(horizontal:false,vertical:true) }
+                else { Text(verbatim:title).font(.title2.weight(.bold)).lineLimit(nil).fixedSize(horizontal:false,vertical:true) }
                 if let subtitle,!subtitle.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty {
-                    Text(verbatim:subtitle).font(.subheadline)
-                        .lineLimit(typeSize.isAccessibilitySize ? nil : 3)
+                    Text(verbatim:subtitle).font(.subheadline).lineLimit(nil)
+                        .fixedSize(horizontal:false,vertical:true)
                         .foregroundStyle(.white.opacity(0.92))
                 }
-                details().font(.subheadline)
+                details().font(.subheadline).lineLimit(nil).fixedSize(horizontal:false,vertical:true)
             }
             .foregroundStyle(.white)
             .padding(20)

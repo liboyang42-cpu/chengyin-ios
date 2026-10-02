@@ -8,34 +8,69 @@ import SwiftUI
 @MainActor struct MerchantNPCChatView: View {
     @StateObject private var model: MerchantNPCChatModel
     @State private var text = ""
+    @FocusState private var typing: Bool
     @Environment(\.scenePhase) private var scenePhase
     init(coordinator: MerchantNPCChatCoordinator) { _model = StateObject(wrappedValue: .init(coordinator)) }
     var body: some View {
-        List {
-            Text("merchantNPC.chatDisclosure")
-            if model.coordinator.isCurrent {
-                if let message = model.coordinator.message { Text(verbatim: message).textSelection(.enabled) }
-                if let reply = model.coordinator.reply {
-                    if let safe = reply.safeText, !safe.isEmpty { Text(verbatim: safe).textSelection(.enabled).accessibilityIdentifier("merchantNPC.reply") }
-                    else { Text("merchantNPC.noReply") }
-                    Text(verbatim: reply.outcomeStatus)
-                    if reply.successAudioURL != nil { Text("merchantNPC.playbackOff") }
-                }
-                TextField("merchantNPC.message", text: $text, axis: .vertical).accessibilityIdentifier("merchantNPC.input")
-                Button("merchantNPC.send") { Task { await model.coordinator.send(text); text = "" } }.disabled(!model.coordinator.canSend || text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty).accessibilityIdentifier("merchantNPC.send")
-                if model.coordinator.requestID != nil {
-                    TimelineView(.periodic(from: .now, by: 1)) { _ in
-                        Button("merchantNPC.retry") { Task { await model.coordinator.retry() } }.disabled(!model.coordinator.canRetry)
-                    }
-                    Button("merchantNPC.abandon") { model.coordinator.abandon() }.disabled(model.coordinator.sending)
-                }
-                if model.coordinator.sending { ProgressView("merchantNPC.pending") }
-                MerchantNPCIssue(failure: model.coordinator.failure)
-            } else { Text("merchantNPC.sessionChanged") }
+        VStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("referenceChat.merchantAI").font(.headline)
+                Text("merchantNPC.chatDisclosure").font(.footnote).foregroundStyle(.secondary)
+            }.frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal).padding(.vertical, 8)
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 16) {
+                    if model.coordinator.isCurrent {
+                        if let message = model.coordinator.message {
+                            ChatMessageBubble(isOwn: true) { Text("messaging.you") } content: {
+                                Text(verbatim: message).textSelection(.enabled)
+                            }
+                        }
+                        if let reply = model.coordinator.reply {
+                            ChatMessageBubble(isOwn: false) { Text("referenceChat.merchantAI") } content: {
+                                if let safe = reply.safeText, !safe.isEmpty {
+                                    Text(verbatim: safe).textSelection(.enabled).accessibilityIdentifier("merchantNPC.reply")
+                                } else { Text("merchantNPC.noReply") }
+                            }
+                            // Preserve the provider's outcome, never translate it into task success.
+                            Text(verbatim: reply.outcomeStatus).font(.caption).foregroundStyle(.secondary)
+                            if reply.successAudioURL != nil { Text("merchantNPC.playbackOff") }
+                        }
+                        if model.coordinator.requestID != nil {
+                            TimelineView(.periodic(from: .now, by: 1)) { _ in
+                                Button("merchantNPC.retry") { Task { await model.coordinator.retry() } }.disabled(!model.coordinator.canRetry)
+                            }
+                            Button("merchantNPC.abandon") { model.coordinator.abandon() }.disabled(model.coordinator.sending)
+                        }
+                        if model.coordinator.sending { ProgressView("merchantNPC.pending") }
+                        MerchantNPCIssue(failure: model.coordinator.failure)
+                    } else { Text("merchantNPC.sessionChanged") }
+                }.padding().frame(maxWidth: .infinity, alignment: .leading)
+            }.scrollDismissesKeyboard(.interactively)
         }
-        .navigationTitle("merchantNPC.chatTitle").privacySensitive()
-        .onDisappear { text = ""; model.coordinator.invalidate() }
-        .onChange(of: scenePhase) { _, phase in if phase != .active { text = ""; model.coordinator.invalidate() } }
+        .safeAreaInset(edge: .bottom) {
+            if model.coordinator.isCurrent {
+                HStack(alignment: .bottom) {
+                    TextField("merchantNPC.message", text: $text, axis: .vertical)
+                        .lineLimit(1...3).textFieldStyle(.roundedBorder).focused($typing)
+                        .disabled(!model.coordinator.canSend).accessibilityIdentifier("merchantNPC.input")
+                    Button("merchantNPC.send") {
+                        typing = false
+                        Task { await model.coordinator.send(text); text = "" }
+                    }.frame(minWidth: 44, minHeight: 44)
+                        .disabled(!model.coordinator.canSend || text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        .accessibilityIdentifier("merchantNPC.send")
+                }.padding().background(.regularMaterial)
+            }
+        }
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("action.done") { typing = false }.accessibilityIdentifier("merchantNPC.keyboard.done")
+            }
+        }
+        .navigationTitle("merchantNPC.chatTitle").navigationBarTitleDisplayMode(.inline).privacySensitive()
+        .onDisappear { typing = false; text = ""; model.coordinator.invalidate() }
+        .onChange(of: scenePhase) { _, phase in if phase != .active { typing = false; text = ""; model.coordinator.invalidate() } }
     }
 }
 @MainActor final class MerchantNPCResourceModel: ObservableObject {

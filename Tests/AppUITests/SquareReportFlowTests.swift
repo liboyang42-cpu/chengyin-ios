@@ -12,7 +12,16 @@ final class SquareReportFlowTests: XCTestCase {
         XCTAssertTrue(element.isHittable, "Expected visible control \(element.identifier): " + app.debugDescription)
     }
     private func tap(_ id: String) {
-        let element = app.buttons[id]; reveal(element)
+        let element = app.buttons[id]
+        if id == "square.row.701" {
+            // At large type the full row exceeds the viewport and its center can hit
+            // the floating search field. Tap visible content inside this exact row.
+            let title = element.staticTexts["Synthetic versioned community post"]
+            XCTAssertTrue(revealFixtureElement(title, in: app, maximumSwipes: 16), app.debugDescription)
+            title.tap(); return
+        }
+        reveal(element)
+        if id != "social.post.actions" { element.tap(); return }
         // SwiftUI may expose a full-row wrapper around the native menu button.
         // Only tap a unique enabled leaf; never the wrapper's empty center.
         let leaves = element.descendants(matching: .button).allElementsBoundByIndex.filter {
@@ -28,6 +37,7 @@ final class SquareReportFlowTests: XCTestCase {
         let fixture = app.staticTexts["squareReport.fixture.scenario"]
         XCTAssertTrue(fixture.waitForExistence(timeout: 5)); XCTAssertEqual(fixture.label, scenario)
         tap("square.row.701")
+        XCTAssertTrue(app.navigationBars[language == "en" ? "Post details" : "动态详情"].waitForExistence(timeout: 5), app.debugDescription)
         XCTAssertTrue(app.buttons["squareReport.fixture.switch"].exists, "The scoped report host must survive navigation: " + app.debugDescription)
     }
     private func openReport() {
@@ -75,7 +85,9 @@ final class SquareReportFlowTests: XCTestCase {
         tap("squareReport.refresh")
         let status = app.descendants(matching: .any)["squareReport.stage"].firstMatch
         reveal(status)
-        XCTAssertTrue(app.staticTexts["IN_REVIEW"].exists, app.debugDescription)
+        // LabeledContent exposes the exact label/value as one static element.
+        let readback = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "Server status, IN_REVIEW"), object: status)
+        XCTAssertEqual(XCTWaiter.wait(for: [readback], timeout: 5), .completed, app.debugDescription)
         XCTAssertFalse(app.buttons["squareReport.review"].exists)
         attachFixtureScreenshot(self, app: app, name: "Versioned Square report case readback - synthetic IN_REVIEW")
     }

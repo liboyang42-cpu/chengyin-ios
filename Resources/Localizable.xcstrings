@@ -90608,6 +90608,176 @@
         }
       }
     },
+    "referenceChat.merchantAI": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merchant AI NPC"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商家 AI NPC"
+          }
+        }
+      }
+    },
+    "referenceTask.completedCount": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completed %lld of %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已完成 %lld / 共 %lld"
+          }
+        }
+      }
+    },
+    "referenceTask.current": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current task"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前任务"
+          }
+        }
+      }
+    },
+    "referenceTask.open": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open task"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看任务"
+          }
+        }
+      }
+    },
+    "referenceTask.phaseOnly": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total task count unavailable. Follow the current phase."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "任务总量暂不可用，请以当前阶段为准"
+          }
+        }
+      }
+    },
+    "referenceTask.status.available": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Available task"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可查看任务"
+          }
+        }
+      }
+    },
+    "referenceTask.status.awaitingVerification": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Awaiting verification"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等待核验"
+          }
+        }
+      }
+    },
+    "referenceTask.status.completed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已完成"
+          }
+        }
+      }
+    },
+    "referenceTask.status.locked": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Locked"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未解锁"
+          }
+        }
+      }
+    },
+    "referenceTask.status.unknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "状态暂不可用"
+          }
+        }
+      }
+    },
     "region.languageBoundary": {
       "localizations": {
         "en": {
@@ -97111,6 +97281,22 @@
         }
       }
     },
+    "searchMap.cityOptions": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "City search options"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "城市搜索选项"
+          }
+        }
+      }
+    },
     "searchMap.cityPlaceholder": {
       "localizations": {
         "en": {
@@ -97187,6 +97373,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "清空历史"
+          }
+        }
+      }
+    },
+    "searchMap.clearSelection": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear selection"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除选择"
           }
         }
       }
@@ -97911,6 +98113,22 @@
         }
       }
     },
+    "searchMap.placeSelected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Place selected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已选择地点"
+          }
+        }
+      }
+    },
     "searchMap.placeholder": {
       "localizations": {
         "en": {
@@ -98179,6 +98397,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "搜索这一带"
+          }
+        }
+      }
+    },
+    "searchMap.selectPlace": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select place"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择地点"
+          }
+        }
+      }
+    },
+    "searchMap.selectedPlace": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected place"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已选地点"
           }
         }
       }
@@ -113799,6 +114049,38 @@
         }
       }
     },
+    "walking.closeSteps": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成"
+          }
+        }
+      }
+    },
+    "walking.destinationDetails": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Destination and route"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目的地与路线"
+          }
+        }
+      }
+    },
     "walking.error.cancelled": {
       "extractionState": "manual",
       "localizations": {
@@ -114054,6 +114336,22 @@
         }
       }
     },
+    "walking.mapPending": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your walking route will appear here"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "步行路线将在此显示"
+          }
+        }
+      }
+    },
     "walking.navigating": {
       "extractionState": "manual",
       "localizations": {
@@ -114084,6 +114382,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "已接近目的地，仍需进行任务验证"
+          }
+        }
+      }
+    },
+    "walking.nextStep": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next step"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下一步"
           }
         }
       }
@@ -114186,6 +114500,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "估计路线进度"
+          }
+        }
+      }
+    },
+    "walking.providerDetails": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Route provider and advisories"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "路线提供方与提示"
           }
         }
       }
@@ -114339,6 +114669,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "开始步行指引"
+          }
+        }
+      }
+    },
+    "walking.steps": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Route steps"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "路线步骤"
           }
         }
       }

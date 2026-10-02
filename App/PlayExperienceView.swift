@@ -33,9 +33,7 @@ import SwiftUI
                 Label("playx.title", systemImage: "figure.walk")
                     .font(.title2.bold()).accessibilityAddTraits(.isHeader)
                 if let snapshot = model.snapshot {
-                    if let title = snapshot.result.topicName { Text(verbatim: title).font(.headline) }
-                    LabeledContent("playx.state") { PlayRuntimePhaseText(phase: model.phase.rawValue) }
-                    if let total = snapshot.result.total, let done = snapshot.displayedDoneCount { LabeledContent("playx.progress") { Text(verbatim: "\(done) / \(total)") } }
+                    PlayTaskSummaryView(snapshot: snapshot, phase: model.phase.rawValue)
                     if let note = snapshot.result.timeNote { Text(verbatim: note).foregroundStyle(.secondary) }
                 }
                 if !model.available { Text("playx.disabled").accessibilityIdentifier("playx.disabled") }
@@ -43,6 +41,17 @@ import SwiftUI
                 if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
                 Button("playx.refresh", systemImage: "arrow.clockwise") { Task { await model.load() } }
                     .disabled(model.phase == .submitting || !model.available).accessibilityIdentifier("playx.refresh")
+            }
+            if model.hasCurrentMediaSnapshot, !model.unresolved, let snapshot = model.snapshot,
+               let id = PlayTaskSummaryPresentation(snapshot: snapshot).currentNodeID,
+               let node = snapshot.visibleNodes.first(where: { $0.id == id }) {
+                Section("referenceTask.current") {
+                    Text(verbatim: node.name ?? "#\(node.id)").font(.headline).fixedSize(horizontal: false, vertical: true)
+                    Text(LocalizedStringKey("playx.task." + PlayNodeTask.resolve(mode: snapshot.result.mode, node: node).rawValue))
+                    PlayTaskStatusBadge(node: node, snapshot: snapshot)
+                    Button("referenceTask.open") { selectedNode = id }
+                        .buttonStyle(.borderedProminent).accessibilityIdentifier("referenceTask.open")
+                }
             }
             if model.unresolved {
                 Section("playx.unknown.title") {
@@ -103,6 +112,7 @@ import SwiftUI
                                 Text(verbatim: node.name ?? "#\(node.id)").font(.headline)
                                 Text(LocalizedStringKey("playx.task." + PlayNodeTask.resolve(mode: model.snapshot?.result.mode, node: node).rawValue))
                                     .foregroundStyle(.secondary)
+                                if let snapshot = model.snapshot { PlayTaskStatusBadge(node: node, snapshot: snapshot) }
                                 if let reason = model.snapshot?.lockReason(node) { Text(verbatim: reason).font(.footnote) }
                             }.frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 4)
                         }.accessibilityIdentifier("playx.node.\(node.id)")
@@ -223,8 +233,7 @@ import SwiftUI
                         PlatformExternalMapHost(destination: .init(name: node.name ?? "#\(node.id)", address: node.address, latitude: node.latitude, longitude: node.longitude), scope: mediaScope, makeModel: makeExternalMaps)
                     }
                     if node.questionImage?.isEmpty == false || model.extras[nodeID]?.storyImage?.isEmpty == false { Label("playx.media.image", systemImage: "photo") }
-                    if model.snapshot?.isLocked(node) == true { Label("playx.locked", systemImage: "lock") }
-                    if model.snapshot?.isDone(node) == true { Label("playx.completed", systemImage: "checkmark.circle") }
+                    if let snapshot = model.snapshot { PlayTaskStatusBadge(node: node, snapshot: snapshot) }
                 }
                 if model.hasCurrentMediaSnapshot, model.snapshot?.isLocked(node) == false, node.npc != nil, let shopNPC {
                     Section {

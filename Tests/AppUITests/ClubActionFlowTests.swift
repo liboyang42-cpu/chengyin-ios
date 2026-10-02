@@ -64,7 +64,9 @@ final class ClubActionFlowTests: XCTestCase {
             return
         }
         XCTAssertEqual(confirmation.label, title)
-        tap(confirmation)
+        // The scoped candidate above is already enabled and hittable. Do not start
+        // a second readiness deadline: slow AX reads can expire it before any tap.
+        confirmation.tap()
     }
     private func capture(_ name: String) {
         let attachment = XCTAttachment(screenshot: app.screenshot())

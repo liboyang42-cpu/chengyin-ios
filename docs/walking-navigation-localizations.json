@@ -154,5 +154,29 @@
   "walking.error.replanLimit": {
     "en": "Automatic replanning limit reached. Pause safely and request a new route.",
     "zh-Hans": "已达到自动重新规划上限，请安全停步后重新获取路线"
+  },
+  "walking.nextStep": {
+    "en": "Next step",
+    "zh-Hans": "下一步"
+  },
+  "walking.steps": {
+    "en": "Route steps",
+    "zh-Hans": "路线步骤"
+  },
+  "walking.closeSteps": {
+    "en": "Done",
+    "zh-Hans": "完成"
+  },
+  "walking.destinationDetails": {
+    "en": "Destination and route",
+    "zh-Hans": "目的地与路线"
+  },
+  "walking.providerDetails": {
+    "en": "Route provider and advisories",
+    "zh-Hans": "路线提供方与提示"
+  },
+  "walking.mapPending": {
+    "en": "Your walking route will appear here",
+    "zh-Hans": "步行路线将在此显示"
   }
 }

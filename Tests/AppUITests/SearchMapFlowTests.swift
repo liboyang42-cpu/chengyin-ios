@@ -86,4 +86,68 @@ final class SearchMapFlowTests: XCTestCase {
             app.terminate()
         }
     }
+    func testCityListSelectionUsesSamePinAndPreservesExplicitMapGate() {
+        launch(entry: "city"); app.buttons["searchMap.searchArea"].tap()
+        XCTAssertFalse(app.descendants(matching: .any)["searchMap.map"].exists)
+        let select = app.buttons["searchMap.select.city-71"]; reveal(select); select.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["searchMap.selectedSummary"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.descendants(matching: .any)["searchMap.map"].exists)
+        XCTAssertTrue(revealFixtureElement(app.buttons["searchMap.showMap"], in: app, towardTop: true))
+        app.buttons["searchMap.showMap"].tap()
+        XCTAssertTrue(app.buttons["searchMap.pin.city-71"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["searchMap.pin.city-71"].isSelected)
+        app.buttons["searchMap.pin.activity-71"].tap()
+        XCTAssertTrue(app.descendants(matching: .any)["searchMap.selectedSummary"].exists)
+        let clear = app.buttons["searchMap.selection.clear"]; reveal(clear); clear.tap()
+        XCTAssertFalse(app.descendants(matching: .any)["searchMap.selectedSummary"].exists)
+    }
+    func testCityFilterCancelPreservesSelectionButApplyClearsIt() {
+        launch(entry: "city"); app.buttons["searchMap.searchArea"].tap()
+        let select = app.buttons["searchMap.select.city-71"]; reveal(select); select.tap()
+        XCTAssertTrue(revealFixtureElement(app.buttons["searchMap.filters"], in: app, towardTop: true))
+        app.buttons["searchMap.filters"].tap()
+        let tag = app.textFields["searchMap.tag"]; XCTAssertTrue(tag.waitForExistence(timeout: 5)); tag.tap(); tag.typeText("unsaved")
+        app.buttons["searchMap.filter.cancel"].tap()
+        XCTAssertTrue(app.descendants(matching: .any)["searchMap.selectedSummary"].exists)
+        app.buttons["searchMap.filters"].tap()
+        XCTAssertNotEqual(app.textFields["searchMap.tag"].value as? String, "unsaved")
+        app.buttons["searchMap.filter.apply"].tap()
+        XCTAssertFalse(app.descendants(matching: .any)["searchMap.selectedSummary"].exists)
+        XCTAssertFalse(app.buttons["searchMap.city.node.71"].exists)
+    }
+    func testCityLoadingRetryAndScopeChangeNeverKeepSelectedPlace() {
+        launch("delayed", entry: "city"); app.buttons["searchMap.searchArea"].tap()
+        XCTAssertTrue(app.descendants(matching: .any)["searchMap.loading"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["searchMap.city.node.71"].waitForExistence(timeout: 5))
+        app.terminate()
+        launch("retry", entry: "city"); app.buttons["searchMap.searchArea"].tap()
+        let retry = app.buttons["Retry"].firstMatch; reveal(retry); retry.tap()
+        let select = app.buttons["searchMap.select.city-71"]; reveal(select); select.tap()
+        app.buttons["searchMap.fixture.account"].tap()
+        XCTAssertFalse(app.descendants(matching: .any)["searchMap.selectedSummary"].exists)
+        XCTAssertFalse(app.buttons["searchMap.city.node.71"].exists)
+        XCTAssertFalse(app.descendants(matching: .any)["searchMap.map"].exists)
+    }
+    func testCityEmptyStateRemainsExplicit() {
+        launch("empty", entry: "city"); app.buttons["searchMap.searchArea"].tap()
+        XCTAssertTrue(app.staticTexts["No matching results"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.descendants(matching: .any)["searchMap.selectedSummary"].exists)
+    }
+
+    func testManualAreaChangeClearsSelectionAndRequiresMapOptInAgain() {
+        launch(entry: "city"); app.buttons["searchMap.searchArea"].tap()
+        app.buttons["searchMap.showMap"].tap()
+        let pin = app.buttons["searchMap.pin.city-71"]; reveal(pin); pin.tap()
+        XCTAssertTrue(revealFixtureElement(app.buttons["searchMap.chooseArea"], in: app, towardTop: true))
+        app.buttons["searchMap.chooseArea"].tap()
+        let latitude = app.textFields["roam.area.latitude.input"]
+        XCTAssertTrue(latitude.waitForExistence(timeout: 5)); latitude.tap(); latitude.typeText("2")
+        let longitude = app.textFields["roam.area.longitude.input"]; longitude.tap(); longitude.typeText("3")
+        app.buttons["roam.area.select"].tap()
+        XCTAssertFalse(app.descendants(matching: .any)["searchMap.selectedSummary"].exists)
+        XCTAssertFalse(app.descendants(matching: .any)["searchMap.map"].exists)
+        XCTAssertFalse(app.buttons["searchMap.city.node.71"].exists)
+        XCTAssertTrue(app.buttons["searchMap.showMap"].exists)
+    }
+
 }

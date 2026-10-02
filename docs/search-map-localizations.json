@@ -410,5 +410,25 @@
   "searchMap.historyUnavailable": {
     "en": "Recent-search storage is unavailable. This session can still search.",
     "zh-Hans": "最近搜索存储暂不可用，本次会话仍可继续搜索"
+  },
+  "searchMap.selectedPlace": {
+    "en": "Selected place",
+    "zh-Hans": "已选地点"
+  },
+  "searchMap.clearSelection": {
+    "en": "Clear selection",
+    "zh-Hans": "清除选择"
+  },
+  "searchMap.selectPlace": {
+    "en": "Select place",
+    "zh-Hans": "选择地点"
+  },
+  "searchMap.placeSelected": {
+    "en": "Place selected",
+    "zh-Hans": "已选择地点"
+  },
+  "searchMap.cityOptions": {
+    "en": "City search options",
+    "zh-Hans": "城市搜索选项"
   }
 }

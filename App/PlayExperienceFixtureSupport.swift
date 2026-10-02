@@ -20,6 +20,11 @@ import SwiftUI
     func response(_ request: URLRequest) async throws -> (Data, Int) {
         let path = request.url?.path ?? ""
         if path.hasSuffix("/nodes") {
+            if scenario == "referenceUnknownTotal" {
+                return (PlayExperienceSyntheticFixtures.envelope(#"{"topicId":71,"topicName":"Synthetic phase-only journey / 测试旅程","mode":1,"playable":true,"registered":true,"nodes":[{"nodeId":701,"name":"Synthetic task / 测试任务","done":false}]}"#), 200)
+            }
+            if scenario == "referenceComplete" { return (PlayExperienceSyntheticFixtures.envelope(PlayExperienceSyntheticFixtures.complete), 200) }
+            if scenario == "referenceFailure" { throw PlayExperienceError.malformed }
             if scenario == "preference" {
                 let json: PlayWireValue = .object(["topicId": .int(71), "topicName": .string("Synthetic preference journey"), "mode": .int(1), "playable": .bool(true), "registered": .bool(true), "nodes": .array([.object(["nodeId": .int(701), "name": .string("Synthetic preference station"), "done": .bool(done), "validationMethod": .int(6)])])])
                 return (try JSONEncoder().encode(PlayWireValue.object(["code": .int(200), "data": json])), 200)

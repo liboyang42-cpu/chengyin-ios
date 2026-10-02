@@ -134,6 +134,7 @@ struct MessagingHistoryView: View {
             }.padding().scrollTargetLayout()
         }
         .scrollPosition(id: $visibleMessageID, anchor: .top)
+        .scrollDismissesKeyboard(.interactively)
     }
     private func reload() async {
         generation &+= 1
@@ -185,17 +186,11 @@ private struct MessagingBubble: View {
     let accountID: Int
     private var isOwn: Bool { message.senderID == accountID && accountID > 0 }
     var body: some View {
-        VStack(alignment: isOwn ? .trailing : .leading, spacing: 5) {
+        ChatMessageBubble(isOwn: isOwn, timestamp: message.createdAt) {
             MessagingSenderName(message: message, conversation: conversation, accountID: accountID)
-                .font(.caption).foregroundStyle(.secondary)
+        } content: {
             MessagingMessageContent(message: message)
-                .padding(12)
-                .background(isOwn ? Color.accentColor.opacity(0.12) : Color.secondary.opacity(0.10), in: RoundedRectangle(cornerRadius: 14))
-            if let time = message.createdAt, !time.isEmpty {
-                Text(verbatim: time).font(.caption2).foregroundStyle(.secondary)
-            }
         }
-        .frame(maxWidth: .infinity, alignment: isOwn ? .trailing : .leading)
         .accessibilityElement(children: .combine)
         .accessibilityHint(Text("messaging.openDetail"))
     }

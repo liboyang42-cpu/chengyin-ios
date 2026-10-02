@@ -10,6 +10,34 @@ def source(path):
 
 
 class NativeUIAccessibilitySemanticsChecks(unittest.TestCase):
+    def test_fixture_viewport_ignores_presenting_bars_under_a_sheet(self):
+        helper = source('Tests/AppUITests/FailureScreenshot.swift')
+        for expected in ['app.navigationBars.allElementsBoundByIndex.first { $0.isHittable }',
+                         'app.toolbars.allElementsBoundByIndex.first { $0.isHittable }',
+                         'navigationBar.frame.maxY + 4', 'toolbar.frame.minY - 4',
+                         'keyboard.frame.minY - 4', 'frame.minY >= bounds.minY',
+                         'frame.maxY <= bounds.maxY', 'element.isHittable',
+                         'guard attempt < maximumSwipes']:
+            self.assertIn(expected, helper)
+        self.assertNotIn('app.navigationBars.firstMatch', helper)
+        self.assertNotIn('app.toolbars.firstMatch', helper)
+
+    def test_club_review_keeps_content_rejection_and_exact_failure_image(self):
+        tests = source('Tests/AppUITests/ClubGovernanceFlowTests.swift')
+        for expected in ['let revealed = revealFixtureElement(element, in: app)',
+                         'if !revealed { attachFixtureScreenshot(self, app: app,',
+                         'XCTAssertTrue(revealed, app.debugDescription)',
+                         'testAudienceUnknownIsNotZeroAndReviewRequiresContent',
+                         'XCTAssertTrue(presentingToolbar.isHittable)',
+                         'XCTAssertTrue(modalBar.isHittable)',
+                         'if presentingToolbar.exists { XCTAssertFalse(presentingToolbar.isHittable) }',
+                         'XCTAssertTrue(app.staticTexts["club.gov.formError"].waitForExistence(timeout: 5))',
+                         'XCTAssertFalse(app.buttons["club.gov.confirm"].exists)',
+                         'attachFixtureScreenshot(self, app: app, name: "Club notification rejects missing content")']:
+            self.assertIn(expected, tests)
+        self.assertLess(tests.index('if !revealed { attachFixtureScreenshot'),
+                        tests.index('XCTAssertTrue(revealed,'))
+
     def test_motion_reminder_host_ids_do_not_override_interactive_children(self):
         view = source('App/NativeMotionReminderViews.swift')
         for family in ['steps', 'reminder']:

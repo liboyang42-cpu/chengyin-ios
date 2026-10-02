@@ -23,110 +23,112 @@ import UniformTypeIdentifiers
         Task { do { try await action() } catch { issue = true } }
     }
     var body: some View {
+        // Disable editor actions, not the scroll container: busy content must remain readable.
         Form {
-            Section {
-                Text("squareWorkspace.boundary").font(.footnote)
-                Text(LocalizedStringKey(coordinator.status)).accessibilityIdentifier("squareWorkspace.status")
-                Picker("squareWorkspace.lane", selection: $lane) {
-                    Text("squareWorkspace.legacy").tag(SquareWorkspaceLane.legacy)
-                    Text("squareWorkspace.v1").tag(SquareWorkspaceLane.communityV1)
-                }.disabled(draft.postID != nil).accessibilityIdentifier("squareWorkspace.lane")
-                TextEditor(text: $draft.body).frame(minHeight: 130)
-                    .accessibilityLabel(Text("squareWorkspace.body")).accessibilityIdentifier("squareWorkspace.body")
-                if let id = draft.postID {
-                    if let version = draft.expectedVersion, let lifecycle = draft.sourceLifecycle { Text("#\(id) · v\(version) · \(lifecycle)") }
-                    else { Text("#\(id)"); Text("squareWorkspace.legacy") }
-                }
-            }
-            Section("squareWorkspace.media") {
-                PhotosPicker(selection: $photo, matching: .images) { Label("squareWorkspace.selectPhoto", systemImage: "photo") }
-                    .accessibilityIdentifier("squareWorkspace.selectPhoto")
-                if selectedBytes != nil {
-                    Text("squareWorkspace.selectedLocal")
-                    Button("squareWorkspace.upload") {
-                        guard let bytes = selectedBytes else { return }
-                        run { let result = try await coordinator.upload(bytes: bytes, mimeType: selectedMIME, lane: lane, workflowID: draft.workflowID, explicitIntent: true); draft.media.append(result); selectedBytes = nil; photo = nil }
-                    }.disabled(!coordinator.grants.live || !coordinator.grants.media || coordinator.busy || draft.media.count >= 6).accessibilityIdentifier("squareWorkspace.upload")
-                    Button("squareWorkspace.removeSelected", role: .destructive) { selectedBytes = nil; photo = nil }
-                }
-                ForEach(draft.media) { item in
-                    VStack(alignment: .leading) {
-                        Text(item.objectKey).lineLimit(2)
-                        Text(item.existingMediaID != nil ? "squareWorkspace.existingMedia" : item.hasProof ? "squareWorkspace.proofReady" : "squareWorkspace.legacyMedia").font(.caption)
-                        Button("squareWorkspace.remove", role: .destructive) { draft.media.removeAll { $0.id == item.id } }
-                    }.accessibilityIdentifier("squareWorkspace.media.\(item.id)")
-                }
-                if draft.postID != nil && lane == .legacy { Text("squareWorkspace.editMediaRetained").font(.caption) }
-            }
-            Section("squareWorkspace.reference") {
-                Picker("squareWorkspace.referenceType", selection: $referenceType) {
-                    ForEach(["ACTIVITY", "TOPIC", "ROUTE", "CLUB", "POI"], id: \.self) { Text(LocalizedStringKey("squareWorkspace.type." + $0)).tag($0) }
-                }
-                if let reference = draft.reference { Text("\(reference.type) #\(reference.id)"); Button("squareWorkspace.removeReference") { draft.removeReference() } }
-                Button("squareWorkspace.loadReferences") { run { options = try await coordinator.referenceOptions(type: referenceType) } }.disabled(!coordinator.grants.live)
-                ForEach(options) { option in
-                    Button(option.name) {
-                        if referenceType == "MEMBER" {
-                            if !draft.mentionedMemberIDs.contains(option.id) { draft.mentionedMemberIDs.append(option.id) }
-                        } else { draft.reference = .init(type: referenceType, id: option.id) }
-                        if referenceType == "POI" { draft.address = option.name; draft.cityCode = option.cityCode }
-                        options = []
+            Group {
+                Section {
+                    Text("squareWorkspace.boundary").font(.footnote)
+                    Text(LocalizedStringKey(coordinator.status)).accessibilityIdentifier("squareWorkspace.status")
+                    Picker("squareWorkspace.lane", selection: $lane) {
+                        Text("squareWorkspace.legacy").tag(SquareWorkspaceLane.legacy)
+                        Text("squareWorkspace.v1").tag(SquareWorkspaceLane.communityV1)
+                    }.disabled(draft.postID != nil).accessibilityIdentifier("squareWorkspace.lane")
+                    TextEditor(text: $draft.body).frame(minHeight: 130)
+                        .accessibilityLabel(Text("squareWorkspace.body")).accessibilityIdentifier("squareWorkspace.body")
+                    if let id = draft.postID {
+                        if let version = draft.expectedVersion, let lifecycle = draft.sourceLifecycle { Text("#\(id) · v\(version) · \(lifecycle)") }
+                        else { Text("#\(id)"); Text("squareWorkspace.legacy") }
                     }
                 }
-                Text("squareWorkspace.communityIdentity").font(.caption)
-            }
-            Section("squareWorkspace.location") {
-                TextField("squareWorkspace.place", text: Binding(get: { draft.address ?? "" }, set: { draft.address = $0.isEmpty ? nil : $0 }))
-                TextField("squareWorkspace.city", text: Binding(get: { draft.cityCode ?? "" }, set: { draft.cityCode = $0.isEmpty ? nil : $0 }))
-                Text("squareWorkspace.noCoordinates").font(.caption)
-                Button("squareWorkspace.clearLocation") { draft.address = nil; draft.cityCode = nil }
-                if let post = coordinator.lastPost, post.lane == .communityV1 {
-                    Button("squareWorkspace.withdrawLocation", role: .destructive) { locationReview = post }
-                        .disabled(!coordinator.grants.live).accessibilityIdentifier("squareWorkspace.withdraw")
-                }
-            }
-            if lane == .communityV1 { policyControls }
-            Section("squareWorkspace.actions") {
-                Button("squareWorkspace.saveLocal") { run { try coordinator.saveLocal(draft, lane: lane) } }.accessibilityIdentifier("squareWorkspace.saveLocal")
-                Button("squareWorkspace.saveServer") { run { try await coordinator.saveServer(draft); if let resumed = coordinator.local.last(where: { $0.draft.postID == coordinator.lastPost?.id && !$0.pending && $0.receipt == nil }) { draft = resumed.draft } } }.disabled(!coordinator.grants.live || coordinator.busy).accessibilityIdentifier("squareWorkspace.saveServer")
-                Button("squareWorkspace.review") { run { _ = try await coordinator.prepare(draft, lane: lane); acceptsGuideline = false; showsReview = true } }
-                    .disabled(!coordinator.grants.live || coordinator.busy).accessibilityIdentifier("squareWorkspace.review")
-                Button("squareWorkspace.newDraft") { draft = .init(); coordinator.cancelReview(); selectedBytes = nil; photo = nil }
-                    .accessibilityIdentifier("squareWorkspace.newDraft")
-            }
-            Section("squareWorkspace.localDrafts") {
-                ForEach(coordinator.local) { entry in
-                    VStack(alignment: .leading) {
-                        Group {
-                            if entry.draft.body.isEmpty { Text("squareWorkspace.untitled") }
-                            else { Text(verbatim: entry.draft.body) }
-                        }.lineLimit(2).accessibilityIdentifier("squareWorkspace.local.\(entry.id)")
-                        if entry.pending { Text("squareWorkspace.pending").font(.caption) }
-                        Button("squareWorkspace.resume") { run { let resumed = try await coordinator.resume(entry); draft = resumed; lane = entry.lane; coordinator.cancelReview() } }
-                            .buttonStyle(.borderless).frame(minHeight: 44)
-                            .accessibilityIdentifier("squareWorkspace.resume.\(entry.id)")
-                        Button("squareWorkspace.discard", role: .destructive) { run { try coordinator.discard(entry) } }
-                            .buttonStyle(.borderless).frame(minHeight: 44).disabled(entry.pending)
-                            .accessibilityIdentifier("squareWorkspace.discard.\(entry.id)")
+                Section("squareWorkspace.media") {
+                    PhotosPicker(selection: $photo, matching: .images) { Label("squareWorkspace.selectPhoto", systemImage: "photo") }
+                        .accessibilityIdentifier("squareWorkspace.selectPhoto")
+                    if selectedBytes != nil {
+                        Text("squareWorkspace.selectedLocal")
+                        Button("squareWorkspace.upload") {
+                            guard let bytes = selectedBytes else { return }
+                            run { let result = try await coordinator.upload(bytes: bytes, mimeType: selectedMIME, lane: lane, workflowID: draft.workflowID, explicitIntent: true); draft.media.append(result); selectedBytes = nil; photo = nil }
+                        }.disabled(!coordinator.grants.live || !coordinator.grants.media || coordinator.busy || draft.media.count >= 6).accessibilityIdentifier("squareWorkspace.upload")
+                        Button("squareWorkspace.removeSelected", role: .destructive) { selectedBytes = nil; photo = nil }
                     }
+                    ForEach(draft.media) { item in
+                        VStack(alignment: .leading) {
+                            Text(item.objectKey).lineLimit(2)
+                            Text(item.existingMediaID != nil ? "squareWorkspace.existingMedia" : item.hasProof ? "squareWorkspace.proofReady" : "squareWorkspace.legacyMedia").font(.caption)
+                            Button("squareWorkspace.remove", role: .destructive) { draft.media.removeAll { $0.id == item.id } }
+                        }.accessibilityIdentifier("squareWorkspace.media.\(item.id)")
+                    }
+                    if draft.postID != nil && lane == .legacy { Text("squareWorkspace.editMediaRetained").font(.caption) }
                 }
-            }
-            Section("squareWorkspace.serverDrafts") {
-                Button("squareWorkspace.refreshServer") { run { try await coordinator.loadServer() } }.disabled(!coordinator.grants.live)
-                ForEach(coordinator.server) { post in
-                    VStack(alignment: .leading) {
-                        if let version = post.version, let lifecycle = post.lifecycle { Text("#\(post.id) · v\(version) · \(lifecycle)") }
-                        Button("squareWorkspace.resume") { run { draft = try post.editableDraft(); lane = .communityV1 } }
-                        Button("squareWorkspace.revisions") { run { let data = try await coordinator.revisions(postID: post.id); revisionsText = String(data: data, encoding: .utf8) ?? "" } }
+                Section("squareWorkspace.reference") {
+                    Picker("squareWorkspace.referenceType", selection: $referenceType) {
+                        ForEach(["ACTIVITY", "TOPIC", "ROUTE", "CLUB", "POI"], id: \.self) { Text(LocalizedStringKey("squareWorkspace.type." + $0)).tag($0) }
+                    }
+                    if let reference = draft.reference { Text("\(reference.type) #\(reference.id)"); Button("squareWorkspace.removeReference") { draft.removeReference() } }
+                    Button("squareWorkspace.loadReferences") { run { options = try await coordinator.referenceOptions(type: referenceType) } }.disabled(!coordinator.grants.live)
+                    ForEach(options) { option in
+                        Button(option.name) {
+                            if referenceType == "MEMBER" {
+                                if !draft.mentionedMemberIDs.contains(option.id) { draft.mentionedMemberIDs.append(option.id) }
+                            } else { draft.reference = .init(type: referenceType, id: option.id) }
+                            if referenceType == "POI" { draft.address = option.name; draft.cityCode = option.cityCode }
+                            options = []
+                        }
+                    }
+                    Text("squareWorkspace.communityIdentity").font(.caption)
+                }
+                Section("squareWorkspace.location") {
+                    TextField("squareWorkspace.place", text: Binding(get: { draft.address ?? "" }, set: { draft.address = $0.isEmpty ? nil : $0 }))
+                    TextField("squareWorkspace.city", text: Binding(get: { draft.cityCode ?? "" }, set: { draft.cityCode = $0.isEmpty ? nil : $0 }))
+                    Text("squareWorkspace.noCoordinates").font(.caption)
+                    Button("squareWorkspace.clearLocation") { draft.address = nil; draft.cityCode = nil }
+                    if let post = coordinator.lastPost, post.lane == .communityV1 {
                         Button("squareWorkspace.withdrawLocation", role: .destructive) { locationReview = post }
+                            .disabled(!coordinator.grants.live).accessibilityIdentifier("squareWorkspace.withdraw")
                     }
                 }
-                if coordinator.hasMore { Button("squareWorkspace.more") { run { try await coordinator.loadServer(more: true) } } }
-                if !revisionsText.isEmpty { Text(revisionsText).textSelection(.enabled).accessibilityIdentifier("squareWorkspace.revisions") }
-            }
+                if lane == .communityV1 { policyControls }
+                Section("squareWorkspace.actions") {
+                    Button("squareWorkspace.saveLocal") { run { try coordinator.saveLocal(draft, lane: lane) } }.accessibilityIdentifier("squareWorkspace.saveLocal")
+                    Button("squareWorkspace.saveServer") { run { try await coordinator.saveServer(draft); if let resumed = coordinator.local.last(where: { $0.draft.postID == coordinator.lastPost?.id && !$0.pending && $0.receipt == nil }) { draft = resumed.draft } } }.disabled(!coordinator.grants.live || coordinator.busy).accessibilityIdentifier("squareWorkspace.saveServer")
+                    Button("squareWorkspace.review") { run { _ = try await coordinator.prepare(draft, lane: lane); acceptsGuideline = false; showsReview = true } }
+                        .disabled(!coordinator.grants.live || coordinator.busy).accessibilityIdentifier("squareWorkspace.review")
+                    Button("squareWorkspace.newDraft") { draft = .init(); coordinator.cancelReview(); selectedBytes = nil; photo = nil }
+                        .accessibilityIdentifier("squareWorkspace.newDraft")
+                }
+                Section("squareWorkspace.localDrafts") {
+                    ForEach(coordinator.local) { entry in
+                        VStack(alignment: .leading) {
+                            Group {
+                                if entry.draft.body.isEmpty { Text("squareWorkspace.untitled") }
+                                else { Text(verbatim: entry.draft.body) }
+                            }.lineLimit(2).accessibilityIdentifier("squareWorkspace.local.\(entry.id)")
+                            if entry.pending { Text("squareWorkspace.pending").font(.caption) }
+                            Button("squareWorkspace.resume") { run { let resumed = try await coordinator.resume(entry); draft = resumed; lane = entry.lane; coordinator.cancelReview() } }
+                                .buttonStyle(.borderless).frame(minHeight: 44)
+                                .accessibilityIdentifier("squareWorkspace.resume.\(entry.id)")
+                            Button("squareWorkspace.discard", role: .destructive) { run { try coordinator.discard(entry) } }
+                                .buttonStyle(.borderless).frame(minHeight: 44).disabled(entry.pending)
+                                .accessibilityIdentifier("squareWorkspace.discard.\(entry.id)")
+                        }
+                    }
+                }
+                Section("squareWorkspace.serverDrafts") {
+                    Button("squareWorkspace.refreshServer") { run { try await coordinator.loadServer() } }.disabled(!coordinator.grants.live)
+                    ForEach(coordinator.server) { post in
+                        VStack(alignment: .leading) {
+                            if let version = post.version, let lifecycle = post.lifecycle { Text("#\(post.id) · v\(version) · \(lifecycle)") }
+                            Button("squareWorkspace.resume") { run { draft = try post.editableDraft(); lane = .communityV1 } }
+                            Button("squareWorkspace.revisions") { run { let data = try await coordinator.revisions(postID: post.id); revisionsText = String(data: data, encoding: .utf8) ?? "" } }
+                            Button("squareWorkspace.withdrawLocation", role: .destructive) { locationReview = post }
+                        }
+                    }
+                    if coordinator.hasMore { Button("squareWorkspace.more") { run { try await coordinator.loadServer(more: true) } } }
+                    if !revisionsText.isEmpty { Text(revisionsText).textSelection(.enabled).accessibilityIdentifier("squareWorkspace.revisions") }
+                }
+            }.disabled(coordinator.busy || (initialPostID != nil && !editReady))
         }
         .navigationTitle("squareWorkspace.title")
-        .disabled(coordinator.busy || (initialPostID != nil && !editReady))
         .task(id: initialPostID) {
             do {
                 try coordinator.refreshLocal()

@@ -426,10 +426,37 @@
     "WalkingNavigationFlowTests.testFactoryRouteShowsStepsDistanceETAAndCancelResume": 60,
     "WalkingNavigationFlowTests.testLockedTargetDoesNotRevealDestinationOrRoute": 60,
     "WalkingNavigationFlowTests.testNoRouteIsUnavailableWithoutStraightLineFallback": 60,
-    "WalkingNavigationFlowTests.testPermissionDeniedNeverShowsRouteSteps": 60
+    "WalkingNavigationFlowTests.testPermissionDeniedNeverShowsRouteSteps": 60,
+    "ReferenceMapCardFlowTests.testFullBilingualCardTextAndMissingArtworkAtBothAppearancesAndSizes": 240,
+    "ReferenceMapCardFlowTests.testCardAccessibilityAuditForNormalSyntheticFixture": 60,
+    "WalkingNavigationFlowTests.testRoutingCanBeCancelledWithoutLateRouteAndReopened": 60,
+    "WalkingNavigationFlowTests.testExpiredScopeDismissesStepsAndClearsDestination": 60,
+    "WalkingNavigationFlowTests.testNearDestinationKeepsVerificationBoundary": 60,
+    "WalkingNavigationFlowTests.testMaximumBilingualSummaryAndNativeStepsCanCloseAndReopen": 120,
+    "SearchMapFlowTests.testCityListSelectionUsesSamePinAndPreservesExplicitMapGate": 60,
+    "SearchMapFlowTests.testCityFilterCancelPreservesSelectionButApplyClearsIt": 60,
+    "SearchMapFlowTests.testCityLoadingRetryAndScopeChangeNeverKeepSelectedPlace": 120,
+    "SearchMapFlowTests.testCityEmptyStateRemainsExplicit": 60,
+    "SearchMapFlowTests.testManualAreaChangeClearsSelectionAndRequiresMapOptInAgain": 60,
+    "ReferenceChatTaskFlowTests.testNPCCancelReviewRetainsDraftAndCanReopen": 60,
+    "ReferenceChatTaskFlowTests.testNPCUnknownResultRetainsReviewAndDoesNotInventReply": 60,
+    "ReferenceChatTaskFlowTests.testNPCFailureKeepsTheExactReviewText": 60,
+    "ReferenceChatTaskFlowTests.testNPCPendingDisablesDuplicateTransmissionAndScopeClearsPrivateText": 60,
+    "ReferenceChatTaskFlowTests.testNPCChineseMaximumTextKeyboardAndReduceMotion": 60,
+    "ReferenceChatTaskFlowTests.testMessageKeyboardKeepsSendActionReachable": 60,
+    "ReferenceChatTaskFlowTests.testMessageUnknownIsNotAnAcceptedReceiptAndCancelRetryDoesNotSend": 60,
+    "ReferenceChatTaskFlowTests.testMessageRejectedDoesNotShowAcceptedReceipt": 60,
+    "ReferenceChatTaskFlowTests.testMessagePendingDoesNotPermitDuplicateSend": 60,
+    "ReferenceChatTaskFlowTests.testMessageEarlierPageAndDetailReturnRetainHistory": 60,
+    "ReferenceChatTaskFlowTests.testKnownProgressAndCurrentTaskReopenPreserveServerZero": 60,
+    "ReferenceChatTaskFlowTests.testUnknownTotalShowsPhaseWithoutPercentage": 60,
+    "ReferenceChatTaskFlowTests.testChineseServerCompletedHasNoCurrentAction": 60,
+    "ReferenceChatTaskFlowTests.testFailedTaskReadCannotShowAProgressBarOrCurrentAction": 60,
+    "ReferenceChatTaskFlowTests.testMessageAccountSwitchDoesNotRetainPrivateHistory": 60,
+    "ReferenceChatTaskFlowTests.testMerchantAIIdentityIsVisibleAndReopenStartsFresh": 60
   },
   "estimate_provenance": {
-    "basis": "Conservative grouping assumptions for the 402-case trial, not executed case timings. Successful measurements take priority.",
+    "basis": "Conservative grouping assumptions, not executed case timings. Successful measurements take priority. 23 original assumptions plus explicitly scoped later additions.",
     "baseline_commit": "47ebc42c9dba1a6c9c4e93df0253a3a98da81c83",
     "reference": "docs/ci-ui-topology-trial.md",
     "methods": [
@@ -593,7 +620,197 @@
         "source": "pending9",
         "basis": "60-second unmeasured baseline",
         "measured": false
+      },
+      {
+        "method": "ReferenceMapCardFlowTests.testFullBilingualCardTextAndMissingArtworkAtBothAppearancesAndSizes",
+        "seconds": 240,
+        "source": "reference11",
+        "basis": "60 seconds per known source launch \u00d7 4; unmeasured reference-layout UI",
+        "measured": false
+      },
+      {
+        "method": "ReferenceMapCardFlowTests.testCardAccessibilityAuditForNormalSyntheticFixture",
+        "seconds": 60,
+        "source": "reference11",
+        "basis": "60 seconds per known source launch \u00d7 1; unmeasured reference-layout UI",
+        "measured": false
+      },
+      {
+        "method": "WalkingNavigationFlowTests.testRoutingCanBeCancelledWithoutLateRouteAndReopened",
+        "seconds": 60,
+        "source": "reference11",
+        "basis": "60 seconds per known source launch \u00d7 1; unmeasured reference-layout UI",
+        "measured": false
+      },
+      {
+        "method": "WalkingNavigationFlowTests.testExpiredScopeDismissesStepsAndClearsDestination",
+        "seconds": 60,
+        "source": "reference11",
+        "basis": "60 seconds per known source launch \u00d7 1; unmeasured reference-layout UI",
+        "measured": false
+      },
+      {
+        "method": "WalkingNavigationFlowTests.testNearDestinationKeepsVerificationBoundary",
+        "seconds": 60,
+        "source": "reference11",
+        "basis": "60 seconds per known source launch \u00d7 1; unmeasured reference-layout UI",
+        "measured": false
+      },
+      {
+        "method": "WalkingNavigationFlowTests.testMaximumBilingualSummaryAndNativeStepsCanCloseAndReopen",
+        "seconds": 120,
+        "source": "reference11",
+        "basis": "60 seconds per known source launch \u00d7 2; unmeasured reference-layout UI",
+        "measured": false
+      },
+      {
+        "method": "SearchMapFlowTests.testCityListSelectionUsesSamePinAndPreservesExplicitMapGate",
+        "seconds": 60,
+        "source": "reference11",
+        "basis": "60 seconds per known source launch \u00d7 1; unmeasured reference-layout UI",
+        "measured": false
+      },
+      {
+        "method": "SearchMapFlowTests.testCityFilterCancelPreservesSelectionButApplyClearsIt",
+        "seconds": 60,
+        "source": "reference11",
+        "basis": "60 seconds per known source launch \u00d7 1; unmeasured reference-layout UI",
+        "measured": false
+      },
+      {
+        "method": "SearchMapFlowTests.testCityLoadingRetryAndScopeChangeNeverKeepSelectedPlace",
+        "seconds": 120,
+        "source": "reference11",
+        "basis": "60 seconds per known source launch \u00d7 2; unmeasured reference-layout UI",
+        "measured": false
+      },
+      {
+        "method": "SearchMapFlowTests.testCityEmptyStateRemainsExplicit",
+        "seconds": 60,
+        "source": "reference11",
+        "basis": "60 seconds per known source launch \u00d7 1; unmeasured reference-layout UI",
+        "measured": false
+      },
+      {
+        "method": "SearchMapFlowTests.testManualAreaChangeClearsSelectionAndRequiresMapOptInAgain",
+        "seconds": 60,
+        "source": "reference11",
+        "basis": "60 seconds per known source launch \u00d7 1; unmeasured reference-layout UI",
+        "measured": false
+      },
+      {
+        "method": "ReferenceChatTaskFlowTests.testNPCCancelReviewRetainsDraftAndCanReopen",
+        "seconds": 60,
+        "source": "referenceChatTask16",
+        "basis": "60-second unmeasured baseline for one explicit app launch; reopen/review work remains unmeasured",
+        "measured": false
+      },
+      {
+        "method": "ReferenceChatTaskFlowTests.testNPCUnknownResultRetainsReviewAndDoesNotInventReply",
+        "seconds": 60,
+        "source": "referenceChatTask16",
+        "basis": "60-second unmeasured baseline for one explicit app launch; reopen/review work remains unmeasured",
+        "measured": false
+      },
+      {
+        "method": "ReferenceChatTaskFlowTests.testNPCFailureKeepsTheExactReviewText",
+        "seconds": 60,
+        "source": "referenceChatTask16",
+        "basis": "60-second unmeasured baseline for one explicit app launch; reopen/review work remains unmeasured",
+        "measured": false
+      },
+      {
+        "method": "ReferenceChatTaskFlowTests.testNPCPendingDisablesDuplicateTransmissionAndScopeClearsPrivateText",
+        "seconds": 60,
+        "source": "referenceChatTask16",
+        "basis": "60-second unmeasured baseline for one explicit app launch; reopen/review work remains unmeasured",
+        "measured": false
+      },
+      {
+        "method": "ReferenceChatTaskFlowTests.testNPCChineseMaximumTextKeyboardAndReduceMotion",
+        "seconds": 60,
+        "source": "referenceChatTask16",
+        "basis": "60-second unmeasured baseline for one explicit app launch; reopen/review work remains unmeasured",
+        "measured": false
+      },
+      {
+        "method": "ReferenceChatTaskFlowTests.testMessageKeyboardKeepsSendActionReachable",
+        "seconds": 60,
+        "source": "referenceChatTask16",
+        "basis": "60-second unmeasured baseline for one explicit app launch; reopen/review work remains unmeasured",
+        "measured": false
+      },
+      {
+        "method": "ReferenceChatTaskFlowTests.testMessageUnknownIsNotAnAcceptedReceiptAndCancelRetryDoesNotSend",
+        "seconds": 60,
+        "source": "referenceChatTask16",
+        "basis": "60-second unmeasured baseline for one explicit app launch; reopen/review work remains unmeasured",
+        "measured": false
+      },
+      {
+        "method": "ReferenceChatTaskFlowTests.testMessageRejectedDoesNotShowAcceptedReceipt",
+        "seconds": 60,
+        "source": "referenceChatTask16",
+        "basis": "60-second unmeasured baseline for one explicit app launch; reopen/review work remains unmeasured",
+        "measured": false
+      },
+      {
+        "method": "ReferenceChatTaskFlowTests.testMessagePendingDoesNotPermitDuplicateSend",
+        "seconds": 60,
+        "source": "referenceChatTask16",
+        "basis": "60-second unmeasured baseline for one explicit app launch; reopen/review work remains unmeasured",
+        "measured": false
+      },
+      {
+        "method": "ReferenceChatTaskFlowTests.testMessageEarlierPageAndDetailReturnRetainHistory",
+        "seconds": 60,
+        "source": "referenceChatTask16",
+        "basis": "60-second unmeasured baseline for one explicit app launch; reopen/review work remains unmeasured",
+        "measured": false
+      },
+      {
+        "method": "ReferenceChatTaskFlowTests.testKnownProgressAndCurrentTaskReopenPreserveServerZero",
+        "seconds": 60,
+        "source": "referenceChatTask16",
+        "basis": "60-second unmeasured baseline for one explicit app launch; reopen/review work remains unmeasured",
+        "measured": false
+      },
+      {
+        "method": "ReferenceChatTaskFlowTests.testUnknownTotalShowsPhaseWithoutPercentage",
+        "seconds": 60,
+        "source": "referenceChatTask16",
+        "basis": "60-second unmeasured baseline for one explicit app launch; reopen/review work remains unmeasured",
+        "measured": false
+      },
+      {
+        "method": "ReferenceChatTaskFlowTests.testChineseServerCompletedHasNoCurrentAction",
+        "seconds": 60,
+        "source": "referenceChatTask16",
+        "basis": "60-second unmeasured baseline for one explicit app launch; reopen/review work remains unmeasured",
+        "measured": false
+      },
+      {
+        "method": "ReferenceChatTaskFlowTests.testFailedTaskReadCannotShowAProgressBarOrCurrentAction",
+        "seconds": 60,
+        "source": "referenceChatTask16",
+        "basis": "60-second unmeasured baseline for one explicit app launch; reopen/review work remains unmeasured",
+        "measured": false
+      },
+      {
+        "method": "ReferenceChatTaskFlowTests.testMessageAccountSwitchDoesNotRetainPrivateHistory",
+        "seconds": 60,
+        "source": "referenceChatTask16",
+        "basis": "60-second unmeasured baseline for one explicit app launch; reopen/review work remains unmeasured",
+        "measured": false
+      },
+      {
+        "method": "ReferenceChatTaskFlowTests.testMerchantAIIdentityIsVisibleAndReopenStartsFresh",
+        "seconds": 60,
+        "source": "referenceChatTask16",
+        "basis": "60-second unmeasured baseline for one explicit app launch; reopen/review work remains unmeasured",
+        "measured": false
       }
-    ]
+    ],
+    "baseline_estimate_count": 23
   }
 }

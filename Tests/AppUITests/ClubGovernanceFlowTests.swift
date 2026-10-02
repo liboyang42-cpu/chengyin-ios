@@ -16,7 +16,9 @@ final class ClubGovernanceFlowTests: XCTestCase {
             "club.gov.fact." + key, text, text)).firstMatch
     }
     private func reveal(_ element: XCUIElement, app: XCUIApplication) {
-        XCTAssertTrue(revealFixtureElement(element, in: app), app.debugDescription)
+        let revealed = revealFixtureElement(element, in: app)
+        if !revealed { attachFixtureScreenshot(self, app: app, name: "Unreachable club governance control") }
+        XCTAssertTrue(revealed, app.debugDescription)
     }
     private func tap(_ identifier: String, app: XCUIApplication) {
         let element = app.buttons[identifier]
@@ -69,10 +71,20 @@ final class ClubGovernanceFlowTests: XCTestCase {
     }
     func testAudienceUnknownIsNotZeroAndReviewRequiresContent() {
         let app = launch(); open("audienceCounts", app: app)
+        let presentingToolbar = app.toolbars.containing(.button, identifier: "club.gov.switchAccount").firstMatch
+        XCTAssertTrue(presentingToolbar.waitForExistence(timeout: 5))
+        XCTAssertTrue(presentingToolbar.isHittable)
         let compose = app.buttons["club.gov.action.sendNotification"]
         reveal(compose, app: app); compose.tap()
+        let modalBar = app.navigationBars["Compose member notification"]
+        XCTAssertTrue(modalBar.waitForExistence(timeout: 5))
+        XCTAssertTrue(modalBar.isHittable)
+        // Some iOS versions retain the presenter's toolbar in the modal AX tree.
+        // It must not shorten the sheet's viewport while covered by that sheet.
+        if presentingToolbar.exists { XCTAssertFalse(presentingToolbar.isHittable) }
         tap("club.gov.prepare", app: app)
         XCTAssertTrue(app.staticTexts["club.gov.formError"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["club.gov.confirm"].exists)
+        attachFixtureScreenshot(self, app: app, name: "Club notification rejects missing content")
     }
 }

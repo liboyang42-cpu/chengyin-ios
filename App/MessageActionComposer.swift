@@ -50,7 +50,7 @@ import SwiftUI
             }
             HStack(alignment:.bottom) {
                 TextField("message.send.placeholder",text:$model.draft,axis:.vertical)
-                    .lineLimit(1...5).frame(minHeight:44).focused($typing).disabled(!canCompose)
+                    .lineLimit(1...5).textFieldStyle(.roundedBorder).frame(minHeight:44).focused($typing).disabled(!canCompose)
                     .accessibilityIdentifier("message.send.input")
                 Button {
                     typing=false
@@ -68,6 +68,12 @@ import SwiftUI
             if !conversationReady { Text("message.send.historyRequired").font(.caption).foregroundStyle(.secondary) }
         }
         .padding().background(.regularMaterial).privacySensitive()
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("action.done") { typing = false }.accessibilityIdentifier("message.send.keyboard.done")
+            }
+        }
         .onAppear { model.observe() }
         .onChange(of:model.state) { _,state in
             // The currently visible history owns readback, even after dismiss/reopen.

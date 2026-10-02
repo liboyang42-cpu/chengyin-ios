@@ -25,11 +25,13 @@ func revealFixtureElement(_ element: XCUIElement, in app: XCUIApplication,
                           requiresHittable: Bool = true) -> Bool {
     func viewport() -> CGRect {
         var bounds = app.frame.insetBy(dx: 4, dy: 4)
-        let navigationBar = app.navigationBars.firstMatch
-        if navigationBar.exists { bounds.origin.y = max(bounds.minY, navigationBar.frame.maxY + 4) }
+        // A presented sheet can leave its presenter's bars in the AX tree.
+        // Only foreground, hittable bars occlude the current scroll surface.
+        let navigationBar = app.navigationBars.allElementsBoundByIndex.first { $0.isHittable }
+        if let navigationBar { bounds.origin.y = max(bounds.minY, navigationBar.frame.maxY + 4) }
         var bottom = app.frame.maxY - 40
-        let toolbar = app.toolbars.firstMatch
-        if toolbar.exists { bottom = min(bottom, toolbar.frame.minY - 4) }
+        let toolbar = app.toolbars.allElementsBoundByIndex.first { $0.isHittable }
+        if let toolbar { bottom = min(bottom, toolbar.frame.minY - 4) }
         let keyboard = app.keyboards.firstMatch
         if keyboard.exists { bottom = min(bottom, keyboard.frame.minY - 4) }
         bounds.size.height = max(0, bottom - bounds.minY)

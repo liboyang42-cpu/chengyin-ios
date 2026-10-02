@@ -2,7 +2,17 @@ import XCTest
 
 /// Authored for the additive DEBUG --uitesting-module square-workspace host. Apple runtime NOT_RUN.
 final class SquareWorkspaceFlowTests: XCTestCase {
+    private var activeApp: XCUIApplication?
     override func setUpWithError() throws { continueAfterFailure = false }
+    override func tearDownWithError() throws {
+        attachFailureScreenshot(self, app: activeApp)
+        if let app = activeApp, (testRun?.totalFailureCount ?? 0) > 0 {
+            let hierarchy = XCTAttachment(string: app.debugDescription)
+            hierarchy.name = "Square workspace failure hierarchy"; hierarchy.lifetime = .keepAlways; add(hierarchy)
+        }
+        if let app = activeApp, app.state != .notRunning { app.terminate() }
+        activeApp = nil
+    }
     private func reveal(_ element: XCUIElement, in app: XCUIApplication, upwards: Bool = true) {
         for _ in 0..<10 {
             if element.exists && element.isHittable { break }
@@ -14,7 +24,7 @@ final class SquareWorkspaceFlowTests: XCTestCase {
     private func launch(chinese: Bool = false, extra: [String] = []) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--uitesting-reset-language", "--uitesting-module", "square-workspace", "-AppleLanguages", chinese ? "(zh-Hans)" : "(en)", "-AppleLocale", chinese ? "zh_CN" : "en_US"] + extra
-        app.launch(); return app
+        activeApp = app; app.launch(); return app
     }
     func testDefaultWorkspaceHasNoEnabledNetworkActions() {
         let app = launch(); defer { app.terminate() }
@@ -52,11 +62,12 @@ final class SquareWorkspaceFlowTests: XCTestCase {
         let second = app.buttons["squareWorkspace.resume.synthetic-square-002"]
         XCTAssertTrue(second.exists); XCTAssertFalse(second.isEnabled)
         let newDraft = app.buttons["squareWorkspace.newDraft"]
-        for _ in 0..<10 { if newDraft.exists { break }; app.swipeDown() }
+        XCTAssertTrue(revealFixtureElement(newDraft, in: app, towardTop: true, maximumSwipes: 16, requiresHittable: false), app.debugDescription)
         XCTAssertTrue(newDraft.exists); XCTAssertFalse(newDraft.isEnabled)
-        let editor = app.textViews["squareWorkspace.body"]
-        for _ in 0..<10 { if editor.exists { break }; app.swipeDown() }
-        XCTAssertTrue(editor.exists); XCTAssertFalse(editor.isEnabled)
+        // Follow the exact editor identifier across disabled/enabled AX representations.
+        let editor = app.descendants(matching: .any)["squareWorkspace.body"].firstMatch
+        XCTAssertTrue(revealFixtureElement(editor, in: app, towardTop: true, maximumSwipes: 16, requiresHittable: false), app.debugDescription)
+        XCTAssertTrue(editor.exists, app.debugDescription); XCTAssertFalse(editor.isEnabled, app.debugDescription)
         XCTAssertEqual(app.staticTexts["fixture.workspaceRecovery.requests"].label, "1")
         attachFixtureScreenshot(self, app: app, name: "Saved draft recovery serializes New Draft and text edits - synthetic suspended read")
         let release = app.buttons["fixture.workspaceRecovery.release"]

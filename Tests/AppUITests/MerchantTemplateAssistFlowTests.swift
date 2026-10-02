@@ -44,11 +44,20 @@ final class MerchantTemplateAssistFlowTests: XCTestCase {
     }
     func testCancelReviewDoesNotFillAndReopenHasNoCandidate() {
         let app = open(); generate(app)
-        XCTAssertTrue(app.buttons["merchant.assist.apply"].waitForExistence(timeout: 4))
+        let apply = app.buttons["merchant.assist.apply"]
+        // Generated fields push Apply below the lazy Form viewport; reveal without applying.
+        XCTAssertTrue(revealFixtureElement(apply, in: app), app.debugDescription)
+        XCTAssertTrue(apply.isEnabled)
         app.buttons["merchant.assist.close"].tap()
+        let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            !app.descendants(matching: .any)["merchant.assist.sheet"].exists
+        }, object: app)
+        XCTAssertEqual(XCTWaiter.wait(for: [dismissed], timeout: 5), .completed, app.debugDescription)
         let assist = app.buttons["merchant.assist.open"]; XCTAssertTrue(revealFixtureElement(assist, in: app)); assist.tap()
+        XCTAssertTrue(app.buttons["merchant.assist.generate"].waitForExistence(timeout: 4))
         XCTAssertFalse(app.buttons["merchant.assist.apply"].exists)
         XCTAssertTrue(app.buttons["merchant.assist.generate"].isEnabled)
+        attachFixtureScreenshot(self, app: app, name: "AI template canceled and reopened without candidate")
     }
     func testPermissionErrorHasNoEnabledRetryWhileProviderErrorDoes() {
         let denied = open(["--merchant-template-assist-permission"]); generate(denied)

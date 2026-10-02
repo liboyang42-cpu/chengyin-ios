@@ -12,6 +12,7 @@ struct SearchMapPin: Identifiable {
 struct SearchMapCanvas: View {
     let area: RoamSearchArea
     let pins: [SearchMapPin]
+    var selectedID: String? = nil
     var polyline: [RoamCoordinate] = []
     var offline = false
     var onSelect: ((String) -> Void)? = nil
@@ -20,10 +21,11 @@ struct SearchMapCanvas: View {
             if offline {
                 VStack(spacing: 12) {
                     Image(systemName: "map").font(.largeTitle).accessibilityHidden(true)
-                    Text("searchMap.offlineMap")
+                    Text("searchMap.offlineMap").accessibilityIdentifier("searchMap.map")
                     ForEach(pins) { pin in
                         Button(pin.title) { onSelect?(pin.id) }.frame(minHeight: 44)
                             .accessibilityIdentifier("searchMap.pin.\(pin.id)")
+                            .accessibilityAddTraits(pin.id == selectedID ? .isSelected : [])
                     }
                 }.padding().frame(maxWidth: .infinity).background(.secondary.opacity(0.08))
             } else {
@@ -31,17 +33,17 @@ struct SearchMapCanvas: View {
                     ForEach(pins) { pin in
                         Annotation(pin.title, coordinate: coordinate(pin.coordinate)) {
                             Button { onSelect?(pin.id) } label: {
-                                Image(systemName: pin.symbol).font(.body.bold()).foregroundStyle(.white)
+                                Image(systemName: pin.id == selectedID ? "checkmark" : pin.symbol).font(.body.bold()).foregroundStyle(.white)
                                     .frame(minWidth: 44, minHeight: 44).background(.tint, in: Circle())
                             }.buttonStyle(.plain).accessibilityLabel(Text(verbatim: pin.title))
                                 .accessibilityIdentifier("searchMap.pin.\(pin.id)")
+                            .accessibilityAddTraits(pin.id == selectedID ? .isSelected : [])
                         }
                     }
                     if polyline.count >= 2 { MapPolyline(coordinates: polyline.map(coordinate)).stroke(.blue, style: StrokeStyle(lineWidth: 4, dash: [7, 4])) }
-                }.mapStyle(.standard(pointsOfInterest: .excludingAll))
+                }.mapStyle(.standard(pointsOfInterest: .excludingAll)).accessibilityIdentifier("searchMap.map")
             }
         }.frame(minHeight: 240).clipShape(RoundedRectangle(cornerRadius: 20))
-            .accessibilityIdentifier("searchMap.map")
     }
     private func coordinate(_ value: RoamCoordinate) -> CLLocationCoordinate2D {
         CLLocationCoordinate2D(latitude: value.latitude, longitude: value.longitude)

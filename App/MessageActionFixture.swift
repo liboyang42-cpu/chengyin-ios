@@ -13,6 +13,10 @@ import SwiftUI
     }
     func send(_ intent:MessageTextIntent,expectedIdentity:MessagingReadIdentity) async throws -> MessagingMessage {
         guard expectedIdentity==identity,intent.conversationID==901 else { throw APIError.unauthorized }
+        let args = ProcessInfo.processInfo.arguments
+        if args.contains("--reference-message-unknown") { throw APIError.malformedResponse }
+        if args.contains("--reference-message-rejected") { throw MessagingReadFailure(code: 403) }
+        if args.contains("--reference-message-pending") { try await Task.sleep(for: .seconds(30)) }
         if let existing=receipts[intent.clientMessageID] { return existing }
         let row:[String:Any]=["id":rows.count+1,"conversationId":901,"senderId":9001,"msgType":1,"content":intent.content]
         let message=try JSONDecoder().decode(MessagingMessage.self,from:JSONSerialization.data(withJSONObject:row))

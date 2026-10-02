@@ -21,6 +21,7 @@ import SwiftUI
     @State private var loading = false
     @State private var issue: String?
     @State private var selectedPin: String?
+    @AccessibilityFocusState private var selectionFocused: Bool
     @State private var gate = SearchMapQueryGate()
     @State private var categoryGate = SearchMapQueryGate()
     @State private var preparedScope: UUID?
@@ -31,38 +32,50 @@ import SwiftUI
         _filter = State(initialValue: initialFilter); _area = State(initialValue: initialArea)
     }
     var body: some View {
+        ScrollViewReader { scroll in
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 Text("searchMap.manualDisclosure").font(.footnote).foregroundStyle(.secondary)
                 if reader.isOfflineExample { Text("searchMap.offline").font(.caption) }
                 if let area, !area.label.isEmpty { Text(verbatim: area.label).font(.headline) }
-                Button("searchMap.chooseArea") { showsArea = true }.buttonStyle(.bordered).frame(minHeight: 44)
-                    .accessibilityIdentifier("searchMap.chooseArea")
-                if mode == .city { cityFilters }
-                HStack {
-                    Button("searchMap.searchArea") { Task { await load() } }.buttonStyle(.borderedProminent)
-                        .disabled(area == nil || !reader.isConfigured).accessibilityIdentifier("searchMap.searchArea")
-                    if mode == .city { Button("searchMap.filters") { showsFilters = true }.buttonStyle(.bordered) }
-                }.frame(minHeight: 44)
+                if mode == .city {
+                    TextField("searchMap.cityPlaceholder", text: $filter.keyword)
+                        .textFieldStyle(.roundedBorder).accessibilityIdentifier("searchMap.cityKeyword")
+                }
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 12) { filterControls }
+                    VStack(alignment: .leading, spacing: 8) { filterControls }
+                }
+                Button("searchMap.searchArea") { Task { await load() } }
+                    .buttonStyle(.borderedProminent).frame(minHeight: 44)
+                    .disabled(area == nil || !reader.isConfigured || loading)
+                    .accessibilityIdentifier("searchMap.searchArea")
                 if let area {
-                    if mapEnabled || reader.isOfflineExample {
-                        SearchMapCanvas(area: area, pins: pins, offline: reader.isOfflineExample) { selectedPin = $0 }
+                    if mapEnabled {
+                        SearchMapCanvas(area: area, pins: pins, selectedID: selectedPin, offline: reader.isOfflineExample) { selectedPin = $0 }
                             .id(area)
-                        if let selectedPin { pinDetail(selectedPin, area: area) }
                     } else {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("searchMap.appleMapDisclosure").font(.footnote)
                             Button("searchMap.showMap") { mapEnabled = true }.buttonStyle(.bordered).frame(minHeight: 44)
+                                .accessibilityIdentifier("searchMap.showMap")
                         }
                     }
+                    if let selectedPin { selectedPlaceSummary(selectedPin, area: area) }
                 }
                 if !reader.isConfigured { SearchMapIssue(key: "searchMap.notConfigured") }
                 else if area == nil { ContentUnavailableView("searchMap.areaRequired", systemImage: "mappin.and.ellipse") }
-                else if loading { ProgressView("searchMap.loading") }
+                else if loading { ProgressView("searchMap.loading").accessibilityIdentifier("searchMap.loading") }
                 else if let issue { SearchMapIssue(key: issue) { Task { await load() } } }
                 if let result = cityResults { cityContent(result) }
                 if let result = nearbyResults { nearbyContent(result) }
             }.padding()
+        }
+        .onChange(of: selectedPin) { _, value in
+            guard value != nil else { return }
+            scroll.scrollTo("selected-place-summary", anchor: .top)
+            selectionFocused = true
+        }
         }
         .appNavigationTitle(key: mode == .city ? "searchMap.citySearch" : "searchMap.nearby")
         .sheet(isPresented: $showsArea) {
@@ -71,10 +84,16 @@ import SwiftUI
             }
         }
         .sheet(isPresented: $showsFilters) {
-            SearchMapFilterSheet(filter: filter, categories: categories, categoryFailed: categoryFailed) { filter = $0; invalidate() }
+            SearchMapFilterSheet(filter: filter, categories: categories, categoryFailed: categoryFailed,
+                                 tag: tag, cityRole: cityRole, sortType: sortType,
+                                 applyCityOptions: { tag = $0; cityRole = $1; sortType = $2 }) { filter = $0; invalidate() }
+                .presentationDetents([.large])
         }
         .task(id: reader.scope) {
-            if preparedScope != reader.scope { preparedScope = reader.scope; invalidate(); categories = [] }
+            if preparedScope != reader.scope {
+                preparedScope = reader.scope; invalidate(); categories = []; categoryFailed = false
+                mapEnabled = false; showsArea = false; showsFilters = false
+            }
             guard reader.isConfigured, mode == .city, categories.isEmpty else { return }
             let ticket = categoryGate.begin(scope: reader.scope)
             do {
@@ -90,15 +109,36 @@ import SwiftUI
         .onChange(of: sortType) { _, _ in invalidate() }
         .onDisappear { gate.invalidate(); categoryGate.invalidate(); loading = false }
     }
-    private var cityFilters: some View {
-        VStack(spacing: 12) {
-            TextField("searchMap.cityPlaceholder", text: $filter.keyword).accessibilityIdentifier("searchMap.cityKeyword")
-            TextField("searchMap.tag", text: $tag).accessibilityIdentifier("searchMap.tag")
-            TextField("searchMap.cityRole", text: $cityRole).accessibilityIdentifier("searchMap.cityRole")
+    @ViewBuilder private var filterControls: some View {
+        Button { showsArea = true } label: { Label("searchMap.chooseArea", systemImage: "mappin.and.ellipse") }
+            .buttonStyle(.bordered).frame(minHeight: 44).accessibilityIdentifier("searchMap.chooseArea")
+        if mode == .city {
+            Button { showsFilters = true } label: { Label("searchMap.filters", systemImage: "line.3.horizontal.decrease") }
+                .buttonStyle(.bordered).frame(minHeight: 44).accessibilityIdentifier("searchMap.filters")
             Picker("searchMap.sort", selection: $sortType) {
                 Text("searchMap.nearest").tag(1); Text("searchMap.popular").tag(2)
-            }.pickerStyle(.segmented)
-        }.textFieldStyle(.roundedBorder)
+            }.pickerStyle(.menu).frame(minHeight: 44).accessibilityIdentifier("searchMap.sortPicker")
+        }
+    }
+    private func selectedPlaceSummary(_ id: String, area: RoamSearchArea) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("searchMap.selectedPlace").accessibilityIdentifier("searchMap.selectedSummary").font(.caption).foregroundStyle(.secondary).accessibilityFocused($selectionFocused)
+            pinDetail(id, area: area)
+            Button("searchMap.clearSelection") { selectedPin = nil }.frame(minHeight: 44)
+                .accessibilityIdentifier("searchMap.selection.clear")
+        }.padding(16).frame(maxWidth: .infinity, alignment: .leading)
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20))
+            .id("selected-place-summary")
+    }
+    private func selectPlace(_ id: String, title: String) -> some View {
+        Button {
+            // Reuse the exact map pin ID; selecting a row never enables map tiles/location.
+            selectedPin = id
+        } label: {
+            Label(LocalizedStringKey(selectedPin == id ? "searchMap.placeSelected" : "searchMap.selectPlace"), systemImage: selectedPin == id ? "checkmark.circle.fill" : "mappin")
+        }.frame(minHeight: 44).accessibilityIdentifier("searchMap.select." + id)
+            .accessibilityLabel(Text(LocalizedStringKey(selectedPin == id ? "searchMap.placeSelected" : "searchMap.selectPlace")) + Text(verbatim: ": " + title))
+            .accessibilityAddTraits(selectedPin == id ? .isSelected : [])
     }
     private var pins: [SearchMapPin] {
         var result: [SearchMapPin] = []
@@ -117,11 +157,14 @@ import SwiftUI
     }
     @ViewBuilder private func pinDetail(_ id: String, area: RoamSearchArea) -> some View {
         if let row = cityResults?.activities.first(where: { "activity-\($0.id)" == id }) {
+            if let address = row.addressName ?? row.address { Text(verbatim: address).font(.subheadline).fixedSize(horizontal: false, vertical: true) }
             NavigationLink { destination(.activity(row.id)) } label: { Label(row.name, systemImage: "calendar") }.frame(minHeight: 44)
             if let topic = row.topicID, topic > 0 { NavigationLink { destination(.topic(topic)) } label: { Text("searchMap.relatedTopic") }.frame(minHeight: 44) }
         } else if let node = cityResults?.nodes.first(where: { "city-\($0.id)" == id }) {
+            if let subtitle = node.templateTitle ?? node.merchantName { Text(verbatim: subtitle).font(.subheadline).fixedSize(horizontal: false, vertical: true) }
             NavigationLink { SearchMapCityDetailView(id: node.id, reader: reader, origin: area.coordinate, destination: destination) } label: { Label(node.name, systemImage: "storefront") }.frame(minHeight: 44)
         } else if let node = nearbyResults?.nodes.first(where: { "nearby-\($0.id)" == id }) {
+            if let address = node.address { Text(verbatim: address).font(.subheadline).fixedSize(horizontal: false, vertical: true) }
             NavigationLink { nearbyDetail(node, area: area) } label: { Label(node.addressName, systemImage: "mappin") }.frame(minHeight: 44)
         }
     }
@@ -145,6 +188,7 @@ import SwiftUI
             NavigationLink { destination(.activity(row.id)) } label: {
                 SearchMapCard(row: GlobalSearchRow(kind: .activity, sourceID: row.id, title: row.name, detail: row.addressName ?? row.address, imageURL: row.imageURL), offline: reader.isOfflineExample)
             }.buttonStyle(QuestifyCardButtonStyle()).accessibilityIdentifier("searchMap.city.activity.\(row.id)")
+            if pins.contains(where: { $0.id == "activity-\(row.id)" }) { selectPlace("activity-\(row.id)", title: row.name) }
         }
         ForEach(value.nodes) { row in
             NavigationLink { SearchMapCityDetailView(id: row.id, reader: reader, origin: area?.coordinate, destination: destination) } label: {
@@ -152,6 +196,7 @@ import SwiftUI
                     Label("searchMap.cityNodes", systemImage: "mappin")
                 }
             }.buttonStyle(QuestifyCardButtonStyle()).accessibilityIdentifier("searchMap.city.node.\(row.id)")
+            if row.coordinate != nil { selectPlace("city-\(row.id)", title: row.name) }
         }
     }
     @ViewBuilder private func nearbyContent(_ value: SearchMapNearbyResults) -> some View {
@@ -171,6 +216,7 @@ import SwiftUI
                 }.padding().frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
                     .background(.secondary.opacity(0.07), in: RoundedRectangle(cornerRadius: 18))
             }.buttonStyle(QuestifyCardButtonStyle()).accessibilityIdentifier("searchMap.nearby.node.\(node.id)")
+            if node.coordinate != nil { selectPlace("nearby-\(node.id)", title: node.addressName) }
         }
     }
     private func nearbyDetail(_ node: RoamRouteNode, area: RoamSearchArea) -> some View {
