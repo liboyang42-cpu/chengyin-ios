@@ -21,7 +21,7 @@ import FoundationNetworking
     var journal: OperationDefaultsJournal
     let defaults: UserDefaults
     let suite: String
-    lazy var transport = MemberActionTransport { [unowned self] request in
+    lazy var transport: MemberActionTransport = MemberActionTransport { [unowned self] request in
         let path = request.url!.path
         if path.hasSuffix("public-info") {
             self.profileReads += 1
