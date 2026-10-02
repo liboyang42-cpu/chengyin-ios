@@ -2,7 +2,7 @@
 import SwiftUI
 
 @MainActor final class SocialAccountFixtureReader: SocialAccountReading {
-    enum Scenario: String { case content, guest, empty, partial, failure, delayed, unknown, rejected, disabled, removed, unconfigured }
+    enum Scenario: String { case content, reportPolicyChanged, reportUnknown, reportDisabled, guest, empty, partial, failure, delayed, unknown, rejected, disabled, removed, unconfigured }
     let scenario: Scenario
     var identity: SocialAccountIdentity
     var isConfigured: Bool { scenario != .unconfigured }
@@ -96,6 +96,7 @@ import SwiftUI
             NavigationStack {
                 Group {
                     switch destination {
+                    case "reports": SquareReportFixtureHost(scenario: reader.scenario.rawValue)
                     case "guide": SocialPlayGuideView(reader: reader, onOpenDestination: { selectedGuideDestination = $0 })
                     case "invites": SocialInviteHistoryView(reader: reader, squareReader: square, actions: actions)
                     case "editorSheet":

@@ -11,9 +11,9 @@ final class SquareWorkspaceFlowTests: XCTestCase {
         XCTAssertTrue(element.exists, app.debugDescription)
         XCTAssertTrue(element.isHittable, app.debugDescription)
     }
-    private func launch(chinese: Bool = false) -> XCUIApplication {
+    private func launch(chinese: Bool = false, extra: [String] = []) -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitesting-reset-language", "--uitesting-module", "square-workspace", "-AppleLanguages", chinese ? "(zh-Hans)" : "(en)", "-AppleLocale", chinese ? "zh_CN" : "en_US"]
+        app.launchArguments = ["--uitesting-reset-language", "--uitesting-module", "square-workspace", "-AppleLanguages", chinese ? "(zh-Hans)" : "(en)", "-AppleLocale", chinese ? "zh_CN" : "en_US"] + extra
         app.launch(); return app
     }
     func testDefaultWorkspaceHasNoEnabledNetworkActions() {
@@ -37,5 +37,33 @@ final class SquareWorkspaceFlowTests: XCTestCase {
         reveal(status, in: app, upwards: false)
         XCTAssertEqual(status.label, "已保存在本机", app.debugDescription)
         XCTAssertFalse(app.alerts.firstMatch.exists)
+    }
+    func testSuspendedRecoveryDisablesNewDraftTypingAndCompetingResume() {
+        let app = launch(extra: ["--uitesting-workspace-delayed-recovery"])
+        defer { attachFailureScreenshot(self, app: app); app.terminate() }
+        let first = app.buttons["squareWorkspace.resume.synthetic-square-001"]
+        reveal(first, in: app); first.tap()
+        let state = app.staticTexts["fixture.workspaceRecovery.state"]
+        expectation(for: NSPredicate(format: "label == %@", "Synthetic recovery suspended"), evaluatedWith: state)
+        waitForExpectations(timeout: 5)
+        let second = app.buttons["squareWorkspace.resume.synthetic-square-002"]
+        XCTAssertTrue(second.exists); XCTAssertFalse(second.isEnabled)
+        let newDraft = app.buttons["squareWorkspace.newDraft"]
+        for _ in 0..<10 { if newDraft.exists { break }; app.swipeDown() }
+        XCTAssertTrue(newDraft.exists); XCTAssertFalse(newDraft.isEnabled)
+        let editor = app.textViews["squareWorkspace.body"]
+        for _ in 0..<10 { if editor.exists { break }; app.swipeDown() }
+        XCTAssertTrue(editor.exists); XCTAssertFalse(editor.isEnabled)
+        XCTAssertEqual(app.staticTexts["fixture.workspaceRecovery.requests"].label, "1")
+        attachFixtureScreenshot(self, app: app, name: "Saved draft recovery serializes New Draft and text edits - synthetic suspended read")
+        let release = app.buttons["fixture.workspaceRecovery.release"]
+        XCTAssertTrue(release.isHittable); release.tap()
+        expectation(for: NSPredicate(format: "enabled == true"), evaluatedWith: editor)
+        waitForExpectations(timeout: 5)
+        XCTAssertEqual(editor.value as? String, "Saved first recovery draft")
+        reveal(newDraft, in: app); XCTAssertTrue(newDraft.isEnabled); newDraft.tap()
+        reveal(editor, in: app, upwards: false); editor.tap(); editor.typeText("New text after recovery")
+        XCTAssertEqual(editor.value as? String, "New text after recovery")
+        XCTAssertEqual(app.staticTexts["fixture.workspaceRecovery.requests"].label, "1")
     }
 }

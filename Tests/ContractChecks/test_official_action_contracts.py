@@ -8,8 +8,10 @@ class OfficialActionSourceChecks(unittest.TestCase):
         self.assertIn('enabled: Bool = false',service)
         self.assertNotIn('URLSession',service)
         session=(ROOT/'App/AppSession.swift').read_text()
-        self.assertIn('write: { _ in throw OfficialActionFailure.disabled }',session)
-        self.assertIn('case .arrival, .inviteMerchants:',session)
+        self.assertIn('let access = OfficialActionProductionFactory(',session)
+        self.assertIn('approval: runtimeDependencies.officialActionApproval',session)
+        production=(ROOT/'Core/OfficialActionProduction.swift').read_text()
+        self.assertIn('case .arrival, .inviteMerchants: return nil',production)
     def test_durable_lock_and_stale_snapshot(self):
         source=(ROOT/'Core/OfficialActionCoordinator.swift').read_text()
         self.assertLess(source.index('try locks.insert(lock)'),source.index('try await access.send(review.command)'))

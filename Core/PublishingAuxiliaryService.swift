@@ -73,6 +73,11 @@ public struct PublishingSafetyIssue: Equatable {
         guard let credential = credentials(), let approval, journal != nil else { return false }
         return credential.session.region == .china && ["player", "club", "merchant"].contains(credential.session.role) && approval.allows(configuration: configuration, namespace: credential.session.namespace, accountID: credential.session.accountID, path: "api/ai/theme/draft")
     }
+    public var templateSession: PublishingSession? { credentials()?.session }
+    public var templateConfigured: Bool {
+        guard let credential = credentials(), let approval, journal != nil else { return false }
+        return credential.session.region == .china && ["club", "merchant"].contains(credential.session.role) && approval.allows(configuration: configuration, namespace: credential.session.namespace, accountID: credential.session.accountID, path: "api/ai/template/fill")
+    }
     private func check(_ credential: PublishingCredentials) throws {
         try Task.checkCancellation()
         guard credentials() == credential else { reviews.removeAll(); throw PublishModesError.changedSession }
@@ -81,6 +86,10 @@ public struct PublishingSafetyIssue: Equatable {
         guard let credential = credentials(), credential.session == session else { throw PublishModesError.changedSession }
         try check(credential)
         guard (assistance.request.path == "api/ai/theme/draft" && ["player", "club", "merchant"].contains(session.role)) || session.role == "club" || session.role == "merchant" else { throw PublishModesError.forbidden }
+        if case .template(let name, let note, _, _, _, _) = assistance {
+            guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                  !note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw PublishModesError.invalidDraft }
+        }
         let review = PublishingAuxiliaryReview(session: session, request: assistance.request); reviews[review.id] = review; return review
     }
     /// Calling this does not transmit the data. Inputs are held only in the returned review.
@@ -133,6 +142,12 @@ public struct PublishingSafetyIssue: Equatable {
         } catch { return review.isSafety ? .unavailable("") : .notSent }
         do {
             let (data, status) = try await transport.send(request); try check(credential)
+            // Template-specific auth responses are definitive rejections, not provider outages.
+            if review.request.path == "api/ai/template/fill" {
+                let body = try? OperationAdapterHTTP.envelope(data), code = body?["code"]?.integer
+                if status == 401 || code == 401 { try journal.clear(record); return .rejected("请先登录") }
+                if status == 403 || code == 403 { try journal.clear(record); return .rejected("当前身份暂不支持AI创作") }
+            }
             guard (200..<300).contains(status), let body = try? OperationAdapterHTTP.envelope(data), let code = body["code"]?.integer else { return review.isSafety ? .unavailable("") : .unknown }
             try journal.clear(record)
             if code == 200 { return .acknowledged(body["data"] ?? .null) }

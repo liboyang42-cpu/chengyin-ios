@@ -84,7 +84,7 @@ import SwiftUI
                 if let error { SocialIssueView(error: error) { Task { await load(reset: !pagination.hasLoadedPage) } } }
                 ForEach(pagination.items) { post in
                     NavigationLink {
-                        SquareDetailView(id: post.id, reader: squareReader, accountReader: accountReader, actions: actions)
+                        SquareDetailView(id: post.id, contentGeneration: post.generation, reader: squareReader, accountReader: accountReader, actions: actions)
                     } label: { SquarePostContent(post: post, showImages: false) }
                     NativeMediaGalleryEntry(sources: post.images, scope: squareReader.scope, titleKey: "media.destination.squareImages")
                 }

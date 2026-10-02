@@ -107,6 +107,11 @@ public struct SquareGovernanceService {
             guard let comment = review.snapshot.comments.first(where: { $0.id == commentID && $0.postID == postID }), let version = comment.version else { throw SquareGovernanceFailure.invalid }
             return try request(path: "api/v1/community/posts/\(postID)/comments/\(commentID)/approve", method: "POST", fields: ["expectedVersion": .integer(version), "requestId": .string(review.requestID)], token: token)
         case .deleteOwnComment(let id):
+            guard let comment = review.snapshot.comments.first(where: { $0.id == id }), comment.generation != .unknown else { throw SquareGovernanceFailure.invalid }
+            if comment.generation == .communityV1 {
+                guard let version = comment.version else { throw SquareGovernanceFailure.invalid }
+                return try request(path: "api/v1/community/posts/\(comment.postID)/comments/\(id)", method: "DELETE", fields: ["expectedVersion": .integer(version), "requestId": .string(review.requestID)], token: token)
+            }
             return try request(path: "api/comment/delete", method: "POST", fields: ["id": .string(String(id))], token: token, form: true)
         }
     }

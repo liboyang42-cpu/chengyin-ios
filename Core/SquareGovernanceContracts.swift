@@ -65,6 +65,7 @@ public struct SquareGovernanceNotification: Equatable, Identifiable {
 }
 public enum SquarePreference: String, CaseIterable, Codable { case interactionEnabled, mentionEnabled, socialEnabled }
 public struct SquareGovernanceComment: Equatable, Identifiable {
+    public let generation: SquareContentGeneration
     public let id: Int
     public let postID: Int
     public let postAuthorID: Int
@@ -72,7 +73,8 @@ public struct SquareGovernanceComment: Equatable, Identifiable {
     public let version: Int?
     public let approvalState: String?
     public let lifecycle: String?
-    public init(id: Int, postID: Int, postAuthorID: Int, raw: SquareGovernanceJSON) {
+    public init(id: Int, postID: Int, postAuthorID: Int, raw: SquareGovernanceJSON, generation: SquareContentGeneration = .unknown) {
+        self.generation = generation
         self.id = id; self.postID = postID; self.postAuthorID = postAuthorID
         commentAuthorID = raw["author_id"].int ?? raw["authorId"].int ?? raw["memberId"].int ?? 0
         version = raw["version"].int
@@ -80,8 +82,8 @@ public struct SquareGovernanceComment: Equatable, Identifiable {
         lifecycle = raw["lifecycle"].string
     }
     // Source: post author approves PENDING. A moderator role alone grants neither operation.
-    public func canApprove(_ identity: SquareGovernanceIdentity) -> Bool { identity.valid && id > 0 && postID > 0 && identity.accountID == postAuthorID && approvalState == "PENDING" && (version ?? -1) >= 0 }
-    public func canDelete(_ identity: SquareGovernanceIdentity) -> Bool { identity.valid && id > 0 && identity.accountID == commentAuthorID }
+    public func canApprove(_ identity: SquareGovernanceIdentity) -> Bool { identity.valid && generation == .communityV1 && id > 0 && postID > 0 && identity.accountID == postAuthorID && approvalState == "PENDING" && (version ?? -1) >= 0 }
+    public func canDelete(_ identity: SquareGovernanceIdentity) -> Bool { identity.valid && generation != .unknown && id > 0 && identity.accountID == commentAuthorID && (generation != .communityV1 || (version ?? -1) >= 0) }
 }
 public struct SquareGovernanceSnapshot: Equatable {
     public let identity: SquareGovernanceIdentity

@@ -15,6 +15,19 @@ final class SocialAccountFlowTests: XCTestCase {
         for _ in 0..<8 { if element.isHittable { break }; app.swipeUp() }
         XCTAssertTrue(element.isHittable, app.debugDescription)
     }
+    private func keepDraft(_ expected: String, dialogTitle: String) {
+        let dialog = app.sheets.matching(NSPredicate(format: "label == %@", dialogTitle)).firstMatch
+        XCTAssertTrue(dialog.waitForExistence(timeout: 5), app.debugDescription)
+        let keep = dialog.buttons["social.editor.keepEditing"]
+        if keep.exists && keep.isHittable { keep.tap() }
+        else { dismissFixtureConfirmationPopover(in: app) }
+        let editor = app.textViews["social.editor.text"]
+        let restored = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            !dialog.exists && editor.exists && editor.value as? String == expected
+                && self.app.buttons["social.editor.review"].isEnabled
+        }, object: app)
+        XCTAssertEqual(XCTWaiter.wait(for: [restored], timeout: 5), .completed, app.debugDescription)
+    }
     private func enterReview() {
         let editor = app.textViews["social.editor.text"]
         XCTAssertTrue(editor.waitForExistence(timeout: 5)); editor.tap(); editor.typeText("Synthetic offline draft")
@@ -91,12 +104,13 @@ final class SocialAccountFlowTests: XCTestCase {
         XCTAssertTrue(editor.waitForExistence(timeout: 5))
         XCTAssertEqual(editor.value as? String, "Synthetic offline draft")
         app.buttons["social.editor.close"].tap()
-        let keep = app.buttons["social.editor.keepEditing"]
-        XCTAssertTrue(keep.waitForExistence(timeout: 5)); keep.tap()
+        keepDraft("Synthetic offline draft", dialogTitle: "Discard this draft?")
         XCTAssertEqual(editor.value as? String, "Synthetic offline draft")
         attachFixtureScreenshot(self, app: app, name: "Social draft preserved after nested review and cancel")
         app.buttons["social.editor.close"].tap()
-        app.buttons["social.editor.discard"].tap()
+        let discard = app.sheets.matching(NSPredicate(format: "label == %@", "Discard this draft?")).firstMatch
+        XCTAssertTrue(discard.waitForExistence(timeout: 5), app.debugDescription)
+        tapFixtureSheetAction("Discard draft", in: discard, app: app)
         XCTAssertTrue(open.waitForExistence(timeout: 5)); open.tap()
         XCTAssertTrue(editor.waitForExistence(timeout: 5))
         XCTAssertEqual(editor.value as? String, "")
@@ -111,8 +125,7 @@ final class SocialAccountFlowTests: XCTestCase {
         XCTAssertTrue(done.waitForExistence(timeout: 5)); done.tap()
         XCTAssertFalse(app.keyboards.firstMatch.exists)
         app.buttons["social.editor.close"].tap()
-        let keep = app.buttons["social.editor.keepEditing"]
-        XCTAssertTrue(keep.waitForExistence(timeout: 5)); XCTAssertEqual(keep.label, "继续编辑"); keep.tap()
+        keepDraft("Native draft", dialogTitle: "要放弃这份草稿吗？")
         XCTAssertEqual(editor.value as? String, "Native draft")
         attachFixtureScreenshot(self, app: app, name: "Chinese social draft large text dark mode after keyboard dismissal")
     }

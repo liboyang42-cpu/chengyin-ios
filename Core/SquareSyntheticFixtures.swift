@@ -9,10 +9,10 @@ public enum SquareSyntheticFixtures {
     public static func post(id: Int = 701) throws -> SquarePost {
         guard id > 0 else { throw APIError.invalidRequest }
         let json = legacyPostJSON.replacingOccurrences(of: "\"id\":701", with: "\"id\":\(id)")
-        return try JSONDecoder().decode(SquarePost.self, from: Data(json.utf8))
+        return try JSONDecoder().decode(SquarePost.self, from: Data(json.utf8)).qualified(as: .legacySquare)
     }
     public static func comments() throws -> [SquareComment] {
-        try JSONDecoder().decode([SquareComment].self, from: Data(commentsJSON.utf8))
+        try JSONDecoder().decode([SquareComment].self, from: Data(commentsJSON.utf8)).map { $0.qualified(as: .legacySquare) }
     }
 }
 

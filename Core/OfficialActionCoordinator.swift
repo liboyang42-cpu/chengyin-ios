@@ -6,6 +6,17 @@ import Foundation
     func snapshot(for command: OfficialActionCommand) async throws -> OfficialActionSnapshot
     func send(_ command: OfficialActionCommand) async throws -> OfficialActionReceipt
 }
+/// Minted only after durable insertion; production dispatch rechecks the exact
+/// review, current generation/session, cancellation and persisted lock.
+@MainActor final class OfficialActionDispatchAuthorization {
+    let review: OfficialActionReview
+    private let valid: () throws -> Bool
+    fileprivate init(review: OfficialActionReview, valid: @escaping () throws -> Bool) { self.review = review; self.valid = valid }
+    func validate() throws {
+        try Task.checkCancellation()
+        guard try valid() else { throw OfficialActionFailure.stale }
+    }
+}
 @MainActor public protocol OfficialActionLockStore {
     func contains(_ key: String) throws -> Bool
     func insert(_ key: String) throws
@@ -46,6 +57,9 @@ public enum OfficialActionState: Equatable { case idle, reviewing, checking, sub
     private var pending: OfficialActionReview?
     private var generation = UUID()
     private var busy = false
+    private var verifiedReadback: OfficialActionReadback?
+    private var readbackIdentity: OfficialActionIdentity?
+    public var readback: OfficialActionReadback? { access.identity == readbackIdentity ? verifiedReadback : nil }
     public private(set) var state: OfficialActionState = .idle
     public var identity: OfficialActionIdentity? { access.identity }
     public var enabled: Bool { access.enabled }
@@ -63,7 +77,7 @@ public enum OfficialActionState: Equatable { case idle, reviewing, checking, sub
         guard let identity = access.identity else { throw OfficialActionFailure.forbidden }
         guard !(try locks.contains(key(command, identity))) else { throw OfficialActionFailure.locked }
         busy = true; defer { busy = false }
-        generation = UUID(); let revision = generation; pending = nil; state = .checking
+        generation = UUID(); let revision = generation; pending = nil; verifiedReadback = nil; readbackIdentity = nil; state = .checking
         let snapshot = try await access.snapshot(for: command)
         try snapshot.validate(command, now: now())
         guard identity == access.identity, identity == snapshot.identity, generation == revision, !Task.isCancelled else { throw OfficialActionFailure.stale }
@@ -83,19 +97,34 @@ public enum OfficialActionState: Equatable { case idle, reviewing, checking, sub
             try fresh.validate(review.command, now: now())
             guard fresh == review.snapshot, pending == review, revision == generation,
                   access.identity == review.snapshot.identity, access.enabled, !Task.isCancelled else { throw OfficialActionFailure.stale }
+            guard !(try locks.contains(lock)) else { throw OfficialActionFailure.locked }
             try locks.insert(lock) // Durable BEFORE any dispatch; failure means zero requests.
         } catch { pending = nil; state = .rejected; throw error }
         pending = nil; state = .submitting
         do {
-            let receipt = try await access.send(review.command)
+            let receipt: OfficialActionReceipt
+            if let protected = access as? any OfficialActionProtectedAccess {
+                let authorization = OfficialActionDispatchAuthorization(review: review, valid: { [weak self] in
+                    guard let self else { return false }
+                    guard self.generation == revision, self.access.identity == review.snapshot.identity,
+                          self.access.enabled, self.state == .submitting else { return false }
+                    return try self.locks.contains(lock)
+                })
+                receipt = try await protected.send(review.command, authorization: authorization)
+                verifiedReadback = protected.readback; readbackIdentity = review.snapshot.identity
+            } else { receipt = try await access.send(review.command) }
             guard access.identity == review.snapshot.identity, revision == generation, !Task.isCancelled else { throw OfficialActionFailure.unknown }
             guard Self.matches(receipt, command: review.command) else { throw OfficialActionFailure.unknown }
             switch receipt {
             case .published, .broadcastSubmitted, .invitesIssued: try locks.remove(lock)
-            default: break
+            default:
+                // Proven signup can unlock later event actions. Increment-only completion
+                // and filtered-out parties stay locked: absence cannot prove an outcome.
+                if case .signup(let id) = review.command, let readback, case .event(let event) = readback,
+                   event.id == id, event.signed == true { try locks.remove(lock) }
             }
             state = .acknowledged
-            // Participation/party acknowledgment stays locked until independent reconciliation.
+            // Other participation/party acknowledgments remain locked without independent reconciliation.
             // Acknowledgment is never attendance, eligibility, delivery, or reward proof.
             return receipt
         } catch {

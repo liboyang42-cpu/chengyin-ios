@@ -6,7 +6,9 @@ class NativeRepairBatchIntegrationTests(unittest.TestCase):
  def read(self,p):return (R/p).read_text()
  def test_object_host_observes_epoch_and_is_dormant(self):
   s=self.read('App/SessionObjectCardsView.swift');self.assertIn('@EnvironmentObject private var session',s);self.assertIn('.id(session.objectCardReader.scope)',s)
-  s=self.read('App/AppSession.swift');self.assertIn('ObjectCardSessionReader(service: nil',s);self.assertIn('self.currentObjectCardSession == captured',s)
+  s=self.read('App/AppSession.swift');self.assertIn('lazy var objectCardReader = makeObjectCardReader()',s);self.assertIn('self.currentObjectCardSession == captured',s)
+  self.assertIn('socialReaderApproval: SocialReaderProductionApproval? = nil', self.read('App/NativeRuntimeDependencies.swift'))
+  self.assertIn('approval.objectCards', self.read('Core/SocialReaderProduction.swift'))
   self.assertIn('}).id(session.sessionRevision)',self.read('App/QuestifyApp.swift'))
  def test_badge_wall_has_reviewed_media_boundary(self):
   self.assertIn('ObjectBadgeWallView(reader: reader)',self.read('App/ProfileAccountLinks.swift'))

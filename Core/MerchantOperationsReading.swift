@@ -103,21 +103,25 @@ public struct MerchantOperationsConfirmation: Identifiable, Equatable {
     public private(set) var isLocked = false
     public private(set) var exampleSaved = false
     public private(set) var loadedScope: UUID?
+    public private(set) var draftIdentity = UUID()
+    public private(set) var templateAssistEdits = MerchantTemplateAssistEdits()
     private var generation = 0
     public init(reader: any MerchantOperationsReading, destination: MerchantOperationsDestination) { self.reader = reader; self.destination = destination }
     public var isDirty: Bool { draft != baseline }
     public var isCurrent: Bool { loadedScope == reader.scope && reader.isAuthenticated }
     public var canReview: Bool { isCurrent && !isBusy && !isLocked && isDirty && draft?.blocker == nil }
     public func invalidate() {
+        draftIdentity = UUID(); templateAssistEdits = .init()
         generation += 1; document = nil; baseline = nil; draft = nil; confirmation = nil
         issue = nil; exampleSaved = false; loadedScope = nil; isBusy = false
         // An unknown operation is not proof of failure, even across account changes.
     }
     public func edit(_ value: MerchantOperationsDraft) {
         guard isCurrent, !isBusy, !isLocked, value.destination == destination else { return }
+        if case .template(let old) = draft, case .template(let new) = value { templateAssistEdits.record(from: old, to: new) }
         draft = value; confirmation = nil; issue = nil; exampleSaved = false
     }
-    public func discardChanges() { draft = baseline; confirmation = nil; issue = nil; exampleSaved = false }
+    public func discardChanges() { draftIdentity = UUID(); templateAssistEdits = .init(); draft = baseline; confirmation = nil; issue = nil; exampleSaved = false }
     public func cancelConfirmation() { confirmation = nil }
     public func leaveScreen() { invalidate() }
     public func load() async {
@@ -166,6 +170,7 @@ public struct MerchantOperationsConfirmation: Identifiable, Equatable {
         do {
             try await reader.saveReviewed(value.draft, baseline: value.baseline)
             guard !Task.isCancelled, operation == generation, reader.scope == value.scope, reader.isAuthenticated else { return }
+            draftIdentity = UUID(); templateAssistEdits = .init()
             isLocked = false; baseline = value.draft; draft = value.draft; document = .draft(value.draft); exampleSaved = reader.isOfflineExample; issue = reader.isOfflineExample ? nil : .key("merchant.operations.acknowledged")
         } catch {
             if error as? MerchantOperationsFailure == .notSent { isLocked = false }

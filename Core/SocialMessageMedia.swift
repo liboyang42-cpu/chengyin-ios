@@ -26,8 +26,10 @@ public struct SocialMessageMediaService {
     public static let maximumBytes = 12 * 1024 * 1024
     private let approvedOrigins: Set<String>
     private let transport: any HTTPTransport
-    public init(approvedOrigins: Set<String>, transport: any HTTPTransport) {
-        self.approvedOrigins = approvedOrigins; self.transport = transport
+    private let authorize: (@MainActor (SocialMessageMedia) async throws -> Void)?
+    public init(approvedOrigins: Set<String>, transport: any HTTPTransport,
+                authorize: (@MainActor (SocialMessageMedia) async throws -> Void)? = nil) {
+        self.approvedOrigins = approvedOrigins; self.transport = transport; self.authorize = authorize
     }
     public static func origin(_ url: URL) -> String? {
         guard let c = URLComponents(url: url, resolvingAgainstBaseURL: false), c.scheme?.lowercased() == "https", let host = c.host, c.user == nil, c.password == nil else { return nil }
@@ -35,6 +37,8 @@ public struct SocialMessageMediaService {
     }
     public func image(_ media: SocialMessageMedia) async throws -> Data {
         guard let origin = Self.origin(media.url), approvedOrigins.contains(origin) else { throw SocialMediaFailure.originNotApproved }
+        try Task.checkCancellation()
+        try await authorize?(media)
         try Task.checkCancellation()
         var request = URLRequest(url: media.url)
         request.httpMethod = "GET"; request.httpShouldHandleCookies = false
@@ -52,6 +56,10 @@ public struct SocialMessageMediaService {
         let gif = prefix.starts(with: Array("GIF87a".utf8)) || prefix.starts(with: Array("GIF89a".utf8))
         let webp = prefix.count >= 12 && Array(prefix[0..<4]) == Array("RIFF".utf8) && Array(prefix[8..<12]) == Array("WEBP".utf8)
         guard jpeg || png || gif || webp else { throw SocialMediaFailure.notImage }
+        // The production factory rechecks current conversation access and exact URL.
+        // Bytes never reach the view if a message is removed or permission is lost.
+        try await authorize?(media)
+        try Task.checkCancellation()
         return data
     }
 }
@@ -62,17 +70,45 @@ public struct SocialMessageMediaService {
     func image(_ media: SocialMessageMedia, expectedIdentity: MessagingReadIdentity) async throws -> Data
 }
 @MainActor public final class SocialMessageMediaReader: SocialMessageMediaReading {
-    private let service: SocialMessageMediaService?
+    private let serviceProvider: () -> SocialMessageMediaService?
     private let currentIdentity: () -> MessagingReadIdentity?
+    private let currentContext: () -> RuntimeDependencyContext?
+    private let requiresContext: Bool
+    private let onUnauthorized: (MessagingReadIdentity) -> Void
     public var identity: MessagingReadIdentity? { currentIdentity() }
-    public var isConfigured: Bool { service != nil }
+    public var isConfigured: Bool { (!requiresContext || currentContext() != nil) && serviceProvider() != nil }
     public var isOfflineExample: Bool { false }
-    public init(service: SocialMessageMediaService?, currentIdentity: @escaping () -> MessagingReadIdentity?) { self.service = service; self.currentIdentity = currentIdentity }
+    public init(service: SocialMessageMediaService?, currentIdentity: @escaping () -> MessagingReadIdentity?,
+                onUnauthorized: @escaping (MessagingReadIdentity) -> Void = { _ in }) {
+        self.serviceProvider = { service }; self.currentIdentity = currentIdentity; self.onUnauthorized = onUnauthorized
+        self.currentContext = { nil }; self.requiresContext = false
+    }
+    public init(serviceProvider: @escaping () -> SocialMessageMediaService?, currentIdentity: @escaping () -> MessagingReadIdentity?,
+                currentContext: @escaping () -> RuntimeDependencyContext?,
+                onUnauthorized: @escaping (MessagingReadIdentity) -> Void = { _ in }) {
+        self.serviceProvider = serviceProvider; self.currentIdentity = currentIdentity; self.onUnauthorized = onUnauthorized
+        self.currentContext = currentContext; self.requiresContext = true
+    }
     public func image(_ media: SocialMessageMedia, expectedIdentity: MessagingReadIdentity) async throws -> Data {
-        guard identity == expectedIdentity else { throw APIError.unauthorized }
-        guard let service else { throw APIError.notConfigured }
-        let data = try await service.image(media)
         try Task.checkCancellation()
-        guard identity == expectedIdentity else { throw CancellationError() }; return data
+        guard identity == expectedIdentity else { throw APIError.unauthorized }
+        let context = currentContext()
+        guard !requiresContext || context != nil else { throw APIError.notConfigured }
+        guard let service = serviceProvider() else { throw APIError.notConfigured }
+        do {
+            let data = try await service.image(media)
+            // Final MainActor check covers the window after the service's last
+            // transport/readback check, including unchanged account/epoch identities.
+            try Task.checkCancellation()
+            guard currentContext() == context, identity == expectedIdentity else { throw CancellationError() }
+            return data
+        } catch {
+            guard !Task.isCancelled, currentContext() == context, identity == expectedIdentity else { throw CancellationError() }
+            if error as? APIError == .unauthorized || (error as? MessagingReadFailure)?.isUnauthorized == true {
+                onUnauthorized(expectedIdentity)
+                throw APIError.unauthorized
+            }
+            throw error
+        }
     }
 }

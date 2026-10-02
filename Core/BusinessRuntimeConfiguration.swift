@@ -8,7 +8,7 @@ public enum BusinessRuntimeFeature: Hashable {
     case imStart, imRead, imMute, imSend, imUpload
     case imPollResult, imPollCreate, imPollVote, imPollClose, clubChat
     case publishingRead, publishingWrite, projectRead, projectWrite, directVerification
-    case publishingAIQuota, publishingAITheme, publishingAIClub
+    case publishingAIQuota, publishingAITheme, publishingAIClub, publishingAITemplate
     case topicSelfPlayRead, topicSelfPlayCreate, topicSelfPlayPay, topicSelfPlayConsentRead, topicSelfPlayConsentWrite
 }
 public struct BusinessRuntimeRoute: Hashable {
@@ -145,6 +145,7 @@ public extension BusinessRuntimeFeature {
         case .publishingAIQuota: paths = ["api/ai/theme/draft/quota"]
         case .publishingAITheme: paths = ["api/ai/theme/draft"]
         case .publishingAIClub: paths = ["api/ai/club/design"]
+        case .publishingAITemplate: paths = ["api/ai/template/fill"]
         case .publishingWrite: paths = ["api/activity/publish", "api/topic/create", "api/topic/delete", "api/topic/update_user_status", "api/activity/delete", "api/activity/update_publish_status", "api/template/delete", "api/template/updateLibraryStatus"]
         case .projectRead: paths = ["api/publish/home", "api/topic/edit-detail"]
         case .projectWrite: paths = ["api/topic/create", "api/topic/update", "api/topic/v2/create", "api/topic/v2/update"]

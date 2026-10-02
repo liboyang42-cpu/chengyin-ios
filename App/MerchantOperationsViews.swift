@@ -93,13 +93,14 @@ struct MerchantOperationsDocumentView: View {
     let reader: any MerchantOperationsReading
     let destination: MerchantOperationsDestination
     let imageHost: MerchantRetainedImageHost?
+    var templateAssistFactory: ((MerchantOperationsCoordinator) -> MerchantTemplateAssistFlow)? = nil
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dismiss) private var dismiss
     @StateObject private var model: MerchantOperationsViewModel
     @State private var confirmDiscard = false
     @State private var confirmReload = false
-    init(reader: any MerchantOperationsReading, destination: MerchantOperationsDestination, imageHost: MerchantRetainedImageHost? = nil) {
-        self.reader = reader; self.destination = destination; self.imageHost = imageHost
+    init(reader: any MerchantOperationsReading, destination: MerchantOperationsDestination, imageHost: MerchantRetainedImageHost? = nil, templateAssistFactory: ((MerchantOperationsCoordinator) -> MerchantTemplateAssistFlow)? = nil) {
+        self.reader = reader; self.destination = destination; self.imageHost = imageHost; self.templateAssistFactory = templateAssistFactory
         _model = StateObject(wrappedValue: .init(reader: reader, destination: destination, imageHost: imageHost))
     }
     private var coordinator: MerchantOperationsCoordinator { model.coordinator }
@@ -108,9 +109,9 @@ struct MerchantOperationsDocumentView: View {
             if coordinator.isCurrent, let document = coordinator.document {
                 switch document {
                 case .draft:
-                    MerchantOperationsEditor(model: model, imageContext: model.imageContext)
+                    MerchantOperationsEditor(model: model, templateAssistFactory: templateAssistFactory, imageContext: model.imageContext)
                 case .cityNodes(let catalog): MerchantOperationsCityView(catalog: catalog)
-                case .templates(let rows): MerchantOperationsTemplatesView(reader: reader, rows: rows, imageHost: imageHost)
+                case .templates(let rows): MerchantOperationsTemplatesView(reader: reader, rows: rows, imageHost: imageHost, templateAssistFactory: templateAssistFactory)
                 case .assets(let resources): MerchantOperationsAssetsView(resources: resources)
                 }
             } else if let issue = coordinator.issue, coordinator.loadedScope == reader.scope {
@@ -180,16 +181,17 @@ private struct MerchantOperationsTemplatesView: View {
     let reader: any MerchantOperationsReading
     let rows: [MerchantTemplateRecord]
     let imageHost: MerchantRetainedImageHost?
+    var templateAssistFactory: ((MerchantOperationsCoordinator) -> MerchantTemplateAssistFlow)? = nil
     var body: some View {
         ScrollView {
             LazyVStack(spacing: 18) {
                 MerchantOperationsBoundary(isExample: reader.isOfflineExample)
                 Text("merchant.operations.templatePageLimit").font(.footnote).foregroundStyle(.secondary)
-                NavigationLink("merchant.operations.newTemplate") { MerchantOperationsDocumentView(reader: reader, destination: .template(nil), imageHost: imageHost) }
+                NavigationLink("merchant.operations.newTemplate") { MerchantOperationsDocumentView(reader: reader, destination: .template(nil), imageHost: imageHost, templateAssistFactory: templateAssistFactory) }
                     .accessibilityIdentifier("merchant.operations.newTemplate")
                 if rows.isEmpty { ContentUnavailableView("merchant.operations.empty", systemImage: "square.grid.2x2") }
                 ForEach(rows) { row in
-                    NavigationLink { MerchantOperationsDocumentView(reader: reader, destination: .template(row.id), imageHost: imageHost) } label: {
+                    NavigationLink { MerchantOperationsDocumentView(reader: reader, destination: .template(row.id), imageHost: imageHost, templateAssistFactory: templateAssistFactory) } label: {
                         QuestifyImageEntityCard(imageSource: reader.isOfflineExample ? nil : row.imgUrl, title: row.title, subtitle: row.description, fallbackTitle: "merchant.operations.untitled", minimumHeight: 230) {
                             Text(LocalizedStringKey(templateStatus(row.status)))
                             if let method = row.validationMethod.flatMap(MerchantTemplateMethod.init(rawValue:)) { Text(LocalizedStringKey(method.titleKey)) }

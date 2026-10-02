@@ -26,9 +26,17 @@ import SwiftUI
         if query.mode == .nearby && (query.cityCode ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { throw SquareReadFailure.cityRequired }
         if scenario == .pageFailure && cursor != nil && !feedPageFailed { feedPageFailed = true; throw APIError.httpStatus(503) }
         if scenario == .empty || query.keyword?.lowercased() == "missing" { return .init(items: [], hasMore: false) }
-        let items = try (cursor == nil ? [701, 702] : [702, 703]).map { try SquareSyntheticFixtures.post(id: $0) }
+        let items = try (cursor == nil ? [701, 702] : [702, 703]).map { try SquareSyntheticFixtures.post(id: $0).qualified(as: .communityV1) }
         return .init(items: items, hasMore: cursor == nil,
                      nextCursor: scenario == .invalidCursor ? nil : (cursor == nil ? SquareCursor(id: 702, score: 10) : nil))
+    }
+    func squareDetail(route: SquareContentRoute) async throws -> SquarePost {
+        let value = try await squareDetail(id: route.id)
+        return value.qualified(as: route.generation)
+    }
+    func squareComments(route: SquareContentRoute, pageNumber: Int) async throws -> SquareCommentPage {
+        let value = try await squareComments(postID: route.id, pageNumber: pageNumber)
+        return .init(items: value.items.map { $0.qualified(as: route.generation) }, pageNumber: value.pageNumber, pageSize: value.pageSize, hasMore: value.hasMore)
     }
     func squareDetail(id: Int) async throws -> SquarePost {
         try await check()

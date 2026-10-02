@@ -3,6 +3,8 @@ import SwiftUI
 @MainActor
 struct MerchantOperationsEditor: View {
     @ObservedObject var model: MerchantOperationsViewModel
+    var templateAssistFactory: ((MerchantOperationsCoordinator) -> MerchantTemplateAssistFlow)? = nil
+    @State private var assist: MerchantTemplateAssistPresentation?
     var imageContext: ((MerchantImageField) -> RetainedImageSelectionContext?)? = nil
     private var coordinator: MerchantOperationsCoordinator { model.coordinator }
     private var isExample: Bool { coordinator.reader.isOfflineExample }
@@ -25,6 +27,7 @@ struct MerchantOperationsEditor: View {
         }
         .disabled(coordinator.isBusy)
         .accessibilityIdentifier("merchant.operations.editor")
+        .sheet(item: $assist) { presentation in MerchantTemplateAssistSheet(document: model, flow: presentation.flow) }
     }
     @ViewBuilder private func fields(_ draft: MerchantOperationsDraft) -> some View {
         switch draft {
@@ -117,6 +120,13 @@ struct MerchantOperationsEditor: View {
             }
             mediaSection("merchant.operations.avatar", field: .avatar)
         case .template(let value):
+            Section {
+                Button("merchant.assist.title", systemImage: "sparkles") {
+                    let flow = templateAssistFactory?(coordinator) ?? MerchantTemplateAssistFlow(coordinator: coordinator, client: nil)
+                    assist = .init(flow: flow)
+                }.disabled(!coordinator.isCurrent || coordinator.isLocked || coordinator.confirmation != nil)
+                    .accessibilityIdentifier("merchant.assist.open")
+            }
             MerchantOperationsMediaPreview(source: value.imgURL, title: "merchant.operations.cover", isExample: isExample)
             Section("merchant.operations.template") {
                 templateField("merchant.operations.titleField", \.title, "title")

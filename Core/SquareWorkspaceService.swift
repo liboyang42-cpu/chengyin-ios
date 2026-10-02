@@ -62,11 +62,13 @@ import FoundationNetworking
             return .init(id: id, name: name, cityCode: (row["city_code"] ?? row["cityCode"]) as? String)
         }
     }
-    public func detail(postID: Int, token: String) async throws -> SquareWorkspacePost {
+    public func detail(postID: Int, lane: SquareWorkspaceLane = .communityV1, token: String) async throws -> SquareWorkspacePost {
         guard postID > 0 else { throw SquareWorkspaceFailure.invalid }
-        let r = try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent("api/creativesquare/info"), fields: ["id": String(postID)], token: token)
+        let r = lane == .legacy
+            ? try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent("api/creativesquare/info"), fields: ["id": String(postID)], token: token)
+            : try request("GET", "api/v1/community/posts/\(postID)", token: token)
         let root = try await send(r, mutation: false)
-        let post = try SquareWorkspacePost(data: objectData(root["data"]))
+        let post = try SquareWorkspacePost(data: objectData(root["data"]), lane: lane)
         guard post.id == postID else { throw SquareWorkspaceFailure.malformed }; return post
     }
     public func legacyRequest(draft: SquareWorkspaceDraft, token: String) throws -> URLRequest {
@@ -118,21 +120,26 @@ import FoundationNetworking
         let reference = draft.reference
         let references: [[String: Any]] = reference.map { [["referenceType": $0.type, "referenceId": $0.id, "snapshotJson": "{}", "privacySnapshot": "PUBLIC_SAFE"]] } ?? []
         var payload: [String: Any] = ["clientRequestId": "post-\(draft.workflowID)", "communityId": draft.communityID as Any? ?? NSNull(), "postType": reference?.type == "ACTIVITY" ? "ACTIVITY_RECAP" : reference?.type == "ROUTE" ? "ROUTE_DISCOVERY" : "MOMENT", "body": draft.body.trimmingCharacters(in: .whitespacesAndNewlines), "audience": draft.audience, "commentPolicy": draft.commentPolicy, "replyApprovalEnabled": draft.replyApprovalEnabled ? 1 : 0, "slowModeSeconds": draft.slowModeSeconds, "locationPrecision": (draft.address ?? "").isEmpty ? "NONE" : "CITY", "cityCode": draft.cityCode as Any? ?? NSNull(), "poiName": draft.address as Any? ?? NSNull(), "disclosureType": draft.disclosureType, "safetyLabels": draft.safetyLabels, "guidelineVersionId": guidelineID, "mediaIds": ids, "topicCodes": reference?.type == "TOPIC" ? [String(reference!.id)] : [], "mentionedMemberIds": draft.mentionedMemberIDs, "references": references]
-        if draft.postID != nil { payload["expectedVersion"] = draft.expectedVersion }
+        if draft.postID != nil {
+            guard let version = draft.expectedVersion else { throw SquareWorkspaceFailure.invalid }
+            payload["expectedVersion"] = version
+        }
         let path = "api/v1/community/posts" + (draft.postID.map { "/\($0)" } ?? "")
         let root = try await send(request(draft.postID == nil ? "POST" : "PATCH", path, token: token, body: payload), mutation: true)
         do { return try SquareWorkspacePost(data: objectData(root["data"])) } catch { throw SquareWorkspaceFailure.unknown }
     }
     public func publish(post: SquareWorkspacePost, workflowID: String, token: String) async throws -> SquareWorkspacePost {
-        guard post.lifecycle == "DRAFT", workflowID.count >= 8 else { throw SquareWorkspaceFailure.invalid }
-        let root = try await send(request("POST", "api/v1/community/posts/\(post.id)/publish", token: token, body: ["expectedVersion": post.version, "requestId": "publish-\(workflowID)"]), mutation: true)
+        guard post.lane == .communityV1, let version = post.version, version >= 0,
+              post.lifecycle == "DRAFT", workflowID.count >= 8 else { throw SquareWorkspaceFailure.invalid }
+        let root = try await send(request("POST", "api/v1/community/posts/\(post.id)/publish", token: token, body: ["expectedVersion": version, "requestId": "publish-\(workflowID)"]), mutation: true)
         do {
             let result = try SquareWorkspacePost(data: objectData(root["data"]))
             guard result.id == post.id else { throw SquareWorkspaceFailure.unknown }; return result
         } catch { throw SquareWorkspaceFailure.unknown }
     }
     public func withdrawLocation(post: SquareWorkspacePost, requestID: String, token: String) async throws {
-        guard requestID.hasPrefix("location-withdraw-") else { throw SquareWorkspaceFailure.invalid }
-        _ = try await send(request("DELETE", "api/v1/community/posts/\(post.id)/location", token: token, body: ["expectedVersion": post.version, "requestId": requestID]), mutation: true)
+        guard post.lane == .communityV1, let version = post.version, version >= 0,
+              requestID.hasPrefix("location-withdraw-") else { throw SquareWorkspaceFailure.invalid }
+        _ = try await send(request("DELETE", "api/v1/community/posts/\(post.id)/location", token: token, body: ["expectedVersion": version, "requestId": requestID]), mutation: true)
     }
 }

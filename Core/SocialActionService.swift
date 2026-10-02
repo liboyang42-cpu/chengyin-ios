@@ -3,8 +3,8 @@ import Foundation
 import FoundationNetworking
 #endif
 
-/// Dormant source-contract adapter. The app's normal factory never constructs this
-/// writer. It is exercised using injected fake transports, not live communications.
+/// Source-contract adapter. Normal member actions require SocialMemberActionFactory's
+/// independent grants, durable lock and readback. Square actions remain separately gated.
 public struct SocialActionService {
     private let builder: SocialActionRequestBuilder
     private let transport: any HTTPTransport

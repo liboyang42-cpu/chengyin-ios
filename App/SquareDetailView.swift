@@ -2,13 +2,17 @@ import SwiftUI
 
 @MainActor struct SquareDetailView: View {
     let id: Int
+    var contentGeneration: SquareContentGeneration = .legacySquare
     let reader: any SquareReading
     var accountReader: (any SocialAccountReading)? = nil
     var actions: SocialActionCoordinator? = nil
     var governanceContext: SquareGovernanceContext? = nil
     var workspace: SquareWorkspaceCoordinator? = nil
+    @Environment(\.squareReportContext) private var reportContext
+    @State private var reportTarget: ReportRoute?
+    private struct ReportRoute: Identifiable { let id = UUID(); let target: SquareReportTarget }
     @State private var showsWorkspaceEdit = false
-    private struct EditorRoute: Identifiable { let id = UUID(); let purpose: SocialEditorPurpose; let target: SocialActionTarget; let text: String }
+    private struct EditorRoute: Identifiable { let id = UUID(); let purpose: SocialEditorPurpose; let target: SocialActionTarget; let text: String; var enabled = true }
     @State private var editor: EditorRoute?
     @State private var post: SquarePost?
     @State private var detailIssue: Error?
@@ -18,8 +22,8 @@ import SwiftUI
     @State private var commentsLoading = false
     @State private var generation = 0
     @State private var loadedKey: Key?
-    private struct Key: Hashable { let id: Int; let scope: UUID; let configured: Bool }
-    private var key: Key { Key(id: id, scope: reader.scope, configured: reader.isConfigured) }
+    private struct Key: Hashable { let id: Int; let generation: SquareContentGeneration; let scope: UUID; let configured: Bool }
+    private var key: Key { Key(id: id, generation: contentGeneration, scope: reader.scope, configured: reader.isConfigured) }
     var body: some View {
         List {
             if let governanceContext { SquareGovernanceEntryView(context: governanceContext) }
@@ -60,10 +64,14 @@ import SwiftUI
         }
         .appNavigationTitle("square.detail")
         .sheet(item: $editor) { item in
-            if let actions { NavigationStack { SocialActionEditorView(purpose: item.purpose, target: item.target, coordinator: actions, initialText: item.text) }.id(actions.identity) }
+            if let actions { NavigationStack { SocialActionEditorView(purpose: item.purpose, target: item.target, coordinator: actions, initialText: item.text, contentGeneration: contentGeneration, initialEnabled: item.enabled) }.id(actions.identity) }
+        }
+        .sheet(item: $reportTarget) { item in
+            NavigationStack { SquareReportView(target: item.target, context: reportContext) }
+                .presentationDetents([.large])
         }
         .sheet(isPresented: $showsWorkspaceEdit) {
-            if let workspace { NavigationStack { SquareWorkspaceView(coordinator: workspace, initialPostID: id) }.id(workspace.session) }
+            if let workspace { NavigationStack { SquareWorkspaceView(coordinator: workspace, initialPostID: id, initialLane: contentGeneration == .communityV1 ? .communityV1 : .legacy) }.id(workspace.session) }
         }
         .task(id: key) { await reload() }
         .refreshable { await reload() }
@@ -76,11 +84,18 @@ import SwiftUI
             Menu("social.actions") {
                 Button("social.editor.like") { editor = .init(purpose: .like, target: .post(post.id), text: "") }
                 Button("social.editor.bookmark") { editor = .init(purpose: .bookmark, target: .post(post.id), text: "") }
+                    .disabled(post.generation != .communityV1)
                 if post.memberID == actions.identity.accountID {
                     Button("social.editor.editPost") { if workspace != nil { showsWorkspaceEdit = true } else { editor = .init(purpose: .editPost, target: .post(post.id), text: post.contents ?? "") } }
+                        .disabled(contentGeneration == .communityV1 && workspace == nil)
                 }
-                Button("social.editor.report") { editor = .init(purpose: .report, target: .post(post.id), text: "") }
+                Button("social.editor.report") {
+                    if post.generation == .legacySquare { editor = .init(purpose: .report, target: .post(post.id), text: "") }
+                    else if let target = try? SquareReportTarget(post: post) { reportTarget = .init(target: target) }
+                }.disabled(post.generation == .unknown)
+                    .accessibilityIdentifier("squareReport.postEntry")
             }.accessibilityIdentifier("social.post.actions")
+            if post.generation == .legacySquare { Text("squareReport.legacyBookmarkBoundary").font(.footnote).foregroundStyle(.secondary) }
         } else { Text("social.signIn").font(.footnote) }
     }
     private func commentRow(_ comment: SquareComment) -> some View {
@@ -93,8 +108,12 @@ import SwiftUI
             if let actions, actions.identity.accountID != nil {
                 Menu("social.actions") {
                     Button("social.reply") { editor = .init(purpose: .comment, target: .comment(postID: id, commentID: comment.id), text: "") }.disabled(post?.viewerCanComment != true)
-                    Button("social.editor.commentLike") { editor = .init(purpose: .commentLike, target: .comment(postID: id, commentID: comment.id), text: "") }
-                    Button("social.editor.report") { editor = .init(purpose: .report, target: .comment(postID: id, commentID: comment.id), text: "") }
+                    Button("social.editor.commentLike") { editor = .init(purpose: .commentLike, target: .comment(postID: id, commentID: comment.id), text: "", enabled: comment.isLiked == 0) }
+                    Button("social.editor.report") {
+                        if comment.generation == .legacySquare { editor = .init(purpose: .report, target: .comment(postID: id, commentID: comment.id), text: "") }
+                        else if let post, let target = try? SquareReportTarget(post: post, comment: comment) { reportTarget = .init(target: target) }
+                    }.disabled(comment.generation == .unknown)
+                        .accessibilityIdentifier("squareReport.commentEntry.\(comment.id)")
                 }.accessibilityIdentifier("social.comment.actions.\(comment.id)")
             }
             if let name = comment.replyName(in: comments.items) { LabeledContent("square.replyTo", value: name).font(.caption) }
@@ -119,7 +138,7 @@ import SwiftUI
     private func loadDetail(operation: Int, captured: Key) async {
         defer { if operation == generation { detailLoading = false } }
         do {
-            let value = try await reader.squareDetail(id: id)
+            let value = try await reader.squareDetail(route: .init(id: id, generation: contentGeneration))
             try Task.checkCancellation()
             guard operation == generation, captured == key else { return }
             post = value
@@ -131,7 +150,7 @@ import SwiftUI
         commentsLoading = true; commentIssue = nil
         defer { if operation == generation { commentsLoading = false } }
         do {
-            let page = try await reader.squareComments(postID: id, pageNumber: comments.nextPage)
+            let page = try await reader.squareComments(route: .init(id: id, generation: contentGeneration), pageNumber: comments.nextPage)
             try Task.checkCancellation()
             guard operation == generation, captured == key else { return }
             try comments.accept(page)

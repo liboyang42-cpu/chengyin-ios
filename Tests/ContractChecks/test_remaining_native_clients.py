@@ -15,7 +15,10 @@ class RemainingNativeClients(unittest.TestCase):
   self.assertIn('throw MerchantNPCFailure.unknownOutcome',s)
  def test_normal_merchant_npc_host_is_dormant_and_scoped(self):
   s=read('App/AppSession.swift')
-  for text in ['private let merchantNPCGrants = MerchantNPCGrants()','context.installMerchantNPC(', 'merchantNPCClient(resource: true)', 'scopeForRow:', 'value.identity.merchantID == row.rawValue', 'namespace: namespace', 'journal: merchantNPCJournal']: self.assertIn(text,s)
+  for text in ['merchantPublicFactory?.chatGrants ?? .init()','context.installMerchantNPC(', 'merchantNPCClient(resource: true)', 'scopeForRow:', 'value.identity.merchantID == row.rawValue', 'namespace: namespace', 'journal: merchantNPCJournal']: self.assertIn(text,s)
+  self.assertIn('merchantPublicApproval: MerchantPublicProductionApproval? = nil',read('App/NativeRuntimeDependencies.swift'))
+  self.assertIn('merchantNPCGrants: MerchantNPCGrants = .init()',read('App/NativeRuntimeDependencies.swift'))
+  self.assertIn('supportsLegacyResources else',s)
   self.assertIn('operationsDestinationFactory:',read('App/AccountView.swift'))
  def test_normal_publisher_uses_fresh_existing_readers(self):
   s=read('App/AppSession.swift')

@@ -5,6 +5,7 @@ import UniformTypeIdentifiers
 @MainActor struct SquareWorkspaceView: View {
     @Bindable var coordinator: SquareWorkspaceCoordinator
     var initialPostID: Int? = nil
+    var initialLane: SquareWorkspaceLane = .legacy
     @State private var editReady = false
     @State private var draft = SquareWorkspaceDraft()
     @State private var lane: SquareWorkspaceLane = .legacy
@@ -29,10 +30,13 @@ import UniformTypeIdentifiers
                 Picker("squareWorkspace.lane", selection: $lane) {
                     Text("squareWorkspace.legacy").tag(SquareWorkspaceLane.legacy)
                     Text("squareWorkspace.v1").tag(SquareWorkspaceLane.communityV1)
-                }.accessibilityIdentifier("squareWorkspace.lane")
+                }.disabled(draft.postID != nil).accessibilityIdentifier("squareWorkspace.lane")
                 TextEditor(text: $draft.body).frame(minHeight: 130)
                     .accessibilityLabel(Text("squareWorkspace.body")).accessibilityIdentifier("squareWorkspace.body")
-                if let id = draft.postID { Text("#\(id) · v\(draft.expectedVersion) · \(draft.sourceLifecycle)") }
+                if let id = draft.postID {
+                    if let version = draft.expectedVersion, let lifecycle = draft.sourceLifecycle { Text("#\(id) · v\(version) · \(lifecycle)") }
+                    else { Text("#\(id)"); Text("squareWorkspace.legacy") }
+                }
             }
             Section("squareWorkspace.media") {
                 PhotosPicker(selection: $photo, matching: .images) { Label("squareWorkspace.selectPhoto", systemImage: "photo") }
@@ -76,7 +80,7 @@ import UniformTypeIdentifiers
                 TextField("squareWorkspace.city", text: Binding(get: { draft.cityCode ?? "" }, set: { draft.cityCode = $0.isEmpty ? nil : $0 }))
                 Text("squareWorkspace.noCoordinates").font(.caption)
                 Button("squareWorkspace.clearLocation") { draft.address = nil; draft.cityCode = nil }
-                if let post = coordinator.lastPost {
+                if let post = coordinator.lastPost, post.lane == .communityV1 {
                     Button("squareWorkspace.withdrawLocation", role: .destructive) { locationReview = post }
                         .disabled(!coordinator.grants.live).accessibilityIdentifier("squareWorkspace.withdraw")
                 }
@@ -88,6 +92,7 @@ import UniformTypeIdentifiers
                 Button("squareWorkspace.review") { run { _ = try await coordinator.prepare(draft, lane: lane); acceptsGuideline = false; showsReview = true } }
                     .disabled(!coordinator.grants.live || coordinator.busy).accessibilityIdentifier("squareWorkspace.review")
                 Button("squareWorkspace.newDraft") { draft = .init(); coordinator.cancelReview(); selectedBytes = nil; photo = nil }
+                    .accessibilityIdentifier("squareWorkspace.newDraft")
             }
             Section("squareWorkspace.localDrafts") {
                 ForEach(coordinator.local) { entry in
@@ -97,7 +102,8 @@ import UniformTypeIdentifiers
                             else { Text(verbatim: entry.draft.body) }
                         }.lineLimit(2)
                         if entry.pending { Text("squareWorkspace.pending").font(.caption) }
-                        Button("squareWorkspace.resume") { draft = entry.draft; lane = entry.lane; coordinator.cancelReview() }
+                        Button("squareWorkspace.resume") { run { let resumed = try await coordinator.resume(entry); draft = resumed; lane = entry.lane; coordinator.cancelReview() } }
+                            .accessibilityIdentifier("squareWorkspace.resume.\(entry.id)")
                         Button("squareWorkspace.discard", role: .destructive) { run { try coordinator.discard(entry) } }.disabled(entry.pending)
                     }.accessibilityIdentifier("squareWorkspace.local.\(entry.id)")
                 }
@@ -106,7 +112,7 @@ import UniformTypeIdentifiers
                 Button("squareWorkspace.refreshServer") { run { try await coordinator.loadServer() } }.disabled(!coordinator.grants.live)
                 ForEach(coordinator.server) { post in
                     VStack(alignment: .leading) {
-                        Text("#\(post.id) · v\(post.version) · \(post.lifecycle)")
+                        if let version = post.version, let lifecycle = post.lifecycle { Text("#\(post.id) · v\(version) · \(lifecycle)") }
                         Button("squareWorkspace.resume") { run { draft = try post.editableDraft(); lane = .communityV1 } }
                         Button("squareWorkspace.revisions") { run { let data = try await coordinator.revisions(postID: post.id); revisionsText = String(data: data, encoding: .utf8) ?? "" } }
                         Button("squareWorkspace.withdrawLocation", role: .destructive) { locationReview = post }
@@ -121,7 +127,7 @@ import UniformTypeIdentifiers
         .task(id: initialPostID) {
             do {
                 try coordinator.refreshLocal()
-                if let initialPostID { draft = try await coordinator.editableDraft(postID: initialPostID); editReady = true }
+                if let initialPostID { lane = initialLane; draft = try await coordinator.editableDraft(postID: initialPostID, lane: initialLane); editReady = true }
             } catch { issue = true }
         }
         .onChange(of: photo) { _, item in

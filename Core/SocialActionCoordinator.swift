@@ -3,8 +3,27 @@ import Foundation
 @MainActor public protocol SocialActionAccess: AnyObject {
     var identity: SocialAccountIdentity { get }
     var availability: SocialActionAvailability { get }
+    func availability(for command: SocialActionCommand, target: SocialActionTarget) -> SocialActionAvailability
+    func hasPending(target: SocialActionTarget) -> Bool
     func snapshot(target: SocialActionTarget) async throws -> SocialActionSnapshot
+    func snapshot(target: SocialActionTarget, generation: SquareContentGeneration?) async throws -> SocialActionSnapshot
     func perform(_ command: SocialActionCommand, snapshot: SocialActionSnapshot, expectedIdentity: SocialAccountIdentity) async throws -> SocialActionReceipt
+    func perform(_ command: SocialActionCommand, snapshot: SocialActionSnapshot, expectedIdentity: SocialAccountIdentity, isCurrent: @escaping () -> Bool) async throws -> SocialActionReceipt
+}
+public extension SocialActionAccess {
+    func availability(for command: SocialActionCommand, target: SocialActionTarget) -> SocialActionAvailability { availability }
+    func hasPending(target: SocialActionTarget) -> Bool { false }
+    func perform(_ command: SocialActionCommand, snapshot: SocialActionSnapshot, expectedIdentity: SocialAccountIdentity, isCurrent: @escaping () -> Bool) async throws -> SocialActionReceipt {
+        guard isCurrent() else { throw SocialActionWriteFailure.notSent }
+        return try await perform(command, snapshot: snapshot, expectedIdentity: expectedIdentity)
+    }
+}
+public extension SocialActionAccess {
+    func snapshot(target: SocialActionTarget, generation: SquareContentGeneration?) async throws -> SocialActionSnapshot {
+        let value = try await snapshot(target: target)
+        if let generation { guard value.post?.generation == generation else { throw SocialActionBlock.changed } }
+        return value
+    }
 }
 /// Read bridge cannot issue writes, even when an endpoint is configured.
 @MainActor public final class SocialDisabledActionAccess: SocialActionAccess {
@@ -14,6 +33,9 @@ import Foundation
     public let availability: SocialActionAvailability = .disabled
     public init(reader: any SquareReading, accountReader: any SocialAccountReading) { self.reader = reader; self.accountReader = accountReader }
     public func snapshot(target: SocialActionTarget) async throws -> SocialActionSnapshot {
+        try await snapshot(target: target, generation: .legacySquare)
+    }
+    public func snapshot(target: SocialActionTarget, generation: SquareContentGeneration?) async throws -> SocialActionSnapshot {
         guard identity.accountID != nil else { throw SocialActionBlock.signIn }
         guard target.isValid else { throw SocialActionBlock.invalid }
         let captured = identity, scope = reader.scope
@@ -23,12 +45,13 @@ import Foundation
             return .init(target: target, profile: profile)
         }
         guard let postID = target.postID else { return .init(target: target) }
-        let post = try await reader.squareDetail(id: postID)
+        let route = SquareContentRoute(id: postID, generation: generation ?? .legacySquare)
+        let post = try await reader.squareDetail(route: route)
         var selected: SquareComment?
         if let commentID = target.commentID {
             var pagination = SquareCommentPagination()
             while pagination.hasMore && selected == nil {
-                let page = try await reader.squareComments(postID: postID, pageNumber: pagination.nextPage)
+                let page = try await reader.squareComments(route: route, pageNumber: pagination.nextPage)
                 let previousCount = pagination.items.count
                 try pagination.accept(page)
                 selected = pagination.items.first { $0.id == commentID }
@@ -62,18 +85,20 @@ public enum SocialActionState: Equatable {
         switch self { case .preparing, .reviewing, .preflighting, .submitting, .outcomeUnknown: return true; default: return false }
     }
 }
-/// Session-owned memory. An unknown write locks its account/target across Back, relogin,
-/// role/epoch changes. A fresh read never converts an unknown result into success.
+/// Session-owned review state. Concrete production access also supplies durable unknown
+/// locks across relaunch/relogin. A fresh read never converts an unknown result into success.
 @MainActor public final class SocialActionCoordinator {
     private let access: any SocialActionAccess
-    private struct Key: Hashable { let accountID: Int; let target: SocialActionTarget }
+    private struct Key: Hashable { let accountID: Int; let target: SocialActionTarget; let generation: SquareContentGeneration? }
     private struct Record { let id: UUID; let identity: SocialAccountIdentity; let ownerID: UUID; var state: SocialActionState }
     private var records: [Key: Record] = [:]
     public var identity: SocialAccountIdentity { access.identity }
     public var availability: SocialActionAvailability { access.availability }
+    public func availability(for command: SocialActionCommand, target: SocialActionTarget) -> SocialActionAvailability { access.availability(for: command, target: target) }
     public init(access: any SocialActionAccess) { self.access = access }
-    private func key(_ target: SocialActionTarget, _ identity: SocialAccountIdentity) -> Key? {
-        guard let accountID = identity.accountID, accountID > 0 else { return nil }; return .init(accountID: accountID, target: target)
+    private func key(_ target: SocialActionTarget, _ identity: SocialAccountIdentity, generation: SquareContentGeneration? = nil) -> Key? {
+        guard let accountID = identity.accountID, accountID > 0 else { return nil }
+        return .init(accountID: accountID, target: target, generation: target.postID == nil ? nil : (generation ?? .legacySquare))
     }
     public func synchronizeSession() {
         for key in Array(records.keys) {
@@ -84,19 +109,22 @@ public enum SocialActionState: Equatable {
             }
         }
     }
-    public func state(target: SocialActionTarget) -> SocialActionState {
+    public func state(target: SocialActionTarget, generation: SquareContentGeneration? = nil) -> SocialActionState {
         synchronizeSession()
-        guard let key = key(target, identity) else { return .idle }; return records[key]?.state ?? .idle
+        guard let key = key(target, identity, generation: generation) else { return .idle }
+        if let record = records[key], record.state == .submitting { return .submitting }
+        if access.hasPending(target: target) { return .outcomeUnknown }
+        return records[key]?.state ?? .idle
     }
     public func prepare(_ command: SocialActionCommand, target: SocialActionTarget, ownerID: UUID, expectedIdentity: SocialAccountIdentity) async throws -> SocialActionReview {
         synchronizeSession()
-        guard identity == expectedIdentity, let key = key(target, identity) else { throw SocialActionBlock.signIn }
-        guard !state(target: target).locksForm else { throw SocialActionBlock.pending }
+        guard identity == expectedIdentity, let key = key(target, identity, generation: command.requiredGeneration) else { throw SocialActionBlock.signIn }
+        guard !state(target: target, generation: command.requiredGeneration).locksForm else { throw SocialActionBlock.pending }
         try Task.checkCancellation()
         let id = UUID()
         records[key] = .init(id: id, identity: identity, ownerID: ownerID, state: .preparing)
         do {
-            let snapshot = try await access.snapshot(target: target)
+            let snapshot = try await access.snapshot(target: target, generation: command.requiredGeneration)
             guard identity == expectedIdentity, records[key]?.id == id, records[key]?.state == .preparing, !Task.isCancelled else { throw SocialActionBlock.cancelled }
             try snapshot.validate(); try command.validate(target: target, snapshot: snapshot, identity: expectedIdentity)
             records[key]?.state = .reviewing
@@ -106,15 +134,15 @@ public enum SocialActionState: Equatable {
         }
     }
     public func cancel(_ review: SocialActionReview) {
-        guard let key = key(review.target, review.identity), records[key]?.id == review.id, records[key]?.state == .reviewing else { return }; records[key] = nil
+        guard let key = key(review.target, review.identity, generation: review.command.requiredGeneration), records[key]?.id == review.id, records[key]?.state == .reviewing else { return }; records[key] = nil
     }
     public func confirm(_ review: SocialActionReview) async {
-        guard let key = key(review.target, review.identity), records[key]?.id == review.id, records[key]?.state == .reviewing else { return }
+        guard let key = key(review.target, review.identity, generation: review.command.requiredGeneration), records[key]?.id == review.id, records[key]?.state == .reviewing else { return }
         guard identity == review.identity, !Task.isCancelled else { records[key] = nil; return }
-        guard availability == .syntheticOnly else { records[key]?.state = .notSent; return }
+        guard availability(for: review.command, target: review.target) != .disabled else { records[key]?.state = .notSent; return }
         records[key]?.state = .preflighting
         do {
-            let fresh = try await access.snapshot(target: review.target)
+            let fresh = try await access.snapshot(target: review.target, generation: review.command.requiredGeneration)
             guard identity == review.identity, records[key]?.id == review.id, records[key]?.state == .preflighting, !Task.isCancelled else { throw SocialActionBlock.cancelled }
             try fresh.validate(); try review.command.validate(target: review.target, snapshot: fresh, identity: review.identity)
             guard fresh.sameContext(as: review.snapshot) else { throw SocialActionBlock.changed }
@@ -125,7 +153,10 @@ public enum SocialActionState: Equatable {
         records[key]?.state = .submitting
         let outcome: SocialActionState
         do {
-            let receipt = try await access.perform(review.command, snapshot: review.snapshot, expectedIdentity: review.identity)
+            let receipt = try await access.perform(review.command, snapshot: review.snapshot, expectedIdentity: review.identity, isCurrent: { [weak self] in
+                guard let self else { return false }
+                return self.identity == review.identity && self.records[key]?.id == review.id && self.records[key]?.state == .submitting
+            })
             outcome = Task.isCancelled ? .outcomeUnknown : .acknowledged(receipt)
         } catch SocialActionWriteFailure.notSent { outcome = .notSent }
         catch SocialActionWriteFailure.rejected { outcome = .rejected }
@@ -135,8 +166,8 @@ public enum SocialActionState: Equatable {
             switch outcome { case .notSent, .rejected: records[key] = nil; default: records[key]?.state = .outcomeUnknown }
         } else { records[key]?.state = outcome }
     }
-    public func leaveScreen(target: SocialActionTarget, expectedIdentity: SocialAccountIdentity, ownerID: UUID) {
-        guard let key = key(target, expectedIdentity), let record = records[key], record.identity == expectedIdentity, record.ownerID == ownerID else { return }
+    public func leaveScreen(target: SocialActionTarget, expectedIdentity: SocialAccountIdentity, ownerID: UUID, generation: SquareContentGeneration? = nil) {
+        guard let key = key(target, expectedIdentity, generation: generation), let record = records[key], record.identity == expectedIdentity, record.ownerID == ownerID else { return }
         switch record.state {
         case .preparing, .reviewing, .preflighting: records[key] = nil
         case .submitting: records[key]?.state = .outcomeUnknown

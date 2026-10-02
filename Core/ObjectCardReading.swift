@@ -60,34 +60,53 @@ public struct ObjectCardSession: Equatable {
     func list(category: ObjectCardCategory) async throws -> ObjectCardCollection
 }
 @MainActor public final class ObjectCardSessionReader: ObjectCardReading {
-    private let service: ObjectCardService?
+    private let serviceProvider: () -> ObjectCardService?
     private let currentSession: () -> ObjectCardSession?
+    private let currentContext: () -> RuntimeDependencyContext?
+    private let requiresContext: Bool
+    private var contextSnapshot: RuntimeDependencyContext?
     private let onUnauthorized: (ObjectCardSession) -> Void
     private var snapshot: ObjectCardSession?
     private var stamp = UUID()
-    public var isConfigured: Bool { service != nil }
+    public var isConfigured: Bool { (!requiresContext || currentContext() != nil) && serviceProvider() != nil }
     public var isAuthenticated: Bool { currentSession() != nil }
     public var scope: UUID {
-        let current = currentSession()
-        if current != snapshot { snapshot = current; stamp = UUID() }
+        let current = currentSession(), context = currentContext()
+        if current != snapshot || context != contextSnapshot {
+            snapshot = current; contextSnapshot = context; stamp = UUID()
+        }
         return stamp
     }
     public init(service: ObjectCardService?, currentSession: @escaping () -> ObjectCardSession?,
                 onUnauthorized: @escaping (ObjectCardSession) -> Void = { _ in }) {
-        self.service = service; self.currentSession = currentSession; self.onUnauthorized = onUnauthorized
+        self.serviceProvider = { service }; self.currentSession = currentSession; self.onUnauthorized = onUnauthorized
+        self.currentContext = { nil }; self.requiresContext = false; contextSnapshot = nil
+        snapshot = currentSession()
+    }
+    /// Resolve approval per request so a lazy reader first opened while signed out can
+    /// later bind the current session without retaining a previous account's transport.
+    public init(serviceProvider: @escaping () -> ObjectCardService?, currentSession: @escaping () -> ObjectCardSession?,
+                currentContext: @escaping () -> RuntimeDependencyContext?,
+                onUnauthorized: @escaping (ObjectCardSession) -> Void = { _ in }) {
+        self.serviceProvider = serviceProvider; self.currentSession = currentSession; self.onUnauthorized = onUnauthorized
+        self.currentContext = currentContext; self.requiresContext = true; contextSnapshot = currentContext()
         snapshot = currentSession()
     }
     public func list(category: ObjectCardCategory) async throws -> ObjectCardCollection {
         guard let session = currentSession() else { throw APIError.unauthorized }
-        guard let service else { throw APIError.notConfigured }
+        let context = currentContext()
+        guard !requiresContext || context != nil else { throw APIError.notConfigured }
+        guard let service = serviceProvider() else { throw APIError.notConfigured }
         let captured = scope
         do {
             let result = try await service.list(category: category, token: session.token)
+            // This MainActor fence is after the nonisolated service has decoded. A
+            // transport-only check leaves a window for role/realm changes and old 401s.
             try Task.checkCancellation()
-            guard currentSession() == session, scope == captured else { throw CancellationError() }
+            guard currentContext() == context, currentSession() == session, scope == captured else { throw CancellationError() }
             return result
         } catch {
-            guard !Task.isCancelled, currentSession() == session, scope == captured else { throw CancellationError() }
+            guard !Task.isCancelled, currentContext() == context, currentSession() == session, scope == captured else { throw CancellationError() }
             if error as? APIError == .unauthorized { onUnauthorized(session) }
             throw error
         }

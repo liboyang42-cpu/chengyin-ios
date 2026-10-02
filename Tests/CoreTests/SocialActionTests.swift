@@ -41,7 +41,11 @@ private final class SocialWriteTransport: HTTPTransport {
                          comment: target.commentID.flatMap { id in try SquareSyntheticFixtures.comments().first { $0.id == id } })
     }
     private func request(_ command: SocialActionCommand, target: SocialActionTarget) throws -> URLRequest {
-        try builder().make(command, snapshot: snapshot(target), identity: identity, token: "synthetic-token")
+        let value: SocialActionSnapshot
+        if command.requiredGeneration == .communityV1 {
+            value = try .init(target: target, post: SquareReportFixtures.post(), comment: target.commentID.flatMap { id in try SquareReportFixtures.comments().first { $0.id == id } })
+        } else { value = try snapshot(target) }
+        return try builder().make(command, snapshot: value, identity: identity, token: "synthetic-token")
     }
     private func fields(_ request: URLRequest) -> String { String(data: request.httpBody ?? Data(), encoding: .utf8) ?? "" }
     private func prepare(_ coordinator: SocialActionCoordinator, access: SocialTestActionAccess, target: SocialActionTarget = .newPost, command: SocialActionCommand = .newPost(text: "Synthetic post"), owner: UUID = UUID()) async throws -> SocialActionReview {
@@ -89,10 +93,14 @@ private final class SocialWriteTransport: HTTPTransport {
         let comment = SocialActionTarget.comment(postID: 701, commentID: 802)
         let r = try request(.toggleCommentLike, target: comment)
         XCTAssertEqual(r.url?.path, "/fixture/api/comment/like"); XCTAssertFalse(fields(r).contains("enabled"))
-        for (target, path) in [(SocialActionTarget.post(701), "api/creativesquare/report"), (comment, "api/comment/report")] {
-            let report = try request(.report, target: target)
-            XCTAssertEqual(report.url?.path, "/fixture/\(path)"); XCTAssertFalse(fields(report).contains("reason")); XCTAssertFalse(fields(report).contains("evidence"))
-        }
+        let report = try request(.report, target: comment)
+        XCTAssertEqual(report.url?.path, "/fixture/api/comment/report"); XCTAssertFalse(fields(report).contains("reason"))
+        XCTAssertThrowsError(try request(.report, target: .post(701)))
+        let postReport = try request(.legacyPostReport(reason: "色情低俗"), target: .post(701))
+        XCTAssertEqual(postReport.url?.path, "/fixture/api/creativesquare/report")
+        XCTAssertTrue(fields(postReport).contains("name=\"reason\"\r\n\r\n色情低俗"))
+        XCTAssertThrowsError(try request(.legacyPostReport(reason: ""), target: .post(701)))
+
     }
     func testOwnerAndCommentPermissionsAreRevalidated() throws {
         let other = SocialAccountIdentity(accountID: 82, epoch: 1)

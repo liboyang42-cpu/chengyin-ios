@@ -1,0 +1,722 @@
+{
+  "squareReport.title": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Report content"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "举报内容"
+        }
+      }
+    }
+  },
+  "squareReport.reason": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Report reason"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "举报原因"
+        }
+      }
+    }
+  },
+  "squareReport.chooseReason": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Choose a reason"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请选择举报原因"
+        }
+      }
+    }
+  },
+  "squareReport.policyVersion": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Report policy version"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "举报规则版本"
+        }
+      }
+    }
+  },
+  "squareReport.description": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "What happened?"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请说明具体情况"
+        }
+      }
+    }
+  },
+  "squareReport.noAttachments": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Text only. Evidence attachments are not supported by this report contract."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "仅可提交文字。此举报接口暂不支持证据附件。"
+        }
+      }
+    }
+  },
+  "squareReport.noRemoval": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "A received report is not a moderation decision and does not mean the content was removed."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "收到举报不等于作出处置决定，也不代表内容已下架。"
+        }
+      }
+    }
+  },
+  "squareReport.synthetic": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Offline report example. Reasons, cases and outcomes are synthetic; nothing is sent externally."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "离线举报示例。原因、案件与结果为模拟数据，不会向外部发送。"
+        }
+      }
+    }
+  },
+  "squareReport.boundary": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reporting is not enabled for this service. Policy reads and report submissions remain disabled."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此服务尚未开放举报。举报规则读取和提交均保持关闭。"
+        }
+      }
+    }
+  },
+  "squareReport.emergency": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "If someone is in immediate danger, contact local emergency services. This report is not an emergency response channel."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "如有人正面临紧急危险，请联系当地紧急救助服务。举报不是紧急救援渠道。"
+        }
+      }
+    }
+  },
+  "squareReport.sourceLabels": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The exact policy labels are shown. English translations are supplementary."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "展示服务端规则原文；英文翻译仅作辅助说明。"
+        }
+      }
+    }
+  },
+  "squareReport.reviewWarning": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Check the content, reason, policy version and description before submitting."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "提交前请核对内容对象、原因、规则版本与情况说明。"
+        }
+      }
+    }
+  },
+  "squareReport.receipt": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Report case"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "举报案件"
+        }
+      }
+    }
+  },
+  "squareReport.caseID": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Case number"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "案件编号"
+        }
+      }
+    }
+  },
+  "squareReport.stage": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Server status"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务端状态"
+        }
+      }
+    }
+  },
+  "squareReport.acknowledged": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The server received this report."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务端已收到此举报。"
+        }
+      }
+    }
+  },
+  "squareReport.syntheticReceipt": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Synthetic case receipt. No real report was sent."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "模拟案件回执，未发送真实举报。"
+        }
+      }
+    }
+  },
+  "squareReport.refresh": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Check case status"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "查询案件状态"
+        }
+      }
+    }
+  },
+  "squareReport.locked": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This content has a submitted or unconfirmed report. Another submission is locked to avoid duplicates. Closing, relaunching or signing in again does not retry it."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此内容已有已提交或结果未确认的举报。为防重复，已锁定再次提交；关闭、重启或重新登录都不会重试。"
+        }
+      }
+    }
+  },
+  "squareReport.stale": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The content or report policy changed. Check the latest details and select a reason again. Nothing was submitted."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "内容或举报规则已变化。请核对最新信息并重新选择原因，尚未提交任何内容。"
+        }
+      }
+    }
+  },
+  "squareReport.invalid": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Choose a valid reason and enter a description of no more than 2,000 UTF-16 units. You cannot report your own comment."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请选择有效原因并填写不超过2000个UTF-16单元的说明；不能举报自己的评论。"
+        }
+      }
+    }
+  },
+  "squareReport.rejected": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The server rejected the report. No moderation outcome can be inferred."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务端拒绝了此举报，不能据此推断任何处置结果。"
+        }
+      }
+    }
+  },
+  "squareReport.failed": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Unable to load reporting information. Try again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "无法读取举报信息，请重试。"
+        }
+      }
+    }
+  },
+  "squareReport.reasonLabel.DANGEROUS": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Immediate physical danger or illegal activity"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "现实人身危险或违法行为"
+        }
+      }
+    }
+  },
+  "squareReport.reasonLabel.MINOR_SAFETY": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Child safety"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "未成年人安全"
+        }
+      }
+    }
+  },
+  "squareReport.reasonLabel.SELF_HARM": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Self-harm or suicide risk"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "自伤或自杀风险"
+        }
+      }
+    }
+  },
+  "squareReport.reasonLabel.SEXUAL_CONTENT": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Sexual content"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "色情低俗内容"
+        }
+      }
+    }
+  },
+  "squareReport.reasonLabel.HARASSMENT": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Abuse or harassment"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "人身攻击或骚扰"
+        }
+      }
+    }
+  },
+  "squareReport.reasonLabel.HATE": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Hate or discrimination"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "仇恨或歧视"
+        }
+      }
+    }
+  },
+  "squareReport.reasonLabel.FRAUD": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Fraud"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "诈骗"
+        }
+      }
+    }
+  },
+  "squareReport.reasonLabel.IMPERSONATION": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Impersonation"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "冒充他人"
+        }
+      }
+    }
+  },
+  "squareReport.reasonLabel.FALSE_INFORMATION": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "False information"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "虚假信息"
+        }
+      }
+    }
+  },
+  "squareReport.reasonLabel.SPAM": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Spam or external advertising"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "垃圾广告或站外导流"
+        }
+      }
+    }
+  },
+  "squareReport.reasonLabel.PRIVACY": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Privacy violation"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "隐私泄露"
+        }
+      }
+    }
+  },
+  "squareReport.reasonLabel.INTELLECTUAL_PROPERTY": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Intellectual property or stolen content"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "知识产权或内容盗用"
+        }
+      }
+    }
+  },
+  "squareReport.reasonLabel.OTHER": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Other"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "其他"
+        }
+      }
+    }
+  },
+  "squareReport.legacyHint": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Legacy post report: your selected reason is sent with the post ID. This does not create a versioned-policy case."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "旧版动态举报：内容编号与所选原因一起提交，不会生成版本化规则案件。"
+        }
+      }
+    }
+  },
+  "squareReport.legacyReason.0": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Illegal or prohibited content"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "含有违法违规内容"
+        }
+      }
+    }
+  },
+  "squareReport.legacyReason.1": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Sexual content"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "色情低俗"
+        }
+      }
+    }
+  },
+  "squareReport.legacyReason.2": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Abuse or harassment"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "人身攻击或骚扰"
+        }
+      }
+    }
+  },
+  "squareReport.legacyReason.3": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "False information or fraud"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "虚假信息或欺诈"
+        }
+      }
+    }
+  },
+  "squareReport.legacyReason.4": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Infringement of others’ rights"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "侵犯他人权益"
+        }
+      }
+    }
+  },
+  "squareReport.legacyReason.5": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Other"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "其他"
+        }
+      }
+    }
+  },
+  "squareReport.legacyLikeHint": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This legacy action toggles the current post like once. An unconfirmed result remains locked."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "旧版接口会切换一次当前动态点赞状态，结果未确认时继续保持锁定。"
+        }
+      }
+    }
+  },
+  "squareReport.legacyBookmarkBoundary": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Bookmarks use the versioned community contract. Legacy post IDs cannot be mapped to it safely."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "收藏使用新版社区接口，旧版动态编号不能安全地映射到该接口。"
+        }
+      }
+    }
+  }
+}

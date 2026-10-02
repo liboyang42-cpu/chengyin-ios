@@ -13,10 +13,14 @@ class SocialAccountSourceTests(unittest.TestCase):
   self.assertIn('identity.accountID != nil',value)
   app=self.read('App/AppSession.swift'); self.assertIn('self.currentSocialAccountSession == captured',app)
   self.assertIn('role: account.effectiveRole',app)
- def test_production_factory_never_constructs_dormant_writer_or_media_service(self):
+ def test_production_factory_uses_member_grants_and_requires_scoped_media_approval(self):
   app=self.read('App/AppSession.swift')
-  self.assertIn('SocialDisabledActionAccess(reader: squareReader, accountReader: socialAccountReader)',app)
-  self.assertIn('SocialMessageMediaReader(service: nil',app)
+  self.assertIn('SocialMemberActionFactory.make(',app)
+  self.assertIn('approvals: runtimeDependencies.socialMemberActionApprovals',app)
+  self.assertIn('lazy var socialMessageMediaReader = makeSocialMessageMediaReader()',app)
+  self.assertIn('socialReaderApproval: SocialReaderProductionApproval? = nil',self.read('App/NativeRuntimeDependencies.swift'))
+  production=self.read('Core/SocialReaderProduction.swift')
+  self.assertIn('approval.messageImages',production);self.assertIn('authorize: { try await readback.validate($0) }',production)
   self.assertNotIn('SocialActionService(',app);self.assertNotIn('SocialMessageMediaService(',app)
   access=self.read('Core/SocialActionCoordinator.swift')
   body=access.split('public func perform(',1)[1].split('\n}',1)[0]
@@ -32,7 +36,7 @@ class SocialAccountSourceTests(unittest.TestCase):
   value=self.read('Core/SocialActionContracts.swift')
   for required in ['"request_id": requestID','"reply_id": String(snapshot.target.commentID ?? 0)','"owner_type": "3"','"follow_member_id"','"target_member_id"','"APP_SQUARE"','fields["data_id"]','fields["data_type"]']:
    self.assertIn(required,value)
-  self.assertNotIn('"reason":',value);self.assertNotIn('"author_id":',value);self.assertNotIn('"latitude":',value)
+  self.assertIn('"reason": reason.trimmingCharacters',value);self.assertNotIn('"author_id":',value);self.assertNotIn('"latitude":',value)
  def test_unknown_action_locks_survive_navigation_and_account_epoch(self):
   value=self.read('Core/SocialActionCoordinator.swift')
   for required in ['accountID: Int; let target: SocialActionTarget','case .submitting, .outcomeUnknown: records[key]?.state = .outcomeUnknown','fresh.sameContext(as: review.snapshot)','records[key]?.id == review.id','ownerID == ownerID']:

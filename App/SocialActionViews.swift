@@ -9,9 +9,14 @@ public enum SocialEditorPurpose: String, Identifiable {
     let target: SocialActionTarget
     let coordinator: SocialActionCoordinator
     var initialText = ""
+    var contentGeneration: SquareContentGeneration = .legacySquare
+    var initialEnabled = true
     @Environment(\.dismiss) private var dismiss
     @State private var text = ""
     @State private var enabled = true
+    @State private var legacyReportReason: String?
+    private let legacyReasons = ["含有违法违规内容", "色情低俗", "人身攻击或骚扰", "虚假信息或欺诈", "侵犯他人权益", "其他"]
+    private var needsLegacyReason: Bool { purpose == .report && target.commentID == nil && contentGeneration == .legacySquare }
     @State private var ownerID = UUID()
     @State private var sessionIdentity: SocialAccountIdentity?
     @State private var review: SocialActionReview?
@@ -24,13 +29,13 @@ public enum SocialEditorPurpose: String, Identifiable {
     @FocusState private var textFocused: Bool
     private var hasDraft: Bool { hasText && text != initialText }
     private var hasText: Bool { [.createPost, .editPost, .comment].contains(purpose) }
-    private var state: SocialActionState { _ = revision; return coordinator.state(target: target) }
+    private var state: SocialActionState { _ = revision; return coordinator.state(target: target, generation: contentGeneration) }
     private var title: String { "social.editor.\(purpose.rawValue)" }
     var body: some View {
         Form {
             Section {
                 if coordinator.availability == .syntheticOnly { Text("social.offline").font(.footnote) }
-                else { Text("social.writesDisabled").font(.footnote) }
+                else if coordinator.availability(for: command(), target: target) == .disabled { Text("social.writesDisabled").font(.footnote) }
                 if coordinator.identity.accountID == nil { SocialIssueView(error: SocialActionBlock.signIn) }
                 if let memberID = target.memberID { LabeledContent("social.targetMember", value: String(memberID)) }
                 if let postID = target.postID { LabeledContent("social.targetPost", value: String(postID)) }
@@ -43,21 +48,34 @@ public enum SocialEditorPurpose: String, Identifiable {
                     if purpose == .editPost { Text("social.editPreservesMedia").font(.footnote).foregroundStyle(.secondary) }
                 }
             }
-            if purpose == .like || purpose == .bookmark {
+            if (purpose == .like && contentGeneration == .communityV1) || purpose == .bookmark || (purpose == .commentLike && contentGeneration == .communityV1) {
                 Section {
                     Toggle("social.actionEnabled", isOn: $enabled).disabled(state.locksForm)
                     Text("social.explicitActionHint").font(.footnote).foregroundStyle(.secondary)
                 }
             }
+            if purpose == .like && contentGeneration == .legacySquare { Section { Text("squareReport.legacyLikeHint").font(.footnote) } }
             if purpose == .toggleFollow { Section { Text("social.followToggleHint").font(.footnote) } }
             if purpose == .startChat { Section { Text("social.startChatHint").font(.footnote) } }
-            if purpose == .commentLike { Section { Text("social.toggleHint").font(.footnote) } }
-            if purpose == .report { Section { Text("social.reportHint").font(.footnote) } }
+            if purpose == .commentLike && contentGeneration != .communityV1 { Section { Text("social.toggleHint").font(.footnote) } }
+            if purpose == .report {
+                Section {
+                    if needsLegacyReason {
+                        Picker("squareReport.reason", selection: $legacyReportReason) {
+                            Text("squareReport.chooseReason").tag(String?.none)
+                            ForEach(Array(legacyReasons.enumerated()), id: \.offset) { index, label in
+                                Text(LocalizedStringKey("squareReport.legacyReason." + String(index))).tag(Optional(label))
+                            }
+                        }.accessibilityIdentifier("social.editor.legacyReportReason")
+                        Text("squareReport.legacyHint").font(.footnote)
+                    } else { Text("social.reportHint").font(.footnote) }
+                }
+            }
             if let issue { SocialIssueView(error: issue) }
             SocialActionStateView(state: state)
             Section {
                 Button("social.review") { textFocused = false; Task { await prepare() } }
-                    .disabled(preparing || state.locksForm || coordinator.identity.accountID == nil || (hasText && SocialText.nonempty(text) == nil))
+                    .disabled(preparing || state.locksForm || coordinator.identity.accountID == nil || (hasText && SocialText.nonempty(text) == nil) || (needsLegacyReason && legacyReportReason == nil))
                     .accessibilityIdentifier("social.editor.review")
             }
         }
@@ -84,14 +102,14 @@ public enum SocialEditorPurpose: String, Identifiable {
         } message: { Text("social.editor.discardMessage") }
         .onAppear {
             sessionIdentity = coordinator.identity
-            if !initialized { text = initialText; initialized = true }
+            if !initialized { text = initialText; enabled = initialEnabled; initialized = true }
         }
         .onChange(of: coordinator.identity) { _, _ in clearForSessionChange() }
         .onDisappear {
             // A nested review is still this editor's presentation, not an abandoned draft.
             guard review == nil else { return }
             textFocused = false; confirmsDiscard = false
-            if let identity = sessionIdentity { coordinator.leaveScreen(target: target, expectedIdentity: identity, ownerID: ownerID) }
+            if let identity = sessionIdentity { coordinator.leaveScreen(target: target, expectedIdentity: identity, ownerID: ownerID, generation: contentGeneration) }
             text = ""; review = nil; heldReview = nil; preparing = false
         }
         .sheet(item: $review, onDismiss: {
@@ -107,11 +125,11 @@ public enum SocialEditorPurpose: String, Identifiable {
         switch purpose {
         case .createPost: return .newPost(text: text)
         case .editPost: return .editPost(text: text)
-        case .comment: return .comment(text: text)
-        case .like: return .action(.like, enabled: enabled)
+        case .comment: return contentGeneration == .communityV1 ? .communityComment(text: text, requestID: UUID().uuidString) : .comment(text: text)
+        case .like: return contentGeneration == .legacySquare ? .legacyPostLike : .action(.like, enabled: enabled)
         case .bookmark: return .action(.bookmark, enabled: enabled)
-        case .commentLike: return .toggleCommentLike
-        case .report: return .report
+        case .commentLike: return contentGeneration == .communityV1 ? .communityCommentLike(enabled: enabled, requestID: UUID().uuidString) : .toggleCommentLike
+        case .report: return needsLegacyReason ? .legacyPostReport(reason: legacyReportReason ?? "") : .report
         case .toggleFollow: return .toggleFollow
         case .startChat: return .startChat
         }
@@ -129,7 +147,7 @@ public enum SocialEditorPurpose: String, Identifiable {
     private func clearForSessionChange() {
         if let heldReview { coordinator.cancel(heldReview) }
         coordinator.synchronizeSession(); textFocused = false; confirmsDiscard = false
-        text = ""; review = nil; heldReview = nil; issue = nil
+        text = ""; legacyReportReason = nil; review = nil; heldReview = nil; issue = nil
         sessionIdentity = coordinator.identity; revision += 1
     }
 }
@@ -140,7 +158,7 @@ public enum SocialEditorPurpose: String, Identifiable {
     @State private var busy = false
     @State private var revision = 0
     private var current: Bool { coordinator.identity == review.identity }
-    private var state: SocialActionState { _ = revision; return coordinator.state(target: review.target) }
+    private var state: SocialActionState { _ = revision; return coordinator.state(target: review.target, generation: review.command.requiredGeneration) }
     var body: some View {
         List {
             if !current { SocialIssueView(error: SocialActionBlock.changed) }
@@ -160,17 +178,28 @@ public enum SocialEditorPurpose: String, Identifiable {
                     case .postAction(let action, let enabled, _):
                         Text(LocalizedStringKey(action == .like ? "social.editor.like" : "social.editor.bookmark"))
                         Text(LocalizedStringKey(enabled ? "social.willEnable" : "social.willDisable"))
+                    case .communityCommentLike(let enabled, _):
+                        Text(LocalizedStringKey(enabled ? "social.willEnable" : "social.willDisable"))
                     case .toggleCommentLike: Text("social.toggleHint")
                     case .report: Text("social.reportHint")
-                    case .toggleFollow: Text("social.followToggleHint")
+                    case .legacyPostLike: Text("squareReport.legacyLikeHint")
+                    case .legacyPostReport(let reason): Text("squareReport.legacyHint"); Text(verbatim: reason)
+                    case .toggleFollow:
+                        Text("social.followToggleHint")
+                        if let followed = review.snapshot.profile?.isFollowed { Text(LocalizedStringKey(followed ? "social.willDisable" : "social.willEnable")) }
                     case .startChat: Text("social.startChatHint")
                     default: Text("social.moderationHint")
                     }
-                    if coordinator.availability == .disabled { Text("social.writesDisabled") }
+                    if coordinator.availability(for: review.command, target: review.target) == .disabled { Text("social.writesDisabled") }
                 }
                 SocialActionStateView(state: state)
                 if coordinator.availability == .syntheticOnly {
                     Button("social.simulate") {
+                        busy = true
+                        Task { await coordinator.confirm(review); busy = false; revision += 1 }
+                    }.disabled(busy || state != .reviewing).accessibilityIdentifier("social.review.confirm")
+                } else if coordinator.availability(for: review.command, target: review.target) == .approved {
+                    Button("social.submit") {
                         busy = true
                         Task { await coordinator.confirm(review); busy = false; revision += 1 }
                     }.disabled(busy || state != .reviewing).accessibilityIdentifier("social.review.confirm")

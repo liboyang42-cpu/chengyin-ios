@@ -57,25 +57,25 @@ import Foundation
             guard snapshot.comments.contains(where: { $0.id == id && $0.canDelete(snapshot.identity) }) else { throw SquareGovernanceFailure.forbidden }
         }
     }
-    static func lockKey(_ action: SquareGovernanceAction) -> String {
+    static func lockKey(_ action: SquareGovernanceAction, snapshot: SquareGovernanceSnapshot) -> String {
         switch action {
         case .appeal(let id, _): return "appeal:\(id)"
         case .markRead(let id): return "read:\(id)"
         case .preferences: return "preferences"
         case .approveComment(let post, let comment): return "comment:\(post):\(comment)"
-        case .deleteOwnComment(let id): return "delete:\(id)"
+        case .deleteOwnComment(let id): return "delete:\(snapshot.comments.first(where: { $0.id == id })?.generation.rawValue ?? "unknown"):\(id)"
         }
     }
     public func prepare(_ action: SquareGovernanceAction, snapshot: SquareGovernanceSnapshot, access: any SquareGovernanceAccess, now: Date = Date()) throws -> SquareGovernanceReview {
         guard !inFlight else { throw SquareGovernanceFailure.busy }
         try check(snapshot.identity, access: access); try Self.validate(action, snapshot: snapshot)
-        guard !journal.contains(Self.lockKey(action), identity: snapshot.identity) else { throw SquareGovernanceFailure.outcomeLocked }
+        guard !journal.contains(Self.lockKey(action, snapshot: snapshot), identity: snapshot.identity) else { throw SquareGovernanceFailure.outcomeLocked }
         return .init(snapshot: snapshot, action: action, now: now)
     }
     public func confirm(_ review: SquareGovernanceReview, access: any SquareGovernanceAccess, now: Date = Date()) async throws -> SquareGovernanceReceipt {
         guard !inFlight else { throw SquareGovernanceFailure.busy }
         guard service.allows(review.action) else { throw SquareGovernanceFailure.disabled }
-        guard !consumed.contains(review.id), !journal.contains(Self.lockKey(review.action), identity: review.snapshot.identity) else { throw SquareGovernanceFailure.outcomeLocked }
+        guard !consumed.contains(review.id), !journal.contains(Self.lockKey(review.action, snapshot: review.snapshot), identity: review.snapshot.identity) else { throw SquareGovernanceFailure.outcomeLocked }
         guard now.timeIntervalSince(review.createdAt) >= 0, now.timeIntervalSince(review.createdAt) <= 300 else { throw SquareGovernanceFailure.staleReview }
         inFlight = true; defer { inFlight = false }
         try check(review.snapshot.identity, access: access)
@@ -84,8 +84,8 @@ import Foundation
         try Self.validate(review.action, snapshot: fresh)
         guard let token = access.token else { throw SquareGovernanceFailure.signedOut }
         // Consume before dispatch. Unknown results cannot be repeated with a new request ID.
+        guard journal.claim(Self.lockKey(review.action, snapshot: fresh), identity: fresh.identity) else { throw SquareGovernanceFailure.outcomeLocked }
         consumed.insert(review.id)
-        journal.insert(Self.lockKey(review.action), identity: fresh.identity)
         return try await service.dispatch(review, token: token) { try self.check(fresh.identity, access: access) }
     }
 }
@@ -95,17 +95,34 @@ import Foundation
 @MainActor public final class SquareGovernanceJournal {
     private let defaults: UserDefaults?
     private var memory: [String: Set<String>] = [:]
-    private init(defaults: UserDefaults?) { self.defaults = defaults }
+    init(defaults: UserDefaults?) { self.defaults = defaults }
     public static func persistent() -> SquareGovernanceJournal { .init(defaults: .standard) }
     public static func ephemeral() -> SquareGovernanceJournal { .init(defaults: nil) }
     private func key(_ identity: SquareGovernanceIdentity) -> String { "square.governance.dispatch.\(identity.namespace.utf8.count):\(identity.namespace):\(identity.accountID)" }
     func contains(_ action: String, identity: SquareGovernanceIdentity) -> Bool {
         let key = key(identity)
-        return memory[key]?.contains(action) == true || defaults?.stringArray(forKey: key)?.contains(action) == true
+        let values = (memory[key] ?? []).union(defaults?.stringArray(forKey: key) ?? [])
+        if values.contains(action) { return true }
+        let legacyPrefix = "delete:legacySquare:"
+        if action.hasPrefix(legacyPrefix), let id = Int(action.dropFirst(legacyPrefix.count)), id > 0,
+           values.contains("delete:\(id)") {
+            // Pre-generation delete keys were legacy-only. Preserve the old key
+            // and recognize it only in that namespace, including after relogin.
+            insert(action, identity: identity)
+            return true
+        }
+        return false
     }
     func insert(_ action: String, identity: SquareGovernanceIdentity) {
         let key = key(identity)
         var values = Set(defaults?.stringArray(forKey: key) ?? []); values.formUnion(memory[key] ?? []); values.insert(action)
         memory[key] = values; defaults?.set(Array(values).sorted(), forKey: key)
+    }
+    /// MainActor serialization keeps check-and-insert indivisible between app coordinators.
+    /// This method must remain synchronous: no awaited work may precede the insert.
+    func claim(_ action: String, identity: SquareGovernanceIdentity) -> Bool {
+        guard !contains(action, identity: identity) else { return false }
+        insert(action, identity: identity)
+        return true
     }
 }

@@ -1,4 +1,5 @@
 import Foundation
+import CryptoKit
 
 public struct SquareWorkspaceSession: Codable, Equatable, Hashable {
     public let accountID: Int
@@ -37,8 +38,11 @@ public struct SquareWorkspaceDraft: Codable, Equatable, Identifiable {
     public var id: String { workflowID }
     public var workflowID: String
     public var postID: Int?
-    public var expectedVersion: Int
-    public var sourceLifecycle: String
+    public var sourceLane: SquareWorkspaceLane?
+    public var expectedVersion: Int?
+    public var sourceLifecycle: String?
+    /// Legacy has no concurrency version. Persist only the digest of the hydrated source.
+    public var legacySourceDigest: String?
     public var body: String
     public var media: [SquareWorkspaceMedia]
     public var retainedMediaIDs: [Int]
@@ -54,7 +58,7 @@ public struct SquareWorkspaceDraft: Codable, Equatable, Identifiable {
     public var disclosureType: String
     public var mentionedMemberIDs: [Int]
     public var safetyLabels: [String]
-    public init(workflowID: String = UUID().uuidString, postID: Int? = nil, expectedVersion: Int = 0, sourceLifecycle: String = "DRAFT", body: String = "") {
+    public init(workflowID: String = UUID().uuidString, postID: Int? = nil, expectedVersion: Int? = 0, sourceLifecycle: String? = "DRAFT", body: String = "") {
         self.workflowID = workflowID; self.postID = postID; self.expectedVersion = expectedVersion; self.sourceLifecycle = sourceLifecycle; self.body = body
         media = []; retainedMediaIDs = []; audience = "PUBLIC"; commentPolicy = "EVERYONE"; replyApprovalEnabled = false; slowModeSeconds = 0; disclosureType = "NONE"; mentionedMemberIDs = []; safetyLabels = []
     }
@@ -64,18 +68,24 @@ public struct SquareWorkspaceDraft: Codable, Equatable, Identifiable {
         if commentPolicy == "MEMBERS" { commentPolicy = "EVERYONE" }
     }
     public func validate(publishing: Bool, lane: SquareWorkspaceLane) throws {
-        guard workflowID.count >= 8, media.count <= 6, postID.map({ $0 > 0 }) ?? true, expectedVersion >= 0,
+        guard workflowID.count >= 8, media.count <= 6, postID.map({ $0 > 0 }) ?? true,
               reference?.valid ?? true, media.allSatisfy({ !$0.objectKey.isEmpty && !$0.objectKey.contains(";") }),
               Set(media.map(\.id)).count == media.count, retainedMediaIDs.allSatisfy({ $0 > 0 }), media.allSatisfy({ $0.existingMediaID.map { $0 > 0 } ?? true }) else { throw SquareWorkspaceFailure.invalid }
+        if postID != nil { guard sourceLane == lane else { throw SquareWorkspaceFailure.invalid } }
         if publishing { guard (1...5000).contains(body.trimmingCharacters(in: .whitespacesAndNewlines).count) else { throw SquareWorkspaceFailure.invalid } }
         if lane == .communityV1 {
-            guard ["PUBLIC", "FOLLOWERS", "COMMUNITY", "PRIVATE"].contains(audience),
+            guard let expectedVersion, expectedVersion >= 0, let sourceLifecycle, !sourceLifecycle.isEmpty,
+                  legacySourceDigest == nil, ["PUBLIC", "FOLLOWERS", "COMMUNITY", "PRIVATE"].contains(audience),
                   ["EVERYONE", "FOLLOWERS", "MEMBERS", "MENTIONED", "OFF"].contains(commentPolicy),
                   slowModeSeconds >= 0, ["NONE", "SPONSORED", "GIFTED", "MERCHANT_OWNER", "MERCHANT_EMPLOYEE"].contains(disclosureType), safetyLabels.count <= 5, safetyLabels.allSatisfy({ ["DANGEROUS_ACTIVITY", "SENSITIVE_CONTENT", "FLASHING_IMAGES", "SPOILER", "TEMPORARY_CLOSURE", "ACCESSIBILITY_LIMIT", "WEATHER_RISK"].contains($0) }), mentionedMemberIDs.allSatisfy({ $0 > 0 }),
                   (audience != "COMMUNITY" && commentPolicy != "MEMBERS") || (communityID ?? 0) > 0,
                   !publishing || commentPolicy != "MENTIONED" || !mentionedMemberIDs.isEmpty else { throw SquareWorkspaceFailure.invalid }
             guard media.allSatisfy({ ($0.existingMediaID ?? 0) > 0 || $0.hasProof }) else { throw SquareWorkspaceFailure.missingMediaProof }
         } else {
+            if postID != nil {
+                guard expectedVersion == nil, sourceLifecycle == nil,
+                      let legacySourceDigest, legacySourceDigest.count == 64 else { throw SquareWorkspaceFailure.invalid }
+            }
             // Visible Flutter submit omits these v1 controls. Refuse silent loss.
             guard audience == "PUBLIC", commentPolicy == "EVERYONE", !replyApprovalEnabled, slowModeSeconds == 0,
                   disclosureType == "NONE", safetyLabels.isEmpty, mentionedMemberIDs.isEmpty, communityID == nil else { throw SquareWorkspaceFailure.invalid }
@@ -90,16 +100,31 @@ public struct SquareWorkspaceGuideline: Codable, Equatable {
 public struct SquareWorkspacePost: Codable, Equatable, Identifiable {
     public let id: Int
     public let authorID: Int
-    public let version: Int
-    public let lifecycle: String
+    public let lane: SquareWorkspaceLane
+    public let version: Int?
+    public let lifecycle: String?
     public let raw: Data
-    public init(data: Data) throws {
+    public var sourceDigest: String { SHA256.hash(data: raw).map { String(format: "%02x", $0) }.joined() }
+    public init(data: Data, lane: SquareWorkspaceLane = .communityV1) throws {
         guard let root = try JSONSerialization.jsonObject(with: data) as? [String: Any] else { throw SquareWorkspaceFailure.malformed }
         let p = (root["post"] as? [String: Any]) ?? root
-        guard let id = p["id"] as? Int, id > 0, let version = p["version"] as? Int, version >= 0,
-              let lifecycle = p["lifecycle"] as? String, !lifecycle.isEmpty,
-              let author = (p["authorId"] ?? p["memberId"]) as? Int, author > 0 else { throw SquareWorkspaceFailure.malformed }
-        self.id = id; authorID = author; self.version = version; self.lifecycle = lifecycle; raw = data
+        guard let id = p["id"] as? Int, id > 0 else { throw SquareWorkspaceFailure.malformed }
+        switch lane {
+        case .communityV1:
+            guard let version = p["version"] as? Int, version >= 0,
+                  let lifecycle = p["lifecycle"] as? String, !lifecycle.isEmpty,
+                  let author = (p["authorId"] ?? p["memberId"]) as? Int, author > 0 else { throw SquareWorkspaceFailure.malformed }
+            authorID = author; self.version = version; self.lifecycle = lifecycle
+        case .legacy:
+            // /creativesquare/info returns a flat ViewCreativeSquare, only for status=1.
+            // Its numeric moderation status is not a community lifecycle or version.
+            guard root["post"] == nil, p["version"] == nil, p["lifecycle"] == nil,
+                  let author = p["memberId"] as? Int, author > 0,
+                  p["status"] as? Int == 1, p["delFlag"] as? Int != 2 else { throw SquareWorkspaceFailure.malformed }
+            authorID = author; version = nil; lifecycle = nil
+        }
+        self.id = id; self.lane = lane
+        raw = try JSONSerialization.data(withJSONObject: root, options: [.sortedKeys])
     }
 }
 public struct SquareWorkspaceOption: Equatable, Identifiable {
@@ -120,10 +145,13 @@ public struct SquareWorkspaceGrants: Equatable {
 }
 
 extension SquareWorkspacePost {
-    public func editableDraft() throws -> SquareWorkspaceDraft {
+    public func editableDraft(lane: SquareWorkspaceLane = .communityV1) throws -> SquareWorkspaceDraft {
+        guard lane == self.lane else { throw SquareWorkspaceFailure.invalid }
         guard let root = try JSONSerialization.jsonObject(with: raw) as? [String: Any] else { throw SquareWorkspaceFailure.malformed }
         let p = (root["post"] as? [String: Any]) ?? root
         var d = SquareWorkspaceDraft(postID: id, expectedVersion: version, sourceLifecycle: lifecycle, body: ((p["body"] ?? p["contents"]) as? String) ?? "")
+        d.sourceLane = lane
+        d.legacySourceDigest = lane == .legacy ? sourceDigest : nil
         d.address = (p["poiName"] ?? p["address"]) as? String; d.cityCode = p["cityCode"] as? String
         d.communityID = p["communityId"] as? Int; d.audience = (p["audience"] as? String) ?? "PUBLIC"
         d.commentPolicy = (p["commentPolicy"] as? String) ?? "EVERYONE"; d.replyApprovalEnabled = (p["replyApprovalEnabled"] as? Int) == 1

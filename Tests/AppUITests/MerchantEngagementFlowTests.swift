@@ -1,8 +1,34 @@
 import XCTest
 
 final class MerchantEngagementFlowTests: XCTestCase {
+    private var currentApp: XCUIApplication?
+    override func setUpWithError() throws { continueAfterFailure = false }
+    override func tearDownWithError() throws {
+        attachFailureScreenshot(self, app: currentApp)
+        if let app = currentApp, (testRun?.totalFailureCount ?? 0) > 0 {
+            let hierarchy = XCTAttachment(string: app.debugDescription)
+            hierarchy.name = "Merchant engagement failure hierarchy"
+            hierarchy.lifetime = .keepAlways
+            add(hierarchy)
+        }
+        currentApp?.terminate(); currentApp = nil
+    }
+    private func cancelReview(_ app: XCUIApplication) {
+        tap("merchant.engagement.cancelReview", app: app)
+        // Native sheet dismissal is asynchronous. Require the same strict outcome,
+        // rather than reading a transitional accessibility snapshot immediately.
+        let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            !app.buttons["merchant.engagement.confirm"].exists
+                && !app.buttons["merchant.engagement.cancelReview"].exists
+        }, object: app)
+        XCTAssertEqual(XCTWaiter.wait(for: [dismissed], timeout: 5), .completed, app.debugDescription)
+        XCTAssertFalse(app.buttons["merchant.engagement.confirm"].exists)
+        XCTAssertFalse(app.staticTexts["The segment-save response was received."].exists)
+        XCTAssertFalse(app.staticTexts["已收到保存分群回执。"].exists)
+    }
     private func launch(_ scenario: String = "ready", language: String = "en") -> XCUIApplication {
         let app = XCUIApplication(); app.launchArguments = ["--uitesting-reset-language","--uitesting-merchant-engagement-fixture","--uitesting-merchant-engagement-scenario",scenario,"-AppleLanguages","(\(language))","-AppleLocale",language == "en" ? "en_US" : "zh_CN"]
+        currentApp = app
         app.launch()
         let title = language == "en" ? "CRM operations" : "客户运营"
         XCTAssertTrue(app.navigationBars[title].waitForExistence(timeout: 5), app.debugDescription)
@@ -28,7 +54,7 @@ final class MerchantEngagementFlowTests: XCTestCase {
         XCTAssertTrue(app.textFields["2026-09-01"].exists || app.staticTexts["Example return visitors"].exists)
     }
     func testSegmentReviewCanCancelWithoutSuccess() {
-        let app = launch(); prepareSegment(app); tap("merchant.engagement.cancelReview",app:app)
+        let app = launch(); prepareSegment(app); cancelReview(app)
         XCTAssertFalse(app.staticTexts["The segment-save response was received."].exists)
     }
     func testProductionDisabledReviewHasNoConfirmControl() {
@@ -70,8 +96,9 @@ final class MerchantEngagementFlowTests: XCTestCase {
         let confirm = app.buttons["merchant.engagement.confirm"]
         reveal(confirm, app: app)
         XCTAssertEqual(confirm.label, "确认已审核操作")
-        tap("merchant.engagement.cancelReview", app: app)
-        XCTAssertFalse(app.buttons["merchant.engagement.confirm"].exists)
+        cancelReview(app)
+        XCTAssertTrue(app.navigationBars["客户运营"].exists)
+        attachFixtureScreenshot(self, app: app, name: "Chinese CRM review canceled without receipt")
     }
     func testInactiveIdentityCanPrepareInvitationWithoutStoreGuess() {
         let app = launch("inactive"); tap("merchant.engagement.acceptInvitation",app:app)

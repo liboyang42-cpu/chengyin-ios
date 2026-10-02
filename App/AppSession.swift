@@ -38,7 +38,7 @@ final class AppSession: ObservableObject {
     }()
 
     private let merchantNPCSessionOwner = MerchantNPCSessionOwner()
-    private let merchantNPCGrants = MerchantNPCGrants()
+    private var merchantNPCGrants: MerchantNPCGrants { merchantPublicFactory?.chatGrants ?? .init() }
     private let merchantNPCJournal = OperationDefaultsJournal(defaults: .standard)
     private var merchantNPCAccess: (scope: UUID, value: MerchantOperationsAccess, revision: UUID)?
     private func merchantNPCScope(row: PublicMerchantRowID, resource: Bool = false) -> MerchantNPCScope? {
@@ -53,13 +53,16 @@ final class AppSession: ObservableObject {
         return MerchantNPCScope(accountID: account.id, namespace: namespace, epoch: epoch, merchantRowID: row, accessRevision: revision)
     }
     private func merchantNPCClient(resource: Bool) -> MerchantNPCHTTPClient {
-        guard let configuration = regionalConfiguration?.apiConfiguration else { return .init() }
-        return .init(transport: MerchantNPCAuthenticatedTransport(configuration: configuration, transport: URLSessionTransport(), enabled: false,
-            currentScope: { [weak self] row in self?.merchantNPCScope(row: row, resource: resource) },
-            token: { [weak self] in self?.token }, grants: { [weak self] in self?.merchantNPCGrants ?? .init() }))
+        guard let factory = merchantPublicFactory else { return .init() }
+        if resource { return factory.resourceClient() }
+        return factory.chatClient(currentScope: { [weak self] row in self?.merchantNPCScope(row: row) })
     }
     func merchantOperationsDestination(_ destination: MerchantOperationsDestination, access: MerchantOperationsAccess) -> AnyView {
-        guard destination == .assets else { return AnyView(MerchantOperationsDocumentView(reader: merchantOperationsReader, destination: destination, imageHost: retainedMerchantImages)) }
+        guard destination == .assets else { return AnyView(MerchantOperationsDocumentView(reader: merchantOperationsReader, destination: destination, imageHost: retainedMerchantImages, templateAssistFactory: { [weak self] coordinator in
+            self?.merchantTemplateAssistFlow(coordinator: coordinator) ?? MerchantTemplateAssistFlow(coordinator: coordinator, client: nil)
+        })) }
+        // CURRENT backend has no legacy script/avatar resource contract. Do not query invented routes.
+        guard MerchantPublicProductionFactory.supportsLegacyResources else { return AnyView(Text("merchantNPC.unavailable")) }
         let epoch = merchantOperationsReader.scope
         if merchantNPCAccess?.scope != epoch || merchantNPCAccess?.value != access {
             merchantNPCSessionOwner.invalidate(); merchantNPCAccess = (epoch, access, UUID())
@@ -68,7 +71,7 @@ final class AppSession: ObservableObject {
               let captured = merchantNPCScope(row: row, resource: true) else { return AnyView(Text("merchantNPC.unavailable")) }
         let coordinator = MerchantNPCResourcesCoordinator(scope: captured, client: merchantNPCClient(resource: true), reader: merchantOperationsReader,
             journal: merchantNPCJournal, currentScope: { [weak self] in self?.merchantNPCScope(row: row, resource: true) },
-            grants: { [weak self] in self?.merchantNPCGrants ?? .init() })
+            grants: { .init() })
         merchantNPCSessionOwner.register(coordinator)
         return AnyView(MerchantNPCResourceEditor(coordinator: coordinator, imageContext: merchantNPCAvatarContext(captured),
             imageRealm: regionalConfiguration?.apiConfiguration?.baseURL.absoluteString, approvedImageHosts: []).id(captured.epoch))
@@ -84,7 +87,25 @@ final class AppSession: ObservableObject {
                 self?.merchantNPCScope(row: captured.merchantRowID, resource: true) == captured
             })
     }
-    private var publicMerchantHomeReader: any PublicMerchantHomeReading = DisabledPublicMerchantHomeReader()
+    private let disabledPublicMerchantHomeReader = DisabledPublicMerchantHomeReader()
+    private var retainedMerchantPublicFactory: MerchantPublicProductionFactory?
+    private var currentMerchantPublicContext: MerchantPublicHostContext? {
+        guard let regionalConfiguration, let api = regionalConfiguration.apiConfiguration,
+              let namespace = storageScope?.service else { return nil }
+        return try? .init(market: regionalConfiguration.market, baseURL: api.baseURL, namespace: namespace,
+            accountID: account?.id, epoch: gate.currentStamp, role: account?.effectiveRole, token: token)
+    }
+    private var merchantPublicFactory: MerchantPublicProductionFactory? {
+        guard let api = regionalConfiguration?.apiConfiguration, let context = currentMerchantPublicContext else { return nil }
+        if let retainedMerchantPublicFactory, retainedMerchantPublicFactory.captured == context { return retainedMerchantPublicFactory }
+        let factory = runtimeDependencies.makeMerchantPublicFactory(api: api, journal: merchantNPCJournal,
+            current: { [weak self] in self?.currentMerchantPublicContext })
+        retainedMerchantPublicFactory = factory
+        return factory
+    }
+    private var publicMerchantHomeReader: any PublicMerchantHomeReading {
+        merchantPublicFactory?.homeReader ?? disabledPublicMerchantHomeReader
+    }
     private var publicMerchantReviewReader: any PublicMerchantReviewReading = DisabledPublicMerchantReviewReader()
     var publicMerchantHomeContext: PublicMerchantHomeContext {
         let retained = retainedPublicMerchantReviews
@@ -591,39 +612,19 @@ final class AppSession: ObservableObject {
         self.merchantOnboardingCoordinator.synchronizeSession()
         return true
     }
-    // Official writes remain dormant. This host permits review only; no write transport is wired.
+    // Source-backed production factory, dormant until exact scoped approvals are injected.
     private var retainedOfficialActions: OfficialActionCoordinator?
     var officialActionCoordinator: OfficialActionCoordinator? {
         if let retainedOfficialActions { return retainedOfficialActions }
         guard let root = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else { return nil }
         let directory = root.appendingPathComponent("OfficialActionSafety", isDirectory: true)
         do { try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true) } catch { return nil }
-        let access = OfficialActionInjectedAccess(current: { [weak self] in
-            guard let self, let account = self.account, self.currentOfficialContext.isAuthenticated, let storageScope = self.storageScope else { return nil }
-            return OfficialActionIdentity(accountID: account.id, epoch: self.officialEventReader.scope, namespace: storageScope.service)
-        }, read: { [weak self] command in
-            guard let self, let account = self.account, self.currentOfficialContext.isAuthenticated, let storageScope = self.storageScope else { throw OfficialActionFailure.forbidden }
-            let identity = OfficialActionIdentity(accountID: account.id, epoch: self.officialEventReader.scope, namespace: storageScope.service)
-            let reader = self.officialEventReader
-            switch command {
-            case .publish:
-                return OfficialActionSnapshot(identity: identity, publisher: try await reader.canPublish())
-            case .broadcast(let draft):
-                let allowed = try await reader.canPublish()
-                var event: OfficialEvent?
-                if let id = draft.eventID { event = try await reader.myPublished().events.first { $0.id == id } }
-                return OfficialActionSnapshot(identity: identity, publisher: allowed, event: event)
-            case .signup(let id), .complete(let id):
-                return OfficialActionSnapshot(identity: identity, event: try await reader.detail(id: id))
-            case .respond(let id, let type, _, _):
-                let permission = type == "OFFICIAL" ? try await reader.canPublish() : false
-                let invite = try await reader.partyInbox().first { $0.id == id }
-                return OfficialActionSnapshot(identity: identity, publisher: permission, invite: invite)
-            case .arrival, .inviteMerchants:
-                // Needs approved current roam/session/location or verified merchant candidate integration.
-                throw OfficialActionFailure.disabled
-            }
-        }, write: { _ in throw OfficialActionFailure.disabled })
+        let access = OfficialActionProductionFactory(api: regionalConfiguration?.apiConfiguration,
+            approval: runtimeDependencies.officialActionApproval, transport: runtimeHTTPTransport,
+            current: { [weak self] in self?.currentRuntimeDependencyContext }, identity: { [weak self] in
+                guard let self, let account = self.account, self.currentOfficialContext.isAuthenticated, let storageScope = self.storageScope else { return nil }
+                return OfficialActionIdentity(accountID: account.id, epoch: self.officialEventReader.scope, namespace: storageScope.service)
+            })
         let coordinator = OfficialActionCoordinator(access: access, locks: OfficialActionFileLocks(url: directory.appendingPathComponent("locks.json")))
         retainedOfficialActions = coordinator
         return coordinator
@@ -969,12 +970,20 @@ final class AppSession: ObservableObject {
         guard let account, let token else { return nil }
         return try? ObjectCardSession(accountID: account.id, epoch: gate.currentStamp, token: token)
     }
-    lazy var objectCardReader = ObjectCardSessionReader(service: nil,
-        currentSession: { [weak self] in self?.currentObjectCardSession },
+    lazy var objectCardReader = makeObjectCardReader()
+    func makeObjectCardReader() -> ObjectCardSessionReader {
+        ObjectCardSessionReader(serviceProvider: { [weak self] in
+            guard let self else { return nil }
+            return SocialReaderProductionFactory(configuration: self.regionalConfiguration?.apiConfiguration,
+                approval: self.runtimeDependencies.socialReaderApproval, apiTransport: self.runtimeDependencies.transport,
+                current: { [weak self] in self?.currentRuntimeDependencyContext }).objectCards()
+        }, currentSession: { [weak self] in self?.currentObjectCardSession },
+        currentContext: { [weak self] in self?.currentRuntimeDependencyContext },
         onUnauthorized: { [weak self] captured in
             guard let self, self.currentObjectCardSession == captured else { return }
             self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
         })
+    }
     private var currentCouponCodeSession: CouponCodeSession? {
         guard let account, let token, let namespace = storageScope?.service else { return nil }
         return try? CouponCodeSession(accountID: account.id, epoch: gate.currentStamp, namespace: namespace, role: account.effectiveRole, token: token)
@@ -1019,11 +1028,29 @@ final class AppSession: ObservableObject {
         guard let self, self.currentSocialAccountSession == captured else { return }
         self.expireIfMatching(error: APIError.unauthorized, stamp: captured.identity.epoch, credential: self.token)
     })
-    // Runtime writes remain off. Source transport adapter exists separately for isolated contract tests.
-    lazy var socialActionAccess = SocialDisabledActionAccess(reader: squareReader, accountReader: socialAccountReader)
+    // Only exact member-action grants can authorize this path; Square writes stay separate.
+    private let socialMemberActionJournal = OperationDefaultsJournal(defaults: .standard)
+    lazy var socialActionAccess: any SocialActionAccess = SocialMemberActionFactory.make(
+        configuration: regionalConfiguration?.apiConfiguration, approvals: runtimeDependencies.socialMemberActionApprovals,
+        transport: runtimeHTTPTransport, journal: socialMemberActionJournal,
+        reader: squareReader, accountReader: socialAccountReader,
+        current: { [weak self] in self?.currentRuntimeDependencyContext })
     lazy var socialActionCoordinator = SocialActionCoordinator(access: socialActionAccess)
     // Explicit media-origin approval and bounded streaming are required before live preview reads.
-    lazy var socialMessageMediaReader = SocialMessageMediaReader(service: nil, currentIdentity: { [weak self] in self?.messagingReader.identity })
+    lazy var socialMessageMediaReader = makeSocialMessageMediaReader()
+    func makeSocialMessageMediaReader() -> SocialMessageMediaReader {
+        SocialMessageMediaReader(serviceProvider: { [weak self] in
+            guard let self else { return nil }
+            return SocialReaderProductionFactory(configuration: self.regionalConfiguration?.apiConfiguration,
+                approval: self.runtimeDependencies.socialReaderApproval,
+                apiTransport: self.runtimeDependencies.transport, mediaTransport: self.runtimeDependencies.transport,
+                current: { [weak self] in self?.currentRuntimeDependencyContext }).messageMedia()
+        }, currentIdentity: { [weak self] in self?.messagingReader.identity },
+        currentContext: { [weak self] in self?.currentRuntimeDependencyContext }, onUnauthorized: { [weak self] captured in
+            guard let self, self.messagingReader.identity == captured else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
+        })
+    }
     // Square workspace and governance stay distinct from Club and legacy SocialAction.
     private var currentSquareWorkspaceSession: SquareWorkspaceSession? {
         guard let account, token != nil, let storageScope else { return nil }
@@ -1046,6 +1073,26 @@ final class AppSession: ObservableObject {
         guard let account, token != nil, let storageScope else { return nil }
         return .init(accountID: account.id, epoch: gate.currentStamp, namespace: storageScope.service)
     }
+    private var retainedSquareReports: SquareReportCoordinator?
+    private var retainedSquareReportBaseURL: URL?
+    func squareReportContext() -> SquareReportContext? {
+        guard let configuration = regionalConfiguration?.apiConfiguration else { return nil }
+        if retainedSquareReports == nil || retainedSquareReportBaseURL != configuration.baseURL {
+            retainedSquareReports = SquareReportCoordinator(service: .init(configuration: configuration, transport: URLSessionTransport()))
+            retainedSquareReportBaseURL = configuration.baseURL
+        }
+        guard let coordinator = retainedSquareReports else { return nil }
+        let captured = currentSquareGovernanceIdentity
+        let access = SquareReportSessionAccess(identity: { [weak self] in self?.currentSquareGovernanceIdentity },
+            token: { [weak self] in
+                guard let self, self.currentSquareGovernanceIdentity == captured else { return nil }; return self.token
+            }, subject: { [weak self] target in
+                guard let self, let captured, self.currentSquareGovernanceIdentity == captured else { throw SquareReportFailure.signedOut }
+                let value = try await self.socialActionAccess.snapshot(target: target, generation: .communityV1)
+                guard self.currentSquareGovernanceIdentity == captured else { throw CancellationError() }; return value
+            })
+        return .init(coordinator: coordinator, access: access) // Default policy reads and report writes remain OFF.
+    }
     private var retainedSquareGovernance: SquareGovernanceCoordinator?
     func squareGovernance() -> SquareGovernanceCoordinator? {
         if let model = retainedSquareGovernance { return model }
@@ -1064,9 +1111,9 @@ final class AppSession: ObservableObject {
                 guard let postID, postID > 0 else { return [] }
                 // Fresh exact-post author + fresh comments, never cached UI or an inferred moderator role.
                 let readScope = self.squareReader.scope
-                let post = try await self.squareReader.squareDetail(id: postID)
+                let post = try await self.squareReader.squareDetail(route: .init(id: postID, generation: .communityV1))
                 guard self.currentSquareGovernanceIdentity == captured, self.squareReader.scope == readScope, post.id == postID else { throw CancellationError() }
-                let page = try await self.squareReader.squareComments(postID: postID, pageNumber: 1)
+                let page = try await self.squareReader.squareComments(route: .init(id: postID, generation: .communityV1), pageNumber: 1)
                 guard self.currentSquareGovernanceIdentity == captured, self.squareReader.scope == readScope else { throw CancellationError() }
                 return page.items.map { SquareGovernanceComment(comment: $0, post: post) }
             })
@@ -1397,13 +1444,14 @@ final class AppSession: ObservableObject {
                 self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
             }),
         locks: ClubOwnerRefundFileLocks(directory: FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first?.appendingPathComponent("ClubOwnerRefundLocks", isDirectory: true)))
-    private var clubOpsTimeSession: ClubOpsTimeSession? {
-        guard let account, let token, let configuration = regionalConfiguration?.apiConfiguration else { return nil }
-        return try? .init(accountID: account.id, epoch: gate.currentStamp, realm: configuration.baseURL.absoluteString, token: token)
-    }
+    private lazy var contextualOperationJournal = OperationDefaultsJournal(defaults: .standard)
     private lazy var clubOpsTimeHost: ClubOpsTimeHost? = regionalConfiguration?.apiConfiguration.map {
-        ClubOpsTimeHost(service: ClubOpsTimeHTTPService(configuration: $0, transport: URLSessionTransport(), enabled: false,
-            current: { [weak self] in self?.clubOpsTimeSession }))
+        ClubOpsTimeHost(service: ClubOpsTimeConfiguredService(configuration: $0, approval: runtimeDependencies.clubOpsTimeApproval,
+            transport: runtimeHTTPTransport, current: { [weak self] in self?.currentRuntimeDependencyContext },
+            onUnauthorized: { [weak self] captured in
+                guard let self, self.currentRuntimeDependencyContext == captured else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
+            }), journal: contextualOperationJournal)
     }
     var clubGovernanceContext: ClubGovernanceContext { .init(access: clubGovernanceAccess, coordinator: clubGovernanceCoordinator, enrollmentProfile: .init(reader: socialAccountReader, squareReader: squareReader, actions: socialActionCoordinator), ownerRefund: clubOwnerRefundCoordinator, opsTimeFactory: { [weak self] in self?.clubOpsTimeHost?.coordinator(activityID: $0) }) }
     private var currentClubOperationsSession: ClubOperationsSession? {
@@ -1427,14 +1475,13 @@ final class AppSession: ObservableObject {
     })
     lazy var clubManagementCoordinator=ClubManagementCoordinator(access:clubManagementAccess,onMembershipChanged:{ [weak self] _ in self?.clubMembershipRevision &+= 1 })
     var clubManagementContext:ClubManagementContext { .init(access:clubManagementAccess,coordinator:clubManagementCoordinator,operations:clubOperationsContext,governance:clubGovernanceContext) }
-    private var contextualReviewSession: ContextualReviewSession? {
-        guard let account, let token, let configuration = regionalConfiguration?.apiConfiguration else { return nil }
-        return try? ContextualReviewSession(accountID: account.id, epoch: gate.currentStamp,
-            realm: configuration.baseURL.absoluteString, token: token)
-    }
     lazy var contextualReviews: ContextualReviewHost? = regionalConfiguration?.apiConfiguration.map {
-        ContextualReviewHost(writer: ContextualReviewHTTPWriter(configuration: $0, transport: URLSessionTransport(), enabled: false,
-            currentSession: { [weak self] in self?.contextualReviewSession }))
+        ContextualReviewHost(writer: ContextualReviewConfiguredWriter(configuration: $0, approval: runtimeDependencies.contextualReviewApproval,
+            transport: runtimeHTTPTransport, current: { [weak self] in self?.currentRuntimeDependencyContext },
+            onUnauthorized: { [weak self] captured in
+                guard let self, self.currentRuntimeDependencyContext == captured else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
+            }), journal: contextualOperationJournal)
     }
     private let profileEditService:ProfileEditService?
     private var currentProfileEditSession:ProfileEditSession? {
@@ -1775,7 +1822,7 @@ final class AppSession: ObservableObject {
             merchantNPCSessionOwner.invalidate(); merchantNPCAccess = nil
             invalidateShopNPCConversations()
             platformConsumers.invalidate()
-            publicMerchantHomeReader = DisabledPublicMerchantHomeReader()
+            retainedMerchantPublicFactory = nil
             publicMerchantReviewReader = DisabledPublicMerchantReviewReader()
             let oldAccount = entryObservedAccountID
             entryObservedStamp = gate.currentStamp; entryObservedAccountID = account?.id; entryObservedToken = token; entryObservedRole = account?.effectiveRole

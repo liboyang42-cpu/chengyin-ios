@@ -33,7 +33,7 @@ The dormant `SocialActionService` uses actual injected transport, validates sour
 
 ## Session, review and uncertainty boundaries
 
-Normal AppSession constructs `SocialDisabledActionAccess` only. Its perform method cannot dispatch. Review is available but production Submit is visibly disabled. The dormant writer is not mounted or referenced by the factory; only injected-fake unit tests exercise its transport. DEBUG fixture acknowledgements are explicitly labelled synthetic, never inserted into a production feed/history.
+Normal AppSession uses `SocialMemberActionFactory` with no grants by default. Exact per-operation grants can compose follow/unfollow and start-chat with durable replay locks and fresh same-session readback. Square actions remain disabled through that factory; their generation-aware read bridge is retained. See `social-member-action-factory.md`. DEBUG fixture acknowledgements are explicitly labelled synthetic, never inserted into a production feed/history.
 
 Reads check complete account/token/epoch snapshots before returning either a result or a 401. Review identity includes account, epoch and server-derived role. Immutable reviews belong to one coordinator/owner/target; confirmation rereads source context. Post owner, reply permission, target IDs, original text, association and follow/like context changes invalidate a review. No client-invented author identity is sent. Unknown outcomes lock the same account/target across navigation, role/epoch changes and same-account reauthentication. Other accounts cannot inspect those records; returning to the original account does not unlock them. There is no automatic retry.
 

@@ -24,16 +24,35 @@ public struct ContextualReviewSession: Equatable {
     public let identity: ProfileReadIdentity
     public let realm: String
     let token: String
+    public private(set) var runtimeContext: RuntimeDependencyContext?
     public init(accountID: Int, epoch: UInt64, realm: String, token: String) throws {
         guard accountID > 0, !realm.isEmpty, AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
         identity = .init(accountID: accountID, epoch: epoch); self.realm = realm; self.token = token
     }
+    public init(context: RuntimeDependencyContext) throws {
+        try self.init(accountID: context.session.accountID, epoch: context.session.epoch,
+                      realm: context.baseURL.absoluteString, token: context.session.token)
+        runtimeContext = context
+    }
+    var replayOwnerKey: String {
+        let namespace = runtimeContext?.session.namespace ?? ""
+        return "\(realm.utf8.count):\(realm)|\(namespace.utf8.count):\(namespace)|\(identity.accountID)"
+    }
+
 }
 public enum ContextualReviewFailure: Error, Equatable { case notSent, rejected(Int), unknown }
 @MainActor public protocol ContextualReviewWriting {
     var isConfigured: Bool { get }
+    var requiresDurableJournal: Bool { get }
     var session: ContextualReviewSession? { get }
     func submit(_ draft: ContextualReviewDraft, target: ContextualReviewTarget, session: ContextualReviewSession) async throws
+    func submit(_ draft: ContextualReviewDraft, target: ContextualReviewTarget, session: ContextualReviewSession, authorization: ContextualOperationAuthorization) async throws
+}
+extension ContextualReviewWriting {
+    public var requiresDurableJournal: Bool { false }
+    public func submit(_ draft: ContextualReviewDraft, target: ContextualReviewTarget, session: ContextualReviewSession, authorization: ContextualOperationAuthorization) async throws {
+        try await submit(draft, target: target, session: session)
+    }
 }
 @MainActor public struct ContextualReviewHTTPWriter: ContextualReviewWriting {
     private let configuration: APIConfiguration
@@ -70,32 +89,54 @@ public enum ContextualReviewState: Equatable { case idle, submitting, acknowledg
 @MainActor public final class ContextualReviewCoordinator {
     public let target: ContextualReviewTarget
     public let writer: any ContextualReviewWriting
-    private struct Key: Hashable { let account: Int; let realm: String }
+    private struct Key: Hashable { let owner: String }
     private var states: [Key: ContextualReviewState] = [:]
+    private let journal: (any OperationPendingJournal)?
+    private var targetKey: String { "contextual-review|\(target.ownerType)|\(target.ownerID)" }
     public var state: ContextualReviewState {
         guard let session = writer.session else { return .idle }
-        return states[Key(account: session.identity.accountID, realm: session.realm)] ?? .idle
+        let key = Key(owner: session.replayOwnerKey)
+        if states[key] == .submitting { return .submitting }
+        do {
+            if let record = try journal?.pending(ownerKey: session.replayOwnerKey, targetKey: targetKey) {
+                return record.acknowledgedSteps > 0 ? .acknowledged : .unknown
+            }
+        } catch { return .unknown }
+        return states[key] ?? .idle
     }
-    public var canSubmit: Bool { writer.isConfigured && writer.session != nil && ![.submitting, .unknown, .acknowledged].contains(state) }
-    public init(target: ContextualReviewTarget, writer: any ContextualReviewWriting) { self.target = target; self.writer = writer }
+    public var canSubmit: Bool { writer.isConfigured && (!writer.requiresDurableJournal || journal != nil) && writer.session != nil && ![.submitting, .unknown, .acknowledged].contains(state) }
+    public init(target: ContextualReviewTarget, writer: any ContextualReviewWriting, journal: (any OperationPendingJournal)? = nil) {
+        self.target = target; self.writer = writer; self.journal = journal
+    }
     public func submit(_ draft: ContextualReviewDraft, expected: ContextualReviewSession) async {
         guard canSubmit, draft.isValid, writer.session == expected else { return }
-        let key = Key(account: expected.identity.accountID, realm: expected.realm)
+        let key = Key(owner: expected.replayOwnerKey)
+        var record = OperationPendingRecord(ownerKey: expected.replayOwnerKey, targetKey: targetKey)
+        do { try journal?.write(record) } catch { states[key] = .notSent; return }
         states[key] = .submitting
         do {
-            try await writer.submit(draft, target: target, session: expected)
+            let authorization = ContextualOperationAuthorization(command: .review(target, draft), owner: expected.replayOwnerKey) {
+                guard let journal = self.journal else { return false }
+                return try journal.pending(ownerKey: record.ownerKey, targetKey: record.targetKey) == record
+            }
+            try await writer.submit(draft, target: target, session: expected, authorization: authorization)
             states[key] = writer.session == expected && !Task.isCancelled ? .acknowledged : .unknown
         } catch let error as ContextualReviewFailure {
             switch error { case .notSent: states[key] = .notSent; case .rejected: states[key] = .rejected; case .unknown: states[key] = .unknown }
+        } catch { states[key] = .unknown }
+        do {
+            if states[key] == .acknowledged { record.acknowledgedSteps = 1; try journal?.write(record) }
+            else if states[key] == .notSent || states[key] == .rejected { try journal?.clear(record) }
         } catch { states[key] = .unknown }
     }
 }
 @MainActor public final class ContextualReviewHost {
     private let writer: any ContextualReviewWriting
     private var owners: [ContextualReviewTarget: ContextualReviewCoordinator] = [:]
-    public init(writer: any ContextualReviewWriting) { self.writer = writer }
+    private let journal: (any OperationPendingJournal)?
+    public init(writer: any ContextualReviewWriting, journal: (any OperationPendingJournal)? = nil) { self.writer = writer; self.journal = journal }
     public func coordinator(_ target: ContextualReviewTarget) -> ContextualReviewCoordinator {
         if let owner = owners[target] { return owner }
-        let owner = ContextualReviewCoordinator(target: target, writer: writer); owners[target] = owner; return owner
+        let owner = ContextualReviewCoordinator(target: target, writer: writer, journal: journal); owners[target] = owner; return owner
     }
 }

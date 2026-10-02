@@ -9,6 +9,6 @@ public extension SquareGovernanceComment {
             "version": comment.version.map { .integer($0) } ?? .null,
             "author_approval_state": .string(comment.approvalState),
             "lifecycle": .string(comment.lifecycle)
-        ]))
+        ]), generation: post.generation == comment.generation && (post.generation != .communityV1 || comment.communityPostID == post.id) ? post.generation : .unknown)
     }
 }

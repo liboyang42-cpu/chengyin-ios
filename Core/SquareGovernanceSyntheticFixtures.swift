@@ -28,8 +28,8 @@ public final class SquareGovernanceSyntheticTransport: SquareGovernanceOfflineTr
     public var identity: SquareGovernanceIdentity? = .init(accountID: 11, epoch: 1, namespace: "square-governance-synthetic")
     public var token: String? = "synthetic-only-token"
     public var comments: [SquareGovernanceComment] = [
-        .init(id: 61, postID: 71, postAuthorID: 11, raw: .object(["author_id": .integer(22), "version": .integer(3), "author_approval_state": .string("PENDING"), "lifecycle": .string("PUBLISHED")])),
-        .init(id: 62, postID: 71, postAuthorID: 22, raw: .object(["author_id": .integer(11), "version": .integer(5), "author_approval_state": .string("VISIBLE"), "lifecycle": .string("PUBLISHED")]))
+        .init(id: 61, postID: 71, postAuthorID: 11, raw: .object(["author_id": .integer(22), "version": .integer(3), "author_approval_state": .string("PENDING"), "lifecycle": .string("PUBLISHED")]), generation: .communityV1),
+        .init(id: 62, postID: 71, postAuthorID: 22, raw: .object(["author_id": .integer(11), "version": .integer(5), "author_approval_state": .string("VISIBLE"), "lifecycle": .string("PUBLISHED")]), generation: .legacySquare)
     ]
     public init() {}
     public func freshComments() async throws -> [SquareGovernanceComment] { comments }

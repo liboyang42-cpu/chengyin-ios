@@ -60,7 +60,7 @@ import SwiftUI
                 Section { Text("square.readOnly").font(.footnote).foregroundStyle(.secondary) }
             }
             .appNavigationTitle("square.title")
-            .navigationDestination(for: Int.self) { id in SquareDetailView(id: id, reader: reader, accountReader: accountReader, actions: actions, governanceContext: governanceContext(postID: id), workspace: workspace) }
+            .navigationDestination(for: Int.self) { id in SquareDetailView(id: id, contentGeneration: .communityV1, reader: reader, accountReader: accountReader, actions: actions, governanceContext: governanceContext(postID: id), workspace: workspace) }
             .toolbar { if let onClose { ToolbarItem(placement: .cancellationAction) { Button("action.close", action: onClose) } } }
             .toolbar {
                 if let actions {

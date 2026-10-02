@@ -30,13 +30,15 @@ class SquareStructureTests(unittest.TestCase):
                     self.assertTrue(any(k.startswith(key) for k in by_key), key)
                     continue
                 self.assertIn(key, by_key, f'{path.name}: {key}')
-    def test_only_three_audited_read_routes(self):
+    def test_explicit_generation_read_routes_never_fall_back(self):
         source = (ROOT / 'Core/SquareService.swift').read_text()
         self.assertIn('api/v1/community/feeds/\\(query.mode.rawValue)', source)
         self.assertIn('api/creativesquare/info', source)
         self.assertIn('api/comment/list', source)
-        for forbidden in ['api/creativesquare/list', 'api/comment/add', 'api/comment/like', 'api/v1/community/posts', 'api/creativesquare/action']:
+        for forbidden in ['api/creativesquare/list', 'api/comment/add', 'api/comment/like', 'api/creativesquare/action']:
             self.assertNotIn(forbidden, source)
+        self.assertIn('api/v1/community/posts/\\(route.id)', source)
+        self.assertIn('route.generation == .legacySquare', source)
         self.assertIn('request.httpMethod = "GET"', source)
         self.assertIn('"owner_type": "3"', source)
         self.assertIn('"pageNum": String(pageNumber)', source)

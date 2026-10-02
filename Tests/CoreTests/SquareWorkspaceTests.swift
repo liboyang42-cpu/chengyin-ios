@@ -29,7 +29,8 @@ private final class SquareWorkspaceFakeHTTP: HTTPTransport {
         XCTAssertFalse(text(r).contains("latitude")); XCTAssertFalse(text(r).contains("longitude")); XCTAssertFalse(text(r).contains("communityId"))
     }
     func testLegacyEditOmitsMediaLocationAndRequestID() throws {
-        var draft = SquareWorkspaceFixtures.draft(); draft.postID = 701; draft.media = [.init(objectKey: "one.jpg")]
+        var draft = try SquareWorkspacePost(data: SquareWorkspaceFixtures.legacyPost, lane: .legacy).editableDraft(lane: .legacy)
+        draft.media = [.init(objectKey: "one.jpg")]
         let body = text(try api(.init()).legacyRequest(draft: draft, token: token))
         for omitted in ["pics", "address", "request_id", "longitude", "latitude"] { XCTAssertFalse(body.contains("name=\"\(omitted)\"")) }
         XCTAssertTrue(body.contains("name=\"id\"")); XCTAssertTrue(body.contains("data_type"))
@@ -138,7 +139,7 @@ private final class SquareWorkspaceFakeHTTP: HTTPTransport {
         let c = SquareWorkspaceCoordinator(session: session, store: .init(storage: SquareWorkspaceMemoryStorage()), service: try api(t), grants: grants, currentSession: { session }, token: { "synthetic-token" })
         let draft = SquareWorkspaceFixtures.draft(); let review = try await c.prepare(draft, lane: .communityV1)
         try await c.confirm(review, unchangedDraft: draft, acceptCurrentGuideline: true)
-        XCTAssertEqual(t.requests.map { $0.url!.lastPathComponent }, ["active", "active", "ack", "posts", "publish", "info"])
+        XCTAssertEqual(t.requests.map { $0.url!.lastPathComponent }, ["active", "active", "ack", "posts", "publish", "701"])
         XCTAssertEqual(c.lastPost?.lifecycle, "PENDING")
         XCTAssertEqual(try json(t.requests[2])["scene"] as? String, "PUBLISH")
         XCTAssertEqual(try json(t.requests[4])["expectedVersion"] as? Int, 3)
@@ -148,7 +149,7 @@ private final class SquareWorkspaceFakeHTTP: HTTPTransport {
     func testPublishedRevisionOnlySavesLocallyEvenWithNoLiveGrant() async throws {
         let s = try session(); let t = SquareWorkspaceFakeHTTP()
         let c = SquareWorkspaceCoordinator(session: s, store: .init(storage: SquareWorkspaceMemoryStorage()), service: try api(t), currentSession: { s })
-        var draft = SquareWorkspaceFixtures.draft(); draft.postID = 701; draft.sourceLifecycle = "PUBLISHED"
+        var draft = SquareWorkspaceFixtures.draft(); draft.postID = 701; draft.sourceLane = .communityV1; draft.sourceLifecycle = "PUBLISHED"
         try await c.saveServer(draft); XCTAssertTrue(t.requests.isEmpty); XCTAssertEqual(c.local.first?.draft, draft)
     }
 

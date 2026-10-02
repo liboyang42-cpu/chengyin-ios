@@ -17,6 +17,20 @@ public struct SquareReadSession: Equatable {
     func squareFeed(query: SquareQuery, cursor: SquareCursor?) async throws -> SquareFeedPage
     func squareDetail(id: Int) async throws -> SquarePost
     func squareComments(postID: Int, pageNumber: Int) async throws -> SquareCommentPage
+    func squareDetail(route: SquareContentRoute) async throws -> SquarePost
+    func squareComments(route: SquareContentRoute, pageNumber: Int) async throws -> SquareCommentPage
+}
+public extension SquareReading {
+    func squareDetail(route: SquareContentRoute) async throws -> SquarePost {
+        guard route.valid else { throw APIError.invalidRequest }
+        let value = try await squareDetail(id: route.id)
+        guard value.generation == route.generation else { throw APIError.invalidRequest }; return value
+    }
+    func squareComments(route: SquareContentRoute, pageNumber: Int) async throws -> SquareCommentPage {
+        guard route.valid else { throw APIError.invalidRequest }
+        let value = try await squareComments(postID: route.id, pageNumber: pageNumber)
+        guard value.items.allSatisfy({ $0.generation == route.generation }) else { throw APIError.invalidRequest }; return value
+    }
 }
 @MainActor public final class SquareSessionReader: SquareReading {
     private let service: SquareService?
@@ -44,6 +58,12 @@ public struct SquareReadSession: Equatable {
     }
     public func squareComments(postID: Int, pageNumber: Int) async throws -> SquareCommentPage {
         try await read { try await $0.comments(postID: postID, pageNumber: pageNumber, token: $1) }
+    }
+    public func squareDetail(route: SquareContentRoute) async throws -> SquarePost {
+        try await read { try await $0.detail(route: route, token: $1) }
+    }
+    public func squareComments(route: SquareContentRoute, pageNumber: Int) async throws -> SquareCommentPage {
+        try await read { try await $0.comments(route: route, pageNumber: pageNumber, token: $1) }
     }
     private func read<T>(_ operation: (SquareService, String?) async throws -> T) async throws -> T {
         guard let service else { throw APIError.notConfigured }

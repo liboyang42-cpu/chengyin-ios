@@ -12,8 +12,7 @@ public struct OfficialActionService {
     public init(configuration: APIConfiguration, transport: any HTTPTransport, enabled: Bool = false) {
         self.configuration = configuration; self.transport = transport; self.enabled = enabled
     }
-    public func send(_ command: OfficialActionCommand, token: String) async throws -> OfficialActionReceipt {
-        guard enabled else { throw OfficialActionFailure.disabled }
+    static func request(_ command: OfficialActionCommand, configuration: APIConfiguration, token: String) throws -> URLRequest {
         guard AuthRequestBuilder.isValidToken(token) else { throw OfficialActionFailure.invalid }
         let body = try command.payload()
         var request = URLRequest(url: configuration.baseURL.appendingPathComponent(command.path))
@@ -22,6 +21,12 @@ public struct OfficialActionService {
         request.setValue(token, forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         if body != nil { request.setValue("application/json", forHTTPHeaderField: "Content-Type") }
+        return request
+    }
+
+    public func send(_ command: OfficialActionCommand, token: String) async throws -> OfficialActionReceipt {
+        guard enabled else { throw OfficialActionFailure.disabled }
+        let request = try Self.request(command, configuration: configuration, token: token)
         try Task.checkCancellation()
         let (data, status) = try await transport.send(request)
         // Any throw after dispatch is conservatively unknown unless an exact business rejection was received.

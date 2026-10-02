@@ -30,17 +30,36 @@ public struct ClubOpsTimeSession: Equatable {
     public let accountID: Int
     public let realm: String
     let token: String
+    public private(set) var runtimeContext: RuntimeDependencyContext?
     public init(accountID: Int, epoch: UInt64, realm: String, token: String) throws {
         guard accountID > 0, !realm.isEmpty, AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
         identity = .init(accountID: accountID, epoch: epoch); self.accountID = accountID; self.realm = realm; self.token = token
     }
+    public init(context: RuntimeDependencyContext) throws {
+        try self.init(accountID: context.session.accountID, epoch: context.session.epoch,
+                      realm: context.baseURL.absoluteString, token: context.session.token)
+        runtimeContext = context
+    }
+    var replayOwnerKey: String {
+        let namespace = runtimeContext?.session.namespace ?? ""
+        return "\(realm.utf8.count):\(realm)|\(namespace.utf8.count):\(namespace)|\(accountID)"
+    }
+
 }
 public enum ClubOpsTimeFailure: Error, Equatable { case disabled, rejected, unknown, stale, malformed }
 @MainActor public protocol ClubOpsTimeServing {
     var isConfigured: Bool { get }
+    var requiresDurableJournal: Bool { get }
     var session: ClubOpsTimeSession? { get }
     func read(activityID: Int, session: ClubOpsTimeSession) async throws -> String
     func save(_ request: ClubOpsTimeRequest, session: ClubOpsTimeSession) async throws
+    func save(_ request: ClubOpsTimeRequest, session: ClubOpsTimeSession, authorization: ContextualOperationAuthorization) async throws
+}
+extension ClubOpsTimeServing {
+    public var requiresDurableJournal: Bool { false }
+    public func save(_ request: ClubOpsTimeRequest, session: ClubOpsTimeSession, authorization: ContextualOperationAuthorization) async throws {
+        try await save(request, session: session)
+    }
 }
 @MainActor public struct ClubOpsTimeHTTPService: ClubOpsTimeServing {
     private let configuration: APIConfiguration
@@ -85,24 +104,48 @@ public enum ClubOpsTimeState: Equatable { case idle, saving, acknowledged, rejec
     public let activityID: Int
     public let service: any ClubOpsTimeServing
     private var states: [String: ClubOpsTimeState] = [:]
-    public var state: ClubOpsTimeState { service.session.map { states[$0.realm + "|" + String($0.accountID)] ?? .idle } ?? .idle }
-    public var canSave: Bool { service.isConfigured && service.session != nil && ![.saving, .unknown].contains(state) }
-    public init(activityID: Int, service: any ClubOpsTimeServing) { self.activityID = activityID; self.service = service }
+    private let journal: (any OperationPendingJournal)?
+    private var targetKey: String { "club-start-time|\(activityID)" }
+    public var state: ClubOpsTimeState {
+        guard let session = service.session else { return .idle }
+        if states[session.replayOwnerKey] == .saving { return .saving }
+        do { if try journal?.pending(ownerKey: session.replayOwnerKey, targetKey: targetKey) != nil { return .unknown } }
+        catch { return .unknown }
+        return states[session.replayOwnerKey] ?? .idle
+    }
+    public var canSave: Bool { service.isConfigured && (!service.requiresDurableJournal || journal != nil) && service.session != nil && ![.saving, .unknown].contains(state) }
+    public init(activityID: Int, service: any ClubOpsTimeServing, journal: (any OperationPendingJournal)? = nil) {
+        self.activityID = activityID; self.service = service; self.journal = journal
+    }
     public func save(_ request: ClubOpsTimeRequest, expected: ClubOpsTimeSession) async {
         guard canSave, service.session == expected, request.activityId == activityID else { return }
-        let account = expected.realm + "|" + String(expected.accountID); states[account] = .saving
-        do { try await service.save(request, session: expected); states[account] = service.session == expected ? .acknowledged : .unknown }
+        let account = expected.replayOwnerKey
+        let record = OperationPendingRecord(ownerKey: account, targetKey: targetKey)
+        do { try journal?.write(record) } catch { return }
+        states[account] = .saving
+        do {
+            let authorization = ContextualOperationAuthorization(command: .clubTime(request), owner: expected.replayOwnerKey) {
+                guard let journal = self.journal else { return false }
+                return try journal.pending(ownerKey: record.ownerKey, targetKey: record.targetKey) == record
+            }
+            try await service.save(request, session: expected, authorization: authorization)
+            states[account] = service.session == expected && !Task.isCancelled ? .acknowledged : .unknown
+        }
         catch let error as ClubOpsTimeFailure {
             switch error { case .disabled, .stale: states[account] = .idle; case .rejected: states[account] = .rejected; default: states[account] = .unknown }
         } catch { states[account] = .unknown }
+        if states[account] != .unknown {
+            do { try journal?.clear(record) } catch { states[account] = .unknown }
+        }
     }
 }
 @MainActor public final class ClubOpsTimeHost {
     private let service: any ClubOpsTimeServing
     private var owners: [Int: ClubOpsTimeCoordinator] = [:]
-    public init(service: any ClubOpsTimeServing) { self.service = service }
+    private let journal: (any OperationPendingJournal)?
+    public init(service: any ClubOpsTimeServing, journal: (any OperationPendingJournal)? = nil) { self.service = service; self.journal = journal }
     public func coordinator(activityID: Int) -> ClubOpsTimeCoordinator {
         if let owner = owners[activityID] { return owner }
-        let owner = ClubOpsTimeCoordinator(activityID: activityID, service: service); owners[activityID] = owner; return owner
+        let owner = ClubOpsTimeCoordinator(activityID: activityID, service: service, journal: journal); owners[activityID] = owner; return owner
     }
 }

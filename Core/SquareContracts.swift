@@ -1,5 +1,13 @@
 import Foundation
 
+public enum SquareContentGeneration: String, Hashable { case unknown, legacySquare, communityV1 }
+public struct SquareContentRoute: Hashable {
+    public let id: Int
+    public let generation: SquareContentGeneration
+    public init(id: Int, generation: SquareContentGeneration) { self.id = id; self.generation = generation }
+    public var valid: Bool { id > 0 && generation != .unknown }
+}
+
 public enum SquareFeedMode: String, CaseIterable, Hashable {
     case latest = "LATEST", following = "FOLLOWING", nearby = "NEARBY"
     case topic = "TOPIC", community = "COMMUNITY", featured = "FEATURED"
@@ -38,10 +46,12 @@ public struct SquareCommentPage: Equatable {
     public let items: [SquareComment]
     public let pageNumber: Int
     public let pageSize: Int
-    // Source uses raw page length, not unique display count, and not total.
-    public var hasMore: Bool { items.count >= pageSize }
-    public init(items: [SquareComment], pageNumber: Int, pageSize: Int = 50) {
-        self.items = items; self.pageNumber = pageNumber; self.pageSize = pageSize
+    private let explicitContinuation: Bool?
+    // Legacy uses raw page length. Versioned pagination counts root threads, so
+    // replies must not manufacture a next page.
+    public var hasMore: Bool { explicitContinuation ?? (items.count >= pageSize) }
+    public init(items: [SquareComment], pageNumber: Int, pageSize: Int = 50, hasMore: Bool? = nil) {
+        self.items = items; self.pageNumber = pageNumber; self.pageSize = pageSize; explicitContinuation = hasMore
     }
 }
 public enum SquareReadFailure: Error, Equatable {
@@ -52,6 +62,9 @@ public enum SquareReadFailure: Error, Equatable {
 // Only source fields used by this read module are retained. Coordinates, moderation internals,
 // credentials and mutation payloads are deliberately absent from the display model.
 public struct SquarePost: Decodable, Equatable, Identifiable {
+    public private(set) var generation: SquareContentGeneration = .unknown
+    public let version: Int?
+    public func qualified(as generation: SquareContentGeneration) -> Self { var value = self; value.generation = generation; return value }
     public let id: Int
     public let memberID: Int
     public let contents: String?
@@ -93,6 +106,7 @@ public struct SquarePost: Decodable, Equatable, Identifiable {
         let root = try SquareValue(from: decoder)
         guard root.object != nil else { throw APIError.malformedResponse }
         let post = root["post"].object == nil ? root : root["post"]
+        version = post["version"].number
         id = post["id"].number ?? 0
         guard id > 0 else { throw APIError.malformedResponse }
         memberID = post.first("authorId", "memberId").number ?? 0
@@ -145,6 +159,9 @@ public struct SquarePost: Decodable, Equatable, Identifiable {
     }
 }
 public struct SquareComment: Decodable, Equatable, Identifiable {
+    public private(set) var generation: SquareContentGeneration = .unknown
+    public let communityPostID: Int?
+    public func qualified(as generation: SquareContentGeneration) -> Self { var value = self; value.generation = generation; return value }
     public let id: Int
     public let memberID: Int
     public let contents: String?
@@ -164,6 +181,7 @@ public struct SquareComment: Decodable, Equatable, Identifiable {
     public let repliedToMemberID: Int?
     public init(from decoder: Decoder) throws {
         let value = try SquareValue(from: decoder)
+        communityPostID = value["post_id"].number
         id = value["id"].number ?? 0
         guard id > 0 else { throw APIError.malformedResponse }
         memberID = value.first("author_id", "authorId", "memberId").number ?? 0

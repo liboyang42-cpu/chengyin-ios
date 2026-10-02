@@ -16,13 +16,13 @@ class SquareJourneyChatIntegration(unittest.TestCase):
  def test_workspace_normal_compose_edit_and_draft_routes(self):
   s=read('App/SquareBrowserView.swift');self.assertIn('if workspace != nil { showsWorkspace = true } else { showsComposer = true }',s)
   self.assertIn('openDrafts: { if workspace != nil { showsWorkspace = true } }',s)
-  s=read('App/SquareDetailView.swift');self.assertIn('SquareWorkspaceView(coordinator: workspace, initialPostID: id)',s)
+  s=read('App/SquareDetailView.swift');self.assertIn('SquareWorkspaceView(coordinator: workspace, initialPostID: id, initialLane:',s)
   s=read('Core/SquareWorkspaceCoordinator.swift');self.assertIn('post.id == postID, post.authorID == session.accountID',s)
   self.assertIn('initialPostID != nil && !editReady',read('App/SquareWorkspaceView.swift'))
  def test_fresh_comment_projection_never_invents_version_or_author(self):
   s=read('Core/SquareContracts.swift');self.assertIn('public let version: Int?',s);self.assertIn('version = value["version"].number',s);self.assertNotIn('version = value["version"].number ??',s)
   s=read('App/AppSession.swift')
-  for x in ['squareReader.squareDetail(id: postID)','squareReader.squareComments(postID: postID, pageNumber: 1)','self.squareReader.scope == readScope','SquareGovernanceComment(comment: $0, post: post)']:self.assertIn(x,s)
+  for x in ['squareReader.squareDetail(route: .init(id: postID, generation: .communityV1))','squareReader.squareComments(route: .init(id: postID, generation: .communityV1), pageNumber: 1)','self.squareReader.scope == readScope','SquareGovernanceComment(comment: $0, post: post)']:self.assertIn(x,s)
  def test_governance_dormant_per_operation_transport(self):
   s=read('Core/SquareGovernanceService.swift');self.assertIn('grant: SquareGovernanceMutationGrant = .disabled',s);self.assertIn('mutationCapabilities.contains(SquareGovernanceCapability(action))',s)
   self.assertNotIn('reviewedInjection',read('App/AppSession.swift'))

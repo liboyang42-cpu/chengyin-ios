@@ -10,6 +10,7 @@ import SwiftUI
             actions: session.socialActionCoordinator, workspace: session.squareWorkspace(),
             governance: session.squareGovernance(), governanceAccess: { session.squareGovernanceAccess(postID: $0) },
             onSignIn: onSignIn, onClose: onClose)
+            .environment(\.squareReportContext, session.squareReportContext())
             .id(session.sessionRevision).privacySensitive()
     }
 }
