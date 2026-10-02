@@ -87,8 +87,8 @@ import SwiftUI
             }.accessibilityIdentifier("merchant.publicHome.cooperation")
         }
     }
-    @ViewBuilder private func field(_ value: String?) { if let value, !value.isEmpty { Text(verbatim: value).textSelection(.enabled) } }
-    @ViewBuilder private func labeled(_ value: String?, label: LocalizedStringKey) {
+    @ViewBuilder private func field(_ value: String?) -> some View { if let value, !value.isEmpty { Text(verbatim: value).textSelection(.enabled) } }
+    @ViewBuilder private func labeled(_ value: String?, label: LocalizedStringKey) -> some View {
         if let value, !value.isEmpty { LabeledContent(label, value: value) }
     }
     @ViewBuilder private func media(_ value: String?, label: LocalizedStringKey) -> some View {

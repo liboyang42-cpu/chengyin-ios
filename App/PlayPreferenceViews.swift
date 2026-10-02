@@ -91,7 +91,7 @@ import SwiftUI
     }
     private func prepare(reuse: Int?) {
         do { review = try model.review(reuseTagID: reuse); confirm = true; error = nil }
-        catch { error = .invalidAction }
+        catch { self.error = .invalidAction }
     }
 }
 
