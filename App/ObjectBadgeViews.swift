@@ -98,7 +98,7 @@ import SwiftUI
                     LabeledContent("profile.badges.family") { Text(badge.familyKey) }
                     switch badge {
                     case .identity(let value):
-                        LabeledContent("profile.badges.category") { Text(LocalizedStringKey("objects.track." + (track))) }
+                        LabeledContent("profile.badges.category") { Text(LocalizedStringKey("objects.track." + String(track))) }
                         ProfileOptionalRow(key: "profile.badges.statement", value: value.statement)
                         ProfileOptionalRow(key: "profile.badges.unlockHint", value: value.unlockHint)
                         if value.unlocked { ProfileOptionalRow(key: "profile.badges.obtained", value: ObjectBadgePresentation.date(value.unlockTime)) }
@@ -126,7 +126,7 @@ import SwiftUI
                     expectedScope: expectedScope, currentScope: currentScope).frame(height: 200)
                 Text(verbatim: parameters.name).font(.headline)
                 if !parameters.subtitle.isEmpty { Text(verbatim: parameters.subtitle).font(.caption) }
-                Text(LocalizedStringKey("objects.rarity." + (parameters.rarity)))
+                Text(LocalizedStringKey("objects.rarity." + String(parameters.rarity)))
                 Text(parameters.style == "enamel" ? "objects.enamel" : "objects.glow")
                 Text("objects.staticPreview").font(.caption)
             } else { Text("objects.sessionChanged") }

@@ -38,7 +38,7 @@ private final class ApprovedAudioDownload: NSObject, URLSessionDataDelegate, @un
     }
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         let callback = completion; completion = nil
-        callback(error == nil && !bytes.isEmpty ? bytes : nil); session.finishTasksAndInvalidate()
+        callback?(error == nil && !bytes.isEmpty ? bytes : nil); session.finishTasksAndInvalidate()
     }
 }
 
