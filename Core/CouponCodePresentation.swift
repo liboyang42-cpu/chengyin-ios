@@ -125,6 +125,7 @@ public struct CouponCodeReceipt: Decodable {
     private let service: any CouponCodeServing
     private let currentSession: () -> CouponCodeSession?
     private let now: () -> Date
+    private let onUnauthorized: (CouponCodeSession) -> Void
     private var owner: CouponCodeSession?
     private var generation: UInt64 = 0
     private var active = false
@@ -135,8 +136,9 @@ public struct CouponCodeReceipt: Decodable {
     private var expiry: Date?
     private var nextPoll = Date.distantFuture
     private var nextIssue = Date.distantFuture
-    public init(historyID: Int, service: any CouponCodeServing, currentSession: @escaping () -> CouponCodeSession?, now: @escaping () -> Date = Date.init) {
-        self.historyID = historyID; self.service = service; self.currentSession = currentSession; self.now = now
+    public init(historyID: Int, service: any CouponCodeServing, currentSession: @escaping () -> CouponCodeSession?, now: @escaping () -> Date = Date.init,
+                onUnauthorized: @escaping (CouponCodeSession) -> Void = { _ in }) {
+        self.historyID = historyID; self.service = service; self.currentSession = currentSession; self.now = now; self.onUnauthorized = onUnauthorized
     }
     public var enabled: Bool { service.enabled }
     public var ownerIsCurrent: Bool { owner != nil && owner == currentSession() }
@@ -162,7 +164,7 @@ public struct CouponCodeReceipt: Decodable {
         guard ownerIsCurrent else { invalidate(); phase = .stale; return }
         let date = now()
         remainingSeconds = expiry.map { max(0, Int($0.timeIntervalSince(date).rounded(.down))) } ?? 0
-        if let expiry, date >= expiry { imageBytes = nil; phase = .loading }
+        if let expiry, date >= expiry { imageBytes = nil; receipt = nil; phase = .loading }
         if date >= nextPoll { nextPoll = date.addingTimeInterval(5); await poll() }
         guard active, !terminal else { return }
         if date >= nextIssue { await refresh() }
@@ -229,6 +231,7 @@ public struct CouponCodeReceipt: Decodable {
         if failure == .unavailable || failure == .unauthorized {
             terminal = true; generation &+= 1; receipt = nil; imageBytes = nil; expiry = nil; remainingSeconds = 0
             self.polling = false; issuing = false; phase = failure == .unavailable ? .unavailable : .login; issue = failure
+            if failure == .unauthorized, let owner { onUnauthorized(owner) }
         } else if polling { pollDelayed = true }
         else { phase = .failed; issue = failure; nextIssue = now().addingTimeInterval(5) }
     }

@@ -5,4 +5,5 @@ import SwiftUI
     let coordinator: ClubGovernanceCoordinator
     var enrollmentProfile: ClubEnrollmentProfileContext? = nil
     var ownerRefund: ClubOwnerRefundCoordinator? = nil
+    var opsTimeFactory: ((Int) -> ClubOpsTimeCoordinator?)? = nil
 }

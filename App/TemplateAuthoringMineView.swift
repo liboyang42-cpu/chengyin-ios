@@ -48,6 +48,10 @@ import SwiftUI
                         Section("templateAuthor.reviewTitle") {
                             Text(verbatim: value.title)
                             LabeledContent("templateAuthor.shelf.identity", value: String(value.templateID.rawValue))
+                                .accessibilityElement(children: .ignore)
+                                .accessibilityLabel(Text("templateAuthor.shelf.identity"))
+                                .accessibilityValue(Text(verbatim: String(value.templateID.rawValue)))
+                                .accessibilityIdentifier("templateAuthor.shelf.identity")
                             Text(LocalizedStringKey(value.action == .remove ? "templateAuthor.shelf.deleteReview" : value.desiredPublishStatus == 1 ? "templateAuthor.shelf.addReview" : "templateAuthor.shelf.removeReview"))
                             Text("templateAuthor.shelf.readback")
                         }

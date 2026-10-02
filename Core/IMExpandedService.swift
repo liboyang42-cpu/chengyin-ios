@@ -10,9 +10,10 @@ public struct IMExpandedService {
     private let transport: any HTTPTransport
     public let approvedMediaOrigins: Set<String>
     private let writesEnabled: Bool
+    private let enabledPaths: Set<String>?
     public var isConfigured: Bool { writesEnabled }
-    public init(configuration: APIConfiguration, transport: any HTTPTransport, approvedMediaOrigins: Set<String>, writesEnabled: Bool = false) {
-        self.configuration = configuration; self.transport = transport; self.approvedMediaOrigins = approvedMediaOrigins; self.writesEnabled = writesEnabled
+    public init(configuration: APIConfiguration, transport: any HTTPTransport, approvedMediaOrigins: Set<String>, writesEnabled: Bool = false, enabledPaths: Set<String>? = nil) {
+        self.configuration = configuration; self.transport = transport; self.approvedMediaOrigins = approvedMediaOrigins; self.writesEnabled = writesEnabled; self.enabledPaths = enabledPaths
     }
     public func perform(_ mutation: IMMutation, token: String) async throws -> IMMutationReceipt {
         guard writesEnabled else { throw APIError.notConfigured }
@@ -29,6 +30,7 @@ public struct IMExpandedService {
             path = "send"; fields = try intent.payload.wireFields(approvedOrigins: approvedMediaOrigins)
             fields["conversation_id"] = String(intent.scope.conversationID); fields["client_message_id"] = intent.clientMessageID
         }
+        guard enabledPaths?.contains("api/im/\(path)") ?? true else { throw APIError.notConfigured }
         let request = try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent("api/im/\(path)"), fields: fields, token: token)
         let data = try await response(request)
         switch mutation {
@@ -48,7 +50,7 @@ public struct IMExpandedService {
         }
     }
     public func upload(_ selection: IMMediaSelection, consent: IMMediaConsent, token: String) async throws -> URL {
-        guard writesEnabled else { throw APIError.notConfigured }
+        guard writesEnabled, enabledPaths?.contains("api/common/uploadOSS") ?? true else { throw APIError.notConfigured }
         guard consent.selectionID == selection.id, consent.scope == selection.scope, consent.purpose == .upload else { throw IMCapabilityGap.consentRequired }
         try selection.validateImage()
         let boundary = "im-" + UUID().uuidString

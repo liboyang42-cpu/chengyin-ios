@@ -10,9 +10,10 @@ import SwiftUI
         } description: {
             Text(failure == .cannotOpen ? "nativeNav.error.cannotOpen" : "nativeNav.error.detail")
         } actions: {
-            Button("nativeNav.close") { dismiss() }
-            Button("homeFeed.title", action: goHome)
-        }.navigationTitle("nativeNav.error.title").accessibilityIdentifier("nativeNav.error")
+            Button("nativeNav.close") { dismiss() }.accessibilityIdentifier("nativeNav.error.close")
+            Button("homeFeed.title", action: goHome).accessibilityIdentifier("nativeNav.error.home")
+        }.navigationTitle("nativeNav.error.title")
+            .accessibilityElement(children: .contain).accessibilityIdentifier("nativeNav.error")
     }
 }
 

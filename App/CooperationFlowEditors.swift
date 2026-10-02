@@ -155,7 +155,7 @@ struct CoopFlowOfferEditor: View {
             if reader.session == context.session {
                 Form {
                     LabeledContent("coopflow.field.toId", value: context.recipientName.isEmpty ? appLocalized("coopflow.unnamed", locale: locale) : context.recipientName)
-                    LabeledContent("coopflow.field.toType", value: appLocalized("coopflow.invite.club", locale: locale))
+                    LabeledContent("coopflow.field.toType", value: appLocalized(context.kind == .club ? "coopflow.invite.club" : "context.coop.merchant", locale: locale))
                     LabeledContent("coopflow.field.topicId", value: String(context.topicID))
                     TextField("coopflow.field.message", text: $message, axis: .vertical)
                         .focused($focusedField, equals: .message).accessibilityIdentifier("coopflow.invite.message")

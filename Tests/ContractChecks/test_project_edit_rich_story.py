@@ -55,7 +55,7 @@ class RichStoryContracts(unittest.TestCase):
         fixture=self.text('Core/ProjectEditRichStoryFixtures.swift').strip()
         self.assertTrue(fixture.startswith('#if DEBUG')); self.assertTrue(fixture.endswith('#endif'))
         self.assertNotIn('URLSession', tests + fixture)
-        self.assertIn('service: ProjectEditDisabledService()', self.text('App/AppSession.swift'))
+        self.assertIn('else { service = ProjectEditDisabledService() }', self.text('App/AppSession.swift'))
     def test_current_external_sources_if_supplied(self):
         value=os.environ.get('CHENGYIN_CURRENT_SOURCE_ROOT')
         if value is None: self.skipTest('Current private source unavailable: source comparison NOT_RUN')

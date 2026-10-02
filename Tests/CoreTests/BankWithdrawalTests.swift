@@ -36,6 +36,45 @@ private final class BankSyntheticTransport: HTTPTransport {
     private func fail<T>(_ block: () async throws -> T, file: StaticString = #filePath, line: UInt = #line) async {
         do { _ = try await block(); XCTFail("Expected fail-closed result", file: file, line: line) } catch {}
     }
+    func testRefreshFailureBeforePreflightCannotSendOrReserveMoneyOperation() async throws {
+        let current = session(), fake = BankSyntheticTransport(), storage = defaults()
+        var refreshes = 0
+        let grant = try OperationEndpointApproval(baseURL: base, namespace: current.scope.namespace, accountID: 7, paths: ["api/fund/preflight/bank-withdrawal"])
+        let value = BankWithdrawalAdapter(configuration: try .init(baseURL: base), transport: fake,
+            journal: OperationDefaultsJournal(defaults: storage), approval: grant, enableReviewedWrites: true,
+            refreshConsent: { refreshes += 1; throw BankWithdrawalFailure.consentRequired },
+            currentSession: { current })
+        let review = try value.review(draft())
+        await fail { try await value.prepare(review) }
+        XCTAssertEqual(refreshes, 1); XCTAssertTrue(fake.requests.isEmpty); XCTAssertFalse(value.hasUnresolvedOutcome)
+    }
+    func testSlowConsentRefreshCannotExtendTheLocalReviewWindow() async throws {
+        let current = session(), fake = BankSyntheticTransport(), storage = defaults()
+        var now = Date(timeIntervalSince1970: 100)
+        let evidence = try consent(current)
+        let grant = try OperationEndpointApproval(baseURL: base, namespace: current.scope.namespace, accountID: 7, paths: ["api/fund/preflight/bank-withdrawal"])
+        let value = BankWithdrawalAdapter(configuration: try .init(baseURL: base), transport: fake,
+            journal: OperationDefaultsJournal(defaults: storage), approval: grant, enableReviewedWrites: true,
+            refreshConsent: { now = now.addingTimeInterval(121) }, consentEvidence: { evidence }, currentSession: { current }, now: { now })
+        let review = try value.review(draft())
+        await fail { try await value.prepare(review) }
+        XCTAssertTrue(fake.requests.isEmpty); XCTAssertFalse(value.hasUnresolvedOutcome)
+    }
+    func testConsentIsRefreshedAgainBeforeConfirmation() async throws {
+        let current = session(), fake = BankSyntheticTransport(), storage = defaults()
+        fake.handler = { _ in (self.challenge(), 200) }
+        var refreshes = 0
+        let evidence = try consent(current)
+        let grant = try OperationEndpointApproval(baseURL: base, namespace: current.scope.namespace, accountID: 7,
+            paths: ["api/fund/preflight/bank-withdrawal", "api/fund/preflight/71/confirm", "api/withdrawal/create"])
+        let value = BankWithdrawalAdapter(configuration: try .init(baseURL: base), transport: fake,
+            journal: OperationDefaultsJournal(defaults: storage), approval: grant, enableReviewedWrites: true,
+            refreshConsent: { refreshes += 1; if refreshes > 1 { throw BankWithdrawalFailure.consentRequired } },
+            consentEvidence: { evidence }, currentSession: { current })
+        let proof = try await value.prepare(value.review(draft()))
+        await fail { try await value.submit(proof) }
+        XCTAssertEqual(refreshes, 2); XCTAssertEqual(fake.requests.count, 1); XCTAssertTrue(value.hasUnresolvedOutcome)
+    }
     func testBackendInputLimitsDecimalPrecisionAndNoInventedCardFormat() throws {
         XCTAssertEqual(try draft().validatedAmount(), Decimal(string: "12.3"))
         for amount in ["0", "-1", "1.001", "1e2", "NaN", "1,20", "1000000000000", ".1"] {

@@ -112,7 +112,7 @@ class TemplateAuthoringContracts(unittest.TestCase):
         catalog=json.loads(self.read('docs/template-authoring-localizations.json'))
         catalog.update(json.loads(self.read('docs/template-authoring-repair-localizations.json')))
         for key,entry in catalog.items():self.assertEqual(set(entry),{'en','zh-Hans'},key);self.assertTrue(all(entry.values()),key)
-        identifiers={'templateAuthor.status','templateAuthor.field.','templateAuthor.cancelReview','templateAuthor.gamePicker','templateAuthor.openEditor','templateAuthor.openMine','templateAuthor.openPrefab','templateAuthor.shelf.status','templateAuthor.shelf.cancel','templateAuthor.shelf.confirm'}
+        identifiers={'templateAuthor.status','templateAuthor.field.','templateAuthor.cancelReview','templateAuthor.game.','templateAuthor.openEditor','templateAuthor.openMine','templateAuthor.openPrefab','templateAuthor.shelf.status','templateAuthor.shelf.cancel','templateAuthor.shelf.confirm'}
         for path in list((ROOT/'App').glob('TemplateAuthor*.swift'))+list((ROOT/'App').glob('PrefabPreview*.swift'))+list((ROOT/'Core').glob('TemplateAuthor*.swift')):
             for key in re.findall(r'"(templateAuthor\.[A-Za-z][A-Za-z.]+)"',path.read_text()):
                 if key not in identifiers and not key.endswith('.'):self.assertIn(key,catalog,key)

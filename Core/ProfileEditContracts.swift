@@ -37,9 +37,16 @@ public struct ProfileEditSnapshot: Decodable, Equatable {
 public struct ProfileEditDraft: Equatable {
     public var name: String
     public var introduction: String
-    public init(name: String = "", introduction: String = "") { self.name = name; self.introduction = introduction }
-    public var normalized: Self { .init(name: name.trimmingCharacters(in: .whitespacesAndNewlines), introduction: introduction.trimmingCharacters(in: .whitespacesAndNewlines)) }
-    public var isValid: Bool { !normalized.name.isEmpty }
+    /// Nil preserves the complete wire string. An explicit empty selection clears preferences.
+    public var routePreferenceIDs: [Int]?
+    public init(name: String = "", introduction: String = "", routePreferenceIDs: [Int]? = nil) {
+        self.name = name; self.introduction = introduction; self.routePreferenceIDs = routePreferenceIDs
+    }
+    public var normalized: Self { .init(name: name.trimmingCharacters(in: .whitespacesAndNewlines), introduction: introduction.trimmingCharacters(in: .whitespacesAndNewlines), routePreferenceIDs: routePreferenceIDs) }
+    public var isValid: Bool {
+        let ids = routePreferenceIDs ?? []
+        return !normalized.name.isEmpty && ids.allSatisfy { $0 > 0 } && Set(ids).count == ids.count
+    }
 }
 public struct ProfileEditPayload: Encodable, Equatable {
     public let name: String
@@ -51,7 +58,8 @@ public struct ProfileEditPayload: Encodable, Equatable {
     public init(draft: ProfileEditDraft, preserving snapshot: ProfileEditSnapshot) throws {
         guard draft.isValid else { throw APIError.invalidRequest }
         name = draft.normalized.name; introduction = draft.normalized.introduction
-        avatar = snapshot.avatar; wechat = snapshot.wechat; casePics = snapshot.casePics; tagIds = snapshot.tagIds
+        avatar = snapshot.avatar; wechat = snapshot.wechat; casePics = snapshot.casePics
+        tagIds = draft.routePreferenceIDs.map { $0.map(String.init).joined(separator: ",") } ?? snapshot.tagIds
     }
     public func matches(_ snapshot: ProfileEditSnapshot) -> Bool {
         name == snapshot.nickname && introduction == snapshot.introduction && avatar == snapshot.avatar

@@ -109,11 +109,13 @@ struct ParticipantFormView: View {
     @FocusState private var focusedField: Field?
     private enum Field { case name, phone }
     let onSaved: () -> Void
+    let onCreated: (ProfileParticipant, ProfileReadIdentity) -> Void
 
     init(id: Int? = nil, reader: any ProfileReading, coordinator: ParticipantMutationCoordinator,
-         onSaved: @escaping () -> Void = {}) {
+         onSaved: @escaping () -> Void = {},
+         onCreated: @escaping (ProfileParticipant, ProfileReadIdentity) -> Void = { _, _ in }) {
         _model = StateObject(wrappedValue: ParticipantFormModel(id: id, reader: reader, coordinator: coordinator))
-        self.onSaved = onSaved
+        self.onSaved = onSaved; self.onCreated = onCreated
     }
 
     var body: some View {
@@ -180,7 +182,12 @@ struct ParticipantFormView: View {
         .interactiveDismissDisabled(model.busy)
         .alert("participant.form.confirmSave", isPresented: $model.showConfirmation) {
             Button("participant.form.save") {
-                Task { if await model.confirmMutation() { onSaved(); dismiss() } }
+                Task {
+                    if await model.confirmMutation() {
+                        if let row = model.coordinator.savedParticipant, let identity = model.coordinator.identity { onCreated(row, identity) }
+                        onSaved(); dismiss()
+                    }
+                }
             }
             Button("action.cancel", role: .cancel) { model.cancelConfirmation() }
         } message: {

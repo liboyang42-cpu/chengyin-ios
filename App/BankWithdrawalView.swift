@@ -1,9 +1,10 @@
 import SwiftUI
 
-/// Reachable native form with an honest dormant state. No live adapter is installed by the app.
+/// Reachable native form with an honest dormant state. The session host supplies a separately approved adapter when configured.
 @MainActor struct BankWithdrawalView: View {
     let reader: WalletCommerceReader
     var adapter: BankWithdrawalAdapter? = nil
+    var currentDocument: BankWithdrawalCurrentDocument? = nil
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     @State private var draft = BankWithdrawalDraft()
@@ -35,6 +36,7 @@ import SwiftUI
                     else if !available { Label("bank.withdrawal.unavailable", systemImage: "lock") }
                     if adapter?.hasUnresolvedOutcome == true { Text("bank.withdrawal.unresolved") }
                     Text("bank.withdrawal.privacy")
+                    if let currentDocument { Link("bank.withdrawal.currentDocument", destination: currentDocument.officialURL) }
                 }
                 Section("bank.withdrawal.destination") {
                     TextField("bank.withdrawal.name", text: $draft.realname).focused($focused, equals: .name)

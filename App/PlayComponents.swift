@@ -84,6 +84,12 @@ final class PlayViewModel {
     private var generation: UInt64 = 0
     private var issueIdentity: PlayReadIdentity?
     private var receiptIdentity: PlayReadIdentity?
+    private var receiptChoice: String?
+    /// Only the choice paired with this exact current-session server receipt is displayed.
+    func acceptedChoice(for nodeID: Int) -> String? {
+        guard let receipt = visibleReceipt, receipt.nodeID == nodeID else { return nil }
+        return receiptChoice
+    }
     var visibleIssue: PlayLoadIssue? { issueIdentity != nil && issueIdentity == reader.identity ? issue : nil }
     var visibleReceipt: PlayAnswerReceipt? { receiptIdentity != nil && receiptIdentity == reader.identity ? receipt : nil }
     init(reader: any PlayReading) { self.reader = reader }
@@ -92,7 +98,7 @@ final class PlayViewModel {
     }
     func invalidate() {
         generation &+= 1; snapshot = nil; loadedIdentity = nil
-        issue = nil; actionIssue = nil; receipt = nil; needsProgressCheck = false
+        issue = nil; actionIssue = nil; receipt = nil; receiptChoice = nil; needsProgressCheck = false
         isLoading = false; isSubmitting = false
     }
     func load(keepingReceipt: Bool = false) async {
@@ -100,7 +106,7 @@ final class PlayViewModel {
         generation &+= 1
         let request = generation, identity = reader.identity
         snapshot = nil; loadedIdentity = nil; issue = nil; isLoading = true
-        if !keepingReceipt { receipt = nil; actionIssue = nil }
+        if !keepingReceipt { receipt = nil; receiptChoice = nil; actionIssue = nil }
         defer { if generation == request { isLoading = false } }
         guard reader.isConfigured, identity != nil, reader.scope.isValid else { return }
         do {
@@ -119,12 +125,16 @@ final class PlayViewModel {
         do { try snapshot.validateAnswer(nodeID: nodeID, answer: answer) } catch { return }
         generation &+= 1
         let request = generation, identity = loadedIdentity
-        isSubmitting = true; receipt = nil; actionIssue = nil; needsProgressCheck = true
+        isSubmitting = true; receipt = nil; receiptChoice = nil; actionIssue = nil; needsProgressCheck = true
         defer { if generation == request { isSubmitting = false } }
         do {
             let result = try await reader.submitAnswer(nodeID: nodeID, answer: answer)
             guard current(request, identity) else { return }
-            receipt = result; receiptIdentity = identity; isSubmitting = false
+            guard result.nodeID == nodeID else { throw APIError.malformedResponse }
+            receipt = result; receiptIdentity = identity
+            let node = snapshot.visibleNodes.first { $0.id == nodeID }
+            receiptChoice = node?.validationMethod == 3 && node?.options?[answer] != nil ? answer : nil
+            isSubmitting = false
             // Readback only; a successful answer never advances the UI speculatively.
             await load(keepingReceipt: true)
         } catch is CancellationError {

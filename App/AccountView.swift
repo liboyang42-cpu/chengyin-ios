@@ -32,7 +32,7 @@ struct AccountView: View {
                     LabeledContent("account.name",value:account.nickname)
                     LabeledContent("account.id",value:String(account.id))
                     LabeledContent("account.role") { Text(roleLabel) }
-                    NavigationLink { ProfileEditView(coordinator:session.profileEditCoordinator,sessionRevision:session.sessionRevision) } label: {
+                    NavigationLink { ProfileEditView(coordinator:session.profileEditCoordinator,sessionRevision:session.sessionRevision,categoryReader:session) } label: {
                         Label("profile.edit.title",systemImage:"pencil")
                     }.accessibilityIdentifier("account.editProfile")
                 }
@@ -135,7 +135,7 @@ struct AccountView: View {
                 SessionTopicDetailView(id: route.id, session: session).id(session.topicReader.scope)
             }
             .sheet(isPresented:$showsSettings) { SettingsView() }
-            .sheet(isPresented:$showsCooperation) { CooperationBrowserView(reader:session.cooperationReader,onClose:{ showsCooperation=false }).id(session.cooperationReader.scope) }
+            .sheet(isPresented:$showsCooperation) { CooperationBrowserView(reader:session.cooperationReader,onClose:{ showsCooperation=false },peerReader:session.cooperationFlowReader).id(session.cooperationReader.scope) }
             .sheet(isPresented:$showsTickets) { TicketWalletView(reader:session.ticketWalletReader,onClose:{ showsTickets=false },makeTeamCoordinator:{ session.makeTeamCoordinator() },orderLifecycleCoordinator:session.orderLifecycleCoordinator).id(session.ticketWalletReader.scope) }
             .confirmationDialog("auth.signOutConfirm",isPresented:$confirmsLogout,titleVisibility:.visible) {
                 Button("auth.signOut",role:.destructive) { Task { await session.logout() } }

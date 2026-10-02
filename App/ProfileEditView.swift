@@ -44,9 +44,14 @@ struct ProfileEditView: View {
     @FocusState private var focusedField: Field?
     @StateObject private var model: ProfileEditModel
     let sessionRevision: UInt64
-    init(coordinator: ProfileEditCoordinator, sessionRevision: UInt64) {
+    let categoryReader: (any DiscoveryReading)?
+    @State private var showPreferences = false
+    private var selectedPreferences: [Int] {
+        model.draft.routePreferenceIDs ?? (model.coordinator.snapshot?.tagIds ?? "").split(separator: ",").compactMap { Int($0.trimmingCharacters(in: .whitespacesAndNewlines)) }
+    }
+    init(coordinator: ProfileEditCoordinator, sessionRevision: UInt64, categoryReader: (any DiscoveryReading)? = nil) {
         _model = StateObject(wrappedValue: ProfileEditModel(coordinator: coordinator))
-        self.sessionRevision = sessionRevision
+        self.sessionRevision = sessionRevision; self.categoryReader = categoryReader
     }
     var body: some View {
         Form {
@@ -65,7 +70,11 @@ struct ProfileEditView: View {
                             .accessibilityIdentifier("profile.edit.introduction")
                     } header: { Text("profile.edit.details") }
                         .disabled(model.busy || model.coordinator.isLocked)
-                    Section { Text("profile.edit.scope").foregroundStyle(.secondary) }
+                    Section("context.preferences.title") {
+                        LabeledContent("context.preferences.selected", value: String(selectedPreferences.count))
+                        Button("context.preferences.edit") { focusedField = nil; showPreferences = true }
+                            .disabled(model.busy || model.coordinator.isLocked).accessibilityIdentifier("profile.edit.preferences")
+                    }
                     Button { focusedField=nil; Task { await model.prepare() } } label: { Text("profile.edit.review") }
                         .disabled(model.busy || model.coordinator.isLocked || !model.draft.isValid
                                   || model.draft.normalized == model.coordinator.snapshot?.draft.normalized)
@@ -82,7 +91,11 @@ struct ProfileEditView: View {
             }
         }
         .appNavigationTitle("profile.edit.title")
-        .task(id: sessionRevision) { await model.resetAndLoad() }
+        .task(id: sessionRevision) { showPreferences = false; await model.resetAndLoad() }
+        .sheet(isPresented: $showPreferences) {
+            NavigationStack { ProfileRoutePreferencePicker(reader: categoryReader, selected: selectedPreferences,
+                currentIdentity: { model.coordinator.identity }) { model.draft.routePreferenceIDs = $0 } }
+        }
         .onDisappear {
             if let value = model.confirmation { model.coordinator.cancel(value) }
         }

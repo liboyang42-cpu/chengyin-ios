@@ -71,7 +71,10 @@ import UIKit
                 }
             } else { Text("image.retained.changed") }
             if model.failed { Text("image.retained.failed") }
-        }.onDisappear { model.leave() }
+        }
+        // In a Form/List row, these are distinct selection/upload/use/cancel actions.
+        .buttonStyle(.borderless)
+        .onDisappear { model.leave() }
         .onChange(of: scenePhase) { _, phase in if phase != .active { model.leave() } }
     }
 }

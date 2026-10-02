@@ -8,6 +8,7 @@ public enum CoopFlowRead: Equatable {
     case finance, myBusiness, templates, perks(inviteID: Int), reviewSummary(memberID: Int), credit(memberID: Int?)
     case complaintTopics, relations, clubs(name: String?), nearby(longitude: Double, latitude: Double)
     case depositStatus(inviteID: Int)
+    case merchants(name: String?), ownedTopics(kind: CoopFlowTargetKind, scope: String?, page: Int)
     public var path: String {
         switch self {
         case .invitations: return "api/coop/list"; case .pool: return "api/coop/pool/list"
@@ -19,15 +20,22 @@ public enum CoopFlowRead: Equatable {
         case .complaintTopics: return "api/coop/complaint/topics"; case .relations: return "api/merchant/relation-home"
         case .clubs: return "api/merchant/clubs"; case .nearby: return "api/merchant/nearby"
         case .depositStatus: return "api/coop/deposit/status"
+        case .merchants: return "api/club/merchants"
+        case .ownedTopics: return "api/topic/list"
         }
     }
-    public var expectsArray: Bool { switch self { case .applications, .receivedApplications, .templates, .perks, .complaintTopics, .clubs, .nearby: return true; default: return false } }
+    public var expectsArray: Bool { switch self { case .applications, .receivedApplications, .templates, .perks, .complaintTopics, .clubs, .merchants, .nearby: return true; default: return false } }
     public func body() throws -> CoopFlowJSON {
         switch self {
         case .perks(let id), .depositStatus(let id): guard id > 0 else { throw APIError.invalidRequest }; return .object(["inviteId": .id(id)])
         case .reviewSummary(let id): guard id > 0 else { throw APIError.invalidRequest }; return .object(["toId": .id(id)])
         case .credit(let id): if let id { guard id > 0 else { throw APIError.invalidRequest }; return .object(["memberId": .id(id)]) }; return .object([:])
-        case .clubs(let name): return .object(name.map { ["name": .string($0)] } ?? [:])
+        case .ownedTopics(let kind, let scope, let page):
+            guard page > 0, scope == nil || scope == "MERCHANT" else { throw APIError.invalidRequest }
+            var fields: [String: CoopFlowJSON] = ["is_my": .string("1"), "invite_target": .string(kind.wire), "pageNum": .string(String(page)), "pageSize": .string("20")]
+            if let scope { fields["scope"] = .string(scope) }
+            return .object(fields)
+        case .clubs(let name), .merchants(let name): return .object(name.map { ["name": .string($0)] } ?? [:])
         case .relations: return .object(["limit": .id(20)])
         case .nearby(let lng, let lat):
             guard lng.isFinite, lat.isFinite, (-180...180).contains(lng), (-90...90).contains(lat) else { throw APIError.invalidRequest }
@@ -60,8 +68,10 @@ public struct CoopFlowService {
     public func read(_ resource: CoopFlowRead, session: CoopFlowSession) async throws -> CoopFlowJSON {
         let body = try resource.body()
         var request = try makeRequest(path: resource.path, body: body, session: session)
-        if case .nearby = resource {
-            // Flutter uses multipart form fields, not JSON for this endpoint.
+        let isForm: Bool
+        switch resource { case .nearby, .ownedTopics: isForm = true; default: isForm = false }
+        if isForm {
+            // These source endpoints use multipart; recipient directories require JSON.
             let boundary = "CoopNative-" + UUID().uuidString
             guard case .object(let fields) = body else { throw APIError.invalidRequest }
             let parts = fields.sorted { $0.key < $1.key }.map { "--\(boundary)\r\nContent-Disposition: form-data; name=\"\($0.key)\"\r\n\r\n\($0.value.text ?? "")\r\n" }.joined()
@@ -75,7 +85,7 @@ public struct CoopFlowService {
         case .finance: guard value["topics"].rows != nil else { throw CoopFlowFailure.malformed }
         case .myBusiness: guard value["settlements"].rows != nil else { throw CoopFlowFailure.malformed }
         case .invitations: guard value["sent"].rows != nil, value["received"].rows != nil else { throw CoopFlowFailure.malformed }
-        case .pool, .registrations: guard value["rows"].rows != nil else { throw CoopFlowFailure.malformed }
+        case .pool, .registrations, .ownedTopics: guard value["rows"].rows != nil else { throw CoopFlowFailure.malformed }
         case .relations: guard value["relations"].rows != nil, value["discovery"]["merchants"].rows != nil else { throw CoopFlowFailure.malformed }
         default: break
         }

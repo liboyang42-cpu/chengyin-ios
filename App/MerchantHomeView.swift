@@ -125,7 +125,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
             }
             if let cooperationFlowReader {
                 Section {
-                    NavigationLink { CooperationFlowWorkbench(reader: cooperationFlowReader) } label: { Label("coopflow.title", systemImage: "person.2") }
+                    NavigationLink { CooperationFlowWorkbench(reader: cooperationFlowReader, operationScope: "MERCHANT") } label: { Label("coopflow.title", systemImage: "person.2") }
                         .accessibilityIdentifier("merchant.cooperationFlows.open")
                 }
             }

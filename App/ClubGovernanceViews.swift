@@ -8,6 +8,7 @@ struct ClubGovernanceEntryButton: View {
     let coordinator: ClubGovernanceCoordinator
     var enrollmentProfile: ClubEnrollmentProfileContext? = nil
     var ownerRefund: ClubOwnerRefundCoordinator? = nil
+    var opsTimeFactory: ((Int) -> ClubOpsTimeCoordinator?)? = nil
     @State private var presented = false
     var body: some View {
         Button { presented = true } label: { Label("club.gov.workspace", systemImage: "person.3.sequence.fill") }
@@ -16,6 +17,7 @@ struct ClubGovernanceEntryButton: View {
                 NavigationStack { ClubGovernanceWorkspaceView(clubID: clubID, identity: identity, access: access, coordinator: coordinator) }
                     .environment(\.clubEnrollmentProfile, enrollmentProfile)
                     .environment(\.clubOwnerRefundCoordinator, ownerRefund)
+                    .environment(\.clubOpsTimeFactory, opsTimeFactory)
             }
     }
 }
@@ -50,6 +52,7 @@ struct ClubGovernanceFormRoute: Identifiable {
 }
 
 struct ClubGovernanceReadView: View {
+    @Environment(\.clubOpsTimeFactory) private var opsTimeFactory
     let operation: ClubGovernanceRead
     let scope: ClubGovernanceScope
     let identity: ClubReadIdentity?
@@ -188,12 +191,18 @@ struct ClubGovernanceReadView: View {
         } else if operation == .topicOverview {
             ClubGovernanceFactRows(value: value, fields: ["name", "title", "auditStatus", "rejectReason", "status", "startDate", "endDate", "playModeText", "storyReady", "gameConfiguredCount"])
             Section { link(.topicStats); link(.topicSettings); link(.topicCustomers); link(.recruit); enrollmentLink(focusTopicID: scope.topicID) }
+            Section { NavigationLink("context.rules.title") { ClubOperatingRulesView() }.accessibilityIdentifier("club.context.openRules") }
             Section("club.gov.story") {
                 NavigationLink { ClubGovernanceStoryView(value: value, scope: scope, identity: identity, access: access, coordinator: coordinator) } label: { Label("club.gov.story", systemImage: "book.pages") }.accessibilityIdentifier("club.gov.openStory")
             }
             Section("club.gov.events") { ForEach(Array((value["activityList"].array ?? []).enumerated()), id: \.offset) { _, row in
                 if let id = row["id"].int {
                     let target = ClubGovernanceScope(clubID: scope.clubID, topicID: scope.topicID, activityID: id)
+                    if let startDate = row["startDate"].string, ClubOpsTimeRequest.date(startDate) != nil {
+                        NavigationLink("context.ops.title") {
+                            ClubOpsTimeView(activityID: id, original: startDate, owner: opsTimeFactory?(id)) { Task { await load() } }
+                        }.accessibilityIdentifier("club.context.editOps.\(id)")
+                    }
                     NavigationLink { ClubGovernanceEventView(scope: target, identity: identity, access: access, coordinator: coordinator) } label: { Text(verbatim: row["name"].string ?? "#\(id)") }
                 }
             } }

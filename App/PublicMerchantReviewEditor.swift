@@ -102,6 +102,10 @@ import SwiftUI
             if let receipt = state.receipt {
                 Text(reportItem == nil ? "merchant.publicHome.createReceipt" : "merchant.publicHome.reportReceipt")
                 LabeledContent("merchant.publicHome.status", value: receipt.status)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(Text("merchant.publicHome.status"))
+                    .accessibilityValue(Text(verbatim: receipt.status))
+                    .accessibilityIdentifier("merchant.publicHome.status")
                 LabeledContent("merchant.publicHome.reviewID", value: String(receipt.reviewId))
                 if let audit = receipt.auditTaskId { LabeledContent("merchant.publicHome.auditTaskID", value: String(audit)) }
             }

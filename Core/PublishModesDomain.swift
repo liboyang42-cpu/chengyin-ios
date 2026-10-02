@@ -62,6 +62,8 @@ public struct QuickPublishNode: Identifiable, Codable, Equatable {
     public init() {}
 }
 public struct QuickPublishDraft: Codable, Equatable {
+    public var subtitle: String?
+    public var aiTraceID: String?
     public var title = ""
     public var description = ""
     public var product: ProjectEditProduct = .city
@@ -88,7 +90,9 @@ public struct QuickPublishDraft: Codable, Equatable {
         guard !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, !nodes.isEmpty,
               nodes.allSatisfy({ $0.confirmedPlace != nil && !$0.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) else { throw PublishModesError.invalidDraft }
         var result = ProjectEditDraft(product: product); result.name = title.trimmingCharacters(in: .whitespacesAndNewlines)
-        result.description = description.trimmingCharacters(in: .whitespacesAndNewlines); result.preserved["publishMode"] = .string("ai_simple")
+        result.description = description.trimmingCharacters(in: .whitespacesAndNewlines); result.subtitle = subtitle ?? ""
+        if let aiTraceID, !aiTraceID.isEmpty { result.preserved["aiTraceId"] = .string(aiTraceID) }
+        result.preserved["publishMode"] = .string("ai_simple")
         var chapter = ProjectEditChapter(); chapter.id = "quick_chapter"; chapter.name = "路线"; chapter.description = result.description
         chapter.nodes = nodes.enumerated().map { index, node in
             var n = ProjectEditNode(); n.id = "quick_node_\(index + 1)"; n.name = node.name.trimmingCharacters(in: .whitespacesAndNewlines); n.description = node.description

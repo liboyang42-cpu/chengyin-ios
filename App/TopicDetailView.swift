@@ -8,6 +8,8 @@ struct TopicDetailView: View {
     var makeAudio: (@MainActor () -> PlatformAudioPlayback)? = nil
     var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
     var publisherDestination: ((TopicDetail) -> AnyView)? = nil
+    var reviewOwner: ContextualReviewCoordinator? = nil
+    @State private var showsReview = false
     @State private var detail: TopicDetail?
     @State private var loadedKey: Key?
     @State private var issue: TopicScreenIssue?
@@ -26,6 +28,9 @@ struct TopicDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .task(id: key) { await load() }
         .onDisappear { generation += 1; loading = false }
+        .sheet(isPresented: $showsReview) {
+            NavigationStack { ContextualReviewComposer(target: .topic(id), owner: reviewOwner) { Task { await load() } } }
+        }
     }
     private func content(_ value: TopicDetail) -> some View {
         List {
@@ -90,6 +95,7 @@ struct TopicDetailView: View {
                 }
             }
             Section("topic.comments") {
+                Button("context.review.title") { showsReview = true }.accessibilityIdentifier("topic.openReview")
                 if value.comments.isEmpty { Text("topic.noComments") }
                 ForEach(Array(value.comments.enumerated()), id: \.offset) { _, comment in
                     VStack(alignment: .leading, spacing: 6) {

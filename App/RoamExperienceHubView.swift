@@ -4,13 +4,15 @@ import SwiftUI
 @MainActor struct RoamExperienceHubView: View {
     let reader: any RoamExperienceReading
     var stampDestination: (() -> AnyView)? = nil
+    var liveDestination: (() -> AnyView)? = nil
     var body: some View {
-        RoamExperienceMenu(reader: reader, stampDestination: stampDestination).id(reader.identity)
+        RoamExperienceMenu(reader: reader, stampDestination: stampDestination, liveDestination: liveDestination).id(reader.identity)
     }
 }
 @MainActor private struct RoamExperienceMenu: View {
     let reader: any RoamExperienceReading
     let stampDestination: (() -> AnyView)?
+    let liveDestination: (() -> AnyView)?
     var body: some View {
         List {
             Section {
@@ -25,7 +27,7 @@ import SwiftUI
                     .accessibilityIdentifier("roam.experience.history.open")
                 NavigationLink { RoamRecoveryView(reader: reader) } label: { Label("roam.experience.recovery", systemImage: "arrow.clockwise.circle") }
                     .accessibilityIdentifier("roam.experience.recovery.open")
-                NavigationLink { RoamLivePreparationView(reader: reader) } label: { Label("roam.experience.live", systemImage: "figure.walk") }
+                NavigationLink { if let liveDestination { liveDestination() } else { AnyView(RoamLivePreparationView(reader: reader)) } } label: { Label("roam.experience.live", systemImage: "figure.walk") }
                     .accessibilityIdentifier("roam.experience.live.open")
             }
             Section("roam.experience.collect") {

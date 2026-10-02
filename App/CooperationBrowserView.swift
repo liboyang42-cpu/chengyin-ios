@@ -3,6 +3,7 @@ import SwiftUI
 @MainActor struct CooperationBrowserView: View {
     let reader: any CooperationReading
     var onClose:(()->Void)? = nil
+    var peerReader: (any CoopFlowReading)? = nil
     @State private var direction: CooperationDirection = .received
     var body: some View {
         NavigationStack {
@@ -40,7 +41,7 @@ import SwiftUI
                 // Ordinal identities preserve duplicate server IDs without merging unrelated entries.
                 ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
                     NavigationLink {
-                        CooperationInviteDetailView(key: CooperationInviteKey(id: row.id, direction: direction), reader: reader)
+                        CooperationInviteDetailView(key: CooperationInviteKey(id: row.id, direction: direction), reader: reader, peerReader: peerReader)
                     } label: {
                         VStack(alignment: .leading, spacing: 8) {
                             CooperationName(name: row.partner?.name).font(.headline)

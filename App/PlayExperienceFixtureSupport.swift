@@ -8,6 +8,12 @@ import SwiftUI
     var circleRecords: [PlayWireValue] = []
     var tagRevoked = false
     var tagConfirmed = false
+    private var retainedDestinations: [String: AnyObject] = [:]
+    func retained<Model: AnyObject>(_ key: String, make: () -> Model) -> Model {
+        let scoped = "\(accountID):\(epoch):" + key
+        if let existing = retainedDestinations[scoped] as? Model { return existing }
+        let model = make(); retainedDestinations[scoped] = model; return model
+    }
     let scenario: String
     init(scenario: String) { self.scenario = scenario }
     var session: PlayExperienceSession? { try? .init(accountID: accountID, epoch: epoch, namespace: "synthetic-play-cn", token: "synthetic-token") }
@@ -79,32 +85,32 @@ private final class PlayExperienceFixtureTransport: HTTPTransport {
     func send(_ request: URLRequest) async throws -> (Data, Int) { try await operation(request) }
 }
 @MainActor struct PlayExperienceFixtureHostView: View {
-    private let state: PlayExperienceFixtureState
-    private let model: PlayExperienceCoordinator
-    private let service: PlayExperienceService
+    @State private var state: PlayExperienceFixtureState
+    @State private var model: PlayExperienceCoordinator
+    @State private var service: PlayExperienceService
     @State private var revision = 0
     init() {
         let args = ProcessInfo.processInfo.arguments
         let index = args.firstIndex(of: "--uitesting-play-experience-scenario")
         let scenario = index.flatMap { args.indices.contains($0 + 1) ? args[$0 + 1] : nil } ?? "classic"
-        let state = PlayExperienceFixtureState(scenario: scenario); self.state = state
+        let state = PlayExperienceFixtureState(scenario: scenario); _state = State(initialValue: state)
         let service = PlayExperienceService(configuration: try! APIConfiguration(baseURL: URL(string: "https://example.com/fixture/")!), transport: PlayExperienceFixtureTransport { try await state.response($0) }, enabled: scenario == "disabled" ? [] : [.reads, .runPersistence, .classicCompletion, .hints, .leader, .advanced, .playerCommands, .circle, .preference, .tags])
-        self.service = service
-        model = PlayExperienceCoordinator(scope: .activity(41), service: service, recovery: PlayMemoryCompletionRecovery(), pausedStorage: PlayMemoryPausedStorage(), currentSession: { state.session })
+        _service = State(initialValue: service)
+        _model = State(initialValue: PlayExperienceCoordinator(scope: .activity(41), service: service, recovery: PlayMemoryCompletionRecovery(), pausedStorage: PlayMemoryPausedStorage(), currentSession: { state.session }))
     }
     var body: some View {
         NavigationStack {
             PlayExperienceView(model: model,
-                advancedModel: { PlayAdvancedCoordinator(activityID: 41, topicID: 71, nodeID: $0, service: service, currentSession: { state.session }) },
+                advancedModel: { nodeID in state.retained("advanced:\(nodeID)") { PlayAdvancedCoordinator(activityID: 41, topicID: 71, nodeID: nodeID, service: service, currentSession: { state.session }) } },
                 motionModel: { nodeID, configuration in
                     PlayStillnessCoordinator(configuration: configuration,
                         provider: PlaySyntheticMotionProvider(samples: (0...20).map { .init(x: 0, y: 0, z: 1, timestamp: Double($0) / 10) }),
                         currentContext: { state.session.flatMap { try? PlayDeviceContext(session: $0, scope: .activity(41), nodeID: nodeID) } })
                 },
-                preferenceModel: { PlayPreferenceCoordinator(scope: .activity(41), nodeID: $0, service: service, currentSession: { state.session }) },
-                summaryModel: { PlayOperatingSummaryCoordinator(topicID: $0, service: service, currentSession: { state.session }) },
-                playerModel: PlayPlayerGameCoordinator(activityID: 41, service: service, currentSession: { state.session }),
-                circleModel: PlayCircleCoordinator(topicID: 71, service: service, currentSession: { state.session }))
+                preferenceModel: { nodeID in state.retained("preference:\(nodeID)") { PlayPreferenceCoordinator(scope: .activity(41), nodeID: nodeID, service: service, currentSession: { state.session }) } },
+                summaryModel: { topicID in state.retained("summary:\(topicID)") { PlayOperatingSummaryCoordinator(topicID: topicID, service: service, currentSession: { state.session }) } },
+                playerModel: state.retained("player") { PlayPlayerGameCoordinator(activityID: 41, service: service, currentSession: { state.session }) },
+                circleModel: state.retained("circle") { PlayCircleCoordinator(topicID: 71, service: service, currentSession: { state.session }) })
                 .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button("playx.fixture.switch") { state.epoch += 1; state.accountID = 9002; model.invalidate(); revision += 1 }

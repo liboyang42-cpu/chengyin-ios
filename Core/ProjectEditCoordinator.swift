@@ -17,6 +17,8 @@ public struct ProjectEditConfirmation: Identifiable, Equatable {
     private var capturedSession: ProjectEditSession?
     private var generation = 0
     private let initial: ProjectEditSnapshot
+    private var isolatedDraftIdentity: ProjectEditDraftIdentity?
+    private var isolatedOwner: ProjectEditSession?
     public private(set) var identity: ProjectEditDraftIdentity?
     public private(set) var snapshot: ProjectEditSnapshot?
     public private(set) var confirmation: ProjectEditConfirmation?
@@ -39,6 +41,19 @@ public struct ProjectEditConfirmation: Identifiable, Equatable {
     public init(initial: ProjectEditSnapshot, service: any ProjectEditServing, store: ProjectEditLocalStore, currentSession: @escaping () -> ProjectEditSession?) {
         self.initial = initial; self.service = service; self.store = store; self.currentSession = currentSession
     }
+    /// Copies into a fresh coordinator/identity. The original remains saved and unchanged.
+    public func copyForMode(_ draft: ProjectEditDraft, to product: ProjectEditProduct) throws -> ProjectEditCoordinator {
+        guard !isBusy, !isLocked, state != .blocked, state != .acknowledged, state != .simulated,
+              let session = capturedSession, session == currentSession(), let identity,
+              let snapshot, snapshot.scope == .full, draft.owner == snapshot.draft.owner,
+              draft.product == snapshot.draft.product else { throw ProjectEditError.changedSession }
+        let copy = try ProjectDraftModeCopy.copy(draft, to: product)
+        try store.save(draft, session: session, identity: identity)
+        let coordinator = ProjectEditCoordinator(initial: .init(draft: copy), service: service, store: store, currentSession: currentSession)
+        coordinator.isolatedDraftIdentity = try ProjectEditDraftIdentity()
+        coordinator.isolatedOwner = session
+        return coordinator
+    }
     public func synchronizeSession() {
         guard capturedSession != currentSession() else { return }
         generation += 1; capturedSession = currentSession(); snapshot = nil; confirmation = nil
@@ -52,6 +67,7 @@ public struct ProjectEditConfirmation: Identifiable, Equatable {
             if initial.topicID == nil { var blank = ProjectEditDraft(product: initial.draft.product); blank.owner = initial.draft.owner; snapshot = .init(draft: blank); state = .idle }
             messageKey = "projectEdit.signIn"; return
         }
+        if let isolatedOwner, isolatedOwner != session { state = .blocked; snapshot = nil; messageKey = "projectEdit.memberMismatch"; return }
         generation += 1; let stamp = generation; state = .loading; confirmation = nil; issues = []
         do {
             let baseline: ProjectEditSnapshot
@@ -64,6 +80,7 @@ public struct ProjectEditConfirmation: Identifiable, Equatable {
             } else { baseline = initial }
             let target: ProjectEditDraftIdentity
             if let id = baseline.topicID { target = try .init(topicID: id) }
+            else if let isolatedDraftIdentity { target = isolatedDraftIdentity }
             else { target = try store.activeIdentity(session: session, product: baseline.draft.product, owner: baseline.draft.owner) ?? ProjectEditDraftIdentity() }
             guard active(session, stamp) else { return }
             identity = target; snapshot = baseline

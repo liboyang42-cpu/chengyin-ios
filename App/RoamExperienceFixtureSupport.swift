@@ -2,7 +2,7 @@
 import SwiftUI
 
 @MainActor final class RoamExperienceFixtureReader: RoamExperienceReading {
-    enum Scenario: String { case content, empty, failure, historyCorrupt, active, incomplete, missing, unauthorized, unconfigured, pageFailure, sessionChange, captionDraft }
+    enum Scenario: String { case content, empty, failure, historyCorrupt, active, incomplete, missing, unauthorized, unconfigured, pageFailure, sessionChange, captionDraft, liveSession, liveUnknown }
     let scenario: Scenario
     private var signedOut = false
     private var epoch: UInt64 = 1
@@ -53,15 +53,21 @@ import SwiftUI
     static var selected: Bool { ProcessInfo.processInfo.arguments.contains("--uitesting-roam-experience") }
     @State private var reader: RoamExperienceFixtureReader
     @State private var revision = 0
+    @State private var liveFixture: RoamLiveFixture
     init() {
         let args = ProcessInfo.processInfo.arguments
         let index = args.firstIndex(of: "--uitesting-roam-experience-scenario")
         let raw = index.flatMap { args.indices.contains($0 + 1) ? args[$0 + 1] : nil }
+        _liveFixture = State(initialValue: RoamLiveFixture(failReveal: raw == "liveUnknown"))
         _reader = State(initialValue: RoamExperienceFixtureReader(scenario: raw.flatMap(RoamExperienceFixtureReader.Scenario.init(rawValue:)) ?? .content))
     }
     private var stampDestination: (() -> AnyView)? {
         guard reader.scenario == .captionDraft else { return nil }
         return { AnyView(RoamCityStampDraftView(offline: true)) }
+    }
+    private var liveDestination: (() -> AnyView)? {
+        guard reader.scenario == .liveSession || reader.scenario == .liveUnknown else { return nil }
+        return { AnyView(RoamLiveSessionView(controller: liveFixture.controller, offlineExample: true)) }
     }
     var body: some View {
         VStack(spacing: 0) {
@@ -69,7 +75,7 @@ import SwiftUI
                 Button("roam.experience.fixtureSignOut") { reader.signOut(); revision += 1 }
                     .accessibilityIdentifier("roam.experience.fixture.signOut")
             }
-            NavigationStack { RoamExperienceHubView(reader: reader, stampDestination: stampDestination) }.id(revision)
+            NavigationStack { RoamExperienceHubView(reader: reader, stampDestination: stampDestination, liveDestination: liveDestination) }.id(revision)
         }
     }
 }

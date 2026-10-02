@@ -1,20 +1,27 @@
 import SwiftUI
 
-struct RoamVoucherEntryView: View {
+@MainActor struct RoamVoucherEntryView: View {
     @State private var poiID = ""
-    private var phase: RoamVoucherPhase { (Int(poiID) ?? 0) > 0 ? .unavailable : .missing }
+    @Environment(\.verificationCodeFactory) private var codeFactory
+    private var target: VerificationCodeTarget? {
+        guard let id = Int(poiID), id > 0 else { return nil }
+        return .init(kind: .cityVoucher, id: id)
+    }
     var body: some View {
         List {
             Section {
                 TextField("roam.experience.poiID", text: $poiID).keyboardType(.numberPad)
                     .accessibilityIdentifier("roam.experience.voucher.poiID")
-                if phase == .missing {
+                if let target {
+                    if let codeFactory {
+                        NavigationLink("verificationCode.city.open") { VerificationCodeView(model: codeFactory(target)) }
+                            .accessibilityIdentifier("verificationCode.city.open")
+                    } else { Text("verificationCode.phase.disabled") }
+                } else {
                     Label("roam.experience.voucherMissing", systemImage: "questionmark.circle")
                     Text("roam.experience.voucherMissingHint").font(.caption)
-                } else {
-                    Label("roam.experience.voucherUnavailable", systemImage: "lock.shield")
-                    Text("roam.experience.voucherHint").font(.subheadline).foregroundStyle(.secondary)
                 }
+                Text("verificationCode.city.authority").font(.footnote).foregroundStyle(.secondary)
             }
         }.navigationTitle("roam.experience.voucher")
             .accessibilityIdentifier("roam.experience.voucher")

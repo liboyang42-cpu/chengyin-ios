@@ -77,7 +77,8 @@ import SwiftUI
             Section("templateAuthor.restoreTitle") {
                 if case .ready = model.coordinator.restore {
                     Text("templateAuthor.restoreMessage")
-                    Button("templateAuthor.restore") { model.restore(); step = .edit }.accessibilityIdentifier("templateAuthor.restore")
+                    Button("templateAuthor.restore") { model.restore(); step = .edit }
+                        .disabled(model.coordinator.locked).accessibilityIdentifier("templateAuthor.restore")
                 } else { Text("templateAuthor.restoreFailed") }
                 Button("templateAuthor.discard", role: .destructive) { discard = true }.disabled(model.coordinator.locked)
             }
@@ -120,9 +121,9 @@ import SwiftUI
                 if model.draft.finishEnabled {
                     Picker("templateAuthor.finish", selection: $model.draft.validationMethod) {
                         ForEach(TemplateAuthoringMethod.allCases) { Text(LocalizedStringKey($0.labelKey)).tag($0) }
-                    }.disabled(model.draft.advanced.selected != nil)
+                    }.disabled(!model.draft.advanced.enabledGames.isEmpty)
                     TemplateAuthoringCompletionFields(model: model)
-                    NavigationLink("templateAuthor.advanced") { TemplateAuthoringAdvancedView(model: model) }
+                    NavigationLink("templateAuthor.advanced") { TemplateAuthoringAdvancedView(model: model) }.accessibilityIdentifier("creatorComposition.open")
                 }
             }
             TemplateAuthoringRewardStoryFields(model: model)
@@ -168,6 +169,15 @@ struct TemplateAuthoringReviewView: View {
                 Text(LocalizedStringKey(canSubmit ? "templateAuthor.httpReview" : "templateAuthor.unavailable"))
                 if let id = review.draft?.originalTemplateID { LabeledContent("templateAuthor.original", value: String(id.rawValue)) }
             }
+            if let draft = review.draft, !draft.advanced.enabledConfigurationLabelKeys.isEmpty {
+                Section("creatorComposition.review") {
+                    ForEach(draft.advanced.enabledConfigurationLabelKeys, id: \.self) { key in
+                        Text(LocalizedStringKey(key)).accessibilityIdentifier("creatorComposition.review." + key)
+                    }
+                    if draft.advanced.hasRootAuthoringConfiguration { Text("creatorRoot.rules") }
+                    Text("creatorComposition.presentationScope").font(.caption).foregroundStyle(.secondary)
+                }
+            }
             if canSimulate {
                 Section { Text("templateAuthor.fixtureNotice"); Button("templateAuthor.confirmSimulation", action: confirm).accessibilityIdentifier("templateAuthor.confirmSimulation") }
             } else if canSubmit {
@@ -188,7 +198,7 @@ struct TemplateAuthoringPreviewView: View {
                 Text(LocalizedStringKey(draft.validationMethod.labelKey))
                 if let question = draft.questionName { Text(verbatim: question) }
                 if draft.validationMethod == .choice { ForEach([draft.questionA, draft.questionB, draft.questionC, draft.questionD].compactMap { $0 }, id: \.self) { Text(verbatim: $0) } }
-                if let game = draft.advanced.selected {
+                ForEach(draft.advanced.enabledGames) { game in
                     Text(LocalizedStringKey(game.labelKey))
                     if game.isMiniProgramAddition { NavigationLink("playkitAuthor.preview") { TemplateMiniGamePreviewView(draft: draft.advanced, game: game) } }
                     else if game == .dice && draft.advanced.diceMode == "d20" { NavigationLink("creatorRoot.d20Preview") { TemplateD20RehearsalView(draft: draft.advanced) } }

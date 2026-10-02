@@ -113,6 +113,9 @@ final class ModuleFlowTests: XCTestCase {
         for _ in 0..<4 { if receipt.exists { break };app.swipeUp() }
         XCTAssertTrue(receipt.waitForExistence(timeout:10),app.debugDescription)
         XCTAssertFalse(app.buttons["play.answer.submit"].exists,"Server-confirmed node cannot be submitted twice")
+        XCTAssertTrue(revealFixtureElement(choice, in: app, towardTop: true), app.debugDescription)
+        XCTAssertTrue(choice.isSelected, "The exact accepted A choice stays selected after authoritative readback")
+        XCTAssertFalse(choice.isEnabled, "Accepted choice remains locked against duplicate submission")
         capture("Choice answer receipt – synthetic transport only")
     }
     func testTextComposerUsesSyntheticServerReceiptAndReadback() {

@@ -2,8 +2,11 @@ import XCTest
 
 final class MerchantEngagementFlowTests: XCTestCase {
     private func launch(_ scenario: String = "ready", language: String = "en") -> XCUIApplication {
-        let app = XCUIApplication(); app.launchArguments = ["--uitesting-merchant-engagement-fixture","--uitesting-merchant-engagement-scenario",scenario,"-AppleLanguages","(\(language))","-AppleLocale",language == "en" ? "en_US" : "zh_CN"]
-        app.launch(); return app
+        let app = XCUIApplication(); app.launchArguments = ["--uitesting-reset-language","--uitesting-merchant-engagement-fixture","--uitesting-merchant-engagement-scenario",scenario,"-AppleLanguages","(\(language))","-AppleLocale",language == "en" ? "en_US" : "zh_CN"]
+        app.launch()
+        let title = language == "en" ? "CRM operations" : "客户运营"
+        XCTAssertTrue(app.navigationBars[title].waitForExistence(timeout: 5), app.debugDescription)
+        return app
     }
     private func reveal(_ element: XCUIElement, app: XCUIApplication, towardTop: Bool = false) {
         XCTAssertTrue(revealFixtureElement(element, in: app, towardTop: towardTop, maximumSwipes: 16), app.debugDescription)
@@ -65,6 +68,12 @@ final class MerchantEngagementFlowTests: XCTestCase {
     }
     func testSignoutClearsPreviouslyLoadedSegments() {
         let app = launch("sessionChange"); XCTAssertTrue(app.buttons["merchant.engagement.segment.71001"].waitForExistence(timeout:5))
-        tap("merchant.engagement.fixtureSignOut",app:app); XCTAssertFalse(app.buttons["merchant.engagement.segment.71001"].exists)
+        // This fixture control is outside the list, above its navigation bar.
+        let signOut = app.buttons["merchant.engagement.fixtureSignOut"]
+        XCTAssertTrue(signOut.waitForExistence(timeout: 5)); XCTAssertTrue(signOut.isHittable)
+        signOut.tap()
+        XCTAssertFalse(app.buttons["merchant.engagement.segment.71001"].exists)
+        XCTAssertFalse(app.buttons["merchant.engagement.saveSegment"].exists)
+        XCTAssertFalse(app.buttons["merchant.engagement.confirm"].exists)
     }
 }

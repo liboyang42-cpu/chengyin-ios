@@ -7,6 +7,7 @@ struct ActivityDetailView: View {
     let reader: any ActivityReading
     var playReaderForActivity: ((Int)->PlaySessionReader)? = nil
     var registrationEnabled=false
+    @State private var showsReview = false
     @State private var showsRegistration=false
     @State private var access: ActivityDetailAccess?
     @State private var loading=false
@@ -45,6 +46,9 @@ struct ActivityDetailView: View {
         .appNavigationTitle("activity.details")
         .navigationBarTitleDisplayMode(.inline)
         .task(id:id) { await load() }
+        .sheet(isPresented: $showsReview) {
+            NavigationStack { ContextualReviewComposer(target: .activity(id), owner: (reader as? AppSession)?.contextualReviews?.coordinator(.activity(id))) { Task { await load() } } }
+        }
         .sheet(isPresented:$showsRegistration) {
             if let access,case .allowed(let detail)=access { SessionRegistrationSheet(activity:detail) }
         }
@@ -78,6 +82,7 @@ struct ActivityDetailView: View {
                         .questifyCardListRow()
                 }
             }
+            Section { Button("context.review.title") { showsReview = true }.accessibilityIdentifier("activity.openReview") }
             Section("activity.tickets") {
                 if detail.tickets.isEmpty {
                     Text("activity.noTickets")

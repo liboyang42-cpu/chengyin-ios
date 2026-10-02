@@ -1,19 +1,23 @@
 import XCTest
 
 final class PlayExperienceFlowTests: XCTestCase {
+    private var runningApp: XCUIApplication?
+    override func setUpWithError() throws { continueAfterFailure = false }
+    override func tearDownWithError() throws { attachFailureScreenshot(self, app: runningApp); runningApp?.terminate(); runningApp = nil }
     private func launch(_ scenario: String = "classic", language: String = "en") -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--uitesting-module", "playExperience", "--uitesting-play-experience-scenario", scenario, "-AppleLanguages", "(\(language))", "-AppleLocale", language == "en" ? "en_US" : "zh_CN"]
-        app.launch(); return app
+        runningApp = app; app.launch(); return app
     }
     private func reveal(_ element: XCUIElement, app: XCUIApplication) {
-        for _ in 0..<8 { if element.exists && element.isHittable { return }; app.swipeUp() }
+        XCTAssertTrue(revealFixtureElement(element, in: app), app.debugDescription)
     }
     func testClassicReviewCancelDoesNotCompleteTask() {
         let app = launch(); let node = app.buttons["playx.node.701"]
-        XCTAssertTrue(node.waitForExistence(timeout: 5)); node.tap()
-        let field = app.textFields["playx.answer.field"].exists ? app.textFields["playx.answer.field"] : app.textViews["playx.answer.field"]
-        XCTAssertTrue(field.waitForExistence(timeout: 3)); field.tap(); field.typeText("Synthetic answer")
+        XCTAssertTrue(node.waitForExistence(timeout: 5)); reveal(node, app: app); node.tap()
+        XCTAssertTrue(app.navigationBars["Journey task"].waitForExistence(timeout: 5), app.debugDescription)
+        let field = app.descendants(matching: .any).matching(identifier: "playx.answer.field").firstMatch
+        reveal(field, app: app); field.tap(); field.typeText("Synthetic answer")
         let review = app.buttons["playx.answer.review"]; reveal(review, app: app); review.tap()
         app.buttons["Cancel"].tap(); XCTAssertTrue(review.exists)
     }
@@ -27,8 +31,10 @@ final class PlayExperienceFlowTests: XCTestCase {
     }
     func testMode2ShowsSeparateVerificationStep() {
         let app = launch("mode2"); let node = app.buttons["playx.node.701"]
-        XCTAssertTrue(node.waitForExistence(timeout: 5)); node.tap()
-        XCTAssertTrue(app.staticTexts["Three on-site steps"].waitForExistence(timeout: 3))
+        XCTAssertTrue(node.waitForExistence(timeout: 5)); reveal(node, app: app); node.tap()
+        XCTAssertTrue(app.navigationBars["Journey task"].waitForExistence(timeout: 5), app.debugDescription)
+        let steps = app.staticTexts["Three on-site steps"]; reveal(steps, app: app)
+        XCTAssertTrue(steps.exists, app.debugDescription)
         XCTAssertFalse(app.buttons["playx.answer.review"].exists)
     }
     func testEmptyEndingIsNotReportedAsFailure() {

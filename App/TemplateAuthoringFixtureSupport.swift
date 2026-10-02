@@ -17,7 +17,9 @@ import SwiftUI
     }
     func makeCoordinator() -> TemplateAuthoringCoordinator {
         let c = TemplateAuthoringCoordinator(adapter: .init(transport: disabled ? nil : transport), store: store, currentSession: { [weak self] in self?.session })
-        c.open(seed: ProcessInfo.processInfo.arguments.contains("--template-author-blank") ? .init() : TemplateAuthoringSyntheticFixtures.draft())
+        let arguments = ProcessInfo.processInfo.arguments
+        let seed: TemplateAuthoringDraft = arguments.contains("--template-author-blank") ? .init() : arguments.contains("--template-author-compound") ? TemplateAuthoringSyntheticFixtures.compoundDraft() : TemplateAuthoringSyntheticFixtures.draft()
+        c.open(seed: seed)
         return c
     }
     func signOut() { session = nil; coordinator.synchronizeSession(); revision += 1; mount = UUID() }
@@ -32,7 +34,10 @@ import SwiftUI
                 Button("templateAuthor.fixture.signOut") { context.signOut() }.accessibilityIdentifier("templateAuthor.fixture.signOut")
                 Button("templateAuthor.fixture.switch") { context.switchAccount() }.accessibilityIdentifier("templateAuthor.fixture.switch")
                 Button("templateAuthor.fixture.reopen") { context.reopen() }.accessibilityIdentifier("templateAuthor.fixture.reopen")
-            }.buttonStyle(.bordered)
+            }.buttonStyle(.bordered).font(.caption)
+                // Harness controls must not consume the content viewport in XXXL scenarios.
+                // The authored screen below still receives the requested accessibility size.
+                .dynamicTypeSize(.large)
             NavigationStack {
                 if ProcessInfo.processInfo.arguments.contains("--template-author-shelf") {
                     TemplateAuthoringMineView(coordinator: context.coordinator, sessionRevision: context.revision)

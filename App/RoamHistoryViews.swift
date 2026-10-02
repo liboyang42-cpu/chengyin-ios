@@ -53,6 +53,7 @@ import SwiftUI
     let reader: any RoamExperienceReading
     let timestamp: Int64
     @State private var record: RoamHistoryRecord?
+    @State private var showShare = false
     @State private var loaded = false
     @State private var error: Error?
     var body: some View {
@@ -80,6 +81,8 @@ import SwiftUI
                     if let medal = record.medal { Label { Text(verbatim: medal) } icon: { Image(systemName: "medal") } }
                     if let medal = record.shopMedalName { Label { Text(verbatim: medal) } icon: { Image(systemName: "medal") } }
                     if !record.photos.isEmpty { LabeledContent("roam.experience.savedPhotoReferences", value: String(record.photos.count)) }
+                    Button("roam.share.title", systemImage: "square.and.arrow.up") { showShare = true }
+                        .accessibilityIdentifier("roam.share.open")
                     Text("roam.experience.historyPrivacy").font(.caption).foregroundStyle(.secondary)
                 } else if loaded {
                     ContentUnavailableView("roam.experience.recordMissing", systemImage: "questionmark.folder", description: Text("roam.experience.recordMissingHint"))
@@ -87,7 +90,8 @@ import SwiftUI
                 } else { ProgressView("roam.loading") }
             }.padding()
         }.navigationTitle("roam.experience.session")
-            .task(id: reader.identity) { load() }
+            .task(id: reader.identity) { showShare = false; load() }
+            .sheet(isPresented: $showShare) { if let record { NavigationStack { RoamHistoryShareView(record: record) } } }
             .accessibilityIdentifier("roam.experience.session")
     }
     private func load() {

@@ -13,7 +13,9 @@ final class ClubCommunityUITests: XCTestCase {
         let app = app()
         XCTAssertTrue(app.otherElements["club.community.post.20"].waitForExistence(timeout: 5))
         app.buttons["club.community.comments.20"].tap()
-        XCTAssertTrue(app.otherElements["club.community.comment.30"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.navigationBars["Comments"].waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertTrue(app.otherElements["club.community.comment.30"].waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertTrue(app.staticTexts["Fixture comment"].exists)
         app.navigationBars.buttons.element(boundBy: 0).tap()
         XCTAssertTrue(app.otherElements["club.community.post.20"].waitForExistence(timeout: 5))
         let history = app.buttons["club.community.history.20"]
@@ -23,7 +25,9 @@ final class ClubCommunityUITests: XCTestCase {
         app.navigationBars.buttons.element(boundBy: 0).tap()
         let comments = app.buttons["club.community.comments.20"]
         XCTAssertTrue(comments.waitForExistence(timeout: 5)); comments.tap()
-        XCTAssertTrue(app.otherElements["club.community.comment.30"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.navigationBars["Comments"].waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertTrue(app.otherElements["club.community.comment.30"].waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertTrue(app.staticTexts["Fixture comment"].exists)
     }
     func testComposerCancelAndImmutableReview() {
         let app = app()

@@ -91,7 +91,12 @@ final class TeamFlowTests: XCTestCase {
     }
     func testCreatePrivateTeamReviewCancelPreservesForm() {
         launch(destination: "create")
-        let toggle = app.switches["team.create.inviteOnly"]; reveal(toggle); toggle.tap()
+        let toggle = app.switches["team.create.inviteOnly"]; reveal(toggle)
+        let nativeSwitch = toggle.switches.firstMatch
+        if nativeSwitch.exists { nativeSwitch.tap() }
+        else { toggle.coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap() }
+        let selected = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "1"), object: toggle)
+        XCTAssertEqual(XCTWaiter.wait(for: [selected], timeout: 5), .completed, app.debugDescription)
         let review = app.buttons["team.create.review"]; reveal(review); review.tap()
         reveal(app.buttons["team.review.cancel"]); app.buttons["team.review.cancel"].tap()
         XCTAssertEqual(toggle.value as? String, "1")

@@ -4,6 +4,7 @@ import SwiftUI
     let coordinator: ProjectEditCoordinator
     @Published var draft = ProjectEditDraft()
     @Published var confirmation: ProjectEditConfirmation?
+    @Published private(set) var submittedHandoff: PublishingSubmissionHandoff?
     @Published private(set) var revision = 0
     @Published private(set) var busy = false
     private var loadedSnapshot = false
@@ -42,7 +43,7 @@ import SwiftUI
     }
     func load(force: Bool = false) async {
         if !force, loadedSnapshot, loadedSession == coordinator.session, coordinator.snapshot != nil { return }
-        generation += 1; let stamp = generation; autosave?.cancel(); draft = .init(); confirmation = nil; loadedSession = nil; loadedSnapshot = false; busy = true
+        generation += 1; let stamp = generation; autosave?.cancel(); draft = .init(); confirmation = nil; submittedHandoff = nil; loadedSession = nil; loadedSnapshot = false; busy = true
         if seedSession != coordinator.session { incomingSeed = nil }
         coordinator.synchronizeSession(); await coordinator.load()
         guard generation == stamp else { return }
@@ -64,7 +65,9 @@ import SwiftUI
     func cancelReview() { confirmation = nil; coordinator.cancelReview() }
     func submit(_ value: ProjectEditConfirmation) async {
         let stamp = generation; autosave?.cancel(); confirmation = nil; busy = true
-        await coordinator.confirm(value); guard generation == stamp else { return }; busy = false; revision += 1
+        await coordinator.confirm(value); guard generation == stamp else { return }; busy = false
+        if coordinator.state == .acknowledged { submittedHandoff = PublishingSubmissionHandoff(pending: coordinator.pending, draft: value.draft) }
+        revision += 1
     }
     func check() async { let stamp = generation; busy = true; await coordinator.checkOutcome(); guard generation == stamp else { return }; busy = false; revision += 1 }
     func leave() { autosave?.cancel(); saveLocal(); coordinator.leaveScreen(); confirmation = nil; revision += 1 }
@@ -85,11 +88,21 @@ import SwiftUI
 @MainActor struct ProjectEditView: View {
     @StateObject private var model: ProjectEditModel
     @State private var discardConfirmation = false
+    @State private var choosingMode = false
+    @State private var chosenMode: ProjectEditProduct?
+    @State private var confirmModeCopy = false
+    @State private var copiedCoordinator: ProjectEditCoordinator?
+    @State private var showingCopy = false
+    @State private var modeCopyFailed = false
+    @State private var submission: PublishingSubmissionHandoff?
+    @State private var submittedResource: PublishedResource?
+    @State private var handledSubmission: UUID?
     @FocusState private var focusedField: String?
     let sessionRevision: UInt64
     var publisherClient: PublisherLifecycleHTTP? = nil
-    init(coordinator: ProjectEditCoordinator, sessionRevision: UInt64, seed: ProjectEditDraft? = nil, publisherClient: PublisherLifecycleHTTP? = nil) {
-        self.publisherClient = publisherClient
+    var publisherHost: ((PublishedResource) -> AnyView)? = nil
+    init(coordinator: ProjectEditCoordinator, sessionRevision: UInt64, seed: ProjectEditDraft? = nil, publisherClient: PublisherLifecycleHTTP? = nil, publisherHost: ((PublishedResource) -> AnyView)? = nil) {
+        self.publisherClient = publisherClient; self.publisherHost = publisherHost
         _model = StateObject(wrappedValue: ProjectEditModel(coordinator: coordinator, seed: seed)); self.sessionRevision = sessionRevision
     }
     var body: some View {
@@ -106,6 +119,12 @@ import SwiftUI
                 PublisherXPBudgetSection(topicID: topicID, client: publisherClient)
             }
             if model.coordinator.snapshot != nil {
+                Section {
+                    Button("contextPublish.mode.choose") { choosingMode = true }
+                        .disabled(!model.fullEdit || model.coordinator.session == nil || model.draft.owner == .merchant).accessibilityIdentifier("contextPublish.mode.open")
+                    if model.draft.owner == .merchant { Text("contextPublish.mode.merchantLocked").font(.caption) }
+                    if modeCopyFailed { Text("contextPublish.mode.failed") }
+                }
                 if model.hasRestore {
                     Section("projectEdit.restoreTitle") {
                         Text(LocalizedStringKey(model.restoreKey)).accessibilityIdentifier("projectEdit.restoreStatus")
@@ -194,6 +213,39 @@ import SwiftUI
         }
         .task(id: sessionRevision) { await model.load() }
         .onChange(of: model.draft) { _, _ in model.changed() }
+        .onChange(of: model.revision) { _, _ in
+            if model.coordinator.state == .acknowledged, let next = model.submittedHandoff, next.id != handledSubmission {
+                handledSubmission = next.id; submission = next
+            }
+        }
+        .onChange(of: sessionRevision) { _, _ in choosingMode = false; confirmModeCopy = false; showingCopy = false; copiedCoordinator = nil; submission = nil; submittedResource = nil; handledSubmission = nil }
+        .navigationDestination(isPresented: $showingCopy) {
+            if let copiedCoordinator { AnyView(ProjectEditView(coordinator: copiedCoordinator, sessionRevision: sessionRevision, publisherClient: publisherClient, publisherHost: publisherHost)) }
+        }
+        .navigationDestination(item: $submittedResource) { resource in
+            if let publisherHost { publisherHost(resource) }
+        }
+        .sheet(isPresented: $choosingMode) {
+            PublishingModePickerSheet(current: model.draft.product) { product in
+                choosingMode = false
+                if product != model.draft.product { chosenMode = product; confirmModeCopy = true }
+            }
+        }
+        .confirmationDialog("contextPublish.mode.confirmTitle", isPresented: $confirmModeCopy, titleVisibility: .visible) {
+            Button("contextPublish.mode.copy") {
+                guard model.fullEdit, let chosenMode else { return }
+                do { copiedCoordinator = try model.coordinator.copyForMode(model.draft, to: chosenMode); showingCopy = true; modeCopyFailed = false }
+                catch { modeCopyFailed = true }
+                self.chosenMode = nil
+            }
+            Button("action.cancel", role: .cancel) { chosenMode = nil }
+        } message: { Text("contextPublish.mode.confirmBody") }
+        .sheet(item: $submission) { receipt in
+            PublishingSubmissionResultSheet(receipt: receipt, canNavigate: publisherHost != nil) {
+                submission = nil
+                if publisherHost != nil { submittedResource = receipt.resource }
+            }
+        }
         .onDisappear { model.leave() }
         .sheet(item: $model.confirmation, onDismiss: { model.coordinator.cancelReview() }) { confirmation in
             ProjectEditReviewView(confirmation: confirmation, canSimulate: model.coordinator.canSimulate, canSubmit: model.coordinator.canSubmit, busy: model.busy,

@@ -7,7 +7,7 @@ import SwiftUI
     var body: some View {
         List {
             Section {
-                Text("projectEdit.unconfigured").foregroundStyle(.secondary)
+                if !session.projectEditorIsConfigured { Text("projectEdit.unconfigured").foregroundStyle(.secondary) }
                 if session.account == nil { Text("projectEdit.signIn").foregroundStyle(.secondary) }
             }
             Section {
@@ -15,13 +15,13 @@ import SwiftUI
                     Label("publishModes.title", systemImage: "square.and.pencil")
                 }.accessibilityIdentifier("projectEdit.openPublishingModes")
             }
-            Section("projectEdit.createLocal") {
+            Section(session.projectEditorIsConfigured ? "projectEdit.title" : "projectEdit.createLocal") {
                 NavigationLink {
-                    ProjectEditView(coordinator: session.projectEditor(product: .city), sessionRevision: session.sessionRevision, publisherClient: session.publisherLifecycleContext?.client)
+                    ProjectEditView(coordinator: session.projectEditor(product: .city), sessionRevision: session.sessionRevision, publisherClient: session.publisherLifecycleContext?.client, publisherHost: { AnyView(SessionPublisherLifecycleView(session: session, resource: $0)) })
                 } label: { Label("projectEdit.city", systemImage: "map") }
                     .accessibilityIdentifier("projectEdit.openCity")
                 NavigationLink {
-                    ProjectEditView(coordinator: session.projectEditor(product: .freeExplore), sessionRevision: session.sessionRevision, publisherClient: session.publisherLifecycleContext?.client)
+                    ProjectEditView(coordinator: session.projectEditor(product: .freeExplore), sessionRevision: session.sessionRevision, publisherClient: session.publisherLifecycleContext?.client, publisherHost: { AnyView(SessionPublisherLifecycleView(session: session, resource: $0)) })
                 } label: { Label("projectEdit.freeExplore", systemImage: "location.magnifyingglass") }
                     .accessibilityIdentifier("projectEdit.openFreeExplore")
             }

@@ -1,0 +1,50 @@
+{
+  "creatorComposition.coexist": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Enable each game separately. Adding or disabling one keeps the other configurations and their saved fields."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "各玩法独立启用。添加或停用一个玩法，会保留其他配置及已填写的内容。"
+        }
+      }
+    }
+  },
+  "creatorComposition.presentationScope": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This presentation setting applies to every enabled section. Inline is unavailable when any enabled section requires fullscreen."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此呈现方式适用于所有已启用的配置。只要有一个玩法必须全屏，就不能使用内嵌方式。"
+        }
+      }
+    }
+  },
+  "creatorComposition.review": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Enabled configurations"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已启用的配置"
+        }
+      }
+    }
+  }
+}

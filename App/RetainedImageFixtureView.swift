@@ -17,7 +17,7 @@ private final class RetainedImageFixtureTransport: HTTPTransport {
     }
 }
 @MainActor struct RetainedImageFixtureView: View {
-    private let context: RetainedImageSelectionContext
+    @State private var context: RetainedImageSelectionContext
     @State private var applied = false
     init(mode: String = "success") {
         let scope = try! RetainedImageScope(accountID: 8, epoch: UUID(), realm: "https://api.example.com",
@@ -25,8 +25,10 @@ private final class RetainedImageFixtureTransport: HTTPTransport {
         let upload = try! RetainedImageHTTPUploader(configuration: .init(baseURL: URL(string: scope.realm)!),
             transport: RetainedImageFixtureTransport(unknown: mode == "unknown"), enabled: true,
             approvedOrigins: ["https://media.example.com"], currentScope: { scope }, token: { "fixture-token" })
-        context = .init(scope: scope, currentScope: { scope }, picker: .init(present: { _ in false }, dismiss: {}),
-                        uploads: .init(uploader: upload, journal: RetainedFixtureJournalStorage().journal()))
+        // The selector keeps a StateObject referring to this context. Preserve the
+        // same fixture coordinator when the app/root recomputes its view value.
+        _context = State(initialValue: .init(scope: scope, currentScope: { scope }, picker: .init(present: { _ in false }, dismiss: {}),
+                        uploads: .init(uploader: upload, journal: RetainedFixtureJournalStorage().journal())))
     }
     var body: some View {
         NavigationStack {

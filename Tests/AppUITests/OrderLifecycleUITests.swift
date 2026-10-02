@@ -32,13 +32,15 @@ final class OrderLifecycleUITests: XCTestCase {
         app.buttons["orderLifecycle.refresh"].tap()
         XCTAssertFalse(app.buttons["orderLifecycle.review.cancel"].isEnabled)
     }
-    func testPassPreviewContainsNoCodeIssuance() {
+    func testPassWithoutApprovedFactoryContainsNoCodeIssuance() {
         let app = launch("paid")
         let pass = app.buttons["orderLifecycle.pass.open"]
         XCTAssertTrue(app.staticTexts["orderLifecycle.state"].waitForExistence(timeout: 5))
         reveal(pass, app: app); pass.tap()
-        XCTAssertTrue(app.staticTexts["Redemption code unavailable"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["verificationCode.disabled"].waitForExistence(timeout: 3))
         XCTAssertFalse(app.buttons["scanner.open"].exists)
+        XCTAssertFalse(app.images["verificationCode.qr"].exists)
+        XCTAssertFalse(app.buttons["verificationCode.show"].exists)
     }
     func testChapterChoiceRemainsNonRedeemed() {
         let app = launch("chapterChoice")

@@ -46,7 +46,7 @@ public struct CityNodeRedemptionReview: Equatable, Identifiable {
     public private(set) var result: CityNodeRedemptionResult?
     public private(set) var failure: String?
     public private(set) var busy = false
-    public var isAvailable: Bool { service?.canExecuteSyntheticMutation == true }
+    public var isAvailable: Bool { service?.canExecuteVerificationMutation == true }
     public var scope: MerchantBusinessScope? {
         guard let service, let session = currentSession() else { return nil }
         return .init(realm: service.realm, accountID: session.accountID, epoch: session.epoch)
@@ -63,7 +63,7 @@ public struct CityNodeRedemptionReview: Equatable, Identifiable {
         var capturedSession: MerchantBusinessSession?
         do {
             let code = try CityNodeRedemptionCode(raw)
-            guard let service, service.canExecuteSyntheticMutation else { throw MerchantBusinessFailure.disabled }
+            guard let service, service.canExecuteVerificationMutation else { throw MerchantBusinessFailure.disabled }
             guard let session = currentSession() else { throw APIError.unauthorized }
             capturedSession = session
             busy = true; defer { busy = false }
@@ -89,7 +89,7 @@ public struct CityNodeRedemptionReview: Equatable, Identifiable {
     public func confirm(_ reviewID: UUID) async {
         guard !busy, let frozen = review, frozen.id == reviewID else { return }
         review = nil; result = nil; failure = nil
-        guard let service, service.canExecuteSyntheticMutation else { failure = "merchant.cityRedeem.disabled"; return }
+        guard let service, service.canExecuteVerificationMutation else { failure = "merchant.cityRedeem.disabled"; return }
         guard currentSession() == frozen.session else { failure = "merchant.cityRedeem.stale"; return }
         busy = true; defer { busy = false }
         let ticket = generation
@@ -102,7 +102,7 @@ public struct CityNodeRedemptionReview: Equatable, Identifiable {
                   access.merchantID == frozen.merchantID else { throw MerchantBusinessFailure.stale }
             let target = intent(frozen, realm: service.realm)
             try journal.reserve(target); reserved = target
-            let body = try await service.syntheticEnvelope(frozen.code.request, token: frozen.session.token)
+            let body = try await service.verificationEnvelope(frozen.code.request, token: frozen.session.token)
             let value = try CityNodeRedemptionResult(body: body)
             // Late responses cannot clear a lock or disclose data to a changed session/page.
             guard currentSession() == frozen.session, generation == ticket, !Task.isCancelled else { throw MerchantBusinessFailure.stale }

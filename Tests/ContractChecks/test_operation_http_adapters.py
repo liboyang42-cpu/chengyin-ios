@@ -13,7 +13,7 @@ class OperationHTTPAdapters(unittest.TestCase):
         for route in set(re.findall(r'"(api/[a-z/-]+)"',adapter)): self.assertIn("'/"+route+"'",source)
     def test_all_default_app_composition_remains_off(self):
         app=self.text('App/AppSession.swift')
-        self.assertIn('service: ProjectEditDisabledService()',app)
+        self.assertIn('else { service = ProjectEditDisabledService() }',app)
         self.assertIn('private let teamService = TeamReadOnlyService()',app)
         self.assertIn('readApproval: OperationEndpointApproval? = nil',app)
         self.assertNotIn('TeamHTTPService(',app); self.assertNotIn('approval: OperationEndpointApproval(',app)

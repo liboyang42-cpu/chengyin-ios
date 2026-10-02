@@ -28,10 +28,12 @@ struct PlayNodeDetailView: View {
         .appNavigationTitle("play.node.title")
         .navigationBarTitleDisplayMode(.inline)
         .onChange(of: model.reader.identity) { _, _ in answer = "" }
+        .onChange(of: nodeID) { _, _ in answer = "" }
         .onChange(of: model.visibleSnapshot) { _, _ in answer = "" }
     }
     private func detail(_ node: PlayNode, snapshot: PlaySnapshot) -> some View {
         let availability = snapshot.answerAvailability(for: node)
+        let selectedAnswer = model.acceptedChoice(for: nodeID) ?? answer
         return Form {
             Section {
                 if let name = node.name, !name.isEmpty { Text(verbatim: name).font(.title2.bold()) }
@@ -69,13 +71,13 @@ struct PlayNodeDetailView: View {
                                     answer = key
                                 } label: {
                                     HStack(alignment: .top) {
-                                        Image(systemName: answer == key ? "largecircle.fill.circle" : "circle")
+                                        Image(systemName: selectedAnswer == key ? "largecircle.fill.circle" : "circle")
                                         Text(verbatim: key + ". " + (options[key] ?? ""))
                                     }.frame(maxWidth: .infinity, alignment: .leading)
                                 }
                                 .buttonStyle(.plain)
                                 .disabled(!availability.canAnswer || model.isSubmitting || model.needsProgressCheck)
-                                .accessibilityAddTraits(answer == key ? .isSelected : [])
+                                .accessibilityAddTraits(selectedAnswer == key ? .isSelected : [])
                                 .accessibilityIdentifier("play.option.\(key)")
                             }
                         } else if availability == .text {

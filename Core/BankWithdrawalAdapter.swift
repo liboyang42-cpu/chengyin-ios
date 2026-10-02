@@ -3,13 +3,16 @@ import Foundation
 import FoundationNetworking
 #endif
 
-/// Dormant by default. There is no production factory or live grant in this migration.
+/// Dormant by default. The normal host requires independent deployment, endpoint and current-consent inputs.
 /// Tests inject synthetic transport only. The backend, not the client, decides withdrawability.
 @MainActor public final class BankWithdrawalAdapter {
     private let configuration: APIConfiguration
     private let transport: any HTTPTransport
     private let journal: any OperationPendingJournal
     private let approval: OperationEndpointApproval?
+    private let approvalForPath: ((String) -> OperationEndpointApproval?)?
+    private let refreshConsent: (() async throws -> Void)?
+    private let validatedChallenge: (Int?) -> Void
     private let enableReviewedWrites: Bool
     private let currentSession: () -> BankWithdrawalSession?
     private let consentEvidence: () -> BankWithdrawalConsentEvidence?
@@ -23,14 +26,17 @@ import FoundationNetworking
     public init(configuration: APIConfiguration, transport: any HTTPTransport,
                 journal: any OperationPendingJournal, approval: OperationEndpointApproval? = nil,
                 enableReviewedWrites: Bool = false,
+                approvalForPath: ((String) -> OperationEndpointApproval?)? = nil,
+                refreshConsent: (() async throws -> Void)? = nil, validatedChallenge: @escaping (Int?) -> Void = { _ in },
                 consentEvidence: @escaping () -> BankWithdrawalConsentEvidence? = { nil },
                 currentSession: @escaping () -> BankWithdrawalSession?, now: @escaping () -> Date = Date.init) {
         self.configuration = configuration; self.transport = transport; self.journal = journal
+        self.approvalForPath = approvalForPath; self.refreshConsent = refreshConsent; self.validatedChallenge = validatedChallenge
         self.approval = approval; self.enableReviewedWrites = enableReviewedWrites
         self.consentEvidence = consentEvidence; self.currentSession = currentSession; self.now = now
     }
     public var scope: WalletCommerceScope? { currentSession()?.scope }
-    public var isAvailable: Bool { enableReviewedWrites && approval != nil }
+    public var isAvailable: Bool { enableReviewedWrites && (approval != nil || approvalForPath != nil) }
     public var hasUnresolvedOutcome: Bool {
         guard let scope else { return false }
         do { return try journal.pending(ownerKey: owner(scope), targetKey: target) != nil }
@@ -43,10 +49,10 @@ import FoundationNetworking
         guard let session = currentSession(), session.scope.valid, AuthRequestBuilder.isValidToken(session.token) else { throw APIError.unauthorized }
         guard try journal.pending(ownerKey: owner(session.scope), targetKey: target) == nil else { throw BankWithdrawalFailure.unresolved }
         let value = BankWithdrawalReview(id: UUID(), scope: session.scope, draft: draft, created: now())
-        reviewed = value; proof = nil; capturedSession = session; return value
+        validatedChallenge(nil); reviewed = value; proof = nil; capturedSession = session; return value
     }
     /// Local form cancellation never initiates a request. In-flight/unknown locks remain durable.
-    public func discardLocalInput() { reviewed = nil; proof = nil; capturedSession = nil }
+    public func discardLocalInput() { validatedChallenge(nil); reviewed = nil; proof = nil; capturedSession = nil }
     private func requireSession(_ review: BankWithdrawalReview) throws -> BankWithdrawalSession {
         guard let session = currentSession(), session == capturedSession, session.scope == review.scope else { throw BankWithdrawalFailure.staleSession }
         return session
@@ -58,7 +64,7 @@ import FoundationNetworking
         guard enableReviewedWrites else { throw BankWithdrawalFailure.unavailable }
         let session = try requireSession(review)
         try requireConsent(session.scope)
-        guard approval?.allows(configuration: configuration, namespace: session.scope.namespace,
+        guard (approval ?? approvalForPath?(path))?.allows(configuration: configuration, namespace: session.scope.namespace,
                                accountID: session.scope.accountID, path: path) == true else { throw BankWithdrawalFailure.unavailable }
         return try OperationAdapterHTTP.json(configuration: configuration, path: path,
                     body: JSONSerialization.data(withJSONObject: body), token: session.token)
@@ -93,14 +99,17 @@ import FoundationNetworking
         guard !busy else { throw BankWithdrawalFailure.busy }
         guard reviewed == review, now().timeIntervalSince(review.created) >= 0,
               now().timeIntervalSince(review.created) < 120 else { throw BankWithdrawalFailure.reviewRequired }
+        busy = true; defer { busy = false }
+        try await refreshConsent?()
+        guard reviewed == review, now().timeIntervalSince(review.created) >= 0,
+              now().timeIntervalSince(review.created) < 120 else { throw BankWithdrawalFailure.reviewRequired }
         let request = try authorizedRequest(path: "api/fund/preflight/bank-withdrawal",
                           body: review.draft.fields(requestID: review.id.uuidString), review: review)
         guard try journal.pending(ownerKey: owner(review.scope), targetKey: target) == nil else { throw BankWithdrawalFailure.unresolved }
         try Task.checkCancellation()
         let pending = OperationPendingRecord(operationID: review.id, ownerKey: owner(review.scope), targetKey: target)
         try journal.write(pending) // Metadata only, durably recorded before any possible dispatch.
-        record = pending; busy = true
-        defer { busy = false }
+        record = pending
         let started = now()
         let data = try await send(request, review: review)
         guard reviewed == review else { throw BankWithdrawalFailure.reviewRequired }
@@ -108,7 +117,7 @@ import FoundationNetworking
         // Use request-start time conservatively so network latency cannot extend a challenge.
         let value = try BankWithdrawalProof(response: response, review: review, expiresAt: response.expiry(receivedAt: started))
         guard now() < value.expiresAt else { throw BankWithdrawalFailure.expired }
-        try persistStep(1); proof = value; return value
+        try persistStep(1); proof = value; validatedChallenge(value.challengeID); return value
     }
     private func requireProof(_ value: BankWithdrawalProof) throws {
         guard proof == value, reviewed == value.review else { throw BankWithdrawalFailure.reviewRequired }
@@ -119,12 +128,15 @@ import FoundationNetworking
     public func submit(_ value: BankWithdrawalProof) async throws -> BankWithdrawalReceipt {
         guard !busy else { throw BankWithdrawalFailure.busy }
         try requireProof(value)
+        busy = true; defer { busy = false }
+        try await refreshConsent?()
+        try requireProof(value)
         // Validate BOTH grants before confirming; approval of confirmation alone cannot spend.
         let confirm = try authorizedRequest(path: "api/fund/preflight/\(value.challengeID)/confirm",
                         body: ["challengeToken": value.token], review: value.review)
         let create = try authorizedRequest(path: "api/withdrawal/create",
                        body: value.review.draft.fields(requestID: value.review.id.uuidString, challengeID: value.challengeID), review: value.review)
-        busy = true; proof = nil; defer { busy = false }
+        proof = nil
         let confirmed = try challenge(await send(confirm, review: value.review))
         try confirmed.validate(review: value.review)
         guard confirmed.challengeId == value.challengeID, confirmed.state == "CONFIRMED", confirmed.canProceed,

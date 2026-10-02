@@ -12,6 +12,7 @@ public struct CooperationInvite: Decodable, Equatable {
     public let id: Int
     public let inviteType: Int?
     public let fromId: Int?
+    public let fromType: String?
     public let toType: String?
     public let toId: Int?
     public let topicId: Int?
@@ -36,7 +37,7 @@ public struct CooperationInvite: Decodable, Equatable {
         return "cooperation.invite.status.\(status)"
     }
     enum CodingKeys: String, CodingKey {
-        case id, inviteType, fromId, toType, toId, topicId, gameId, status, message, handleReason
+        case id, inviteType, fromId, fromType, toType, toId, topicId, gameId, status, message, handleReason
         case shareMode, shareRate, fixedFee, depositOwed, depositAmount, depositRefundPending, termsFrozen
         case expireTime, createTime, partner, cover, topicCover, topicImgUrl
     }
@@ -45,6 +46,7 @@ public struct CooperationInvite: Decodable, Equatable {
         id = try c.positiveID(.id)
         inviteType = try c.decodeIfPresent(Int.self, forKey: .inviteType)
         fromId = try c.decodeIfPresent(Int.self, forKey: .fromId)
+        fromType = try c.decodeIfPresent(String.self, forKey: .fromType)
         toType = try c.decodeIfPresent(String.self, forKey: .toType)
         toId = try c.decodeIfPresent(Int.self, forKey: .toId)
         topicId = try c.decodeIfPresent(Int.self, forKey: .topicId)

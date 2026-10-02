@@ -94,6 +94,15 @@ struct ClubCommunityEntry: View {
     }
 }
 
+private struct ClubCommunityDestination: Hashable {
+    enum Screen: Hashable { case comments, history }
+    let post: ClubCommunityPost
+    let clubID: Int?
+    let screen: Screen
+    static func == (lhs: Self, rhs: Self) -> Bool { lhs.post == rhs.post && lhs.clubID == rhs.clubID && lhs.screen == rhs.screen }
+    func hash(into hasher: inout Hasher) { hasher.combine(post.id); hasher.combine(post.version); hasher.combine(clubID); hasher.combine(screen) }
+}
+
 @MainActor
 struct ClubCommunityFeedView: View {
     let identity: ClubReadIdentity
@@ -101,6 +110,7 @@ struct ClubCommunityFeedView: View {
     @StateObject private var model: ClubCommunityViewModel
     @State private var page = 1
     @State private var composing = false
+    @State private var destination: ClubCommunityDestination?
     init(context: ClubCommunityContext, identity: ClubReadIdentity, clubID: Int? = nil) {
         self.identity = identity; self.clubID = clubID; _model = StateObject(wrappedValue: ClubCommunityViewModel(context: context))
     }
@@ -113,7 +123,9 @@ struct ClubCommunityFeedView: View {
                 if snapshot.clubCount == 0 { Text("club.community.joinFirst") }
                 else if snapshot.posts.isEmpty { Text("club.community.empty") }
                 ForEach(snapshot.posts) { post in
-                    ClubCommunityPostTile(post: post, clubID: post.clubID ?? clubID, identity: identity, model: model)
+                    ClubCommunityPostTile(post: post, clubID: post.clubID ?? clubID, identity: identity, model: model,
+                        openComments: { destination = .init(post: post, clubID: post.clubID ?? clubID, screen: .comments) },
+                        openHistory: { destination = .init(post: post, clubID: post.clubID ?? clubID, screen: .history) })
                 }
                 HStack {
                     Button("club.community.previous") { page = max(1, page - 1) }.disabled(page == 1)
@@ -129,6 +141,15 @@ struct ClubCommunityFeedView: View {
             if model.context.coordinator?.permitsInjectedWrites != true { Text("club.community.offline").foregroundStyle(.secondary) }
         }
         .navigationTitle(Text("club.community.posts"))
+        .navigationDestination(item: $destination) { target in
+            switch target.screen {
+            case .comments:
+                if let clubID = target.clubID { ClubCommunityCommentsView(context: model.context, identity: identity, clubID: clubID, post: target.post) }
+            case .history:
+                ClubCommunityHistoryView(context: model.context, identity: identity, postID: target.post.id)
+            }
+        }
+        .onChange(of: identity) { _, _ in destination = nil }
         .task(id: identity) { model.invalidate(); page = 1; await model.load(operation) }
         .task(id: page) { await model.load(operation) }
         // Pushing a row destination must not remove the NavigationLink that owns it.
@@ -149,6 +170,8 @@ struct ClubCommunityPostTile: View {
     let clubID: Int?
     let identity: ClubReadIdentity
     @ObservedObject var model: ClubCommunityViewModel
+    let openComments: () -> Void
+    let openHistory: () -> Void
     @State private var editing = false
     @State private var evidence: ClubCommunityEvidence?
     private func allows(_ operation: ClubCommunityOperation) -> Bool {
@@ -180,7 +203,7 @@ struct ClubCommunityPostTile: View {
                 HStack {
                     Button { Task { await model.prepare(.toggleLike, clubID: clubID, post: post) } } label: { Label("club.community.like", systemImage: post.liked ? "heart.fill" : "heart") }
                         .disabled(!identity.isSignedIn || model.busy || model.context.coordinator?.permitsInjectedWrites != true)
-                    NavigationLink { ClubCommunityCommentsView(context: model.context, identity: identity, clubID: clubID, post: post) } label: { Label("club.community.comments", systemImage: "bubble") }
+                    Button(action: openComments) { Label("club.community.comments", systemImage: "bubble") }
                         .accessibilityIdentifier("club.community.comments.\(post.id)")
                 }
                 Menu {
@@ -191,7 +214,7 @@ struct ClubCommunityPostTile: View {
                 } label: { Label("club.community.actions", systemImage: "ellipsis") }
                     .disabled(!identity.isSignedIn || model.busy || model.context.coordinator?.permitsInjectedWrites != true)
             }
-            NavigationLink { ClubCommunityHistoryView(context: model.context, identity: identity, postID: post.id) } label: { Text("club.community.history") }
+            Button(action: openHistory) { Text("club.community.history") }
                 .accessibilityIdentifier("club.community.history.\(post.id)")
         }
         .buttonStyle(.borderless)

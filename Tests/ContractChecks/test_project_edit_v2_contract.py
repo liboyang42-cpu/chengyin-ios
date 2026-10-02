@@ -15,7 +15,7 @@ class ProjectEditV2Contract(unittest.TestCase):
         self.assertIn('ProjectEditStoryContract.path(payload: operation.payload, baseline: operation.baseline)', self.adapter)
         self.assertIn('path: path)', self.adapter.split('approval.allows', 1)[1])
         self.assertNotIn('OperationEndpointApproval(', (ROOT / 'App/AppSession.swift').read_text())
-        self.assertIn('service: ProjectEditDisabledService()', (ROOT / 'App/AppSession.swift').read_text())
+        self.assertIn('else { service = ProjectEditDisabledService() }', (ROOT / 'App/AppSession.swift').read_text())
     def test_schema_validation_precedes_dispatch_marker(self):
         body = self.adapter.split('public func submit(', 1)[1]
         self.assertLess(body.index('ProjectEditStoryContract.validatePayload'), body.index('dispatched.dispatchStarted = true'))

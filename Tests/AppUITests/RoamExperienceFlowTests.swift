@@ -19,7 +19,7 @@ final class RoamExperienceFlowTests: XCTestCase {
         XCTAssertTrue(record.waitForExistence(timeout: 5)); record.tap()
         XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "roam.experience.session").firstMatch.waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["Saved local journey"].waitForExistence(timeout: 5))
-        XCTAssertFalse(app.buttons["Share"].exists)
+        XCTAssertTrue(app.buttons["roam.share.open"].exists)
     }
     func testCorruptHistoryIsErrorNotEmpty() {
         let app = app("historyCorrupt"); open("history", in: app)
@@ -89,4 +89,34 @@ final class RoamExperienceFlowTests: XCTestCase {
         XCTAssertFalse(app.staticTexts["Synthetic city stamp"].exists)
         XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "roam.experience.hub").firstMatch.waitForExistence(timeout: 5))
     }
+    private func tapVisible(_ element: XCUIElement, app: XCUIApplication) {
+        XCTAssertTrue(element.waitForExistence(timeout: 5))
+        for _ in 0..<4 { if element.isHittable { break }; app.swipeUp() }
+        XCTAssertTrue(element.isHittable); element.tap()
+    }
+    func testOfflineLiveExplicitStartPauseResumeAndConfirmedFinish() {
+        let app = app("liveSession"); open("live", in: app)
+        XCTAssertFalse(app.buttons["roam.live.start"].isEnabled)
+        tapVisible(app.switches["roam.live.consent"], app: app)
+        tapVisible(app.buttons["roam.live.start"], app: app)
+        tapVisible(app.buttons["roam.live.pause"], app: app)
+        XCTAssertTrue(app.staticTexts["Paused; no location collection"].waitForExistence(timeout: 5))
+        tapVisible(app.buttons["roam.live.resume"], app: app)
+        tapVisible(app.buttons["roam.live.finish"], app: app)
+        tapVisible(app.buttons["Finish and check results"].firstMatch, app: app)
+        XCTAssertTrue(app.staticTexts["Settled and saved"].waitForExistence(timeout: 5))
+        XCTAssertEqual(app.alerts.count, 0)
+    }
+    func testOfflineLiveUnknownBootstrapIsRecoveredBeforeExplicitResume() {
+        let app = app("liveUnknown"); open("live", in: app)
+        tapVisible(app.switches["roam.live.consent"], app: app)
+        tapVisible(app.buttons["roam.live.start"], app: app)
+        XCTAssertTrue(app.staticTexts["Status needs checking"].waitForExistence(timeout: 5))
+        tapVisible(app.buttons["roam.live.recover"], app: app)
+        XCTAssertTrue(app.staticTexts["Paused; no location collection"].waitForExistence(timeout: 5))
+        tapVisible(app.buttons["roam.live.resume"], app: app)
+        XCTAssertTrue(app.buttons["roam.live.pause"].waitForExistence(timeout: 5))
+        XCTAssertEqual(app.alerts.count, 0)
+    }
+
 }

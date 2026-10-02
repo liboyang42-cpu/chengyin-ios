@@ -64,6 +64,7 @@ public final class ParticipantMutationCoordinator {
         var readback: ParticipantReadbackState = .idle
         var readbackIdentity: ProfileReadIdentity?
         var readGeneration: UInt64 = 0
+        var savedParticipant: ProfileParticipant?
     }
 
     public init(writer: any ParticipantWriting, reader: any ProfileReading,
@@ -84,6 +85,11 @@ public final class ParticipantMutationCoordinator {
     public var readbackState: ParticipantReadbackState {
         guard let identity, let record = records[identity.accountID], record.readbackIdentity == identity else { return .idle }
         return record.readback
+    }
+    public var savedParticipant: ProfileParticipant? {
+        guard let identity, let record = records[identity.accountID], record.originalIdentity == identity,
+              record.state == .succeeded else { return nil }
+        return record.savedParticipant
     }
     public var canPrepare: Bool { isConfigured && identity != nil && !state.preventsNewMutation }
 
@@ -150,7 +156,8 @@ public final class ParticipantMutationCoordinator {
         records[account]?.state = .submitting
         let nextState: ParticipantMutationState
         do {
-            try await writer.perform(confirmation.mutation, expectedIdentity: confirmation.identity)
+            let row = try await writer.performReturningParticipant(confirmation.mutation, requestID: confirmation.id, expectedIdentity: confirmation.identity)
+            if records[account]?.id == confirmation.id { records[account]?.savedParticipant = row }
             nextState = Task.isCancelled ? .outcomeUnknown(.cancelled) : .succeeded
         } catch let failure as ParticipantWriteError {
             switch failure {

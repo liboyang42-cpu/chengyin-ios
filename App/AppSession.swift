@@ -324,6 +324,14 @@ final class AppSession: ObservableObject {
         return RuntimeDependencyContext(market: regionalConfiguration.market, baseURL: api.baseURL,
             role: account.effectiveRole, session: session)
     }
+    private var businessRuntimeFactory: BusinessRuntimeFactory? {
+        guard let api = regionalConfiguration?.apiConfiguration, storageScope != nil,
+              let configuration = runtimeDependencies.businessConfiguration, let context = currentRuntimeDependencyContext,
+              configuration.matches(context) else { return nil }
+        return BusinessRuntimeFactory(configuration: configuration, api: api,
+            transport: runtimeDependencies.transport ?? ResponseLimitedHTTPTransport(enabled: configuration.matches(context)),
+            current: { [weak self] in self?.currentRuntimeDependencyContext })
+    }
     private var runtimeDependencyFactory: RuntimeDependencyFactory? {
         guard let api = regionalConfiguration?.apiConfiguration, storageScope != nil else { return nil }
         return RuntimeDependencyFactory(api: api, configuration: runtimeDependencies.configuration,
@@ -569,18 +577,31 @@ final class AppSession: ObservableObject {
         guard let self,self.currentGrowthCenterSession == captured else { return }
         self.expireIfMatching(error:APIError.unauthorized,stamp:captured.epoch,credential:self.token)
     })
-    private var retainedProjectEditors: [Int: ProjectEditCoordinator] = [:]
+    private var retainedProjectEditors: [String: ProjectEditCoordinator] = [:]
     private lazy var projectDraftStore = ProjectEditLocalStore(storage: ProjectEditSecureStorage(scope: storageScope))
     private var currentProjectEditSession: ProjectEditSession? {
         guard let account, token != nil, let storageScope else { return nil }
         return try? ProjectEditSession(accountID: account.id, epoch: gate.currentStamp, storageNamespace: storageScope.service)
     }
-    func projectEditor(product: ProjectEditProduct) -> ProjectEditCoordinator {
-        if let retained = retainedProjectEditors[product.rawValue] { return retained }
-        let coordinator = ProjectEditCoordinator(initial: .init(draft: ProjectEditDraft(product: product)),
-            service: ProjectEditDisabledService(), store: projectDraftStore,
+    var projectEditorIsConfigured: Bool { businessRuntimeFactory?.permits(.projectRead) == true }
+    func projectEditor(product: ProjectEditProduct, owner: ProjectEditOwner = .personal) -> ProjectEditCoordinator {
+        let key = "\(gate.currentStamp):\(account?.id ?? 0):\(account?.effectiveRole ?? "guest"):\(product.rawValue):\(owner.rawValue)"
+        if let retained = retainedProjectEditors[key] { return retained }
+        let service: any ProjectEditServing
+        if let factory = businessRuntimeFactory, factory.permits(.projectRead), let configuration = regionalConfiguration?.apiConfiguration {
+            let captured = factory.captured
+            service = ProjectEditHTTPService(configuration: configuration, transport: factory.client([.projectRead, .projectWrite]),
+                owner: owner, approval: factory.approval([.projectWrite]), store: projectDraftStore,
+                currentCredentials: { [weak self] in
+                    guard let self, self.currentRuntimeDependencyContext == captured,
+                          let session = self.currentProjectEditSession, let token = self.token else { return nil }
+                    return try? ProjectEditCredentials(session: session, token: token)
+                })
+        } else { service = ProjectEditDisabledService() }
+        var draft = ProjectEditDraft(product: product); draft.owner = owner
+        let coordinator = ProjectEditCoordinator(initial: .init(draft: draft), service: service, store: projectDraftStore,
             currentSession: { [weak self] in self?.currentProjectEditSession })
-        retainedProjectEditors[product.rawValue] = coordinator
+        retainedProjectEditors[key] = coordinator
         return coordinator
     }
     private var publishingEpochCache: (stamp: UInt64, accountID: Int, role: String, epoch: UUID)?
@@ -620,7 +641,46 @@ final class AppSession: ObservableObject {
             }, currentSession: { [weak self] in self?.publishingSession })
         return try await reader.freshAuthority(resource, session: captured)
     }
-    lazy var publishingService: PublishingService? = makePublishingService()
+    private var retainedPublishingService: (context: RuntimeDependencyContext, service: PublishingService)?
+    var publishingService: PublishingService? {
+        guard let factory = businessRuntimeFactory, factory.permits(.publishingRead),
+              let configuration = regionalConfiguration?.apiConfiguration else { return nil }
+        if let retainedPublishingService, retainedPublishingService.context == factory.captured { return retainedPublishingService.service }
+        retainedPublishingService?.service.invalidateReviews()
+        let captured = factory.captured
+        let service = PublishingService(configuration: configuration, transport: factory.client([.publishingRead, .publishingWrite]),
+            approval: factory.approval([.publishingWrite]), journal: OperationDefaultsJournal(defaults: .standard),
+            credentials: { [weak self] in
+                guard let self, self.currentRuntimeDependencyContext == captured, let session = self.publishingSession,
+                      let token = self.token else { return nil }
+                return try? PublishingCredentials(session: session, token: token)
+            })
+        retainedPublishingService = (captured, service); return service
+    }
+    /// Separate provider-grant feature; publishing read/write grants never enable AI.
+    func makePublishingAuxiliaryService(feature: BusinessRuntimeFeature) -> PublishingAuxiliaryService? {
+        guard let factory = businessRuntimeFactory else { return nil }
+        let captured = factory.captured
+        return factory.publishingAuxiliary(feature: feature, journal: OperationDefaultsJournal(defaults: .standard), credentials: { [weak self] in
+            guard let self, self.currentRuntimeDependencyContext == captured,
+                  let session = self.publishingSession, let token = self.token else { return nil }
+            return try? PublishingCredentials(session: session, token: token)
+        })
+    }
+    var publishingAIDraftFactory: (() -> any PublishingAIDraftServing)? {
+        guard let factory = businessRuntimeFactory, factory.permits(.publishingAIQuota), factory.permits(.publishingAITheme),
+              let configuration = regionalConfiguration?.apiConfiguration,
+              let assistance = makePublishingAuxiliaryService(feature: .publishingAITheme) else { return nil }
+        let captured = factory.captured
+        let quotaTransport = PublishingAIRuntimeTransport(feature: .publishingAIQuota, baseURL: configuration.baseURL, transport: factory.client([.publishingAIQuota]))
+        let reads = PublishingService(configuration: configuration, transport: quotaTransport, credentials: { [weak self] in
+            guard let self, self.currentRuntimeDependencyContext == captured,
+                  let session = self.publishingSession, let token = self.token else { return nil }
+            return try? PublishingCredentials(session: session, token: token)
+        })
+        let client = PublishingAIDraftClient(reads: reads, assistance: assistance)
+        return { client }
+    }
     lazy var publishingDraftStore = PublishingDraftStore(storage: ProjectEditSecureStorage(scope: storageScope))
     /// Production mounts no read grant or write approval. An approved integration may inject
     /// a read transport; the returned service still has no mutation approval or journal.
@@ -670,18 +730,19 @@ final class AppSession: ObservableObject {
         return try? RetainedImageScope(accountID: wallet.accountID, epoch: wallet.epoch,
             realm: credentials.realm, destination: .stamp, namespace: wallet.namespace)
     }
+    var stampCameraEnabled: Bool { businessRuntimeFactory?.configuration.stampCamera == true }
     func makeRoamStampCaptureCoordinator() -> RoamStampCaptureCoordinator? {
-        guard let scope = roamMediaScope, let configuration = regionalConfiguration?.apiConfiguration,
+        guard let factory = businessRuntimeFactory, let scope = roamMediaScope, let configuration = regionalConfiguration?.apiConfiguration,
               let credentials = currentRetainedImageCredentials else { return nil }
         let current: () -> RetainedImageScope? = { [weak self] in
             guard let self, self.currentRetainedImageCredentials == credentials else { return nil }; return self.roamMediaScope
         }
         let token: () -> String? = { [weak self] in self?.currentRetainedImageCredentials == credentials ? credentials.token : nil }
-        let transport = ResponseLimitedHTTPTransport()
-        let uploader = RetainedImageHTTPUploader(configuration: configuration, transport: transport,
-            enabled: false, approvedOrigins: [], currentScope: current, token: token)
-        let executor = RoamMediaMutationService(configuration: configuration, transport: transport,
-            enabled: false, approval: nil, currentScope: current, token: token)
+        let uploader = RetainedImageHTTPUploader(configuration: configuration, transport: factory.client([.stampUpload]),
+            enabled: factory.permits(.stampUpload), approvedOrigins: factory.configuration.stampImageOrigins, currentScope: current, token: token)
+        let executor = RoamMediaMutationService(configuration: configuration, transport: factory.client([.stampCreate]),
+            enabled: factory.permits(.stampCreate), approval: factory.approval([.stampCreate]),
+            approvedImageOrigins: factory.configuration.stampImageOrigins, currentScope: current, token: token)
         let storage = StoredRoamStampPending(read: { [unowned self] in try self.imageUploadStorage.read($0) },
             write: { [unowned self] in try self.imageUploadStorage.write($0, key: $1) })
         return RoamStampCaptureCoordinator(scope: scope,
@@ -700,6 +761,26 @@ final class AppSession: ObservableObject {
             executor: executor, journal: OperationDefaultsJournal(defaults: .standard), refreshNode: { [weak self] in
                 guard let self else { throw APIError.unauthorized }; return try await self.roamReader.roamNodeDetail(id: node.poiId)
             })
+    }
+    func makeBankWithdrawalContext() -> BankWithdrawalRuntimeContext? {
+        guard let factory = businessRuntimeFactory, factory.permits(.bankPrepare), factory.permits(.bankConsentRead),
+              let provider = runtimeDependencies.bankDocument, let scope = walletCommerceScope,
+              let configuration = regionalConfiguration?.apiConfiguration else { return nil }
+        let captured = factory.captured
+        let routes = BankWithdrawalRuntimeRoutes(factory: factory)
+        let consent = BankWithdrawalConsentReader(configuration: configuration, transport: factory.client([.bankConsentRead]),
+            provider: provider, captured: captured, scope: scope, current: { [weak self] in self?.currentRuntimeDependencyContext })
+        let adapter = BankWithdrawalAdapter(configuration: configuration,
+            transport: factory.client([.bankPrepare, .bankCreate], additionalRoutes: { routes.dynamicRoutes }),
+            journal: OperationDefaultsJournal(defaults: .standard), enableReviewedWrites: true,
+            approvalForPath: { routes.approval(path: $0) }, refreshConsent: { try await consent.refresh() },
+            validatedChallenge: { routes.validatedChallenge($0) }, consentEvidence: { consent.evidence },
+            currentSession: { [weak self] in
+                guard let self, self.currentRuntimeDependencyContext == captured, self.walletCommerceScope == scope,
+                      let token = self.token else { return nil }
+                return BankWithdrawalSession(scope: scope, token: token)
+            })
+        return BankWithdrawalRuntimeContext(adapter: adapter, consent: consent)
     }
     private var walletEpochCache: (stamp: UInt64, accountID: Int, epoch: UUID)?
     var walletCommerceScope: WalletCommerceScope? {
@@ -784,9 +865,14 @@ final class AppSession: ObservableObject {
     }
     func makeCouponCodeCoordinator(historyID: Int) -> CouponCodeCoordinator {
         CouponCodeCoordinator(historyID: historyID,
-            service: CouponCodeHTTPService(configuration: regionalConfiguration?.apiConfiguration,
-                transport: URLSessionTransport(), enabled: false, approvedImageHosts: []),
-            currentSession: { [weak self] in self?.currentCouponCodeSession })
+            service: CouponCodeApprovedService(configuration: regionalConfiguration?.apiConfiguration,
+                approval: runtimeDependencies.couponCodeApproval, transport: runtimeHTTPTransport,
+                current: { [weak self] in self?.currentRuntimeDependencyContext }),
+            currentSession: { [weak self] in self?.currentCouponCodeSession },
+            onUnauthorized: { [weak self] captured in
+                guard let self, self.currentCouponCodeSession == captured else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: captured.token)
+            })
     }
     private let accountCollectionService:AccountCollectionService?
     private var currentAccountCollectionSession:AccountCollectionReadSession? {
@@ -960,6 +1046,17 @@ final class AppSession: ObservableObject {
     // One retained coordinator keeps per-account/order unknown-outcome locks across sheets.
     // The dormant command adapter is deliberately not constructed by AppSession.
     lazy var orderLifecycleCoordinator = OrderLifecycleCoordinator(reader: orderLifecycleReader)
+    func makeVerificationCodeCoordinator(target: VerificationCodeTarget) -> VerificationCodeCoordinator {
+        VerificationCodeCoordinator(target: target,
+            service: VerificationCodeHTTPService(configuration: regionalConfiguration?.apiConfiguration,
+                approval: runtimeDependencies.verificationCodeApproval, kind: target.kind,
+                transport: runtimeHTTPTransport, current: { [weak self] in self?.currentRuntimeDependencyContext }),
+            current: { [weak self] in self?.currentRuntimeDependencyContext },
+            onUnauthorized: { [weak self] captured in
+                guard let self, self.currentRuntimeDependencyContext == captured else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
+            })
+    }
     private let ticketWalletService:TicketWalletService?
     private var currentTicketWalletSession:TicketWalletReadSession? {
         guard let account,let token else { return nil }
@@ -1021,6 +1118,7 @@ final class AppSession: ObservableObject {
         return try? MerchantBusinessSession(accountID: account.id, epoch: gate.currentStamp, token: token)
     }
     lazy var merchantBusinessReader = MerchantBusinessSessionReader(service: merchantBusinessService,
+        verificationService: { [weak self] in self?.makeMerchantVerificationService() },
         currentSession: { [weak self] in self?.currentMerchantBusinessSession },
         onUnauthorized: { [weak self] captured in
             guard let self, self.currentMerchantBusinessSession == captured else { return }
@@ -1029,11 +1127,29 @@ final class AppSession: ObservableObject {
     lazy var merchantBusinessJournal = MerchantBusinessFileIntentStore(
         url: FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent((storageScope?.service ?? "unconfigured") + "/MerchantBusiness/intents-v1.json"))
-    lazy var nativeVerificationFlow = NativeVerificationWorkflow(reader: merchantBusinessReader, journal: merchantBusinessJournal,
-        redemption: merchantBusinessService.map { service in
-            MerchantRedemptionCoordinator(service: service, journal: merchantBusinessJournal,
-                currentSession: { [weak self] in self?.currentMerchantBusinessSession })
-        }) // Production service has no mutation transport; camera is separately disabled.
+    private func makeMerchantVerificationService() -> MerchantBusinessService? {
+        guard let factory = businessRuntimeFactory, factory.permits(.directVerification),
+              factory.routes([.directVerification]).contains(where: { MerchantVerificationHTTPTransport.paths.contains($0.path) }),
+              let configuration = regionalConfiguration?.apiConfiguration else { return nil }
+        let client = factory.client([.directVerification])
+        return MerchantBusinessService(configuration: configuration, readTransport: client,
+            verificationTransport: MerchantVerificationHTTPTransport(baseURL: configuration.baseURL, transport: client))
+    }
+    var verificationCameraEnabled: Bool { businessRuntimeFactory?.configuration.verificationCamera == true }
+    private var retainedNativeVerification: (context: RuntimeDependencyContext, flow: NativeVerificationWorkflow)?
+    private lazy var disabledNativeVerification = NativeVerificationWorkflow(reader: merchantBusinessReader, journal: merchantBusinessJournal, redemption: nil)
+    var nativeVerificationFlow: NativeVerificationWorkflow {
+        guard let factory = businessRuntimeFactory, let service = makeMerchantVerificationService() else { return disabledNativeVerification }
+        if let retainedNativeVerification, retainedNativeVerification.context == factory.captured { return retainedNativeVerification.flow }
+        retainedNativeVerification?.flow.deactivate()
+        let captured = factory.captured
+        let redemption = MerchantRedemptionCoordinator(service: service, journal: merchantBusinessJournal,
+            currentSession: { [weak self] in
+                guard let self, self.currentRuntimeDependencyContext == captured else { return nil }; return self.currentMerchantBusinessSession
+            })
+        let flow = NativeVerificationWorkflow(reader: merchantBusinessReader, journal: merchantBusinessJournal, redemption: redemption)
+        retainedNativeVerification = (captured, flow); return flow
+    }
     private var currentMerchantContentSession: MerchantContentSession? {
         guard let account, let token, let storageScope else { return nil }
         return try? MerchantContentSession(accountID: account.id, epoch: gate.currentStamp,
@@ -1112,9 +1228,23 @@ final class AppSession: ObservableObject {
     // Session-lived: unresolved operations cannot be replayed by reopening a sheet.
     lazy var clubGovernanceCoordinator = ClubGovernanceCoordinator(access: clubGovernanceAccess)
     lazy var clubOwnerRefundCoordinator = ClubOwnerRefundCoordinator(
-        access: ClubOwnerRefundReadOnlyAccess(governance: clubGovernanceAccess),
+        access: ClubOwnerRefundConfiguredAccess(fallback: ClubOwnerRefundReadOnlyAccess(governance: clubGovernanceAccess),
+            configuration: regionalConfiguration?.apiConfiguration, approval: runtimeDependencies.ownerRefundApproval,
+            transport: runtimeHTTPTransport, current: { [weak self] in self?.currentRuntimeDependencyContext },
+            onUnauthorized: { [weak self] captured in
+                guard let self, self.currentRuntimeDependencyContext == captured else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
+            }),
         locks: ClubOwnerRefundFileLocks(directory: FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first?.appendingPathComponent("ClubOwnerRefundLocks", isDirectory: true)))
-    var clubGovernanceContext: ClubGovernanceContext { .init(access: clubGovernanceAccess, coordinator: clubGovernanceCoordinator, enrollmentProfile: .init(reader: socialAccountReader, squareReader: squareReader, actions: socialActionCoordinator), ownerRefund: clubOwnerRefundCoordinator) }
+    private var clubOpsTimeSession: ClubOpsTimeSession? {
+        guard let account, let token, let configuration = regionalConfiguration?.apiConfiguration else { return nil }
+        return try? .init(accountID: account.id, epoch: gate.currentStamp, realm: configuration.baseURL.absoluteString, token: token)
+    }
+    private lazy var clubOpsTimeHost: ClubOpsTimeHost? = regionalConfiguration?.apiConfiguration.map {
+        ClubOpsTimeHost(service: ClubOpsTimeHTTPService(configuration: $0, transport: URLSessionTransport(), enabled: false,
+            current: { [weak self] in self?.clubOpsTimeSession }))
+    }
+    var clubGovernanceContext: ClubGovernanceContext { .init(access: clubGovernanceAccess, coordinator: clubGovernanceCoordinator, enrollmentProfile: .init(reader: socialAccountReader, squareReader: squareReader, actions: socialActionCoordinator), ownerRefund: clubOwnerRefundCoordinator, opsTimeFactory: { [weak self] in self?.clubOpsTimeHost?.coordinator(activityID: $0) }) }
     private var currentClubOperationsSession: ClubOperationsSession? {
         guard let account, let token else { return nil }
         return try? ClubOperationsSession(accountID: account.id, epoch: gate.currentStamp, token: token, storageNamespace: storageScope?.service ?? "")
@@ -1136,6 +1266,15 @@ final class AppSession: ObservableObject {
     })
     lazy var clubManagementCoordinator=ClubManagementCoordinator(access:clubManagementAccess,onMembershipChanged:{ [weak self] _ in self?.clubMembershipRevision &+= 1 })
     var clubManagementContext:ClubManagementContext { .init(access:clubManagementAccess,coordinator:clubManagementCoordinator,operations:clubOperationsContext,governance:clubGovernanceContext) }
+    private var contextualReviewSession: ContextualReviewSession? {
+        guard let account, let token, let configuration = regionalConfiguration?.apiConfiguration else { return nil }
+        return try? ContextualReviewSession(accountID: account.id, epoch: gate.currentStamp,
+            realm: configuration.baseURL.absoluteString, token: token)
+    }
+    lazy var contextualReviews: ContextualReviewHost? = regionalConfiguration?.apiConfiguration.map {
+        ContextualReviewHost(writer: ContextualReviewHTTPWriter(configuration: $0, transport: URLSessionTransport(), enabled: false,
+            currentSession: { [weak self] in self?.contextualReviewSession }))
+    }
     private let profileEditService:ProfileEditService?
     private var currentProfileEditSession:ProfileEditSession? {
         guard let account,let token else { return nil }
@@ -1172,6 +1311,25 @@ final class AppSession: ObservableObject {
     lazy var clubActionCoordinator = ClubActionCoordinator(writer: clubActionWriter, reader: clubReader, onMembershipChanged: { [weak self] _ in
         self?.clubMembershipRevision &+= 1
     })
+    private let roamLiveDependencies: NativeRoamLiveDependencies
+    private var retainedRoamLiveSession: RoamLiveSessionController?
+    func makeRoamLiveSessionController() -> RoamLiveSessionController {
+        if let existing = retainedRoamLiveSession { return existing }
+        let storage = RoamHistoryKeychainStorage()
+        let journal = RoamLiveJournal(storage: storage)
+        var liveService: RoamLiveService?
+        var location: (any RoamDeviceLocationProviding)?
+        if let snapshot = currentRoamExperienceSession, let api = regionalConfiguration?.apiConfiguration,
+           let approval = roamLiveDependencies.approval, approval.allows(snapshot.identity, api: api),
+           let transport = roamLiveDependencies.transport, let makeLocation = roamLiveDependencies.makeLocation {
+            liveService = RoamLiveService(api: api, approval: approval, transport: transport,
+                currentSession: { [weak self] in self?.currentRoamExperienceSession })
+            location = makeLocation()
+        }
+        let controller = RoamLiveSessionController(service: liveService, location: location, journal: journal, history: roamHistoryStore)
+        retainedRoamLiveSession = controller
+        return controller
+    }
     private let roamExperienceService: RoamExperienceService?
     private var currentRoamExperienceSession: RoamExperienceSession? {
         guard let account, let token, let storageScope,
@@ -1194,13 +1352,29 @@ final class AppSession: ObservableObject {
     private var imExpandedCoordinators: [IMScope: IMExpandedCoordinator] = [:]
     private var imImageCoordinators: [IMScope: IMImageUploadCoordinator] = [:]
     private var imStarters: [MessagingReadIdentity: IMConversationStarter] = [:]
-    lazy var imExpandedWriter = IMExpandedWriter(service: nil, session: { [weak self] in
-        guard let self, let account = self.account, let token = self.token else { return nil }
-        return try? IMExpandedSession(accountID: account.id, epoch: self.gate.currentStamp, token: token)
-    }, onUnauthorized: { [weak self] snapshot in
-        guard let self else { return }
-        self.expireIfMatching(error: APIError.unauthorized, stamp: snapshot.identity.epoch, credential: self.token)
-    })
+    private var retainedIMWriter: (context: RuntimeDependencyContext, writer: IMExpandedWriter)?
+    private lazy var disabledIMWriter = IMExpandedWriter(service: nil, session: { [weak self] in self?.currentIMExpandedSession })
+    private var currentIMExpandedSession: IMExpandedSession? {
+        guard let account, let token else { return nil }
+        return try? IMExpandedSession(accountID: account.id, epoch: gate.currentStamp, token: token)
+    }
+    var imExpandedWriter: IMExpandedWriter {
+        let features: Set<BusinessRuntimeFeature> = [.imStart, .imRead, .imMute, .imSend, .imUpload]
+        guard let factory = businessRuntimeFactory, !factory.routes(features).isEmpty,
+              let configuration = regionalConfiguration?.apiConfiguration else { return disabledIMWriter }
+        if let retainedIMWriter, retainedIMWriter.context == factory.captured { return retainedIMWriter.writer }
+        let captured = factory.captured
+        let service = IMExpandedService(configuration: configuration, transport: factory.client(features),
+            approvedMediaOrigins: factory.configuration.imMediaOrigins, writesEnabled: true,
+            enabledPaths: Set(factory.routes(features).map(\.path)))
+        let writer = IMExpandedWriter(service: service, session: { [weak self] in
+            guard let self, self.currentRuntimeDependencyContext == captured else { return nil }; return self.currentIMExpandedSession
+        }, onUnauthorized: { [weak self] snapshot in
+            guard let self, self.currentRuntimeDependencyContext == captured else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: snapshot.identity.epoch, credential: self.token)
+        })
+        retainedIMWriter = (captured, writer); return writer
+    }
     func imExpandedCoordinator(for conversationID: Int) -> IMExpandedCoordinator? {
         guard let identity = imExpandedWriter.identity, let scope = try? IMScope(identity: identity, conversationID: conversationID) else { return nil }
         if let existing = imExpandedCoordinators[scope] { return existing }
@@ -1215,6 +1389,9 @@ final class AppSession: ObservableObject {
                 kind: "im", entityID: conversationID, field: "image") else { return nil }
         let owner = IMImageUploadCoordinator(scope: scope, writer: imExpandedWriter, picker: retainedImagePickerHost.imPicker(scope: scope, currentScope: { [weak self] in
             guard let self, self.imExpandedWriter.identity == scope.identity else { return nil }; return scope
+        }, selectionApproval: { [weak self] in
+            guard let self, self.imExpandedWriter.identity == scope.identity, let factory = self.businessRuntimeFactory else { return false }
+            return factory.permits(.imUpload) && factory.configuration.imImageSelection
         }), journal: imageUploadJournal, target: target)
         imImageCoordinators[scope] = owner; return owner
     }
@@ -1371,6 +1548,11 @@ final class AppSession: ObservableObject {
     private func synchronizeAccountMarketingEntry() {
         let identityChanged = entryObservedStamp != gate.currentStamp || entryObservedAccountID != account?.id || entryObservedToken != token || entryObservedRole != account?.effectiveRole
         if identityChanged {
+            retainedNativeVerification?.flow.deactivate(); retainedNativeVerification = nil
+            retainedPublishingService?.service.invalidateReviews(); retainedPublishingService = nil
+            retainedIMWriter = nil; imExpandedCoordinators.removeAll(); imImageCoordinators.removeAll(); imStarters.removeAll()
+            retainedProjectEditors.values.forEach { $0.synchronizeSession() }; retainedProjectEditors.removeAll()
+            retainedRoamLiveSession?.invalidate(); retainedRoamLiveSession = nil
             runtimeSensorProviders.forEach { $0.value?.cancel() }; runtimeSensorProviders.removeAll()
             retainedNativePlayDevice?.provider.cancel(); retainedNativePlayDevice = nil
             retainedPlayDevices.values.forEach { $0.cancel() }; retainedPlayDevices.removeAll()
@@ -1400,7 +1582,8 @@ final class AppSession: ObservableObject {
     private let restoreBlockedKey:String
     var isConfigured: Bool { storageScope != nil }
 
-    init(runtimeDependencies: NativeRuntimeDependencies? = nil) {
+    init(runtimeDependencies: NativeRuntimeDependencies? = nil, roamLiveDependencies: NativeRoamLiveDependencies? = nil) {
+        self.roamLiveDependencies = roamLiveDependencies ?? .dormant
         self.runtimeDependencies = runtimeDependencies ?? .dormant
         let regional=RegionalLaunchConfiguration.configuration
         regionalConfiguration=regional

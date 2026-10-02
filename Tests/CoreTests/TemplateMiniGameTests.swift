@@ -3,7 +3,7 @@ import XCTest
 
 final class TemplateMiniGameTests: XCTestCase {
     private func valid(_ game: TemplateAdvancedGame) -> TemplateAdvancedDraft {
-        var draft = TemplateAdvancedDraft(); draft.select(game)
+        var draft = TemplateAdvancedDraft(); draft.setGameEnabled(game, true)
         if game.isReasoning {
             draft.set(game.section, "prompt", .string("Arrange these synthetic examples"))
             for field in game == .sort ? ["items"] : game == .match ? ["left","right"] : ["items","bins"] {
@@ -25,7 +25,7 @@ final class TemplateMiniGameTests: XCTestCase {
         for game in TemplateAdvancedGame.allCases.filter(\.isMiniProgramAddition) { XCTAssertTrue(valid(game).issues.isEmpty,game.rawValue) }
     }
     func testEmptyCompassBearingNeverSerializesAsNorth() {
-        var draft = TemplateAdvancedDraft(); draft.select(.compass)
+        var draft = TemplateAdvancedDraft(); draft.setGameEnabled(.compass, true)
         XCTAssertTrue(draft.issues.contains("playkitAuthor.validation.compass.bearing")); XCTAssertThrowsError(try draft.serialize())
         draft.set("compass","bearing",.string("  ")); XCTAssertThrowsError(try draft.serialize())
         draft.set("compass","bearing",.number(0)); XCTAssertTrue(draft.issues.isEmpty)
@@ -105,8 +105,8 @@ final class TemplateMiniGameTests: XCTestCase {
             for key in ["answerOrder","pairs","answer","xp","enabled"] { XCTAssertEqual(segment[key],.null) }
         }
     }
-    func testSelectingNewGameDisablesOldMainGameButKeepsTimer() {
-        var draft=valid(.sort);draft.set("timer","enabled",.bool(true));draft.select(.compass)
-        XCTAssertFalse(draft.enabled("sort"));XCTAssertTrue(draft.enabled("compass"));XCTAssertTrue(draft.enabled("timer"))
+    func testEnablingNewGameRetainsOldMainGameAndTimer() {
+        var draft=valid(.sort);draft.set("timer","enabled",.bool(true));draft.setGameEnabled(.compass, true)
+        XCTAssertTrue(draft.enabled("sort"));XCTAssertTrue(draft.enabled("compass"));XCTAssertTrue(draft.enabled("timer"))
     }
 }

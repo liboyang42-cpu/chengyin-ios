@@ -11,6 +11,10 @@ import SwiftUI
     @Environment(\.scenePhase) private var scenePhase
     var body: some View {
         List {
+            if resource.kind == .topic {
+                NavigationLink("contextPublish.result.preview") { SessionTopicDetailView(id: resource.value, session: session) }
+                    .accessibilityIdentifier("contextPublish.result.preview")
+            }
             if let context = session.publisherLifecycleContext {
                 if let authority, authority.resource == resource {
                     if resource.kind == .topic, !authority.eligibleClubIDs.isEmpty {

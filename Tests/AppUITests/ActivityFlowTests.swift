@@ -84,8 +84,8 @@ final class ActivityFlowTests: XCTestCase {
         scrollTo(more,in:list)
         tap(more)
         let secondPage=element("activity.row.611")
-        XCTAssertTrue(secondPage.waitForExistence(timeout:5),app.debugDescription)
         scrollTo(secondPage,in:list)
+        XCTAssertTrue(secondPage.waitForExistence(timeout:5),app.debugDescription)
         XCTAssertFalse(more.exists,"The single final fixture page must stop pagination")
 
         revealSearch(search,in:list)
@@ -142,11 +142,14 @@ final class ActivityFlowTests: XCTestCase {
 
     // Bounded gestures only reveal offscreen controls; failures are never relaunched or retried.
     private func scrollTo(_ target: XCUIElement, in list: XCUIElement, file: StaticString=#filePath, line: UInt=#line) {
-        for _ in 0..<8 {
-            if target.exists && target.isHittable { break }
-            scroll(in:list,upward:true,file:file,line:line)
+        for _ in 0..<16 {
+            let viewport = unobscuredFrame(in: list)
+            if target.exists && target.isHittable && viewport.contains(target.frame) { break }
+            let upward = !target.exists || target.frame.midY >= viewport.midY
+            scroll(in:list,upward:upward,file:file,line:line)
         }
         waitForHittable(target,file:file,line:line)
+        XCTAssertTrue(unobscuredFrame(in: list).contains(target.frame), "Target is clipped by a bar or keyboard: \(app.debugDescription)", file:file, line:line)
     }
 
     private func revealSearch(_ search: XCUIElement, in list: XCUIElement, file: StaticString=#filePath, line: UInt=#line) {
@@ -157,21 +160,28 @@ final class ActivityFlowTests: XCTestCase {
         waitForHittable(search,file:file,line:line)
     }
 
-    private func scroll(in list: XCUIElement, upward: Bool, file: StaticString=#filePath, line: UInt=#line) {
-        // On iOS 26 the collection's AX frame still extends behind the bottom search
-        // toolbar and keyboard. Its default swipe starts there and never scrolls the list.
-        // Derive both gesture endpoints from the currently unobscured content region.
+    private func unobscuredFrame(in list: XCUIElement) -> CGRect {
         let frame=list.frame.intersection(app.frame)
         var top=frame.minY
         var bottom=frame.maxY
         for bar in app.navigationBars.allElementsBoundByIndex where bar.exists && bar.isHittable {
             if bar.frame.intersects(frame) { top=max(top,bar.frame.maxY) }
         }
-        for overlay in app.toolbars.allElementsBoundByIndex + app.keyboards.allElementsBoundByIndex where overlay.exists {
+        let predictionBars = app.otherElements.matching(identifier: "SystemInputAssistantView").allElementsBoundByIndex
+        for overlay in app.toolbars.allElementsBoundByIndex + app.keyboards.allElementsBoundByIndex + predictionBars where overlay.exists {
             if overlay.frame.intersects(frame), overlay.frame.minY > top {
                 bottom=min(bottom,overlay.frame.minY)
             }
         }
+        return CGRect(x:frame.minX,y:top,width:frame.width,height:max(0,bottom-top))
+    }
+
+    private func scroll(in list: XCUIElement, upward: Bool, file: StaticString=#filePath, line: UInt=#line) {
+        // On iOS 26 the collection's AX frame still extends behind the bottom search
+        // toolbar and keyboard. Its default swipe starts there and never scrolls the list.
+        // Derive both gesture endpoints from the currently unobscured content region.
+        let frame=unobscuredFrame(in:list)
+        let top=frame.minY, bottom=frame.maxY
         guard !frame.isEmpty, bottom-top > 80 else {
             XCTFail("No unobscured list area to scroll: \(app.debugDescription)",file:file,line:line)
             return

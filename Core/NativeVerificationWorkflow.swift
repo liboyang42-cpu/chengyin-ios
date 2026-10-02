@@ -14,7 +14,7 @@ public struct NativeVerificationReview: Equatable, Identifiable {
     fileprivate let choice: MerchantRedemptionChoice.Target?
 }
 /// Composes existing exact redemption adapters and durable coarse target locks. Production
-/// transport has no mutation implementation; accepted offline fixtures exercise this flow.
+/// defaults remain disabled; a separately approved verification transport can supply dispatch.
 @MainActor @Observable public final class NativeVerificationWorkflow {
     public enum Phase: String { case idle, loading, reviewing, submitting, choosing, result, unknown, disabled }
     public private(set) var phase: Phase = .idle
@@ -33,8 +33,8 @@ public struct NativeVerificationReview: Equatable, Identifiable {
     public var scope: MerchantBusinessScope? { reader.scope }
     public var current: Bool { loadedScope != nil && loadedScope == reader.scope }
     public var canCapture: Bool { current && !needsReadback && [.idle, .result, .disabled].contains(phase) && access?.allows("merchant:verify") == true }
-    public var canConfirm: Bool { current && phase == .reviewing && review != nil && reader.canExecuteSyntheticMutation && redemption != nil }
-    public var canDispatch: Bool { reader.canExecuteSyntheticMutation && redemption != nil }
+    public var canConfirm: Bool { current && phase == .reviewing && review != nil && reader.canExecuteVerificationMutation && redemption != nil }
+    public var canDispatch: Bool { reader.canExecuteVerificationMutation && redemption != nil }
     public init(reader: any MerchantBusinessReading, journal: any MerchantBusinessIntentStore,
                 redemption: MerchantRedemptionCoordinator?, now: @escaping () -> Date = Date.init) {
         self.reader = reader; self.journal = journal; self.redemption = redemption; self.now = now

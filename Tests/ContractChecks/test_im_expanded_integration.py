@@ -7,7 +7,7 @@ class IMExpandedIntegrationTests(unittest.TestCase):
     def test_concrete_http_adapter_has_default_off_and_exact_wire(self):
         s=self.read('Core/IMExpandedService.swift')
         self.assertIn('writesEnabled: Bool = false',s)
-        self.assertEqual(s.count('guard writesEnabled else'),2)
+        self.assertIn('guard writesEnabled else',s);self.assertIn('enabledPaths?.contains("api/common/uploadOSS") ?? true',s)
         self.assertIn('transport.send(request)',s)
         for field in ['target_member_id','conversation_id','client_message_id','muted','uploadOSS']:
             self.assertIn(field,s)
@@ -22,7 +22,7 @@ class IMExpandedIntegrationTests(unittest.TestCase):
         part=s[s.index('private var imExpandedCoordinators:'):s.index('private let messagingService:')]
         self.assertIn('[IMScope: IMExpandedCoordinator]',part)
         self.assertIn('IMExpandedWriter(service: nil',part)
-        self.assertIn('epoch: self.gate.currentStamp',part)
+        self.assertIn('epoch: gate.currentStamp',part)
         self.assertIn('retainedImagePickerHost.imPicker(scope: scope',part)
         self.assertIn('var nativeSelectionEnabled = false',(ROOT/'App/RetainedImagePresenterHost.swift').read_text())
         self.assertNotIn('UUID()',part)

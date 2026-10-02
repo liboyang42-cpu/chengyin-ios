@@ -9,19 +9,26 @@ final class JourneyContentFlowTests: XCTestCase {
     }
     private func tap(_ id: String, app: XCUIApplication) {
         let button = app.buttons[id]
-        for _ in 0..<8 { if button.exists && button.isHittable { break }; app.swipeUp() }
-        XCTAssertTrue(button.waitForExistence(timeout: 3)); button.tap()
+        if id == "journey.check.cancelReview" {
+            XCTAssertTrue(button.waitForExistence(timeout: 5)); XCTAssertTrue(button.isHittable)
+        } else {
+            if id == "journey.check.confirm" { XCTAssertTrue(button.waitForExistence(timeout: 5)) }
+            XCTAssertTrue(revealFixtureElement(button, in: app, maximumSwipes: 15), app.debugDescription)
+        }
+        button.tap()
     }
     func testReviewCancelAndCloseLeaveMainTaskAvailable() {
         let app = launch(); tap("journey.check.roll", app: app)
-        app.buttons["Cancel"].tap(); tap("journey.check.close", app: app)
+        tap("journey.check.cancelReview", app: app); tap("journey.check.close", app: app)
         XCTAssertTrue(app.buttons["journey.fixture.mainTask"].exists)
     }
     func testRollRerollSettlementAndServerNarrative() {
         let app = launch(); tap("journey.check.roll", app: app); tap("journey.check.confirm", app: app)
         tap("journey.check.reroll", app: app); XCTAssertTrue(app.staticTexts["Reroll spends one luck. The server determines the outcome."].exists)
-        app.buttons["Cancel"].tap(); tap("journey.check.settle", app: app); tap("journey.check.confirm", app: app)
-        XCTAssertTrue(app.staticTexts["Synthetic server narrative"].waitForExistence(timeout: 3))
+        tap("journey.check.cancelReview", app: app); tap("journey.check.settle", app: app); tap("journey.check.confirm", app: app)
+        let narrative = app.staticTexts["Synthetic server narrative"]
+        XCTAssertTrue(revealFixtureElement(narrative, in: app, towardTop: true, requiresHittable: false))
+        XCTAssertTrue(narrative.waitForExistence(timeout: 3))
         XCTAssertFalse(app.buttons["journey.check.reroll"].exists)
     }
     func testProbeFailureDoesNotBlockMainTask() {
@@ -30,7 +37,10 @@ final class JourneyContentFlowTests: XCTestCase {
     }
     func testUnknownOutcomeExposesOnlyReviewedRecovery() {
         let app = launch("unknown"); tap("journey.check.roll", app: app); tap("journey.check.confirm", app: app)
-        XCTAssertTrue(app.buttons["journey.check.recover"].waitForExistence(timeout: 3)); XCTAssertFalse(app.buttons["journey.check.roll"].exists)
+        let recovery = app.buttons["journey.check.recover"]
+        XCTAssertTrue(revealFixtureElement(recovery, in: app)); XCTAssertTrue(recovery.isEnabled)
+        XCTAssertFalse(app.buttons["journey.check.roll"].exists)
+        XCTAssertFalse(app.buttons["journey.check.reroll"].exists)
     }
     func testChineseAndDormantNoPermissions() {
         let app = launch("disabled", language: "zh-Hans")

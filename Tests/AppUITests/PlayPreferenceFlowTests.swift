@@ -9,13 +9,7 @@ final class PlayPreferenceFlowTests: XCTestCase {
         app.launch()
     }
     private func reveal(_ element: XCUIElement, file: StaticString = #filePath, line: UInt = #line) {
-        _ = element.waitForExistence(timeout: 5)
-        for _ in 0..<10 {
-            if element.exists && element.isHittable { break }
-            app.swipeUp()
-        }
-        XCTAssertTrue(element.exists, app.debugDescription, file: file, line: line)
-        XCTAssertTrue(element.isHittable, app.debugDescription, file: file, line: line)
+        XCTAssertTrue(revealFixtureElement(element, in: app), app.debugDescription, file: file, line: line)
     }
     func testPreferenceUsesSourceQuestionAndNativePicker() {
         launch()

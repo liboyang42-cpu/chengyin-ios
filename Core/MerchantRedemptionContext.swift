@@ -123,7 +123,7 @@ public struct MerchantRedemptionResult: Equatable {
     }
     public func cancelChoice() { generation &+= 1; pending = nil; result = nil }
     private func perform(_ context: MerchantRedemptionContext, choice: MerchantRedemptionChoice.Target?, session: MerchantBusinessSession, expectedMerchantID: Int?, generation: UInt64) async throws {
-        guard service.canExecuteSyntheticMutation else { throw MerchantBusinessFailure.disabled }
+        guard service.canExecuteVerificationMutation else { throw MerchantBusinessFailure.disabled }
         busy = true; result = nil; defer { busy = false }
         let access = try await service.access(token: session.token)
         try access.require(["merchant:verify"])
@@ -136,7 +136,7 @@ public struct MerchantRedemptionResult: Equatable {
             // Even an injected storage callback may change the session while reserving.
             // Recheck immediately before transport; a reserved lock is retained conservatively.
             guard self.generation == generation, session == currentSession(), !Task.isCancelled else { throw MerchantBusinessFailure.stale }
-            let body = try await service.syntheticEnvelope(context.request(choice: choice), token: session.token)
+            let body = try await service.verificationEnvelope(context.request(choice: choice), token: session.token)
             let value = try MerchantRedemptionResult(body: body, kind: context.kind)
             guard self.generation == generation, session == currentSession(), !Task.isCancelled else { throw MerchantBusinessFailure.stale }
             // needsChoice explicitly means no redemption; it is safe to reserve a new second-step intent.

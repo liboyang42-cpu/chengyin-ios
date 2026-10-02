@@ -22,7 +22,43 @@ class NativeUIAccessibilitySemanticsChecks(unittest.TestCase):
         tests = source('Tests/AppUITests/SettingsNativeFlowTests.swift')
         for expected in ['testFailedSaveKeepsPreviousValueAndNextTapCanSave',
                          'testSoundSixDefaultsSaveBackAndReopen',
-                         'forest.tap(); expectSwitch(forest, value: "1")']:
+                         'tapNativeSwitch(forest); expectSwitch(forest, value: "1")']:
+            self.assertIn(expected, tests)
+
+    def test_essential_legal_source_notice_uses_adaptive_primary_contrast(self):
+        view = source('App/SettingsLegalDocumentView.swift')
+        self.assertIn('Text("settingsNative.legal.sourceNotice").font(.footnote).foregroundStyle(.primary)', view)
+        self.assertIn('}.font(.caption).foregroundStyle(.secondary)', view)
+
+    def test_switch_taps_require_visible_frames_and_preserve_exact_outcomes(self):
+        tests = source('Tests/AppUITests/SettingsNativeFlowTests.swift')
+        for expected in ['frame.minY > top && frame.maxY < bottom',
+                         'if frame.minY <= top { app.swipeDown() } else { app.swipeUp() }',
+                         'coordinate(withNormalizedOffset: CGVector(dx: 1, dy: 0.5))',
+                         'XCTAssertTrue(element.isEnabled',
+                         'reveal(app.staticTexts["settingsNative.sound.error"])',
+                         'expectSwitch(sound, value: "1")', 'expectSwitch(sound, value: "0")',
+                         'back(); open("settingsNative.openSound")']:
+            self.assertIn(expected, tests)
+        self.assertNotIn('sound.tap()', tests)
+        self.assertNotIn('forest.tap()', tests)
+
+    def test_report_receipt_exposes_exact_semantic_status(self):
+        view = source('App/PublicMerchantReviewEditor.swift')
+        self.assertIn('.accessibilityValue(Text(verbatim: receipt.status))', view)
+        self.assertIn('.accessibilityIdentifier("merchant.publicHome.status")', view)
+        tests = source('Tests/AppUITests/PublicMerchantHomeFlowTests.swift')
+        self.assertIn('XCTAssertEqual(status.value as? String, "PENDING_PLATFORM_REVIEW"', tests)
+        self.assertIn('XCTAssertFalse(app.buttons["merchant.publicHome.confirm"].exists)', tests)
+        self.assertIn('XCTAssertFalse(app.staticTexts["merchant.publicHome.writeFailure"].exists)', tests)
+
+    def test_square_save_verifies_new_draft_and_scrolls_back_to_local_status(self):
+        tests = source('Tests/AppUITests/SquareWorkspaceFlowTests.swift')
+        for expected in ['"--uitesting-reset-language"', '"-AppleLocale"',
+                         'reveal(savedBody, in: app)',
+                         'reveal(status, in: app, upwards: false)',
+                         'XCTAssertEqual(status.label, "已保存在本机"',
+                         'XCTAssertFalse(app.buttons["squareWorkspace.saveServer"].isEnabled)']:
             self.assertIn(expected, tests)
 
     def test_operating_market_has_separate_exact_accessible_value(self):

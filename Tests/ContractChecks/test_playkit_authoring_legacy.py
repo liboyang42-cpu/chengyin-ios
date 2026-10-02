@@ -12,7 +12,7 @@ class PlayKitAuthoringLegacyChecks(unittest.TestCase):
         ui=self.read('App/TemplateMiniGameConfigurationView.swift')
         for kind in ['sort','match','classify','compass','shout']:
             self.assertRegex(enum,r'\b'+kind+r'\b')
-        self.assertIn('TemplateMiniGameConfigurationView',self.read('App/TemplateAuthoringDetailForms.swift'))
+        self.assertIn('TemplateMiniGameConfigurationView',self.read('App/TemplateAdvancedGameConfigurationView.swift'))
         for key in ['answerOrder','pairs','answer','bearing','holdSeconds','seconds']:
             self.assertIn('"'+key+'"',self.read('Core/TemplateAdvancedMiniGames.swift'))
         self.assertIn('game.isReasoning',ui)
@@ -35,7 +35,7 @@ class PlayKitAuthoringLegacyChecks(unittest.TestCase):
     def test_root_presentation_is_preserved_and_validated(self):
         text=self.read('Core/TemplateAdvancedDraft.swift')
         self.assertIn('if key == "present" { value[key] = entry; continue }',text)
-        self.assertIn('selected?.allowsInline == false',text)
+        self.assertIn('presentationRequiresFullscreen',text)
         self.assertIn('setPresentation',self.read('App/TemplateAuthoringDetailForms.swift'))
     def test_all_six_active_legacy_sections_have_actual_bodies(self):
         ui=self.read('App/PlayKitLegacyViews.swift')

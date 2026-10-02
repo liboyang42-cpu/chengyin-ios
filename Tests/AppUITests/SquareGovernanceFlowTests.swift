@@ -26,8 +26,13 @@ final class SquareGovernanceFlowTests: XCTestCase {
     }
     func testAcknowledgementDoesNotClaimDeletion() {
         let app = launch(); app.swipeUp(); app.buttons["square.gov.delete.62"].tap(); app.buttons["square.gov.confirm"].tap()
-        XCTAssertTrue(app.staticTexts["square.gov.message"].waitForExistence(timeout: 3))
-        XCTAssertTrue(app.buttons["square.gov.delete.62"].exists)
+        let message = app.staticTexts["square.gov.message"]
+        for _ in 0..<8 { if message.exists && message.isHittable { break }; app.swipeDown() }
+        XCTAssertTrue(message.waitForExistence(timeout: 3), app.debugDescription)
+        XCTAssertEqual(message.label, "Request acknowledged. Refresh to verify status; this is not proof of an approved appeal or deleted comment.")
+        let comment = app.buttons["square.gov.delete.62"]
+        for _ in 0..<8 { if comment.exists && comment.isHittable { break }; app.swipeUp() }
+        XCTAssertTrue(comment.exists, app.debugDescription)
     }
     func testAppealReasonCanBeCancelled() {
         let app = launch(); app.buttons["square.gov.appeal.91"].tap()

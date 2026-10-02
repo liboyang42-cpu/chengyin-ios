@@ -98,7 +98,7 @@ struct AmountLabel: View {
         if let formatted {
             VStack(alignment:.leading,spacing:4) {
                 Text(formatted).monospacedDigit()
-                Text("activity.currencyUnconfirmed").font(.caption).foregroundStyle(.secondary)
+                Text("activity.currencyUnconfirmed").font(.caption).foregroundStyle(.primary)
             }
         } else { Text("activity.priceUnknown").foregroundStyle(.secondary) }
     }

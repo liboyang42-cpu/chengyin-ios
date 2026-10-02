@@ -6,12 +6,15 @@ import FoundationNetworking
 /// Exact source AI operations. Only source-provided values are forwarded.
 public enum PublishingAssistance: Equatable {
     case theme(idea: String)
+    case themeForProduct(idea: String, product: ProjectEditProduct)
     case template(shopName: String, extraNote: String, category: String, reward: String, playStyle: String, validationMethod: Int?)
     case club(idea: String, style: String?, minutes: Int?)
     case safety([String: ProjectEditJSON])
     var request: PublishingRequest {
         switch self {
         case .theme(let idea): return PublishingContracts.aiThemeDraft(idea: idea)
+        case .themeForProduct(let idea, let product):
+            return PublishingRequest(path: "api/ai/theme/draft", encoding: .json, fields: ["idea": .string(idea.trimmingCharacters(in: .whitespacesAndNewlines)), "productType": .number(Decimal(product.rawValue))])
         case .template(let name, let note, let category, let reward, let style, let method):
             return PublishingContracts.aiTemplateFill(shopName: name, extraNote: note, category: category, reward: reward, playStyle: style, validationMethod: method)
         case .club(let idea, let style, let minutes): return PublishingContracts.aiClubDesign(idea: idea, style: style, minutes: minutes)
@@ -66,6 +69,10 @@ public struct PublishingSafetyIssue: Equatable {
         self.configuration = configuration; self.transport = transport; self.approval = approval
         self.journal = journal; self.credentials = credentials
     }
+    public var themeConfigured: Bool {
+        guard let credential = credentials(), let approval, journal != nil else { return false }
+        return credential.session.region == .china && ["player", "club", "merchant"].contains(credential.session.role) && approval.allows(configuration: configuration, namespace: credential.session.namespace, accountID: credential.session.accountID, path: "api/ai/theme/draft")
+    }
     private func check(_ credential: PublishingCredentials) throws {
         try Task.checkCancellation()
         guard credentials() == credential else { reviews.removeAll(); throw PublishModesError.changedSession }
@@ -73,7 +80,7 @@ public struct PublishingSafetyIssue: Equatable {
     public func prepare(_ assistance: PublishingAssistance, session: PublishingSession) throws -> PublishingAuxiliaryReview {
         guard let credential = credentials(), credential.session == session else { throw PublishModesError.changedSession }
         try check(credential)
-        guard session.role == "club" || session.role == "merchant" else { throw PublishModesError.forbidden }
+        guard (assistance.request.path == "api/ai/theme/draft" && ["player", "club", "merchant"].contains(session.role)) || session.role == "club" || session.role == "merchant" else { throw PublishModesError.forbidden }
         let review = PublishingAuxiliaryReview(session: session, request: assistance.request); reviews[review.id] = review; return review
     }
     /// Calling this does not transmit the data. Inputs are held only in the returned review.
@@ -104,7 +111,7 @@ public struct PublishingSafetyIssue: Equatable {
             guard review.session.region == .china else { return .notSent }
         } else {
             // Conservative US provider gate remains closed pending an approved regional contract.
-            guard review.session.region == .china, ["club", "merchant"].contains(review.session.role) else { return .notSent }
+            guard review.session.region == .china, (review.request.path == "api/ai/theme/draft" && ["player", "club", "merchant"].contains(review.session.role)) || ["club", "merchant"].contains(review.session.role) else { return .notSent }
         }
         busy = true; defer { busy = false }
         let record = OperationPendingRecord(operationID: review.id, ownerKey: review.session.storageKey, targetKey: review.targetKey)

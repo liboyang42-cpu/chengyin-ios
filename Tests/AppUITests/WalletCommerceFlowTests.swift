@@ -10,14 +10,22 @@ final class WalletCommerceFlowTests: XCTestCase {
     func testFundsStagesUnknownCurrencyAndZeroRemainDistinct() {
         let app = launch(); app.buttons["wallet.fixture.assets"].tap()
         XCTAssertTrue(app.staticTexts["Available to withdraw"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts["0 currency unspecified"].exists)
+        // LabeledContent may expose the amount together with its row label.
+        let zeroAmount = app.staticTexts.matching(NSPredicate(format: "label == %@ OR label ENDSWITH %@", "0 currency unspecified", ", 0 currency unspecified")).firstMatch
+        XCTAssertTrue(zeroAmount.exists, app.debugDescription)
         XCTAssertTrue(app.staticTexts["Some amounts cannot be calculated yet. Final settlement applies"].exists)
     }
     func testCheckoutIsPreviewAndCannotRedeem() {
         let app = launch(); app.buttons["wallet.fixture.cart"].tap()
         let row = app.switches["wallet.cart.20"]
-        XCTAssertTrue(row.waitForExistence(timeout: 5)); row.tap()
-        app.buttons["Checkout preview"].tap()
+        XCTAssertTrue(row.waitForExistence(timeout: 5))
+        let nativeSwitch = row.switches.firstMatch
+        if nativeSwitch.exists { nativeSwitch.tap() }
+        else { row.coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap() }
+        let selected = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "1"), object: row)
+        XCTAssertEqual(XCTWaiter.wait(for: [selected], timeout: 5), .completed, app.debugDescription)
+        let preview = app.buttons["Checkout preview"]
+        XCTAssertTrue(preview.waitForExistence(timeout: 5), app.debugDescription); preview.tap()
         XCTAssertTrue(app.staticTexts["wallet.previewOnly"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["Place order"].exists)
         XCTAssertFalse(app.buttons["Pay"].exists)

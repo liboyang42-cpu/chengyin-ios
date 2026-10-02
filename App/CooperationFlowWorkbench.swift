@@ -3,6 +3,7 @@ import SwiftUI
 /// Injectable cooperation routes. Compose with existing inbox/pool/candidate readers; no automatic writes.
 @MainActor struct CooperationFlowWorkbench: View {
     let reader: any CoopFlowReading
+    var operationScope: String? = nil
     var body: some View {
         List {
             Section("coopflow.business") {
@@ -18,6 +19,8 @@ import SwiftUI
                 NavigationLink { CoopFlowTemplateEditor() } label: { Label("coopflow.template.new", systemImage: "plus.circle") }
             }
             Section("coopflow.workflows") {
+                NavigationLink { CoopFlowNewInvitationView(reader: reader, operationScope: operationScope) } label: { Label("context.coop.new", systemImage: "person.crop.circle.badge.plus") }
+                    .accessibilityIdentifier("context.coop.new")
                 link("coopflow.invitations", resource: .invitations)
                 link("coopflow.pool", resource: .pool)
                 link("coopflow.applications", resource: .applications)

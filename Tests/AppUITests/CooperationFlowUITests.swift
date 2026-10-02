@@ -3,32 +3,34 @@ import XCTest
 /// Requires the host app's --cooperation-flow-fixture branch (documented integration step).
 final class CooperationFlowUITests: XCTestCase {
     func testSyntheticFinanceAndDormantReview() {
-        let app = XCUIApplication()
-        app.launchArguments += ["--cooperation-flow-fixture", "-AppleLanguages", "(en)"]
-        app.launch()
+        let app = launch()
         XCTAssertTrue(app.descendants(matching: .any)["coopflow.workbench"].waitForExistence(timeout: 5))
         app.buttons["coopflow.route.coopflow.finance"].tap()
-        app.buttons["coopflow.settlement.finance.8"].tap()
-        XCTAssertTrue(app.staticTexts["Amount not confirmed"].exists)
+        let settlement = app.buttons["coopflow.settlement.finance.8"]
+        XCTAssertTrue(settlement.waitForExistence(timeout: 5)); settlement.tap()
+        XCTAssertTrue(app.navigationBars["Settlement details"].waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertTrue(app.staticTexts["Amount not confirmed"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["Pending settlement"].exists)
     }
     func testTemplatePreviewCannotSubmit() {
-        let app = XCUIApplication()
-        app.launchArguments += ["--cooperation-flow-fixture", "-AppleLanguages", "(en)"]
-        app.launch()
+        let app = launch()
         app.buttons["coopflow.route.coopflow.templates"].tap()
         app.buttons["coopflow.row.0"].tap()
-        app.buttons["Review template deletion"].tap()
+        let deletion = app.buttons["Review template deletion"]
+        reveal(deletion, app: app); deletion.tap()
         XCTAssertTrue(app.buttons["coopflow.submit.disabled"].exists)
         XCTAssertFalse(app.buttons["coopflow.submit.disabled"].isEnabled)
     }
 
     private func launch(language: String = "en", denied: Bool = false) -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments += ["--cooperation-flow-fixture", "-AppleLanguages", "(\(language))",
+        app.launchArguments += ["--uitesting-reset-language", "--cooperation-flow-fixture", "-AppleLanguages", "(\(language))",
                                 "-AppleLocale", language == "en" ? "en_US" : "zh_CN"]
         if denied { app.launchArguments += ["--cooperation-flow-denied"] }
-        app.launch(); return app
+        app.launch()
+        let title = language == "en" ? "Cooperation center" : "合作中心"
+        XCTAssertTrue(app.navigationBars[title].waitForExistence(timeout: 5), app.debugDescription)
+        return app
     }
     private func reveal(_ element: XCUIElement, app: XCUIApplication) {
         XCTAssertTrue(revealFixtureElement(element, in: app), app.debugDescription)
@@ -94,7 +96,11 @@ final class CooperationFlowUITests: XCTestCase {
         let app = launch()
         openReceivedApplications(app)
         XCTAssertTrue(app.buttons["coopflow.row.0"].waitForExistence(timeout: 5))
-        app.buttons["coopflow.fixture.signOut"].tap()
+        // Fixture-level control stays visible while the read destination is pushed.
+        let signOut = app.buttons["coopflow.fixture.signOut"]
+        XCTAssertTrue(signOut.waitForExistence(timeout: 5)); XCTAssertTrue(signOut.isHittable)
+        signOut.tap()
+        XCTAssertTrue(app.navigationBars["Cooperation center"].waitForExistence(timeout: 5), app.debugDescription)
         XCTAssertFalse(app.buttons["coopflow.row.0"].exists)
         openReceivedApplications(app)
         XCTAssertTrue(app.staticTexts["Sign in to view your cooperation"].waitForExistence(timeout: 5))

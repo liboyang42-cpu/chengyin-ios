@@ -31,6 +31,14 @@ import Foundation
     public static let list = #"{"code":200,"data":[{"id":901,"title":"Synthetic interaction","description":"Fixture only","status":2,"publishStatus":0,"packType":0}]}"#
 }
 public enum TemplateAuthoringSyntheticFixtures {
+    /// Synthetic multi-family creator input; no account, server or location data.
+    public static let compoundAdvanced = #"{"schemaVersion":1,"coinFlip":{"enabled":true,"heads":{"label":"Heads","action":"Look up"},"tails":{"label":"Tails","action":"Look down"}},"diceRoll":{"enabled":true,"diceCount":1,"faces":["One","Two","Three","Four","Five","Six"]},"quietHold":{"enabled":true,"seconds":15},"timer":{"enabled":true,"durationSeconds":300,"timeoutResult":"FAILED"},"timeWindow":{"enabled":true,"openFrom":"20:00","openTo":"23:00"},"mistakeTier":"easy"}"#
+    public static func compoundDraft() -> TemplateAuthoringDraft {
+        var value = draft(); value.validationMethod = .manual
+        // Keep parse errors visible to tests; this fixed fixture cannot create a live request.
+        if let advanced = try? TemplateAdvancedDraft(raw: compoundAdvanced) { value.advanced = advanced }
+        return value
+    }
     public static func draft() -> TemplateAuthoringDraft {
         var d = TemplateAuthoringDraft(title: "Synthetic city question")
         d.description = "Find one small detail"; d.players = "1-2 人"; d.duration = 10; d.categoryId = 4

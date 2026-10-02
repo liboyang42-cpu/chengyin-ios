@@ -9,7 +9,6 @@ public enum TemplateAdvancedGame: String, Codable, CaseIterable, Identifiable {
         case .shake: return "ballShake"; case .quiet: return "quietHold"; case .countdown: return "countdown"; case .stopwatch: return "stopwatch"
         case .sort, .match, .classify, .compass, .shout: return rawValue }
     }
-    public var supportsTimer: Bool { self != .coin && self != .dice }
     public var labelKey: String { "templateAuthor.game." + rawValue }
 }
 /// All 37 active source configuration sections have structured authoring. Unknown
@@ -62,7 +61,14 @@ public struct TemplateAdvancedDraft: Codable, Equatable {
         retainCreatorSecretAbsence(incoming)
         if let blind = incoming["blindTaste"]?.object, blind["answerKey"] == nil { set("blindTaste", "answerKey", .string("")) }
     }
-    public var selected: TemplateAdvancedGame? { TemplateAdvancedGame.allCases.first { enabled($0.section) } }
+    /// Configuration sections coexist. Display focus must never choose which sections survive.
+    public var enabledGames: [TemplateAdvancedGame] { TemplateAdvancedGame.allCases.filter { enabled($0.section) } }
+    public var presentationRequiresFullscreen: Bool {
+        enabledGames.contains { !$0.allowsInline } || enabledCreatorFamilies.contains { $0.fullscreenOnly }
+    }
+    public var enabledConfigurationLabelKeys: [String] {
+        (enabled("timer") ? ["templateAuthor.timer"] : []) + enabledGames.map(\.labelKey) + enabledCreatorFamilies.map(\.labelKey)
+    }
     public func enabled(_ section: String) -> Bool { value[section]?.object?["enabled"]?.bool ?? false }
     public func text(_ section: String, _ field: String) -> String {
         let v = value[section]?.object?[field]
@@ -73,9 +79,9 @@ public struct TemplateAdvancedDraft: Codable, Equatable {
     public mutating func set(_ section: String, _ field: String, _ entry: TemplateAuthoringJSON) {
         var fields = value[section]?.object ?? [:]; fields[field] = entry; value[section] = .object(fields)
     }
-    public mutating func select(_ game: TemplateAdvancedGame?) {
-        for section in TemplateAdvancedGame.allCases.map(\.section) { set(section, "enabled", .bool(game?.section == section)) }
-        // Source selection does not mutate modifier toggles. UI explains non-timed games.
+    public mutating func setGameEnabled(_ game: TemplateAdvancedGame, _ enabled: Bool) {
+        // Patch one addressed section only; preserve all siblings and disabled configuration.
+        set(game.section, "enabled", .bool(enabled))
     }
     public mutating func setNested(_ section: String, _ side: String, _ field: String, _ text: String) {
         var object = value[section]?.object?[side]?.object ?? [:]; object[field] = .string(text); set(section, side, .object(object))
@@ -99,9 +105,8 @@ public struct TemplateAdvancedDraft: Codable, Equatable {
         }
         if value["present"] != nil {
             if !["inline", "fullscreen"].contains(explicitPresentation) { result.append("playkitAuthor.validation.presentation") }
-            if explicitPresentation == "inline", selected?.allowsInline == false { result.append("playkitAuthor.validation.fullscreenOnly") }
+            if explicitPresentation == "inline", presentationRequiresFullscreen { result.append("playkitAuthor.validation.fullscreenOnly") }
         }
-        if TemplateAdvancedGame.allCases.filter({ enabled($0.section) }).count > 1 { issue("oneGame") }
         if enabled("timer") { range("timer", "durationSeconds", 10, 86400, integer: true) }
         for game in TemplateAdvancedGame.allCases where enabled(game.section) {
             if game.isMiniProgramAddition { result += miniGameIssues(game); continue }

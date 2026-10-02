@@ -28,32 +28,36 @@ public struct MerchantBusinessSnapshot: Equatable {
     var isConfigured: Bool { get }
     var isOfflineExample: Bool { get }
     var canExecuteSyntheticMutation: Bool { get }
+    var canExecuteVerificationMutation: Bool { get }
     func access() async throws -> MerchantBusinessAccess
     func cityNodeRedemption(journal: any MerchantBusinessIntentStore) -> CityNodeRedemptionCoordinator
     func snapshot(_ query: MerchantBusinessQuery) async throws -> MerchantBusinessSnapshot
     func execute(_ mutation: MerchantBusinessMutation, requestID: String, scope: MerchantBusinessScope) async throws -> MerchantBusinessReceipt
 }
 public extension MerchantBusinessReading {
+    var canExecuteVerificationMutation: Bool { canExecuteSyntheticMutation }
     func cityNodeRedemption(journal: any MerchantBusinessIntentStore) -> CityNodeRedemptionCoordinator {
         .init(service: nil, journal: journal, currentSession: { nil })
     }
 }
 @MainActor public final class MerchantBusinessSessionReader: MerchantBusinessReading {
     private let service: MerchantBusinessService?
+    private let verificationService: (() -> MerchantBusinessService?)?
     private let currentSession: () -> MerchantBusinessSession?
     private let unauthorized: (MerchantBusinessSession) -> Void
     public var isConfigured: Bool { service != nil }
     public var isOfflineExample: Bool { service?.canExecuteSyntheticMutation == true }
     public var canExecuteSyntheticMutation: Bool { service?.canExecuteSyntheticMutation == true }
+    public var canExecuteVerificationMutation: Bool { verificationService?()?.canExecuteVerificationMutation == true || canExecuteSyntheticMutation }
     public var scope: MerchantBusinessScope? {
         guard let session = currentSession(), let service else { return nil }
         return .init(realm: service.realm, accountID: session.accountID, epoch: session.epoch)
     }
-    public init(service: MerchantBusinessService?, currentSession: @escaping () -> MerchantBusinessSession?, onUnauthorized: @escaping (MerchantBusinessSession) -> Void = { _ in }) {
-        self.service = service; self.currentSession = currentSession; unauthorized = onUnauthorized
+    public init(service: MerchantBusinessService?, verificationService: (() -> MerchantBusinessService?)? = nil, currentSession: @escaping () -> MerchantBusinessSession?, onUnauthorized: @escaping (MerchantBusinessSession) -> Void = { _ in }) {
+        self.service = service; self.verificationService = verificationService; self.currentSession = currentSession; unauthorized = onUnauthorized
     }
     public func cityNodeRedemption(journal: any MerchantBusinessIntentStore) -> CityNodeRedemptionCoordinator {
-        .init(service: service, journal: journal, currentSession: currentSession, onUnauthorized: unauthorized)
+        .init(service: verificationService?() ?? service, journal: journal, currentSession: currentSession, onUnauthorized: unauthorized)
     }
     public func access() async throws -> MerchantBusinessAccess { try await read { try await $0.access(token: $1.token) } }
     public func snapshot(_ query: MerchantBusinessQuery) async throws -> MerchantBusinessSnapshot {

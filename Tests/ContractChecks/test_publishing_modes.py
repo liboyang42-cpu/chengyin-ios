@@ -12,10 +12,13 @@ class PublishingIntegrationTests(unittest.TestCase):
  def test_session_epoch_includes_role_and_live_defaults_off(self):
   s=self.text('App/AppSession.swift');self.assertIn('publishingEpochCache?.role != role',s)
   self.assertIn('readApproval: OperationEndpointApproval? = nil',s)
-  self.assertIn('lazy var publishingService: PublishingService? = makePublishingService()',s)
+  self.assertIn('factory.permits(.publishingRead)',s)
   # Only inspect this factory, not unrelated later factories with their own journals.
   part=s.split('func makePublishingService',1)[1].split('\n    }',1)[0]
-  self.assertNotIn('journal:',part);self.assertNotIn('PublishingAuxiliaryService(',s)
+  self.assertNotIn('journal:',part)
+  self.assertIn('factory.permits(.publishingAITheme)',s)
+  self.assertIn('factory.permits(.publishingAIQuota)',s)
+  self.assertIn('makePublishingAuxiliaryService(feature: .publishingAITheme)',s)
  def test_seed_preserves_existing_pending_and_restore_boundaries(self):
   s=self.text('App/ProjectEditView.swift');self.assertIn('seedSession == coordinator.session, fullEdit',s)
   self.assertIn('coordinator.snapshot?.topicID == nil',s);self.assertIn('seedSession != coordinator.session { incomingSeed = nil }',s)

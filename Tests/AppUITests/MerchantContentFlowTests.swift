@@ -21,7 +21,9 @@ final class MerchantContentFlowTests: XCTestCase {
     func testRegistrationShowsRejectionReasonAndEditableSourceFields() {
         let app = launch(); tap("merchant.content.entry.registrations", in: app)
         tap("merchant.content.open.registration", in: app)
-        XCTAssertTrue(app.staticTexts["Add a clear venue description"].waitForExistence(timeout: 4))
+        let reason = app.descendants(matching: .any).matching(identifier: "merchant.content.readField.reason").firstMatch
+        XCTAssertTrue(revealFixtureElement(reason, in: app, requiresHittable: false), app.debugDescription)
+        XCTAssertEqual(reason.value as? String, "Add a clear venue description")
         tap("merchant.content.edit", in: app)
         XCTAssertTrue(app.textFields["merchant.content.field.addressName"].waitForExistence(timeout: 4))
         XCTAssertFalse(app.textFields["merchant.content.field.startDate"].exists)
@@ -32,12 +34,13 @@ final class MerchantContentFlowTests: XCTestCase {
         let missingID = app.staticTexts["merchant.content.claimIDMissing"]
         XCTAssertTrue(revealFixtureElement(missingID, in: app, requiresHittable: false), app.debugDescription)
         XCTAssertTrue(missingID.exists)
+        XCTAssertTrue(app.staticTexts["Claim awaiting review"].exists)
         XCTAssertFalse(app.buttons["merchant.content.cancelClaim"].exists)
     }
     func testDeniedAccessDoesNotShowBusinessRows() {
         let app = launch(["--merchant-content-denied"]); tap("merchant.content.entry.applications", in: app)
         XCTAssertTrue(app.staticTexts["merchant.content.issue"].waitForExistence(timeout: 4))
-        XCTAssertFalse(app.descendants(matching: .any)["merchant.content.row.0"].exists)
+        XCTAssertFalse(app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH %@", "merchant.content.row.")).firstMatch.exists)
     }
     func testUnknownMutationLocksReloadAndDuplicateSubmission() {
         let app = launch(["--merchant-content-unknown"]); tap("merchant.content.entry.applications", in: app)
@@ -54,10 +57,13 @@ final class MerchantContentFlowTests: XCTestCase {
     }
     func testAccountSwitchClearsPushedMerchantContent() {
         let app = launch(); tap("merchant.content.entry.projects", in: app); tap("merchant.content.open.project", in: app)
-        XCTAssertTrue(app.staticTexts["Synthetic route"].waitForExistence(timeout: 4))
+        let routeName = app.descendants(matching: .any).matching(identifier: "merchant.content.readField.name").firstMatch
+        XCTAssertTrue(routeName.waitForExistence(timeout: 4), app.debugDescription)
+        XCTAssertEqual(routeName.value as? String, "Synthetic route")
         // Fixture account controls sit outside and above the navigation viewport.
         let signOut = app.buttons["merchant.content.fixture.signOut"]
         XCTAssertTrue(signOut.isHittable); signOut.tap()
+        XCTAssertFalse(routeName.exists)
         XCTAssertFalse(app.staticTexts["Synthetic route"].exists)
         XCTAssertFalse(app.staticTexts["Contact sharing consent is unavailable"].exists)
     }

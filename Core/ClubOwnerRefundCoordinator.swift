@@ -3,7 +3,7 @@ import Observation
 import CryptoKit
 
 @MainActor @Observable public final class ClubOwnerRefundCoordinator {
-    private struct Entry { let identity: ClubReadIdentity; var status = ClubOwnerRefundStatus() }
+    private struct Entry { let identity: ClubReadIdentity; let authorization: UUID?; var status = ClubOwnerRefundStatus() }
     private let access: any ClubOwnerRefundAccess
     private let locks: any ClubOwnerRefundLocking
     private let now: () -> Date
@@ -14,6 +14,7 @@ import CryptoKit
     private var parentKeys: [String: String] = [:]
     public var identity: ClubReadIdentity? { access.identity }
     public var canDispatchOffline: Bool { access.canDispatchOffline }
+    public var canDispatch: Bool { access.canDispatch }
     public init(access: any ClubOwnerRefundAccess, locks: any ClubOwnerRefundLocking, now: @escaping () -> Date = Date.init) {
         self.access = access; self.locks = locks; self.now = now
     }
@@ -53,7 +54,7 @@ import CryptoKit
         guard let identity else { return .init(phase: .notSent, failure: .signedOut) }
         do {
             let key = try key(target, identity: identity, namespace: access.namespace)
-            if let entry = entries[key], entry.identity == identity {
+            if let entry = entries[key], entry.identity == identity, entry.authorization == access.authorizationGeneration {
                 if [.idle, .notSent].contains(entry.status.phase), try locked(key) { return .init(phase: .outcomeUnknown) }
                 return entry.status
             }
@@ -61,7 +62,7 @@ import CryptoKit
         } catch { return .init(phase: .notSent, failure: .storage) }
     }
     private func current(_ identity: ClubReadIdentity, _ namespace: String, _ key: String, _ generation: UUID) -> Bool {
-        access.identity == identity && access.namespace == namespace && generations[key] == generation && !Task.isCancelled
+        access.identity == identity && access.namespace == namespace && entries[key]?.authorization == access.authorizationGeneration && generations[key] == generation && !Task.isCancelled
     }
     private func issue(_ error: Error) -> ClubOwnerRefundFailure {
         if let issue = error as? ClubOwnerRefundFailure { return issue }
@@ -75,7 +76,7 @@ import CryptoKit
         guard !state(target).inFlight, pending[key] == nil else { throw ClubOwnerRefundFailure.busy }
         guard !(try locked(key)) else { throw ClubOwnerRefundFailure.locked }
         let generation = UUID(); generations[key] = generation; owners[key] = ownerID
-        entries[key] = .init(identity: identity, status: .init(phase: .preparing))
+        entries[key] = .init(identity: identity, authorization: access.authorizationGeneration, status: .init(phase: .preparing))
         do {
             let evidence = try await access.evidence(target)
             guard current(identity, namespace, key, generation) else { throw ClubOwnerRefundFailure.stale }
@@ -106,7 +107,7 @@ import CryptoKit
         let target = review.evidence.target
         guard let key = try? key(target, identity: review.identity, namespace: review.namespace), pending[key] == review else { return }
         guard entries[key]?.status.phase == .reviewing else { return }
-        guard canDispatchOffline else { cancel(review); mutate(key) { $0.failure = .disabled }; return }
+        guard canDispatch else { cancel(review); mutate(key) { $0.failure = .disabled }; return }
         guard let generation = generations[key], current(review.identity, review.namespace, key, generation),
               now().timeIntervalSince(review.createdAt) >= 0, now().timeIntervalSince(review.createdAt) <= 120 else { cancel(review); return }
         mutate(key) { $0.phase = .preflighting; $0.failure = nil }
@@ -144,7 +145,9 @@ import CryptoKit
         guard let identity else { return }
         let namespace = access.namespace
         guard let key = try? key(target, identity: identity, namespace: namespace) else { return }
-        if entries[key]?.identity != identity { entries[key] = .init(identity: identity, status: state(target)) }
+        if entries[key]?.identity != identity || entries[key]?.authorization != access.authorizationGeneration {
+            entries[key] = .init(identity: identity, authorization: access.authorizationGeneration, status: state(target))
+        }
         guard entries[key]?.status.inFlight != true else { return }
         let generation = UUID(); generations[key] = generation
         mutate(key) { $0.readbackLoading = true; $0.readbackUnavailable = false; $0.readback = nil }

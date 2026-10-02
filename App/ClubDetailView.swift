@@ -45,11 +45,14 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                         actionDetail = detail; actionIdentity = identity
                     }
                 }
+                if club.isOwner, let session = reader as? AppSession {
+                    Section { NavigationLink("context.ai.title") { SessionClubAIDesignView(session: session, clubID: id) }.accessibilityIdentifier("club.context.openAI") }
+                }
                 if let community { Section { ClubCommunityEntry(clubID: id, identity: reader.clubIdentity, context: community) } }
                 // V2 governance has its own access/me model, including delegated event staff.
                 if let governance = management?.governance {
                     Section {
-                        ClubGovernanceEntryButton(clubID: id, identity: reader.clubIdentity, access: governance.access, coordinator: governance.coordinator, enrollmentProfile: governance.enrollmentProfile, ownerRefund: governance.ownerRefund)
+                        ClubGovernanceEntryButton(clubID: id, identity: reader.clubIdentity, access: governance.access, coordinator: governance.coordinator, enrollmentProfile: governance.enrollmentProfile, ownerRefund: governance.ownerRefund, opsTimeFactory: governance.opsTimeFactory)
                     }
                 }
                 if (club.isOwner || club.viewerIsAdmin),let management {

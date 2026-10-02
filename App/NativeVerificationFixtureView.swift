@@ -3,19 +3,19 @@ import SwiftUI
 import Observation
 
 @MainActor struct NativeVerificationFixtureView: View {
-    private let transport: NativeVerificationFixtureTransport
-    private let flow: NativeVerificationWorkflow?
+    @State private var transport: NativeVerificationFixtureTransport
+    @State private var flow: NativeVerificationWorkflow?
     init(scenario: String) {
         let transport = NativeVerificationFixtureTransport(unknown: scenario == "unknown")
-        self.transport = transport
+        _transport = State(initialValue: transport)
         if let configuration = try? APIConfiguration(baseURL: URL(string: "https://verification.test")!),
            let session = try? MerchantBusinessSession(accountID: 9, epoch: 1, token: "synthetic-token") {
             let service = MerchantBusinessService(configuration: configuration, readTransport: transport, testingMutationTransport: transport)
             let reader = MerchantBusinessSessionReader(service: service, currentSession: { session })
             let journal = MerchantBusinessMemoryIntentStore()
             let coordinator = MerchantRedemptionCoordinator(service: service, journal: journal, currentSession: { session })
-            flow = NativeVerificationWorkflow(reader: reader, journal: journal, redemption: coordinator)
-        } else { flow = nil }
+            _flow = State(initialValue: NativeVerificationWorkflow(reader: reader, journal: journal, redemption: coordinator))
+        } else { _flow = State(initialValue: nil) }
     }
     var body: some View {
         VStack {

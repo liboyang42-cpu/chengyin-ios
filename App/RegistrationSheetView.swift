@@ -20,13 +20,18 @@ struct RegistrationSheetView: View {
     @StateObject private var model: RegistrationSheetModel
     @FocusState private var focusedField: Field?
     @State private var showingConfirmation = false
+    @State private var showingAddParticipant = false
+    private let participantReader: (any ProfileReading)?
+    private let participantCoordinator: ParticipantMutationCoordinator?
     private enum Field { case name, phone }
 
     init(activity: ActivityDetail, coordinator: RegistrationCoordinator,
          participantReader: (any ProfileReading)? = nil,
+         participantCoordinator: ParticipantMutationCoordinator? = nil,
          currentIdentity: @escaping () -> ProfileReadIdentity?, quoteEnabled: Bool = false,
          creationPolicy: RegistrationUICreationPolicy = .disabled,
          onReadback: @escaping (RegistrationStatusSnapshot) -> Void = { _ in }) {
+        self.participantReader = participantReader; self.participantCoordinator = participantCoordinator
         _model = StateObject(wrappedValue: RegistrationSheetModel(flow: RegistrationUIFlow(
             activity: activity, coordinator: coordinator, participantReader: participantReader,
             currentIdentity: currentIdentity, quoteEnabled: quoteEnabled,
@@ -81,6 +86,16 @@ struct RegistrationSheetView: View {
                 async let quote: Void = flow.requestQuote()
                 _ = await (participants, quote)
             }
+            .sheet(isPresented: $showingAddParticipant) {
+                if let participantReader, let participantCoordinator {
+                    NavigationStack {
+                        ParticipantFormView(reader: participantReader, coordinator: participantCoordinator,
+                            onSaved: { if participantCoordinator.savedParticipant == nil { Task { await flow.loadParticipants() } } },
+                            onCreated: { row, identity in Task { await flow.selectCreatedParticipant(row, identity: identity) } })
+                    }
+                }
+            }
+            .onChange(of: flow.identity) { _, _ in showingAddParticipant = false }
             .onChange(of: flow.confirmation) { _, value in
                 if value == nil { showingConfirmation = false }
             }
@@ -121,6 +136,10 @@ struct RegistrationSheetView: View {
                     }
                 }.accessibilityIdentifier("registration.form.participantPicker")
             }
+            if participantReader != nil, participantCoordinator != nil {
+                Button("participant.form.add") { focusedField = nil; showingAddParticipant = true }
+                    .disabled(!flow.canEdit).accessibilityIdentifier("registration.form.addParticipant")
+            }
             TextField("registration.form.name", text: Binding(get: { flow.draft.realName }, set: flow.setName))
                 .textContentType(.name).textInputAutocapitalization(.words)
                 .focused($focusedField, equals: .name).submitLabel(.next)
@@ -133,8 +152,7 @@ struct RegistrationSheetView: View {
             if !flow.draft.phone.isEmpty, flow.draft.validation == .invalidPhone {
                 Text("registration.form.phoneHint").font(.caption).foregroundStyle(.secondary)
             }
-        } header: { Text("registration.form.contact") }
-        footer: { Text("registration.form.contactHint") }
+        } header: { Text("registration.form.contact") } footer: { Text("registration.form.contactHint") }
         .disabled(!flow.canEdit)
     }
     private var ticketSection: some View {
@@ -235,7 +253,7 @@ private struct RegistrationAmountRow: View {
             if let text = RegistrationUIMoney.display(amount, locale: locale, currencyCode: currencyCode) {
                 VStack(alignment: .trailing, spacing: 2) {
                     Text(verbatim: deduction && amount != .zero ? "−\(text)" : text)
-                    if currencyCode == nil { Text("registration.form.currencyUnknown").font(.caption).foregroundStyle(.secondary) }
+                    if currencyCode == nil { Text("registration.form.currencyUnknown").font(.caption).foregroundStyle(.primary) }
                 }
             } else { Text("registration.form.unknownAmount") }
         } label: { Text(LocalizedStringKey(key)) }

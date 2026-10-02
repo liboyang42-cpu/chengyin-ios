@@ -3,6 +3,7 @@ import SwiftUI
 @MainActor struct CooperationInviteDetailView: View {
     let key: CooperationInviteKey
     let reader: any CooperationReading
+    var peerReader: (any CoopFlowReading)? = nil
     var body: some View {
         CooperationReadScreen(reader: reader, resource: "invite.\(key.direction.rawValue).\(key.id)", operation: {
             guard key.id > 0 else { throw CooperationReadFailure.unavailable }
@@ -18,6 +19,9 @@ import SwiftUI
                 if let topic = row.topicId { CooperationTopicReference(id: topic) }
                 CooperationTimeField(key: "cooperation.created", value: row.createTime)
                 CooperationTimeField(key: "cooperation.expires", value: row.expireTime)
+            }
+            if let peerReader, let peer = CoopPeerMember(direction: key.direction, fromType: row.fromType, fromID: row.fromId, toType: row.toType, toID: row.toId) {
+                Section { NavigationLink("context.coop.peerCredit") { CoopPeerCreditView(reader: peerReader, peer: peer) } }
             }
             Section("cooperation.terms") {
                 terms(row)

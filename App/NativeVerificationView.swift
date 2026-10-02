@@ -12,7 +12,7 @@ extension EnvironmentValues {
 @MainActor struct SessionNativeVerificationView: View {
     @EnvironmentObject private var session: AppSession
     var body: some View {
-        NativeVerificationView(flow: session.nativeVerificationFlow, cameraEnabled: false,
+        NativeVerificationView(flow: session.nativeVerificationFlow, cameraEnabled: session.verificationCameraEnabled,
             records: { AnyView(MerchantBusinessPage(reader: session.merchantBusinessReader,
                 journal: session.merchantBusinessJournal, query: .redemptions(filter: "all", page: 1))) })
             .id(session.sessionRevision)
@@ -31,7 +31,7 @@ extension EnvironmentValues {
     var body: some View {
         Form {
             Section {
-                Text("verification.boundary").font(.footnote).foregroundStyle(.secondary)
+                Text("verification.boundary").font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("verification.screen")
                 if let key = flow.issueKey { Text(LocalizedStringKey(key)).accessibilityIdentifier("verification.issue") }
                 if flow.phase == .loading { ProgressView("verification.loading") }
                 if let access = flow.access, flow.current {
@@ -73,7 +73,6 @@ extension EnvironmentValues {
         }
         .navigationTitle("verification.title").navigationBarTitleDisplayMode(.inline)
         .privacySensitive().scrollDismissesKeyboard(.interactively)
-        .accessibilityIdentifier("verification.screen")
         .task(id: flow.scope) { raw = ""; await flow.activate() }
         .sheet(isPresented: $camera) {
             NativeQRScanner { value in raw = ""; Task { await flow.prepare(raw: value) } }
@@ -92,7 +91,7 @@ extension EnvironmentValues {
     }
     private func capture() { let captured = raw; raw = ""; Task { await flow.prepare(raw: captured) } }
     @ViewBuilder private func resultSection(_ result: MerchantRedemptionResult) -> some View {
-        Section("verification.result") {
+        Section {
             if let message = result.message { Text(verbatim: message) }
             switch result.outcome {
             case .redeemed:
@@ -109,7 +108,7 @@ extension EnvironmentValues {
                 }
                 Button("action.cancel", role: .cancel) { flow.cancelChoice() }
             }
-        }.accessibilityIdentifier("verification.result")
+        } header: { Text("verification.result").accessibilityIdentifier("verification.result") }
     }
 }
 @MainActor private struct NativeVerificationReviewView: View {

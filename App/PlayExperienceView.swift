@@ -251,6 +251,7 @@ import SwiftUI
             if let localIssue { PlayExperienceIssueView(issue: localIssue) }
         }
         .privacySensitive().navigationTitle("playx.task.title")
+        .modifier(JourneyCheckReviewPresentation(model: journey))
         // The optional check initially renders no rows, so its probe belongs to this stable host.
         .task(id: [model.identity, node.map { String($0.id) }, (model.snapshot?.route?.sessionID).map(String.init), (model.snapshot?.route?.version).map(String.init)]) {
             if let node {

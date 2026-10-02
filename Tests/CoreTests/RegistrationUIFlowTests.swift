@@ -57,7 +57,7 @@ private final class UIRegistrationParticipants: ProfileReading {
         if continuation != nil { return }
         await withCheckedContinuation { waiter = $0 }
     }
-    func profileParticipant(id: Int) async throws -> ProfileParticipant { throw APIError.invalidRequest }
+    func profileParticipant(id: Int) async throws -> ProfileParticipant { guard let row = rows.first(where: { $0.id == id }) else { throw APIError.invalidRequest }; return row }
     func profileOrders() async throws -> [ProfileOrder] { [] }
     func profileOrder(id: Int) async throws -> ProfileOrder { throw APIError.invalidRequest }
     func profileBadges() async throws -> ProfileBadgeWall { .init(identities: [], medals: []) }
@@ -87,6 +87,47 @@ final class RegistrationUIFlowTests: XCTestCase {
     }
     private func makeParticipants() throws -> [ProfileParticipant] {
         try JSONDecoder().decode([ProfileParticipant].self, from: Data(#"[{"id":1,"fullName":"First","mobilePhone":"13800000000"},{"id":2,"fullName":"Preferred","mobilePhone":"13900000000","isDefault":true}]"#.utf8))
+    }
+    func testAcknowledgedCreateReturnsAndSelectsOnlyReadbackID() async throws {
+        let service = UIRegistrationService(), reader = UIRegistrationParticipants()
+        reader.rows = try makeParticipants()
+        let flow = try makeFlow(service, reader: reader)
+        flow.open(); await flow.loadParticipants()
+        XCTAssertEqual(flow.selectedParticipantID, 2)
+        let row = reader.rows[0]
+        await flow.selectCreatedParticipant(row, identity: .init(accountID: 1, epoch: 1))
+        XCTAssertEqual(flow.selectedParticipantID, row.id)
+        XCTAssertEqual(flow.draft.realName, row.fullName)
+        XCTAssertEqual(flow.draft.phone, row.mobilePhone)
+        XCTAssertNil(flow.confirmation)
+        XCTAssertTrue(service.creates.isEmpty)
+    }
+    func testCreatedParticipantFencesEarlierParticipantList() async throws {
+        let service = UIRegistrationService(), reader = UIRegistrationParticipants()
+        reader.rows = try makeParticipants(); reader.suspend = true
+        let flow = try makeFlow(service, reader: reader)
+        flow.open()
+        let initialList = Task { await flow.loadParticipants() }
+        await reader.waitForRead()
+        let receipt = reader.rows[0]
+        await flow.selectCreatedParticipant(receipt, identity: .init(accountID: 1, epoch: 1))
+        reader.continuation?.resume(returning: []); reader.continuation = nil
+        await initialList.value
+        XCTAssertEqual(flow.selectedParticipantID, receipt.id)
+        XCTAssertEqual(flow.participants, [receipt])
+        XCTAssertEqual(flow.participantsState, .received)
+    }
+    func testCreatedParticipantCannotCrossSessionOrSelectAbsentID() async throws {
+        let service = UIRegistrationService(), reader = UIRegistrationParticipants()
+        let receipt = try makeParticipants()[0]
+        let flow = try makeFlow(service, reader: reader)
+        flow.open()
+        await flow.selectCreatedParticipant(receipt, identity: .init(accountID: 1, epoch: 1))
+        XCTAssertNil(flow.selectedParticipantID)
+        reader.rows = [receipt]; reader.identity = .init(accountID: 1, epoch: 2)
+        await flow.selectCreatedParticipant(receipt, identity: .init(accountID: 1, epoch: 1))
+        XCTAssertNil(flow.selectedParticipantID)
+        XCTAssertTrue(flow.draft.realName.isEmpty)
     }
     func testProductionPolicyCannotCreateEvenWithUsableQuote() async throws {
         let service = UIRegistrationService(), reader = UIRegistrationParticipants()

@@ -6,7 +6,7 @@ def read(path):return (ROOT/path).read_text()
 class BankWithdrawalContractTests(unittest.TestCase):
  def test_no_live_factory_or_implicit_financial_grant(self):
   app=read('App/AppSession.swift');view=read('App/BankWithdrawalView.swift');adapter=read('Core/BankWithdrawalAdapter.swift')
-  self.assertNotIn('BankWithdrawalAdapter(',app)
+  self.assertIn('factory.permits(.bankPrepare)',app);self.assertIn('factory.permits(.bankConsentRead)',app);self.assertIn('let provider = runtimeDependencies.bankDocument',app);self.assertIn('businessConfiguration: BusinessRuntimeConfiguration? = nil',read('App/NativeRuntimeDependencies.swift'))
   self.assertIn('var adapter: BankWithdrawalAdapter? = nil',view)
   self.assertIn('enableReviewedWrites: Bool = false',adapter)
   self.assertIn('approval: OperationEndpointApproval? = nil',adapter)

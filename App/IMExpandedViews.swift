@@ -13,13 +13,15 @@ import SwiftUI
     let identity: MessagingReadIdentity?
     let onReceipt: (IMMutationReceipt) -> Void
     let uploadOwner: IMImageUploadCoordinator?
-    @State private var topicID = ""
+    let topicReader: (any TopicReading)?
+    @State private var selectedTopic: TopicSummary?
+    @State private var showingTopics = false
     @State private var name = ""
     @State private var address = ""
     @State private var latitude = ""
     @State private var longitude = ""
-    init(coordinator: IMExpandedCoordinator, identity: MessagingReadIdentity?, uploadOwner: IMImageUploadCoordinator? = nil, onReceipt: @escaping (IMMutationReceipt) -> Void) {
-        _model = StateObject(wrappedValue: IMExpandedViewModel(coordinator)); self.identity = identity; self.uploadOwner = uploadOwner; self.onReceipt = onReceipt
+    init(coordinator: IMExpandedCoordinator, identity: MessagingReadIdentity?, uploadOwner: IMImageUploadCoordinator? = nil, topicReader: (any TopicReading)? = nil, onReceipt: @escaping (IMMutationReceipt) -> Void) {
+        _model = StateObject(wrappedValue: IMExpandedViewModel(coordinator)); self.identity = identity; self.uploadOwner = uploadOwner; self.topicReader = topicReader; self.onReceipt = onReceipt
     }
     var body: some View {
         Form {
@@ -41,10 +43,12 @@ import SwiftUI
                 }
             }
             Section("im.full.route") {
-                TextField("im.full.topicID", text: $topicID).keyboardType(.numberPad)
+                if let selectedTopic { Text(verbatim: selectedTopic.name) }
+                Button("context.route.choose") { showingTopics = true }.disabled(topicReader == nil)
+                    .accessibilityIdentifier("context.im.chooseRoute")
                 Button("im.full.review") {
-                    if let id = Int(topicID), let intent = try? IMOutgoingIntent(scope: model.owner.scope, payload: .route(topicID: id)), id > 0 { review(.send(intent)) }
-                }.disabled(Int(topicID).map { $0 <= 0 } ?? true)
+                    if let row = selectedTopic, let intent = try? IMOutgoingIntent(scope: model.owner.scope, payload: .route(topicID: row.id)) { review(.send(intent)) }
+                }.disabled(selectedTopic == nil || !model.owner.writer.isConfigured)
             }
             Section("im.full.location") {
                 TextField("im.full.name", text: $name)
@@ -74,7 +78,14 @@ import SwiftUI
                 }
             }
         }
-        .disabled(identity != model.owner.scope.identity || !model.owner.writer.isConfigured)
+        .disabled(identity != model.owner.scope.identity)
+        .sheet(isPresented: $showingTopics) {
+            if let topicReader {
+                NavigationStack { ContextualTopicPicker(reader: topicReader) { row in
+                    guard identity == model.owner.scope.identity else { return }; selectedTopic = row
+                } }
+            }
+        }
         .navigationTitle(Text("im.full.title")).privacySensitive()
         .accessibilityIdentifier("im.full.controls")
         .onAppear { model.observe() }
@@ -83,7 +94,7 @@ import SwiftUI
         .onDisappear { clearDrafts(); model.owner.cancelReview() }
     }
     private func review(_ mutation: IMMutation) { _ = model.owner.review(mutation) }
-    private func clearDrafts() { topicID = ""; name = ""; address = ""; latitude = ""; longitude = "" }
+    private func clearDrafts() { selectedTopic = nil; showingTopics = false; name = ""; address = ""; latitude = ""; longitude = "" }
 }
 private struct IMMutationSummary: View {
     let mutation: IMMutation

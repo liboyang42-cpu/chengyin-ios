@@ -534,13 +534,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sending offline test request…"
+            "value": "Sending refund request…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在发送离线测试请求…"
+            "value": "正在提交退款请求…"
           }
         }
       }

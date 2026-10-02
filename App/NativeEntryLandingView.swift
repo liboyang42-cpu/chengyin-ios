@@ -100,7 +100,7 @@ import SwiftUI
             switch destination {
             case .topicCooperation: CooperationFlowWorkbench(reader: session.cooperationFlowReader)
             case .decoration: MerchantOperationsDocumentView(reader: session.merchantOperationsReader, destination: .decor, imageHost: session.retainedMerchantImages)
-            case .content: ProjectEditView(coordinator: session.projectEditor(product: .city), sessionRevision: session.sessionRevision, publisherClient: session.publisherLifecycleContext?.client)
+            case .content: ProjectEditView(coordinator: session.projectEditor(product: .city), sessionRevision: session.sessionRevision, publisherClient: session.publisherLifecycleContext?.client, publisherHost: { AnyView(SessionPublisherLifecycleView(session: session, resource: $0)) })
             }
         }.id(session.sessionRevision)
     }

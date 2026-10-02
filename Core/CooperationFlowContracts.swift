@@ -109,9 +109,16 @@ public struct CoopFlowInvitationContext: Identifiable, Equatable {
     public let recipient: CoopFlowIdentity
     public let recipientName: String
     public let topicID: Int
-    public let originApplyID: Int
+    public let originApplyID: Int?
+    public let kind: CoopFlowTargetKind
     public let scope: String?
-    public var id: String { "\(session.accountID):\(session.epoch):\(originApplyID):\(topicID):\(recipient.id)" }
+    public var id: String { "\(session.accountID):\(session.epoch):\(kind.rawValue):\(originApplyID ?? 0):\(topicID):\(recipient.id)" }
+
+    public init?(candidate: CoopFlowTargetCandidate, topic: CoopFlowOwnedTopic, scope: String?, session: CoopFlowSession?) {
+        guard let session, topic.inviteWindowOpen == true, scope == nil || scope == "MERCHANT" else { return nil }
+        self.session = session; self.recipient = candidate.recipient; self.recipientName = candidate.name
+        self.topicID = topic.id; self.kind = candidate.kind; self.originApplyID = nil; self.scope = scope
+    }
 
     public init?(receivedApplication row: CoopFlowJSON, session: CoopFlowSession?) {
         guard let session, row["status"].integer == 0,
@@ -123,13 +130,13 @@ public struct CoopFlowInvitationContext: Identifiable, Equatable {
         guard row["scope"] == .null || scope == "" || scope == "MERCHANT" else { return nil }
         self.session = session; self.recipient = recipient
         self.recipientName = row["clubName"].text ?? ""
-        self.topicID = topic; self.originApplyID = apply; self.scope = scope == "MERCHANT" ? scope : nil
+        self.topicID = topic; self.kind = .club; self.originApplyID = apply; self.scope = scope == "MERCHANT" ? scope : nil
     }
 
     public func invitation(message: String, compensation: CoopFlowCompensation,
                            currentSession: CoopFlowSession?) throws -> CoopFlowInvitation {
         guard currentSession == session else { throw CoopFlowFailure.stale }
-        return try CoopFlowInvitation(kind: .club, recipient: recipient, topicID: topicID, message: message,
+        return try CoopFlowInvitation(kind: kind, recipient: recipient, topicID: topicID, message: message,
                                       compensation: compensation, originApplyID: originApplyID, scope: scope)
     }
 }

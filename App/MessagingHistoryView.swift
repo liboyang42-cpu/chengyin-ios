@@ -59,7 +59,7 @@ struct MessagingHistoryView: View {
                 if loadedIdentity == reader.identity, loadedIdentity != nil, !isLoading, issue == nil,
                    let owner = expanded?.coordinator(conversationID) {
                     NavigationLink {
-                        IMConversationControlsView(coordinator: owner, identity: reader.identity, uploadOwner: expanded?.uploadCoordinator(conversationID)) { _ in Task { await reload() } }
+                        IMConversationControlsView(coordinator: owner, identity: reader.identity, uploadOwner: expanded?.uploadCoordinator(conversationID), topicReader: expanded?.topicReader) { _ in Task { await reload() } }
                     } label: { Label("im.full.title", systemImage: "ellipsis.circle") }
                     .accessibilityIdentifier("im.full.controlsEntry")
                 }

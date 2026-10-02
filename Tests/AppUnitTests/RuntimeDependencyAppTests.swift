@@ -4,6 +4,7 @@ import XCTest
 @MainActor final class RuntimeDependencyAppTests: XCTestCase {
     func testShippedDependencyObjectHasNoCapabilitiesOrLiveProviders() {
         let dependencies = NativeRuntimeDependencies.dormant
+        XCTAssertNil(dependencies.businessConfiguration); XCTAssertNil(dependencies.bankDocument)
         XCTAssertNil(dependencies.configuration); XCTAssertNil(dependencies.transport)
         XCTAssertNil(dependencies.location); XCTAssertNil(dependencies.motion)
         XCTAssertFalse(dependencies.shopNPCGrants.textAllowed); XCTAssertFalse(dependencies.shopNPCGrants.voiceAllowed)

@@ -15,6 +15,7 @@ extension EnvironmentValues {
     let sourceCanRefund: Bool
     let onReadback: () -> Void
     @Environment(\.clubOwnerRefundCoordinator) private var coordinator
+    @Environment(\.scenePhase) private var scenePhase
     @State private var review: ClubOwnerRefundReview?
     @State private var failure: ClubOwnerRefundFailure?
     @State private var ownerID = UUID()
@@ -22,7 +23,7 @@ extension EnvironmentValues {
     var body: some View {
         if sourceCanRefund || status.phase != .idle {
             VStack(alignment: .leading, spacing: 12) {
-                Text("club.refund.title").font(.headline)
+                Text("club.refund.title").font(.headline).accessibilityIdentifier("club.refund.panel")
                 if let coordinator, coordinator.identity == identity {
                     Text(LocalizedStringKey("club.refund.phase." + status.phase.rawValue))
                         .accessibilityIdentifier("club.refund.phase")
@@ -45,7 +46,7 @@ extension EnvironmentValues {
                             Task { await coordinator.reconcile(target); if coordinator.identity == identity { onReadback() } }
                         }.disabled(status.inFlight).accessibilityIdentifier("club.refund.readback")
                     }
-                    if !coordinator.canDispatchOffline { Text("club.refund.disabled").font(.footnote).accessibilityIdentifier("club.refund.disabled") }
+                    if !coordinator.canDispatch { Text("club.refund.disabled").font(.footnote).accessibilityIdentifier("club.refund.disabled") }
                 } else { Text("club.refund.disabled").font(.footnote) }
                 Text("club.refund.policy").font(.footnote).foregroundStyle(.secondary)
             }
@@ -64,7 +65,7 @@ extension EnvironmentValues {
                             Text("club.refund.scopeWarning")
                             Text("club.refund.policy")
                             if coordinator?.canDispatchOffline == true { Text("club.refund.synthetic") }
-                            else { Text("club.refund.disabled") }
+                            else if coordinator?.canDispatch != true { Text("club.refund.disabled") }
                             Button(role: .destructive) {
                                 guard let coordinator else { return }
                                 Task {
@@ -73,7 +74,7 @@ extension EnvironmentValues {
                                     if coordinator.identity == identity { onReadback() }
                                 }
                             } label: { Text("club.refund.confirm") }
-                            .disabled(coordinator?.canDispatchOffline != true || status.inFlight)
+                            .disabled(coordinator?.canDispatch != true || status.inFlight)
                             .accessibilityIdentifier("club.refund.confirm")
                             if status.inFlight { ProgressView("club.refund.working") }
                         }
@@ -87,7 +88,9 @@ extension EnvironmentValues {
             }
             .onChange(of: identity) { _, _ in coordinator?.leave(ownerID: ownerID); review = nil; failure = nil }
             .onDisappear { coordinator?.leave(ownerID: ownerID) }
-            .accessibilityIdentifier("club.refund.panel")
+            .onChange(of: scenePhase) { _, phase in
+                if phase != .active { coordinator?.leave(ownerID: ownerID); review = nil; failure = nil }
+            }
         }
     }
     private func cancelPending() { coordinator?.leave(ownerID: ownerID) }
@@ -104,11 +107,21 @@ extension EnvironmentValues {
     }
     private func receiptRows(_ receipt: ClubOwnerRefundReceipt) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            LabeledContent("club.refund.cancellation") { Text(LocalizedStringKey("club.refund.cancellation." + receipt.cancellation.rawValue)) }
-            LabeledContent("club.refund.cash") { Text(LocalizedStringKey("club.refund.cash." + receipt.cash.rawValue)) }
-            LabeledContent("club.refund.points") { Text(LocalizedStringKey("club.refund.points." + receipt.points.rawValue)) }
+            receiptStatus("club.refund.cancellation", value: "club.refund.cancellation." + receipt.cancellation.rawValue)
+                .accessibilityIdentifier("club.refund.receipt")
+            receiptStatus("club.refund.cash", value: "club.refund.cash." + receipt.cash.rawValue)
+                .accessibilityIdentifier("club.refund.cashStatus")
+            receiptStatus("club.refund.points", value: "club.refund.points." + receipt.points.rawValue)
+                .accessibilityIdentifier("club.refund.pointsStatus")
             if let message = receipt.message { Text(verbatim: message) }
             if receipt.scope == "PARENT_ORDER" { Text("club.refund.parentOrder") }
-        }.accessibilityIdentifier("club.refund.receipt")
+        }
     }
+    private func receiptStatus(_ title: LocalizedStringKey, value: String) -> some View {
+        LabeledContent(title) { Text(LocalizedStringKey(value)) }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text(title))
+            .accessibilityValue(Text(LocalizedStringKey(value)))
+    }
+
 }

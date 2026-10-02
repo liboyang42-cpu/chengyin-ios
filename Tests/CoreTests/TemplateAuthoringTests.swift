@@ -84,23 +84,23 @@ final class TemplateAuthoringTests: XCTestCase {
         let raw = try XCTUnwrap(d.storyJson); XCTAssertFalse(raw.contains("\"id\"")); XCTAssertEqual(try d.storyBeats().count, 1)
     }
     func testMalformedStoryIsNotSilentlyOverwritten() { var d = TemplateAuthoringDraft(); d.storyJson = "{}"; XCTAssertThrowsError(try d.storyBeats()) }
-    func testAdvancedSelectionExcludesOtherGamesPreservesTimer() {
-        var a = TemplateAdvancedDraft(); a.set("timer", "enabled", .bool(true)); a.select(.react); a.select(.quiet)
-        XCTAssertFalse(a.enabled("reaction")); XCTAssertTrue(a.enabled("quietHold")); XCTAssertTrue(a.enabled("timer"))
+    func testEnablingGamesPreservesOtherGamesAndTimer() {
+        var a = TemplateAdvancedDraft(); a.set("timer", "enabled", .bool(true)); a.setGameEnabled(.react, true); a.setGameEnabled(.quiet, true)
+        XCTAssertTrue(a.enabled("reaction")); XCTAssertTrue(a.enabled("quietHold")); XCTAssertTrue(a.enabled("timer"))
     }
-    func testClearGameRetainsModifiers() { var a = TemplateAdvancedDraft(); a.set("timer", "enabled", .bool(true)); a.select(.react); a.select(nil); XCTAssertNil(a.selected); XCTAssertTrue(a.enabled("timer")) }
+    func testClearGameRetainsModifiers() { var a = TemplateAdvancedDraft(); a.set("timer", "enabled", .bool(true)); a.setGameEnabled(.react, true); a.setGameEnabled(.react, false); XCTAssertTrue(a.enabledGames.isEmpty); XCTAssertTrue(a.enabled("timer")) }
     func testDefaultAdvancedSerializesEmpty() throws { XCTAssertEqual(try TemplateAdvancedDraft().serialize(), "") }
     func testSevenFlutterGamesAndFiveSourceBackedMiniAdditions() { XCTAssertEqual(Set(TemplateAdvancedGame.allCases.map(\.rawValue)), Set(["coin", "dice", "react", "shake", "quiet", "countdown", "stopwatch", "sort", "match", "classify", "compass", "shout"])) }
-    func testCoinRequiresBothActions() { var a = TemplateAdvancedDraft(); a.select(.coin); XCTAssertTrue(a.issues.contains("templateAuthor.validation.coinAction")); a.setNested("coinFlip", "heads", "action", "Look up"); a.setNested("coinFlip", "tails", "action", "Look down"); XCTAssertTrue(a.issues.isEmpty) }
-    func testDiceRequiresSixNonemptyFaces() { var a = TemplateAdvancedDraft(); a.select(.dice); XCTAssertFalse(a.issues.isEmpty); for i in 0..<6 { a.setFace(i, "Action \(i)") }; XCTAssertTrue(a.issues.isEmpty) }
-    func testReactionRangeBounds() { var a = TemplateAdvancedDraft(); a.select(.react); a.set("reaction", "goalMs", .number(119)); XCTAssertFalse(a.issues.isEmpty); a.set("reaction", "goalMs", .number(120)); XCTAssertTrue(a.issues.isEmpty) }
+    func testCoinRequiresBothActions() { var a = TemplateAdvancedDraft(); a.setGameEnabled(.coin, true); XCTAssertTrue(a.issues.contains("templateAuthor.validation.coinAction")); a.setNested("coinFlip", "heads", "action", "Look up"); a.setNested("coinFlip", "tails", "action", "Look down"); XCTAssertTrue(a.issues.isEmpty) }
+    func testDiceRequiresSixNonemptyFaces() { var a = TemplateAdvancedDraft(); a.setGameEnabled(.dice, true); XCTAssertFalse(a.issues.isEmpty); for i in 0..<6 { a.setFace(i, "Action \(i)") }; XCTAssertTrue(a.issues.isEmpty) }
+    func testReactionRangeBounds() { var a = TemplateAdvancedDraft(); a.setGameEnabled(.react, true); a.set("reaction", "goalMs", .number(119)); XCTAssertFalse(a.issues.isEmpty); a.set("reaction", "goalMs", .number(120)); XCTAssertTrue(a.issues.isEmpty) }
     func testUntimedBallOmitsSecondsOnlyDuringSerialization() throws {
-        var a = TemplateAdvancedDraft(); a.select(.shake); let p = try JSONDecoder().decode([String: TemplateAuthoringJSON].self, from: Data(a.serialize().utf8))
+        var a = TemplateAdvancedDraft(); a.setGameEnabled(.shake, true); let p = try JSONDecoder().decode([String: TemplateAuthoringJSON].self, from: Data(a.serialize().utf8))
         XCTAssertNil(p["ballShake"]?.object?["seconds"]); XCTAssertNotNil(a.value["ballShake"]?.object?["seconds"])
     }
     func testTimerBoundsAndIntegerRequirement() { var a = TemplateAdvancedDraft(); a.set("timer", "enabled", .bool(true)); a.set("timer", "durationSeconds", .number(10.5)); XCTAssertFalse(a.issues.isEmpty); a.set("timer", "durationSeconds", .number(86400)); XCTAssertTrue(a.issues.isEmpty) }
-    func testCountdownRequiresCompletionText() { var a = TemplateAdvancedDraft(); a.select(.countdown); XCTAssertFalse(a.issues.isEmpty); a.set("countdown", "doneText", .string("Done")); XCTAssertTrue(a.issues.isEmpty) }
-    func testStopwatchZeroTriesMeansUnlimited() { var a = TemplateAdvancedDraft(); a.select(.stopwatch); a.set("stopwatch", "tries", .number(0)); XCTAssertTrue(a.issues.isEmpty) }
+    func testCountdownRequiresCompletionText() { var a = TemplateAdvancedDraft(); a.setGameEnabled(.countdown, true); XCTAssertFalse(a.issues.isEmpty); a.set("countdown", "doneText", .string("Done")); XCTAssertTrue(a.issues.isEmpty) }
+    func testStopwatchZeroTriesMeansUnlimited() { var a = TemplateAdvancedDraft(); a.setGameEnabled(.stopwatch, true); a.set("stopwatch", "tries", .number(0)); XCTAssertTrue(a.issues.isEmpty) }
     func testUnknownAdvancedPreservedButBlocksSubmission() throws { var a = TemplateAdvancedDraft(); a.value["future"] = .object(["secret": .string("keep")]); XCTAssertThrowsError(try a.serialize()); XCTAssertEqual(a.value["future"]?.object?["secret"], .string("keep")) }
     func testBranchIsNowStructuredAndSupported() { var a = TemplateAdvancedDraft(); a.setCreatorEnabled(.branch, true); XCTAssertTrue(a.creatorIssues(.branch).isEmpty); XCTAssertFalse(a.issues.contains("templateAuthor.validation.advancedUnsupported")) }
     func testBadAdvancedJSONAndUnknownSchemaReject() { XCTAssertThrowsError(try TemplateAdvancedDraft(raw: "bad")); XCTAssertThrowsError(try TemplateAdvancedDraft(raw: #"{"schemaVersion":2}"#)) }

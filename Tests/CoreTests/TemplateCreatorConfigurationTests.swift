@@ -70,7 +70,7 @@ final class TemplateCreatorConfigurationTests: XCTestCase {
         draft.set("leaderboard", "metric", .string("SCORE")); XCTAssertTrue(draft.creatorIssues(.leaderboard).isEmpty)
     }
     func testCoexistingFamiliesAndOldGameSelectionPreserveModifiers() throws {
-        var draft = try fixture(.blindTaste); draft.setCreatorEnabled(.timeWindow, true); draft.select(.quiet)
+        var draft = try fixture(.blindTaste); draft.setCreatorEnabled(.timeWindow, true); draft.setGameEnabled(.quiet, true)
         XCTAssertTrue(draft.enabled("blindTaste")); XCTAssertTrue(draft.enabled("timeWindow")); XCTAssertTrue(draft.enabled("quietHold")); XCTAssertTrue(draft.issues.isEmpty)
     }
     func testUnknownNestedFieldsSurviveSnapshotAndBlockReserialization() throws {

@@ -57,7 +57,7 @@ class CreatorRootAuthoringChecks(unittest.TestCase):
         form=(ROOT/'App/TemplateAuthoringDetailForms.swift').read_text()
         review=(ROOT/'App/TemplateAuthoringView.swift').read_text()
         self.assertIn('TemplateRootAuthoringView(model: model)',form)
-        self.assertIn('TemplateD20ConfigurationView(model: model)',form)
+        self.assertIn('TemplateD20ConfigurationView(model: model)',(ROOT/'App/TemplateAdvancedGameConfigurationView.swift').read_text())
         self.assertIn('TemplateRootRehearsalView(draft: draft.advanced)',review)
         self.assertIn('TemplateD20RehearsalView(draft: draft.advanced)',review)
     def test_root_serialization_preserves_root_only_configuration(self):

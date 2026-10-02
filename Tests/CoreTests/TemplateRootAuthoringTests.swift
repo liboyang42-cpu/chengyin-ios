@@ -7,7 +7,7 @@ final class TemplateRootAuthoringTests: XCTestCase {
         draft.appendRootVariant(); draft.setRootVariant(draft.rootVariants.count - 1, key: "when", entry: .object(condition)); draft.setRootVariant(draft.rootVariants.count - 1, key: "relax", entry: .object([path: .string(operation)]))
     }
     private func d20() -> TemplateAdvancedDraft {
-        var draft = TemplateAdvancedDraft(); draft.select(.dice); draft.setDiceMode("d20"); draft.set("diceRoll", "successText", .string("Door opens")); draft.set("diceRoll", "failText", .string("Try the other path")); return draft
+        var draft = TemplateAdvancedDraft(); draft.setGameEnabled(.dice, true); draft.setDiceMode("d20"); draft.set("diceRoll", "successText", .string("Door opens")); draft.set("diceRoll", "failText", .string("Try the other path")); return draft
     }
     func testRootFeaturesDoNotInflateThirtySevenFamilyRegistry() {
         XCTAssertEqual(TemplateRootCapability.allCases.count, 3)
@@ -42,18 +42,18 @@ final class TemplateRootAuthoringTests: XCTestCase {
         for key in ["estimate.answer", "qa.xp", "photoCheck.maxTries", "typeIn.seconds"] { var draft = timer(); add(&draft, path: key); XCTAssertFalse(draft.rootCreatorIssues.isEmpty, key) }
     }
     func testAlreadyUnlimitedAttemptsCannotBeRelaxed() {
-        var draft = TemplateAdvancedDraft(); draft.select(.stopwatch); draft.set("stopwatch", "tries", .number(0)); add(&draft, path: "stopwatch.tries", operation: "+2")
+        var draft = TemplateAdvancedDraft(); draft.setGameEnabled(.stopwatch, true); draft.set("stopwatch", "tries", .number(0)); add(&draft, path: "stopwatch.tries", operation: "+2")
         XCTAssertFalse(draft.rootCreatorIssues.isEmpty)
         draft.set("stopwatch", "tries", .number(3)); draft.setRootVariant(0, key: "relax", entry: .object(["stopwatch.tries": .string("=0")]))
         XCTAssertTrue(draft.rootCreatorIssues.isEmpty)
     }
     func testLowerRulesMustDecreaseAndRemainInRange() {
-        var draft = TemplateAdvancedDraft(); draft.select(.quiet); add(&draft, path: "quietHold.seconds", operation: "-5"); XCTAssertTrue(draft.rootCreatorIssues.isEmpty)
+        var draft = TemplateAdvancedDraft(); draft.setGameEnabled(.quiet, true); add(&draft, path: "quietHold.seconds", operation: "-5"); XCTAssertTrue(draft.rootCreatorIssues.isEmpty)
         draft.setRootVariant(0, key: "relax", entry: .object(["quietHold.seconds": .string("+5")])); XCTAssertFalse(draft.rootCreatorIssues.isEmpty)
         draft.setRootVariant(0, key: "relax", entry: .object(["quietHold.seconds": .string("-11")])); XCTAssertFalse(draft.rootCreatorIssues.isEmpty)
     }
     func testUntimedBallCannotReceiveTimerRelaxation() {
-        var draft = TemplateAdvancedDraft(); draft.select(.shake); add(&draft, path: "ballShake.seconds", operation: "+5"); XCTAssertFalse(draft.rootCreatorIssues.isEmpty)
+        var draft = TemplateAdvancedDraft(); draft.setGameEnabled(.shake, true); add(&draft, path: "ballShake.seconds", operation: "+5"); XCTAssertFalse(draft.rootCreatorIssues.isEmpty)
         draft.set("ballShake", "timed", .bool(true)); XCTAssertTrue(draft.rootCreatorIssues.isEmpty)
     }
     func testFractionalEstimateToleranceIsNotTruncated() throws {
@@ -114,10 +114,10 @@ final class TemplateRootAuthoringTests: XCTestCase {
         let result = try TemplateD20Rehearsal(draft: draft); XCTAssertEqual(result.values, [12, 7]); XCTAssertEqual(result.kept, 7); XCTAssertEqual(result.total, 9); XCTAssertFalse(result.success)
     }
     func testBackendReaction3000AndSevenGameRewardBounds() {
-        var draft = TemplateAdvancedDraft(); draft.select(.react); draft.set("reaction", "goalMs", .number(3000)); XCTAssertTrue(draft.issues.isEmpty)
+        var draft = TemplateAdvancedDraft(); draft.setGameEnabled(.react, true); draft.set("reaction", "goalMs", .number(3000)); XCTAssertTrue(draft.issues.isEmpty)
         draft.set("reaction", "goalMs", .number(3001)); XCTAssertFalse(draft.issues.isEmpty)
         for game: TemplateAdvancedGame in [.coin, .dice, .react, .shake, .quiet, .countdown, .stopwatch] {
-            var d = TemplateAdvancedDraft(); d.select(game); d.set(game.section, "xp", .number(1001)); XCTAssertTrue(d.legacyVariantIssues.contains { $0.path == game.section + ".xp" })
+            var d = TemplateAdvancedDraft(); d.setGameEnabled(game, true); d.set(game.section, "xp", .number(1001)); XCTAssertTrue(d.legacyVariantIssues.contains { $0.path == game.section + ".xp" })
         }
     }
     func testSortAttemptOperandHasBoundsAndNumericSerialization() throws {

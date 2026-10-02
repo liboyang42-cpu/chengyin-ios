@@ -112,6 +112,22 @@ public final class RegistrationUIFlow {
         guard canEdit, let participant = participants.first(where: { $0.id == id }) else { return }
         applyParticipant(participant); manuallyEdited = true; invalidateConfirmation(); changed()
     }
+    /// Only an acknowledged create receipt supplies the new ID. Re-read that owned row;
+    /// stale accounts, cancellation and malformed/mismatched readbacks never select it.
+    public func selectCreatedParticipant(_ receipt: ProfileParticipant, identity: ProfileReadIdentity) async {
+        guard canEdit, identity == openedIdentity, let participantReader,
+              participantReader.identity == identity, receipt.id > 0 else { return }
+        participantGeneration &+= 1
+        let stamp = generation, participantStamp = participantGeneration
+        do {
+            let row = try await participantReader.profileParticipant(id: receipt.id)
+            guard matches(stamp, identity), participantStamp == participantGeneration, canEdit, !Task.isCancelled,
+                  participantReader.identity == identity, row.id == receipt.id,
+                  row.fullName == receipt.fullName, row.mobilePhone == receipt.mobilePhone else { return }
+            participants.removeAll { $0.id == row.id }; participants.append(row); participantsState = .received
+            applyParticipant(row); manuallyEdited = true; invalidateConfirmation(); changed()
+        } catch { if matches(stamp, identity), participantStamp == participantGeneration { participantsState = .unavailable; changed() } }
+    }
     public func useManualEntry() {
         guard canEdit else { return }
         selectedParticipantID = nil; manuallyEdited = true; invalidateConfirmation(); changed()

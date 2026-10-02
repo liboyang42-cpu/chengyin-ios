@@ -6,9 +6,11 @@ import unittest
 ROOT = Path(__file__).resolve().parents[2]
 class ClubOwnerRefundContractChecks(unittest.TestCase):
     def text(self, path): return (ROOT / path).read_text()
-    def test_shipping_composition_has_read_only_access(self):
+    def test_shipping_composition_has_read_only_fallback_and_independent_nil_approval(self):
         app = self.text('App/AppSession.swift')
-        self.assertIn('access: ClubOwnerRefundReadOnlyAccess(governance: clubGovernanceAccess)', app)
+        self.assertIn('fallback: ClubOwnerRefundReadOnlyAccess(governance: clubGovernanceAccess)', app)
+        self.assertIn('approval: runtimeDependencies.ownerRefundApproval', app)
+        self.assertIn('ownerRefundApproval: ClubOwnerRefundApproval? = nil', self.text('App/NativeRuntimeDependencies.swift'))
         self.assertNotIn('ClubOwnerRefundService(offlineConfiguration:', app)
         code = self.text('Core/ClubOwnerRefundService.swift').split('public final class ClubOwnerRefundReadOnlyAccess:')[1]
         self.assertIn('public let canDispatchOffline = false', code)
@@ -73,7 +75,7 @@ class ClubOwnerRefundContractChecks(unittest.TestCase):
             self.assertIn(label, ui)
     def test_confirmation_cancel_and_lifecycle_are_wired(self):
         code = self.text('App/ClubOwnerRefundPanel.swift')
-        for marker in ['.sheet(item: $review, onDismiss: cancelPending)', 'coordinator?.cancel(pending)', '.interactiveDismissDisabled(status.inFlight)', '.onChange(of: identity)', '.onDisappear { coordinator?.leave(ownerID: ownerID) }', 'coordinator?.canDispatchOffline != true || status.inFlight']:
+        for marker in ['.sheet(item: $review, onDismiss: cancelPending)', 'coordinator?.cancel(pending)', '.interactiveDismissDisabled(status.inFlight)', '.onChange(of: identity)', '.onDisappear { coordinator?.leave(ownerID: ownerID) }', 'coordinator?.canDispatch != true || status.inFlight']:
             self.assertIn(marker, code)
         self.assertIn('ClubOwnerRefundPanel(target:', self.text('App/ClubGovernanceViews.swift'))
         self.assertIn('ownerRefund: governance.ownerRefund', self.text('App/ClubDetailView.swift'))

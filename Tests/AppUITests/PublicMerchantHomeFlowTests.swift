@@ -56,6 +56,11 @@ final class PublicMerchantHomeFlowTests: XCTestCase {
         app.buttons["merchant.publicHome.prepare"].tap()
         let confirm = app.buttons["merchant.publicHome.confirm"]
         XCTAssertTrue(confirm.waitForExistence(timeout: 5)); confirm.tap()
-        XCTAssertTrue(app.staticTexts["PENDING_PLATFORM_REVIEW"].waitForExistence(timeout: 5))
+        let status = app.descendants(matching: .any)["merchant.publicHome.status"].firstMatch
+        reveal(status, in: app)
+        XCTAssertEqual(status.value as? String, "PENDING_PLATFORM_REVIEW", app.debugDescription)
+        XCTAssertFalse(app.buttons["merchant.publicHome.confirm"].exists)
+        XCTAssertFalse(app.staticTexts["merchant.publicHome.unknown"].exists)
+        XCTAssertFalse(app.staticTexts["merchant.publicHome.writeFailure"].exists)
     }
 }

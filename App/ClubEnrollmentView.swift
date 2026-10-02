@@ -24,6 +24,8 @@ extension EnvironmentValues {
     @Environment(\.clubEnrollmentProfile) private var profile
     @State private var reader: ClubEnrollmentReader
     @State private var returningFromCheckin = false
+    private enum Destination: Hashable { case profile(memberID: Int), checkin(registrationID: Int) }
+    @State private var destination: Destination?
     init(clubID: Int, focusTopicID: Int? = nil, identity: ClubReadIdentity?, access: any ClubGovernanceAccess, coordinator: ClubGovernanceCoordinator) {
         self.clubID = clubID; self.identity = identity; self.access = access; self.coordinator = coordinator
         _reader = State(initialValue: ClubEnrollmentReader(clubID: clubID, focusTopicID: focusTopicID, access: access))
@@ -67,6 +69,16 @@ extension EnvironmentValues {
             }
         }
         .navigationTitle("club.enroll.title")
+        .navigationDestination(item: $destination) { destination in
+            switch destination {
+            case .profile(let memberID):
+                if let profile { SocialPublicProfileView(memberID: memberID, reader: profile.reader, squareReader: profile.squareReader, actions: profile.actions) }
+            case .checkin(let registrationID):
+                ClubGovernanceReadView(operation: .checkin, scope: .init(clubID: clubID, registrationID: registrationID), identity: identity, access: access, coordinator: coordinator)
+                    .onAppear { returningFromCheckin = true }
+            }
+        }
+        .onChange(of: identity) { _, _ in destination = nil }
         .accessibilityIdentifier("club.enroll.screen")
         .refreshable { await reader.refresh() }
         .task(id: identity) {
@@ -110,18 +122,14 @@ extension EnvironmentValues {
     }
     @ViewBuilder private func row(_ registrant: ClubEnrollmentRegistrant) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            if let memberID = registrant.memberID, let profile {
-                NavigationLink {
-                    SocialPublicProfileView(memberID: memberID, reader: profile.reader, squareReader: profile.squareReader, actions: profile.actions)
-                } label: { attendee(registrant) }.accessibilityIdentifier("club.enroll.profile.\(registrant.id)")
+            if let memberID = registrant.memberID, profile != nil {
+                Button { destination = .profile(memberID: memberID) } label: { attendee(registrant) }
+                    .buttonStyle(.borderless).accessibilityIdentifier("club.enroll.profile.\(registrant.id)")
             } else { attendee(registrant) }
-            NavigationLink {
-                ClubGovernanceReadView(operation: .checkin, scope: .init(clubID: clubID, registrationID: registrant.id), identity: identity, access: access, coordinator: coordinator)
-                    .onAppear { returningFromCheckin = true }
-            } label: {
+            Button { destination = .checkin(registrationID: registrant.id) } label: {
                 Label(LocalizedStringKey("club.enroll.checkin." + registrant.checkin.rawValue), systemImage: registrant.checkin == .done ? "checkmark.circle" : "ticket")
             }
-            .accessibilityIdentifier("club.enroll.checkin.\(registrant.id)")
+            .buttonStyle(.borderless).accessibilityIdentifier("club.enroll.checkin.\(registrant.id)")
         }.padding(.vertical, 4)
     }
     private func attendee(_ value: ClubEnrollmentRegistrant) -> some View {

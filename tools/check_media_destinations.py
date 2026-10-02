@@ -19,7 +19,7 @@ expect('Core/RetainedImageContracts.swift','case stamp','case roamPoster(poiID: 
 expect('Core/RoamStampCaptureCoordinator.swift','try self.storage.save(record','uploads.applyLocally','idempotencyKey: pending.idempotencyKey','ticket == generation','scope: scope','RoamStampCreatedReceipt.self')
 expect('Core/RoamMediaMutationService.swift','enabled: Bool = false','approval: OperationEndpointApproval? = nil','approvedImageOrigins: Set<String> = []','case .completeNode(let id','captured.destination == .roamPoster(poiID: id)')
 expect('Core/RoamPosterCoordinator.swift','node.completed','node.needRedeem','node.canInteract == false','node.validationMethod != 4','fix.datum == .gcj02','try journal.write(pending)','case .rejected','refreshNode')
-expect('App/AppSession.swift','func makeRoamStampCaptureCoordinator','func makeRoamPosterCoordinator','enabled: false, approvedOrigins: []','DisabledRoamPosterLocation()')
+expect('App/AppSession.swift','func makeRoamStampCaptureCoordinator','func makeRoamPosterCoordinator','enabled: factory.permits(.stampUpload), approvedOrigins: factory.configuration.stampImageOrigins','DisabledRoamPosterLocation()')
 expect('App/QuestifyApp.swift','stampDestination: { AnyView(SessionRoamStampCameraView()) }','posterDestination: { AnyView(SessionRoamPosterView(node: $0)) }')
 expect('Core/WalletCommerceService.swift','api/user/info','["member_id": String(memberID)]')
 expect('App/WithdrawalSupportLandingView.swift','withdrawalBalance(memberID: scope.accountID','stages(token: $1)','loadedScope == reader.scope','contact: WithdrawalSupportContact? = nil')

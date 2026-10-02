@@ -9,6 +9,7 @@ struct RoamBrowserView: View {
     var experienceReader: (any RoamExperienceReading)? = nil
     var nearbyTeamsDestination: (() -> AnyView)? = nil
     var stampDestination: (() -> AnyView)? = nil
+    var liveDestination: (() -> AnyView)? = nil
     var posterDestination: ((RoamNodeDetail) -> AnyView)? = nil
     var mediaScope: UUID = UUID()
     var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
@@ -89,7 +90,7 @@ struct RoamBrowserView: View {
                 if let nearbyTeamsDestination { ToolbarItem(placement: .topBarTrailing) { NavigationLink("nearby.title", destination: nearbyTeamsDestination) } }
                 if let experienceReader {
                     ToolbarItem(placement: .topBarLeading) {
-                        NavigationLink { RoamExperienceHubView(reader: experienceReader, stampDestination: stampDestination) } label: {
+                        NavigationLink { RoamExperienceHubView(reader: experienceReader, stampDestination: stampDestination, liveDestination: liveDestination) } label: {
                             Label("roam.experience.title", systemImage: "book.closed")
                         }.accessibilityIdentifier("roam.experience.open")
                     }

@@ -1,28 +1,23 @@
 import SwiftUI
 
-/// No credential input, QR rendering, remote image, scanner permission or issuance call.
+/// The injected normal-app factory owns scoped issuance; default composition stays disabled.
 @MainActor struct OrderPassPreviewView: View {
     let orderID: Int
     let coordinator: OrderLifecycleCoordinator
+    @Environment(\.verificationCodeFactory) private var codeFactory
     var body: some View {
-        List {
-            Section {
-                VStack(alignment: .leading, spacing: 16) {
-                    Image(systemName: "ticket").font(.largeTitle).accessibilityHidden(true)
-                    Text("orderLifecycle.pass.noCode").font(.title2.bold())
-                    if let detail = coordinator.detail, detail.id == orderID {
-                        Text(LocalizedStringKey("orderLifecycle.pass." + OrderPassAvailability(detail: detail).rawValue))
-                    } else { Text("orderLifecycle.issue.stale") }
-                    Text("orderLifecycle.pass.serverAuthority").font(.footnote).foregroundStyle(.secondary)
-                }.fixedSize(horizontal: false, vertical: true).padding(.vertical, 12)
+        Group {
+            if let codeFactory {
+                VerificationCodeView(model: codeFactory(.init(kind: .ticket, id: orderID)))
+                    .id(coordinator.scope)
+            } else {
+                ContentUnavailableView {
+                    Label("verificationCode.ticket.title", systemImage: "ticket")
+                } description: {
+                    Text("verificationCode.phase.disabled").accessibilityIdentifier("verificationCode.disabled")
+                }
             }
-            Section("orderLifecycle.pass.verification") {
-                Text("orderLifecycle.pass.verificationHint")
-                Text("orderLifecycle.hardOff").font(.footnote).foregroundStyle(.secondary)
-            }
-        }
-        .appNavigationTitle("orderLifecycle.pass.title")
-        .accessibilityIdentifier("orderLifecycle.pass.preview")
+        }.accessibilityIdentifier("orderLifecycle.pass.preview")
     }
 }
 

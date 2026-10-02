@@ -50,11 +50,11 @@ class MerchantDiscoveryRedemptionContracts(unittest.TestCase):
         self.assertIn('testingMutationTransport: (any MerchantBusinessTestTransport)? = nil', service)
         text = self.read('Core/CityNodeRedemption.swift')
         prepare = text.split('public func prepare')[1].split('public func cancelReview')[0]
-        self.assertLess(prepare.index('service.canExecuteSyntheticMutation'), prepare.index('currentSession()'))
+        self.assertLess(prepare.index('service.canExecuteVerificationMutation'), prepare.index('currentSession()'))
         confirm = text.split('public func confirm')[1].split('private func intent')[0]
         self.assertLess(confirm.index('service.access'), confirm.index('journal.reserve'))
         self.assertLess(confirm.index('access.merchantID == frozen.merchantID'), confirm.index('journal.reserve'))
-        self.assertLess(confirm.index('journal.reserve'), confirm.index('service.syntheticEnvelope'))
+        self.assertLess(confirm.index('journal.reserve'), confirm.index('service.verificationEnvelope'))
         self.assertIn('target: "redemption"', text)
         self.assertIn('reserved == nil ? errorKey(error) : "merchant.cityRedeem.unknown"', confirm)
         self.assertNotIn('journal.complete', text.split('public func invalidate')[1].split('public func confirm')[0])

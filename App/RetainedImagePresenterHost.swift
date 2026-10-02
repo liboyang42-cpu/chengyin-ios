@@ -6,18 +6,18 @@ import UIKit
 @MainActor final class RetainedImagePickerHost {
     var nativeSelectionEnabled = false
     weak var controller: UIViewController?
-    func makePicker() -> RetainedNativeImagePicker {
+    func makePicker(selectionApproval: (() -> Bool)? = nil) -> RetainedNativeImagePicker {
         weak var presented: UIViewController?
-        return .init(enabled: nativeSelectionEnabled, present: { [weak self] picker in
-            guard let self, self.nativeSelectionEnabled, let controller = self.controller,
+        return .init(enabled: selectionApproval?() ?? nativeSelectionEnabled, present: { [weak self] picker in
+            guard let self, selectionApproval?() ?? self.nativeSelectionEnabled, let controller = self.controller,
                   controller.viewIfLoaded?.window != nil, controller.presentedViewController == nil else { return false }
             presented = picker; controller.present(picker, animated: true); return true
         }, dismiss: {
             presented?.dismiss(animated: true); presented = nil
         })
     }
-    func imPicker(scope: IMScope, currentScope: @escaping () -> IMScope?) -> any IMImageSelecting {
-        IMNativeImagePicker(picker: makePicker(), currentScope: currentScope)
+    func imPicker(scope: IMScope, currentScope: @escaping () -> IMScope?, selectionApproval: (() -> Bool)? = nil) -> any IMImageSelecting {
+        IMNativeImagePicker(picker: makePicker(selectionApproval: selectionApproval), currentScope: currentScope)
     }
 }
 @MainActor struct RetainedImagePresenterHost: UIViewControllerRepresentable {

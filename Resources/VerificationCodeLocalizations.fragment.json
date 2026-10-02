@@ -1,0 +1,438 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "verificationCode.ticket.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entry pass"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "入场码"
+          }
+        }
+      }
+    },
+    "verificationCode.city.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "City voucher code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "据点核销码"
+          }
+        }
+      }
+    },
+    "verificationCode.city.open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open voucher code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开据点核销码"
+          }
+        }
+      }
+    },
+    "verificationCode.ticket.authority": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show this live code to the authorized host. A scan result and any remaining chapters are confirmed by the server."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "向有权限的主办方出示此实时码。核销结果及剩余章节以服务器记录为准。"
+          }
+        }
+      }
+    },
+    "verificationCode.city.authority": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server checks this city node and any pending voucher entitlement. Showing a code does not mean a voucher was granted."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务器会检查据点状态和待核销资格。出示二维码不代表已获得优惠券。"
+          }
+        }
+      }
+    },
+    "verificationCode.show": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "出示二维码"
+          }
+        }
+      }
+    },
+    "verificationCode.retry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Get a new code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新获取二维码"
+          }
+        }
+      }
+    },
+    "verificationCode.remaining": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seconds remaining"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "剩余秒数"
+          }
+        }
+      }
+    },
+    "verificationCode.loading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Getting a live code…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在获取实时码…"
+          }
+        }
+      }
+    },
+    "verificationCode.image": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live verification QR code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "实时核销二维码"
+          }
+        }
+      }
+    },
+    "verificationCode.renderFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The QR image could not be created. Get a new code."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "二维码生成失败，请重新获取。"
+          }
+        }
+      }
+    },
+    "verificationCode.checkOrder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check order status"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看订单最新状态"
+          }
+        }
+      }
+    },
+    "verificationCode.checking": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reading order status…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在读取订单状态…"
+          }
+        }
+      }
+    },
+    "verificationCode.readbackFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The latest order status could not be read. No scan result has been confirmed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法读取订单最新状态，尚未确认核销结果。"
+          }
+        }
+      }
+    },
+    "verificationCode.order.active": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The registration is active. A previous scan may still leave chapters to use."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "报名单有效。已有核销记录的票仍可能有待使用章节。"
+          }
+        }
+      }
+    },
+    "verificationCode.order.ended": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The registration is not active. This code has been cleared."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "报名单当前不可使用，已清除二维码。"
+          }
+        }
+      }
+    },
+    "verificationCode.phase.review": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Get a live code when you are ready to show it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "准备出示时再获取实时码。"
+          }
+        }
+      }
+    },
+    "verificationCode.phase.ready": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking code validity…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在检查二维码有效期…"
+          }
+        }
+      }
+    },
+    "verificationCode.phase.loading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Getting a live code…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在获取实时码…"
+          }
+        }
+      }
+    },
+    "verificationCode.phase.expired": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This code has expired and has been cleared."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "二维码已过期并清除。"
+          }
+        }
+      }
+    },
+    "verificationCode.phase.paused": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The code was cleared while this screen was inactive."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "页面暂停时已清除二维码。"
+          }
+        }
+      }
+    },
+    "verificationCode.phase.disabled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code issuance is not enabled for this account and service."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前账号和服务尚未开放出码。"
+          }
+        }
+      }
+    },
+    "verificationCode.phase.login": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in again to get a code."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请重新登录后获取二维码。"
+          }
+        }
+      }
+    },
+    "verificationCode.phase.invalid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The service returned a code that could not be safely displayed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务返回的二维码暂时无法安全展示。"
+          }
+        }
+      }
+    },
+    "verificationCode.phase.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This pass or voucher is unavailable. Check the latest server record."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此票或据点码暂不可用，请查看最新服务端记录。"
+          }
+        }
+      }
+    },
+    "verificationCode.phase.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A code could not be obtained. You can retry."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未能获取二维码，请重试。"
+          }
+        }
+      }
+    },
+    "verificationCode.phase.stale": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your account or service changed. Reopen this screen to continue."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账号或服务已变化，请重新打开此页面。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

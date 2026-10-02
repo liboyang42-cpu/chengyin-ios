@@ -141,6 +141,10 @@ struct MerchantContentFields: View {
             ForEach(names, id: \.self) { name in
                 if let text = value[name].display, !text.isEmpty {
                     LabeledContent(LocalizedStringKey("merchant.content.field." + name)) { Text(verbatim: text).textSelection(.enabled) }
+                        .accessibilityElement(children: .combine)
+                        .accessibilityLabel(Text(LocalizedStringKey("merchant.content.field." + name)))
+                        .accessibilityValue(Text(verbatim: text))
+                        .accessibilityIdentifier("merchant.content.readField." + name)
                 }
             }
         }.font(.subheadline)
@@ -170,18 +174,25 @@ struct MerchantContentFields: View {
     @ObservedObject var model: MerchantContentViewModel
     let rows: [MerchantContentValue]
     let kind: Kind
+    private var rowNamespace: String {
+        switch kind { case .city: return "city"; case .cityApplication: return "cityApplication"; case .player: return "player"; case .query(let query): return query.key }
+    }
     var body: some View {
-        if rows.isEmpty { ContentUnavailableView("merchant.content.empty", systemImage: "tray") }
-        ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
-            VStack(alignment: .leading, spacing: 12) {
-                Text(verbatim: row["merchantName"].text ?? row["name"].text ?? row["title"].text ?? row["topicName"].text ?? row["activityName"].text ?? row["poiName"].text ?? "—").font(.headline)
-                MerchantContentFields(value: row, names: fields)
-                actions(row)
-            }.padding().frame(maxWidth: .infinity, alignment: .leading)
-                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20))
-                .accessibilityElement(children: .contain)
-                .accessibilityIdentifier("merchant.content.row." + String(index))
-        }
+        // Keep each row collection in its own concrete identity scope. City nodes and
+        // city applications otherwise flatten two offset-zero rows into one lazy parent.
+        VStack(alignment: .leading, spacing: 18) {
+            if rows.isEmpty { ContentUnavailableView("merchant.content.empty", systemImage: "tray") }
+            ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
+                VStack(alignment: .leading, spacing: 12) {
+                    Text(verbatim: row["merchantName"].text ?? row["name"].text ?? row["title"].text ?? row["topicName"].text ?? row["activityName"].text ?? row["poiName"].text ?? "—").font(.headline)
+                    MerchantContentFields(value: row, names: fields)
+                    actions(row)
+                }.padding().frame(maxWidth: .infinity, alignment: .leading)
+                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20))
+                    .accessibilityElement(children: .contain)
+                    .accessibilityIdentifier("merchant.content.row." + rowNamespace + "." + String(index))
+            }
+        }.id(rowNamespace)
     }
     private var fields: [String] {
         switch kind {

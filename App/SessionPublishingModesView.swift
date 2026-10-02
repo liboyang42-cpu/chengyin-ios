@@ -3,16 +3,17 @@ import SwiftUI
 /// Real creator entry. Every destination is recreated at the account/role epoch boundary.
 @MainActor struct SessionPublishingModesView: View {
     @EnvironmentObject private var session: AppSession
+    var makeAIDraft: (() -> any PublishingAIDraftServing)? = nil
     @State private var seed: ProjectEditDraft?
     @State private var showEditor = false
     @State private var resource: PublishedResource?
     var body: some View {
-        PublishingModesView(service: session.publishingService, account: session.publishingSession,
+        PublishingModesView(service: session.publishingService, account: session.publishingSession, makeAIDraft: makeAIDraft ?? session.publishingAIDraftFactory,
                             placeSearch: PublishingMapKitAdapter(), draftStore: session.publishingDraftStore, openProfessional: { seed = $0; showEditor = true },
                             openResource: { resource = $0 })
             .navigationDestination(isPresented: $showEditor) {
                 if let seed {
-                    ProjectEditView(coordinator: session.projectEditor(product: seed.product), sessionRevision: session.sessionRevision, seed: seed, publisherClient: session.publisherLifecycleContext?.client)
+                    ProjectEditView(coordinator: session.projectEditor(product: seed.product, owner: seed.owner), sessionRevision: session.sessionRevision, seed: seed, publisherClient: session.publisherLifecycleContext?.client, publisherHost: { AnyView(SessionPublisherLifecycleView(session: session, resource: $0)) })
                         .id(session.publishingSession?.epoch)
                 }
             }

@@ -16,6 +16,12 @@ public protocol ParticipantWriting: AnyObject {
     var isConfigured: Bool { get }
     var identity: ProfileReadIdentity? { get }
     func perform(_ mutation: ParticipantMutation, expectedIdentity: ProfileReadIdentity) async throws
+    func performReturningParticipant(_ mutation: ParticipantMutation, requestID: UUID, expectedIdentity: ProfileReadIdentity) async throws -> ProfileParticipant?
+}
+public extension ParticipantWriting {
+    func performReturningParticipant(_ mutation: ParticipantMutation, requestID: UUID, expectedIdentity: ProfileReadIdentity) async throws -> ProfileParticipant? {
+        try await perform(mutation, expectedIdentity: expectedIdentity); return nil
+    }
 }
 
 /// Credentials never enter the form or coordinator. A pre-dispatch identity mismatch sends
@@ -35,14 +41,18 @@ public final class ParticipantSessionWriter: ParticipantWriting {
     }
 
     public func perform(_ mutation: ParticipantMutation, expectedIdentity: ProfileReadIdentity) async throws {
+        _ = try await performReturningParticipant(mutation, requestID: UUID(), expectedIdentity: expectedIdentity)
+    }
+    public func performReturningParticipant(_ mutation: ParticipantMutation, requestID: UUID, expectedIdentity: ProfileReadIdentity) async throws -> ProfileParticipant? {
         guard let service else { throw ParticipantWriteError.notSent(.notConfigured) }
         guard let snapshot = currentSession() else { throw ParticipantWriteError.notSent(.unauthorized) }
         guard snapshot.identity == expectedIdentity else { throw ParticipantWriteError.notSent(.unauthorized) }
         guard !Task.isCancelled else { throw ParticipantWriteError.cancelledBeforeDispatch }
         do {
-            try await service.perform(mutation, token: snapshot.token)
+            let row = try await service.performReturningParticipant(mutation, requestID: requestID, token: snapshot.token)
             guard currentSession() == snapshot else { throw ParticipantWriteError.outcomeUnknown(.accountChanged) }
             guard !Task.isCancelled else { throw ParticipantWriteError.outcomeUnknown(.cancelled) }
+            return row
         } catch {
             guard currentSession() == snapshot else { throw ParticipantWriteError.outcomeUnknown(.accountChanged) }
             if let writeError = error as? ParticipantWriteError,

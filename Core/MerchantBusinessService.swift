@@ -3,17 +3,19 @@ import Foundation
 import FoundationNetworking
 #endif
 
-/// Writes only execute through an explicitly injected test transport. The production initializer
-/// never wires URLSession to mutation dispatch. Read adapters use the approved host configuration.
+/// General mutations remain synthetic-only. The separate production verification transport
+/// admits only source verification paths and an independently scoped deployment grant.
 public protocol MerchantBusinessTestTransport: HTTPTransport {}
 public struct MerchantBusinessService {
     private let configuration: APIConfiguration
     private let readTransport: any HTTPTransport
+    private let verificationTransport: MerchantVerificationHTTPTransport?
     private let mutationTransport: (any MerchantBusinessTestTransport)?
     public var canExecuteSyntheticMutation: Bool { mutationTransport != nil }
+    public var canExecuteVerificationMutation: Bool { mutationTransport != nil || verificationTransport != nil }
     public var realm: String { configuration.baseURL.absoluteString }
-    public init(configuration: APIConfiguration, readTransport: any HTTPTransport, testingMutationTransport: (any MerchantBusinessTestTransport)? = nil) {
-        self.configuration = configuration; self.readTransport = readTransport; mutationTransport = testingMutationTransport
+    public init(configuration: APIConfiguration, readTransport: any HTTPTransport, testingMutationTransport: (any MerchantBusinessTestTransport)? = nil, verificationTransport: MerchantVerificationHTTPTransport? = nil) {
+        self.configuration = configuration; self.readTransport = readTransport; mutationTransport = testingMutationTransport; self.verificationTransport = verificationTransport
     }
     public func makeRequest(_ descriptor: MerchantBusinessRequest, token: String) throws -> URLRequest {
         guard AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
@@ -62,6 +64,10 @@ public struct MerchantBusinessService {
         let descriptor = try mutation.request(requestID: requestID)
         let body = try await envelope(descriptor, token: token, transport: mutationTransport)
         return try .init(mutation: mutation, message: body.mbText("msg"), data: Self.unwrap(body))
+    }
+    func verificationEnvelope(_ descriptor: MerchantBusinessRequest, token: String) async throws -> MerchantBusinessObject {
+        if let verificationTransport { return try await envelope(descriptor, token: token, transport: verificationTransport) }
+        return try await syntheticEnvelope(descriptor, token: token)
     }
     // Internal shared primitive for the separate typed redemption adapter. Never sends through reads.
     func syntheticEnvelope(_ descriptor: MerchantBusinessRequest, token: String) async throws -> MerchantBusinessObject {

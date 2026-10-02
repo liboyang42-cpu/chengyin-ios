@@ -2,13 +2,15 @@ import XCTest
 
 /// Authored for Xcode/simulator only. No UI test was run in the Linux workspace.
 final class ProjectEditFlowTests: XCTestCase {
+    override func setUp() { super.setUp(); continueAfterFailure = false }
     private func launch(_ flags: [String] = []) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", "(en)", "-AppleLocale", "en_US", "--uitesting-module", "projectEdit"] + flags
         app.launch(); return app
     }
     private func find(_ element: XCUIElement, in app: XCUIApplication) {
-        for _ in 0..<12 { if element.isHittable { return }; app.swipeUp() }
+        for _ in 0..<12 { if element.exists && element.isHittable { return }; app.swipeUp() }
+        XCTAssertTrue(element.waitForExistence(timeout: 3))
         XCTAssertTrue(element.isHittable)
     }
     private func replace(_ field: XCUIElement, with text: String) {
@@ -39,11 +41,16 @@ final class ProjectEditFlowTests: XCTestCase {
     }
     func testNewChapterRequiresStoryBeforeNodeCreation() {
         let app = launch(["--project-edit-blank"])
-        let add = app.buttons["projectEdit.addChapter"]; XCTAssertTrue(add.waitForExistence(timeout: 5)); find(add, in: app); add.tap()
+        XCTAssertTrue(app.textFields["projectEdit.name"].waitForExistence(timeout: 5))
+        let add = app.buttons["projectEdit.addChapter"]; find(add, in: app); add.tap()
         let chapter = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "projectEdit.chapter.")).firstMatch
-        chapter.tap(); XCTAssertFalse(app.buttons["projectEdit.addNode"].isEnabled)
-        app.textFields["projectEdit.story"].tap(); app.textFields["projectEdit.story"].typeText("A real opening story")
-        XCTAssertTrue(app.buttons["projectEdit.addNode"].isEnabled)
+        find(chapter, in: app); chapter.tap()
+        let addNode = app.buttons["projectEdit.addNode"]
+        XCTAssertTrue(addNode.waitForExistence(timeout: 3)); XCTAssertFalse(addNode.isEnabled)
+        let story = app.textFields["projectEdit.story"]
+        XCTAssertTrue(story.waitForExistence(timeout: 3)); story.tap(); story.typeText("A real opening story")
+        XCTAssertEqual(story.value as? String, "A real opening story")
+        XCTAssertTrue(addNode.isEnabled)
     }
     func testWhitelistDisablesStructureAndScheduleButKeepsCopyEditable() {
         let app = launch(["--project-edit-whitelist"])

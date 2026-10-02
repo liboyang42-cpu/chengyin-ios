@@ -6,6 +6,7 @@ import MapKit
 @MainActor struct PublishingModesView: View {
     let service: PublishingService?
     let account: PublishingSession?
+    var makeAIDraft: (() -> any PublishingAIDraftServing)? = nil
     var placeSearch: (any PublishingPlaceSearching)? = nil
     var draftStore: PublishingDraftStore? = nil
     var openProfessional: (ProjectEditDraft) -> Void
@@ -13,7 +14,7 @@ import MapKit
     var body: some View {
         List {
             Section { Text("publishModes.offlineNotice").foregroundStyle(.secondary) }
-            NavigationLink("publishModes.quick") { QuickPublishingView(placeSearch: placeSearch, account: account, draftStore: draftStore, openProfessional: openProfessional).id(account?.epoch) }
+            NavigationLink("publishModes.quick") { QuickPublishingView(placeSearch: placeSearch, account: account, draftStore: draftStore, makeAIDraft: makeAIDraft, openProfessional: openProfessional).id(account?.epoch) }
             NavigationLink("publishModes.activity") { ActivityPublishingView(service: service, account: account, placeSearch: placeSearch, draftStore: draftStore) }
             NavigationLink("publishModes.projects") { PublishingProjectsView(service: service, account: account, openResource: openResource) }
             NavigationLink("publishModes.identity") { PublishingIdentityStatusView(service: service, account: account) }
@@ -25,7 +26,9 @@ import MapKit
     var placeSearch: (any PublishingPlaceSearching)?
     var account: PublishingSession? = nil
     var draftStore: PublishingDraftStore? = nil
+    var makeAIDraft: (() -> any PublishingAIDraftServing)? = nil
     var openProfessional: (ProjectEditDraft) -> Void
+    @State private var showAI = false
     @State private var draft = QuickPublishDraft()
     @State private var selecting: UUID?
     @State private var problem = false
@@ -33,7 +36,10 @@ import MapKit
     @State private var storageMessage = ""
     var body: some View {
         Form {
-            Section { Text("publishModes.aiNotice"); Text("publishModes.aiDisabled").foregroundStyle(.secondary) }
+            Section {
+                Text("publishModes.aiNotice")
+                Button("contextPublish.ai.title") { showAI = true }.accessibilityIdentifier("contextPublish.ai.open")
+            }
             Section("publishModes.details") {
                 TextField("publishModes.name", text: $draft.title).accessibilityIdentifier("publishModes.quick.name")
                 TextField("publishModes.description", text: $draft.description, axis: .vertical).lineLimit(3...8)
@@ -69,6 +75,12 @@ import MapKit
                 do { openProfessional(try draft.professionalSeed()); problem = false } catch { problem = true }
             }.accessibilityIdentifier("publishModes.quick.continue")
         }.navigationTitle(Text("publishModes.quick"))
+        .onChange(of: account) { _, _ in showAI = false; selecting = nil; draft = .init(); draftID = UUID(); storageMessage = "" }
+        .sheet(isPresented: $showAI) {
+            PublishingAIDraftSheet(client: makeAIDraft?(), product: draft.product) { value in
+                draft = value; draftID = UUID(); problem = false; storageMessage = ""
+            }
+        }
         .sheet(isPresented: Binding(get: { selecting != nil }, set: { if !$0 { selecting = nil } })) {
             PublishingPlacePicker(provider: placeSearch) { place in
                 if let index = draft.nodes.firstIndex(where: { $0.id == selecting }) { draft.nodes[index].confirmedPlace = place }; selecting = nil

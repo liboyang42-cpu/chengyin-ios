@@ -40,10 +40,16 @@ public struct ClubOwnerRefundService {
     var identity: ClubReadIdentity? { get }
     var namespace: String { get }
     var canDispatchOffline: Bool { get }
+    var canDispatch: Bool { get }
+    var authorizationGeneration: UUID? { get }
     func evidence(_ target: ClubOwnerRefundTarget) async throws -> ClubOwnerRefundEvidence
     func send(_ review: ClubOwnerRefundReview) async throws -> ClubOwnerRefundReceipt
 }
-/// Shipping composition has only a reader. There is no token, transport or write adapter.
+public extension ClubOwnerRefundAccess {
+    var canDispatch: Bool { canDispatchOffline }
+    var authorizationGeneration: UUID? { nil }
+}
+/// Default shipping composition has only a reader. There is no token, transport or write adapter.
 @MainActor public final class ClubOwnerRefundReadOnlyAccess: ClubOwnerRefundAccess {
     private let governance: any ClubGovernanceAccess
     public init(governance: any ClubGovernanceAccess) { self.governance = governance }

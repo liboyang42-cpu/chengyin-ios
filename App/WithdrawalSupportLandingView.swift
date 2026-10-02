@@ -3,6 +3,7 @@ import SwiftUI
 @MainActor struct WithdrawalSupportLandingView: View {
     let reader: WalletCommerceReader
     var contact: WithdrawalSupportContact? = nil
+    @Environment(\.bankWithdrawalDestination) private var bankDestination
     @Environment(\.locale) private var locale
     @State private var balance: WithdrawalBalance?
     @State private var stages: WalletFundsStages?
@@ -34,7 +35,7 @@ import SwiftUI
                 } else { Text(LocalizedStringKey(stagesFailed ? "wallet.failed" : "wallet.unavailable")) }
             }
             Section {
-                NavigationLink("bank.withdrawal.title") { BankWithdrawalView(reader: reader) }
+                NavigationLink("bank.withdrawal.title") { if let bankDestination { bankDestination() } else { BankWithdrawalView(reader: reader) } }
                     .accessibilityIdentifier("bank.withdrawal.entry")
                 Text("bank.withdrawal.supportAlternative")
                 Button("withdrawal.support.contact") { showContact = true }.accessibilityIdentifier("withdrawal.support.contact")

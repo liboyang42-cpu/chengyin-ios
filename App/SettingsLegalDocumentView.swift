@@ -42,7 +42,7 @@ import SwiftUI
                     Text(LocalizedStringKey(reason.messageKey)).foregroundStyle(.secondary)
                     Text("settingsNative.legal.noAcceptance").font(.footnote).foregroundStyle(.secondary)
                 case .loaded(.sourceDocument(let document)):
-                    Text("settingsNative.legal.sourceNotice").font(.footnote).foregroundStyle(.secondary)
+                    Text("settingsNative.legal.sourceNotice").font(.footnote).foregroundStyle(.primary)
                         .accessibilityIdentifier("settingsNative.legal.sourceNotice")
                     Text(verbatim: document.title).font(.largeTitle.bold()).accessibilityAddTraits(.isHeader)
                     HStack(alignment: .firstTextBaseline) {

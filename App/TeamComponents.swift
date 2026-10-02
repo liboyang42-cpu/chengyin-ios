@@ -15,13 +15,23 @@ import SwiftUI
     var actionLocked: Bool { running || coordinator.busy || coordinator.pending != nil || coordinator.writeState == .simulated || coordinator.writeState == .acknowledged || coordinator.writeState == .blocked }
 }
 @MainActor struct TeamNotice: View {
-    let coordinator: TeamCoordinator
+    // Capture value inputs for SwiftUI's child-view diff. The coordinator is not
+    // Observable, so retaining only its reference leaves notices stale after writes,
+    // invalid links and sign-out even when the parent model publishes a redraw.
+    let canSimulate: Bool
+    let messageKey: String?
+    let hasPending: Bool
+    init(coordinator: TeamCoordinator) {
+        canSimulate = coordinator.canSimulate
+        messageKey = coordinator.messageKey
+        hasPending = coordinator.pending != nil
+    }
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            if coordinator.canSimulate { Label("team.fixtureNotice", systemImage: "testtube.2").accessibilityIdentifier("team.fixtureNotice") }
+            if canSimulate { Label("team.fixtureNotice", systemImage: "testtube.2").accessibilityIdentifier("team.fixtureNotice") }
             Text("team.writesDisabled")
-            if let key = coordinator.messageKey {
-                Label(LocalizedStringKey(key), systemImage: coordinator.pending == nil ? "info.circle" : "exclamationmark.triangle")
+            if let key = messageKey {
+                Label(LocalizedStringKey(key), systemImage: hasPending ? "exclamationmark.triangle" : "info.circle")
                     .accessibilityIdentifier("team.message")
             }
         }.font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)

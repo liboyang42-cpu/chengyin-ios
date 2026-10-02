@@ -84,7 +84,8 @@ public final class ProfileEditCoordinator {
         do {
             let latest = try await read(expected)
             guard active(expected, request) else { return }
-            guard latest.draft == original.draft else { snapshot = latest; messageKey = "profile.edit.changed"; return }
+            guard latest.draft == original.draft,
+                  draft.routePreferenceIDs == nil || latest.tagIds == original.tagIds else { snapshot = latest; messageKey = "profile.edit.changed"; return }
             let payload = try ProfileEditPayload(draft: draft, preserving: latest)
             confirmation = .init(id: UUID(), payload: payload, snapshot: latest, session: expected)
         } catch {

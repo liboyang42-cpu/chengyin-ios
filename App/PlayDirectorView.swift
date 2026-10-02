@@ -174,7 +174,7 @@ import UIKit
                 Button("playx.review") { prepare() }.accessibilityIdentifier("playx.director.review")
             }
         }.navigationTitle("playx.director.title")
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("playx.cancel") { dismiss() } } }
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("playx.cancel") { dismiss() }.accessibilityIdentifier("playx.director.cancelEditor") } }
             .confirmationDialog("playx.review", isPresented: $confirm, titleVisibility: .visible) {
                 Button("playx.submit") { if let draft { submit(draft) } }
             } message: { Text(LocalizedStringKey(action == .finish ? "playx.director.finishNotice" : action == .broadcast ? "playx.director.broadcastNotice" : "playx.director.commandNotice")) }

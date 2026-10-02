@@ -36,12 +36,20 @@ public struct ParticipantService {
     }
 
     public func perform(_ mutation: ParticipantMutation, token: String) async throws {
+        _ = try await performReturningParticipant(mutation, requestID: nil, token: token)
+    }
+
+    /// Current create response carries the authoritative address row. Older acknowledgments
+    /// remain successful but cannot identify a newly created participant for auto-selection.
+    public func performReturningParticipant(_ mutation: ParticipantMutation, requestID: UUID?, token: String) async throws -> ProfileParticipant? {
         let request: URLRequest
         do {
             guard AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
+            var fields = try mutation.fields()
+            if case .save(let draft) = mutation, draft.id == nil, let requestID { fields["requestId"] = requestID.uuidString.lowercased() }
             request = try AuthRequestBuilder.makeFormRequest(
                 url: configuration.baseURL.appendingPathComponent(mutation.path),
-                fields: mutation.fields(), token: token)
+                fields: fields, token: token)
         } catch {
             throw ParticipantWriteError.notSent(.invalidRequest)
         }
@@ -66,7 +74,17 @@ public struct ParticipantService {
             throw ParticipantWriteError.outcomeUnknown(.malformedResponse)
         }
         guard code == 200 else { throw ParticipantWriteError.rejected(failure) }
-        // The Flutter operation requires code=200 only; data may be absent or null.
+        if requestID != nil, case .save(let draft) = mutation, draft.id == nil {
+            struct Created: Decodable { let data: ProfileParticipant? }
+            if let row = (try? JSONDecoder().decode(Created.self, from: data))?.data {
+                guard row.id > 0, row.fullName == draft.fullName.trimmingCharacters(in: .whitespacesAndNewlines),
+                      row.mobilePhone == draft.mobilePhone.trimmingCharacters(in: .whitespacesAndNewlines) else {
+                    throw ParticipantWriteError.outcomeUnknown(.malformedResponse)
+                }
+                return row
+            }
+        }
+        return nil
     }
 
     private struct Response: Decodable {

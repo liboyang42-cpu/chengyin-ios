@@ -47,13 +47,13 @@ private final class PlayDirectorPrefabFixtureTransport: HTTPTransport {
 }
 @MainActor struct PlayDirectorPrefabFixtureHostView: View {
     let scenario: String
-    private let director: PlayDirectorCoordinator
-    private let prefab: PlayPrefabRuntimeCoordinator
+    @State private var director: PlayDirectorCoordinator
+    @State private var prefab: PlayPrefabRuntimeCoordinator
     init(scenario: String) {
         self.scenario = scenario
         let state = PlayDirectorPrefabFixtureState(scenario: scenario)
         let service = PlayExperienceService(configuration: try! APIConfiguration(baseURL: URL(string: "https://example.com/fixture/")!), transport: PlayDirectorPrefabFixtureTransport { try await state.response($0) }, enabled: [.reads, .directorCommands, .classicCompletion, .mediaUpload])
-        director = PlayDirectorCoordinator(activityID: 41, service: service, currentSession: { state.session })
+        _director = State(initialValue: PlayDirectorCoordinator(activityID: 41, service: service, currentSession: { state.session }))
         let store = PlayPrefabRuntimeStore(storage: PlayPrefabFixtureStorage())
         var record = PlayPrefabRuntimeRecord(owner: PlayPrefabRuntimeStore.owner(state.session), scopeComponent: PlayPrefabRuntimeStore.scope(.activity(41)))
         if scenario == "prefabBoot" { record.story.scene = .boot }
@@ -62,7 +62,7 @@ private final class PlayDirectorPrefabFixtureTransport: HTTPTransport {
             if kind == .location { return .location(121, 31, coordinateSystem: "GCJ02") }
             return .photo(Data([1,2,3]), mimeType: "image/jpeg")
         }
-        prefab = PlayPrefabRuntimeCoordinator(scope: .activity(41), service: service, provider: provider, store: store, currentSession: { state.session })
+        _prefab = State(initialValue: PlayPrefabRuntimeCoordinator(scope: .activity(41), service: service, provider: provider, store: store, currentSession: { state.session }))
     }
     var body: some View {
         NavigationStack {

@@ -239,6 +239,7 @@ jobs:
           path: |
             ${{ runner.temp }}/questify-ui-attachments/**/*.png
             ${{ runner.temp }}/questify-ui-attachments/**/*.jpg
+            ${{ runner.temp }}/questify-ui-attachments/**/*.txt
             ${{ runner.temp }}/questify-ui-attachments/**/manifest.json
           if-no-files-found: warn
           retention-days: 1

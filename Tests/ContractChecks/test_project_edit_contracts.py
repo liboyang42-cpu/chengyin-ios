@@ -20,7 +20,7 @@ class ProjectEditContracts(unittest.TestCase):
         self.assertIn('case disabled, readOnly, approved }',self.service)
         adapter=(ROOT/'Core/ProjectEditHTTPService.swift').read_text()
         for guard in ['approval.allows', 'store.pending', 'dispatchStarted = true', 'fresh.snapshot == baseline', 'return .unknown']: self.assertIn(guard,adapter)
-        self.assertIn('service: ProjectEditDisabledService()', (ROOT/'App/AppSession.swift').read_text())
+        self.assertIn('else { service = ProjectEditDisabledService() }', (ROOT/'App/AppSession.swift').read_text())
     def test_known_contract_paths_only(self):
         self.assertEqual(set(re.findall(r'"(/api/[^\"]+)"',self.contract)), {'/api/topic/create','/api/topic/update','/api/topic/edit-detail','/api/ai/safety/precheck'})
     def test_source_endpoint_and_whitelist_alignment(self):

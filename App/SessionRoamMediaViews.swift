@@ -4,7 +4,7 @@ import SwiftUI
     @EnvironmentObject private var session: AppSession
     @State private var coordinator: RoamStampCaptureCoordinator?
     var body: some View {
-        RoamStampCameraView(coordinator: coordinator, cameraEnabled: false)
+        RoamStampCameraView(coordinator: coordinator, cameraEnabled: session.stampCameraEnabled)
             .id(coordinator.map { ObjectIdentifier($0) })
             .task(id: session.walletCommerceScope) { coordinator?.cancel(); coordinator = session.makeRoamStampCaptureCoordinator() }
             .onChange(of: session.walletCommerceScope) { _, _ in coordinator?.cancel(); coordinator = nil }

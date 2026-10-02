@@ -1,0 +1,448 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "contextPublish.ai.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI route draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 路线草稿"
+          }
+        }
+      }
+    },
+    "contextPublish.ai.notice": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI helps draft your route. Review all content and confirm every place before continuing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 仅协助起草。请检查内容，并逐个确认地点后继续。"
+          }
+        }
+      }
+    },
+    "contextPublish.ai.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Describe your route idea"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "描述你想做的路线"
+          }
+        }
+      }
+    },
+    "contextPublish.ai.promptRequired": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a route idea using up to 300 characters."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请填写路线灵感，不超过 300 字。"
+          }
+        }
+      }
+    },
+    "contextPublish.ai.remaining": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generations remaining"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "剩余生成次数"
+          }
+        }
+      }
+    },
+    "contextPublish.ai.exhausted": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI quota is used up. You can still create a route manually."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 次数已用完，仍可手动创建路线。"
+          }
+        }
+      }
+    },
+    "contextPublish.ai.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI generation needs an independently approved provider and account. Manual creation is available."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 生成需通过独立的服务与账号验收。仍可手动创建。"
+          }
+        }
+      }
+    },
+    "contextPublish.ai.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The draft could not be generated. Your existing route is unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿生成失败，原路线内容未改变。"
+          }
+        }
+      }
+    },
+    "contextPublish.ai.generating": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generating draft…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在生成草稿…"
+          }
+        }
+      }
+    },
+    "contextPublish.ai.generate": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generate draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生成草稿"
+          }
+        }
+      }
+    },
+    "contextPublish.ai.generated": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI-generated draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 生成的草稿"
+          }
+        }
+      }
+    },
+    "contextPublish.ai.placesUnconfirmed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suggested stops have no confirmed location. Choose each place in the route editor."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "建议点位尚未确认地点，请在路线编辑器中逐个选择。"
+          }
+        }
+      }
+    },
+    "contextPublish.ai.use": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use this draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用这份草稿"
+          }
+        }
+      }
+    },
+    "contextPublish.mode.choose": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose route mode"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择主题模式"
+          }
+        }
+      }
+    },
+    "contextPublish.mode.merchantLocked": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merchant route mode is fixed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商家主题的模式固定。"
+          }
+        }
+      }
+    },
+    "contextPublish.mode.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The draft could not be copied. The original is unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿复制失败，原稿未改变。"
+          }
+        }
+      }
+    },
+    "contextPublish.mode.confirmTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy into a new draft?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复制为新草稿？"
+          }
+        }
+      }
+    },
+    "contextPublish.mode.confirmBody": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The current draft stays unchanged. A separate copy will use the selected route mode and its ticket requirements."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前草稿保留不变。新副本将使用所选模式及相应票务要求。"
+          }
+        }
+      }
+    },
+    "contextPublish.mode.copy": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy and switch"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复制并切换"
+          }
+        }
+      }
+    },
+    "contextPublish.mode.use": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use this mode"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用此模式"
+          }
+        }
+      }
+    },
+    "contextPublish.mode.cityDetail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "City routes follow a planned sequence and need meeting details."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "城市定向按路线顺序完成，需要集合信息。"
+          }
+        }
+      }
+    },
+    "contextPublish.mode.exploreDetail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Free exploration lets players choose their order within the ticket validity period."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自由探索可在票券有效期内自行安排顺序。"
+          }
+        }
+      }
+    },
+    "contextPublish.result.acknowledged": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submission received"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已收到提交"
+          }
+        }
+      }
+    },
+    "contextPublish.result.chapters": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chapters"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "章节"
+          }
+        }
+      }
+    },
+    "contextPublish.result.readStatus": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The project page will show review and publication status."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "审核与发布状态以项目页面回读为准。"
+          }
+        }
+      }
+    },
+    "contextPublish.result.preview": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preview player view"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预览玩家看到的"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

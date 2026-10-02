@@ -19,9 +19,28 @@ final class SettingsNativeFlowTests: XCTestCase {
     private func open(_ id: String) { let button = app.buttons[id]; reveal(button); button.tap() }
     private func back() { app.navigationBars.buttons.firstMatch.tap() }
     private func expectSwitch(_ element: XCUIElement, value: String) {
-        let predicate = NSPredicate(format: "value == %@", value)
-        expectation(for: predicate, evaluatedWith: element)
-        waitForExpectations(timeout: 5)
+        let expected = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", value), object: element)
+        XCTAssertEqual(XCTWaiter.wait(for: [expected], timeout: 5), .completed, app.debugDescription)
+    }
+    private func tapNativeSwitch(_ element: XCUIElement, file: StaticString = #filePath, line: UInt = #line) {
+        XCTAssertTrue(element.waitForExistence(timeout: 5), app.debugDescription, file: file, line: line)
+        // On iOS 26 a SwiftUI Switch can report hittable while below the Form's
+        // viewport. Its semantic activation point can also land on the label row.
+        // Scroll the actual frame into view, then touch inside the trailing track.
+        for _ in 0..<10 {
+            let frame = element.frame
+            let top = app.navigationBars.firstMatch.frame.maxY + 8
+            let bottom = app.frame.maxY - 40
+            if element.isHittable && frame.minY > top && frame.maxY < bottom { break }
+            if frame.minY <= top { app.swipeDown() } else { app.swipeUp() }
+        }
+        let frame = element.frame
+        XCTAssertTrue(element.isEnabled, app.debugDescription, file: file, line: line)
+        XCTAssertTrue(element.isHittable, app.debugDescription, file: file, line: line)
+        XCTAssertGreaterThan(frame.minY, app.navigationBars.firstMatch.frame.maxY + 8, app.debugDescription, file: file, line: line)
+        XCTAssertLessThan(frame.maxY, app.frame.maxY - 40, app.debugDescription, file: file, line: line)
+        element.coordinate(withNormalizedOffset: CGVector(dx: 1, dy: 0.5))
+            .withOffset(CGVector(dx: -min(24, frame.width / 2), dy: 0)).tap()
     }
     func testSoundSixDefaultsSaveBackAndReopen() {
         launch(); open("settingsNative.openSound")
@@ -29,7 +48,7 @@ final class SettingsNativeFlowTests: XCTestCase {
         XCTAssertTrue(sound.waitForExistence(timeout: 5)); expectSwitch(sound, value: "1")
         for key in ["haptics", "airplane"] { expectSwitch(app.switches["settingsNative.sound.\(key)"], value: "1") }
         for key in ["ocean", "raindrop", "forest"] { expectSwitch(app.switches["settingsNative.sound.\(key)"], value: "0") }
-        sound.tap(); expectSwitch(sound, value: "0")
+        tapNativeSwitch(sound); expectSwitch(sound, value: "0")
         back(); open("settingsNative.openSound")
         XCTAssertTrue(sound.waitForExistence(timeout: 5)); expectSwitch(sound, value: "0")
         XCTAssertFalse(app.alerts.firstMatch.exists)
@@ -45,10 +64,11 @@ final class SettingsNativeFlowTests: XCTestCase {
     func testFailedSaveKeepsPreviousValueAndNextTapCanSave() {
         launch("saveFailure"); open("settingsNative.openSound")
         let sound = app.switches["settingsNative.sound.sound"]
-        XCTAssertTrue(sound.waitForExistence(timeout: 5)); sound.tap()
-        XCTAssertTrue(app.staticTexts["settingsNative.sound.error"].waitForExistence(timeout: 5))
+        XCTAssertTrue(sound.waitForExistence(timeout: 5)); tapNativeSwitch(sound)
+        // A failed save appends its message below the local-only disclosure.
+        reveal(app.staticTexts["settingsNative.sound.error"])
         expectSwitch(sound, value: "1")
-        sound.tap(); expectSwitch(sound, value: "0")
+        tapNativeSwitch(sound); expectSwitch(sound, value: "0")
         XCTAssertFalse(app.staticTexts["settingsNative.sound.error"].exists)
     }
     func testCNEnglishInterfacePreservesChineseSourceAndVersion() {
@@ -125,7 +145,7 @@ final class SettingsNativeFlowTests: XCTestCase {
         open("settingsNative.openSound")
         let forest = app.switches["settingsNative.sound.forest"]
         reveal(forest); XCTAssertEqual(forest.label, "森林")
-        forest.tap(); expectSwitch(forest, value: "1")
+        tapNativeSwitch(forest); expectSwitch(forest, value: "1")
         attachFixtureScreenshot(self, app: app, name: "Chinese sound preferences at maximum accessibility text size")
     }
 }
