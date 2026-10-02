@@ -38,7 +38,7 @@ import FoundationNetworking
         }
     }
     func testExpiryMustMatchSignedPayloadAndCannotBeReplacedWithTTL() throws {
-        let raw = payload().replacingOccurrences("\"expiresAt\":1300000", with: "\"expiresAt\":1300001")
+        let raw = payload().replacingOccurrences(of: "\"expiresAt\":1300000", with: "\"expiresAt\":1300001")
         let value = try JSONDecoder().decode(VerificationCodeReceipt.self, from: Data(raw.utf8)), target = VerificationCodeTarget(kind: .ticket, id: 31)
         XCTAssertThrowsError(try value.validatedCode(target: target, accountID: 7, requestedAt: Date(timeIntervalSince1970: 1000), now: Date(timeIntervalSince1970: 1000)))
         let expired = try receipt(expiry: 900_000)
