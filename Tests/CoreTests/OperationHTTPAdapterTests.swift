@@ -247,12 +247,13 @@ private let accessJSON = #"{"code":200,"data":{"active":true,"merchant":{"id":31
     func testProjectCoordinatorStoresAcknowledgmentWithoutClaimingSimulation() async throws {
         let session = try projectSession(), credentials = try ProjectEditCredentials(session: session, token: "token")
         let store = ProjectEditLocalStore(storage: ProjectEditMemoryStorage()), draft = ProjectEditSyntheticFixtures.draft()
-        let transport = OperationFakeTransport([.json(capabilityJSON), .json(capabilityJSON), .json(#"{"code":200,"data":711}"#)])
-        let service = try ProjectEditHTTPService(configuration: config(), transport: transport, owner: .personal, approval: grant(["api/topic/create"]), store: store, currentCredentials: { credentials })
+        let transport = OperationFakeTransport([.json(capabilityJSON), .json(capabilityJSON), .json(#"{"code":200,"data":{"topicId":711,"auditTaskId":91,"reviewState":"PENDING","published":true,"bundledTemplateIds":[41]}}"#)])
+        let service = try ProjectEditHTTPService(configuration: config(), transport: transport, owner: .personal, approval: grant(["api/topic/v2/create"]), store: store, currentCredentials: { credentials })
         let coordinator = ProjectEditCoordinator(initial: .init(draft: draft), service: service, store: store, currentSession: { session })
         await coordinator.load(); coordinator.prepare(draft); await coordinator.confirm(try XCTUnwrap(coordinator.confirmation))
         XCTAssertEqual(coordinator.state, .acknowledged); XCTAssertEqual(coordinator.pending?.serverAcknowledged, true)
         XCTAssertEqual(coordinator.pending?.completedTopicID, 711); XCTAssertFalse(coordinator.canSimulate)
+        XCTAssertEqual(transport.requests.map { $0.url!.path }, ["/api/publish/home", "/api/publish/home", "/api/topic/v2/create"])
     }
 
 }
