@@ -44,7 +44,7 @@ class ReviewPresentationTests(unittest.TestCase):
         for forbidden in ['URLSession', 'execute(', 'fingerprint', 'grant', 'UUID()']:
             self.assertNotIn(forbidden, review)
         view = self.read('App/CooperationFlowEditors.swift').split('struct CoopFlowTemplateEditor')[0]
-        for token in ['ForEach(review.rows)', 'String(identity.id)', 'identity.domain.rawValue', 'Button("coopflow.submit") {}.disabled(true)']:
+        for token in ['ForEach(review.rows)', 'String(identity.id)', 'identity.domain.rawValue', 'String.LocalizationValue(stringLiteral:', 'Button("coopflow.submit") {}.disabled(true)']:
             self.assertIn(token, view)
         self.assertNotIn('fields.keys.sorted()', view)
     def test_essential_amounts_use_explicit_adaptive_color_without_changing_signs(self):

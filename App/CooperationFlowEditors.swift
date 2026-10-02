@@ -35,7 +35,7 @@ struct CoopFlowRequestPreview: View {
         case .recipient(let name, let identity):
             VStack(alignment: .trailing, spacing: 2) {
                 if let name { Text(verbatim: name) }
-                Text(verbatim: appLocalized("coopflow.review.identity." + identity.domain.rawValue, locale: locale) + " " + String(identity.id))
+                Text(verbatim: appLocalized(String.LocalizationValue(stringLiteral: "coopflow.review.identity." + identity.domain.rawValue), locale: locale) + " " + String(identity.id))
                     .font(name == nil ? .body : .caption)
             }
         case .notProvided: Text("coopflow.notProvided")
