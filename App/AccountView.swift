@@ -134,7 +134,7 @@ struct AccountView: View {
             }
             .sheet(isPresented:$showsSettings) { SettingsView() }
             .sheet(isPresented:$showsCooperation) { CooperationBrowserView(reader:session.cooperationReader,onClose:{ showsCooperation=false }).id(session.cooperationReader.scope) }
-            .sheet(isPresented:$showsTickets) { TicketWalletView(reader:session.ticketWalletReader,onClose:{ showsTickets=false },makeTeamCoordinator:session.makeTeamCoordinator,orderLifecycleCoordinator:session.orderLifecycleCoordinator).id(session.ticketWalletReader.scope) }
+            .sheet(isPresented:$showsTickets) { TicketWalletView(reader:session.ticketWalletReader,onClose:{ showsTickets=false },makeTeamCoordinator:{ session.makeTeamCoordinator() },orderLifecycleCoordinator:session.orderLifecycleCoordinator).id(session.ticketWalletReader.scope) }
             .confirmationDialog("auth.signOutConfirm",isPresented:$confirmsLogout,titleVisibility:.visible) {
                 Button("auth.signOut",role:.destructive) { Task { await session.logout() } }
                 Button("action.cancel",role:.cancel) {}

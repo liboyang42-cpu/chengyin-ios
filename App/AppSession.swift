@@ -71,7 +71,7 @@ final class AppSession: ObservableObject {
             grants: { [weak self] in self?.merchantNPCGrants ?? .init() })
         merchantNPCSessionOwner.register(coordinator)
         return AnyView(MerchantNPCResourceEditor(coordinator: coordinator, imageContext: merchantNPCAvatarContext(captured),
-            imageRealm: regionalConfiguration?.apiConfiguration.baseURL.absoluteString, approvedImageHosts: []).id(captured.epoch))
+            imageRealm: regionalConfiguration?.apiConfiguration?.baseURL.absoluteString, approvedImageHosts: []).id(captured.epoch))
     }
     private func merchantNPCAvatarContext(_ captured: MerchantNPCScope) -> RetainedImageSelectionContext? {
         guard let cache = retainedImageContextCache, let credentials = currentRetainedImageCredentials,

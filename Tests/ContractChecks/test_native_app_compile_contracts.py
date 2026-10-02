@@ -15,6 +15,16 @@ class NativeAppCompileContracts(unittest.TestCase):
         self.assertIn('session.finishTasksAndInvalidate()', body)
         self.assertNotIn('callback!', body)
 
+    def test_ticket_team_factory_invokes_defaulted_method_in_a_closure(self):
+        source = (ROOT / 'App/AccountView.swift').read_text()
+        self.assertIn('makeTeamCoordinator:{ session.makeTeamCoordinator() }', source)
+        self.assertNotIn('makeTeamCoordinator:session.makeTeamCoordinator,', source)
+
+    def test_unconfigured_npc_image_realm_stays_optional(self):
+        source = (ROOT / 'App/AppSession.swift').read_text()
+        self.assertIn('imageRealm: regionalConfiguration?.apiConfiguration?.baseURL.absoluteString, approvedImageHosts: []', source)
+        self.assertNotIn('imageRealm: regionalConfiguration?.apiConfiguration.baseURL', source)
+
     def test_integer_badge_axes_are_converted_to_localization_suffixes(self):
         source = (ROOT / 'App/ObjectBadgeViews.swift').read_text()
         self.assertIn('"objects.track." + String(track)', source)
