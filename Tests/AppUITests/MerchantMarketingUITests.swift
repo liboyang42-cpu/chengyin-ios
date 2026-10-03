@@ -54,9 +54,13 @@ final class MerchantMarketingUITests: XCTestCase {
     func testPredictionReviewLargeTextKeepsFixtureControlsClearOfOptions() {
         let app = launch("predictions", extra: ["--uitesting-large-text", "--uitesting-dark"])
         assertFixtureEnvironment(in: app, noticeIdentifier: "merchantMarketing.synthetic", colorScheme: "dark", dynamicTypeSize: "accessibility3")
+        let form = app.collectionViews.firstMatch
+        XCTAssertTrue(form.waitForExistence(timeout: 5), app.debugDescription)
         let option = app.buttons["merchantMarketing.option.A"]
-        XCTAssertTrue(option.waitForExistence(timeout: 5), app.debugDescription)
+        // Large text leaves the option in an uninstantiated lazy Form row.
+        // Reveal it before requiring existence; keep the exact target and all action checks.
         XCTAssertTrue(revealFixtureElement(option, in: app), app.debugDescription)
+        XCTAssertTrue(option.exists, app.debugDescription)
         let signOut = app.buttons["merchantMarketing.fixtureSignOut"]
         let count = app.staticTexts["merchantMarketing.fixtureSettlementCount"]
         XCTAssertTrue(signOut.isHittable)
