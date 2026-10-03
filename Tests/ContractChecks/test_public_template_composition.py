@@ -33,7 +33,15 @@ class PublicTemplateCompositionContracts(unittest.TestCase):
         self.assertIn('return try await self.readPublicTopicTemplate(id: id, expiresSession: false)', session)
         self.assertIn('epoch == publicTemplateDetails.epoch', session)
         dto = (ROOT / 'Core/PublicTopicTemplateDetail.swift').read_text()
-        self.assertIn('$0.withRecruitment(viewerIsMerchant || viewerIsPublisher)', dto)
+        for fragment in [
+            'let merchantViewer = try c.decodeIfPresent(Bool.self, forKey: .viewerIsMerchant) ?? false',
+            'let publisherViewer = try c.decodeIfPresent(Bool.self, forKey: .viewerIsPublisher) ?? false',
+            'viewerIsMerchant = merchantViewer', 'viewerIsPublisher = publisherViewer',
+            'let canViewRecruitment = merchantViewer || publisherViewer',
+            'chapters = decoded.map { $0.withRecruitment(canViewRecruitment) }',
+        ]:
+            self.assertIn(fragment, dto)
+        self.assertNotIn('$0.withRecruitment(viewerIsMerchant || viewerIsPublisher)', dto)
         self.assertIn('guard generation == captured, !isInvalidated, !Task.isCancelled', dto)
 
     def test_catalog_unauthorized_side_effect_follows_viewer_and_loader_fences(self):

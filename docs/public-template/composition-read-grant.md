@@ -71,8 +71,8 @@ changes no backend schema, migration, metadata, deployment registry, or source
 eligibility rules. Source evidence does not establish deployed database readiness.
 
 `PublicTemplateCompositionTests` exercises the actual normal AppSession/transport
-with synthetic requests and an in-memory vault. Coverage includes guest and current
-credentials, default/missing grants, no home/private/game implication, malformed
+with synthetic requests and an in-memory vault. Coverage includes guest and authenticated
+viewers, absent grants, independent home/private/game boundaries, malformed
 requests and URL escapes, guest-to-member and logout, each identity component,
 account/role/token ABA, stale 401, current 401, superseded detail and catalog failures.
 Role-only refresh ABA uses the real AppSession `/userInfo` path with an unchanged

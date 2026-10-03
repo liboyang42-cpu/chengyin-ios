@@ -45,11 +45,14 @@ public struct PublicTopicTemplateDetail: Decodable, Equatable, Identifiable {
         addressName = try c.decodeIfPresent(String.self, forKey: .addressName)
         playerPromise = try c.decodeIfPresent(String.self, forKey: .playerPromise)
         author = try c.decodeIfPresent(String.self, forKey: .author)
-        viewerIsMerchant = try c.decodeIfPresent(Bool.self, forKey: .viewerIsMerchant) ?? false
-        viewerIsPublisher = try c.decodeIfPresent(Bool.self, forKey: .viewerIsPublisher) ?? false
+        let merchantViewer = try c.decodeIfPresent(Bool.self, forKey: .viewerIsMerchant) ?? false
+        let publisherViewer = try c.decodeIfPresent(Bool.self, forKey: .viewerIsPublisher) ?? false
+        viewerIsMerchant = merchantViewer
+        viewerIsPublisher = publisherViewer
+        let canViewRecruitment = merchantViewer || publisherViewer
         let decoded = try c.decodeIfPresent([PublicTemplateChapter].self, forKey: .chapters) ?? []
         // Defense in depth: never display a recruit block without an explicit server viewer flag.
-        chapters = decoded.map { $0.withRecruitment(viewerIsMerchant || viewerIsPublisher) }
+        chapters = decoded.map { $0.withRecruitment(canViewRecruitment) }
         games = try c.decodeIfPresent([PublicTemplateGame].self, forKey: .games) ?? []
         guard Set(chapters.map(\.id)).count == chapters.count,
               Set(games.map(\.id)).count == games.count,

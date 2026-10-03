@@ -69,3 +69,7 @@ e39c367a35e1f15f9553701cbad56d0d10796c80:docs/square-journey-chat/packets/native
 # docs/template-authoring-validation.json — External-source SHA-256 evidence
 e39c367a35e1f15f9553701cbad56d0d10796c80:docs/template-authoring-validation.json:generic-api-key:9
 e39c367a35e1f15f9553701cbad56d0d10796c80:docs/template-authoring-validation.json:generic-api-key:10
+
+# Run81 reviewed narrative-prose false positive; no credential value is present.
+# Audit: docs/security/gitleaks-prose-audit-2026-10-03.md
+bcd754bd41dd41b3dad22a436211cd89ee47b657:docs/public-template/composition-read-grant.md:generic-api-key:75
