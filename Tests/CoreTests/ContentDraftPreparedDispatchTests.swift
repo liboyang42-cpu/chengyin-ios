@@ -10,7 +10,7 @@ import FoundationNetworking
     private struct Payload: Codable, Equatable { let title: String }
     private typealias Anchors = ContentDraftDurableJournalTests.Anchors
     private typealias Blobs = ContentDraftDurableJournalTests.Blobs
-    private final class Transport {
+    @MainActor private final class Transport {
         let recorder = ContentDraftRecordingTransport()
         var requests: [URLRequest] { recorder.requests }
         var lose: Bool { get { recorder.lose } set { recorder.lose = newValue } }
@@ -42,7 +42,7 @@ import FoundationNetworking
         }
     }
     private final class Unauthorized { var count = 0 }
-    private final class Fixture {
+    @MainActor private final class Fixture {
         let context: RuntimeDependencyContext
         let identity: ContentDraftIdentity
         let lease: ContentDraftSessionLease
