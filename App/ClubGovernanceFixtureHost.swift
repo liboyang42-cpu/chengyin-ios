@@ -20,12 +20,13 @@ import SwiftUI
                 ForEach([ClubGovernanceRead.customers, .series, .roles, .topicOverview, .editions, .dissolutionBlockers, .leaderboard, .settlement, .audienceCounts, .roster], id: \.rawValue) { operation in
                     NavigationLink {
                         ClubGovernanceReadView(operation: operation, scope: ClubGovernanceFixtures.scope, identity: store.identity, access: store.access, coordinator: store.coordinator)
+                            .accessibilityIdentifier("club.gov.fixture.destination." + operation.rawValue)
                             .toolbar { ToolbarItem(placement: .bottomBar) { Button("club.gov.switchAccount") { store.switchAccount() }.accessibilityIdentifier("club.gov.switchAccount") } }
                     } label: { Text(LocalizedStringKey("club.gov." + operation.rawValue)) }.accessibilityIdentifier("club.gov.fixture." + operation.rawValue)
                 }
                 Button("club.gov.switchAccount") { store.switchAccount() }.accessibilityIdentifier("club.gov.switchAccount")
                 Button("club.gov.simulateUnknown") { store.access.writeFailure = .unknown(message: nil) }.accessibilityIdentifier("club.gov.simulateUnknown")
-            }.navigationTitle("club.gov.workspace")
+            }.accessibilityIdentifier("club.gov.fixture.root").navigationTitle("club.gov.workspace")
         }
     }
 }

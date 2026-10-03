@@ -1,14 +1,29 @@
 import XCTest
 final class ClubOwnerRefundFlowTests: XCTestCase {
+    private var runningApp: XCUIApplication?
     override func setUpWithError() throws { continueAfterFailure = false }
+    override func tearDownWithError() throws {
+        attachFailureScreenshot(self, app: runningApp)
+        runningApp?.terminate(); runningApp = nil
+    }
     private func launch(_ fixture: String, language: String = "en") -> XCUIApplication {
-        let app = XCUIApplication(); app.launchArguments = ["--uitesting-reset-language", "--uitesting-club-governance", "-AppleLanguages", "(\(language))", "-AppleLocale", language == "en" ? "en_US" : "zh_CN"]; app.launch()
+        let app = XCUIApplication(); runningApp = app
+        app.launchArguments = ["--uitesting-reset-language", "--uitesting-club-governance", "-AppleLanguages", "(\(language))", "-AppleLocale", language == "en" ? "en_US" : "zh_CN"]; app.launch()
         tap(fixture, app); return app
     }
     private func tap(_ id: String, _ app: XCUIApplication) {
-        let button = app.buttons[id]
-        for _ in 0..<10 { if button.exists && button.isHittable { break }; app.swipeUp() }
-        XCTAssertTrue(button.waitForExistence(timeout: 5), app.debugDescription)
+        let isToolbarControl = id == "club.refund.fixtureRecord" || id == "club.refund.fixtureSwitch"
+        let isNavigationControl = id == "club.refund.cancel"
+        let button = isNavigationControl ? app.navigationBars.buttons[id]
+            : (isToolbarControl ? app.toolbars.buttons[id] : app.buttons[id])
+        if isToolbarControl || isNavigationControl {
+            // Bar actions live outside the scrollable content viewport.
+            XCTAssertTrue(button.waitForExistence(timeout: 5), app.debugDescription)
+        } else {
+            XCTAssertTrue(revealFixtureElement(button, in: app), app.debugDescription)
+        }
+        XCTAssertTrue(button.exists, app.debugDescription)
+        XCTAssertTrue(button.isEnabled, app.debugDescription)
         XCTAssertTrue(button.isHittable, app.debugDescription); button.tap()
     }
     func testDisabledShippingStyleReviewCannotSubmitAndCanCancel() {

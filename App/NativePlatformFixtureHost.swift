@@ -78,7 +78,9 @@ import Foundation
 @MainActor struct NativePlatformFixtureHost: View {
     @State private var data: NativePlatformFixtureData
     @State private var advanced: PlayAdvancedCoordinator
-    private let runtime: NativePlatformRuntime
+    // Retain the entire provider graph across host reconstruction. A fresh runtime
+    // must not capture new fixture data while SwiftUI keeps the old State models.
+    @State private var runtime: NativePlatformRuntime
     private let disabled: Bool
     init() {
         let args = ProcessInfo.processInfo.arguments
@@ -92,14 +94,20 @@ import Foundation
             service: .init(configuration: configuration, transport: transport, enabled: [.reads, .advanced]), currentSession: { data.owner }))
         let service = NativePlatformService(configuration: configuration, transport: transport, owner: data.owner!, stepsEnabled: true, remindersEnabled: true, current: { data.owner })
         let approval = NativePlatformAcceptance(stepsEnabled: true, localRemindersEnabled: true, purposeVersion: "synthetic-v1", legalReviewed: true, privacyNoticeURL: URL(string: "https://example.com/privacy"), enrolledAppAttestKeyID: "fixture-key")
-        runtime = NativePlatformRuntime(owner: data.owner!, acceptance: approval, service: service, current: { data.owner },
-            makePedometer: { data.pedometer }, assertion: NativePlatformFixtureAssertion(), reminders: data.reminders)
+        _runtime = State(initialValue: NativePlatformRuntime(owner: data.owner!, acceptance: approval, service: service, current: { data.owner },
+            makePedometer: { data.pedometer }, assertion: NativePlatformFixtureAssertion(), reminders: data.reminders))
     }
     var body: some View {
         NavigationStack {
             List {
-                NavigationLink("nativePlatform.steps.title") { PlayKitScreen(model: advanced, kind: .steps) }.accessibilityIdentifier("nativePlatform.fixture.steps")
-                NavigationLink("nativePlatform.reminder.title") { PlayKitScreen(model: advanced, kind: .timeWindow) }.accessibilityIdentifier("nativePlatform.fixture.reminder")
+                NavigationLink("nativePlatform.steps.title") { PlayKitScreen(model: advanced, kind: .steps) }
+                    .disabled(!advanced.canInteract)
+                    .accessibilityIdentifier("nativePlatform.fixture.steps")
+                    .accessibilityValue(Text(verbatim: advanced.phase))
+                NavigationLink("nativePlatform.reminder.title") { PlayKitScreen(model: advanced, kind: .timeWindow) }
+                    .disabled(!advanced.canInteract)
+                    .accessibilityIdentifier("nativePlatform.fixture.reminder")
+                    .accessibilityValue(Text(verbatim: advanced.phase))
                 Text(verbatim: String(data.requests)).accessibilityIdentifier("nativePlatform.fixture.requests")
                 Text(verbatim: String(data.reminders.prompts)).accessibilityIdentifier("nativePlatform.fixture.prompts")
                 Text(verbatim: String(data.reminders.items.count)).accessibilityIdentifier("nativePlatform.fixture.pending")

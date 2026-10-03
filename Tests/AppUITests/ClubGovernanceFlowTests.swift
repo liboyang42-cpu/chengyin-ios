@@ -1,13 +1,34 @@
 import XCTest
 
 final class ClubGovernanceFlowTests: XCTestCase {
-    private func launch(_ language: String = "en") -> XCUIApplication {
-        let app = XCUIApplication(); app.launchArguments = ["--uitesting-reset-language", "--uitesting-club-governance", "-AppleLanguages", "(\(language))", "-AppleLocale", language]; app.launch(); return app
+    private var runningApp: XCUIApplication?
+    override func setUpWithError() throws { continueAfterFailure = false }
+    override func tearDownWithError() throws {
+        attachFailureScreenshot(self, app: runningApp)
+        runningApp?.terminate(); runningApp = nil
     }
-    private func open(_ name: String, app: XCUIApplication) {
-        let button = app.buttons["club.gov.fixture." + name]
-        reveal(button, app: app)
-        XCTAssertTrue(button.waitForExistence(timeout: 5)); button.tap()
+    private func launch(_ language: String = "en") -> XCUIApplication {
+        let app = XCUIApplication(); runningApp = app; app.launchArguments = ["--uitesting-reset-language", "--uitesting-club-governance", "-AppleLanguages", "(\(language))", "-AppleLocale", language]; app.launch(); return app
+    }
+    private func open(_ name: String, app: XCUIApplication) -> Bool {
+        let root = app.collectionViews["club.gov.fixture.root"]
+        guard root.waitForExistence(timeout: 5) else {
+            attachFixtureScreenshot(self, app: app, name: "Club fixture root not ready")
+            XCTFail(app.debugDescription); return false
+        }
+        let button = root.buttons["club.gov.fixture." + name]
+        guard revealFixtureElement(button, in: app), button.exists, button.isEnabled, button.isHittable else {
+            attachFixtureScreenshot(self, app: app, name: "Club fixture entry unreachable")
+            XCTFail(app.debugDescription); return false
+        }
+        button.tap()
+        let destination = app.descendants(matching: .any)["club.gov.fixture.destination." + name].firstMatch
+        guard destination.waitForExistence(timeout: 5) else {
+            // Never search or scroll the old root after an unacknowledged navigation tap.
+            attachFixtureScreenshot(self, app: app, name: "Club fixture destination missing after one tap")
+            XCTFail(app.debugDescription); return false
+        }
+        return true
     }
     private func fact(_ key: String, containing text: String, app: XCUIApplication) -> XCUIElement {
         // LabeledContent exposes its label and value together on some iOS versions.
@@ -26,7 +47,7 @@ final class ClubGovernanceFlowTests: XCTestCase {
         XCTAssertTrue(element.waitForExistence(timeout: 5)); XCTAssertTrue(element.isHittable); element.tap()
     }
     func testCustomerListDetailAndLocalRemarkReview() {
-        let app = launch(); open("customers", app: app)
+        let app = launch(); guard open("customers", app: app) else { return }
         tap("club.gov.route.customer", app: app)
         let edit = app.buttons["club.gov.action.saveCustomer"]
         reveal(edit, app: app); edit.tap()
@@ -39,12 +60,12 @@ final class ClubGovernanceFlowTests: XCTestCase {
         XCTAssertTrue(confirm.waitForExistence(timeout: 5))
     }
     func testEventRolesAreDistinctFromLegacyAdministratorFlag() {
-        let app = launch(); open("roles", app: app)
+        let app = launch(); guard open("roles", app: app) else { return }
         XCTAssertTrue(app.buttons["club.gov.action.assignRole"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "EVENT_CHECKIN")).firstMatch.exists)
     }
     func testClubStoryUsesOwnRouteAndProtectedAnswer() {
-        let app = launch(); open("topicOverview", app: app)
+        let app = launch(); guard open("topicOverview", app: app) else { return }
         let story = app.buttons["club.gov.openStory"]
         reveal(story, app: app); story.tap()
         let chapter = fact("title", containing: "Fixture chapter", app: app)
@@ -55,7 +76,7 @@ final class ClubGovernanceFlowTests: XCTestCase {
         XCTAssertTrue(puzzle.waitForExistence(timeout: 5))
     }
     func testSwitchAccountClearsCustomerPII() {
-        let app = launch(); open("customers", app: app)
+        let app = launch(); guard open("customers", app: app) else { return }
         let customer = fact("displayName", containing: "Fixture customer", app: app)
         reveal(customer, app: app)
         XCTAssertTrue(customer.waitForExistence(timeout: 5))
@@ -65,12 +86,12 @@ final class ClubGovernanceFlowTests: XCTestCase {
         XCTAssertFalse(app.buttons["club.gov.route.customer"].exists)
     }
     func testChineseSettlementPreservesUnverifiedAmount() {
-        let app = launch("zh-Hans"); open("settlement", app: app)
+        let app = launch("zh-Hans"); guard open("settlement", app: app) else { return }
         XCTAssertTrue(app.descendants(matching: .any)["club.gov.fact.settledAmountStatus"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.staticTexts["¥0"].exists)
     }
     func testAudienceUnknownIsNotZeroAndReviewRequiresContent() {
-        let app = launch(); open("audienceCounts", app: app)
+        let app = launch(); guard open("audienceCounts", app: app) else { return }
         // UIKit can expose this toolbar action under Other instead of a Toolbar node.
         let presentingAction = app.buttons["club.gov.switchAccount"]
         XCTAssertTrue(presentingAction.waitForExistence(timeout: 5))
