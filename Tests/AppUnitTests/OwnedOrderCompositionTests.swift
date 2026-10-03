@@ -113,7 +113,7 @@ import XCTest
         }
     }
     private func form(_ path:String,_ fields:[String:String])throws->URLRequest{try AuthRequestBuilder.makeFormRequest(url:URL(string:Self.base+"/"+path)!,fields:fields,token:"synthetic-7")}
-    private final class Grants {
+    @MainActor private final class Grants {
         var enabled=true;var retained:OwnedOrderReadApproval?
         func approval(_ context:RuntimeDependencyContext)->OwnedOrderReadApproval?{
             guard enabled else{return nil}
