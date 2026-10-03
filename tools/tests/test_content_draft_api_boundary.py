@@ -71,3 +71,14 @@ class ContentDraftAPIGateTests(unittest.TestCase):
         self.assertIn('run: python3 tools/check_content_draft_api_boundary.py --module-path .build/debug/Modules', section)
         for forbidden in ['continue-on-error', '||', 'if:']:
             self.assertNotIn(forbidden, section)
+
+    def test_play_recovery_gate_uses_the_same_built_module_and_is_required(self):
+        workflow = (ROOT / '.github/workflows/native-ios.yml').read_text()
+        draft = workflow.index('- name: Compile content-draft API boundary controls')
+        play = workflow.index('- name: Compile Play recovery API boundary controls')
+        app = workflow.index('- name: Compile iOS simulator app', play)
+        self.assertLess(draft, play)
+        section = workflow[play:app]
+        self.assertIn('run: python3 tools/check_play_recovery_api_boundary.py --module-path .build/debug/Modules', section)
+        for forbidden in ['continue-on-error', '||', 'if:']:
+            self.assertNotIn(forbidden, section)

@@ -64,7 +64,7 @@ class PlayReadCompositionContracts(unittest.TestCase):
 
     def test_read_only_run_and_each_mutation_capability_remain_independent(self):
         coordinator = self.read('Core/PlayExperienceCoordinator.swift')
-        for text in ['public var canManageRun: Bool { service.enabled.contains(.runPersistence) && hasCurrentMediaSnapshot }',
+        for text in ['public var canManageRun: Bool { service.enabled.contains(.runPersistence) && hasCurrentMediaSnapshot && !localRecoveryFailed && pausedLease?.value?.pendingRemote != true }',
                      'guard service.enabled.contains(.classicCompletion), canWrite',
                      'guard service.enabled.contains(.classicCompletion), phase == .unknown',
                      'guard service.enabled.contains(.hints), canWrite',

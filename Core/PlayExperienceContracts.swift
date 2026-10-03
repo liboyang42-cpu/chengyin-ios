@@ -48,13 +48,20 @@ public struct PlayExperienceSession: Equatable {
     public let epoch: UInt64
     /// Supplied from RegionalSessionStorageScope.service, never from UI language.
     public let namespace: String
+    public let role: String
     let token: String
-    public init(accountID: Int, epoch: UInt64, namespace: String, token: String) throws {
-        guard accountID > 0, !namespace.isEmpty, AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
-        self.accountID = accountID; self.epoch = epoch; self.namespace = namespace; self.token = token
+    public init(accountID: Int, epoch: UInt64, namespace: String, token: String, role: String = "player") throws {
+        guard accountID > 0, !namespace.isEmpty, !role.isEmpty, role.utf8.count <= 128, AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
+        self.accountID = accountID; self.epoch = epoch; self.namespace = namespace; self.token = token; self.role = role
     }
 }
-public struct PlayRouteAdvance: Equatable {
+extension PlayExperienceSession {
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.accountID == rhs.accountID && lhs.epoch == rhs.epoch && lhs.namespace.utf8.elementsEqual(rhs.namespace.utf8) &&
+        lhs.role.utf8.elementsEqual(rhs.role.utf8) && lhs.token.utf8.elementsEqual(rhs.token.utf8)
+    }
+}
+public struct PlayRouteAdvance: Codable, Equatable {
     public let actionID: String
     public let expectedVersion: Int
     public init(actionID: String, expectedVersion: Int) throws {
@@ -65,7 +72,7 @@ public struct PlayRouteAdvance: Equatable {
     var fields: [String: String] { ["routeActionId": actionID, "expectedRouteVersion": String(expectedVersion)] }
 }
 public enum PlayExperienceError: Error, Equatable {
-    case disabled, staleSession, busy, invalidAction, unknownResult, unsupported, malformed
+    case disabled, staleSession, busy, invalidAction, unknownResult, unsupported, malformed, persistenceUnavailable
     case rejected(Int, String?), unauthorized
 }
 public struct PlayExperienceDocument: Decodable, Equatable {

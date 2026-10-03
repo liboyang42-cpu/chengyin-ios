@@ -75,25 +75,6 @@ public struct PlayRunClock: Equatable {
         elapsedSeconds = elapsed(monotonicNow: monotonicNow); anchor = nil; phase = .ended
     }
 }
-/// No default disk implementation: production must inject reviewed secure storage.
-/// Namespace/account/scope are embedded; no token or evidence is persisted.
-@MainActor public protocol PlayPausedStorage: AnyObject {
-    func read(key: String) throws -> PlayPausedRecord?
-    func write(_ record: PlayPausedRecord?, key: String) throws
-    func tombstone(key: String) throws -> Int64?
-    func writeTombstone(_ savedAt: Int64, key: String) throws
-}
-@MainActor public final class PlayMemoryPausedStorage: PlayPausedStorage {
-    private var records: [String: PlayPausedRecord] = [:]
-    private var tombstones: [String: Int64] = [:]
-    public init() {}
-    public func read(key: String) throws -> PlayPausedRecord? { records[key] }
-    public func write(_ record: PlayPausedRecord?, key: String) throws { records[key] = record }
-    public func tombstone(key: String) throws -> Int64? { tombstones[key] }
-    public func writeTombstone(_ savedAt: Int64, key: String) throws {
-        guard savedAt > 0 else { throw APIError.invalidRequest }; tombstones[key] = max(tombstones[key] ?? 0, savedAt)
-    }
-}
 public enum PlayRunStorageKey {
     public static func make(session: PlayExperienceSession, scope: PlaySessionScope) -> String {
         let parts = [session.namespace, String(session.accountID), scope.fields.keys.first!, String(scope.id)]

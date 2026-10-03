@@ -1,6 +1,60 @@
 import Foundation
 import Observation
 
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
+
+/// Opaque, one-shot durable dispatch. Only this coordinator file can construct or retire it.
+@MainActor final class PlayPreparedDispatch {
+    let request: URLRequest
+    let baseURL: URL
+    let capability: PlayExperienceCapability
+    private enum Proof {
+        case completion(any PlayCompletionRecoveryStore, PlayCompletionRecoverySnapshot)
+        case paused(any PlayPausedStorage, PlayPausedStorageSnapshot)
+    }
+    private let proof: Proof
+    private let key: String
+    private let isCurrent: () -> Bool
+    private var started = false
+    private var retired = false
+    fileprivate init(service: PlayExperienceService, scope: PlaySessionScope, session: PlayExperienceSession,
+                     completion: PlayCompletionRecoverySnapshot, store: any PlayCompletionRecoveryStore, isCurrent: @escaping () -> Bool) throws {
+        guard completion.value.state == .dispatching, completion.value.intent.owner.matches(session) else { throw PlayExperienceError.persistenceUnavailable }
+        let intent = completion.value.intent
+        request = try service.completionRequest(scope: scope, nodeID: intent.nodeID, evidence: intent.evidence,
+            advance: intent.advance, token: session.token, boundary: intent.id.uuidString)
+        baseURL = service.configuration.baseURL; capability = .classicCompletion; proof = .completion(store, completion)
+        key = PlayRunStorageKey.make(session: session, scope: scope); self.isCurrent = isCurrent
+    }
+    fileprivate init(service: PlayExperienceService, scope: PlaySessionScope, session: PlayExperienceSession,
+                     paused: PlayPausedStorageSnapshot, store: any PlayPausedStorage, isCurrent: @escaping () -> Bool) throws {
+        guard let value = paused.value, value.owner.matches(session) else { throw PlayExperienceError.persistenceUnavailable }
+        request = try service.pausedRequest(scope: scope, record: value.record, savedAt: value.record?.savedAt ?? value.tombstone, token: session.token)
+        baseURL = service.configuration.baseURL; capability = .runPersistence; proof = .paused(store, paused)
+        key = PlayRunStorageKey.make(session: session, scope: scope); self.isCurrent = isCurrent
+    }
+    fileprivate func retire() { retired = true }
+    func consume(request: URLRequest, transport: any HTTPTransport) async throws {
+        guard !started, !retired, request == self.request else { throw PlayExperienceError.persistenceUnavailable }
+        started = true; try checkLifetime()
+        switch proof {
+        case .completion(let store, let expected):
+            guard transport is PlayRecoveryRecordingTransport || (store as? PlayDurableRecovery)?.permitsSystemDispatch(to: baseURL) == true,
+                  try await store.read(key) == expected else { throw PlayExperienceError.persistenceUnavailable }
+        case .paused(let store, let expected):
+            guard transport is PlayRecoveryRecordingTransport || (store as? PlayDurableRecovery)?.permitsSystemDispatch(to: baseURL) == true,
+                  try await store.read(key: key) == expected else { throw PlayExperienceError.persistenceUnavailable }
+        }
+        try checkLifetime()
+    }
+    func checkLifetime() throws {
+        guard started, !retired, isCurrent(), !retired else { throw PlayExperienceError.staleSession }
+        try Task.checkCancellation()
+    }
+}
+
 public struct PlayCompletionReview: Equatable {
     public let nodeID: Int
     public let evidence: PlayCompletionEvidence
@@ -8,22 +62,12 @@ public struct PlayCompletionReview: Equatable {
     let session: PlayExperienceSession
     let generation: UInt64
     let routeSessionID: Int?
+    let id: UUID
+    init(nodeID: Int, evidence: PlayCompletionEvidence, advance: PlayRouteAdvance?, session: PlayExperienceSession, generation: UInt64, routeSessionID: Int?, id: UUID = UUID()) {
+        self.nodeID = nodeID; self.evidence = evidence; self.advance = advance; self.session = session
+        self.generation = generation; self.routeSessionID = routeSessionID; self.id = id
+    }
 }
-public struct PlayPendingCompletion: Equatable {
-    public let review: PlayCompletionReview
-    public let requestAcknowledged: Bool
-}
-@MainActor public protocol PlayCompletionRecoveryStore: AnyObject {
-    func read(_ key: String) throws -> PlayPendingCompletion?
-    func write(_ pending: PlayPendingCompletion?, key: String) throws
-}
-@MainActor public final class PlayMemoryCompletionRecovery: PlayCompletionRecoveryStore {
-    private var values: [String: PlayPendingCompletion] = [:]
-    public init() {}
-    public func read(_ key: String) throws -> PlayPendingCompletion? { values[key] }
-    public func write(_ pending: PlayPendingCompletion?, key: String) throws { values[key] = pending }
-}
-
 /// Independent of the existing linear-answer reader. A successful write invalidates the
 /// snapshot; only authoritative readback changes progress. No hidden write retries.
 @available(macOS 14.0, *)
@@ -62,6 +106,18 @@ public struct PlayPendingCompletion: Equatable {
     private let recovery: any PlayCompletionRecoveryStore
     private let pausedStorage: any PlayPausedStorage
     private let onUnauthorized: (PlayExperienceSession) -> Void
+    private var cachedCompletion: PlayCompletionRecoverySnapshot?
+    private var retryReadbackVerified = false
+    private var pausedLease: PlayPausedStorageSnapshot?
+    private var pausedOwner: PlayExperienceSession?
+    private var completionAttempt: PlayPreparedDispatch?
+    private var runAttempt: PlayPreparedDispatch?
+    private var completionTask: Task<PlayWireValue, Error>?
+    private var completionTaskID = UUID()
+    private var runTask: Task<Void, Error>?
+    private var runTaskID = UUID()
+    private var runStorageBusy = false
+    public private(set) var localRecoveryFailed = false
     private var loadedSession: PlayExperienceSession?
     private var authorityOwner: PlayExperienceSession?
     private var unknownLeaderKeys: Set<String> = []
@@ -79,8 +135,8 @@ public struct PlayPendingCompletion: Equatable {
     }
     /// A read-only projection must not enable completion, hint or leader controls.
     public var canWrite: Bool { !service.enabled.isDisjoint(with: [.classicCompletion, .hints, .leader, .thoughtClaims]) && phase == .ready && !unresolved && !thoughtSyncInFlight && pendingThoughtKeys.isEmpty && loadedSession != nil && loadedSession == currentSession() }
-    /// Run state and memory-only pause records require their own reviewed capability.
-    public var canManageRun: Bool { service.enabled.contains(.runPersistence) && hasCurrentMediaSnapshot }
+    /// Run state and durable pause records require their own reviewed capability.
+    public var canManageRun: Bool { service.enabled.contains(.runPersistence) && hasCurrentMediaSnapshot && !localRecoveryFailed && pausedLease?.value?.pendingRemote != true }
     public init(scope: PlaySessionScope, service: PlayExperienceService, recovery: any PlayCompletionRecoveryStore,
                 pausedStorage: any PlayPausedStorage, currentSession: @escaping () -> PlayExperienceSession?,
                 onUnauthorized: @escaping (PlayExperienceSession) -> Void = { _ in }) {
@@ -90,7 +146,7 @@ public struct PlayPendingCompletion: Equatable {
     public func load() async {
         guard phase != .submitting else { return }
         generation &+= 1; let request = generation
-        phase = .loading; issue = nil; snapshot = nil; extras = [:]
+        phase = .loading; issue = nil; snapshot = nil; extras = [:]; cachedCompletion = nil; retryReadbackVerified = false
         guard let session = currentSession(), scope.isValid else { phase = .failed; issue = .staleSession; return }
         if authorityOwner != session {
             reward = nil; hint = nil; ending = nil; leaderboard = nil; lead = nil
@@ -103,15 +159,20 @@ public struct PlayPendingCompletion: Equatable {
         }
         loadedSession = nil
         do {
+            let key = PlayRunStorageKey.make(session: session, scope: scope)
+            var pending = try await recovery.read(key)
+            try check(session, request)
+            if let pending { guard pending.value.intent.owner.matches(session) else { throw PlayExperienceError.persistenceUnavailable } }
             let document = try await service.nodes(scope: scope, token: session.token)
             try check(session, request)
             let route = document.base.routeState?.isBranch == true ? try await service.route(scope: scope, token: session.token) : nil
             try check(session, request)
             let snapshot = try PlaySnapshot(scope: scope, result: document.base, authority: route)
-            let key = PlayRunStorageKey.make(session: session, scope: scope)
-            if let pending = try recovery.read(key), landed(pending.review, snapshot: snapshot) {
-                try recovery.write(nil, key: key)
+            if let captured = pending, landed(captured.value.intent, snapshot: snapshot) {
+                try await recovery.clear(captured, key: key)
+                try check(session, request); pending = nil
             }
+            cachedCompletion = pending; retryReadbackVerified = true
             var hintRequests = unknownHintRequests[key] ?? [:]
             for (nodeID, level) in hintRequests {
                 guard let detail = document.extras[nodeID] else { continue }
@@ -119,7 +180,7 @@ public struct PlayPendingCompletion: Equatable {
                 else if level >= 1, (detail.puzzleHintLevel ?? 0) >= level, !detail.usedHints.isEmpty { hintRequests.removeValue(forKey: nodeID) }
             }
             unknownHintRequests[key] = hintRequests; hintUnknownNodes = Set(hintRequests.keys)
-            unresolved = try recovery.read(key) != nil || !hintUnknownNodes.isEmpty || leaderOutcomeUnknown
+            unresolved = pending != nil || !hintUnknownNodes.isEmpty || leaderOutcomeUnknown
             self.snapshot = snapshot; extras = document.extras; loadedSession = session
             chapterStories = document.chapterStories
             storyVariables.merge(document.storyVariables) { _, new in new }
@@ -205,47 +266,87 @@ public struct PlayPendingCompletion: Equatable {
               review.generation == generation, !unresolved else { return }
         await dispatch(review)
     }
-    private func dispatch(_ review: PlayCompletionReview) async {
+    private func dispatch(_ review: PlayCompletionReview, recovering: PlayCompletionRecoverySnapshot? = nil) async {
         let session = review.session, request = generation, key = PlayRunStorageKey.make(session: review.session, scope: scope)
+        // Fence synchronously before any storage suspension. Other viewers are fenced by CAS.
+        unresolved = true; phase = .submitting; reward = nil; retryReadbackVerified = false
+        var ticket: PlayCompletionRecoverySnapshot?
+        var sent = false
         do {
-            // Store BEFORE sending, so storage failure cannot cause an untracked write.
-            try recovery.write(.init(review: review, requestAcknowledged: false), key: key)
-            unresolved = true; phase = .submitting; reward = nil
-            let receipt = try await service.complete(scope: scope, nodeID: review.nodeID, evidence: review.evidence, advance: review.advance, token: session.token)
+            let prepared: PlayCompletionRecoverySnapshot
+            if let recovering { prepared = recovering }
+            else { prepared = try await recovery.prepare(.init(review: review), key: key) }
+            ticket = prepared; try check(session, request)
+            let dispatched = try await recovery.transition(prepared, to: .dispatching, key: key)
+            ticket = dispatched; cachedCompletion = dispatched; try check(session, request)
+            sent = true
+            let attempt = try PlayPreparedDispatch(service: service, scope: scope, session: session, completion: dispatched, store: recovery,
+                isCurrent: { [weak self] in guard let self else { return false }; return self.generation == request && self.currentSession() == session })
+            completionAttempt = attempt
+            let taskID = UUID(); completionTaskID = taskID
+            let service = self.service
+            let task = Task { try await service.dispatch(attempt) }
+            completionTask = task
+            defer { attempt.retire(); if completionTaskID == taskID { completionTask = nil; completionAttempt = nil } }
+            let receipt = try await withTaskCancellationHandler(operation: { try await task.value }, onCancel: { task.cancel() })
             try check(session, request)
             guard receipt["nodeId"].tolerantInteger == review.nodeID else { throw PlayExperienceError.malformed }
-            try recovery.write(.init(review: review, requestAcknowledged: true), key: key)
+            let acknowledged = try await recovery.transition(dispatched, to: .acknowledged, key: key)
+            ticket = acknowledged; try check(session, request); cachedCompletion = acknowledged
             reward = receipt; phase = .needsReadback; await load()
         } catch {
             guard generation == request else { return }
             guard currentSession() == session else { invalidate(); return }
-            if case PlayExperienceError.rejected(let code, _) = error {
-                try? recovery.write(nil, key: key); unresolved = false
-                if code == 409 { phase = .needsReadback; await load(); return }
+            // A storage error is never converted into an empty bucket or a safe-to-send state.
+            if error as? PlayExperienceError == .persistenceUnavailable {
+                localRecoveryFailed = true; issue = .persistenceUnavailable; phase = .unknown; return
             }
-            if case PlayExperienceError.disabled = error { try? recovery.write(nil, key: key); unresolved = false }
+            if let ticket, sent {
+                do {
+                    switch error {
+                    case PlayExperienceError.disabled:
+                        if recovering == nil || recovering?.value.state == .prepared {
+                            try await recovery.clear(ticket, key: key)
+                            try check(session, request); cachedCompletion = nil; unresolved = false
+                        } else {
+                            // Disabled retry cannot establish the outcome of the original write.
+                            let unknown = try await recovery.transition(ticket, to: .unknown, key: key)
+                            try check(session, request); cachedCompletion = unknown
+                        }
+                    default:
+                        // Generic business errors (including 4xx/5xx envelope codes) do not
+                        // establish no commit. Keep the exact intent until matching readback.
+                        let unknown = try await recovery.transition(ticket, to: .unknown, key: key)
+                        try check(session, request); cachedCompletion = unknown
+                    }
+                } catch {
+                    guard currentSession() == session, generation == request else { return }
+                    localRecoveryFailed = true; issue = .persistenceUnavailable; phase = .unknown; return
+                }
+            }
+            if case PlayExperienceError.rejected(let code, _) = error, code == 409 {
+                phase = .needsReadback; await load(); return
+            }
             fail(error, session: session, generation: request)
             if unresolved { phase = .unknown }
         }
     }
-    /// Branch replay preserves BOTH original token fields and payload. Read first. A
-    /// changed route version/session or completed node cannot generate a fresh action.
+    /// Only a verified readback offers replay. The dispatch CAS rechecks its exact generation.
     public var canRetryExactBranch: Bool {
-        guard service.enabled.contains(.classicCompletion), phase == .unknown, hintUnknownNodes.isEmpty, !leaderOutcomeUnknown, let session = loadedSession, session == currentSession(), let snapshot else { return false }
-        let key = PlayRunStorageKey.make(session: session, scope: scope)
-        guard let pending = try? recovery.read(key), let advance = pending.review.advance, !pending.requestAcknowledged,
-              pending.review.session == session, snapshot.route?.sessionID == pending.review.routeSessionID,
-              snapshot.route?.version == advance.expectedVersion, snapshot.route?.nodeStates[pending.review.nodeID] == "PLAYABLE" else { return false }
+        guard service.enabled.contains(.classicCompletion), phase == .unknown, retryReadbackVerified, hintUnknownNodes.isEmpty, !leaderOutcomeUnknown,
+              let session = loadedSession, session == currentSession(), let snapshot,
+              let pending = cachedCompletion?.value, let advance = pending.intent.advance,
+              !pending.requestAcknowledged, pending.intent.owner.matches(session),
+              pending.state != .dispatching || pending.dispatchProcess != recovery.processID,
+              snapshot.route?.sessionID == pending.intent.routeSessionID,
+              snapshot.route?.version == advance.expectedVersion,
+              snapshot.route?.nodeStates[pending.intent.nodeID] == "PLAYABLE" else { return false }
         return true
     }
     public func retryExactBranchAfterReadback() async {
-        guard canRetryExactBranch, let session = loadedSession, let snapshot else { return }
-        let key = PlayRunStorageKey.make(session: session, scope: scope)
-        guard let pending = try? recovery.read(key), let advance = pending.review.advance,
-              !pending.requestAcknowledged, pending.review.session == session,
-              snapshot.route?.sessionID == pending.review.routeSessionID, snapshot.route?.version == advance.expectedVersion,
-              snapshot.route?.nodeStates[pending.review.nodeID] == "PLAYABLE" else { return }
-        await dispatch(pending.review)
+        guard canRetryExactBranch, let session = loadedSession, let pending = cachedCompletion,
+              let review = try? pending.value.intent.review(session: session, generation: generation) else { return }
+        await dispatch(review, recovering: pending)
     }
     public func requestHint(nodeID: Int, level: Int?) async {
         guard service.enabled.contains(.hints), canWrite, !hintUnknownNodes.contains(nodeID), let session = loadedSession,
@@ -294,41 +395,128 @@ public struct PlayPendingCompletion: Equatable {
         }
     }
     public func restoreRun() async {
-        guard service.enabled.contains(.runPersistence), let session = currentSession() else { return }
+        guard service.enabled.contains(.runPersistence), let session = currentSession(), !runStorageBusy else { return }
+        runStorageBusy = true; defer { runStorageBusy = false }
         let request = generation, key = PlayRunStorageKey.make(session: session, scope: scope)
-        let local = try? pausedStorage.read(key: key)
-        let remote = try? await service.readPaused(scope: scope, token: session.token)
-        guard currentSession() == session, request == generation else { return }
-        let tombstone = (try? pausedStorage.tombstone(key: key)) ?? 0
-        let candidate = PlayPausedRecord.reconcile(local: local, remote: remote)
-        let reconciled = candidate.flatMap { $0.savedAt > tombstone ? $0 : nil }
-        clock.restore(reconciled); try? pausedStorage.write(reconciled, key: key)
+        await reconcileRun(session: session, request: request, key: key)
     }
-    public func startRun(now: TimeInterval) { guard canManageRun else { return }; try? clock.start(monotonicNow: now) }
+    private func reconcileRun(session: PlayExperienceSession, request: UInt64, key: String) async {
+        do {
+            let local = try await pausedStorage.read(key: key); try check(session, request)
+            if let value = local.value { guard value.owner.matches(session) else { throw PlayExperienceError.persistenceUnavailable } }
+            // Network read failure may retain a verified local record; local failures never fall back.
+            let remote: PlayPausedRead?
+            do { remote = try await service.readPaused(scope: scope, token: session.token) }
+            catch {
+                try check(session, request)
+                if error as? PlayExperienceError == .unauthorized { onUnauthorized(session); invalidate(); return }
+                remote = nil
+            }
+            try check(session, request)
+            let tombstone = max(local.value?.tombstone ?? 0, remote?.endedAt ?? 0)
+            let candidate = PlayPausedRecord.reconcile(local: local.value?.record, remote: remote)
+            let reconciled = candidate.flatMap { $0.savedAt > tombstone ? $0 : nil }
+            let remoteConfirms: Bool
+            if let old = local.value, old.pendingRemote {
+                if let record = old.record { remoteConfirms = remote?.record == record || (remote?.endedAt ?? 0) >= record.savedAt }
+                else { remoteConfirms = (remote?.endedAt ?? 0) >= old.tombstone && old.tombstone > 0 }
+            } else { remoteConfirms = true }
+            // Settle the exact pending operation first, then apply newer authoritative facts.
+            // Each step is generation-CAS; a crash between them still retains safe local state.
+            var lease = local
+            if let old = local.value, old.pendingRemote, remoteConfirms {
+                let settled = try PlayPausedSnapshot(owner: old.owner, record: old.record, tombstone: old.tombstone)
+                lease = try await pausedStorage.write(settled, replacing: lease, key: key); try check(session, request)
+            }
+            let value: PlayPausedSnapshot
+            if let old = lease.value, old.pendingRemote { value = old }
+            else { value = try .init(owner: .init(session: session), record: reconciled, tombstone: tombstone) }
+            if value != lease.value { lease = try await pausedStorage.write(value, replacing: lease, key: key); try check(session, request) }
+            pausedLease = lease; pausedOwner = session
+            clock.restore(value.record); localRecoveryFailed = false
+            remoteRunSaveFailed = value.pendingRemote
+        } catch {
+            guard currentSession() == session, generation == request else { return }
+            localRecoveryFailed = true; issue = .persistenceUnavailable; clock.restore(nil); pausedLease = nil; pausedOwner = nil
+        }
+    }
+    public func startRun(now: TimeInterval) {
+        guard canManageRun, let loadedSession, currentSession() == loadedSession, pausedOwner == loadedSession, pausedLease != nil, pausedLease?.value?.pendingRemote != true, !runStorageBusy, !localRecoveryFailed else { return }
+        try? clock.start(monotonicNow: now)
+    }
     public func pauseRun(now: TimeInterval, savedAt: Int64) async {
-        guard canManageRun, let session = loadedSession, currentSession() == session,
+        guard canManageRun, let session = loadedSession, currentSession() == session, pausedOwner == session, let old = pausedLease, old.value?.pendingRemote != true, !runStorageBusy,
               let record = try? clock.pause(monotonicNow: now, savedAt: savedAt) else { return }
+        runStorageBusy = true; defer { runStorageBusy = false }
         let request = generation, key = PlayRunStorageKey.make(session: session, scope: scope)
-        do { try pausedStorage.write(record, key: key) } catch { remoteRunSaveFailed = true }
-        do { try await service.savePaused(scope: scope, record: record, token: session.token); try check(session, request); remoteRunSaveFailed = false }
-        catch { if currentSession() == session { remoteRunSaveFailed = true } }
+        do {
+            try check(session, request)
+            let value = try PlayPausedSnapshot(owner: .init(session: session), record: record, tombstone: old.value?.tombstone ?? 0, pendingRemote: true)
+            let saved = try await pausedStorage.write(value, replacing: old, key: key); try check(session, request)
+            pausedLease = saved; localRecoveryFailed = false
+        } catch {
+            guard currentSession() == session, generation == request else { return }
+            localRecoveryFailed = true; remoteRunSaveFailed = true; issue = .persistenceUnavailable; return
+        }
+        do {
+            guard let saved = pausedLease else { throw PlayExperienceError.persistenceUnavailable }
+            let attempt = try PlayPreparedDispatch(service: service, scope: scope, session: session, paused: saved, store: pausedStorage,
+                isCurrent: { [weak self] in guard let self else { return false }; return self.generation == request && self.currentSession() == session })
+            runAttempt = attempt
+            let service = self.service, taskID = UUID(); runTaskID = taskID
+            let task = Task { _ = try await service.dispatch(attempt) }; runTask = task
+            defer { attempt.retire(); if runTaskID == taskID { runTask = nil; runAttempt = nil } }
+            try await withTaskCancellationHandler(operation: { try await task.value }, onCancel: { task.cancel() })
+            try check(session, request); await reconcileRun(session: session, request: request, key: key)
+        }
+        catch {
+            guard currentSession() == session, generation == request else { return }
+            if error as? PlayExperienceError == .unauthorized { onUnauthorized(session); invalidate(); return }
+            remoteRunSaveFailed = true
+        }
     }
-    /// Ending the local run does not declare route completion or grant rewards.
+    /// One atomic local tombstone replaces the record before the dormant remote clear.
     public func endRun(now: TimeInterval, savedAt: Int64) async {
-        guard canManageRun, let session = loadedSession, currentSession() == session, savedAt > 0 else { return }
-        clock.end(monotonicNow: now); let key = PlayRunStorageKey.make(session: session, scope: scope)
-        try? pausedStorage.writeTombstone(savedAt, key: key)
-        try? pausedStorage.write(nil, key: key)
-        do { try await service.clearPaused(scope: scope, savedAt: savedAt, token: session.token) }
-        catch { if currentSession() == session { remoteRunSaveFailed = true } }
+        guard canManageRun, let session = loadedSession, currentSession() == session, pausedOwner == session, let old = pausedLease, old.value?.pendingRemote != true, savedAt > 0, !runStorageBusy else { return }
+        runStorageBusy = true; defer { runStorageBusy = false }
+        let request = generation, key = PlayRunStorageKey.make(session: session, scope: scope)
+        do {
+            try check(session, request)
+            let value = try PlayPausedSnapshot(owner: .init(session: session), record: nil, tombstone: max(savedAt, old.value?.tombstone ?? 0), pendingRemote: true)
+            let saved = try await pausedStorage.write(value, replacing: old, key: key); try check(session, request)
+            pausedLease = saved; clock.end(monotonicNow: now); localRecoveryFailed = false
+        } catch {
+            guard currentSession() == session, generation == request else { return }
+            localRecoveryFailed = true; remoteRunSaveFailed = true; issue = .persistenceUnavailable; return
+        }
+        do {
+            guard let saved = pausedLease else { throw PlayExperienceError.persistenceUnavailable }
+            let attempt = try PlayPreparedDispatch(service: service, scope: scope, session: session, paused: saved, store: pausedStorage,
+                isCurrent: { [weak self] in guard let self else { return false }; return self.generation == request && self.currentSession() == session })
+            runAttempt = attempt
+            let service = self.service, taskID = UUID(); runTaskID = taskID
+            let task = Task { _ = try await service.dispatch(attempt) }; runTask = task
+            defer { attempt.retire(); if runTaskID == taskID { runTask = nil; runAttempt = nil } }
+            try await withTaskCancellationHandler(operation: { try await task.value }, onCancel: { task.cancel() })
+            try check(session, request); await reconcileRun(session: session, request: request, key: key)
+        }
+        catch {
+            guard currentSession() == session, generation == request else { return }
+            if error as? PlayExperienceError == .unauthorized { onUnauthorized(session); invalidate(); return }
+            remoteRunSaveFailed = true
+        }
     }
     public func invalidate() {
+        completionAttempt?.retire(); completionAttempt = nil; runAttempt?.retire(); runAttempt = nil
+        completionTask?.cancel(); completionTask = nil; completionTaskID = UUID()
+        runTask?.cancel(); runTask = nil; runTaskID = UUID()
+        pausedLease = nil; pausedOwner = nil; retryReadbackVerified = false
         thoughtSyncNonce = UUID(); thoughtSyncInFlight = false; pendingThoughtKeys = []; thoughtClaimSessionID = nil; thoughtSyncPhase = .idle
         chapterStories = [:]; storyVariables = [:]; storyVoices = [:]; storyThoughts = []
-        generation &+= 1; loadedSession = nil; snapshot = nil; extras = [:]; reward = nil; hint = nil
+        generation &+= 1; loadedSession = nil; snapshot = nil; extras = [:]; reward = nil; hint = nil; cachedCompletion = nil
         ending = nil; leaderboard = nil; lead = nil; advancedReadyNodeIDs = []; clock.restore(nil); phase = .idle
     }
-    private func landed(_ review: PlayCompletionReview, snapshot: PlaySnapshot) -> Bool {
+    private func landed(_ review: PlayCompletionIntent, snapshot: PlaySnapshot) -> Bool {
         if let routeSessionID = review.routeSessionID, snapshot.route?.sessionID != routeSessionID { return false }
         guard let node = snapshot.visibleNodes.first(where: { $0.id == review.nodeID }) else { return false }
         if snapshot.result.mode == 2 {

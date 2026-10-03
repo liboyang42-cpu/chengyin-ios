@@ -20,7 +20,7 @@ import FoundationNetworking
         XCTAssertEqual(transport.requests.count, 0)
     }
     func testBranchAnswerCarriesOnlySourceTokenAndOneScope() async throws {
-        let transport = PlayExperienceTestTransport { _ in (PlayExperienceSyntheticFixtures.envelope(#"{"nodeId":701}"#), 200) }
+        let transport = PlayRecoveryRecordingTransport(); for path in ["answer", "checkin", "sensor-result"] { transport.responses["/fixture/api/play/" + path] = .reply(PlayExperienceSyntheticFixtures.envelope(#"{"nodeId":701}"#), 200) }
         _ = try await service(transport).complete(scope: .topic(71), nodeID: 701, evidence: .answer("A & + 中文"), advance: .init(actionID: "same-action", expectedVersion: 2), token: "synthetic")
         let request = try XCTUnwrap(transport.requests.first), body = String(decoding: request.httpBody!, as: UTF8.self)
         XCTAssertEqual(request.httpMethod, "POST"); XCTAssertEqual(request.url?.path, "/fixture/api/play/answer")
@@ -29,7 +29,7 @@ import FoundationNetworking
         for field in ["activityId", "outcomeCode", "targetNodeId", "latitude", "longitude"] { XCTAssertFalse(body.contains("name=\"\(field)\"")) }
     }
     func testQRDoesNotManufactureNodeIDField() async throws {
-        let transport = PlayExperienceTestTransport { _ in (PlayExperienceSyntheticFixtures.envelope(#"{"nodeId":701}"#), 200) }
+        let transport = PlayRecoveryRecordingTransport(); for path in ["answer", "checkin", "sensor-result"] { transport.responses["/fixture/api/play/" + path] = .reply(PlayExperienceSyntheticFixtures.envelope(#"{"nodeId":701}"#), 200) }
         _ = try await service(transport).complete(scope: .activity(41), nodeID: 701, evidence: .scan("synthetic-code"), advance: nil, token: "synthetic")
         let body = String(decoding: transport.requests[0].httpBody!, as: UTF8.self)
         XCTAssertFalse(body.contains("nodeId")); XCTAssertTrue(body.contains("name=\"code\""))
@@ -40,7 +40,7 @@ import FoundationNetworking
         XCTAssertEqual(transport.requests.count, 0)
     }
     func testSensorBodyUsesJSONAndNumericRouteVersion() async throws {
-        let transport = PlayExperienceTestTransport { _ in (PlayExperienceSyntheticFixtures.envelope(#"{"nodeId":701}"#), 200) }
+        let transport = PlayRecoveryRecordingTransport(); for path in ["answer", "checkin", "sensor-result"] { transport.responses["/fixture/api/play/" + path] = .reply(PlayExperienceSyntheticFixtures.envelope(#"{"nodeId":701}"#), 200) }
         _ = try await service(transport).complete(scope: .topic(71), nodeID: 701, evidence: .sensor(type: "still", payload: ["heldSec": .int(5)]), advance: .init(actionID: "same", expectedVersion: 2), token: "synthetic")
         let request = transport.requests[0], json = try JSONDecoder().decode(PlayWireValue.self, from: request.httpBody!)
         XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json")
@@ -61,10 +61,9 @@ import FoundationNetworking
     }
     func testUnknownCompletionRemainsLockedAfterUnchangedReadback() async throws {
         let current = try session()
-        let transport = PlayExperienceTestTransport { request in
-            if request.httpMethod == "POST" { throw URLError(.timedOut) }
-            return (PlayExperienceSyntheticFixtures.envelope(PlayExperienceSyntheticFixtures.classic), 200)
-        }
+        let transport = PlayRecoveryRecordingTransport()
+        transport.responses["/fixture/api/play/nodes"] = .reply(PlayExperienceSyntheticFixtures.envelope(PlayExperienceSyntheticFixtures.classic), 200)
+        transport.responses["/fixture/api/play/answer"] = .failure(.unknownResult)
         let coordinator = try model(transport, current: { current }); await coordinator.load()
         let review = try coordinator.review(nodeID: 701, evidence: .answer("synthetic")); await coordinator.submit(review); await coordinator.load()
         XCTAssertTrue(coordinator.unresolved); XCTAssertFalse(coordinator.canWrite)
@@ -72,11 +71,9 @@ import FoundationNetworking
         XCTAssertEqual(transport.requests.filter { $0.httpMethod == "POST" }.count, 1)
     }
     func testReadbackDoneReconcilesWithoutInventingReward() async throws {
-        let current = try session(); var done = false
-        let transport = PlayExperienceTestTransport { request in
-            if request.httpMethod == "POST" { done = true; throw URLError(.timedOut) }
-            return (PlayExperienceSyntheticFixtures.envelope(done ? PlayExperienceSyntheticFixtures.complete : PlayExperienceSyntheticFixtures.classic), 200)
-        }
+        let current = try session(), transport = PlayRecoveryRecordingTransport()
+        transport.queues["/fixture/api/play/nodes"] = [.reply(PlayExperienceSyntheticFixtures.envelope(PlayExperienceSyntheticFixtures.classic), 200), .reply(PlayExperienceSyntheticFixtures.envelope(PlayExperienceSyntheticFixtures.complete), 200)]
+        transport.responses["/fixture/api/play/answer"] = .failure(.unknownResult)
         let coordinator = try model(transport, current: { current }); await coordinator.load()
         await coordinator.submit(try coordinator.review(nodeID: 701, evidence: .answer("synthetic"))); await coordinator.load()
         XCTAssertFalse(coordinator.unresolved); XCTAssertNil(coordinator.reward); XCTAssertEqual(coordinator.snapshot?.availability, .completed)

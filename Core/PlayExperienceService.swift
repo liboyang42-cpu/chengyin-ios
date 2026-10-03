@@ -6,7 +6,7 @@ import FoundationNetworking
 public enum PlayExperienceCapability: Hashable {
     case directorCommands, reads, runPersistence, classicCompletion, hints, leader, advanced, playerCommands, circle, preference, tags, mediaUpload, thoughtClaims
 }
-public enum PlayCompletionEvidence: Equatable {
+public enum PlayCompletionEvidence: Codable, Equatable {
     case answer(String)
     case scan(String)
     /// Provider must return GCJ-02 for the source CN arrive contract. No conversion guess.
@@ -39,7 +39,13 @@ public struct PlayExperienceService {
         }
         return route
     }
+    /// Raw payload entry remains useful for sealed in-process fixture recording only.
+    /// Network-capable transports require the coordinator's one-shot durable attempt.
     public func complete(scope: PlaySessionScope, nodeID: Int, evidence: PlayCompletionEvidence, advance: PlayRouteAdvance?, token: String) async throws -> PlayWireValue {
+        let request = try completionRequest(scope: scope, nodeID: nodeID, evidence: evidence, advance: advance, token: token, boundary: UUID().uuidString)
+        return try await send(request, capability: .classicCompletion)
+    }
+    func completionRequest(scope: PlaySessionScope, nodeID: Int, evidence: PlayCompletionEvidence, advance: PlayRouteAdvance?, token: String, boundary: String) throws -> URLRequest {
         guard nodeID > 0 else { throw APIError.invalidRequest }
         var fields = try scopeFields(scope)
         fields["nodeId"] = String(nodeID)
@@ -62,10 +68,10 @@ public struct PlayExperienceService {
             guard ["still", "steps", "audio_clip"].contains(type), !payload.isEmpty else { throw APIError.invalidRequest }
             var json = scopeJSON(scope); json["nodeId"] = .int(nodeID); json["sensorType"] = .string(type); json["payload"] = .object(payload)
             if let advance { json["routeActionId"] = .string(advance.actionID); json["expectedRouteVersion"] = .int(advance.expectedVersion) }
-            return try await request("api/play/sensor-result", json: json, capability: .classicCompletion, token: token)
+            return try makeRequest("api/play/sensor-result", json: json, token: token)
         }
         fields.merge(advance?.fields ?? [:]) { _, new in new }
-        return try await request("api/play/" + evidence.path, form: fields, capability: .classicCompletion, token: token)
+        return try makeRequest("api/play/" + evidence.path, form: fields, token: token, boundary: boundary)
     }
     public func hint(scope: PlaySessionScope, nodeID: Int, level: Int?, token: String) async throws -> PlayHintReceipt {
         guard nodeID > 0 else { throw APIError.invalidRequest }
@@ -117,13 +123,20 @@ public struct PlayExperienceService {
         return rows.compactMap(PlayContinueRun.init)
     }
     public func savePaused(scope: PlaySessionScope, record: PlayPausedRecord, token: String) async throws {
-        var fields = try scopeFields(scope); fields["elapsedSeconds"] = String(record.elapsedSeconds); fields["savedAt"] = String(record.savedAt)
-        _ = try await request("api/play/run-session/save", form: fields, capability: .runPersistence, token: token)
+        _ = try await send(pausedRequest(scope: scope, record: record, savedAt: record.savedAt, token: token), capability: .runPersistence)
     }
     public func clearPaused(scope: PlaySessionScope, savedAt: Int64, token: String) async throws {
+        _ = try await send(pausedRequest(scope: scope, record: nil, savedAt: savedAt, token: token), capability: .runPersistence)
+    }
+    func pausedRequest(scope: PlaySessionScope, record: PlayPausedRecord?, savedAt: Int64, token: String) throws -> URLRequest {
         guard savedAt > 0 else { throw APIError.invalidRequest }
         var fields = try scopeFields(scope); fields["savedAt"] = String(savedAt)
-        _ = try await request("api/play/run-session/clear", form: fields, capability: .runPersistence, token: token)
+        if let record { fields["elapsedSeconds"] = String(record.elapsedSeconds) }
+        return try makeRequest("api/play/run-session/" + (record == nil ? "clear" : "save"), form: fields, token: token)
+    }
+    @MainActor func dispatch(_ attempt: PlayPreparedDispatch) async throws -> PlayWireValue {
+        guard attempt.baseURL.absoluteString.utf8.elementsEqual(configuration.baseURL.absoluteString.utf8) else { throw PlayExperienceError.persistenceUnavailable }
+        return try await send(attempt.request, capability: attempt.capability, attempt: attempt)
     }
     public func operatingSystem(topicID: Int, token: String) async throws -> PlayWireValue {
         guard topicID > 0 else { throw APIError.invalidRequest }
@@ -151,8 +164,18 @@ public struct PlayExperienceService {
     func request(_ path: String, query: [String: String] = [:], form: [String: String]? = nil,
                  json: [String: PlayWireValue]? = nil, postWithoutBody: Bool = false,
                  capability: PlayExperienceCapability, token: String) async throws -> PlayWireValue {
-        guard enabled.contains(capability) else { throw PlayExperienceError.disabled }
-        guard AuthRequestBuilder.isValidToken(token), !(form != nil && json != nil) else { throw APIError.invalidRequest }
+        try await send(makeRequest(path, query: query, form: form, json: json, postWithoutBody: postWithoutBody, token: token), capability: capability)
+    }
+    private func makeRequest(_ path: String, query: [String: String] = [:], form: [String: String]? = nil,
+                             json: [String: PlayWireValue]? = nil, postWithoutBody: Bool = false,
+                             token: String, boundary: String = UUID().uuidString) throws -> URLRequest {
+        // Restrict every segment before URL construction: dot/semicolon/backslash/encoded
+        // aliases must not bypass the protected-route comparison after server normalization.
+        let segments = path.split(separator: "/", omittingEmptySubsequences: false)
+        guard segments.first == "api", segments.allSatisfy({ !$0.isEmpty && $0.utf8.allSatisfy {
+                  (48...57).contains($0) || (65...90).contains($0) || (97...122).contains($0) || $0 == 45 || $0 == 95
+              } }),
+              AuthRequestBuilder.isValidToken(token), !(form != nil && json != nil) else { throw APIError.invalidRequest }
         var request = URLRequest(url: configuration.baseURL.appendingPathComponent(path))
         request.timeoutInterval = 20; request.cachePolicy = .reloadIgnoringLocalCacheData
         request.setValue(token, forHTTPHeaderField: "Authorization"); request.setValue("application/json", forHTTPHeaderField: "Accept")
@@ -161,16 +184,32 @@ public struct PlayExperienceService {
             components.queryItems = query.sorted { $0.key < $1.key }.map { URLQueryItem(name: $0.key, value: $0.value) }; request.url = components.url
         }
         if let form {
-            request = try AuthRequestBuilder.makeFormRequest(url: request.url!, fields: form, token: token)
+            request = try AuthRequestBuilder.makeFormRequest(url: request.url!, fields: form, token: token, boundary: boundary)
         } else if let json {
             request.httpMethod = "POST"; request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             // Re-encoding an exact reviewed retry must not reorder dictionary keys.
             let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]
             request.httpBody = try encoder.encode(json)
         } else { request.httpMethod = postWithoutBody ? "POST" : "GET" }
+        return request
+    }
+    @MainActor private func send(_ request: URLRequest, capability: PlayExperienceCapability, attempt: PlayPreparedDispatch? = nil) async throws -> PlayWireValue {
+        guard enabled.contains(capability) else { throw PlayExperienceError.disabled }
+        guard let url = request.url, var route = URLComponents(url: url, resolvingAgainstBaseURL: false) else { throw APIError.invalidRequest }
+        route.query = nil; route.fragment = nil
+        let protected = ["answer", "checkin", "arrive", "photo", "sensor-result", "run-session/save", "run-session/clear"].contains { configuration.baseURL.appendingPathComponent("api/play/" + $0) == route.url }
+        if capability == .classicCompletion || capability == .runPersistence {
+            guard protected else { throw PlayExperienceError.persistenceUnavailable }
+        }
+        if protected {
+            if let attempt { try await attempt.consume(request: request, transport: transport) }
+            else { guard transport is PlayRecoveryRecordingTransport else { throw PlayExperienceError.persistenceUnavailable } }
+        } else if attempt != nil { throw PlayExperienceError.persistenceUnavailable }
+        try attempt?.checkLifetime()
         try Task.checkCancellation()
         let (data, status) = try await transport.send(request)
         try Task.checkCancellation()
+        try attempt?.checkLifetime()
         let envelope = try? JSONDecoder().decode(PlayWireValue.self, from: data)
         let code = envelope?["code"].tolerantInteger
         if status == 401 || code == 401 { throw PlayExperienceError.unauthorized }

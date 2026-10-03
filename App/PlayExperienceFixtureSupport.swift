@@ -5,6 +5,7 @@ import SwiftUI
     var epoch: UInt64 = 1
     var accountID = 9001
     var done = false
+    var normalRecorder: PlayRecoveryRecordingTransport?
     var circleRecords: [PlayWireValue] = []
     var tagRevoked = false
     var tagConfirmed = false
@@ -45,6 +46,8 @@ import SwiftUI
         }
         if path.hasSuffix("/preference/701/submit") {
             done = true
+            normalRecorder?.responses["/fixture/api/play/nodes"] = .reply(PlayExperienceSyntheticFixtures.envelope(PlayExperienceSyntheticFixtures.complete), 200)
+            if let recorder = normalRecorder { recorder.responses.merge(recorder.afterCompletion) { _, new in new } }
             return (PlayExperienceSyntheticFixtures.envelope(#"{"evaluation":{"resultCode":"SYNTHETIC","title":"Synthetic result","body":"Synthetic suggestion","nextStep":"Synthetic next step","nextStepDays":7},"progress":{"nodeId":701,"xp":3},"pendingTag":{"id":81,"tagCode":"SYNTHETIC","tagValue":"Synthetic tag","status":0},"tagDisclosure":{"purpose":"Synthetic personalization only","recipientLabel":"Synthetic journey service","revocable":true},"availableTagValues":["Synthetic tag","Synthetic other tag"]}"#), 200)
         }
         if path.hasSuffix("/tag/81/confirm") {
@@ -101,7 +104,27 @@ private final class PlayExperienceFixtureTransport: HTTPTransport {
         let state = PlayExperienceFixtureState(scenario: scenario); _state = State(initialValue: state)
         let service = PlayExperienceService(configuration: try! APIConfiguration(baseURL: URL(string: "https://example.com/fixture/")!), transport: PlayExperienceFixtureTransport { try await state.response($0) }, enabled: scenario == "disabled" ? [] : [.reads, .runPersistence, .classicCompletion, .hints, .leader, .advanced, .playerCommands, .circle, .preference, .tags])
         _service = State(initialValue: service)
-        _model = State(initialValue: PlayExperienceCoordinator(scope: .activity(41), service: service, recovery: PlayMemoryCompletionRecovery(), pausedStorage: PlayMemoryPausedStorage(), currentSession: { state.session }))
+        // The normal completion/run fixture uses a final scripted recorder with no network.
+        let recorder = PlayRecoveryRecordingTransport(); state.normalRecorder = recorder
+        let initial = scenario == "mode2" ? PlayExperienceSyntheticFixtures.mode2 : scenario == "branch" ? PlayExperienceSyntheticFixtures.branch : scenario == "referenceComplete" ? PlayExperienceSyntheticFixtures.complete : PlayExperienceSyntheticFixtures.classic
+        recorder.responses["/fixture/api/play/nodes"] = .reply(PlayExperienceSyntheticFixtures.envelope(initial), 200)
+        if scenario == "referenceUnknownTotal" { recorder.responses["/fixture/api/play/nodes"] = .reply(PlayExperienceSyntheticFixtures.envelope(#"{"topicId":71,"topicName":"Synthetic phase-only journey / 测试旅程","mode":1,"playable":true,"registered":true,"nodes":[{"nodeId":701,"name":"Synthetic task / 测试任务","done":false}]}"#), 200) }
+        if scenario == "preference" { recorder.responses["/fixture/api/play/nodes"] = .reply(PlayExperienceSyntheticFixtures.envelope(#"{"topicId":71,"mode":1,"playable":true,"registered":true,"nodes":[{"nodeId":701,"name":"Synthetic preference station","done":false,"validationMethod":6}]}"#), 200) }
+        if scenario == "sensor" { recorder.responses["/fixture/api/play/nodes"] = .reply(PlayExperienceSyntheticFixtures.envelope(#"{"topicId":71,"topicName":"Synthetic stillness","mode":1,"playable":true,"registered":true,"nodes":[{"nodeId":701,"name":"Synthetic sensor station","done":false,"validationMethod":7,"sensorType":"still","sensorConfig":{"durationSec":1,"tolerance":0.02}}]}"#), 200) }
+        if scenario == "referenceFailure" { recorder.responses["/fixture/api/play/nodes"] = .failure(.malformed) }
+        recorder.responses["/fixture/api/play/route-state"] = .reply(PlayExperienceSyntheticFixtures.envelope(PlayExperienceSyntheticFixtures.route), 200)
+        for path in ["answer", "sensor-result", "checkin", "photo", "arrive"] { recorder.responses["/fixture/api/play/" + path] = scenario == "unknown" ? .failure(.unknownResult) : .reply(PlayExperienceSyntheticFixtures.envelope(#"{"nodeId":701,"firstTime":true,"xp":9,"completed":true}"#), 200) }
+        recorder.afterCompletion["/fixture/api/play/nodes"] = .reply(PlayExperienceSyntheticFixtures.envelope(PlayExperienceSyntheticFixtures.complete), 200)
+        recorder.responses["/fixture/api/play/run-session"] = .reply(PlayExperienceSyntheticFixtures.envelope(#"{"runState":"PAUSED","savedAt":1000,"elapsedSeconds":12}"#), 200)
+        for path in ["run-session/save", "run-session/clear"] { recorder.responses["/fixture/api/play/" + path] = .reply(PlayExperienceSyntheticFixtures.envelope("null"), 200) }
+        recorder.responses["/fixture/api/play/ending"] = .reply(PlayExperienceSyntheticFixtures.envelope(#"{"opener":"","fragments":[]}"#), 200)
+        recorder.afterCompletion["/fixture/api/play/ending"] = .reply(PlayExperienceSyntheticFixtures.envelope(#"{"opener":"Synthetic ending","fragments":[{"step":1,"nodeId":701,"name":"Synthetic courtyard","text":"Your synthetic route has been read back."}]}"#), 200)
+        recorder.responses["/fixture/api/play/leaderboard"] = .reply(PlayExperienceSyntheticFixtures.envelope(PlayExperienceSyntheticFixtures.board), 200)
+        recorder.responses["/fixture/api/club/lead/team-progress"] = .reply(PlayExperienceSyntheticFixtures.envelope(PlayExperienceSyntheticFixtures.lead), 200)
+        for action in PlayLeadAction.allCases { recorder.responses["/fixture/api/club/lead/" + action.rawValue] = .reply(PlayExperienceSyntheticFixtures.envelope("null"), 200) }
+        recorder.responses["/fixture/api/play/hint/unlock"] = .reply(PlayExperienceSyntheticFixtures.envelope(#"{"hint1":"Synthetic hint","hint2":"","cost":2}"#), 200)
+        let normalService = PlayExperienceService(configuration: try! APIConfiguration(baseURL: URL(string: "https://example.com/fixture/")!), transport: recorder, enabled: service.enabled)
+        _model = State(initialValue: PlayExperienceCoordinator(scope: .activity(41), service: normalService, recovery: PlayMemoryCompletionRecovery(), pausedStorage: PlayMemoryPausedStorage(), currentSession: { state.session }))
     }
     var body: some View {
         NavigationStack {

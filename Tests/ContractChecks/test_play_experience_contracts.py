@@ -38,14 +38,17 @@ class PlayExperienceSourceChecks(unittest.TestCase):
         self.assertIn('fields.removeValue(forKey: "nodeId")', self.core('PlayExperienceService.swift'))
     def test_route_conflict_uses_structured_code(self):
         text=self.core('PlayExperienceCoordinator.swift')
-        self.assertIn('if code == 409', text); self.assertNotIn('message.contains', text)
+        self.assertIn('code == 409', text); self.assertNotIn('message.contains', text)
     def test_different_session_namespaces(self):
         self.assertIn('session.namespace, String(session.accountID)', self.core('PlayRunLifecycle.swift'))
         self.assertIn('currentSession() == session', self.core('PlayExperienceCoordinator.swift'))
     def test_tombstone_and_duration_guards(self):
         text=self.core('PlayRunLifecycle.swift')
         self.assertIn('7 * 24 * 3600', text); self.assertIn('remote.endedAt >=', text)
-        self.assertIn('writeTombstone', text); self.assertIn('monotonicNow', text)
+        self.assertIn('monotonicNow', text)
+        storage=self.core('PlayRecoveryStorage.swift')
+        self.assertIn('value.tombstone >= previous.tombstone', storage)
+        self.assertIn('replacing snapshot: PlayPausedStorageSnapshot', storage)
     def test_advanced_action_catalog_matches_source(self):
         source=read_flutter_source(self, 'feature/play/advanced/playkit_host.dart')
         block=source.split('kPlayKitServerActionsOf =',1)[1].split('/// 在册动作名的并集',1)[0]

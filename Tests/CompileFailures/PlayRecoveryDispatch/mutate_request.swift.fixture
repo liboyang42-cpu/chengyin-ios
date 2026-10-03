@@ -1,0 +1,5 @@
+import Foundation
+@testable import QuestifyCore
+@MainActor func mutate(_ attempt: PlayPreparedDispatch) {
+    attempt.request = URLRequest(url: URL(string: "https://example.com")!)
+}

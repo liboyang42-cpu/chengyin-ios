@@ -1,0 +1,5 @@
+import Foundation
+@testable import QuestifyCore
+func forge(anchors: ContentDraftSystemAnchors, ciphertexts: ContentDraftSystemCiphertexts) {
+    _ = PlayRecoverySystemStorage(anchors: anchors, ciphertexts: ciphertexts, baseURL: URL(string: "https://example.com")!)
+}

@@ -85,15 +85,14 @@ import FoundationNetworking
         let current = try session(), memory = PlayExtensionMemoryStorage(), store = PlayPrefabRuntimeStore(storage: memory)
         var record = PlayPrefabRuntimeRecord(owner: PlayPrefabRuntimeStore.owner(current), scopeComponent: PlayPrefabRuntimeStore.scope(.activity(41)))
         record.story.scene = .flow; record.hallPhotoURL = "https://example.com/hall.jpg"; record.story.photos["hall"] = record.hallPhotoURL
-        try store.save(record, session: current, scope: .activity(41)); var submitted = false
-        let transport = PlayExtensionTestTransport { request in
-            if request.url?.path.hasSuffix("/photo") == true { submitted = true; return (PlayExperienceSyntheticFixtures.envelope(#"{"nodeId":701}"#), 200) }
-            let nodes = #"{"topicId":71,"topicName":"预制人生","mode":1,"playable":true,"nodes":[{"nodeId":701,"name":"Synthetic hall","done":false,"arrived":true,"validationMethod":2}]}"#
-            return (PlayExperienceSyntheticFixtures.envelope(nodes), 200)
-        }
+        try store.save(record, session: current, scope: .activity(41))
+        let transport = PlayRecoveryRecordingTransport()
+        let nodes = #"{"topicId":71,"topicName":"预制人生","mode":1,"playable":true,"nodes":[{"nodeId":701,"name":"Synthetic hall","done":false,"arrived":true,"validationMethod":2}]}"#
+        transport.responses["/fixture/api/play/nodes"] = .reply(PlayExperienceSyntheticFixtures.envelope(nodes), 200)
+        transport.responses["/fixture/api/play/photo"] = .reply(PlayExperienceSyntheticFixtures.envelope(#"{"nodeId":701}"#), 200)
         let coordinator = PlayPrefabRuntimeCoordinator(scope: .activity(41), service: try service(transport), provider: PlayDormantDeviceProvider(), store: store, currentSession: { current })
         await coordinator.load(); await coordinator.syncCompletion()
-        XCTAssertTrue(submitted); XCTAssertEqual(coordinator.phase, "unknown"); XCTAssertFalse(coordinator.record?.story.synced ?? true)
+        XCTAssertEqual(transport.requests.filter { $0.httpMethod == "POST" }.count, 1); XCTAssertEqual(coordinator.phase, "unknown"); XCTAssertFalse(coordinator.record?.story.synced ?? true)
         await coordinator.syncCompletion(); XCTAssertEqual(transport.requests.filter { $0.url?.path.hasSuffix("/photo") == true }.count, 1)
     }
     func testSceneBootTargetTimingAndWrongPrefix() throws {
