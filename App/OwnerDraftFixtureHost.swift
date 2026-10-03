@@ -13,7 +13,8 @@ import Observation
 @MainActor @Observable final class OwnerDraftFixtureTransport: HTTPTransport {
     var requests: [URLRequest] = []
     var mode: String
-    var accountID = 7, role = "player"
+    var accountID = 7
+    var role = "player"
     private var pendingReads: [CheckedContinuation<(Data, Int), Error>] = []
     var pending: CheckedContinuation<(Data, Int), Error>? { pendingReads.first }
     var pendingCount: Int { pendingReads.count }
