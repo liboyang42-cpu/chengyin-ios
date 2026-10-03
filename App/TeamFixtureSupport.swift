@@ -19,12 +19,12 @@ import SwiftUI
     func switchAccount() { epoch &+= 1; session = try? TeamSyntheticFixtures.session(epoch: epoch, accountID: 903); routeIdentity = UUID() }
 }
 @MainActor struct TeamFixtureHostView: View {
-    private let environment: TeamFixtureEnvironment?
+    @State private var environment: TeamFixtureEnvironment?
     private let destination: String
     init() {
         let args = ProcessInfo.processInfo.arguments
         func arg(_ name: String) -> String? { guard let i = args.firstIndex(of: name), args.indices.contains(i + 1) else { return nil }; return args[i + 1] }
-        environment = try? TeamFixtureEnvironment(scenario: arg("--uitesting-team-scenario").flatMap(TeamSyntheticService.Scenario.init(rawValue:)) ?? .content)
+        _environment = State(initialValue: try? TeamFixtureEnvironment(scenario: arg("--uitesting-team-scenario").flatMap(TeamSyntheticService.Scenario.init(rawValue:)) ?? .content))
         destination = arg("--uitesting-team-destination") ?? "list"
     }
     var body: some View {

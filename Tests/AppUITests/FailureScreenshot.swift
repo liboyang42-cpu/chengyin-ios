@@ -120,10 +120,21 @@ func dismissFixtureConfirmationPopover(in app: XCUIApplication,
     ).allElementsBoundByIndex
     let inputFrames = inputElements.map { $0.frame.intersection(app.frame) }
         .filter { !$0.isNull && !$0.isEmpty }
-    let bottom = inputFrames.reduce(app.frame.maxY - 60) { min($0, $1.minY - 16) }
-    let point = CGPoint(x: app.frame.maxX - 16, y: bottom)
-    guard app.frame.contains(point), outside.frame.contains(point), !popover.frame.contains(point),
-          inputFrames.allSatisfy({ !$0.contains(point) }) else {
+    // Prefer the content beside the popup. Screen-edge/home-indicator taps may
+    // be intercepted even though the dismissal region's AX frame contains them.
+    let content = app.frame.insetBy(dx: 40, dy: 80)
+    let popup = popover.frame.insetBy(dx: -16, dy: -16)
+    let candidates = [
+        CGPoint(x: content.maxX - 1, y: popover.frame.midY),
+        CGPoint(x: content.minX + 1, y: popover.frame.midY),
+        CGPoint(x: content.midX, y: popup.maxY + 24),
+        CGPoint(x: content.midX, y: popup.minY - 24),
+        CGPoint(x: content.midX, y: content.midY)
+    ]
+    guard let point = candidates.first(where: { candidate in
+        content.contains(candidate) && outside.frame.contains(candidate) && !popup.contains(candidate)
+            && inputFrames.allSatisfy { !$0.insetBy(dx: -16, dy: -16).contains(candidate) }
+    }) else {
         XCTFail("No safe outside-popover dismissal point: " + app.debugDescription, file: file, line: line); return
     }
     outside.coordinate(withNormalizedOffset: .zero)
