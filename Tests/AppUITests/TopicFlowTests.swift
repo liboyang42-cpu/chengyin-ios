@@ -24,7 +24,7 @@ final class TopicFlowTests: XCTestCase {
         XCTAssertTrue(app.navigationBars["Route details"].waitForExistence(timeout: 5))
         let total = app.staticTexts["topic.totalStops"]
         XCTAssertTrue(total.waitForExistence(timeout: 5))
-        XCTAssertEqual(total.label, "9", "Full-route total must not become the two visible stops")
+        XCTAssertEqual(total.label, "Total route stops, 9", "The accessible full-route total must not become the two visible stops")
         let locked = app.descendants(matching: .any)["topic.lockedChapters"]
         for _ in 0..<4 { if locked.exists { break }; app.swipeUp() }
         XCTAssertTrue(locked.exists)

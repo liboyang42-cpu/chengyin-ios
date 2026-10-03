@@ -2,11 +2,17 @@ import XCTest
 
 /// Authored for Xcode/simulator only. No UI test was run in the Linux workspace.
 final class ProjectEditFlowTests: XCTestCase {
+    private var launchedApp: XCUIApplication?
+    override func tearDown() {
+        if let app = launchedApp { attachFailureScreenshot(self, app: app); app.terminate() }
+        launchedApp = nil
+        super.tearDown()
+    }
     override func setUp() { super.setUp(); continueAfterFailure = false }
     private func launch(_ flags: [String] = []) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", "(en)", "-AppleLocale", "en_US", "--uitesting-module", "projectEdit"] + flags
-        app.launch(); return app
+        launchedApp = app; app.launch(); return app
     }
     private func find(_ element: XCUIElement, in app: XCUIApplication) {
         for _ in 0..<12 { if element.exists && element.isHittable { return }; app.swipeUp() }
@@ -48,8 +54,14 @@ final class ProjectEditFlowTests: XCTestCase {
         let addNode = app.buttons["projectEdit.addNode"]
         XCTAssertTrue(addNode.waitForExistence(timeout: 3)); XCTAssertFalse(addNode.isEnabled)
         let story = app.textFields["projectEdit.story"]
-        XCTAssertTrue(story.waitForExistence(timeout: 3)); story.tap(); story.typeText("A real opening story")
-        XCTAssertEqual(story.value as? String, "A real opening story")
+        XCTAssertTrue(story.waitForExistence(timeout: 3)); story.tap()
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5), app.debugDescription)
+        let expectedStory = "A real opening story"
+        story.typeText(expectedStory)
+        // One entry only: wait for the binding to settle, never retry or accept a partial story.
+        let committed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", expectedStory), object: story)
+        XCTAssertEqual(XCTWaiter.wait(for: [committed], timeout: 5), .completed, app.debugDescription)
+        XCTAssertEqual(story.value as? String, expectedStory)
         XCTAssertTrue(addNode.isEnabled)
     }
     func testWhitelistDisablesStructureAndScheduleButKeepsCopyEditable() {
