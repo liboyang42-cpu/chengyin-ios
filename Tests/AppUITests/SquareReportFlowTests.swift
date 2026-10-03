@@ -127,7 +127,8 @@ final class SquareReportFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["squareReport.acknowledged"].waitForExistence(timeout: 5))
     }
     func testChineseLargeTextReasonSheetCancelsWithoutSelecting() {
-        launch(language: "zh-Hans", extra: ["--uitesting-large-text", "--uitesting-dark-mode"])
+        launch(language: "zh-Hans", extra: ["--uitesting-large-text", "--uitesting-dark"])
+        assertFixtureEnvironment(in: app, colorScheme: "dark", dynamicTypeSize: "accessibility3")
         openReport(); tap("squareReport.chooseReason")
         let first = app.buttons["squareReport.reason.DANGEROUS"]; reveal(first)
         attachFixtureScreenshot(self, app: app, name: "Chinese report reason nested sheet large text dark mode - synthetic")

@@ -13,6 +13,7 @@ final class ReferenceMapCardFlowTests: XCTestCase {
                     "-AppleLocale", chinese ? "zh_CN" : "en_US", "--uitesting-module", "searchMap", "--uitesting-search-map-entry", "cards"]
                 if maximum { app.launchArguments += ["--uitesting-max-text", "--uitesting-dark", "--uitesting-reduce-motion"] }
                 app.launch()
+                if maximum { assertFixtureEnvironment(in: app, colorScheme: "dark", dynamicTypeSize: "accessibility5") }
                 let title = "A very long neighborhood discovery walk with the complete destination name · 城市街区探索漫步与完整目的地名称，重要信息保留到最后"
                 XCTAssertTrue(app.staticTexts[title].waitForExistence(timeout: 5))
                 XCTAssertTrue(app.descendants(matching: .any)["reference.card.missing"].exists)

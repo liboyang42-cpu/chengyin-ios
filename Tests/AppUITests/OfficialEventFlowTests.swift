@@ -10,6 +10,7 @@ final class OfficialEventFlowTests: XCTestCase {
         app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", chinese ? "(zh-Hans)" : "(en)", "-AppleLocale", chinese ? "zh_CN" : "en_US", "--uitesting-module", "officialEvents", "--uitesting-official-scenario", scenario, "--uitesting-official-destination", destination]
         if accessible { app.launchArguments += ["--uitesting-large-text", "--uitesting-dark", "--uitesting-reduce-motion"] }
         app.launch()
+        if accessible { assertFixtureEnvironment(in: app, colorScheme: "dark", dynamicTypeSize: "accessibility3") }
     }
     private func reveal(_ element: XCUIElement, file: StaticString = #filePath, line: UInt = #line) {
         _ = element.waitForExistence(timeout: 5)

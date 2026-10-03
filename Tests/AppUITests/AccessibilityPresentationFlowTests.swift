@@ -8,6 +8,7 @@ final class AccessibilityPresentationFlowTests:XCTestCase {
     private func launch(_ module:String) {
         app.launchArguments=["--uitesting-reset-language","-AppleLanguages","(zh-Hans)","-AppleLocale","zh_CN","--uitesting-module",module,"--uitesting-dark","--uitesting-large-text","--uitesting-reduce-motion"]
         app.launch()
+        assertFixtureEnvironment(in: app, colorScheme: "dark", dynamicTypeSize: "accessibility3")
     }
     func testHomeChineseDarkLargeTextRemainsNavigable() {
         launch("home-feed")
@@ -28,4 +29,11 @@ final class AccessibilityPresentationFlowTests:XCTestCase {
         XCTAssertTrue(app.navigationBars["票券详情"].waitForExistence(timeout:10),app.debugDescription)
         attachFixtureScreenshot(self,app:app,name:"Ticket detail Chinese dark accessibility3 reduced-motion")
     }
+    func testMaximumTextWinsWhenBothCanonicalSizeFlagsArePresent() {
+        app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN",
+            "--uitesting-module", "home-feed", "--uitesting-dark", "--uitesting-large-text", "--uitesting-max-text"]
+        app.launch()
+        assertFixtureEnvironment(in: app, colorScheme: "dark", dynamicTypeSize: "accessibility5")
+    }
+
 }

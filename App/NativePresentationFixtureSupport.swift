@@ -102,7 +102,6 @@ import UIKit
                 }
             }
         }
-        .dynamicTypeSize(ProcessInfo.processInfo.arguments.contains("--uitesting-presentation-max-text") ? .accessibility5 : .large)
     }
 }
 #endif

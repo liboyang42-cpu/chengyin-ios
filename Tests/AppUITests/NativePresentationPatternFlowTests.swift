@@ -7,8 +7,9 @@ final class NativePresentationPatternFlowTests: XCTestCase {
     override func tearDownWithError() throws { attachFailureScreenshot(self, app: app); app.terminate(); app = nil }
     private func launch(_ scenario: String, language: String = "en", maximum: Bool = false) {
         app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", "(\(language))", "-AppleLocale", language == "en" ? "en_US" : "zh_CN", "--uitesting-module", "presentationPatterns", "--uitesting-presentation-scenario", scenario]
-        if maximum { app.launchArguments += ["--uitesting-presentation-max-text", "--uitesting-dark", "--uitesting-reduce-motion"] }
+        if maximum { app.launchArguments += ["--uitesting-max-text", "--uitesting-dark", "--uitesting-reduce-motion"] }
         app.launch()
+        if maximum { assertFixtureEnvironment(in: app, colorScheme: "dark", dynamicTypeSize: "accessibility5") }
     }
     private func wait(_ element: XCUIElement, _ predicate: String, file: StaticString = #filePath, line: UInt = #line) {
         let expected = XCTNSPredicateExpectation(predicate: NSPredicate(format: predicate), object: element)

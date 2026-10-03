@@ -125,7 +125,8 @@ final class SettingsNativeFlowTests: XCTestCase {
         }
     }
     func testLargeTextChineseSoundControlsStayNativeAndAccessible() {
-        launch(language: "zh-Hans", extra: ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"])
+        launch(language: "zh-Hans", extra: ["--uitesting-max-text"])
+        assertFixtureEnvironment(in: app, dynamicTypeSize: "accessibility5")
         open("settingsNative.openSound")
         let forest = app.switches["settingsNative.sound.forest"]
         reveal(forest); XCTAssertEqual(forest.label, "森林")
@@ -142,7 +143,8 @@ final class SettingsNativeFlowTests: XCTestCase {
         XCTAssertFalse(app.staticTexts["settingsNative.about.copyPhone.copied"].exists)
     }
     func testChineseLargeTextContactCopyFailureOffersManualRecovery() {
-        launch("copyFailure", language: "zh-Hans", extra: ["--uitesting-large-text", "--uitesting-dark-mode"])
+        launch("copyFailure", language: "zh-Hans", extra: ["--uitesting-large-text", "--uitesting-dark"])
+        assertFixtureEnvironment(in: app, colorScheme: "dark", dynamicTypeSize: "accessibility3")
         open("settingsNative.openAbout"); open("settingsNative.about.copyPhone")
         let failure = app.staticTexts["settingsNative.about.copyPhone.failed"]
         reveal(failure)

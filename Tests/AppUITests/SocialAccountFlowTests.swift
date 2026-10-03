@@ -21,12 +21,17 @@ final class SocialAccountFlowTests: XCTestCase {
         let keep = dialog.buttons["social.editor.keepEditing"]
         if keep.exists && keep.isHittable { keep.tap() }
         else { dismissFixtureConfirmationPopover(in: app) }
+        // Wait only for the presentation transition. An absent-sheet AX lookup can
+        // consume most of this bound; polling unrelated editor queries in the same
+        // predicate can time out even when the full draft is already restored.
+        let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: dialog)
+        XCTAssertEqual(XCTWaiter.wait(for: [dismissed], timeout: 5), .completed, app.debugDescription)
         let editor = app.textViews["social.editor.text"]
-        let restored = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
-            !dialog.exists && editor.exists && editor.value as? String == expected
-                && self.app.buttons["social.editor.review"].isEnabled
-        }, object: app)
-        XCTAssertEqual(XCTWaiter.wait(for: [restored], timeout: 5), .completed, app.debugDescription)
+        XCTAssertTrue(editor.exists, app.debugDescription)
+        XCTAssertEqual(editor.value as? String, expected, app.debugDescription)
+        let review = app.buttons["social.editor.review"]
+        XCTAssertTrue(review.exists, app.debugDescription)
+        XCTAssertTrue(review.isEnabled, app.debugDescription)
     }
     private func enterReview() {
         let editor = app.textViews["social.editor.text"]
@@ -88,6 +93,7 @@ final class SocialAccountFlowTests: XCTestCase {
     }
     func testChineseGuideWithAccessibilityTextHasTranslatedDestinations() {
         launch("guide", language: "zh-Hans", extra: ["--uitesting-large-text"])
+        assertFixtureEnvironment(in: app, dynamicTypeSize: "accessibility3")
         XCTAssertTrue(text("探索方式").waitForExistence(timeout: 5))
         XCTAssertFalse(text("social.guide.classic").exists)
         let roam = app.buttons["social.guide.roam"]; reveal(roam); roam.tap()
@@ -116,7 +122,8 @@ final class SocialAccountFlowTests: XCTestCase {
         XCTAssertEqual(editor.value as? String, "")
     }
     func testChineseLargeTextDraftCancelKeepsTextAndKeyboardDismisses() {
-        launch("editorSheet", language: "zh-Hans", extra: ["--uitesting-large-text", "--uitesting-dark-mode"])
+        launch("editorSheet", language: "zh-Hans", extra: ["--uitesting-large-text", "--uitesting-dark"])
+        assertFixtureEnvironment(in: app, colorScheme: "dark", dynamicTypeSize: "accessibility3")
         let open = app.buttons["social.fixture.openEditor"]
         XCTAssertTrue(open.waitForExistence(timeout: 5)); open.tap()
         let editor = app.textViews["social.editor.text"]

@@ -88,8 +88,9 @@ class TestBundlePreflightTests(unittest.TestCase):
         self.assertIn('shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]', ui)
         self.assertIn('fail-fast: false', ui)
         self.assertIn('python3 tools/run_ui_shard.py --shard ${{ matrix.shard }} --count 10', ui)
-        self.assertIn('timeout-minutes: 35', ui)
-        self.assertIn('--deadline-seconds 1680', ui)
+        self.assertIn('timeout-minutes: 37', ui)
+        self.assertIn('--deadline-seconds 1800', ui)
+        self.assertEqual(37 * 60 - 1800, 7 * 60)  # setup/export reserve stays seven minutes
         self.assertIn('timeout-minutes: 20', self.jobs['app-unit-tests'])
         for name in ['app-unit-tests', 'ui-tests']:
             self.assertIn('test_products.py restore', self.jobs[name])
@@ -131,7 +132,7 @@ class TestBundlePreflightTests(unittest.TestCase):
         for action in re.findall(r'uses: (\S+)', self.workflow):
             self.assertRegex(action, r'^[\w/-]+@[0-9a-f]{40}$')
         ceilings = {'native': 15, 'device-build': 10, 'us-build': 10, 'secrets': 10,
-                    'app-unit-tests': 20, 'ui-tests': 35, 'required-native-gates': 2}
+                    'app-unit-tests': 20, 'ui-tests': 37, 'required-native-gates': 2}
         for name, minutes in ceilings.items():
             self.assertIn(f'    timeout-minutes: {minutes}\n', self.jobs[name])
             runner = 'ubuntu-24.04' if name in ['secrets', 'required-native-gates'] else 'macos-26'

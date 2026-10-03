@@ -148,3 +148,34 @@ class NativePresentationReuseChecks(unittest.TestCase):
     def test_completed_history_does_not_use_participation_scope_state(self):
         text = source('App/PlayerJourneyViews.swift').split('@MainActor struct CompletedPlayHistoryView: View {', 1)[1].split('private struct PlayerJourneyCount: View {', 1)[0]
         self.assertNotIn('rowsScope', text)
+
+    def test_settings_legal_reveals_lazy_form_rows_before_asserting_existence(self):
+        source_text = source('Tests/AppUITests/NativeSettingsReuseFlowTests.swift')
+        helper = source_text.split('private func openLegal(', 1)[1].split('\n    func test', 1)[0]
+        self.assertIn('let form = app.collectionViews.firstMatch', helper)
+        self.assertIn('form.waitForExistence(timeout: 10)', helper)
+        self.assertIn('app.navigationBars[rootTitle].exists', helper)
+        self.assertIn('let button = form.buttons["settingsNative.openLegal.\\(type)"]', helper)
+        self.assertIn('for _ in 0..<12 { if button.exists && button.isHittable { break }; form.swipeUp() }', helper)
+        self.assertLess(helper.index('form.swipeUp()'), helper.index('XCTAssertTrue(button.exists'))
+        self.assertLess(helper.index('XCTAssertTrue(button.exists'), helper.index('button.tap()'))
+        self.assertLess(helper.index('XCTAssertTrue(button.isHittable'), helper.index('button.tap()'))
+        self.assertNotIn('button.waitForExistence', helper)
+        self.assertNotIn('app.swipeUp()', helper)
+
+    def test_maximum_settings_legal_flow_keeps_bilingual_missing_and_back_checks(self):
+        text = source('Tests/AppUITests/NativeSettingsReuseFlowTests.swift')
+        case = text.split('func testMaximumTextLegalMissingStateBackAndReopenInBothLanguages()', 1)[1]
+        for token in ['for language in ["en", "zh-Hans"]', 'language == "en" ? "Settings" : "设置"',
+                      '"--uitesting-max-text"', 'dynamicTypeSize: "accessibility5"',
+                      'XCTAssertFalse(app.staticTexts["settingsNative.legal.loading"].exists)',
+                      'XCTAssertFalse(app.buttons["Accept"].exists)', 'XCTAssertFalse(app.buttons["同意"].exists)',
+                      'XCTAssertFalse(app.staticTexts["settingsNative.legal.version"].exists)']:
+            self.assertIn(token, case)
+        agreement = case.index('openLegal("user_agreement", rootTitle: rootTitle)')
+        back = case.index('app.navigationBars.buttons.firstMatch.tap()')
+        privacy = case.index('openLegal("privacy_policy", rootTitle: rootTitle)')
+        self.assertLess(agreement, back)
+        self.assertLess(back, privacy)
+        self.assertEqual(case.count('app.staticTexts["settingsNative.legal.missing"].waitForExistence(timeout: 10)'), 2)
+        self.assertNotIn('XCTSkip', case)

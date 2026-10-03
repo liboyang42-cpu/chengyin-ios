@@ -9,6 +9,7 @@ final class SearchMapFlowTests: XCTestCase {
         app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", chinese ? "(zh-Hans)" : "(en)", "-AppleLocale", chinese ? "zh_CN" : "en_US", "--uitesting-module", "searchMap", "--uitesting-search-map-scenario", scenario, "--uitesting-search-map-entry", entry]
         if accessible { app.launchArguments += ["--uitesting-large-text","--uitesting-dark","--uitesting-reduce-motion"] }
         app.launch()
+        if accessible { assertFixtureEnvironment(in: app, colorScheme: "dark", dynamicTypeSize: "accessibility3") }
     }
     private func reveal(_ element: XCUIElement) {
         _ = element.waitForExistence(timeout: 5)

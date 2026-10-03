@@ -39,6 +39,7 @@ struct ModuleFixtureRootView: View {
             }.font(.caption.bold()).padding(8)
                 .frame(maxWidth:.infinity).background(.yellow.opacity(0.2))
                 .accessibilityIdentifier("module.fixture.notice")
+                .modifier(AccessibilityFixtureEnvironmentValue())
             switch module {
             case .playDirector: PlayDirectorPrefabFixtureHostView(scenario: "director")
             case .playPrefab: PlayDirectorPrefabFixtureHostView(scenario: "prefab")

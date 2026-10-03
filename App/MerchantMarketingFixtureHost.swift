@@ -24,14 +24,19 @@ import SwiftUI
         _store = StateObject(wrappedValue: MerchantMarketingFixtureStore(scenario: scenario)); self.initialSurface = initialSurface
     }
     var body: some View {
-        NavigationStack {
-            MerchantMarketingView(model: store.model, initialSurface: initialSurface)
-                .safeAreaInset(edge: .top) { Text("merchantMarketing.synthetic").font(.caption).accessibilityIdentifier("merchantMarketing.synthetic") }
-                .toolbar { ToolbarItemGroup(placement: .bottomBar) {
-                    Button("merchantMarketing.fixtureSignOut") { store.signOut() }.accessibilityIdentifier("merchantMarketing.fixtureSignOut")
-                    Text(verbatim: String(store.settlementCount)).accessibilityIdentifier("merchantMarketing.fixtureSettlementCount")
-                } }
-        }
+        VStack(spacing: 0) {
+            // Synthetic controls must not overlay a production List row's tap target.
+            HStack {
+                Button("merchantMarketing.fixtureSignOut") { store.signOut() }.accessibilityIdentifier("merchantMarketing.fixtureSignOut")
+                Spacer()
+                Text(verbatim: String(store.settlementCount)).accessibilityIdentifier("merchantMarketing.fixtureSettlementCount")
+            }.padding(.horizontal).frame(minHeight: 44)
+            NavigationStack {
+                MerchantMarketingView(model: store.model, initialSurface: initialSurface)
+                    .safeAreaInset(edge: .top) { Text("merchantMarketing.synthetic").font(.caption).accessibilityIdentifier("merchantMarketing.synthetic")
+                        .modifier(AccessibilityFixtureEnvironmentValue()) }
+            }
+        }.modifier(AccessibilityFixtureOptions())
     }
 }
 #endif

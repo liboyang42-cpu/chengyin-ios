@@ -247,7 +247,9 @@ jobs:
     runs-on: macos-26
     # Run49 spent 9–13 minutes on setup/build/launch before executing methods.
     # Reuse products; keep a bounded margin for the full shard and result export.
-    timeout-minutes: 35
+    # Run77 completed 48 test cases but xcodebuild finalization exceeded 1680s.
+    # Allow 1800s for the process; retain 7 minutes for setup and artifact cleanup.
+    timeout-minutes: 37
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -284,7 +286,7 @@ jobs:
         run: |
           python3 tools/run_ui_shard.py --shard ${{ matrix.shard }} --count 10 \
             --simulator "$TEST_SIMULATOR_ID" \
-            --xctestrun "$UI_XCTESTRUN" --deadline-seconds 1680 \
+            --xctestrun "$UI_XCTESTRUN" --deadline-seconds 1800 \
             --result-bundle "$RUNNER_TEMP/questify-ui-results.xcresult"
       - name: Export offline fixture screenshots
         if: always()

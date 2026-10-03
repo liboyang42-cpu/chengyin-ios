@@ -85,6 +85,7 @@ final class GrowthCenterFlowTests: XCTestCase {
     }
     func testChineseAndAccessibilityLayoutsRemainReachable() {
         launch(language: "zh-Hans", extra: ["--uitesting-dark", "--uitesting-large-text"])
+        assertFixtureEnvironment(in: app, colorScheme: "dark", dynamicTypeSize: "accessibility3")
         XCTAssertTrue(app.navigationBars["成长中心"].waitForExistence(timeout: 10))
         let board = app.buttons["growth.openLeaderboard"]; reveal(board)
         XCTAssertGreaterThanOrEqual(board.frame.height, 44)

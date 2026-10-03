@@ -130,6 +130,7 @@ final class AccountCollectionFlowTests: XCTestCase {
     }
     func testLargeTypeDarkModeKeepsCardsAndCouponDetailsReachable() {
         launch(extra: ["--uitesting-dark", "--uitesting-large-text"])
+        assertFixtureEnvironment(in: app, colorScheme: "dark", dynamicTypeSize: "accessibility3")
         open("accountCollection.openFavorites")
         let favorite = app.buttons["accountCollection.favorite.301"]
         reveal(favorite)

@@ -2,6 +2,11 @@ import XCTest
 
 final class MerchantMarketingUITests: XCTestCase {
     override func setUpWithError() throws { continueAfterFailure = false }
+    override func tearDownWithError() throws {
+        let app = XCUIApplication()
+        attachFailureScreenshot(self, app: app)
+        app.terminate()
+    }
     private func reveal(_ element: XCUIElement, app: XCUIApplication, upwards: Bool = true) {
         for _ in 0..<12 {
             if element.exists && element.isHittable { break }
@@ -14,9 +19,9 @@ final class MerchantMarketingUITests: XCTestCase {
         let expected = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", value), object: element)
         XCTAssertEqual(XCTWaiter.wait(for: [expected], timeout: 5), .completed)
     }
-    private func launch(_ surface: String, scenario: String = "normal", language: String = "en") -> XCUIApplication {
+    private func launch(_ surface: String, scenario: String = "normal", language: String = "en", extra: [String] = []) -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments += ["--uitesting-reset-language", "--merchant-marketing-fixture", surface, "--merchant-marketing-scenario", scenario, "-AppleLanguages", "(\(language))", "-AppleLocale", language == "en" ? "en_US" : "zh_CN"]
+        app.launchArguments += ["--uitesting-reset-language", "--merchant-marketing-fixture", surface, "--merchant-marketing-scenario", scenario, "-AppleLanguages", "(\(language))", "-AppleLocale", language == "en" ? "en_US" : "zh_CN"] + extra
         app.launch(); return app
     }
     func testDashboardSyntheticAndNoFalseZeroRate() {
@@ -42,9 +47,35 @@ final class MerchantMarketingUITests: XCTestCase {
         XCTAssertTrue(option.waitForExistence(timeout: 5))
         XCTAssertTrue(revealFixtureElement(option, in: app), app.debugDescription); option.tap()
         let confirm = app.buttons["merchantMarketing.confirmSettlement"]
-        XCTAssertTrue(confirm.waitForExistence(timeout: 5)); XCTAssertFalse(confirm.isEnabled)
+        XCTAssertTrue(confirm.waitForExistence(timeout: 5), app.debugDescription); XCTAssertFalse(confirm.isEnabled)
         app.buttons["Cancel"].tap()
         XCTAssertFalse(confirm.exists); XCTAssertTrue(option.exists)
+    }
+    func testPredictionReviewLargeTextKeepsFixtureControlsClearOfOptions() {
+        let app = launch("predictions", extra: ["--uitesting-large-text", "--uitesting-dark"])
+        assertFixtureEnvironment(in: app, noticeIdentifier: "merchantMarketing.synthetic", colorScheme: "dark", dynamicTypeSize: "accessibility3")
+        let option = app.buttons["merchantMarketing.option.A"]
+        XCTAssertTrue(option.waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertTrue(revealFixtureElement(option, in: app), app.debugDescription)
+        let signOut = app.buttons["merchantMarketing.fixtureSignOut"]
+        let count = app.staticTexts["merchantMarketing.fixtureSettlementCount"]
+        XCTAssertTrue(signOut.isHittable)
+        XCTAssertFalse(option.frame.intersects(signOut.frame))
+        XCTAssertFalse(option.frame.intersects(count.frame))
+        XCTAssertTrue(option.isEnabled)
+        attachFixtureScreenshot(self, app: app, name: "Marketing options clear of fixture controls – root-verified dark accessibility3")
+        option.tap()
+        let cancel = app.buttons["Cancel"]
+        XCTAssertTrue(cancel.waitForExistence(timeout: 5), app.debugDescription)
+        let confirm = app.buttons["merchantMarketing.confirmSettlement"]
+        XCTAssertTrue(revealFixtureElement(confirm, in: app, requiresHittable: false), app.debugDescription)
+        XCTAssertFalse(confirm.isEnabled)
+        attachFixtureScreenshot(self, app: app, name: "Marketing acknowledgement remains required – root-verified dark accessibility3")
+        cancel.tap()
+        let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: confirm)
+        XCTAssertEqual(XCTWaiter.wait(for: [dismissed], timeout: 5), .completed, app.debugDescription)
+        waitForLabel(count, "0")
+        XCTAssertTrue(option.exists)
     }
     func testUnknownRetainsRoundAndLocksNewAttempt() {
         let app = launch("predictions", scenario: "unknown")

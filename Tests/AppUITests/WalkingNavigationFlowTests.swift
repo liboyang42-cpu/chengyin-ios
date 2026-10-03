@@ -10,6 +10,7 @@ final class WalkingNavigationFlowTests: XCTestCase {
             "--uitesting-module", "searchMap", "--uitesting-search-map-entry", "walking", "--uitesting-walking-scenario", scenario]
         if maximumType { app.launchArguments += ["--uitesting-max-text", "--uitesting-dark", "--uitesting-reduce-motion"] }
         app.launch()
+        if maximumType { assertFixtureEnvironment(in: app, colorScheme: "dark", dynamicTypeSize: "accessibility5") }
         let open = app.buttons["walking.open"]; XCTAssertTrue(open.waitForExistence(timeout: 5))
         XCTAssertTrue(revealFixtureElement(open, in: app, maximumSwipes: 20)); open.tap()
         XCTAssertTrue(app.buttons["walking.start"].waitForExistence(timeout: 5))

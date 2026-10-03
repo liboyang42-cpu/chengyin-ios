@@ -123,6 +123,7 @@ final class ReferenceChatTaskFlowTests: XCTestCase {
     }
     func testChineseServerCompletedHasNoCurrentAction() {
         let app = launch(["--uitesting-module", "playExperience", "--uitesting-play-experience-scenario", "referenceComplete", "--uitesting-reduce-motion", "--uitesting-large-text"], language: "zh-Hans")
+        assertFixtureEnvironment(in: app, dynamicTypeSize: "accessibility3")
         let count = app.staticTexts["referenceTask.count"]; XCTAssertTrue(count.waitForExistence(timeout: 5)); XCTAssertEqual(count.label, "已完成 1 / 共 1")
         XCTAssertFalse(app.buttons["referenceTask.open"].exists)
         attachFixtureScreenshot(self, app: app, name: "Journey Chinese completed server snapshot reduced motion")
