@@ -14,7 +14,12 @@ import Observation
             let reader = MerchantBusinessSessionReader(service: service, currentSession: { session })
             let journal = MerchantBusinessMemoryIntentStore()
             let coordinator = MerchantRedemptionCoordinator(service: service, journal: journal, currentSession: { session })
-            _flow = State(initialValue: NativeVerificationWorkflow(reader: reader, journal: journal, redemption: coordinator))
+            // This fixture exercises acknowledgement/cancellation, not wall-clock expiry.
+            // Simulator animation stalls must not age its synthetic review. Production
+            // keeps Date.init; NativeVerificationTests advances time to verify expiry.
+            let fixtureNow = Date(timeIntervalSince1970: 1_800_000_000)
+            _flow = State(initialValue: NativeVerificationWorkflow(reader: reader, journal: journal,
+                redemption: coordinator, now: { fixtureNow }))
         } else { _flow = State(initialValue: nil) }
     }
     var body: some View {

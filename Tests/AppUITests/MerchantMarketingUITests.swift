@@ -39,7 +39,8 @@ final class MerchantMarketingUITests: XCTestCase {
     func testPredictionReviewRequiresAcknowledgementAndCancelIsSafe() {
         let app = launch("predictions")
         let option = app.buttons["merchantMarketing.option.A"]
-        XCTAssertTrue(option.waitForExistence(timeout: 5)); option.tap()
+        XCTAssertTrue(option.waitForExistence(timeout: 5))
+        XCTAssertTrue(revealFixtureElement(option, in: app), app.debugDescription); option.tap()
         let confirm = app.buttons["merchantMarketing.confirmSettlement"]
         XCTAssertTrue(confirm.waitForExistence(timeout: 5)); XCTAssertFalse(confirm.isEnabled)
         app.buttons["Cancel"].tap()
@@ -48,7 +49,8 @@ final class MerchantMarketingUITests: XCTestCase {
     func testUnknownRetainsRoundAndLocksNewAttempt() {
         let app = launch("predictions", scenario: "unknown")
         let option = app.buttons["merchantMarketing.option.A"]
-        XCTAssertTrue(option.waitForExistence(timeout: 5)); option.tap()
+        XCTAssertTrue(option.waitForExistence(timeout: 5))
+        XCTAssertTrue(revealFixtureElement(option, in: app), app.debugDescription); option.tap()
         let effects = app.switches["merchantMarketing.acknowledgeEffects"]
         XCTAssertTrue(effects.waitForExistence(timeout: 5))
         // The SwiftUI switch's accessibility frame includes its multiline label.
@@ -81,7 +83,8 @@ final class MerchantMarketingUITests: XCTestCase {
     func testChineseDeadlineWarningAndReview() {
         let app = launch("predictions", language: "zh-Hans")
         XCTAssertTrue(app.staticTexts["今天不给答案就作废"].waitForExistence(timeout: 5))
-        app.buttons["merchantMarketing.option.A"].tap()
+        let option = app.buttons["merchantMarketing.option.A"]
+        XCTAssertTrue(revealFixtureElement(option, in: app), app.debugDescription); option.tap()
         XCTAssertTrue(app.switches["merchantMarketing.acknowledgeEffects"].exists)
     }
 

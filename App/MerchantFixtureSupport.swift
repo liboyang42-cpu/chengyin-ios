@@ -14,7 +14,7 @@ enum MerchantFixtureScenario: String {
 @MainActor
 struct MerchantFixtureRootView: View {
     @StateObject private var reader: MerchantFixtureReader
-    private let marketing = MerchantMarketingCoordinator(service: MerchantMarketingService(
+    @State private var marketing = MerchantMarketingCoordinator(service: MerchantMarketingService(
         configuration: nil, transport: MerchantMarketingFixtureTransport(), currentSession: { nil }))
     init(scenario: MerchantFixtureScenario) { _reader = StateObject(wrappedValue: MerchantFixtureReader(scenario: scenario)) }
     var body: some View {
