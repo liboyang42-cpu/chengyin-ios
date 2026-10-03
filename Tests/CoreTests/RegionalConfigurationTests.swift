@@ -60,7 +60,7 @@ final class RegionalConfigurationTests: XCTestCase {
     func testPaymentsPayoutsAndAppleRemainDisabledEvenWithVerificationFlags() throws {
         let config = try RegionalConfiguration(market: .china, baseURL: cnURL,
             approvedBaseURLs: [.china: [cnURL]], verifiedCapabilities: Set(RegionalCapability.allCases))
-        for capability in [RegionalCapability.physicalEventPayment, .digitalContentPayment, .merchantPayout, .signInWithApple] {
+        for capability in [RegionalCapability.usernamePassword, .physicalEventPayment, .digitalContentPayment, .merchantPayout, .signInWithApple] {
             XCTAssertEqual(config.availability(of: capability), .implementationPending)
         }
     }

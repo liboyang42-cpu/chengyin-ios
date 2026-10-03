@@ -4,7 +4,14 @@ import XCTest
 final class ClubManagementFlowTests: XCTestCase {
     private var app: XCUIApplication!
     override func setUpWithError() throws { continueAfterFailure = false; app = XCUIApplication() }
-    override func tearDownWithError() throws { attachFailureScreenshot(self,app:app); app.terminate(); app = nil }
+    override func tearDownWithError() throws {
+        attachFailureScreenshot(self, app: app)
+        if (testRun?.totalFailureCount ?? 0) > 0 {
+            let hierarchy = XCTAttachment(string: app.debugDescription)
+            hierarchy.name = "Club management failure hierarchy"; hierarchy.lifetime = .keepAlways; add(hierarchy)
+        }
+        app.terminate(); app = nil
+    }
     private func launch(_ scenario: String) {
         app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", "(en)", "-AppleLocale", "en_US", "--uitesting-club-management-fixture", scenario]
         app.launch()
@@ -64,14 +71,34 @@ final class ClubManagementFlowTests: XCTestCase {
         // Use its verified leaf frame; the caller still requires exactly one write.
         leaf.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
     }
+    private func cancelReview(_ title: String) throws {
+        let bar = app.navigationBars[title]
+        XCTAssertTrue(bar.waitForExistence(timeout: 5), app.debugDescription)
+        let actions = bar.buttons.matching(NSPredicate(format: "label == %@", "Cancel"))
+            .allElementsBoundByIndex.filter { $0.descendants(matching: .button).count == 0 }
+        XCTAssertEqual(actions.count, 1, app.debugDescription)
+        let cancel = try XCTUnwrap(actions.first)
+        let snapshot = try cancel.snapshot()
+        let bounds = app.frame.insetBy(dx: 4, dy: 4)
+        XCTAssertTrue(snapshot.isEnabled && !snapshot.frame.isEmpty && bounds.contains(snapshot.frame), app.debugDescription)
+        XCTAssertTrue(bar.frame.contains(snapshot.frame), app.debugDescription)
+        // One tap in the actual Cancel leaf. Do not proceed to a host control
+        // until the sheet is absent; run80 tried that control behind the sheet.
+        cancel.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: bar)
+        XCTAssertEqual(XCTWaiter.wait(for: [dismissed], timeout: 5), .completed, app.debugDescription)
+        XCTAssertFalse(app.buttons["club.management.confirm"].exists, app.debugDescription)
+        XCTAssertTrue(app.navigationBars["Application details"].waitForExistence(timeout: 5), app.debugDescription)
+        count(0)
+    }
     func testApproveRequiresTargetConfirmation() {
         launch("owner"); open("request", 703)
         submit(prepare("approve", target: 703)); count(1)
     }
-    func testRejectCancelSendsNothing() {
+    func testRejectCancelSendsNothing() throws {
         launch("admin"); open("request", 703)
-        let sheet = prepare("reject", target: 703)
-        sheet.buttons["Cancel"].firstMatch.tap(); count(0)
+        _ = prepare("reject", target: 703)
+        try cancelReview("Reject application")
     }
     func testCreatorRemovalRequiresTargetConfirmation() {
         launch("owner"); open("member", 704)
@@ -86,13 +113,21 @@ final class ClubManagementFlowTests: XCTestCase {
         launch("owner"); open("member", 701)
         XCTAssertFalse(app.buttons["club.management.remove.701"].exists); count(0)
     }
-    func testCancelThenSwitchAccountSendsNothing() {
+    func testCancelThenSwitchAccountSendsNothing() throws {
         launch("owner"); open("request", 703)
         _ = prepare("approve", target: 703)
-        // Dismiss before using fixture controls, as a real account replacement comes
-        // from the host rather than a control behind a modal presentation.
-        app.buttons["Cancel"].firstMatch.tap()
-        app.buttons["club.management.switch"].tap(); count(0)
-        XCTAssertFalse(app.buttons["club.management.confirm"].exists)
+        try cancelReview("Approve application")
+        let accountSwitch = app.buttons["club.management.switch"]
+        XCTAssertEqual(accountSwitch.value as? String, "account=701;epoch=0", app.debugDescription)
+        let ready = XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == true AND enabled == true"), object: accountSwitch)
+        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 5), .completed, app.debugDescription)
+        accountSwitch.tap()
+        let replaced = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "account=702;epoch=1"), object: accountSwitch)
+        XCTAssertEqual(XCTWaiter.wait(for: [replaced], timeout: 5), .completed, app.debugDescription)
+        XCTAssertTrue(app.navigationBars["Club management"].waitForExistence(timeout: 5), app.debugDescription)
+        count(0)
+        XCTAssertFalse(app.navigationBars["Application details"].exists, app.debugDescription)
+        XCTAssertFalse(app.navigationBars["Approve application"].exists, app.debugDescription)
+        XCTAssertFalse(app.buttons["club.management.confirm"].exists, app.debugDescription)
     }
 }

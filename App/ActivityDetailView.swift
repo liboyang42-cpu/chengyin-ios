@@ -6,6 +6,41 @@ struct ActivityDetailView: View {
     let id: Int
     let reader: any ActivityReading
     var playReaderForActivity: ((Int)->PlaySessionReader)? = nil
+    var registrationEnabled = false
+    var body: some View {
+        if let session = reader as? AppSession {
+            SessionActivityDetailView(id: id, session: session,
+                playReaderForActivity: playReaderForActivity, registrationEnabled: registrationEnabled)
+        } else {
+            ActivityDetailContentView(id: id, reader: reader,
+                playReaderForActivity: playReaderForActivity, registrationEnabled: registrationEnabled)
+        }
+    }
+}
+
+@MainActor private struct SessionActivityDetailView: View {
+    let id: Int
+    @ObservedObject var session: AppSession
+    var playReaderForActivity: ((Int)->PlaySessionReader)?
+    var registrationEnabled: Bool
+    var body: some View {
+        Group {
+            if session.account == nil {
+                ContentUnavailableView("activity.signInRequired", systemImage: "person.crop.circle.badge.exclamationmark")
+                    .accessibilityIdentifier("activity.detail.signIn")
+            } else {
+                ActivityDetailContentView(id: id, reader: session,
+                    playReaderForActivity: playReaderForActivity, registrationEnabled: registrationEnabled)
+                    .id(session.contentDetailRevision)
+            }
+        }.appNavigationTitle("activity.details")
+    }
+}
+
+@MainActor private struct ActivityDetailContentView: View {
+    let id: Int
+    let reader: any ActivityReading
+    var playReaderForActivity: ((Int)->PlaySessionReader)? = nil
     var registrationEnabled=false
     @State private var showsReview = false
     @State private var showsRegistration=false
@@ -13,6 +48,7 @@ struct ActivityDetailView: View {
     @State private var loading=false
     @State private var failed=false
     @State private var generation=0
+    @State private var loads = SignedInContentDetailLoadOwner()
     var body: some View {
         // Group with nil access produces EmptyView, which cannot host the initial task.
         // Keep one concrete root for the task and navigation title through every state.
@@ -24,7 +60,7 @@ struct ActivityDetailView: View {
                         Text("activity.loadFailed").accessibilityIdentifier("activity.detail.error")
                     } icon: { Image(systemName:"wifi.exclamationmark") }
                 } actions: {
-                    Button("action.retry") { Task { await load() } }
+                    Button("action.retry") { loads.start { await load() } }
                         .accessibilityIdentifier("activity.detail.retry")
                 }
             } else if let access {
@@ -45,9 +81,10 @@ struct ActivityDetailView: View {
         }
         .appNavigationTitle("activity.details")
         .navigationBarTitleDisplayMode(.inline)
-        .task(id:id) { await load() }
+        .task(id:id) { await loads.run { await load() } }
+        .onDisappear { loads.cancel(); generation += 1; loading = false }
         .sheet(isPresented: $showsReview) {
-            NavigationStack { ContextualReviewComposer(target: .activity(id), owner: (reader as? AppSession)?.contextualReviews?.coordinator(.activity(id))) { Task { await load() } } }
+            NavigationStack { ContextualReviewComposer(target: .activity(id), owner: (reader as? AppSession)?.contextualReviews?.coordinator(.activity(id))) { loads.start { await load() } } }
         }
         .sheet(isPresented:$showsRegistration) {
             if let access,case .allowed(let detail)=access { SessionRegistrationSheet(activity:detail) }
@@ -152,13 +189,14 @@ struct ActivityDetailView: View {
     @MainActor private func load() async {
         generation += 1
         let operation=generation
-        loading=true;failed=false
+        loading=true;failed=false;access=nil
         defer { if generation == operation { loading=false } }
         do {
             let result=try await reader.activityDetail(id:id)
+            try Task.checkCancellation()
             if generation == operation { access=result }
         }
         catch is CancellationError { }
-        catch { if generation == operation { failed=true } }
+        catch { if generation == operation, !Task.isCancelled { failed=true } }
     }
 }

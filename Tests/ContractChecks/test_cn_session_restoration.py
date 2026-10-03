@@ -15,12 +15,12 @@ class CNSessionRestorationTests(unittest.TestCase):
         self.assertNotIn('canUsePassword', bootstrap)
         self.assertNotIn('usernamePassword', bootstrap)
         self.assertLess(bootstrap.index('bool(forKey:restoreBlockedKey)'), bootstrap.index('vault.read()'))
-        self.assertLess(bootstrap.index('guard !Task.isCancelled, gate.isCurrent(operation)'), bootstrap.index('token=saved;account=restored'))
+        self.assertLess(bootstrap.index('guard !Task.isCancelled, gate.isCurrent(operation)'), bootstrap.index('commitAuthenticatedSession(token: saved, account: restored)'))
         self.assertIn('guard !Task.isCancelled, !(error is CancellationError), gate.isCurrent(operation)', bootstrap)
 
     def test_profile_save_refresh_is_phone_channel_independent_and_scoped(self):
         source = (ROOT / 'App/AppSession.swift').read_text()
-        refresh = source.split('private func refreshOwnAccount() async {', 1)[1].split('private var currentClubActionSession', 1)[0]
+        refresh = source.split('func refreshOwnAccount() async {', 1)[1].split('private var currentClubActionSession', 1)[0]
         self.assertIn('accountSessionService.storageScope == storageScope', refresh)
         self.assertIn('accountSessionService.currentAccount(token:credential)', refresh)
         self.assertNotIn('guard let service', refresh)

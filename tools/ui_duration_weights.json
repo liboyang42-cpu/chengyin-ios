@@ -542,7 +542,21 @@
     "NativeSettingsReuseFlowTests.testFollowSystemPersistsAcrossRelaunchWithoutChangingUSMarket": 120,
     "NativeSettingsReuseFlowTests.testMaximumTextLegalMissingStateBackAndReopenInBothLanguages": 120,
     "MerchantMarketingUITests.testPredictionReviewLargeTextKeepsFixtureControlsClearOfOptions": 90,
-    "AccessibilityPresentationFlowTests.testMaximumTextWinsWhenBothCanonicalSizeFlagsArePresent": 60
+    "AccessibilityPresentationFlowTests.testMaximumTextWinsWhenBothCanonicalSizeFlagsArePresent": 60,
+    "PrivateHomeFlowTests.testDisabledFeatureNeverRequestsLocationOrShowsMutationControls": 90,
+    "PrivateHomeFlowTests.testCancelReviewDoesNotSaveAndRemovesSensitiveDraft": 90,
+    "PrivateHomeFlowTests.testLostResponseLocksNewChangesAndExactRetrySettles": 90,
+    "PrivateHomeFlowTests.testDeleteRequiresReviewAndClearsHome": 90,
+    "PrivateHomeMapPickerFlowTests.testInactiveProviderExplainsGateAndManualEntryStillReviews": 120,
+    "PrivateHomeMapPickerFlowTests.testSelectionReviewAndConfirmUseExactPointThroughOwnerRecorder": 120,
+    "PrivateHomeMapPickerFlowTests.testCancelReopenHasNoSelectedPointAndReviewCancelNeverSaves": 120,
+    "PrivateHomeMapPickerFlowTests.testUnknownDatumPrecisionAndRangeClearPreviouslyValidPreview": 120,
+    "PrivateHomeMapPickerFlowTests.testSessionInvalidationDismissesSelectionWithoutSave": 120,
+    "PrivateHomeMapPickerFlowTests.testLostMapSaveRequiresExactRetryAndNoNewSelection": 120,
+    "PrivateHomeMapPickerFlowTests.testBothLanguagesMaximumTextKeepPreviewAndCancellationReachable": 180,
+    "PrivateHomeMapPickerFlowTests.testSameAccountRouteReplacementClearsManualFields": 150,
+    "PrivateHomeMapPickerFlowTests.testSameAccountRouteReplacementDiscardsPickerAndLateCallback": 150,
+    "PrivateHomeMapPickerFlowTests.testSourceRevocationAfterReviewBlocksFinalConfirmation": 150
   },
   "estimate_provenance": {
     "basis": "Conservative grouping assumptions, not executed case timings. Successful measurements take priority. 23 original assumptions plus explicitly scoped later additions.",
@@ -981,6 +995,104 @@
         "seconds": 60,
         "source": "run77FixtureEnvironment",
         "basis": "One launch and actual root environment observation; unmeasured source estimate",
+        "measured": false
+      },
+      {
+        "method": "PrivateHomeFlowTests.testDisabledFeatureNeverRequestsLocationOrShowsMutationControls",
+        "seconds": 90,
+        "source": "privateHomeOwner",
+        "basis": "1 explicit launch plus form typing/review/retry; unmeasured conservative source estimate",
+        "measured": false
+      },
+      {
+        "method": "PrivateHomeFlowTests.testCancelReviewDoesNotSaveAndRemovesSensitiveDraft",
+        "seconds": 90,
+        "source": "privateHomeOwner",
+        "basis": "1 explicit launch plus form typing/review/retry; unmeasured conservative source estimate",
+        "measured": false
+      },
+      {
+        "method": "PrivateHomeFlowTests.testLostResponseLocksNewChangesAndExactRetrySettles",
+        "seconds": 90,
+        "source": "privateHomeOwner",
+        "basis": "1 explicit launch plus form typing/review/retry; unmeasured conservative source estimate",
+        "measured": false
+      },
+      {
+        "method": "PrivateHomeFlowTests.testDeleteRequiresReviewAndClearsHome",
+        "seconds": 90,
+        "source": "privateHomeOwner",
+        "basis": "1 explicit launch plus form typing/review/retry; unmeasured conservative source estimate",
+        "measured": false
+      },
+      {
+        "method": "PrivateHomeMapPickerFlowTests.testInactiveProviderExplainsGateAndManualEntryStillReviews",
+        "seconds": 120,
+        "source": "privateHomeMapPicker",
+        "basis": "Synthetic source-only picker flow with scrolling; unmeasured conservative estimate, no Apple execution",
+        "measured": false
+      },
+      {
+        "method": "PrivateHomeMapPickerFlowTests.testSelectionReviewAndConfirmUseExactPointThroughOwnerRecorder",
+        "seconds": 120,
+        "source": "privateHomeMapPicker",
+        "basis": "Synthetic source-only picker flow with scrolling; unmeasured conservative estimate, no Apple execution",
+        "measured": false
+      },
+      {
+        "method": "PrivateHomeMapPickerFlowTests.testCancelReopenHasNoSelectedPointAndReviewCancelNeverSaves",
+        "seconds": 120,
+        "source": "privateHomeMapPicker",
+        "basis": "Synthetic source-only picker flow with scrolling; unmeasured conservative estimate, no Apple execution",
+        "measured": false
+      },
+      {
+        "method": "PrivateHomeMapPickerFlowTests.testUnknownDatumPrecisionAndRangeClearPreviouslyValidPreview",
+        "seconds": 120,
+        "source": "privateHomeMapPicker",
+        "basis": "Synthetic source-only picker flow with scrolling; unmeasured conservative estimate, no Apple execution",
+        "measured": false
+      },
+      {
+        "method": "PrivateHomeMapPickerFlowTests.testSessionInvalidationDismissesSelectionWithoutSave",
+        "seconds": 120,
+        "source": "privateHomeMapPicker",
+        "basis": "Synthetic source-only picker flow with scrolling; unmeasured conservative estimate, no Apple execution",
+        "measured": false
+      },
+      {
+        "method": "PrivateHomeMapPickerFlowTests.testLostMapSaveRequiresExactRetryAndNoNewSelection",
+        "seconds": 120,
+        "source": "privateHomeMapPicker",
+        "basis": "Synthetic source-only picker flow with scrolling; unmeasured conservative estimate, no Apple execution",
+        "measured": false
+      },
+      {
+        "method": "PrivateHomeMapPickerFlowTests.testBothLanguagesMaximumTextKeepPreviewAndCancellationReachable",
+        "seconds": 180,
+        "source": "privateHomeMapPicker",
+        "basis": "Synthetic source-only picker flow with scrolling; unmeasured conservative estimate, no Apple execution",
+        "measured": false
+      },
+      {
+        "method": "PrivateHomeMapPickerFlowTests.testSameAccountRouteReplacementClearsManualFields",
+        "seconds": 150,
+        "source": "privateHomeMapPicker",
+        "basis": "Synthetic identity/revocation regression flow; unmeasured conservative estimate, no Apple execution",
+        "measured": false
+      },
+      {
+        "method": "PrivateHomeMapPickerFlowTests.testSameAccountRouteReplacementDiscardsPickerAndLateCallback",
+        "seconds": 150,
+        "source": "privateHomeMapPicker",
+        "basis": "Synthetic identity/revocation regression flow; unmeasured conservative estimate, no Apple execution",
+        "measured": false
+      },
+      {
+        "method": "PrivateHomeMapPickerFlowTests.testSourceRevocationAfterReviewBlocksFinalConfirmation",
+        "seconds": 150,
+        "source": "privateHomeMapPicker",
+        "basis": "Synthetic identity/revocation regression flow; unmeasured conservative estimate, no Apple execution",
         "measured": false
       }
     ],

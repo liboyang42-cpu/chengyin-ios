@@ -27,6 +27,8 @@ struct WelcomeView: View {
                     Text("welcome.subtitle").foregroundStyle(.secondary)
                     roleButton(.player, title: "role.player", detail: "role.player.detail", symbol: "figure.walk")
                     roleButton(.merchant, title: "role.merchant", detail: "role.merchant.detail", symbol: "storefront")
+                    NavigationLink { OwnerDraftGuestView() } label: { Label("ownerDraft.title", systemImage: "doc.on.doc") }
+                        .accessibilityIdentifier("ownerDraft.guestEntry")
                     Text("welcome.intentNotice").font(.footnote).foregroundStyle(.secondary)
                     if let onBrowse {
                         Button("welcome.browse", action:onBrowse)

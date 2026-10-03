@@ -3,15 +3,23 @@ import Foundation
 public struct RoamReadIdentity: Hashable {
     public let accountID: Int
     public let epoch: UInt64
-    public init(accountID: Int, epoch: UInt64) { self.accountID = accountID; self.epoch = epoch }
+    public let role: String?
+    public let viewerRevision: UInt64
+    public let areaRevision: UInt64
+    public let manualMapApprovalRevision: UUID?
+    public init(accountID: Int, epoch: UInt64, role: String? = nil, viewerRevision: UInt64 = 0, areaRevision: UInt64 = 0, manualMapApprovalRevision: UUID? = nil) {
+        self.accountID = accountID; self.epoch = epoch; self.role = role
+        self.viewerRevision = viewerRevision; self.areaRevision = areaRevision
+        self.manualMapApprovalRevision = manualMapApprovalRevision
+    }
 }
 /// Construct from the live verified session; never persist, log, or expose the credential to views.
 public struct RoamReadSession: Equatable {
     public let identity: RoamReadIdentity
     fileprivate let token: String
-    public init(accountID: Int, epoch: UInt64, token: String) throws {
+    public init(accountID: Int, epoch: UInt64, token: String, role: String? = nil, viewerRevision: UInt64 = 0, areaRevision: UInt64 = 0, manualMapApprovalRevision: UUID? = nil) throws {
         guard accountID > 0, AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
-        identity = RoamReadIdentity(accountID: accountID, epoch: epoch); self.token = token
+        identity = RoamReadIdentity(accountID: accountID, epoch: epoch, role: role, viewerRevision: viewerRevision, areaRevision: areaRevision, manualMapApprovalRevision: manualMapApprovalRevision); self.token = token
     }
 }
 @MainActor

@@ -120,6 +120,19 @@ private actor LifecycleFakeHTTP: HTTPTransport {
         let result = await owner.confirm(review, consequentialApproval: true); XCTAssertEqual(result, .notSent)
         let requests = await transport.requests; XCTAssertTrue(requests.isEmpty)
     }
+    func testCreatorExactReviewWithDormantDispatchNeverWrites() async throws {
+        let transport = LifecycleFakeHTTP([]), reader = LifecycleCenterReader(), journal = LifecycleJournal()
+        let owner = CreatorApplicationCoordinator(client: try setup(transport, active: false), reader: reader, journal: journal)
+        let draft = try CreatorApplicationDraft(creatorName: "Fixture Creator", bio: "Exact fixture biography")
+        let review = try await owner.prepare(draft)
+        XCTAssertEqual(review.draft, draft)
+        let result = await owner.confirm(review, approved: true)
+        XCTAssertEqual(result, .notSent)
+        let requests = await transport.requests
+        XCTAssertTrue(requests.isEmpty)
+        XCTAssertTrue(journal.records.isEmpty)
+        XCTAssertEqual(reader.count, 1)
+    }
     func testCreatorNumericPositiveAndMultipartThenRefresh() async throws {
         let transport = LifecycleFakeHTTP(["{\"code\":200,\"data\":1}"]); let reader = LifecycleCenterReader()
         let owner = CreatorApplicationCoordinator(client: try setup(transport), reader: reader, journal: LifecycleJournal())

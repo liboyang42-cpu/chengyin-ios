@@ -1576,13 +1576,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enter the numeric verification code, up to six digits."
+            "value": "Enter the six-digit verification code."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请输入数字验证码，最多六位。"
+            "value": "请输入六位数字验证码。"
           }
         }
       }
@@ -2035,13 +2035,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "New account registration and other sign-in methods are not connected in this migration slice."
+            "value": "When SMS sign-in is enabled, a new phone number may create a player account. Other sign-in methods remain unavailable."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此迁移阶段尚未接通新账号注册和其他登录方式。"
+            "value": "短信登录启用后，新手机号可能创建玩家账号。其他登录方式尚不可用。"
           }
         }
       }
@@ -116242,6 +116242,1846 @@
           "stringUnit": {
             "state": "translated",
             "value": "客服微信号"
+          }
+        }
+      }
+    },
+    "privateHome.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Private home"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "私人家园"
+          }
+        }
+      }
+    },
+    "privateHome.disabled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Private home is not enabled"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "私人家园尚未启用"
+          }
+        }
+      }
+    },
+    "privateHome.gate": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This feature needs reviewed server access and secure recovery storage."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此功能需要审核后的服务访问权限和安全恢复存储。"
+          }
+        }
+      }
+    },
+    "privateHome.boundary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only you can manage this private location in the app. It is never a public map place, NPC memory, or merchant ownership claim."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅你可以在 App 中管理此私人位置。它不是公开地图地点、NPC 记忆或商家产权声明。"
+          }
+        }
+      }
+    },
+    "privateHome.active": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Private home saved"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已保存私人家园"
+          }
+        }
+      }
+    },
+    "privateHome.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No private home saved"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未保存私人家园"
+          }
+        }
+      }
+    },
+    "privateHome.issue": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unable to confirm this operation. Keep any pending request and use exact retry."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法确认此操作。请保留待处理请求并原样重试。"
+          }
+        }
+      }
+    },
+    "privateHome.refresh": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh private home"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新私人家园"
+          }
+        }
+      }
+    },
+    "privateHome.set": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set private home"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设置私人家园"
+          }
+        }
+      }
+    },
+    "privateHome.label": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Private label"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "私人名称"
+          }
+        }
+      }
+    },
+    "privateHome.latitude": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latitude"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "纬度"
+          }
+        }
+      }
+    },
+    "privateHome.longitude": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Longitude"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "经度"
+          }
+        }
+      }
+    },
+    "privateHome.datum": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter WGS84 coordinates, up to six decimal places. No device location is requested."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "输入 WGS84 坐标，最多六位小数。不请求设备定位。"
+          }
+        }
+      }
+    },
+    "privateHome.reviewSet": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review location change"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "审核位置变更"
+          }
+        }
+      }
+    },
+    "privateHome.reviewDelete": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review deletion"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "审核删除"
+          }
+        }
+      }
+    },
+    "privateHome.invalid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check the label and coordinates."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请检查名称和坐标。"
+          }
+        }
+      }
+    },
+    "privateHome.review": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review private change"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "审核私人变更"
+          }
+        }
+      }
+    },
+    "privateHome.setPurpose": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save this location privately for your current account? Server placement rules and cooldowns still apply."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "是否为当前账户私下保存此位置？仍须遵守服务器位置规则和冷却时间。"
+          }
+        }
+      }
+    },
+    "privateHome.deletePurpose": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete your current private home and its stored coordinates?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "是否删除当前私人家园及其已存坐标？"
+          }
+        }
+      }
+    },
+    "privateHome.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm change"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认变更"
+          }
+        }
+      }
+    },
+    "privateHome.cancel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消审核"
+          }
+        }
+      }
+    },
+    "privateHome.unknownPurpose": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The result is unknown. Refresh cannot settle it. Retry the identical saved request; do not start a new change."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果未知。刷新无法确认结果。请原样重试已保存的请求，不要发起新的变更。"
+          }
+        }
+      }
+    },
+    "privateHome.retry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry identical request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原样重试请求"
+          }
+        }
+      }
+    },
+    "privateHome.phase.disabled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not enabled"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未启用"
+          }
+        }
+      }
+    },
+    "privateHome.phase.idle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ready to load"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "准备读取"
+          }
+        }
+      }
+    },
+    "privateHome.phase.loading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading privately"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在私下读取"
+          }
+        }
+      }
+    },
+    "privateHome.phase.ready": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loaded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已读取"
+          }
+        }
+      }
+    },
+    "privateHome.phase.review": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review required"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要审核"
+          }
+        }
+      }
+    },
+    "privateHome.phase.sending": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saving request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在提交请求"
+          }
+        }
+      }
+    },
+    "privateHome.phase.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outcome unknown"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果未知"
+          }
+        }
+      }
+    },
+    "privateHome.phase.blocked": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recovery or configuration required"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要恢复或配置"
+          }
+        }
+      }
+    },
+    "privateHome.phase.invalidated": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Session ended"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "会话已结束"
+          }
+        }
+      }
+    },
+    "privateHome.decision.SAVED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved. Confirm the refreshed state below."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已保存，请确认下方刷新状态。"
+          }
+        }
+      }
+    },
+    "privateHome.decision.DELETED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deleted. Confirm the refreshed state below."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已删除，请确认下方刷新状态。"
+          }
+        }
+      }
+    },
+    "privateHome.decision.VERSION_CONFLICT": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Home changed elsewhere. Refresh and review again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "家园已在其他地方变更，请刷新后重新审核。"
+          }
+        }
+      }
+    },
+    "privateHome.decision.HOME_CHANGE_COOLDOWN": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Home changes are temporarily on cooldown."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "家园变更暂处冷却期。"
+          }
+        }
+      }
+    },
+    "privateHome.decision.PLACE_NOT_ALLOWED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This location is not allowed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不允许使用此位置。"
+          }
+        }
+      }
+    },
+    "discovery.templateSessionChanged": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your account context changed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账户状态已变更"
+          }
+        }
+      }
+    },
+    "discovery.templateReopen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Go back and reopen this template to refresh its public preview."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请返回并重新打开模板，刷新公开预览。"
+          }
+        }
+      }
+    },
+    "discovery.publicStations": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stations"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "站点"
+          }
+        }
+      }
+    },
+    "discovery.publicGames": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Included games"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "内含玩法"
+          }
+        }
+      }
+    },
+    "discovery.publicSeconds": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duration (seconds)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "时长（秒）"
+          }
+        }
+      }
+    },
+    "discovery.playerPromise": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your experience"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "体验说明"
+          }
+        }
+      }
+    },
+    "discovery.publicChapter": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chapter"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "章节"
+          }
+        }
+      }
+    },
+    "discovery.publicStation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Station"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "站点"
+          }
+        }
+      }
+    },
+    "discovery.publicSilhouette": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Relative route silhouette, not a navigation map"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "相对路线剪影，非导航地图"
+          }
+        }
+      }
+    },
+    "discovery.publicRecruitment": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recruitment overview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "招募概况"
+          }
+        }
+      }
+    },
+    "discovery.publicRemaining": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remaining places"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "剩余名额"
+          }
+        }
+      }
+    },
+    "discovery.publicEmpty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No public chapters or games are available."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无公开章节或玩法。"
+          }
+        }
+      }
+    },
+    "discovery.publicProjectionHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read-only public preview. Some details are intentionally hidden. Route shapes do not provide navigation."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅供查看的公开预览。部分信息已隐藏，路线剪影不提供导航。"
+          }
+        }
+      }
+    },
+    "privateHome.gamePoint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a safe point for your game home. It need not be your real residence. Saving a point does not verify safety, ownership, or permission to enter."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "为游戏家园选择安全的地点，不必是真实住址。保存地点不代表已验证安全性、产权或进入许可。"
+          }
+        }
+      }
+    },
+    "privateHome.map.open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a map point"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择地图点"
+          }
+        }
+      }
+    },
+    "privateHome.map.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose game-home point"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择游戏家园地点"
+          }
+        }
+      }
+    },
+    "privateHome.map.noLocation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No device location or background tracking is used. Nothing is saved until you review and confirm the private change."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不使用设备定位或后台追踪。审核并确认私人变更后才会保存。"
+          }
+        }
+      }
+    },
+    "privateHome.map.issue.providerUnverified": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Map selection is unavailable: this provider’s coordinate datum and regional rendering have not been verified for private home. Use manual WGS84 entry instead."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地图选点不可用：尚未验证此提供方用于私人家园的坐标基准及地区地图显示。请改用手动输入 WGS84 坐标。"
+          }
+        }
+      }
+    },
+    "privateHome.map.issue.datumUnsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This point is not verified WGS84. No coordinate conversion is performed; it cannot be saved."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此点未被验证为 WGS84，不会进行坐标转换，因此无法保存。"
+          }
+        }
+      }
+    },
+    "privateHome.map.issue.coordinateInvalid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This point has invalid coordinates. Select another point or enter WGS84 coordinates manually."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此点坐标无效，请选择其他点或手动输入 WGS84 坐标。"
+          }
+        }
+      }
+    },
+    "privateHome.map.issue.precisionUnsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This source point exceeds six decimal places. It has not been rounded or saved. Enter your intended WGS84 point manually with at most six decimal places."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来源坐标超过六位小数，未作舍入，也未保存。请手动输入你要选择的 WGS84 坐标，最多六位小数。"
+          }
+        }
+      }
+    },
+    "privateHome.map.synthetic": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synthetic test points (no map network)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模拟测试点（无地图网络请求）"
+          }
+        }
+      }
+    },
+    "privateHome.map.preview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Point preview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地点预览"
+          }
+        }
+      }
+    },
+    "privateHome.map.exact": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exact save coordinates: latitude, longitude · WGS84 · up to six decimal places."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确切保存坐标：纬度、经度 · WGS84 · 最多六位小数。"
+          }
+        }
+      }
+    },
+    "privateHome.map.review": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review this private point"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "审核此私人地点"
+          }
+        }
+      }
+    },
+    "privateHome.map.manual": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use manual WGS84 entry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手动输入 WGS84 坐标"
+          }
+        }
+      }
+    },
+    "privateHome.map.cancel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel selection"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消选点"
+          }
+        }
+      }
+    },
+    "privateHome.map.fixture.valid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synthetic point A"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模拟点 A"
+          }
+        }
+      }
+    },
+    "privateHome.map.fixture.alternate": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synthetic point B"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模拟点 B"
+          }
+        }
+      }
+    },
+    "privateHome.map.fixture.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown source point"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来源未知的点"
+          }
+        }
+      }
+    },
+    "privateHome.map.fixture.gcj02": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GCJ02 test point"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GCJ02 测试点"
+          }
+        }
+      }
+    },
+    "privateHome.map.fixture.precision": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Over-precision test point"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "小数位超限测试点"
+          }
+        }
+      }
+    },
+    "privateHome.map.fixture.outOfRange": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Out-of-range test point"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "坐标超范围测试点"
+          }
+        }
+      }
+    },
+    "privateHome.map.fixture.invalidate": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "End synthetic session"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结束模拟会话"
+          }
+        }
+      }
+    },
+    "ownerDraft.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved content drafts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已保存的内容草稿"
+          }
+        }
+      }
+    },
+    "ownerDraft.notConfigured.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cloud drafts unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "云端草稿暂不可用"
+          }
+        }
+      }
+    },
+    "ownerDraft.notConfigured.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Owner draft access has not been configured for this account and deployment."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此账号和服务环境尚未配置自有草稿访问权限。"
+          }
+        }
+      }
+    },
+    "ownerDraft.signIn.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to view your own saved activity and topic drafts. Availability depends on the configured service."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后可查看自己保存的活动和主题草稿，是否可用取决于服务配置。"
+          }
+        }
+      }
+    },
+    "ownerDraft.signIn": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录"
+          }
+        }
+      }
+    },
+    "ownerDraft.readOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Browse your saved activity and topic drafts. Opening a draft only reads its latest server metadata."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "浏览自己保存的活动和主题草稿。打开草稿仅会读取最新的服务器元数据。"
+          }
+        }
+      }
+    },
+    "ownerDraft.loading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading drafts…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载草稿…"
+          }
+        }
+      }
+    },
+    "ownerDraft.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No saved activity or topic drafts."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无已保存的活动或主题草稿。"
+          }
+        }
+      }
+    },
+    "ownerDraft.activity": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activity draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动草稿"
+          }
+        }
+      }
+    },
+    "ownerDraft.topic": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Topic draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题草稿"
+          }
+        }
+      }
+    },
+    "ownerDraft.refresh": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新"
+          }
+        }
+      }
+    },
+    "ownerDraft.version": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务器版本"
+          }
+        }
+      }
+    },
+    "ownerDraft.savedTime": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved time · server format"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存时间 · 服务器格式"
+          }
+        }
+      }
+    },
+    "ownerDraft.timeUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved time unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存时间不可用"
+          }
+        }
+      }
+    },
+    "ownerDraft.metadata": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server metadata"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务器元数据"
+          }
+        }
+      }
+    },
+    "ownerDraft.id": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draft ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿编号"
+          }
+        }
+      }
+    },
+    "ownerDraft.type": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draft type"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿类型"
+          }
+        }
+      }
+    },
+    "ownerDraft.unsupported.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Payload editing unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂不支持编辑草稿内容"
+          }
+        }
+      }
+    },
+    "ownerDraft.unsupported.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This draft has been read successfully. A reviewed editor for its content format is not available yet. No content changes were made."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已成功读取此草稿。尚无经过核验且支持此内容格式的编辑器，未修改任何内容。"
+          }
+        }
+      }
+    },
+    "ownerDraft.receiptsUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installation receipts are not displayed. Draft access does not grant content-use or publishing rights."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂不显示安装回执。草稿访问权限不代表内容使用权或发布权限。"
+          }
+        }
+      }
+    },
+    "ownerDraft.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已保存的草稿"
+          }
+        }
+      }
+    },
+    "ownerDraft.stale": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This session has changed or expired. Go back and reopen your drafts from Account."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前会话已变更或过期。请返回账号页面重新打开草稿。"
+          }
+        }
+      }
+    },
+    "ownerDraft.forbidden": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This account cannot access this draft."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此账号无权访问该草稿。"
+          }
+        }
+      }
+    },
+    "ownerDraft.notFound": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This draft is no longer available. Go back and refresh the list."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此草稿已不可用。请返回并刷新列表。"
+          }
+        }
+      }
+    },
+    "ownerDraft.malformed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server response could not be verified. Please try again later."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法核验服务器响应，请稍后重试。"
+          }
+        }
+      }
+    },
+    "ownerDraft.error": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drafts could not be loaded. Check your connection and retry."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法加载草稿，请检查网络后重试。"
+          }
+        }
+      }
+    },
+    "ownerDraft.receipts.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installed-module history"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已安装模块记录"
+          }
+        }
+      }
+    },
+    "ownerDraft.receipts.policy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Historical receipts only. Content preview, editing, export, publishing, execution and commercial use are unavailable. A receipt does not grant permission to use content."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅显示历史凭据。内容预览、编辑、导出、发布、运行及商业使用均不可用。凭据不代表内容使用授权。"
+          }
+        }
+      }
+    },
+    "ownerDraft.receipts.state.omitted": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This server did not provide installed-module receipt information."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务器未提供已安装模块凭据信息。"
+          }
+        }
+      }
+    },
+    "ownerDraft.receipts.state.invalid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Receipt information could not be verified for this draft revision."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法核验此草稿版本的凭据信息。"
+          }
+        }
+      }
+    },
+    "ownerDraft.receipts.state.notEnabled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installed-module receipt lookup is not enabled."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已安装模块凭据查询尚未启用。"
+          }
+        }
+      }
+    },
+    "ownerDraft.receipts.state.ownerOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installed-module receipts are available only to the individual owner."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已安装模块凭据仅向个人所有者提供。"
+          }
+        }
+      }
+    },
+    "ownerDraft.receipts.state.historical": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Historical installation receipts for this draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此草稿的历史安装凭据"
+          }
+        }
+      }
+    },
+    "ownerDraft.receipts.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No historical installation receipts were returned."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未返回历史安装凭据。"
+          }
+        }
+      }
+    },
+    "ownerDraft.receipts.count": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Receipts shown"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已显示凭据数"
+          }
+        }
+      }
+    },
+    "ownerDraft.receipts.id": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installation receipt"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安装凭据"
+          }
+        }
+      }
+    },
+    "ownerDraft.receipts.draftVersion": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draft version at installation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安装时的草稿版本"
+          }
+        }
+      }
+    },
+    "ownerDraft.receipts.hasMore": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Showing the first 50 receipts returned by the server. Additional receipts exist; more cannot be loaded here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示服务器返回的前 50 条凭据。还有更多记录，此处暂不支持继续加载。"
+          }
+        }
+      }
+    },
+    "ownerDraft.receipts.binding.exact": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Matches this draft revision. Historical evidence only."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "与此草稿版本一致。仅为历史记录。"
+          }
+        }
+      }
+    },
+    "ownerDraft.receipts.binding.stale": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draft revision has changed. This receipt has not been reattached."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿版本已变化。此凭据未重新绑定。"
+          }
+        }
+      }
+    },
+    "ownerDraft.receipts.binding.unverifiable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original draft binding cannot be verified."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法核验原始草稿绑定。"
+          }
+        }
+      }
+    },
+    "activity.signInRequired": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to view this activity"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后查看活动详情"
+          }
+        }
+      }
+    },
+    "topic.activities": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Available activities"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可参加的活动"
+          }
+        }
+      }
+    },
+    "topic.noActivities": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No activities are available right now."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无可参加的活动。"
           }
         }
       }

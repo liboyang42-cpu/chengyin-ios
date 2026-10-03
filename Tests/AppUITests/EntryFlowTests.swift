@@ -16,8 +16,9 @@ final class EntryFlowTests: XCTestCase {
             XCTAssertTrue(entry.waitForExistence(timeout:10))
             entry.tap()
             XCTAssertTrue(app.navigationBars["Sign in"].waitForExistence(timeout:5))
-            XCTAssertTrue(app.buttons["auth.signIn"].exists)
-            XCTAssertFalse(app.buttons["auth.signIn"].isEnabled)
+            XCTAssertFalse(app.buttons["auth.signIn"].exists)
+            XCTAssertFalse(app.secureTextFields.firstMatch.exists)
+            XCTAssertTrue(app.buttons["auth.otherChannels"].exists)
             app.buttons["Close"].tap()
             XCTAssertTrue(app.buttons["welcome.settings"].waitForExistence(timeout:5))
         }
@@ -57,14 +58,30 @@ final class EntryFlowTests: XCTestCase {
         XCTAssertTrue(app.buttons["auth.otherChannels"].waitForExistence(timeout:5))
     }
 
-    func testUnconfiguredBuildCannotSubmitCredentials() {
+    func testUnconfiguredBuildHidesUnsupportedPasswordAndKeepsPhoneDisabledAfterInput() {
         app.buttons["welcome.player"].tap()
-        let username=app.textFields["Username"]
-        XCTAssertTrue(username.waitForExistence(timeout:5));username.tap();username.typeText("fixture-user")
-        let password=app.secureTextFields["Password"]
-        password.tap();password.typeText("fixture-password")
-        XCTAssertFalse(app.buttons["auth.signIn"].isEnabled)
-        app.buttons["Close"].tap()
+        XCTAssertTrue(app.navigationBars["Sign in"].waitForExistence(timeout:5))
+        XCTAssertFalse(app.textFields["Username"].exists)
+        XCTAssertFalse(app.secureTextFields.firstMatch.exists)
+        XCTAssertFalse(app.buttons["auth.signIn"].exists)
+        let phoneEntry=app.buttons["auth.otherChannels"]
+        if !phoneEntry.isHittable { app.swipeUp() }
+        phoneEntry.tap()
+        let phone=app.textFields["auth.channels.phone"]
+        XCTAssertTrue(phone.waitForExistence(timeout:5));phone.tap();phone.typeText("10000000000")
+        let code=app.textFields["auth.channels.code"]
+        code.tap();code.typeText("123456")
+        XCTAssertFalse(app.buttons["auth.channels.sendCode"].isEnabled)
+        XCTAssertFalse(app.buttons["auth.channels.phoneSignIn"].isEnabled)
+        app.navigationBars["More ways to sign in"].buttons["Close"].tap()
+        XCTAssertTrue(phoneEntry.waitForExistence(timeout:5))
+        phoneEntry.tap()
+        XCTAssertTrue(phone.waitForExistence(timeout:5))
+        XCTAssertTrue((phone.value as? String) == "" || (phone.value as? String) == phone.placeholderValue)
+        XCTAssertTrue((code.value as? String) == "" || (code.value as? String) == code.placeholderValue)
+        XCTAssertFalse(app.buttons["auth.channels.phoneSignIn"].isEnabled)
+        app.navigationBars["More ways to sign in"].buttons["Close"].tap()
+        app.navigationBars["Sign in"].buttons["Close"].tap()
         XCTAssertTrue(app.buttons["welcome.player"].waitForExistence(timeout:5))
     }
 

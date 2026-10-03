@@ -6,13 +6,22 @@ import SwiftUI
     var origin: RoamCoordinate? = nil
     let destination: (SearchMapDestination) -> Destination
     @State private var detail: SearchMapCityNode?
+    @State private var originatingReadKey: String
     @State private var issue: String?
+    @State private var readOwner = ManualMapReadTaskOwner()
     @State private var loading = false
     @State private var gate = SearchMapQueryGate()
+    private var readKey: String { "\(id):\(reader.scope):\(reader.manualAreaRevision)" }
+    init(id: Int, reader: any SearchMapReading, origin: RoamCoordinate? = nil,
+         destination: @escaping (SearchMapDestination) -> Destination) {
+        self.id = id; self.reader = reader; self.origin = origin; self.destination = destination
+        _originatingReadKey = State(initialValue: "\(id):\(reader.scope):\(reader.manualAreaRevision)")
+    }
     var body: some View {
         Group {
-            if loading { ProgressView("searchMap.loading") }
-            else if let issue { SearchMapIssue(key: issue) { Task { await load() } } }
+            if originatingReadKey != readKey { SearchMapIssue(key: "searchMap.notConfigured") }
+            else if loading { ProgressView("searchMap.loading") }
+            else if let issue { SearchMapIssue(key: issue) { startLoad() } }
             else if let detail {
                 List {
                     Section {
@@ -49,18 +58,29 @@ import SwiftUI
                 }.accessibilityIdentifier("searchMap.city.detail")
             } else { Color.clear }
         }.appNavigationTitle("searchMap.nodeDetail")
-            .task(id: reader.scope) { await load() }
-            .onDisappear { gate.invalidate(); loading = false }
+            .task(id: readKey) {
+                guard !Task.isCancelled else { return }
+                readOwner.activate(); await load()
+            }
+            .onAppear { readOwner.activate() }
+            .onDisappear { readOwner.deactivate(); gate.invalidate(); loading = false }
+    }
+    private func startLoad() {
+        readOwner.start { await performLoad() }
     }
     private func load() async {
-        let ticket = gate.begin(scope: reader.scope)
+        await readOwner.run { await performLoad() }
+    }
+    private func performLoad() async {
+        guard originatingReadKey == readKey else { detail = nil; loading = false; return }
+        let ticket = gate.begin(scope: reader.scope), areaRevision = reader.manualAreaRevision
         loading = true; detail = nil; issue = nil
-        defer { if gate.accepts(ticket, scope: reader.scope) { loading = false } }
+        defer { if gate.accepts(ticket, scope: reader.scope) && reader.manualAreaRevision == areaRevision { loading = false } }
         do {
             let value = try await reader.cityNode(id: id)
-            guard gate.accepts(ticket, scope: reader.scope) else { return }; detail = value
+            guard gate.accepts(ticket, scope: reader.scope) && reader.manualAreaRevision == areaRevision else { return }; detail = value
         } catch {
-            guard gate.accepts(ticket, scope: reader.scope) else { return }; issue = SearchMapIssue.key(error)
+            guard gate.accepts(ticket, scope: reader.scope) && reader.manualAreaRevision == areaRevision else { return }; issue = SearchMapIssue.key(error)
         }
     }
 }

@@ -18,6 +18,7 @@ import SwiftUI
     @State private var categoryFailed = false
     @State private var cityResults: CityNodeSearchResults?
     @State private var nearbyResults: SearchMapNearbyResults?
+    @State private var readOwner = ManualMapReadTaskOwner()
     @State private var loading = false
     @State private var issue: String?
     @State private var selectedPin: String?
@@ -46,7 +47,7 @@ import SwiftUI
                     HStack(spacing: 12) { filterControls }
                     VStack(alignment: .leading, spacing: 8) { filterControls }
                 }
-                Button("searchMap.searchArea") { Task { await load() } }
+                Button("searchMap.searchArea") { startLoad() }
                     .buttonStyle(.borderedProminent).frame(minHeight: 44)
                     .disabled(area == nil || !reader.isConfigured || loading)
                     .accessibilityIdentifier("searchMap.searchArea")
@@ -66,7 +67,7 @@ import SwiftUI
                 if !reader.isConfigured { SearchMapIssue(key: "searchMap.notConfigured") }
                 else if area == nil { ContentUnavailableView("searchMap.areaRequired", systemImage: "mappin.and.ellipse") }
                 else if loading { ProgressView("searchMap.loading").accessibilityIdentifier("searchMap.loading") }
-                else if let issue { SearchMapIssue(key: issue) { Task { await load() } } }
+                else if let issue { SearchMapIssue(key: issue) { startLoad() } }
                 if let result = cityResults { cityContent(result) }
                 if let result = nearbyResults { nearbyContent(result) }
             }.padding()
@@ -80,7 +81,7 @@ import SwiftUI
         .appNavigationTitle(key: mode == .city ? "searchMap.citySearch" : "searchMap.nearby")
         .sheet(isPresented: $showsArea) {
             RoamAreaPicker { selected in
-                area = selected; mapEnabled = false; invalidate()
+                reader.selectManualArea(selected); area = selected; mapEnabled = false; invalidate()
             }
         }
         .sheet(isPresented: $showsFilters) {
@@ -90,6 +91,9 @@ import SwiftUI
                 .presentationDetents([.large])
         }
         .task(id: reader.scope) {
+            guard !Task.isCancelled else { return }
+            readOwner.activate()
+            if let area { reader.selectManualArea(area) }
             if preparedScope != reader.scope {
                 preparedScope = reader.scope; invalidate(); categories = []; categoryFailed = false
                 mapEnabled = false; showsArea = false; showsFilters = false
@@ -107,7 +111,8 @@ import SwiftUI
         .onChange(of: tag) { _, _ in invalidate() }
         .onChange(of: cityRole) { _, _ in invalidate() }
         .onChange(of: sortType) { _, _ in invalidate() }
-        .onDisappear { gate.invalidate(); categoryGate.invalidate(); loading = false }
+        .onAppear { readOwner.activate() }
+            .onDisappear { readOwner.deactivate(); gate.invalidate(); categoryGate.invalidate(); loading = false }
     }
     @ViewBuilder private var filterControls: some View {
         Button { showsArea = true } label: { Label("searchMap.chooseArea", systemImage: "mappin.and.ellipse") }
@@ -171,7 +176,7 @@ import SwiftUI
     @ViewBuilder private func failure(_ failure: SearchMapFailure?, layer: LocalizedStringKey) -> some View {
         if let failure {
             Label(layer, systemImage: "exclamationmark.circle").font(.headline)
-            SearchMapIssue(key: failure == .unauthorized ? "searchMap.partialSignIn" : "searchMap.layerFailed") { Task { await load() } }
+            SearchMapIssue(key: failure == .unauthorized ? "searchMap.partialSignIn" : "searchMap.layerFailed") { startLoad() }
             if failure == .unauthorized, let onSignIn { Button("searchMap.signIn", action: onSignIn).frame(minHeight: 44) }
         }
     }
@@ -233,9 +238,15 @@ import SwiftUI
         }.appNavigationTitle("searchMap.nodeDetail")
     }
     private func invalidate() {
-        gate.invalidate(); cityResults = nil; nearbyResults = nil; selectedPin = nil; issue = nil; loading = false
+        readOwner.cancel(); gate.invalidate(); cityResults = nil; nearbyResults = nil; selectedPin = nil; issue = nil; loading = false
+    }
+    private func startLoad() {
+        readOwner.start { await performLoad() }
     }
     private func load() async {
+        await readOwner.run { await performLoad() }
+    }
+    private func performLoad() async {
         guard let area, reader.isConfigured else { return }
         let query = CityNodeSearchQuery(filter: filter, area: area, tag: tag, cityRole: cityRole, sortType: sortType)
         let ticket = gate.begin(scope: reader.scope)

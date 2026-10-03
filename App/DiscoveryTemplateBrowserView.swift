@@ -144,7 +144,7 @@ struct DiscoveryTemplateBrowserView: View {
             Section(title) {
                 ForEach(Array(rows.enumerated()), id: \.offset) { _, item in
                     NavigationLink {
-                        DiscoveryTopicTemplatePreview(item: item)
+                        DiscoveryTopicTemplatePreview(coordinator: reader.publicTopicTemplateCoordinator(id: item.id))
                     } label: {
                         VStack(alignment: .leading, spacing: 6) {
                             DiscoveryTitle(text: item.name, fallback: "discovery.untitledTopic").font(.headline)
@@ -174,7 +174,10 @@ struct DiscoveryTemplateBrowserView: View {
         appliedKeyword = keyword.trimmingCharacters(in: .whitespacesAndNewlines)
     }
     private func loadHome() async { await home.load { try await reader.discoveryTemplateHome() } }
-    private func loadTopics() async { await topics.load { try await reader.discoveryTopicTemplates() } }
+    private func loadTopics() async {
+        let request = reader.publicTopicTemplateCatalogRequest()
+        await topics.load(onUnauthorized: request.onUnauthorized, request.read)
+    }
     private func loadGames() async {
         let requestedKeyword = appliedKeyword
         let requestedPack = pack

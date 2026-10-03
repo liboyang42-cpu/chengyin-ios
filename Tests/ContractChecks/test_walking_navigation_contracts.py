@@ -23,7 +23,7 @@ class WalkingNavigationContracts(unittest.TestCase):
     def test_normal_composition_is_dormant_and_session_scoped(self):
         deps = self.read('App/NativeRuntimeDependencies.swift')
         self.assertIn('walkingNavigation: NativeWalkingNavigationDependencies? = nil', deps)
-        self.assertIn('walkingNavigationFactory = NativeWalkingNavigationFactory', self.read('App/AppSession.swift'))
+        self.assertIn('var walkingNavigationFactory: NativeWalkingNavigationFactory { NativeWalkingNavigationFactory', self.read('App/AppSession.swift'))
         self.assertIn('.environment(\\.walkingNavigationFactory, session.walkingNavigationFactory)', self.read('App/SessionGlobalSearchView.swift'))
         factory = self.read('App/NativeWalkingNavigationFactory.swift')
         self.assertIn('context() == dependencies.owner', factory)

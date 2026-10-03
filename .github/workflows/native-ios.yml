@@ -39,6 +39,8 @@ jobs:
           git diff --exit-code -- Questify.xcodeproj
       - name: Run pure Swift domain tests
         run: swift test
+      - name: Compile content-draft API boundary controls
+        run: python3 tools/check_content_draft_api_boundary.py --module-path .build/debug/Modules
       - name: Compile iOS simulator app (unsigned)
         run: |
           xcodebuild -project Questify.xcodeproj -scheme Questify \

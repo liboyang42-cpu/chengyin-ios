@@ -49,10 +49,11 @@ public struct SocialMemberActionApproval: Equatable {
                             transport: any HTTPTransport, journal: any OperationPendingJournal,
                             reader: any SquareReading, accountReader: any SocialAccountReading,
                             current: @escaping () -> RuntimeDependencyContext?,
-                            now: @escaping () -> Date = Date.init) -> any SocialActionAccess {
+                            now: @escaping () -> Date = Date.init,
+                            isCurrent: @escaping () -> Bool = { true }) -> any SocialActionAccess {
         SocialMemberActionAccess(configuration: configuration, approvals: approvals, transport: transport,
             journal: journal, fallback: SocialDisabledActionAccess(reader: reader, accountReader: accountReader),
-            current: current, now: now)
+            current: current, now: now, isCurrent: isCurrent)
     }
 }
 
@@ -64,18 +65,23 @@ public struct SocialMemberActionApproval: Equatable {
     private let fallback: SocialDisabledActionAccess
     private let current: () -> RuntimeDependencyContext?
     private let now: () -> Date
-    var identity: SocialAccountIdentity { fallback.identity }
+    private let isCurrent: () -> Bool
+    var identity: SocialAccountIdentity {
+        isCurrent() ? fallback.identity : .init(accountID: nil, epoch: fallback.identity.epoch, role: nil)
+    }
     var availability: SocialActionAvailability {
         approvals.contains { valid($0) } ? .approved : .disabled
     }
     init(configuration: APIConfiguration?, approvals: [SocialMemberActionApproval], transport: any HTTPTransport,
          journal: any OperationPendingJournal, fallback: SocialDisabledActionAccess,
-         current: @escaping () -> RuntimeDependencyContext?, now: @escaping () -> Date) {
+         current: @escaping () -> RuntimeDependencyContext?, now: @escaping () -> Date,
+         isCurrent: @escaping () -> Bool) {
         self.configuration = configuration; self.approvals = approvals; self.transport = transport
         self.journal = journal; self.fallback = fallback; self.current = current; self.now = now
+        self.isCurrent = isCurrent
     }
     private func valid(_ approval: SocialMemberActionApproval) -> Bool {
-        guard let configuration, let context = current() else { return false }
+        guard isCurrent(), let configuration, let context = current() else { return false }
         return configuration.baseURL == approval.endpoint.baseURL && approval.identity == identity && approval.matches(context, now: now())
     }
     private func approval(_ command: SocialActionCommand, target: SocialActionTarget) -> SocialMemberActionApproval? {
@@ -95,14 +101,14 @@ public struct SocialMemberActionApproval: Equatable {
     }
     private func target(_ memberID: Int) -> String { "member|\(memberID)" }
     func hasPending(target: SocialActionTarget) -> Bool {
-        guard let member = target.memberID, let context = current(), context.session.accountID == identity.accountID else { return false }
+        guard isCurrent(), let member = target.memberID, let context = current(), context.session.accountID == identity.accountID else { return false }
         do { return try journal.pending(ownerKey: owner(context), targetKey: self.target(member)) != nil }
         catch { return true } // Corrupt/unreadable persistence cannot authorize a retry.
     }
     private func fence(_ context: RuntimeDependencyContext, approval: SocialMemberActionApproval,
                        isCurrent: () -> Bool = { true }) throws {
         try Task.checkCancellation()
-        guard current() == context, valid(approval), isCurrent() else { throw SocialActionBlock.cancelled }
+        guard self.isCurrent(), current() == context, valid(approval), isCurrent() else { throw SocialActionBlock.cancelled }
     }
     private func profile(_ member: Int, context: RuntimeDependencyContext, approval: SocialMemberActionApproval,
                          isCurrent: @escaping () -> Bool = { true }) async throws -> SocialPublicProfile {
@@ -125,9 +131,17 @@ public struct SocialMemberActionApproval: Equatable {
         try await snapshot(target: target, generation: nil)
     }
     func snapshot(target: SocialActionTarget, generation: SquareContentGeneration?) async throws -> SocialActionSnapshot {
+        guard isCurrent() else { throw SocialActionBlock.cancelled }
         guard let member = target.memberID,
               let grant = approvals.first(where: { $0.memberID == member && valid($0) }), let context = current() else {
-            return try await fallback.snapshot(target: target, generation: generation)
+            do {
+                let value = try await fallback.snapshot(target: target, generation: generation)
+                guard isCurrent() else { throw SocialActionBlock.cancelled }
+                return value
+            } catch {
+                guard isCurrent() else { throw SocialActionBlock.cancelled }
+                throw error
+            }
         }
         let value = try await profile(member, context: context, approval: grant)
         var snapshot = SocialActionSnapshot(target: target, profile: value)
@@ -206,8 +220,14 @@ public struct SocialMemberActionApproval: Equatable {
               let url = request.url, approval.endpoint.paths.contains(where: { approval.endpoint.baseURL.appendingPathComponent($0) == url }) else {
             throw SocialActionBlock.disabled
         }
-        let result = try await transport.send(request)
-        try check()
-        return result
+        do {
+            let result = try await transport.send(request)
+            try check()
+            return result
+        } catch {
+            // Fence thrown errors too: a late 401 belongs to the captured session.
+            try check()
+            throw error
+        }
     }
 }

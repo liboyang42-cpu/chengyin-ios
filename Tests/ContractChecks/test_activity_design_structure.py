@@ -109,7 +109,8 @@ class ActivityDesignStructureTests(unittest.TestCase):
         for required in ("let keyword=appliedQuery", "appliedQuery=query", "let operation=generation", "guard generation == operation", "hasMore=result.count >= 10", "existing.insert($0.id).inserted", "try await reader.activities(page:next,keyword:keyword)"):
             self.assertIn(required, browser)
         detail = app("ActivityDetailView.swift")
-        self.assertIn(".task(id:id) { await load() }", detail)
+        self.assertIn(".task(id:id) { await loads.run { await load() } }", detail)
+        self.assertIn(".onDisappear { loads.cancel();", detail)
         self.assertIn("try await reader.activityDetail(id:id)", detail)
         self.assertIn("detail.summary.hasValidCoordinates", detail)
         self.assertIn("Text(\"activity.registrationPending\")", detail)

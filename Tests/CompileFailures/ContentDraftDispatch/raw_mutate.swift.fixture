@@ -1,0 +1,6 @@
+import Foundation
+@testable import QuestifyCore
+
+@MainActor func rawWrite(client: ContentDraftService, mutation: ContentDraftMutation) async throws {
+    _ = try await client.mutate(mutation)
+}

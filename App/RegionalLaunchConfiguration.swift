@@ -2,6 +2,9 @@ import Foundation
 
 /// Deployment metadata is independent of language. No endpoint has been approved yet.
 enum RegionalLaunchConfiguration {
+    /// Shipped artifact deliberately has no reviewed deployment. Deployment integration replaces
+    /// this typed composition input, never the runtime URL allowlist or a server feature flag.
+    @MainActor static var composition: AppCompositionRoot { .init(deployment: .unconfigured) }
     static var market:RegionalMarket? {
         #if DEBUG
         let args=ProcessInfo.processInfo.arguments

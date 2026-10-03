@@ -7,7 +7,7 @@ class BusinessRuntimeWiringTests(unittest.TestCase):
         app=self.read('App/AppSession.swift');deps=self.read('App/NativeRuntimeDependencies.swift');core=self.read('Core/BusinessRuntimeConfiguration.swift')
         for text in ['businessConfiguration: BusinessRuntimeConfiguration? = nil','bankDocument: (any BankWithdrawalCurrentDocumentProviding)? = nil']:self.assertIn(text,deps)
         self.assertIn('configuration.matches(context)',app)
-        self.assertIn('ResponseLimitedHTTPTransport(enabled: configuration.matches(context))',app)
+        self.assertIn('transport: runtimeHTTPTransport',app)
         for text in ['routes: [BusinessRuntimeFeature: Set<BusinessRuntimeRoute>] = [:]','bankChallengeActions: Set<BankWithdrawalServerAction> = []','imImageSelection: Bool = false','stampCamera: Bool = false','verificationCamera: Bool = false']:self.assertIn(text,core)
         self.assertNotIn('URLSession',core)
     def test_exact_method_feature_path_and_session_binding(self):
@@ -45,7 +45,7 @@ class BusinessRuntimeWiringTests(unittest.TestCase):
         s=self.read('App/AppSession.swift')
         for text in ['factory.permits(.publishingRead)','factory.approval([.publishingWrite])','factory.permits(.projectRead)','factory.approval([.projectWrite])','owner: owner','store: projectDraftStore','else { service = ProjectEditDisabledService() }']:self.assertIn(text,s)
         self.assertIn('owner: seed.owner',self.read('App/SessionPublishingModesView.swift'))
-        self.assertIn('OperationDefaultsJournal(defaults: .standard)',s)
+        self.assertIn('composition.storage.operationJournal()',s)
     def test_production_verification_is_not_labeled_synthetic(self):
         s=self.read('Core/MerchantBusinessService.swift')
         self.assertIn('canExecuteSyntheticMutation: Bool { mutationTransport != nil }',s)

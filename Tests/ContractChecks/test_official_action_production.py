@@ -17,7 +17,7 @@ class OfficialActionProductionChecks(unittest.TestCase):
         self.assertIn('officialActionApproval: OfficialActionProductionApproval? = nil', dependency)
         self.assertIn('static var dormant: Self { .init() }', dependency)
         self.assertIn('let approved:[RegionalMarket:Set<String>]=[:]', region)
-        self.assertIn('session=AppSession()', self.read('App/QuestifyApp.swift'))
+        self.assertIn('session=(composition ?? RegionalLaunchConfiguration.composition).makeSession()', self.read('App/QuestifyApp.swift'))
         self.assertNotIn('write: { _ in throw OfficialActionFailure.disabled }', app)
 
     def test_scope_is_exact_and_market_stays_off_without_grants(self):

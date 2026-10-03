@@ -10,10 +10,16 @@ import SwiftUI
     var offline = false
     var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
     var planner: (any SearchRoutePlanning)? = nil
+    @State private var activePlanner: (any SearchRoutePlanning)?
     @State private var route: SearchRoutePreview?
     @State private var failed = false
     @State private var gate = SearchMapQueryGate()
     private var request: SearchRouteRequest { SearchRouteRequest(origin: origin, destination: destination, mode: .walking) }
+    private struct LoadIdentity: Hashable {
+        let request: SearchRouteRequest
+        let scope: UUID
+        let reference: WalkingTargetReference?
+    }
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
@@ -48,21 +54,23 @@ import SwiftUI
                 Text("searchMap.routeBoundary").font(.footnote).foregroundStyle(.secondary)
             }.padding()
         }.appNavigationTitle("searchMap.routePreview")
-            .task(id: request) { await load() }
-            .onDisappear { gate.invalidate(); planner?.cancel() }
+            .task(id: LoadIdentity(request: request, scope: scope, reference: navigationReference)) { await load() }
+            .onDisappear { gate.invalidate(); activePlanner?.cancel(); activePlanner = nil; route = nil }
     }
     private func load() async {
-        let requested = request, ticket = gate.begin(scope: scope)
+        activePlanner?.cancel()
+        activePlanner = planner ?? navigationReference.flatMap { walkingFactory?.makePreviewPlanner(reference: $0) }
+        let requested = request, reference = navigationReference, ticket = gate.begin(scope: scope)
         route = nil; failed = false
         do {
             let value: SearchRoutePreview
-            if let planner { value = try await planner.preview(requested) }
+            if let activePlanner { value = try await activePlanner.preview(requested) }
             else { throw WalkingNavigationFailure.unavailable }
             guard !value.isStraightLine else { throw WalkingNavigationFailure.noRoute }
-            guard gate.accepts(ticket, scope: scope), request == requested else { return }
+            guard gate.accepts(ticket, scope: scope), request == requested, navigationReference == reference else { return }
             route = value
         } catch {
-            guard gate.accepts(ticket, scope: scope), request == requested else { return }
+            guard gate.accepts(ticket, scope: scope), request == requested, navigationReference == reference else { return }
             failed = true
         }
     }

@@ -7,19 +7,19 @@ public enum AuthChannelError: Error, Equatable {
     case invalidPhone, invalidCode, invalidAppleCredential, rateLimited
 }
 
-/// Pure source-backed validation. The source phone sheet accepts exactly eleven ASCII
-/// digits and up to six numeric code digits. Backend validation remains authoritative.
+/// CN backend accepts an eleven-digit ASCII phone starting with 1. Its SMS service
+/// generates six-digit one-time codes. Backend validation remains authoritative.
 public enum AuthChannelInput {
     public static func phone(_ value: String) throws -> String {
         let result = value.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard result.utf8.count == 11, result.utf8.allSatisfy({ (48...57).contains($0) }) else {
+        guard result.utf8.count == 11, result.first == "1", result.utf8.allSatisfy({ (48...57).contains($0) }) else {
             throw AuthChannelError.invalidPhone
         }
         return result
     }
     public static func code(_ value: String) throws -> String {
         let result = value.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard (1...6).contains(result.utf8.count), result.utf8.allSatisfy({ (48...57).contains($0) }) else {
+        guard result.utf8.count == 6, result.utf8.allSatisfy({ (48...57).contains($0) }) else {
             throw AuthChannelError.invalidCode
         }
         return result
@@ -91,6 +91,7 @@ public struct AuthChannelService: AuthChannelServing {
     public func currentAccount(token: String) async throws -> Account {
         try Task.checkCancellation()
         let result = try await auth.currentAccount(token: token)
+        guard ["player", "club", "merchant"].contains(result.role) else { throw APIError.malformedResponse }
         try Task.checkCancellation()
         return result
     }

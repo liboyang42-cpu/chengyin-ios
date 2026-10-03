@@ -191,17 +191,26 @@ final class DiscoveryContractTests: XCTestCase {
     func testTopicTemplateRemainsSeparateAndUnknownStatusIsExperimental() throws {
         let item = try decode(DiscoveryTopicTemplate.self, #"{"id":8,"name":"Route","chapterCount":3,"locationCount":9,"categoryIds":"1, 10, 3","totalTime":90,"previewOnly":true}"#)
         XCTAssertEqual(item.name, "Route"); XCTAssertEqual(item.chapterCount, 3); XCTAssertEqual(item.locationCount, 9)
-        XCTAssertEqual(item.durationValue, "90"); XCTAssertTrue(item.previewOnly); XCTAssertFalse(item.isVerified)
+        XCTAssertEqual(item.totalTime, 90); XCTAssertTrue(item.previewOnly); XCTAssertFalse(item.isVerified)
         XCTAssertTrue(item.matchesCategory(nil)); XCTAssertTrue(item.matchesCategory(10)); XCTAssertFalse(item.matchesCategory(0))
         XCTAssertFalse(item.matchesCategory(2))
     }
-    func testTopicDurationSuffixIsRemovedOnlyOnceForLocalization() throws {
-        for value in ["30分钟", "30 minutes", "30 MIN", "30"] {
-            let item = try decode(DiscoveryTopicTemplate.self, "{\"id\":1,\"totalTime\":\"\(value)\"}")
-            XCTAssertEqual(item.durationValue, "30")
+    func testPublicTopicDurationPreservesIntegralSecondsAndExplicitZero() throws {
+        for seconds in [0, 1, 59, 60, 90, 5400, Int.max] {
+            let item = try decode(DiscoveryTopicTemplate.self, "{\"id\":1,\"totalTime\":\(seconds)}")
+            XCTAssertEqual(item.totalTime, seconds)
         }
-        let empty = try decode(DiscoveryTopicTemplate.self, #"{"id":1,"totalTime":"分钟","templateStatus":"VERIFIED"}"#)
-        XCTAssertNil(empty.durationValue); XCTAssertTrue(empty.isVerified)
+    }
+    func testPublicTopicMissingDurationRemainsUnknown() throws {
+        for json in [#"{"id":1,"templateStatus":"VERIFIED"}"#, #"{"id":1,"totalTime":null,"templateStatus":"VERIFIED"}"#] {
+            let item = try decode(DiscoveryTopicTemplate.self, json)
+            XCTAssertNil(item.totalTime); XCTAssertTrue(item.isVerified)
+        }
+    }
+    func testPublicTopicMalformedDurationNeverBecomesMinutesOrUnknown() {
+        for value in ["-1", "0.5", "true", "{}", "[]", "9223372036854775808", "\"30\"", "\"30分钟\"", "\"30 minutes\"", "\"\""] {
+            XCTAssertThrowsError(try decode(DiscoveryTopicTemplate.self, "{\"id\":1,\"totalTime\":\(value)}"))
+        }
     }
     func testBannerDestinationsAreTypedAndNeverOpenArbitraryH5() throws {
         let activity = try decode(DiscoveryBanner.self, #"{"id":1,"linkType":3,"dataId":"12"}"#)

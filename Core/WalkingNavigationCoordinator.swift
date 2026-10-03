@@ -169,7 +169,7 @@ import Observation
     private func fail(_ error: Error, ticket: UUID) {
         guard accepts(ticket) else { return }
         if error is CancellationError { phase = .cancelled; route = nil; progress = nil; return }
-        let failure = error as? WalkingNavigationFailure ?? .network
+        let failure = error as? WalkingNavigationFailure ?? (error is WalkingTargetReadFailure ? .targetUnavailable : .network)
         phase = .failed(failure); progress = nil
         if failure != .weakGPS { route = nil }
         if failure == .targetUnavailable || failure == .coordinateUnsupported || failure == .staleContext { target = nil }

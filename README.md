@@ -8,6 +8,7 @@ Development is on `migration/native-ios`, not the foundation-only `main`. See [c
 
 - Player/merchant entry intent, persistent English/Chinese/System language, separate CN/US operational profiles
 - Home feed, activity and route/topic detail, templates and read-only route previews
+- Owner ACTIVITY/TOPIC saved-draft browser in Account, with scoped read-only metadata and bounded historical installed-module receipt summaries, honest unavailable/editor states and default cloud-read approval disabled
 - Account-scoped local play-template authoring, seven advanced game configurators, story previews and separate prefab narrative-state preview; production publishing remains disabled
 - Personal orders, ticket wallet/detail, participants, badges and limited profile editing
 - Source-backed order progress/refund readback, immutable local action reviews and dormant payment/redemption contracts with live dispatch disabled
@@ -27,7 +28,7 @@ Development is on `migration/native-ios`, not the foundation-only `main`. See [c
 
 These are partial module slices, not complete source-page or business-flow parity. Static implementation, authored test counts, passing tests and live acceptance are separate measures.
 
-The backend address and approval registry are intentionally empty. Login remains unavailable without independently approved deployment/capability checks. The retained legacy password endpoint needs a WeChat-code prerequisite that a username/password-only native request cannot satisfy; the adapter is not verified or enabled. CN phone code and US Apple challenge/exchange/protected-session code do not establish real SMS/Apple readiness. The US adapter remains hard-off and unmounted. Merchant entry intent never grants merchant permission.
+The backend address and approval registry are intentionally empty. Login remains unavailable without independently approved deployment/capability checks. The retained legacy password endpoint needs a WeChat-code prerequisite that a username/password-only native request cannot satisfy; the normal native composition cannot enable it, even with a verification flag. The [CN native session contract](docs/cn-native-session-contract.md) instead mounts the existing SMS-code path only under independently reviewed phone/deployment capability evidence, with authoritative account readback before persistence. Its source alignment does not establish real SMS readiness. US Apple challenge/exchange/protected-session code does not establish real Apple readiness. The US adapter remains hard-off and unmounted. Merchant entry intent never grants merchant permission.
 
 Production registration creation, payment/payout, QR redemption, complete gameplay, media/realtime messaging and substantial publishing/administrative workflows remain incomplete or gated. Live backend/accounts/data, provider configuration, legal content, full visual/accessibility coverage, physical devices, signing and distribution still need acceptance. Review individual module documents for their exact limits.
 

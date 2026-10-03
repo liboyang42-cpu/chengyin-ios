@@ -87,7 +87,7 @@ import SwiftUI
                     }
                     Button("playx.run.end", role: .destructive) { confirmEnd = true }.accessibilityIdentifier("playx.run.end")
                     if model.remoteRunSaveFailed { Text("playx.run.saveFailed").foregroundStyle(.orange) }
-                }
+                }.disabled(!model.canManageRun)
                 if let snapshot = model.snapshot, model.hasCurrentMediaSnapshot {
                     Section("chapterStory.title") {
                         ForEach(snapshot.result.chapters) { chapter in

@@ -29,7 +29,12 @@ public struct PlayPendingCompletion: Equatable {
 @available(macOS 14.0, *)
 @MainActor @Observable public final class PlayExperienceCoordinator {
     public let scope: PlaySessionScope
-    public private(set) var snapshot: PlaySnapshot?
+    private var storedSnapshot: PlaySnapshot?
+    /// Every display read rechecks the caller's live session/approval lease.
+    public private(set) var snapshot: PlaySnapshot? {
+        get { loadedSession != nil && loadedSession == currentSession() ? storedSnapshot : nil }
+        set { storedSnapshot = newValue }
+    }
     public private(set) var extras: [Int: PlayNodeExtras] = [:]
     public private(set) var chapterStories: [Int: ChapterStoryDocument] = [:]
     public private(set) var storyVariables: [String: PlayWireValue] = [:]
@@ -72,7 +77,10 @@ public struct PlayPendingCompletion: Equatable {
     public var hasCurrentMediaSnapshot: Bool {
         snapshot != nil && loadedSession != nil && loadedSession == currentSession() && (phase == .ready || phase == .unknown)
     }
-    public var canWrite: Bool { phase == .ready && !unresolved && !thoughtSyncInFlight && pendingThoughtKeys.isEmpty && loadedSession != nil && loadedSession == currentSession() }
+    /// A read-only projection must not enable completion, hint or leader controls.
+    public var canWrite: Bool { !service.enabled.isDisjoint(with: [.classicCompletion, .hints, .leader, .thoughtClaims]) && phase == .ready && !unresolved && !thoughtSyncInFlight && pendingThoughtKeys.isEmpty && loadedSession != nil && loadedSession == currentSession() }
+    /// Run state and memory-only pause records require their own reviewed capability.
+    public var canManageRun: Bool { service.enabled.contains(.runPersistence) && hasCurrentMediaSnapshot }
     public init(scope: PlaySessionScope, service: PlayExperienceService, recovery: any PlayCompletionRecoveryStore,
                 pausedStorage: any PlayPausedStorage, currentSession: @escaping () -> PlayExperienceSession?,
                 onUnauthorized: @escaping (PlayExperienceSession) -> Void = { _ in }) {
@@ -129,13 +137,13 @@ public struct PlayPendingCompletion: Equatable {
         } catch { fail(error, session: session, generation: request) }
     }
     public func claimVisibleThoughts(chapterID: Int) async {
+        guard service.enabled.contains(.thoughtClaims) else { thoughtSyncPhase = .disabled; return }
         guard canWrite, hasCurrentMediaSnapshot, let snapshot, snapshot.availability == .active,
               let chapter = chapterStories[chapterID], let topicID = snapshot.result.topicID,
               let routeSessionID = snapshot.route?.sessionID, let version = snapshot.route?.version,
               let session = loadedSession, session == currentSession(), !thoughtSyncInFlight, pendingThoughtKeys.isEmpty else { return }
         let claims = ChapterStoryProjection.claimableThoughtKeys(chapter: chapter, snapshot: snapshot, thoughts: storyThoughts)
         guard !claims.isEmpty else { return }
-        guard service.enabled.contains(.thoughtClaims) else { thoughtSyncPhase = .disabled; return }
         let nonce = UUID(); thoughtSyncNonce = nonce; thoughtSyncInFlight = true
         let request = generation
         pendingThoughtKeys = Set(claims); thoughtClaimSessionID = routeSessionID; thoughtSyncPhase = .syncing
@@ -166,7 +174,7 @@ public struct PlayPendingCompletion: Equatable {
         advancedReadyNodeIDs.insert(state.nodeID)
     }
     public func review(nodeID: Int, evidence: PlayCompletionEvidence) throws -> PlayCompletionReview {
-        guard canWrite, let session = loadedSession, let snapshot,
+        guard service.enabled.contains(.classicCompletion), canWrite, let session = loadedSession, let snapshot,
               snapshot.availability == .active,
               let node = snapshot.visibleNodes.first(where: { $0.id == nodeID }),
               !snapshot.isDone(node), !snapshot.isLocked(node), node.done == false else { throw PlayExperienceError.invalidAction }
@@ -193,7 +201,7 @@ public struct PlayPendingCompletion: Equatable {
     }
     public func cancelReview() { if phase == .reviewing { phase = .ready } }
     public func submit(_ review: PlayCompletionReview) async {
-        guard phase == .reviewing, review.session == currentSession(), review.session == loadedSession,
+        guard service.enabled.contains(.classicCompletion), phase == .reviewing, review.session == currentSession(), review.session == loadedSession,
               review.generation == generation, !unresolved else { return }
         await dispatch(review)
     }
@@ -223,7 +231,7 @@ public struct PlayPendingCompletion: Equatable {
     /// Branch replay preserves BOTH original token fields and payload. Read first. A
     /// changed route version/session or completed node cannot generate a fresh action.
     public var canRetryExactBranch: Bool {
-        guard phase == .unknown, hintUnknownNodes.isEmpty, !leaderOutcomeUnknown, let session = loadedSession, session == currentSession(), let snapshot else { return false }
+        guard service.enabled.contains(.classicCompletion), phase == .unknown, hintUnknownNodes.isEmpty, !leaderOutcomeUnknown, let session = loadedSession, session == currentSession(), let snapshot else { return false }
         let key = PlayRunStorageKey.make(session: session, scope: scope)
         guard let pending = try? recovery.read(key), let advance = pending.review.advance, !pending.requestAcknowledged,
               pending.review.session == session, snapshot.route?.sessionID == pending.review.routeSessionID,
@@ -240,7 +248,7 @@ public struct PlayPendingCompletion: Equatable {
         await dispatch(pending.review)
     }
     public func requestHint(nodeID: Int, level: Int?) async {
-        guard canWrite, !hintUnknownNodes.contains(nodeID), let session = loadedSession,
+        guard service.enabled.contains(.hints), canWrite, !hintUnknownNodes.contains(nodeID), let session = loadedSession,
               let node = snapshot?.visibleNodes.first(where: { $0.id == nodeID }), snapshot?.isLocked(node) == false else { return }
         let request = generation; phase = .submitting; hintUnknownNodes.insert(nodeID)
         let hintKey = PlayRunStorageKey.make(session: session, scope: scope)
@@ -271,7 +279,7 @@ public struct PlayPendingCompletion: Equatable {
         catch { fail(error, session: session, generation: request) }
     }
     public func performLead(_ action: PlayLeadAction, text: String? = nil) async {
-        guard canWrite, !leaderOutcomeUnknown, let session = loadedSession, case .activity(let activity) = scope,
+        guard service.enabled.contains(.leader), canWrite, !leaderOutcomeUnknown, let session = loadedSession, case .activity(let activity) = scope,
               lead?.allows(action, accountID: session.accountID) == true else { return }
         let request = generation; phase = .submitting; leaderOutcomeUnknown = true
         let leaderKey = PlayRunStorageKey.make(session: session, scope: scope); unknownLeaderKeys.insert(leaderKey)
@@ -286,7 +294,7 @@ public struct PlayPendingCompletion: Equatable {
         }
     }
     public func restoreRun() async {
-        guard let session = currentSession() else { return }
+        guard service.enabled.contains(.runPersistence), let session = currentSession() else { return }
         let request = generation, key = PlayRunStorageKey.make(session: session, scope: scope)
         let local = try? pausedStorage.read(key: key)
         let remote = try? await service.readPaused(scope: scope, token: session.token)
@@ -296,9 +304,9 @@ public struct PlayPendingCompletion: Equatable {
         let reconciled = candidate.flatMap { $0.savedAt > tombstone ? $0 : nil }
         clock.restore(reconciled); try? pausedStorage.write(reconciled, key: key)
     }
-    public func startRun(now: TimeInterval) { guard currentSession() == loadedSession else { return }; try? clock.start(monotonicNow: now) }
+    public func startRun(now: TimeInterval) { guard canManageRun else { return }; try? clock.start(monotonicNow: now) }
     public func pauseRun(now: TimeInterval, savedAt: Int64) async {
-        guard let session = loadedSession, currentSession() == session,
+        guard canManageRun, let session = loadedSession, currentSession() == session,
               let record = try? clock.pause(monotonicNow: now, savedAt: savedAt) else { return }
         let request = generation, key = PlayRunStorageKey.make(session: session, scope: scope)
         do { try pausedStorage.write(record, key: key) } catch { remoteRunSaveFailed = true }
@@ -307,7 +315,7 @@ public struct PlayPendingCompletion: Equatable {
     }
     /// Ending the local run does not declare route completion or grant rewards.
     public func endRun(now: TimeInterval, savedAt: Int64) async {
-        guard let session = loadedSession, currentSession() == session, savedAt > 0 else { return }
+        guard canManageRun, let session = loadedSession, currentSession() == session, savedAt > 0 else { return }
         clock.end(monotonicNow: now); let key = PlayRunStorageKey.make(session: session, scope: scope)
         try? pausedStorage.writeTombstone(savedAt, key: key)
         try? pausedStorage.write(nil, key: key)

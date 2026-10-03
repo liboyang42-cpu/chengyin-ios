@@ -85,7 +85,7 @@ public struct PlayExperienceService {
         return try await request("api/play/puzzle/reveal", form: fields, capability: .hints, token: token)
     }
     public func ending(scope: PlaySessionScope, token: String) async throws -> PlayEndingDocument {
-        try await request("api/play/ending", form: scopeFields(scope), capability: .reads, token: token).decoded()
+        try await request("api/play/ending", query: scopeFields(scope), capability: .reads, token: token).decoded()
     }
     public func leaderboard(scope: PlaySessionScope, token: String) async throws -> PlayCompanionLeaderboard {
         try PlayCompanionLeaderboard(await request("api/play/leaderboard", query: scopeFields(scope), capability: .reads, token: token))

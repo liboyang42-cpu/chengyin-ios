@@ -17,7 +17,10 @@ struct ClubManagementFixtureRootView: View {
         VStack {
             Text("club.management.fixture")
             HStack {
-                Button("club.management.switch_account") { store.switchAccount() }.accessibilityIdentifier("club.management.switch")
+                Button("club.management.switch_account") { store.switchAccount() }
+                    .accessibilityIdentifier("club.management.switch")
+                    // Read-only evidence of the real fixture action, without changing layout.
+                    .accessibilityValue(Text(verbatim: "account=\(store.identity?.accountID ?? 0);epoch=\(store.identity?.epoch ?? 0)"))
                 Button("club.management.sign_out") { store.signOut() }.accessibilityIdentifier("club.management.signout")
                 Text(store.writeCount, format: .number).accessibilityIdentifier("club.management.writes")
             }

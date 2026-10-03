@@ -39,7 +39,7 @@ class RemainingNativeClients(unittest.TestCase):
   self.assertIn('var nativeSelectionEnabled = false',read('App/RetainedImagePresenterHost.swift'))
   self.assertIn('RetainedImagePresenterHost(host: session.retainedImagePickerHost)',read('App/QuestifyApp.swift'))
  def test_fixture_roots_skip_production_session(self):
-  s=read('App/QuestifyApp.swift'); root,container=s.split('private final class AppSessionContainer',1)
+  s=read('App/QuestifyApp.swift'); root,container=s.split('final class AppSessionContainer',1)
   for flag in ['--merchant-npc-fixture','--publisher-lifecycle-fixture','--retained-images-fixture']:
    self.assertIn(flag,root); self.assertIn(flag,container)
  def test_wechat_shared_commit_preserves_existing_sync(self):

@@ -12,7 +12,7 @@ private actor CNAccountSessionTransport: HTTPTransport {
     private let suspend: Bool
     private var continuation: CheckedContinuation<(Data, Int), Error>?
     var isSuspended: Bool { continuation != nil }
-    init(response: (String, Int) = (#"{"code":200,"appUser":{"userId":17,"nickName":"Restored fixture"}}"#, 200),
+    init(response: (String, Int) = (#"{"code":200,"appUser":{"userId":17,"nickName":"Restored fixture","role":"player"}}"#, 200),
          failure: Error? = nil, suspend: Bool = false) {
         self.response = response; self.failure = failure; self.suspend = suspend
     }
@@ -48,7 +48,7 @@ final class CNAccountSessionServiceTests: XCTestCase {
 
     func testPhoneOnlyConfigurationRestoresWithoutPasswordCapabilityOrLoginRequest() async throws {
         let config = try configuration()
-        XCTAssertEqual(config.availability(of: .usernamePassword), .verificationPending)
+        XCTAssertEqual(config.availability(of: .usernamePassword), .implementationPending)
         XCTAssertEqual(config.availableCapabilities, [.domesticChinaPhone])
         let transport = CNAccountSessionTransport()
         let api = try CNAccountSessionService(configuration: config, storageScope: scope(config), transport: transport)
@@ -64,12 +64,13 @@ final class CNAccountSessionServiceTests: XCTestCase {
         XCTAssertNil(request.httpBody)
         XCTAssertNil(request.value(forHTTPHeaderField: "Content-Type"))
     }
-    func testPasswordOnlyConfigurationPreservesExistingRestoration() async throws {
+    func testPasswordFlagCannotEnableIncompatibleNativeRestoration() async throws {
         let transport = CNAccountSessionTransport()
-        let account = try await service(transport, capabilities: [.usernamePassword]).currentAccount(token: "synthetic-password-session")
-        XCTAssertEqual(account.id, 17)
+        XCTAssertThrowsError(try service(transport, capabilities: [.usernamePassword])) {
+            XCTAssertEqual($0 as? APIError, .notConfigured)
+        }
         let requests = await transport.requests
-        XCTAssertEqual(requests.map { $0.url?.path }, ["/gateway/api/userInfo"])
+        XCTAssertTrue(requests.isEmpty)
     }
     func testPhoneOnlyLogoutUsesExistingRevocationContractWithoutLoginOrSMS() async throws {
         let transport = CNAccountSessionTransport(response: (#"{"code":200}"#, 200))
@@ -185,4 +186,93 @@ final class CNAccountSessionServiceTests: XCTestCase {
         let requests = await transport.requests
         XCTAssertTrue(cancelled); XCTAssertEqual(requests.count, 1)
     }
+    func testExactNativeSMSAndSessionRequestShapes() throws {
+        let config = try configuration(), api = try XCTUnwrap(config.apiConfiguration)
+        let builder = AuthRequestBuilder(configuration: api)
+        let valid = [try builder.make(.smsSend, fields: ["phone": "10000000000"], boundary: "CN-CONTRACT"),
+                     try builder.make(.phone, fields: ["phone": "10000000000", "code": "123456"], boundary: "CN-CONTRACT"),
+                     try builder.make(.userInfo, token: "synthetic-session"),
+                     try builder.make(.logout, token: "synthetic-session", boundary: "CN-CONTRACT")]
+        for request in valid { XCTAssertTrue(CNAccountSessionService.accepts(request, configuration: api)) }
+        XCTAssertEqual(String(data: try XCTUnwrap(valid[1].httpBody), encoding: .utf8),
+            "--CN-CONTRACT\r\nContent-Disposition: form-data; name=\"code\"\r\n\r\n123456\r\n--CN-CONTRACT\r\nContent-Disposition: form-data; name=\"phone\"\r\n\r\n10000000000\r\n--CN-CONTRACT--\r\n")
+        let denied = [try builder.make(.password, fields: ["username": "synthetic", "password": "synthetic"]),
+                      try builder.make(.apple, fields: ["identityToken": "synthetic"]),
+                      try builder.make(.phone, fields: ["phone": "10000000000", "code": "123456", "role": "merchant"]),
+                      try builder.make(.phone, fields: ["phone": "20000000000", "code": "123456"]),
+                      try builder.make(.phone, fields: ["phone": "10000000000", "code": "123"]),
+                      try builder.make(.smsSend, fields: ["phone": "10000000000"], token: "synthetic"),
+                      try builder.make(.userInfo), try builder.make(.logout)]
+        for request in denied { XCTAssertFalse(CNAccountSessionService.accepts(request, configuration: api)) }
+        var tampered = valid[1]
+        tampered.httpBody?.append(Data("extra".utf8))
+        XCTAssertFalse(CNAccountSessionService.accepts(tampered, configuration: api))
+        tampered = valid[1]; tampered.url = URL(string: api.url(for: .phone).absoluteString + "?role=merchant")
+        XCTAssertFalse(CNAccountSessionService.accepts(tampered, configuration: api))
+        tampered = valid[2]; tampered.httpBody = Data()
+        XCTAssertFalse(CNAccountSessionService.accepts(tampered, configuration: api))
+    }
+    func testAnonymousPhoneRequestRejectsForeignTokenAndSessionBodyInjection() throws {
+        let config = try configuration(), api = try XCTUnwrap(config.apiConfiguration)
+        let builder = AuthRequestBuilder(configuration: api)
+        var request = try builder.make(.phone, fields: ["phone": "10000000000", "code": "123456"])
+        request.setValue("synthetic", forHTTPHeaderField: "Authorization")
+        XCTAssertFalse(CNAccountSessionService.accepts(request, configuration: api))
+        request = try builder.make(.logout, fields: ["userId": "8"], token: "synthetic")
+        XCTAssertFalse(CNAccountSessionService.accepts(request, configuration: api))
+        request = try builder.make(.phone, fields: ["phone": "10000000000", "code": "123456"])
+        request.httpMethod = "GET"
+        XCTAssertFalse(CNAccountSessionService.accepts(request, configuration: api))
+    }
+    func testMissingOrUnknownRoleCannotRestoreFromLegacyCachedProjection() async throws {
+        for role in ["", "unexpected"] {
+            let transport = CNAccountSessionTransport(response: ("{\"code\":200,\"appUser\":{\"userId\":17,\"userType\":2,\"role\":\"\(role)\"}}", 200))
+            do { _ = try await service(transport).currentAccount(token: "synthetic"); XCTFail("Unverified role restored") }
+            catch { XCTAssertEqual(error as? APIError, .malformedResponse) }
+        }
+    }
+
+    func testCanonicalAllowlistRejectsDuplicateFramingOversizeAndAuthorityChanges() throws {
+        let config = try configuration(), api = try XCTUnwrap(config.apiConfiguration)
+        let builder = AuthRequestBuilder(configuration: api)
+        let original = try builder.make(.phone, fields: ["phone": "10000000000", "code": "123456"], boundary: "CN-REVIEW")
+        let body = try XCTUnwrap(String(data: try XCTUnwrap(original.httpBody), encoding: .utf8))
+        var candidates: [URLRequest] = []
+        var request = original
+        request.httpBody = Data(body.replacingOccurrences(of: "--CN-REVIEW--\r\n",
+            with: "--CN-REVIEW\r\nContent-Disposition: form-data; name=\"code\"\r\n\r\n654321\r\n--CN-REVIEW--\r\n").utf8)
+        candidates.append(request)
+        request = original; request.httpBody = Data(body.replacingOccurrences(of: "\r\n", with: "\n").utf8)
+        candidates.append(request)
+        request = original; request.httpBody = Data(repeating: 0x41, count: 1025)
+        candidates.append(request)
+        request = original; request.setValue("multipart/form-data; boundary=\"CN-REVIEW\"", forHTTPHeaderField: "Content-Type")
+        candidates.append(request)
+        request = original; request.setValue("text/plain", forHTTPHeaderField: "Accept")
+        candidates.append(request)
+        request = original; request.httpBodyStream = InputStream(data: try XCTUnwrap(original.httpBody))
+        candidates.append(request)
+        for suffix in ["?phone=10000000001", "#fragment", "/"] {
+            request = original; request.url = URL(string: api.url(for: .phone).absoluteString + suffix)
+            candidates.append(request)
+        }
+        request = original; request.url = URL(string: "https://other.example.com/gateway/api/login/phone")
+        candidates.append(request)
+        request = original; request.url = URL(string: "https://cn.example.com/api/login/phone")
+        candidates.append(request)
+        for candidate in candidates {
+            XCTAssertFalse(CNAccountSessionService.accepts(candidate, configuration: api))
+        }
+        XCTAssertTrue(CNAccountSessionService.accepts(original, configuration: api))
+    }
+    func testExplicitRoleOverridesLegacyPresentationAliasWithoutInventingOne() async throws {
+        for role in ["player", "club", "merchant"] {
+            let transport = CNAccountSessionTransport(response: (
+                "{\"code\":200,\"appUser\":{\"id\":17,\"userId\":17,\"nickname\":\"Current\",\"role\":\"\(role)\",\"userType\":2}}", 200))
+            let account = try await service(transport).currentAccount(token: "synthetic")
+            XCTAssertEqual(account.id, 17); XCTAssertEqual(account.role, role)
+            XCTAssertEqual(account.effectiveRole, role)
+        }
+    }
+
 }

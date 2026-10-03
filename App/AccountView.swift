@@ -2,6 +2,7 @@ import SwiftUI
 
 struct AccountView: View {
     let account: Account
+    var privateHomeCoordinator: PrivateHomeCoordinator? = nil
     var onOpenGuideDestination: ((SocialGuideDestination) -> Void)? = nil
     @EnvironmentObject private var session: AppSession
     private struct SavedTopicRoute: Identifiable, Hashable { let id: Int }
@@ -28,6 +29,7 @@ struct AccountView: View {
                     NavigationLink { SessionDoorInviterView(session: session) } label: { Text("door.inviter.title") }
                         .accessibilityIdentifier("door.inviter.entry")
                 }
+                Section { PrivateHomeAccountLink(coordinator: privateHomeCoordinator) }
                 Section("account.details") {
                     LabeledContent("account.name",value:account.nickname)
                     LabeledContent("account.id",value:String(account.id))
@@ -54,6 +56,7 @@ struct AccountView: View {
                         .accessibilityIdentifier("account.teams")
                 }
                 Section {
+                    OwnerDraftAccountLink(browser: session.ownerDraftBrowser)
                     NavigationLink {
                         CreatorContentProjectsView(reader:session.creatorContentReader,onOpen:{ destination in
                             switch destination {

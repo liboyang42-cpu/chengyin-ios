@@ -197,6 +197,27 @@ public struct TopicComment: Decodable, Equatable {
     }
 }
 
+/// The server's topic activity shelf is a summary, never registration or access proof.
+public struct TopicActivitySummary: Decodable, Equatable, Identifiable {
+    public let id: Int
+    public let name: String
+    public let imageURL: String?
+    public let addressName: String?
+    public let startDate: String?
+    public let endDate: String?
+    private enum CodingKeys: String, CodingKey { case id, name, imgUrl, addressName, startDate, endDate }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(Int.self, forKey: .id)
+        name = try c.decode(String.self, forKey: .name)
+        guard id > 0, !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw APIError.malformedResponse }
+        imageURL = try c.decodeIfPresent(String.self, forKey: .imgUrl)
+        addressName = try c.decodeIfPresent(String.self, forKey: .addressName)
+        startDate = try c.decodeIfPresent(String.self, forKey: .startDate)
+        endDate = try c.decodeIfPresent(String.self, forKey: .endDate)
+    }
+}
+
 public struct TopicDetail: Decodable, Equatable, Identifiable {
     /// Fresh source evidence stays separate from display defaults; unavailable proof stays nil.
     public let publisherAuthoritySource: PublisherTopicAuthoritySource?
@@ -236,6 +257,8 @@ public struct TopicDetail: Decodable, Equatable, Identifiable {
     public let chapters: [TopicChapter]
     public let tickets: [TopicTicket]
     public let comments: [TopicComment]
+    /// Nil means omitted/unknown; an empty array means the server returned no sessions.
+    public let activities: [TopicActivitySummary]?
     public init(from decoder: Decoder) throws {
         publisherAuthoritySource = try? PublisherTopicAuthoritySource(from: decoder)
         let c = try decoder.container(keyedBy: TopicKey.self)
@@ -277,6 +300,8 @@ public struct TopicDetail: Decodable, Equatable, Identifiable {
         chapters = try c.list("chaptersList")
         tickets = try c.list("omsTicketList")
         comments = try c.list("commentList")
+        activities = try c.decodeIfPresent([TopicActivitySummary].self, forKey: TopicKey("activityList"))
+        if let activities, Set(activities.map(\.id)).count != activities.count { throw APIError.malformedResponse }
     }
 }
 

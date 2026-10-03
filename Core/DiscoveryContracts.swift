@@ -120,8 +120,9 @@ public struct DiscoveryTopicTemplate: Decodable, Equatable, Identifiable {
     public let name: String
     public let subtitle: String
     public let chapterCount: Int
-    public let locationCount: Int
-    public let totalTime: String?
+    public let locationCount: Int?
+    /// Exact public catalog contract: nonnegative integral seconds, never minutes text.
+    public let totalTime: Int?
     public let categoryIds: String
     public let previewOnly: Bool
     public let templateStatus: String?
@@ -130,12 +131,6 @@ public struct DiscoveryTopicTemplate: Decodable, Equatable, Identifiable {
     public func matchesCategory(_ id: Int?) -> Bool {
         guard let id else { return true }
         return categoryIds.split(separator: ",").contains { $0.trimmingCharacters(in: .whitespacesAndNewlines) == String(id) }
-    }
-    /// Remove only the suffixes recognized by Flutter; the UI adds its localized unit once.
-    public var durationValue: String? {
-        guard let text = discoveryNonempty(totalTime) else { return nil }
-        let value = text.replacingOccurrences(of: #"\s*(分钟|min(?:ute)?s?)$"#, with: "", options: [.regularExpression, .caseInsensitive])
-        return discoveryNonempty(value)
     }
     enum CodingKeys: String, CodingKey {
         case id, name, subtitle, chapterCount, locationCount, totalTime, categoryIds, previewOnly, templateStatus, imgUrl
@@ -146,8 +141,9 @@ public struct DiscoveryTopicTemplate: Decodable, Equatable, Identifiable {
         name = try c.discoveryScalarText(.name) ?? ""
         subtitle = try c.discoveryScalarText(.subtitle) ?? ""
         chapterCount = try c.decodeIfPresent(Int.self, forKey: .chapterCount) ?? 0
-        locationCount = try c.decodeIfPresent(Int.self, forKey: .locationCount) ?? 0
-        totalTime = try c.discoveryScalarText(.totalTime)
+        locationCount = try PublicTemplateRouteCount.decode(from: c, forKey: .locationCount)
+        totalTime = try c.decodeIfPresent(Int.self, forKey: .totalTime)
+        guard totalTime.map({ $0 >= 0 }) ?? true else { throw APIError.malformedResponse }
         categoryIds = try c.discoveryScalarText(.categoryIds) ?? ""
         previewOnly = try c.decodeIfPresent(Bool.self, forKey: .previewOnly) ?? false
         templateStatus = try c.discoveryScalarText(.templateStatus)

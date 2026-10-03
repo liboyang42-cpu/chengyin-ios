@@ -6,6 +6,9 @@ import FoundationNetworking
 /// Deployment approval, session authority and OS/user consent are separate inputs.
 /// This value is never loaded from user defaults, a URL, or an API response.
 public struct RuntimeDependencyConfiguration {
+    /// Explicit caller-owned token for the normal Play read bridge. Nil keeps it closed.
+    /// Retain across selector evaluations; rotate on real grant replacement/reissue.
+    public let playReadApprovalID: UUID?
     public let market: RegionalMarket
     public let endpoints: OperationEndpointApproval
     public let play: Set<PlayExperienceCapability>
@@ -25,7 +28,9 @@ public struct RuntimeDependencyConfiguration {
                 journeyChecks: Bool = false, journeyCollect: Bool = false, journeyAsks: Bool = false,
                 publisherReads: Bool = false, nearbyLocation: Bool = false,
                 devices: Set<PlayDeviceKind> = [], sensors: Set<PlayKitSensorKind> = [],
-                artworkHosts: Set<String> = [], spatial: PlayKitSpatialApproval = .init(), shopNPCWrites: Bool = false) {
+                artworkHosts: Set<String> = [], spatial: PlayKitSpatialApproval = .init(), shopNPCWrites: Bool = false,
+                playReadApprovalID: UUID? = nil) {
+        self.playReadApprovalID = playReadApprovalID
         self.market = market; self.endpoints = endpoints; self.play = play
         self.journeyAsks = journeyAsks
         self.journeyReads = journeyReads; self.journeyChecks = journeyChecks; self.journeyCollect = journeyCollect

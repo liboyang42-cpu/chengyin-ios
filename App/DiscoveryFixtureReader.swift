@@ -36,7 +36,13 @@ final class DiscoveryFixtureReader: DiscoveryReading {
         return rows.filter { (packType == nil || $0.pack == packType) && (keyword.isEmpty || $0.title.localizedCaseInsensitiveContains(keyword)) }
     }
     func discoveryTopicTemplates() async throws -> [DiscoveryTopicTemplate] {
-        try decode([DiscoveryTopicTemplate].self, scenario == .empty ? "[]" : #"[{"id":801,"name":"A neighborhood in three chapters","subtitle":"A sample route for offline UI checks","chapterCount":3,"locationCount":6,"totalTime":"90 minutes","categoryIds":"11","templateStatus":"VERIFIED"},{"id":802,"name":"A route in progress","previewOnly":true,"categoryIds":"12"}]"#)
+        try decode([DiscoveryTopicTemplate].self, scenario == .empty ? "[]" : #"[{"id":801,"name":"A neighborhood in three chapters","subtitle":"A sample route for offline UI checks","chapterCount":3,"locationCount":6,"totalTime":5400,"categoryIds":"11","templateStatus":"VERIFIED"},{"id":802,"name":"A route in progress","previewOnly":true,"categoryIds":"12"}]"#)
+    }
+    func discoveryTopicTemplateDetail(id: Int) async throws -> PublicTopicTemplateDetail {
+        try check()
+        if scenario == .unavailable { throw DiscoveryTemplateUnavailable.offline }
+        let json = scenario == .empty ? "{\"id\":\(id)}" : PublicTopicTemplateFixtures.content(id: id)
+        return try decode(PublicTopicTemplateDetail.self, json)
     }
     func discoveryPlayTemplate(id: Int) async throws -> DiscoveryPlayTemplate {
         try check()

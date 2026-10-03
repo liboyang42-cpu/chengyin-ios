@@ -27,7 +27,7 @@ class RegionalStorageBoundaryTests(unittest.TestCase):
             self.assertRegex(gated, service + r'=\w+Service\(configuration:configuration,transport:transport\)')
             self.assertIn(service + '=nil', source)
         self.assertIn('var isConfigured: Bool { storageScope != nil }', source)
-        self.assertIn('vault=KeychainTokenStore(scope:scope)', source)
+        self.assertIn('vault=composition.storage.tokenStore(scope)', source)
         self.assertIn('restoreBlockedKey=scope?.restoreBlockedKey', source)
         self.assertNotIn('KeychainTokenStore(market:', source)
         self.assertNotIn('"session.preventRestore."', source)

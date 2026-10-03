@@ -34,13 +34,21 @@ struct CommunityDormantHTTPTransport: HTTPTransport {
     let id: Int
     @ObservedObject var session: AppSession
     var body: some View {
-        TopicDetailView(id: id, reader: session.topicReader, publicMerchant: session.publicMerchantHomeContext,
-            makeAudio: session.platformConsumers.audioFactory, makeExternalMaps: session.platformConsumers.mapsFactory,
-            publisherDestination: { detail in
-                guard detail.isOwner, let resource = try? PublishedResource(kind: .topic, value: detail.id) else { return AnyView(EmptyView()) }
-                return AnyView(PublisherLifecycleNavigationLink(session: session, resource: resource))
-            }, reviewOwner: session.contextualReviews?.coordinator(.topic(id)), selfPlayDestination: { AnyView(SessionTopicSelfPlayView(session: session, topic: $0)) })
-            .id(session.sessionRevision)
+        Group {
+            if session.account == nil {
+                TopicIssueView(issue: .unauthorized).accessibilityIdentifier("topic.detail.signIn")
+            } else {
+                TopicDetailView(id: id, reader: session.topicReader,
+                    activityDestination: { AnyView(ActivityDetailView(id: $0, reader: session)) },
+                    publicMerchant: session.publicMerchantHomeContext,
+                    makeAudio: session.platformConsumers.audioFactory, makeExternalMaps: session.platformConsumers.mapsFactory,
+                    publisherDestination: { detail in
+                        guard detail.isOwner, let resource = try? PublishedResource(kind: .topic, value: detail.id) else { return AnyView(EmptyView()) }
+                        return AnyView(PublisherLifecycleNavigationLink(session: session, resource: resource))
+                    }, reviewOwner: session.contextualReviews?.coordinator(.topic(id)), selfPlayDestination: { AnyView(SessionTopicSelfPlayView(session: session, topic: $0)) })
+                    .id(session.contentDetailRevision)
+            }
+        }
     }
 }
 

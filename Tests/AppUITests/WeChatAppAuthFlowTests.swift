@@ -14,7 +14,8 @@ final class WeChatAppAuthFlowTests: XCTestCase {
                 XCTAssertTrue(button.waitForExistence(timeout: 5))
                 XCTAssertFalse(button.isEnabled)
                 XCTAssertTrue(app.staticTexts["auth.wechat.gate"].exists)
-                XCTAssertTrue(app.buttons["auth.signIn"].exists)
+                XCTAssertFalse(app.buttons["auth.signIn"].exists)
+                XCTAssertFalse(app.secureTextFields.firstMatch.exists)
                 XCTAssertTrue(app.buttons["auth.otherChannels"].exists)
                 app.buttons[language == "en" ? "Close" : "关闭"].tap()
             }

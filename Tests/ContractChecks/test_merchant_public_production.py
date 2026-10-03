@@ -25,7 +25,7 @@ class MerchantPublicFactoryContractTests(unittest.TestCase):
         self.assertIn('merchantPublicApproval: MerchantPublicProductionApproval? = nil', deps)
         self.assertIn('merchantNPCGrants: MerchantNPCGrants = .init()', deps)
         self.assertIn('merchantPublicApproval?.matches(context) == true', deps)
-        self.assertIn('transport: transport ?? ResponseLimitedHTTPTransport(enabled: true)', deps)
+        self.assertIn('transport: transportOverride ?? transport ?? ResponseLimitedHTTPTransport(enabled: true)', deps)
         production = self.read('Core/MerchantPublicProduction.swift')
         self.assertIn('publicHomeRead: Bool = false, chatMerchantRows: Set<PublicMerchantRowID> = []', production)
         self.assertIn('market == .china && context.market == market', production)

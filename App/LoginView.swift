@@ -16,7 +16,7 @@ struct LoginView: View {
                 Section {
                     Text(intent == .merchant ? LocalizedStringKey("auth.merchantNotice") : LocalizedStringKey("auth.playerNotice"))
                 }
-                if session.operationalMarket == .china {
+                if session.canUsePassword {
                 Section("auth.existingAccount") {
                     TextField("auth.username",text:$username)
                         .textContentType(.username).textInputAutocapitalization(.never)
@@ -37,7 +37,7 @@ struct LoginView: View {
                     .disabled(!session.canUsePassword || session.isWorking || username.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty || password.isEmpty)
                     .accessibilityIdentifier("auth.signIn")
                 }
-                } else { Section { Text("region.usLoginPending").accessibilityIdentifier("region.auth.pending") } }
+                } else if session.operationalMarket != .china { Section { Text("region.usLoginPending").accessibilityIdentifier("region.auth.pending") } }
                 if !session.isConfigured {
                     Section { Label("auth.notConfigured",systemImage:"info.circle") }
                 }
@@ -48,7 +48,7 @@ struct LoginView: View {
                     WeChatAppAuthSection(coordinator: session.weChatAuth, context: session.authChannelSnapshot)
                 }
                 Section {
-                    Button("auth.channels.title") { session.weChatAuth.cancel(); password="";showsOtherSignIn=true }
+                    Button(LocalizedStringKey(session.operationalMarket == .china ? "auth.channels.phoneTitle" : "auth.channels.title")) { session.weChatAuth.cancel(); password="";showsOtherSignIn=true }
                         .disabled(session.isWorking)
                         .accessibilityIdentifier("auth.otherChannels")
                     Text("auth.registrationPending").foregroundStyle(.secondary)

@@ -4,9 +4,9 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 class RuntimeDependencyWiringTests(unittest.TestCase):
     def read(self, path): return (ROOT / path).read_text()
     def test_shipped_root_preserves_all_configuration_gates(self):
-        self.assertIn('session=AppSession()', self.read('App/QuestifyApp.swift'))
+        self.assertIn('session=(composition ?? RegionalLaunchConfiguration.composition).makeSession()', self.read('App/QuestifyApp.swift'))
         session = self.read('App/AppSession.swift')
-        self.assertIn('self.runtimeDependencies = runtimeDependencies ?? .dormant', session)
+        self.assertIn('retainedDependencies = injectedRuntimeDependencies ?? composition.sessionDependencies(context)', session)
         launch = self.read('App/RegionalLaunchConfiguration.swift')
         self.assertIn('let approved:[RegionalMarket:Set<String>]=[:]', launch)
         self.assertIn('verifiedCapabilities:[]', launch)

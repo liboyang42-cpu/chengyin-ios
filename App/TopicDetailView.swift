@@ -4,6 +4,7 @@ import SwiftUI
 struct TopicDetailView: View {
     let id: Int
     let reader: any TopicReading
+    var activityDestination: ((Int) -> AnyView)? = nil
     var publicMerchant: PublicMerchantHomeContext? = nil
     var makeAudio: (@MainActor () -> PlatformAudioPlayback)? = nil
     var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
@@ -17,21 +18,22 @@ struct TopicDetailView: View {
     @State private var issue: TopicScreenIssue?
     @State private var loading = false
     @State private var generation = 0
+    @State private var loads = SignedInContentDetailLoadOwner()
     private struct Key: Hashable { let id: Int; let scope: UUID; let configured: Bool }
     private var key: Key { Key(id: id, scope: reader.scope, configured: reader.isConfigured) }
     var body: some View {
         Group {
             if !reader.isConfigured { TopicIssueView(issue: .notConfigured) }
             else if loading || loadedKey != key { ProgressView("topic.loading") }
-            else if let issue { TopicIssueView(issue: issue) { Task { await load() } } }
+            else if let issue { TopicIssueView(issue: issue) { loads.start { await load() } } }
             else if let detail { content(detail) }
         }
         .appNavigationTitle("topic.detail")
         .navigationBarTitleDisplayMode(.inline)
-        .task(id: key) { await load() }
-        .onDisappear { generation += 1; loading = false }
+        .task(id: key) { await loads.run { await load() } }
+        .onDisappear { loads.cancel(); generation += 1; loading = false }
         .sheet(isPresented: $showsReview) {
-            NavigationStack { ContextualReviewComposer(target: .topic(id), owner: reviewOwner) { Task { await load() } } }
+            NavigationStack { ContextualReviewComposer(target: .topic(id), owner: reviewOwner) { loads.start { await load() } } }
         }
         .onChange(of: key) { _, _ in showingSelfPlay = false }
         .sheet(isPresented: $showingSelfPlay) {
@@ -59,6 +61,23 @@ struct TopicDetailView: View {
                 if let count = value.merchantCount { LabeledContent("topic.merchants", value: String(count)) }
                 if let seconds = value.totalTimeSeconds { LabeledContent("topic.durationSeconds", value: String(seconds)) }
                 if let rating = value.averageRating { LabeledContent("topic.rating", value: String(rating)) }
+            }
+            if let activities = value.activities {
+                Section("topic.activities") {
+                    if activities.isEmpty { Text("topic.noActivities").accessibilityIdentifier("topic.activities.empty") }
+                    ForEach(activities) { activity in
+                        if let activityDestination {
+                            NavigationLink { activityDestination(activity.id) } label: {
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Text(verbatim: activity.name).font(.headline)
+                                    if let address = activity.addressName { Text(verbatim: address) }
+                                    if let start = activity.startDate { LabeledContent("topic.start", value: start) }
+                                    if let end = activity.endDate { LabeledContent("topic.end", value: end) }
+                                }
+                            }.accessibilityIdentifier("topic.activity.\(activity.id)")
+                        } else { Text(verbatim: activity.name) }
+                    }
+                }
             }
             if let publisherDestination { publisherDestination(value) }
             Section("topic.availability") {
@@ -121,7 +140,7 @@ struct TopicDetailView: View {
                 }
             }
         }
-        .refreshable { await load() }
+        .refreshable { await loads.run { await load() } }
         .accessibilityIdentifier("topic.detail.content")
     }
     private func load() async {
@@ -134,11 +153,11 @@ struct TopicDetailView: View {
         do {
             let result = try await reader.topicDetail(id: id)
             try Task.checkCancellation()
-            guard operation == generation, captured == key else { return }
+            guard operation == generation, captured == key, !Task.isCancelled else { return }
             detail = result; loadedKey = captured
         } catch is CancellationError { }
         catch {
-            guard operation == generation, captured == key else { return }
+            guard operation == generation, captured == key, !Task.isCancelled else { return }
             issue = TopicScreenIssue(error); loadedKey = captured
         }
     }

@@ -18,7 +18,9 @@ struct QuestifyApp: App {
         WindowGroup {
             Group {
                 #if DEBUG
-                if ProcessInfo.processInfo.arguments.contains("--group-poll-fixture") {
+                if ProcessInfo.processInfo.arguments.contains("--owner-draft-fixture") {
+                    OwnerDraftFixtureHost(mode: fixtureArgument("--owner-draft-fixture") ?? "ready")
+                } else if ProcessInfo.processInfo.arguments.contains("--group-poll-fixture") {
                     GroupPollFixtureRoot(scenario: fixtureArgument("--group-poll-fixture") ?? "success")
                 } else if ProcessInfo.processInfo.arguments.contains("--native-navigation-fixture") {
                     NativeNavigationFixtureView(mode: fixtureArgument("--native-navigation-fixture") ?? "error")
@@ -109,12 +111,12 @@ struct QuestifyApp: App {
 
 /// Preserve the app-scoped production session without constructing it in fixture mode.
 @MainActor
-private final class AppSessionContainer: ObservableObject {
+final class AppSessionContainer: ObservableObject {
     let session: AppSession?
 
-    init() {
+    init(composition: AppCompositionRoot? = nil) {
         #if DEBUG
-        if ProcessInfo.processInfo.arguments.contains("--group-poll-fixture") || ProcessInfo.processInfo.arguments.contains("--native-navigation-fixture") || ProcessInfo.processInfo.arguments.contains("--native-verification-fixture") || ProcessInfo.processInfo.arguments.contains("--merchant-npc-fixture") || ProcessInfo.processInfo.arguments.contains("--publisher-lifecycle-fixture") || ProcessInfo.processInfo.arguments.contains("--retained-images-fixture") || ProcessInfo.processInfo.arguments.contains("--square-governance-fixture") || ProcessInfo.processInfo.arguments.contains("--shop-npc-fixture") || ProcessInfo.processInfo.arguments.contains("--club-community-fixture") || ProcessInfo.processInfo.arguments.contains("--public-merchant-home-fixture") || ProcessInfo.processInfo.arguments.contains("--door-referral-fixture") || ProcessInfo.processInfo.arguments.contains("--merchant-marketing-fixture") || ProcessInfo.processInfo.arguments.contains("--im-expanded-fixture") || ProcessInfo.processInfo.arguments.contains("--ui-coupon-management") || WalletCommerceFixtureHost.selected || ProcessInfo.processInfo.arguments.contains("--ui-publishing-modes") ||
+        if ProcessInfo.processInfo.arguments.contains("--owner-draft-fixture") || ProcessInfo.processInfo.arguments.contains("--group-poll-fixture") || ProcessInfo.processInfo.arguments.contains("--native-navigation-fixture") || ProcessInfo.processInfo.arguments.contains("--native-verification-fixture") || ProcessInfo.processInfo.arguments.contains("--merchant-npc-fixture") || ProcessInfo.processInfo.arguments.contains("--publisher-lifecycle-fixture") || ProcessInfo.processInfo.arguments.contains("--retained-images-fixture") || ProcessInfo.processInfo.arguments.contains("--square-governance-fixture") || ProcessInfo.processInfo.arguments.contains("--shop-npc-fixture") || ProcessInfo.processInfo.arguments.contains("--club-community-fixture") || ProcessInfo.processInfo.arguments.contains("--public-merchant-home-fixture") || ProcessInfo.processInfo.arguments.contains("--door-referral-fixture") || ProcessInfo.processInfo.arguments.contains("--merchant-marketing-fixture") || ProcessInfo.processInfo.arguments.contains("--im-expanded-fixture") || ProcessInfo.processInfo.arguments.contains("--ui-coupon-management") || WalletCommerceFixtureHost.selected || ProcessInfo.processInfo.arguments.contains("--ui-publishing-modes") ||
            ProcessInfo.processInfo.arguments.contains("--nearby-team-fixture") ||
            ProcessInfo.processInfo.arguments.contains("--official-action-fixture") ||
            ProcessInfo.processInfo.arguments.contains("--uitesting-club-governance") ||
@@ -138,13 +140,13 @@ private final class AppSessionContainer: ObservableObject {
             return
         }
         #endif
-        session=AppSession()
+        session=(composition ?? RegionalLaunchConfiguration.composition).makeSession()
     }
 }
 
 /// Only the normal root starts account restoration.
 @MainActor
-private struct SessionRootView: View {
+struct SessionRootView: View {
     @ObservedObject var session: AppSession
     @State private var browsingAsGuest=false
     @State private var selectedTab=0
@@ -164,7 +166,7 @@ private struct SessionRootView: View {
                     NavigationStack { ClubHomeView(reader:session,onSignIn:{ selectedTab=4 },actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext, community:session.clubCommunityContext) }
                         .tabItem { Label("club.title",systemImage:"person.3") }.tag(2)
                     Group {
-                        if let account=session.account { AccountView(account:account,onOpenGuideDestination:{ destination in selectedTab = destination == .roam ? 3 : 0 }).id(session.sessionRevision) }
+                        if let account=session.account { AccountView(account:account,privateHomeCoordinator:session.privateHomeCoordinator,onOpenGuideDestination:{ destination in selectedTab = destination == .roam ? 3 : 0 }).id(session.sessionRevision) }
                         else { WelcomeView() }
                     }.tabItem { Label("account.title",systemImage:"person.crop.circle") }.tag(4)
                 }.id(session.account?.id ?? 0)
@@ -181,6 +183,10 @@ private struct SessionRootView: View {
         .environment(\.complianceSignupDestination, { AnyView(SessionComplianceSignupView(session: session)) })
         .environment(\.merchantCouponManagementDestination, { AnyView(SessionCouponManagementView()) })
         .task { await session.bootstrap() }
+        .onAppear { session.setPrivateHomePresentationActive(true) }
+        .onAppear { session.setOwnerDraftPresentationActive(true) }
+        .onDisappear { session.setPrivateHomePresentationActive(false) }
+        .onDisappear { session.setOwnerDraftPresentationActive(false) }
         .onOpenURL { session.receiveNativeURL($0) }
         .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { session.receiveWeChatUserActivity($0) }
         .sheet(item: Binding(get: { session.nativeEntry }, set: { if $0 == nil { session.dismissNativeEntry() } })) { entry in

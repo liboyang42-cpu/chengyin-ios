@@ -68,23 +68,106 @@ struct DiscoveryTemplateDetailView: View {
     private func reload() async { await detail.load { try await reader.discoveryPlayTemplate(id: id) } }
 }
 
-/// Source has no independent read-only topic-template detail call. This displays only shelf data.
+/// Uses only the server's public template projection. Included games are inert previews.
+@MainActor
 struct DiscoveryTopicTemplatePreview: View {
-    let item: DiscoveryTopicTemplate
+    @State private var detail: PublicTopicTemplateCoordinator
+    init(coordinator: PublicTopicTemplateCoordinator) { _detail = State(initialValue: coordinator) }
     var body: some View {
-        List {
-            Section {
-                if let image = item.imgUrl, !image.isEmpty { DiscoveryArtwork(source: image, height: 210) }
-                DiscoveryTitle(text: item.name, fallback: "discovery.untitledTopic").font(.title2.bold())
-                if !item.subtitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    Text(item.subtitle).textSelection(.enabled)
+        Group {
+            if detail.isInvalidated {
+                ContentUnavailableView("discovery.templateSessionChanged", systemImage: "person.crop.circle.badge.exclamationmark",
+                                       description: Text("discovery.templateReopen"))
+            } else if detail.isLoading {
+                ProgressView("discovery.loading")
+            } else if let error = detail.error {
+                DiscoveryErrorView(error: error) { Task { await detail.load() } }
+            } else if let item = detail.value {
+                List {
+                    Section {
+                        if let image = item.imgUrl, !image.isEmpty { DiscoveryArtwork(source: image, height: 210) }
+                        DiscoveryTitle(text: item.name ?? "", fallback: "discovery.untitledTopic").font(.title2.bold())
+                        optionalText(item.subtitle)
+                        TopicTotalStops(count: item.locationCount, identifier: "discovery.publicTotalStops")
+                        if let count = item.templateCount { LabeledContent("discovery.publicGames", value: String(count)) }
+                        if let seconds = item.totalTime { LabeledContent("discovery.publicSeconds", value: String(seconds)) }
+                        optionalText(item.addressName)
+                        optionalText(item.version)
+                    }
+                    if let text = item.description, !text.isEmpty { Section("discovery.introduction") { Text(text) } }
+                    if let text = item.playerPromise, !text.isEmpty { Section("discovery.playerPromise") { Text(text) } }
+                    ForEach(item.chapters) { chapter in
+                        Section {
+                            DiscoveryTitle(text: chapter.name ?? "", fallback: "discovery.publicChapter").font(.headline)
+                            optionalText(chapter.description)
+                            if let count = chapter.nodeCount { LabeledContent("discovery.publicStations", value: String(count)) }
+                            if !chapter.routeShape.isEmpty {
+                                PublicTemplateSilhouette(points: chapter.routeShape)
+                                    .frame(height: 140)
+                                    .accessibilityLabel(Text("discovery.publicSilhouette"))
+                            }
+                            // The public endpoint intentionally withholds node IDs.
+                            ForEach(Array(chapter.nodes.enumerated()), id: \.offset) { _, node in
+                                VStack(alignment: .leading, spacing: 6) {
+                                    DiscoveryTitle(text: node.name ?? "", fallback: "discovery.publicStation").font(.subheadline.bold())
+                                    optionalText(node.hookTeaser)
+                                    optionalText(node.addressName)
+                                    optionalText(node.interactionType)
+                                }.accessibilityElement(children: .combine)
+                            }
+                            if let status = chapter.recruitStatus {
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Text("discovery.publicRecruitment").font(.headline)
+                                    optionalText(status.state)
+                                    if let count = status.remainingMerchantCount {
+                                        LabeledContent("discovery.publicRemaining", value: String(count))
+                                    }
+                                }.accessibilityIdentifier("discovery.publicRecruitment")
+                            }
+                        }
+                    }
+                    if !item.games.isEmpty {
+                        Section("discovery.publicGames") {
+                            ForEach(item.games) { game in
+                                VStack(alignment: .leading, spacing: 6) {
+                                    DiscoveryTitle(text: game.title ?? "", fallback: "discovery.untitledPlay").font(.headline)
+                                    optionalText(game.players)
+                                    optionalText(game.difficulty)
+                                    optionalText(game.interactionType)
+                                }
+                            }
+                        }
+                    }
+                    if item.chapters.isEmpty && item.games.isEmpty {
+                        Section { Text("discovery.publicEmpty") }
+                    }
+                    Section { Text("discovery.publicProjectionHint").font(.footnote).foregroundStyle(.secondary) }
                 }
-                DiscoveryTopicMetadata(item: item)
-            }
-            Section { Text("discovery.topicPreviewHint").font(.footnote).foregroundStyle(.secondary) }
+                .refreshable { await detail.load() }
+                .accessibilityIdentifier("discovery.topicPreview.content")
+            } else { ProgressView("discovery.loading") }
         }
         .appNavigationTitle("discovery.topicPreview")
         .navigationBarTitleDisplayMode(.inline)
-        .accessibilityIdentifier("discovery.topicPreview.content")
+        .task { await detail.load() }
+        .onDisappear { detail.clear() }
+    }
+    @ViewBuilder private func optionalText(_ value: String?) -> some View {
+        if let value, !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { Text(value).textSelection(.enabled) }
+    }
+}
+
+private struct PublicTemplateSilhouette: View {
+    let points: [PublicTemplateShapePoint]
+    var body: some View {
+        GeometryReader { geometry in
+            Path { path in
+                for (index, point) in points.enumerated() {
+                    let position = CGPoint(x: 12 + point.x * max(0, geometry.size.width - 24),
+                                           y: 12 + point.y * max(0, geometry.size.height - 24))
+                    if index == 0 { path.move(to: position) } else { path.addLine(to: position) }
+                }
+            }.stroke(Color.accentColor, style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
+        }.accessibilityElement(children: .ignore)
     }
 }

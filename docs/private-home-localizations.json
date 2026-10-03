@@ -1,0 +1,234 @@
+{
+  "privateHome.title": {
+    "en": "Private home",
+    "zh-Hans": "私人家园"
+  },
+  "privateHome.disabled": {
+    "en": "Private home is not enabled",
+    "zh-Hans": "私人家园尚未启用"
+  },
+  "privateHome.gate": {
+    "en": "This feature needs reviewed server access and secure recovery storage.",
+    "zh-Hans": "此功能需要审核后的服务访问权限和安全恢复存储。"
+  },
+  "privateHome.boundary": {
+    "en": "Only you can manage this private location in the app. It is never a public map place, NPC memory, or merchant ownership claim.",
+    "zh-Hans": "仅你可以在 App 中管理此私人位置。它不是公开地图地点、NPC 记忆或商家产权声明。"
+  },
+  "privateHome.active": {
+    "en": "Private home saved",
+    "zh-Hans": "已保存私人家园"
+  },
+  "privateHome.empty": {
+    "en": "No private home saved",
+    "zh-Hans": "尚未保存私人家园"
+  },
+  "privateHome.issue": {
+    "en": "Unable to confirm this operation. Keep any pending request and use exact retry.",
+    "zh-Hans": "无法确认此操作。请保留待处理请求并原样重试。"
+  },
+  "privateHome.refresh": {
+    "en": "Refresh private home",
+    "zh-Hans": "刷新私人家园"
+  },
+  "privateHome.set": {
+    "en": "Set private home",
+    "zh-Hans": "设置私人家园"
+  },
+  "privateHome.label": {
+    "en": "Private label",
+    "zh-Hans": "私人名称"
+  },
+  "privateHome.latitude": {
+    "en": "Latitude",
+    "zh-Hans": "纬度"
+  },
+  "privateHome.longitude": {
+    "en": "Longitude",
+    "zh-Hans": "经度"
+  },
+  "privateHome.datum": {
+    "en": "Enter WGS84 coordinates, up to six decimal places. No device location is requested.",
+    "zh-Hans": "输入 WGS84 坐标，最多六位小数。不请求设备定位。"
+  },
+  "privateHome.reviewSet": {
+    "en": "Review location change",
+    "zh-Hans": "审核位置变更"
+  },
+  "privateHome.reviewDelete": {
+    "en": "Review deletion",
+    "zh-Hans": "审核删除"
+  },
+  "privateHome.invalid": {
+    "en": "Check the label and coordinates.",
+    "zh-Hans": "请检查名称和坐标。"
+  },
+  "privateHome.review": {
+    "en": "Review private change",
+    "zh-Hans": "审核私人变更"
+  },
+  "privateHome.setPurpose": {
+    "en": "Save this location privately for your current account? Server placement rules and cooldowns still apply.",
+    "zh-Hans": "是否为当前账户私下保存此位置？仍须遵守服务器位置规则和冷却时间。"
+  },
+  "privateHome.deletePurpose": {
+    "en": "Delete your current private home and its stored coordinates?",
+    "zh-Hans": "是否删除当前私人家园及其已存坐标？"
+  },
+  "privateHome.confirm": {
+    "en": "Confirm change",
+    "zh-Hans": "确认变更"
+  },
+  "privateHome.cancel": {
+    "en": "Cancel review",
+    "zh-Hans": "取消审核"
+  },
+  "privateHome.unknownPurpose": {
+    "en": "The result is unknown. Refresh cannot settle it. Retry the identical saved request; do not start a new change.",
+    "zh-Hans": "结果未知。刷新无法确认结果。请原样重试已保存的请求，不要发起新的变更。"
+  },
+  "privateHome.retry": {
+    "en": "Retry identical request",
+    "zh-Hans": "原样重试请求"
+  },
+  "privateHome.phase.disabled": {
+    "en": "Not enabled",
+    "zh-Hans": "未启用"
+  },
+  "privateHome.phase.idle": {
+    "en": "Ready to load",
+    "zh-Hans": "准备读取"
+  },
+  "privateHome.phase.loading": {
+    "en": "Loading privately",
+    "zh-Hans": "正在私下读取"
+  },
+  "privateHome.phase.ready": {
+    "en": "Loaded",
+    "zh-Hans": "已读取"
+  },
+  "privateHome.phase.review": {
+    "en": "Review required",
+    "zh-Hans": "需要审核"
+  },
+  "privateHome.phase.sending": {
+    "en": "Saving request",
+    "zh-Hans": "正在提交请求"
+  },
+  "privateHome.phase.unknown": {
+    "en": "Outcome unknown",
+    "zh-Hans": "结果未知"
+  },
+  "privateHome.phase.blocked": {
+    "en": "Recovery or configuration required",
+    "zh-Hans": "需要恢复或配置"
+  },
+  "privateHome.phase.invalidated": {
+    "en": "Session ended",
+    "zh-Hans": "会话已结束"
+  },
+  "privateHome.decision.SAVED": {
+    "en": "Saved. Confirm the refreshed state below.",
+    "zh-Hans": "已保存，请确认下方刷新状态。"
+  },
+  "privateHome.decision.DELETED": {
+    "en": "Deleted. Confirm the refreshed state below.",
+    "zh-Hans": "已删除，请确认下方刷新状态。"
+  },
+  "privateHome.decision.VERSION_CONFLICT": {
+    "en": "Home changed elsewhere. Refresh and review again.",
+    "zh-Hans": "家园已在其他地方变更，请刷新后重新审核。"
+  },
+  "privateHome.decision.HOME_CHANGE_COOLDOWN": {
+    "en": "Home changes are temporarily on cooldown.",
+    "zh-Hans": "家园变更暂处冷却期。"
+  },
+  "privateHome.decision.PLACE_NOT_ALLOWED": {
+    "en": "This location is not allowed.",
+    "zh-Hans": "不允许使用此位置。"
+  },
+  "privateHome.gamePoint": {
+    "en": "Choose a safe point for your game home. It need not be your real residence. Saving a point does not verify safety, ownership, or permission to enter.",
+    "zh-Hans": "为游戏家园选择安全的地点，不必是真实住址。保存地点不代表已验证安全性、产权或进入许可。"
+  },
+  "privateHome.map.open": {
+    "en": "Choose a map point",
+    "zh-Hans": "选择地图点"
+  },
+  "privateHome.map.title": {
+    "en": "Choose game-home point",
+    "zh-Hans": "选择游戏家园地点"
+  },
+  "privateHome.map.noLocation": {
+    "en": "No device location or background tracking is used. Nothing is saved until you review and confirm the private change.",
+    "zh-Hans": "不使用设备定位或后台追踪。审核并确认私人变更后才会保存。"
+  },
+  "privateHome.map.issue.providerUnverified": {
+    "en": "Map selection is unavailable: this provider’s coordinate datum and regional rendering have not been verified for private home. Use manual WGS84 entry instead.",
+    "zh-Hans": "地图选点不可用：尚未验证此提供方用于私人家园的坐标基准及地区地图显示。请改用手动输入 WGS84 坐标。"
+  },
+  "privateHome.map.issue.datumUnsupported": {
+    "en": "This point is not verified WGS84. No coordinate conversion is performed; it cannot be saved.",
+    "zh-Hans": "此点未被验证为 WGS84，不会进行坐标转换，因此无法保存。"
+  },
+  "privateHome.map.issue.coordinateInvalid": {
+    "en": "This point has invalid coordinates. Select another point or enter WGS84 coordinates manually.",
+    "zh-Hans": "此点坐标无效，请选择其他点或手动输入 WGS84 坐标。"
+  },
+  "privateHome.map.issue.precisionUnsupported": {
+    "en": "This source point exceeds six decimal places. It has not been rounded or saved. Enter your intended WGS84 point manually with at most six decimal places.",
+    "zh-Hans": "来源坐标超过六位小数，未作舍入，也未保存。请手动输入你要选择的 WGS84 坐标，最多六位小数。"
+  },
+  "privateHome.map.synthetic": {
+    "en": "Synthetic test points (no map network)",
+    "zh-Hans": "模拟测试点（无地图网络请求）"
+  },
+  "privateHome.map.preview": {
+    "en": "Point preview",
+    "zh-Hans": "地点预览"
+  },
+  "privateHome.map.exact": {
+    "en": "Exact save coordinates: latitude, longitude · WGS84 · up to six decimal places.",
+    "zh-Hans": "确切保存坐标：纬度、经度 · WGS84 · 最多六位小数。"
+  },
+  "privateHome.map.review": {
+    "en": "Review this private point",
+    "zh-Hans": "审核此私人地点"
+  },
+  "privateHome.map.manual": {
+    "en": "Use manual WGS84 entry",
+    "zh-Hans": "手动输入 WGS84 坐标"
+  },
+  "privateHome.map.cancel": {
+    "en": "Cancel selection",
+    "zh-Hans": "取消选点"
+  },
+  "privateHome.map.fixture.valid": {
+    "en": "Synthetic point A",
+    "zh-Hans": "模拟点 A"
+  },
+  "privateHome.map.fixture.alternate": {
+    "en": "Synthetic point B",
+    "zh-Hans": "模拟点 B"
+  },
+  "privateHome.map.fixture.unknown": {
+    "en": "Unknown source point",
+    "zh-Hans": "来源未知的点"
+  },
+  "privateHome.map.fixture.gcj02": {
+    "en": "GCJ02 test point",
+    "zh-Hans": "GCJ02 测试点"
+  },
+  "privateHome.map.fixture.precision": {
+    "en": "Over-precision test point",
+    "zh-Hans": "小数位超限测试点"
+  },
+  "privateHome.map.fixture.outOfRange": {
+    "en": "Out-of-range test point",
+    "zh-Hans": "坐标超范围测试点"
+  },
+  "privateHome.map.fixture.invalidate": {
+    "en": "End synthetic session",
+    "zh-Hans": "结束模拟会话"
+  }
+}

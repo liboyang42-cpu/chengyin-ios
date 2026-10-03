@@ -27,9 +27,9 @@ All channel writes are explicit user actions and use the established multipart b
 | Apple exchange | `POST /api/login/apple` | `identityToken` | Same login result |
 | Verify current account | `POST /api/userInfo` | No body; raw `Authorization` | `code == 200`, `appUser.id > 0` |
 
-The client accepts eleven ASCII phone digits, matching the source sheet, without inventing a country-code route. Code input is one to six ASCII digits, matching the source nonempty validation and six-character field limit; the backend decides whether a code is correct. The source documents server six-digit issuance and five-minute expiry; no local timer claims a server code remains valid.
+The current CN adapter accepts eleven ASCII phone digits starting with 1 and exactly six ASCII code digits, matching the server issuance contract. It does not invent a country-code route; the backend decides whether a code is correct. The source documents server six-digit issuance and five-minute expiry; no local timer claims a server code remains valid.
 
-`AuthChannelService` returns existing `LoginResult`/`Account` and delegates current-account reads to `AuthService`. The coordinator additionally reads current account before commit and rejects an account ID differing from the login response. This readback is native hardening; no refresh-token or new registration endpoint is invented. Apple tokens are opaque: validating transport characters does not validate a JWT signature or audience. The server remains responsible for those checks.
+`AuthChannelService` returns existing `LoginResult`/`Account` and delegates current-account reads to `AuthService`, then requires an explicit supported server role. The coordinator additionally reads current account before commit and rejects an account ID differing from the login response. This readback is native hardening; no refresh-token or new registration endpoint is invented. Apple tokens are opaque: validating transport characters does not validate a JWT signature or audience. The server remains responsible for those checks.
 
 ## Root integration
 
@@ -75,7 +75,7 @@ The view owns an in-memory model. The OTP is cleared immediately on submit, on p
 - No automatic SMS retry, OAuth retry, token exchange retry or code submission
 - Conservative 60-second local SMS cooldown begins before dispatch, across phone edits and form reopening; only an explicit tap after expiry sends again
 - Cancellation/timeout/unknown SMS response cannot prove non-delivery; the UI says to check messages and wait before a manual retry, and preserves cooldown
-- HTTP or business code 429 has a distinct rate-limit result. The transport does not provide response headers, so no `Retry-After` duration is invented
+- The existing SMS route can report provider-unavailable and rate-limit failures as HTTP 200/business code 500. These remain failures, with no success/credential commit or retry; the conservative cooldown stays active. HTTP or business code 429 also has a distinct rate-limit result. The transport does not provide response headers, so no `Retry-After` duration is invented
 - Structured API failures retain numeric classification internally; arbitrary raw server/transport text is not displayed or logged
 - Cancelling the form prevents local commit even if a transport ignores cancellation. It cannot retract a request already delivered to the server
 - Older success or 401 cannot replace/sign out a newer session, including a same-account session with a newer epoch
@@ -83,7 +83,7 @@ The view owns an in-memory model. The OTP is cleared immediately on submit, on p
 
 ## Required release configuration
 
-Phone code remains implemented and usable with an explicitly configured test/backend transport. Missing legal content is not an undocumented all-channel switch. Instead, the form shows a visible warning until approved agreement/privacy content and both navigation callbacks are supplied.
+Phone code is source-aligned and testable with an explicitly configured synthetic transport; real provider/backend acceptance remains unverified. The normal composition requires the exact [CN native session contract](cn-native-session-contract.md). Missing legal content is not an undocumented all-channel switch. Instead, the form shows a visible warning until approved agreement/privacy content and both navigation callbacks are supplied.
 
 Before release, the owner must supply reviewed app-specific legal documents and reachable navigation, confirm applicable consent behavior, configure the approved HTTPS API, and separately validate SMS provider delivery, server limits, OTP expiry and rejection. Do not copy the source privacy placeholder as an approved policy or label this source review as legal approval.
 

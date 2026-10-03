@@ -22,6 +22,7 @@ struct RoamBrowserView: View {
     @State private var items: [RoamMapItem] = []
     @State private var selected: RoamMapItem?
     @State private var loadedKey: RequestKey?
+    @State private var readOwner = ManualMapReadTaskOwner()
     @State private var loading = false
     @State private var issue: RoamScreenIssue?
     @State private var generation = 0
@@ -61,14 +62,14 @@ struct RoamBrowserView: View {
                     } else if loading || loadedKey != requestKey {
                         ProgressView("roam.loading").accessibilityIdentifier("roam.loading")
                     } else if let issue {
-                        RoamStatusView(issue: issue) { Task { await load() } }
+                        RoamStatusView(issue: issue) { startLoad() }
                     } else if visibleItems.isEmpty {
                         ContentUnavailableView {
                             Label("roam.empty", systemImage: "map")
                         } description: {
                             Text(LocalizedStringKey(query.isEmpty && placeFilter == .all && eventFilter == .all ? "roam.emptyHint" : "roam.filteredEmptyHint"))
                         } actions: {
-                            Button("action.retry") { Task { await load() } }
+                            Button("action.retry") { startLoad() }
                         }
                         .accessibilityIdentifier("roam.empty")
                     } else {
@@ -79,7 +80,12 @@ struct RoamBrowserView: View {
             }
             .appNavigationTitle("roam.title")
             .searchable(text: $query, prompt: "roam.search")
-            .task(id: requestKey) { await load() }
+            .task(id: requestKey) {
+                guard !Task.isCancelled else { return }
+                readOwner.activate(); await load()
+            }
+            .onAppear { readOwner.activate() }
+            .onDisappear { readOwner.deactivate(); generation += 1; loading = false }
             .onChange(of: query) { _, _ in selected = nil }
             .onChange(of: placeFilter) { _, _ in selected = nil }
             .onChange(of: eventFilter) { _, _ in selected = nil }
@@ -108,7 +114,7 @@ struct RoamBrowserView: View {
                     .accessibilityIdentifier("roam.display.toggle")
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button { Task { await load() } } label: { Label("action.retry", systemImage: "arrow.clockwise") }
+                    Button { startLoad() } label: { Label("action.retry", systemImage: "arrow.clockwise") }
                         .disabled(loading || !reader.isConfigured || reader.identity == nil || reader.searchArea == nil)
                         .accessibilityIdentifier("roam.refresh")
                 }
@@ -185,7 +191,13 @@ struct RoamBrowserView: View {
         .refreshable { await load() }
         .accessibilityIdentifier("roam.content")
     }
+    private func startLoad() {
+        readOwner.start { await performLoad() }
+    }
     private func load() async {
+        await readOwner.run { await performLoad() }
+    }
+    private func performLoad() async {
         generation += 1
         let operation = generation
         let key = requestKey

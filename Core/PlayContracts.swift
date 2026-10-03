@@ -184,6 +184,8 @@ public struct PlayNodesResult: Decodable, Equatable {
     public let mode: Int?
     public let playable: Bool?
     public let registered: Bool?
+    /// Server-owned operational spectator fact; never implies registration or player rewards.
+    public let leadSpectator: Bool?
     public let selfPlay: Bool?
     public let total: Int?
     public let doneCount: Int?
@@ -194,7 +196,7 @@ public struct PlayNodesResult: Decodable, Equatable {
     public let chapters: [PlayChapter]
     public let routeState: PlayRouteState?
     private enum CodingKeys: String, CodingKey {
-        case topicId, topicName, topicDesc, mode, playable, registered, selfPlay, total, doneCount
+        case topicId, topicName, topicDesc, mode, playable, registered, leadSpectator, selfPlay, total, doneCount
         case timeNote, expiresAt, nodes, chapters, routeState, eggs
     }
     public init(from decoder: Decoder) throws {
@@ -204,6 +206,7 @@ public struct PlayNodesResult: Decodable, Equatable {
         topicDescription = try c.decodeIfPresent(String.self, forKey: .topicDesc)
         mode = try c.playInt(.mode); playable = try c.playBool(.playable)
         registered = try? c.decode(Bool.self, forKey: .registered); selfPlay = try c.playBool(.selfPlay)
+        leadSpectator = try c.decodeIfPresent(Bool.self, forKey: .leadSpectator)
         total = try c.playInt(.total); doneCount = try c.playInt(.doneCount)
         timeNote = try c.decodeIfPresent(String.self, forKey: .timeNote)
         expiresAt = try c.decodeIfPresent(String.self, forKey: .expiresAt)

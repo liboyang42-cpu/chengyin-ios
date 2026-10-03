@@ -15,8 +15,9 @@ class SocialAccountSourceTests(unittest.TestCase):
   self.assertIn('role: account.effectiveRole',app)
  def test_production_factory_uses_member_grants_and_requires_scoped_media_approval(self):
   app=self.read('App/AppSession.swift')
-  self.assertIn('SocialMemberActionFactory.make(',app)
-  self.assertIn('approvals: runtimeDependencies.socialMemberActionApprovals',app)
+  self.assertIn('SocialMemberActionSessionOwner(configuration:',app)
+  self.assertIn('SocialMemberActionFactory.make(',self.read('Core/SocialMemberActionSessionOwner.swift'))
+  self.assertIn('return self.runtimeDependencies.socialMemberActionApprovals',app)
   self.assertIn('lazy var socialMessageMediaReader = makeSocialMessageMediaReader()',app)
   self.assertIn('socialReaderApproval: SocialReaderProductionApproval? = nil',self.read('App/NativeRuntimeDependencies.swift'))
   production=self.read('Core/SocialReaderProduction.swift')

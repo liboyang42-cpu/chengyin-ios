@@ -84,10 +84,11 @@ public struct RegionalConfiguration {
                     .physicalEventPayment, .digitalContentPayment, .merchantPayout]
         }
     }
-    /// Existing CN login contracts only. Apple code exists but provider/entitlement/server
-    /// exchange is not verified; US E.164/email/provider adapters have not been implemented.
+    /// CN SMS is the only mounted native bootstrap contract. The retained password
+    /// route requires a mini-program WeChat code; a capability flag cannot supply it.
+    /// Provider/deployment verification is still required before enabling SMS.
     public var implementedCapabilities: Set<RegionalCapability> {
-        market == .china ? [.usernamePassword, .domesticChinaPhone] : []
+        market == .china ? [.domesticChinaPhone] : []
     }
     public func availability(of capability: RegionalCapability) -> RegionalCapabilityAvailability {
         guard desiredCapabilities.contains(capability) else { return .notRequested }

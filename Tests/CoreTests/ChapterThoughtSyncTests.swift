@@ -35,7 +35,7 @@ final class ChapterThoughtSyncTests: XCTestCase {
     @MainActor func testDefaultSeparateGrantNeverSendsClaimAndDoesNotBlockBasePlay() async throws {
         let transport = ChapterThoughtTestTransport(); let model = try self.model(transport, enabled: [.reads])
         await model.load(); await model.claimVisibleThoughts(chapterID: 8)
-        XCTAssertEqual(model.thoughtSyncPhase, .disabled); XCTAssertTrue(model.pendingThoughtKeys.isEmpty); XCTAssertTrue(model.canWrite)
+        XCTAssertEqual(model.thoughtSyncPhase, .disabled); XCTAssertTrue(model.pendingThoughtKeys.isEmpty); XCTAssertFalse(model.canWrite)
         let writes = await transport.requests.filter { $0.httpMethod == "POST" }; XCTAssertTrue(writes.isEmpty)
     }
     @MainActor func testSuccessfulReceiptRequiresFreshReadbackBeforeShowingEarnedThought() async throws {

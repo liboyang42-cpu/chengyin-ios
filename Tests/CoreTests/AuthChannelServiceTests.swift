@@ -26,7 +26,7 @@ final class AuthChannelServiceTests: XCTestCase {
     func testSMSPhoneAppleAndCurrentAccountUseExistingRoutesAndShapes() async throws {
         let transport = AuthChannelFixtureTransport([
             (#"{"code":200,"data":{"unrelated":true}}"#, 200), (success, 200), (success, 200),
-            (#"{"code":200,"appUser":{"userId":7,"nickName":"Updated","userType":2}}"#, 200)
+            (#"{"code":200,"appUser":{"userId":7,"nickName":"Updated","userType":2,"role":"merchant"}}"#, 200)
         ])
         let service = try service(transport)
         try await service.sendSMSCode(phone: " 10000000000 ")
@@ -54,11 +54,11 @@ final class AuthChannelServiceTests: XCTestCase {
     }
     func testInvalidPhoneAndCodeNeverDispatch() async throws {
         let transport = AuthChannelFixtureTransport([]), service = try service(transport)
-        for phone in ["", "1000000000", "100000000000", "+8610000000000", "１0000000000", "1000000000x", "1000\n000000"] {
+        for phone in ["", "20000000000", "1000000000", "100000000000", "+8610000000000", "１0000000000", "1000000000x", "1000\n000000"] {
             do { try await service.sendSMSCode(phone: phone); XCTFail("Invalid phone must fail") }
             catch { XCTAssertEqual(error as? AuthChannelError, .invalidPhone) }
         }
-        for code in ["", "1234567", "１２３", "12 3", "12\n3", "a123"] {
+        for code in ["", "1", "12345", "1234567", "１２３", "12 3", "12\n3", "a123"] {
             do { _ = try await service.loginWithPhone(phone: "10000000000", code: code); XCTFail("Invalid code must fail") }
             catch { XCTAssertEqual(error as? AuthChannelError, .invalidCode) }
         }

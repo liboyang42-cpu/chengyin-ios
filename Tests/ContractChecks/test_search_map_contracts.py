@@ -16,7 +16,7 @@ class SearchMapSourceChecks(unittest.TestCase):
     def test_configuration_and_captured_auth_scope(self):
         session=self.text('App/AppSession.swift')
         self.assertIn('if let scope, let regional, let configuration=regional.apiConfiguration',session)
-        self.assertIn('searchMapService=SearchMapService(configuration:configuration,transport:transport)',session)
+        self.assertIn('searchMapService=composition.reviewed?.reads.isDisjoint(with: [.homeAndSearch, .manualMap]) == false ? SearchMapService(configuration:configuration,transport:transport.scopedForManualMap(searchMapSelection)) : nil',session)
         self.assertIn('self.currentSearchMapContext == captured',session)
         self.assertIn('storageScope.service + ".search."',session)
     def test_typed_destinations_do_not_open_internal_merchant_console(self):

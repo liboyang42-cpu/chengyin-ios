@@ -7,7 +7,8 @@ final class DiscoveryLoader<Value>: ObservableObject {
     @Published private(set) var error: Error?
     private var generation = 0
 
-    func load(_ operation: @MainActor () async throws -> Value) async {
+    func load(onUnauthorized: @MainActor () -> Void = {},
+              _ operation: @MainActor () async throws -> Value) async {
         generation += 1
         let current = generation
         isLoading = true
@@ -22,6 +23,8 @@ final class DiscoveryLoader<Value>: ObservableObject {
         catch {
             guard current == generation, !Task.isCancelled else { return }
             self.error = error
+            // Visible result and session side effects share the same owner generation.
+            if error as? APIError == .unauthorized { onUnauthorized() }
         }
     }
 }
@@ -127,8 +130,8 @@ struct DiscoveryTopicMetadata: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             if item.chapterCount > 0 { Text("discovery.chapters \(item.chapterCount)") }
-            if item.locationCount > 0 { Text("discovery.locations \(item.locationCount)") }
-            if let duration = item.durationValue { Text("discovery.durationValue \(duration)") }
+            TopicTotalStops(count: item.locationCount, identifier: "discovery.totalStops.\(item.id)")
+            if let seconds = item.totalTime { LabeledContent("discovery.publicSeconds", value: String(seconds)) }
             if item.previewOnly { Label("discovery.preview", systemImage: "flask") }
             else if !item.isVerified { Label("discovery.experimental", systemImage: "flask") }
         }.font(.subheadline).foregroundStyle(.secondary)

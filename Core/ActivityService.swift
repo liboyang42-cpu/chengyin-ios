@@ -40,6 +40,8 @@ public struct ActivityService {
     public func detail(id:Int,token:String?=nil) async throws -> ActivityDetailAccess {
         guard id > 0 else { throw APIError.invalidRequest }
         let response:DetailResponse=try await post("api/activity/info",fields:["id":String(id)],token:token)
+        if case .allowed(let detail) = response.access, detail.summary.id != id { throw APIError.malformedResponse }
+        // Club gates intentionally contain no activity ID or full-detail fields.
         return response.access
     }
 }

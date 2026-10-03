@@ -6,20 +6,21 @@ struct RoamItemDetailView: View {
     let reader: any RoamReading
     let mediaScope: UUID
     var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
-    private let originatingIdentity: RoamReadIdentity?
+    @State private var originatingIdentity: RoamReadIdentity?
     private let stampDestination: (() -> AnyView)?
     private let posterDestination: ((RoamNodeDetail) -> AnyView)?
     @Environment(\.dismiss) private var dismiss
     @State private var node: RoamNodeDetail?
     @State private var merchant: RoamMerchantDetail?
     @State private var merchantFailed = false
+    @State private var readOwner = ManualMapReadTaskOwner()
     @State private var loading = false
     @State private var issue: RoamScreenIssue?
     @State private var generation = 0
     init(item: RoamMapItem, reader: any RoamReading, mediaScope: UUID = UUID(), makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil, stampDestination: (() -> AnyView)? = nil, posterDestination: ((RoamNodeDetail) -> AnyView)? = nil) {
         self.stampDestination = stampDestination; self.posterDestination = posterDestination
         self.mediaScope = mediaScope; self.makeExternalMaps = makeExternalMaps
-        self.item = item; self.reader = reader; originatingIdentity = reader.identity
+        self.item = item; self.reader = reader; _originatingIdentity = State(initialValue: reader.identity)
     }
     private var isCurrent: Bool { originatingIdentity != nil && reader.identity == originatingIdentity }
     var body: some View {
@@ -28,14 +29,18 @@ struct RoamItemDetailView: View {
                 if !reader.isConfigured { RoamStatusView(issue: .notConfigured) }
                 else if !isCurrent { RoamStatusView(issue: .unauthorized) }
                 else if loading { ProgressView("roam.loading") }
-                else if let issue { RoamStatusView(issue: issue) { Task { await load() } } }
+                else if let issue { RoamStatusView(issue: issue) { startLoad() } }
                 else { content }
             }
             .appNavigationTitle("roam.detail")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("roam.close") { dismiss() } } }
-            .task(id: reader.identity) { await load() }
-            .onDisappear { generation += 1 }
+            .task(id: reader.identity) {
+                guard !Task.isCancelled else { return }
+                readOwner.activate(); await load()
+            }
+            .onAppear { readOwner.activate() }
+            .onDisappear { readOwner.deactivate(); generation += 1; loading = false }
         }
         .accessibilityIdentifier("roam.detail")
     }
@@ -137,7 +142,13 @@ struct RoamItemDetailView: View {
             Text("roam.playerSnapshot").font(.caption).foregroundStyle(.secondary)
         }
     }
+    private func startLoad() {
+        readOwner.start { await performLoad() }
+    }
     private func load() async {
+        await readOwner.run { await performLoad() }
+    }
+    private func performLoad() async {
         generation += 1
         let operation = generation
         node = nil; merchant = nil; merchantFailed = false; issue = nil

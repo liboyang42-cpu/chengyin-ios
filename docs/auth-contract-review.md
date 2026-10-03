@@ -2,6 +2,10 @@
 
 Source: existing public Flutter client, `lib/data/api/auth_api.dart`, commit `a63e9e91c82a3282e8dd7138f943b1a8cbfc021d`. This is client-source evidence, not a fresh backend validation.
 
+## Current native composition correction
+
+The historical source table below is not an enablement list. Username/password-only native login cannot meet the retained password route prerequisite and remains hard unavailable. The normal CN composition now uses the bounded [SMS and session contract](cn-native-session-contract.md), with an explicit current server role before persistence/restoration; legacy role fallback is not evidence of a verified session. Shipping endpoint and capability registries remain empty.
+
 ## Observed operations
 
 | Purpose | HTTP route | Body fields in source |

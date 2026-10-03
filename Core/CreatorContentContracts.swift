@@ -26,7 +26,7 @@ public struct CreatorContentProject: Decodable, Equatable, Identifiable {
         case "activity": return .activity(sourceID)
         // Source MyProject.detailRoute explicitly maps this bizType to /template/:id,
         // whose TemplateDetailPage calls /api/template/info (PlayTemplate). This is not
-        // TopicTemplate from /api/template/topic-template/list, which has no detail API.
+        // TopicTemplate from /api/template/topic-template/list, whose public detail is a separate read-only projection.
         case "template": return .playTemplate(sourceID)
         default: return nil
         }

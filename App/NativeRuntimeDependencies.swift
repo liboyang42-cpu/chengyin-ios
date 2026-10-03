@@ -54,11 +54,12 @@ import Foundation
         self.configuration = configuration; self.transport = transport; self.location = location; self.shopNPCGrants = shopNPCGrants; self.motion = motion
     }
     func makeMerchantPublicFactory(api: APIConfiguration, journal: any OperationPendingJournal,
+                                   transportOverride: (any HTTPTransport)? = nil,
                                    current: @escaping () -> MerchantPublicHostContext?) -> MerchantPublicProductionFactory? {
         guard let context = current(), merchantPublicApproval?.matches(context) == true else { return nil }
         let acceptedGrants = merchantNPCGrants
         return MerchantPublicProductionFactory(api: api, approval: merchantPublicApproval,
-            transport: transport ?? ResponseLimitedHTTPTransport(enabled: true), journal: journal,
+            transport: transportOverride ?? transport ?? ResponseLimitedHTTPTransport(enabled: true), journal: journal,
             current: current, grants: { acceptedGrants })
     }
     static var dormant: Self { .init() }

@@ -98,10 +98,33 @@ final class TeamFlowTests: XCTestCase {
         else { toggle.coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap() }
         let selected = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "1"), object: toggle)
         XCTAssertEqual(XCTWaiter.wait(for: [selected], timeout: 5), .completed, app.debugDescription)
-        let review = app.buttons["team.create.review"]; reveal(review); review.tap()
-        reveal(app.buttons["team.review.cancel"]); app.buttons["team.review.cancel"].tap()
+        let review = app.buttons["team.create.review"]
+        let reviewBar = app.navigationBars["Review team change"]
+        func openCreationReview() -> Bool {
+            guard revealFixtureElement(review, in: app), review.isEnabled else {
+                XCTFail(app.debugDescription); return false
+            }
+            attachFixtureScreenshot(self, app: app, name: "Team create review target before one tap")
+            review.tap()
+            guard reviewBar.waitForExistence(timeout: 5) else {
+                attachFixtureScreenshot(self, app: app, name: "Team review presentation missing after one tap")
+                XCTFail(app.debugDescription); return false
+            }
+            return true
+        }
+        guard openCreationReview() else { return }
+        let cancel = app.buttons["team.review.cancel"]
+        XCTAssertTrue(revealFixtureElement(cancel, in: app), app.debugDescription)
+        XCTAssertTrue(cancel.isEnabled, app.debugDescription); XCTAssertTrue(cancel.isHittable, app.debugDescription)
+        cancel.tap()
+        let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: reviewBar)
+        XCTAssertEqual(XCTWaiter.wait(for: [dismissed], timeout: 5), .completed, app.debugDescription)
         XCTAssertEqual(toggle.value as? String, "1")
-        reveal(review); review.tap(); reveal(app.buttons["team.review.confirm"]); app.buttons["team.review.confirm"].tap()
+        guard openCreationReview() else { return }
+        let confirm = app.buttons["team.review.confirm"]
+        XCTAssertTrue(revealFixtureElement(confirm, in: app), app.debugDescription)
+        XCTAssertTrue(confirm.isEnabled, app.debugDescription); XCTAssertTrue(confirm.isHittable, app.debugDescription)
+        confirm.tap()
         assertSimulationCompleted()
     }
     func testMissingInviteShowsRecoverableInvalidLinkState() {

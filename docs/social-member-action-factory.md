@@ -2,7 +2,19 @@
 
 ## Scope and activation
 
-The normal `AppSession.socialActionAccess` now composes `SocialMemberActionFactory`.
+The normal `AppSession.socialActionAccess` composes `SocialMemberActionFactory` through
+`SocialMemberActionSessionOwner`. The owner retains one access/coordinator pair for
+the full runtime context, then selects the current independently supplied approvals
+when rebuilding after login, logout, restoration, account, role, epoch, credential
+or deployment/realm changes. It observes intermediate states, so returning to an
+equal context cannot reactivate a previous review or callback. AppSession deployment
+and realm are immutable; changing either requires a new composition/session.
+
+Revoked access has no authenticated identity, no grants, and cannot read or write.
+The owner also creates scoped account/Square fallback read bridges whose transport
+fences both responses and thrown errors before unauthorized callbacks run. Square
+generation routing remains unchanged. Normal composition still blocks every social
+route; this lifecycle work neither activates UI nor expands transport permissions.
 `NativeRuntimeDependencies.socialMemberActionApprovals` defaults to an empty array.
 An endpoint alone cannot activate a write. Each grant covers one operation, one target
 member, exact account/epoch/role, namespace, CN market, API base URL, audited path set
@@ -51,7 +63,22 @@ the expected `isFollow` state. Start-chat requires a fresh conversation list con
 the exact returned ID, direct-conversation type and reviewed counterparty. Only that
 verified same-session result clears the lock and returns a nonsynthetic receipt.
 
-## Verification limits
+## Lifecycle coverage and verification limits
+
+Authored lifecycle XCTest coverage adds guest-first access followed by exact-grant
+login, stable same-context retention, role/account/epoch/token/namespace/market/origin
+replacement, observed A→B→A revocation, delayed prepare/preflight/write/readback,
+late 401 suppression (including fallback reads), current fallback 401 handling,
+Square generation preservation, and current approved follow/chat acknowledgement.
+A rebuilt or relaunched owner finds the same canonical unknown lock. Account and
+realm separation are checked without changing the persisted key or clearing records.
+
+App-hosted tests cover normal composition guest-first login/logout/relogin,
+authenticated role/account replacement, restoration and existing unknown journals,
+realm separation, and social transport rejection even with an exact synthetic grant.
+These are authored tests, not evidence of Apple execution.
+
+## Other verification limits
 
 New Core XCTest coverage calls the same factory used by AppSession with injected HTTP
 transport, not a synthetic access implementation. It covers default-OFF, exact follow

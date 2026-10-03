@@ -119,6 +119,7 @@ public struct SearchMapMerchant: Decodable, Equatable {
 public struct SearchMapCityNode: Decodable, Equatable, Identifiable {
     public var id: Int { poiID }
     public let poiID: Int
+    public let status: Int?
     public let name: String
     public let description: String?
     public let coordinate: RoamCoordinate?
@@ -133,12 +134,13 @@ public struct SearchMapCityNode: Decodable, Equatable, Identifiable {
     public let validationMethod: Int?
     public let favorited: Bool
     enum CodingKeys: String, CodingKey {
-        case poiId, name, description, lat, lng, radiusM, tags, coverImg, distance
+        case poiId, name, description, lat, lng, radiusM, tags, coverImg, distance, status
         case merchantId, merchantName, templateId, templateTitle, validationMethod, favorited
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         poiID = try c.decode(Int.self, forKey: .poiId)
+        status = try c.decodeIfPresent(Int.self, forKey: .status)
         guard poiID > 0 else { throw APIError.malformedResponse }
         name = try c.roamText(.name) ?? ""; description = try c.roamText(.description)
         let point = c.roamCoordinate(latitude: .lat, longitude: .lng)

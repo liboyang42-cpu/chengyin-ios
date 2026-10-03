@@ -135,6 +135,28 @@ final class ClubManagementCoordinatorTests: XCTestCase {
         let result = await c.confirm(p)
         XCTAssertEqual(result, .blocked(.staleConfirmation)); XCTAssertEqual(a.writes, 0)
     }
+    @MainActor func testCancelledReviewCannotDispatchAfterAccountReplacementOrReturn() async throws {
+        let access = ManagementAccess()
+        let coordinator = ClubManagementCoordinator(access: access)
+        let old = try await coordinator.prepare(clubID: 81, action: .approve, memberID: 3, expectedIdentity: access.identity!)
+        coordinator.cancel(old)
+        access.identity = .init(accountID: 2, epoch: 2); coordinator.synchronizeSession()
+        XCTAssertEqual(coordinator.state(clubID: 81), .idle)
+        XCTAssertEqual(coordinator.readback(clubID: 81), .idle)
+        let current = try await coordinator.prepare(clubID: 81, action: .reject, memberID: 3, expectedIdentity: access.identity!)
+        let staleResult = await coordinator.confirm(old)
+        XCTAssertEqual(staleResult, .blocked(.staleConfirmation))
+        coordinator.cancel(old)
+        XCTAssertEqual(coordinator.state(clubID: 81), .awaitingConfirmation)
+        XCTAssertEqual(access.writes, 0)
+        coordinator.cancel(current)
+        access.identity = .init(accountID: 1, epoch: 3); coordinator.synchronizeSession()
+        let returnedResult = await coordinator.confirm(old)
+        XCTAssertEqual(returnedResult, .blocked(.staleConfirmation))
+        XCTAssertEqual(coordinator.state(clubID: 81), .idle)
+        XCTAssertEqual(coordinator.readback(clubID: 81), .idle)
+        XCTAssertEqual(access.writes, 0)
+    }
     @MainActor func testAcknowledgementUsesReadbackNeverOptimisticRemoval() async throws {
         let a = ManagementAccess()
         let coordinator = ClubManagementCoordinator(access: a)

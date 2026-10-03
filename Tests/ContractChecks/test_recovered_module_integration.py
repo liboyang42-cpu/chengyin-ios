@@ -8,7 +8,7 @@ class RecoveredModuleIntegrationTests(unittest.TestCase):
   s=self.text('App/ActivityDetailView.swift'); self.assertIn('SessionPlayRuntimeView(session: session, destination: .journey(.activity(id)))',s);self.assertIn('destination: .director(id)',s)
   s=self.text('App/SessionPlayRuntimeView.swift');self.assertIn('@ObservedObject var session',s);self.assertIn('.id(session.sessionRevision)',s)
  def test_production_play_capabilities_remain_empty(self):
-  s=self.text('App/AppSession.swift');self.assertIn('runtimeDependencyFactory?.playService()',s);self.assertIn('self.runtimeDependencies = runtimeDependencies ?? .dormant',s);self.assertIn('enabled: accepted?.play ?? []',self.text('Core/RuntimeDependencyConfiguration.swift'));self.assertNotIn('enabled: [.reads',s)
+  s=self.text('App/AppSession.swift');self.assertIn('runtimeDependencyFactory?.playService()',s);self.assertIn('retainedDependencies = injectedRuntimeDependencies ?? composition.sessionDependencies(context)',s);self.assertIn('enabled: accepted?.play ?? []',self.text('Core/RuntimeDependencyConfiguration.swift'));self.assertNotIn('enabled: [.reads',s)
  def test_production_merchant_factories_have_no_test_executor(self):
   s=self.text('App/AppSession.swift');self.assertIn('MerchantBusinessService(configuration:configuration,readTransport:transport)',s);self.assertNotIn('testingMutationTransport:',s);self.assertNotIn('execution: .',s)
  def test_private_readers_capture_exact_current_session(self):

@@ -49,7 +49,7 @@ class GroupPollContracts(unittest.TestCase):
         session = read('App/AppSession.swift')
         chunk = session[session.index('private var clubChatOwners:'):session.index('private let messagingService:')]
         self.assertGreaterEqual(chunk.count('self.currentRuntimeDependencyContext == captured'), 4)
-        self.assertIn('OperationDefaultsJournal(defaults: .standard)', chunk)
+        self.assertIn('composition.storage.operationJournal()', chunk)
         self.assertIn('clubChatOwners.removeAll(); groupPollOwners.removeAll()', session)
     def test_ui_is_localized_and_review_based(self):
         source = read('App/GroupPollViews.swift') + read('App/ClubChatEntryView.swift')

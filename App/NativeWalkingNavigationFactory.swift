@@ -31,6 +31,15 @@ import SwiftUI
             location: dependencies.makeLocation(), planner: planner,
             current: { [weak self] in self?.available == true && self?.context() == owner })
     }
+    func makePreviewPlanner(reference: WalkingTargetReference) -> (any SearchRoutePlanning)? {
+        guard reference.isValid, available, let dependencies else { return nil }
+        let owner = dependencies.owner
+        let planner = dependencies.makePlanner?(dependencies.verifiedMapKitWGS84Regions)
+            ?? MapKitWalkingRoutePlanner(verifiedRegions: dependencies.verifiedMapKitWGS84Regions)
+        return AuthorizedWalkingPreviewPlanner(reference: reference,
+            targets: RegionBoundWalkingTargets(base: dependencies.targets, regions: dependencies.verifiedMapKitWGS84Regions),
+            planner: planner, current: { [weak self] in self?.available == true && self?.context() == owner })
+    }
     func restore(_ checkpoint: WalkingNavigationCheckpoint) -> WalkingNavigationCoordinator? {
         guard let dependencies, checkpoint.ownerNamespace == namespace(dependencies.owner) else { return nil }
         // Coordinates are not persisted. Caller must explicitly resume, reauthorizing the target.

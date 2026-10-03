@@ -38,6 +38,13 @@ public struct DiscoveryService {
         let data = try await post("api/template/topic-template/list", fields: nil, token: token)
         return try decode(DiscoveryRowsEnvelope<DiscoveryTopicTemplate>.self, data).rows
     }
+    public func publicTopicTemplate(id: Int, token: String? = nil) async throws -> PublicTopicTemplateDetail {
+        guard id > 0 else { throw APIError.invalidRequest }
+        let data = try await post("api/template/topic-template/info", fields: ["id": String(id)], token: token, templateDetail: true)
+        let detail = try decode(DiscoveryValueEnvelope<PublicTopicTemplateDetail>.self, data).data
+        guard detail.id == id else { throw APIError.malformedResponse }
+        return detail
+    }
     public func playTemplate(id: Int, token: String? = nil) async throws -> DiscoveryPlayTemplate {
         guard id > 0 else { throw APIError.invalidRequest }
         let data = try await post("api/template/info", fields: ["id": String(id)], token: token, templateDetail: true)
