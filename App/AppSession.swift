@@ -1850,6 +1850,23 @@ final class AppSession: ObservableObject {
     var isSignedIn: Bool { account != nil && token != nil }
     var sessionRevision: UInt64 { gate.currentStamp }
     var contentDetailRevision: UInt64 { compositionViewerRevision }
+    private var currentOwnedOrderSession: OwnedOrderReadSession? {
+        guard let context = currentRuntimeDependencyContext,
+              let approval = composition.ownedOrderReadApproval(context), approval.matches(context) else { return nil }
+        return .init(context: context, viewerRevision: compositionViewerRevision, approvalRevision: approval.revision)
+    }
+    private var ownedOrderSignedInIdentity: ProfileReadIdentity? {
+        guard let account, let token, AuthRequestBuilder.isValidToken(token),
+              ["player", "club", "merchant"].contains(account.effectiveRole), !committingAuthenticatedSession else { return nil }
+        return .init(accountID: account.id, epoch: gate.currentStamp, viewerRevision: compositionViewerRevision)
+    }
+    lazy var ownedOrderReader = OwnedOrderSessionReader(service: profileService,
+        current: { [weak self] in self?.currentOwnedOrderSession },
+        signedInIdentity: { [weak self] in self?.ownedOrderSignedInIdentity },
+        onUnauthorized: { [weak self] captured in
+            guard let self, self.currentOwnedOrderSession == captured else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: captured.context.session.epoch, credential: captured.context.session.token)
+        })
     lazy var profileReader = ProfileSessionReader(service:profileService, currentSession:{ [weak self] in
         guard let self, let account=self.account, let token=self.token else { return nil }
         return try? ProfileReadSession(accountID:account.id,epoch:self.gate.currentStamp,token:token)

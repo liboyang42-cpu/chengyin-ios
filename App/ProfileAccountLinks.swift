@@ -4,13 +4,17 @@ import SwiftUI
 @MainActor
 struct ProfileAccountLinks: View {
     let reader: any ProfileReading
+    var ordersDestination: (@MainActor () -> AnyView)? = nil
     var participantCoordinator: ParticipantMutationCoordinator? = nil
     var orderLifecycleCoordinator: OrderLifecycleCoordinator? = nil
     var mediaScope: UUID = UUID()
     var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
     var body: some View {
         Section("profile.library") {
-            NavigationLink { ProfileOrdersView(reader: reader, lifecycleCoordinator: orderLifecycleCoordinator, mediaScope: mediaScope, makeExternalMaps: makeExternalMaps) } label: {
+            NavigationLink {
+                if let ordersDestination { ordersDestination() }
+                else { ProfileOrdersView(reader: reader, lifecycleCoordinator: orderLifecycleCoordinator, mediaScope: mediaScope, makeExternalMaps: makeExternalMaps) }
+            } label: {
                 Label("profile.orders.title", systemImage: "list.bullet.rectangle")
             }.accessibilityIdentifier("profile.open.orders")
             NavigationLink { ProfileParticipantsView(reader:reader,coordinator:participantCoordinator) } label: {

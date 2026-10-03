@@ -23,14 +23,22 @@ public struct ProfileService {
         self.configuration = configuration; self.transport = transport
     }
 
-    public func orders(token: String) async throws -> [ProfileOrder] {
+    public func orders(token: String, expectedAccountID: Int? = nil) async throws -> [ProfileOrder] {
+        if let expectedAccountID, expectedAccountID <= 0 { throw APIError.invalidRequest }
         let result: OrderRows = try await execute(form("api/registration/list", fields: ["owner_type": "3"], token: token))
+        if let expectedAccountID {
+            guard result.isTable, result.total == result.rows.count,
+                  result.rows.allSatisfy({ $0.memberID == expectedAccountID }),
+                  Set(result.rows.map(\.id)).count == result.rows.count else { throw APIError.malformedResponse }
+        }
         return result.rows
     }
-    public func order(id: Int, token: String) async throws -> ProfileOrder {
+    public func order(id: Int, token: String, expectedAccountID: Int? = nil) async throws -> ProfileOrder {
+        if let expectedAccountID, expectedAccountID <= 0 { throw APIError.invalidRequest }
         guard id > 0 else { throw APIError.invalidRequest }
         let result: ProfileOrder = try await execute(form("api/registration/info", fields: ["id": String(id)], token: token))
         guard result.id == id else { throw APIError.malformedResponse }
+        if let expectedAccountID, result.memberID != expectedAccountID { throw APIError.malformedResponse }
         return result
     }
     public func participants(token: String) async throws -> [ProfileParticipant] {
@@ -112,12 +120,15 @@ public struct ProfileService {
     }
     private struct OrderRows: Decodable {
         let rows: [ProfileOrder]
-        private enum CodingKeys: String, CodingKey { case rows }
+        let total: Int?
+        let isTable: Bool
+        private enum CodingKeys: String, CodingKey { case rows, total }
         init(from decoder: Decoder) throws {
-            if let array = try? decoder.singleValueContainer().decode([ProfileOrder].self) { rows = array }
+            if let array = try? decoder.singleValueContainer().decode([ProfileOrder].self) { rows = array; total = nil; isTable = false }
             else {
                 let c = try decoder.container(keyedBy: CodingKeys.self)
                 rows = try c.decode([ProfileOrder].self, forKey: .rows)
+                total = try c.decodeIfPresent(Int.self, forKey: .total); isTable = true
             }
         }
     }

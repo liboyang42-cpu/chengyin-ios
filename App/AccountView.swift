@@ -94,7 +94,7 @@ struct AccountView: View {
                     }.accessibilityIdentifier("account.objectCards")
                 }
                 PlayerJourneyAccountLinks()
-                ProfileAccountLinks(reader:session.profileReader,participantCoordinator:session.participantCoordinator,orderLifecycleCoordinator:session.orderLifecycleCoordinator, mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory)
+                ProfileAccountLinks(reader:session.profileReader,ordersDestination:{ AnyView(SessionOwnedOrdersView(session: session)) },participantCoordinator:session.participantCoordinator,orderLifecycleCoordinator:session.orderLifecycleCoordinator, mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory)
                 Section {
                     NavigationLink { MessagingHomeView(reader:session.messagingReader,mediaReader:session.socialMessageMediaReader,senderForConversation:{ session.messageSender(for:$0) },expanded:session.imExpandedNavigation).id(session.messagingReader.identity) } label: {
                         Label("messaging.title",systemImage:"bubble.left.and.bubble.right")

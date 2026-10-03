@@ -39,7 +39,7 @@ private struct ProfileOrderRow: View {
             if let location = order.addressName, !location.isEmpty {
                 Label { Text(verbatim: location) } icon: { Image(systemName: "mappin.and.ellipse") }.font(.subheadline)
             }
-            AmountLabel(amount: order.payableAmount)
+            ProfileOrderAmountLabel(amount: order.payableAmount)
         }.padding(.vertical, 6)
     }
 }
@@ -59,7 +59,7 @@ struct ProfileOrderDetailView: View {
                     ProfileOptionalRow(key: "profile.orders.number", value: order.registrationNo)
                     LabeledContent("profile.orders.state") { ProfileOrderStatus(order: order) }
                     ProfileOptionalRow(key: "profile.orders.serverHint", value: order.orderHint)
-                    LabeledContent("profile.orders.amount") { AmountLabel(amount: order.payableAmount) }
+                    LabeledContent("profile.orders.amount") { ProfileOrderAmountLabel(amount: order.payableAmount) }
                     ProfileOptionalRow(key: "profile.orders.ticket", value: order.ticketName)
                     if let count = order.orderNum { LabeledContent("profile.orders.quantity", value: String(count)) }
                     ProfileOptionalRow(key: "profile.orders.organizer", value: order.organizerName)
@@ -96,6 +96,19 @@ struct ProfileOrderDetailView: View {
                         LabeledContent("profile.orders.refund") { ProfileRefundStatus(code: code) }
                         LabeledContent("profile.orders.refundCode", value: String(code))
                     }
+                }
+                Section("profile.orders.moneyFacts") {
+                    if let amount = order.wechatPaymentAmount { LabeledContent("profile.orders.cashAmount") { ProfileOrderAmountLabel(amount: amount) } }
+                    if let count = order.pointUsed { LabeledContent("profile.orders.pointsUsed", value: String(count)) }
+                    if let amount = order.pointDeductAmount { LabeledContent("profile.orders.pointsDeduction") { ProfileOrderAmountLabel(amount: amount) } }
+                    if let amount = order.pointPaymentAmount { LabeledContent("profile.orders.pointsMoney") { ProfileOrderAmountLabel(amount: amount) } }
+                    if let code = order.pointsReturned { LabeledContent("profile.orders.pointsReturnedCode", value: String(code)) }
+                    if let code = order.paymentType { LabeledContent("profile.orders.paymentTypeCode", value: String(code)) }
+                    if let amount = order.refundAmount { LabeledContent("profile.orders.refundAmount") { ProfileOrderAmountLabel(amount: amount) } }
+                    if let code = order.refundApplicationStatus { LabeledContent("profile.orders.refundApplicationCode", value: String(code)) }
+                    ProfileOptionalRow(key: "profile.orders.manualRefund", value: order.manualRefundCaseStatus)
+                    ProfileOptionalRow(key: "profile.orders.refundDeadline", value: order.refundDeadlineDisplay)
+                    Text("profile.orders.moneyFactsHint").foregroundStyle(.secondary)
                 }
                 if let lifecycleCoordinator {
                     Section {
@@ -134,8 +147,23 @@ private struct ProfileRefundStatus: View {
         switch code {
         case 0: Text("profile.orders.refunding")
         case 1, 4: Text("profile.orders.refunded")
-        case 2, 3: Text("profile.orders.refundProcessing")
+        case 2: Text("profile.orders.refundManualPending")
+        case 3: Text("profile.orders.refundManualReview")
+        case 5: Text("profile.orders.refundQueued")
+        case 6: Text("profile.orders.refundDispatching")
         default: Text("profile.orders.unknown")
         }
+    }
+}
+
+private struct ProfileOrderAmountLabel: View {
+    let amount: Decimal?
+    var body: some View {
+        if let amount {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(verbatim: OwnedOrderMoneyText.string(amount)).monospacedDigit()
+                Text("activity.currencyUnconfirmed").font(.caption)
+            }
+        } else { Text("activity.priceUnknown").foregroundStyle(.secondary) }
     }
 }

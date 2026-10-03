@@ -49,6 +49,7 @@ public enum ProfileRegistrationState: Equatable {
 /// and missing prices remain unknown, including absent refund applications versus payout 0.
 public struct ProfileOrder: Decodable, Equatable, Identifiable {
     public let id: Int
+    public let memberID: Int?
     public let ownerType: Int?
     public let ownerID: Int?
     public let registrationNo: String?
@@ -65,6 +66,16 @@ public struct ProfileOrder: Decodable, Equatable, Identifiable {
     public let gatherLongitude: Double?
     public let participateDate: String?
     public let payableAmount: Decimal?
+    public let pointUsed: Int?
+    public let pointDeductAmount: Decimal?
+    public let pointPaymentAmount: Decimal?
+    public let wechatPaymentAmount: Decimal?
+    public let paymentType: Int?
+    public let pointsReturned: Int?
+    public let refundAmount: Decimal?
+    public let refundApplicationStatus: Int?
+    public let manualRefundCaseStatus: String?
+    public let refundDeadlineDisplay: String?
     public let realName: String?
     /// The retained detail contract documents this as server-masked; do not unmask locally.
     public let phone: String?
@@ -83,10 +94,12 @@ public struct ProfileOrder: Decodable, Equatable, Identifiable {
     public var registrationState: ProfileRegistrationState { .init(code: registrationStatus) }
 
     private enum CodingKeys: String, CodingKey {
-        case id, ownerType, ownerId, registrationNo, registrationStatus, verificationStatus, paymentStatus
+        case id, memberId, ownerType, ownerId, registrationNo, registrationStatus, verificationStatus, paymentStatus
         case cmsActivity, cmsTopic, omsTicket, participateDate, payableAmount, realName, phone, ticketName, orderNum
         case paymentTime, paymentTypeLabel, createTime, verificationTime, expiresAt, organizerName
         case statusText, orderHint, refundInfo, refundApplication
+        case pointUsed, pointDeductAmount, pointPaymentAmount, wechatPaymentAmount, paymentType, pointsReturned
+        case manualRefundCaseStatus, refundDeadlineDisplay
     }
     private struct Owner: Decodable, Equatable {
         let name: String?
@@ -101,11 +114,23 @@ public struct ProfileOrder: Decodable, Equatable, Identifiable {
         let gatherLng: Double?
     }
     private struct RefundInfo: Decodable { let refundable: Bool? }
-    private struct RefundApplication: Decodable { let payoutStatus: ProfileWireInteger? }
+    private struct RefundApplication: Decodable {
+        let payoutStatus: ProfileOrderStatusInteger?
+        let status: ProfileOrderStatusInteger?
+        let refundAmount: Decimal?
+        enum CodingKeys: String, CodingKey { case payoutStatus, status, refundAmount }
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            payoutStatus = try c.decodeIfPresent(ProfileOrderStatusInteger.self, forKey: .payoutStatus)
+            status = try c.decodeIfPresent(ProfileOrderStatusInteger.self, forKey: .status)
+            refundAmount = try c.profileOrderMoney(.refundAmount)
+        }
+    }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id = try c.decode(Int.self, forKey: .id)
         guard id > 0 else { throw APIError.malformedResponse }
+        memberID = try c.decodeIfPresent(Int.self, forKey: .memberId)
         ownerType = try c.decodeIfPresent(Int.self, forKey: .ownerType)
         ownerID = try c.decodeIfPresent(Int.self, forKey: .ownerId)
         registrationNo = try c.decodeIfPresent(String.self, forKey: .registrationNo)
@@ -133,6 +158,15 @@ public struct ProfileOrder: Decodable, Equatable, Identifiable {
             guard !amount.isNaN, amount >= .zero else { throw APIError.malformedResponse }
             payableAmount = amount
         } else { payableAmount = nil }
+        pointUsed = try c.decodeIfPresent(Int.self, forKey: .pointUsed)
+        if let pointUsed, pointUsed < 0 { throw APIError.malformedResponse }
+        pointDeductAmount = try c.profileOrderMoney(.pointDeductAmount)
+        pointPaymentAmount = try c.profileOrderMoney(.pointPaymentAmount)
+        wechatPaymentAmount = try c.profileOrderMoney(.wechatPaymentAmount)
+        paymentType = try c.decodeIfPresent(Int.self, forKey: .paymentType)
+        pointsReturned = try c.decodeIfPresent(Int.self, forKey: .pointsReturned)
+        manualRefundCaseStatus = try c.decodeIfPresent(String.self, forKey: .manualRefundCaseStatus)
+        refundDeadlineDisplay = try c.decodeIfPresent(String.self, forKey: .refundDeadlineDisplay)
         realName = try c.decodeIfPresent(String.self, forKey: .realName)
         phone = try c.decodeIfPresent(String.self, forKey: .phone)
         ticketName = try c.decodeIfPresent(String.self, forKey: .ticketName)
@@ -146,7 +180,10 @@ public struct ProfileOrder: Decodable, Equatable, Identifiable {
         statusText = try c.decodeIfPresent(String.self, forKey: .statusText)
         orderHint = try c.decodeIfPresent(String.self, forKey: .orderHint)
         refundable = try c.decodeIfPresent(RefundInfo.self, forKey: .refundInfo)?.refundable
-        refundPayoutStatus = try c.decodeIfPresent(RefundApplication.self, forKey: .refundApplication)?.payoutStatus?.value
+        let refund = try c.decodeIfPresent(RefundApplication.self, forKey: .refundApplication)
+        refundPayoutStatus = refund?.payoutStatus?.value
+        refundApplicationStatus = refund?.status?.value
+        refundAmount = refund?.refundAmount
     }
 }
 
@@ -255,5 +292,24 @@ private struct ProfileWireText: Decodable {
 private extension KeyedDecodingContainer {
     func profileText(_ key: Key) throws -> String {
         try decodeIfPresent(ProfileWireText.self, forKey: key)?.value ?? ""
+    }
+}
+
+private extension KeyedDecodingContainer {
+    func profileOrderMoney(_ key: Key) throws -> Decimal? {
+        guard contains(key), try !decodeNil(forKey: key) else { return nil }
+        guard (try? decode(String.self, forKey: key)) == nil else { throw APIError.malformedResponse }
+        let value = try decode(Decimal.self, forKey: key)
+        guard !value.isNaN, value >= 0 else { throw APIError.malformedResponse }
+        return value
+    }
+}
+private struct ProfileOrderStatusInteger: Decodable {
+    let value: Int
+    init(from decoder: Decoder) throws {
+        let c = try decoder.singleValueContainer()
+        if let code = try? c.decode(Int.self) { value = code }
+        else if let text = try? c.decode(String.self), let code = Int(text), String(code) == text { value = code }
+        else { throw APIError.malformedResponse }
     }
 }

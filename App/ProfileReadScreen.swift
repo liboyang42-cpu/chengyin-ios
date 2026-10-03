@@ -12,6 +12,7 @@ struct ProfileReadScreen<Value, Content: View>: View {
     @State private var isLoading = true
     @State private var issue: ProfileLoadIssue?
     @State private var generation: UInt64 = 0
+    @State private var loadOwner = ManualMapReadTaskOwner()
 
     init(reader: any ProfileReading, accessibilityPrefix: String,
          load: @escaping () async throws -> Value,
@@ -24,10 +25,12 @@ struct ProfileReadScreen<Value, Content: View>: View {
 
     var body: some View {
         ZStack {
-            if !reader.isConfigured {
-                ContentUnavailableView("profile.unavailable", systemImage: "network.slash", description: Text("auth.notConfigured"))
-            } else if reader.identity == nil {
+            if reader.identity == nil {
                 ContentUnavailableView("profile.signInRequired", systemImage: "person.crop.circle.badge.exclamationmark", description: Text("auth.expired"))
+                    .accessibilityIdentifier(accessibilityPrefix + ".signIn")
+            } else if !reader.isConfigured {
+                ContentUnavailableView("profile.unavailable", systemImage: "network.slash", description: Text("auth.notConfigured"))
+                    .accessibilityIdentifier(accessibilityPrefix + ".unavailable")
             } else if isLoading {
                 ProgressView("profile.loading").accessibilityIdentifier(accessibilityPrefix + ".loading")
             } else if let issue {
@@ -40,7 +43,7 @@ struct ProfileReadScreen<Value, Content: View>: View {
                     else { Text(LocalizedStringKey(issue.detailKey)) }
                 } actions: {
                     if issue.canRetry {
-                        Button("action.retry") { Task { await reload() } }
+                        Button("action.retry") { loadOwner.start { await reload() } }
                             .accessibilityIdentifier(accessibilityPrefix + ".retry")
                     }
                 }
@@ -48,20 +51,20 @@ struct ProfileReadScreen<Value, Content: View>: View {
                 content(value)
             }
         }
-        .refreshable { await reload() }
+        .refreshable { await loadOwner.run { await reload() } }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button("profile.refresh", systemImage: "arrow.clockwise") { Task { await reload() } }
+                Button("profile.refresh", systemImage: "arrow.clockwise") { loadOwner.start { await reload() } }
                     .disabled(isLoading || !reader.isConfigured || reader.identity == nil)
                     .accessibilityIdentifier(accessibilityPrefix + ".refresh")
             }
         }
-        .task(id: reader.identity) { await reload() }
+        .task(id: reader.identity) { loadOwner.activate(); await loadOwner.run { await reload() } }
         .onDisappear {
             // Keep the immutable list snapshot while its NavigationLink destination is
             // pushed. Removing that link here can unexpectedly pop native navigation.
             // Account replacement destroys the root; a new appearance refreshes the data.
-            generation &+= 1
+            loadOwner.deactivate(); generation &+= 1
         }
     }
     private func reload() async {

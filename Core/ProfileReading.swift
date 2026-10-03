@@ -3,7 +3,11 @@ import Foundation
 public struct ProfileReadIdentity: Hashable {
     public let accountID: Int
     public let epoch: UInt64
-    public init(accountID: Int, epoch: UInt64) { self.accountID = accountID; self.epoch = epoch }
+    public let viewerRevision: UInt64
+    public let approvalRevision: UUID?
+    public init(accountID: Int, epoch: UInt64, viewerRevision: UInt64 = 0, approvalRevision: UUID? = nil) {
+        self.accountID = accountID; self.epoch = epoch; self.viewerRevision = viewerRevision; self.approvalRevision = approvalRevision
+    }
 }
 
 /// Never persist or log this value. The epoch must change on logout, expiration and relogin,
