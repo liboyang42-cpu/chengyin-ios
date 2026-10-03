@@ -42,7 +42,7 @@ import UIKit
         XCTAssertEqual(session.account?.id, 7)
     }
     private func setReview(_ model: PrivateHomeCoordinator) throws {
-        model.prepareSet(label: "Synthetic", point: try PrivateHomePoint(latitude: 12.345, longitude: 45.678))
+        model.prepareSet(label: "Synthetic", point: try PrivateHomePoint.parse(latitude: "12.345", longitude: "45.678"))
         XCTAssertTrue(model.canConfirm)
     }
     func testNormalRootInjectsStableSessionCoordinatorAndDurableJournal() async throws {

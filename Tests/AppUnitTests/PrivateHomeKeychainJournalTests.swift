@@ -32,7 +32,7 @@ private actor PrivateHomeSyntheticVault: PrivateHomeKeychainPrimitive {
         return (scope, try PlayExperienceSession(accountID: account, epoch: 1, namespace: scope.service, token: "fixture-token"))
     }
     private func mutation(_ id: String = "synthetic-a", label: String = "Synthetic") throws -> PrivateHomeMutation {
-        try PrivateHomeMutation(requestId: id, expectedVersion: 0, label: label, point: PrivateHomePoint(latitude: 12.345, longitude: 45.678))
+        try PrivateHomeMutation(requestId: id, expectedVersion: 0, label: label, point: PrivateHomePoint.parse(latitude: "12.345", longitude: "45.678"))
     }
     private func journal(_ vault: PrivateHomeSyntheticVault, account: Int = 12, realm: String = "synthetic-a") throws -> PrivateHomeKeychainJournal {
         let (scope, owner) = try context(account: account, realm: realm)

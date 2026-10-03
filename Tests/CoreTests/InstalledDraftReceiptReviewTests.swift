@@ -29,7 +29,7 @@ import XCTest
         OwnerDraftInstalledReceipts(record: try decode(object))
     }
     private func context() throws -> RuntimeDependencyContext {
-        .init(market: .china, baseURL: URL(string: "https://fixture.invalid")!, role: "player",
+        .init(market: .china, baseURL: URL(string: "https://fixture.example")!, role: "player",
               session: try .init(accountID: 7, epoch: 1, namespace: "synthetic", token: "synthetic"))
     }
     private func identity() throws -> ContentDraftIdentity {

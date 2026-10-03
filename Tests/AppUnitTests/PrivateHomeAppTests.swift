@@ -14,7 +14,7 @@ import SwiftUI
         service.lost = true
         let model = PrivateHomeCoordinator(service: service, journal: journal, owner: owner, enabled: true, current: { owner })
         await model.load()
-        model.prepareSet(label: "Synthetic", point: try PrivateHomePoint(latitude: 12.345, longitude: 45.678))
+        model.prepareSet(label: "Synthetic", point: try PrivateHomePoint.parse(latitude: "12.345", longitude: "45.678"))
         await model.confirm(); XCTAssertTrue(model.canRetry); XCTAssertFalse(model.canEdit)
         let request = try XCTUnwrap(journal.value)
         _ = PrivateHomeView(model: model).body

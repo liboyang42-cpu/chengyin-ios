@@ -8,7 +8,7 @@ import FoundationNetworking
     private func owner(_ account: Int = 12, epoch: UInt64 = 1, namespace: String = "realm-a") throws -> PlayExperienceSession {
         try PlayExperienceSession(accountID: account, epoch: epoch, namespace: namespace, token: "fixture-token")
     }
-    private func point() throws -> PrivateHomePoint { try PrivateHomePoint(latitude: 12.345, longitude: 45.678) }
+    private func point() throws -> PrivateHomePoint { try PrivateHomePoint.parse(latitude: "12.345", longitude: "45.678") }
     private func snapshot(_ version: Int64 = 0) throws -> PrivateHomeSnapshot {
         try JSONDecoder().decode(PrivateHomeSnapshot.self, from: Data("{\"version\":\(version),\"status\":\"DELETED\"}".utf8))
     }

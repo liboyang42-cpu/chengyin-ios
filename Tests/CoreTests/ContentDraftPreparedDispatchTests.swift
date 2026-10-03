@@ -52,7 +52,7 @@ import FoundationNetworking
         let service: ObservingService
         let model: ContentDraftCoordinator<Payload>
         init(key: String = "synthetic-key", grant: Bool = true) throws {
-            context = .init(market: .china, baseURL: URL(string: "https://prepared-fixture.invalid/api")!, role: "player",
+            context = .init(market: .china, baseURL: URL(string: "https://prepared-fixture.example/api")!, role: "player",
                 session: try .init(accountID: 7, epoch: 1, namespace: "synthetic-realm", token: "synthetic-token"))
             identity = try .init(ownerMemberID: 7, businessType: .topic, clientDraftKey: key)
             let captured = context
