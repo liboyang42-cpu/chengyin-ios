@@ -112155,6 +112155,22 @@
         }
       }
     },
+    "topic.countUnknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未知"
+          }
+        }
+      }
+    },
     "topic.detail": {
       "localizations": {
         "en": {
@@ -112667,6 +112683,22 @@
         }
       }
     },
+    "topic.totalStops": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total route stops"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "路线总站点"
+          }
+        }
+      }
+    },
     "topic.unauthorized": {
       "localizations": {
         "en": {
@@ -112695,6 +112727,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "此路线暂不可查看"
+          }
+        }
+      }
+    },
+    "topic.visibleChapterStops": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visible stops in this chapter"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本章可见站点"
           }
         }
       }

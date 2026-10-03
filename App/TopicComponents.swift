@@ -38,3 +38,15 @@ struct TopicIssueView: View {
         }.accessibilityIdentifier("topic.error")
     }
 }
+
+/// Full-route metadata remains separate from the visible per-chapter projection.
+struct TopicTotalStops: View {
+    let count: Int?
+    let identifier: String
+    var body: some View {
+        LabeledContent("topic.totalStops") {
+            if let count { Text(verbatim: String(count)).accessibilityIdentifier(identifier) }
+            else { Text("topic.countUnknown").accessibilityIdentifier(identifier) }
+        }
+    }
+}

@@ -6,6 +6,10 @@ import SwiftUI
     let node: RoamNodeDetail
     var coordinator: RoamPosterCoordinator? = nil
     var cameraEnabled = false
+    @Environment(\.scenePhase) private var scenePhase
+    private enum Focus: Hashable { case scan, status }
+    @AccessibilityFocusState private var focusedControl: Focus?
+    @State private var scanGeneration = 0
     @State private var purposeAccepted = false
     @State private var showingScanner = false
     @State private var revision = 0
@@ -21,7 +25,12 @@ import SwiftUI
                 if !cameraEnabled || coordinator?.available != true { Label("media.poster.disabled", systemImage: "lock.shield") }
             }
             if let coordinator {
-                Section { Text(LocalizedStringKey("media.poster.phase." + phaseKey(coordinator.phase))) }
+                Section {
+                    Group {
+                        if isBusy { ProgressView(LocalizedStringKey("media.poster.phase." + phaseKey(coordinator.phase))) }
+                        else { Text(LocalizedStringKey("media.poster.phase." + phaseKey(coordinator.phase))) }
+                    }.accessibilityFocused($focusedControl, equals: .status)
+                }
                 if coordinator.phase == .review {
                     Button("media.poster.confirm") { run { await coordinator.submit() } }.accessibilityIdentifier("media.poster.confirm")
                 }
@@ -30,20 +39,42 @@ import SwiftUI
                 }
             }
             Section {
-                Toggle("media.poster.consent", isOn: $purposeAccepted)
-                Button("media.poster.scan") { showingScanner = true }
+                Toggle("media.poster.consent", isOn: $purposeAccepted).disabled(isBusy || showingScanner)
+                Button("media.poster.scan") { scanGeneration += 1; showingScanner = true }
                     .disabled(!purposeAccepted || !cameraEnabled || coordinator?.available != true || availability != .available || !canScan)
                     .accessibilityIdentifier("media.poster.scan")
+                    .accessibilityFocused($focusedControl, equals: .scan)
             }
         }.navigationTitle("media.poster.title")
-            .fullScreenCover(isPresented: $showingScanner) {
+            .fullScreenCover(isPresented: $showingScanner, onDismiss: {
+                guard scenePhase == .active, cameraEnabled else { return }
+                focusedControl = canScan ? .scan : .status
+            }) {
                 if cameraEnabled, let coordinator {
-                    NativeQRScanner { code in showingScanner = false; run { await coordinator.scanned(code, purposeAccepted: purposeAccepted) } }
+                    let ticket = scanGeneration
+                    NativeQRScanner { code in
+                        guard ticket == scanGeneration, scenePhase == .active,
+                              cameraEnabled, purposeAccepted, coordinator.available else { return }
+                        showingScanner = false
+                        run { await coordinator.scanned(code, purposeAccepted: purposeAccepted) }
+                    }
                 }
             }
             .onAppear { coordinator?.changed = { revision += 1 } }
             .onDisappear { if !showingScanner { work?.cancel(); work = nil; coordinator?.cancel(); coordinator?.changed = nil } }
-            .accessibilityIdentifier("media.poster.destination")
+            .onChange(of: scenePhase) { _, phase in if phase == .background { invalidateScan() } }
+            .onChange(of: cameraEnabled) { _, enabled in if !enabled { invalidateScan() } }
+            .onChange(of: coordinator?.available) { _, available in if available == false { invalidateScan() } }
+    }
+    private var isBusy: Bool {
+        guard let phase = coordinator?.phase else { return false }
+        return phase == .locating || phase == .preflighting || phase == .submitting
+    }
+    private func invalidateScan() {
+        let shouldCancel = showingScanner || isBusy || coordinator?.phase == .review
+        scanGeneration += 1; showingScanner = false; focusedControl = nil
+        work?.cancel(); work = nil
+        if shouldCancel { coordinator?.cancel() }
     }
     private var canScan: Bool { coordinator?.phase == .ready || coordinator?.phase == .failed }
     private var availabilityKey: String {

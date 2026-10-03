@@ -46,6 +46,7 @@ struct TopicDetailView: View {
             Section {
                 if reader.isOfflineExample { Text("topic.offlineExample").font(.caption) }
                 Text(verbatim: value.name).font(.title2.bold())
+                TopicTotalStops(count: value.locationCount, identifier: "topic.totalStops")
                 if value.betaFlag == 1 { Text("topic.beta") }
                 if let subtitle = value.subtitle { Text(verbatim: subtitle) }
                 if let introduction = value.introduction { Text(verbatim: introduction).textSelection(.enabled) }
@@ -88,7 +89,7 @@ struct TopicDetailView: View {
                             if let minutes = chapter.totalTimeMinutes {
                                 LabeledContent("topic.durationMinutes", value: String(minutes)).font(.caption)
                             }
-                            LabeledContent("topic.stops", value: String(chapter.nodes.count)).font(.caption)
+                            LabeledContent("topic.visibleChapterStops", value: String(chapter.nodes.count)).font(.caption)
                         }
                     }.accessibilityIdentifier("topic.chapter.\(chapter.id)")
                 }

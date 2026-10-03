@@ -54,7 +54,7 @@ enum PlayerJourneyRoute: Hashable { case play(ParticipationPlayEntry), history(P
             }
         }
         .sheet(isPresented: $login) { LoginView(intent: .player) }
-        .onChange(of: session.sessionRevision) { _, _ in route = nil }
+        .onChange(of: session.sessionRevision) { _, _ in route = nil; login = false }
     }
 }
 
@@ -65,9 +65,18 @@ enum PlayerJourneyRoute: Hashable { case play(ParticipationPlayEntry), history(P
     let open: (PlayerJourneyRoute) -> Void
     let signIn: () -> Void
     @State private var rows: [ParticipationRecord]?
+    @State private var rowsScope: UUID?
     @State private var filter: ParticipationFilter = .all
-    @State private var selected: ParticipationRecord?
-    @State private var nextRoute: PlayerJourneyRoute?
+    private struct Selection: Identifiable {
+        let record: ParticipationRecord
+        let scope: UUID
+        var id: Int { record.id }
+    }
+    @State private var selected: Selection?
+    private struct PendingRoute { let target: PlayerJourneyRoute; let scope: UUID }
+    @State private var nextRoute: PendingRoute?
+    @State private var returnFocusID: Int?
+    @AccessibilityFocusState private var focusedParticipationID: Int?
     @State private var loading = false
     @State private var issue: String?
     @State private var generation = UUID()
@@ -79,31 +88,47 @@ enum PlayerJourneyRoute: Hashable { case play(ParticipationPlayEntry), history(P
                 }.pickerStyle(.menu).accessibilityIdentifier("playerJourney.filter")
             }
             if !reader.isAuthenticated { PlayerJourneyLogin(signIn: signIn) }
-            else if rows == nil && loading { ProgressView("playerJourney.loading") }
-            else if let rows {
+            else if loading && (rows == nil || rowsScope != reader.scope) { ProgressView("playerJourney.loading") }
+            else if let rows, rowsScope == reader.scope {
                 let visible = rows.filter { filter.includes($0) }
                 if visible.isEmpty { ContentUnavailableView("playerJourney.empty", systemImage: "ticket", description: Text("playerJourney.empty.detail")) }
                 ForEach(visible) { row in
-                    Button { selected = row } label: { ParticipationRow(record: row) }
+                    Button { returnFocusID = row.id; selected = Selection(record: row, scope: reader.scope) } label: { ParticipationRow(record: row) }
                         .buttonStyle(.plain).accessibilityIdentifier("playerJourney.participation.\(row.id)")
+                        .accessibilityFocused($focusedParticipationID, equals: row.id)
                 }
                 if let issue { Text(LocalizedStringKey(issue)).font(.footnote).foregroundStyle(.secondary) }
             } else if let issue { PlayerJourneyIssue(key: issue, retry: { Task { await load() } }) }
         }
         .navigationTitle("playerJourney.participations")
         .navigationBarTitleDisplayMode(.inline)
-        .task(id: reader.scope) { rows = nil; selected = nil; await load() }
+        .task(id: reader.scope) { resetPresentation(); rows = nil; await load() }
+        .onChange(of: reader.scope) { _, _ in resetPresentation() }
         .refreshable { await load() }
         .onDisappear { generation = UUID() }
         .sheet(item: $selected, onDismiss: {
-            if let target = nextRoute { nextRoute = nil; open(target) }
+            let pending = nextRoute; nextRoute = nil
+            if let pending {
+                returnFocusID = nil
+                guard pending.scope == reader.scope, reader.isAuthenticated else { return }
+                open(pending.target)
+            } else {
+                focusedParticipationID = returnFocusID
+                returnFocusID = nil
+            }
         }) { selected in
             NavigationStack {
                 ParticipationDetailView(id: selected.id, reader: reader, lifecycle: lifecycle,
-                    open: { target in nextRoute = target; self.selected = nil })
-                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { self.selected = nil } } }
+                    open: { target in
+                        guard selected.scope == reader.scope, reader.isAuthenticated else { resetPresentation(); return }
+                        nextRoute = PendingRoute(target: target, scope: selected.scope); self.selected = nil
+                    })
+                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { self.selected = nil }.accessibilityIdentifier("playerJourney.detail.close") } }
             }.presentationDetents([.large]).presentationDragIndicator(.visible)
         }
+    }
+    private func resetPresentation() {
+        nextRoute = nil; returnFocusID = nil; focusedParticipationID = nil; selected = nil
     }
     private func load() async {
         let request = UUID(); generation = request; let scope = reader.scope
@@ -112,10 +137,10 @@ enum PlayerJourneyRoute: Hashable { case play(ParticipationPlayEntry), history(P
         do {
             let values = try await reader.participations()
             guard generation == request, scope == reader.scope, !Task.isCancelled else { return }
-            rows = values
+            rows = values; rowsScope = scope
         } catch {
             guard generation == request, scope == reader.scope, !Task.isCancelled else { return }
-            if error as? APIError == .unauthorized { rows = nil; selected = nil }
+            if error as? APIError == .unauthorized { rows = nil; resetPresentation() }
             issue = rows == nil ? PlayerJourneyIssue.key(error) : "playerJourney.refreshFailed"
         }
     }
@@ -160,16 +185,18 @@ private struct ParticipationRow: View {
                         PlayerJourneyCount(label: "playerJourney.pending", value: detail.pending)
                         PlayerJourneyCount(label: "playerJourney.verified", value: detail.verified)
                         PlayerJourneyCount(label: "playerJourney.total", value: detail.total)
-                        Button("verification.title", systemImage: "qrcode.viewfinder") { open(.verification) }
-                            .accessibilityIdentifier("playerJourney.verification")
+                        NavigationLink { SessionNativeVerificationView() } label: {
+                            Label("verification.title", systemImage: "qrcode.viewfinder")
+                        }.accessibilityIdentifier("playerJourney.verification")
                     }
                 }
                 if let rules = detail.rules { Section("playerJourney.rules") { Text(verbatim: rules) } }
                 if let rawID = detail.templateID, let id = MemberPlayTemplateID(rawValue: rawID) {
                     Section("playerJourney.template") {
                         if let templateName = detail.templateName { Text(verbatim: templateName) }
-                        Button("memberTemplate.title", systemImage: "doc.text.magnifyingglass") { open(.memberTemplate(id)) }
-                            .accessibilityIdentifier("playerJourney.template")
+                        NavigationLink { SessionMemberTemplateDetailView(id: id) } label: {
+                            Label("memberTemplate.title", systemImage: "doc.text.magnifyingglass")
+                        }.accessibilityIdentifier("playerJourney.template")
                     }
                 }
                 Section {
@@ -185,8 +212,9 @@ private struct ParticipationRow: View {
                         Text("playerJourney.modifyNeedsReview").foregroundStyle(.secondary)
                     }
                     if !detail.canCancel(), !detail.needsModification {
-                        Button("participationSupport.title", systemImage: "message") { open(.support) }
-                            .accessibilityIdentifier("playerJourney.support")
+                        NavigationLink { ParticipationSupportView() } label: {
+                            Label("participationSupport.title", systemImage: "message")
+                        }.accessibilityIdentifier("playerJourney.support")
                     }
                 }
             }

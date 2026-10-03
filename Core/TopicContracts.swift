@@ -43,6 +43,7 @@ public struct TopicSummary: Decodable, Equatable, Identifiable {
     public let betaFlag: Int
     public let isLike: Int
     public let likeCount: Int
+    public let locationCount: Int?
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: TopicKey.self)
         id = c.int("id") ?? 0
@@ -57,6 +58,7 @@ public struct TopicSummary: Decodable, Equatable, Identifiable {
         betaFlag = c.int("betaFlag") ?? 0
         isLike = c.int("isLike") ?? 0
         likeCount = c.int("likeNum") ?? 0
+        locationCount = c.int("locationCount").flatMap { $0 >= 0 ? $0 : nil }
     }
 }
 
@@ -215,7 +217,8 @@ public struct TopicDetail: Decodable, Equatable, Identifiable {
     public let totalMileage: Double?
     public let audioURL: String?
     public let audioDuration: Int?
-    public let locationCount: Int
+    /// Authoritative full-route total; absent is unknown, never a visible-node count.
+    public let locationCount: Int?
     public let templateCount: Int
     public let productType: Int
     public let perkSellableCapacity: Int?
@@ -256,7 +259,7 @@ public struct TopicDetail: Decodable, Equatable, Identifiable {
         totalMileage = c.number("totalMileage")
         audioURL = c.text("audioUrl")
         audioDuration = c.int("audioDuration")
-        locationCount = c.int("locationCount") ?? 0
+        locationCount = c.int("locationCount").flatMap { $0 >= 0 ? $0 : nil }
         templateCount = c.int("templateCount") ?? 0
         productType = c.int("productType") ?? 0
         perkSellableCapacity = c.int("perkSellableCapacity")

@@ -41,6 +41,7 @@ struct TopicBrowserView: View {
                         } label: {
                             QuestifyImageEntityCard(imageSource:item.imageURL,title:item.name,
                                                     subtitle:item.introduction,fallbackSymbol:"map") {
+                                TopicTotalStops(count: item.locationCount, identifier: "topic.totalStops.\(item.id)")
                                 if item.betaFlag == 1 { Text("topic.beta").font(.caption.weight(.semibold)) }
                                 if let address=item.addressName,!address.isEmpty {
                                     QuestifyImageEntityMetadata(label:"homeFeed.place",value:address,systemImage:"mappin")

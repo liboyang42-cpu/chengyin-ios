@@ -191,6 +191,36 @@ import FoundationNetworking
         XCTAssertEqual(failures, [.locked])
         XCTAssertEqual(transport.requests.filter { $0.httpMethod == "POST" }.count, 1)
     }
+    func testConcurrentFixtureRequestsPreserveEveryRequestAndPolicyRead() async throws {
+        let transport = SquareReportFixtureTransport()
+        // Force suspension inside send while requests enter from child tasks.
+        // The caller's MainActor alone does not isolate an async transport witness.
+        transport.onRequest = { _ in await Task.yield() }
+        let dispatch: any HTTPTransport = transport
+        let count = 256
+        let statuses = try await withThrowingTaskGroup(of: Int.self) { group in
+            for index in 0..<count {
+                group.addTask {
+                    let request = URLRequest(url: URL(string: "https://example.com/api/v1/community/capabilities?request=\(index)")!)
+                    let (data, status) = try await dispatch.send(request)
+                    let raw = try JSONDecoder().decode(SquareGovernanceJSON.self, from: data)
+                    guard raw["data"]["reporting"]["policyVersion"].string == "SYNTHETIC_POLICY_V1" else {
+                        throw SquareReportFailure.malformed
+                    }
+                    return status
+                }
+            }
+            var statuses: [Int] = []
+            for try await status in group { statuses.append(status) }
+            return statuses
+        }
+        XCTAssertEqual(statuses.count, count)
+        XCTAssertTrue(statuses.allSatisfy { $0 == 200 })
+        XCTAssertEqual(transport.policyReads, count)
+        XCTAssertEqual(transport.requests.count, count)
+        XCTAssertEqual(Set(transport.requests.compactMap { $0.url?.query }).count, count)
+        XCTAssertFalse(transport.requests.contains { $0.httpMethod == "POST" })
+    }
     func testChangedTargetReloadRequiresNewReviewAndNeverRetriesOldMutation() async throws {
         let transport = SquareReportFixtureTransport(), access = ReportTestAccess(), model = try coordinator(transport)
         let old = try await review(model, access: access); access.version = 4

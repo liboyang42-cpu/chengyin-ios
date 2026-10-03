@@ -13,6 +13,7 @@ enum ModuleFixture: String {
     case searchMap
     case teams
     case settingsNative
+    case presentationPatterns
     case homeFeed = "home-feed"
     case ticketWallet, square, cooperation, accountCollections, creatorContent, growthCenter, officialEvents, projectEdit
     case discovery, profile, messaging, roam, participants, play, composer, topic, localization
@@ -53,6 +54,7 @@ struct ModuleFixtureRootView: View {
             case .searchMap: SearchMapFixtureHostView()
             case .teams: TeamFixtureHostView()
             case .settingsNative: SettingsFixtureHostView()
+            case .presentationPatterns: NativePresentationFixtureHost()
             case .homeFeed: HomeFeedFixtureHostView()
             case .ticketWallet: TicketWalletFixtureHostView()
             case .square: SquareFixtureHostView()

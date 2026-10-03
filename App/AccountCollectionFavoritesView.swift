@@ -67,6 +67,7 @@ private struct AccountCollectionFavoriteCard: View {
         QuestifyImageEntityCard(imageSource: topic.imageURL, title: topic.name,
                                fallbackTitle: "accountCollection.favorites.untitled",
                                fallbackSymbol: "photo", minimumHeight: 250) {
+            TopicTotalStops(count: topic.locationCount, identifier: "accountCollection.totalStops.\(topic.id)")
             if let place = topic.addressName, !place.isEmpty {
                 QuestifyImageEntityMetadata(label: "accountCollection.favorites.place", value: place, systemImage: "mappin.and.ellipse")
             }

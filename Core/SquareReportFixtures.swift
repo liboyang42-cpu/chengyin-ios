@@ -26,7 +26,9 @@ public enum SquareReportFixtures {
     }
 }
 
-public final class SquareReportFixtureTransport: SquareReportOfflineTransport {
+/// Keep every fixture field on one executor even when a nonisolated service
+/// calls the async transport witness. Suspension in onRequest remains reentrant.
+@MainActor public final class SquareReportFixtureTransport: SquareReportOfflineTransport {
     public var scenario: String
     public private(set) var requests: [URLRequest] = []
     public var policyReads = 0

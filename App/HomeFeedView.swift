@@ -145,6 +145,7 @@ struct HomeFeedCard: View {
     }
     private var imageTopicCard:some View {
         QuestifyImageEntityCard(imageSource:item.imageURL,title:item.name,subtitle:item.introduction,fallbackSymbol:"map") {
+            if case .topic(let topic) = item { TopicTotalStops(count: topic.locationCount, identifier: "homeFeed.totalStops.\(topic.id)") }
             if item.isBeta { Text("homeFeed.beta").font(.caption.weight(.semibold)) }
             QuestifyImageEntityMetadata(label:"homeFeed.date",value:item.startDate ?? "—",systemImage:"calendar")
             QuestifyImageEntityMetadata(label:"homeFeed.place",value:item.place ?? "—",systemImage:"mappin")

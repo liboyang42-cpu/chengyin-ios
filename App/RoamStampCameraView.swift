@@ -8,6 +8,8 @@ import UIKit
     var coordinator: RoamStampCaptureCoordinator? = nil
     var cameraEnabled = false
     @Environment(\.scenePhase) private var scenePhase
+    private enum Focus: Hashable { case capture, status }
+    @AccessibilityFocusState private var focusedControl: Focus?
     @State private var purposeAccepted = false
     @State private var showingCamera = false
     @State private var cameraIssue = false
@@ -21,7 +23,7 @@ import UIKit
                 Text("media.stamp.purpose")
                 if !cameraEnabled { Label("media.stamp.disabled", systemImage: "camera.fill") }
                 if cameraIssue { Text("media.stamp.cameraIssue") }
-                Toggle("media.stamp.consent", isOn: $purposeAccepted)
+                Toggle("media.stamp.consent", isOn: $purposeAccepted).disabled(isBusy || showingCamera)
             }
             if let coordinator {
                 Section {
@@ -29,7 +31,10 @@ import UIKit
                         Image(uiImage: image).resizable().scaledToFit().frame(maxHeight: 320)
                             .accessibilityLabel(Text("media.stamp.capturedPreview"))
                     }
-                    Text(LocalizedStringKey("media.stamp.phase." + phaseKey(coordinator.phase)))
+                    Group {
+                        if isBusy { ProgressView(LocalizedStringKey("media.stamp.phase." + phaseKey(coordinator.phase))) }
+                        else { Text(LocalizedStringKey("media.stamp.phase." + phaseKey(coordinator.phase))) }
+                    }.accessibilityFocused($focusedControl, equals: .status)
                     if coordinator.phase == .review {
                         Button("media.stamp.retake") { coordinator.retake(); revision += 1 }.disabled(!coordinator.canCapture)
                         Button("media.stamp.upload") { run { await coordinator.upload() } }.disabled(!coordinator.canUpload)
@@ -43,13 +48,17 @@ import UIKit
             Button("media.stamp.capture") { requestCamera() }
                 .disabled(!cameraEnabled || !purposeAccepted || coordinator?.canCapture != true)
                 .accessibilityIdentifier("media.stamp.capture")
+                .accessibilityFocused($focusedControl, equals: .capture)
         }.navigationTitle("media.stamp.title")
-            .fullScreenCover(isPresented: $showingCamera) {
+            .fullScreenCover(isPresented: $showingCamera, onDismiss: {
+                guard scenePhase == .active, cameraEnabled else { return }
+                focusedControl = coordinator?.selection == nil ? .capture : .status
+            }) {
                 if cameraEnabled {
                     let ticket = captureGeneration
                     RoamNativeStampCamera { result in
+                        guard ticket == captureGeneration, scenePhase == .active, cameraEnabled, purposeAccepted else { return }
                         showingCamera = false
-                        guard ticket == captureGeneration, scenePhase == .active else { return }
                         switch result {
                         case .success(let image): if let image { coordinator?.captured(image); revision += 1 }
                         case .failure: cameraIssue = true
@@ -60,9 +69,14 @@ import UIKit
             .onAppear { coordinator?.changed = { revision += 1 } }
             .onDisappear { if !showingCamera { stop() } }
             .onChange(of: scenePhase) { _, phase in
-                if phase == .background { captureGeneration += 1; showingCamera = false; work?.cancel(); coordinator?.cancel() }
+                if phase == .background { invalidateCapture() }
             }
-            .accessibilityIdentifier("media.stamp.destination")
+            .onChange(of: cameraEnabled) { _, enabled in if !enabled { invalidateCapture() } }
+    }
+    private var isBusy: Bool { coordinator?.phase == .uploading || coordinator?.phase == .creating }
+    private func invalidateCapture() {
+        captureGeneration += 1; showingCamera = false; focusedControl = nil
+        work?.cancel(); work = nil; coordinator?.cancel()
     }
     private func requestCamera() {
         guard cameraEnabled, purposeAccepted, coordinator?.canCapture == true, !showingCamera else { return }
@@ -74,7 +88,7 @@ import UIKit
             let granted: Bool
             if status == .notDetermined { granted = await AVCaptureDevice.requestAccess(for: .video) }
             else { granted = status == .authorized }
-            guard !Task.isCancelled, ticket == captureGeneration, scenePhase == .active else { return }
+            guard !Task.isCancelled, ticket == captureGeneration, scenePhase == .active, cameraEnabled, purposeAccepted else { return }
             showingCamera = granted; cameraIssue = !granted
         }
     }

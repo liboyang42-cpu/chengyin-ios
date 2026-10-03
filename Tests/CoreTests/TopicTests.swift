@@ -30,6 +30,22 @@ final class TopicTests: XCTestCase {
     private func decode<T: Decodable>(_ type: T.Type, _ json: String) throws -> T {
         try JSONDecoder().decode(type, from: Data(json.utf8))
     }
+    func testFullRouteCountPreservesUnknownZeroAndAuthoritativeTotal() throws {
+        for fields in ["", ",\"locationCount\":null", ",\"locationCount\":-1"] {
+            let raw = "{\"id\":7\(fields),\"chaptersList\":[{\"id\":11,\"nodes\":[{\"id\":21}]}]}"
+            XCTAssertNil(try decode(TopicSummary.self, raw).locationCount)
+            XCTAssertNil(try decode(TopicDetail.self, raw).locationCount)
+        }
+        for count in [0, 9, 3_000_000_000] {
+            let raw = "{\"id\":7,\"locationCount\":\(count),\"storyLocked\":true,\"totalChapterCount\":4,\"chaptersList\":[{\"id\":11,\"nodes\":[{\"id\":21}]}]}"
+            XCTAssertEqual(try decode(TopicSummary.self, raw).locationCount, count)
+            let detail = try decode(TopicDetail.self, raw)
+            XCTAssertEqual(detail.locationCount, count)
+            XCTAssertEqual(detail.chapters.flatMap(\.nodes).count, 1)
+            XCTAssertTrue(detail.storyLocked)
+            XCTAssertEqual(detail.totalChapterCount, 4)
+        }
+    }
     private func service(_ transport: any HTTPTransport) throws -> TopicService {
         try TopicService(configuration: APIConfiguration(baseURL: URL(string: "https://example.com/test/")!), transport: transport)
     }

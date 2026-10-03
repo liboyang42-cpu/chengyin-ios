@@ -1595,6 +1595,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "265B01D6B560DBDAAADE0055";
 		};
+		"689461CCAFD3020D26140D70" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativePresentationFixtureSupport.swift";
+			"sourceTree" = "<group>";
+		};
+		"EB976E99D93A2EEFCF838707" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "689461CCAFD3020D26140D70";
+		};
 		"FABCEFB4B294DBD3FFD196ED" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -8437,6 +8447,7 @@
 				"AA2D197F3E4FBEABBC07330A",
 				"9B79C1BD1D8900D9BB75DA40",
 				"265B01D6B560DBDAAADE0055",
+				"689461CCAFD3020D26140D70",
 				"FABCEFB4B294DBD3FFD196ED",
 				"A5316E1A4FB27D678BF2F83D",
 				"36C28E20A523278B978264E3",
@@ -9141,6 +9152,8 @@
 				"78F3A609ACBED66263978AE1",
 				"7B136237336B8500B5192406",
 				"07E178C7E50A1058C93BAD5D",
+				"0605D9D221FE96678BB877E5",
+				"8E2C928D0EDC9C033448A94D",
 				"68093196B8F585BD61265FF8",
 				"74823B3CEC69D8A0B023F863",
 				"D8B3E3DED2F2C0A1E45C63CE",
@@ -9369,6 +9382,7 @@
 				"07D52A55A2E04AAFDD063A49",
 				"0A0F7F2F1B58E3775317F0F8",
 				"128FE8EE28EB6DBC76218BFF",
+				"EB976E99D93A2EEFCF838707",
 				"A85668FB109326CBF51DB01F",
 				"A0205E36AD20F9B390C5FAC6",
 				"8E1240B2A43E9F11080E6B05",
@@ -10525,6 +10539,26 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "07E178C7E50A1058C93BAD5D";
 		};
+		"0605D9D221FE96678BB877E5" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUITests/NativePresentationPatternFlowTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"B5C933E32498FE0CD1CE62BF" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "0605D9D221FE96678BB877E5";
+		};
+		"8E2C928D0EDC9C033448A94D" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUITests/NativeSettingsReuseFlowTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"F461BFEAA239082E39E1076D" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "8E2C928D0EDC9C033448A94D";
+		};
 		"68093196B8F585BD61265FF8" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -10994,6 +11028,8 @@
 				"8DB86D505EBE869D85016224",
 				"7BD0C561BA98C2B120684DE0",
 				"326277B04C07978656AEDF62",
+				"B5C933E32498FE0CD1CE62BF",
+				"F461BFEAA239082E39E1076D",
 				"D000D0080E4E1F170EC0D6B0",
 				"450BDA7FD723A7CEF32EF788",
 				"DC2221EF3437A7E5CA791B16",

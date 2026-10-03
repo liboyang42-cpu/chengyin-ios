@@ -453,7 +453,17 @@
     "ReferenceChatTaskFlowTests.testChineseServerCompletedHasNoCurrentAction": 60,
     "ReferenceChatTaskFlowTests.testFailedTaskReadCannotShowAProgressBarOrCurrentAction": 60,
     "ReferenceChatTaskFlowTests.testMessageAccountSwitchDoesNotRetainPrivateHistory": 60,
-    "ReferenceChatTaskFlowTests.testMerchantAIIdentityIsVisibleAndReopenStartsFresh": 60
+    "ReferenceChatTaskFlowTests.testMerchantAIIdentityIsVisibleAndReopenStartsFresh": 60,
+    "NativePresentationPatternFlowTests.testGalleryEnglishPagesClosesAndReopensAtSelectedImage": 60,
+    "NativePresentationPatternFlowTests.testGalleryChineseMaximumTextDarkReducedMotionKeepsPagingAndClose": 60,
+    "NativePresentationPatternFlowTests.testMalformedImageFinishesWithRetryAndClose": 60,
+    "NativePresentationPatternFlowTests.testGalleryScopeChangeDismissesWithoutStaleReopen": 60,
+    "NativePresentationPatternFlowTests.testDisabledMediaAndCameraEntrypointsDoNotSpinOrRequestPermission": 180,
+    "NativePresentationPatternFlowTests.testParticipationSupportStaysInSheetAndReturnsBeforeClose": 60,
+    "NativePresentationPatternFlowTests.testParticipationPlayWaitsForSheetDismissal": 60,
+    "NativePresentationPatternFlowTests.testParticipationFailureRetriesAndScopeExpiryDismisses": 120,
+    "NativeSettingsReuseFlowTests.testFollowSystemPersistsAcrossRelaunchWithoutChangingUSMarket": 120,
+    "NativeSettingsReuseFlowTests.testMaximumTextLegalMissingStateBackAndReopenInBothLanguages": 120
   },
   "estimate_provenance": {
     "basis": "Conservative grouping assumptions, not executed case timings. Successful measurements take priority. 23 original assumptions plus explicitly scoped later additions.",
@@ -808,6 +818,76 @@
         "seconds": 60,
         "source": "referenceChatTask16",
         "basis": "60-second unmeasured baseline for one explicit app launch; reopen/review work remains unmeasured",
+        "measured": false
+      },
+      {
+        "method": "NativePresentationPatternFlowTests.testGalleryEnglishPagesClosesAndReopensAtSelectedImage",
+        "seconds": 60,
+        "source": "referencePresentation10",
+        "basis": "1 explicit app launch(es) at60seconds per launch; unmeasured navigation/reopen/layout work",
+        "measured": false
+      },
+      {
+        "method": "NativePresentationPatternFlowTests.testGalleryChineseMaximumTextDarkReducedMotionKeepsPagingAndClose",
+        "seconds": 60,
+        "source": "referencePresentation10",
+        "basis": "1 explicit app launch(es) at60seconds per launch; unmeasured navigation/reopen/layout work",
+        "measured": false
+      },
+      {
+        "method": "NativePresentationPatternFlowTests.testMalformedImageFinishesWithRetryAndClose",
+        "seconds": 60,
+        "source": "referencePresentation10",
+        "basis": "1 explicit app launch(es) at60seconds per launch; unmeasured navigation/reopen/layout work",
+        "measured": false
+      },
+      {
+        "method": "NativePresentationPatternFlowTests.testGalleryScopeChangeDismissesWithoutStaleReopen",
+        "seconds": 60,
+        "source": "referencePresentation10",
+        "basis": "1 explicit app launch(es) at60seconds per launch; unmeasured navigation/reopen/layout work",
+        "measured": false
+      },
+      {
+        "method": "NativePresentationPatternFlowTests.testDisabledMediaAndCameraEntrypointsDoNotSpinOrRequestPermission",
+        "seconds": 180,
+        "source": "referencePresentation10",
+        "basis": "3 explicit app launch(es) at60seconds per launch; unmeasured navigation/reopen/layout work",
+        "measured": false
+      },
+      {
+        "method": "NativePresentationPatternFlowTests.testParticipationSupportStaysInSheetAndReturnsBeforeClose",
+        "seconds": 60,
+        "source": "referencePresentation10",
+        "basis": "1 explicit app launch(es) at60seconds per launch; unmeasured navigation/reopen/layout work",
+        "measured": false
+      },
+      {
+        "method": "NativePresentationPatternFlowTests.testParticipationPlayWaitsForSheetDismissal",
+        "seconds": 60,
+        "source": "referencePresentation10",
+        "basis": "1 explicit app launch(es) at60seconds per launch; unmeasured navigation/reopen/layout work",
+        "measured": false
+      },
+      {
+        "method": "NativePresentationPatternFlowTests.testParticipationFailureRetriesAndScopeExpiryDismisses",
+        "seconds": 120,
+        "source": "referencePresentation10",
+        "basis": "2 explicit app launch(es) at60seconds per launch; unmeasured navigation/reopen/layout work",
+        "measured": false
+      },
+      {
+        "method": "NativeSettingsReuseFlowTests.testFollowSystemPersistsAcrossRelaunchWithoutChangingUSMarket",
+        "seconds": 120,
+        "source": "referencePresentation10",
+        "basis": "2 explicit app launch(es) at60seconds per launch; unmeasured navigation/reopen/layout work",
+        "measured": false
+      },
+      {
+        "method": "NativeSettingsReuseFlowTests.testMaximumTextLegalMissingStateBackAndReopenInBothLanguages",
+        "seconds": 120,
+        "source": "referencePresentation10",
+        "basis": "2 explicit app launch(es) at60seconds per launch; unmeasured navigation/reopen/layout work",
         "measured": false
       }
     ],

@@ -15,6 +15,8 @@ import UIKit
         self.reader = reader ?? RetainedPublicImageReader()
     }
     @State private var selection: Selection?
+    @State private var returnFocusIndex: Int?
+    @AccessibilityFocusState private var focusedImageIndex: Int?
     private struct Selection: Identifiable { let id = UUID(); let snapshot: MediaGallerySnapshot }
     var body: some View {
         Group {
@@ -22,23 +24,29 @@ import UIKit
                 ScrollView(.horizontal) {
                     HStack {
                         ForEach(Array(sources.prefix(compact ? 1 : 100).enumerated()), id: \.offset) { index, source in
-                            Button { selection = Selection(snapshot: .init(sources: sources, selectedIndex: index)) } label: {
+                            Button { returnFocusIndex = index; selection = Selection(snapshot: .init(sources: sources, selectedIndex: index)) } label: {
                                 NativeMediaImage(raw: source, reader: reader, zoomable: false)
                                     .frame(width: compact ? 180 : 112, height: 112).clipped()
                             }.buttonStyle(.plain)
                                 .accessibilityLabel(Text("media.destination.openImage"))
                                 .accessibilityValue(Text("\(index + 1) / \(min(sources.count, 100))"))
                                 .accessibilityIdentifier("media.gallery.open.\(index)")
+                                .accessibilityFocused($focusedImageIndex, equals: index)
                         }
                     }
                 }
             }
         }
-        .fullScreenCover(item: $selection) { selected in
+        .fullScreenCover(item: $selection, onDismiss: {
+            focusedImageIndex = returnFocusIndex; returnFocusIndex = nil
+        }) { selected in
             NativeMediaGallery(snapshot: selected.snapshot, titleKey: titleKey, reader: reader)
         }
-        .onChange(of: scope) { _, _ in selection = nil }
-        .onChange(of: sources) { _, _ in selection = nil }
+        .onChange(of: scope) { _, _ in invalidateSelection() }
+        .onChange(of: sources) { _, _ in invalidateSelection() }
+    }
+    private func invalidateSelection() {
+        returnFocusIndex = nil; focusedImageIndex = nil; selection = nil
     }
 }
 
@@ -47,6 +55,7 @@ import UIKit
     let titleKey: String
     let reader: any RetainedPublicImageReading
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var index: Int
     init(snapshot: MediaGallerySnapshot, titleKey: String, reader: any RetainedPublicImageReading) {
         self.snapshot = snapshot; self.titleKey = titleKey; self.reader = reader
@@ -64,20 +73,42 @@ import UIKit
                                 .tag(position).id(position)
                         }
                     }.tabViewStyle(.page(indexDisplayMode: .never))
-                    HStack {
-                        Button("media.destination.previous") { index = max(0, index - 1) }.disabled(index == 0)
-                        Spacer()
-                        Text("\(index + 1) / \(snapshot.sources.count)").monospacedDigit()
-                            .accessibilityIdentifier("media.gallery.position")
-                        Spacer()
-                        Button("media.destination.next") { index = min(snapshot.sources.count - 1, index + 1) }
-                            .disabled(index == snapshot.sources.count - 1)
+                    Group {
+                        if dynamicTypeSize.isAccessibilitySize {
+                            VStack(spacing: 8) {
+                                position
+                                previousButton
+                                nextButton
+                            }
+                        } else {
+                            HStack {
+                                previousButton
+                                Spacer()
+                                position
+                                Spacer()
+                                nextButton
+                            }
+                        }
                     }.padding().font(.body)
                 }
             }.background(Color(uiColor: .systemBackground))
                 .appNavigationTitle(key: titleKey).navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { dismiss() }.accessibilityIdentifier("media.gallery.close") } }
-        }.accessibilityIdentifier("media.gallery.fullscreen")
+        }
+    }
+    private var position: some View {
+        Text("\(index + 1) / \(snapshot.sources.count)").monospacedDigit()
+            .accessibilityIdentifier("media.gallery.position")
+    }
+    private var previousButton: some View {
+        Button("media.destination.previous") { index = max(0, index - 1) }
+            .frame(minHeight: 44).disabled(index == 0)
+            .accessibilityIdentifier("media.gallery.previous")
+    }
+    private var nextButton: some View {
+        Button("media.destination.next") { index = min(snapshot.sources.count - 1, index + 1) }
+            .frame(minHeight: 44).disabled(index == snapshot.sources.count - 1)
+            .accessibilityIdentifier("media.gallery.next")
     }
 }
 
@@ -95,7 +126,11 @@ import UIKit
                 else { Image(uiImage: image).resizable().scaledToFit() }
             } else if !reader.enabled { Label("media.destination.unavailable", systemImage: "photo") }
             else if failed {
-                VStack { Label("media.destination.failed", systemImage: "photo.badge.exclamationmark"); Button("action.retry") { revision += 1 } }
+                VStack {
+                    Label("media.destination.failed", systemImage: "photo.badge.exclamationmark")
+                        .accessibilityIdentifier("media.gallery.failed")
+                    Button("action.retry") { revision += 1 }.accessibilityIdentifier("media.gallery.retry")
+                }
             } else { ProgressView("square.imageLoading") }
         }
         .task(id: "\(raw)|\(revision)") {
@@ -105,7 +140,9 @@ import UIKit
                 let bytes = try await reader.image(url: url)
                 try Task.checkCancellation()
                 let clean = try RetainedImageSanitizer.sanitize(bytes)
-                try Task.checkCancellation(); image = UIImage(data: clean.jpeg)
+                try Task.checkCancellation()
+                guard let decoded = UIImage(data: clean.jpeg) else { throw RetainedImageFailure.invalid }
+                image = decoded
             } catch { if !Task.isCancelled { failed = true } }
         }.onDisappear { image = nil }
     }

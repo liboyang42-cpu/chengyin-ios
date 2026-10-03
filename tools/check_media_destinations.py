@@ -25,12 +25,21 @@ expect('Core/WalletCommerceService.swift','api/user/info','["member_id": String(
 expect('App/WithdrawalSupportLandingView.swift','withdrawalBalance(memberID: scope.accountID','stages(token: $1)','loadedScope == reader.scope','contact: WithdrawalSupportContact? = nil')
 # Every new key is bilingual. Dynamic phase keys are covered explicitly by the fragment.
 fragment=json.loads(text('Resources/MediaDestinationsLocalizations.fragment.json'))['strings']
+catalog=json.loads(text('Resources/Localizable.xcstrings'))['strings']
 for key,item in fragment.items():
  for lang in ['en','zh-Hans']: assert item['localizations'][lang]['stringUnit']['value']
 for name in ['App/NativeMediaGallery.swift','App/RoamPosterScanView.swift','App/RoamStampCameraView.swift','App/WithdrawalSupportLandingView.swift']:
  for key in re.findall(r'"((?:media\.(?:destination|stamp|poster)|withdrawal\.support)\.[A-Za-z]+)"',text(name)):
   if key.endswith('.phase') or key.endswith('.destination') or key in ['media.poster.open']: continue
-  if key not in fragment: assert key in ['withdrawal.support.landing'],key
+  if key == 'withdrawal.support.landing':
+   assert '.accessibilityIdentifier("withdrawal.support.landing")' in text(name)
+   continue
+  # Later native surfaces may reuse a key owned by another additive fragment.
+  # The generated catalog must still contain a nonempty translation in both languages.
+  assert key in catalog, key
+  for lang in ['en','zh-Hans']:
+   value=catalog[key]['localizations'][lang]['stringUnit']['value']
+   assert isinstance(value,str) and value.strip(), (key,lang)
 assert len(re.findall('func test',text('Tests/CoreTests/MediaDestinationsTests.swift'))) >= 15
 assert len(re.findall('func test',text('Tests/AppUnitTests/RoamStampPixelTests.swift'))) == 2
 print('PASS media destination structural contracts; Swift/Apple/device/visual tests NOT_RUN')
