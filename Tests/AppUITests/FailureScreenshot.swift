@@ -26,11 +26,22 @@ func revealFixtureElement(_ element: XCUIElement, in app: XCUIApplication,
     func viewport() -> CGRect {
         var bounds = app.frame.insetBy(dx: 4, dy: 4)
         // A presented sheet can leave its presenter's bars in the AX tree.
-        // Only foreground, hittable bars occlude the current scroll surface.
-        let navigationBar = app.navigationBars.allElementsBoundByIndex.first { $0.isHittable }
+        // Structural bars need not have an activation point. Check their native
+        // action leaves instead, preferring the last (presented) container.
+        func foregroundBar(_ bars: [XCUIElement]) -> XCUIElement? {
+            bars.reversed().first { bar in
+                let frame = bar.frame
+                guard !frame.isEmpty, app.frame.intersects(frame) else { return false }
+                let actions = bar.buttons.allElementsBoundByIndex.filter {
+                    $0.descendants(matching: .button).count == 0
+                }
+                return actions.isEmpty || actions.contains { $0.isHittable }
+            }
+        }
+        let navigationBar = foregroundBar(app.navigationBars.allElementsBoundByIndex)
         if let navigationBar { bounds.origin.y = max(bounds.minY, navigationBar.frame.maxY + 4) }
         var bottom = app.frame.maxY - 40
-        let toolbar = app.toolbars.allElementsBoundByIndex.first { $0.isHittable }
+        let toolbar = foregroundBar(app.toolbars.allElementsBoundByIndex)
         if let toolbar { bottom = min(bottom, toolbar.frame.minY - 4) }
         let keyboard = app.keyboards.firstMatch
         if keyboard.exists { bottom = min(bottom, keyboard.frame.minY - 4) }

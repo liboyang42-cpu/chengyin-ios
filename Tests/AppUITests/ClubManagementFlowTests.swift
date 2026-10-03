@@ -25,10 +25,9 @@ final class ClubManagementFlowTests: XCTestCase {
     private func prepare(_ action: String, target: Int) -> XCUIElement {
         let button = app.buttons["club.management.\(action).\(target)"].firstMatch
         let detail = app.navigationBars[action == "remove" ? "Member details" : "Application details"]
-        let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
-            detail.exists && button.exists && button.isEnabled
-        }, object: app)
-        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 5), .completed, app.debugDescription)
+        XCTAssertTrue(button.waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertTrue(detail.exists, app.debugDescription)
+        XCTAssertTrue(button.isEnabled, app.debugDescription)
         button.tap()
         let sheet = app! // SwiftUI modal can expose Other rather than XCUIElementTypeSheet.
         let title = action == "approve" ? "Approve application" : action == "reject" ? "Reject application" : "Remove member"
@@ -54,11 +53,12 @@ final class ClubManagementFlowTests: XCTestCase {
                     && button.label == bar.identifier && button.isEnabled
             }
         }
-        let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
-            visibleActions().count == 1
-        }, object: sheet)
-        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 5), .completed, app.debugDescription)
+        // Wait for materialization before requesting geometry/descendant snapshots.
+        // Repeating all those AX requests inside a timed predicate can exhaust its
+        // deadline even when the confirmation is already visible and enabled.
+        XCTAssertTrue(matches.firstMatch.waitForExistence(timeout: 5), app.debugDescription)
         let actions = visibleActions()
+        XCTAssertEqual(actions.count, 1, app.debugDescription)
         guard actions.count == 1, let leaf = actions.first else { XCTFail("Expected one visible confirmation action"); return }
         // The native sheet's AX activation point can be invalid despite a visible row.
         // Use its verified leaf frame; the caller still requires exactly one write.
