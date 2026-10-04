@@ -3914,6 +3914,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "46375CFB34C503CA255D1CBF";
 		};
+		"071DF4278A55802BB3D833C2" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/TemplatePreferenceDraftEditor.swift";
+			"sourceTree" = "<group>";
+		};
+		"C70ED2603A80BAA07FAAE73D" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "071DF4278A55802BB3D833C2";
+		};
 		"7C284FC2D888BDC45015E034" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -3943,6 +3953,16 @@
 		"99E751B8E52D8C0CC78BA9AC" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "FA714351227660431E5902ED";
+		};
+		"FFEB236E9927D9C166801315" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/TemplateSensorDraftConfigurationView.swift";
+			"sourceTree" = "<group>";
+		};
+		"3B45A5938689D383C2D75EE5" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "FFEB236E9927D9C166801315";
 		};
 		"244BDBA595BA9586184D9FE7" = {
 			"isa" = "PBXFileReference";
@@ -8644,6 +8664,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "EB2568C8B02E5EBD97897FD6";
 		};
+		"0DC9C4F7022CE915D9195B64" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/TemplatePreferenceDraft.swift";
+			"sourceTree" = "<group>";
+		};
+		"308486647CF8276D4BC279AF" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "0DC9C4F7022CE915D9195B64";
+		};
 		"B02361631295576704881C3E" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -8663,6 +8693,16 @@
 		"5A004C88FCDA94AA04887627" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "86297D159EE16DB294A36177";
+		};
+		"C4C53A508DE8C5279400A36A" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/TemplateSensorDraft.swift";
+			"sourceTree" = "<group>";
+		};
+		"CA89D281745FC82505C0BF96" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "C4C53A508DE8C5279400A36A";
 		};
 		"86D6679C150B29F8AD936B2C" = {
 			"isa" = "PBXFileReference";
@@ -9488,9 +9528,11 @@
 				"7BD19C8B913BF67D8BC6C863",
 				"0E932E8C67C60B0C9E40C0B6",
 				"46375CFB34C503CA255D1CBF",
+				"071DF4278A55802BB3D833C2",
 				"7C284FC2D888BDC45015E034",
 				"A7571D8EB256304D9360AFA9",
 				"FA714351227660431E5902ED",
+				"FFEB236E9927D9C166801315",
 				"244BDBA595BA9586184D9FE7",
 				"2D1E822C485C2CC92C039498",
 				"2E4F2696E954D4A857A1485B",
@@ -9961,8 +10003,10 @@
 				"AD7889C7222524AF4415946B",
 				"EE7334ED741A871C2579BC1F",
 				"EB2568C8B02E5EBD97897FD6",
+				"0DC9C4F7022CE915D9195B64",
 				"B02361631295576704881C3E",
 				"86297D159EE16DB294A36177",
+				"C4C53A508DE8C5279400A36A",
 				"86D6679C150B29F8AD936B2C",
 				"F571F96CD84057519FA669D4",
 				"8B74361A925AF9B924AA56D1",
@@ -10144,6 +10188,8 @@
 				"568227BB26391F77842D217F",
 				"9CAEB07E6EB4AC7222D3513A",
 				"F7881F64F4E6C3EB28AF0786",
+				"028E0266871E7C02C1B82D11",
+				"9C9929397C2450D64F4725EF",
 				"4A53648787ACEE3EF940FFBD",
 				"37E91F53B88552F549C2FCC5",
 				"76697959F3F9154B7303B2D3",
@@ -10547,9 +10593,11 @@
 				"C5F4031452424CD2E00BEBB1",
 				"C72890023B47CBD6DCC619D0",
 				"A0309DA411FC27CBC4FAEEAD",
+				"C70ED2603A80BAA07FAAE73D",
 				"4EBDB593B95DFCE8DEA96E2C",
 				"01824F20B6F53B4CC20C293B",
 				"99E751B8E52D8C0CC78BA9AC",
+				"3B45A5938689D383C2D75EE5",
 				"83CE49A435F67FEC2FB63293",
 				"AFA196D10BB371B40D3B5AED",
 				"CB0C5E1A9430FB5A3C0FC705",
@@ -11020,8 +11068,10 @@
 				"88BD4676AE249AB8A315873C",
 				"D2DE3C6DFB9B275C3ECF027A",
 				"A6A1C1624AAE88CF84511545",
+				"308486647CF8276D4BC279AF",
 				"1FA1571BA1E6ED16CC385B91",
 				"5A004C88FCDA94AA04887627",
+				"CA89D281745FC82505C0BF96",
 				"59C9E9451C5B522F51ED62F6",
 				"9607856C8A4AFF5E3A077DDD",
 				"932CEDDFDBD84629B920B008",
@@ -12724,6 +12774,26 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "F7881F64F4E6C3EB28AF0786";
 		};
+		"028E0266871E7C02C1B82D11" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/TemplatePreferenceDraftLifecycleTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"3B7E6CBD77ACA45C95C8FA5F" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "028E0266871E7C02C1B82D11";
+		};
+		"9C9929397C2450D64F4725EF" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/TemplateSensorDraftLifecycleTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"5560C1DE6B883E862414EFC6" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "9C9929397C2450D64F4725EF";
+		};
 		"4A53648787ACEE3EF940FFBD" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -12866,6 +12936,8 @@
 				"A0904AE445B37A5940C3BC24",
 				"52EE0ECCC8981FD89282BCB6",
 				"76967FE3D7E4A63CF327292F",
+				"3B7E6CBD77ACA45C95C8FA5F",
+				"5560C1DE6B883E862414EFC6",
 				"BCD900E8C6EDBA5A5C25AE98",
 				"93739874E8417B7C10A6C562",
 				"98E04BF52DE8FF1F85CE831E",

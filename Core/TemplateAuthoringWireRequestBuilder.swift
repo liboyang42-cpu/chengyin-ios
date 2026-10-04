@@ -8,7 +8,8 @@ import FoundationNetworking
 public enum TemplateAuthoringWireRequestBuilder {
     public static func make(_ descriptor: TemplateAuthoringRequest, configuration: APIConfiguration,
                             token: String, boundary: String = "TemplateAuthor-" + UUID().uuidString) throws -> URLRequest {
-        guard AuthRequestBuilder.isValidToken(token), descriptor.method == "POST" else { throw APIError.invalidRequest }
+        guard TemplateAuthoringContract.permitsRemoteConfiguration(descriptor),
+              AuthRequestBuilder.isValidToken(token), descriptor.method == "POST" else { throw APIError.invalidRequest }
         let jsonPaths = Set(["/api/template/draft", "/api/template/publish"])
         let formPaths = Set(["/api/template/my-list", "/api/template/updateLibraryStatus", "/api/template/delete", "/api/common/dict"])
         guard jsonPaths.contains(descriptor.path) || formPaths.contains(descriptor.path) else { throw APIError.invalidRequest }

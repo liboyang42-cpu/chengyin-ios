@@ -122267,6 +122267,854 @@
           }
         }
       }
+    },
+    "templateAuthor.localConfigurationOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This completion method can be edited and saved only on this device. Remote draft and publishing are unavailable."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此完成方式仅支持本机编辑与保存，不能提交远端草稿或发布。"
+          }
+        }
+      }
+    },
+    "templateAuthor.method.6": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preference questionnaire (local)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "偏好题组（本地）"
+          }
+        }
+      }
+    },
+    "templateAuthor.method.7": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sensor challenge (local)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "传感器挑战（本地）"
+          }
+        }
+      }
+    },
+    "templateAuthor.preference.instructions": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit the source questionnaire JSON: steps/options/scores, dimensions, tiebreak, results and tags. Keys belong to the author; nothing is automatically reordered. Invalid text can still be saved locally."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑原始题组 JSON：步骤、选项及分值、维度、并列取舍题、结果和标签。key 由作者维护，不自动重排。格式错误的文本也可保存本地。"
+          }
+        }
+      }
+    },
+    "templateAuthor.preference.source": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preference configuration JSON"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "偏好题配置 JSON"
+          }
+        }
+      }
+    },
+    "templateAuthor.preference.example": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fill with editable example"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "填入可编辑示例"
+          }
+        }
+      }
+    },
+    "templateAuthor.preference.check": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check and preview current JSON"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查并预览当前 JSON"
+          }
+        }
+      }
+    },
+    "templateAuthor.preference.checking": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking this configuration…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在检查当前配置…"
+          }
+        }
+      }
+    },
+    "templateAuthor.preference.unchecked": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current text has not been checked. Use Check and preview; changing text clears the previous preview."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前文本尚未检查。请点击「检查并预览」；修改文本会清除旧预览。"
+          }
+        }
+      }
+    },
+    "templateAuthor.preference.preview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complete supported-field preview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完整已支持字段预览"
+          }
+        }
+      }
+    },
+    "templateAuthor.preference.previewScope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Author configuration only. Choices placeholders are retained; this does not play the questionnaire, issue rewards or share tags."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这是作者配置预览。保留选择依据占位符，不执行答题、发放奖励或共享标签。"
+          }
+        }
+      }
+    },
+    "templateAuthor.preference.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These fields are preserved in the original text but are not interpreted by this preview:"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以下字段保留在原文中，本预览不解释其语义："
+          }
+        }
+      }
+    },
+    "templateAuthor.preference.valid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supported preference rules passed locally. This does not enable publishing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已支持的偏好规则通过本地检查，此结果不代表已开通发布。"
+          }
+        }
+      }
+    },
+    "templateAuthor.preference.replaceQuestion": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replace the current preference text with the example?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用示例替换当前偏好配置文本？"
+          }
+        }
+      }
+    },
+    "templateAuthor.preference.replace": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replace with example"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "替换为示例"
+          }
+        }
+      }
+    },
+    "templateAuthor.preference.error.json": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invalid JSON. Your current text is retained."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JSON 格式错误，当前文本已保留。"
+          }
+        }
+      }
+    },
+    "templateAuthor.preference.error.budget": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check incomplete: this configuration exceeds the local size, depth, preview or work budget. The original text is retained; it has not been declared invalid by the server."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查未完成：配置超过本地大小、深度、预览或运算预算。原文已保留，这不表示服务端判定其无效。"
+          }
+        }
+      }
+    },
+    "templateAuthor.preference.error.object": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An object is required at this field."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此字段必须为对象。"
+          }
+        }
+      }
+    },
+    "templateAuthor.preference.error.array": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An array is required; questions and dimensions must not be empty."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此字段必须为数组；题目与维度不能为空。"
+          }
+        }
+      }
+    },
+    "templateAuthor.preference.error.required": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This text field is required."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此文本字段必填。"
+          }
+        }
+      }
+    },
+    "templateAuthor.preference.error.type": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This value type is not supported by the local preview. The original text is retained."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地预览尚不支持此值类型，原文已保留。"
+          }
+        }
+      }
+    },
+    "templateAuthor.preference.error.true": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This declaration must be true."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此声明必须为 true。"
+          }
+        }
+      }
+    },
+    "templateAuthor.preference.error.duplicate": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keys or dimensions must be unique in their scope."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "key 或维度在所属范围内不得重复。"
+          }
+        }
+      }
+    },
+    "templateAuthor.preference.error.tiebreak": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Multiple dimensions require a tiebreak question."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "多个维度必须配置并列取舍题。"
+          }
+        }
+      }
+    },
+    "templateAuthor.preference.error.results": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Result keys must match the declared dimensions exactly."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果分支 key 必须与已声明维度一一对应。"
+          }
+        }
+      }
+    },
+    "templateAuthor.preference.error.coupon": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All results must not use the same coupon."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所有结果不能绑定同一优惠券。"
+          }
+        }
+      }
+    },
+    "templateAuthor.preference.error.tag": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only space_constraints, social_mode, arrival_window and expression_mode tags are supported."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "标签仅支持 space_constraints、social_mode、arrival_window、expression_mode。"
+          }
+        }
+      }
+    },
+    "templateAuthor.preference.error.stepType": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Question type must be single or discard."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "题目类型必须为 single 或 discard。"
+          }
+        }
+      }
+    },
+    "templateAuthor.preference.error.options": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Each question needs at least two options."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每道题至少需要两个选项。"
+          }
+        }
+      }
+    },
+    "templateAuthor.preference.error.score": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scores must name declared dimensions and use JSON integers from 0 to 2."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分值必须对应已声明维度，并使用 0 到 2 的 JSON 整数。"
+          }
+        }
+      }
+    },
+    "templateAuthor.preference.error.evidence": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The result body must include {{choices}} as the choice evidence."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果 body 必须包含 {{choices}} 选择依据。"
+          }
+        }
+      }
+    },
+    "templateAuthor.preference.error.days": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "nextStepDays must be the JSON integer 7 or 30."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "nextStepDays 必须为 JSON 整数 7 或 30。"
+          }
+        }
+      }
+    },
+    "templateAuthor.preference.error.combinations": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More than 4096 ordinary combinations: split the questionnaire as required by the server contract."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "普通选项组合超过 4096，请按服务端规则拆分题组。"
+          }
+        }
+      }
+    },
+    "templateAuthor.preference.error.tie": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "At least one tiebreak option can still leave a tie."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "至少一个并列取舍选项仍可能打平。"
+          }
+        }
+      }
+    },
+    "templateAuthor.preference.error.reachable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Every declared dimension must be able to win uniquely."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每个已声明维度都必须可以唯一胜出。"
+          }
+        }
+      }
+    },
+    "templateAuthor.preference.editorTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preference questionnaire configuration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "偏好题组配置"
+          }
+        }
+      }
+    },
+    "sensorDraft.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local configuration preview only. No sensor runs, recordings, step counting, permissions, uploads or remote publishing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅编辑和预览本地配置。不会运行传感器、录音、计步、申请权限、上传或远端发布。"
+          }
+        }
+      }
+    },
+    "sensorDraft.type": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sensor challenge type"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "传感器挑战类型"
+          }
+        }
+      }
+    },
+    "sensorDraft.choose": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a type; no defaults are filled in"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择类型；不会自动填写默认值"
+          }
+        }
+      }
+    },
+    "sensorDraft.kind.still": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stay still"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保持静止"
+          }
+        }
+      }
+    },
+    "sensorDraft.kind.steps": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Step challenge"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "步数挑战"
+          }
+        }
+      }
+    },
+    "sensorDraft.kind.audio_clip": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio clip"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "音频片段"
+          }
+        }
+      }
+    },
+    "sensorDraft.field.durationSec": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Required still duration (seconds)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "静止目标时长（秒）"
+          }
+        }
+      }
+    },
+    "sensorDraft.field.targetSteps": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Target steps"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目标步数"
+          }
+        }
+      }
+    },
+    "sensorDraft.field.windowSec": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Time window (seconds)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "计步时间窗（秒）"
+          }
+        }
+      }
+    },
+    "sensorDraft.field.minDurationSec": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minimum clip duration (seconds)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "音频最短时长（秒）"
+          }
+        }
+      }
+    },
+    "sensorDraft.invalidField": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a whole number within the stated range. Blank values remain missing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请输入所示范围内的整数。空白值会保持缺失状态。"
+          }
+        }
+      }
+    },
+    "sensorDraft.preserved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This saved configuration is unsupported or ambiguous. Its original contents are preserved read-only."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此历史配置包含不支持或有歧义的内容。原始内容完整保留，目前只读。"
+          }
+        }
+      }
+    },
+    "sensorDraft.preview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preview sensor configuration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预览传感器配置"
+          }
+        }
+      }
+    },
+    "sensorDraft.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This draft is no longer available in the current session."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前会话无法继续查看此草稿。"
+          }
+        }
+      }
+    },
+    "sensorDraft.missing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not provided"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未填写"
+          }
+        }
+      }
+    },
+    "sensorDraft.valid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configuration values are valid. Device behavior has not been tested."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配置数值有效，尚未验证设备运行效果。"
+          }
+        }
+      }
+    },
+    "sensorDraft.invalid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current input is incomplete or invalid. You can still save it locally."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前输入不完整或无效，仍可保存为本地草稿。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

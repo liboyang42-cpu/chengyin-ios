@@ -1,0 +1,70 @@
+{
+  "sensorDraft.scope": {
+    "en": "Local configuration preview only. No sensor runs, recordings, step counting, permissions, uploads or remote publishing.",
+    "zh-Hans": "仅编辑和预览本地配置。不会运行传感器、录音、计步、申请权限、上传或远端发布。"
+  },
+  "sensorDraft.type": {
+    "en": "Sensor challenge type",
+    "zh-Hans": "传感器挑战类型"
+  },
+  "sensorDraft.choose": {
+    "en": "Choose a type; no defaults are filled in",
+    "zh-Hans": "请选择类型；不会自动填写默认值"
+  },
+  "sensorDraft.kind.still": {
+    "en": "Stay still",
+    "zh-Hans": "保持静止"
+  },
+  "sensorDraft.kind.steps": {
+    "en": "Step challenge",
+    "zh-Hans": "步数挑战"
+  },
+  "sensorDraft.kind.audio_clip": {
+    "en": "Audio clip",
+    "zh-Hans": "音频片段"
+  },
+  "sensorDraft.field.durationSec": {
+    "en": "Required still duration (seconds)",
+    "zh-Hans": "静止目标时长（秒）"
+  },
+  "sensorDraft.field.targetSteps": {
+    "en": "Target steps",
+    "zh-Hans": "目标步数"
+  },
+  "sensorDraft.field.windowSec": {
+    "en": "Time window (seconds)",
+    "zh-Hans": "计步时间窗（秒）"
+  },
+  "sensorDraft.field.minDurationSec": {
+    "en": "Minimum clip duration (seconds)",
+    "zh-Hans": "音频最短时长（秒）"
+  },
+  "sensorDraft.invalidField": {
+    "en": "Enter a whole number within the stated range. Blank values remain missing.",
+    "zh-Hans": "请输入所示范围内的整数。空白值会保持缺失状态。"
+  },
+  "sensorDraft.preserved": {
+    "en": "This saved configuration is unsupported or ambiguous. Its original contents are preserved read-only.",
+    "zh-Hans": "此历史配置包含不支持或有歧义的内容。原始内容完整保留，目前只读。"
+  },
+  "sensorDraft.preview": {
+    "en": "Preview sensor configuration",
+    "zh-Hans": "预览传感器配置"
+  },
+  "sensorDraft.unavailable": {
+    "en": "This draft is no longer available in the current session.",
+    "zh-Hans": "当前会话无法继续查看此草稿。"
+  },
+  "sensorDraft.missing": {
+    "en": "Not provided",
+    "zh-Hans": "未填写"
+  },
+  "sensorDraft.valid": {
+    "en": "Configuration values are valid. Device behavior has not been tested.",
+    "zh-Hans": "配置数值有效，尚未验证设备运行效果。"
+  },
+  "sensorDraft.invalid": {
+    "en": "Current input is incomplete or invalid. You can still save it locally.",
+    "zh-Hans": "当前输入不完整或无效，仍可保存为本地草稿。"
+  }
+}

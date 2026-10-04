@@ -145,9 +145,10 @@ import SwiftUI
             TemplateAuthoringRewardStoryFields(model: model)
             Section {
                 Button("templateAuthor.saveLocal") { model.save() }.accessibilityIdentifier("templateAuthor.saveLocal")
-                Button("templateAuthor.preview") { preview = true }.disabled(!model.draft.publishIssues.isEmpty).accessibilityIdentifier("templateAuthor.preview")
-                Button("templateAuthor.reviewDraft") { model.prepare(.saveDraft) }.disabled(!model.draft.canSave).accessibilityIdentifier("templateAuthor.reviewDraft")
-                Button("templateAuthor.reviewPublish") { model.prepare(.publish) }.disabled(!model.draft.publishIssues.isEmpty).accessibilityIdentifier("templateAuthor.reviewPublish")
+                Button("templateAuthor.preview") { preview = true }.disabled(!model.draft.publishIssues.isEmpty || model.draft.validationMethod == .preference).accessibilityIdentifier("templateAuthor.preview")
+                if model.draft.validationMethod.isLocalConfigurationOnly { Text("templateAuthor.localConfigurationOnly") }
+                Button("templateAuthor.reviewDraft") { model.prepare(.saveDraft) }.disabled(!model.draft.canSave || model.draft.validationMethod.isLocalConfigurationOnly).accessibilityIdentifier("templateAuthor.reviewDraft")
+                Button("templateAuthor.reviewPublish") { model.prepare(.publish) }.disabled(!model.draft.publishIssues.isEmpty || model.draft.validationMethod.isLocalConfigurationOnly).accessibilityIdentifier("templateAuthor.reviewPublish")
             }
             if !model.draft.publishIssues.isEmpty {
                 Section("templateAuthor.validationTitle") { ForEach(Array(Set(model.draft.publishIssues)).sorted(), id: \.self) { Text(LocalizedStringKey($0)).foregroundStyle(.secondary) } }
@@ -212,6 +213,9 @@ struct TemplateAuthoringPreviewView: View {
             Section { Text("templateAuthor.previewNotice").foregroundStyle(.secondary); Text(verbatim: draft.title).font(.title2); Text(verbatim: draft.description) }
             Section("templateAuthor.finish") {
                 Text(LocalizedStringKey(draft.validationMethod.labelKey))
+                if draft.validationMethod.rawValue == 7 {
+                    TemplateSensorDraftPreviewContent(draft: draft.sensorDraft ?? .init())
+                }
                 if let question = draft.questionName { Text(verbatim: question) }
                 if draft.validationMethod == .choice { ForEach([draft.questionA, draft.questionB, draft.questionC, draft.questionD].compactMap { $0 }, id: \.self) { Text(verbatim: $0) } }
                 ForEach(draft.advanced.enabledGames) { game in

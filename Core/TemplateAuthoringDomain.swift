@@ -42,7 +42,8 @@ public enum TemplateAuthoringError: Error, Equatable {
     case invalidDraft, invalidContract, unavailable, changedSession, storageUnavailable, uncertain, staleReview
 }
 public enum TemplateAuthoringMethod: Int, Codable, CaseIterable, Identifiable {
-    case manual = 0, text = 1, photo = 2, choice = 3, scan = 4, gps = 5
+    case manual = 0, text = 1, photo = 2, choice = 3, scan = 4, gps = 5, preference = 6, sensor = 7
+    public var isLocalConfigurationOnly: Bool { self == .preference || self == .sensor }
     public var id: Int { rawValue }
     public var labelKey: String { "templateAuthor.method.\(rawValue)" }
 }
@@ -94,6 +95,8 @@ public struct TemplateAuthoringDraft: Codable, Equatable {
     public var medalStyle: String?
     /// Exact source text, including unknown keys; no normalization on save/reopen.
     public var preferenceJson: String?
+    /// Optional local-only sensor configuration. Old envelopes decode without it.
+    public var sensorDraft: TemplateSensorDraft?
     public var storyText: String?
     public var storyImg: String?
     public var storyJson: String?

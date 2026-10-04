@@ -4,6 +4,10 @@ import SwiftUI
     @ObservedObject var model: TemplateAuthoringModel
     var body: some View {
         Group {
+            if model.draft.validationMethod == .preference { TemplatePreferenceDraftEditor(model: model) }
+            if model.draft.validationMethod.rawValue == 7 {
+                TemplateSensorDraftConfigurationFields(model: model)
+            }
             TemplateAuthoringQAFields(method: model.draft.validationMethod, field: { model.optional($0.draftPath) })
             if model.draft.validationMethod == .photo {
                 TemplateAuthoringField("photoRequireDesc", text: model.optional(\.photoRequireDesc), multiline: true)

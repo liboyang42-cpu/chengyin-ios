@@ -52,7 +52,9 @@ public struct OwnedTemplateSensorConfiguration {
             }
             values = parsed
             let allValid = parsed.values.allSatisfy { if case .value = $0 { return true }; return false }
-            let unknown = fields.keys.contains { key in !parameters.contains { $0.rawValue == key } }
+            // Capture only a local immutable copy while status is not initialized yet.
+            let configuredParameters = parameters
+            let unknown = fields.keys.contains { key in !configuredParameters.contains { $0.rawValue == key } }
             status = !allValid ? .invalid : (unknown ? .partial : .ready)
         }
     }

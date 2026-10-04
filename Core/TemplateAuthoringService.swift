@@ -42,7 +42,7 @@ public enum TemplateAuthoringOutcome: Equatable {
         return try TemplateOwnShelfPage.decode(data, httpStatus: status)
     }
     public func submit(_ request: TemplateAuthoringRequest) async -> TemplateAuthoringOutcome {
-        guard canSubmit, let transport, request.mutates else { return .notSent }
+        guard TemplateAuthoringContract.permitsRemoteConfiguration(request), canSubmit, let transport, request.mutates else { return .notSent }
         do {
             let (data, status) = try await transport.send(request)
             // A 5xx or unreadable response cannot prove that a mutation did not happen.

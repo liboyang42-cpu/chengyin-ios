@@ -76,6 +76,15 @@ final class OwnedTemplateSensorConfigurationTests: XCTestCase {
             else { XCTAssertNil(owner.sensor) }
             XCTAssertThrowsError(try OwnedTemplateConfigurationSnapshot(response: bytes, requestedID: id, accountID: 8))
         }
-        XCTAssertNil(TemplateAuthoringMethod(rawValue: 6)); XCTAssertNil(TemplateAuthoringMethod(rawValue: 7))
+        for raw in [6, 7] {
+            let method = try XCTUnwrap(TemplateAuthoringMethod(rawValue: raw))
+            XCTAssertTrue(method.isLocalConfigurationOnly)
+            var draft = TemplateAuthoringDraft(title: "Local only")
+            draft.validationMethod = method
+            XCTAssertThrowsError(try TemplateAuthoringContract.payload(draft))
+            for intent in TemplateAuthoringIntent.allCases {
+                XCTAssertThrowsError(try TemplateAuthoringContract.request(draft, intent: intent))
+            }
+        }
     }
 }
