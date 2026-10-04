@@ -10,11 +10,14 @@ import FoundationNetworking
     public let context: RuntimeDependencyContext
     public let merchantID: Int
     public let endpoints: OperationEndpointApproval
+    public let commandProtocol: CouponCommandProtocolApproval?
     public let revision = UUID()
     public let expiresAt: Date
     public private(set) var isRevoked = false
-    public init(context: RuntimeDependencyContext, merchantID: Int, expiresAt: Date) throws {
+    public init(context: RuntimeDependencyContext, merchantID: Int, expiresAt: Date, commandProtocol: CouponCommandProtocolApproval? = nil) throws {
         guard context.market == .china, merchantID > 0, expiresAt > Date(), expiresAt.timeIntervalSinceNow <= 86_400 else { throw APIError.invalidConfiguration }
+        guard commandProtocol == nil || commandProtocol?.matches(context, merchantID: merchantID) == true else { throw APIError.invalidConfiguration }
+        self.commandProtocol = commandProtocol
         endpoints = try .init(baseURL: context.baseURL, namespace: context.session.namespace, accountID: context.session.accountID,
             paths: ["api/merchant/access/me", "api/merchant/marketing-home", "api/coupon/mypublishlist"])
         self.context = context; self.merchantID = merchantID; self.expiresAt = expiresAt
@@ -22,7 +25,8 @@ import FoundationNetworking
     public func revoke() { isRevoked = true }
     public func expireIfNeeded(now: Date = Date()) { if now >= expiresAt { revoke() } }
     public func matches(_ context: RuntimeDependencyContext) -> Bool {
-        !isRevoked && Date() < expiresAt && ContentDraftContextFence.matches(self.context, context)
+        !isRevoked && Date() < expiresAt && ContentDraftContextFence.matches(self.context, context) &&
+            (commandProtocol == nil || commandProtocol?.matches(context, merchantID: merchantID) == true)
     }
 }
 @MainActor @Observable public final class CouponManagementWriteApproval {
@@ -101,8 +105,34 @@ public struct CouponManagementWire: Codable, Equatable {
     private let http: any CouponManagementConfirmedHTTPTransport
     private let credentials: () -> CouponManagementReadCredentials?
     private let actions: Set<CouponManagementWriteApproval.Action>
-    public init(configuration: APIConfiguration, http: any CouponManagementConfirmedHTTPTransport, actions: Set<CouponManagementWriteApproval.Action> = [], credentials: @escaping () -> CouponManagementReadCredentials?) {
-        self.configuration = configuration; self.http = http; self.actions = actions; self.credentials = credentials
+    private let commandProtocol: CouponCommandProtocolApproval?
+    public init(configuration: APIConfiguration, http: any CouponManagementConfirmedHTTPTransport, actions: Set<CouponManagementWriteApproval.Action> = [], commandProtocol: CouponCommandProtocolApproval? = nil, credentials: @escaping () -> CouponManagementReadCredentials?) {
+        self.configuration = configuration; self.http = http; self.actions = actions; self.commandProtocol = commandProtocol; self.credentials = credentials
+    }
+    var canRecoverCommands: Bool { commandProtocol.map { $0.matches($0.context, merchantID: $0.merchantID) } == true && credentials() != nil }
+    func prepareCommand(record: CouponManagementPending, session: CouponManagementSession, permission: CouponPublisherPermission) throws -> CouponCommandIdentity? {
+        guard commandProtocol != nil else { return nil }
+        try requireCommandProtocol(session: session, merchantID: permission.merchantID)
+        return try CouponCommandIdentity(record: record, session: session, permission: permission)
+    }
+    private func requireCommandProtocol(session: CouponManagementSession, merchantID: Int?) throws {
+        guard let approval = commandProtocol, let merchantID,
+              approval.context.baseURL == configuration.baseURL,
+              approval.context.session.accountID == session.accountID, approval.context.session.namespace == session.namespace,
+              approval.context.session.epoch == session.epoch,
+              approval.matches(approval.context, merchantID: merchantID), credentials()?.session == session else { throw CouponManagementError.unavailable }
+    }
+    func readCommand(_ record: CouponManagementPending, session: CouponManagementSession, permission: CouponPublisherPermission) async throws -> CouponManagementOutcome {
+        guard let command = record.command, let captured = credentials(), captured.session == session else { throw CouponManagementError.unavailable }
+        try command.validate(record: record, session: session, permission: permission)
+        try requireCommandProtocol(session: session, merchantID: command.merchantID)
+        let request = try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent("api/coupon/command-receipt"),
+            fields: ["requestId": command.requestID, "merchantId": String(command.merchantID), "scope": "MERCHANT"], token: captured.token)
+        let (data, status) = try await http.send(request)
+        try Task.checkCancellation()
+        try requireCommandProtocol(session: session, merchantID: command.merchantID)
+        guard credentials() == captured else { throw CouponManagementError.changed }
+        return CouponCommandReceipt.outcome(data, status: status, record: record)
     }
     func permitsAction(_ action: CouponManagementWriteApproval.Action) -> Bool { actions.contains(action) && credentials() != nil }
     public func send(_ descriptor: CouponManagementRequest, session: CouponManagementSession) async throws -> (Data, Int) {
@@ -113,8 +143,13 @@ public struct CouponManagementWire: Codable, Equatable {
         guard let captured = credentials(), captured.session == session, authorization.session == session,
               authorization.record.request == descriptor,
               permitsAction(authorization.record.request.path == "/api/coupon/publish" ? .publish : .stop) else { throw CouponManagementError.changed }
+        if let command = authorization.record.command {
+            try requireCommandProtocol(session: session, merchantID: command.merchantID)
+            try command.validate(record: authorization.record, session: session, permission: authorization.permission)
+        } else if commandProtocol != nil { throw CouponManagementError.unavailable }
         let request = try authorization.makeRequest(configuration: configuration, credentials: captured)
         let result = try await http.sendConfirmed(request, authorization: authorization)
+        if let command = authorization.record.command { try requireCommandProtocol(session: session, merchantID: command.merchantID) }
         guard credentials() == captured, !Task.isCancelled else { throw CouponManagementError.changed }
         return result
     }
@@ -122,11 +157,15 @@ public struct CouponManagementWire: Codable, Equatable {
 /// Snapshot fingerprint is local, not a monotonic server authorization version or quota proof.
 @MainActor public final class CouponMerchantPublisherAuthorizer: CouponPublisherAuthorizing {
     private let service: MerchantBusinessService
+    private let configuration: APIConfiguration
+    private let http: any HTTPTransport
+    private let commandProtocol: CouponCommandProtocolApproval?
     private let context: RuntimeDependencyContext
     private let merchantID: Int
     private let current: () -> CouponManagementSession?
-    public init(configuration: APIConfiguration, http: any HTTPTransport, context: RuntimeDependencyContext, merchantID: Int, current: @escaping () -> CouponManagementSession?) {
+    public init(configuration: APIConfiguration, http: any HTTPTransport, context: RuntimeDependencyContext, merchantID: Int, commandProtocol: CouponCommandProtocolApproval? = nil, current: @escaping () -> CouponManagementSession?) {
         service = .init(configuration: configuration, readTransport: http)
+        self.configuration = configuration; self.http = http; self.commandProtocol = commandProtocol
         self.context = context; self.merchantID = merchantID; self.current = current
     }
     public func freshPermission(session: CouponManagementSession) async throws -> CouponPublisherPermission {
@@ -135,9 +174,20 @@ public struct CouponManagementWire: Codable, Equatable {
         guard current() == session, !Task.isCancelled else { throw CouponManagementError.changed }
         guard access.merchantID == merchantID, access.permissions.contains("merchant:coupon:manage"),
               ["MERCHANT_OWNER", "MERCHANT_MANAGER", "MERCHANT_MARKETING"].contains(access.role) else { throw CouponManagementError.forbidden }
-        let values = [String(access.merchantID), access.role] + access.permissions.sorted()
+        var ownerMemberID: Int?
+        if let approval = commandProtocol {
+            guard approval.matches(context, merchantID: merchantID), access.permissions.contains("merchant:coop:manage") else { throw CouponManagementError.forbidden }
+            let request = try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent("api/merchant/coop-profile"), fields: [:], token: context.session.token, includesBody: false)
+            let (data, status) = try await http.send(request)
+            guard current() == session, !Task.isCancelled, approval.matches(context, merchantID: merchantID) else { throw CouponManagementError.changed }
+            ownerMemberID = try CouponCommandOwnerIdentity.decode(data, status: status, merchantID: access.merchantID)
+            // Do not accept an owner response across a role/permission or merchant switch.
+            let after = try await service.access(token: context.session.token)
+            guard after == access, current() == session, !Task.isCancelled, approval.matches(context, merchantID: merchantID) else { throw CouponManagementError.changed }
+        }
+        let values = [String(access.merchantID), access.role] + access.permissions.sorted() + (ownerMemberID.map { [String($0)] } ?? [])
         let revision = values.map { "\($0.utf8.count):\($0)" }.joined()
-        return .init(revision: revision, mayPublish: true, merchantID: merchantID)
+        return .init(revision: revision, mayPublish: true, merchantID: merchantID, ownerMemberID: ownerMemberID)
     }
 }
 

@@ -9,6 +9,36 @@ import FoundationNetworking
     private func check(_ kind: String, _ action: String, _ payload: [String: PlayWireValue], _ json: String) throws {
         try PlayKitInputContract.validate(kind: kind, action: action, payload: payload, segment: wire(json))
     }
+    func testEstimateTierIsExactSubmittedServerReadback() throws {
+        for (tier, suffix) in [("HIT", "hit"), ("CLOSE", "close"), ("MISS", "miss")] {
+            let segment: PlayWireValue = .object(["submitted": .bool(true), "tier": .string(tier)])
+            let projection = PlayKitScreenProjection(kind: .estimate, segment: segment)
+            XCTAssertEqual(projection.estimateResultKey, "playkit.estimate.result." + suffix)
+            XCTAssertTrue(projection.complete) // Existing submitted rule, unchanged for every tier.
+            XCTAssertNil(projection.reportedPass) // A tier must not become a pass/fail verdict.
+            XCTAssertNil(PlayKitScreenProjection(kind: .qa, segment: segment).estimateResultKey)
+        }
+    }
+    func testEstimateMissingMalformedOrUnsubmittedTierIsNotGuessed() throws {
+        let cases = [
+            #"{}"#, #"{"submitted":true}"#, #"{"tier":"HIT"}"#,
+            #"{"submitted":false,"tier":"HIT"}"#, #"{"submitted":"true","tier":"HIT"}"#,
+            #"{"submitted":1,"tier":"HIT"}"#, #"{"submitted":true,"tier":null}"#,
+            #"{"submitted":true,"tier":1}"#, #"{"submitted":true,"tier":"UNKNOWN"}"#,
+            #"{"submitted":true,"tier":"hit"}"#, #"{"submitted":true,"tier":"MISS "}"#,
+            #"{"submitted":true,"tier":"","guess":500,"score":0,"attempts":1}"#
+        ]
+        for json in cases {
+            XCTAssertNil(PlayKitScreenProjection(kind: .estimate, segment: try wire(json)).estimateResultKey, json)
+        }
+    }
+    func testEstimateReadbackUsesFreshSegmentWithoutRetainingOldTier() throws {
+        let finished = try wire(#"{"submitted":true,"tier":"HIT"}"#)
+        let fresh = try wire(#"{"submitted":false,"tier":""}"#)
+        XCTAssertNotNil(PlayKitScreenProjection(kind: .estimate, segment: finished).estimateResultKey)
+        XCTAssertNil(PlayKitScreenProjection(kind: .estimate, segment: fresh).estimateResultKey)
+        XCTAssertFalse(PlayKitScreenProjection(kind: .estimate, segment: fresh).complete)
+    }
     func testAllTwentyTwoScreensAndFiveMiniOnlyKindsAreRegistered() {
         let source = ["coinFlip","diceRoll","reaction","ballShake","quietHold","countdown","stopwatch","qa","branch","estimate","pricePair","hiddenObject","predict","random","scan","walk","bingo","profile","photoCheck","note","typeIn","dailySign"]
         for kind in source + ["sort","match","classify","compass","shout"] { XCTAssertNotNil(PlayKitScreenKind(rawValue: kind)) }

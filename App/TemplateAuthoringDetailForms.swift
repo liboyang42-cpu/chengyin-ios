@@ -4,32 +4,54 @@ import SwiftUI
     @ObservedObject var model: TemplateAuthoringModel
     var body: some View {
         Group {
-            if [.text, .choice].contains(model.draft.validationMethod) {
-                TemplateAuthoringField("questionName", text: model.optional(\.questionName), multiline: true)
-                TemplateAuthoringField("questionImg", text: model.optional(\.questionImg))
-                TemplateAuthoringField("questionAudio", text: model.optional(\.questionAudio))
-            }
-            if model.draft.validationMethod == .text { TemplateAuthoringField("questionAnswer", text: model.optional(\.questionAnswer)) }
-            if model.draft.validationMethod == .choice {
-                TemplateAuthoringField("questionA", text: model.optional(\.questionA))
-                TemplateAuthoringField("questionB", text: model.optional(\.questionB))
-                TemplateAuthoringField("questionC", text: model.optional(\.questionC))
-                TemplateAuthoringField("questionD", text: model.optional(\.questionD))
-                Picker("templateAuthor.field.correctAnswer", selection: model.optional(\.correctAnswer)) {
-                    Text("templateAuthor.choose").tag("")
-                    ForEach(["A", "B", "C", "D"], id: \.self) { Text(verbatim: $0).tag($0) }
-                }
-            }
-            if [.text, .choice, .gps].contains(model.draft.validationMethod) {
-                TemplateAuthoringField("hint1", text: model.optional(\.hint1))
-                TemplateAuthoringField("hint2", text: model.optional(\.hint2))
-                TemplateAuthoringField("answerReveal", text: model.optional(\.answerReveal))
-            }
+            TemplateAuthoringQAFields(method: model.draft.validationMethod, field: { model.optional($0.draftPath) })
             if model.draft.validationMethod == .photo {
                 TemplateAuthoringField("photoRequireDesc", text: model.optional(\.photoRequireDesc), multiline: true)
                 Toggle("templateAuthor.photoReview", isOn: .init(get: { model.draft.photoReview == 1 }, set: { model.draft.photoReview = $0 ? 1 : 0 }))
             }
         }
+    }
+}
+/// Same professional QA fields for local authors and scoped read-only owner inspection.
+@MainActor struct TemplateAuthoringQAFields: View {
+    let method: TemplateAuthoringMethod
+    let field: (TemplateQAField) -> Binding<String>
+    var readOnly = false
+    var annotation: (TemplateQAField) -> String? = { _ in nil }
+    var body: some View {
+        Group {
+            if [.text, .choice].contains(method) {
+                entry(.questionName, multiline: true); entry(.questionImg); entry(.questionAudio)
+            }
+            if method == .text { entry(.questionAnswer) }
+            if method == .choice {
+                entry(.questionA); entry(.questionB); entry(.questionC); entry(.questionD)
+                if readOnly { entry(.correctAnswer) }
+                else {
+                    Picker("templateAuthor.field.correctAnswer", selection: field(.correctAnswer)) {
+                        Text("templateAuthor.choose").tag("")
+                        ForEach(["A", "B", "C", "D"], id: \.self) { Text(verbatim: $0).tag($0) }
+                    }
+                }
+            }
+            if [.text, .choice, .gps].contains(method) { entry(.hint1); entry(.hint2); entry(.answerReveal) }
+        }.disabled(readOnly)
+    }
+    private func entry(_ key: TemplateQAField, multiline: Bool = false) -> some View {
+        VStack(alignment: .leading) {
+            TemplateAuthoringField(key.rawValue, text: field(key), multiline: multiline)
+            if let label = annotation(key) { Text(LocalizedStringKey(label)).font(.caption).foregroundStyle(.secondary) }
+        }
+    }
+}
+@MainActor struct TemplateStoryBeatFields: View {
+    @Binding var tag: String
+    @Binding var text: String
+    @Binding var images: String
+    var body: some View {
+        TemplateAuthoringField("beatTag", text: $tag)
+        TemplateAuthoringField("beatText", text: $text, multiline: true)
+        TemplateAuthoringField("beatImages", text: $images, multiline: true)
     }
 }
 @MainActor struct TemplateAuthoringRewardStoryFields: View {
@@ -42,6 +64,14 @@ import SwiftUI
                 TemplateAuthoringField("couponId", text: model.number(\.couponId))
                 TemplateAuthoringField("medalName", text: model.optional(\.medalName))
                 TemplateAuthoringField("medalImg", text: model.optional(\.medalImg))
+                Picker("templateAuthor.field.medalStyle", selection: $model.draft.medalStyle) {
+                    Text("templateOwnerConfig.missing").tag(Optional<String>.none)
+                    Text("templateAuthor.medalStyle.glow").tag(Optional("glow"))
+                    Text("templateAuthor.medalStyle.enamel").tag(Optional("enamel"))
+                    if let raw = model.draft.medalStyle, !["glow", "enamel"].contains(raw) {
+                        Text(verbatim: raw).tag(Optional(raw))
+                    }
+                }
             }
         }
         Section("templateAuthor.story") {
@@ -70,9 +100,8 @@ import SwiftUI
             if invalid { Section { Text("templateAuthor.storyInvalid") } }
             ForEach($beats) { $beat in
                 Section {
-                    TemplateAuthoringField("beatTag", text: $beat.tag)
-                    TemplateAuthoringField("beatText", text: $beat.text, multiline: true)
-                    TemplateAuthoringField("beatImages", text: .init(get: { beat.imgs.joined(separator: "\n") }, set: { beat.imgs = $0.split(separator: "\n").map(String.init) }), multiline: true)
+                    TemplateStoryBeatFields(tag: $beat.tag, text: $beat.text,
+                        images: .init(get: { beat.imgs.joined(separator: "\n") }, set: { beat.imgs = $0.split(separator: "\n").map(String.init) }))
                 }
             }.onDelete { beats.remove(atOffsets: $0) }.onMove { beats.move(fromOffsets: $0, toOffset: $1) }
             Section { Button("templateAuthor.addBeat", systemImage: "plus") { beats.append(.init()) }.accessibilityIdentifier("templateAuthor.addBeat") }

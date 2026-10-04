@@ -1,0 +1,22 @@
+{
+  "msg" : "发布成功",
+  "code" : 200,
+  "data" : {
+    "commandReceipt" : {
+      "version" : 1,
+      "requestId" : "11111111-1111-4111-8111-111111111111",
+      "operation" : "PUBLISH",
+      "scope" : "MERCHANT",
+      "merchantId" : 11,
+      "ownerMemberId" : 9001,
+      "actorMemberId" : 7002,
+      "payloadHash" : "a72d49610a0a0687449a8068e4565db197cb007ca6d6b28ffa140235b6817cbb",
+      "outcome" : "SUCCEEDED",
+      "reasonCode" : "PUBLISHED",
+      "couponId" : 1001,
+      "couponStatusAtExecution" : 1,
+      "completedAt" : "2026-10-04T22:00:00.123+08:00"
+    },
+    "id" : 1001
+  }
+}

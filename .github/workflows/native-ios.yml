@@ -101,7 +101,7 @@ jobs:
     needs: native
     runs-on: macos-26
     # Cold VM and full SDK-specific source compilation; no cross-SDK cache.
-    timeout-minutes: 10
+    timeout-minutes: 20
     env:
       EXPECTED_BUILD_FINGERPRINT: ${{ needs.native.outputs.build_fingerprint }}
     outputs:
@@ -120,6 +120,30 @@ jobs:
             -destination 'generic/platform=iOS' \
             -derivedDataPath "$RUNNER_TEMP/questify-device" \
             CODE_SIGNING_ALLOWED=NO build
+      - name: Compile protected-storage device acceptance tests (unsigned, no execution)
+        id: protected_storage_device_compile
+        run: |
+          xcodebuild -project Questify.xcodeproj -scheme QuestifyAppUnitTests \
+            -configuration Debug -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "$RUNNER_TEMP/questify-device-app-unit" \
+            CODE_SIGNING_ALLOWED=NO build-for-testing
+      - name: Report unexecuted physical-device storage acceptance
+        if: always()
+        env:
+          DEVICE_COMPILE_OUTCOME: ${{ steps.protected_storage_device_compile.outcome }}
+        run: |
+          python3 tools/report_protected_storage_coverage.py \
+            --compile-outcome "$DEVICE_COMPILE_OUTCOME" --commit "$GITHUB_SHA" \
+            --output "$RUNNER_TEMP/protected-storage-coverage.json" --summary "$GITHUB_STEP_SUMMARY"
+      - name: Retain explicit protected-storage coverage boundary
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: protected-storage-coverage-${{ github.sha }}
+          path: ${{ runner.temp }}/protected-storage-coverage.json
+          if-no-files-found: error
+          retention-days: 1
   us-build:
     needs: native
     runs-on: macos-26

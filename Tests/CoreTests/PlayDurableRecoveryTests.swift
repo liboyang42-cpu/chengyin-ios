@@ -1,7 +1,7 @@
 import XCTest
 @testable import QuestifyCore
 
-/// Synthetic stores only; actual OS probes live in the simulator app-unit target.
+/// Synthetic stores only; real OS negatives and device acceptance live in the app-unit target.
 @MainActor final class PlayDurableRecoveryTests: XCTestCase {
     typealias Anchors = ContentDraftDurableJournalTests.Anchors
     typealias Blobs = ContentDraftDurableJournalTests.Blobs

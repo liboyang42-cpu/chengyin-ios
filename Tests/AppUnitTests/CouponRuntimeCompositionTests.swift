@@ -247,13 +247,113 @@ import XCTest
         let again = restarted.couponManagementCoordinator; again.change(CouponManagementSyntheticFixtures.draft()); await again.preparePublish()
         XCTAssertNil(again.review); XCTAssertEqual(again.issue, .locked); XCTAssertEqual(wire.writes, 1)
     }
+    func testV1NormalCompositionPersistsThenReadOnlyRecoveryAfterRestart() async throws {
+        let disk = try directory(), wire = Wire(), grants = Grants(); grants.commandEnabled = true
+        wire.coopPermission = true; wire.roleCode = "MERCHANT_MARKETING"; wire.mode = "timeout"
+        let app = try root(wire, grants, directory: disk).makeSession(); await login(app)
+        let pair = try await reviewed(app); await pair.0.confirm(pair.1)
+        let key = try XCTUnwrap(app.couponManagementSession?.ownerKey)
+        let locks = try CouponManagementFileLocks(directory: disk), pending = try XCTUnwrap(locks.pending(ownerKey: key, resource: "publish"))
+        let command = try XCTUnwrap(pending.command)
+        XCTAssertEqual(command.ownerMemberID, 9001); XCTAssertEqual(command.actorMemberID, 7)
+        XCTAssertEqual(wire.writes, 1); XCTAssertEqual(pair.0.issue, .locked)
+        XCTAssertEqual(wire.requests.last { $0.url!.path.hasSuffix("/publish") }?.value(forHTTPHeaderField: "X-Coupon-Command-Id"), command.requestID)
+        let receipt: [String: Any] = ["version": 1, "requestId": command.requestID, "operation": "PUBLISH", "scope": "MERCHANT", "merchantId": 21,
+            "ownerMemberId": 9001, "actorMemberId": 7, "payloadHash": command.payloadHash, "outcome": "SUCCEEDED", "reasonCode": "PUBLISHED", "couponId": 910, "couponStatusAtExecution": 1, "completedAt": "2026-10-04T22:00:00.123+08:00"]
+        wire.receiptResponse = try JSONSerialization.data(withJSONObject: ["code": 200, "data": ["id": 910, "commandReceipt": receipt]])
+        let fresh = Grants(); fresh.commandEnabled = true; fresh.writeEnabled = false
+        let restarted = try root(wire, fresh, directory: disk).makeSession(); await login(restarted)
+        let core = restarted.couponManagementCoordinator; XCTAssertFalse(core.canSubmit); XCTAssertTrue(core.canRecoverCommands)
+        await core.recoverPendingCommands()
+        XCTAssertEqual(core.recoveredCommandCount, 1); XCTAssertNil(try locks.pending(ownerKey: key, resource: "publish")); XCTAssertEqual(wire.writes, 1)
+        XCTAssertEqual(wire.requests.filter { $0.url!.path.hasSuffix("/command-receipt") }.count, 1)
+    }
+    func testV1OwnerReadIsNotGrantedByLegacyLeaseOrCouponPermissionAlone() async throws {
+        for enabled in [false, true] {
+            let wire = Wire(), grants = Grants(); grants.commandEnabled = enabled
+            let composition = try root(wire, grants, directory: directory()), app = composition.makeSession(); await login(app)
+            let core = app.couponManagementCoordinator; core.change(CouponManagementSyntheticFixtures.draft()); await core.preparePublish()
+            if enabled { XCTAssertNil(core.review); XCTAssertEqual(core.issue, .forbidden) }
+            else { XCTAssertNotNil(core.review) }
+            XCTAssertFalse(wire.requests.contains { $0.url!.path.hasSuffix("/coop-profile") }); XCTAssertEqual(wire.writes, 0)
+            if !enabled {
+                let outer = composition.transport(); outer.current = { .init(epoch: 1, accountID: 7, role: "merchant", token: "synthetic-7") }
+                let request = try AuthRequestBuilder.makeFormRequest(url: base.appendingPathComponent("api/merchant/coop-profile"), fields: [:], token: "synthetic-7", includesBody: false)
+                do { _ = try await outer.replacingUnderlying(wire).send(request); XCTFail("Legacy lease admitted owner read") } catch {}
+            }
+        }
+    }
+    func testV1FinalBoundaryRevocationRetainsJournalWithoutDispatch() async throws {
+        let wire = Wire(), grants = Grants(), disk = try directory(); grants.commandEnabled = true; wire.coopPermission = true
+        let composition = try root(wire, grants, directory: disk), outer = composition.transport()
+        let context = RuntimeDependencyContext(market: .china, baseURL: base, role: "merchant", session: try .init(accountID: 7, epoch: 1, namespace: XCTUnwrap(composition.reviewed?.storageScope.service), token: "synthetic-7"))
+        let read = try XCTUnwrap(grants.read(context)), write = grants.write(context), capability = try XCTUnwrap(read.commandProtocol)
+        let session = try XCTUnwrap(CouponManagementRuntimeIdentity.session(context: context, viewerRevision: 2, read: read, write: write))
+        outer.current = { .init(epoch: 1, accountID: 7, role: "merchant", token: "synthetic-7", viewerRevision: 2) }
+        outer.couponBeforeForward = { capability.revoke() }
+        let configuration = try XCTUnwrap(composition.reviewed?.regional.apiConfiguration)
+        let transport = CouponManagementRuntimeTransport(configuration: configuration, http: outer.replacingUnderlying(wire), actions: [.publish], commandProtocol: capability, credentials: { try? .init(session: session, token: "synthetic-7") })
+        let core = CouponManagementCoordinator(adapter: .init(transport: transport, dormantWritesEnabled: true),
+            authorizer: CouponMerchantPublisherAuthorizer(configuration: configuration, http: outer, context: context, merchantID: 21, commandProtocol: capability, current: { session }),
+            locks: try CouponManagementFileLocks(directory: disk), currentSession: { session })
+        core.change(CouponManagementSyntheticFixtures.draft()); await core.preparePublish(); await core.confirm(try XCTUnwrap(core.review))
+        XCTAssertEqual(wire.writes, 0); XCTAssertEqual(core.issue, .locked)
+        XCTAssertNotNil(try CouponManagementFileLocks(directory: disk).pending(ownerKey: session.ownerKey, resource: "publish"))
+    }
+    func testV1ReceiptCloneDiscardsLateResponseWhenCapabilityRevoked() async throws {
+        let wire = Wire(), grants = Grants(); grants.commandEnabled = true; wire.pauseReceipt = true
+        let composition = try root(wire, grants, directory: directory()), outer = composition.transport()
+        outer.current = { .init(epoch: 1, accountID: 7, role: "merchant", token: "synthetic-7", viewerRevision: 2) }
+        let request = try AuthRequestBuilder.makeFormRequest(url: base.appendingPathComponent("api/coupon/command-receipt"), fields: ["requestId": "11111111-1111-4111-8111-111111111111", "merchantId": "21", "scope": "MERCHANT"], token: "synthetic-7")
+        let paused = expectation(description: "receipt suspended"); wire.onPaused = { paused.fulfill() }
+        let task = Task { try await outer.replacingUnderlying(wire).send(request) }; await fulfillment(of: [paused], timeout: 2)
+        grants.readLease?.commandProtocol?.revoke(); wire.finish(fail: false)
+        do { _ = try await task.value; XCTFail("Revoked late receipt accepted") } catch {}
+        XCTAssertEqual(wire.writes, 0)
+    }
+    func testActualCouponFixtureNormalSessionReachesMarketingHomeInEveryMode() async throws {
+        // Exercise the exact UI fixture, normal composition and original content service.
+        // A coupon-only transport test misses the recruiting screen's project permission gate.
+        for mode in ["ready", "readOnly", "unknown", "revokeOnConfirm", "commandUnknown", "commandReadOnly", "commandNotFound"] {
+            let fixture = try CouponRuntimeFixture(mode: mode), session = fixture.composition().makeSession()
+            fixture.session = session; await login(session)
+            let before = fixture.routes.count
+            let snapshot = try await session.merchantContentService.load(.recruiting)
+            XCTAssertEqual(Array(fixture.routes.dropFirst(before)), ["api/merchant/access/me", "api/merchant/marketing-home"], mode)
+            XCTAssertEqual(snapshot.query, .recruiting); XCTAssertEqual(snapshot.access.merchantID, 21)
+            XCTAssertTrue(snapshot.access.allows(.projects)); XCTAssertTrue(snapshot.rows.isEmpty)
+            let coupons = session.couponManagementCoordinator; await coupons.load()
+            XCTAssertEqual(coupons.rows.first?.id.value, 710, mode)
+            XCTAssertEqual(fixture.writes, 0); XCTAssertEqual(fixture.violations, [])
+        }
+    }
+    func testActualFixtureCouponRevocationPreservesRecruitingButStillDeniesCouponWrite() async throws {
+        let fixture = try CouponRuntimeFixture(mode: "revokeOnConfirm"), session = fixture.composition().makeSession()
+        fixture.session = session; await login(session)
+        _ = try await session.merchantContentService.load(.recruiting)
+        let coupons = session.couponManagementCoordinator; await coupons.load()
+        coupons.change(CouponManagementSyntheticFixtures.draft()); await coupons.preparePublish()
+        let review = try XCTUnwrap(coupons.review); await coupons.confirm(review)
+        XCTAssertEqual(coupons.issue, .forbidden); XCTAssertFalse(coupons.acknowledged)
+        XCTAssertEqual(fixture.writes, 0); XCTAssertEqual(fixture.violations, [])
+        let before = fixture.routes.count
+        let snapshot = try await session.merchantContentService.load(.recruiting)
+        XCTAssertEqual(Array(fixture.routes.dropFirst(before)), ["api/merchant/access/me", "api/merchant/marketing-home"])
+        XCTAssertTrue(snapshot.access.allows(.projects)); XCTAssertEqual(snapshot.access.merchantID, 21)
+        XCTAssertNil(try fixture.locks.pending(ownerKey: try XCTUnwrap(session.couponManagementSession?.ownerKey), resource: "publish"))
+    }
     @MainActor private final class Grants {
-        var readEnabled = true, writeEnabled = true
+        var readEnabled = true, writeEnabled = true, commandEnabled = false
         var actions: Set<CouponManagementWriteApproval.Action> = [.publish, .stop]
         var readLease: CouponManagementReadApproval?, writeLease: CouponManagementWriteApproval?
         func read(_ context: RuntimeDependencyContext) -> CouponManagementReadApproval? {
             guard readEnabled else { return nil }
-            if readLease == nil || readLease?.context != context { readLease?.revoke(); readLease = try? .init(context: context, merchantID: 21, expiresAt: Date().addingTimeInterval(600)) }; return readLease
+            if readLease == nil || readLease?.context != context {
+                readLease?.revoke()
+                let command: CouponCommandProtocolApproval?
+                if commandEnabled { command = try? CouponCommandProtocolApproval(context: context, merchantID: 21, verifiedVersion: 1, expiresAt: Date().addingTimeInterval(600)) } else { command = nil }
+                readLease = try? .init(context: context, merchantID: 21, expiresAt: Date().addingTimeInterval(600), commandProtocol: command)
+            }; return readLease
         }
         func write(_ context: RuntimeDependencyContext) -> CouponManagementWriteApproval? {
             guard writeEnabled else { return nil }
@@ -271,6 +371,8 @@ import XCTest
     private final class Wire: HTTPTransport {
         var requests: [URLRequest] = [], writes = 0, roleCode = "MERCHANT_OWNER", displayRole = "merchant", merchantID = 21
         var permission = true, active = true, mode = "success", rowID = 710, rowStatus = 1
+        var coopPermission = false, ownerMemberID = 9001, pauseReceipt = false
+        var receiptResponse = Data(#"{"code":404,"data":{"reasonCode":"COMMAND_NOT_FOUND"}}"#.utf8)
         var published: [String: Any]?, pause = false, pauseList = false, pendingReadData: Data?, onPaused: (() -> Void)?
         var continuation: CheckedContinuation<(Data, Int), Error>?
         func finish(fail: Bool) { let saved = continuation; continuation = nil; if fail { saved?.resume(throwing: URLError(.timedOut)) } else { saved?.resume(returning: (pendingReadData ?? Data(#"{"code":200,"data":{"id":910}}"#.utf8), 200)) } }
@@ -279,7 +381,12 @@ import XCTest
             if path.hasSuffix("/phone") { return (Data("{\"code\":200,\"token\":\"synthetic-7\",\"data\":{\"id\":7,\"role\":\"\(displayRole)\"}}".utf8), 200) }
             if path.hasSuffix("/userInfo") { return (Data("{\"code\":200,\"appUser\":{\"userId\":7,\"role\":\"\(displayRole)\"}}".utf8), 200) }
             if path.hasSuffix("/logout") { return (Data(#"{"code":200}"#.utf8), 200) }
-            if path.hasSuffix("/access/me") { return (try JSONSerialization.data(withJSONObject: ["code":200,"data":["active":active,"merchant":["id":merchantID],"roleCode":roleCode,"permissions":permission ? ["merchant:coupon:manage", "merchant:marketing:read"] : ["merchant:marketing:read"]]]), 200) }
+            if path.hasSuffix("/access/me") { return (try JSONSerialization.data(withJSONObject: ["code":200,"data":["active":active,"merchant":["id":merchantID],"roleCode":roleCode,"permissions":(permission ? ["merchant:coupon:manage", "merchant:marketing:read"] : ["merchant:marketing:read"]) + (coopPermission ? ["merchant:coop:manage"] : [])]]), 200) }
+            if path.hasSuffix("/coop-profile") { return (try JSONSerialization.data(withJSONObject: ["code": 200, "data": ["id": merchantID, "memberId": ownerMemberID]]), 200) }
+            if path.hasSuffix("/command-receipt") {
+                if pauseReceipt { pendingReadData = receiptResponse; return try await withCheckedThrowingContinuation { continuation = $0; onPaused?() } }
+                return (receiptResponse, 200)
+            }
             if path.hasSuffix("/marketing-home") { return (Data(#"{"code":200,"data":{"recruiting":{"items":[]}}}"#.utf8), 200) }
             if path.hasSuffix("/mypublishlist") {
                 if writes > 0, mode == "readbackFail" { throw URLError(.timedOut) }

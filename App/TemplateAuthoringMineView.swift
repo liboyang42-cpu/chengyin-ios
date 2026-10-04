@@ -5,8 +5,10 @@ import SwiftUI
     let coordinator: TemplateAuthoringCoordinator
     let sessionRevision: UInt64
     var memberDetail: ((MemberPlayTemplateID) -> AnyView)? = nil
+    var ownerConfiguration: ((MemberPlayTemplateID) -> AnyView)? = nil
     var fixtureSignOut: (() -> Void)? = nil
     @State private var selectedMember: MemberPlayTemplateID?
+    @State private var selectedConfiguration: MemberPlayTemplateID?
     @State private var keyword = ""
     @State private var hasMore = false
     @State private var readMessageKey: String?
@@ -34,6 +36,10 @@ import SwiftUI
                         Button { selectedMember = id } label: { Label("memberTemplate.title", systemImage: "doc.text.magnifyingglass") }
                             .accessibilityIdentifier("memberTemplate.mine.\(row.id)")
                     }
+                    if let id = MemberPlayTemplateID(rawValue: row.id), ownerConfiguration != nil {
+                        Button("templateOwnerConfig.open") { selectedConfiguration = id }
+                            .accessibilityIdentifier("templateOwnerConfig.open.\(row.id)")
+                    }
                     LabeledContent("templateAuthor.shelf.identity", value: String(row.id))
                     if let text = row.description { Text(verbatim: text) }
                     Text(LocalizedStringKey(row.status == 1 ? "templateAuthor.published" : row.status == 2 ? "templateAuthor.underReview" : "templateAuthor.unpublished"))
@@ -57,6 +63,10 @@ import SwiftUI
             .navigationDestination(item: $selectedMember) { id in
                 if let memberDetail { memberDetail(id) }
             }
+            .navigationDestination(item: $selectedConfiguration) { id in
+                if let ownerConfiguration { ownerConfiguration(id) }
+            }
+            .onChange(of: sessionRevision) { _, _ in selectedConfiguration = nil }
             .onChange(of: sessionRevision) { _, _ in selectedMember = nil }
             .task(id: sessionRevision) { rows = []; review = nil; await refresh() }
             .onDisappear { viewRequest = UUID(); coordinator.shelfReader.leave(); coordinator.leaveShelfScreen(); rows = []; review = nil; busy = false }

@@ -9,15 +9,22 @@ public struct CouponManagementPending: Codable, Equatable {
     public let createdAt: Date
     /// Exact wire payload, never headers or credentials. Optional for backward decoding.
     public var wire: CouponManagementWire? = nil
+    /// Absent on every legacy journal; never synthesized during recovery.
+    public var command: CouponCommandIdentity? = nil
 }
 @MainActor public protocol CouponManagementLocking: AnyObject {
     func pending(ownerKey: String, resource: String) throws -> CouponManagementPending?
     /// Must atomically fail if another coordinator/process already holds this resource.
     func acquire(_ pending: CouponManagementPending) throws
     func release(_ pending: CouponManagementPending) throws
+    func pendingCommands(ownerKey: String) throws -> [CouponManagementPending]
+}
+extension CouponManagementLocking {
+    /// Any corrupt file, including another account's, conservatively blocks enumeration. Nothing is removed.
+    public func pendingCommands(ownerKey: String) throws -> [CouponManagementPending] { throw CouponManagementError.unavailable }
 }
 /// Durable, cross-epoch write-ahead record. An unreadable/corrupt existing record fails closed.
-/// No automatic timeout/TTL or retry clearing; no source operation-receipt route exists.
+/// No timeout/TTL or retry clearing. Only exact v1 terminal receipts may reconcile new journals.
 @MainActor public final class CouponManagementFileLocks: CouponManagementLocking {
     private let directory: URL
     public init(directory: URL) throws {
@@ -37,6 +44,15 @@ public struct CouponManagementPending: Codable, Equatable {
         let value = try JSONDecoder().decode(CouponManagementPending.self, from: Data(contentsOf: path))
         guard value.ownerKey == ownerKey, value.resource == resource else { throw CouponManagementError.storage }
         return value
+    }
+    /// Any corrupt file, including another account's, conservatively blocks enumeration. Nothing is removed.
+    public func pendingCommands(ownerKey: String) throws -> [CouponManagementPending] {
+        try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
+            .filter { $0.pathExtension == "json" }.map { path in
+                let record = try JSONDecoder().decode(CouponManagementPending.self, from: Data(contentsOf: path))
+                guard path.standardizedFileURL == url(record.ownerKey, record.resource).standardizedFileURL else { throw CouponManagementError.storage }
+                return record
+            }.filter { $0.ownerKey == ownerKey && $0.command != nil }.sorted { $0.createdAt < $1.createdAt }
     }
     public func acquire(_ pending: CouponManagementPending) throws {
         // Exclusive creation, unlike check-then-replace atomic writes. If interrupted while writing,

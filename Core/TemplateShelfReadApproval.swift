@@ -124,21 +124,22 @@ public enum TemplateShelfReadRoute: Equatable {
     }
     public var available: Bool { current().map { approval.matches($0) } == true }
     public var scope: UUID { approval.revision }
-    private func send(_ request: URLRequest) async throws -> (Data, Int) {
+    private func send(_ request: URLRequest, acceptsResult: () -> Bool = { true }) async throws -> (Data, Int) {
         guard let context = current(), approval.matches(context),
               context.baseURL.absoluteString == configuration.baseURL.absoluteString,
               request.value(forHTTPHeaderField: "Authorization") == context.session.token,
               TemplateShelfReadRoute(request: request, baseURL: configuration.baseURL) != nil else { throw APIError.notConfigured }
         do {
             try Task.checkCancellation()
+            guard acceptsResult() else { throw CancellationError() }
             let result = try await http.send(request)
-            guard !Task.isCancelled, current().map({ ContentDraftContextFence.matches(context, $0) && approval.matches($0) }) == true else { throw CancellationError() }
+            guard !Task.isCancelled, acceptsResult(), current().map({ ContentDraftContextFence.matches(context, $0) && approval.matches($0) }) == true else { throw CancellationError() }
             // Validate envelope while still inside the lifetime fence so current 401
             // expires only this captured account, and stale errors never do so.
             try TemplateAuthoringContract.requireSuccess(result.0, httpStatus: result.1)
             return result
         } catch {
-            guard !Task.isCancelled, current().map({ ContentDraftContextFence.matches(context, $0) && approval.matches($0) }) == true else { throw CancellationError() }
+            guard !Task.isCancelled, acceptsResult(), current().map({ ContentDraftContextFence.matches(context, $0) && approval.matches($0) }) == true else { throw CancellationError() }
             if error as? APIError == .unauthorized { onUnauthorized() }
             throw error
         }
@@ -150,6 +151,12 @@ public enum TemplateShelfReadRoute: Equatable {
         let request = try TemplateAuthoringWireRequestBuilder.make(descriptor, configuration: configuration, token: context.session.token)
         guard case .page? = TemplateShelfReadRoute(request: request, baseURL: configuration.baseURL) else { throw APIError.invalidRequest }
         return try await send(request)
+    }
+    func ownedConfiguration(_ id: MemberPlayTemplateID, acceptsResult: () -> Bool) async throws -> OwnedTemplateConfigurationSnapshot {
+        guard available, let context = current() else { throw APIError.notConfigured }
+        let request = try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent("api/template/myinfo"), fields: ["id": String(id.rawValue)], token: context.session.token)
+        let (data, _) = try await send(request, acceptsResult: acceptsResult)
+        return try OwnedTemplateConfigurationSnapshot(response: data, requestedID: id, accountID: context.session.accountID)
     }
     public func detail(_ id: MemberPlayTemplateID) async throws -> MemberTemplateDetail {
         guard available, let context = current() else { throw APIError.notConfigured }

@@ -47,4 +47,4 @@ class CouponManagementIntegrationTests(unittest.TestCase):
   self.assertIn('CouponManagementFileLocks',self.read('App/SessionCouponManagementView.swift'))
   self.assertNotIn('MemoryLocks',self.read('App/SessionCouponManagementView.swift'))
   c=json.loads(self.read('Resources/Localizable.xcstrings'))['strings']
-  self.assertEqual(len([k for k in c if k.startswith('couponManagement.')]),74)
+  self.assertEqual(len([k for k in c if k.startswith('couponManagement.')]),77)

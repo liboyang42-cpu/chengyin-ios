@@ -26,7 +26,8 @@ class TemplateAuthoringContracts(unittest.TestCase):
         expected=set(re.findall(r"'([^']+)'\s*:",source))
         native=self.read('Core/TemplateAuthoringContract.swift').split('public static func payload(')[1].split('public static func decodeList')[0]
         actual=set(re.findall(r'(?:string|number)\("([^"]+)"',native))|set(re.findall(r'(?:p\[|\[)"([^"]+)"',native))|{'description','isSync'}
-        self.assertEqual(expected,actual)
+        # The mini-program medal contract extends the legacy Flutter payload.
+        self.assertEqual(expected | {'medalStyle'},actual)
     def test_no_module_flags_on_wire(self):
         native=self.read('Core/TemplateAuthoringContract.swift')
         for key in ['finishEnabled','rewardEnabled','storyEnabled','voiceEnabled']:
@@ -111,9 +112,10 @@ class TemplateAuthoringContracts(unittest.TestCase):
     def test_bilingual_catalog_and_literal_ui_keys(self):
         catalog=json.loads(self.read('docs/template-authoring-localizations.json'))
         catalog.update(json.loads(self.read('docs/template-authoring-repair-localizations.json')))
+        catalog.update(json.loads(self.read('tools/template_preference_medal_localizations.json')))
         for key,entry in catalog.items():self.assertEqual(set(entry),{'en','zh-Hans'},key);self.assertTrue(all(entry.values()),key)
         identifiers={'templateAuthor.shelf.readStatus','templateAuthor.status','templateAuthor.field.','templateAuthor.cancelReview','templateAuthor.game.','templateAuthor.openEditor','templateAuthor.openMine','templateAuthor.openPrefab','templateAuthor.shelf.status','templateAuthor.shelf.cancel','templateAuthor.shelf.confirm'}
-        for path in list((ROOT/'App').glob('TemplateAuthor*.swift'))+list((ROOT/'App').glob('PrefabPreview*.swift'))+list((ROOT/'Core').glob('TemplateAuthor*.swift')):
+        for path in list((ROOT/'App').glob('TemplateAuthor*.swift'))+list((ROOT/'App').glob('TemplatePreference*.swift'))+list((ROOT/'App').glob('PrefabPreview*.swift'))+list((ROOT/'Core').glob('TemplateAuthor*.swift')):
             for key in re.findall(r'"(templateAuthor\.[A-Za-z][A-Za-z.]+)"',path.read_text()):
                 if key not in identifiers and not key.endswith('.'):self.assertIn(key,catalog,key)
     def test_authored_tests_are_not_claimed_as_executed(self):

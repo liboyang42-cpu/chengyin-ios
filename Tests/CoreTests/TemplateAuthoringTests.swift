@@ -2,6 +2,55 @@ import XCTest
 @testable import QuestifyCore
 
 final class TemplateAuthoringTests: XCTestCase {
+    func testPreferenceAndMedalDraftRoundTripPreservesExactUnknownValues() throws {
+        var draft = TemplateAuthoringDraft(title: "Sample")
+        XCTAssertEqual(draft.medalStyle, "glow")
+        draft.medalStyle = "future-style"
+        draft.preferenceJson = "  {\"future\": [1, true]}  "
+        let data = try JSONEncoder().encode(draft)
+        XCTAssertEqual(try JSONDecoder().decode(TemplateAuthoringDraft.self, from: data), draft)
+        var legacy = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        legacy.removeValue(forKey: "medalStyle"); legacy.removeValue(forKey: "preferenceJson")
+        let decoded = try JSONDecoder().decode(TemplateAuthoringDraft.self, from: JSONSerialization.data(withJSONObject: legacy))
+        XCTAssertNil(decoded.medalStyle); XCTAssertNil(decoded.preferenceJson)
+    }
+    func testMedalStylePayloadRequiresRewardAndActualMedal() throws {
+        var draft = TemplateAuthoringDraft(title: "Sample")
+        XCTAssertNil(try TemplateAuthoringContract.payload(draft)["medalStyle"])
+        draft.medalName = "Badge"; draft.medalStyle = "future-style"
+        XCTAssertEqual(try TemplateAuthoringContract.payload(draft)["medalStyle"], .string("future-style"))
+        draft.rewardEnabled = false
+        XCTAssertNil(try TemplateAuthoringContract.payload(draft)["medalStyle"])
+        XCTAssertEqual(draft.medalStyle, "future-style")
+    }
+    func testPreferencePreviewValidatesResultsWithoutRewritingSource() throws {
+        let raw = #"{"steps":[{"futureQuestion":true}],"dimensions":["space"],"results":{"space":{"title":"Title","body":"Because {{choices}}","nextStep":"Try","nextStepDays":"7","extension":true}},"future":true}"#
+        let preview = try TemplatePreferencePreview(raw: raw)
+        XCTAssertEqual(preview.results.first?.nextStepDays, 7)
+        XCTAssertEqual(preview.results.first?.body, "Because {{choices}}")
+        XCTAssertTrue(preview.isPartial); XCTAssertNil(preview.recipientLabel)
+        let disclosed = raw.replacingOccurrences(of: "\"future\":true", with: "\"tagOutput\":{\"recipientLabel\":\"Shop\",\"purpose\":\"Advice\",\"revocable\":true}")
+        XCTAssertEqual(try TemplatePreferencePreview(raw: disclosed).recipientLabel, "Shop")
+        let invalidValues = [
+            raw.replacingOccurrences(of: "\"7\"", with: "true"),
+            raw.replacingOccurrences(of: "\"7\"", with: "7.5"),
+            raw.replacingOccurrences(of: "[\"space\"]", with: "[\"space\", 7]").replacingOccurrences(of: "\"future\":true", with: "\"tiebreak\":{}"),
+            raw.replacingOccurrences(of: "\"future\":true", with: "\"tagOutput\":{\"recipientLabel\":\"Shop\",\"purpose\":\"Advice\",\"revocable\":false}"),
+            raw.replacingOccurrences(of: "\"future\":true", with: "\"tagOutput\":{\"recipientLabel\":\"Shop\",\"purpose\":\"Advice\",\"revocable\":\"true\"}")
+        ]
+        for invalid in invalidValues {
+            var draft = TemplateAuthoringDraft(title: "Retained")
+            draft.preferenceJson = invalid; draft.medalStyle = nil
+            XCTAssertThrowsError(try TemplatePreferencePreview(raw: invalid))
+            let restored = try JSONDecoder().decode(TemplateAuthoringDraft.self, from: JSONEncoder().encode(draft))
+            XCTAssertEqual(restored.preferenceJson, invalid); XCTAssertNil(restored.medalStyle)
+        }
+
+        XCTAssertThrowsError(try TemplatePreferencePreview(raw: raw.replacingOccurrences(of: "\"7\"", with: "14")))
+        XCTAssertThrowsError(try TemplatePreferencePreview(raw: raw.replacingOccurrences(of: "\"future\":true", with: "\"tagOutput\":{\"recipientLabel\":\"Shop\",\"purpose\":\"Advice\"}")))
+        XCTAssertThrowsError(try TemplatePreferencePreview(raw: String(repeating: " ", count: 1_048_577)))
+        XCTAssertThrowsError(try TemplatePreferencePreview(raw: String(repeating: "[", count: 65) + "0" + String(repeating: "]", count: 65)))
+    }
     func testDormantBuilderUsesSourceJSONAndAuthorization() throws {
         let config = try APIConfiguration(baseURL: XCTUnwrap(URL(string: "https://example.com")))
         let descriptor = try TemplateAuthoringContract.request(.init(title: "Sample"), intent: .saveDraft)

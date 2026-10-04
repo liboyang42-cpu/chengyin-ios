@@ -1016,12 +1016,12 @@ final class AppSession: ObservableObject {
                 write?.matches(captured, merchantID: read.merchantID, path: "/api/coupon/" + $0.rawValue) == true
             })
             writeEnabled = !actions.isEmpty
-            reader = CouponManagementRuntimeTransport(configuration: configuration, http: confirmed, actions: actions, credentials: { [weak self] in
+            reader = CouponManagementRuntimeTransport(configuration: configuration, http: confirmed, actions: actions, commandProtocol: read.commandProtocol, credentials: { [weak self] in
                 guard let session = current(), let token = self?.token else { return nil }
                 return try? CouponManagementReadCredentials(session: session, token: token)
             })
             authorizer = CouponMerchantPublisherAuthorizer(configuration: configuration, http: transport,
-                context: captured, merchantID: read.merchantID, current: current)
+                context: captured, merchantID: read.merchantID, commandProtocol: read.commandProtocol, current: current)
         } else if let configuration = regionalConfiguration?.apiConfiguration, let readApproval,
            let storageScope, readApproval.baseURL == configuration.baseURL, readApproval.namespace == storageScope.service {
             let guarded = CouponManagementApprovedReadTransport(configuration: configuration, approval: readApproval,
@@ -1201,6 +1201,9 @@ final class AppSession: ObservableObject {
                       self.currentTemplateShelfReadApproval?.revision == approval.revision else { return }
                 self.expireIfMatching(error: APIError.unauthorized, stamp: approval.context.session.epoch, credential: approval.context.session.token)
             })
+    }
+    func makeOwnedTemplateConfigurationHost() -> OwnedTemplateConfigurationHost {
+        OwnedTemplateConfigurationHost(transport: makeTemplateShelfReadTransport())
     }
     private var retainedOwnedMemberReader: (identity: String, reader: OwnedMemberTemplateReader)?
     func makeOwnedMemberTemplateReader() -> OwnedMemberTemplateReader {

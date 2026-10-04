@@ -433,6 +433,12 @@ extension MerchantContentServiceTests {
         XCTAssertEqual(result.rows.first?["id"].integer, 70)
         XCTAssertEqual(t.requests.map { $0.url!.path }, ["/api/merchant/access/me", "/api/merchant/marketing-home"])
     }
+    func testRecruitingStillRequiresProjectPermissionAlongsideMarketingRead() async throws {
+        let t = ContentScriptTransport(), box = SessionBox()
+        t.append(#"{"active":true,"merchant":{"id":31},"roleCode":"MERCHANT_OWNER","permissions":["merchant:marketing:read","merchant:coupon:manage"]}"#)
+        let s = try service(t, box: box); await failure(.denied) { try await s.load(.recruiting) }
+        XCTAssertEqual(t.requests.count, 1)
+    }
     func testRecruitingRequiresFreshMarketingReadPermission() async throws {
         let t = ContentScriptTransport(), box = SessionBox()
         t.append(#"{"active":true,"merchant":{"id":31},"roleCode":"MERCHANT_OWNER","permissions":["merchant:project:manage"]}"#)

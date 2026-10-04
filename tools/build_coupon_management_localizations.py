@@ -38,6 +38,9 @@ values = {
 'readbackPending': ('Server acknowledged. Current record is not yet verified; do not submit again.', '服务器已确认，当前记录尚未核验，请勿重复提交。'),
 'readbackVerified': ('Server acknowledged; current coupon record verified.', '服务器已确认，并已核验当前优惠券记录。'),
 'confirmSubmission': ('Confirm submission', '确认提交'),
+'checkPendingResults': ('Check pending command results', '查询未确认的操作结果'),
+'recoveryFinished': ('Receipt check finished. Any unresolved operations remain locked.', '回执查询已完成，未确认的操作仍保持锁定。'),
+'recoveryNotice': ('Checks recorded command receipts only. Missing or uncertain results remain locked; no coupon is submitted again.', '仅查询已记录命令的回执。未找到或结果不明确时仍保持锁定，不会重新提交优惠券。'),
 'fixtureReopen': ('Reopen example', '重新打开示例'), 'fixtureSignOut': ('Sign out of example', '退出示例账号')
 }
 fragment = { 'couponManagement.'+key: {'extractionState': 'manual', 'localizations': {lang:{'stringUnit': {'state':'translated','value':text}} for lang,text in zip(('en','zh-Hans'), pair)}} for key,pair in values.items()}

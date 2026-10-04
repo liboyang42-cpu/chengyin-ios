@@ -62,6 +62,14 @@ public enum CouponManagementOutcome: Equatable { case simulated(String?), acknow
         self.transport = transport; self.syntheticWritesEnabled = syntheticWritesEnabled; self.dormantWritesEnabled = dormantWritesEnabled
     }
     public var canRead: Bool { transport != nil }
+    public var canRecoverCommands: Bool { (transport as? CouponManagementRuntimeTransport)?.canRecoverCommands == true }
+    func prepareCommand(record: CouponManagementPending, session: CouponManagementSession, permission: CouponPublisherPermission) throws -> CouponCommandIdentity? {
+        try (transport as? CouponManagementRuntimeTransport)?.prepareCommand(record: record, session: session, permission: permission)
+    }
+    func recoverCommand(_ record: CouponManagementPending, session: CouponManagementSession, permission: CouponPublisherPermission) async throws -> CouponManagementOutcome {
+        guard let runtime = transport as? CouponManagementRuntimeTransport else { throw CouponManagementError.unavailable }
+        return try await runtime.readCommand(record, session: session, permission: permission)
+    }
     public var canSimulate: Bool {
         #if DEBUG
         return syntheticWritesEnabled && transport?.isSynthetic == true
@@ -92,6 +100,9 @@ public enum CouponManagementOutcome: Equatable { case simulated(String?), acknow
         }
         catch { return .unknown }
         let (data, status) = response
+        if let record = authorization?.record, record.command != nil {
+            return CouponCommandReceipt.outcome(data, status: status, record: record)
+        }
         do {
             // The pinned controller returns ordinary HTTP 200; 202 is not a publication receipt.
             guard status == 200 || (400..<500).contains(status) else { return .unknown }

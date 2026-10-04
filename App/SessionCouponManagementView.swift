@@ -33,6 +33,7 @@ extension EnvironmentValues {
         backing = value; return value
     }
     func pending(ownerKey: String, resource: String) throws -> CouponManagementPending? { try store().pending(ownerKey: ownerKey, resource: resource) }
+    func pendingCommands(ownerKey: String) throws -> [CouponManagementPending] { try store().pendingCommands(ownerKey: ownerKey) }
     func acquire(_ pending: CouponManagementPending) throws { try store().acquire(pending) }
     func release(_ pending: CouponManagementPending) throws { try store().release(pending) }
 }

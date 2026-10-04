@@ -681,7 +681,9 @@
     "CouponRuntimeFlowTests.testNormalRootTimeoutCannotRepeatConfirmedPublication": 180,
     "CouponRuntimeFlowTests.testNormalRootFreshPermissionRevokedAtConfirmDoesNotWrite": 180,
     "CouponRuntimeFlowTests.testNormalRootDiskRestartDoesNotRedispatchUnknownCreation": 360,
-    "CouponRuntimeFlowTests.testChineseNormalRootLabelsAndReadOnlyConfirmation": 180
+    "CouponRuntimeFlowTests.testChineseNormalRootLabelsAndReadOnlyConfirmation": 180,
+    "CouponCommandRecoveryFlowTests.testV1ReadOnlyReceiptRecoveryAfterRestartAndNotFoundKeepsJournal": 540,
+    "IntegratedNativeAcceptanceFlowTests.testNormalRootOwnedConfigurationReadOnlyAndStoryReturn": 180
   },
   "estimate_provenance": {
     "basis": "Conservative grouping assumptions, not executed case timings. Successful measurements take priority. 23 original assumptions plus explicitly scoped later additions.",
@@ -1394,6 +1396,20 @@
         "source": "couponRuntimeIndependentReview",
         "measured": false,
         "basis": "Normal-root login/navigation and confirmed coupon journey;180s per launch based on existing normal-root observed132.433\u2013162.555s, restart case has two launches."
+      },
+      {
+        "method": "CouponCommandRecoveryFlowTests.testV1ReadOnlyReceiptRecoveryAfterRestartAndNotFoundKeepsJournal",
+        "seconds": 540,
+        "source": "couponCommandRecoveryReview",
+        "measured": false,
+        "basis": "Three full normal-root launches in one recovery journey; preserves existing reviewed180s per launch estimate. No runtime observation yet."
+      },
+      {
+        "method": "IntegratedNativeAcceptanceFlowTests.testNormalRootOwnedConfigurationReadOnlyAndStoryReturn",
+        "seconds": 180,
+        "source": "queuedOwnedTemplateConfiguration",
+        "measured": false,
+        "basis": "Normal-root synthetic sign-in, two shelf pages, read-only owner QA inspection, story child and return; estimated from existing same-class journeys, not a measured run."
       }
     ],
     "baseline_estimate_count": 23

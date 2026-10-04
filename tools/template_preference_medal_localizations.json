@@ -1,0 +1,42 @@
+{
+  "templateAuthor.field.medalStyle": {
+    "en": "Medal style",
+    "zh-Hans": "勋章样式"
+  },
+  "templateAuthor.medalStyle.glow": {
+    "en": "2D glow",
+    "zh-Hans": "二维发光"
+  },
+  "templateAuthor.medalStyle.enamel": {
+    "en": "3D enamel",
+    "zh-Hans": "3D 珐琅"
+  },
+  "templateAuthor.preference.title": {
+    "en": "Preference results (read-only)",
+    "zh-Hans": "偏好结果（只读）"
+  },
+  "templateAuthor.preference.partial": {
+    "en": "Partial preview. Questions, scoring, tie-breaking and extensions are preserved without editing.",
+    "zh-Hans": "部分预览。题目、评分、决胜规则及扩展内容保留原文，不可编辑。"
+  },
+  "templateAuthor.preference.days": {
+    "en": "Follow-up days",
+    "zh-Hans": "后续周期（天）"
+  },
+  "templateAuthor.preference.recipient": {
+    "en": "Tag recipient",
+    "zh-Hans": "标签接收方"
+  },
+  "templateAuthor.preference.purpose": {
+    "en": "Tag purpose",
+    "zh-Hans": "标签用途"
+  },
+  "templateAuthor.preference.revocable": {
+    "en": "The source declares this tag revocable.",
+    "zh-Hans": "原配置声明此标签可撤回。"
+  },
+  "templateAuthor.preference.unsupported": {
+    "en": "This configuration cannot be previewed. The original is retained unchanged.",
+    "zh-Hans": "此配置暂不能预览，原文已完整保留。"
+  }
+}

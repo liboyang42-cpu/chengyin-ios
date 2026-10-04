@@ -1,9 +1,23 @@
 """Offline source structure checks, not Swift compilation or behavioral evidence."""
 from pathlib import Path
 import unittest
+import re
 ROOT = Path(__file__).resolve().parents[2]
 class CouponRuntimeSafetyTests(unittest.TestCase):
  def read(self,p): return (ROOT/p).read_text()
+ def test_actual_owner_fixture_keeps_recruiting_permissions_when_coupon_is_revoked(self):
+  fixture=self.read('App/CouponRuntimeFixture.swift')
+  base=re.search(r'let permissions = \[(.*?)\] \+', fixture)
+  self.assertIsNotNone(base)
+  self.assertEqual(set(re.findall(r'"([^"]+)"', base.group(1))), {'merchant:project:manage','merchant:marketing:read'})
+  self.assertIn('mode == "revokeOnConfirm" && couponAccessReads >= 2 ? [] : ["merchant:coupon:manage"]',fixture)
+  self.assertIn('"roleCode":"MERCHANT_OWNER"',fixture)
+  app_tests=self.read('Tests/AppUnitTests/CouponRuntimeCompositionTests.swift')
+  self.assertIn('fixture.composition().makeSession()',app_tests)
+  self.assertIn('session.merchantContentService.load(.recruiting)',app_tests)
+  self.assertIn('testActualFixtureCouponRevocationPreservesRecruitingButStillDeniesCouponWrite',app_tests)
+  for mode in ['ready','readOnly','unknown','revokeOnConfirm','commandUnknown','commandReadOnly','commandNotFound']:
+   self.assertIn('"'+mode+'"',app_tests)
  def test_default_off_separate_capabilities_and_clone_forwarding(self):
   s=self.read('App/AppCompositionRoot.swift')
   for name,kind in [('couponReadApproval','CouponManagementReadApproval'),('couponWriteApproval','CouponManagementWriteApproval')]:
@@ -27,7 +41,7 @@ class CouponRuntimeSafetyTests(unittest.TestCase):
   self.assertIn('access.permissions.contains("merchant:coupon:manage")',s)
   self.assertNotIn('/subscription',s)
   c=self.read('Core/CouponManagementCoordinator.swift')
-  self.assertEqual(c.count('await authorizer.freshPermission'),3)
+  self.assertEqual(c.count('await authorizer.freshPermission'),5)
   self.assertIn('permission == accepted.permission',c)
  def test_explicit_merchant_scope_and_preserved_date_codec(self):
   s=self.read('Core/CouponManagementContract.swift')
@@ -61,7 +75,7 @@ class CouponRuntimeSafetyTests(unittest.TestCase):
   self.assertTrue(f.startswith('#if DEBUG'))
   self.assertIn('CouponManagementFileLocks',f);self.assertIn('makeTransport: { self }',f)
   self.assertNotIn('URLSession',f)
-  t=self.read('Tests/AppUITests/CouponRuntimeFlowTests.swift')
+  t=self.read('Tests/AppUITests/CouponRuntimeJourney.swift')
   for route in ['account.merchant','merchant.content.open','merchant.content.entry.recruiting','couponManagement.marketing.entry']:
    self.assertIn(route,t)
  def test_ui_mount_replaces_coordinator_and_retains_time_rights(self):

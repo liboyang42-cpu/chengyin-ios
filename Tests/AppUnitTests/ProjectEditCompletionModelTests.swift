@@ -4,7 +4,9 @@ import XCTest
 @MainActor final class ProjectEditCompletionModelTests: XCTestCase {
     func testThemeDateSyncReviewInvalidationCancelAndLocalRestore() async throws {
         let session = try ProjectEditSession(accountID: 901, epoch: 1, storageNamespace: "fixture-cn")
-        var initial = ProjectEditSyntheticFixtures.snapshot(); initial.draft = ProjectEditSyntheticFixtures.draft(product: .freeExplore)
+        // Keep the existing topic revision: replacing the whole draft with a new-topic
+        // fixture drops it and correctly makes local restore a revision conflict.
+        var initial = ProjectEditSyntheticFixtures.snapshot(); initial.draft.product = .freeExplore
         let service = ProjectEditSyntheticService(snapshot: initial); let store = ProjectEditLocalStore(storage: ProjectEditMemoryStorage())
         let model = ProjectEditModel(coordinator: ProjectEditCoordinator(initial: initial, service: service, store: store, currentSession: { session }))
         await model.load(); let id = model.draft.tickets[0].id
@@ -20,11 +22,42 @@ import XCTest
         model.cancelReview(); model.leave()
         let reopened = ProjectEditModel(coordinator: ProjectEditCoordinator(initial: initial, service: service, store: store, currentSession: { session }))
         await reopened.load(); XCTAssertTrue(reopened.canRestore); reopened.restore()
+        XCTAssertEqual(reopened.draft.baseRevision, initial.draft.baseRevision)
+        // Stored fields retain the toggle-time dates; effective dates follow the restored theme.
+        XCTAssertEqual(reopened.draft.tickets[0].endTime, "2030-05-30")
         XCTAssertTrue(reopened.ticketDateSync(id).wrappedValue)
         XCTAssertEqual(reopened.draft.tickets[0].schedule(in: reopened.draft).end, "2030-06-30 23:59:59")
         reopened.ticketDateSync(id).wrappedValue = false
         XCTAssertEqual(reopened.draft.tickets[0].schedule(in: reopened.draft).end, "2030-06-30 23:59:59")
         XCTAssertTrue(service.submissions.isEmpty)
+    }
+    func testThemeDateSyncRestoreRejectsMissingOrChangedExistingTopicRevision() async throws {
+        let session = try ProjectEditSession(accountID: 901, epoch: 1, storageNamespace: "fixture-cn")
+        // Missing saved revision, missing current revision, and stale saved revision all fail closed.
+        for (savedRevision, currentRevision) in [("", "fixture-r1"), ("fixture-r1", ""), ("fixture-r1", "fixture-r2"), ("", "")] {
+            var initial = ProjectEditSyntheticFixtures.snapshot(); initial.draft.product = .freeExplore
+            initial.draft.baseRevision = currentRevision
+            var saved = initial.draft; saved.baseRevision = savedRevision
+            var ticket = saved.tickets[0]; try ticket.setThemeDateSync(true, in: saved); saved.tickets[0] = ticket
+            saved.endDate = "2030-06-30"
+            let store = ProjectEditLocalStore(storage: ProjectEditMemoryStorage())
+            let identity = try ProjectEditDraftIdentity(topicID: XCTUnwrap(initial.topicID))
+            try store.save(saved, session: session, identity: identity)
+            let service = ProjectEditSyntheticService(snapshot: initial)
+            let model = ProjectEditModel(coordinator: ProjectEditCoordinator(initial: initial, service: service, store: store, currentSession: { session }))
+            await model.load()
+            guard case .revisionConflict(let envelope) = model.coordinator.restore else { return XCTFail("Expected existing-topic revision conflict") }
+            XCTAssertEqual(envelope.draft, saved)
+            XCTAssertFalse(model.canRestore); XCTAssertFalse(model.canEdit)
+            let before = model.draft; model.restore()
+            XCTAssertEqual(model.draft, before)
+            XCTAssertFalse(model.ticketDateSync(ticket.id).wrappedValue)
+            model.ticketDateSync(ticket.id).wrappedValue = true; model.saveLocal()
+            XCTAssertEqual(model.draft, before)
+            guard case .revisionConflict(let retained) = store.load(session: session, identity: identity, baseline: initial.draft) else { return XCTFail("Must retain the conflicted draft") }
+            XCTAssertEqual(retained.draft, saved)
+            XCTAssertTrue(service.submissions.isEmpty)
+        }
     }
     func testSyncBindingRejectsWhitelistStaleSessionCityAndUnknownMetadata() async throws {
         for restriction in ["whitelist", "epoch", "city", "unknown", "deleted"] {

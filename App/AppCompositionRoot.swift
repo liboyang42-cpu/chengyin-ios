@@ -220,6 +220,9 @@ extension KeychainTokenStore: AppTokenStorage {}
               write.matches(context, merchantID: merchantID, path: authorization.record.request.path),
               let expected = CouponManagementRuntimeIdentity.session(context: context, viewerRevision: captured.viewerRevision, read: read, write: write),
               authorization.session == expected else { throw APIError.notConfigured }
+        if authorization.record.command != nil {
+            guard let capability = read.commandProtocol, capability.matches(context, merchantID: merchantID) else { throw APIError.notConfigured }
+        } else if read.commandProtocol != nil { throw APIError.notConfigured }
         func valid() -> Bool {
             current() == captured && couponReadApproval(context)?.revision == read.revision && read.matches(context) &&
             couponWriteApproval(context)?.revision == write.revision && write.matches(context, merchantID: merchantID, path: authorization.record.request.path)
@@ -256,6 +259,20 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard deployment.regional.market == .china,
                   deployment.regional.canUseDomesticChinaPhone,
                   CNAccountSessionService.accepts(request, configuration: api) else { throw APIError.notConfigured }
+        } else if url == api.baseURL.appendingPathComponent("api/merchant/coop-profile") || url == api.baseURL.appendingPathComponent("api/coupon/command-receipt") {
+            guard captured.isSignedInContentViewer,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let approval = couponReadApproval(context), approval.matches(context),
+                  let capability = approval.commandProtocol, capability.matches(context, merchantID: approval.merchantID),
+                  CouponCommandReadRoute(request: request, baseURL: api.baseURL, merchantID: approval.merchantID) != nil else { throw APIError.notConfigured }
+            readApprovalStillValid = { [couponReadApproval] in
+                guard let fresh = couponReadApproval(context) else { return false }
+                return fresh.revision == approval.revision && fresh.matches(context) &&
+                    fresh.commandProtocol?.revision == capability.revision && capability.matches(context, merchantID: fresh.merchantID)
+            }
         } else if CouponManagementReadRoute(request: request, baseURL: api.baseURL) != nil {
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,

@@ -113,6 +113,17 @@ public struct PlayKitScreenProjection: Equatable {
         if passed { return submitted ? "playkit.result.passed" : nil }
         return submitted ? "playkit.type.finishedNotPassed" : "playkit.type.retry"
     }
+    /// The server's estimate tier is a readback, not a pass/fail or reward rule.
+    /// Never infer a tier from a local guess, attempts, score or completion.
+    public var estimateResultKey: String? {
+        guard kind == .estimate, segment["submitted"].bool == true else { return nil }
+        switch segment["tier"].text {
+        case "HIT": return "playkit.estimate.result.hit"
+        case "CLOSE": return "playkit.estimate.result.close"
+        case "MISS": return "playkit.estimate.result.miss"
+        default: return nil
+        }
+    }
     public var feedback: String? { segment["lastFeedback"].text ?? segment["feedback"].text }
     public var options: [PlayKitOption] {
         if kind == .predict || kind == .blindTaste { return PlayKitOption.read(segment["options"], idKey: "key") }
@@ -328,5 +339,34 @@ public enum PlayKitInputContract {
         let localX = x - (viewWidth - width) / 2, localY = y - (viewHeight - height) / 2
         guard (0...width).contains(localX), (0...height).contains(localY) else { return nil }
         return ((localX / width * 10_000).rounded() / 10_000, (localY / height * 10_000).rounded() / 10_000)
+    }
+}
+
+/// Read-only receipt for the current server segment. This does not select a
+/// local card, determine completion, or retain results across revisions.
+public struct PlayKitPricePairResult: Equatable {
+    public let lastPickID: String
+    public let passed: Bool
+    public let finished: Bool
+    public let answerID: String?
+    public init?(segment: PlayWireValue) {
+        guard let rows = segment["items"].array, !rows.isEmpty,
+              let attempts = segment["attempts"].integer, attempts > 0,
+              let finished = segment["finished"].bool,
+              let passed = segment["passed"].bool,
+              let lastPick = segment["lastPickId"].text, !lastPick.isEmpty else { return nil }
+        let ids = rows.compactMap { $0["id"].text }
+        guard ids.count == rows.count, ids.allSatisfy({ !$0.isEmpty }),
+              Set(ids).count == ids.count, ids.contains(lastPick),
+              !passed || finished else { return nil }
+        var answer: String?
+        if finished {
+            // Both successful and exhausted rounds publish the answer. Missing,
+            // unknown or contradictory receipts must never highlight a card.
+            guard let reported = segment["answerId"].text, ids.contains(reported),
+                  passed ? reported == lastPick : reported != lastPick else { return nil }
+            answer = reported
+        }
+        lastPickID = lastPick; self.passed = passed; self.finished = finished; answerID = answer
     }
 }

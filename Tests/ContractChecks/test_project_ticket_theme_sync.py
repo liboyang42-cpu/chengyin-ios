@@ -35,7 +35,7 @@ class TicketThemeSync(unittest.TestCase):
                 self.assertEqual(source[key][lang],catalog[key]['localizations'][lang]['stringUnit']['value'])
 
 class TicketThemeSyncUIInteractionContracts(unittest.TestCase):
-    def test_native_control_transition_is_required_before_unchanged_date_assertions(self):
+    def test_native_control_transition_precedes_exact_combined_date_labels(self):
         source = (ROOT / 'Tests/AppUITests/ProjectEditFlowTests.swift').read_text()
         method = source.split('func testFreeExploreTicketThemeDateSyncAndReturnToManualDates()')[1].split('func testLocalEditReviewAndCancelledConfirmation')[0]
         self.assertIn('let nativeSwitch = sync.switches.firstMatch', method)
@@ -46,8 +46,13 @@ class TicketThemeSyncUIInteractionContracts(unittest.TestCase):
         self.assertNotIn('for ', method)
         self.assertIn('NSPredicate(format: "value == %@", "1")', method)
         self.assertIn('NSPredicate(format: "value == %@", "0")', method)
-        self.assertLess(method.index('XCTWaiter.wait(for: [enabled], timeout: 3)'), method.index('app.staticTexts["2030-05-01 00:00:00"]'))
-        self.assertIn('app.staticTexts["2030-05-30 23:59:59"]', method)
+        self.assertLess(method.index('XCTWaiter.wait(for: [enabled], timeout: 3)'), method.index('XCTAssertEqual(syncedStart.label, "Start or meeting time, 2030-05-01 00:00:00"'))
+        self.assertIn('let syncedStart = app.staticTexts["projectEdit.ticketStart"]', method)
+        self.assertIn('let syncedEnd = app.staticTexts["projectEdit.ticketEnd"]', method)
+        self.assertIn('XCTAssertTrue(syncedStart.waitForExistence(timeout: 3)', method)
+        self.assertIn('XCTAssertTrue(syncedEnd.exists', method)
+        self.assertIn('XCTAssertEqual(syncedEnd.label, "End time, 2030-05-30 23:59:59"', method)
+        self.assertNotIn('label.contains', method)
         self.assertIn('XCTAssertFalse(app.textFields["projectEdit.ticketStart"].exists)', method)
         self.assertIn('XCTAssertEqual(app.textFields["projectEdit.ticketStart"].value as? String, "2030-05-01 00:00:00")', method)
         self.assertIn('app.buttons["projectEdit.review"].tap()', method)

@@ -209,7 +209,9 @@ import SwiftUI
             case "api/template/myinfo":
                 guard TemplateShelfReadRoute(request: request, baseURL: Self.base) == .detail(MemberPlayTemplateID(rawValue: 111)!) else { try reject("shelf detail shape") }
                 fields = ["id": "111"]; route = "shelf.detail"
-                json = "{\"code\":200,\"data\":{\"id\":111,\"memberId\":\(owner),\"title\":\"Owner \(owner) fresh template\",\"draftStatus\":0}}"
+                let story = String(decoding: try JSONSerialization.data(withJSONObject: [["text": "Owner-only story", "tag": "Opening", "img": "https://images.test/story.jpg"]]), as: UTF8.self)
+                let response: [String: Any] = ["code": 200, "data": ["id": 111, "memberId": owner, "title": "Owner \(owner) fresh template", "draftStatus": 0, "originalTemplateId": 72, "validationMethod": 1, "questionName": "Synthetic owner question", "questionAnswer": "Synthetic owner answer", "storyJson": story]]
+                json = String(decoding: try JSONSerialization.data(withJSONObject: response), as: UTF8.self)
             case "api/team/my":
                 guard TeamReadRoute(request: request, baseURL: Self.base) == .mine else { try reject("team list shape") }
                 route = "teams.list"

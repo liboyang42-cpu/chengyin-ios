@@ -91,6 +91,9 @@ public struct TemplateAuthoringDraft: Codable, Equatable {
     public var feedbackText: String?
     public var medalImg: String?
     public var medalName: String?
+    public var medalStyle: String?
+    /// Exact source text, including unknown keys; no normalization on save/reopen.
+    public var preferenceJson: String?
     public var storyText: String?
     public var storyImg: String?
     public var storyJson: String?
@@ -99,7 +102,7 @@ public struct TemplateAuthoringDraft: Codable, Equatable {
     public var categoryId: Int?
     public var couponId: Int?
     public var audioDuration: Int?
-    public init(title: String = "") { self.title = title }
+    public init(title: String = "") { self.title = title; self.medalStyle = "glow" }
     public var canSave: Bool { !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
     public var publishIssues: [String] {
         func blank(_ v: String?) -> Bool { (v ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }

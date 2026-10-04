@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "acceptance": "NOT_RUN_DEVICE_REQUIRED",
+  "lock_enforcement": "NOT_RUN_DEVICE_REQUIRED",
+  "tests": [
+    {
+      "original_class": "ContentDraftSystemStorageTests",
+      "class": "ContentDraftDeviceStorageAcceptanceTests",
+      "method": "testSyntheticFilesystemPrerequisitesReportNumericStage",
+      "body_sha256": "c78e9b3c35c4c8b411d37df6dcb6392cfafa2f89578014ff6219f3a613b64987",
+      "status": "NOT_RUN_DEVICE_REQUIRED"
+    },
+    {
+      "original_class": "ContentDraftSystemStorageTests",
+      "class": "ContentDraftDeviceStorageAcceptanceTests",
+      "method": "testSyntheticRegularFileClassAIndependentControl",
+      "body_sha256": "d4aa124226305be6040b220d3b4eef82e122ecb8ab16e55a1d13a3d60a58c4c2",
+      "status": "NOT_RUN_DEVICE_REQUIRED"
+    },
+    {
+      "original_class": "ContentDraftSystemStorageTests",
+      "class": "ContentDraftDeviceStorageAcceptanceTests",
+      "method": "testSyntheticFoundationClassAIndependentControl",
+      "body_sha256": "1080e9c1a0f3cb54c2b3ba2e8e4de0f7faac063e97b8c7b23429cbc7be2f9f96",
+      "status": "NOT_RUN_DEVICE_REQUIRED"
+    },
+    {
+      "original_class": "ContentDraftSystemStorageTests",
+      "class": "ContentDraftDeviceStorageAcceptanceTests",
+      "method": "testRealExclusiveCiphertextFileBoundedReadAndCleanup",
+      "body_sha256": "8875818ff91d0377cb68aaca134fb3aef2c555c873f5fa4341e4fe0a807caeac",
+      "status": "NOT_RUN_DEVICE_REQUIRED"
+    },
+    {
+      "original_class": "ContentDraftSystemStorageTests",
+      "class": "ContentDraftDeviceStorageAcceptanceTests",
+      "method": "testRealPresenceMarkerIsExclusivePermanentAndEmpty",
+      "body_sha256": "ab8677460543981d38ae2a59d1a882affdb202d6a699e4e1c4a534ea4f154201",
+      "status": "NOT_RUN_DEVICE_REQUIRED"
+    },
+    {
+      "original_class": "PlayRecoverySystemStorageTests",
+      "class": "PlayRecoveryDeviceStorageAcceptanceTests",
+      "method": "testConcreteOSRelaunchCASAndNoPlaintextOrCredentialFiles",
+      "body_sha256": "d222758e796c310dcf71004f1757c5d84b5d34fc1f33b8ae99170b0d3eab56dd",
+      "status": "NOT_RUN_DEVICE_REQUIRED"
+    },
+    {
+      "original_class": "PlayRecoverySystemStorageTests",
+      "class": "PlayRecoveryDeviceStorageAcceptanceTests",
+      "method": "testMissingKeychainAfterWrittenPresenceFailsClosedWithoutReplacement",
+      "body_sha256": "03269deb1b50d24990441f3725036ebbb805f83198cbefbc570d08b0b53c65c9",
+      "status": "NOT_RUN_DEVICE_REQUIRED"
+    },
+    {
+      "original_class": "PlayRecoverySystemStorageTests",
+      "class": "PlayRecoveryDeviceStorageAcceptanceTests",
+      "method": "testPartialCiphertextAndForeignRoleNeverUnlockOSPending",
+      "body_sha256": "f82d788d670081f0f206f4bd3d38994fcd72159b0b4543a2f6ced1019eb13ae9",
+      "status": "NOT_RUN_DEVICE_REQUIRED"
+    }
+  ]
+}

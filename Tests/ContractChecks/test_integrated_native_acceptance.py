@@ -41,7 +41,7 @@ class IntegratedNativeAcceptanceContracts(unittest.TestCase):
 
     def test_bounded_ui_cases_use_phone_inputs_and_normal_destinations(self):
         source = self.read('Tests/AppUITests/IntegratedNativeAcceptanceFlowTests.swift')
-        self.assertEqual(len(re.findall(r'func\s+test\w+\(', source)), 7)
+        self.assertEqual(len(re.findall(r'func\s+test\w+\(', source)), 8)
         for required in ['auth.channels.sendCode', 'auth.channels.phoneSignIn', 'homeFeed.nearby.activity.21', 'roam.area.select',
                          'activity.openPlay', 'profile.open.orders', 'profile.order.41',
                          'final.ledger.dropFirst(9)', 'assertIdentity(', 'try closeFrontSheet(app)',
@@ -53,6 +53,28 @@ class IntegratedNativeAcceptanceContracts(unittest.TestCase):
         self.assertIn('tapFixtureSheetAction("Sign out", in: confirmation, app: app)', source)
         self.assertIn('self.availableEvidence(app).map(condition)', source)
         self.assertIn('XCTAssertTrue(value.manualArea)', source)
+
+    def test_shelf_next_page_uses_bounded_native_container_progress(self):
+        source = self.read('Tests/AppUITests/IntegratedNativeAcceptanceFlowTests.swift')
+        block = source.split('private func tapOwnedShelfNextPage', 1)[1].split('private func closeFrontSheet', 1)[0]
+        for required in ['app.collectionViews', 'app.tables', 'app.scrollViews', 'memberTemplate.mine.',
+                         '0..<30', 'bounds.contains(target.frame)', 'target.isEnabled', 'target.isHittable',
+                         'before == visibleRows(viewport())', 'XCTFail(']:
+            self.assertIn(required, block)
+        self.assertNotIn('sleep', block)
+        self.assertNotIn('maximumSwipes:', block)
+
+    def test_map_overflow_requires_unique_visible_native_leaf_then_exact_action(self):
+        source = self.read('Tests/AppUITests/IntegratedNativeAcceptanceFlowTests.swift')
+        block = source.split('private func tapRoamOverflowToggle', 1)[1].split('private func tapOwnedShelfNextPage', 1)[0]
+        for required in ['navigation.buttons["Official city"]', 'frame.minX >= city.frame.maxX',
+                         'navigation.frame.contains(frame)', 'app.frame.contains(frame)',
+                         '$0.isEnabled && $0.isHittable', 'leaves.count == 1', 'overflow.tap()',
+                         'app.buttons["roam.display.toggle"]', 'toggle.isEnabled, toggle.isHittable']:
+            self.assertIn(required, block)
+        self.assertEqual(block.count('overflow.tap()'), 1)
+        self.assertNotIn('sleep', block)
+        self.assertNotIn('"More"', block)
 
     def test_phone_fixture_matches_real_provisional_and_authoritative_parser_shapes(self):
         source = self.read('App/IntegratedNativeAcceptanceFixture.swift')

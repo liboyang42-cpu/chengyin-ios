@@ -27,6 +27,18 @@ class PlayKitNativeScreenChecks(unittest.TestCase):
         self.assertIn('grants: Set<PlayKitSensorKind> = []', self.read('App/PlayKitNativeSensorProvider.swift'))
         self.assertIn('approvedArtworkHosts: Set<String> = []', self.read('App/PlayKitScreen.swift'))
         self.assertIn('makeSensorProvider?() ?? PlayKitDormantSensorProvider()', self.read('App/PlayKitSensorChallengeView.swift'))
+    def test_estimate_tier_readback_is_mounted_and_current_scope_only(self):
+        code = self.read('App/PlayKitQuestionForms.swift').split('@ViewBuilder var estimateForm: some View {', 1)[1].split('@ViewBuilder var pricePairForm:', 1)[0]
+        for token in ['model.isCurrent', '!["stale", "disabled"].contains(model.phase)', 'projection.estimateResultKey', 'Text(LocalizedStringKey(resultKey))', '.accessibilityIdentifier("playkit.estimate.result")']:
+            self.assertIn(token, code)
+        self.assertNotIn('raw["tier"]', code)
+        self.assertNotIn('raw["answer"]', code)
+        self.assertNotIn('raw["guess"]', code)
+        for filename in ['Resources/Localizable.xcstrings', 'Resources/PlayKitEstimateLocalizations.fragment.json']:
+            strings = json.loads(self.read(filename))['strings']
+            for suffix in ['hit', 'close', 'miss']:
+                for language in ['en', 'zh-Hans']:
+                    self.assertTrue(strings['playkit.estimate.result.' + suffix]['localizations'][language]['stringUnit']['value'])
     def test_no_new_network_routes_or_local_reward_mutation(self):
         code = '\n'.join(p.read_text() for p in (ROOT/'App').glob('PlayKit*.swift'))
         for forbidden in ['api/play/', 'SUBMIT_BINGO', 'CLAIM_BINGO', 'URLSession.shared', 'passed = true', 'readyForBase = true']:
@@ -69,6 +81,7 @@ class PlayKitNativeScreenChecks(unittest.TestCase):
         catalog = json.loads(self.read('Resources/PlayKitScreenLocalizations.fragment.json'))['strings']
         docs = json.loads(self.read('docs/playkit-screen-localizations.json'))
         self.assertEqual(set(catalog),set(docs))
+        catalog.update(json.loads(self.read('Resources/PlayKitPricePairLocalizations.fragment.json'))['strings'])
         catalog.update(json.loads(self.read('Resources/PlayKitAuthoringLegacyLocalizations.fragment.json'))['strings'])
         for path in (ROOT/'App').glob('PlayKit*.swift'):
             code=path.read_text()

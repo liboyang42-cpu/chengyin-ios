@@ -10,10 +10,26 @@ final class AccountCollectionFlowTests: XCTestCase {
         app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", "(\(language))", "-AppleLocale", language == "en" ? "en_US" : "zh_CN", "--uitesting-module", "accountCollections", "--uitesting-account-collection-scenario", scenario] + extra
         app.launch()
     }
-    private func open(_ id: String) {
+    private func open(_ id: String, diagnoseNavigation: Bool = false) {
         let button = app.buttons[id]
         XCTAssertTrue(button.waitForExistence(timeout: 10), app.debugDescription)
+        if diagnoseNavigation { logNavigationBoundary("before single tap", target: button, identifier: id) }
         button.tap()
+        if diagnoseNavigation { logNavigationBoundary("after single tap", target: button, identifier: id) }
+    }
+    // This module is synthetic and offline. Log only the selected control and
+    // navigation bars; image-only CI evidence does not retain AX attachments.
+    private func logNavigationBoundary(_ phase: String, target: XCUIElement, identifier: String) {
+        let exists = target.exists
+        print("ACCOUNT_COLLECTION_NAVIGATION phase=\(phase); identifier=\(identifier); type=\(exists ? String(target.elementType.rawValue) : "absent"); exists=\(exists); enabled=\(exists && target.isEnabled); hittable=\(exists && target.isHittable); frame=\(exists ? target.frame : .zero)")
+        if exists { print("ACCOUNT_COLLECTION_TARGET_AX " + target.debugDescription) }
+        print("ACCOUNT_COLLECTION_NAVIGATION_AX " + app.navigationBars.debugDescription)
+    }
+    private func assertChineseNavigation(_ title: String, file: StaticString = #filePath, line: UInt = #line) {
+        let destination = app.navigationBars[title]
+        let arrived = destination.waitForExistence(timeout: 5)
+        logNavigationBoundary("after destination wait: " + title, target: destination, identifier: title)
+        XCTAssertTrue(arrived, file: file, line: line)
     }
     private func reveal(_ element: XCUIElement, file: StaticString = #filePath, line: UInt = #line) {
         _ = element.waitForExistence(timeout: 5)
@@ -120,13 +136,13 @@ final class AccountCollectionFlowTests: XCTestCase {
     }
     func testChineseFavoritesAndCouponNavigation() {
         launch(language: "zh-Hans")
-        open("accountCollection.openFavorites")
-        XCTAssertTrue(app.navigationBars["我的收藏"].waitForExistence(timeout: 5))
+        open("accountCollection.openFavorites", diagnoseNavigation: true)
+        assertChineseNavigation("我的收藏")
         app.navigationBars["我的收藏"].buttons.firstMatch.tap()
-        open("accountCollection.openCoupons")
-        XCTAssertTrue(app.navigationBars["我的优惠券"].waitForExistence(timeout: 5))
-        open("accountCollection.coupon.701")
-        XCTAssertTrue(app.navigationBars["优惠券详情"].waitForExistence(timeout: 5))
+        open("accountCollection.openCoupons", diagnoseNavigation: true)
+        assertChineseNavigation("我的优惠券")
+        open("accountCollection.coupon.701", diagnoseNavigation: true)
+        assertChineseNavigation("优惠券详情")
     }
     func testLargeTypeDarkModeKeepsCardsAndCouponDetailsReachable() {
         launch(extra: ["--uitesting-dark", "--uitesting-large-text"])

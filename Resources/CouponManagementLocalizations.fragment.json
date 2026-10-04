@@ -1256,5 +1256,56 @@
         }
       }
     }
+  },
+  "couponManagement.checkPendingResults": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Check pending command results"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "查询未确认的操作结果"
+        }
+      }
+    }
+  },
+  "couponManagement.recoveryFinished": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Receipt check finished. Any unresolved operations remain locked."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "回执查询已完成，未确认的操作仍保持锁定。"
+        }
+      }
+    }
+  },
+  "couponManagement.recoveryNotice": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Checks recorded command receipts only. Missing or uncertain results remain locked; no coupon is submitted again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "仅查询已记录命令的回执。未找到或结果不明确时仍保持锁定，不会重新提交优惠券。"
+        }
+      }
+    }
   }
 }

@@ -51,7 +51,9 @@ public enum TemplateAuthoringContract {
             if d.validationMethod == .photo { string("photoRequireDesc", d.photoRequireDesc); number("photoReview", d.photoReview) }
             let raw = try d.advanced.serialize(); if !raw.isEmpty { p["advancedConfigJson"] = .string(raw) }
         }
-        if d.rewardEnabled { string("feedbackText", d.feedbackText); number("couponId", d.couponId); string("medalImg", d.medalImg); string("medalName", d.medalName) }
+        if d.rewardEnabled { string("feedbackText", d.feedbackText); number("couponId", d.couponId); string("medalImg", d.medalImg); string("medalName", d.medalName)
+            if !(d.medalName ?? "").isEmpty || !(d.medalImg ?? "").isEmpty { string("medalStyle", d.medalStyle) }
+        }
         if d.storyEnabled { string("storyText", d.storyText); string("storyImg", d.storyImg); string("storyJson", d.storyJson) }
         if d.voiceEnabled { string("audioUrl", d.audioUrl); number("audioDuration", d.audioDuration) }
         return p

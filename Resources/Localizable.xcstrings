@@ -121478,6 +121478,795 @@
           }
         }
       }
+    },
+    "couponManagement.checkPendingResults": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check pending command results"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查询未确认的操作结果"
+          }
+        }
+      }
+    },
+    "couponManagement.recoveryFinished": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Receipt check finished. Any unresolved operations remain locked."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回执查询已完成，未确认的操作仍保持锁定。"
+          }
+        }
+      }
+    },
+    "couponManagement.recoveryNotice": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checks recorded command receipts only. Missing or uncertain results remain locked; no coupon is submitted again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅查询已记录命令的回执。未找到或结果不明确时仍保持锁定，不会重新提交优惠券。"
+          }
+        }
+      }
+    },
+    "templateOwnerConfig.open": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View author configuration (read-only)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看作者配置（只读）"
+          }
+        }
+      }
+    },
+    "templateOwnerConfig.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Author configuration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "作者配置"
+          }
+        }
+      }
+    },
+    "templateOwnerConfig.readOnly": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read-only owner configuration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自有模板配置，只读"
+          }
+        }
+      }
+    },
+    "templateOwnerConfig.scope": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "QA and story inspection only. Changes, saving and publishing are unavailable."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅查看问答与故事配置，无法修改、保存或发布。"
+          }
+        }
+      }
+    },
+    "templateOwnerConfig.missing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not provided by the source"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "源数据未提供"
+          }
+        }
+      }
+    },
+    "templateOwnerConfig.noProvenance": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No source-library ID was provided"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未提供来源模板库编号"
+          }
+        }
+      }
+    },
+    "templateOwnerConfig.unsupported": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This source value is unsupported"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂不支持此源数据值"
+          }
+        }
+      }
+    },
+    "templateOwnerConfig.unsupportedMethod": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This completion method is not supported by this inspector. Its original value is retained."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此查看器暂不支持该完成方式，原始数据保持不变。"
+          }
+        }
+      }
+    },
+    "templateOwnerConfig.partial": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other or unsupported fields are retained unchanged but are not shown by this partial inspector."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "其他字段及暂不支持的字段保持原样，此局部查看器不展示这些内容。"
+          }
+        }
+      }
+    },
+    "templateOwnerConfig.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The owner configuration could not be loaded. Retry to read a fresh copy."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法加载作者配置，请重试读取最新数据。"
+          }
+        }
+      }
+    },
+    "templateOwnerConfig.noStory": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No story steps were returned"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未返回故事节点"
+          }
+        }
+      }
+    },
+    "templateAuthor.field.medalStyle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Medal style"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "勋章样式"
+          }
+        }
+      }
+    },
+    "templateAuthor.medalStyle.glow": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2D glow"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "二维发光"
+          }
+        }
+      }
+    },
+    "templateAuthor.medalStyle.enamel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3D enamel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3D 珐琅"
+          }
+        }
+      }
+    },
+    "templateAuthor.preference.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preference results (read-only)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "偏好结果（只读）"
+          }
+        }
+      }
+    },
+    "templateAuthor.preference.partial": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partial preview. Questions, scoring, tie-breaking and extensions are preserved without editing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "部分预览。题目、评分、决胜规则及扩展内容保留原文，不可编辑。"
+          }
+        }
+      }
+    },
+    "templateAuthor.preference.days": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Follow-up days"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "后续周期（天）"
+          }
+        }
+      }
+    },
+    "templateAuthor.preference.recipient": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tag recipient"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "标签接收方"
+          }
+        }
+      }
+    },
+    "templateAuthor.preference.purpose": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tag purpose"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "标签用途"
+          }
+        }
+      }
+    },
+    "templateAuthor.preference.revocable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The source declares this tag revocable."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原配置声明此标签可撤回。"
+          }
+        }
+      }
+    },
+    "templateAuthor.preference.unsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This configuration cannot be previewed. The original is retained unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此配置暂不能预览，原文已完整保留。"
+          }
+        }
+      }
+    },
+    "templateOwnerSensor.preference": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preference questionnaire"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "偏好题组"
+          }
+        }
+      }
+    },
+    "templateOwnerSensor.challenge": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sensor challenge"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "传感器挑战"
+          }
+        }
+      }
+    },
+    "templateOwnerSensor.preferenceScope": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preference configuration is inspected separately; this is not an editable or runnable challenge."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "偏好配置单独只读查看；此处不支持编辑或运行挑战。"
+          }
+        }
+      }
+    },
+    "templateOwnerSensor.configuration": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sensor configuration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "传感器配置"
+          }
+        }
+      }
+    },
+    "templateOwnerSensor.scope": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configuration only. No device access, sampling, recording, upload or challenge execution."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅查看配置，不获取设备权限、采样、录音、上传或运行挑战。"
+          }
+        }
+      }
+    },
+    "templateOwnerSensor.kind.still": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stillness"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保持静止"
+          }
+        }
+      }
+    },
+    "templateOwnerSensor.kind.steps": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Step count"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "计步挑战"
+          }
+        }
+      }
+    },
+    "templateOwnerSensor.kind.audio_clip": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio clip"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "音频片段"
+          }
+        }
+      }
+    },
+    "templateOwnerSensor.parameter.durationSec": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Target duration (seconds)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目标时长（秒）"
+          }
+        }
+      }
+    },
+    "templateOwnerSensor.parameter.targetSteps": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Target steps"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目标步数"
+          }
+        }
+      }
+    },
+    "templateOwnerSensor.parameter.windowSec": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Time window (seconds)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "计步时间窗（秒）"
+          }
+        }
+      }
+    },
+    "templateOwnerSensor.parameter.minDurationSec": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minimum duration (seconds)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最短音频时长（秒）"
+          }
+        }
+      }
+    },
+    "templateOwnerSensor.invalid": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source configuration is invalid or unsupported; no defaults were substituted."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "源配置无效或格式不支持，未填入默认值。"
+          }
+        }
+      }
+    },
+    "templateOwnerSensor.unsupportedType": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sensor type is missing or unsupported. Original data is preserved; no device capability is enabled."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "传感器类型缺失或不支持。原始数据保留，不开启设备能力。"
+          }
+        }
+      }
+    },
+    "playkit.pricePair.lastCorrect": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last confirmed choice: correct"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上次确认的选择：正确"
+          }
+        }
+      }
+    },
+    "playkit.pricePair.lastIncorrect": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last confirmed choice: incorrect"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上次确认的选择：错误"
+          }
+        }
+      }
+    },
+    "playkit.pricePair.revealedAnswer": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Answer revealed by the server"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端揭晓的正确图"
+          }
+        }
+      }
+    },
+    "playkit.pricePair.currentChoice": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current selection, not a result"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前暂选，尚非判定结果"
+          }
+        }
+      }
+    },
+    "playkit.pricePair.ended": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This round has ended. The server has revealed the answer."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本轮已结束，服务端已揭晓正确图。"
+          }
+        }
+      }
+    },
+    "playkit.pricePair.retry": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The last confirmed choice was incorrect. You can choose again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上次确认的选择不正确，可以重新选择。"
+          }
+        }
+      }
+    },
+    "playkit.estimate.result.hit": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estimate result: on target"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "估数结果：命中"
+          }
+        }
+      }
+    },
+    "playkit.estimate.result.close": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estimate result: close"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "估数结果：接近"
+          }
+        }
+      }
+    },
+    "playkit.estimate.result.miss": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estimate result: outside the target range"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "估数结果：偏离目标范围"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

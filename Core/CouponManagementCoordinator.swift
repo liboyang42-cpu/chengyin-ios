@@ -23,6 +23,11 @@ import FoundationNetworking
         guard credentials.session == session, let wire = record.wire else { throw CouponManagementError.changed }
         var request = try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent(String(record.request.path.dropFirst())), fields: [:], token: credentials.token, includesBody: false)
         request.setValue(wire.contentType, forHTTPHeaderField: "Content-Type"); request.httpBody = wire.data
+        if let command = record.command {
+            try command.validate(record: record, session: session, permission: permission)
+            request.setValue(command.requestID, forHTTPHeaderField: "X-Coupon-Command-Id")
+            request.setValue(String(command.merchantID), forHTTPHeaderField: "X-Coupon-Merchant-Id")
+        }
         return request
     }
     /// Called at the final outer boundary with no intervening suspension before forwarding.
@@ -77,12 +82,16 @@ public struct CouponManagementReview: Equatable, Identifiable {
     public var canReviewStop: Bool { !adapter.canSubmit || adapter.permits(.stop) }
     public func canConfirm(_ review: CouponManagementReview) -> Bool { adapter.permits(review.action) }
     public var canRead: Bool { adapter.canRead }
+    public var canRecoverCommands: Bool { adapter.canRecoverCommands }
+    public private(set) var recoveredCommandCount = 0
+    public private(set) var recoveryFinished = false
     public init(adapter: CouponManagementAdapter, authorizer: any CouponPublisherAuthorizing, locks: any CouponManagementLocking, currentSession: @escaping () -> CouponManagementSession?) {
         self.adapter = adapter; self.authorizer = authorizer; self.locks = locks; self.currentSession = currentSession
     }
     public func synchronize() {
         guard captured != currentSession() else { return }
         captured = currentSession(); generation &+= 1; readGeneration &+= 1
+        recoveredCommandCount = 0; recoveryFinished = false
         draft = .init(); rows = []; review = nil; busy = false; loading = false; issue = nil; serverMessage = nil; simulated = false; acknowledged = false; verifiedRecord = nil; acknowledgedDefinitionID = nil
     }
     private func active(_ session: CouponManagementSession, _ stamp: UInt64) -> Bool {
@@ -90,6 +99,7 @@ public struct CouponManagementReview: Equatable, Identifiable {
     }
     public func change(_ value: CouponManagementDraft) {
         synchronize(); guard !busy else { return }
+        recoveryFinished = false; recoveredCommandCount = 0
         draft = value; generation &+= 1; review = nil; issue = nil; serverMessage = nil; simulated = false; acknowledged = false; verifiedRecord = nil; acknowledgedDefinitionID = nil
     }
     public func cancelReview() { generation &+= 1; review = nil; busy = false }
@@ -167,6 +177,7 @@ public struct CouponManagementReview: Equatable, Identifiable {
             guard active(session, stamp), review == accepted else { return }
             var record = CouponManagementPending(operationID: accepted.id, ownerKey: session.ownerKey, resource: accepted.resource, request: accepted.request, createdAt: Date())
             record.wire = try CouponManagementWire(request: accepted.request)
+            record.command = try adapter.prepareCommand(record: record, session: session, permission: permission)
             try locks.acquire(record); pending = record; review = nil
             let authorization = CouponManagementDispatchAuthorization(record: record, session: session, permission: permission, locks: locks, current: { [weak self] in
                 self?.active(session, stamp) == true
@@ -208,6 +219,49 @@ public struct CouponManagementReview: Equatable, Identifiable {
             issue = pending == nil ? ((error as? CouponManagementError) ?? .storage) : .locked
         }
     }
+    /// Explicit read-only recovery, also usable after restart and when a stopped row is no longer listed.
+    /// No new UUID, request mutation, retry, timeout clearing, or legacy journal upgrade occurs here.
+    public func recoverPendingCommands() async {
+        synchronize(); guard !busy, let session = captured else { issue = .signedOut; return }
+        guard canRecoverCommands else { issue = .unavailable; return }
+        generation &+= 1; let stamp = generation; review = nil; busy = true; issue = nil; serverMessage = nil
+        recoveryFinished = false; recoveredCommandCount = 0; acknowledged = false; acknowledgedDefinitionID = nil; verifiedRecord = nil
+        defer {
+            // Cancellation suppresses results, not cleanup owned by this exact operation.
+            // An older task must never clear a newer generation's busy state.
+            if captured == session, currentSession() == session, generation == stamp { busy = false }
+        }
+        do {
+            let records = try locks.pendingCommands(ownerKey: session.ownerKey)
+            for record in records {
+                guard active(session, stamp), canRecoverCommands else { return }
+                guard let command = record.command else { continue }
+                let permission = try await authorizer.freshPermission(session: session)
+                guard active(session, stamp), canRecoverCommands else { return }
+                try command.validate(record: record, session: session, permission: permission)
+                guard try locks.pending(ownerKey: record.ownerKey, resource: record.resource) == record else { throw CouponManagementError.storage }
+                let outcome = try await adapter.recoverCommand(record, session: session, permission: permission)
+                guard active(session, stamp), canRecoverCommands else { return }
+                // Current authority is revalidated after the receipt suspension as well.
+                let after = try await authorizer.freshPermission(session: session)
+                guard active(session, stamp), canRecoverCommands else { return }
+                guard after == permission else { throw CouponManagementError.changed }
+                guard try locks.pending(ownerKey: record.ownerKey, resource: record.resource) == record else { throw CouponManagementError.storage }
+                switch outcome {
+                case .receipt(let id, let message):
+                    try locks.release(record); recoveredCommandCount += 1
+                    acknowledged = true; acknowledgedDefinitionID = id; serverMessage = message
+                case .rejected(let message):
+                    try locks.release(record); recoveredCommandCount += 1; serverMessage = message
+                default: issue = .locked
+                }
+            }
+            if recoveredCommandCount > 0 { await refreshAfterMutation(session: session, stamp: stamp) }
+            if active(session, stamp) { recoveryFinished = true }
+        } catch {
+            if active(session, stamp) { issue = (error as? CouponManagementError) ?? .locked }
+        }
+    }
     private func refreshAfterMutation(session: CouponManagementSession, stamp: UInt64) async {
         readGeneration &+= 1; let sequence = readGeneration
         do {
@@ -218,6 +272,5 @@ public struct CouponManagementReview: Equatable, Identifiable {
             if issue == nil { issue = (error as? CouponManagementError) ?? .unavailable }
         }
     }
-    // No claim, reactivation, edit-after-publication, deletion, receipt lookup, issuance or redemption route:
-    // none is established by coupon_api.dart's author/management contract.
+    // No claim, reactivation, edit-after-publication, deletion, issuance, redemption or write-retry route.
 }

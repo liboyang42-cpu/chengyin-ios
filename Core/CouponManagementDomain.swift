@@ -169,7 +169,8 @@ public struct CouponPublisherPermission: Equatable {
     public let revision: String
     public let mayPublish: Bool
     public let merchantID: Int?
-    public init(revision: String, mayPublish: Bool, merchantID: Int? = nil) { self.revision = revision; self.mayPublish = mayPublish; self.merchantID = merchantID }
+    public let ownerMemberID: Int?
+    public init(revision: String, mayPublish: Bool, merchantID: Int? = nil, ownerMemberID: Int? = nil) { self.revision = revision; self.mayPublish = mayPublish; self.merchantID = merchantID; self.ownerMemberID = ownerMemberID }
 }
 /// Host must supply fresh source-backed publisher eligibility, not a cached display role.
 @MainActor public protocol CouponPublisherAuthorizing: AnyObject {

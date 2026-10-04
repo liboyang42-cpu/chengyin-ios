@@ -71,12 +71,31 @@ import XCTest
         XCTAssertEqual(detail.story.first?.images, ["https://images.test/legacy.jpg"])
         XCTAssertEqual(wire.requests.compactMap { TemplateShelfReadRoute(request: $0, baseURL: base) },
             (1...11).map { .page($0, keyword: "legacy") } + [.detail(id)])
+        let ownerHost = session.makeOwnedTemplateConfigurationHost(); await ownerHost.load(id: id)
+        XCTAssertEqual(ownerHost.snapshot?.id, id); XCTAssertEqual(ownerHost.snapshot?.story.first?.images, ["https://images.test/legacy.jpg"])
         // A matching search row is not owner proof for a fresh detail response.
         wire.detailOwner = 8
         do { _ = try await reader.memberTemplate(id: id); XCTFail("Non-owner legacy story was accepted") }
         catch { XCTAssertEqual(error as? APIError, .malformedResponse) }
-        XCTAssertEqual(wire.requests.count, 13)
+        XCTAssertEqual(wire.requests.count, 14)
+        await ownerHost.load(id: id); XCTAssertNil(ownerHost.snapshot)
+        XCTAssertEqual(wire.requests.count, 15)
         XCTAssertFalse(coordinator.canSubmit)
+    }
+    func testOwnerConfigurationFactoryDoesNotAlterLocalDraftAndClearsOnLeaseChange() async throws {
+        let wire = Wire(), grants = Grants(), session = try root(wire, grants, Vault()).makeSession(); await login(session)
+        let editor = session.templateAuthoringEditor(); editor.change(.init(title: "Keep unsaved local draft"))
+        wire.requests = []; let host = session.makeOwnedTemplateConfigurationHost()
+        await host.load(id: MemberPlayTemplateID(rawValue: 41)!)
+        XCTAssertEqual(host.snapshot?.accountID, 7); XCTAssertNotNil(host.snapshot)
+        XCTAssertTrue(session.templateAuthoringEditor() === editor)
+        XCTAssertEqual(editor.draft.title, "Keep unsaved local draft"); XCTAssertFalse(editor.canSubmit)
+        XCTAssertEqual(wire.requests.count, 1)
+        XCTAssertEqual(TemplateShelfReadRoute(request: try XCTUnwrap(wire.requests.first), baseURL: base), .detail(MemberPlayTemplateID(rawValue: 41)!))
+        grants.retained?.revoke(); XCTAssertNil(host.snapshot)
+        grants.retained = nil; _ = session.templateShelfViewIdentity
+        await host.load(id: MemberPlayTemplateID(rawValue: 41)!); XCTAssertNil(host.snapshot)
+        XCTAssertEqual(wire.requests.count, 1); XCTAssertEqual(editor.draft.title, "Keep unsaved local draft")
     }
     func testGuestDefaultNilRevokedReaderAndReplacementNeverAdoptLease() async throws {
         let wire = Wire(), grants = Grants(); grants.enabled = false
@@ -99,14 +118,16 @@ import XCTest
         await session.templateShelfCoordinator().shelfReader.refresh(); XCTAssertEqual(wire.requests.count, count + 1)
     }
     func testLateShelfAndDetailSuccess401ErrorNeverApplyAcrossLifetimeChanges() async throws {
-        for target in ["shelf", "detail"] {
+        for target in ["shelf", "detail", "ownerConfiguration"] {
             for transition in ["owner", "roleABA", "sessionABA", "revoke", "reissue", "expire", "cancel"] {
                 for code in [200, 401, -1] {
                     let wire = Wire(), grants = Grants(), vault = Vault(), session = try root(wire, grants, vault).makeSession(); await login(session)
                     let coordinator = session.templateShelfCoordinator(), reader = session.makeOwnedMemberTemplateReader()
+                    let ownerHost = session.makeOwnedTemplateConfigurationHost()
                     let paused = expectation(description: "template read suspended"); wire.pause = true; wire.onPaused = { paused.fulfill() }
                     let task = Task { () -> Bool in
                         if target == "shelf" { await coordinator.shelfReader.refresh(); return !coordinator.shelfReader.rows.isEmpty }
+                        if target == "ownerConfiguration" { await ownerHost.load(id: MemberPlayTemplateID(rawValue: 41)!); return ownerHost.snapshot != nil }
                         do { _ = try await reader.memberTemplate(id: MemberPlayTemplateID(rawValue: 41)!); return true } catch { return false }
                     }
                     await fulfillment(of: [paused], timeout: 2)
@@ -127,9 +148,13 @@ import XCTest
         }
     }
     func testCurrent401ExpiresOnlyCurrentOwner() async throws {
-        let wire = Wire(), vault = Vault(), session = try root(wire, Grants(), vault).makeSession(); await login(session)
-        wire.code = 401; await session.templateShelfCoordinator().shelfReader.refresh()
-        XCTAssertNil(session.account); XCTAssertNil(vault.value)
+        for inspector in [false, true] {
+            let wire = Wire(), vault = Vault(), session = try root(wire, Grants(), vault).makeSession(); await login(session)
+            wire.code = 401
+            if inspector { await session.makeOwnedTemplateConfigurationHost().load(id: MemberPlayTemplateID(rawValue: 41)!) }
+            else { await session.templateShelfCoordinator().shelfReader.refresh() }
+            XCTAssertNil(session.account); XCTAssertNil(vault.value)
+        }
     }
     func testOuterClonesOnlyAdmitExactReadsAndDenyAllAdjacentMutations() async throws {
         let wire = Wire(), grants = Grants(), root = try root(wire, grants, Vault()).transport()

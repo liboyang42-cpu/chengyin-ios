@@ -37,6 +37,12 @@ extension PlayKitScreen {
         if projection.complete { Text("playkit.branch.ended") }
     }
     @ViewBuilder var estimateForm: some View {
+        // Read only the current accepted node projection, with no cached tier.
+        if model.isCurrent, !["stale", "disabled"].contains(model.phase),
+           let resultKey = projection.estimateResultKey {
+            Text(LocalizedStringKey(resultKey)).font(.headline)
+                .accessibilityIdentifier("playkit.estimate.result")
+        }
         // The completed projection does not return the player's guess. Do not
         // present a newly centered picker as if it were their submitted value.
         if !projection.complete {
@@ -49,15 +55,35 @@ extension PlayKitScreen {
         attempts
     }
     @ViewBuilder var pricePairForm: some View {
+        // Recomputed from the current accepted state; never from a local pick or
+        // a cached receipt. Invalidated owner/scope states reveal no old result.
+        let result = model.isCurrent && !["stale", "disabled"].contains(model.phase)
+            ? PlayKitPricePairResult(segment: raw) : nil
         ForEach(projection.options) { option in
             VStack(alignment: .leading, spacing: 12) {
                 artwork(option.raw["imageUrl"].text)
                 Text(verbatim: option.label).font(.headline)
                 if let note = option.raw["note"].text { Text(verbatim: note) }
+                if let result, result.lastPickID == option.id {
+                    Label(result.passed ? "playkit.pricePair.lastCorrect" : "playkit.pricePair.lastIncorrect",
+                          systemImage: result.passed ? "checkmark.seal" : "xmark.seal")
+                        .accessibilityIdentifier("playkit.pricePair.lastPick." + option.id)
+                }
+                if let result, result.answerID == option.id {
+                    Label("playkit.pricePair.revealedAnswer", systemImage: "checkmark.circle.fill")
+                        .accessibilityIdentifier("playkit.pricePair.answer." + option.id)
+                }
                 Button { toggle(option.id, multi: false) } label: {
-                    Label("playkit.select", systemImage: selected.contains(option.id) ? "checkmark.circle.fill" : "circle")
+                    Label(selected.contains(option.id) ? "playkit.pricePair.currentChoice" : "playkit.select",
+                          systemImage: selected.contains(option.id) ? "circle.inset.filled" : "circle")
                 }.disabled(!enabled)
+                    .accessibilityLabel(Text(verbatim: option.label))
+                    .accessibilityValue(Text(selected.contains(option.id) ? "playkit.pricePair.currentChoice" : "playkit.select"))
             }.padding().background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16))
+        }
+        if let result, !result.passed {
+            Text(result.finished ? "playkit.pricePair.ended" : "playkit.pricePair.retry")
+                .accessibilityIdentifier("playkit.pricePair.roundStatus")
         }
         submitButton("SUBMIT_PRICE_PAIR", payload: ["pickId": .string(selected.first ?? "")], valid: !selected.isEmpty)
         attempts

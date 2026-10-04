@@ -38,8 +38,14 @@ final class ProjectEditFlowTests: XCTestCase {
         else { sync.coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap() }
         let enabled = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "1"), object: sync)
         XCTAssertEqual(XCTWaiter.wait(for: [enabled], timeout: 3), .completed, app.debugDescription)
-        XCTAssertTrue(app.staticTexts["2030-05-01 00:00:00"].waitForExistence(timeout: 3), app.debugDescription)
-        XCTAssertTrue(app.staticTexts["2030-05-30 23:59:59"].exists, app.debugDescription)
+        // LabeledContent exposes one combined label/value accessibility element.
+        // Assert the exact dates on its stable identifiers, not nonexistent value-only children.
+        let syncedStart = app.staticTexts["projectEdit.ticketStart"]
+        let syncedEnd = app.staticTexts["projectEdit.ticketEnd"]
+        XCTAssertTrue(syncedStart.waitForExistence(timeout: 3), app.debugDescription)
+        XCTAssertEqual(syncedStart.label, "Start or meeting time, 2030-05-01 00:00:00", app.debugDescription)
+        XCTAssertTrue(syncedEnd.exists, app.debugDescription)
+        XCTAssertEqual(syncedEnd.label, "End time, 2030-05-30 23:59:59", app.debugDescription)
         XCTAssertFalse(app.textFields["projectEdit.ticketStart"].exists)
         if nativeSwitch.exists { nativeSwitch.tap() }
         else { sync.coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap() }

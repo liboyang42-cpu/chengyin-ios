@@ -27,14 +27,34 @@ final class OwnerDraftBrowserFlowTests: XCTestCase {
               !element.frame.isEmpty, app.frame.contains(element.frame) else { return false }
         return !app.keyboards.allElementsBoundByIndex.contains { $0.frame.intersects(element.frame) }
     }
-    private func tap(_ id: String, _ app: XCUIApplication) {
+    private func tap(_ id: String, _ app: XCUIApplication, diagnoseEntry: Bool = false) {
         let element = app.buttons[id]
         if ["ownerDraft.refresh", "ownerDraft.fixture.release", "ownerDraft.fixture.replace"].contains(id) {
             XCTAssertTrue(fixedControlIsReady(id, app), app.debugDescription)
         } else {
             XCTAssertTrue(revealFixtureElement(element, in: app), app.debugDescription)
         }
+        if diagnoseEntry { captureEntryBoundary(app, stage: "before single tap") }
         element.tap()
+        if diagnoseEntry { captureEntryBoundary(app, stage: "after single tap") }
+    }
+    private func captureEntryBoundary(_ app: XCUIApplication, stage: String) {
+        // Only this synthetic owner-draft fixture opts in. Print selected AX and
+        // payload-free counters because CI screenshot exports omit AX attachments.
+        guard app.launchArguments.contains("--owner-draft-fixture") else { return }
+        let target = app.buttons["account.ownerDrafts"]
+        let exists = target.exists
+        print("OWNER_DRAFT_ENTRY stage=\(stage); identifier=account.ownerDrafts; type=\(exists ? String(target.elementType.rawValue) : "absent"); exists=\(exists); enabled=\(exists && target.isEnabled); hittable=\(exists && target.isHittable); frame=\(exists ? target.frame : .zero)")
+        if exists { print("OWNER_DRAFT_ENTRY_TARGET_AX " + String(target.debugDescription.prefix(8192))) }
+        print("OWNER_DRAFT_ENTRY_NAVIGATION_AX " + String(app.navigationBars.debugDescription.prefix(8192)))
+        for name in ["session", "authPaths", "list", "restore", "mutations", "pending"] {
+            let counter = app.staticTexts["ownerDraft.recorder.\(name)"]
+            print("OWNER_DRAFT_ENTRY_RECORDER \(name)=\(counter.exists ? counter.label : "absent")")
+        }
+        for id in ["ownerDraft.loading", "ownerDraft.empty", "ownerDraft.error", "ownerDraft.notConfigured", "ownerDraft.row.11"] {
+            print("OWNER_DRAFT_ENTRY_DESTINATION \(id)=\(app.descendants(matching: .any).matching(identifier: id).count)")
+        }
+        attachFixtureScreenshot(self, app: app, name: "Owner draft account entry " + stage)
     }
     private func record(_ name: String, _ value: String, _ app: XCUIApplication) {
         let element = app.staticTexts["ownerDraft.recorder.\(name)"]
@@ -44,8 +64,10 @@ final class OwnerDraftBrowserFlowTests: XCTestCase {
     }
     private func back(_ app: XCUIApplication) { app.navigationBars.buttons.element(boundBy: 0).tap() }
     func testActualAccountEntryListsActivityTopicAndShowsUnsupportedEditor() {
-        let app = launch(); tap("account.ownerDrafts", app)
-        XCTAssertTrue(app.buttons["ownerDraft.row.11"].waitForExistence(timeout: 5))
+        let app = launch(); tap("account.ownerDrafts", app, diagnoseEntry: true)
+        let arrived = app.buttons["ownerDraft.row.11"].waitForExistence(timeout: 5)
+        captureEntryBoundary(app, stage: "after original row wait")
+        XCTAssertTrue(arrived)
         XCTAssertTrue(revealFixtureElement(app.buttons["ownerDraft.row.12"], in: app))
         tap("ownerDraft.row.11", app)
         XCTAssertTrue(app.staticTexts["Payload editing unavailable"].waitForExistence(timeout: 5))

@@ -32,6 +32,11 @@ import SwiftUI
             else {
                 List {
                     CouponManagementNotice(model: model)
+                    if model.core.canRecoverCommands {
+                        Button("couponManagement.checkPendingResults") { model.run { await model.core.recoverPendingCommands() } }
+                            .disabled(model.working).accessibilityIdentifier("couponManagement.recover")
+                        Text("couponManagement.recoveryNotice").font(.footnote).foregroundStyle(.secondary)
+                    }
                     Text("couponManagement.chinaTime").font(.footnote).foregroundStyle(.secondary)
                     if model.working || model.core.loading { ProgressView("couponManagement.loading") }
                     else if model.core.rows.isEmpty { Text("couponManagement.empty").foregroundStyle(.secondary) }
@@ -76,6 +81,7 @@ import SwiftUI
             if model.core.canSubmit && (!model.core.canReviewPublish || !model.core.canReviewStop) {
                 Text("couponManagement.unavailable").font(.footnote)
             }
+            if model.core.recoveryFinished { Text("couponManagement.recoveryFinished") }
             if let issue = model.core.issue { Text(LocalizedStringKey(issue.messageKey)).accessibilityIdentifier("couponManagement.issue") }
             if let issue = model.core.issue, case .server(let message) = issue { Text(message) }
             if let message = model.core.serverMessage { Text(message).accessibilityIdentifier("couponManagement.serverMessage") }

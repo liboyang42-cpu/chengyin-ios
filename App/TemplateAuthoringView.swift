@@ -239,7 +239,13 @@ struct TemplateAuthoringPreviewView: View {
                     }
                 }
             }
-            if draft.rewardEnabled { Section("templateAuthor.reward") { Text("templateAuthor.rewardPreview") } }
+            if let raw = draft.preferenceJson { Section("templateAuthor.preference.title") { TemplatePreferencePreviewView(raw: raw) } }
+            if draft.rewardEnabled { Section("templateAuthor.reward") {
+                Text("templateAuthor.rewardPreview")
+                if let style = draft.medalStyle, !(draft.medalName ?? "").isEmpty || !(draft.medalImg ?? "").isEmpty {
+                    LabeledContent("templateAuthor.field.medalStyle", value: style)
+                }
+            } }
         }.navigationTitle("templateAuthor.preview")
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("templateAuthor.close") { dismiss() } } }
     }

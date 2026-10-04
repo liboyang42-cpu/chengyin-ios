@@ -63,6 +63,12 @@ class TestBundlePreflightTests(unittest.TestCase):
             self.assertIn(f'-derivedDataPath "$RUNNER_TEMP/{derived}"', job)
             self.assertIn('CODE_SIGNING_ALLOWED=NO build', job)
             self.assertNotIn('test_products.py restore', job)
+        # A second, Debug AppUnit build compiles the device-only acceptance bodies.
+        self.assertIn('-scheme QuestifyAppUnitTests', device)
+        self.assertIn('-configuration Debug -sdk iphoneos', device)
+        self.assertIn('CODE_SIGNING_ALLOWED=NO build-for-testing', device)
+        self.assertIn('report_protected_storage_coverage.py', device)
+        self.assertNotIn('test-without-building', device)
         self.assertNotIn('-xcconfig', device)
         self.assertNotIn('-xcconfig', us)
         self.assertIn('QUESTIFY_MARKET=US QUESTIFY_API_BASE_URL= CODE_SIGNING_ALLOWED=NO build', us)
@@ -131,7 +137,7 @@ class TestBundlePreflightTests(unittest.TestCase):
         self.assertEqual(self.workflow.count('permissions:'), 1)
         for action in re.findall(r'uses: (\S+)', self.workflow):
             self.assertRegex(action, r'^[\w/-]+@[0-9a-f]{40}$')
-        ceilings = {'native': 15, 'device-build': 10, 'us-build': 10, 'secrets': 10,
+        ceilings = {'native': 15, 'device-build': 20, 'us-build': 10, 'secrets': 10,
                     'app-unit-tests': 20, 'ui-tests': 37, 'required-native-gates': 2}
         for name, minutes in ceilings.items():
             self.assertIn(f'    timeout-minutes: {minutes}\n', self.jobs[name])

@@ -70,6 +70,12 @@ import XCTest
         XCTAssertFalse(orderRowFits(.zero, viewport: viewport))
     }
     private func tap(_ id: String, _ app: XCUIApplication) {
+        if id == "templateAuthor.shelf.loadMore" {
+            tapOwnedShelfNextPage(app); return
+        }
+        if id == "roam.display.toggle", !app.navigationBars.buttons[id].exists {
+            tapRoamOverflowToggle(app); return
+        }
         let barButton = app.navigationBars.buttons[id]
         if barButton.exists { XCTAssertTrue(barButton.isHittable); barButton.tap(); return }
         let element = app.buttons[id]
@@ -86,6 +92,73 @@ import XCTest
             XCTAssertTrue(element.isHittable); element.tap(); return
         }
         XCTAssertTrue(revealFixtureElement(element, in: app)); element.tap()
+    }
+    private func tapRoamOverflowToggle(_ app: XCUIApplication) {
+        let navigation = app.navigationBars["Explore the map"]
+        let city = navigation.buttons["Official city"]
+        guard navigation.exists, city.exists, city.isEnabled, city.isHittable else {
+            XCTFail("Expected the visible Explore city toolbar anchor. " + app.debugDescription); return
+        }
+        // Actual run101 PNG shows the system overflow leaf to the right of City.
+        // Do not guess its localized title or tap a hidden destination directly.
+        let leaves = navigation.buttons.allElementsBoundByIndex.filter {
+            let frame = $0.frame
+            return $0.descendants(matching: .button).count == 0 && !frame.isEmpty
+                && frame.minX >= city.frame.maxX && navigation.frame.contains(frame)
+                && app.frame.contains(frame) && $0.isEnabled && $0.isHittable
+        }
+        guard leaves.count == 1, let overflow = leaves.first else {
+            XCTFail("Expected one trailing native overflow action. " + app.debugDescription); return
+        }
+        overflow.tap()
+        let toggle = app.buttons["roam.display.toggle"]
+        guard toggle.waitForExistence(timeout: 5), toggle.isEnabled, toggle.isHittable else {
+            XCTFail("Native overflow did not expose the exact map/list action. " + app.debugDescription); return
+        }
+        toggle.tap()
+    }
+    private func tapOwnedShelfNextPage(_ app: XCUIApplication) {
+        let target = app.buttons["templateAuthor.shelf.loadMore"]
+        let navigation = app.navigationBars["My play templates"]
+        let tabs = app.tabBars.firstMatch
+        XCTAssertTrue(navigation.exists); XCTAssertTrue(tabs.exists)
+        let containers = app.collectionViews.allElementsBoundByIndex
+            + app.tables.allElementsBoundByIndex + app.scrollViews.allElementsBoundByIndex
+        let candidates = containers.filter {
+            !$0.frame.isEmpty && $0.descendants(matching: .button).matching(
+                NSPredicate(format: "identifier BEGINSWITH %@", "memberTemplate.mine.")).count > 0
+        }
+        guard let container = candidates.max(by: { $0.frame.height < $1.frame.height }) else {
+            XCTFail("Owned shelf has no native scrolling container. " + app.debugDescription); return
+        }
+        func viewport() -> CGRect {
+            container.frame.intersection(CGRect(x: app.frame.minX + 4, y: navigation.frame.maxY + 4,
+                width: app.frame.width - 8, height: max(0, tabs.frame.minY - navigation.frame.maxY - 8)))
+        }
+        func visibleRows(_ bounds: CGRect) -> [String] {
+            container.descendants(matching: .staticText).allElementsBoundByIndex.compactMap {
+                let frame = $0.frame
+                guard !frame.isEmpty, bounds.intersects(frame) else { return nil }
+                return $0.label + ":" + String(Int(frame.minY.rounded()))
+            }
+        }
+        // Ten full cards per actual page, at most three short gestures per card.
+        // Stop at a stationary viewport; never shrink the fixture page to fit.
+        for _ in 0..<30 {
+            let bounds = viewport()
+            guard !bounds.isNull, bounds.height > 80 else { break }
+            if target.exists && bounds.contains(target.frame) && target.isEnabled && target.isHittable {
+                target.tap(); return
+            }
+            let before = visibleRows(bounds)
+            let start = container.coordinate(withNormalizedOffset: .zero).withOffset(
+                CGVector(dx: bounds.midX - container.frame.minX, dy: bounds.minY + bounds.height * 0.8 - container.frame.minY))
+            let end = container.coordinate(withNormalizedOffset: .zero).withOffset(
+                CGVector(dx: bounds.midX - container.frame.minX, dy: bounds.minY + bounds.height * 0.25 - container.frame.minY))
+            start.press(forDuration: 0.05, thenDragTo: end)
+            if !before.isEmpty && before == visibleRows(viewport()) { break }
+        }
+        XCTFail("Owned shelf Load more was not visible and enabled after bounded page traversal. " + app.debugDescription)
     }
     private func closeFrontSheet(_ app: XCUIApplication) throws {
         let close = try XCTUnwrap(app.navigationBars.buttons.matching(identifier: "Close").allElementsBoundByIndex.last(where: { $0.isHittable }))
@@ -142,6 +215,26 @@ import XCTest
         XCTAssertEqual(reads.map(\.route), ["shelf.list", "shelf.list", "shelf.detail"])
         XCTAssertEqual(reads[0].fields["pageSize"], "10"); XCTAssertEqual(reads[1].fields["pageNum"], "2")
         XCTAssertEqual(reads[2].fields, ["id": "111"])
+        assertIdentity(reads, owner: 7, epoch: value.epoch)
+    }
+    func testNormalRootOwnedConfigurationReadOnlyAndStoryReturn() throws {
+        let app = launch(); signIn(app, owner: 7)
+        tab("Account", app); tap("account.templateAuthoring", app); tap("templateAuthor.openMine", app)
+        tap("templateAuthor.shelf.loadMore", app); tap("templateOwnerConfig.open.111", app)
+        let answer = app.textFields["templateAuthor.field.questionAnswer"]
+        XCTAssertTrue(revealFixtureElement(answer, in: app, requiresHittable: false)); XCTAssertEqual(answer.value as? String, "Synthetic owner answer")
+        XCTAssertFalse(answer.isEnabled)
+        XCTAssertFalse(app.buttons["templateAuthor.saveLocal"].exists)
+        XCTAssertFalse(app.buttons["templateAuthor.reviewDraft"].exists)
+        XCTAssertFalse(app.buttons["templateAuthor.reviewPublish"].exists)
+        tap("templateOwnerConfig.story", app)
+        XCTAssertTrue(app.descendants(matching: .any)["templateOwnerConfig.storyForm"].firstMatch.waitForExistence(timeout: 5))
+        let story = app.descendants(matching: .any)["templateAuthor.field.beatText"].firstMatch
+        XCTAssertEqual(story.value as? String, "Owner-only story"); XCTAssertFalse(story.isEnabled)
+        app.navigationBars.buttons.firstMatch.tap()
+        XCTAssertTrue(revealFixtureElement(answer, in: app, towardTop: true, requiresHittable: false)); XCTAssertEqual(answer.value as? String, "Synthetic owner answer")
+        let value = try evidence(app), reads = value.ledger.filter { $0.route.hasPrefix("shelf.") }
+        XCTAssertEqual(reads.map(\.route), ["shelf.list", "shelf.list", "shelf.detail"])
         assertIdentity(reads, owner: 7, epoch: value.epoch)
     }
     private func assertIdentity(_ entries: [Entry], owner: Int, epoch: UInt64) {
