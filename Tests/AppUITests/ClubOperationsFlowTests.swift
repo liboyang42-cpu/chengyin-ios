@@ -4,11 +4,27 @@ import XCTest
 final class ClubOperationsFlowTests: XCTestCase {
     private var app: XCUIApplication!
     override func setUpWithError() throws { continueAfterFailure = false; app = XCUIApplication() }
-    override func tearDownWithError() throws { attachFailureScreenshot(self, app: app); app.terminate(); app = nil }
+    override func tearDownWithError() throws {
+        attachFailureScreenshot(self, app: app)
+        if (testRun?.totalFailureCount ?? 0) > 0 {
+            let evidence = XCTAttachment(string: app.debugDescription)
+            evidence.name = "Club operations failure accessibility hierarchy"; evidence.lifetime = .keepAlways; add(evidence)
+        }
+        app.terminate(); app = nil
+    }
     private func element(_ id: String) -> XCUIElement { app.descendants(matching: .any).matching(identifier: id).firstMatch }
     // The toolbar wrapper may retain an earlier accessibilityValue after a scope change.
     // Read the Text leaf that displays the live fixture store's count and identity.
-    private var writeCounter: XCUIElement { app.staticTexts["club.ops.writeCount"].firstMatch }
+    private var visibleWriteCounters: [XCUIElement] {
+        app.staticTexts.matching(identifier: "club.ops.writeCount").allElementsBoundByIndex.filter {
+            $0.exists && $0.isHittable && !$0.frame.isEmpty && app.frame.contains($0.frame)
+        }
+    }
+    private var writeCounter: XCUIElement {
+        let counters = visibleWriteCounters
+        XCTAssertEqual(counters.count, 1, app.debugDescription)
+        return counters.first ?? app.staticTexts["club.ops.writeCount"].firstMatch
+    }
     private func launch(_ scenario: String = "owner", chinese: Bool = false) {
         app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", chinese ? "(zh-Hans)" : "(en)", "-AppleLocale", chinese ? "zh_CN" : "en_US", "--uitesting-club-operations", scenario]
         app.launch(); XCTAssertTrue(element("club.ops.fixtureNotice").waitForExistence(timeout: 10))
@@ -31,8 +47,13 @@ final class ClubOperationsFlowTests: XCTestCase {
         return matches.firstMatch
     }
     private func count(_ value: Int) {
-        let expected = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", String(value)), object: writeCounter)
-        XCTAssertEqual(XCTWaiter.wait(for: [expected], timeout: 5), .completed)
+        // The covered root List and foreground sheet toolbar both mount this ID.
+        // Re-resolve the unique foreground Text leaf for each existing-budget poll.
+        let expected = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            let counters = self.visibleWriteCounters
+            return counters.count == 1 && counters[0].label == String(value)
+        }, object: app)
+        XCTAssertEqual(XCTWaiter.wait(for: [expected], timeout: 5), .completed, app.debugDescription)
     }
     private func reviewSetting() { tap("club.ops.openManage"); tap("club.ops.setting.publicVisible") }
     func testOwnerSettingRequiresReviewAndSingleConfirmation() {
@@ -116,7 +137,10 @@ final class ClubOperationsFlowTests: XCTestCase {
         launch("delayed"); reviewSetting(); tap("club.ops.confirm"); count(1)
         XCTAssertEqual(writeCounter.value as? String, "account=701;finished=0")
         tap("club.ops.switchAccount")
-        let completed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "account=702;finished=1"), object: writeCounter)
+        let completed = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            let counters = self.visibleWriteCounters
+            return counters.count == 1 && counters[0].value as? String == "account=702;finished=1"
+        }, object: app)
         XCTAssertEqual(XCTWaiter.wait(for: [completed], timeout: 5), .completed, app.debugDescription)
         XCTAssertTrue(element("club.ops.field.name").waitForExistence(timeout: 5))
         XCTAssertFalse(element("club.ops.acknowledged").exists); count(1)

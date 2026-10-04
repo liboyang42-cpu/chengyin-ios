@@ -21,6 +21,12 @@ import SwiftUI
               coordinator.snapshot?.topicID == nil, seed.product == draft.product, seed.owner == draft.owner else { return }
         draft = seed; incomingSeed = nil; changed()
     }
+    var completionRules: Binding<ProjectEditCompletionRules> {
+        Binding(get: { (self.draft.completionRules ?? .init(raw: self.draft.preserved["completeRuleJson"])).forProduct(self.draft.product) }, set: { value in
+            guard self.fullEdit, !self.completionRules.wrappedValue.readOnly else { return }
+            self.draft.completionRules = value
+        })
+    }
     var rewards: Binding<PublishingTopicRewards> {
         Binding(get: { PublishingTopicRewards(draft: self.draft) }, set: { value in
             guard self.fullEdit else { return }; self.draft = value.updatingDraft(self.draft)
@@ -170,6 +176,7 @@ import SwiftUI
                     Button("projectEdit.addTicket", systemImage: "plus") { model.draft.tickets.append(.init()) }
                         .disabled(!model.fullEdit).accessibilityIdentifier("projectEdit.addTicket")
                 }
+                ProjectEditCompletionRulesForm(rules: model.completionRules, city: model.draft.product == .city, fullEdit: model.fullEdit, totalNodes: model.draft.chapters.reduce(0) { $0 + $1.nodes.count })
                 PublishingTopicRewardsForm(rewards: model.rewards, fullEdit: model.fullEdit)
                 Section("projectEdit.visibility") {
                     Toggle("projectEdit.publishToCreative", isOn: $model.draft.publishToCreative)

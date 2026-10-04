@@ -195,6 +195,7 @@ struct ProjectEditReviewView: View {
                     row("projectEdit.endDate", confirmation.draft.endDate)
                     if confirmation.draft.product == .freeExplore { row("projectEdit.deadline", confirmation.draft.recruitDeadline) }
                 }
+                ProjectEditCompletionRulesSummary(draft: confirmation.draft)
                 ForEach(confirmation.draft.chapters) { chapter in
                     Section {
                         row("projectEdit.chapterName", chapter.name); row("projectEdit.story", chapter.story)

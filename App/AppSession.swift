@@ -1049,6 +1049,13 @@ final class AppSession: ObservableObject {
     }
     /// No production read grant or mutation adapter is installed. iOS redemption stays dormant.
     lazy var walletCommerceReader = makeWalletCommerceReader()
+    /// Public contact approval/transport is not supplied by current deployment composition.
+    /// Does not grant wallet reads or any financial command.
+    lazy var withdrawalSupportReader = makeWithdrawalSupportReader()
+    func makeWithdrawalSupportReader(source: WithdrawalSupportReader.Source? = nil,
+                                     approval: @escaping () -> WithdrawalSupportApproval? = { nil }) -> WithdrawalSupportReader {
+        WithdrawalSupportReader(source: source, approval: approval, session: { [weak self] in self?.walletCommerceScope })
+    }
     func makeWalletCommerceReader(readApproval: OperationEndpointApproval? = nil,
                                   transport: (any HTTPTransport)? = nil) -> WalletCommerceReader {
         let transport = scopedTransport(transport)

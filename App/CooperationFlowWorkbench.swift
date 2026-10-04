@@ -75,6 +75,10 @@ struct CoopFlowSafetyNotice: View {
     @State private var inviteContext: CoopFlowInvitationContext?
     var body: some View {
         List {
+            if case .finance = resource {
+                NavigationLink("withdrawal.support.contact") { WithdrawalSupportContactView() }
+                    .accessibilityIdentifier("coopflow.withdrawal.support")
+            }
             if reader.session == nil { Text("cooperation.login") }
             else if loadedSession != reader.session { ProgressView("cooperation.loading") }
             else if let issue {

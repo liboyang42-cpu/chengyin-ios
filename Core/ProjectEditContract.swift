@@ -7,7 +7,7 @@ public enum ProjectEditContract {
     public static let sourceDetailPath = "/api/topic/edit-detail"
     public static let sourcePrecheckPath = "/api/ai/safety/precheck"
     public static let chapterCarryOver = ["imgArr", "audioUrl", "atmospherePreset", "recruitEnabled", "termsMode", "categoryId", "category", "maxMerchant", "perkMinValue", "allowedValidationMethods", "maxNodeXp", "calculatedDistance"]
-    public static let topicCarryOver = ProjectEditStoryContract.topicFields + ["publishMode", "audioUrl", "audioDuration", "selfPlay", "selfPlayPrice", "selfPlayQuota", "finishMedalName", "finishMedalImg", "completeRewardCouponId"]
+    public static let topicCarryOver = ProjectEditStoryContract.topicFields + ["completeRuleJson", "publishMode", "audioUrl", "audioDuration", "selfPlay", "selfPlayPrice", "selfPlayQuota", "finishMedalName", "finishMedalImg", "completeRewardCouponId"]
     public static let whitelist = ["name", "subtitle", "description", "imgUrl", "imgArr", "categoryIds", "scope"]
 
     public static func payload(_ draft: ProjectEditDraft, topicID: Int?, scope: ProjectEditScope) throws -> [String: ProjectEditJSON] {
@@ -30,6 +30,10 @@ public enum ProjectEditContract {
         if let clubID = draft.clubID { payload["clubId"] = .number(Decimal(clubID)) }
         if draft.product == .freeExplore { payload["recruitDeadline"] = .string(ProjectEditValidation.dateTime(draft.recruitDeadline, endOfDay: true)!) }
         for key in topicCarryOver { if let value = draft.preserved[key] { payload[key] = value } }
+        if draft.completionRules != nil || draft.preserved["completeRuleJson"] != nil {
+            let rules = (draft.completionRules ?? .init(raw: draft.preserved["completeRuleJson"])).forProduct(draft.product)
+            payload["completeRuleJson"] = try rules.serialized(matching: draft.preserved["completeRuleJson"])
+        }
         let storyFlow = ProjectEditStoryContract.usesV2(draft)
         if storyFlow, let story = payload["journeyStory"] { payload["journeyStory"] = try ProjectEditRichStoryContract.journeyStoryWithoutStandaloneEndingList(story) }
         guard storyFlow || !draft.chapters.contains(where: { $0.blocks != nil && !ProjectEditStoryContract.isLegacyProjection($0) }) else { throw ProjectEditError.invalidDraft }

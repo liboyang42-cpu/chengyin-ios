@@ -3,9 +3,18 @@ import XCTest
 final class OwnedOrderFlowTests:XCTestCase {
     // LabeledContent exposes its field name and exact value as one native AX label.
 
+    private var runningApp: XCUIApplication?
+    override func tearDownWithError() throws {
+        attachFailureScreenshot(self, app: runningApp)
+        if let app = runningApp, (testRun?.totalFailureCount ?? 0) > 0 {
+            let evidence = XCTAttachment(string: app.debugDescription)
+            evidence.name = "Owned order failure issuer and accessibility"; evidence.lifetime = .keepAlways; add(evidence)
+        }
+        runningApp?.terminate(); runningApp = nil
+    }
     override func setUp(){super.setUp();continueAfterFailure=false}
     private func launch(_ options:[String]=[],language:String="en")->XCUIApplication{
-        let app=XCUIApplication();app.launchArguments=["--uitesting-reset-language","--uitesting-module","ownedOrderHistory","-AppleLanguages","(\(language))","-AppleLocale",language]+options;app.launch();return app
+        let app=XCUIApplication();runningApp=app;app.launchArguments=["--uitesting-reset-language","--uitesting-module","ownedOrderHistory","-AppleLanguages","(\(language))","-AppleLocale",language]+options;app.launch();return app
     }
     private func openOrders(_ app:XCUIApplication){
         let ready=XCTNSPredicateExpectation(predicate:NSPredicate(format:"label == %@","signed-in"),object:app.staticTexts["orders.fixture.identity"])
@@ -27,7 +36,11 @@ final class OwnedOrderFlowTests:XCTestCase {
         for action in ["revoke","expire"]{
             let app=launch();openOrders(app);detail(app)
             let privateTitle=app.staticTexts["Activity or route, Fresh owner detail"];XCTAssertTrue(privateTitle.waitForExistence(timeout:5))
-            app.buttons["orders.fixture."+action].tap();cleared(privateTitle)
+            let control = app.buttons["orders.fixture."+action]
+            XCTAssertEqual(control.value as? String, "actions=0;retained=true;revoked=false;bound=true", app.debugDescription)
+            control.tap()
+            XCTAssertEqual(control.value as? String, "actions=1;retained=true;revoked=true;bound=true", app.debugDescription)
+            cleared(privateTitle)
             XCTAssertFalse(app.staticTexts["Amount due, 9007199254740993.0123456"].exists)
             XCTAssertEqual(app.staticTexts["orders.fixture.identity"].label,"signed-in")
             XCTAssertEqual(app.staticTexts["orders.fixture.reads"].label,"2");app.terminate()

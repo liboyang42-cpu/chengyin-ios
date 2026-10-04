@@ -526,5 +526,125 @@
   "projectEdit.validation.rewards": {
     "en": "Check self-play price, quota and reward coupon ID.",
     "zh-Hans": "请检查自玩票价格、数量及奖励券 ID。"
+  },
+  "projectEdit.completion.title": {
+    "en": "Completion rules and Bingo",
+    "zh-Hans": "通关规则与九宫格"
+  },
+  "projectEdit.completion.readOnly": {
+    "en": "This configuration contains unsupported or unreadable rules. It is preserved unchanged; edit it in the original professional publisher.",
+    "zh-Hans": "此配置含不支持或无法读取的规则，保持原样；请在原专业发布页编辑。"
+  },
+  "projectEdit.completion.mode": {
+    "en": "Completion condition",
+    "zh-Hans": "通关条件"
+  },
+  "projectEdit.completion.all": {
+    "en": "Complete all stations",
+    "zh-Hans": "完成全部站点"
+  },
+  "projectEdit.completion.atLeast": {
+    "en": "Complete at least the specified count",
+    "zh-Hans": "至少完成指定数量"
+  },
+  "projectEdit.completion.count": {
+    "en": "Required station count",
+    "zh-Hans": "所需站点数量"
+  },
+  "projectEdit.completion.enabled": {
+    "en": "Enable Bingo grid",
+    "zh-Hans": "启用宾果九宫格"
+  },
+  "projectEdit.completion.disabled": {
+    "en": "Bingo grid disabled",
+    "zh-Hans": "九宫格已关闭"
+  },
+  "projectEdit.completion.serverConditions": {
+    "en": "Edit nine cells in S order. The server decides when each cell is lit; labels do not change conditions.",
+    "zh-Hans": "按 S 形编辑九格；点亮条件由服务端判定。名称仅改变展示，不改变条件。"
+  },
+  "projectEdit.completion.label": {
+    "en": "Cell label (optional, up to 24 UTF-16 units)",
+    "zh-Hans": "格子名称（可留空，最多24字）"
+  },
+  "projectEdit.completion.coupon": {
+    "en": "Reward coupon ID (optional)",
+    "zh-Hans": "奖励券 ID（可留空）"
+  },
+  "projectEdit.completion.couponHint": {
+    "en": "Use an existing numeric reward coupon ID. The server checks eligibility; this does not issue a coupon.",
+    "zh-Hans": "只填现有奖励券的数字 ID；有效性与发放资格由服务端复核，不会立即发券。"
+  },
+  "projectEdit.completion.feedback": {
+    "en": "Reward feedback (up to 120 UTF-16 units)",
+    "zh-Hans": "奖励反馈（最多120字）"
+  },
+  "projectEdit.completion.invalidCount": {
+    "en": "Required completion count must be a positive integer.",
+    "zh-Hans": "至少完成数量须为正整数。"
+  },
+  "projectEdit.completion.invalidCells": {
+    "en": "Bingo must contain exactly nine cells.",
+    "zh-Hans": "九宫格必须正好包含9格。"
+  },
+  "projectEdit.completion.invalidLength": {
+    "en": "Cell labels allow 24 UTF-16 units and reward feedback 120.",
+    "zh-Hans": "格子名称最多24字，奖励反馈最多120字。"
+  },
+  "projectEdit.completion.invalidCoupon": {
+    "en": "Reward coupon ID must be a nonnegative integer or blank.",
+    "zh-Hans": "奖励券 ID 须为非负整数，或留空。"
+  },
+  "projectEdit.completion.rewardRequired": {
+    "en": "Add a coupon or reward feedback to at least one cell.",
+    "zh-Hans": "至少给一格配置奖励券或奖励反馈。"
+  },
+  "projectEdit.completion.invalidSource": {
+    "en": "Original rules changed. Reload this theme.",
+    "zh-Hans": "原始规则已变更，请重新载入主题。"
+  },
+  "projectEdit.completion.condition.0": {
+    "en": "Complete your first station",
+    "zh-Hans": "完成第1个点"
+  },
+  "projectEdit.completion.condition.1": {
+    "en": "Complete 3 stations",
+    "zh-Hans": "完成3个点"
+  },
+  "projectEdit.completion.condition.2": {
+    "en": "Complete 5 stations",
+    "zh-Hans": "完成5个点"
+  },
+  "projectEdit.completion.condition.3": {
+    "en": "Complete 3 stations in one day",
+    "zh-Hans": "一天内完成3个点"
+  },
+  "projectEdit.completion.condition.4": {
+    "en": "Visit on two separate days",
+    "zh-Hans": "两天各来一次"
+  },
+  "projectEdit.completion.condition.5": {
+    "en": "Visit on two consecutive days",
+    "zh-Hans": "连续两天来"
+  },
+  "projectEdit.completion.condition.6": {
+    "en": "Visit on a weekend",
+    "zh-Hans": "周末来一次"
+  },
+  "projectEdit.completion.condition.7": {
+    "en": "Complete 8 stations",
+    "zh-Hans": "完成8个点"
+  },
+  "projectEdit.completion.condition.8": {
+    "en": "Complete once before noon",
+    "zh-Hans": "中午前完成一次"
+  },
+  "projectEdit.completion.tooManyNodes": {
+    "en": "Required completion count exceeds the configured station count.",
+    "zh-Hans": "所需通关数量不能超过已配置站点总数。"
+  },
+  "projectEdit.completion.tooLarge": {
+    "en": "Completion rule configuration must not exceed 16 KiB.",
+    "zh-Hans": "通关规则配置不能超过16 KiB。"
   }
 }

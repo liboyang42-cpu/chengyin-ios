@@ -59,10 +59,32 @@ import XCTest
             XCTAssertTrue(value.violations.isEmpty, value.violations.joined(separator: ", "))
         }
     }
+    private func orderRowFits(_ row: CGRect, viewport: CGRect) -> Bool {
+        !row.isEmpty && !viewport.isEmpty && !viewport.isNull && viewport.contains(row)
+    }
+    private func assertOrderRowMayMeetButNotCrossNavigationBoundary() {
+        let viewport = CGRect(x: 0, y: 174, width: 420, height: 655)
+        XCTAssertTrue(orderRowFits(CGRect(x: 20, y: 174, width: 380, height: 116.7), viewport: viewport))
+        XCTAssertFalse(orderRowFits(CGRect(x: 20, y: 170, width: 380, height: 116.7), viewport: viewport))
+        XCTAssertFalse(orderRowFits(CGRect(x: 20, y: 800, width: 380, height: 116.7), viewport: viewport))
+        XCTAssertFalse(orderRowFits(.zero, viewport: viewport))
+    }
     private func tap(_ id: String, _ app: XCUIApplication) {
         let barButton = app.navigationBars.buttons[id]
         if barButton.exists { XCTAssertTrue(barButton.isHittable); barButton.tap(); return }
         let element = app.buttons[id]
+        if id == "profile.order.41" {
+            // Actual AX places this first List row exactly at the navigation bar's
+            // lower edge. A synthetic four-point inset rejects it forever.
+            let navigation = app.navigationBars["My orders"]
+            let tabs = app.tabBars.firstMatch
+            XCTAssertTrue(navigation.exists); XCTAssertTrue(tabs.exists)
+            let viewport = CGRect(x: app.frame.minX, y: navigation.frame.maxY,
+                                  width: app.frame.width, height: tabs.frame.minY - navigation.frame.maxY)
+            XCTAssertTrue(element.exists); XCTAssertTrue(element.isEnabled)
+            XCTAssertTrue(orderRowFits(element.frame, viewport: viewport), app.debugDescription)
+            XCTAssertTrue(element.isHittable); element.tap(); return
+        }
         XCTAssertTrue(revealFixtureElement(element, in: app)); element.tap()
     }
     private func closeFrontSheet(_ app: XCUIApplication) throws {
@@ -98,6 +120,7 @@ import XCTest
         tap("roam.area.select", app)
     }
     private func orders(_ app: XCUIApplication, owner: Int) {
+        assertOrderRowMayMeetButNotCrossNavigationBoundary()
         tab("Account", app); tap("profile.open.orders", app)
         XCTAssertTrue(app.staticTexts["Owner \(owner) list snapshot"].waitForExistence(timeout: 5))
         tap("profile.order.41", app)

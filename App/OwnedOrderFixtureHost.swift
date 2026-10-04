@@ -5,14 +5,15 @@ import SwiftUI
 @MainActor struct OwnedOrderFixtureHost: View {
     @StateObject private var session: AppSession
     @StateObject private var wire: OwnedOrderFixtureWire
-    private let grants: OwnedOrderFixtureGrants
+    @State private var grants: OwnedOrderFixtureGrants
     private let guest: Bool
     @State private var ready = false
     init() {
         let args=ProcessInfo.processInfo.arguments
         guest=args.contains("--orders-guest")
         let wire=OwnedOrderFixtureWire(),grants=OwnedOrderFixtureGrants(enabled:!args.contains("--orders-unapproved"))
-        self.grants=grants
+        wire.issuer = grants
+        _grants=State(initialValue:grants)
         let deployment=try! ReviewedAppDeployment(market:.china,baseURL:"https://example.test/native",approvedBaseURLs:[.china:["https://example.test/native"]],verifiedCapabilities:[.domesticChinaPhone],bundleIdentifier:"test.orders-fixture",realm:"synthetic")
         let vault=OwnedOrderFixtureVault(),defaults=UserDefaults(suiteName:"orders-fixture-"+UUID().uuidString)!
         let root=AppCompositionRoot(deployment:.reviewed(deployment),storage:.init(defaults:defaults,tokenStore:{_ in vault}),makeTransport:{wire},ownedOrderReadApproval:{grants.approval($0)})
@@ -31,16 +32,39 @@ import SwiftUI
                 Text(verbatim:String(wire.otherRequests)).accessibilityIdentifier("orders.fixture.other")
                 Text(verbatim:session.isSignedIn ? "signed-in":"guest").accessibilityIdentifier("orders.fixture.identity")
                 if wire.paused {Button{wire.release401()}label:{Text(verbatim:"Release")}.accessibilityIdentifier("orders.fixture.release")}
-                Button{grants.retained?.revoke()}label:{Text(verbatim:"Revoke")}.accessibilityIdentifier("orders.fixture.revoke")
-                Button{if let approval=grants.retained{approval.expireIfNeeded(now:approval.expiresAt)}}label:{Text(verbatim:"Expire")}.accessibilityIdentifier("orders.fixture.expire")
+                OwnedOrderFixtureGrantControls(grants: grants, issuer: wire.issuer)
                 Button{Task{await session.logout()}}label:{Text(verbatim:"Sign out")}.accessibilityIdentifier("orders.fixture.signOut")
             }.font(.caption)
         }
         .task {if !guest{await session.authChannels.loginWithPhone(phone:"10000000000",code:"123456")};ready=true}
     }
 }
-@MainActor private final class OwnedOrderFixtureGrants {
-    let enabled:Bool;var retained:OwnedOrderReadApproval?
+/// Diagnostic observation stays in the footer leaf: revoking must not redraw the
+/// host AccountView and accidentally supply the production reader's invalidation.
+@MainActor private struct OwnedOrderFixtureGrantControls: View {
+    @ObservedObject var grants: OwnedOrderFixtureGrants
+    let issuer: OwnedOrderFixtureGrants?
+    var body: some View {
+        Group {
+            Button { grants.revoke() } label: { Text(verbatim: "Revoke") }
+                .accessibilityIdentifier("orders.fixture.revoke")
+                .accessibilityValue(grants.actionEvidence(grants.revokeActions) + ";bound=\(issuer === grants)")
+            Button { grants.expire() } label: { Text(verbatim: "Expire") }
+                .accessibilityIdentifier("orders.fixture.expire")
+                .accessibilityValue(grants.actionEvidence(grants.expireActions) + ";bound=\(issuer === grants)")
+        }
+    }
+}
+@MainActor private final class OwnedOrderFixtureGrants: ObservableObject {
+    let enabled:Bool
+    private(set) var retained:OwnedOrderReadApproval?
+    @Published private(set) var revokeActions = 0
+    @Published private(set) var expireActions = 0
+    func revoke() { revokeActions += 1; retained?.revoke() }
+    func expire() { expireActions += 1; if let approval = retained { approval.expireIfNeeded(now: approval.expiresAt) } }
+    func actionEvidence(_ count: Int) -> String {
+        "actions=\(count);retained=\(retained != nil);revoked=\(retained?.isRevoked == true)"
+    }
     init(enabled:Bool){self.enabled=enabled}
     func approval(_ context:RuntimeDependencyContext)->OwnedOrderReadApproval?{
         guard enabled else{return nil}
@@ -52,6 +76,7 @@ import SwiftUI
     var value:String?;func read()throws->String?{value};func write(_ token:String)throws{value=token};func clear()throws{value=nil}
 }
 @MainActor private final class OwnedOrderFixtureWire:ObservableObject,HTTPTransport {
+    var issuer: OwnedOrderFixtureGrants?
     @Published private(set) var reads=0
     @Published private(set) var otherRequests=0
     @Published private(set) var paused=false

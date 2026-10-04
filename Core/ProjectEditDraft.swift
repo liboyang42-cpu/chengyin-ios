@@ -133,6 +133,7 @@ public struct ProjectEditDraft: Codable, Equatable {
     public var publishToCreative = true
     public var openMerchantPool = false
     public var owner: ProjectEditOwner = .personal
+    public var completionRules: ProjectEditCompletionRules?
     public var baseRevision = ""
     public var preserved: [String: ProjectEditJSON] = [
         "publishMode": .string("pro"), "audioUrl": .string(""), "audioDuration": .number(0),
@@ -185,6 +186,8 @@ public enum ProjectEditValidation {
         need(!draft.categoryIDs.isEmpty && draft.categoryIDs.allSatisfy { $0 > 0 }, "categories", "categories")
         guard scope == .full else { return issues }
         need((try? PublishingTopicRewards(draft: draft).applying(to: draft)) != nil, "topicRewards", "rewards")
+        let rules = (draft.completionRules ?? .init(raw: draft.preserved["completeRuleJson"])).forProduct(draft.product)
+        if let key = rules.validationIssue(totalNodes: draft.chapters.reduce(0) { $0 + $1.nodes.count }) { issues.append(.init("completionRules", key)) }
         let start = dateTime(draft.startDate), end = dateTime(draft.endDate, endOfDay: true)
         need(start != nil, "start", "dates"); need(end != nil, "end", "dates")
         if let start, let end { need(end >= start, "dateOrder", "dateOrder") }

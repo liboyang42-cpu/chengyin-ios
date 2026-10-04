@@ -225,7 +225,7 @@ final class CNAccountSessionServiceTests: XCTestCase {
         XCTAssertFalse(CNAccountSessionService.accepts(request, configuration: api))
     }
     func testMissingOrUnknownRoleCannotRestoreFromLegacyCachedProjection() async throws {
-        for role in ["", "unexpected"] {
+        for role in ["", "unexpected", "administrator", "Player", " player", "player ", "merchant/admin"] {
             let transport = CNAccountSessionTransport(response: ("{\"code\":200,\"appUser\":{\"userId\":17,\"userType\":2,\"role\":\"\(role)\"}}", 200))
             do { _ = try await service(transport).currentAccount(token: "synthetic"); XCTFail("Unverified role restored") }
             catch { XCTAssertEqual(error as? APIError, .malformedResponse) }

@@ -208,9 +208,16 @@ jobs:
               f.write('TEST_SIMULATOR_ID='+chosen['udid']+'\n')
           print('Selected simulator:',chosen['name'])
           PY
+      - name: Prepare isolated simulator host Keychain entitlement
+        run: |
+          # Only this job's verified restored simulator app copy is ad-hoc signed.
+          # No certificate, developer account, production target, or UI shard changes.
+          python3 tools/prepare_simulator_keychain_host.py \
+            --xctestrun "$APP_UNIT_XCTESTRUN" --commit "$GITHUB_SHA" \
+            --approve-ephemeral-simulator-host
       - name: Boot simulator before app-unit tests
         run: xcrun simctl bootstatus "$TEST_SIMULATOR_ID" -b
-      - name: Run all app-hosted XCTest methods (unsigned)
+      - name: Run all app-hosted XCTest methods (isolated simulator host)
         run: |
           xcodebuild -xctestrun "$APP_UNIT_XCTESTRUN" \
             -destination "platform=iOS Simulator,id=$TEST_SIMULATOR_ID" \

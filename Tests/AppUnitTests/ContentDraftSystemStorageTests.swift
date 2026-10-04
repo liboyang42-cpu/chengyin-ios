@@ -42,7 +42,7 @@ import Darwin
         let protected = fcntl(directory, F_SETPROTECTIONCLASS, Int32(1))
         guard prerequisite(protected == 0, stage: "set-directory-class-a", code: errno) else { return }
         let protection = fcntl(directory, F_GETPROTECTIONCLASS)
-        guard prerequisite(protection == 1, stage: "get-directory-class-a", code: errno, result: protection) else { return }
+        guard prerequisite(protection == 1, stage: "get-directory-class-a", code: protection == -1 ? errno : 0, result: protection) else { return }
         let parentSynced = fsync(parent)
         guard prerequisite(parentSynced == 0, stage: "fsync-parent", code: errno) else { return }
         let directorySynced = fsync(directory)
@@ -59,7 +59,7 @@ import Darwin
         let fileProtected = fcntl(file, F_SETPROTECTIONCLASS, Int32(1))
         guard prerequisite(fileProtected == 0, stage: "set-file-class-a", code: errno) else { return }
         let fileProtection = fcntl(file, F_GETPROTECTIONCLASS)
-        guard prerequisite(fileProtection == 1, stage: "get-file-class-a", code: errno, result: fileProtection) else { return }
+        guard prerequisite(fileProtection == 1, stage: "get-file-class-a", code: fileProtection == -1 ? errno : 0, result: fileProtection) else { return }
         let fileSynced = fsync(file)
         guard prerequisite(fileSynced == 0, stage: "fsync-file", code: errno) else { return }
         let fileFlushed = fcntl(file, F_FULLFSYNC)

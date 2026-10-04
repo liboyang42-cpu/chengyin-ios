@@ -2,7 +2,6 @@ import SwiftUI
 
 @MainActor struct WithdrawalSupportLandingView: View {
     let reader: WalletCommerceReader
-    var contact: WithdrawalSupportContact? = nil
     @Environment(\.bankWithdrawalDestination) private var bankDestination
     @Environment(\.locale) private var locale
     @State private var balance: WithdrawalBalance?
@@ -45,7 +44,7 @@ import SwiftUI
             .task(id: reader.scope) { balance = nil; stages = nil; loadedScope = nil; showContact = false; await load() }
             .refreshable { await load() }
             .onDisappear { generation += 1; loading = false }
-            .sheet(isPresented: $showContact) { WithdrawalSupportContactView(contact: contact) }
+            .sheet(isPresented: $showContact) { WithdrawalSupportContactView() }
             .accessibilityIdentifier("withdrawal.support.landing")
     }
     private func amount(_ value: WalletAmount, currency: String?) -> String {
@@ -66,23 +65,5 @@ import SwiftUI
             guard ticket == generation, reader.scope == scope, !Task.isCancelled else { return }
             stages = result; loadedScope = scope
         } catch { guard ticket == generation, reader.scope == scope, !Task.isCancelled else { return }; stagesFailed = true }
-    }
-}
-private struct WithdrawalSupportContactView: View {
-    let contact: WithdrawalSupportContact?
-    @Environment(\.dismiss) private var dismiss
-    var body: some View {
-        NavigationStack {
-            Form {
-                Text("withdrawal.support.explanation")
-                if let contact {
-                    LabeledContent("withdrawal.support.weChat") { Text(verbatim: contact.weChatID).textSelection(.enabled) }
-                    NativeCopyTextButton(text: contact.weChatID, title: "withdrawal.support.copyWeChat",
-                        identifier: "withdrawal.support.copyWeChat")
-                    Text("withdrawal.support.manualContact")
-                } else { Label("withdrawal.support.unconfigured", systemImage: "exclamationmark.bubble") }
-            }.navigationTitle("withdrawal.support.contact")
-                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { dismiss() } } }
-        }.presentationDetents([.medium, .large])
     }
 }

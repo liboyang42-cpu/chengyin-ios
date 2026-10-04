@@ -119513,6 +119513,486 @@
           }
         }
       }
+    },
+    "projectEdit.completion.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completion rules and Bingo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通关规则与九宫格"
+          }
+        }
+      }
+    },
+    "projectEdit.completion.readOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This configuration contains unsupported or unreadable rules. It is preserved unchanged; edit it in the original professional publisher."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此配置含不支持或无法读取的规则，保持原样；请在原专业发布页编辑。"
+          }
+        }
+      }
+    },
+    "projectEdit.completion.mode": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completion condition"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通关条件"
+          }
+        }
+      }
+    },
+    "projectEdit.completion.all": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complete all stations"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成全部站点"
+          }
+        }
+      }
+    },
+    "projectEdit.completion.atLeast": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complete at least the specified count"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "至少完成指定数量"
+          }
+        }
+      }
+    },
+    "projectEdit.completion.count": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Required station count"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所需站点数量"
+          }
+        }
+      }
+    },
+    "projectEdit.completion.enabled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable Bingo grid"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启用宾果九宫格"
+          }
+        }
+      }
+    },
+    "projectEdit.completion.disabled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bingo grid disabled"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "九宫格已关闭"
+          }
+        }
+      }
+    },
+    "projectEdit.completion.serverConditions": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit nine cells in S order. The server decides when each cell is lit; labels do not change conditions."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按 S 形编辑九格；点亮条件由服务端判定。名称仅改变展示，不改变条件。"
+          }
+        }
+      }
+    },
+    "projectEdit.completion.label": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cell label (optional, up to 24 UTF-16 units)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "格子名称（可留空，最多24字）"
+          }
+        }
+      }
+    },
+    "projectEdit.completion.coupon": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reward coupon ID (optional)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "奖励券 ID（可留空）"
+          }
+        }
+      }
+    },
+    "projectEdit.completion.couponHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use an existing numeric reward coupon ID. The server checks eligibility; this does not issue a coupon."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只填现有奖励券的数字 ID；有效性与发放资格由服务端复核，不会立即发券。"
+          }
+        }
+      }
+    },
+    "projectEdit.completion.feedback": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reward feedback (up to 120 UTF-16 units)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "奖励反馈（最多120字）"
+          }
+        }
+      }
+    },
+    "projectEdit.completion.invalidCount": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Required completion count must be a positive integer."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "至少完成数量须为正整数。"
+          }
+        }
+      }
+    },
+    "projectEdit.completion.invalidCells": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bingo must contain exactly nine cells."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "九宫格必须正好包含9格。"
+          }
+        }
+      }
+    },
+    "projectEdit.completion.invalidLength": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cell labels allow 24 UTF-16 units and reward feedback 120."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "格子名称最多24字，奖励反馈最多120字。"
+          }
+        }
+      }
+    },
+    "projectEdit.completion.invalidCoupon": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reward coupon ID must be a nonnegative integer or blank."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "奖励券 ID 须为非负整数，或留空。"
+          }
+        }
+      }
+    },
+    "projectEdit.completion.rewardRequired": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a coupon or reward feedback to at least one cell."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "至少给一格配置奖励券或奖励反馈。"
+          }
+        }
+      }
+    },
+    "projectEdit.completion.invalidSource": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original rules changed. Reload this theme."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原始规则已变更，请重新载入主题。"
+          }
+        }
+      }
+    },
+    "projectEdit.completion.condition.0": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complete your first station"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成第1个点"
+          }
+        }
+      }
+    },
+    "projectEdit.completion.condition.1": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complete 3 stations"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成3个点"
+          }
+        }
+      }
+    },
+    "projectEdit.completion.condition.2": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complete 5 stations"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成5个点"
+          }
+        }
+      }
+    },
+    "projectEdit.completion.condition.3": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complete 3 stations in one day"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一天内完成3个点"
+          }
+        }
+      }
+    },
+    "projectEdit.completion.condition.4": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visit on two separate days"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "两天各来一次"
+          }
+        }
+      }
+    },
+    "projectEdit.completion.condition.5": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visit on two consecutive days"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "连续两天来"
+          }
+        }
+      }
+    },
+    "projectEdit.completion.condition.6": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visit on a weekend"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "周末来一次"
+          }
+        }
+      }
+    },
+    "projectEdit.completion.condition.7": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complete 8 stations"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成8个点"
+          }
+        }
+      }
+    },
+    "projectEdit.completion.condition.8": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complete once before noon"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中午前完成一次"
+          }
+        }
+      }
+    },
+    "projectEdit.completion.tooManyNodes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Required completion count exceeds the configured station count."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所需通关数量不能超过已配置站点总数。"
+          }
+        }
+      }
+    },
+    "projectEdit.completion.tooLarge": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completion rule configuration must not exceed 16 KiB."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通关规则配置不能超过16 KiB。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

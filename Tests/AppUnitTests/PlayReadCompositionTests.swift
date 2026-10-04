@@ -395,7 +395,16 @@ import UIKit
         XCTAssertEqual(wire.playRequests.count, before)
         for role in ["administrator", "Player", " player", "player ", "merchant/admin"] {
             wire.role = role; await app.refreshOwnAccount()
-            XCTAssertNil(app.playExperience(for: .activity(41)), role)
+            // Malformed readback cannot replace the last authoritative merchant account.
+            // Recovery continues to belong to that exact retained owner, never this wire role.
+            XCTAssertEqual(app.account?.role, "merchant", role)
+            let retained = try XCTUnwrap(app.playExperience(for: .activity(41)), role)
+            XCTAssertTrue(retained === foreign, role)
+            XCTAssertEqual(retained.issue, .persistenceUnavailable, role)
+            XCTAssertNil(retained.snapshot, role)
+            XCTAssertFalse(retained.canWrite, role)
+            XCTAssertFalse(retained.canManageRun, role)
+            XCTAssertEqual(wire.playRequests.count, before, role)
         }
         wire.role = "player"; await app.refreshOwnAccount()
         let fresh = try XCTUnwrap(app.playExperience(for: .activity(41)))
@@ -419,10 +428,14 @@ import UIKit
             XCTAssertThrowsError(try construction.make(session: owner, scope: .activity(0),
                 regionalConfiguration: deployment.regional, storageScope: deployment.storageScope))
         }
-        let invalid = try PlayExperienceSession(accountID: 7, epoch: 1,
-            namespace: deployment.storageScope.service, token: "synthetic-7", role: "unverified")
-        XCTAssertThrowsError(try construction.make(session: invalid, scope: .activity(41),
-            regionalConfiguration: deployment.regional, storageScope: deployment.storageScope))
+        for role in ["unverified", "administrator", "Player", " player", "player ", "merchant/admin"] {
+            let invalid = try PlayExperienceSession(accountID: 7, epoch: 1,
+                namespace: deployment.storageScope.service, token: "synthetic-7", role: role)
+            XCTAssertThrowsError(try construction.make(session: invalid, scope: .activity(41),
+                regionalConfiguration: deployment.regional, storageScope: deployment.storageScope)) { error in
+                XCTAssertEqual(error as? PlayExperienceError, .persistenceUnavailable, role)
+            }
+        }
     }
     func testRevokedRuntimeApprovalDropsLate401AtCompositionBoundary() async throws {
         let wire = PlayReadWire(), transport = try direct(wire)
