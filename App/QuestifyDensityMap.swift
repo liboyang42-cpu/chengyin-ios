@@ -9,19 +9,27 @@ struct QuestifyDensityMap: View {
     var selectedID: String? = nil
     var polyline: [RoamCoordinate] = []
     var onSelect: ((String) -> Void)? = nil
+    var mapHeight: CGFloat = 300
+    var pinIdentifierPrefix = "searchMap.pin."
+    var pinHint: (String) -> Text = { _ in Text("") }
     @State private var position: MapCameraPosition
     @State private var cameraRevision = 0
     @State private var expanded: [String] = []
+    @State private var expansionID = UUID()
     @State private var expandedSnapshot: [SearchMapPin] = []
     @ScaledMetric(relativeTo: .body) private var diameter = 44.0
     @ScaledMetric(relativeTo: .body) private var clusterExtra = 28.0
     init(area: RoamSearchArea, pins: [SearchMapPin], selectedID: String? = nil,
-         polyline: [RoamCoordinate] = [], onSelect: ((String) -> Void)? = nil) {
+         polyline: [RoamCoordinate] = [], mapHeight: CGFloat = 300, initialSpan: Double = 0.04,
+         pinIdentifierPrefix: String = "searchMap.pin.", pinHint: @escaping (String) -> Text = { _ in Text("") },
+         onSelect: ((String) -> Void)? = nil) {
         self.area = area; self.pins = pins; self.selectedID = selectedID
         self.polyline = polyline; self.onSelect = onSelect
+        self.mapHeight = mapHeight
+        self.pinIdentifierPrefix = pinIdentifierPrefix; self.pinHint = pinHint
         _position = State(initialValue: .region(MKCoordinateRegion(
             center: CLLocationCoordinate2D(latitude: area.coordinate.latitude, longitude: area.coordinate.longitude),
-            span: MKCoordinateSpan(latitudeDelta: 0.04, longitudeDelta: 0.04))))
+            span: MKCoordinateSpan(latitudeDelta: initialSpan, longitudeDelta: initialSpan))))
     }
     private struct Group: Identifiable {
         let members: [SearchMapPin]
@@ -56,8 +64,8 @@ struct QuestifyDensityMap: View {
                                         }
                                     }.buttonStyle(.plain)
                                     .accessibilityLabel(group.members.count == 1 ? Text(verbatim: anchor.title) : Text("mapDensity.visiblePlaces") + Text(verbatim: ": \(group.members.count)"))
-                                    .accessibilityHint(group.members.count == 1 ? Text("") : Text("mapDensity.expandHint"))
-                                    .accessibilityIdentifier(group.members.count == 1 ? "searchMap.pin.\(anchor.id)" : "mapDensity.cluster")
+                                    .accessibilityHint(group.members.count == 1 ? pinHint(anchor.id) : Text("mapDensity.expandHint"))
+                                    .accessibilityIdentifier(group.members.count == 1 ? "\(pinIdentifierPrefix)\(anchor.id)" : "mapDensity.cluster")
                                     .accessibilityAddTraits(group.members.contains(where: { $0.id == selectedID }) ? .isSelected : [])
                                 }
                             }
@@ -69,27 +77,34 @@ struct QuestifyDensityMap: View {
                     }.mapStyle(QuestifyMapAppearance.baseStyle)
                     .onMapCameraChange(frequency: .continuous) { _ in cameraRevision &+= 1 }
                 }
-            }.frame(height: 300)
+            }.frame(height: mapHeight)
             // Always provide explicit member choice, including coincident coordinates
             // where repeated zooming cannot separate markers. No first-member action.
             if !expanded.isEmpty && expandedSnapshot == snapshot {
+                let renderedExpansionID = expansionID
                 VStack(alignment: .leading) {
                     Text("mapDensity.visiblePlaces").font(.headline)
                     ForEach(currentPins.filter { expanded.contains($0.id) }) { pin in
                         Button {
                             guard expandedSnapshot == snapshot,
-                                  currentPins.contains(where: { $0 == pin }) else { expanded = []; return }
-                            onSelect?(pin.id); expanded = []
+                                  renderedExpansionID == expansionID, expanded.contains(pin.id),
+                                  currentPins.contains(where: { $0 == pin }) else { return }
+                            // Consume before calling outward: duplicate/late taps cannot
+                            // act after Close, another group, or reopening the same group.
+                            closeExpansion()
+                            onSelect?(pin.id)
                         } label: {
                             Label(pin.title, systemImage: pin.symbol).fixedSize(horizontal: false, vertical: true)
-                        }.frame(minHeight: 44).accessibilityIdentifier("mapDensity.member.\(pin.id)")
+                        }.buttonStyle(.plain).frame(minHeight: 44)
+                            .accessibilityHint(pinHint(pin.id))
+                            .accessibilityIdentifier("mapDensity.member.\(pin.id)")
                             .accessibilityAddTraits(pin.id == selectedID ? .isSelected : [])
                     }
-                    Button("mapDensity.close") { expanded = [] }.frame(minHeight: 44)
+                    Button("mapDensity.close") { closeExpansion() }.buttonStyle(.plain).frame(minHeight: 44)
                 }.padding().frame(maxWidth: .infinity, alignment: .leading)
             }
         }
-        .onChange(of: snapshot) { _, _ in expanded = [] }
+        .onChange(of: snapshot) { _, _ in closeExpansion() }
     }
     private func groups(proxy: MapProxy, size: CGSize, revision: Int) -> [Group] {
         let supplied = currentPins
@@ -101,7 +116,13 @@ struct QuestifyDensityMap: View {
         let membership = MapMarkerDensity.groups(projected, diameter: Double(max(44, diameter) + max(28, clusterExtra)))
         return membership.map { ids in Group(members: ids.compactMap { id in supplied.first { $0.id == id } }) }
     }
+    private func closeExpansion() {
+        expansionID = UUID()
+        expanded = []
+        expandedSnapshot = []
+    }
     private func expand(_ group: Group) {
+        expansionID = UUID()
         expanded = group.id
         expandedSnapshot = snapshot
         // Extreme/polar/date-line groups retain the camera and explicit list.

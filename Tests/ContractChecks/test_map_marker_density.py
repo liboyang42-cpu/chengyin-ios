@@ -25,7 +25,7 @@ class MapMarkerDensityContracts(unittest.TestCase):
         self.assertNotIn('onSelect', expand)
         self.assertIn('guard expandedSnapshot == snapshot,', self.ui)
         self.assertIn('currentPins.contains(where: { $0 == pin })', self.ui)
-        self.assertIn('onSelect?(pin.id); expanded = []', self.ui)
+        self.assertIn('closeExpansion()\n                            onSelect?(pin.id)', self.ui)
         self.assertIn('max(0.001, (north - south) * 1.5)', self.core)
         self.assertIn('east - west <= 180 else { return nil }', self.core)
         self.assertIn('2 * (85 - abs(latitude))', self.core)

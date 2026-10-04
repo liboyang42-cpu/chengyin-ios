@@ -28,9 +28,18 @@ public struct MemberTemplateDetail: Decodable, Equatable {
                   rows.allSatisfy({ $0.object != nil }) else { throw APIError.malformedResponse }
             story = rows.enumerated().map { index, row in
                 MemberTemplateStoryPart(id: index, text: ParticipationRecord.text(row["text"]),
-                    tag: ParticipationRecord.text(row["tag"]), images: row["imgs"].array?.compactMap(\.text) ?? [])
+                    tag: ParticipationRecord.text(row["tag"]), images: Self.storyImages(row))
             }
         } else { story = [] }
+    }
+    private static func storyImages(_ row: PlayWireValue) -> [String] {
+        // Current arrays are authoritative, including an explicit empty array.
+        if let images = row["imgs"].array { return images.compactMap(\.text) }
+        // Legacy DTO storyJson used one `img` string. Missing/null imgs can use it;
+        // malformed non-array imgs must not silently select a different source.
+        guard case .null = row["imgs"], case .string(let legacy) = row["img"], !legacy.isEmpty else { return [] }
+        // Projection is not URL approval. Existing media readers still enforce origins/schemes.
+        return [legacy]
     }
     private static func images(_ raw: String?) -> [String] {
         guard let raw else { return [] }

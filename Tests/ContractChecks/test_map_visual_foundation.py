@@ -9,7 +9,7 @@ class MapVisualFoundationTests(unittest.TestCase):
         return (ROOT / path).read_text()
 
     def test_public_canvases_share_muted_style_without_blanket_poi_suppression(self):
-        for path in ['App/QuestifyDensityMap.swift', 'App/RoamMapView.swift', 'App/WalkingNavigationView.swift']:
+        for path in ['App/QuestifyDensityMap.swift', 'App/WalkingNavigationView.swift']:
             source = self.read(path)
             self.assertIn('.mapStyle(QuestifyMapAppearance.baseStyle)', source)
             self.assertNotIn('.excludingAll', source)
@@ -35,7 +35,7 @@ class MapVisualFoundationTests(unittest.TestCase):
         self.assertIn('QuestifyMapPinSymbol(symbol: anchor.symbol, selected: anchor.id == selectedID)', density)
         self.assertIn('.accessibilityAddTraits(pin.id == selectedID ? .isSelected : [])', source)
         self.assertIn('.accessibilityAddTraits(group.members.contains(where: { $0.id == selectedID }) ? .isSelected : [])', density)
-        self.assertIn('QuestifyMapPinSymbol(symbol: item.symbol)', self.read('App/RoamMapView.swift'))
+        self.assertIn('QuestifyDensityMap(area: area, pins: pins, selectedID: selectedID', self.read('App/RoamMapView.swift'))
 
     def test_route_casing_below_existing_route_and_target(self):
         for path in ['App/QuestifyDensityMap.swift', 'App/WalkingNavigationView.swift']:

@@ -42,4 +42,21 @@ final class MapMarkerDensityTests: XCTestCase {
         XCTAssertEqual(same?.longitudeSpan, 0.001)
     }
 
+    func testRoamOverlappingKindsRetainExplicitMemberIdentities() {
+        // Domain-prefixed IDs survive clustering even when numeric IDs coincide.
+        let points = ["place-7", "route-7", "event-7", "player-7"].map {
+            MapMarkerDensity.Point(id: $0, x: 100, y: 100)
+        }
+        XCTAssertEqual(MapMarkerDensity.groups(points, diameter: 72),
+                       [["event-7", "place-7", "player-7", "route-7"]])
+        // A refreshed/filtered snapshot never inherits absent members.
+        XCTAssertEqual(MapMarkerDensity.groups(Array(points.prefix(1)), diameter: 72), [["place-7"]])
+    }
+    func testRoamAccessibleMarkerFootprintAndBoundary() {
+        let points = [MapMarkerDensity.Point(id: "place-1", x: 0, y: 0),
+                      .init(id: "place-2", x: 72, y: 0)]
+        XCTAssertEqual(MapMarkerDensity.groups(points, diameter: 72), [["place-1"], ["place-2"]])
+        XCTAssertEqual(MapMarkerDensity.groups(points, diameter: 100), [["place-1", "place-2"]])
+    }
+
 }

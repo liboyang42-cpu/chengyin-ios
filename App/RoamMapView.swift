@@ -1,33 +1,33 @@
 import SwiftUI
-import MapKit
 
-/// A search-area map only: no UserAnnotation, location button, location delegate, route tracing,
-/// geocoding, coordinate-upload callbacks, or map-pan network requests.
+/// Presentation-only adapter. Coordinates, including player approximations, come
+/// unchanged from the supplied read results. Map movement never reads or uploads.
 struct RoamMapView: View {
     @Environment(\.locale) private var locale
     let area: RoamSearchArea
     let items: [RoamMapItem]
+    var selectedID: String? = nil
     let onSelect: (RoamMapItem) -> Void
-    private var pins: [RoamMapItem] { items.filter { $0.coordinate != nil } }
-    var body: some View {
-        Map(initialPosition: .region(MKCoordinateRegion(
-            center: CLLocationCoordinate2D(latitude: area.coordinate.latitude, longitude: area.coordinate.longitude),
-            span: MKCoordinateSpan(latitudeDelta: 0.045, longitudeDelta: 0.045)))) {
-            ForEach(pins) { item in
-                if let point = item.coordinate {
-                    Annotation(item.title, coordinate: CLLocationCoordinate2D(latitude: point.latitude, longitude: point.longitude)) {
-                        Button { onSelect(item) } label: {
-                            QuestifyMapPinSymbol(symbol: item.symbol)
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel(Text(item.title.isEmpty ? appLocalized("roam.unnamed",locale:locale) : item.title))
-                        .accessibilityHint(item.kindLabel)
-                        .accessibilityIdentifier("roam.pin.\(item.id)")
-                    }
-                }
-            }
+    private var pins: [SearchMapPin] {
+        items.compactMap { item in
+            guard let coordinate = item.coordinate else { return nil }
+            return SearchMapPin(id: item.id,
+                title: item.title.isEmpty ? appLocalized("roam.unnamed", locale: locale) : item.title,
+                coordinate: coordinate, symbol: item.symbol)
         }
-        .mapStyle(QuestifyMapAppearance.baseStyle)
-        .accessibilityIdentifier("roam.map")
+    }
+    var body: some View {
+        QuestifyDensityMap(area: area, pins: pins, selectedID: selectedID,
+            mapHeight: 270, initialSpan: 0.045, pinIdentifierPrefix: "roam.pin.",
+            pinHint: { id in
+                if let item = items.first(where: { $0.id == id }) { return Text(item.kindLabel) }
+                return Text("")
+            }, onSelect: { id in
+                // Never infer a business target from a cluster anchor or array order.
+                let matches = items.filter { $0.id == id && $0.coordinate != nil }
+                guard matches.count == 1, let item = matches.first else { return }
+                onSelect(item)
+            })
+            .accessibilityIdentifier("roam.map")
     }
 }

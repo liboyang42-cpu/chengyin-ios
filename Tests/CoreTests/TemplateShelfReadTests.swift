@@ -19,7 +19,7 @@ import FoundationNetworking
         XCTAssertEqual("\r\n".count, 1)
         XCTAssertEqual(Array("\r\n".utf8), [13, 10])
         for page in [1, 2, 100] {
-            for keyword in ["", "x", "城", "城 & café", "e\u{301}", "👩🏽‍💻", String(repeating: "x", count: 512)] {
+            for keyword in ["", "x", "城", "城 & café", "e\u{301}", "👩🏽‍💻", "می\u{200C}روم", "♥\u{FE0E}", "♥\u{FE0F}", "禰\u{E0100}", String(repeating: "界", count: 170) + "aa", String(repeating: "x", count: 512)] {
                 for boundary in ["B", "Shelf-boundary", String(repeating: "Z", count: 70)] {
                     let request = try TemplateAuthoringWireRequestBuilder.make(TemplateOwnShelfPage.request(page: page, keyword: keyword), configuration: config, token: "synthetic", boundary: boundary)
                     XCTAssertEqual(TemplateShelfReadRoute(request: request, baseURL: base), .page(page, keyword: keyword))
@@ -58,6 +58,22 @@ import FoundationNetworking
         request = canonical; request.httpBody = Data(repeating: 65, count: 4097); invalid.append(request)
         request = canonical; request.httpBodyStream = InputStream(data: Data()); invalid.append(request)
         for request in invalid { XCTAssertNil(TemplateShelfReadRoute(request: request, baseURL: base), "\(request)") }
+    }
+    func testKeywordJoinersDoNotAdmitControlsBidiFormatsOrUnicodeLineBreaks() throws {
+        // Exercise actual multipart requests rather than a policy helper alone.
+        let controls = Array(0...31) + Array(127...159) + [0x061C, 0x200B, 0x200E, 0x200F,
+            0x2028, 0x2029, 0x202A, 0x202B, 0x202C, 0x202D, 0x202E,
+            0x2060, 0x2066, 0x2067, 0x2068, 0x2069, 0xFEFF, 0xE0067, 0xE007F]
+        for value in controls {
+            let scalar = try XCTUnwrap(UnicodeScalar(value))
+            var values = fields; values["keyword"] = "a" + String(scalar) + "b"
+            let request = try form("api/template/my-list", values)
+            XCTAssertNil(TemplateShelfReadRoute(request: request, baseURL: base), "Forbidden scalar U+\(String(value, radix: 16))")
+        }
+        for keyword in [String(repeating: "界", count: 171), "👩🏽‍💻" + "\r\n", "می\u{200C}روم\u{202E}"] {
+            var values = fields; values["keyword"] = keyword
+            XCTAssertNil(TemplateShelfReadRoute(request: try form("api/template/my-list", values), baseURL: base))
+        }
     }
     func testIndependentCanReadNeverCanSubmitAndRejectsForgedReadMutation() async throws {
         let wire = Wire(), context = try context(), lease = try TemplateShelfReadApproval(context: context, expiresAt: Date().addingTimeInterval(600))

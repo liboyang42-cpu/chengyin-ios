@@ -56,6 +56,28 @@ import XCTest
         XCTAssertTrue(editor === afterReissue); XCTAssertEqual(afterReissue.draft.title, "Unsaved local draft")
         XCTAssertFalse(afterReissue.canSubmit); XCTAssertFalse(afterReissue.canRead)
     }
+    func testSearchedPageElevenLegacyStoryRequiresFreshOwnedDetail() async throws {
+        let wire = Wire(); wire.pagedLegacy = true
+        let session = try root(wire, Grants(), Vault()).makeSession(); await login(session); wire.requests = []
+        let coordinator = session.templateShelfCoordinator(); await coordinator.shelfReader.refresh(keyword: "legacy")
+        for _ in 2...11 { await coordinator.shelfReader.loadMore() }
+        XCTAssertEqual(coordinator.shelfReader.rows.count, 110)
+        XCTAssertTrue(coordinator.shelfReader.rows.contains { $0.id == 101 })
+        XCTAssertEqual(coordinator.shelfReader.page, 11); XCTAssertFalse(coordinator.shelfReader.hasMore)
+        XCTAssertTrue(coordinator.rows.isEmpty); XCTAssertFalse(coordinator.canSubmit)
+        let reader = session.makeOwnedMemberTemplateReader(), id = try XCTUnwrap(MemberPlayTemplateID(rawValue: 101))
+        let detail = try await reader.memberTemplate(id: id)
+        XCTAssertEqual(detail.id, id); XCTAssertEqual(detail.memberID, 7)
+        XCTAssertEqual(detail.story.first?.images, ["https://images.test/legacy.jpg"])
+        XCTAssertEqual(wire.requests.compactMap { TemplateShelfReadRoute(request: $0, baseURL: base) },
+            (1...11).map { .page($0, keyword: "legacy") } + [.detail(id)])
+        // A matching search row is not owner proof for a fresh detail response.
+        wire.detailOwner = 8
+        do { _ = try await reader.memberTemplate(id: id); XCTFail("Non-owner legacy story was accepted") }
+        catch { XCTAssertEqual(error as? APIError, .malformedResponse) }
+        XCTAssertEqual(wire.requests.count, 13)
+        XCTAssertFalse(coordinator.canSubmit)
+    }
     func testGuestDefaultNilRevokedReaderAndReplacementNeverAdoptLease() async throws {
         let wire = Wire(), grants = Grants(); grants.enabled = false
         let session = try root(wire, grants, Vault()).makeSession()
@@ -158,9 +180,22 @@ import XCTest
     private final class Wire: HTTPTransport {
         var requests: [URLRequest] = [], account = 7, role = "player", code = 200, pause = false, onPaused: (() -> Void)?
         var pending: CheckedContinuation<(Data, Int), Error>?, pendingJSON = "{}"
+        var pagedLegacy = false, detailOwner: Int?
         func finish(code: Int) { let saved = pending; pending = nil; if code == -1 { saved?.resume(throwing: APIError.httpStatus(503)); return }; saved?.resume(returning: (Data((code == 200 ? pendingJSON : "{\"code\":\(code)}").utf8), 200)) }
         func send(_ request: URLRequest) async throws -> (Data, Int) {
             requests.append(request); let path = request.url!.path, json: String
+            if pagedLegacy, let route = TemplateShelfReadRoute(request: request, baseURL: URL(string: "https://example.test/native")!) {
+                let payload: [String: Any]
+                switch route {
+                case .page(let page, _):
+                    let rows = (1...10).map { ["id": (page - 1) * 10 + $0, "title": "Legacy search result", "memberId": account] as [String: Any] }
+                    payload = ["rows": rows, "total": 110]
+                case .detail(let id):
+                    let story = String(decoding: try JSONSerialization.data(withJSONObject: [["text": "Old draft", "tag": "Opening", "img": "https://images.test/legacy.jpg"]]), as: UTF8.self)
+                    payload = ["id": id.rawValue, "memberId": detailOwner ?? account, "storyJson": story]
+                }
+                return (try JSONSerialization.data(withJSONObject: ["code": 200, "data": payload]), 200)
+            }
             if path.hasSuffix("/phone") { json = "{\"code\":200,\"token\":\"synthetic-\(account)\",\"data\":{\"id\":\(account),\"role\":\"\(role)\"}}" }
             else if path.hasSuffix("/userInfo") { json = "{\"code\":200,\"appUser\":{\"userId\":\(account),\"role\":\"\(role)\"}}" }
             else if path.hasSuffix("/my-list") { json = "{\"code\":\(code),\"data\":{\"rows\":[{\"id\":41,\"title\":\"Owned template\",\"memberId\":\(account)}],\"total\":1}}" }

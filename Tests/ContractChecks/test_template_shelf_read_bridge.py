@@ -53,3 +53,14 @@ class TemplateShelfReadBridge(unittest.TestCase):
         self.assertNotIn('wire.requests[0]', tests)
         for case in ['String(repeating: "x", count: 512)', 'String(repeating: "Z", count: 70)', '[1, 9, 10, 41, Int.max]']:
             self.assertIn(case, tests)
+
+    def test_keyword_joiner_exception_does_not_allow_other_format_controls(self):
+        source = read('Core/TemplateShelfReadApproval.swift')
+        self.assertIn('keyword.utf8.count <= 512, Self.allowsKeywordScalars(keyword)', source)
+        self.assertIn('scalar.value == 0x200C || scalar.value == 0x200D', source)
+        self.assertIn('!CharacterSet.controlCharacters.contains(scalar) && !CharacterSet.newlines.contains(scalar)', source)
+        tests = read('Tests/CoreTests/TemplateShelfReadTests.swift')
+        self.assertIn('👩🏽‍💻', tests)
+        self.assertIn('testKeywordJoinersDoNotAdmitControlsBidiFormatsOrUnicodeLineBreaks', tests)
+        self.assertIn('Array(0...31) + Array(127...159)', tests)
+        self.assertIn('0x202E', tests); self.assertIn('0xFEFF', tests); self.assertIn('0xE007F', tests)

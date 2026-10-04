@@ -85,7 +85,7 @@ public enum TemplateShelfReadRoute: Equatable {
                   fields["is_quote"] == "", fields["category_id"] == "", fields["pageSize"] == "10",
                   let raw = fields["pageNum"], let page = Int(raw), raw == String(page),
                   (1...TemplateOwnShelfPage.maximumPages).contains(page), let keyword = fields["keyword"],
-                  keyword.utf8.count <= 512, !keyword.unicodeScalars.contains(where: { CharacterSet.controlCharacters.contains($0) }),
+                  keyword.utf8.count <= 512, Self.allowsKeywordScalars(keyword),
                   let descriptor = try? TemplateOwnShelfPage.request(page: page, keyword: keyword),
                   let config = try? APIConfiguration(baseURL: baseURL),
                   let rebuilt = try? TemplateAuthoringWireRequestBuilder.make(descriptor, configuration: config,
@@ -98,6 +98,14 @@ public enum TemplateShelfReadRoute: Equatable {
             canonical = rebuilt; self = .detail(id)
         } else { return nil }
         guard canonical.httpBody == body else { return nil }
+    }
+    private static func allowsKeywordScalars(_ keyword: String) -> Bool {
+        keyword.unicodeScalars.allSatisfy { scalar in
+            // Foundation's control set includes Cf, including legitimate text shaping
+            // joiners. Permit only ZWNJ/ZWJ; retain every other control/format rejection.
+            if scalar.value == 0x200C || scalar.value == 0x200D { return true }
+            return !CharacterSet.controlCharacters.contains(scalar) && !CharacterSet.newlines.contains(scalar)
+        }
     }
 }
 

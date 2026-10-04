@@ -38,6 +38,17 @@ struct RoamBrowserView: View {
     private var requestKey: RequestKey {
         RequestKey(identity: reader.identity, area: reader.searchArea, layer: layer, radius: radiusM, configured: reader.isConfigured)
     }
+    private struct PresentationKey: Hashable {
+        let request: RequestKey
+        let generation: Int
+        let query: String
+        let placeFilter: RoamPlaceFilter
+        let eventFilter: RoamEventFilter
+    }
+    private var presentationKey: PresentationKey {
+        PresentationKey(request: requestKey, generation: generation, query: query,
+            placeFilter: placeFilter, eventFilter: eventFilter)
+    }
     private var visibleItems: [RoamMapItem] {
         guard loadedKey == requestKey else { return [] }
         return items.filter { item in
@@ -87,6 +98,7 @@ struct RoamBrowserView: View {
             }
             .onAppear { readOwner.activate() }
             .onDisappear { readOwner.deactivate(); generation += 1; loading = false }
+            .onChange(of: requestKey) { _, _ in selected = nil }
             .onChange(of: query) { _, _ in selected = nil }
             .onChange(of: placeFilter) { _, _ in selected = nil }
             .onChange(of: eventFilter) { _, _ in selected = nil }
@@ -169,20 +181,25 @@ struct RoamBrowserView: View {
         .padding(.horizontal).padding(.vertical, 10)
     }
     private var results: some View {
-        List {
+        let renderedKey = presentationKey
+        let renderedItems = visibleItems
+        return List {
             if showsMap, let area = reader.searchArea {
                 if visibleItems.contains(where: { $0.coordinate != nil }) {
-                    RoamMapView(area: area, items: visibleItems, onSelect: { selected = $0 })
-                        .frame(height: 270)
+                    RoamMapView(area: area, items: renderedItems, selectedID: selected?.id, onSelect: { item in
+                        select(item, key: renderedKey, snapshot: renderedItems)
+                    })
                         .listRowInsets(EdgeInsets())
-                        .id(requestKey)
+                        .id(renderedKey)
                 } else {
                     Label("roam.noCoordinates", systemImage: "mappin.slash")
                         .foregroundStyle(.secondary)
                 }
             }
             ForEach(visibleItems) { item in
-                Button { selected = item } label: { RoamItemRow(item: item) }
+                Button {
+                    select(item, key: renderedKey, snapshot: renderedItems)
+                } label: { RoamItemRow(item: item) }
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("roam.row.\(item.id)")
             }
@@ -193,10 +210,21 @@ struct RoamBrowserView: View {
         .refreshable { await load() }
         .accessibilityIdentifier("roam.content")
     }
+    // Both map members and ordinary rows resolve against the same current read.
+    // Closures from a previous refresh/filter/session may not reopen stale detail.
+    private func select(_ item: RoamMapItem, key: PresentationKey, snapshot: [RoamMapItem]) {
+        guard reader.isConfigured, reader.identity != nil, reader.searchArea != nil,
+              key == presentationKey, loadedKey == key.request,
+              !loading, issue == nil, snapshot == visibleItems,
+              visibleItems.contains(item) else { return }
+        selected = item
+    }
     private func startLoad() {
+        selected = nil; loadedKey = nil; generation += 1
         readOwner.start { await performLoad() }
     }
     private func load() async {
+        selected = nil; loadedKey = nil; generation += 1
         await readOwner.run { await performLoad() }
     }
     private func performLoad() async {
