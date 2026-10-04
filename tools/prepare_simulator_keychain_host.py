@@ -128,6 +128,29 @@ def validate_host(xctestrun, runner_temp, commit):
     return host, temporary
 
 
+class UniqueEntitlementKeys(dict):
+    def __setitem__(self, key, value):
+        if key in self:
+            raise ValueError('Duplicate entitlement key')
+        super().__setitem__(key, value)
+
+
+def readback_entitlements(stdout, stderr):
+    # Apple TN3125 documents --entitlements - --xml: plist to stdout;
+    # normal codesign diagnostics remain on stderr. Never merge or scrape streams.
+    # Bound the expected tiny, self-only dictionary and reject ambiguous duplicate keys.
+    try:
+        if not stdout or len(stdout) > 16_384:
+            raise ValueError('Unexpected entitlement output size')
+        return plistlib.loads(stdout, fmt=plistlib.FMT_XML, dict_type=UniqueEntitlementKeys)
+    except Exception:
+        stripped = stdout.lstrip()
+        kind = ('empty' if not stripped else 'xml-like' if stripped.startswith(b'<')
+                else 'binary-plist' if stripped.startswith(b'bplist') else 'other')
+        raise ValueError('Entitlement XML readback invalid: '
+                         f'stdout_bytes={len(stdout)} stderr_bytes={len(stderr)} format={kind}') from None
+
+
 def sign_host(host, temporary, run=subprocess.run):
     # Ad-hoc '-' uses no signing identity, certificate, or keychain lookup.
     # Never use --deep, preserve-metadata, or inject a team/app-group entitlement.
@@ -137,8 +160,8 @@ def sign_host(host, temporary, run=subprocess.run):
         run(['/usr/bin/codesign', '--force', '--sign', '-', '--timestamp=none',
              '--entitlements', str(entitlement_path), str(host)], check=True, capture_output=True)
         run(['/usr/bin/codesign', '--verify', '--strict', str(host)], check=True, capture_output=True)
-        result = run(['/usr/bin/codesign', '--display', '--entitlements', '-', str(host)], check=True, capture_output=True)
-        if plistlib.loads(result.stdout) != ENTITLEMENTS:
+        result = run(['/usr/bin/codesign', '--display', '--entitlements', '-', '--xml', str(host)], check=True, capture_output=True)
+        if readback_entitlements(result.stdout, result.stderr) != ENTITLEMENTS:
             raise ValueError('Signed host entitlements differ from the exact synthetic scope')
         identity = run(['/usr/bin/codesign', '--display', '--verbose=4', str(host)], check=True, capture_output=True)
         lines = identity.stderr.decode('utf-8').splitlines()

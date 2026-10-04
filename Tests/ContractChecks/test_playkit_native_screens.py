@@ -77,6 +77,36 @@ class PlayKitNativeScreenChecks(unittest.TestCase):
                 self.assertIn(key,catalog,(path.name,key))
                 for language in ['en','zh-Hans']:
                     self.assertTrue(catalog[key]['localizations'][language]['stringUnit']['value'])
+    def test_estimate_uses_public_bounded_wheel_and_existing_review(self):
+        core = self.read('Core/PlayKitScreenContracts.swift')
+        wheel = core.split('public struct PlayKitEstimateWheel:', 1)[1].split('/// The board', 1)[0]
+        for token in ['maximumTicks = 2002', 'span.isFinite', 'span < 1e21', 'span <= 2000', 'span <= 20000', 'value + step', 'next > value', 'values.append(hi)', 'ticks.count / 2']:
+            self.assertIn(token, wheel)
+        for field in ['answer', 'tolerance', 'score', 'tier', 'awardedXp']:
+            self.assertNotIn('segment["'+field+'"]', wheel)
+        view = self.read('App/PlayKitQuestionForms.swift')
+        form = view.split('var estimateForm:', 1)[1].split('var pricePairForm:', 1)[0]
+        self.assertIn('PlayKitEstimateWheelForm', form)
+        self.assertIn('if !projection.complete', form)
+        self.assertIn('runtimeIdentity', form)
+        self.assertIn('childReset', form)
+        self.assertIn('wheel.minimum', form); self.assertIn('wheel.maximum', form)
+        self.assertNotIn('TextField', form)
+        self.assertNotIn('log10(', wheel)
+        self.assertIn('while roundedSpan >= decimalThreshold', wheel)
+        self.assertIn('.pickerStyle(.wheel)', view)
+        self.assertIn('requestReview("SUBMIT_ESTIMATE", ["value": .number(value)], {})', view)
+        self.assertIn('guard enabled, let value = wheel.value(at: selectedIndex)', view)
+    def test_dice_total_uses_mode_specific_authoritative_field(self):
+        core = self.read('Core/PlayKitScreenContracts.swift')
+        projection = core.split('public var diceTotal: Int?', 1)[1].split('public var feedback:', 1)[0]
+        for token in ['kind == .diceRoll', 'segment["rolled"].bool == true', 'mode == "d20"', 'segment["total"].integer', 'mode == "d6"', 'segment["sum"].integer', '(count...(count * 6)).contains(sum)']:
+            self.assertIn(token, projection)
+        self.assertNotIn('pips', projection)
+        view = self.read('App/PlayKitDecisionProgressViews.swift')
+        self.assertIn('if let total = projection.diceTotal', view)
+        self.assertNotIn('if let total = raw["total"].integer', view)
+        self.assertIn('prepare("ROLL_DICE")', view)
     def test_apple_and_live_acceptance_are_not_claimed(self):
         evidence=json.loads(self.read('docs/playkit-screen-verification.json'))
         for key in ['swift_tests','ios_build','ui_tests','device_acceptance','backend_acceptance','visual_accessibility_acceptance']:

@@ -58,6 +58,32 @@ final class ModuleFlowTests: XCTestCase {
         XCTAssertTrue(app.descendants(matching:.any)["club.member.701"].waitForExistence(timeout:5),app.debugDescription)
         capture("Club members – synthetic data")
     }
+    func testClubMemberPublicProfileReturnsAndReopens() {
+        launch(["--uitesting-club-fixture", "member"])
+        tap(app.buttons["club.home.joined.81"])
+        let members = app.buttons["club.openMembers"]
+        if !members.isHittable { app.swipeUp() }
+        tap(members)
+        for memberID in [703, 704] {
+            tap(app.buttons["club.member.\(memberID)"])
+            XCTAssertTrue(app.staticTexts["Example city explorer"].waitForExistence(timeout: 5), app.debugDescription)
+            tap(app.navigationBars.buttons.firstMatch)
+            XCTAssertTrue(app.buttons["club.member.\(memberID)"].waitForExistence(timeout: 5), app.debugDescription)
+        }
+    }
+    func testClubMemberProfileClearsOnSignOut() {
+        launch(["--uitesting-club-fixture", "owner"])
+        tap(app.buttons["club.home.owned.81"])
+        let members = app.buttons["club.openMembers"]
+        if !members.isHittable { app.swipeUp() }
+        tap(members)
+        tap(app.buttons["club.member.703"])
+        XCTAssertTrue(app.staticTexts["Example city explorer"].waitForExistence(timeout: 5))
+        tap(app.buttons["club.fixture.signOut"])
+        XCTAssertTrue(app.buttons["club.home.signIn"].waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertFalse(app.staticTexts["Example city explorer"].exists)
+        XCTAssertFalse(app.buttons["club.member.703"].exists)
+    }
     func testMessagingReadOnlyHistoryNavigation() {
         launch(["--uitesting-module","messaging"])
         XCTAssertTrue(app.staticTexts["module.fixture.notice"].waitForExistence(timeout:10))

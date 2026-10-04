@@ -27,6 +27,22 @@ final class ClubActionSessionTests: XCTestCase {
         }
         XCTAssertEqual(calls, 0)
     }
+    func testMessageIsNotSentAfterAccountOrPolicyChanges() async throws {
+        for changeAccount in [false, true] {
+            var current: ClubActionSession? = try session()
+            let expected = try XCTUnwrap(current).identity
+            var calls = 0
+            let service = try service { _ in
+                calls += 1
+                if changeAccount { current = try self.session(id: 2) }
+                return (Data(#"{"code":200,"data":{"id":7,"joinPolicy":0}}"#.utf8), 200)
+            }
+            let writer = ClubActionSessionWriter(service: service, currentSession: { current })
+            do { _ = try await writer.perform(.apply, clubID: 7, expectedIdentity: expected, joinMessage: "reviewed"); XCTFail() }
+            catch { XCTAssertEqual(error as? ClubActionWriteError, changeAccount ? .notSent(.unauthorized) : .eligibilityChanged) }
+            XCTAssertEqual(calls, 1)
+        }
+    }
     func testFreshDetailPrecedesEveryMembershipWrite() async throws {
         let snapshot = try session()
         var paths: [String] = []

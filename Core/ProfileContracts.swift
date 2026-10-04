@@ -50,6 +50,7 @@ public enum ProfileRegistrationState: Equatable {
 public struct ProfileOrder: Decodable, Equatable, Identifiable {
     public let id: Int
     public let memberID: Int?
+    public let ticketID: Int?
     public let ownerType: Int?
     public let ownerID: Int?
     public let registrationNo: String?
@@ -94,7 +95,7 @@ public struct ProfileOrder: Decodable, Equatable, Identifiable {
     public var registrationState: ProfileRegistrationState { .init(code: registrationStatus) }
 
     private enum CodingKeys: String, CodingKey {
-        case id, memberId, ownerType, ownerId, registrationNo, registrationStatus, verificationStatus, paymentStatus
+        case id, memberId, ticketId, ownerType, ownerId, registrationNo, registrationStatus, verificationStatus, paymentStatus
         case cmsActivity, cmsTopic, omsTicket, participateDate, payableAmount, realName, phone, ticketName, orderNum
         case paymentTime, paymentTypeLabel, createTime, verificationTime, expiresAt, organizerName
         case statusText, orderHint, refundInfo, refundApplication
@@ -131,6 +132,7 @@ public struct ProfileOrder: Decodable, Equatable, Identifiable {
         id = try c.decode(Int.self, forKey: .id)
         guard id > 0 else { throw APIError.malformedResponse }
         memberID = try c.decodeIfPresent(Int.self, forKey: .memberId)
+        ticketID = try c.decodeIfPresent(Int.self, forKey: .ticketId)
         ownerType = try c.decodeIfPresent(Int.self, forKey: .ownerType)
         ownerID = try c.decodeIfPresent(Int.self, forKey: .ownerId)
         registrationNo = try c.decodeIfPresent(String.self, forKey: .registrationNo)

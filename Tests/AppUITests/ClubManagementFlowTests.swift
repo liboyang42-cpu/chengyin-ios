@@ -29,6 +29,14 @@ final class ClubManagementFlowTests: XCTestCase {
         XCTAssertTrue(row.isEnabled, app.debugDescription)
         row.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
     }
+    func testApplicationDetailShowsServerMessageBeforeReview() {
+        launch("owner")
+        open("request", 703)
+        let message = app.staticTexts["club.management.joinMessage"]
+        XCTAssertTrue(message.waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertEqual(message.label, "Night walks please 👋")
+        count(0)
+    }
     private func prepare(_ action: String, target: Int) -> XCUIElement {
         let button = app.buttons["club.management.\(action).\(target)"].firstMatch
         let detail = app.navigationBars[action == "remove" ? "Member details" : "Application details"]
@@ -113,6 +121,81 @@ final class ClubManagementFlowTests: XCTestCase {
         launch("owner"); open("member", 701)
         XCTAssertFalse(app.buttons["club.management.remove.701"].exists); count(0)
     }
+    func testAcknowledgedApplicationReturnsToFreshList() {
+        launch("owner"); open("request", 703)
+        submit(prepare("approve", target: 703)); count(1)
+        XCTAssertTrue(app.navigationBars["Club management"].waitForExistence(timeout: 10), app.debugDescription)
+        XCTAssertFalse(app.buttons["club.management.request.703"].exists, app.debugDescription)
+        XCTAssertFalse(app.navigationBars["Application details"].exists, app.debugDescription)
+        XCTAssertEqual(app.staticTexts["club.management.changes"].label, "1")
+        app.buttons["club.management.refresh"].tap()
+        XCTAssertFalse(app.buttons["club.management.request.703"].exists)
+        count(1)
+    }
+    func testAcknowledgedRemovalReturnsToFreshList() {
+        launch("owner"); open("member", 704)
+        submit(prepare("remove", target: 704)); count(1)
+        XCTAssertTrue(app.navigationBars["Club management"].waitForExistence(timeout: 10), app.debugDescription)
+        XCTAssertFalse(app.buttons["club.management.member.704"].exists)
+        XCTAssertTrue(app.buttons["club.management.member.701"].exists)
+        XCTAssertEqual(app.staticTexts["club.management.changes"].label, "1")
+    }
+    func testUnknownOutcomeStaysVisibleAndRefreshNeverReplays() {
+        launch("unknown"); open("request", 703)
+        submit(prepare("approve", target: 703)); count(1)
+        XCTAssertTrue(app.staticTexts["club.management.unknown"].waitForExistence(timeout: 10), app.debugDescription)
+        XCTAssertTrue(app.navigationBars["Application details"].exists)
+        XCTAssertEqual(app.staticTexts["club.management.changes"].label, "0")
+        app.buttons["club.management.detail.refresh"].tap()
+        XCTAssertTrue(app.staticTexts["club.management.unknown"].exists)
+        XCTAssertFalse(app.buttons["club.management.approve.703"].exists)
+        count(1)
+    }
+    func testAcknowledgementWithUnavailableReadbackIsExplicit() {
+        launch("readbackUnavailable"); open("request", 703)
+        submit(prepare("approve", target: 703)); count(1)
+        XCTAssertTrue(app.navigationBars["Club management"].waitForExistence(timeout: 10), app.debugDescription)
+        XCTAssertTrue(app.staticTexts["club.management.readbackUnavailable"].exists, app.debugDescription)
+        XCTAssertFalse(app.buttons["club.management.request.703"].exists)
+        XCTAssertEqual(app.staticTexts["club.management.changes"].label, "1")
+    }
+
+    func testInterruptedUnknownRefreshDoesNotDisableListRefresh() {
+        launch("unknownDelayedRefresh"); open("request", 703)
+        submit(prepare("approve", target: 703)); count(1)
+        XCTAssertTrue(app.staticTexts["club.management.unknown"].waitForExistence(timeout: 10))
+        app.buttons["club.management.detail.refresh"].tap()
+        XCTAssertTrue(element("club.management.detail.loading").waitForExistence(timeout: 2))
+        app.navigationBars["Application details"].buttons.firstMatch.tap()
+        let refresh = app.buttons["club.management.refresh"]
+        XCTAssertTrue(refresh.waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertTrue(refresh.isEnabled, app.debugDescription)
+        XCTAssertTrue(app.staticTexts["club.management.unknown"].exists)
+        count(1)
+    }
+    func testActualClubDetailReloadsOnlyAfterReturningFromManagement() {
+        launch("detailReturn")
+        XCTAssertTrue(app.staticTexts["club.detail.name"].waitForExistence(timeout: 5))
+        app.buttons["club.openManagement"].tap()
+        open("request", 703); submit(prepare("approve", target: 703)); count(1)
+        XCTAssertTrue(app.navigationBars["Club management"].waitForExistence(timeout: 10))
+        app.navigationBars["Club management"].buttons.firstMatch.tap()
+        let name = app.staticTexts["club.detail.name"]
+        let updated = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "Fixture club refreshed"), object: name)
+        XCTAssertEqual(XCTWaiter.wait(for: [updated], timeout: 10), .completed, app.debugDescription)
+        count(1)
+    }
+    func testFailedParentReloadDoesNotDismissManagementReceipt() {
+        launch("detailReturnUnavailable")
+        XCTAssertTrue(app.staticTexts["club.detail.name"].waitForExistence(timeout: 5))
+        app.buttons["club.openManagement"].tap()
+        open("request", 703); submit(prepare("approve", target: 703)); count(1)
+        XCTAssertTrue(app.navigationBars["Club management"].waitForExistence(timeout: 10))
+        XCTAssertFalse(app.staticTexts["club.detail.error"].exists)
+        app.navigationBars["Club management"].buttons.firstMatch.tap()
+        XCTAssertTrue(app.staticTexts["club.detail.error"].waitForExistence(timeout: 10), app.debugDescription)
+        count(1)
+    }
     func testCancelThenSwitchAccountSendsNothing() throws {
         launch("owner"); open("request", 703)
         _ = prepare("approve", target: 703)
@@ -130,4 +213,5 @@ final class ClubManagementFlowTests: XCTestCase {
         XCTAssertFalse(app.navigationBars["Approve application"].exists, app.debugDescription)
         XCTAssertFalse(app.buttons["club.management.confirm"].exists, app.debugDescription)
     }
+
 }

@@ -41,6 +41,19 @@ final class ParticipantServiceTests: XCTestCase {
         catch { XCTAssertEqual(error as? ParticipantWriteError, .notSent(.invalidRequest)) }
         XCTAssertTrue(transport.requests.isEmpty)
     }
+    func testCurrentMiniPhoneRuleBlocksCreateAndEditBeforeDispatch() async throws {
+        let transport = ProfileTestTransport([])
+        let service = try service(transport)
+        for initial in [ParticipantFormDraft(), ParticipantFormDraft(detail: try participantFixture())] {
+            for phone in ["10000000000", "11000000000", "12000000000", "138****0000", "138 0000000"] {
+                var draft = initial
+                draft.fullName = "Fixture"; draft.mobilePhone = phone
+                do { try await service.perform(.save(draft), token: "fixture-token"); XCTFail() }
+                catch { XCTAssertEqual(error as? ParticipantWriteError, .notSent(.invalidRequest)) }
+            }
+        }
+        XCTAssertTrue(transport.requests.isEmpty)
+    }
     func testCode200AllowsAbsentNullOrUnrelatedDataWithoutInventingNewID() async throws {
         for json in [#"{"code":200}"#, #"{"code":200,"data":null}"#, #"{"code":200,"data":{"id":999}}"#] {
             let transport = ProfileTestTransport([.json(json)])

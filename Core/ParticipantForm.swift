@@ -25,7 +25,11 @@ public struct ParticipantFormDraft: Equatable {
     public var validation: ParticipantFormValidation? {
         if fullName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return .nameRequired }
         let phone = mobilePhone.trimmingCharacters(in: .whitespacesAndNewlines)
-        if phone.utf8.count != 11 || phone.first != "1" || !phone.utf8.allSatisfy({ (48...57).contains($0) }) {
+        // Current mini form-state.js and address/action require ^1[3-9]\d{9}$,
+        // not the older Flutter-only ^1\d{10}$ rule. Never reconstruct masked digits.
+        let bytes = Array(phone.utf8)
+        if bytes.count != 11 || bytes.first != 49 || !(51...57).contains(bytes[1])
+            || !bytes.allSatisfy({ (48...57).contains($0) }) {
             return .invalidPhone
         }
         return nil

@@ -30,13 +30,16 @@ final class ParticipantFormTests: XCTestCase {
         XCTAssertEqual(draft.validation, .nameRequired)
         XCTAssertThrowsError(try draft.fields())
         draft.fullName = "Fixture"
-        for phone in ["", "123", "138****0000", "+8613800000000", "23800000000", "138000000000", "1３８００００００００", "138 0000000", "1380000000\n0"] {
+        for phone in ["", "123", "138****0000", "+8613800000000", "23800000000", "138000000000", "1３８００００００００", "138 0000000", "1380000000\n0", "10000000000", "11000000000", "12000000000"] {
             draft.mobilePhone = phone
             XCTAssertEqual(draft.validation, .invalidPhone, phone)
             XCTAssertThrowsError(try draft.fields(), phone)
         }
-        draft.mobilePhone = "10000000000" // Exact source regex ^1\d{10}$; do not invent carrier rules.
-        XCTAssertNil(draft.validation)
+        for prefix in 3...9 {
+            draft.mobilePhone = " \t1\(prefix)000000000\n"
+            XCTAssertNil(draft.validation)
+            XCTAssertEqual(try draft.fields()["mobilePhone"], "1\(prefix)000000000")
+        }
     }
     func testDeleteAndDefaultRequestFieldsAreNarrow() throws {
         XCTAssertEqual(try ParticipantMutation.delete(id: 7).fields(), ["id": "7"])

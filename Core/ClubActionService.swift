@@ -17,13 +17,20 @@ public struct ClubActionService {
         try await reader.detail(id: id, token: token)
     }
     // Session writer is the public dispatch boundary and revalidates a fresh detail.
-    func perform(_ action: ClubAction, clubID: Int, token: String) async throws -> ClubActionReceipt {
-        let request: URLRequest
+    func perform(_ action: ClubAction, clubID: Int, token: String, joinMessage: String = "") async throws -> ClubActionReceipt {
+        var request: URLRequest
         do {
-            guard clubID > 0, AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
+            guard clubID > 0, AuthRequestBuilder.isValidToken(token), ClubApplicationMessage.isValid(joinMessage, for: action) else { throw APIError.invalidRequest }
             request = try AuthRequestBuilder.makeFormRequest(
                 url: configuration.baseURL.appendingPathComponent(action == .leave ? "api/club/quit" : "api/club/join"),
                 fields: ["id": String(clubID)], token: token)
+            if action != .leave {
+                // Current /join accepts @RequestBody Club, not a multipart form.
+                request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                var fields: [String: Any] = ["id": clubID]
+                if action == .apply { fields["joinMessage"] = joinMessage }
+                request.httpBody = try JSONSerialization.data(withJSONObject: fields, options: [.sortedKeys])
+            }
         } catch { throw ClubActionWriteError.notSent(.invalidRequest) }
         guard !Task.isCancelled else { throw ClubActionWriteError.cancelledBeforeDispatch }
         let data: Data, status: Int

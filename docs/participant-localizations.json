@@ -31,8 +31,8 @@
   },
   {
     "key": "participant.form.phoneHint",
-    "en": "Enter an 11-digit mobile number starting with 1.",
-    "zh-Hans": "请输入以 1 开头的 11 位手机号。"
+    "en": "Enter an 11-digit mobile number starting with 13–19.",
+    "zh-Hans": "请输入以 13 至 19 开头的 11 位手机号。"
   },
   {
     "key": "participant.form.confirmSave",

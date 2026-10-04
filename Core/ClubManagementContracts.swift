@@ -6,7 +6,8 @@ public struct ClubManagementRequest: Decodable, Equatable, Identifiable {
     public let nickname: String?
     public let avatar: String?
     public let joinTime: String?
-    enum CodingKeys: String, CodingKey { case memberId, nickname, avatar, joinTime }
+    public let joinMessage: String?
+    enum CodingKeys: String, CodingKey { case memberId, nickname, avatar, joinTime, joinMessage }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         memberId = try c.decode(Int.self, forKey: .memberId)
@@ -14,6 +15,7 @@ public struct ClubManagementRequest: Decodable, Equatable, Identifiable {
         nickname = try c.decodeIfPresent(String.self, forKey: .nickname)
         avatar = try c.decodeIfPresent(String.self, forKey: .avatar)
         joinTime = try c.decodeIfPresent(String.self, forKey: .joinTime)
+        joinMessage = try c.decodeIfPresent(String.self, forKey: .joinMessage)
     }
 }
 

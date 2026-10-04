@@ -78,12 +78,78 @@ public struct PlayKitScreenProjection: Equatable {
         guard complete || segment["submitted"].bool == true || segment["finished"].bool == true || hasAttempt else { return nil }
         return segment["passed"].bool
     }
+    /// d6 and d20 use different authoritative wire fields. Never derive a
+    /// missing total from pips, borrow the other mode's field, or reveal a
+    /// configured/unacknowledged value before the server reports a roll.
+    public var diceTotal: Int? {
+        guard kind == .diceRoll, segment["rolled"].bool == true else { return nil }
+        let mode = segment["mode"].text ?? "d6"
+        if mode == "d20" { return segment["total"].integer }
+        guard mode == "d6", let count = segment["diceCount"].integer, (1...2).contains(count),
+              let sum = segment["sum"].integer, (count...(count * 6)).contains(sum) else { return nil }
+        return sum
+    }
     public var feedback: String? { segment["lastFeedback"].text ?? segment["feedback"].text }
     public var options: [PlayKitOption] {
         if kind == .predict || kind == .blindTaste { return PlayKitOption.read(segment["options"], idKey: "key") }
         if kind == .branch { return PlayKitOption.read(segment["currentStep"]["options"]) }
         if kind == .pricePair { return PlayKitOption.read(segment["items"], labelKey: "name") }
         return PlayKitOption.read(segment["options"])
+    }
+}
+
+/// A bounded picker over the public estimate range, matching mini's unit / ten /
+/// power-of-ten ticks and inclusive upper endpoint. It never reads an answer,
+/// tolerance, score or verdict. Numerically unsafe ranges have no picker.
+public struct PlayKitEstimateWheel: Equatable {
+    public static let maximumTicks = 2002
+    public let minimum: Double
+    public let maximum: Double
+    public let ticks: [Double]
+    public var initialIndex: Int { ticks.count / 2 }
+    public init?(segment: PlayWireValue) {
+        guard let lo = segment["min"].double, let hi = segment["max"].double,
+              lo.isFinite, hi.isFinite, hi >= lo else { return nil }
+        let span = hi - lo
+        // Mini's decimal digit rule switches to exponent text at 1e21 and
+        // would generate an unbounded list there. Reject that unsupported range.
+        guard span.isFinite, span < 1e21 else { return nil }
+        let step: Double
+        if span <= 2000 { step = 1 }
+        else if span <= 20000 { step = 10 }
+        else {
+            // Decimal powers up to 1e21 are exactly representable here. Using
+            // log10 can round a just-below-power span into the next digit count.
+            var scale = 1.0
+            var decimalThreshold = 1000.0
+            let roundedSpan = span.rounded()
+            while roundedSpan >= decimalThreshold {
+                scale *= 10; decimalThreshold *= 10
+            }
+            step = scale
+        }
+        guard step.isFinite, step > 0 else { return nil }
+        let intervals = floor(span / step)
+        // Check before converting or allocating, including for enormous ranges.
+        guard intervals.isFinite, intervals >= 0, intervals <= Double(Self.maximumTicks - 2) else { return nil }
+        var values: [Double] = []
+        var value = lo
+        while value <= hi {
+            guard values.count < Self.maximumTicks - 1 else { return nil }
+            values.append(value)
+            if value == hi { break }
+            // Match mini's repeated addition, including fractional lower bounds.
+            let next = value + step
+            guard next.isFinite, next > value else { return nil }
+            value = next
+        }
+        if values.last != hi { values.append(hi) }
+        guard values.count <= Self.maximumTicks else { return nil }
+        minimum = lo; maximum = hi; ticks = values
+    }
+    public func value(at index: Int) -> Double? {
+        guard ticks.indices.contains(index) else { return nil }
+        return ticks[index]
     }
 }
 

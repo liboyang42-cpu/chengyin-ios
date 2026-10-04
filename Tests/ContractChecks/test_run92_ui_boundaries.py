@@ -17,6 +17,23 @@ class Run92UIBoundaryChecks(unittest.TestCase):
         self.assertIn("@ObservedObject var grants", source)
         self.assertIn("retained?.revoke()", source)
         self.assertIn("approval.expireIfNeeded(now: approval.expiresAt)", source)
+    def test_issuer_diagnostics_refresh_only_after_new_approval(self):
+        source = (ROOT / "App/OwnedOrderFixtureHost.swift").read_text()
+        issuance = source.split("func approval(_ context:", 1)[1].split("@MainActor private final class OwnedOrderFixtureVault", 1)[0]
+        self.assertEqual(source.count("objectWillChange.send()"), 1)
+        self.assertIn("if retained == nil || !ContentDraftContextFence.matches", issuance)
+        self.assertIn("Task { @MainActor [weak self, weak issued] in", issuance)
+        self.assertIn("guard !Task.isCancelled, let self, let issued", issuance)
+        self.assertIn("self.retained === issued, !issued.isRevoked else { return }", issuance)
+        host = source.split("private struct OwnedOrderFixtureGrantControls", 1)[0]
+        self.assertNotIn(".onReceive", host)
+        self.assertNotIn("@StateObject private var grants", host)
+        self.assertNotIn("objectWillChange", host)
+        test = (ROOT / "Tests/AppUITests/OwnedOrderFlowTests.swift").read_text()
+        self.assertIn('actions=0;retained=true;revoked=false;bound=true', test)
+        self.assertIn('actions=1;retained=true;revoked=true;bound=true', test)
+        self.assertIn('cleared(privateTitle)', test)
+
     def test_counter_does_not_poll_covered_first_match(self):
         source = (ROOT / "Tests/AppUITests/ClubOperationsFlowTests.swift").read_text()
         count = source.split("private func count(_ value: Int)", 1)[1].split("private func reviewSetting", 1)[0]

@@ -20,18 +20,23 @@ struct RegistrationSheetView: View {
     @StateObject private var model: RegistrationSheetModel
     @FocusState private var focusedField: Field?
     @State private var showingConfirmation = false
+    @State private var showingWaitlistCancellation = false
     @State private var showingAddParticipant = false
+    @State private var orderDestination: RegistrationWaitlistOrderPresentation?
     private let participantReader: (any ProfileReading)?
+    private let orderReader: (any ProfileReading)?
     private let participantCoordinator: ParticipantMutationCoordinator?
     private enum Field { case name, phone }
 
     init(activity: ActivityDetail, coordinator: RegistrationCoordinator,
          participantReader: (any ProfileReading)? = nil,
+         orderReader: (any ProfileReading)? = nil,
          participantCoordinator: ParticipantMutationCoordinator? = nil,
          currentIdentity: @escaping () -> ProfileReadIdentity?, quoteEnabled: Bool = false,
          creationPolicy: RegistrationUICreationPolicy = .disabled,
          waitlistService: (any RegistrationWaitlistServing)? = nil,
          onReadback: @escaping (RegistrationStatusSnapshot) -> Void = { _ in }) {
+        self.orderReader = orderReader
         self.participantReader = participantReader; self.participantCoordinator = participantCoordinator
         _model = StateObject(wrappedValue: RegistrationSheetModel(flow: RegistrationUIFlow(
             activity: activity, coordinator: coordinator, participantReader: participantReader,
@@ -41,7 +46,7 @@ struct RegistrationSheetView: View {
     #if DEBUG
     /// Offline fixture-only injection keeps the real view/controller clock and guards intact.
     init(fixtureFlow: RegistrationUIFlow) {
-        participantReader = nil; participantCoordinator = nil
+        participantReader = nil; participantCoordinator = nil; orderReader = nil
         _model = StateObject(wrappedValue: RegistrationSheetModel(flow: fixtureFlow))
     }
     #endif
@@ -100,6 +105,17 @@ struct RegistrationSheetView: View {
                     + Text(verbatim: RegistrationUIMoney.display(review.quote.payAmount, locale: locale) ?? "—")
                 }
             }
+            .alert("registration.waitlist.cancelTitle", isPresented: $showingWaitlistCancellation) {
+                Button("registration.waitlist.confirmCancel", role: .destructive) { Task { await flow.cancelWaitlist() } }
+                Button("action.cancel", role: .cancel) { flow.dismissWaitlistCancellation() }
+            } message: {
+                Text(LocalizedStringKey(flow.waitlistCancellation?.status.state == .offered
+                    ? "registration.waitlist.cancelOfferHint" : "registration.waitlist.cancelQueueHint"))
+                + Text(verbatim: "\n\(flow.activity.summary.name)\n\(flow.selectedTicket?.name ?? "")")
+            }
+            .onChange(of: flow.waitlistCancellation) { _, value in
+                if value == nil { showingWaitlistCancellation = false }
+            }
             .task(id: flow.identity) {
                 flow.open()
                 // Independent reads: a slow participant list must not hide the quote form.
@@ -115,6 +131,13 @@ struct RegistrationSheetView: View {
                 }
                 flow.checkWaitlistDeadline()
             }
+            .sheet(item: $orderDestination) { presentation in
+                if let orderReader {
+                    RegistrationWaitlistOrderSheet(presentation: presentation, reader: orderReader,
+                        isCurrent: { flow.waitlistOrderDestination == presentation.destination })
+                }
+            }
+            .onChange(of: flow.waitlistReadKey) { _, _ in orderDestination = nil }
             .sheet(isPresented: $showingAddParticipant) {
                 if let participantReader, let participantCoordinator {
                     NavigationStack {
@@ -200,6 +223,12 @@ struct RegistrationSheetView: View {
                 if let ticket = flow.selectedTicket {
                     RegistrationAmountRow(key: "registration.form.ticketPrice", amount: ticket.price)
                     if let description = ticket.description, !description.isEmpty { Text(verbatim: description) }
+                    TimelineView(.periodic(from: .now, by: 1)) { _ in
+                        if flow.signupClosed {
+                            Text("registration.form.signupClosed").foregroundStyle(.secondary)
+                                .accessibilityIdentifier("registration.form.signupClosed")
+                        }
+                    }
                     if ticket.isSoldOut {
                         TimelineView(.periodic(from: .now, by: 1)) { context in
                             Text(LocalizedStringKey(RegistrationUIWaitlistGuidance.soldOutKey(
@@ -242,6 +271,16 @@ struct RegistrationSheetView: View {
                         }
                         if status.registrationID != nil {
                             Text("registration.waitlist.orderReadback").font(.caption).foregroundStyle(.secondary)
+                            if let destination = flow.waitlistOrderDestination, let orderReader {
+                                Button("profile.orders.detail") {
+                                    guard orderDestination == nil, flow.waitlistOrderDestination == destination,
+                                          orderReader.identity?.accountID == destination.identity.accountID,
+                                          orderReader.identity?.epoch == destination.identity.epoch else { return }
+                                    orderDestination = RegistrationWaitlistOrderPresentation(destination: destination, readIdentity: orderReader.identity)
+                                }
+                                .disabled(!orderReader.isConfigured || orderReader.identity?.accountID != destination.identity.accountID || orderReader.identity?.epoch != destination.identity.epoch)
+                                .accessibilityIdentifier("registration.waitlist.openOrder")
+                            }
                         }
                     } else if flow.block == .waitlistUnavailable { Text("registration.waitlist.unavailable") }
                     Button("registration.waitlist.refresh") { Task { await flow.loadWaitlist() } }
@@ -252,7 +291,9 @@ struct RegistrationSheetView: View {
                             .accessibilityIdentifier("registration.waitlist.join")
                     }
                     if flow.canCancelWaitlist {
-                        Button("registration.waitlist.cancel", role: .destructive) { Task { await flow.cancelWaitlist() } }
+                        Button("registration.waitlist.cancel", role: .destructive) {
+                            if flow.prepareWaitlistCancellation() { showingWaitlistCancellation = true }
+                        }
                             .accessibilityIdentifier("registration.waitlist.cancel")
                     }
                 }
@@ -326,12 +367,14 @@ struct RegistrationSheetView: View {
                 }
             }
             if flow.block == .confirmationChanged { Text("registration.form.confirmationChanged").foregroundStyle(.secondary) }
-            Button {
-                focusedField = nil
-                if flow.prepareConfirmation() { showingConfirmation = true }
-            } label: { Text("registration.form.review").frame(maxWidth: .infinity, minHeight: 44) }
-            .buttonStyle(.borderedProminent).disabled(flow.confirmationBlock != nil)
-            .accessibilityIdentifier("registration.form.review")
+            TimelineView(.periodic(from: .now, by: 1)) { _ in
+                Button {
+                    focusedField = nil
+                    if flow.prepareConfirmation() { showingConfirmation = true }
+                } label: { Text("registration.form.review").frame(maxWidth: .infinity, minHeight: 44) }
+                .buttonStyle(.borderedProminent).disabled(flow.confirmationBlock != nil)
+                .accessibilityIdentifier("registration.form.review")
+            }
         } footer: { Text("registration.form.sharingPurpose") }
     }
 }

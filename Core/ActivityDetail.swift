@@ -6,7 +6,26 @@ public struct ActivityTicket: Decodable, Equatable, Identifiable {
     public let price: Decimal?
     public let remainingInventory: Int?
     public let description: String?
-    private enum CodingKeys: String, CodingKey { case id,name,price,remainingInventory,description }
+    public let startTime: String?
+    public let endTime: String?
+    public let selfGuided: Bool?
+    public let signupDeadline: String?
+    /// Early UI guard mirrors the current activity create service, not a purchase grant.
+    /// Zone-free timestamps use the existing Shanghai server-date parser. Missing or
+    /// malformed ordinary timestamps cannot establish expiry. Self-guided tickets require
+    /// a valid end timestamp. The server remains authoritative.
+    public func registrationClosed(at now: Date) -> Bool {
+        let end = endTime.flatMap(RegistrationWaitlistStatus.parseDeadline)
+        if selfGuided == true {
+            guard let end else { return true }
+            if now >= end { return true }
+            if let deadline = signupDeadline.flatMap(RegistrationWaitlistStatus.parseDeadline), now >= deadline { return true }
+            return false
+        }
+        let boundary = startTime.flatMap(RegistrationWaitlistStatus.parseDeadline) ?? end
+        return boundary.map { now >= $0 } ?? false
+    }
+    private enum CodingKeys: String, CodingKey { case id,name,price,remainingInventory,description,startTime,endTime,selfGuided,signupDeadline }
     public init(from decoder:Decoder) throws {
         let c=try decoder.container(keyedBy:CodingKeys.self)
         id=try c.decode(Int.self,forKey:.id)
@@ -14,6 +33,10 @@ public struct ActivityTicket: Decodable, Equatable, Identifiable {
         price=try c.decodeIfPresent(Decimal.self,forKey:.price)
         remainingInventory=try c.decodeIfPresent(Int.self,forKey:.remainingInventory)
         description=try c.decodeIfPresent(String.self,forKey:.description)
+        startTime=try c.decodeIfPresent(String.self,forKey:.startTime)
+        endTime=try c.decodeIfPresent(String.self,forKey:.endTime)
+        selfGuided=try c.decodeIfPresent(Bool.self,forKey:.selfGuided)
+        signupDeadline=try c.decodeIfPresent(String.self,forKey:.signupDeadline)
         guard id > 0, price.map({ $0 >= .zero }) ?? true else { throw APIError.malformedResponse }
     }
     public var isSoldOut: Bool { remainingInventory.map { $0 <= 0 } ?? false }

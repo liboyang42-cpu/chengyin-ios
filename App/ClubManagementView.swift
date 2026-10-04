@@ -7,6 +7,12 @@ struct ClubManagementView: View {
     let identity: ClubReadIdentity?
     let access: any ClubManagementAccess
     let coordinator: ClubManagementCoordinator
+    var onMembershipChanged: (() -> Void)? = nil
+    @State private var selection: DetailSelection?
+    private enum DetailSelection: Hashable, Identifiable {
+        case request(Int), member(Int)
+        var id: Self { self }
+    }
     @State private var snapshot: ClubManagementSnapshot?
     @State private var confirmation: ClubManagementConfirmation?
     @State private var state: ClubManagementState = .idle
@@ -37,18 +43,7 @@ struct ClubManagementView: View {
                     Section("club.management.requests") {
                         if snapshot.requests.isEmpty { Text("club.management.empty") }
                         ForEach(snapshot.requests) { request in
-                            NavigationLink {
-                                Form {
-                                    Text(verbatim: request.nickname ?? "#\(request.id)")
-                                    Text(verbatim: "#\(request.id)")
-                                    if let time = request.joinTime { Text(verbatim: time) }
-                                    if snapshot.allows(.approve, memberID: request.id) {
-                                        action(.approve, memberID: request.id)
-                                        action(.reject, memberID: request.id)
-                                    }
-                                }
-                                .appNavigationTitle("club.management.request")
-                            } label: {
+                            Button { selection = .request(request.id) } label: {
                                 VStack(alignment: .leading) {
                                     Text(verbatim: request.nickname ?? "#\(request.id)")
                                     Text(verbatim: request.joinTime ?? "").font(.caption).foregroundStyle(.secondary)
@@ -63,14 +58,7 @@ struct ClubManagementView: View {
                                 Text(LocalizedStringKey(snapshot.club.memberCount > 0 ? "club.management.members_unavailable" : "club.management.members_empty"))
                             }
                             ForEach(snapshot.members) { member in
-                                NavigationLink {
-                                    Form {
-                                        Text(verbatim: member.nickname ?? "#\(member.id)")
-                                        Text(verbatim: "#\(member.id)")
-                                        if snapshot.allows(.remove, memberID: member.id) { action(.remove, memberID: member.id) }
-                                    }
-                                    .appNavigationTitle("club.management.member")
-                                } label: { Text(verbatim: member.nickname ?? "#\(member.id)") }
+                                Button { selection = .member(member.id) } label: { Text(verbatim: member.nickname ?? "#\(member.id)") }
                                 .accessibilityIdentifier("club.management.member.\(member.id)")
                             }
                         }
@@ -83,6 +71,7 @@ struct ClubManagementView: View {
             }
         }
         .appNavigationTitle("club.management.title")
+        .navigationDestination(item: $selection) { selected in detail(selected) }
         .sheet(isPresented: Binding(get: { confirmation != nil }, set: { if !$0 { cancel() } })) {
             if let pending = confirmation {
                 NavigationStack {
@@ -104,17 +93,63 @@ struct ClubManagementView: View {
             }
         }
         .task(id: identity) {
+            guard screenIdentity != identity || snapshot == nil && state == .idle else { return }
             generation &+= 1
-            cancel(); snapshot = nil; state = .idle; loading = false
+            cancel(); selection = nil; snapshot = nil; state = .idle; loading = false
             screenIdentity = identity
             coordinator.synchronizeSession()
             await refresh()
         }
-        .onDisappear {
-            generation &+= 1
-            if let screenIdentity { coordinator.leaveScreen(clubID: clubID, expectedIdentity: screenIdentity, ownerID: ownerID) }
-            cancel()
+        .onDisappear { leaveScreen() }
+    }
+    @ViewBuilder private func detail(_ selected: DetailSelection) -> some View {
+        Form {
+            if loading { ProgressView().accessibilityIdentifier("club.management.detail.loading") }
+            status
+            if access.identity == identity, let snapshot {
+                switch selected {
+                case .request(let id):
+                    if let request = snapshot.requests.first(where: { $0.id == id }) {
+                        Text(verbatim: request.nickname ?? "#\(id)")
+                        Text(verbatim: "#\(id)")
+                        if let time = request.joinTime { Text(verbatim: time) }
+                        if let message = request.joinMessage, !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("club.application.messageReceived").font(.caption).foregroundStyle(.secondary)
+                                Text(verbatim: message).accessibilityIdentifier("club.management.joinMessage")
+                            }
+                        }
+                        if snapshot.allows(.approve, memberID: id) {
+                            action(.approve, memberID: id)
+                            action(.reject, memberID: id)
+                        }
+                    }
+                case .member(let id):
+                    if let member = snapshot.members.first(where: { $0.id == id }) {
+                        Text(verbatim: member.nickname ?? "#\(id)")
+                        Text(verbatim: "#\(id)")
+                        if snapshot.allows(.remove, memberID: id) { action(.remove, memberID: id) }
+                    }
+                }
+            }
+            if failed {
+                Text(LocalizedStringKey(denied ? "club.management.denied" : "club.management.unavailable"))
+                if let serverReadMessage { Text(verbatim: serverReadMessage) }
+            }
+            Button("club.management.refresh") { Task { await refresh() } }
+                .disabled(loading || state == .checking || state == .awaitingConfirmation || state == .submitting)
+                .accessibilityIdentifier("club.management.detail.refresh")
         }
+        .appNavigationTitle(key: {
+            switch selected { case .request: return "club.management.request"; case .member: return "club.management.member" }
+        }())
+        .onDisappear { leaveScreen() }
+    }
+    private func leaveScreen() {
+        generation &+= 1
+        loading = false
+        if let screenIdentity { coordinator.leaveScreen(clubID: clubID, expectedIdentity: screenIdentity, ownerID: ownerID) }
+        cancel()
     }
     @ViewBuilder private var status: some View {
         switch state {
@@ -127,7 +162,7 @@ struct ClubManagementView: View {
         case .outcomeUnknown: Text("club.management.unknown").accessibilityIdentifier("club.management.unknown")
         default: EmptyView()
         }
-        if readbackUnavailable { Text("club.management.readback_unavailable") }
+        if readbackUnavailable { Text("club.management.readback_unavailable").accessibilityIdentifier("club.management.readbackUnavailable") }
     }
     private func action(_ action: ClubManagementAction, memberID: Int) -> some View {
         Button(role: action == .approve ? nil : .destructive) {
@@ -182,6 +217,12 @@ struct ClubManagementView: View {
         case .received(let result): snapshot = result
         case .unavailable: readbackUnavailable = true
         default: break
+        }
+        if case .acknowledged = state {
+            // Navigate back only after a definite server acknowledgement. A failed
+            // readback remains visible on the list; it never fabricates new rows.
+            selection = nil
+            onMembershipChanged?()
         }
     }
 }

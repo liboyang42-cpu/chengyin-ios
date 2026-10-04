@@ -1568,7 +1568,7 @@ final class AppSession: ObservableObject {
     private let merchantOperationsService: MerchantOperationsService?
     private var currentMerchantOperationsSession: MerchantOperationsSession? {
         guard let account, let token else { return nil }
-        return try? MerchantOperationsSession(accountID: account.id, epoch: gate.currentStamp, token: token, storageNamespace: storageScope?.service ?? "")
+        return try? MerchantOperationsSession(accountID: account.id, epoch: gate.currentStamp, token: token, storageNamespace: storageScope?.service ?? "", viewerRevision: compositionViewerRevision)
     }
     lazy var merchantOperationsReader = MerchantOperationsSessionReader(service: merchantOperationsService, currentSession: { [weak self] in
         self?.currentMerchantOperationsSession
@@ -1661,7 +1661,7 @@ final class AppSession: ObservableObject {
     private let profileEditService:ProfileEditService?
     private var currentProfileEditSession:ProfileEditSession? {
         guard let account,let token else { return nil }
-        return try? ProfileEditSession(accountID:account.id,epoch:gate.currentStamp,token:token)
+        return try? ProfileEditSession(accountID:account.id,epoch:gate.currentStamp,token:token,viewerRevision:compositionViewerRevision)
     }
     lazy var profileEditCoordinator=ProfileEditCoordinator(service:profileEditService,currentSession:{ [weak self] in self?.currentProfileEditSession },onUnauthorized:{ [weak self] captured in
         guard let self,self.currentProfileEditSession == captured else { return }

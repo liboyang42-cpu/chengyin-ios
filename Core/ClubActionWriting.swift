@@ -17,7 +17,7 @@ public protocol ClubActionWriting: AnyObject {
     var isConfigured: Bool { get }
     var identity: ClubReadIdentity? { get }
     var viewerIsMerchant: Bool { get }
-    func perform(_ action: ClubAction, clubID: Int, expectedIdentity: ClubReadIdentity) async throws -> ClubActionReceipt
+    func perform(_ action: ClubAction, clubID: Int, expectedIdentity: ClubReadIdentity, joinMessage: String) async throws -> ClubActionReceipt
 }
 
 /// Reads detail again immediately before dispatch. A changed account/epoch/token or
@@ -34,12 +34,12 @@ public final class ClubActionSessionWriter: ClubActionWriting {
                 onUnauthorized: @escaping (ClubActionSession) -> Void = { _ in }) {
         self.service = service; self.currentSession = currentSession; self.onUnauthorized = onUnauthorized
     }
-    public func perform(_ action: ClubAction, clubID: Int, expectedIdentity: ClubReadIdentity) async throws -> ClubActionReceipt {
+    public func perform(_ action: ClubAction, clubID: Int, expectedIdentity: ClubReadIdentity, joinMessage: String = "") async throws -> ClubActionReceipt {
         guard let service else { throw ClubActionWriteError.notSent(.notConfigured) }
         guard let snapshot = currentSession(), snapshot.identity == expectedIdentity else {
             throw ClubActionWriteError.notSent(.unauthorized)
         }
-        guard clubID > 0 else { throw ClubActionWriteError.notSent(.invalidRequest) }
+        guard clubID > 0, ClubApplicationMessage.isValid(joinMessage, for: action) else { throw ClubActionWriteError.notSent(.invalidRequest) }
         guard !Task.isCancelled else { throw ClubActionWriteError.cancelledBeforeDispatch }
         let detail: ClubRecord
         do { detail = try await service.detail(id: clubID, token: snapshot.token) }
@@ -56,7 +56,7 @@ public final class ClubActionSessionWriter: ClubActionWriting {
             throw ClubActionWriteError.eligibilityChanged
         }
         do {
-            let receipt = try await service.perform(action, clubID: clubID, token: snapshot.token)
+            let receipt = try await service.perform(action, clubID: clubID, token: snapshot.token, joinMessage: joinMessage)
             guard currentSession() == snapshot else { throw ClubActionWriteError.outcomeUnknown(.accountChanged) }
             guard !Task.isCancelled else { throw ClubActionWriteError.outcomeUnknown(.cancelled) }
             return receipt

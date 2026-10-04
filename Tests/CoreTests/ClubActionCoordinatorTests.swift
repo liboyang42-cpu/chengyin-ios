@@ -10,6 +10,31 @@ final class ClubActionCoordinatorTests: XCTestCase {
     private func prepare(_ coordinator: ClubActionCoordinator, _ store: ClubActionFakeStore, action: ClubAction = .join, id: Int = 7) async throws -> ClubActionConfirmation {
         try await coordinator.prepare(clubID: id, action: action, expectedIdentity: store.clubIdentity)
     }
+    func testFrozenApplicationMessageSurvivesUnknownReadbackWithoutReplay() async throws {
+        let (c, s) = fixture(); s.detail = try clubActionFixture(["joinPolicy": 1])
+        var draft = "你好 👋"
+        let intent = try await c.prepare(clubID: 7, action: .apply, expectedIdentity: s.clubIdentity, joinMessage: draft)
+        draft = "edited"
+        XCTAssertEqual(intent.joinMessage, "你好 👋")
+        s.writeOperation = { _ in throw ClubActionWriteError.outcomeUnknown(.transport) }
+        _ = await c.confirm(intent)
+        XCTAssertEqual(s.messages, ["你好 👋"])
+        _ = await c.readBack(clubID: 7)
+        _ = await c.confirm(intent)
+        do { _ = try await c.prepare(clubID: 7, action: .apply, expectedIdentity: s.clubIdentity, joinMessage: draft); XCTFail() }
+        catch { XCTAssertEqual(error as? ClubActionBlock, .pendingOperation) }
+        XCTAssertEqual(s.messages, ["你好 👋"])
+    }
+    func testInvalidMessageDoesNotReadAndCancelledReviewDoesNotSend() async throws {
+        let (c, s) = fixture(); s.detail = try clubActionFixture(["joinPolicy": 1])
+        do { _ = try await c.prepare(clubID: 7, action: .apply, expectedIdentity: s.clubIdentity, joinMessage: String(repeating: "😀", count: 31)); XCTFail() }
+        catch { XCTAssertEqual(error as? ClubActionBlock, .invalidMessage) }
+        XCTAssertTrue(s.readIDs.isEmpty)
+        let intent = try await c.prepare(clubID: 7, action: .apply, expectedIdentity: s.clubIdentity, joinMessage: "cancel me")
+        c.cancel(intent)
+        _ = await c.confirm(intent)
+        XCTAssertTrue(s.messages.isEmpty)
+    }
     func testPermissionMatrixNeverPromotesAdministratorOrOwner() throws {
         let cases: [([String: Any], Bool, ClubActionAvailability)] = [
             ([:], false, .available(.join)), (["joinPolicy": 1], false, .available(.apply)),
@@ -361,14 +386,15 @@ private final class ClubActionFakeStore: ClubReading, ClubActionWriting {
     var detail = try! clubActionFixture()
     var receipt = ClubActionReceipt(state: nil, message: nil)
     var writes: [ClubAction] = []
+    var messages: [String] = []
     var readIDs: [Int] = []
     var readOperation: ((Int) async throws -> ClubRecord)?
     var writeOperation: ((ClubAction) async throws -> ClubActionReceipt)?
     func changeIdentity(accountID: Int, epoch: UInt64) { clubIdentity = .init(accountID: accountID, epoch: epoch); identity = clubIdentity }
     func clubDetail(id: Int) async throws -> ClubRecord { readIDs.append(id); return try await readOperation?(id) ?? detail }
-    func perform(_ action: ClubAction, clubID: Int, expectedIdentity: ClubReadIdentity) async throws -> ClubActionReceipt {
+    func perform(_ action: ClubAction, clubID: Int, expectedIdentity: ClubReadIdentity, joinMessage: String = "") async throws -> ClubActionReceipt {
         guard expectedIdentity == identity else { throw ClubActionWriteError.notSent(.unauthorized) }
-        writes.append(action); return try await writeOperation?(action) ?? receipt
+        writes.append(action); messages.append(joinMessage); return try await writeOperation?(action) ?? receipt
     }
     func clubHome() async throws -> ClubHome { throw APIError.invalidRequest }
     func clubOwned() async throws -> [ClubRecord] { throw APIError.invalidRequest }

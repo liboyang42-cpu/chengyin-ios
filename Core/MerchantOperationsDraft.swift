@@ -19,7 +19,7 @@ public enum MerchantOperationsDraft: Equatable {
     }
     public var blocker: String? {
         switch self {
-        case .profile: return nil // Source profile form imposes no new length/URL constraints.
+        case .profile(let value): return value.benefitsBlocker
         case .decor(let value): return value.blocker
         case .gallery(let value): return value.gallery.count > 9 ? "merchant.operations.galleryLimit" : nil
         case .story(let value): return value.profile.description.utf16.count > 300 ? "merchant.operations.storyLimit" : nil
@@ -36,7 +36,7 @@ public enum MerchantOperationsDraft: Equatable {
         case .profile(let value): return [try .init(path: "api/merchant/update", fields: value.fields)]
         case .decor(let value): return [try .init(path: "api/merchant/decor/save", fields: value.fields())]
         case .gallery(let value): return [try .init(path: "api/merchant/decor/save", fields: ["gallery": MerchantStoreDecor.listString(value.gallery)])]
-        case .story(let value): return [try .init(path: "api/merchant/decor/save", fields: ["storyTitle": value.decor.storyTitle.trimmingCharacters(in: .whitespacesAndNewlines)]), try .init(path: "api/merchant/update", fields: value.profile.fields)]
+        case .story(let value): return [try .init(path: "api/merchant/decor/save", fields: ["storyTitle": value.decor.storyTitle.trimmingCharacters(in: .whitespacesAndNewlines)]), try .init(path: "api/merchant/update", fields: value.profile.legacyFields)]
         case .cooperation(let value): return [try .init(path: "api/merchant/coop-profile/save", fields: value.fields)]
         case .character(let value): return [try .init(path: "api/merchant/npc/save", fields: value.fields)]
         case .template(let value): return [try .init(path: "api/merchant/city-node/template/submit", fields: value.fields)]
@@ -76,7 +76,7 @@ extension MerchantOperationsDraft {
     /// Human-readable frozen content. This does not turn a local draft into approval or publication.
     public var reviewLines: [MerchantOperationsReviewLine] {
         switch self {
-        case .profile(let v): return [.init("name", v.name), .init("description", v.description), .init("derivatives", v.derivatives), .init("website", v.website), .init("preference", v.preference)]
+        case .profile(let v): return [.init("name", v.name), .init("description", v.description), .init("derivatives", v.derivatives), .init("derivativeBenefits", v.derivativeBenefits ?? ""), .init("website", v.website), .init("preference", v.preference)]
         case .decor(let v): return [.init("slogan", v.slogan), .init("cityRole", v.cityRole), .init("tags", v.tags.joined(separator: "; "))]
         case .gallery(let v): return [.init("galleryCount", String(v.gallery.count))]
         case .story(let v): return [.init("storyBody", v.profile.description)]

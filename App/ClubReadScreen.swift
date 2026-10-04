@@ -6,6 +6,11 @@ import SwiftUI
 struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: View>: View {
     @ObservedObject var reader: Reader
     let accessibilityPrefix: String
+    let refreshRevision: UInt64
+    private struct LoadIdentity: Equatable {
+        let identity: ClubReadIdentity
+        let revision: UInt64
+    }
     let requiresSignIn: Bool
     let onSignIn: (() -> Void)?
     let load: () async throws -> Value
@@ -17,10 +22,11 @@ struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: Vi
     @State private var isLoading = false
     @State private var generation: UInt64 = 0
 
-    init(reader: Reader, accessibilityPrefix: String, requiresSignIn: Bool = false,
+    init(reader: Reader, accessibilityPrefix: String, requiresSignIn: Bool = false, refreshRevision: UInt64 = 0,
          onSignIn: (() -> Void)? = nil, load: @escaping () async throws -> Value,
          @ViewBuilder content: @escaping (Value) -> Content) {
         self.reader = reader; self.accessibilityPrefix = accessibilityPrefix
+        self.refreshRevision = refreshRevision
         self.requiresSignIn = requiresSignIn; self.onSignIn = onSignIn
         self.load = load; self.content = content
     }
@@ -49,7 +55,7 @@ struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: Vi
                     .accessibilityIdentifier(accessibilityPrefix + ".refresh")
             }
         }
-        .task(id: reader.clubIdentity) { await reload() }
+        .task(id: LoadIdentity(identity: reader.clubIdentity, revision: refreshRevision)) { await reload() }
         .onDisappear {
             // Invalidate outstanding work without removing NavigationLink source rows on push.
             generation &+= 1

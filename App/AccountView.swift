@@ -34,7 +34,7 @@ struct AccountView: View {
                     LabeledContent("account.name",value:account.nickname)
                     LabeledContent("account.id",value:String(account.id))
                     LabeledContent("account.role") { Text(roleLabel) }
-                    NavigationLink { ProfileEditView(coordinator:session.profileEditCoordinator,sessionRevision:session.sessionRevision,categoryReader:session) } label: {
+                    NavigationLink { ProfileEditView(coordinator:session.profileEditCoordinator,sessionRevision:session.contentDetailRevision,categoryReader:session) } label: {
                         Label("profile.edit.title",systemImage:"pencil")
                     }.accessibilityIdentifier("account.editProfile")
                 }

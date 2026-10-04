@@ -30,7 +30,7 @@ extension PlayKitScreen {
         }.frame(maxWidth: .infinity)
         if values.isEmpty { Text("playkit.dice.waiting") }
         if let action = raw["action"].text, !action.isEmpty { Text(verbatim: action) }
-        if let total = raw["total"].integer { LabeledContent("playkit.dice.total") { Text(verbatim: String(total)) } }
+        if let total = projection.diceTotal { LabeledContent("playkit.dice.total") { Text(verbatim: String(total)).accessibilityIdentifier("playkit.dice.total") } }
         if let kept = raw["kept"].integer { LabeledContent("playkit.dice.kept") { Text(verbatim: String(kept)) } }
         if d20, let dc = raw["dc"].integer { LabeledContent("playkit.dice.target") { Text(verbatim: String(dc)) } }
         if d20, projection.complete, let success = raw["success"].bool { Text(success ? "playkit.result.passed" : "playkit.result.notPassed") }

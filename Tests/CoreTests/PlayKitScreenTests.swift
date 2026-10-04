@@ -31,6 +31,47 @@ import FoundationNetworking
         XCTAssertThrowsError(try check("photoCheck", "SUBMIT_PHOTO_CHECK", ["imageUrl": .string("https://example.com/photo.jpg"), "score": .int(100)], "{}"))
         XCTAssertThrowsError(try check("qa", "SUBMIT_QA", ["tempFilePath": .string("/tmp/photo")], #"{"mode":"SHOT"}"#))
     }
+    func testEstimateWheelUsesMiniTicksAndInclusiveUpperEndpoint() throws {
+        for (lo, hi, expected) in [
+            (0.0, 3.0, [0.0, 1, 2, 3]),
+            (0.25, 3.5, [0.25, 1.25, 2.25, 3.25, 3.5]),
+            (-2.5, 0.0, [-2.5, -1.5, -0.5, 0.0]),
+            (2.5, 2.5, [2.5]),
+            (0.1, 0.4, [0.1, 0.4])
+        ] {
+            let wheel = try XCTUnwrap(PlayKitEstimateWheel(segment: .object(["min": .number(lo), "max": .number(hi)])))
+            XCTAssertEqual(wheel.ticks, expected)
+            XCTAssertEqual(wheel.value(at: wheel.initialIndex), expected[expected.count / 2])
+            XCTAssertNil(wheel.value(at: -1)); XCTAssertNil(wheel.value(at: expected.count))
+        }
+    }
+    func testEstimateWheelThresholdsAreBoundedAndCentered() throws {
+        for (upper, count, step) in [(2000.0, 2001, 1.0), (2001.0, 202, 10.0), (20000.0, 2001, 10.0), (20001.0, 202, 100.0), (99999.6, 101, 1000.0), (1e20, 101, 1e18), (999999999999999.0, 1001, 1e12), (999999999999999900000.0, 1001, 1e18)] {
+            let wheel = try XCTUnwrap(PlayKitEstimateWheel(segment: .object(["min": .number(0), "max": .number(upper)])))
+            XCTAssertEqual(wheel.ticks.count, count); XCTAssertEqual(wheel.ticks[1], step)
+            XCTAssertEqual(wheel.ticks.first, 0); XCTAssertEqual(wheel.ticks.last, upper)
+            XCTAssertLessThanOrEqual(wheel.ticks.count, PlayKitEstimateWheel.maximumTicks)
+            XCTAssertEqual(wheel.initialIndex, count / 2)
+        }
+    }
+    func testEstimateWheelRejectsMalformedOverflowAndNonProgressingRanges() {
+        for (lo, hi) in [(Double.nan, 1), (0, Double.infinity), (5, 4), (-Double.greatestFiniteMagnitude, Double.greatestFiniteMagnitude), (0, 1e21), (1e20, 1e20.nextUp)] {
+            XCTAssertNil(PlayKitEstimateWheel(segment: .object(["min": .number(lo), "max": .number(hi)])))
+        }
+        XCTAssertNil(PlayKitEstimateWheel(segment: .object(["min": .string("0"), "max": .int(5)])))
+        XCTAssertNil(PlayKitEstimateWheel(segment: .object(["min": .int(0)])))
+    }
+    func testEstimateWheelCannotUseSecretOrClientOutcomeFields() throws {
+        let clean = try wire(#"{"min":0,"max":10}"#)
+        let hostile = try wire(#"{"min":0,"max":10,"answer":1,"tolerance":99,"tier":"HIT","awardedXp":999}"#)
+        XCTAssertEqual(PlayKitEstimateWheel(segment: clean), PlayKitEstimateWheel(segment: hostile))
+        let wheel = try XCTUnwrap(PlayKitEstimateWheel(segment: clean))
+        let detail: [String: PlayWireValue] = ["value": .number(try XCTUnwrap(wheel.value(at: wheel.initialIndex)))]
+        let payload = try PlayKitActionCatalog.payload(kind: "estimate", action: "SUBMIT_ESTIMATE", detail: detail)
+        XCTAssertEqual(payload, detail)
+        try PlayKitInputContract.validate(kind: "estimate", action: "SUBMIT_ESTIMATE", payload: payload, segment: clean)
+        XCTAssertThrowsError(try PlayKitInputContract.validate(kind: "estimate", action: "SUBMIT_ESTIMATE", payload: ["value": .number(.nan)], segment: clean))
+    }
     func testEstimateRespectsRangeAndFiniteValues() throws {
         try check("estimate", "SUBMIT_ESTIMATE", ["value": .number(12.5)], #"{"min":0,"max":20}"#)
         for value in [-1.0, 21, .nan, .infinity] { XCTAssertThrowsError(try check("estimate", "SUBMIT_ESTIMATE", ["value": .number(value)], #"{"min":0,"max":20}"#)) }
@@ -91,6 +132,41 @@ import FoundationNetworking
         run.beginAfterAcknowledgement(now:0,randomUnit:0); run.tick(now:2); run.tap(now:2.5); run.interrupt()
         XCTAssertEqual(run.phase,.interrupted); XCTAssertTrue(run.roundsMilliseconds.isEmpty)
     }
+    func testDiceTotalReadsServerSumForOneAndTwoD6Dice() throws {
+        for (count, sum) in [(1, 4), (2, 9)] {
+            let value = PlayKitScreenProjection(kind: .diceRoll, segment: try wire("{\"rolled\":true,\"diceCount\":\(count),\"sum\":\(sum)}"))
+            XCTAssertEqual(value.diceTotal, sum)
+        }
+    }
+    func testDiceTotalNeverRecomputesMissingOrMalformedServerSum() throws {
+        for json in [
+            #"{"rolled":true,"diceCount":2,"pips":[5,4]}"#,
+            #"{"rolled":true,"diceCount":2,"sum":"9"}"#,
+            #"{"rolled":true,"diceCount":2,"sum":9.5}"#,
+            #"{"rolled":true,"diceCount":2,"sum":1}"#,
+            #"{"rolled":true,"diceCount":2,"sum":13}"#,
+            #"{"rolled":true,"diceCount":1,"sum":7}"#,
+            #"{"rolled":true,"diceCount":3,"sum":9}"#,
+            #"{"rolled":true,"sum":9}"#,
+            #"{"rolled":false,"diceCount":2,"sum":9}"#
+        ] {
+            XCTAssertNil(PlayKitScreenProjection(kind: .diceRoll, segment: try wire(json)).diceTotal, json)
+        }
+        // The server's field is the authority; do not substitute local arithmetic.
+        XCTAssertEqual(PlayKitScreenProjection(kind: .diceRoll, segment: try wire(#"{"rolled":true,"diceCount":2,"sum":8,"pips":[5,4]}"#)).diceTotal, 8)
+    }
+    func testDiceModesCannotBorrowEachOthersTotal() throws {
+        XCTAssertEqual(PlayKitScreenProjection(kind: .diceRoll, segment: try wire(#"{"mode":"d20","rolled":true,"total":23,"sum":9}"#)).diceTotal, 23)
+        for total in [-5, 0] {
+            XCTAssertEqual(PlayKitScreenProjection(kind: .diceRoll, segment: try wire("{\"mode\":\"d20\",\"rolled\":true,\"total\":\(total)}")).diceTotal, total)
+        }
+        for json in [
+            #"{"mode":"d20","rolled":true,"sum":9}"#,
+            #"{"mode":"d6","rolled":true,"diceCount":2,"total":9}"#,
+            #"{"mode":"other","rolled":true,"diceCount":2,"sum":9}"#
+        ] { XCTAssertNil(PlayKitScreenProjection(kind: .diceRoll, segment: try wire(json)).diceTotal) }
+        XCTAssertNil(PlayKitScreenProjection(kind: .coinFlip, segment: try wire(#"{"rolled":true,"diceCount":2,"sum":9}"#)).diceTotal)
+    }
     func testBingoReadsServerPositionsWithoutActionsOrLocalToggles() throws {
         let board = PlayKitBingoBoard(try wire(#"{"filledPositions":[0,1,2,3,6,6,99,-1]}"#))
         XCTAssertEqual(board.filled, [0,1,2,3,6]); XCTAssertEqual(board.completedLines.count,2)
@@ -119,8 +195,10 @@ import FoundationNetworking
 
 @available(macOS 14.0, *)
 @MainActor final class PlayKitReviewTests: XCTestCase {
-    private func response(version: Int, note: String = "", withSteps: Bool = false) throws -> Data {
+    private func response(version: Int, note: String = "", withSteps: Bool = false, dice: PlayWireValue? = nil, estimate: PlayWireValue? = nil) throws -> Data {
         var kit: [String: PlayWireValue] = ["note":.object(["maxLength":.int(40),"done":.bool(!note.isEmpty)])]
+        if let dice { kit["diceRoll"] = dice }
+        if let estimate { kit["estimate"] = estimate }
         if withSteps { kit["steps"] = .object(["goal":.int(5000),"reached":.bool(false)]) }
         let state: PlayWireValue = .object(["sessionId":.int(1),"activityId":.int(41),"topicId":.int(71),"nodeId":.int(701),"version":.int(version),"status":.string("RUNNING"),"playKit":.object(kit),"vars":.object(["name":.string("Synthetic")])])
         return try JSONEncoder().encode(PlayWireValue.object(["code":.int(200),"data":state]))
@@ -128,6 +206,127 @@ import FoundationNetworking
     private func session(_ epoch: UInt64 = 1) throws -> PlayExperienceSession { try .init(accountID:1,epoch:epoch,namespace:"synthetic",token:"synthetic-token") }
     private func coordinator(_ transport: any HTTPTransport, current: @escaping () -> PlayExperienceSession?) throws -> PlayAdvancedCoordinator {
         .init(activityID:41,topicID:71,nodeID:701,service:.init(configuration:try APIConfiguration(baseURL:URL(string:"https://example.com")!),transport:transport,enabled:[.reads,.advanced]),currentSession:current)
+    }
+    private func estimate(submitted: Bool = false, maximum: Double = 10) -> PlayWireValue {
+        .object(["min": .number(0), "max": .number(maximum), "submitted": .bool(submitted)])
+    }
+    func testEstimateWheelReviewRetainsChoiceButRejectsNewServerRevision() async throws {
+        let session = try session(); var version = 1
+        let transport = PlayKitTestTransport { _ in try (self.response(version: version, estimate: self.estimate(maximum: version == 1 ? 10 : 100)), 200) }
+        let model = try coordinator(transport, current: { session }); await model.start()
+        let wheel = try XCTUnwrap(PlayKitEstimateWheel(segment: model.state?.playKit["estimate"] ?? .null))
+        let chosen = try XCTUnwrap(wheel.value(at: 7))
+        let detail: [String: PlayWireValue] = ["value": .number(chosen)]
+        let cancelled = try model.review(kind: "estimate", action: "SUBMIT_ESTIMATE", detail: detail)
+        // Cancelling only discards the immutable review, not the picker selection.
+        let reviewedAgain = try model.review(kind: "estimate", action: "SUBMIT_ESTIMATE", detail: detail)
+        XCTAssertNotEqual(cancelled.id, reviewedAgain.id); XCTAssertEqual(cancelled.payload, reviewedAgain.payload)
+        XCTAssertEqual(transport.requests.count, 1)
+        version = 2; await model.refreshAuthoritative()
+        let sent = await model.submit(reviewedAgain); XCTAssertFalse(sent)
+        XCTAssertEqual(transport.requests.count, 2)
+        let replacement = try XCTUnwrap(PlayKitEstimateWheel(segment: model.state?.playKit["estimate"] ?? .null))
+        XCTAssertEqual(replacement.value(at: replacement.initialIndex), 50)
+    }
+    func testEstimateWheelUnknownResultRetriesExactValueWithoutNewChoice() async throws {
+        let session = try session(); var writes = 0
+        let transport = PlayKitTestTransport { request in
+            if request.url?.path.hasSuffix("action") == true {
+                writes += 1
+                if writes == 1 { throw URLError(.timedOut) }
+            }
+            return try (self.response(version: writes == 0 ? 1 : 2, estimate: self.estimate(submitted: writes > 0)), 200)
+        }
+        let model = try coordinator(transport, current: { session }); await model.start()
+        let wheel = try XCTUnwrap(PlayKitEstimateWheel(segment: model.state?.playKit["estimate"] ?? .null))
+        let selected = try XCTUnwrap(wheel.value(at: wheel.initialIndex))
+        let review = try model.review(kind: "estimate", action: "SUBMIT_ESTIMATE", detail: ["value": .number(selected)])
+        let sent = await model.submit(review); XCTAssertFalse(sent)
+        let frozen = model.pending; await model.recover()
+        XCTAssertEqual(model.pending, frozen); XCTAssertEqual(model.phase, "retryable")
+        XCTAssertThrowsError(try model.review(kind: "estimate", action: "SUBMIT_ESTIMATE", detail: ["value": .number(8)]))
+        await model.retryExact(); XCTAssertNil(model.pending)
+        let actions = transport.requests.filter { $0.url?.path.hasSuffix("action") == true }
+        XCTAssertEqual(actions.count, 2); XCTAssertEqual(actions[0].httpBody, actions[1].httpBody)
+        let body = try JSONDecoder().decode(PlayWireValue.self, from: XCTUnwrap(actions[0].httpBody))
+        XCTAssertEqual(Set(body["payload"].object?.keys.map { $0 } ?? []), ["value"])
+        XCTAssertEqual(body["payload"]["value"].double, selected)
+        let duplicate = await model.submit(review); XCTAssertFalse(duplicate)
+        XCTAssertEqual(transport.requests.filter { $0.url?.path.hasSuffix("action") == true }.count, 2)
+    }
+    func testEstimateWheelRevokedOwnerCannotSubmitSelectedValue() async throws {
+        var current: PlayExperienceSession? = try session()
+        let transport = PlayKitTestTransport { _ in try (self.response(version: 1, estimate: self.estimate()), 200) }
+        let model = try coordinator(transport, current: { current }); await model.start()
+        let wheel = try XCTUnwrap(PlayKitEstimateWheel(segment: model.state?.playKit["estimate"] ?? .null))
+        let review = try model.review(kind: "estimate", action: "SUBMIT_ESTIMATE", detail: ["value": .number(try XCTUnwrap(wheel.value(at: wheel.initialIndex)))])
+        current = try session(2)
+        let sent = await model.submit(review); XCTAssertFalse(sent)
+        XCTAssertFalse(model.isCurrent); XCTAssertEqual(transport.requests.count, 1)
+    }
+    private func dice(rolled: Bool) -> PlayWireValue {
+        .object(["diceCount": .int(2), "rolled": .bool(rolled), "sum": .int(rolled ? 9 : 0),
+                 "pips": .array(rolled ? [.int(5), .int(4)] : [])])
+    }
+    private func diceTotal(_ model: PlayAdvancedCoordinator) -> Int? {
+        guard let state = model.state else { return nil }
+        return PlayKitScreenProjection(kind: .diceRoll, segment: ChapterInlineKitSelection.segment(.diceRoll, in: state)).diceTotal
+    }
+    func testDiceUnknownRefreshShowsOnlyServerSumAndRetainsExactReplay() async throws {
+        let session = try session(); var writes = 0
+        let transport = PlayKitTestTransport { request in
+            if request.url?.path.hasSuffix("action") == true {
+                writes += 1
+                if writes == 1 { throw URLError(.timedOut) }
+            }
+            return try (self.response(version: writes == 0 ? 1 : 2, dice: self.dice(rolled: writes > 0)), 200)
+        }
+        let model = try coordinator(transport, current: { session }); await model.start()
+        XCTAssertNil(diceTotal(model))
+        let review = try model.review(kind: "diceRoll", action: "ROLL_DICE")
+        XCTAssertTrue(review.payload.isEmpty)
+        let sent = await model.submit(review); XCTAssertFalse(sent)
+        XCTAssertNil(diceTotal(model)); XCTAssertEqual(model.phase, "unknown")
+        let frozen = model.pending
+        await model.recover()
+        XCTAssertEqual(diceTotal(model), 9); XCTAssertEqual(model.pending, frozen)
+        XCTAssertEqual(model.phase, "retryable"); XCTAssertFalse(model.canInteract)
+        await model.retryExact()
+        XCTAssertEqual(diceTotal(model), 9); XCTAssertNil(model.pending)
+        let actions = transport.requests.filter { $0.url?.path.hasSuffix("action") == true }
+        XCTAssertEqual(actions.count, 2); XCTAssertEqual(actions[0].httpBody, actions[1].httpBody)
+        // Reopening/refreshing a rolled result does not authorize another roll.
+        await model.refreshAuthoritative(); XCTAssertEqual(diceTotal(model), 9)
+        XCTAssertThrowsError(try model.review(kind: "diceRoll", action: "ROLL_DICE"))
+        let duplicate = await model.submit(review); XCTAssertFalse(duplicate)
+        XCTAssertEqual(transport.requests.filter { $0.url?.path.hasSuffix("action") == true }.count, 2)
+    }
+    func testDiceCancelledReviewHasNoRollAndRevokedReviewCannotDispatch() async throws {
+        var current: PlayExperienceSession? = try session()
+        let transport = PlayKitTestTransport { _ in try (self.response(version: 1, dice: self.dice(rolled: false)), 200) }
+        let model = try coordinator(transport, current: { current }); await model.start()
+        let abandoned = try model.review(kind: "diceRoll", action: "ROLL_DICE")
+        XCTAssertNil(diceTotal(model)); XCTAssertEqual(transport.requests.count, 1)
+        // Cancelling a review is local; a later fresh review still has no result.
+        let fresh = try model.review(kind: "diceRoll", action: "ROLL_DICE")
+        XCTAssertNotEqual(abandoned.id, fresh.id)
+        current = try session(2)
+        let sent = await model.submit(fresh); XCTAssertFalse(sent)
+        XCTAssertNil(diceTotal(model)); XCTAssertEqual(transport.requests.count, 1)
+    }
+    func testDiceResponseAfterOwnerRevocationCannotPublishAnOutcome() async throws {
+        var current: PlayExperienceSession? = try session()
+        let transport = PlayKitTestTransport { request in
+            if request.url?.path.hasSuffix("action") == true {
+                current = nil
+                return try (self.response(version: 2, dice: self.dice(rolled: true)), 200)
+            }
+            return try (self.response(version: 1, dice: self.dice(rolled: false)), 200)
+        }
+        let model = try coordinator(transport, current: { current }); await model.start()
+        let review = try model.review(kind: "diceRoll", action: "ROLL_DICE")
+        let sent = await model.submit(review); XCTAssertFalse(sent)
+        XCTAssertFalse(model.isCurrent); XCTAssertNil(model.state); XCTAssertNil(diceTotal(model))
     }
     func testReviewCannotSilentlyAcquireNewVersion() async throws {
         let session = try session(); var version = 1

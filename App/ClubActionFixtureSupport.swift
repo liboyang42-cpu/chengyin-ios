@@ -4,7 +4,7 @@ import SwiftUI
 /// Synthetic in-memory membership server. It contains no URL, HTTP transport, token,
 /// payment, credential, or persisted state, and is never included in release builds.
 enum ClubActionFixtureScenario: String {
-    case join, apply, leave, pending, owner, merchant, reapply, denied, unknown, readbackUnavailable, delayed, guest, refreshConsistency
+    case join, apply, applyUnknown, leave, pending, owner, merchant, reapply, denied, unknown, readbackUnavailable, delayed, guest, refreshConsistency
     static func selected(arguments: [String]) -> Self? {
         guard let index = arguments.firstIndex(of: "--uitesting-club-action-fixture"), arguments.indices.contains(index + 1) else { return nil }
         return Self(rawValue: arguments[index + 1])
@@ -26,6 +26,7 @@ struct ClubActionFixtureRootView: View {
                 }.font(.caption)
                 HStack { Text("club.action.fixtureWrites"); Text(store.writeCount, format: .number).accessibilityIdentifier("club.action.fixture.writeCount") }.font(.caption)
             }.padding(8).frame(maxWidth: .infinity).background(.yellow.opacity(0.15))
+            Text(verbatim: store.lastMessage).accessibilityIdentifier("club.application.fixture.message")
             NavigationStack {
                 ClubDetailView(id: 81, reader: store, onSignIn: { store.signIn() }, actionCoordinator: store.coordinator)
             }.id(store.clubIdentity)
@@ -39,6 +40,7 @@ private final class ClubActionFixtureStore: ObservableObject, ClubReading, ClubA
     let isClubConfigured = true
     @Published private(set) var clubIdentity: ClubReadIdentity
     @Published private(set) var writeCount = 0
+    @Published private(set) var lastMessage = ""
     var identity: ClubReadIdentity? { clubIdentity.isSignedIn ? clubIdentity : nil }
     var viewerIsMerchant: Bool { scenario == .merchant }
     lazy var coordinator = ClubActionCoordinator(writer: self, reader: self)
@@ -54,9 +56,9 @@ private final class ClubActionFixtureStore: ObservableObject, ClubReading, ClubA
         if scenario == .leave || scenario == .owner { joined[701] = true }
         if scenario == .pending { pending.insert(701) }
     }
-    func signOut() { clubIdentity = .init(accountID: nil, epoch: clubIdentity.epoch &+ 1); coordinator.synchronizeSession() }
+    func signOut() { lastMessage = ""; clubIdentity = .init(accountID: nil, epoch: clubIdentity.epoch &+ 1); coordinator.synchronizeSession() }
     func signIn() { clubIdentity = .init(accountID: accountID, epoch: clubIdentity.epoch &+ 1); coordinator.synchronizeSession() }
-    func switchAccount() { accountID = accountID == 701 ? 702 : 701; signIn() }
+    func switchAccount() { lastMessage = ""; accountID = accountID == 701 ? 702 : 701; signIn() }
     func clubDetail(id: Int) async throws -> ClubRecord {
         try Task.checkCancellation()
         guard clubIdentity.isSignedIn else { throw ClubReadFailure.unauthorized(message: nil) }
@@ -73,17 +75,17 @@ private final class ClubActionFixtureStore: ObservableObject, ClubReading, ClubA
         var fields: [String: Any] = [
             "id": id, "name": "Fixture club", "description": "Offline synthetic membership example.",
             "isOwner": scenario == .owner && accountID == 701, "isJoined": member,
-            "memberCount": member ? 4 : 3, "joinPolicy": [.apply, .reapply, .pending].contains(scenario) ? 1 : 0,
+            "memberCount": member ? 4 : 3, "joinPolicy": [.apply, .applyUnknown, .reapply, .pending].contains(scenario) ? 1 : 0,
             "joinPolicySupported": true
         ]
         if let status { fields["myJoinStatus"] = status }
         return try JSONDecoder().decode(ClubRecord.self, from: JSONSerialization.data(withJSONObject: fields))
     }
-    func perform(_ action: ClubAction, clubID: Int, expectedIdentity: ClubReadIdentity) async throws -> ClubActionReceipt {
+    func perform(_ action: ClubAction, clubID: Int, expectedIdentity: ClubReadIdentity, joinMessage: String = "") async throws -> ClubActionReceipt {
         guard identity == expectedIdentity, let account = expectedIdentity.accountID else { throw ClubActionWriteError.notSent(.unauthorized) }
         let detail = try await clubDetail(id: clubID)
         guard ClubActionAvailability.resolve(detail, viewerIsMerchant: viewerIsMerchant) == .available(action) else { throw ClubActionWriteError.eligibilityChanged }
-        writeCount += 1
+        writeCount += 1; lastMessage = joinMessage
         if scenario == .denied { throw ClubActionWriteError.rejected(.init(code: 403, message: "Fixture server denied this request")) }
         if scenario == .delayed {
             do { try await Task.sleep(nanoseconds: 2_000_000_000) }
@@ -94,7 +96,7 @@ private final class ClubActionFixtureStore: ObservableObject, ClubReading, ClubA
         else { joined[account] = action == .join; pending.remove(account) }
         writtenAccounts.insert(account); readsAfterWrite[account] = 0
         guard identity == expectedIdentity else { throw ClubActionWriteError.outcomeUnknown(.accountChanged) }
-        if scenario == .unknown { throw ClubActionWriteError.outcomeUnknown(.transport) }
+        if scenario == .unknown || scenario == .applyUnknown { throw ClubActionWriteError.outcomeUnknown(.transport) }
         return ClubActionReceipt(state: action == .leave ? nil : action == .apply ? "pending" : "joined", message: nil)
     }
     func clubMembers(id: Int) async throws -> ClubMemberDirectory {

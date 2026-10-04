@@ -18,6 +18,17 @@ final class RegistrationWaitlistUITests: XCTestCase {
     private func capture(_ name: String) {
         let attachment = XCTAttachment(screenshot: app.screenshot()); attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
     }
+    func testClosedRegistrationSessionShowsReasonAndCannotReviewInBothLanguages() {
+        for language in ["en", "zh-Hans"] {
+            launch("signupClosed", language: language)
+            let reason = app.staticTexts["registration.form.signupClosed"]; reveal(reason)
+            XCTAssertEqual(reason.label, language == "en" ? "Registration for this session has closed. Choose another ticket or session." : "本场报名已截止，请选择其他票种或场次。")
+            let review = app.buttons["registration.form.review"]; reveal(review)
+            XCTAssertFalse(review.isEnabled)
+            XCTAssertFalse(app.alerts.firstMatch.exists)
+            app.terminate()
+        }
+    }
     func testWaitingAndLeavingRemainInTheRegistrationForm() {
         launch("waitlistWaiting")
         let join = app.buttons["registration.waitlist.join"]; reveal(join); join.tap()

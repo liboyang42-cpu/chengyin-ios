@@ -7,6 +7,7 @@ import SwiftUI
     var body:some View {
         RegistrationSheetView(activity:activity,coordinator:session.registrationCoordinator,
                               participantReader:session.profileReader,
+                              orderReader:session.ownedOrderReader,
                               participantCoordinator:session.participantCoordinator,
                               currentIdentity:{ session.profileReader.identity },
                               quoteEnabled:session.isConfigured,

@@ -77,4 +77,20 @@ final class MerchantOperationsFlowTests: XCTestCase {
         app.buttons["merchant.operations.fixture.recover"].tap()
         XCTAssertTrue(app.buttons["merchant.operations.entry.merchant.operations.profile"].waitForExistence(timeout: 4))
     }
+    func testBenefitsReviewSaveAndReloadUsesExistingProfileEntry() {
+        let app = launch(); open("profile", app: app)
+        let field = app.descendants(matching: .any)["merchant.operations.field.derivativeBenefits"].firstMatch
+        XCTAssertTrue(revealFixtureElement(field, in: app))
+        field.tap(); field.typeText("Route stamp")
+        review(app)
+        XCTAssertTrue(app.staticTexts["Route stamp"].waitForExistence(timeout: 4))
+        let confirm = app.buttons["merchant.operations.confirm"]
+        XCTAssertTrue(revealFixtureElement(confirm, in: app)); confirm.tap()
+        XCTAssertTrue(app.staticTexts["merchant.operations.exampleSaved"].waitForExistence(timeout: 4))
+        app.buttons["merchant.operations.reload"].tap()
+        XCTAssertTrue(field.waitForExistence(timeout: 4))
+        XCTAssertEqual(field.value as? String, "Route stamp")
+        assertReviewLocked(app)
+    }
+
 }

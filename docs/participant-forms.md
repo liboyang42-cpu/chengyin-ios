@@ -25,7 +25,7 @@ All operations are POST multipart form-data with the existing raw `Authorization
 
 The actual edit page calls AddressApi.save, so native edits intentionally preserve hidden address/default values instead of substituting ParticipantApi's narrower save payload. `province` is the entire province/city/district string. There are no invented `city`, `area`, or `address` keys. Source trim-and-omit-empty behavior is retained; nonempty hidden field content remains intact apart from source-equivalent surrounding-whitespace trimming.
 
-Create/edit validation follows the source: trimmed nonempty name and an 11-digit ASCII mobile number beginning with 1. A displayed masked phone is never reconstructed or submitted. A failed or mismatched detail read cannot produce an editable empty draft.
+Create/edit validation now follows the current mini and backend: trimmed nonempty name and an 11-digit ASCII mobile number beginning with 13–19. See `participant-mini-phone-parity.md`; this supersedes the older Flutter-only validation rule. A displayed masked phone is never reconstructed or submitted. A failed or mismatched detail read cannot produce an editable empty draft.
 
 Success requires numeric `code=200`; mutation `data` can be absent/null and is not assumed to contain a new record ID. Server business rejection and unauthorized responses retain code/message without logging raw request or arbitrary error descriptions.
 

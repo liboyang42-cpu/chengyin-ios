@@ -54,9 +54,11 @@ public struct MerchantStoreProfile: Decodable, Equatable {
     public var name: String
     public var description: String
     public var derivatives: String
+    /// Distinct from legacy merchandise; nil means absent/null and must not clear it.
+    public var derivativeBenefits: String?
     public var website: String
     public var preference: String
-    private enum CodingKeys: String, CodingKey { case id, logo, name, description, derivatives, website, preference }
+    private enum CodingKeys: String, CodingKey { case id, logo, name, description, derivatives, derivativeBenefits, website, preference }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         guard !c.allKeys.isEmpty else { throw APIError.malformedResponse }
@@ -65,11 +67,21 @@ public struct MerchantStoreProfile: Decodable, Equatable {
         name = try c.decodeIfPresent(String.self, forKey: .name) ?? ""
         description = try c.decodeIfPresent(String.self, forKey: .description) ?? ""
         derivatives = try c.decodeIfPresent(String.self, forKey: .derivatives) ?? ""
+        derivativeBenefits = try c.decodeIfPresent(String.self, forKey: .derivativeBenefits)
         website = try c.decodeIfPresent(String.self, forKey: .website) ?? ""
         preference = try c.decodeIfPresent(String.self, forKey: .preference) ?? ""
     }
-    /// The six-field source whitelist. Address/coordinates/business status are not editable here.
+    public var benefitsBlocker: String? {
+        (derivativeBenefits?.utf16.count ?? 0) > 100 ? "merchant.operations.benefitsLimit" : nil
+    }
+    /// Existing fields plus the source's optional derivativeBenefits patch. No contact/status fields.
     public var fields: [String: Any] {
+        var fields = legacyFields
+        if let derivativeBenefits { fields["derivativeBenefits"] = derivativeBenefits }
+        return fields
+    }
+    /// Story editing must not start resubmitting the independently edited benefits field.
+    public var legacyFields: [String: Any] {
         ["logo": logo, "name": name, "description": description, "derivatives": derivatives,
          "website": website, "preference": preference]
     }

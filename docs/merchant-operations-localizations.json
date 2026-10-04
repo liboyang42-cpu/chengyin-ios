@@ -436,8 +436,8 @@
     "zh-Hans": "草稿保存不代表内容审核通过、公开可见或业务生效。"
   },
   "merchant.operations.profileWhitelist": {
-    "en": "Only name, introduction, merchandise, website, preferences and the existing logo belong to this source contract.",
-    "zh-Hans": "此来源接口仅包含名称、简介、衍生品、网站、偏好及原有标志。"
+    "en": "This editor includes name, introduction, merchandise, derivative benefits, website, preferences and the existing logo. Contact and eligibility fields are not edited here.",
+    "zh-Hans": "此编辑器包含名称、简介、衍生品、衍生权益、网站、偏好及原有标志；不编辑联系资料或商家资格。"
   },
   "merchant.operations.decorPreserved": {
     "en": "Category, featured content, service details and location fields remain as read. Their selectors need separate verified contracts.",
@@ -598,5 +598,25 @@
   "merchant.operations.confirmLiveHint": {
     "en": "Save these exact changes. Story title and story text are separate writes and can complete only partially.",
     "zh-Hans": "保存这些更改。故事标题和正文分别提交，可能出现部分完成的情况。"
+  },
+  "merchant.operations.derivativeBenefits": {
+    "en": "Derivative benefits",
+    "zh-Hans": "衍生权益"
+  },
+  "merchant.operations.benefitsHint": {
+    "en": "Describe benefits such as a special drink, redemption discount or route stamp. Up to 100 UTF-16 units.",
+    "zh-Hans": "例如限定饮品、核销折扣或路线纪念章；最多 100 个 UTF-16 字符单位。"
+  },
+  "merchant.operations.benefitsLimit": {
+    "en": "Benefits must be no longer than 100 UTF-16 units.",
+    "zh-Hans": "衍生权益不能超过 100 个 UTF-16 字符单位。"
+  },
+  "merchant.operations.profileReadback": {
+    "en": "The save was acknowledged. Showing the latest profile returned by the service.",
+    "zh-Hans": "保存已收到确认，当前展示服务端重新读取的最新资料。"
+  },
+  "merchant.operations.profileReadbackFailed": {
+    "en": "The save was acknowledged, but the latest profile could not be read. Retry only reloads current data; it will not send the edit again.",
+    "zh-Hans": "保存已收到确认，但暂时无法读取最新资料。重试只会重新读取，不会再次提交修改。"
   }
 }

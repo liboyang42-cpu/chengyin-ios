@@ -10,9 +10,11 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
     var community: ClubCommunityContext? = nil
     @State private var actionDetail: ClubRecord? = nil
     @State private var actionIdentity: ClubReadIdentity? = nil
+    @State private var managementNeedsRefresh = false
+    @State private var managementRevision: UInt64 = 0
     @State private var detailGeneration: UInt64 = 0
     var body: some View {
-        ClubReadScreen(reader: reader, accessibilityPrefix: "club.detail", onSignIn: onSignIn,
+        ClubReadScreen(reader: reader, accessibilityPrefix: "club.detail", refreshRevision: managementRevision, onSignIn: onSignIn,
                        load: {
                            detailGeneration &+= 1
                            let revision = detailGeneration, identity = reader.clubIdentity
@@ -67,7 +69,11 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                             ClubOperationsEntryButton(target: .club(id), identity: reader.clubIdentity, access: operations.access, coordinator: operations.coordinator)
                         }
                         NavigationLink {
-                            ClubManagementView(clubID:id,identity:reader.clubIdentity,access:management.access,coordinator:management.coordinator)
+                            ClubManagementView(clubID:id,identity:reader.clubIdentity,access:management.access,coordinator:management.coordinator, onMembershipChanged: {
+                                // Do not reload a hidden NavigationLink source while its
+                                // management destination is still showing the receipt.
+                                managementNeedsRefresh = true
+                            })
                         } label: { Label("club.management.title",systemImage:"person.2.badge.gearshape") }
                         .accessibilityIdentifier("club.openManagement")
                     }
@@ -86,7 +92,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                 Section("club.members") {
                     if club.canSeeMembers {
                         NavigationLink {
-                            ClubMembersView(id: club.id, reader: reader, onSignIn: onSignIn)
+                            ClubMembersView(id: club.id, reader: reader, profile: management?.governance?.enrollmentProfile, onSignIn: onSignIn)
                         } label: { Label("club.viewMembers", systemImage: "person.3") }
                             .accessibilityIdentifier("club.openMembers")
                     } else { Text("club.joinToSeeMembers").foregroundStyle(.secondary).accessibilityIdentifier("club.members.gated") }
@@ -94,6 +100,13 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
             }
         }.appNavigationTitle("club.detail")
             .id(id)
+            .onAppear {
+                guard managementNeedsRefresh else { return }
+                managementNeedsRefresh = false
+                detailGeneration &+= 1
+                actionDetail = nil; actionIdentity = nil
+                managementRevision &+= 1
+            }
             .onChange(of: reader.clubIdentity) { _, _ in actionDetail = nil; actionIdentity = nil }
     }
 }

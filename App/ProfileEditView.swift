@@ -8,30 +8,60 @@ final class ProfileEditModel: ObservableObject {
     @Published private(set) var busy = false
     @Published private(set) var revision = 0
     private var generation = 0
-    init(coordinator: ProfileEditCoordinator) { self.coordinator = coordinator }
+    private var contextIdentity: ProfileReadIdentity?
+    private var contextViewerRevision: UInt64?
+    init(coordinator: ProfileEditCoordinator) {
+        self.coordinator = coordinator
+        contextIdentity = coordinator.identity; contextViewerRevision = coordinator.viewerRevision
+    }
+    private func synchronizeContext() {
+        guard contextIdentity != coordinator.identity || contextViewerRevision != coordinator.viewerRevision else { return }
+        generation += 1; draft = .init(); confirmation = nil; busy = false
+        contextIdentity = coordinator.identity; contextViewerRevision = coordinator.viewerRevision
+        coordinator.synchronizeSession()
+    }
     func resetAndLoad() async {
         generation += 1; draft = .init(); confirmation = nil; busy = false
         coordinator.synchronizeSession()
         await load()
     }
     func load() async {
+        synchronizeContext()
+        guard !busy else { return }
+        let identity = coordinator.identity, viewerRevision = coordinator.viewerRevision
         let request = generation; busy = true
-        await coordinator.load()
+        let loaded = await coordinator.load()
         guard request == generation else { return }
-        if let snapshot = coordinator.snapshot { draft = snapshot.draft }
+        guard retainContext(identity: identity, viewerRevision: viewerRevision) else { return }
+        // Failed refresh keeps all unsaved fields, including route preferences.
+        if loaded, let snapshot = coordinator.snapshot { draft = snapshot.draft }
         busy = false; revision += 1
     }
+    // Retain drafts only within the exact viewer context, including role/token ABA fences.
+    private func retainContext(identity: ProfileReadIdentity?, viewerRevision: UInt64?) -> Bool {
+        guard coordinator.identity == identity, coordinator.viewerRevision == viewerRevision else {
+            synchronizeContext(); revision += 1
+            return false
+        }
+        return true
+    }
     func prepare() async {
+        synchronizeContext()
+        let identity = coordinator.identity, viewerRevision = coordinator.viewerRevision
         let request = generation; busy = true
         await coordinator.prepare(draft)
         guard request == generation else { return }
+        guard retainContext(identity: identity, viewerRevision: viewerRevision) else { return }
         confirmation = coordinator.confirmation; busy = false; revision += 1
         if coordinator.messageKey == "profile.edit.changed", let snapshot = coordinator.snapshot { draft = snapshot.draft }
     }
     func save(_ value: ProfileEditConfirmation) async {
+        synchronizeContext()
+        let identity = coordinator.identity, viewerRevision = coordinator.viewerRevision
         let request = generation; confirmation = nil; busy = true
         await coordinator.save(value)
         guard request == generation else { return }
+        guard retainContext(identity: identity, viewerRevision: viewerRevision) else { return }
         if coordinator.messageKey == "profile.edit.saved" || coordinator.messageKey == "profile.edit.changed",
            let snapshot = coordinator.snapshot { draft = snapshot.draft }
         busy = false; revision += 1

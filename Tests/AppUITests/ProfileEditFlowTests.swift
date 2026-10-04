@@ -30,6 +30,23 @@ final class ProfileEditFlowTests: XCTestCase {
         guard let button=leaves.allElementsBoundByIndex.reversed().first(where:{ $0.exists && $0.isEnabled && $0.isHittable }) else { XCTFail("Missing profile confirmation action");return }
         button.tap()
     }
+    func testFailedReloadKeepsDraftAndAllowsReviewedSave() {
+        launch("refreshFailure")
+        let field = app.textFields["profile.edit.name"]
+        XCTAssertTrue(field.waitForExistence(timeout: 10))
+        field.tap(); field.typeText(" Updated")
+        app.swipeUp()
+        app.buttons["profile.edit.reload"].tap()
+        let status = app.staticTexts["profile.edit.status"]
+        XCTAssertTrue(status.waitForExistence(timeout: 10))
+        XCTAssertTrue(status.label.contains("unsaved changes are kept"))
+        XCTAssertEqual(field.value as? String, "Trail Friend Updated")
+        XCTAssertTrue(app.buttons["profile.edit.review"].isEnabled)
+        app.buttons["profile.edit.review"].tap()
+        confirm()
+        XCTAssertTrue(status.waitForExistence(timeout: 10))
+        XCTAssertEqual(status.label, "Your profile was saved and verified.")
+    }
     func testConfirmedProfileSaveIsReadBack() {
         launch("success"); editAndReview(); confirm()
         let status = app.staticTexts["profile.edit.status"]

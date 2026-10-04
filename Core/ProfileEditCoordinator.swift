@@ -29,6 +29,7 @@ public final class ProfileEditCoordinator {
     public private(set) var messageKey: String?
     public private(set) var remoteMessage: String?
     public var identity: ProfileReadIdentity? { currentSession()?.identity }
+    public var viewerRevision: UInt64? { currentSession()?.viewerRevision }
     public var isConfigured: Bool { service != nil }
     public var isLocked: Bool { currentSession().map { pending[$0.identity.accountID] != nil } ?? false }
     public init(service: (any ProfileEditServing)?, currentSession: @escaping () -> ProfileEditSession?,
@@ -58,20 +59,25 @@ public final class ProfileEditCoordinator {
             throw error
         }
     }
-    public func load() async {
+    /// True only when this invocation publishes a fresh, same-session snapshot.
+    /// A retained snapshot after an error must never be mistaken for a successful reload.
+    @discardableResult public func load() async -> Bool {
         synchronizeSession()
-        guard !isBusy, let expected = session else { return }
+        guard !isBusy, let expected = session else { return false }
         generation += 1; let request = generation
         isBusy = true; confirmation = nil; messageKey = nil; remoteMessage = nil
         defer { if generation == request { isBusy = false } }
         do {
             let value = try await read(expected)
-            guard active(expected, request) else { return }
+            guard active(expected, request) else { return false }
             snapshot = value
             reconcile(value)
+            return true
         } catch {
-            guard active(expected, request) else { return }
-            messageKey = isLocked ? "profile.edit.unknown" : "profile.edit.loadFailed"
+            guard active(expected, request) else { return false }
+            messageKey = isLocked ? "profile.edit.unknown"
+                : (snapshot == nil ? "profile.edit.loadFailed" : "profile.edit.refreshFailed")
+            return false
         }
     }
     public func prepare(_ draft: ProfileEditDraft) async {

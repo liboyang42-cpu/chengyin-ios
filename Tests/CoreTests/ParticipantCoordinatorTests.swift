@@ -8,6 +8,21 @@ final class ParticipantCoordinatorTests: XCTestCase {
         let reader = ParticipantFakeReader()
         return (ParticipantMutationCoordinator(writer: writer, reader: reader), writer, reader)
     }
+    func testCurrentMiniPhoneRuleCannotCreateConfirmationOrWrite() throws {
+        let (coordinator, writer, _) = fixture()
+        for initial in [ParticipantFormDraft(), ParticipantFormDraft(detail: try participantFixture())] {
+            for phone in ["10000000000", "11000000000", "12000000000"] {
+                var draft = initial
+                draft.fullName = "Fixture"; draft.mobilePhone = phone
+                XCTAssertThrowsError(try coordinator.prepare(.save(draft), expectedIdentity: writer.identity!)) {
+                    XCTAssertEqual($0 as? ParticipantCoordinatorBlock, .invalidForm)
+                }
+                XCTAssertEqual(coordinator.state, .idle)
+            }
+        }
+        XCTAssertTrue(writer.mutations.isEmpty)
+        XCTAssertTrue(coordinator.canPrepare)
+    }
     func testPrepareRequiresValidFormCurrentIdentityAndConfiguration() throws {
         let (coordinator, writer, reader) = fixture()
         let identity = try XCTUnwrap(writer.identity)

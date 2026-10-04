@@ -52215,13 +52215,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only name, introduction, merchandise, website, preferences and the existing logo belong to this source contract."
+            "value": "This editor includes name, introduction, merchandise, derivative benefits, website, preferences and the existing logo. Contact and eligibility fields are not edited here."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此来源接口仅包含名称、简介、衍生品、网站、偏好及原有标志。"
+            "value": "此编辑器包含名称、简介、衍生品、衍生权益、网站、偏好及原有标志；不编辑联系资料或商家资格。"
           }
         }
       }
@@ -67992,13 +67992,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enter an 11-digit mobile number starting with 1."
+            "value": "Enter an 11-digit mobile number starting with 13–19."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请输入以 1 开头的 11 位手机号。"
+            "value": "请输入以 13 至 19 开头的 11 位手机号。"
           }
         }
       }
@@ -83985,6 +83985,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "个人简介"
+          }
+        }
+      }
+    },
+    "profile.edit.refreshFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not refresh your profile. Your unsaved changes are kept. You can try again or review your changes."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法刷新资料，未保存的修改已保留。你可以重试或检查修改后保存。"
           }
         }
       }
@@ -119990,6 +120006,235 @@
           "stringUnit": {
             "state": "translated",
             "value": "通关规则配置不能超过16 KiB。"
+          }
+        }
+      }
+    },
+    "club.application.message": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Message to the club (optional)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "给俱乐部的留言（选填）"
+          }
+        }
+      }
+    },
+    "club.application.messageHelp": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Up to 60 characters; emoji may count as more than one. The club reviewers can read this message."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最多 60 字，表情可能占多个字。俱乐部审核人员可以阅读此留言。"
+          }
+        }
+      }
+    },
+    "club.application.messageTooLong": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shorten your message before reviewing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请缩短留言后再确认。"
+          }
+        }
+      }
+    },
+    "club.application.messageReceived": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Applicant’s message"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "申请人留言"
+          }
+        }
+      }
+    },
+    "merchant.operations.derivativeBenefits": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Derivative benefits"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "衍生权益"
+          }
+        }
+      }
+    },
+    "merchant.operations.benefitsHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Describe benefits such as a special drink, redemption discount or route stamp. Up to 100 UTF-16 units."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如限定饮品、核销折扣或路线纪念章；最多 100 个 UTF-16 字符单位。"
+          }
+        }
+      }
+    },
+    "merchant.operations.benefitsLimit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Benefits must be no longer than 100 UTF-16 units."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "衍生权益不能超过 100 个 UTF-16 字符单位。"
+          }
+        }
+      }
+    },
+    "merchant.operations.profileReadback": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The save was acknowledged. Showing the latest profile returned by the service."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存已收到确认，当前展示服务端重新读取的最新资料。"
+          }
+        }
+      }
+    },
+    "merchant.operations.profileReadbackFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The save was acknowledged, but the latest profile could not be read. Retry only reloads current data; it will not send the edit again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存已收到确认，但暂时无法读取最新资料。重试只会重新读取，不会再次提交修改。"
+          }
+        }
+      }
+    },
+    "registration.form.signupClosed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Registration for this session has closed. Choose another ticket or session."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本场报名已截止，请选择其他票种或场次。"
+          }
+        }
+      }
+    },
+    "registration.waitlist.cancelTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leave the waitlist?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认退出候补？"
+          }
+        }
+      }
+    },
+    "registration.waitlist.confirmCancel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leave waitlist"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认退出候补"
+          }
+        }
+      }
+    },
+    "registration.waitlist.cancelOfferHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This releases your reserved place. It may be offered to the next person. You will need to join again if you change your mind."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这会释放为你保留的名额，系统可能将其分配给下一位。改变主意后需要重新加入候补。"
+          }
+        }
+      }
+    },
+    "registration.waitlist.cancelQueueHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You will lose your place in the queue. Joining again starts a new waitlist entry."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退出后将失去当前排队位置，重新加入时需要重新排队。"
           }
         }
       }

@@ -3,12 +3,13 @@ import Foundation
 public struct MerchantOperationsSession: Equatable {
     public let accountID: Int
     public let epoch: UInt64
+    public let viewerRevision: UInt64
     fileprivate let token: String
     public let storageNamespace: String
     public var ownerKey: String { "\(storageNamespace.utf8.count):\(storageNamespace):\(accountID)" }
-    public init(accountID: Int, epoch: UInt64, token: String, storageNamespace: String = "") throws {
+    public init(accountID: Int, epoch: UInt64, token: String, storageNamespace: String = "", viewerRevision: UInt64 = 0) throws {
         guard accountID > 0, AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
-        self.accountID = accountID; self.epoch = epoch; self.token = token; self.storageNamespace = storageNamespace
+        self.accountID = accountID; self.epoch = epoch; self.token = token; self.storageNamespace = storageNamespace; self.viewerRevision = viewerRevision
     }
 }
 @MainActor public protocol MerchantOperationsReading: AnyObject {
@@ -171,11 +172,31 @@ public struct MerchantOperationsConfirmation: Identifiable, Equatable {
             try await reader.saveReviewed(value.draft, baseline: value.baseline)
             guard !Task.isCancelled, operation == generation, reader.scope == value.scope, reader.isAuthenticated else { return }
             draftIdentity = UUID(); templateAssistEdits = .init()
-            isLocked = false; baseline = value.draft; draft = value.draft; document = .draft(value.draft); exampleSaved = reader.isOfflineExample; issue = reader.isOfflineExample ? nil : .key("merchant.operations.acknowledged")
+            isLocked = false
+            if destination == .profile {
+                // The write was acknowledged. Only a new owner-scoped read supplies current
+                // profile state; failure here must never fall into the write/replay catch.
+                document = nil; baseline = nil; draft = nil; exampleSaved = false
+                do {
+                    let current = try await reader.document(destination)
+                    guard !Task.isCancelled, operation == generation, reader.scope == value.scope, reader.isAuthenticated else { return }
+                    guard case .draft(.profile) = current else { throw APIError.malformedResponse }
+                    document = current
+                    if case .draft(let profile) = current { baseline = profile; draft = profile }
+                    exampleSaved = reader.isOfflineExample
+                    issue = reader.isOfflineExample ? nil : .key("merchant.operations.profileReadback")
+                } catch {
+                    guard !Task.isCancelled, operation == generation, reader.scope == value.scope, reader.isAuthenticated else { return }
+                    issue = .key("merchant.operations.profileReadbackFailed")
+                }
+            } else {
+                baseline = value.draft; draft = value.draft; document = .draft(value.draft)
+                exampleSaved = reader.isOfflineExample; issue = reader.isOfflineExample ? nil : .key("merchant.operations.acknowledged")
+            }
         } catch {
+            guard !Task.isCancelled, operation == generation, reader.scope == value.scope else { return }
             if error as? MerchantOperationsFailure == .notSent { isLocked = false }
             if let failure = error as? MerchantOperationsFailure, case .rejected = failure { isLocked = false }
-            guard !Task.isCancelled, operation == generation, reader.scope == value.scope else { return }
             if let failure = error as? MerchantOperationsFailure, case .partial = failure { issue = .key("merchant.operations.partialOutcome") }
             else { issue = isLocked ? .key("merchant.operations.unknownOutcome") : .init(error) }
         }

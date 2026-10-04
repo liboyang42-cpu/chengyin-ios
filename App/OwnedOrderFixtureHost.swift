@@ -68,7 +68,19 @@ import SwiftUI
     init(enabled:Bool){self.enabled=enabled}
     func approval(_ context:RuntimeDependencyContext)->OwnedOrderReadApproval?{
         guard enabled else{return nil}
-        if retained == nil || !ContentDraftContextFence.matches(retained?.context,context){retained?.revoke();retained=try? .init(context:context,expiresAt:Date().addingTimeInterval(600))}
+        if retained == nil || !ContentDraftContextFence.matches(retained?.context,context) {
+            retained?.revoke()
+            retained=try? .init(context:context,expiresAt:Date().addingTimeInterval(600))
+            if let issued = retained {
+                // Reader creation can run during body evaluation. Refresh only the
+                // observing footer after issuance, never the host or private content.
+                Task { @MainActor [weak self, weak issued] in
+                    guard !Task.isCancelled, let self, let issued,
+                          self.retained === issued, !issued.isRevoked else { return }
+                    self.objectWillChange.send()
+                }
+            }
+        }
         return retained
     }
 }

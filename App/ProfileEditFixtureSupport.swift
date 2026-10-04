@@ -13,6 +13,7 @@ struct ProfileEditFixtureHost: View {
     init(scenario: String) {
         let mode: ProfileEditSyntheticService.Scenario
         switch scenario {
+        case "refreshFailure": mode = .refreshFailure
         case "rejected": mode = .rejected
         case "unknown": mode = .unknown
         case "missing": mode = .missingPreservation

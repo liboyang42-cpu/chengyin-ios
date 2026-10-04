@@ -313,3 +313,211 @@ final class MerchantOperationsCoordinatorTests: XCTestCase {
         do { try await reader.saveExample(.template(.init())); XCTFail() } catch { XCTAssertEqual(error as? MerchantOperationsFailure, .liveWritesDisabled) }
     }
 }
+
+final class MerchantProfileBenefitsContractTests: XCTestCase {
+    private func profile(_ json: String) throws -> MerchantStoreProfile {
+        try JSONDecoder().decode(MerchantStoreProfile.self, from: Data(json.utf8))
+    }
+    func testBenefitsAreDistinctAndNeverCopiedFromMerchandise() throws {
+        let value = try profile(#"{"id":31,"derivatives":"Merchandise","derivativeBenefits":"Route stamp"}"#)
+        XCTAssertEqual(value.derivatives, "Merchandise")
+        XCTAssertEqual(value.derivativeBenefits, "Route stamp")
+        let draft = MerchantOperationsDraft.profile(value)
+        let request = try XCTUnwrap(draft.previews().first)
+        let fields = try XCTUnwrap(JSONSerialization.jsonObject(with: request.json) as? [String: Any])
+        XCTAssertEqual(request.path, "api/merchant/update")
+        XCTAssertEqual(fields["derivativeBenefits"] as? String, "Route stamp")
+        XCTAssertEqual(fields["derivatives"] as? String, "Merchandise")
+        XCTAssertNil(fields["phone"]); XCTAssertNil(fields["businessStatus"]); XCTAssertNil(fields["memberId"])
+        XCTAssertTrue(draft.reviewLines.contains(.init("derivativeBenefits", "Route stamp")))
+    }
+    func testMissingAndNullAreOmittedButExplicitEmptyClears() throws {
+        for json in [#"{"id":31}"#, #"{"id":31,"derivativeBenefits":null}"#] {
+            let value = try profile(json)
+            XCTAssertNil(value.derivativeBenefits); XCTAssertNil(value.fields["derivativeBenefits"])
+        }
+        let empty = try profile(#"{"id":31,"derivativeBenefits":""}"#)
+        XCTAssertEqual(empty.fields["derivativeBenefits"] as? String, "")
+        XCTAssertThrowsError(try profile(#"{"id":31,"derivativeBenefits":7}"#))
+    }
+    func testBenefitsUseServerUTF16BoundaryWithoutTruncation() throws {
+        var value = try profile(#"{"id":31}"#)
+        value.derivativeBenefits = String(repeating: "😀", count: 50)
+        XCTAssertNil(MerchantOperationsDraft.profile(value).blocker)
+        XCTAssertNoThrow(try MerchantOperationsDraft.profile(value).previews())
+        value.derivativeBenefits! += "😀"
+        XCTAssertEqual(value.derivativeBenefits?.count, 51)
+        XCTAssertEqual(MerchantOperationsDraft.profile(value).blocker, "merchant.operations.benefitsLimit")
+        XCTAssertThrowsError(try MerchantOperationsDraft.profile(value).previews())
+    }
+    func testStoryDoesNotResubmitIndependentBenefits() throws {
+        var value = try JSONDecoder().decode(MerchantStorefront.self, from: Data(MerchantOperationsFixtureData.storeJSON.utf8))
+        value.profile.derivativeBenefits = "Preserved independent value"
+        value.profile.description = "Edited story"
+        let request = try XCTUnwrap(MerchantOperationsDraft.story(value).previews().last)
+        let fields = try XCTUnwrap(JSONSerialization.jsonObject(with: request.json) as? [String: Any])
+        XCTAssertNil(fields["derivativeBenefits"])
+    }
+}
+
+@MainActor
+private final class ProfileReadbackReader: MerchantOperationsReading {
+    var scope = UUID()
+    var isConfigured = true
+    var isAuthenticated = true
+    let isOfflineExample = false
+    let canSave = true
+    let fixture = MerchantOperationsFixtureReader()
+    var saved: MerchantOperationsDraft?
+    var returned: MerchantOperationsDraft?
+    var readbackError: Error?
+    var saveError: MerchantOperationsFailure?
+    var onReadback: (() -> Void)?
+    var onSave: (() -> Void)?
+    var saves = 0
+    func access() async throws -> MerchantOperationsAccess { try await fixture.access() }
+    func document(_ destination: MerchantOperationsDestination) async throws -> MerchantOperationsDocument {
+        if let saved {
+            onReadback?()
+            if let readbackError { throw readbackError }
+            return .draft(returned ?? saved)
+        }
+        return try await fixture.document(destination)
+    }
+    func saveExample(_ draft: MerchantOperationsDraft) async throws { throw MerchantOperationsFailure.liveWritesDisabled }
+    func saveReviewed(_ draft: MerchantOperationsDraft, baseline: MerchantOperationsDraft) async throws {
+        saves += 1; onSave?()
+        if let saveError { throw saveError }
+        saved = draft
+    }
+}
+
+@MainActor
+final class MerchantProfileBenefitsFlowTests: XCTestCase {
+    private func prepared(_ reader: ProfileReadbackReader) async throws -> (MerchantOperationsCoordinator, MerchantOperationsConfirmation) {
+        let model = MerchantOperationsCoordinator(reader: reader, destination: .profile)
+        await model.load()
+        guard case .profile(var value) = model.draft else { throw APIError.malformedResponse }
+        value.derivativeBenefits = "Route stamp"
+        model.edit(.profile(value)); model.prepare()
+        return (model, try XCTUnwrap(model.confirmation))
+    }
+    func testSaveReadsAuthoritativeStateAndReopensWithoutResending() async throws {
+        let reader = ProfileReadbackReader()
+        let (model, confirmation) = try await prepared(reader)
+        guard case .profile(var server) = confirmation.draft else { XCTFail(); return }
+        server.derivativeBenefits = "Current server value"
+        reader.returned = .profile(server)
+        await model.confirm(confirmation)
+        XCTAssertEqual(model.draft, .profile(server)); XCTAssertEqual(model.baseline, .profile(server))
+        XCTAssertFalse(model.isDirty); XCTAssertFalse(model.isLocked)
+        XCTAssertEqual(model.issue, .key("merchant.operations.profileReadback"))
+        await model.confirm(confirmation)
+        model.leaveScreen(); await model.load()
+        XCTAssertEqual(model.draft, .profile(server)); XCTAssertEqual(reader.saves, 1)
+    }
+    func testAcknowledgedReadbackFailureHidesUnverifiedValuesAndRetryOnlyReads() async throws {
+        let reader = ProfileReadbackReader()
+        let (model, confirmation) = try await prepared(reader)
+        reader.readbackError = APIError.malformedResponse
+        await model.confirm(confirmation)
+        XCTAssertEqual(model.issue, .key("merchant.operations.profileReadbackFailed"))
+        XCTAssertNil(model.document); XCTAssertNil(model.draft); XCTAssertNil(model.baseline)
+        XCTAssertFalse(model.isLocked); XCTAssertFalse(model.canReview)
+        await model.confirm(confirmation)
+        XCTAssertEqual(reader.saves, 1)
+        reader.readbackError = nil; await model.load()
+        XCTAssertEqual(model.draft, confirmation.draft); XCTAssertEqual(reader.saves, 1)
+    }
+    func testScopeChangeDuringReadbackCannotRestoreOldProfile() async throws {
+        let reader = ProfileReadbackReader()
+        let (model, confirmation) = try await prepared(reader)
+        reader.onReadback = { reader.scope = UUID() }
+        await model.confirm(confirmation)
+        XCTAssertFalse(model.isCurrent); XCTAssertNil(model.document); XCTAssertNil(model.draft)
+        XCTAssertFalse(model.canReview); XCTAssertEqual(reader.saves, 1)
+    }
+    func testLeavingDuringReadbackCannotRestoreProfile() async throws {
+        let reader = ProfileReadbackReader()
+        let (model, confirmation) = try await prepared(reader)
+        reader.onReadback = { model.leaveScreen() }
+        await model.confirm(confirmation)
+        XCTAssertNil(model.document); XCTAssertNil(model.draft); XCTAssertFalse(model.isCurrent)
+        XCTAssertEqual(reader.saves, 1)
+    }
+    func testUnknownWriteRemainsLockedAndDoesNotReadBackAsAcknowledged() async throws {
+        let reader = ProfileReadbackReader()
+        let (model, confirmation) = try await prepared(reader)
+        reader.saveError = .outcomeUnknown
+        await model.confirm(confirmation)
+        XCTAssertTrue(model.isLocked); XCTAssertEqual(model.issue, .key("merchant.operations.unknownOutcome"))
+        XCTAssertNil(reader.saved); await model.load(); XCTAssertTrue(model.isLocked)
+        XCTAssertFalse(model.canReview); XCTAssertEqual(reader.saves, 1)
+    }
+    func testLateOldWriteFailureCannotUnlockInvalidatedCoordinator() async throws {
+        let reader = ProfileReadbackReader()
+        let (model, confirmation) = try await prepared(reader)
+        reader.saveError = .notSent
+        reader.onSave = { model.leaveScreen(); reader.scope = UUID() }
+        await model.confirm(confirmation)
+        XCTAssertNil(model.document); XCTAssertNil(model.draft); XCTAssertFalse(model.isBusy)
+        XCTAssertTrue(model.isLocked); XCTAssertFalse(model.isCurrent)
+        XCTAssertEqual(reader.saves, 1)
+    }
+    func testBenefitsChangeParticipatesInFreshBaselineConflictCheck() async throws {
+        let reader = ProfileReadbackReader()
+        let (model, confirmation) = try await prepared(reader)
+        guard case .profile(var changed) = model.baseline else { XCTFail(); return }
+        changed.derivativeBenefits = "Changed elsewhere"
+        reader.fixture.replace(.profile, with: .draft(.profile(changed)))
+        await model.confirm(confirmation)
+        XCTAssertEqual(model.issue, .key("merchant.operations.conflict")); XCTAssertEqual(reader.saves, 0)
+    }
+}
+
+@MainActor
+final class MerchantProfileViewerRevisionTests: XCTestCase {
+    private func session(_ revision: UInt64) throws -> MerchantOperationsSession {
+        try .init(accountID: 8, epoch: 4, token: "synthetic-token", storageNamespace: "example", viewerRevision: revision)
+    }
+    func testRoleRevisionAndABAChangeScopeWithoutChangingJournalOwner() throws {
+        let first = try session(1), changed = try session(2), restored = try session(3)
+        var current: MerchantOperationsSession? = first
+        let reader = MerchantOperationsSessionReader(service: nil, currentSession: { current })
+        let firstScope = reader.scope
+        current = changed; XCTAssertNotEqual(reader.scope, firstScope)
+        let changedScope = reader.scope
+        current = restored; XCTAssertNotEqual(reader.scope, firstScope); XCTAssertNotEqual(reader.scope, changedScope)
+        XCTAssertEqual(first.ownerKey, changed.ownerKey); XCTAssertEqual(first.ownerKey, restored.ownerKey)
+        XCTAssertEqual(first.epoch, changed.epoch)
+    }
+    func testRoleRevisionDuringDocumentReadDropsLateResponseAndResetsBusyAfterLoad() async throws {
+        let transport = MerchantOperationsTransport()
+        transport.replies = [
+            #"{"code":200,"data":{"active":true,"merchant":{"id":31},"permissions":["merchant:profile:write"]}}"#,
+            "{\"code\":200,\"data\":\(MerchantOperationsFixtureData.storeJSON)}"
+        ]
+        var current: MerchantOperationsSession? = try session(1)
+        let changed = try session(2)
+        let service = try MerchantOperationsService(configuration: APIConfiguration(baseURL: URL(string: "https://api.example.com")!), transport: transport)
+        let reader = MerchantOperationsSessionReader(service: service, currentSession: { current })
+        let model = MerchantOperationsCoordinator(reader: reader, destination: .profile)
+        transport.onSend = { if transport.requests.count == 2 { current = changed } }
+        await model.load()
+        XCTAssertNil(model.document); XCTAssertNil(model.draft); XCTAssertFalse(model.isBusy)
+        XCTAssertFalse(model.isCurrent); XCTAssertFalse(model.canReview)
+        XCTAssertEqual(transport.requests.count, 2)
+    }
+    func testScopeChangeBeforeConfirmationPreventsWrite() async throws {
+        let reader = ProfileReadbackReader()
+        let model = MerchantOperationsCoordinator(reader: reader, destination: .profile)
+        await model.load()
+        guard case .profile(var profile) = model.draft else { XCTFail(); return }
+        profile.derivativeBenefits = "Route stamp"; model.edit(.profile(profile)); model.prepare()
+        let confirmation = try XCTUnwrap(model.confirmation)
+        reader.scope = UUID()
+        await model.confirm(confirmation)
+        XCTAssertEqual(reader.saves, 0); XCTAssertFalse(model.canReview)
+        model.invalidate(); XCTAssertFalse(model.isBusy); XCTAssertNil(model.confirmation)
+    }
+}

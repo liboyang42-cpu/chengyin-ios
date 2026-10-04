@@ -68,10 +68,12 @@ public struct ProfileEditPayload: Encodable, Equatable {
 }
 public struct ProfileEditSession: Equatable {
     public let identity: ProfileReadIdentity
+    public let viewerRevision: UInt64
     let token: String
-    public init(accountID: Int, epoch: UInt64, token: String) throws {
+    public init(accountID: Int, epoch: UInt64, token: String, viewerRevision: UInt64 = 0) throws {
         guard accountID > 0, AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
         identity = .init(accountID: accountID, epoch: epoch); self.token = token
+        self.viewerRevision = viewerRevision
     }
 }
 public enum ProfileEditWriteError: Error { case notSent, rejected(ProfileReadFailure), outcomeUnknown }

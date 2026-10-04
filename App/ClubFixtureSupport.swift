@@ -12,6 +12,8 @@ enum ClubFixtureScenario: String {
 
 @MainActor
 struct ClubFixtureRootView: View {
+    private let profileReader = SocialAccountFixtureReader(.content)
+    private let squareReader = SquareFixtureReader()
     @StateObject private var reader: ClubFixtureReader
     init(scenario: ClubFixtureScenario) { _reader = StateObject(wrappedValue: ClubFixtureReader(scenario: scenario)) }
     var body: some View {
@@ -29,8 +31,15 @@ struct ClubFixtureRootView: View {
                         .accessibilityIdentifier("club.fixture.topic.\(id)")
                         .navigationTitle(Text(verbatim: "Synthetic topic")))
                 })
-            }.id(reader.clubIdentity)
+            }
+            .environment(\.clubEnrollmentProfile, ClubEnrollmentProfileContext(reader: profileReader, squareReader: squareReader))
+            .id(reader.clubIdentity)
+            .onAppear { synchronizeProfileIdentity() }
+            .onChange(of: reader.clubIdentity) { _, _ in synchronizeProfileIdentity() }
         }
+    }
+    private func synchronizeProfileIdentity() {
+        profileReader.identity = .init(accountID: reader.clubIdentity.accountID, epoch: reader.clubIdentity.epoch, role: "player")
     }
 }
 

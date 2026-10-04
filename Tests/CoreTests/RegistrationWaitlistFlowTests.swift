@@ -62,6 +62,24 @@ import XCTest
     private func ready(_ flow: RegistrationUIFlow) {
         flow.open(); flow.setName("Fixture Person"); flow.setPhone("13800000000")
     }
+    func testOnlyCurrentScopedOfferBypassesClosedTicketWindow() async throws {
+        let service = WaitlistFlowFixture(); service.statusValue = try status()
+        var clock = expiry.addingTimeInterval(-3600)
+        let detail = try JSONDecoder().decode(ActivityDetail.self, from: Data(#"{"id":7,"name":"Fixture","omsTicketList":[{"id":11,"name":"Closed","startTime":"2020-01-01 00:00:00","remainingInventory":0},{"id":12,"name":"Other closed","startTime":"2020-01-01 00:00:00"}]}"#.utf8))
+        let flow = try RegistrationUIFlow(activity: detail, coordinator: coordinator(service), currentIdentity: { .init(accountID: 1, epoch: 1) }, quoteEnabled: true, creationPolicy: .offlineFixture, waitlistService: service, now: { clock })
+        ready(flow); await flow.requestQuote(); flow.setConsent(true)
+        XCTAssertEqual(flow.confirmationBlock, .signupClosed)
+        await flow.reviewWaitlistOffer(); flow.setConsent(true)
+        XCTAssertFalse(flow.signupClosed); XCTAssertTrue(flow.prepareConfirmation())
+        clock = expiry
+        await flow.confirm(); XCTAssertEqual(flow.block, .signupClosed); XCTAssertTrue(service.creates.isEmpty)
+        clock = expiry.addingTimeInterval(-3600)
+        await flow.reviewWaitlistOffer(); flow.setConsent(true)
+        XCTAssertTrue(flow.prepareConfirmation())
+        XCTAssertTrue(flow.selectTicket(id: 12))
+        XCTAssertTrue(flow.signupClosed); XCTAssertNil(flow.confirmation)
+        await flow.confirm(); XCTAssertTrue(service.creates.isEmpty)
+    }
     func testOfferStaysOnSameFormRequiresFreshQuoteAndCarriesExactPair() async throws {
         let service = WaitlistFlowFixture(); service.statusValue = try status()
         let coordinator = try coordinator(service)
@@ -97,7 +115,7 @@ import XCTest
     func testUnknownMutationBlocksRepeatAndRegistrationUntilExplicitRead() async throws {
         let service = WaitlistFlowFixture(); service.statusValue = try status("WAITING"); service.failMutation = true
         let flow = try RegistrationUIFlow(activity: activity(), coordinator: coordinator(service), currentIdentity: { .init(accountID: 1, epoch: 1) }, quoteEnabled: true, creationPolicy: .offlineFixture, waitlistService: service)
-        ready(flow); await flow.loadWaitlist(); await flow.cancelWaitlist()
+        ready(flow); await flow.loadWaitlist(); XCTAssertTrue(flow.prepareWaitlistCancellation()); await flow.cancelWaitlist()
         XCTAssertTrue(flow.waitlistOutcomeUnknown); XCTAssertFalse(flow.canCancelWaitlist)
         await flow.cancelWaitlist(); XCTAssertEqual(service.cancellations, 1)
         XCTAssertEqual(flow.confirmationBlock, .waitlistUnavailable)
@@ -247,6 +265,102 @@ import XCTest
         await newRead.value
         XCTAssertFalse(flow.isReadingWaitlist); XCTAssertEqual(flow.waitlistStatus?.ticketID, 12)
         XCTAssertEqual(service.joins, 0); XCTAssertEqual(service.cancellations, 0); XCTAssertTrue(service.creates.isEmpty)
+    }
+
+    func testWaitlistCancellationRequiresReviewAndDismissalDoesNotWrite() async throws {
+        let service = WaitlistFlowFixture(); service.statusValue = try status("WAITING")
+        let flow = try RegistrationUIFlow(activity: activity(), coordinator: coordinator(service), currentIdentity: { .init(accountID: 1, epoch: 1) }, waitlistService: service)
+        ready(flow); await flow.loadWaitlist(); await flow.cancelWaitlist()
+        XCTAssertEqual(service.cancellations, 0)
+        XCTAssertTrue(flow.prepareWaitlistCancellation()); flow.dismissWaitlistCancellation()
+        await flow.cancelWaitlist(); XCTAssertEqual(service.cancellations, 0)
+        XCTAssertTrue(flow.prepareWaitlistCancellation()); await flow.cancelWaitlist()
+        XCTAssertEqual(service.cancellations, 1); XCTAssertEqual(service.statuses, 2)
+        await flow.cancelWaitlist(); XCTAssertEqual(service.cancellations, 1)
+    }
+    func testCancellationRefreshTicketAndLeaveInvalidateReview() async throws {
+        let service = WaitlistFlowFixture(); service.statusValue = try status("WAITING")
+        let flow = try RegistrationUIFlow(activity: activity(), coordinator: coordinator(service), currentIdentity: { .init(accountID: 1, epoch: 1) }, waitlistService: service)
+        ready(flow); await flow.loadWaitlist(); XCTAssertTrue(flow.prepareWaitlistCancellation())
+        await flow.loadWaitlist(); XCTAssertNil(flow.waitlistCancellation); await flow.cancelWaitlist()
+        XCTAssertTrue(flow.prepareWaitlistCancellation()); XCTAssertTrue(flow.selectTicket(id: 12))
+        XCTAssertNil(flow.waitlistCancellation); await flow.cancelWaitlist()
+        flow.open(); await flow.loadWaitlist(); XCTAssertTrue(flow.prepareWaitlistCancellation())
+        flow.leave(); XCTAssertNil(flow.waitlistCancellation); await flow.cancelWaitlist(); XCTAssertEqual(service.cancellations, 0)
+    }
+    func testCancellationEpochChangeAndOfferExpiryDoNotWrite() async throws {
+        let service = WaitlistFlowFixture(); service.statusValue = try status()
+        var clock = expiry.addingTimeInterval(-1)
+        var identity: ProfileReadIdentity? = .init(accountID: 1, epoch: 1)
+        let flow = try RegistrationUIFlow(activity: activity(), coordinator: coordinator(service), currentIdentity: { identity }, waitlistService: service, now: { clock })
+        ready(flow); await flow.loadWaitlist(); XCTAssertTrue(flow.prepareWaitlistCancellation())
+        identity = .init(accountID: 1, epoch: 2); await flow.cancelWaitlist()
+        XCTAssertEqual(service.cancellations, 0)
+        flow.open(); await flow.loadWaitlist(); XCTAssertTrue(flow.prepareWaitlistCancellation())
+        clock = expiry; await flow.cancelWaitlist(); XCTAssertEqual(service.cancellations, 0)
+        XCTAssertFalse(flow.prepareWaitlistCancellation())
+    }
+    func testCancellationFreshReadChangedOfferRequiresNewReview() async throws {
+        let service = WaitlistFlowFixture(); service.statusValue = try status("WAITING")
+        let flow = try RegistrationUIFlow(activity: activity(), coordinator: coordinator(service), currentIdentity: { .init(accountID: 1, epoch: 1) }, waitlistService: service, now: { self.expiry.addingTimeInterval(-1) })
+        ready(flow); await flow.loadWaitlist(); XCTAssertTrue(flow.prepareWaitlistCancellation())
+        service.statusValue = try status(); await flow.cancelWaitlist()
+        XCTAssertEqual(service.cancellations, 0); XCTAssertEqual(flow.block, .confirmationChanged)
+        XCTAssertNil(flow.waitlistCancellation); XCTAssertEqual(flow.waitlistStatus?.state, .offered)
+        XCTAssertFalse(flow.isReadingWaitlist)
+    }
+    func testCancellationReadInterruptedOrWrongScopeNeverWrites() async throws {
+        let service = WaitlistFlowFixture(); service.statusValue = try status("WAITING")
+        let flow = try RegistrationUIFlow(activity: activity(), coordinator: coordinator(service), currentIdentity: { .init(accountID: 1, epoch: 1) }, waitlistService: service)
+        ready(flow); await flow.loadWaitlist(); XCTAssertTrue(flow.prepareWaitlistCancellation())
+        service.suspendStatus = true
+        let task = Task { await flow.cancelWaitlist() }
+        await service.waitForSuspendedStatus(); task.cancel()
+        service.statusContinuation?.resume(returning: try status("WAITING")); service.statusContinuation = nil
+        await task.value
+        XCTAssertFalse(flow.isReadingWaitlist); XCTAssertEqual(service.cancellations, 0)
+        service.suspendStatus = false; XCTAssertTrue(flow.prepareWaitlistCancellation())
+        service.statusValue = try status("WAITING", ticket: 12); await flow.cancelWaitlist()
+        XCTAssertEqual(service.cancellations, 0); XCTAssertEqual(flow.block, .waitlistUnavailable)
+    }
+
+    func testOpeningWithoutSessionOrWithRetainedIntentClearsCancellationImmediately() async throws {
+        let service = WaitlistFlowFixture(); service.statusValue = try status("WAITING")
+        var identity: ProfileReadIdentity? = .init(accountID: 1, epoch: 1)
+        let coordinator = try coordinator(service)
+        let flow = try RegistrationUIFlow(activity: activity(), coordinator: coordinator, currentIdentity: { identity }, waitlistService: service)
+        ready(flow); await flow.loadWaitlist(); XCTAssertTrue(flow.prepareWaitlistCancellation())
+        identity = nil; flow.open(); XCTAssertNil(flow.waitlistCancellation)
+        identity = .init(accountID: 1, epoch: 1)
+        ready(flow); await flow.loadWaitlist(); XCTAssertTrue(flow.prepareWaitlistCancellation())
+        _ = await coordinator.requestQuote()
+        _ = await coordinator.confirm(.init(realName: "Fixture", phone: "13800000000"))
+        XCTAssertNotNil(coordinator.retainedIntent)
+        flow.open(); XCTAssertTrue(flow.hasRetainedIntent); XCTAssertNil(flow.waitlistCancellation)
+        XCTAssertEqual(service.cancellations, 0)
+    }
+
+    func testPendingCancellationReadFencesEpochTicketLeaveAndDoubleConfirm() async throws {
+        for change in ["epoch", "ticket", "leave", "double"] {
+            let service = WaitlistFlowFixture(); service.statusValue = try status("WAITING")
+            var identity: ProfileReadIdentity? = .init(accountID: 1, epoch: 1)
+            let flow = try RegistrationUIFlow(activity: activity(), coordinator: coordinator(service), currentIdentity: { identity }, waitlistService: service)
+            ready(flow); await flow.loadWaitlist(); XCTAssertTrue(flow.prepareWaitlistCancellation())
+            service.suspendStatus = true
+            let task = Task { await flow.cancelWaitlist() }
+            await service.waitForSuspendedStatus()
+            XCTAssertNil(flow.waitlistCancellation)
+            switch change {
+            case "epoch": identity = .init(accountID: 1, epoch: 2)
+            case "ticket": XCTAssertTrue(flow.selectTicket(id: 12))
+            case "leave": flow.leave(); XCTAssertNil(flow.waitlistCancellation)
+            default: await flow.cancelWaitlist(); XCTAssertEqual(service.statuses, 2)
+            }
+            service.statusContinuation?.resume(returning: try status("WAITING")); service.statusContinuation = nil
+            await task.value
+            XCTAssertEqual(service.cancellations, change == "double" ? 1 : 0)
+            XCTAssertTrue(service.creates.isEmpty); XCTAssertEqual(service.joins, 0)
+        }
     }
 
 }

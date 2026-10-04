@@ -37,6 +37,14 @@ struct MerchantOperationsEditor: View {
                 profileField("merchant.operations.name", \.name, "name")
                 profileField("merchant.operations.description", \.description, "description", multiline: true)
                 profileField("merchant.operations.derivatives", \.derivatives, "derivatives")
+                TextField("merchant.operations.derivativeBenefits", text: Binding(get: {
+                    guard case .profile(let current) = coordinator.draft else { return "" }
+                    return current.derivativeBenefits ?? ""
+                }, set: { text in
+                    guard case .profile(var current) = coordinator.draft else { return }
+                    current.derivativeBenefits = text; model.edit(.profile(current))
+                }), axis: .vertical).accessibilityIdentifier("merchant.operations.field.derivativeBenefits")
+                Text("merchant.operations.benefitsHint").font(.footnote).foregroundStyle(.secondary)
                 profileField("merchant.operations.website", \.website, "website")
                 profileField("merchant.operations.preference", \.preference, "preference")
                 Text("merchant.operations.profileWhitelist").font(.footnote).foregroundStyle(.secondary)

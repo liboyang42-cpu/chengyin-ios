@@ -4,6 +4,15 @@ import Foundation
 /// payment, administrator, invite, or owner-transfer route is implied by these cases.
 public enum ClubAction: String, Equatable { case join, apply, leave }
 
+/// Mini uses a 60 UTF-16-unit input bound. Reject overlong text instead of slicing
+/// a surrogate pair or silently changing the message the applicant reviewed.
+public enum ClubApplicationMessage {
+    public static let maximumUTF16Count = 60
+    public static func isValid(_ message: String, for action: ClubAction) -> Bool {
+        (action == .apply || message.isEmpty) && message.utf16.count <= maximumUTF16Count
+    }
+}
+
 public enum ClubActionAvailability: Equatable {
     case available(ClubAction), owner, pending, merchant, unsupportedStatus
     public static func resolve(_ club: ClubRecord, viewerIsMerchant: Bool) -> Self {

@@ -3,9 +3,10 @@ import SwiftUI
 
 enum RegistrationFixtureScenario: String, CaseIterable {
     case standard, noPaymentParameters, unknownAmounts, quoteError, participantsError
-    case createTimeout, readbackError, conflictingStatus, soldOut, disabled
-    case waitlistWaiting, waitlistOffer, waitlistExpiringOffer
-    var isWaitlist: Bool { self == .waitlistWaiting || isOffer }
+    case createTimeout, readbackError, conflictingStatus, soldOut, disabled, signupClosed
+    case waitlistWaiting, waitlistOffer, waitlistExpiringOffer, waitlistClaimed, waitlistConverted, waitlistOrderError
+    var isWaitlist: Bool { self == .waitlistWaiting || isOffer || isOrder }
+    var isOrder: Bool { self == .waitlistClaimed || self == .waitlistConverted || self == .waitlistOrderError }
     var isOffer: Bool { self == .waitlistOffer || self == .waitlistExpiringOffer }
     static func selected(arguments: [String]) -> Self? {
         guard let index = arguments.firstIndex(of: "--uitesting-registration-fixture"),
@@ -28,6 +29,7 @@ private final class RegistrationFixtureStore: RegistrationCoordinatingService, P
         self.scenario = scenario
         offerDeadline = ISO8601DateFormatter().string(from: scenario == .waitlistExpiringOffer ? Date.distantFuture : Date().addingTimeInterval(3600))
         if scenario.isOffer { waitlistState = "OFFERED" }
+        if scenario.isOrder { waitlistState = scenario == .waitlistConverted ? "CONVERTED" : "CLAIMED" }
     }
     func armOfferExpiry() {
         guard scenario == .waitlistExpiringOffer else { return }
@@ -66,7 +68,8 @@ private final class RegistrationFixtureStore: RegistrationCoordinatingService, P
     func status(_ scope: RegistrationWaitlistScope) async throws -> RegistrationWaitlistStatus {
         guard scope.activityID == 9400, scope.ticketID == 9401 else { throw APIError.invalidRequest }
         let offer = waitlistState == "OFFERED" ? ",\"offerToken\":\"offline-only-offer\",\"offerExpiresAt\":\"\(offerDeadline)\"" : ""
-        return try decode("{\"id\":9405,\"activityId\":9400,\"ticketId\":9401,\"memberId\":9400,\"state\":\"\(waitlistState)\",\"eligibilityState\":\"ELIGIBLE\",\"waitlistJoinAllowed\":true\(offer)}")
+        let order = scenario.isOrder ? ",\"registrationId\":9417" : ""
+        return try decode("{\"id\":9405,\"activityId\":9400,\"ticketId\":9401,\"memberId\":9400,\"state\":\"\(waitlistState)\",\"eligibilityState\":\"ELIGIBLE\",\"waitlistJoinAllowed\":true\(offer)\(order)}")
     }
     func join(_ scope: RegistrationWaitlistScope) async throws -> RegistrationWaitlistStatus {
         waitlistState = "WAITING"; return try await status(scope)
@@ -80,7 +83,11 @@ private final class RegistrationFixtureStore: RegistrationCoordinatingService, P
     }
     func profileParticipant(id: Int) async throws -> ProfileParticipant { throw APIError.invalidRequest }
     func profileOrders() async throws -> [ProfileOrder] { [] }
-    func profileOrder(id: Int) async throws -> ProfileOrder { throw APIError.invalidRequest }
+    func profileOrder(id: Int) async throws -> ProfileOrder {
+        guard scenario.isOrder, id == 9417 else { throw APIError.invalidRequest }
+        if scenario == .waitlistOrderError { throw URLError(.notConnectedToInternet) }
+        return try decode(#"{"id":9417,"memberId":9400,"ownerType":2,"ownerId":9400,"ticketId":9401,"registrationNo":"OFFLINE-WAITLIST-9417","registrationStatus":0,"paymentStatus":0,"cmsActivity":{"name":"Synthetic waitlist order"}}"#)
+    }
     func profileBadges() async throws -> ProfileBadgeWall { .init(identities: [], medals: []) }
     private func decode<T: Decodable>(_ json: String) throws -> T { try JSONDecoder().decode(T.self, from: Data(json.utf8)) }
 }
@@ -102,7 +109,7 @@ private final class RegistrationFixtureModel: ObservableObject {
         activity = try? JSONDecoder().decode(ActivityDetail.self, from: Data("""
         {"id":9400,"name":"Offline fixture activity","startDate":"2026-10-12","endDate":"2026-10-12",
          "addressName":"Synthetic meeting point","omsTicketList":[
-         {"id":9401,"name":"Standard fixture ticket","price":12.5,"remainingInventory":\(scenario == .soldOut || scenario.isWaitlist ? 0 : 4)},
+         {"id":9401,"name":"Standard fixture ticket","price":12.5,"remainingInventory":\(scenario == .soldOut || scenario.isWaitlist ? 0 : 4),"startTime":\(scenario == .signupClosed ? "\"2020-01-01 00:00:00\"" : "null")},
          {"id":9402,"name":"Unknown-price fixture ticket","price":null,"remainingInventory":null},
          {"id":9403,"name":"Zero-price fixture ticket","price":0,"remainingInventory":2}]}
         """.utf8))
@@ -148,7 +155,7 @@ struct RegistrationFixtureHostView: View {
                     .modifier(AccessibilityFixtureOptions())
             } else if let activity = model.activity {
                 RegistrationSheetView(activity: activity, coordinator: model.coordinator,
-                                      participantReader: model.store, currentIdentity: { model.store.identity },
+                                      participantReader: model.store, orderReader: model.store, currentIdentity: { model.store.identity },
                                       quoteEnabled: true,
                                       creationPolicy: model.scenario == .disabled ? .disabled : .offlineFixture,
                                       waitlistService: model.scenario.isWaitlist ? model.store : nil)

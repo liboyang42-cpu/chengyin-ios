@@ -88,6 +88,72 @@ final class RegistrationUIFlowTests: XCTestCase {
     private func makeParticipants() throws -> [ProfileParticipant] {
         try JSONDecoder().decode([ProfileParticipant].self, from: Data(#"[{"id":1,"fullName":"First","mobilePhone":"13800000000"},{"id":2,"fullName":"Preferred","mobilePhone":"13900000000","isDefault":true}]"#.utf8))
     }
+    func testTicketWindowBoundariesAndUnknownLegacyDates() throws {
+        let at = try XCTUnwrap(RegistrationWaitlistStatus.parseDeadline("2030-10-02 12:00:00"))
+        func ticket(_ fields: String) throws -> ActivityTicket {
+            try makeActivity(tickets: "[{\"id\":11,\"name\":\"Fixture\"\(fields)}]").tickets[0]
+        }
+        for fields in [#","startTime":"2030-10-02 12:00:00""#,
+                       #","endTime":"2030-10-02T04:00:00Z""#] {
+            let row = try ticket(fields)
+            XCTAssertFalse(row.registrationClosed(at: at.addingTimeInterval(-0.001)))
+            XCTAssertTrue(row.registrationClosed(at: at))
+            XCTAssertTrue(row.registrationClosed(at: at.addingTimeInterval(1)))
+        }
+        for fields in ["", #","startTime":null,"endTime":null"#,
+                       #","startTime":"invalid","endTime":"2030-02-30 12:00:00""#] {
+            XCTAssertFalse(try ticket(fields).registrationClosed(at: at))
+        }
+        XCTAssertTrue(try ticket(#","startTime":"invalid","endTime":"2030-10-02 12:00:00""#).registrationClosed(at: at))
+        XCTAssertFalse(try ticket(#","startTime":"2031-10-02 12:00:00","endTime":"2030-10-02 12:00:00""#).registrationClosed(at: at), "Known start has server precedence")
+        XCTAssertFalse(try ticket(#","selfGuided":true,"startTime":"2029-10-02 12:00:00","endTime":"2031-10-02 12:00:00""#).registrationClosed(at: at))
+        XCTAssertTrue(try ticket(#","selfGuided":true,"endTime":"2031-10-02 12:00:00","signupDeadline":"2030-10-02 12:00:00""#).registrationClosed(at: at))
+        XCTAssertTrue(try ticket(#","selfGuided":true"#).registrationClosed(at: at))
+        XCTAssertTrue(try ticket(#","selfGuided":true,"signupDeadline":"2031-10-02 12:00:00""#).registrationClosed(at: at))
+        XCTAssertTrue(try ticket(#","selfGuided":true,"endTime":"invalid""#).registrationClosed(at: at))
+    }
+    func testTicketWindowRecheckedAfterReviewTimeJumpAndReopen() async throws {
+        let service = UIRegistrationService(), reader = UIRegistrationParticipants()
+        let boundary = try XCTUnwrap(RegistrationWaitlistStatus.parseDeadline("2030-10-02 12:00:00"))
+        var clock = boundary.addingTimeInterval(-1)
+        let detail = try makeActivity(tickets: #"[{"id":11,"name":"Fixture","startTime":"2030-10-02 12:00:00"},{"id":12,"name":"Later","startTime":"2031-10-02 12:00:00"}]"#)
+        let flow = try RegistrationUIFlow(activity: detail, coordinator: makeCoordinator(service),
+            currentIdentity: { reader.identity }, quoteEnabled: true, creationPolicy: .offlineFixture, now: { clock })
+        await ready(flow); XCTAssertTrue(flow.prepareConfirmation())
+        clock = boundary
+        await flow.confirm()
+        XCTAssertEqual(flow.block, .signupClosed); XCTAssertNil(flow.confirmation)
+        XCTAssertTrue(service.creates.isEmpty)
+        flow.leave(); await ready(flow)
+        XCTAssertFalse(flow.prepareConfirmation()); XCTAssertEqual(flow.block, .signupClosed)
+        XCTAssertTrue(flow.selectTicket(id: 12)); await flow.requestQuote(); flow.setConsent(true)
+        XCTAssertTrue(flow.prepareConfirmation())
+        reader.identity = .init(accountID: 1, epoch: 2)
+        await flow.confirm(); XCTAssertTrue(service.creates.isEmpty)
+        XCTAssertEqual(flow.block, .sessionChanged)
+    }
+    func testWindowExpiryDoesNotPreventExistingOrderReadbackOrReleaseUnknownLock() async throws {
+        for unknown in [false, true] {
+            let service = UIRegistrationService(), reader = UIRegistrationParticipants()
+            if unknown { service.createError = URLError(.timedOut) }
+            let boundary = try XCTUnwrap(RegistrationWaitlistStatus.parseDeadline("2030-10-02 12:00:00"))
+            var clock = boundary.addingTimeInterval(-1)
+            let detail = try makeActivity(tickets: #"[{"id":11,"name":"Fixture","startTime":"2030-10-02 12:00:00"}]"#)
+            let flow = try RegistrationUIFlow(activity: detail, coordinator: makeCoordinator(service), currentIdentity: { reader.identity }, quoteEnabled: true, creationPolicy: .offlineFixture, now: { clock })
+            await ready(flow); XCTAssertTrue(flow.prepareConfirmation()); await flow.confirm()
+            clock = boundary.addingTimeInterval(60)
+            XCTAssertTrue(flow.hasRetainedIntent)
+            XCTAssertEqual(flow.confirmationBlock, .intentAlreadySubmitted)
+            if !unknown {
+                XCTAssertTrue(flow.canReadStatus); await flow.readKnownStatus()
+                XCTAssertEqual(service.reads, [41])
+            }
+            flow.leave(); flow.open()
+            XCTAssertTrue(flow.hasRetainedIntent)
+            XCTAssertFalse(flow.prepareConfirmation()); await flow.confirm()
+            XCTAssertEqual(service.creates.count, 1)
+        }
+    }
     func testAcknowledgedCreateReturnsAndSelectsOnlyReadbackID() async throws {
         let service = UIRegistrationService(), reader = UIRegistrationParticipants()
         reader.rows = try makeParticipants()

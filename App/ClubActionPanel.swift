@@ -16,6 +16,7 @@ struct ClubActionPanel: View {
     @State private var issueKey: String? = nil
     @State private var task: Task<Void, Never>? = nil
     @State private var isWorking = false
+    @State private var joinMessage = ""
 
     private var availability: ClubActionAvailability {
         ClubActionAvailability.resolve(club, viewerIsMerchant: coordinator.viewerIsMerchant)
@@ -31,10 +32,20 @@ struct ClubActionPanel: View {
             } else {
                 stateContent(state)
                 if case .available(let action) = availability {
+                    if action == .apply {
+                        TextField("club.application.message", text: $joinMessage, axis: .vertical)
+                            .disabled(isWorking || state.preventsNewAction)
+                            .accessibilityIdentifier("club.application.message")
+                        Text("club.application.messageHelp").font(.caption).foregroundStyle(.secondary)
+                        if !ClubApplicationMessage.isValid(joinMessage, for: .apply) {
+                            Text("club.application.messageTooLong").foregroundStyle(.secondary)
+                                .accessibilityIdentifier("club.application.messageTooLong")
+                        }
+                    }
                     Button(role: action == .leave ? .destructive : nil) { prepare(action) } label: {
                         Label(LocalizedStringKey(actionKey(action)), systemImage: action == .leave ? "rectangle.portrait.and.arrow.right" : "person.badge.plus")
                     }
-                    .disabled(isWorking || state.preventsNewAction)
+                    .disabled(isWorking || state.preventsNewAction || !ClubApplicationMessage.isValid(action == .apply ? joinMessage : "", for: action))
                     .accessibilityIdentifier("club.action.\(action.rawValue)")
                 } else {
                     Text(LocalizedStringKey(availabilityKey)).foregroundStyle(.secondary)
@@ -52,6 +63,7 @@ struct ClubActionPanel: View {
             Button("action.cancel", role: .cancel) { cancelConfirmation() }
         } message: { value in
             Text(verbatim: value.clubName) + Text("\n") + Text(LocalizedStringKey(confirmationKey(value.action)))
+                + Text(verbatim: value.action == .apply ? "\n" + value.joinMessage : "")
         }
         .onChange(of: identity) { _, _ in reset() }
         .onChange(of: club.id) { old, _ in reset(clubID: old) }
@@ -124,11 +136,12 @@ struct ClubActionPanel: View {
         guard !isWorking, coordinator.identity == identity else { return }
         generation &+= 1
         let operation = generation, snapshot = identity, clubID = club.id
+        let reviewedMessage = action == .apply ? joinMessage : ""
         isWorking = true; issueKey = nil
         task = Task {
             defer { if operation == generation { isWorking = false; revision &+= 1 } }
             do {
-                let value = try await coordinator.prepare(clubID: clubID, action: action, expectedIdentity: snapshot, ownerID: ownerID)
+                let value = try await coordinator.prepare(clubID: clubID, action: action, expectedIdentity: snapshot, ownerID: ownerID, joinMessage: reviewedMessage)
                 guard !Task.isCancelled, operation == generation, coordinator.identity == snapshot else { coordinator.cancel(value); return }
                 confirmation = value
             } catch {
@@ -174,6 +187,6 @@ struct ClubActionPanel: View {
         // Synchronization handles old-session writes even when the view now has a new identity.
         coordinator.synchronizeSession()
         coordinator.leaveScreen(clubID: clubID ?? club.id, expectedIdentity: identity, ownerID: ownerID)
-        confirmation = nil; isWorking = false; issueKey = nil; revision &+= 1
+        confirmation = nil; isWorking = false; issueKey = nil; joinMessage = ""; revision &+= 1
     }
 }

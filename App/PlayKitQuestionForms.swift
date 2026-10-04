@@ -37,12 +37,15 @@ extension PlayKitScreen {
         if projection.complete { Text("playkit.branch.ended") }
     }
     @ViewBuilder var estimateForm: some View {
-        if let lo = raw["min"].double, let hi = raw["max"].double, lo.isFinite, hi.isFinite, hi >= lo {
-            LabeledContent("playkit.estimate.range") { Text(verbatim: "\(lo.formatted()) – \(hi.formatted()) \(raw["unit"].text ?? "")") }
-            TextField("playkit.estimate.value", text: textBinding(limit: 32)).keyboardType(.decimalPad).textFieldStyle(.roundedBorder).disabled(!enabled)
-            let value = Double(text.replacingOccurrences(of: ",", with: "."))
-            submitButton("SUBMIT_ESTIMATE", payload: ["value": .number(value ?? 0)], valid: value.map { $0.isFinite && (lo...hi).contains($0) } ?? false)
-        } else { Text("playkit.configurationInvalid") }
+        // The completed projection does not return the player's guess. Do not
+        // present a newly centered picker as if it were their submitted value.
+        if !projection.complete {
+            if let wheel = PlayKitEstimateWheel(segment: raw) {
+                PlayKitEstimateWheelForm(wheel: wheel, unit: raw["unit"].text ?? "", enabled: enabled,
+                                         onDirty: { dirty = true }, requestReview: prepare)
+                    .id("\(runtimeIdentity):\(wheel.minimum):\(wheel.maximum):\(childReset)")
+            } else { Text("playkit.configurationInvalid") }
+        }
         attempts
     }
     @ViewBuilder var pricePairForm: some View {
@@ -118,5 +121,43 @@ extension PlayKitScreen {
         if multi { if selected.contains(id) { selected.remove(id) } else { selected.insert(id) } }
         else { selected = [id] }
         dirty = true
+    }
+}
+
+/// Native wheel interaction for estimate, using only the server's public range.
+/// A new authoritative session/version remounts this form; cancelling its frozen
+/// review keeps the selected tick. There is no local judgement or score.
+@MainActor struct PlayKitEstimateWheelForm: View {
+    let wheel: PlayKitEstimateWheel
+    let unit: String
+    let enabled: Bool
+    let onDirty: () -> Void
+    let requestReview: PlayKitReviewRequest
+    @State private var selectedIndex: Int
+    @ScaledMetric(relativeTo: .title2) private var wheelHeight: CGFloat = 180
+    init(wheel: PlayKitEstimateWheel, unit: String, enabled: Bool,
+         onDirty: @escaping () -> Void, requestReview: @escaping PlayKitReviewRequest) {
+        self.wheel = wheel; self.unit = unit; self.enabled = enabled
+        self.onDirty = onDirty; self.requestReview = requestReview
+        _selectedIndex = State(initialValue: wheel.initialIndex)
+    }
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            LabeledContent("playkit.estimate.range") {
+                Text(verbatim: "\(wheel.minimum.formatted()) – \(wheel.maximum.formatted()) \(unit)")
+            }
+            Picker("playkit.estimate.value", selection: $selectedIndex) {
+                ForEach(wheel.ticks.indices, id: \.self) { index in
+                    Text(verbatim: "\(wheel.ticks[index]) \(unit)")
+                        .lineLimit(1).minimumScaleFactor(0.5).tag(index)
+                }
+            }.pickerStyle(.wheel).frame(height: wheelHeight).disabled(!enabled)
+                .accessibilityIdentifier("playkit.estimate.wheel")
+            Button("playkit.review") {
+                guard enabled, let value = wheel.value(at: selectedIndex) else { return }
+                requestReview("SUBMIT_ESTIMATE", ["value": .number(value)], {})
+            }.buttonStyle(.borderedProminent).disabled(!enabled || wheel.value(at: selectedIndex) == nil)
+                .accessibilityIdentifier("playkit.submit.estimate")
+        }.onChange(of: selectedIndex) { _, _ in onDirty() }
     }
 }

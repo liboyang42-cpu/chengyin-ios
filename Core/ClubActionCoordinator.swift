@@ -6,8 +6,9 @@ public struct ClubActionConfirmation: Equatable {
     public let clubName: String
     public let identity: ClubReadIdentity
     public let action: ClubAction
-    fileprivate init(club: ClubRecord, identity: ClubReadIdentity, action: ClubAction, id: UUID) {
-        self.id = id; clubID = club.id; clubName = club.name; self.identity = identity; self.action = action
+    public let joinMessage: String
+    fileprivate init(club: ClubRecord, identity: ClubReadIdentity, action: ClubAction, id: UUID, joinMessage: String) {
+        self.id = id; clubID = club.id; clubName = club.name; self.identity = identity; self.action = action; self.joinMessage = joinMessage
     }
 }
 public enum ClubActionState: Equatable {
@@ -25,7 +26,7 @@ public enum ClubActionState: Equatable {
 public enum ClubActionReadback: Equatable { case idle, loading, received(ClubRecord), unavailable }
 public enum ClubActionBlock: Error, Equatable {
     case unavailable, signedOut, accountChanged, invalidClub, pendingOperation
-    case eligibilityChanged, cancelledBeforeDispatch, staleConfirmation, noReadback, readbackInProgress
+    case invalidMessage, eligibilityChanged, cancelledBeforeDispatch, staleConfirmation, noReadback, readbackInProgress
 }
 public enum ClubActionResult: Equatable { case applied, ignoredStale, blocked(ClubActionBlock) }
 
@@ -90,12 +91,13 @@ public final class ClubActionCoordinator {
     }
     /// Read a fresh detail before showing the confirmation. A stale join button cannot
     /// silently turn into Leave (or a direct join into an application).
-    public func prepare(clubID: Int, action: ClubAction, expectedIdentity: ClubReadIdentity, ownerID: UUID? = nil) async throws -> ClubActionConfirmation {
+    public func prepare(clubID: Int, action: ClubAction, expectedIdentity: ClubReadIdentity, ownerID: UUID? = nil, joinMessage: String = "") async throws -> ClubActionConfirmation {
         synchronizeSession()
         guard isConfigured else { throw ClubActionBlock.unavailable }
         guard let identity, let key = key(clubID: clubID, identity: identity) else { throw ClubActionBlock.signedOut }
         guard identity == expectedIdentity else { throw ClubActionBlock.accountChanged }
         guard clubID > 0 else { throw ClubActionBlock.invalidClub }
+        guard ClubApplicationMessage.isValid(joinMessage, for: action) else { throw ClubActionBlock.invalidMessage }
         guard !state(clubID: clubID).preventsNewAction, readback(clubID: clubID) != .loading else { throw ClubActionBlock.pendingOperation }
         guard !Task.isCancelled else { throw ClubActionBlock.cancelledBeforeDispatch }
         let id = UUID()
@@ -111,7 +113,7 @@ public final class ClubActionCoordinator {
                 throw ClubActionBlock.eligibilityChanged
             }
             records[key]?.state = .awaitingConfirmation
-            return ClubActionConfirmation(club: club, identity: identity, action: action, id: id)
+            return ClubActionConfirmation(club: club, identity: identity, action: action, id: id, joinMessage: joinMessage)
         } catch {
             if records[key]?.id == id, records[key]?.state == .checking { records[key] = nil }
             throw error
@@ -131,7 +133,7 @@ public final class ClubActionCoordinator {
         records[key]?.state = .submitting
         let next: ClubActionState
         do {
-            let receipt = try await writer.perform(confirmation.action, clubID: confirmation.clubID, expectedIdentity: confirmation.identity)
+            let receipt = try await writer.perform(confirmation.action, clubID: confirmation.clubID, expectedIdentity: confirmation.identity, joinMessage: confirmation.joinMessage)
             next = Task.isCancelled ? .outcomeUnknown(.cancelled) : .acknowledged(receipt)
         } catch let error as ClubActionWriteError {
             switch error {

@@ -73,3 +73,20 @@ class RegistrationWaitlistCompositionTests(unittest.TestCase):
         self.assertIn('header: { Text("registration.waitlist.title") }', section)
         self.assertIn('footer: { Text("registration.waitlist.noAutoPayment") }', section)
 if __name__ == '__main__': unittest.main()
+
+class WaitlistCancellationReviewContractTests(unittest.TestCase):
+    def test_destructive_button_only_prepares_and_alert_dispatches(self):
+        view = (ROOT / 'App/RegistrationSheetView.swift').read_text()
+        button = view.split('Button("registration.waitlist.cancel", role: .destructive)')[1].split('.accessibilityIdentifier')[0]
+        self.assertIn('flow.prepareWaitlistCancellation()', button)
+        self.assertNotIn('await flow.cancelWaitlist()', button)
+        self.assertIn('Button("registration.waitlist.confirmCancel", role: .destructive)', view)
+        flow = (ROOT / 'Core/RegistrationUIFlow.swift').read_text()
+        cancel = flow.split('public func cancelWaitlist()')[1].split('private func mutateWaitlist')[0]
+        for fence in ('review.identity == openedIdentity', 'review.status == waitlistStatus', 'latest == review.status', 'waitlistStamp == waitlistGeneration', '!Task.isCancelled', 'waitlistCancellation = nil'):
+            self.assertIn(fence, cancel)
+        self.assertLess(cancel.index('waitlistService.status(scope)'), cancel.index('await mutateWaitlist(join: false)'))
+    def test_bilingual_cancellation_consequences(self):
+        entries = json.loads((ROOT / 'Resources/Localizable.xcstrings').read_text())['strings']
+        for key in ('cancelTitle', 'confirmCancel', 'cancelOfferHint', 'cancelQueueHint'):
+            self.assertEqual(set(entries['registration.waitlist.' + key]['localizations']), {'en', 'zh-Hans'})

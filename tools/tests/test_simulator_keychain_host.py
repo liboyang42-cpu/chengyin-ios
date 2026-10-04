@@ -107,7 +107,7 @@ class SimulatorKeychainHostTests(unittest.TestCase):
         module.verify_simulator_executable(table + binary() + binary())
         with self.assertRaises(ValueError): module.verify_simulator_executable(table + binary() + binary(2))
 
-    def fake_codesign(self, *, entitlements=None, identity=None, failure=None):
+    def fake_codesign(self, *, entitlements=None, identity=None, failure=None, readback=None):
         calls = []
         def run(command, **kwargs):
             calls.append(command)
@@ -122,7 +122,15 @@ class SimulatorKeychainHostTests(unittest.TestCase):
                 self.assertTrue(path.is_relative_to(self.root))
                 self.assertEqual(plistlib.loads(path.read_bytes()), module.ENTITLEMENTS)
                 self.assertEqual(command[command.index('--sign') + 1], '-')
-            return SimpleNamespace(stdout=plistlib.dumps(module.ENTITLEMENTS if entitlements is None else entitlements),
+            if '--display' in command and '--entitlements' in command:
+                if readback is not None:
+                    return SimpleNamespace(stdout=readback[0], stderr=readback[1])
+                # Documented modern default display is human-readable, not an XML plist.
+                # This fixture is representative, not a claim about run94's unlogged bytes.
+                output = (plistlib.dumps(module.ENTITLEMENTS if entitlements is None else entitlements)
+                          if '--xml' in command else b'[Dict]\n    [Key] application-identifier\n    [Value]\n        [String] TESTONLY.invalid.example.questify.ios\n')
+                return SimpleNamespace(stdout=output, stderr=b'Executable=/synthetic/Questify.app/Questify\n')
+            return SimpleNamespace(stdout=b'',
                                    stderr=(identity or 'Signature=adhoc\nTeamIdentifier=not set\n').encode())
         return calls, run
 
@@ -130,6 +138,7 @@ class SimulatorKeychainHostTests(unittest.TestCase):
         calls, run = self.fake_codesign()
         module.sign_host(self.host, self.root, run)
         self.assertEqual(len(calls), 4)
+        self.assertEqual(calls[2], ['/usr/bin/codesign', '--display', '--entitlements', '-', '--xml', str(self.host)])
         self.assertFalse(list(self.root.glob('questify-test-entitlements-*')))
 
     def test_missing_extra_or_wrong_entitlement_fails(self):
@@ -203,3 +212,35 @@ class SimulatorKeychainHostTests(unittest.TestCase):
             unrelated = Path(alias_parent) / "untrusted-alias"
             unrelated.symlink_to(self.root.resolve(strict=True), target_is_directory=True)
             with self.assertRaises(ValueError): module.validate_host(unrelated / run_tail, alias, self.commit)
+
+    def test_default_display_is_not_treated_as_a_plist(self):
+        _, run = self.fake_codesign()
+        result = run(['/usr/bin/codesign', '--display', '--entitlements', '-', str(self.host)],
+                     check=True, capture_output=True)
+        with self.assertRaises(plistlib.InvalidFileException): plistlib.loads(result.stdout)
+        with self.assertRaises(ValueError): module.readback_entitlements(result.stdout, result.stderr)
+
+    def test_xml_readback_ignores_stderr_diagnostics(self):
+        xml = plistlib.dumps(module.ENTITLEMENTS)
+        calls, run = self.fake_codesign(readback=(xml, b'Executable=/synthetic/path\nwarning: synthetic diagnostic\n'))
+        module.sign_host(self.host, self.root, run)
+        self.assertEqual(len(calls), 4)
+
+    def test_bad_format_wrong_stream_and_ambiguous_keys_fail_closed(self):
+        xml = plistlib.dumps(module.ENTITLEMENTS)
+        duplicate = xml.replace(b'<dict>', b'<dict><key>application-identifier</key><string>WRONG</string>', 1)
+        cases = [(b'', xml), (b'[Dict]\n [Key] application-identifier', b''),
+                 (b'Executable=/synthetic/path\n' + xml, b''), (xml[:-20], b''),
+                 (plistlib.dumps(module.ENTITLEMENTS, fmt=plistlib.FMT_BINARY), b''),
+                 (duplicate, b''), (b'x' * 16_385, b''), (b'not-xml', b'PRIVATE-DIAGNOSTIC')]
+        for output in cases:
+            with self.subTest(length=len(output[0])):
+                calls, run = self.fake_codesign(readback=output)
+                with self.assertRaises(ValueError) as caught: module.sign_host(self.host, self.root, run)
+                self.assertEqual(len(calls), 3)  # never retry signing or fall back to stderr
+                self.assertIn('stdout_bytes=', str(caught.exception))
+                self.assertIn('stderr_bytes=', str(caught.exception))
+                self.assertNotIn('PRIVATE-DIAGNOSTIC', str(caught.exception))
+                self.assertNotIn('/synthetic/path', str(caught.exception))
+                self.assertNotIn('WRONG', str(caught.exception))
+                self.assertFalse(list(self.root.glob('questify-test-entitlements-*')))

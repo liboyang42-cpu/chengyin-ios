@@ -39,7 +39,7 @@ final class ClubActionFlowTests: XCTestCase {
         let expected = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == true AND label == %@", status), object: membership)
         XCTAssertEqual(XCTWaiter.wait(for: [expected], timeout: 15), .completed, app.debugDescription, file: file, line: line)
     }
-    private func confirm(_ action: String) {
+    private func confirm(_ action: String, message: String? = nil) {
         let button = app.buttons["club.action." + action]
         reveal(button); tap(button)
         // iOS 26 presents this native confirmation as a popover containing a sheet.
@@ -52,6 +52,7 @@ final class ClubActionFlowTests: XCTestCase {
         XCTAssertEqual(dialog.label, title)
         let target = dialog.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "Fixture club")).firstMatch
         XCTAssertTrue(target.exists, "The native dialog must name the club being changed")
+        if let message { XCTAssertTrue(target.label.contains(message), "Review must show the exact outgoing message") }
         assertCount(0)
         let matches = dialog.buttons.matching(identifier: "club.action.confirm")
         let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
@@ -83,6 +84,48 @@ final class ClubActionFlowTests: XCTestCase {
         XCTAssertFalse(app.buttons["club.action.join"].exists)
         assertMembership("Joined")
         capture("Club joined – synthetic server readback")
+    }
+    func testOptionalMessageIsReviewedAndSentExactlyOnce() {
+        launch("apply")
+        let field = element("club.application.message")
+        reveal(field); tap(field); field.typeText("Night walks please")
+        confirm("apply", message: "Night walks please")
+        assertCount(1)
+        XCTAssertEqual(app.staticTexts["club.application.fixture.message"].label, "Night walks please")
+        assertMembership("Join request pending")
+    }
+    func testOverlongMessageCannotOpenReview() {
+        launch("apply")
+        let field = element("club.application.message")
+        reveal(field); tap(field); field.typeText(String(repeating: "a", count: 61))
+        let action = app.buttons["club.action.apply"]
+        reveal(action)
+        XCTAssertFalse(action.isEnabled)
+        XCTAssertTrue(element("club.application.messageTooLong").exists)
+        assertCount(0)
+    }
+    func testUnknownApplicationCannotBeEditedOrResentAfterReadback() {
+        launch("applyUnknown")
+        let field = element("club.application.message")
+        reveal(field); tap(field); field.typeText("Hello club")
+        confirm("apply")
+        assertCount(1)
+        let refresh = app.buttons["club.action.readback"]
+        reveal(refresh); tap(refresh)
+        assertCount(1)
+        XCTAssertTrue(element("club.action.unknown").exists)
+        XCTAssertFalse(app.buttons["club.action.apply"].exists)
+    }
+    func testAccountSwitchClearsApplicationDraft() {
+        launch("apply")
+        let field = element("club.application.message")
+        reveal(field); tap(field); field.typeText("Private draft")
+        let switcher = app.buttons["club.action.fixture.switchAccount"]
+        tap(switcher)
+        let replacement = element("club.application.message")
+        reveal(replacement)
+        XCTAssertNotEqual(replacement.value as? String, "Private draft")
+        assertCount(0)
     }
     func testApplicationStaysPendingWithoutMembershipAccess() {
         launch("apply")

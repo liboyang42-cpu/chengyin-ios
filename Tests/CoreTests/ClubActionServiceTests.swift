@@ -8,7 +8,7 @@ final class ClubActionServiceTests: XCTestCase {
     private func service(_ transport: ClubActionTestTransport) throws -> ClubActionService {
         ClubActionService(configuration: try APIConfiguration(baseURL: URL(string: "https://example.com/fixture/")!), transport: transport)
     }
-    func testJoinApplyAndLeaveUseOnlySourceMultipartIDRoute() async throws {
+    func testJoinAndApplyUseCurrentJSONWhileLeaveKeepsItsContract() async throws {
         for action in [ClubAction.join, .apply, .leave] {
             let t = ClubActionTestTransport()
             t.json = #"{"code":200,"data":{"state":"pending"},"msg":"  Source receipt  "}"#
@@ -19,11 +19,19 @@ final class ClubActionServiceTests: XCTestCase {
             XCTAssertEqual(request.httpMethod, "POST")
             XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "fixture-token")
             XCTAssertEqual(request.value(forHTTPHeaderField: "Accept"), "application/json")
-            XCTAssertTrue(request.value(forHTTPHeaderField: "Content-Type")?.hasPrefix("multipart/form-data; boundary=") == true)
+            if action == .leave {
+                XCTAssertTrue(request.value(forHTTPHeaderField: "Content-Type")?.hasPrefix("multipart/form-data; boundary=") == true)
+            } else { XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json") }
             let body = String(data: try XCTUnwrap(request.httpBody), encoding: .utf8) ?? ""
-            XCTAssertTrue(body.contains("name=\"id\"\r\n\r\n7\r\n"))
+            if action == .leave {
+                XCTAssertTrue(body.contains("name=\"id\"\r\n\r\n7\r\n"))
+            } else {
+                let json = try XCTUnwrap(JSONSerialization.jsonObject(with: request.httpBody!) as? [String: Any])
+                XCTAssertEqual(json["id"] as? Int, 7)
+                XCTAssertEqual(Set(json.keys), action == .apply ? Set(["id", "joinMessage"]) : Set(["id"]))
+            }
             XCTAssertFalse(body.contains("clubId")); XCTAssertFalse(body.contains("approved")); XCTAssertFalse(body.contains("payment"))
-            XCTAssertEqual(body.components(separatedBy: "name=\"").count, 2)
+            if action == .leave { XCTAssertEqual(body.components(separatedBy: "name=\"").count, 2) }
             XCTAssertEqual(t.requests.count, 1)
         }
     }
@@ -40,6 +48,32 @@ final class ClubActionServiceTests: XCTestCase {
             let receipt = try await service(t).perform(.join, clubID: 7, token: "fixture-token")
             XCTAssertEqual(receipt.state, expected)
         }
+    }
+    func testApplicationMessagePreservesReviewedUnicodeAndJSONEscaping() async throws {
+        for message in ["", "   ", "  朋友推荐 👋\nA&B + \"quote\"  ", String(repeating: "😀", count: 30), String(repeating: "e\u{301}", count: 30)] {
+            let t = ClubActionTestTransport()
+            _ = try await service(t).perform(.apply, clubID: 7, token: "fixture-token", joinMessage: message)
+            let data = try XCTUnwrap(t.requests.first?.httpBody)
+            let body = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+            XCTAssertEqual(body["joinMessage"] as? String, message)
+            XCTAssertEqual(t.requests.count, 1)
+        }
+    }
+    func testOverlongAndNonApplicationMessagesNeverDispatch() async throws {
+        for (action, message) in [(ClubAction.apply, String(repeating: "a", count: 61)), (.apply, String(repeating: "😀", count: 31)), (.join, "hello"), (.leave, "hello")] {
+            let t = ClubActionTestTransport()
+            do { _ = try await service(t).perform(action, clubID: 7, token: "fixture-token", joinMessage: message); XCTFail() }
+            catch { XCTAssertEqual(error as? ClubActionWriteError, .notSent(.invalidRequest)) }
+            XCTAssertTrue(t.requests.isEmpty)
+        }
+    }
+    func testReceivedApplicationMessageIsOptionalAndTyped() throws {
+        for suffix in ["", ",\"joinMessage\":null", ",\"joinMessage\":\"\"", ",\"joinMessage\":\"你好 👋\""] {
+            let data = Data(("{\"memberId\":7" + suffix + "}").utf8)
+            let value = try JSONDecoder().decode(ClubManagementRequest.self, from: data)
+            XCTAssertEqual(value.joinMessage, suffix.contains("你好") ? "你好 👋" : suffix.hasSuffix("\"\"") ? "" : nil)
+        }
+        XCTAssertThrowsError(try JSONDecoder().decode(ClubManagementRequest.self, from: Data(#"{"memberId":7,"joinMessage":42}"#.utf8)))
     }
     func testInvalidInputSendsNothing() async throws {
         let t = ClubActionTestTransport(), s = try service(t)
