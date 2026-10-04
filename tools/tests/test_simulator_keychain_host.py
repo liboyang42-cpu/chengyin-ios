@@ -47,7 +47,7 @@ class SimulatorKeychainHostTests(unittest.TestCase):
         return module.validate_host(self.run, self.root, self.commit)
 
     def test_exact_restored_simulator_host_is_selected(self):
-        self.assertEqual(self.validate(), (self.host, self.root))
+        self.assertEqual(self.validate(), (self.host.resolve(strict=True), self.root.resolve(strict=True)))
 
     def test_wrong_commit_and_manifest_target_fail(self):
         self.commit = 'b' * 40
@@ -167,3 +167,39 @@ class SimulatorKeychainHostTests(unittest.TestCase):
         self.assertIn('--approve-ephemeral-simulator-host', app_unit)
         self.assertNotIn('continue-on-error', app_unit)
         self.assertIn('CODE_SIGNING_ALLOWED=NO ONLY_ACTIVE_ARCH=NO build-for-testing', source)
+
+    def test_trusted_temp_root_alias_accepts_lexical_and_canonical_run(self):
+        # Exercise macOS-style /var -> /private/var spelling on every platform.
+        with tempfile.TemporaryDirectory() as alias_parent:
+            alias = Path(alias_parent) / "trusted-temp-alias"
+            alias.symlink_to(self.root.resolve(strict=True), target_is_directory=True)
+            lexical_run = alias / self.run.relative_to(self.root)
+            expected = (self.host.resolve(strict=True), self.root.resolve(strict=True))
+            self.assertEqual(module.validate_host(lexical_run, alias, self.commit), expected)
+            self.assertEqual(module.validate_host(self.run.resolve(strict=True), alias, self.commit), expected)
+
+    def test_trusted_alias_does_not_resolve_descendant_symlinks(self):
+        with tempfile.TemporaryDirectory() as alias_parent:
+            alias = Path(alias_parent) / "trusted-temp-alias"
+            alias.symlink_to(self.root.resolve(strict=True), target_is_directory=True)
+            lexical_run = alias / self.run.relative_to(self.root)
+            original = self.run.with_suffix('.original')
+            self.run.rename(original)
+            self.run.symlink_to(original.name)  # even an in-root link must fail
+            with self.assertRaises(ValueError): module.validate_host(lexical_run, alias, self.commit)
+            self.run.unlink(); original.rename(self.run)
+            restore = self.root / 'prebuilt-tests'
+            restore.rename(self.root / 'elsewhere')
+            restore.symlink_to(self.root / 'elsewhere', target_is_directory=True)
+            with self.assertRaises(ValueError): module.validate_host(lexical_run, alias, self.commit)
+
+    def test_trusted_alias_still_rejects_traversal_and_unrelated_alias(self):
+        with tempfile.TemporaryDirectory() as alias_parent:
+            alias = Path(alias_parent) / "trusted-temp-alias"
+            alias.symlink_to(self.root.resolve(strict=True), target_is_directory=True)
+            run_tail = self.run.relative_to(self.root)
+            traversal = alias / 'prebuilt-tests/Products/../Products' / self.run.name
+            with self.assertRaises(ValueError): module.validate_host(traversal, alias, self.commit)
+            unrelated = Path(alias_parent) / "untrusted-alias"
+            unrelated.symlink_to(self.root.resolve(strict=True), target_is_directory=True)
+            with self.assertRaises(ValueError): module.validate_host(unrelated / run_tail, alias, self.commit)

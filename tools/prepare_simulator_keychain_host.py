@@ -94,11 +94,17 @@ def verify_simulator_executable(data):
 def validate_host(xctestrun, runner_temp, commit):
     if not re.fullmatch('[a-f0-9]{40}', commit):
         raise ValueError('Exact commit is required')
-    temporary = Path(runner_temp).resolve(strict=True)
+    temporary_spelling = Path(runner_temp).absolute()
+    temporary = temporary_spelling.resolve(strict=True)
     # This layout is owned by test_products.py restore in the AppUnit job only.
     restore = checked_path(temporary, temporary / 'prebuilt-tests')
     products = checked_path(restore, restore / 'Products')
-    run = checked_path(products, Path(xctestrun).absolute())
+    run_spelling = Path(xctestrun).absolute()
+    # macOS may spell the trusted temporary root through /var -> /private/var.
+    # Translate ONLY that known root prefix; never resolve an untrusted descendant.
+    if run_spelling.is_relative_to(temporary_spelling):
+        run_spelling = temporary / run_spelling.relative_to(temporary_spelling)
+    run = checked_path(products, run_spelling)
     manifest_path = checked_path(products, products / 'questify-test-products.json')
     import json
     manifest = json.loads(manifest_path.read_text())
