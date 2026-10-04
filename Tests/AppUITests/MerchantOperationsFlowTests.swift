@@ -62,6 +62,7 @@ final class MerchantOperationsFlowTests: XCTestCase {
         for _ in 0..<5 where !confirm.isHittable { app.swipeUp() }
         confirm.tap()
         let saved = app.staticTexts["merchant.operations.exampleSaved"]
+        XCTAssertTrue(revealFixtureElement(saved, in: app, requiresHittable: false), app.debugDescription)
         XCTAssertTrue(saved.waitForExistence(timeout: 4))
         XCTAssertEqual(saved.label, "Offline example saved. No real business change was made.")
         assertReviewLocked(app)
@@ -71,6 +72,7 @@ final class MerchantOperationsFlowTests: XCTestCase {
         let confirm = app.buttons["merchant.operations.confirm"]
         for _ in 0..<5 where !confirm.isHittable { app.swipeUp() }; confirm.tap()
         let issue = app.staticTexts["merchant.operations.issue"]
+        XCTAssertTrue(revealFixtureElement(issue, in: app, requiresHittable: false), app.debugDescription)
         XCTAssertTrue(issue.waitForExistence(timeout: 4))
         XCTAssertEqual(issue.label, "The example outcome is unknown. Saving is locked; reading again does not prove that the earlier operation failed.")
         assertReviewLocked(app)

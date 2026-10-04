@@ -25,7 +25,19 @@ final class MerchantOnboardingFlowTests: XCTestCase {
         element.tap()
     }
     private func assertCount(_ id: String, _ count: Int) {
-        let expected = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == true AND label == %@", String(count)), object: element(id))
+        // The native alert scopes element queries to its modal surface. The fixture's
+        // counters remain in the app snapshot (and on screen) behind it; read them
+        // without dismissing or confirming the alert and without using cached counts.
+        let expected = XCTNSPredicateExpectation(predicate: NSPredicate { [self] _, _ in
+            guard let snapshot = try? app.snapshot() else { return false }
+            var pending: [XCUIElementSnapshot] = [snapshot]
+            var counts: [XCUIElementSnapshot] = []
+            while let node = pending.popLast() {
+                if node.identifier == id, node.elementType == .staticText { counts.append(node) }
+                pending.append(contentsOf: node.children)
+            }
+            return counts.count == 1 && counts[0].label == String(count)
+        }, object: app)
         XCTAssertEqual(XCTWaiter.wait(for: [expected], timeout: 5), .completed, app.debugDescription)
     }
     private func beginReapply() {

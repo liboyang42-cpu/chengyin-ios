@@ -140,6 +140,22 @@ import XCTest
         }
         XCTAssertEqual(Set(entries.map(\.namespace)).count, 1)
     }
+    func testNormalRootTeamReadOnlyJourney() throws {
+        let app = launch(); signIn(app)
+        tab("Account", app); tap("My teams", app)
+        XCTAssertTrue(app.buttons["team.row.61"].waitForExistence(timeout: 5))
+        tap("team.row.61", app)
+        XCTAssertTrue(app.navigationBars["Team details"].waitForExistence(timeout: 5))
+        XCTAssertTrue(revealFixtureElement(app.staticTexts["Current synthetic member"], in: app))
+        tap("team.leave", app)
+        XCTAssertTrue(app.buttons["team.review.confirm"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["team.review.confirm"].isEnabled)
+        tap("team.review.cancel", app)
+        let reads = try evidence(app).ledger.filter { $0.route.hasPrefix("teams.") }
+        XCTAssertEqual(reads.map(\.route), ["teams.list", "teams.detail"])
+        XCTAssertEqual(reads.last?.fields, ["teamId": "61"])
+        assertIdentity(reads, owner: 7, epoch: try evidence(app).epoch)
+    }
     func testActualPhoneHomeDetailManualMapPlayAndFreshOwnedOrderJourney() throws {
         let app = launch(); XCTAssertEqual(try evidence(app).ledger.count, 0)
         signIn(app)

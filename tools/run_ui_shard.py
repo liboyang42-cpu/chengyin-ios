@@ -8,9 +8,13 @@ import os
 import signal
 import json
 import math
+try:
+    from ui_failure_evidence import EvidenceStream
+except ModuleNotFoundError:
+    from tools.ui_failure_evidence import EvidenceStream
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-DEFAULT_SHARD_COUNT = 10
+DEFAULT_SHARD_COUNT = 11
 
 def discover(directory):
     weights = {}
@@ -80,6 +84,7 @@ def main():
     parser.add_argument('--result-bundle')
     parser.add_argument('--xctestrun')
     parser.add_argument('--deadline-seconds', type=int)
+    parser.add_argument('--evidence-directory', type=pathlib.Path)
     parser.add_argument('--dry-run', action='store_true')
     parser.add_argument('--duration-profile', type=pathlib.Path, default=ROOT/'tools/ui_duration_weights.json')
     args = parser.parse_args()
@@ -111,9 +116,20 @@ def main():
                '-parallel-testing-enabled', 'NO']
     command += [f'-only-testing:QuestifyUITests/{name}' for name in selected]
     command += ['CODE_SIGNING_ALLOWED=NO', action]
-    process = subprocess.Popen(command, cwd=ROOT, start_new_session=True)
     try:
-        return process.wait(timeout=args.deadline_seconds)
+        evidence = EvidenceStream(args.evidence_directory) if args.evidence_directory else None
+    except (OSError, ValueError):
+        print('UI evidence directory unavailable; continuing authoritative test execution', flush=True)
+        evidence = None
+    process = subprocess.Popen(command, cwd=ROOT, start_new_session=True,
+                               **({'stdout': subprocess.PIPE, 'stderr': subprocess.STDOUT} if evidence else {}))
+    if evidence:
+        evidence.start(process.stdout)
+    try:
+        code = process.wait(timeout=args.deadline_seconds)
+        if evidence:
+            evidence.finish(code)
+        return code
     except subprocess.TimeoutExpired:
         # Give xcodebuild time to finalize partial results before the job limit.
         # A partial run always fails, even if its graceful interrupt returns zero.
@@ -128,6 +144,8 @@ def main():
             except subprocess.TimeoutExpired:
                 os.killpg(process.pid, signal.SIGKILL)
                 process.wait()
+        if evidence:
+            evidence.finish(124)
         return 124
 
 if __name__ == '__main__':

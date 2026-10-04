@@ -1299,17 +1299,22 @@ final class AppSession: ObservableObject {
         guard let self,self.currentSquareSession == captured else { return }
         self.expireIfMatching(error:APIError.unauthorized,stamp:captured.epoch,credential:self.token)
     })
-    // Team transport remains unconfigured until this module's read deployment is verified.
+    // Team reads require a separately injected, revocable exact-context lease.
     // Source write adapters exist, but no production write approval is supplied here.
     private let teamService = TeamReadOnlyService()
-    private lazy var teamJournal = TeamDefaultsJournal(defaults: .standard)
+    private lazy var teamJournal = TeamDefaultsJournal(defaults: composition.storage.defaults)
     private var currentTeamSession: TeamSession? {
         guard let account, let token, let storageScope, let market = operationalMarket else { return nil }
         return try? TeamSession(account: account, epoch: gate.currentStamp, region: market.rawValue,
-                                storageNamespace: storageScope.service, token: token)
+                                storageNamespace: storageScope.service, token: token, viewerRevision: compositionViewerRevision)
+    }
+    private var currentTeamReadApproval: TeamReadApproval? {
+        guard let context = currentRuntimeDependencyContext,
+              let approval = composition.teamReadApproval(context), approval.matches(context) else { return nil }
+        return approval
     }
     var teamViewIdentity: String {
-        "\(gate.currentStamp):\(account?.id ?? 0):\(account?.effectiveRole ?? "guest"):\(operationalMarket?.rawValue ?? "unconfigured")"
+        "\(gate.currentStamp):\(account?.id ?? 0):\(account?.effectiveRole ?? "guest"):\(operationalMarket?.rawValue ?? "unconfigured"):\(compositionViewerRevision):\(currentTeamReadApproval?.revision.uuidString ?? "disabled")"
     }
     var nearbyTeamSession: NearbyTeamSession? { currentTeamSession.map { NearbyTeamSession(teamSession: $0) } }
     var nearbyTeamQueryContext: NearbyQueryContext? {
@@ -1345,7 +1350,19 @@ final class AppSession: ObservableObject {
         // Default callers provide neither deployment approval nor a registration source.
         // An approved read factory is reusable without silently enabling any write endpoint.
         let reader: TeamReadOnlyService
-        if let readApproval, let configuration = regionalConfiguration?.apiConfiguration {
+        var coordinatorSession: () -> TeamSession? = { [weak self] in self?.currentTeamSession }
+        if let approval = currentTeamReadApproval, let configuration = regionalConfiguration?.apiConfiguration {
+            // Capture this issuance. An old coordinator cannot silently adopt a replacement
+            // lease, role refresh, new owner or session. The outer transport checks it again.
+            let viewerRevision = compositionViewerRevision
+            coordinatorSession = { [weak self] in
+                    guard let self, self.compositionViewerRevision == viewerRevision,
+                          self.currentTeamReadApproval?.revision == approval.revision else { return nil }
+                    return self.currentTeamSession
+                }
+            reader = TeamReadOnlyService(configuration: configuration, transport: runtimeHTTPTransport,
+                readApproval: approval.endpoints, currentSession: coordinatorSession, requiresIDMembership: true)
+        } else if let readApproval, let configuration = regionalConfiguration?.apiConfiguration {
             reader = TeamReadOnlyService(configuration: configuration, transport: runtimeHTTPTransport,
                 readApproval: readApproval, currentSession: { [weak self] in self?.currentTeamSession },
                 creationLoader: { [weak self] ownerID, session in
@@ -1362,7 +1379,7 @@ final class AppSession: ObservableObject {
                 })
         } else { reader = teamService }
         return TeamCoordinator(service: reader, journal: teamJournal,
-            currentSession: { [weak self] in self?.currentTeamSession },
+            currentSession: coordinatorSession,
             onUnauthorized: { [weak self] captured in
                 guard let self, self.currentTeamSession == captured else { return }
                 self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)

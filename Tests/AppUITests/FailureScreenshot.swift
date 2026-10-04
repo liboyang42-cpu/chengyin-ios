@@ -3,6 +3,7 @@ import XCTest
 /// Keep the actual failing UI, rather than relying on AX text or screenshots of later states.
 func attachFailureScreenshot(_ test:XCTestCase,app:XCUIApplication?) {
     guard let app,(test.testRun?.totalFailureCount ?? 0)>0 else { return }
+    emitRegistrationFailureEvidence(app)
     let image=XCTAttachment(screenshot:app.screenshot())
     image.name="Failure state – " + test.name
     image.lifetime = .keepAlways
@@ -139,4 +140,32 @@ func dismissFixtureConfirmationPopover(in app: XCUIApplication,
     }
     outside.coordinate(withNormalizedOffset: .zero)
         .withOffset(CGVector(dx: point.x - outside.frame.minX, dy: point.y - outside.frame.minY)).tap()
+}
+
+/// Emit a small allowlisted AX projection before screenshot capture can stall.
+/// Never emit arbitrary AX strings, values, paths, addresses or launch arguments.
+private func emitRegistrationFailureEvidence(_ app: XCUIApplication) {
+    guard let index = app.launchArguments.firstIndex(of: "--uitesting-registration-fixture"),
+          index + 1 < app.launchArguments.count,
+          ["waitlistClaimed", "waitlistConverted", "waitlistOrderError"].contains(app.launchArguments[index + 1]) else { return }
+    let allowed = ["Order number, OFFLINE-WAITLIST-9417", "订单号, OFFLINE-WAITLIST-9417",
+                   "Order number", "订单号", "OFFLINE-WAITLIST-9417",
+                   "registration.waitlist.order.close", "profile.order.detail.retry",
+                   "registration.waitlist.openOrder"]
+    let types = ["StaticText", "Button", "Other", "NavigationBar", "ScrollView", "Table", "Cell"]
+    let snapshot = String(app.debugDescription.prefix(65536))
+    var rows: [[String: Any]] = []
+    for line in snapshot.split(separator: "\n").prefix(512) {
+        guard let type = types.first(where: { line.trimmingCharacters(in: .whitespaces).hasPrefix($0 + ",") }) else { continue }
+        let matches = allowed.filter { line.contains("'" + $0 + "'") }
+        guard !matches.isEmpty else { continue }
+        rows.append(["type": type, "knownStrings": matches])
+        if rows.count == 128 { break }
+    }
+    let payload: [String: Any] = ["version": 1, "fixture": "registration-waitlist", "rows": rows,
+                                 "sourceTruncated": snapshot.count == 65536 || snapshot.split(separator: "\n").count >= 512 || rows.count == 128]
+    guard let data = try? JSONSerialization.data(withJSONObject: payload, options: [.sortedKeys]), data.count <= 32768,
+          let text = String(data: data, encoding: .utf8) else { return }
+    print("QUESTIFY_UI_EVIDENCE_V1 " + text)
+    fflush(stdout)
 }

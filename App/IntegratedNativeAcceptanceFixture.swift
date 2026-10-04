@@ -68,6 +68,7 @@ import SwiftUI
     private struct Grants {
         let context: RuntimeDependencyContext
         let map: ManualMapReadApproval
+        let teams: TeamReadApproval
         let orders: OwnedOrderReadApproval
         let play: RuntimeDependencyConfiguration
     }
@@ -92,7 +93,7 @@ import SwiftUI
             makeTransport: { self }, sessionDependencies: { context in
                 guard let grants = self.grants(context) else { return .dormant }
                 return .init(configuration: grants.play)
-            }, manualMapReadApproval: { self.grants($0)?.map }, ownedOrderReadApproval: { self.grants($0)?.orders })
+            }, teamReadApproval: { self.grants($0)?.teams }, manualMapReadApproval: { self.grants($0)?.map }, ownedOrderReadApproval: { self.grants($0)?.orders })
     }
     private func grants(_ context: RuntimeDependencyContext) -> Grants? {
         guard mode == .ready, let session, let account = session.account,
@@ -102,14 +103,15 @@ import SwiftUI
               context.session.namespace == deployment.storageScope.service,
               context.session.token == "synthetic-\(account.id)", context.session.token == vault.value else { return nil }
         if let retained, ContentDraftContextFence.matches(retained.context, context) { return retained }
-        retained?.orders.revoke()
+        retained?.teams.revoke(); retained?.orders.revoke()
         let expires = Date().addingTimeInterval(600)
         guard let map = try? ManualMapReadApproval(context: context, expiresAt: expires),
+              let teams = try? TeamReadApproval(context: context, expiresAt: expires),
               let orders = try? OwnedOrderReadApproval(context: context, expiresAt: expires),
               let endpoints = try? OperationEndpointApproval(baseURL: Self.base, namespace: context.session.namespace,
                 accountID: account.id, paths: ["api/play/nodes", "api/play/route-state"]) else { return nil }
         // A stable issuance is retained per exact account/session context. No write capabilities.
-        let value = Grants(context: context, map: map, orders: orders,
+        let value = Grants(context: context, map: map, teams: teams, orders: orders,
             play: .init(market: .china, endpoints: endpoints, play: [.reads], playReadApprovalID: UUID()))
         retained = value
         return value
@@ -182,12 +184,20 @@ import SwiftUI
         } else if path == "api/logout" {
             guard session.account == nil, vault.value == nil, session.roamArea == nil,
                   ["synthetic-7", "synthetic-8"].contains(token ?? ""), matchesForm(request, fields: [:]) else { try reject("logout isolation") }
-            retained?.orders.revoke(); retained = nil; pendingAccount = nil
+            retained?.teams.revoke(); retained?.orders.revoke(); retained = nil; pendingAccount = nil
             route = "logout"; json = #"{"code":200}"#
         } else {
             guard let owner = session.account?.id, [7, 8].contains(owner), session.account?.effectiveRole == "player",
                   token == "synthetic-\(owner)", token == vault.value else { try reject("complete current identity") }
             switch path {
+            case "api/team/my":
+                guard TeamReadRoute(request: request, baseURL: Self.base) == .mine else { try reject("team list shape") }
+                route = "teams.list"
+                json = "{\"code\":200,\"data\":[{\"id\":61,\"title\":\"Owner \(owner) team\",\"status\":0}]}"
+            case "api/team/info":
+                guard TeamReadRoute(request: request, baseURL: Self.base) == .detail(.id(61)) else { try reject("team detail shape") }
+                fields = ["teamId": "61"]; route = "teams.detail"
+                json = "{\"code\":200,\"data\":{\"team\":{\"id\":61,\"title\":\"Fresh owner \(owner) team\",\"status\":0},\"joined\":true,\"leader\":false,\"members\":[{\"memberId\":\(owner),\"memberName\":\"Current synthetic member\",\"role\":0}]}}"
             case "api/common/banner":
                 fields = ["showType": "1", "linkType": "0"]; route = "home.banners"; json = #"{"code":200,"data":[]}"#
             case "api/category/list":
@@ -230,7 +240,7 @@ import SwiftUI
                 json = "{\"code\":200,\"data\":{\"id\":41,\"memberId\":\(owner),\"cmsActivity\":{\"name\":\"Owner \(owner) fresh detail\"},\"registrationStatus\":2,\"paymentStatus\":0,\"payableAmount\":12.3456,\"pointsReturned\":0,\"refundApplication\":{\"payoutStatus\":0}}}"
             default: try reject("unreviewed endpoint: " + path)
             }
-            if request.httpMethod != "GET", !matchesForm(request, fields: fields) { try reject("exact form: " + path) }
+            if request.httpMethod != "GET", !["api/team/my", "api/team/info"].contains(path), !matchesForm(request, fields: fields) { try reject("exact form: " + path) }
             if request.httpMethod == "GET", !path.hasPrefix("api/play/"), path != "api/roam/pois" { try reject("unexpected GET") }
         }
         ledger.append(.init(route: route, method: request.httpMethod ?? "", url: url.absoluteString, fields: fields,

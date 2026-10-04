@@ -13,9 +13,9 @@ enum ClubFixtureScenario: String {
 
 @MainActor
 struct ClubFixtureRootView: View {
-    private let profileReader = SocialAccountFixtureReader(.content)
-    private let squareReader = SquareFixtureReader()
-    private let governanceAccess = ClubGovernanceFixtureAccess()
+    private var profileReader: SocialAccountFixtureReader { reader.profileReader }
+    private var squareReader: SquareFixtureReader { reader.squareReader }
+    private var governanceAccess: ClubGovernanceFixtureAccess { reader.governanceAccess }
     private let scenario: ClubFixtureScenario
     @State private var viewerRevision: UInt64 = 0
     @StateObject private var reader: ClubFixtureReader
@@ -50,21 +50,18 @@ struct ClubFixtureRootView: View {
             }
             .environment(\.clubEnrollmentProfile, ClubEnrollmentProfileContext(reader: profileReader, squareReader: squareReader))
             .id(reader.clubIdentity)
-            .onAppear { synchronizeProfileIdentity() }
-            .onChange(of: reader.clubIdentity) { _, _ in synchronizeProfileIdentity() }
         }
     }
-    private func synchronizeProfileIdentity() {
-        governanceAccess.identity = reader.clubIdentity
-        governanceAccess.allowsOfflineWrites = false
-        governanceAccess.readFailure = scenario == .customerDenied ? .forbidden : nil
-        profileReader.identity = .init(accountID: reader.clubIdentity.accountID, epoch: reader.clubIdentity.epoch, role: "player")
-    }
+
 }
 
 @MainActor
-private final class ClubFixtureReader: ObservableObject, ClubReading {
+final class ClubFixtureReader: ObservableObject, ClubReading {
     let isClubConfigured = true
+    // Own companion readers with the same lifetime as the published club identity.
+    let profileReader = SocialAccountFixtureReader(.content)
+    let squareReader = SquareFixtureReader()
+    let governanceAccess = ClubGovernanceFixtureAccess()
     @Published private(set) var clubIdentity: ClubReadIdentity
     private let scenario: ClubFixtureScenario
     private var firstHomeAttempt = true
@@ -72,10 +69,22 @@ private final class ClubFixtureReader: ObservableObject, ClubReading {
     init(scenario: ClubFixtureScenario) {
         self.scenario = scenario
         clubIdentity = .init(accountID: scenario == .guest ? nil : 701, epoch: 0)
+        synchronizeCompanions(with: clubIdentity)
     }
-    func signIn() { clubIdentity = .init(accountID: alternateAccount ? 702 : 701, epoch: clubIdentity.epoch &+ 1) }
-    func signOut() { clubIdentity = .init(accountID: nil, epoch: clubIdentity.epoch &+ 1) }
+    func signIn() { setIdentity(.init(accountID: alternateAccount ? 702 : 701, epoch: clubIdentity.epoch &+ 1)) }
+    func signOut() { setIdentity(.init(accountID: nil, epoch: clubIdentity.epoch &+ 1)) }
     func switchAccount() { alternateAccount.toggle(); signIn() }
+    private func setIdentity(_ identity: ClubReadIdentity) {
+        // Synchronize non-observable companions before publishing the new render identity.
+        synchronizeCompanions(with: identity)
+        clubIdentity = identity
+    }
+    private func synchronizeCompanions(with identity: ClubReadIdentity) {
+        governanceAccess.identity = identity
+        governanceAccess.allowsOfflineWrites = false
+        governanceAccess.readFailure = scenario == .customerDenied ? .forbidden : nil
+        profileReader.identity = .init(accountID: identity.accountID, epoch: identity.epoch, role: "player")
+    }
     func clubHome() async throws -> ClubHome {
         try authorize()
         if scenario == .retry && firstHomeAttempt { firstHomeAttempt = false; throw URLError(.notConnectedToInternet) }

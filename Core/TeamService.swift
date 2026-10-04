@@ -6,14 +6,15 @@ import FoundationNetworking
 public struct TeamSession: Equatable {
     public let accountID: Int
     public let epoch: UInt64
+    public let viewerRevision: UInt64
     public let region: String
     public let role: String
     public let storageNamespace: String
     let token: String
     public var ownerKey: String { "\(region)-\(Data(storageNamespace.utf8).base64EncodedString())-\(accountID)" }
-    public init(account: Account, epoch: UInt64, region: String, storageNamespace: String, token: String) throws {
+    public init(account: Account, epoch: UInt64, region: String, storageNamespace: String, token: String, viewerRevision: UInt64 = 0) throws {
         guard account.id > 0, ["CN", "US"].contains(region), !storageNamespace.isEmpty, AuthRequestBuilder.isValidToken(token) else { throw TeamFailure.invalidRequest }
-        accountID = account.id; self.epoch = epoch; self.region = region; role = account.effectiveRole; self.storageNamespace = storageNamespace; self.token = token
+        accountID = account.id; self.epoch = epoch; self.viewerRevision = viewerRevision; self.region = region; role = account.effectiveRole; self.storageNamespace = storageNamespace; self.token = token
     }
 }
 public enum TeamServiceAuthority: Equatable { case unconfigured, readOnly, approved, synthetic }
@@ -33,13 +34,16 @@ public enum TeamWriteOutcome: Equatable { case simulated(operationID: UUID, team
     private let transport: (any HTTPTransport)?
     private let readApproval: OperationEndpointApproval?
     private let currentSession: (() -> TeamSession?)?
+    private let requiresIDMembership: Bool
     private let creationLoader: ((Int, TeamSession) async throws -> TeamCreationContext)?
     public var authority: TeamServiceAuthority { configuration == nil || transport == nil ? .unconfigured : .readOnly }
     public init(configuration: APIConfiguration? = nil, transport: (any HTTPTransport)? = nil,
                 readApproval: OperationEndpointApproval? = nil, currentSession: (() -> TeamSession?)? = nil,
+                requiresIDMembership: Bool = false,
                 creationLoader: ((Int, TeamSession) async throws -> TeamCreationContext)? = nil) {
         self.configuration = configuration; self.transport = transport; self.readApproval = readApproval
         self.currentSession = currentSession; self.creationLoader = creationLoader
+        self.requiresIDMembership = requiresIDMembership
     }
     private func check(_ session: TeamSession) throws {
         try Task.checkCancellation()
@@ -55,7 +59,12 @@ public enum TeamWriteOutcome: Equatable { case simulated(operationID: UUID, team
         let body: [String: Any]
         switch lookup { case .id(let id): body = ["teamId": id]; case .invitation(let code): body = ["inviteCode": code.trimmingCharacters(in: .whitespacesAndNewlines)] }
         let detail: TeamDetail = try await read(path: "api/team/info", body: body, session: session)
-        if case .id(let id) = lookup, detail.team.id != id { throw TeamFailure.invalidContract }
+        if case .id(let id) = lookup {
+            guard detail.team.id == id else { throw TeamFailure.invalidContract }
+            // Normal-root ID reads must carry the source's fresh membership projection.
+            // Invitation reads intentionally permit nonmembers; this is not join authority.
+            if requiresIDMembership, detail.joined != true { throw TeamFailure.invalidContract }
+        }
         if case .invitation(let code) = lookup, let returnedCode = detail.team.inviteCode, returnedCode != code.trimmingCharacters(in: .whitespacesAndNewlines) { throw TeamFailure.invalidContract }
         return detail
     }

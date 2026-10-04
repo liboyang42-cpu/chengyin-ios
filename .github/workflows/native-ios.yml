@@ -256,7 +256,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     needs: native
     env:
       EXPECTED_BUILD_FINGERPRINT: ${{ needs.native.outputs.build_fingerprint }}
@@ -271,6 +271,7 @@ jobs:
       shard_7: ${{ steps.completion.outputs.shard_7 }}
       shard_8: ${{ steps.completion.outputs.shard_8 }}
       shard_9: ${{ steps.completion.outputs.shard_9 }}
+      shard_10: ${{ steps.completion.outputs.shard_10 }}
     runs-on: macos-26
     # Run49 spent 9–13 minutes on setup/build/launch before executing methods.
     # Reuse products; keep a bounded margin for the full shard and result export.
@@ -311,22 +312,24 @@ jobs:
         run: xcrun simctl bootstatus "$TEST_SIMULATOR_ID" -b
       - name: Test native module flows and session boundaries
         run: |
-          python3 tools/run_ui_shard.py --shard ${{ matrix.shard }} --count 10 \
+          python3 tools/run_ui_shard.py --shard ${{ matrix.shard }} --count 11 \
             --simulator "$TEST_SIMULATOR_ID" \
             --xctestrun "$UI_XCTESTRUN" --deadline-seconds 1800 \
-            --result-bundle "$RUNNER_TEMP/questify-ui-results.xcresult"
+            --result-bundle "$RUNNER_TEMP/questify-ui-results.xcresult" \
+            --evidence-directory "$RUNNER_TEMP/questify-ui-evidence"
       - name: Export offline fixture screenshots
         if: always()
         run: |
-          mkdir -p "$RUNNER_TEMP/questify-ui-attachments"
-          if [ -f "$RUNNER_TEMP/questify-ui-results.xcresult/Info.plist" ]; then
-            xcrun xcresulttool export attachments \
-              --path "$RUNNER_TEMP/questify-ui-results.xcresult" \
-              --output-path "$RUNNER_TEMP/questify-ui-attachments"
-          else
-            echo 'No finalized xcresult. Runtime job remains failed/incomplete; capturing only the current simulator screen for diagnosis.'
-            xcrun simctl io "$TEST_SIMULATOR_ID" screenshot "$RUNNER_TEMP/questify-ui-attachments/incomplete-shard-${{ matrix.shard }}.png"
-          fi
+          python3 tools/export_ui_evidence.py --runner-temp "$RUNNER_TEMP"
+      - name: Retain bounded UI failure evidence even without finalized results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ui-failure-evidence-${{ github.sha }}-${{ matrix.shard }}
+          path: ${{ runner.temp }}/questify-ui-evidence/*.json
+          if-no-files-found: warn
+          retention-days: 1
+          compression-level: 0
       - name: Retain synthetic UI screenshots briefly
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

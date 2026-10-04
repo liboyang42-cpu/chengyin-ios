@@ -16,6 +16,10 @@ class UIShardingTests(unittest.TestCase):
         self.assertIsNotNone(matrix)
         indices=[int(item.strip()) for item in matrix.group(1).split(',')]
         self.assertEqual(indices,list(range(module.DEFAULT_SHARD_COUNT)))
+        gate=(module.ROOT/'tools/ci_gates.py').read_text()
+        self.assertEqual(int(re.search(r'SHARD_COUNT = (\d+)',gate)[1]),module.DEFAULT_SHARD_COUNT)
+        outputs=re.findall(r'shard_(\d+): \$\{\{ steps.completion.outputs.shard_(\d+) \}\}',workflow)
+        self.assertEqual(outputs,[(str(i),str(i)) for i in range(module.DEFAULT_SHARD_COUNT)])
         counts=re.findall(r'run_ui_shard\.py[^\n]*--count\s+(\d+)',workflow)
         self.assertEqual(counts,[str(module.DEFAULT_SHARD_COUNT)])
         weights=module.discover(module.ROOT/'Tests/AppUITests')
@@ -123,9 +127,9 @@ class UIShardingTests(unittest.TestCase):
                     'method_seconds':{},'estimated_method_seconds':estimates}))
                 with self.subTest(estimates=estimates),self.assertRaises(ValueError):
                     module.measured_weights(root,profile)
-    def test_trial_profile_preserves_estimate_provenance_and_ten_shard_coverage(self):
+    def test_trial_profile_preserves_estimate_provenance_and_all_shard_coverage(self):
         data=json.loads((module.ROOT/'tools/ui_duration_weights.json').read_text())
-        self.assertEqual(module.DEFAULT_SHARD_COUNT,10)
+        self.assertEqual(module.DEFAULT_SHARD_COUNT,11)
         self.assertEqual(data['unobserved_method_seconds'],60)
         records=data['estimate_provenance']['methods']
         self.assertEqual(data['estimate_provenance']['baseline_estimate_count'],23)
@@ -135,3 +139,28 @@ class UIShardingTests(unittest.TestCase):
         self.assertEqual(len(records),len({record['method'] for record in records}))
         self.assertTrue(all(record['measured'] is False and record['basis'] for record in records))
         self.assertEqual(data['estimated_method_seconds'],{x['method']:x['seconds'] for x in records})
+
+    def test_planned_method_load_preserves_process_deadline_and_startup_reserve(self):
+        data=json.loads((module.ROOT/'tools/ui_duration_weights.json').read_text())
+        budget=data['planning_budget']
+        self.assertEqual(budget['deadline_seconds'],1800)
+        self.assertGreaterEqual(budget['startup_reserve_seconds'],budget['maximum_observed_startup_seconds'])
+        self.assertGreater(budget['startup_reserve_seconds'],0)
+        workflow=(module.ROOT/'.github/workflows/native-ios.yml').read_text()
+        self.assertEqual([int(n) for n in re.findall(r'--deadline-seconds\s+(\d+)',workflow)],[budget['deadline_seconds']])
+        costs=module.measured_weights(module.ROOT/'Tests/AppUITests',module.ROOT/'tools/ui_duration_weights.json')
+        groups=module.partition(costs,module.DEFAULT_SHARD_COUNT)
+        for group in groups:
+            self.assertLessEqual(sum(costs[name] for name in group)+budget['startup_reserve_seconds'],budget['deadline_seconds'])
+
+    def test_new_run96_successor_estimates_are_explicit_not_measurements(self):
+        data=json.loads((module.ROOT/'tools/ui_duration_weights.json').read_text())
+        records=[r for r in data['estimate_provenance']['methods'] if r['source']=='queuedRun96']
+        self.assertEqual(len(records),16)
+        for record in records:
+            self.assertFalse(record['measured'])
+            self.assertTrue(record['basis'])
+            self.assertGreaterEqual(record['seconds'],60)
+            self.assertEqual(data['estimated_method_seconds'][record['method']],record['seconds'])
+        image='RetainedImageUITests.testUploadByteCountUsesSelectedLanguageInProductionReview'
+        self.assertEqual(data['estimated_method_seconds'][image],240)

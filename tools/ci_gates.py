@@ -2,7 +2,7 @@
 """Bind parallel native CI gates to one checked-out SHA and Apple toolchain.
 
 The UI matrix emits one uniquely named completion output per successful shard.
-The aggregate requires all ten outputs as well as every direct job's success;
+The aggregate requires all configured outputs as well as every direct job's success;
 missing, skipped, cancelled and partially completed work cannot pass.
 """
 import argparse
@@ -16,7 +16,7 @@ import subprocess
 from test_products import toolchain
 
 REQUIRED_JOBS = {'native', 'device-build', 'us-build', 'secrets', 'app-unit-tests', 'ui-tests'}
-SHARD_COUNT = 10
+SHARD_COUNT = 11
 
 
 def validate_commit(commit):
@@ -119,7 +119,7 @@ def main():
     if args.action == 'aggregate':
         checked_out_commit(commit)
         aggregate(json.loads(os.environ['NEEDS_JSON']), commit)
-        print('All required native gates and ten UI shards succeeded for', commit)
+        print('All required native gates and', SHARD_COUNT, 'UI shards succeeded for', commit)
     elif args.action == 'complete-ui':
         # This step uses the default success() condition and runs after results
         # export, so a failed runtime or failed export cannot emit completion.

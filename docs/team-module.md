@@ -1,6 +1,6 @@
 # Owned teams, invitation review and activity-team creation
 
-Status: source-backed native slice; all live team reads remain unconfigured in AppSession and all live writes/sharing are disabled. No backend call or actual team operation was performed. Swift/Xcode/runtime NOT_RUN.
+Status: source-backed native slice; normal AppSession now supports an explicitly injected, revocable team-read lease. Its selector defaults to nil; normal release startup remains unconfigured and all live writes/sharing are disabled. No backend call or actual team operation was performed. Swift/Xcode/runtime NOT_RUN.
 
 ## Implemented
 
@@ -56,3 +56,13 @@ All eight primary Core/App files, SessionTeamViews, two CoreTests files and Team
 AppSession owns one minimal pending journal and constructs route-specific coordinators. Session wrappers are keyed by epoch/account/role/market, and currentTeamSession also includes the reviewed regional storage namespace. Keep these guards if adding fresh-registration creation context. Never resolve an activity by treating registrationID or teamID as ownerID.
 
 For a future source order adapter, derive TeamCreationContext only from the current account's exact registration read. Preserve registration ID separately for preflight, assert ownerType==2 and ownerId>0, and require registrationStatus==2/teamMode==2. Passing a context alone must not enable dispatch.
+
+## Default-off normal-runtime read wiring (2026-10-04)
+
+`AppCompositionRoot.teamReadApproval` defaults to nil. The typed, expiring `TeamReadApproval` binds CN origin/base path, storage namespace (including bundle/realm), current account, token, epoch and role. Normal TeamSession and retained coordinator checks additionally carry viewer revision, so role ABA cannot reuse stale results. Outer transport checks exact canonical POST JSON `api/team/my {}` and `api/team/info {teamId}` or `{inviteCode}` before dispatch and rechecks lease revision/context after success or error. Transport clones retain that selector. No authentication/RBAC changes or production grant issuer were added.
+
+The normal factory passes only the lease’s two read paths to TeamReadOnlyService. It requires fresh `joined == true` for ID detail, preserves nonmember invitation detail, and never constructs TeamHTTPService. The root rejects create/join/quit/kick/disband/join-mode and other adjacent routes. Owned registration creation lookup remains separately gated. Revoked/replaced leases make an existing normal coordinator’s captured session unavailable rather than adopting new authority. The team journal uses the existing composition defaults and unchanged ownerKey; reads and logout do not clear unknown-operation records.
+
+Private source verification at commit `11be8cb2f09073496f3a7d5130d558da60cf5439`: ApiPlayTeamController blob `c55319d052398b92e971d8cc07adb0a68e2fd468` exposes my via current member and info via teamId/inviteCode/current optional member. PlayTeamServiceImpl blob `342120fe1e42e75760a481ed52c35cac07dbe399` requires a valid member for my, active team membership for ID lookup, and available invitation for code lookup. This does not establish deployment readiness.
+
+Authored acceptance: TeamReadApprovalTests, TeamReadCompositionTests, and the sealed integrated normal-root Team UI journey. All network/storage data are synthetic, selected through the existing DEBUG fixture. Syntax/scaffold/Python contracts do not execute Swift: Apple compilation, Core/App XCTest and UI execution remain UNRUN until exact-candidate Apple verification. No deployment origin, credential, login, provider, production gate or configuration was changed.
