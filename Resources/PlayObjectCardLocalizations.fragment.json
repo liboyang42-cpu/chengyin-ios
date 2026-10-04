@@ -1,0 +1,155 @@
+{
+  "playCard.capture": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Photograph an object"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "拍下一件东西"
+        }
+      }
+    }
+  },
+  "playCard.processing": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reviewing your photo and creating the card…"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "正在审核并生成藏品卡…"
+        }
+      }
+    }
+  },
+  "playCard.serverBoundary": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Photo review and card creation are confirmed by the server."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "审核和成卡结果以服务器回执为准。"
+        }
+      }
+    }
+  },
+  "playCard.noReceipt": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No card receipt was received"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这次没有收到藏品卡回执"
+        }
+      }
+    }
+  },
+  "playCard.noReceiptDetail": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The server confirms your task status. You can check My Collection later; your photo will not be submitted again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "关卡状态以服务器为准。可稍后在“我的藏品”查看，不会重复提交照片。"
+        }
+      }
+    }
+  },
+  "playCard.degraded": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Photo review is temporarily unavailable. Retake the photo and try again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂时无法完成照片审核，请重拍后再试。"
+        }
+      }
+    }
+  },
+  "playCard.received": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Your collectible card is here"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "你的藏品卡已收到"
+        }
+      }
+    }
+  },
+  "playCard.framesUnavailable": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Rotation frames are unavailable. Showing the available image."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "旋转画面暂未生成，先展示已有图片。"
+        }
+      }
+    }
+  },
+  "playCard.collectionHint": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This card came from the server receipt. You can also find it in My Collection."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这张卡来自本次服务器回执，也可在“我的藏品”查看。"
+        }
+      }
+    }
+  }
+}

@@ -24,7 +24,11 @@ struct ClubFixtureRootView: View {
                 }.font(.caption)
             }.padding(8).frame(maxWidth: .infinity).background(.yellow.opacity(0.15))
             NavigationStack {
-                ClubHomeView(reader: reader, onSignIn: { reader.signIn() })
+                ClubHomeView(reader: reader, onSignIn: { reader.signIn() }, topicDestination: { id in
+                    AnyView(Text(verbatim: "Synthetic topic \(id)")
+                        .accessibilityIdentifier("club.fixture.topic.\(id)")
+                        .navigationTitle(Text(verbatim: "Synthetic topic")))
+                })
             }.id(reader.clubIdentity)
         }
     }

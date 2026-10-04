@@ -110,8 +110,13 @@ public struct TemplateAuthoringDraft: Codable, Equatable {
         need(description.trimmingCharacters(in: .whitespacesAndNewlines).utf16.count <= 30, "descriptionLength")
         need(!blank(players), "players"); need(duration.map { $0 > 0 } ?? false, "duration")
         need(!blank(activityCategoryids) || categoryId != nil, "category"); need(finishEnabled, "finish")
-        if validationMethod == .text { need(!blank(questionName) && !blank(questionAnswer), "answer") }
-        if validationMethod == .choice {
+        // The mini editor keeps selected QA content in advancedConfigJson.qa, not
+        // the legacy question fields. Only the matching QA mode owns this answer.
+        let advancedQAOwnsAnswer = advanced.enabled("qa") && (
+            (validationMethod == .text && advanced.text("qa", "mode") == "TYPE") ||
+            (validationMethod == .choice && advanced.text("qa", "mode") == "PICK"))
+        if validationMethod == .text && !advancedQAOwnsAnswer { need(!blank(questionName) && !blank(questionAnswer), "answer") }
+        if validationMethod == .choice && !advancedQAOwnsAnswer {
             need(!blank(questionName), "question")
             need([questionA, questionB, questionC, questionD].filter { !blank($0) }.count >= 2, "choices")
             need(!blank(correctAnswer), "correctAnswer")

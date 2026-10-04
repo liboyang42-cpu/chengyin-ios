@@ -80,8 +80,13 @@ private struct AccountCollectionFavoriteCard: View {
 @MainActor struct AccountCollectionAccountLinks: View {
     let reader: any AccountCollectionReading
     let onOpenTopic: (Int) -> Void
+    var rewards: (any NonCashRewardReading)? = nil
     var body: some View {
         Section {
+            NavigationLink {
+                NonCashRewardsView(reader: reader, rewards: rewards).id(reader.scope)
+            } label: { Label("rewards.title", systemImage: "gift") }
+            .accessibilityIdentifier("rewards.open")
             NavigationLink {
                 AccountCollectionFavoritesView(reader: reader, onOpenTopic: onOpenTopic).id(reader.scope)
             } label: { Label("accountCollection.favorites.title", systemImage: "heart") }

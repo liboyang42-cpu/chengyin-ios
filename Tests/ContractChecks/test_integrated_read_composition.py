@@ -34,7 +34,9 @@ class IntegratedReadCompositionContracts(unittest.TestCase):
         self.assertIn('currentApproval.revision == approval.revision', source)
         self.assertIn('manualMapSelection?.snapshot == selectedArea', source)
         session = self.read('App/AppSession.swift')
-        self.assertEqual(session.count('self.currentPlayReadApprovalKey == key.approval'), 4)
+        self.assertEqual(session.count('self.currentPlayReadApprovalKey == key.approval'), 3)
+        self.assertIn('currentSession: { current() == captured ? captured : nil }', session)
+        self.assertIn('guard let self, snapshot == captured, current() == captured else { return }', session)
         self.assertIn('manualMapApprovalRevision: currentManualMapApprovalRevision', session)
         self.assertIn('manualMapApprovalRevision:self.currentManualMapApprovalRevision', session)
 

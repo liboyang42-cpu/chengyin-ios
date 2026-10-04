@@ -338,32 +338,39 @@ final class AppSession: ObservableObject {
         playReaders[key]=reader
         return reader
     }
-    // Retained scoped runtime; every live capability stays disabled until accepted.
+    // Retained owner/scope-bound durable recovery; all normal-root write grants stay off.
     private var playExperienceCoordinators: [PlayReaderKey: PlayExperienceCoordinator] = [:]
-    private let playExperienceRecovery = PlayMemoryCompletionRecovery()
-    private let playExperiencePausedStorage = PlayMemoryPausedStorage()
     func playExperience(for scope: PlaySessionScope) -> PlayExperienceCoordinator? {
-        guard scope.isValid, regionalConfiguration?.apiConfiguration != nil, storageScope != nil else { return nil }
+        guard scope.isValid, let regional = regionalConfiguration,
+              let configuration = regional.apiConfiguration, let storageScope else { return nil }
         let key = PlayReaderKey(accountID: account?.id, epoch: gate.currentStamp, role: account?.effectiveRole, viewerRevision: compositionViewerRevision, approval: currentPlayReadApprovalKey, scope: scope)
         if let retained = playExperienceCoordinators[key] { return retained }
         guard key.approval != nil, composition.reviewed?.reads.contains(.playNodesAndRouteState) == true,
-              let configuration = regionalConfiguration?.apiConfiguration,
-              let factory = playReadDependencyFactory else { return nil }
-        // The normal root currently admits only progress reads. Unrelated runtime
-        // capabilities cannot activate controls or memory writes through this bridge.
+              let factory = playReadDependencyFactory, factory.accepted?.play.contains(.reads) == true else { return nil }
+        // One selector supplies both the captured storage owner and every later callback.
+        // Keep the issuance and ABA fences even when the same account/role returns.
+        let current: () -> PlayExperienceSession? = { [weak self] in
+            guard let self, !self.committingAuthenticatedSession,
+                  self.compositionViewerRevision == key.viewerRevision,
+                  key.approval != nil, self.currentPlayReadApprovalKey == key.approval,
+                  let account = self.account, let token = self.token,
+                  let role = PlayRecoveryAccountRole(rawValue: account.effectiveRole) else { return nil }
+            return try? PlayExperienceSession(accountID: account.id, epoch: self.gate.currentStamp,
+                namespace: storageScope.service, token: token, role: role.rawValue)
+        }
+        guard let captured = current(),
+              let recovery = try? composition.storage.playRecovery.make(session: captured, scope: scope,
+                regionalConfiguration: regional, storageScope: storageScope),
+              current() == captured else { return nil }
+        // The normal root admits only progress reads. Durable recovery does not grant writes.
         let api = PlayExperienceService(configuration: configuration, transport: factory.transport,
             enabled: factory.accepted?.play.intersection([.reads]) ?? [])
         let coordinator = PlayExperienceCoordinator(scope: scope, service: api,
-            recovery: playExperienceRecovery, pausedStorage: playExperiencePausedStorage,
-            currentSession: { [weak self] in
-                guard let self, self.compositionViewerRevision == key.viewerRevision,
-                      key.approval != nil, self.currentPlayReadApprovalKey == key.approval,
-                      let account = self.account, let token = self.token, let namespace = self.storageScope?.service else { return nil }
-                return try? PlayExperienceSession(accountID: account.id, epoch: self.gate.currentStamp, namespace: namespace, token: token)
-            }, onUnauthorized: { [weak self] snapshot in
-                guard let self, self.compositionViewerRevision == key.viewerRevision,
-                      key.approval != nil, self.currentPlayReadApprovalKey == key.approval else { return }
-                self.expireIfMatching(error: APIError.unauthorized, stamp: snapshot.epoch, credential: self.token)
+            recovery: recovery, pausedStorage: recovery,
+            currentSession: { current() == captured ? captured : nil },
+            onUnauthorized: { [weak self] snapshot in
+                guard let self, snapshot == captured, current() == captured else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: captured.token)
             })
         playExperienceCoordinators[key] = coordinator
         return coordinator
@@ -1132,6 +1139,18 @@ final class AppSession: ObservableObject {
                 self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: captured.token)
             })
     }
+    // No live source/deployment approval exists yet. Keep the reward read capability nil.
+    private let nonCashRewardService: NonCashRewardService? = nil
+    private var currentNonCashRewardSession: NonCashRewardReadSession? {
+        guard let account, let token else { return nil }
+        return try? NonCashRewardReadSession(accountID: account.id, epoch: gate.currentStamp, token: token)
+    }
+    lazy var nonCashRewardReader = NonCashRewardSessionReader(service: nonCashRewardService,
+        currentSession: { [weak self] in self?.currentNonCashRewardSession },
+        onUnauthorized: { [weak self] captured in
+            guard let self, self.currentNonCashRewardSession == captured else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
+        })
     private let accountCollectionService:AccountCollectionService?
     private var currentAccountCollectionSession:AccountCollectionReadSession? {
         guard let account,let token else { return nil }

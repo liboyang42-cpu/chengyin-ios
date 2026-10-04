@@ -9,6 +9,9 @@ import FoundationNetworking
     var isConfigured = true
     var isOfflineExample = true
     var requestedPages: [Int] = []
+    var requestedCursors: [Int] = []
+    var tileJSON = RoamExperienceSyntheticFixtures.tiles
+    var tileWait: (() async -> Void)?
     var failNextPage = false
     var factJSON = RoamExperienceSyntheticFixtures.settled
     var onRead: (() -> Void)?
@@ -24,7 +27,11 @@ import FoundationNetworking
             : #"{"list":[{"id":1,"checkState":2},{"id":3,"checkState":0}],"total":3,"pageNum":2,"pageSize":2}"#
         return try JSONDecoder().decode(RoamAlbumPage.self, from: Data(json.utf8))
     }
-    func tilePage(afterID: Int, limit: Int) async throws -> RoamTileMemoryPage { try JSONDecoder().decode(RoamTileMemoryPage.self, from: Data(RoamExperienceSyntheticFixtures.tiles.utf8)) }
+    func tilePage(afterID: Int, limit: Int) async throws -> RoamTileMemoryPage {
+        requestedCursors.append(afterID); onRead?(); await tileWait?()
+        if failNextPage { throw APIError.httpStatus(503) }
+        return try JSONDecoder().decode(RoamTileMemoryPage.self, from: Data(tileJSON.utf8))
+    }
     func shopBadge() async throws -> RoamShopBadge? { nil }
 }
 @MainActor final class RoamExperienceCoordinatorTests: XCTestCase {
@@ -150,5 +157,74 @@ private final class ExperienceClosureTransport: HTTPTransport {
         let reader = RoamExperienceSessionReader(service: service, store: store, currentSession: { current })
         do { _ = try await reader.shopBadge(); XCTFail() } catch { XCTAssertEqual(error as? RoamExperienceFailure, .scopeMismatch) }
         XCTAssertEqual(count, 0)
+    }
+}
+
+@MainActor final class RoamTileMemoryPagerTests: XCTestCase {
+    func testUnionRetrySameCursorAndExplicitRefreshForOtherDevice() async {
+        let reader = ExperienceReaderDouble(), pager: RoamTileMemoryPager
+        pager = RoamTileMemoryPager(reader: reader)
+        reader.tileJSON = #"{"tiles":["s00twy0"],"nextAfterId":1,"hasMore":true}"#
+        await pager.loadNext()
+        reader.failNextPage = true; await pager.loadNext()
+        XCTAssertEqual(pager.tiles, ["s00twy0"]); XCTAssertNotNil(pager.error)
+        reader.failNextPage = false
+        reader.tileJSON = #"{"tiles":["s00twy0","s00twy1"],"nextAfterId":3,"hasMore":false}"#
+        await pager.loadNext(); await pager.loadNext()
+        XCTAssertEqual(reader.requestedCursors, [0, 1, 1]); XCTAssertEqual(pager.tiles.count, 2)
+        XCTAssertFalse(pager.hasMore); XCTAssertNil(pager.error)
+        pager.reset(); await pager.loadNext()
+        XCTAssertEqual(reader.requestedCursors, [0, 1, 1, 0]); XCTAssertEqual(pager.tiles.count, 2)
+    }
+    func testCancelThenRetryDiscardsLatePageWithoutLosingEarlierUnion() async {
+        let reader = ExperienceReaderDouble(), pager: RoamTileMemoryPager
+        pager = RoamTileMemoryPager(reader: reader)
+        reader.tileJSON = #"{"tiles":["s00twy0"],"nextAfterId":1,"hasMore":true}"#
+        await pager.loadNext()
+        reader.onRead = { pager.cancelPending() }
+        reader.tileJSON = #"{"tiles":["s00twy1"],"nextAfterId":2,"hasMore":false}"#
+        await pager.loadNext()
+        XCTAssertEqual(pager.tiles, ["s00twy0"]); XCTAssertFalse(pager.loading)
+        reader.onRead = nil; await pager.loadNext()
+        XCTAssertEqual(reader.requestedCursors, [0, 1, 1]); XCTAssertEqual(pager.tiles.count, 2)
+    }
+    func testIdentityChangesRemoveEarlierAndLatePrivateTiles() async {
+        let reader = ExperienceReaderDouble(), pager: RoamTileMemoryPager
+        pager = RoamTileMemoryPager(reader: reader)
+        reader.tileJSON = #"{"tiles":["s00twy0"],"nextAfterId":1,"hasMore":true}"#
+        await pager.loadNext()
+        reader.onRead = { reader.identity = nil }; await pager.loadNext()
+        XCTAssertTrue(pager.tiles.isEmpty); XCTAssertFalse(pager.loaded); XCTAssertFalse(pager.loading)
+        reader.onRead = nil; await pager.loadNext()
+        XCTAssertEqual(pager.error as? APIError, .unauthorized)
+        XCTAssertEqual(reader.requestedCursors, [0, 1])
+    }
+    func testNonAdvancingCursorRejectedAndSameCursorRetried() async {
+        let reader = ExperienceReaderDouble(), pager: RoamTileMemoryPager
+        pager = RoamTileMemoryPager(reader: reader)
+        reader.tileJSON = #"{"tiles":["s00twy0"],"nextAfterId":0,"hasMore":true}"#
+        await pager.loadNext(); await pager.loadNext()
+        XCTAssertTrue(pager.tiles.isEmpty); XCTAssertFalse(pager.loaded)
+        XCTAssertEqual(pager.error as? APIError, .malformedResponse)
+        XCTAssertEqual(reader.requestedCursors, [0, 0])
+    }
+    func testUnconfiguredAndSignedOutReadersNeverDispatch() async {
+        let reader = ExperienceReaderDouble(), pager: RoamTileMemoryPager
+        pager = RoamTileMemoryPager(reader: reader)
+        reader.isConfigured = false; await pager.loadNext()
+        XCTAssertEqual(pager.error as? APIError, .notConfigured)
+        reader.identity = nil; await pager.loadNext()
+        XCTAssertEqual(pager.error as? APIError, .unauthorized); XCTAssertTrue(reader.requestedCursors.isEmpty)
+    }
+    func testRepeatedTapDoesNotDispatchWhileFirstPageIsPending() async {
+        let reader = ExperienceReaderDouble(), pager: RoamTileMemoryPager
+        pager = RoamTileMemoryPager(reader: reader)
+        var pending: CheckedContinuation<Void, Never>?
+        reader.tileWait = { await withCheckedContinuation { pending = $0 } }
+        let task = Task { await pager.loadNext() }
+        while pending == nil { await Task.yield() }
+        await pager.loadNext(); XCTAssertEqual(reader.requestedCursors, [0])
+        pending?.resume(); await task.value
+        XCTAssertEqual(pager.tiles.count, 2); XCTAssertFalse(pager.loading)
     }
 }

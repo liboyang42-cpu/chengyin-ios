@@ -49,14 +49,19 @@ import FoundationNetworking
         let recovery = PlayMemoryCompletionRecovery()
         let review = PlayCompletionReview(nodeID: 701, evidence: .answer("synthetic"),
             advance: try .init(actionID: "original-action", expectedVersion: 2), session: session, generation: 1, routeSessionID: 501)
-        try recovery.write(.init(review: review, requestAcknowledged: false), key: PlayRunStorageKey.make(session: session, scope: .activity(41)))
+        let key = PlayRunStorageKey.make(session: session, scope: .activity(41))
+        let prepared = try await recovery.prepare(.init(review: review), key: key)
+        let dispatching = try await recovery.transition(prepared, to: .dispatching, key: key)
+        let pending = try await recovery.transition(dispatching, to: .unknown, key: key)
         let service = PlayExperienceService(configuration: try APIConfiguration(baseURL: URL(string: "https://example.test/native")!), transport: wire, enabled: [.reads])
         let model = PlayExperienceCoordinator(scope: .activity(41), service: service,
             recovery: recovery, pausedStorage: PlayMemoryPausedStorage(), currentSession: { session })
         await model.load(); XCTAssertTrue(model.unresolved); XCTAssertEqual(model.phase, .unknown)
         XCTAssertFalse(model.canRetryExactBranch); await model.retryExactBranchAfterReadback()
         XCTAssertEqual(wire.requests.count, 2); XCTAssertTrue(model.unresolved)
-        XCTAssertNotNil(try recovery.read(PlayRunStorageKey.make(session: session, scope: .activity(41))))
+        let retained = try await recovery.read(key)
+        XCTAssertNotNil(retained)
+        XCTAssertEqual(retained, pending)
     }
     func testServerSpectatorMarkerDoesNotGrantRegistrationOrCompletion() throws {
         for spectator in [false, true] {
@@ -71,10 +76,15 @@ import FoundationNetworking
 }
 @MainActor private final class PlayReadPauseRecorder: PlayPausedStorage {
     var accesses = 0
-    func read(key: String) throws -> PlayPausedRecord? { accesses += 1; return nil }
-    func write(_ record: PlayPausedRecord?, key: String) throws { accesses += 1 }
-    func tombstone(key: String) throws -> Int64? { accesses += 1; return nil }
-    func writeTombstone(_ savedAt: Int64, key: String) throws { accesses += 1 }
+    private let storage = PlayMemoryPausedStorage()
+    func read(key: String) async throws -> PlayPausedStorageSnapshot {
+        accesses += 1
+        return try await storage.read(key: key)
+    }
+    func write(_ value: PlayPausedSnapshot, replacing snapshot: PlayPausedStorageSnapshot, key: String) async throws -> PlayPausedStorageSnapshot {
+        accesses += 1
+        return try await storage.write(value, replacing: snapshot, key: key)
+    }
 }
 @MainActor private final class PlayReadCapabilityWire: HTTPTransport {
     var requests: [URLRequest] = []

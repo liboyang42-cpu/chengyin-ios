@@ -50,6 +50,10 @@ extension PlayKitScreen {
         submitButton("SUBMIT_NOTE", payload: ["text": .string(text)], valid: !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
     }
     @ViewBuilder var photoCheckForm: some View {
+        if raw["mode"].text == "CARD" { objectCardForm }
+        else { ordinaryPhotoCheckForm }
+    }
+    @ViewBuilder var ordinaryPhotoCheckForm: some View {
         if let note = raw["shotNote"].text, !note.isEmpty { Text(verbatim: note).font(.title3) }
         if let frame = raw["frameUrl"].text, !frame.isEmpty { artwork(frame); Text("playkitCamera.frameGuide").font(.footnote) }
         if let prior = raw["lastUrl"].text, !prior.isEmpty { artwork(prior) }

@@ -41,10 +41,13 @@ extension KeychainTokenStore: AppTokenStorage {}
     let defaults: UserDefaults
     let tokenStore: (RegionalSessionStorageScope?) -> any AppTokenStorage
     let privateHomeKeychain: (any PrivateHomeKeychainPrimitive)?
+    let playRecovery: PlayRecoveryConstruction
     init(defaults: UserDefaults = .standard,
          tokenStore: @escaping (RegionalSessionStorageScope?) -> any AppTokenStorage = { KeychainTokenStore(scope: $0) },
-         privateHomeKeychain: (any PrivateHomeKeychainPrimitive)? = nil) {
+         privateHomeKeychain: (any PrivateHomeKeychainPrimitive)? = nil,
+         playRecovery: PlayRecoveryConstruction = .system) {
         self.defaults = defaults; self.tokenStore = tokenStore; self.privateHomeKeychain = privateHomeKeychain
+        self.playRecovery = playRecovery
     }
     /// Existing adapters already use deployment/account-scoped owner keys. Preserve the
     /// persisted key format so an unknown operation can never disappear during migration.

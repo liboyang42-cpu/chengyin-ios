@@ -201,6 +201,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
         if kind == .profile { answers = (segment["answers"].object ?? [:]).compactMapValues(\.text); avatarURL = segment["avatarUrl"].text ?? "" }
     }
     private func clearTransient() {
+        if kind == .photoCheck { model.clearObjectCardReceipt() }
         lifetime = UUID(); review = nil; reviewedCompletion = nil; text = ""; selected = []; answers = [:]; avatarURL = ""
         dirty = false; childReset = UUID(); device?.cancel()
     }

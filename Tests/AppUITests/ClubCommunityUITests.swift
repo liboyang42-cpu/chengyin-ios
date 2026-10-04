@@ -47,4 +47,49 @@ final class ClubCommunityUITests: XCTestCase {
         XCTAssertTrue(app.textViews["club.community.content"].waitForExistence(timeout: 5))
         app.buttons["取消"].tap()
     }
+
+    // Synthetic destination exercises the same ClubHomeView NavigationLink. Normal-root
+    // session destination/auth/read-grant wiring is covered separately by source contracts.
+    // These tests have not been run on Apple platforms in this source-only packet.
+    private func openClubHomeTopic() -> XCUIApplication {
+        let app = XCUIApplication()
+        app.launchArguments = ["--uitesting-reset-language", "--uitesting-club-fixture", "owner",
+                               "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
+        app.launch()
+        let event = app.buttons["club.event.91"]
+        for _ in 0..<6 {
+            if event.exists && event.isHittable { break }
+            app.swipeUp()
+        }
+        XCTAssertTrue(event.exists && event.isHittable, app.debugDescription)
+        event.tap()
+        XCTAssertTrue(app.staticTexts["club.fixture.topic.91"].waitForExistence(timeout: 5), app.debugDescription)
+        return app
+    }
+    func testClubHomeTopicNavigationBackAndReopen() {
+        let app = openClubHomeTopic()
+        defer { attachFailureScreenshot(self, app: app); app.terminate() }
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        let event = app.buttons["club.event.91"]
+        XCTAssertTrue(event.waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertFalse(app.staticTexts["club.fixture.topic.91"].exists)
+        event.tap()
+        XCTAssertTrue(app.staticTexts["club.fixture.topic.91"].waitForExistence(timeout: 5), app.debugDescription)
+    }
+    func testClubHomeTopicNavigationClearsOnSignOut() {
+        let app = openClubHomeTopic()
+        defer { attachFailureScreenshot(self, app: app); app.terminate() }
+        app.buttons["club.fixture.signOut"].tap()
+        let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: app.staticTexts["club.fixture.topic.91"])
+        XCTAssertEqual(XCTWaiter.wait(for: [gone], timeout: 5), .completed, app.debugDescription)
+        XCTAssertFalse(app.buttons["club.event.91"].exists)
+    }
+    func testClubHomeTopicNavigationClearsOnAccountSwitch() {
+        let app = openClubHomeTopic()
+        defer { attachFailureScreenshot(self, app: app); app.terminate() }
+        app.buttons["club.fixture.switchAccount"].tap()
+        let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: app.staticTexts["club.fixture.topic.91"])
+        XCTAssertEqual(XCTWaiter.wait(for: [gone], timeout: 5), .completed, app.debugDescription)
+        XCTAssertFalse(app.buttons["club.event.91"].exists)
+    }
 }

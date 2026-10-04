@@ -109,3 +109,48 @@ public struct RoamCityStampDraft: Equatable {
     public var remaining: Int { 30 - caption.utf16.count }
     public var canReview: Bool { RoamExperienceMath.validCaption(caption) }
 }
+
+/// Owner-scoped exploration memory only; never presence, visit evidence or territory ownership.
+/// Retry the same cursor on failure; overlapping pages merge as a set. Refresh starts at zero
+/// so another device's server-confirmed tiles can be recovered without a local journal.
+@MainActor public final class RoamTileMemoryPager {
+    public private(set) var tiles: Set<String> = []
+    public private(set) var hasMore = true
+    public private(set) var loading = false
+    public private(set) var loaded = false
+    public private(set) var error: Error?
+    private let reader: any RoamExperienceReading
+    private var identity: RoamExperienceIdentity?
+    private var cursor = 0
+    private var generation = 0
+    private let limit = 1000
+    public init(reader: any RoamExperienceReading) { self.reader = reader; identity = reader.identity }
+    public func reset() {
+        generation += 1; identity = reader.identity; cursor = 0
+        tiles = []; hasMore = true; loading = false; loaded = false; error = nil
+    }
+    public func cancelPending() { generation += 1; loading = false }
+    public func loadNext() async {
+        if identity != reader.identity { reset() }
+        guard !loading, hasMore else { return }
+        let ticket = generation, snapshot = identity, afterID = cursor
+        loading = true; error = nil
+        defer { if generation == ticket { loading = false } }
+        do {
+            guard snapshot != nil else { throw APIError.unauthorized }
+            guard reader.isConfigured else { throw APIError.notConfigured }
+            let page = try await reader.tilePage(afterID: afterID, limit: limit)
+            guard generation == ticket else { return }
+            guard reader.identity == snapshot else { reset(); return }
+            guard !Task.isCancelled else { return }
+            guard page.tiles.count <= limit, page.nextAfterId >= afterID,
+                  !page.hasMore || page.nextAfterId > afterID else { throw APIError.malformedResponse }
+            tiles.formUnion(page.tiles); cursor = page.nextAfterId; hasMore = page.hasMore; loaded = true
+        } catch {
+            guard generation == ticket else { return }
+            guard reader.identity == snapshot else { reset(); return }
+            guard !Task.isCancelled else { return }
+            self.error = error
+        }
+    }
+}

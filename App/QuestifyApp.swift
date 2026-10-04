@@ -96,6 +96,11 @@ struct QuestifyApp: App {
                     ModuleFixtureRootView(module:module)
                 } else if let session=sessionContainer.session {
                     SessionRootView(session:session)
+                        .safeAreaInset(edge: .bottom) {
+                            if let fixture = sessionContainer.integratedAcceptance {
+                                IntegratedNativeAcceptanceEvidence(fixture: fixture, session: session)
+                            }
+                        }
                 }
                 #else
                 if let session=sessionContainer.session {
@@ -113,9 +118,20 @@ struct QuestifyApp: App {
 @MainActor
 final class AppSessionContainer: ObservableObject {
     let session: AppSession?
+    #if DEBUG
+    let integratedAcceptance: IntegratedNativeAcceptanceFixture?
+    #endif
 
-    init(composition: AppCompositionRoot? = nil) {
+    init(composition: AppCompositionRoot? = nil, arguments: [String] = ProcessInfo.processInfo.arguments) {
         #if DEBUG
+        let fixture = composition == nil ? IntegratedNativeAcceptanceFixture.selected(arguments: arguments) : nil
+        integratedAcceptance = fixture
+        if let fixture {
+            let acceptedSession = fixture.makeComposition().makeSession()
+            session = acceptedSession
+            fixture.session = acceptedSession
+            return
+        }
         if ProcessInfo.processInfo.arguments.contains("--owner-draft-fixture") || ProcessInfo.processInfo.arguments.contains("--group-poll-fixture") || ProcessInfo.processInfo.arguments.contains("--native-navigation-fixture") || ProcessInfo.processInfo.arguments.contains("--native-verification-fixture") || ProcessInfo.processInfo.arguments.contains("--merchant-npc-fixture") || ProcessInfo.processInfo.arguments.contains("--publisher-lifecycle-fixture") || ProcessInfo.processInfo.arguments.contains("--retained-images-fixture") || ProcessInfo.processInfo.arguments.contains("--square-governance-fixture") || ProcessInfo.processInfo.arguments.contains("--shop-npc-fixture") || ProcessInfo.processInfo.arguments.contains("--club-community-fixture") || ProcessInfo.processInfo.arguments.contains("--public-merchant-home-fixture") || ProcessInfo.processInfo.arguments.contains("--door-referral-fixture") || ProcessInfo.processInfo.arguments.contains("--merchant-marketing-fixture") || ProcessInfo.processInfo.arguments.contains("--im-expanded-fixture") || ProcessInfo.processInfo.arguments.contains("--ui-coupon-management") || WalletCommerceFixtureHost.selected || ProcessInfo.processInfo.arguments.contains("--ui-publishing-modes") ||
            ProcessInfo.processInfo.arguments.contains("--nearby-team-fixture") ||
            ProcessInfo.processInfo.arguments.contains("--official-action-fixture") ||
@@ -163,7 +179,8 @@ struct SessionRootView: View {
                     ActivityBrowserView(reader:session,playReaderForActivity:{ session.playReader(for:.activity($0)) },registrationEnabled:true).tabItem { Label("activity.browse",systemImage:"map") }.tag(1)
                     RoamBrowserView(reader:session.roamReader,onChooseArea:{ showsAreaPicker=true },experienceReader:session.roamExperienceReader, nearbyTeamsDestination: { AnyView(SessionRoamNearbyTeamsView()) }, stampDestination: { AnyView(SessionRoamStampCameraView()) }, liveDestination: { AnyView(RoamLiveSessionView(controller: session.makeRoamLiveSessionController())) }, posterDestination: { AnyView(SessionRoamPosterView(node: $0)) }, mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory)
                         .tabItem { Label("roam.title",systemImage:"map") }.tag(3)
-                    NavigationStack { ClubHomeView(reader:session,onSignIn:{ selectedTab=4 },actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext, community:session.clubCommunityContext) }
+                    NavigationStack { ClubHomeView(reader:session,onSignIn:{ selectedTab=4 },actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext, community:session.clubCommunityContext, topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }) }
+                        .id(session.sessionRevision)
                         .tabItem { Label("club.title",systemImage:"person.3") }.tag(2)
                     Group {
                         if let account=session.account { AccountView(account:account,privateHomeCoordinator:session.privateHomeCoordinator,onOpenGuideDestination:{ destination in selectedTab = destination == .roam ? 3 : 0 }).id(session.sessionRevision) }

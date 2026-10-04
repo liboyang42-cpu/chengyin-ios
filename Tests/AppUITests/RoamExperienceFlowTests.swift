@@ -70,6 +70,18 @@ final class RoamExperienceFlowTests: XCTestCase {
         XCTAssertEqual(app.alerts.count, 0)
         XCTAssertFalse(app.buttons["Start roaming"].exists)
     }
+    func testMemoryRemainsReachableWithLiveDestinationAndOnReopen() {
+        let app = app("liveSession"); open("tiles", in: app)
+        XCTAssertFalse(app.staticTexts["All returned tile pages loaded"].exists)
+        let load = app.buttons["roam.experience.tiles.load"]
+        XCTAssertTrue(load.waitForExistence(timeout: 5)); load.tap()
+        XCTAssertTrue(app.staticTexts["All returned tile pages loaded"].waitForExistence(timeout: 5))
+        XCTAssertEqual(app.alerts.count, 0)
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        open("tiles", in: app)
+        XCTAssertTrue(app.buttons["roam.experience.tiles.load"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["All returned tile pages loaded"].exists)
+    }
     func testCaptionDraftOnlyAndLengthValidation() {
         let app = app("captionDraft"); open("cityStamp", in: app)
         let field = app.textFields["roam.experience.stamp.caption"]

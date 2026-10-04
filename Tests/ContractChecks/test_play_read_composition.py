@@ -37,7 +37,9 @@ class PlayReadCompositionContracts(unittest.TestCase):
         self.assertIn('return compositionTransport.replacingUnderlying(injected)', session)
         self.assertIn('transport.playReadConfiguration = { self.playReadConfiguration($0) }', root)
         self.assertIn('current.playReadApprovalID == issued.playReadApprovalID', root)
-        self.assertEqual(session.count('self.currentPlayReadApprovalKey == key.approval'), 4)
+        self.assertEqual(session.count('self.currentPlayReadApprovalKey == key.approval'), 3)
+        self.assertIn('currentSession: { current() == captured ? captured : nil }', session)
+        self.assertIn('guard let self, snapshot == captured, current() == captured else { return }', session)
         self.assertIn('private var playReadDependencyFactory: RuntimeDependencyFactory?', session)
         config = self.read('Core/RuntimeDependencyConfiguration.swift')
         self.assertIn('playReadApprovalID: UUID? = nil', config)
@@ -46,7 +48,9 @@ class PlayReadCompositionContracts(unittest.TestCase):
     def test_escaped_legacy_and_rich_readers_have_role_aba_fences(self):
         session = self.read('App/AppSession.swift')
         play = session.split('private var playService:', 1)[1].split('// Journey extras', 1)[0]
-        self.assertEqual(play.count('self.compositionViewerRevision == key.viewerRevision'), 4)
+        self.assertEqual(play.count('self.compositionViewerRevision == key.viewerRevision'), 3)
+        self.assertIn('let current: () -> PlayExperienceSession?', play)
+        self.assertIn('currentSession: { current() == captured ? captured : nil }', play)
         self.assertIn('let viewerRevision:UInt64', play)
         self.assertIn('playReaders.removeAll()', session)
         self.assertIn('playExperienceCoordinators.values.forEach { $0.invalidate() }', session)
@@ -55,12 +59,41 @@ class PlayReadCompositionContracts(unittest.TestCase):
         coordinator = self.read('Core/PlayExperienceCoordinator.swift')
         self.assertIn('!service.enabled.isDisjoint(with: [.classicCompletion, .hints, .leader, .thoughtClaims])', coordinator)
         session = self.read('App/AppSession.swift')
-        self.assertIn('playExperienceRecovery = PlayMemoryCompletionRecovery()', session)
-        self.assertIn('playExperiencePausedStorage = PlayMemoryPausedStorage()', session)
+        self.assertNotIn('PlayMemoryCompletionRecovery()', session)
+        self.assertNotIn('PlayMemoryPausedStorage()', session)
+        self.assertIn('composition.storage.playRecovery.make(session: captured, scope: scope,', session)
+        self.assertIn('regionalConfiguration: regional, storageScope: storageScope)', session)
+        self.assertIn('recovery: recovery, pausedStorage: recovery', session)
+        self.assertIn('PlayRecoveryAccountRole(rawValue: account.effectiveRole)', session)
+        self.assertIn('token: token, role: role.rawValue)', session)
         self.assertIn('answersEnabled:false', session)
         self.assertIn('loadedSession == currentSession() ? storedSnapshot : nil', coordinator)
         launch = self.read('App/RegionalLaunchConfiguration.swift')
         self.assertNotIn('playNodesAndRouteState', launch)
+
+    def test_synthetic_recovery_is_explicit_and_cannot_forge_system_provenance(self):
+        root = self.read('App/AppCompositionRoot.swift')
+        self.assertIn('playRecovery: PlayRecoveryConstruction = .system', root)
+        seam = self.read('App/PlayRecoveryComposition.swift')
+        self.assertIn('enum PlayRecoveryAccountRole: String { case player, club, merchant }', seam)
+        self.assertIn('storageScope.matches(configuration: regionalConfiguration)', seam)
+        self.assertIn('session.namespace.utf8.elementsEqual(storageScope.service.utf8)', seam)
+        self.assertIn('#if DEBUG\n    case synthetic', seam)
+        self.assertIn('case .unavailable:\n            throw PlayExperienceError.persistenceUnavailable', seam)
+        synthetic = seam.split('case .synthetic(let anchors, let ciphertexts):', 1)[1].split('case .unavailable:', 1)[0]
+        self.assertIn('anchors: anchors, ciphertexts: ciphertexts', synthetic)
+        self.assertNotIn('SystemFactory', synthetic)
+        self.assertNotIn('system:', synthetic)
+        tests = self.read('Tests/AppUnitTests/PlayReadCompositionTests.swift')
+        self.assertIn('recovery ?? .synthetic(anchors: PlayReadAnchors(), ciphertexts: PlayReadCiphertexts())', tests)
+        self.assertIn('tokenStore: { _ in vault }, playRecovery: recovery)', tests)
+        for name in ['testRootReopenKeepsUnknownCompletionAndNeverSendsDuplicate',
+                     'testRootUnavailableLockedAndCorruptRecoveryNeverBecomesEmptyOrDispatches',
+                     'testRootRoleBindingRejectsArbitraryRolesAndCannotReadAnotherRolePending',
+                     'testSyntheticConstructionChecksRegionalNamespaceAndRoleWithoutProductionStorage']:
+            self.assertIn(name, tests)
+        for forbidden in ['SecItem', 'NSHomeDirectory', 'ContentDraftSystemAnchors(', 'ContentDraftSystemCiphertexts(']:
+            self.assertNotIn(forbidden, tests)
 
     def test_read_only_run_and_each_mutation_capability_remain_independent(self):
         coordinator = self.read('Core/PlayExperienceCoordinator.swift')

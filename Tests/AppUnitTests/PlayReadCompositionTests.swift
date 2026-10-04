@@ -24,7 +24,8 @@ import UIKit
                       accountID: Int = 7, paths: Set<String> = ["api/play/nodes", "api/play/route-state"],
                       approvalActive: @escaping @MainActor () -> Bool = { true },
                       extraCapabilities: Set<PlayExperienceCapability> = [],
-                      approvalIssuance: (@MainActor () -> UUID)? = nil) throws -> AppCompositionRoot {
+                      approvalIssuance: (@MainActor () -> UUID)? = nil,
+                      recovery: PlayRecoveryConstruction? = nil) throws -> AppCompositionRoot {
         let deployment = try deployment(rootRead: rootRead)
         let endpoints = try OperationEndpointApproval(baseURL: base, namespace: deployment.storageScope.service, accountID: accountID, paths: paths)
         let stableIssuance = readIssuance
@@ -32,7 +33,10 @@ import UIKit
         let suite = "play-read-test-" + UUID().uuidString, defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
         addTeardownBlock { defaults.removePersistentDomain(forName: suite) }
         let vault = PlayReadVault()
-        return .init(deployment: .reviewed(deployment), storage: .init(defaults: defaults, tokenStore: { _ in vault }),
+        // Every rich AppSession test stays entirely in synthetic storage, including load().
+        let recovery = recovery ?? .synthetic(anchors: PlayReadAnchors(), ciphertexts: PlayReadCiphertexts())
+        return .init(deployment: .reviewed(deployment), storage: .init(defaults: defaults,
+            tokenStore: { _ in vault }, playRecovery: recovery),
             makeTransport: { wire }, sessionDependencies: { _ in
                 // Production-style selector reconstructs values on each evaluation,
                 // but the reviewed authority owns a stable issuance for its lifetime.
@@ -299,6 +303,108 @@ import UIKit
         XCTAssertEqual(coordinator.clock.phase, .idle); XCTAssertFalse(coordinator.remoteRunSaveFailed)
         XCTAssertEqual(wire.playRequests.count, 1)
     }
+    private func seedUnknown(_ construction: PlayRecoveryConstruction, app: AppSession,
+                             role: String = "player") async throws -> (PlayDurableRecovery, PlayCompletionRecoverySnapshot, String) {
+        let deployment = try deployment()
+        let owner = try PlayExperienceSession(accountID: 7, epoch: app.sessionRevision,
+            namespace: deployment.storageScope.service, token: "synthetic-7", role: role)
+        let key = PlayRunStorageKey.make(session: owner, scope: .activity(41))
+        let journal = try construction.make(session: owner, scope: .activity(41),
+            regionalConfiguration: deployment.regional, storageScope: deployment.storageScope)
+        XCTAssertFalse(journal.isSystemBacked)
+        let intent = PlayCompletionIntent(review: .init(nodeID: 701, evidence: .answer("synthetic pending answer"),
+            advance: nil, session: owner, generation: 1, routeSessionID: nil))
+        let prepared = try await journal.prepare(intent, key: key)
+        let dispatched = try await journal.transition(prepared, to: .dispatching, key: key)
+        let unknown = try await journal.transition(dispatched, to: .unknown, key: key)
+        return (journal, unknown, key)
+    }
+    func testRootReopenKeepsUnknownCompletionAndNeverSendsDuplicate() async throws {
+        let construction = PlayRecoveryConstruction.synthetic(anchors: PlayReadAnchors(), ciphertexts: PlayReadCiphertexts())
+        let wire = PlayReadWire(), first = try root(wire, recovery: construction).makeSession()
+        wire.nodes = String(decoding: PlayExperienceSyntheticFixtures.envelope(PlayExperienceSyntheticFixtures.classic), as: UTF8.self)
+        await login(first)
+        let (journal, pending, key) = try await seedUnknown(construction, app: first)
+        let original = try XCTUnwrap(first.playExperience(for: .activity(41)))
+        XCTAssertTrue(original === first.playExperience(for: .activity(41)))
+        await original.load(); XCTAssertEqual(original.phase, .unknown)
+        await first.logout(); XCTAssertNil(original.snapshot)
+        let reopened = try root(wire, recovery: construction).makeSession(); await login(reopened)
+        let restored = try XCTUnwrap(reopened.playExperience(for: .activity(41)))
+        XCTAssertFalse(original === restored)
+        await restored.load(); await restored.retryExactBranchAfterReadback()
+        XCTAssertEqual(restored.phase, .unknown); XCTAssertNil(restored.reward)
+        XCTAssertFalse(restored.canWrite); XCTAssertFalse(restored.canManageRun)
+        XCTAssertThrowsError(try restored.review(nodeID: 701, evidence: .answer("must not duplicate")))
+        let kept = try await journal.read(key); XCTAssertEqual(kept, pending)
+        let otherScope = try XCTUnwrap(reopened.playExperience(for: .topic(71)))
+        await otherScope.load(); XCTAssertEqual(otherScope.phase, .ready)
+        XCTAssertEqual(wire.playRequests.count, 3)
+        XCTAssertTrue(wire.playRequests.allSatisfy { $0.httpMethod == "GET" && $0.url?.lastPathComponent == "nodes" })
+    }
+    func testRootUnavailableLockedAndCorruptRecoveryNeverBecomesEmptyOrDispatches() async throws {
+        let unavailableWire = PlayReadWire()
+        let unavailable = try root(unavailableWire, recovery: .unavailable).makeSession(); await login(unavailable)
+        XCTAssertNil(unavailable.playExperience(for: .activity(41))); XCTAssertTrue(unavailableWire.playRequests.isEmpty)
+        for corrupt in [false, true] {
+            let anchors = PlayReadAnchors(), blobs = PlayReadCiphertexts()
+            let construction = PlayRecoveryConstruction.synthetic(anchors: anchors, ciphertexts: blobs)
+            let wire = PlayReadWire(), app = try root(wire, recovery: construction).makeSession(); await login(app)
+            let (journal, pending, key) = try await seedUnknown(construction, app: app)
+            if corrupt { await blobs.corrupt() } else { await anchors.setLocked(true) }
+            let model = try XCTUnwrap(app.playExperience(for: .activity(41)))
+            await model.load(); await model.retryExactBranchAfterReadback(); await model.restoreRun()
+            XCTAssertEqual(model.phase, .failed); XCTAssertEqual(model.issue, .persistenceUnavailable)
+            XCTAssertNil(model.snapshot); XCTAssertFalse(model.canWrite); XCTAssertFalse(model.canManageRun)
+            XCTAssertTrue(wire.playRequests.isEmpty)
+            if !corrupt {
+                await anchors.setLocked(false)
+                let kept = try await journal.read(key); XCTAssertEqual(kept, pending)
+            }
+        }
+    }
+    func testRootRoleBindingRejectsArbitraryRolesAndCannotReadAnotherRolePending() async throws {
+        let construction = PlayRecoveryConstruction.synthetic(anchors: PlayReadAnchors(), ciphertexts: PlayReadCiphertexts())
+        let wire = PlayReadWire(), app = try root(wire, recovery: construction).makeSession(); await login(app)
+        wire.nodes = String(decoding: PlayExperienceSyntheticFixtures.envelope(PlayExperienceSyntheticFixtures.classic), as: UTF8.self)
+        let (journal, pending, key) = try await seedUnknown(construction, app: app)
+        let original = try XCTUnwrap(app.playExperience(for: .activity(41))); await original.load()
+        let before = wire.playRequests.count
+        wire.role = "merchant"; await app.refreshOwnAccount()
+        let foreign = try XCTUnwrap(app.playExperience(for: .activity(41))); await foreign.load()
+        XCTAssertEqual(foreign.issue, .persistenceUnavailable); XCTAssertNil(original.snapshot)
+        XCTAssertEqual(wire.playRequests.count, before)
+        for role in ["administrator", "Player", " player", "player ", "merchant/admin"] {
+            wire.role = role; await app.refreshOwnAccount()
+            XCTAssertNil(app.playExperience(for: .activity(41)), role)
+        }
+        wire.role = "player"; await app.refreshOwnAccount()
+        let fresh = try XCTUnwrap(app.playExperience(for: .activity(41)))
+        XCTAssertFalse(original === fresh); await fresh.load(); XCTAssertEqual(fresh.phase, .unknown)
+        let kept = try await journal.read(key); XCTAssertEqual(kept, pending)
+        XCTAssertEqual(wire.playRequests.count, before + 1)
+    }
+    func testSyntheticConstructionChecksRegionalNamespaceAndRoleWithoutProductionStorage() throws {
+        let construction = PlayRecoveryConstruction.synthetic(anchors: PlayReadAnchors(), ciphertexts: PlayReadCiphertexts())
+        let deployment = try deployment()
+        let otherScope = try RegionalSessionStorageScope(configuration: deployment.regional,
+            bundleIdentifier: "test.questify.play-read", realm: "other")
+        for role in ["player", "club", "merchant"] {
+            let owner = try PlayExperienceSession(accountID: 7, epoch: 1,
+                namespace: deployment.storageScope.service, token: "synthetic-7", role: role)
+            let valid = try construction.make(session: owner, scope: .activity(41),
+                regionalConfiguration: deployment.regional, storageScope: deployment.storageScope)
+            XCTAssertFalse(valid.isSystemBacked)
+            XCTAssertThrowsError(try construction.make(session: owner, scope: .activity(41),
+                regionalConfiguration: deployment.regional, storageScope: otherScope))
+            XCTAssertThrowsError(try construction.make(session: owner, scope: .activity(0),
+                regionalConfiguration: deployment.regional, storageScope: deployment.storageScope))
+        }
+        let invalid = try PlayExperienceSession(accountID: 7, epoch: 1,
+            namespace: deployment.storageScope.service, token: "synthetic-7", role: "unverified")
+        XCTAssertThrowsError(try construction.make(session: invalid, scope: .activity(41),
+            regionalConfiguration: deployment.regional, storageScope: deployment.storageScope))
+    }
     func testRevokedRuntimeApprovalDropsLate401AtCompositionBoundary() async throws {
         let wire = PlayReadWire(), transport = try direct(wire)
         wire.pause = true
@@ -343,4 +449,36 @@ import UIKit
         default: XCTFail("Unreviewed request reached recorder"); throw APIError.invalidRequest
         }
     }
+}
+
+/// In-memory primitives exercise the real encrypted journal without OS paths or Keychain.
+private actor PlayReadAnchors: ContentDraftAnchorStore {
+    private var values: [String: ContentDraftAnchorItem] = [:]
+    private var locked = false
+    func setLocked(_ value: Bool) { locked = value }
+    func read(slot: String) throws -> ContentDraftAnchorItem? {
+        guard !locked else { throw ContentDraftIssue.storageUnavailable }; return values[slot]
+    }
+    func insert(slot: String, item: ContentDraftAnchorItem) throws -> Bool {
+        guard !locked else { throw ContentDraftIssue.storageUnavailable }
+        guard values[slot] == nil else { return false }; values[slot] = item; return true
+    }
+    func exchange(slot: String, matchingTag: Data, item: ContentDraftAnchorItem) throws -> Bool {
+        guard !locked else { throw ContentDraftIssue.storageUnavailable }
+        guard values[slot]?.tag == matchingTag else { return false }; values[slot] = item; return true
+    }
+}
+private actor PlayReadCiphertexts: ContentDraftCiphertextStore {
+    private var values: [String: Data] = [:]
+    private var presence: Set<String> = []
+    func createPresence(slot: String) -> Bool { presence.insert(slot).inserted }
+    func hasPresence(slot: String) -> Bool { presence.contains(slot) }
+    func insert(name: String, bytes: Data) throws {
+        guard values[name] == nil else { throw ContentDraftIssue.storageUnavailable }; values[name] = bytes
+    }
+    func readDurably(name: String, limit: Int) throws -> Data {
+        guard let value = values[name], value.count <= limit else { throw ContentDraftIssue.storageUnavailable }; return value
+    }
+    func removeDurably(name: String) { values[name] = nil }
+    func corrupt() { for name in values.keys { values[name] = Data([0]) } }
 }

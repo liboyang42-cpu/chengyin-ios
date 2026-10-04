@@ -75,6 +75,101 @@ final class TemplateAuthoringTests: XCTestCase {
         var d = TemplateAuthoringDraft(title: "x"); XCTAssertTrue(d.publishIssues.contains("templateAuthor.validation.reward"))
         d.medalImg = "image"; XCTAssertTrue(d.publishIssues.contains("templateAuthor.validation.medal")); d.medalName = "Name"; XCTAssertFalse(d.publishIssues.contains("templateAuthor.validation.medal"))
     }
+    private func qaParityDraft(_ mode: String) -> TemplateAuthoringDraft {
+        var draft = TemplateAuthoringDraft(title: "QA parity")
+        draft.description = "Source QA"; draft.players = "1-2"; draft.duration = 10
+        draft.categoryId = 4; draft.rewardEnabled = false
+        draft.validationMethod = mode == "TYPE" ? .text : .choice
+        draft.advanced.setCreatorEnabled(.qa, true)
+        draft.advanced.set("qa", "mode", .string(mode))
+        draft.advanced.set("qa", "title", .string("Which place?"))
+        draft.advanced.set("qa", "answerText", .string("Tower"))
+        draft.advanced.set("qa", "options", .array([
+            .object(["id": .string("tower"), "label": .string("Tower"), "fb": .string("Found it"), "correct": .bool(true), "effects": .array([])]),
+            .object(["id": .string("river"), "label": .string("River"), "fb": .string("Try again"), "correct": .bool(false), "effects": .array([])])]))
+        return draft
+    }
+    func testAdvancedQAModesDoNotRequireDuplicateLegacyAnswers() throws {
+        for mode in ["TYPE", "PICK"] {
+            let draft = qaParityDraft(mode)
+            XCTAssertNil(draft.questionName); XCTAssertNil(draft.questionAnswer)
+            XCTAssertNil(draft.questionA); XCTAssertNil(draft.correctAnswer)
+            XCTAssertTrue(draft.advanced.issues.isEmpty, mode)
+            XCTAssertTrue(draft.publishIssues.isEmpty, mode)
+            let request = try TemplateAuthoringContract.request(draft, intent: .publish)
+            XCTAssertEqual(request.path, "/api/template/publish")
+            XCTAssertEqual(request.method, "POST")
+            guard case .json(let payload) = request.body else { return XCTFail("JSON required") }
+            XCTAssertEqual(payload["validationMethod"], .number(mode == "TYPE" ? 1 : 3))
+            XCTAssertEqual(payload["advancedConfigJson"], .string(try draft.advanced.serialize()))
+            for field in ["questionName", "questionAnswer", "questionA", "correctAnswer"] { XCTAssertNil(payload[field], field) }
+        }
+    }
+    func testDisabledOrMismatchedQAStillRequiresLegacyAnswers() throws {
+        for mode in ["TYPE", "PICK"] {
+            var draft = qaParityDraft(mode)
+            draft.advanced.setCreatorEnabled(.qa, false)
+            XCTAssertFalse(draft.publishIssues.isEmpty)
+            XCTAssertThrowsError(try TemplateAuthoringContract.request(draft, intent: .publish))
+            draft.advanced.setCreatorEnabled(.qa, true)
+            draft.validationMethod = mode == "TYPE" ? .choice : .text
+            XCTAssertTrue(draft.advanced.issues.isEmpty)
+            XCTAssertFalse(draft.publishIssues.isEmpty)
+            XCTAssertThrowsError(try TemplateAuthoringContract.request(draft, intent: .publish))
+        }
+    }
+    func testAdvancedQABypassDoesNotBypassItsOwnAnswerValidation() throws {
+        var typed = qaParityDraft("TYPE")
+        typed.advanced.set("qa", "answerText", .string(""))
+        XCTAssertFalse(typed.publishIssues.isEmpty)
+        XCTAssertThrowsError(try TemplateAuthoringContract.request(typed, intent: .publish))
+        var picked = qaParityDraft("PICK")
+        var options = picked.advanced.value["qa"]?.object?["options"]?.array ?? []
+        for index in options.indices {
+            var option = options[index].object ?? [:]; option["correct"] = .bool(false); options[index] = .object(option)
+        }
+        picked.advanced.set("qa", "options", .array(options))
+        XCTAssertFalse(picked.publishIssues.isEmpty)
+        XCTAssertThrowsError(try TemplateAuthoringContract.request(picked, intent: .publish))
+        picked.advanced.set("qa", "mode", .string("FUTURE"))
+        XCTAssertFalse(picked.publishIssues.isEmpty)
+        XCTAssertThrowsError(try TemplateAuthoringContract.request(picked, intent: .publish))
+    }
+    func testUnrelatedAdvancedModifierDoesNotBypassLegacyValidation() throws {
+        var draft = qaParityDraft("PICK")
+        draft.advanced.setCreatorEnabled(.qa, false)
+        draft.advanced.set("timer", "enabled", .bool(true))
+        XCTAssertTrue(draft.advanced.issues.isEmpty)
+        XCTAssertTrue(draft.publishIssues.contains("templateAuthor.validation.choices"))
+        XCTAssertThrowsError(try TemplateAuthoringContract.request(draft, intent: .publish))
+        draft.questionName = "Legacy question"; draft.questionA = "A"; draft.questionB = "B"; draft.correctAnswer = "B"
+        XCTAssertTrue(draft.publishIssues.isEmpty)
+        XCTAssertNoThrow(try TemplateAuthoringContract.request(draft, intent: .publish))
+    }
+    func testQAParityLeavesDraftAndExistingMediaSerializationUntouched() throws {
+        for mode in ["TYPE", "PICK"] {
+            var draft = qaParityDraft(mode)
+            draft.imgUrl = "https://example.com/cover.png"
+            draft.questionImg = "https://example.com/question.png"
+            draft.questionAudio = "https://example.com/question.mp3"
+            draft.questionOptionMediaJson = #"{"A":{"img":"https://example.com/option.png"}}"#
+            draft.advanced.set("qa", "imageUrl", .string("https://example.com/advanced.png"))
+            draft.advanced.set("qa", "audioUrl", .string("https://example.com/advanced.mp3"))
+            let before = draft
+            let expectedPayload = try TemplateAuthoringContract.payload(draft)
+            let request = try TemplateAuthoringContract.request(draft, intent: .publish)
+            XCTAssertEqual(request.body, .json(expectedPayload)); XCTAssertEqual(draft, before)
+            XCTAssertEqual(expectedPayload["imgUrl"], .string(draft.imgUrl!))
+            XCTAssertEqual(expectedPayload["questionImg"], .string(draft.questionImg!))
+            XCTAssertEqual(expectedPayload["questionAudio"], .string(draft.questionAudio!))
+            if mode == "PICK" { XCTAssertEqual(expectedPayload["questionOptionMediaJson"], .string(draft.questionOptionMediaJson!)) }
+            let raw = try XCTUnwrap(expectedPayload["advancedConfigJson"]?.string)
+            let qa = try JSONDecoder().decode([String: TemplateAuthoringJSON].self, from: Data(raw.utf8))["qa"]?.object
+            XCTAssertEqual(qa?["imageUrl"], .string("https://example.com/advanced.png"))
+            XCTAssertEqual(qa?["audioUrl"], .string("https://example.com/advanced.mp3"))
+            XCTAssertEqual(try TemplateAuthoringContract.request(draft, intent: .saveDraft).path, "/api/template/draft")
+        }
+    }
     func testRemovedCorrectChoiceBlocksPublish() {
         var d = TemplateAuthoringDraft(title: "x"); d.validationMethod = .choice; d.questionName = "Q"; d.questionA = "A"; d.questionB = "B"; d.correctAnswer = "D"
         XCTAssertTrue(d.publishIssues.contains("templateAuthor.validation.correctAnswer"))

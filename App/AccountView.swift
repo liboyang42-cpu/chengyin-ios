@@ -87,7 +87,7 @@ struct AccountView: View {
                         Label("wallet.title", systemImage: "wallet.pass")
                     }.accessibilityIdentifier("account.wallet")
                 }
-                AccountCollectionAccountLinks(reader:session.accountCollectionReader,onOpenTopic:{ savedTopic=SavedTopicRoute(id:$0) }).id(session.accountCollectionReader.scope)
+                AccountCollectionAccountLinks(reader:session.accountCollectionReader,onOpenTopic:{ savedTopic=SavedTopicRoute(id:$0) },rewards:session.nonCashRewardReader).id(session.accountCollectionReader.scope)
                 Section {
                     NavigationLink { SessionObjectCardsView() } label: {
                         Label("objects.title", systemImage: "rectangle.stack")
@@ -99,7 +99,7 @@ struct AccountView: View {
                     NavigationLink { MessagingHomeView(reader:session.messagingReader,mediaReader:session.socialMessageMediaReader,senderForConversation:{ session.messageSender(for:$0) },expanded:session.imExpandedNavigation).id(session.messagingReader.identity) } label: {
                         Label("messaging.title",systemImage:"bubble.left.and.bubble.right")
                     }.accessibilityIdentifier("account.messages")
-                    NavigationLink { ClubHomeView(reader:session,actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext, community:session.clubCommunityContext) } label: { Label("club.title",systemImage:"person.3") }
+                    NavigationLink { ClubHomeView(reader:session,actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext, community:session.clubCommunityContext, topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }).id(session.sessionRevision) } label: { Label("club.title",systemImage:"person.3") }
                         .accessibilityIdentifier("account.clubs")
                 }
                 Section {

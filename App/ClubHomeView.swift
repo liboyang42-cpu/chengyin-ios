@@ -8,7 +8,9 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
     var actionCoordinator: ClubActionCoordinator? = nil
     var management:ClubManagementContext? = nil
     var community: ClubCommunityContext? = nil
-    /// The home event id is a topic id in the source. Omit until native topic routing is available.
+    /// Home events carry topic IDs. The session host supplies its existing gated destination.
+    var topicDestination: ((Int) -> AnyView)? = nil
+    /// Retained callback for hosts that own a value-based navigation path.
     var onTopicDestination: ((Int) -> Void)? = nil
     var body: some View {
         ClubReadScreen(reader: reader, accessibilityPrefix: "club.home", onSignIn: onSignIn,
@@ -41,7 +43,10 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                         Text("club.emptyEvents").foregroundStyle(.secondary).accessibilityIdentifier("club.home.events.empty")
                     }
                     ForEach(Array(home.events.enumerated()), id: \.offset) { _, event in
-                        if let onTopicDestination {
+                        if let topicDestination, event.id > 0 {
+                            NavigationLink { topicDestination(event.id) } label: { eventRow(event) }
+                                .accessibilityIdentifier("club.event.\(event.id)")
+                        } else if let onTopicDestination {
                             Button { onTopicDestination(event.id) } label: { eventRow(event) }
                                 .accessibilityIdentifier("club.event.\(event.id)")
                         } else { eventRow(event) }

@@ -8,6 +8,7 @@ public struct PlayAdvancedState: Equatable {
     public let config: PlayWireValue; public let draws: [PlayWireValue]; public let branch: PlayWireValue
     public let playKit: PlayWireValue; public let multiplayer: PlayWireValue
     public let storyVariables: [String: PlayWireValue]
+    public let objectCard: ObjectCard?
     public var isMultiplayer: Bool { config["multiplayer"]["enabled"].bool == true }
     public var needsUnverifiedSteps: Bool { playKit["steps"].object != nil && playKit["steps"]["reached"].bool != true }
     public init(_ raw: PlayWireValue) throws {
@@ -22,6 +23,7 @@ public struct PlayAdvancedState: Equatable {
         inline = raw["present"].text == "inline"; config = raw["config"]; draws = raw["draws"].array ?? []
         branch = raw["branch"]; playKit = raw["playKit"]; multiplayer = raw["multiplayer"]
         storyVariables = raw["vars"].object ?? [:]
+        objectCard = PlayObjectCardReceiptDecoder.decode(raw["objectCard"])
     }
     public func remainingSeconds(nowMilliseconds: Int64) -> Int? {
         deadlineAt.map { Int(max(0, ceil(Double($0 - nowMilliseconds) / 1000))) }
@@ -103,6 +105,11 @@ extension PlayExperienceService {
     public private(set) var phase = "idle"
     public private(set) var issue: PlayExperienceError?
     public private(set) var leaderboard: [PlayWireValue] = []
+    private var cardReceipts = PlayObjectCardReceiptCache()
+    private var cardLifetime: UInt64 = 0
+    private var pendingRequestedCard = false
+    public var objectCardReceipt: PlayObjectCardReceipt? { isCurrent ? cardReceipts.receipt : nil }
+    public func clearObjectCardReceipt() { cardLifetime &+= 1; cardReceipts.clear() }
     let activityID: Int; let topicID: Int; let nodeID: Int
     let service: PlayExperienceService
     let currentSession: () -> PlayExperienceSession?
@@ -137,6 +144,7 @@ extension PlayExperienceService {
               state.sessionID == review.sessionID, state.version == review.version else {
             issue = .staleSession; return false
         }
+        pendingRequestedCard = review.kind == "photoCheck" && state.playKit["photoCheck"]["mode"].text == "CARD"
         pending = PlayAdvancedPending(sessionID: review.sessionID, version: review.version,
             key: review.id.uuidString, action: review.action, payload: review.payload)
         await sendPending()
@@ -162,10 +170,12 @@ extension PlayExperienceService {
     }
     private func sendPending() async {
         guard let pending, let session = owner, session == currentSession() else { return }
-        let generation = generation; phase = "submitting"
+        let generation = generation; let cardLifetime = cardLifetime; phase = "submitting"
         do {
             let result = try await service.advancedAction(pending, token: session.token)
-            try accept(result, session: session, generation: generation); self.pending = nil
+            try accept(result, session: session, generation: generation)
+            if self.cardLifetime == cardLifetime { cardReceipts.accept(result, owner: session, pending: pending, requestedCard: pendingRequestedCard) }
+            self.pending = nil; pendingRequestedCard = false
         } catch { failure(error, session: session, generation: generation) }
     }
     public func recover() async {
@@ -176,6 +186,7 @@ extension PlayExperienceService {
             try validate(result, session: session, generation: generation)
             guard result.version >= pending.version else { throw PlayExperienceError.malformed }
             state = result
+            cardReceipts.reconcile(result, owner: session)
             // Version advancement alone is NOT proof, including on a single-user run.
             // Expose only replay of the frozen idempotent request after explicit review.
             phase = "retryable"
@@ -196,16 +207,19 @@ extension PlayExperienceService {
     }
     private func accept(_ state: PlayAdvancedState, session: PlayExperienceSession, generation: UInt64) throws {
         try validate(state, session: session, generation: generation); self.state = state; issue = nil
+        cardReceipts.reconcile(state, owner: session)
         // An unresolved steps proof must not disable unrelated server-present kits.
         // Step submission itself is separately unsupported until its proof contract is approved.
         phase = "ready"
     }
     private func failure(_ error: Error, session: PlayExperienceSession, generation: UInt64) {
         guard self.generation == generation else { return }
-        guard currentSession() == session else { self.state = nil; phase = "stale"; return }
+        guard currentSession() == session else { self.state = nil; clearObjectCardReceipt(); phase = "stale"; return }
         issue = error as? PlayExperienceError ?? .unknownResult
-        if case PlayExperienceError.rejected = error { pending = nil; phase = "rejected" }
-        else if case PlayExperienceError.disabled = error { pending = nil; phase = "disabled" }
+        if case PlayExperienceError.rejected = error { pending = nil; clearObjectCardReceipt(); phase = "rejected" }
+        else if case PlayExperienceError.disabled = error { pending = nil; clearObjectCardReceipt(); phase = "disabled" }
+        else if case PlayExperienceError.unauthorized = error { clearObjectCardReceipt(); phase = "stale" }
+        else if case APIError.unauthorized = error { clearObjectCardReceipt(); phase = "stale" }
         else { phase = "unknown" }
     }
 }

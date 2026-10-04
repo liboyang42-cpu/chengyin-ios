@@ -1,0 +1,63 @@
+{
+  "W17_READ_LIST_JSON": {
+    "msg": "操作成功",
+    "code": 200,
+    "data": {
+      "items": [
+        {
+          "awardId": "4c4d99d1d59013513ef9efd07ed1a537700d17430428bae07267f4c992976974",
+          "contextType": "MAP",
+          "contextId": "board",
+          "releaseId": "release",
+          "instanceId": "season",
+          "rulesVersion": "rules",
+          "merchantId": "7",
+          "storeId": "8",
+          "rewardKind": "PHYSICAL",
+          "rewardTitle": "Promised coffee",
+          "redemptionConditions": "Original store 8 conditions",
+          "state": "AWARDED",
+          "quantity": 1,
+          "validFrom": 100,
+          "validUntil": 1000,
+          "awardedAt": 300,
+          "asOf": 300,
+          "validityStatus": "IN_WINDOW",
+          "fulfillmentStatus": "UNVERIFIED"
+        }
+      ],
+      "nextCursor": null,
+      "asOf": 300
+    }
+  },
+  "W17_READ_DETAIL_JSON": {
+    "msg": "操作成功",
+    "code": 200,
+    "data": {
+      "awardId": "4c4d99d1d59013513ef9efd07ed1a537700d17430428bae07267f4c992976974",
+      "contextType": "MAP",
+      "contextId": "board",
+      "releaseId": "release",
+      "instanceId": "season",
+      "rulesVersion": "rules",
+      "merchantId": "7",
+      "storeId": "8",
+      "rewardKind": "PHYSICAL",
+      "rewardTitle": "Promised coffee",
+      "redemptionConditions": "Original store 8 conditions",
+      "state": "AWARDED",
+      "quantity": 1,
+      "validFrom": 100,
+      "validUntil": 1000,
+      "awardedAt": 300,
+      "asOf": 300,
+      "validityStatus": "IN_WINDOW",
+      "fulfillmentStatus": "UNVERIFIED"
+    }
+  },
+  "W17_READ_NOT_FOUND_JSON": {
+    "msg": "未找到该奖励",
+    "code": 404,
+    "errorCode": "NOT_FOUND"
+  }
+}
