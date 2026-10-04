@@ -14,7 +14,7 @@ import Darwin
             func rejects(_ operation: () async throws -> Void) async throws {
                 do { try await operation(); XCTFail("Non-A directory accepted by Class A store") }
                 catch { XCTAssertEqual(error as? ContentDraftIssue, .storageUnavailable) }
-                try NonClassAStorageFixture.assertUnchanged(root)
+                try await NonClassAStorageFixture.assertUnchanged(root)
             }
             try await rejects { try await store.insert(name: name, bytes: Data([0xA7])) }
             try await rejects { _ = try await store.createPresence(slot: slot) }
