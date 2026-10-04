@@ -74,7 +74,9 @@ public enum TemplateShelfReadRoute: Equatable {
             let keyStart = chunk.index(chunk.startIndex, offsetBy: header.count)
             guard split.lowerBound > keyStart else { return nil }
             let key = String(chunk[keyStart..<split.lowerBound])
-            let value = String(chunk[split.upperBound...].dropLast(2))
+            // Swift counts CRLF as one Character, not two. Remove the checked
+            // suffix by the same Character semantics without truncating the value.
+            let value = String(chunk[split.upperBound...].dropLast("\r\n".count))
             guard fields[key] == nil else { return nil }; fields[key] = value
         }
         let canonical: URLRequest

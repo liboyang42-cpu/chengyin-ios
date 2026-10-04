@@ -7,6 +7,7 @@ struct RoamBrowserView: View {
     let reader: any RoamReading
     var onChooseArea: (() -> Void)? = nil
     var experienceReader: (any RoamExperienceReading)? = nil
+    var cityDestination: (() -> AnyView)? = nil
     var nearbyTeamsDestination: (() -> AnyView)? = nil
     var stampDestination: (() -> AnyView)? = nil
     var liveDestination: (() -> AnyView)? = nil
@@ -93,6 +94,7 @@ struct RoamBrowserView: View {
                 RoamItemDetailView(item: item, reader: reader, mediaScope: mediaScope, makeExternalMaps: makeExternalMaps, stampDestination: stampDestination, posterDestination: posterDestination)
             }
             .toolbar {
+                if let cityDestination { ToolbarItem(placement: .topBarTrailing) { NavigationLink("city.read.title", destination: cityDestination) } }
                 if let nearbyTeamsDestination { ToolbarItem(placement: .topBarTrailing) { NavigationLink("nearby.title", destination: nearbyTeamsDestination) } }
                 if let experienceReader {
                     ToolbarItem(placement: .topBarLeading) {

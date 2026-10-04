@@ -42,3 +42,14 @@ class TemplateShelfReadBridge(unittest.TestCase):
         self.assertIn('case "api/template/my-list":', s)
         self.assertIn('case "api/template/myinfo":', s)
         self.assertIn('testNormalRootOwnedShelfPaginationAndDetailWithoutMutation', read('Tests/AppUITests/IntegratedNativeAcceptanceFlowTests.swift'))
+
+    def test_multipart_suffix_uses_swift_character_count_not_byte_count(self):
+        s = read('Core/TemplateShelfReadApproval.swift')
+        self.assertIn('dropLast("\\r\\n".count)', s)
+        self.assertNotIn('dropLast(2)', s)
+        tests = read('Tests/CoreTests/TemplateShelfReadTests.swift')
+        self.assertIn('XCTAssertEqual("\\r\\n".count, 1)', tests)
+        self.assertIn('XCTUnwrap(wire.requests.first', tests)
+        self.assertNotIn('wire.requests[0]', tests)
+        for case in ['String(repeating: "x", count: 512)', 'String(repeating: "Z", count: 70)', '[1, 9, 10, 41, Int.max]']:
+            self.assertIn(case, tests)

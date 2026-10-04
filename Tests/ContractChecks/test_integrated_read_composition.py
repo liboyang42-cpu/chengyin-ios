@@ -7,11 +7,11 @@ class IntegratedReadCompositionContracts(unittest.TestCase):
     def read(self, path):
         return (ROOT / path).read_text()
 
-    def test_only_both_validated_route_predicates_admit_queries(self):
+    def test_only_exact_validated_route_predicates_admit_queries(self):
         source = self.read('App/AppCompositionRoot.swift')
         self.assertIn('ManualMapReadRoute(request: request, baseURL: api.baseURL, area: $0.area)', source)
         self.assertIn('PlayReadRoute(request: request, baseURL: api.baseURL)', source)
-        self.assertIn('guard url.query == nil || manualRead != nil || playRead != nil else', source)
+        self.assertIn('guard url.query == nil || manualRead != nil || playRead != nil || cityRead != nil else', source)
         for marker in ['deployment.reads.contains(.manualMap)', 'deployment.reads.contains(.playNodesAndRouteState)',
                        'deployment.contentDetails == .activityAndTopic', 'captured.isSignedInContentViewer']:
             self.assertIn(marker, source)

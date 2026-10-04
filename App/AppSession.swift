@@ -524,6 +524,25 @@ final class AppSession: ObservableObject {
         guard let injected else { return compositionTransport }
         return compositionTransport.replacingUnderlying(injected)
     }
+    var cityPlayerReadIdentity: String {
+        guard let context = currentRuntimeDependencyContext,
+              let approval = composition.cityPlayerReadApproval(context), approval.matches(context) else { return "disabled-\(gate.currentStamp)-\(compositionViewerRevision)" }
+        return "\(gate.currentStamp):\(compositionViewerRevision):\(approval.revision.uuidString)"
+    }
+    func makeCityPlayerReader() -> CityPlayerReader {
+        let context = currentRuntimeDependencyContext, viewer = compositionViewerRevision
+        let approval = context.flatMap { composition.cityPlayerReadApproval($0) }
+        let available: () -> Bool = { [weak self] in
+            guard let self, let context, let approval, self.compositionViewerRevision == viewer,
+                  let current = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(context, current), approval.matches(current) else { return false }
+            return self.composition.cityPlayerReadApproval(current)?.revision == approval.revision
+        }
+        return CityPlayerReader(approval: approval, transport: compositionTransport, isCurrent: available, onUnauthorized: { [weak self] in
+            guard let self, let context, available() else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+        })
+    }
     private var currentRuntimeDependencyContext: RuntimeDependencyContext? {
         guard !committingAuthenticatedSession, let regionalConfiguration, let api = regionalConfiguration.apiConfiguration,
               let session = currentPlayRuntimeSession, let account else { return nil }

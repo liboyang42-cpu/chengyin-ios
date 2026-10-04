@@ -16,12 +16,26 @@ import FoundationNetworking
     private var fields: [String: String] { ["is_quote": "", "keyword": "", "category_id": "", "pageNum": "1", "pageSize": "10"] }
     func testCanonicalActualBuildersAndBoundedPages() throws {
         let config = try APIConfiguration(baseURL: base)
+        XCTAssertEqual("\r\n".count, 1)
+        XCTAssertEqual(Array("\r\n".utf8), [13, 10])
         for page in [1, 2, 100] {
-            let request = try TemplateAuthoringWireRequestBuilder.make(TemplateOwnShelfPage.request(page: page, keyword: "城 & café"), configuration: config, token: "synthetic")
-            XCTAssertEqual(TemplateShelfReadRoute(request: request, baseURL: base), .page(page, keyword: "城 & café"))
+            for keyword in ["", "x", "城", "城 & café", "e\u{301}", "👩🏽‍💻", String(repeating: "x", count: 512)] {
+                for boundary in ["B", "Shelf-boundary", String(repeating: "Z", count: 70)] {
+                    let request = try TemplateAuthoringWireRequestBuilder.make(TemplateOwnShelfPage.request(page: page, keyword: keyword), configuration: config, token: "synthetic", boundary: boundary)
+                    XCTAssertEqual(TemplateShelfReadRoute(request: request, baseURL: base), .page(page, keyword: keyword))
+                    // Verify the actual producer bytes keep each complete value and its CRLF.
+                    let body = try XCTUnwrap(request.httpBody)
+                    XCTAssertNotNil(body.range(of: Data(("name=\"pageSize\"\r\n\r\n10\r\n").utf8)))
+                    XCTAssertNotNil(body.range(of: Data(("name=\"keyword\"\r\n\r\n" + keyword + "\r\n").utf8)))
+                }
+            }
         }
-        let id = MemberPlayTemplateID(rawValue: 41)!
-        XCTAssertEqual(TemplateShelfReadRoute(request: try form("api/template/myinfo", ["id": "41"]), baseURL: base), .detail(id))
+        for value in [1, 9, 10, 41, Int.max] {
+            let id = try XCTUnwrap(MemberPlayTemplateID(rawValue: value))
+            let request = try form("api/template/myinfo", ["id": String(value)])
+            XCTAssertEqual(TemplateShelfReadRoute(request: request, baseURL: base), .detail(id))
+            XCTAssertNotNil(try XCTUnwrap(request.httpBody).range(of: Data(("name=\"id\"\r\n\r\n\(value)\r\n").utf8)))
+        }
         XCTAssertNil(TemplateShelfReadRoute(request: try TemplateAuthoringWireRequestBuilder.make(TemplateAuthoringContract.listMine(), configuration: config, token: "synthetic"), baseURL: base))
     }
     func testRejectsAllAlternateFormsBeforeDispatch() throws {
@@ -35,7 +49,7 @@ import FoundationNetworking
         invalid.append(try form("api/common/dict", ["dictType": "app_template_difficulty"]))
         let canonical = try form("api/template/myinfo", ["id": "41"])
         let body = String(data: canonical.httpBody!, encoding: .utf8)!
-        for altered in ["--Shelf-boundary\r\nContent-Disposition: form-data; name=\"\r\n\r\nx\r\n--Shelf-boundary--\r\n", "--Shelf-boundary\r\nContent-Disposition: form-data; name=\"", body.replacingOccurrences(of: "name=\"id\"", with: "name=\"\""), body.replacingOccurrences(of: "name=\"id\"", with: "name=\"id\"; filename=\"a\""), body.replacingOccurrences(of: "\r\n\r\n41", with: "\r\nContent-Type: text/plain\r\n\r\n41"), body.replacingOccurrences(of: "--Shelf-boundary--", with: "--Shelf-boundary\r\nContent-Disposition: form-data; name=\"id\"\r\n\r\n41\r\n--Shelf-boundary--"), body + "extra", body.replacingOccurrences(of: "\r\n", with: "\n")] {
+        for altered in ["--Shelf-boundary\r\nContent-Disposition: form-data; name=\"\r\n\r\nx\r\n--Shelf-boundary--\r\n", "--Shelf-boundary\r\nContent-Disposition: form-data; name=\"", body.replacingOccurrences(of: "name=\"id\"", with: "name=\"\""), body.replacingOccurrences(of: "name=\"id\"", with: "name=\"id\"; filename=\"a\""), body.replacingOccurrences(of: "\r\n\r\n41", with: "\r\nContent-Type: text/plain\r\n\r\n41"), body.replacingOccurrences(of: "--Shelf-boundary--", with: "--Shelf-boundary\r\nContent-Disposition: form-data; name=\"id\"\r\n\r\n41\r\n--Shelf-boundary--"), body + "extra", body.replacingOccurrences(of: "41\r\n--Shelf-boundary", with: "41\n--Shelf-boundary"), body.replacingOccurrences(of: "41\r\n--Shelf-boundary", with: "41\r--Shelf-boundary"), body.replacingOccurrences(of: "41\r\n--Shelf-boundary", with: "41--Shelf-boundary"), body.replacingOccurrences(of: "41\r\n--Shelf-boundary", with: "41\r\n\r\n--Shelf-boundary"), body.replacingOccurrences(of: "\r\n", with: "\n")] {
             var request = canonical; request.httpBody = Data(altered.utf8); invalid.append(request)
         }
         for type in ["application/json", "multipart/form-data; boundary=Shelf-boundary; charset=utf-8", "multipart/form-data; boundary=\"Shelf-boundary\""] { var request = canonical; request.setValue(type, forHTTPHeaderField: "Content-Type"); invalid.append(request) }
@@ -72,7 +86,9 @@ import FoundationNetworking
             let read = TemplateShelfReadTransport(configuration: try .init(baseURL: base), http: wire, approval: lease, current: { context })
             do { _ = try await read.detail(MemberPlayTemplateID(rawValue: 41)!); XCTAssertEqual(row, #"{"id":41,"memberId":7}"#) }
             catch { XCTAssertNotEqual(row, #"{"id":41,"memberId":7}"#) }
-            XCTAssertEqual(wire.requests.count, 1); XCTAssertEqual(wire.requests[0].url?.path, "/native/api/template/myinfo")
+            XCTAssertEqual(wire.requests.count, 1)
+            let request = try XCTUnwrap(wire.requests.first, "A canonical owned-detail read must dispatch exactly once")
+            XCTAssertEqual(request.url?.path, "/native/api/template/myinfo")
         }
     }
     func testLeaseExactContextAndIrreversibleExpiry() throws {
