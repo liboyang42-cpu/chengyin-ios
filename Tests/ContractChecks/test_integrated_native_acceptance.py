@@ -41,7 +41,7 @@ class IntegratedNativeAcceptanceContracts(unittest.TestCase):
 
     def test_bounded_ui_cases_use_phone_inputs_and_normal_destinations(self):
         source = self.read('Tests/AppUITests/IntegratedNativeAcceptanceFlowTests.swift')
-        self.assertEqual(len(re.findall(r'func\s+test\w+\(', source)), 4)
+        self.assertEqual(len(re.findall(r'func\s+test\w+\(', source)), 7)
         for required in ['auth.channels.sendCode', 'auth.channels.phoneSignIn', 'homeFeed.nearby.activity.21', 'roam.area.select',
                          'activity.openPlay', 'profile.open.orders', 'profile.order.41',
                          'final.ledger.dropFirst(9)', 'assertIdentity(', 'try closeFrontSheet(app)',

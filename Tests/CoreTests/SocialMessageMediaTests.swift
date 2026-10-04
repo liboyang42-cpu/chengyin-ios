@@ -15,8 +15,18 @@ private final class SocialMediaTransport: HTTPTransport {
 }
 @MainActor final class SocialMessageMediaTests: XCTestCase {
     private func message(_ url: String, type: Int = 2) throws -> MessagingMessage {
-        let data = try JSONSerialization.data(withJSONObject: ["id": 1, "conversationId": 9, "msgType": type, "content": url])
+        let data = try JSONSerialization.data(withJSONObject: ["id": 1, "conversationId": 9, "status":0,"msgType": type, "content": url])
         return try JSONDecoder().decode(MessagingMessage.self, from: data)
+    }
+    func testSharedAccountMediaFixtureHasExplicitNormalStatusAndValidProjection() throws {
+        // The same fixture drives SocialAccountFlowTests' explicit-load/account-switch flow.
+        let message = try SocialAccountSyntheticFixtures.imageMessage()
+        XCTAssertEqual(message.status, .normal)
+        XCTAssertTrue(message.isPayloadVisible)
+        let media = try SocialMessageMedia(message: message)
+        XCTAssertEqual(media.messageID, 90)
+        XCTAssertEqual(media.conversationID, 901)
+        XCTAssertEqual(media.url.absoluteString, "https://media.example.test/synthetic.png")
     }
     func testImageContentURLIsUsedWithoutInventingMessageInfoEndpoint() throws {
         let media = try SocialMessageMedia(message: message("https://media.example.com/image.png?signature=synthetic"))

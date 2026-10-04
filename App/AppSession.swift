@@ -955,30 +955,65 @@ final class AppSession: ObservableObject {
         retainedSelfPlayFlows[key] = flow; return flow
     }
     var couponManagementSession: CouponManagementSession? {
-        guard let account, token != nil, let storageScope else { return nil }
-        return try? CouponManagementSession(accountID: account.id, namespace: storageScope.service,
-                                             epoch: gate.currentStamp, authorizationRevision: account.effectiveRole)
+        guard let context = currentRuntimeDependencyContext else { return nil }
+        let read = composition.couponReadApproval(context)
+        if let read, !read.matches(context) { return nil }
+        let candidate = composition.couponWriteApproval(context)
+        let write = candidate.flatMap { lease -> CouponManagementWriteApproval? in
+            let merchantID = read?.merchantID ?? lease.merchantID
+            return lease.matches(context, merchantID: merchantID, path: "/api/coupon/publish") || lease.matches(context, merchantID: merchantID, path: "/api/coupon/stop") ? lease : nil
+        }
+        return CouponManagementRuntimeIdentity.session(context: context, viewerRevision: compositionViewerRevision, read: read, write: write)
     }
-    private lazy var couponManagementLocks = CouponManagementAppLocks()
-    /// Source permissions and endpoint approval are separate. No live read/write grant is installed.
-    lazy var couponManagementCoordinator = makeCouponManagementCoordinator()
+    private lazy var couponManagementLocks = composition.couponLocks()
+    private var retainedCouponManagement: (RuntimeDependencyContext?, CouponManagementSession?, CouponManagementCoordinator)?
+    /// Retained per full context and lease issuance; escaped old references fail their current closure.
+    var couponManagementCoordinator: CouponManagementCoordinator {
+        let context = currentRuntimeDependencyContext, session = couponManagementSession
+        if let retained = retainedCouponManagement, retained.0 == context, retained.1 == session { return retained.2 }
+        retainedCouponManagement?.2.leave()
+        let value = makeCouponManagementCoordinator()
+        retainedCouponManagement = (context, session, value)
+        return value
+    }
     func makeCouponManagementCoordinator(readApproval: OperationEndpointApproval? = nil,
                                          transport: (any HTTPTransport)? = nil,
                                          publisher: (any CouponPublisherAuthorizing)? = nil) -> CouponManagementCoordinator {
         let transport = scopedTransport(transport)
+        let captured = currentRuntimeDependencyContext, capturedSession = couponManagementSession
+        let current: () -> CouponManagementSession? = { [weak self] in
+            guard let self, self.currentRuntimeDependencyContext == captured,
+                  self.couponManagementSession == capturedSession else { return nil }
+            return capturedSession
+        }
         var reader: (any CouponManagementTransport)?
-        if let configuration = regionalConfiguration?.apiConfiguration, let readApproval,
+        var authorizer: any CouponPublisherAuthorizing = publisher ?? CouponPublisherUnavailable()
+        var writeEnabled = false
+        if let configuration = regionalConfiguration?.apiConfiguration, let captured,
+           let read = composition.couponReadApproval(captured), read.matches(captured),
+           let confirmed = transport as? any CouponManagementConfirmedHTTPTransport {
+            let write = composition.couponWriteApproval(captured)
+            let actions = Set(CouponManagementWriteApproval.Action.allCases.filter {
+                write?.matches(captured, merchantID: read.merchantID, path: "/api/coupon/" + $0.rawValue) == true
+            })
+            writeEnabled = !actions.isEmpty
+            reader = CouponManagementRuntimeTransport(configuration: configuration, http: confirmed, actions: actions, credentials: { [weak self] in
+                guard let session = current(), let token = self?.token else { return nil }
+                return try? CouponManagementReadCredentials(session: session, token: token)
+            })
+            authorizer = CouponMerchantPublisherAuthorizer(configuration: configuration, http: transport,
+                context: captured, merchantID: read.merchantID, current: current)
+        } else if let configuration = regionalConfiguration?.apiConfiguration, let readApproval,
            let storageScope, readApproval.baseURL == configuration.baseURL, readApproval.namespace == storageScope.service {
             let guarded = CouponManagementApprovedReadTransport(configuration: configuration, approval: readApproval,
-                transport: transport, currentSession: { [weak self] in self?.couponManagementSession })
+                transport: transport, currentSession: current)
             reader = CouponManagementHTTPReadTransport(configuration: configuration, http: guarded, credentials: { [weak self] in
-                guard let self, let session = self.couponManagementSession, let token = self.token else { return nil }
+                guard let session = current(), let token = self?.token else { return nil }
                 return try? CouponManagementReadCredentials(session: session, token: token)
             })
         }
-        return CouponManagementCoordinator(adapter: .init(transport: reader),
-            authorizer: publisher ?? CouponPublisherUnavailable(), locks: couponManagementLocks,
-            currentSession: { [weak self] in self?.couponManagementSession })
+        return CouponManagementCoordinator(adapter: .init(transport: reader, dormantWritesEnabled: writeEnabled),
+            authorizer: authorizer, locks: couponManagementLocks, currentSession: current)
     }
     // Source-backed media composition remains dormant: hardware, upload origins and write grants are empty.
     private var roamMediaScope: RetainedImageScope? {
@@ -1047,7 +1082,24 @@ final class AppSession: ObservableObject {
         guard let epoch = walletEpochCache?.epoch else { return nil }
         return WalletCommerceScope(namespace: storageScope.service, accountID: account.id, epoch: epoch)
     }
-    /// No production read grant or mutation adapter is installed. iOS redemption stays dormant.
+    /// Read issuance is independently selected and defaults nil. No financial writer is installed.
+    private var currentWalletHistoryApproval: WalletHistoryReadApproval? {
+        guard let context = currentRuntimeDependencyContext,
+              let approval = composition.walletHistoryReadApproval(context), approval.matches(context) else { return nil }
+        return approval
+    }
+    var walletHistoryViewIdentity: String {
+        "\(gate.currentStamp):\(account?.id ?? 0):\(account?.effectiveRole ?? "guest"):\(compositionViewerRevision):\(currentWalletHistoryApproval?.revision.uuidString ?? "disabled")"
+    }
+    private var walletHistoryReaderCache: (identity: String, reader: WalletCommerceReader)?
+    var walletHistoryReader: WalletCommerceReader {
+        let identity = walletHistoryViewIdentity
+        if let cached = walletHistoryReaderCache, cached.identity == identity { return cached.reader }
+        let reader = makeWalletHistoryReader()
+        walletHistoryReaderCache = (identity, reader)
+        return reader
+    }
+    /// Existing financial consumers retain their original scope and lifecycle.
     lazy var walletCommerceReader = makeWalletCommerceReader()
     /// Public contact approval/transport is not supplied by current deployment composition.
     /// Does not grant wallet reads or any financial command.
@@ -1078,7 +1130,66 @@ final class AppSession: ObservableObject {
             return (scope, token)
         })
     }
+    func makeWalletHistoryReader() -> WalletCommerceReader {
+        let transport = scopedTransport(nil)
+        let approval = currentWalletHistoryApproval
+        let readApproval = approval?.endpoints
+        let capturedContext = currentRuntimeDependencyContext
+        let viewerRevision = compositionViewerRevision
+        // History lifetime is independent of the durable financial command owner key.
+        // A fresh reader gets a fresh presentation scope; old readers never adopt a new lease.
+        let historyScope = walletCommerceScope.map { WalletCommerceScope(namespace: $0.namespace, accountID: $0.accountID, epoch: UUID()) }
+        let currentSession: () -> (scope: WalletCommerceScope, token: String)? = { [weak self] in
+            guard let self, let capturedContext, let historyScope,
+                  self.compositionViewerRevision == viewerRevision,
+                  let currentContext = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(capturedContext, currentContext),
+                  let token = self.token else { return nil }
+            guard self.currentWalletHistoryApproval?.revision == approval?.revision else { return nil }
+            return (historyScope, token)
+        }
+        var service: WalletCommerceService?
+        if let configuration = regionalConfiguration?.apiConfiguration, let readApproval,
+           let storageScope, readApproval.baseURL == configuration.baseURL,
+           readApproval.namespace == storageScope.service {
+            let guarded = WalletCommerceApprovedReadTransport(configuration: configuration, approval: readApproval,
+                transport: transport, currentSession: currentSession)
+            service = WalletCommerceService(configuration: configuration, transport: guarded)
+        }
+        return WalletCommerceReader(service: service, onUnauthorized: { [weak self] captured in
+            guard let self, currentSession()?.scope == captured else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: self.gate.currentStamp, credential: self.token)
+        }, session: currentSession)
+    }
     private var retainedTemplateAuthors: [Int: TemplateAuthoringCoordinator] = [:]
+    private var retainedTemplateShelf: (identity: String, coordinator: TemplateAuthoringCoordinator)?
+    private var currentTemplateShelfReadApproval: TemplateShelfReadApproval? {
+        guard let context = currentRuntimeDependencyContext,
+              let approval = composition.templateShelfReadApproval(context), approval.matches(context) else { return nil }
+        return approval
+    }
+    private func makeTemplateShelfReadTransport() -> TemplateShelfReadTransport? {
+        guard let approval = currentTemplateShelfReadApproval,
+              let configuration = regionalConfiguration?.apiConfiguration else { return nil }
+        let revision = compositionViewerRevision
+        return TemplateShelfReadTransport(configuration: configuration, http: runtimeHTTPTransport, approval: approval,
+            current: { [weak self] in
+                guard let self, self.compositionViewerRevision == revision,
+                      self.currentTemplateShelfReadApproval?.revision == approval.revision else { return nil }
+                return self.currentRuntimeDependencyContext
+            }, onUnauthorized: { [weak self] in
+                guard let self, self.compositionViewerRevision == revision,
+                      self.currentTemplateShelfReadApproval?.revision == approval.revision else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: approval.context.session.epoch, credential: approval.context.session.token)
+            })
+    }
+    private var retainedOwnedMemberReader: (identity: String, reader: OwnedMemberTemplateReader)?
+    func makeOwnedMemberTemplateReader() -> OwnedMemberTemplateReader {
+        let identity = templateShelfViewIdentity
+        if let retainedOwnedMemberReader, retainedOwnedMemberReader.identity == identity { return retainedOwnedMemberReader.reader }
+        let reader = OwnedMemberTemplateReader(transport: makeTemplateShelfReadTransport(), authenticated: { [weak self] in self?.account != nil && self?.token != nil })
+        retainedOwnedMemberReader = (identity, reader); return reader
+    }
     private lazy var templateAuthoringSecureStorage = TemplateAuthoringSecureStorage(scope: storageScope)
     private lazy var templateAuthoringDraftStore = TemplateAuthoringLocalStore(storage: templateAuthoringSecureStorage)
     lazy var prefabPreviewStore = PrefabPreviewStore(storage: templateAuthoringSecureStorage)
@@ -1086,6 +1197,24 @@ final class AppSession: ObservableObject {
         guard let account, token != nil, let storageScope else { return nil }
         return try? TemplateAuthoringSession(accountID: account.id, namespace: storageScope.service,
                                              epoch: gate.currentStamp, authorizationRevision: account.effectiveRole)
+    }
+    var templateShelfViewIdentity: String {
+        templateAuthoringViewIdentity + ":\(compositionViewerRevision):" + (currentTemplateShelfReadApproval?.revision.uuidString ?? "disabled")
+    }
+    func templateShelfCoordinator() -> TemplateAuthoringCoordinator {
+        let identity = templateShelfViewIdentity
+        if let retainedTemplateShelf, retainedTemplateShelf.identity == identity { return retainedTemplateShelf.coordinator }
+        retainedTemplateShelf?.coordinator.shelfReader.leave()
+        retainedTemplateShelf?.coordinator.leaveShelfScreen()
+        // Independent read adapter: local editor and mutation journals are not reconfigured.
+        let adapter = TemplateAuthoringAdapter(shelfReadTransport: makeTemplateShelfReadTransport())
+        let coordinator = TemplateAuthoringCoordinator(adapter: adapter, store: templateAuthoringDraftStore,
+            currentSession: { [weak self] in
+                guard let self, self.templateShelfViewIdentity == identity else { return nil }
+                return self.currentTemplateAuthoringSession
+            })
+        retainedTemplateShelf = (identity, coordinator)
+        return coordinator
     }
     var templateAuthoringViewIdentity: String {
         currentTemplateAuthoringSession.map { $0.ownerKey + ":\($0.epoch):" + $0.authorizationRevision } ?? "signed-out"
@@ -1208,6 +1337,12 @@ final class AppSession: ObservableObject {
     }
     var socialActionAccess: any SocialActionAccess { socialMemberActions.access }
     var socialActionCoordinator: SocialActionCoordinator { socialMemberActions.coordinator }
+    // Preserve the independent media reader's account identity; history approval
+    // neither enables nor revokes its separately approved media-origin transport.
+    private var currentMessageMediaIdentity: MessagingReadIdentity? {
+        guard let account, let token else { return nil }
+        return (try? MessagingReadSession(accountID: account.id, epoch: gate.currentStamp, token: token))?.identity
+    }
     // Explicit media-origin approval and bounded streaming are required before live preview reads.
     lazy var socialMessageMediaReader = makeSocialMessageMediaReader()
     func makeSocialMessageMediaReader() -> SocialMessageMediaReader {
@@ -1217,9 +1352,9 @@ final class AppSession: ObservableObject {
                 approval: self.runtimeDependencies.socialReaderApproval,
                 apiTransport: self.runtimeHTTPTransport, mediaTransport: self.runtimeHTTPTransport,
                 current: { [weak self] in self?.currentRuntimeDependencyContext }).messageMedia()
-        }, currentIdentity: { [weak self] in self?.messagingReader.identity },
+        }, currentIdentity: { [weak self] in self?.currentMessageMediaIdentity },
         currentContext: { [weak self] in self?.currentRuntimeDependencyContext }, onUnauthorized: { [weak self] captured in
-            guard let self, self.messagingReader.identity == captured else { return }
+            guard let self, self.currentMessageMediaIdentity == captured else { return }
             self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
         })
     }
@@ -1859,19 +1994,45 @@ final class AppSession: ObservableObject {
         self.expireIfMatching(error:APIError.unauthorized,stamp:snapshot.identity.epoch,credential:self.token)
     })
     func messageSender(for conversationID:Int) -> MessageActionCoordinator? {
-        guard conversationID>0,let account else { return nil }
+        // A history lease is never a writer grant. Keep the legacy composer dormant
+        // unless the independent business configuration includes the exact send feature.
+        guard conversationID>0,let account, let factory = businessRuntimeFactory,
+              !factory.routes([.imSend]).isEmpty else { return nil }
         let key=MessageSenderKey(accountID:account.id,conversationID:conversationID)
         if let sender=messageSenders[key] { return sender }
         let sender=MessageActionCoordinator(accountID:account.id,conversationID:conversationID,writer:messageWriter)
         messageSenders[key]=sender;return sender
     }
-    lazy var messagingReader=MessagingSessionReader(service:messagingService,currentSession:{ [weak self] in
-        guard let self, let account=self.account, let token=self.token else { return nil }
-        return try? MessagingReadSession(accountID:account.id,epoch:self.gate.currentStamp,token:token)
-    },onUnauthorized:{ [weak self] snapshot in
-        guard let self else { return }
-        self.expireIfMatching(error:APIError.unauthorized,stamp:snapshot.identity.epoch,credential:self.token)
-    })
+    private var currentMessagingHistoryReadApproval: MessagingHistoryReadApproval? {
+        guard let context = currentRuntimeDependencyContext,
+              let approval = composition.messagingHistoryReadApproval(context), approval.matches(context) else { return nil }
+        return approval
+    }
+    var messagingViewIdentity: String {
+        "\(gate.currentStamp):\(account?.id ?? 0):\(compositionViewerRevision):\(currentMessagingHistoryReadApproval?.revision.uuidString ?? "disabled")"
+    }
+    /// Each reader is bound to one exact issuance. Retained screens can never adopt
+    /// a reissued lease or a role A -> B -> A identity with the same account/token.
+    var messagingReader: MessagingSessionReader {
+        guard let context = currentRuntimeDependencyContext, let approval = currentMessagingHistoryReadApproval else {
+            return MessagingSessionReader(service: nil, currentSession: { nil })
+        }
+        let viewerRevision = compositionViewerRevision
+        let available: () -> Bool = { [weak self] in
+            guard let self, self.compositionViewerRevision == viewerRevision,
+                  ContentDraftContextFence.matches(self.currentRuntimeDependencyContext, context),
+                  approval.matches(context), self.currentMessagingHistoryReadApproval?.revision == approval.revision else { return false }
+            return true
+        }
+        return MessagingSessionReader(service: messagingService, currentSession: {
+            guard available() else { return nil }
+            return try? MessagingReadSession(accountID: context.session.accountID,
+                epoch: context.session.epoch, token: context.session.token)
+        }, isAvailable: available, onUnauthorized: { [weak self] snapshot in
+            guard let self, available() else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: snapshot.identity.epoch, credential: context.session.token)
+        })
+    }
     @Published var roamArea: RoamSearchArea? { didSet { roamMapSelection.select(roamArea) } }
     lazy var roamReader=RoamSessionReader(service:roamService,currentSession:{ [weak self] in
         guard let self, let account=self.account, let token=self.token else { return nil }

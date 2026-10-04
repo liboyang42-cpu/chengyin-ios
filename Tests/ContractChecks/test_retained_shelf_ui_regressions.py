@@ -31,7 +31,7 @@ class RetainedShelfUIRegressions(unittest.TestCase):
     def test_shelf_identity_and_terminal_outcomes_are_exact(self):
         view = read('App/TemplateAuthoringMineView.swift')
         self.assertIn('.accessibilityValue(Text(verbatim: String(value.templateID.rawValue)))', view)
-        self.assertIn('.disabled(locked || busy || !coordinator.rows.contains(row))', view)
+        self.assertIn('.disabled(!coordinator.canSubmit || locked || busy || !coordinator.rows.contains(row))', view)
         self.assertIn('coordinator.cancelShelfReview()', view)
         tests = read('Tests/AppUITests/TemplateOwnShelfFlowTests.swift')
         for expected in ['XCTAssertEqual(identity.value as? String, "901")',

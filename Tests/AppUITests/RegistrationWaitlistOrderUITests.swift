@@ -18,7 +18,7 @@ final class RegistrationWaitlistOrderUITests: XCTestCase {
             for scenario in ["waitlistClaimed", "waitlistConverted"] {
                 launch(scenario, language: language)
                 openOrder()
-                let orderNumber = language == "en" ? "Order number, OFFLINE-WAITLIST-9417" : "订单号, OFFLINE-WAITLIST-9417"
+                let orderNumber = language == "en" ? "Order number, OFFLINE-WAITLIST-9417" : "订单号、OFFLINE-WAITLIST-9417"
                 XCTAssertTrue(app.staticTexts[orderNumber].waitForExistence(timeout: 5), app.debugDescription)
                 // Even CONVERTED never replaces the authoritative detail payment facts.
                 XCTAssertFalse(app.buttons["registration.form.readStatus"].exists)

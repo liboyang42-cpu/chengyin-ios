@@ -65,18 +65,35 @@ extension KeychainTokenStore: AppTokenStorage {}
     /// turn authentication, roles, or remote booleans into OperationEndpointApproval values.
     let ownedOrderReadApproval: @MainActor (RuntimeDependencyContext) -> OwnedOrderReadApproval?
     let manualMapReadApproval: @MainActor (RuntimeDependencyContext) -> ManualMapReadApproval?
+    let templateShelfReadApproval: @MainActor (RuntimeDependencyContext) -> TemplateShelfReadApproval?
+    let messagingHistoryReadApproval: @MainActor (RuntimeDependencyContext) -> MessagingHistoryReadApproval?
+    let walletHistoryReadApproval: @MainActor (RuntimeDependencyContext) -> WalletHistoryReadApproval?
     let teamReadApproval: @MainActor (RuntimeDependencyContext) -> TeamReadApproval?
     let ownerDraftReadApproval: @MainActor (RuntimeDependencyContext) -> OwnerDraftReadApproval?
+    let couponLocks: @MainActor () -> any CouponManagementLocking
+    let couponReadApproval: @MainActor (RuntimeDependencyContext) -> CouponManagementReadApproval?
+    let couponWriteApproval: @MainActor (RuntimeDependencyContext) -> CouponManagementWriteApproval?
     let sessionDependencies: @MainActor (RuntimeDependencyContext) -> NativeRuntimeDependencies
     init(deployment: DeploymentState = .unconfigured, storage: AppScopedStorageFactory? = nil,
          makeTransport: @escaping () -> any HTTPTransport = { URLSessionTransport() },
          sessionDependencies: (@MainActor (RuntimeDependencyContext) -> NativeRuntimeDependencies)? = nil,
+         couponLocks: @escaping @MainActor () -> any CouponManagementLocking = { CouponManagementAppLocks() },
+         couponReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> CouponManagementReadApproval? = { _ in nil },
+         couponWriteApproval: @escaping @MainActor (RuntimeDependencyContext) -> CouponManagementWriteApproval? = { _ in nil },
+         templateShelfReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> TemplateShelfReadApproval? = { _ in nil },
+         messagingHistoryReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> MessagingHistoryReadApproval? = { _ in nil },
+         walletHistoryReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> WalletHistoryReadApproval? = { _ in nil },
          teamReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> TeamReadApproval? = { _ in nil },
          ownerDraftReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> OwnerDraftReadApproval? = { _ in nil },
          manualMapReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> ManualMapReadApproval? = { _ in nil },
          ownedOrderReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> OwnedOrderReadApproval? = { _ in nil }) {
         self.deployment = deployment; self.storage = storage ?? .init(); self.makeTransport = makeTransport
         self.sessionDependencies = sessionDependencies ?? { _ in .dormant }
+        self.couponLocks = couponLocks
+        self.couponReadApproval = couponReadApproval; self.couponWriteApproval = couponWriteApproval
+        self.templateShelfReadApproval = templateShelfReadApproval
+        self.messagingHistoryReadApproval = messagingHistoryReadApproval
+        self.walletHistoryReadApproval = walletHistoryReadApproval
         self.teamReadApproval = teamReadApproval
         self.ownerDraftReadApproval = ownerDraftReadApproval
         self.manualMapReadApproval = manualMapReadApproval
@@ -86,15 +103,16 @@ extension KeychainTokenStore: AppTokenStorage {}
         if case .reviewed(let value) = deployment { return value }; return nil
     }
     func transport() -> CompositionHTTPTransport {
-        CompositionHTTPTransport(deployment: reviewed, underlying: makeTransport(), teamReadApproval: teamReadApproval, ownerDraftReadApproval: ownerDraftReadApproval, manualMapReadApproval: manualMapReadApproval, ownedOrderReadApproval: ownedOrderReadApproval)
+        CompositionHTTPTransport(deployment: reviewed, underlying: makeTransport(), couponReadApproval: couponReadApproval, couponWriteApproval: couponWriteApproval, templateShelfReadApproval: templateShelfReadApproval, messagingHistoryReadApproval: messagingHistoryReadApproval, walletHistoryReadApproval: walletHistoryReadApproval, teamReadApproval: teamReadApproval, ownerDraftReadApproval: ownerDraftReadApproval, manualMapReadApproval: manualMapReadApproval, ownedOrderReadApproval: ownedOrderReadApproval)
     }
     func makeSession() -> AppSession { AppSession(composition: self) }
 }
 
-/// Only existing CN auth and independently reviewed bounded content, manual-map and Play reads.
-/// Private home requires its own exact owner/realm/role grant. All other paths stay closed.
+/// Existing CN auth and independently reviewed bounded reads; coupon mutations additionally
+/// require a one-use confirmed dispatch ticket. Private home keeps its separate owner grant.
+/// All other paths stay closed.
 /// No device/provider work or authorization is inferred from a feature grant.
-@MainActor final class CompositionHTTPTransport: HTTPTransport {
+@MainActor final class CompositionHTTPTransport: CouponManagementConfirmedHTTPTransport {
     struct SessionIdentity: Equatable {
         let epoch: UInt64
         let accountID: Int?
@@ -126,21 +144,37 @@ extension KeychainTokenStore: AppTokenStorage {}
         }
     }
     var current: () -> SessionIdentity? = { nil }
+    /// Internal scheduling seam, never a grant; the one-use final fence runs after it.
+    var couponBeforeForward: (@MainActor () async -> Void)?
     /// Installed by AppSession; no runtime capability can be inferred from a root grant.
     var playReadConfiguration: @MainActor (RuntimeDependencyContext) -> RuntimeDependencyConfiguration? = { _ in nil }
     private let deployment: ReviewedAppDeployment?
     private let underlying: any HTTPTransport
     private let manualMapReadApproval: @MainActor (RuntimeDependencyContext) -> ManualMapReadApproval?
     private let ownedOrderReadApproval: @MainActor (RuntimeDependencyContext) -> OwnedOrderReadApproval?
+    private let couponReadApproval: @MainActor (RuntimeDependencyContext) -> CouponManagementReadApproval?
+    private let couponWriteApproval: @MainActor (RuntimeDependencyContext) -> CouponManagementWriteApproval?
     private let manualMapSelection: ManualMapAreaSelection?
+    private let messagingHistoryReadApproval: @MainActor (RuntimeDependencyContext) -> MessagingHistoryReadApproval?
+    private let walletHistoryReadApproval: @MainActor (RuntimeDependencyContext) -> WalletHistoryReadApproval?
+    private let templateShelfReadApproval: @MainActor (RuntimeDependencyContext) -> TemplateShelfReadApproval?
     private let teamReadApproval: @MainActor (RuntimeDependencyContext) -> TeamReadApproval?
     private let ownerDraftReadApproval: @MainActor (RuntimeDependencyContext) -> OwnerDraftReadApproval?
     init(deployment: ReviewedAppDeployment?, underlying: any HTTPTransport,
+         couponReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> CouponManagementReadApproval? = { _ in nil },
+         couponWriteApproval: @escaping @MainActor (RuntimeDependencyContext) -> CouponManagementWriteApproval? = { _ in nil },
+         templateShelfReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> TemplateShelfReadApproval? = { _ in nil },
+         messagingHistoryReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> MessagingHistoryReadApproval? = { _ in nil },
+         walletHistoryReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> WalletHistoryReadApproval? = { _ in nil },
          teamReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> TeamReadApproval? = { _ in nil },
          ownerDraftReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> OwnerDraftReadApproval? = { _ in nil },
          manualMapReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> ManualMapReadApproval? = { _ in nil },
          manualMapSelection: ManualMapAreaSelection? = nil,
          ownedOrderReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> OwnedOrderReadApproval? = { _ in nil }) {
+        self.couponReadApproval = couponReadApproval; self.couponWriteApproval = couponWriteApproval
+        self.templateShelfReadApproval = templateShelfReadApproval
+        self.messagingHistoryReadApproval = messagingHistoryReadApproval
+        self.walletHistoryReadApproval = walletHistoryReadApproval
         self.teamReadApproval = teamReadApproval
         self.deployment = deployment; self.underlying = underlying; self.ownerDraftReadApproval = ownerDraftReadApproval
         self.manualMapReadApproval = manualMapReadApproval; self.manualMapSelection = manualMapSelection
@@ -155,15 +189,49 @@ extension KeychainTokenStore: AppTokenStorage {}
     }
     private func copy(underlying: any HTTPTransport, manualMapSelection: ManualMapAreaSelection?) -> CompositionHTTPTransport {
         let transport = CompositionHTTPTransport(deployment: deployment, underlying: underlying,
-            teamReadApproval: teamReadApproval, ownerDraftReadApproval: ownerDraftReadApproval, manualMapReadApproval: manualMapReadApproval,
+            couponReadApproval: couponReadApproval, couponWriteApproval: couponWriteApproval,
+            templateShelfReadApproval: templateShelfReadApproval, messagingHistoryReadApproval: messagingHistoryReadApproval, walletHistoryReadApproval: walletHistoryReadApproval, teamReadApproval: teamReadApproval, ownerDraftReadApproval: ownerDraftReadApproval, manualMapReadApproval: manualMapReadApproval,
             manualMapSelection: manualMapSelection, ownedOrderReadApproval: ownedOrderReadApproval)
         // Retain the identity source across temporary clone chains. Its AppSession
         // callback is weak, so this does not retain or extend the signed-in session.
         transport.current = { self.current() }
+        transport.couponBeforeForward = { if let barrier = self.couponBeforeForward { await barrier() } }
         // Forward the mutable selector itself: later installation or revocation on
         // the root must reach every existing scoped/replaced transport clone.
         transport.playReadConfiguration = { self.playReadConfiguration($0) }
         return transport
+    }
+    /// No ordinary send path admits these writes, even when a read or write lease exists.
+    func sendConfirmed(_ request: URLRequest, authorization: CouponManagementDispatchAuthorization) async throws -> (Data, Int) {
+        guard let deployment, let api = deployment.regional.apiConfiguration, let captured = current(),
+              captured.isSignedInContentViewer, let account = captured.accountID, let role = captured.role,
+              let token = captured.token, let session = try? PlayExperienceSession(accountID: account,
+                epoch: captured.epoch, namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+        let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+        guard let read = couponReadApproval(context), read.matches(context),
+              let write = couponWriteApproval(context), let merchantID = authorization.permission.merchantID,
+              merchantID == read.merchantID,
+              write.matches(context, merchantID: merchantID, path: authorization.record.request.path),
+              let expected = CouponManagementRuntimeIdentity.session(context: context, viewerRevision: captured.viewerRevision, read: read, write: write),
+              authorization.session == expected else { throw APIError.notConfigured }
+        func valid() -> Bool {
+            current() == captured && couponReadApproval(context)?.revision == read.revision && read.matches(context) &&
+            couponWriteApproval(context)?.revision == write.revision && write.matches(context, merchantID: merchantID, path: authorization.record.request.path)
+        }
+        if let couponBeforeForward { await couponBeforeForward() }
+        guard valid() else { throw CouponManagementError.changed }
+        let credentials = try CouponManagementReadCredentials(session: expected, token: token)
+        try authorization.consume(request, configuration: api, credentials: credentials)
+        // No await between one-use validation, durable-record proof and the underlying dispatch.
+        do {
+            let response = try await underlying.send(request)
+            guard valid(), !Task.isCancelled else { throw CouponManagementError.changed }
+            try authorization.validate()
+            return response
+        } catch {
+            guard valid(), !Task.isCancelled else { throw CouponManagementError.changed }
+            throw error
+        }
     }
     func send(_ request: URLRequest) async throws -> (Data, Int) {
         guard let deployment, let api = deployment.regional.apiConfiguration,
@@ -181,6 +249,39 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard deployment.regional.market == .china,
                   deployment.regional.canUseDomesticChinaPhone,
                   CNAccountSessionService.accepts(request, configuration: api) else { throw APIError.notConfigured }
+        } else if CouponManagementReadRoute(request: request, baseURL: api.baseURL) != nil {
+            guard captured.isSignedInContentViewer,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let approval = couponReadApproval(context), approval.matches(context) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [couponReadApproval] in
+                guard let currentApproval = couponReadApproval(context) else { return false }
+                return currentApproval.revision == approval.revision && currentApproval.matches(context)
+            }
+        } else if WalletHistoryReadRoute(request: request, baseURL: api.baseURL, accountID: captured.accountID ?? 0) != nil {
+            guard captured.isSignedInContentViewer,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let approval = walletHistoryReadApproval(context), approval.matches(context) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [walletHistoryReadApproval] in
+                guard let currentApproval = walletHistoryReadApproval(context) else { return false }
+                return currentApproval.revision == approval.revision && currentApproval.matches(context)
+            }
+        } else if TemplateShelfReadRoute(request: request, baseURL: api.baseURL) != nil {
+            guard captured.isSignedInContentViewer,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let approval = templateShelfReadApproval(context), approval.matches(context) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [templateShelfReadApproval] in
+                guard let currentApproval = templateShelfReadApproval(context) else { return false }
+                return currentApproval.revision == approval.revision && currentApproval.matches(context)
+            }
         } else if TeamReadRoute(request: request, baseURL: api.baseURL) != nil {
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
@@ -190,6 +291,17 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard let approval = teamReadApproval(context), approval.matches(context) else { throw APIError.notConfigured }
             readApprovalStillValid = { [teamReadApproval] in
                 guard let currentApproval = teamReadApproval(context) else { return false }
+                return currentApproval.revision == approval.revision && currentApproval.matches(context)
+            }
+        } else if MessagingHistoryReadRoute(request: request, baseURL: api.baseURL) != nil {
+            guard captured.isSignedInContentViewer,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let approval = messagingHistoryReadApproval(context), approval.matches(context) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [messagingHistoryReadApproval] in
+                guard let currentApproval = messagingHistoryReadApproval(context) else { return false }
                 return currentApproval.revision == approval.revision && currentApproval.matches(context)
             }
         } else if OwnedOrderReadRoute(request: request, baseURL: api.baseURL) != nil {

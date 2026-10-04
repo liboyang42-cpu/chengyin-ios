@@ -48,7 +48,7 @@ def checked_path(root, path):
     return current
 
 
-def verify_simulator_executable(data):
+def verify_simulator_executable(data, require_entitlements=False):
     """Require every Mach-O slice to declare iOS Simulator, not an iOS device."""
     def thin(blob):
         if len(blob) < 32 or blob[:4] != b'\xcf\xfa\xed\xfe':
@@ -56,13 +56,36 @@ def verify_simulator_executable(data):
         _, cpu, _, kind, count, size, _, _ = struct.unpack_from('<8I', blob)
         if cpu not in (0x01000007, 0x0100000c) or kind != 2 or count > 4096 or size > len(blob) - 32:
             raise ValueError('Invalid simulator Mach-O header')
-        position, platforms = 32, []
+        position, platforms, payloads = 32, [], []
         for _ in range(count):
             if position + 8 > 32 + size:
                 raise ValueError('Truncated Mach-O command')
             command, length = struct.unpack_from('<2I', blob, position)
             if length < 8 or position + length > 32 + size:
                 raise ValueError('Invalid Mach-O command size')
+            if command == 0x19 and require_entitlements:  # LC_SEGMENT_64
+                if length < 72:
+                    raise ValueError('Truncated segment')
+                sections = struct.unpack_from('<I', blob, position + 64)[0]
+                if length != 72 + sections * 80:
+                    raise ValueError('Invalid segment section table')
+                for index in range(sections):
+                    section = position + 72 + index * 80
+                    name, segment = struct.unpack_from('<16s16s', blob, section)
+                    name, segment = name.rstrip(b'\0'), segment.rstrip(b'\0')
+                    if name in (b'__entitlements', b'__ents_der'):
+                        if (name != b'__entitlements' or segment != b'__TEXT'
+                                or blob[position + 8:position + 24].rstrip(b'\0') != b'__TEXT'):
+                            raise ValueError('Unexpected simulated entitlement section')
+                        size_bytes = struct.unpack_from('<Q', blob, section + 40)[0]
+                        offset = struct.unpack_from('<I', blob, section + 48)[0]
+                        fileoff, filesize = struct.unpack_from('<QQ', blob, position + 40)
+                        flags = struct.unpack_from('<I', blob, section + 64)[0]
+                        if flags & 0xff or offset < fileoff or offset + size_bytes > fileoff + filesize:
+                            raise ValueError('Entitlements must be a file-backed regular text section')
+                        if not 0 < size_bytes <= 16384 or offset < 32 + size or offset + size_bytes > len(blob):
+                            raise ValueError('Invalid entitlement section bounds')
+                        payloads.append(blob[offset:offset + size_bytes])
             if command == 0x32:  # LC_BUILD_VERSION
                 if length < 24:
                     raise ValueError('Truncated build version')
@@ -72,6 +95,9 @@ def verify_simulator_executable(data):
             position += length
         if position != 32 + size or platforms != [7]:  # PLATFORM_IOSSIMULATOR
             raise ValueError('Every slice must declare exactly iOS Simulator')
+        if require_entitlements:
+            if len(payloads) != 1 or readback_entitlements(payloads[0], b'') != ENTITLEMENTS:
+                raise ValueError('Every slice must contain exactly the synthetic simulated entitlements')
     if data[:4] != b'\xca\xfe\xba\xbe':
         thin(data)
         return
@@ -91,13 +117,15 @@ def verify_simulator_executable(data):
         thin(data[offset:offset + size])
 
 
-def validate_host(xctestrun, runner_temp, commit):
+def validate_host(xctestrun, runner_temp, commit, restore_name="prebuilt-tests"):
     if not re.fullmatch('[a-f0-9]{40}', commit):
         raise ValueError('Exact commit is required')
     temporary_spelling = Path(runner_temp).absolute()
     temporary = temporary_spelling.resolve(strict=True)
     # This layout is owned by test_products.py restore in the AppUnit job only.
-    restore = checked_path(temporary, temporary / 'prebuilt-tests')
+    if restore_name not in ('prebuilt-tests', 'app-unit-linked'):
+        raise ValueError('Invalid test product scope')
+    restore = checked_path(temporary, temporary / restore_name)
     products = checked_path(restore, restore / 'Products')
     run_spelling = Path(xctestrun).absolute()
     # macOS may spell the trusted temporary root through /var -> /private/var.
@@ -156,17 +184,28 @@ def sign_host(host, temporary, run=subprocess.run):
     # Never use --deep, preserve-metadata, or inject a team/app-group entitlement.
     with tempfile.TemporaryDirectory(prefix='questify-test-entitlements-', dir=temporary) as folder:
         entitlement_path = Path(folder) / 'host.plist'
-        entitlement_path.write_bytes(plistlib.dumps(ENTITLEMENTS))
+        entitlement_path.write_bytes(plistlib.dumps({}))
         run(['/usr/bin/codesign', '--force', '--sign', '-', '--timestamp=none',
              '--entitlements', str(entitlement_path), str(host)], check=True, capture_output=True)
         run(['/usr/bin/codesign', '--verify', '--strict', str(host)], check=True, capture_output=True)
-        result = run(['/usr/bin/codesign', '--display', '--entitlements', '-', '--xml', str(host)], check=True, capture_output=True)
-        if readback_entitlements(result.stdout, result.stderr) != ENTITLEMENTS:
-            raise ValueError('Signed host entitlements differ from the exact synthetic scope')
-        identity = run(['/usr/bin/codesign', '--display', '--verbose=4', str(host)], check=True, capture_output=True)
-        lines = identity.stderr.decode('utf-8').splitlines()
-        if 'Signature=adhoc' not in lines or 'TeamIdentifier=not set' not in lines:
-            raise ValueError('Host signature is not team-free ad-hoc signing')
+        executable = (host / 'Questify').read_bytes()
+        verify_simulator_executable(executable)
+        offsets = ([struct.unpack_from('>I', executable, 8 + index * 20 + 8)[0]
+                    for index in range(struct.unpack_from('>I', executable, 4)[0])]
+                   if executable[:4] == b'\xca\xfe\xba\xbe' else [0])
+        architectures = [struct.unpack_from('<I', executable, offset + 4)[0] for offset in offsets]
+        if len(set(architectures)) != len(architectures):
+            raise ValueError('Duplicate Mach-O architecture')
+        for architecture in architectures:
+            name = {0x01000007: 'x86_64', 0x0100000c: 'arm64'}[architecture]
+            result = run(['/usr/bin/codesign', '--display', '--arch', name,
+                          '--entitlements', '-', '--xml', str(host)], check=True, capture_output=True)
+            if readback_entitlements(result.stdout, result.stderr) != {}:
+                raise ValueError('Signed host entitlements must be empty in every architecture')
+            identity = run(['/usr/bin/codesign', '--display', '--arch', name, '--verbose=4', str(host)], check=True, capture_output=True)
+            lines = identity.stderr.decode('utf-8').splitlines()
+            if 'Signature=adhoc' not in lines or 'TeamIdentifier=not set' not in lines:
+                raise ValueError('Host signature is not team-free ad-hoc signing')
 
 
 def main():
@@ -180,7 +219,9 @@ def main():
     if not os.environ.get('RUNNER_TEMP'):
         raise ValueError('RUNNER_TEMP is required')
     host, temporary = validate_host(args.xctestrun, os.environ['RUNNER_TEMP'], args.commit)
+    verify_simulator_executable((host / 'Questify').read_bytes(), require_entitlements=True)
     sign_host(host, temporary)
+    verify_simulator_executable((host / 'Questify').read_bytes(), require_entitlements=True)
     print('Verified ephemeral AppUnit simulator host: synthetic self-only Keychain entitlement')
 
 

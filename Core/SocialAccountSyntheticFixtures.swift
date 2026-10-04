@@ -17,7 +17,7 @@ public enum SocialAccountSyntheticFixtures {
         try JSONDecoder().decode(SocialRewardScan.self, from: Data((partial ? rewardsJSON.replacingOccurrences(of: "\"total\":4", with: "\"total\":240") : rewardsJSON).utf8))
     }
     public static func imageMessage() throws -> MessagingMessage {
-        try JSONDecoder().decode(MessagingMessage.self, from: Data(#"{"id":90,"conversationId":901,"senderId":82,"msgType":2,"content":"https://media.example.test/synthetic.png"}"#.utf8))
+        try JSONDecoder().decode(MessagingMessage.self, from: Data(#"{"id":90,"conversationId":901,"senderId":82,"status":0,"msgType":2,"content":"https://media.example.test/synthetic.png"}"#.utf8))
     }
 }
 #endif

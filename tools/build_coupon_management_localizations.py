@@ -34,6 +34,9 @@ values = {
 'reviewPublish': ('Review publication', '确认发布'), 'cancel': ('Cancel', '取消'), 'discardTitle': ('Discard this draft?', '放弃编辑？'), 'discard': ('Discard', '放弃'), 'keepEditing': ('Keep editing', '继续编辑'),
 'review': ('Review', '确认信息'), 'reviewNotice': ('Review these exact details. Changes require a new review.', '请核对上述信息，修改后需重新确认'), 'simulate': ('Confirm simulation', '确认模拟'),
 'acknowledged': ('The server acknowledged the action. Check the refreshed list.', '服务端已确认操作，请检查刷新后的列表'),
+'chinaTime': ('Validity times are shown in China Standard Time (UTC+8).', '有效期均为北京时间（UTC+8）。'),
+'readbackPending': ('Server acknowledged. Current record is not yet verified; do not submit again.', '服务器已确认，当前记录尚未核验，请勿重复提交。'),
+'readbackVerified': ('Server acknowledged; current coupon record verified.', '服务器已确认，并已核验当前优惠券记录。'),
 'confirmSubmission': ('Confirm submission', '确认提交'),
 'fixtureReopen': ('Reopen example', '重新打开示例'), 'fixtureSignOut': ('Sign out of example', '退出示例账号')
 }

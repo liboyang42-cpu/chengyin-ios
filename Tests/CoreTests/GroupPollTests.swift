@@ -13,7 +13,7 @@ private func pollData(_ overrides: [String: Any] = [:]) throws -> Data {
 }
 private func poll(_ overrides: [String: Any] = [:]) throws -> GroupPoll { try JSONDecoder().decode(GroupPoll.self, from: pollData(overrides)) }
 private func pollMessage() throws -> MessagingMessage {
-    try JSONDecoder().decode(MessagingMessage.self, from: Data(#"{"id":44,"conversationId":12,"senderId":7,"msgType":4,"content":"[投票]","extraJson":"{\"pollId\":31}"}"#.utf8))
+    try JSONDecoder().decode(MessagingMessage.self, from: Data(#"{"id":44,"conversationId":12,"senderId":7,"status":0,"msgType":4,"content":"[投票]","extraJson":"{\"pollId\":31}"}"#.utf8))
 }
 private final class PollTransport: HTTPTransport {
     var requests: [URLRequest] = []
@@ -83,7 +83,7 @@ final class GroupPollTests: XCTestCase {
         let reference = try XCTUnwrap(pollMessage().pollReference)
         XCTAssertEqual(reference.pollID, 31); XCTAssertEqual(reference.conversationID, 12); XCTAssertEqual(reference.messageID, 44)
         for extra in ["{}", "{\"pollId\":true}", "{\"pollId\":0}", "{\"pollId\":\"31\"}"] {
-            let data = try JSONSerialization.data(withJSONObject: ["id": 44, "conversationId": 12, "senderId": 7, "msgType": 4, "extraJson": extra])
+            let data = try JSONSerialization.data(withJSONObject: ["id": 44, "conversationId": 12, "senderId": 7, "status":0,"msgType": 4, "extraJson": extra])
             XCTAssertNil(try JSONDecoder().decode(MessagingMessage.self, from: data).pollReference)
         }
     }

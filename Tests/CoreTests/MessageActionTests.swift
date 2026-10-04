@@ -5,7 +5,7 @@ import XCTest
 import FoundationNetworking
 #endif
 
-private let messageReceiptJSON = #"{"code":200,"data":{"id":42,"conversationId":9,"senderId":7,"msgType":1,"content":"hello"}}"#
+private let messageReceiptJSON = #"{"code":200,"data":{"id":42,"conversationId":9,"senderId":7,"status":0,"msgType":1,"content":"hello"}}"#
 private func messageReceipt() throws -> MessagingMessage {
     struct Wrapper:Decodable { let data:MessagingMessage }
     return try JSONDecoder().decode(Wrapper.self,from:Data(messageReceiptJSON.utf8)).data

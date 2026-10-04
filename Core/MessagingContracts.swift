@@ -44,8 +44,10 @@ public struct MessagingConversation: Decodable, Equatable, Identifiable {
         guard id > 0 else { throw APIError.malformedResponse }
         type = try c.decodeIfPresent(Int.self, forKey: .type)
         counterparty = try c.decodeIfPresent(MessagingCounterparty.self, forKey: .counterparty)
-        lastMessageType = try c.decodeIfPresent(Int.self, forKey: .lastMsgType)
-        lastMessageText = try c.decodeIfPresent(String.self, forKey: .lastMsgText)
+        // The conversation response has no last-message status provenance. It may
+        // retain recalled text, so never keep its unverified preview payload.
+        lastMessageType = nil
+        lastMessageText = nil
         lastMessageAt = try c.decodeIfPresent(MessagingWireText.self, forKey: .lastMsgAt)?.value
         unread = try c.decodeIfPresent(Int.self, forKey: .unread)
         guard unread.map({ $0 >= 0 }) ?? true else { throw APIError.malformedResponse }
@@ -57,7 +59,22 @@ public struct MessagingConversation: Decodable, Equatable, Identifiable {
     }
 }
 
+/// Exact server statuses; absent/malformed/future values never imply visibility.
+public enum MessagingMessageStatus: Equatable {
+    case normal, recalled, blocked, unknown
+    public init(wireValue: Int?) {
+        switch wireValue {
+        case 0: self = .normal
+        case 1: self = .recalled
+        case 2: self = .blocked
+        default: self = .unknown
+        }
+    }
+}
+
 public struct MessagingMessage: Decodable, Equatable, Identifiable {
+    public let status: MessagingMessageStatus
+    public var isPayloadVisible: Bool { status == .normal }
     public let id: Int
     public let conversationID: Int
     public let senderID: Int?
@@ -67,21 +84,31 @@ public struct MessagingMessage: Decodable, Equatable, Identifiable {
     public let createdAt: String?
     public let senderName: String?
     public let senderAvatar: String?
-    public var card: MessagingCard? { type == 3 ? MessagingCard.parse(extraJSON, fallbackTitle: content) : nil }
+    public var card: MessagingCard? { isPayloadVisible && type == 3 ? MessagingCard.parse(extraJSON, fallbackTitle: content) : nil }
 
     private enum CodingKeys: String, CodingKey {
-        case id, conversationId, senderId, msgType, content, extraJson, createTime, senderName, senderAvatar
+        case id, conversationId, senderId, msgType, content, extraJson, createTime, senderName, senderAvatar, status
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id = try c.decode(Int.self, forKey: .id)
         conversationID = try c.decode(Int.self, forKey: .conversationId)
+        guard id > 0, conversationID > 0 else { throw APIError.malformedResponse }
+        status = .init(wireValue: try? c.decode(Int.self, forKey: .status))
+        createdAt = try c.decodeIfPresent(MessagingWireText.self, forKey: .createTime)?.value
+        // Discard withheld payload at the trust boundary, not merely in Text views.
+        // This also prevents card parsing, media URLs, poll references, search and
+        // accessibility values from retaining content hidden by the server status.
+        guard status == .normal else {
+            senderID = nil; type = nil; content = nil; extraJSON = nil
+            senderName = nil; senderAvatar = nil
+            return
+        }
         senderID = try c.decodeIfPresent(Int.self, forKey: .senderId)
-        guard id > 0, conversationID > 0, senderID.map({ $0 >= 0 }) ?? true else { throw APIError.malformedResponse }
+        guard senderID.map({ $0 >= 0 }) ?? true else { throw APIError.malformedResponse }
         type = try c.decodeIfPresent(Int.self, forKey: .msgType)
         content = try c.decodeIfPresent(String.self, forKey: .content)
         extraJSON = try c.decodeIfPresent(String.self, forKey: .extraJson)
-        createdAt = try c.decodeIfPresent(MessagingWireText.self, forKey: .createTime)?.value
         senderName = try c.decodeIfPresent(String.self, forKey: .senderName)
         senderAvatar = try c.decodeIfPresent(String.self, forKey: .senderAvatar)
     }

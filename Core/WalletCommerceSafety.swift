@@ -46,11 +46,13 @@ public struct WalletCommerceVisibility {
         let value: T
         do { value = try await operation(service.bound(to: captured.scope), captured.token) }
         catch {
-            if (error as? APIError) == .unauthorized, session()?.scope == captured.scope { onUnauthorized(captured.scope) }
+            try Task.checkCancellation()
+            guard let current = session(), current.scope == captured.scope, current.token == captured.token else { throw WalletCommerceSafetyError.staleSession }
+            if (error as? APIError) == .unauthorized { onUnauthorized(captured.scope) }
             throw error
         }
         try Task.checkCancellation()
-        guard session()?.scope == captured.scope else { throw WalletCommerceSafetyError.staleSession }
+        guard let current = session(), current.scope == captured.scope, current.token == captured.token else { throw WalletCommerceSafetyError.staleSession }
         return value
     }
 }

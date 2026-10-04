@@ -25,19 +25,10 @@ final class MerchantOnboardingFlowTests: XCTestCase {
         element.tap()
     }
     private func assertCount(_ id: String, _ count: Int) {
-        // The native alert scopes element queries to its modal surface. The fixture's
-        // counters remain in the app snapshot (and on screen) behind it; read them
-        // without dismissing or confirming the alert and without using cached counts.
-        let expected = XCTNSPredicateExpectation(predicate: NSPredicate { [self] _, _ in
-            guard let snapshot = try? app.snapshot() else { return false }
-            var pending: [XCUIElementSnapshot] = [snapshot]
-            var counts: [XCUIElementSnapshot] = []
-            while let node = pending.popLast() {
-                if node.identifier == id, node.elementType == .staticText { counts.append(node) }
-                pending.append(contentsOf: node.children)
-            }
-            return counts.count == 1 && counts[0].label == String(count)
-        }, object: app)
+        // System alerts hide background AX queries. Inspect the monotonic fixture
+        // counters after Cancel, before any approval, and after confirmed dispatch.
+        XCTAssertFalse(app.alerts.firstMatch.exists, "Dismiss the review before inspecting fixture counters")
+        let expected = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == true AND label == %@", String(count)), object: element(id))
         XCTAssertEqual(XCTWaiter.wait(for: [expected], timeout: 5), .completed, app.debugDescription)
     }
     private func beginReapply() {
@@ -58,8 +49,6 @@ final class MerchantOnboardingFlowTests: XCTestCase {
         let disclosure = dialog.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "configured Chengyin service")).firstMatch
         XCTAssertTrue(disclosure.exists, "The native confirmation must identify the submission recipient", file: file, line: line)
         XCTAssertTrue(disclosure.label.contains("uploaded license reference"), "The confirmation must disclose the license reference being sent", file: file, line: line)
-        assertCount("merchant.onboarding.fixture.writeCount", 0)
-        assertCount("merchant.onboarding.fixture.uploadCount", 0)
         let matches = dialog.buttons.matching(NSPredicate(format: "label == %@", actionTitle))
         let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
             matches.allElementsBoundByIndex.contains { $0.exists && $0.isEnabled && $0.isHittable }
@@ -72,9 +61,21 @@ final class MerchantOnboardingFlowTests: XCTestCase {
         }
         XCTAssertEqual(action.label, actionTitle, file: file, line: line)
         action.tap()
+        let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: dialog)
+        XCTAssertEqual(XCTWaiter.wait(for: [dismissed], timeout: 5), .completed, app.debugDescription, file: file, line: line)
+        if actionTitle == "Cancel" {
+            // These counters only increase in the fixture service. Cancel cannot
+            // erase an accidental dispatch, so zero proves none occurred preapproval.
+            assertCount("merchant.onboarding.fixture.writeCount", 0)
+            assertCount("merchant.onboarding.fixture.uploadCount", 0)
+        }
     }
     private func reviewAndConfirm() {
         tap(app.buttons["merchant.onboarding.next"])
+        assertCount("merchant.onboarding.fixture.writeCount", 0)
+        assertCount("merchant.onboarding.fixture.uploadCount", 0)
+        tap(app.buttons["merchant.onboarding.submit"])
+        tapSubmissionDialogButton("Cancel")
         tap(app.buttons["merchant.onboarding.submit"])
         tapSubmissionDialogButton("Submit for review")
     }
@@ -86,8 +87,9 @@ final class MerchantOnboardingFlowTests: XCTestCase {
         launch("rejected")
         beginReapply()
         tap(app.buttons["merchant.onboarding.next"])
-        tap(app.buttons["merchant.onboarding.submit"])
         assertCount("merchant.onboarding.fixture.writeCount", 0)
+        assertCount("merchant.onboarding.fixture.uploadCount", 0)
+        tap(app.buttons["merchant.onboarding.submit"])
         tapSubmissionDialogButton("Cancel")
         assertCount("merchant.onboarding.fixture.writeCount", 0)
         tap(app.buttons["merchant.onboarding.submit"])

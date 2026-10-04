@@ -11,26 +11,33 @@ struct MessagingMessageDetailView: View {
     let identity: MessagingReadIdentity?
     var mediaReader: (any SocialMessageMediaReading)? = nil
     var expanded: IMExpandedNavigationContext? = nil
+    /// Resolve refreshed history by ID; a vanished row must not fall back to its old payload.
+    var currentMessage: (() -> MessagingMessage?)? = nil
+    private var currentSnapshot: MessagingMessage? {
+        if let currentMessage { return currentMessage() }
+        return message
+    }
     @State private var selectedTopicID: Int?
     @State private var selectedReview: MessagingCardResult?
     var body: some View {
         Group {
-            if identity != nil, reader.identity == identity {
+            if identity != nil, reader.identity == identity, let message = currentSnapshot {
                 List {
                     Section("messaging.message.content") {
                         MessagingMessageContent(message: message).textSelection(.enabled)
                     }
-                    if message.type == 2, let mediaReader, let identity {
+                    if message.isPayloadVisible, message.type == 2, let mediaReader, let identity {
                         Section {
-                            NavigationLink { SocialMessageMediaView(message: message, reader: mediaReader, expectedIdentity: identity) } label: {
+                            NavigationLink { SocialMessageMediaView(message: message, reader: mediaReader, expectedIdentity: identity,
+                                isMessageCurrent: { reader.identity == identity && currentSnapshot == message && message.isPayloadVisible }) } label: {
                                 Label("social.media.title", systemImage: "photo.on.rectangle.angled")
                             }.accessibilityIdentifier("messaging.message.preview")
                         }
                     }
-                    if let reference = message.pollReference {
+                    if message.isPayloadVisible, let reference = message.pollReference {
                         Section {
                             NavigationLink {
-                                if let owner = expanded?.pollCoordinator?(message.conversationID, reference) { GroupPollView(owner: owner) }
+                                if currentSnapshot?.isPayloadVisible == true, currentSnapshot?.pollReference == reference, let owner = expanded?.pollCoordinator?(message.conversationID, reference) { GroupPollView(owner: owner) }
                                 else { GroupPollUnavailableView() }
                             } label: { Label("poll.openResults", systemImage: "chart.bar.xaxis") }
                             .accessibilityIdentifier("poll.messageEntry")
@@ -45,10 +52,10 @@ struct MessagingMessageDetailView: View {
                         LabeledContent("messaging.message.conversation", value: String(message.conversationID))
                         if let type = message.type { LabeledContent("messaging.message.type", value: String(type)) }
                     }
-                    if expanded != nil, message.card != nil {
+                    if message.isPayloadVisible, expanded != nil, message.card != nil {
                         Section("messaging.card.actions") {
                             IMCardActionsView(message: message) { destination in
-                                guard reader.identity == identity else { return }
+                                guard reader.identity == identity, currentSnapshot == message, message.isPayloadVisible else { return }
                                 switch destination {
                                 case .topic(let id): selectedTopicID = id
                                 case .review(let result): selectedReview = result
@@ -87,10 +94,10 @@ struct MessagingMessageDetailView: View {
             }
         }
         .navigationDestination(item: $selectedTopicID) { id in
-            if reader.identity == identity, let expanded { TopicDetailView(id: id, reader: expanded.topicReader) }
+            if reader.identity == identity, currentSnapshot?.isPayloadVisible == true, let expanded { TopicDetailView(id: id, reader: expanded.topicReader) }
         }
         .sheet(isPresented: Binding(get: { selectedReview != nil }, set: { if !$0 { selectedReview = nil } })) {
-            if reader.identity == identity, let result = selectedReview {
+            if reader.identity == identity, currentSnapshot?.isPayloadVisible == true, let result = selectedReview {
                 NavigationStack {
                     List {
                         MessagingOptionalRow(title: "messaging.card.taskID", value: result.taskID)
@@ -103,6 +110,7 @@ struct MessagingMessageDetailView: View {
                 }.privacySensitive()
             }
         }
+        .onChange(of: currentSnapshot) { _, _ in selectedTopicID = nil; selectedReview = nil }
         .onChange(of: reader.identity) { _, _ in selectedTopicID = nil; selectedReview = nil }
         .privacySensitive()
         .appNavigationTitle("messaging.message.title")
@@ -113,6 +121,10 @@ struct MessagingMessageDetailView: View {
 struct MessagingMessageContent: View {
     let message: MessagingMessage
     var body: some View {
+        if !message.isPayloadVisible {
+            Label(LocalizedStringKey(message.status == .recalled ? "messaging.message.recalled" : "messaging.message.withheld"), systemImage: "eye.slash")
+                .foregroundStyle(.secondary).accessibilityIdentifier("messaging.message.withheld")
+        } else {
         switch message.type {
         case 1:
             if let text = message.content, !text.isEmpty { Text(verbatim: text) }
@@ -135,6 +147,7 @@ struct MessagingMessageContent: View {
         default:
             Label("messaging.unsupported", systemImage: "questionmark.bubble").foregroundStyle(.secondary)
         }
+    }
     }
 }
 

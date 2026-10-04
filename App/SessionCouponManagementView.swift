@@ -16,6 +16,7 @@ extension EnvironmentValues {
     var body: some View {
         CouponManagementView(coordinator: session.couponManagementCoordinator,
                              sessionKey: session.couponManagementSession, isSourceVisible: true)
+            .id(session.couponManagementSession)
     }
 }
 /// Persistent storage is fail-closed; an unavailable private directory never falls back to memory.

@@ -106,7 +106,9 @@ import SwiftUI
                 }
             }.buttonStyle(.bordered).frame(minHeight: 44)
             NavigationStack {
-                if entry == "cards" {
+                if entry == "markerStyle" {
+                    MapMarkerStyleFixtureView()
+                } else if entry == "cards" {
                     ReferenceMapCardFixtureView()
                 } else if entry == "city" {
                     SearchMapExplorerView(reader: reader, mode: .city, initialArea: syntheticArea, destination: detail)

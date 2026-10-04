@@ -11,7 +11,11 @@ public enum TemplateAuthoringOutcome: Equatable {
 /// Exact audited adapter. Default remains disabled; HTTP requires explicit transport injection.
 @MainActor public final class TemplateAuthoringAdapter {
     private let transport: (any TemplateAuthoringTransport)?
-    public init(transport: (any TemplateAuthoringTransport)? = nil) { self.transport = transport }
+    private let shelfReadTransport: TemplateShelfReadTransport?
+    public init(transport: (any TemplateAuthoringTransport)? = nil, shelfReadTransport: TemplateShelfReadTransport? = nil) {
+        self.transport = transport; self.shelfReadTransport = shelfReadTransport
+    }
+    public var canRead: Bool { shelfReadTransport?.available == true || canSubmit }
     public var canSimulate: Bool {
         #if DEBUG
         return transport?.authority == .synthetic
@@ -27,9 +31,14 @@ public enum TemplateAuthoringOutcome: Equatable {
     }
     /// Read-only continuation, separate from the conservative write/readback snapshot.
     public func listMinePage(page: Int, keyword: String) async throws -> TemplateOwnShelfPage {
-        guard canSubmit, let transport else { throw TemplateAuthoringError.unavailable }
         let request = try TemplateOwnShelfPage.request(page: page, keyword: keyword)
-        let (data, status) = try await transport.send(request)
+        let result: (Data, Int)
+        if let shelfReadTransport { result = try await shelfReadTransport.page(request) }
+        else {
+            guard canSubmit, let transport else { throw TemplateAuthoringError.unavailable }
+            result = try await transport.send(request)
+        }
+        let (data, status) = result
         return try TemplateOwnShelfPage.decode(data, httpStatus: status)
     }
     public func submit(_ request: TemplateAuthoringRequest) async -> TemplateAuthoringOutcome {

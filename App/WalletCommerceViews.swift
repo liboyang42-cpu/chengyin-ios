@@ -1,16 +1,24 @@
 import SwiftUI
 
+/// A denied capability is unavailable; transient/business failures remain retryable.
+enum WalletReadFailurePresentation {
+    static func isUnavailable(_ error: Error) -> Bool {
+        (error as? APIError) == .notConfigured || (error as? WalletCommerceSafetyError) == .unavailable
+    }
+}
+
 @MainActor private final class WalletScreen<Value>: ObservableObject {
     @Published var value: Value?
     @Published var failed = false
     @Published var loading = false
     @Published var requiresLogin = false
+    @Published var unavailable = false
     @Published var loadedScope: WalletCommerceScope?
     private var generation = UUID()
     func cancel() { generation = UUID(); loading = false }
-    func clear() { generation = UUID(); value = nil; failed = false; requiresLogin = false; loading = false; loadedScope = nil }
+    func clear() { generation = UUID(); value = nil; failed = false; requiresLogin = false; unavailable = false; loading = false; loadedScope = nil }
     func load(_ reader: WalletCommerceReader, operation: (WalletCommerceService, String) async throws -> Value) async {
-        let stamp = UUID(); generation = stamp; value = nil; failed = false; requiresLogin = false; loading = true
+        let stamp = UUID(); generation = stamp; value = nil; failed = false; requiresLogin = false; unavailable = false; loading = true
         let scope = reader.scope
         do {
             let result = try await reader.read(operation)
@@ -19,6 +27,7 @@ import SwiftUI
         } catch {
             guard stamp == generation, scope == reader.scope else { return }
             failed = true; requiresLogin = (error as? APIError) == .unauthorized
+            unavailable = WalletReadFailurePresentation.isUnavailable(error)
         }
         loading = false
     }
@@ -28,11 +37,12 @@ import SwiftUI
     private var format: WalletFormatting { .init(locale: locale) }
     let reader: WalletCommerceReader
     var requiresLogin = false
+    var unavailable = false
     var retry: () -> Void
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(LocalizedStringKey((reader.scope == nil || requiresLogin) ? "wallet.login" : reader.isConfigured ? "wallet.failed" : "wallet.unavailable")).accessibilityIdentifier("wallet.issue")
-            if reader.isConfigured && reader.scope != nil && !requiresLogin {
+            Text(LocalizedStringKey((reader.scope == nil || requiresLogin) ? "wallet.login" : reader.isConfigured && !unavailable ? "wallet.failed" : "wallet.unavailable")).accessibilityIdentifier("wallet.issue")
+            if reader.isConfigured && reader.scope != nil && !requiresLogin && !unavailable {
                 Button("wallet.retry", action: retry).frame(minHeight: 44)
             }
         }
@@ -354,7 +364,7 @@ private struct WalletFormatting {
                         LabeledContent("wallet.doneCount", value: item.pointsNum.map(String.init) ?? appLocalized("wallet.unknown", locale: locale))
                     }.accessibilityElement(children: .combine)
                 }
-            } else { WalletIssueView(reader: reader, requiresLogin: model.requiresLogin) { Task { await load() } } }
+            } else { WalletIssueView(reader: reader, requiresLogin: model.requiresLogin, unavailable: model.unavailable) { Task { await load() } } }
         }.appNavigationTitle("wallet.tasks").task(id: reader.scope) { model.clear(); await load() }.onDisappear { model.cancel() }
     }
     private func load() async { await model.load(reader) { try await $0.pointsTasks(token: $1) } }

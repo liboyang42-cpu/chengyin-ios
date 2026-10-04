@@ -12,7 +12,7 @@ public struct GroupPollReference: Equatable, Hashable {
     }
     public init?(message: MessagingMessage) {
         struct Card: Decodable { let pollId: Int }
-        guard message.type == 4, let creator = message.senderID, creator > 0,
+        guard message.isPayloadVisible, message.type == 4, let creator = message.senderID, creator > 0,
               let raw = message.extraJSON?.data(using: .utf8), raw.count <= 1024,
               let card = try? JSONDecoder().decode(Card.self, from: raw), card.pollId > 0 else { return nil }
         pollID = card.pollId; conversationID = message.conversationID; messageID = message.id; creatorID = creator

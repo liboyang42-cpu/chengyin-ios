@@ -10,7 +10,7 @@ public struct SocialMessageMedia: Equatable {
     public let conversationID: Int
     public let url: URL
     public init(message: MessagingMessage) throws {
-        guard message.type == 2, let raw = SocialText.nonempty(message.content),
+        guard message.isPayloadVisible, message.type == 2, let raw = SocialText.nonempty(message.content),
               let url = URL(string: raw), let parts = URLComponents(url: url, resolvingAgainstBaseURL: false),
               parts.scheme?.lowercased() == "https", let host = parts.host, !host.isEmpty,
               parts.user == nil, parts.password == nil, parts.fragment == nil,

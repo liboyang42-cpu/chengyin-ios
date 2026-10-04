@@ -35,6 +35,7 @@ public struct TemplateAuthoringReview: Equatable, Identifiable {
     public var shelfLocked: Bool { shelfBusy || shelfBlocked || shelfPending != nil }
     public lazy var shelfReader = TemplateOwnShelfReader(adapter: adapter, currentSession: currentSession)
     public var session: TemplateAuthoringSession? { currentSession() }
+    public var canRead: Bool { adapter.canRead }
     public var canSubmit: Bool { adapter.canSubmit }
     public var canSimulate: Bool { adapter.canSimulate }
     public var locked: Bool { pending != nil || [.submitting, .uncertain, .simulated, .acknowledged, .blocked].contains(state) }

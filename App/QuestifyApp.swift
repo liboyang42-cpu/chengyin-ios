@@ -97,6 +97,9 @@ struct QuestifyApp: App {
                 } else if let session=sessionContainer.session {
                     SessionRootView(session:session)
                         .safeAreaInset(edge: .bottom) {
+                            if let fixture = sessionContainer.couponRuntime {
+                                CouponRuntimeEvidence(fixture: fixture, session: session)
+                            }
                             if let fixture = sessionContainer.integratedAcceptance {
                                 IntegratedNativeAcceptanceEvidence(fixture: fixture, session: session)
                             }
@@ -120,12 +123,20 @@ final class AppSessionContainer: ObservableObject {
     let session: AppSession?
     #if DEBUG
     let integratedAcceptance: IntegratedNativeAcceptanceFixture?
+    let couponRuntime: CouponRuntimeFixture?
     #endif
 
     init(composition: AppCompositionRoot? = nil, arguments: [String] = ProcessInfo.processInfo.arguments) {
         #if DEBUG
         let fixture = composition == nil ? IntegratedNativeAcceptanceFixture.selected(arguments: arguments) : nil
         integratedAcceptance = fixture
+        let coupon = composition == nil ? CouponRuntimeFixture.selected(arguments) : nil
+        couponRuntime = coupon
+        if let coupon {
+            let acceptedSession = coupon.composition().makeSession()
+            session = acceptedSession; coupon.session = acceptedSession
+            return
+        }
         if let fixture {
             let acceptedSession = fixture.makeComposition().makeSession()
             session = acceptedSession

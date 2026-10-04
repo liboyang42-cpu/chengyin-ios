@@ -36,11 +36,11 @@ private actor SocialReaderPending: HTTPTransport {
             objectCards: objects, messageImages: images, imageOrigins: origins)
     }
     private func media(id: Int = 21, conversation: Int = 9, url: String? = nil, type: Int = 2) throws -> SocialMessageMedia {
-        let bytes = try JSONSerialization.data(withJSONObject: ["id": id, "conversationId": conversation, "msgType": type, "content": url ?? imageURL])
+        let bytes = try JSONSerialization.data(withJSONObject: ["id": id, "conversationId": conversation, "status":0,"msgType": type, "content": url ?? imageURL])
         return try .init(message: JSONDecoder().decode(MessagingMessage.self, from: bytes))
     }
     private func page(id: Int = 21, conversation: Int = 9, url: String? = nil, type: Int = 2, more: Bool = false, cursor: Int = 0) throws -> Data {
-        try JSONSerialization.data(withJSONObject: ["code": 200, "data": ["list": [["id": id, "conversationId": conversation, "msgType": type, "content": url ?? imageURL]], "hasMore": more, "nextCursor": cursor]])
+        try JSONSerialization.data(withJSONObject: ["code": 200, "data": ["list": [["id": id, "conversationId": conversation, "status":0,"msgType": type, "content": url ?? imageURL]], "hasMore": more, "nextCursor": cursor]])
     }
     private func factory(approval: SocialReaderProductionApproval?, api: any HTTPTransport, media: (any HTTPTransport)? = nil,
                          current: @escaping () -> RuntimeDependencyContext?) throws -> SocialReaderProductionFactory {

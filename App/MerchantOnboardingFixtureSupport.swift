@@ -37,7 +37,7 @@ struct MerchantOnboardingFixtureRoot: View {
 }
 
 @MainActor
-private final class MerchantOnboardingFixture: MerchantOnboardingObserving, MerchantOnboardingServing {
+final class MerchantOnboardingFixture: MerchantOnboardingObserving, MerchantOnboardingServing {
     let isConfigured = true
     @Published var isSignedIn = true
     @Published var sessionRevision: UInt64 = 1

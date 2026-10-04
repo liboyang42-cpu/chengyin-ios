@@ -20,7 +20,7 @@ check('Only source author-management paths', paths == {'/api/coupon/mypublishlis
 for path in paths: check('Audited endpoint '+path, path in api)
 for key in ['name','startTime','endTime','publishCount','couponType','description']:
     check('Published field '+key, "'"+key+"'" in api and '"'+key+'"' in contract)
-check('Multipart stop definition ID', '.multipart(["couponId": String(id.value)])' in contract)
+check('Multipart stop definition ID', '.multipart(["couponId": String(id.value), "scope": "MERCHANT"])' in contract)
 check('JSON publication', '.json(try JSONSerialization.data' in contract)
 check('No unauthorized claim route', not re.search(r'/api/coupon/(claim|receive|recv|info|delete|update|resume)', contract))
 check('Read method is POST', 'var method: String { "POST" }' in contract)
@@ -39,7 +39,7 @@ check('Dormant HTTP exact payload', 'request.setValue(payload.contentType' in br
 check('Writes default off', 'syntheticWritesEnabled: Bool = false' in contract)
 check('Synthetic debug-only grants', '#if DEBUG' in contract and 'transport?.isSynthetic == true' in contract)
 check('Pre-dispatch durable acquisition', coordinator.index('try locks.acquire(record)') < coordinator.index('await adapter.submit'))
-check('Fresh publisher checks at review and confirm', coordinator.count('await authorizer.freshPermission') == 2)
+check('Fresh publisher checks at review and confirm', coordinator.count('await authorizer.freshPermission') == 3)
 check('Fresh stop snapshot equality', 'fresh == baseline, fresh.state.canStop' in coordinator)
 check('Account epoch equality fences', 'currentSession() == session' in coordinator)
 check('Immutable accepted payload', 'request: accepted.request' in coordinator and 'review == accepted' in coordinator)

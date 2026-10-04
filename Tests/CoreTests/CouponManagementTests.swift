@@ -38,6 +38,52 @@ import FoundationNetworking
     func make(_ fake: Fake, _ locks: MemoryLocks, session: @escaping () -> CouponManagementSession?) -> CouponManagementCoordinator {
         .init(adapter: .init(transport: fake, syntheticWritesEnabled: true), authorizer: fake, locks: locks, currentSession: session)
     }
+    func testChinaValidityWirePreservesSelectedTimesAndSameDayRange() throws {
+        var draft = CouponManagementSyntheticFixtures.draft()
+        draft.startTime = try XCTUnwrap(CouponValidityTime.parse("2026-10-04 09:30:00"))
+        draft.endTime = try XCTUnwrap(CouponValidityTime.parse("2026-10-04 18:45:00"))
+        XCTAssertNil(draft.blocker)
+        let request = try CouponManagementContract.publish(draft)
+        guard case .json(let data) = request.body else { return XCTFail("JSON required") }
+        let payload = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        XCTAssertEqual(payload["startTime"] as? String, "2026-10-04 09:30:00")
+        XCTAssertEqual(payload["endTime"] as? String, "2026-10-04 18:45:00")
+        XCTAssertEqual(CouponValidityTime.display(draft.startTime!), "2026.10.04 09:30:00")
+        XCTAssertEqual(CouponValidityTime.display(payload["endTime"] as? String), "2026.10.04 18:45:00")
+        draft.endTime = draft.startTime
+        XCTAssertEqual(draft.blocker, "couponManagement.dateOrder")
+        draft.endTime = draft.startTime!.addingTimeInterval(0.5)
+        XCTAssertEqual(draft.blocker, "couponManagement.dateOrder")
+        draft.endTime = draft.startTime!.addingTimeInterval(-60)
+        XCTAssertEqual(draft.blocker, "couponManagement.dateOrder")
+    }
+    func testChinaValidityPickerCalendarDoesNotInheritBuddhistDeviceCalendar() throws {
+        let instant = try XCTUnwrap(CouponValidityTime.parse("2026-10-04 09:30:00"))
+        var deviceCalendar = Calendar(identifier: .buddhist)
+        deviceCalendar.timeZone = TimeZone(secondsFromGMT: -7 * 3600)!
+        XCTAssertNotEqual(deviceCalendar.component(.year, from: instant), 2026)
+        let pickerCalendar = CouponValidityTime.calendar
+        XCTAssertEqual(pickerCalendar.identifier, .gregorian)
+        XCTAssertEqual(pickerCalendar.timeZone.secondsFromGMT(for: instant), 8 * 3600)
+        let parts = pickerCalendar.dateComponents([.year, .month, .day, .hour, .minute], from: instant)
+        XCTAssertEqual(parts.year, 2026)
+        XCTAssertEqual(parts.month, 10)
+        XCTAssertEqual(parts.day, 4)
+        XCTAssertEqual(parts.hour, 9)
+        XCTAssertEqual(parts.minute, 30)
+        XCTAssertEqual(CouponValidityTime.wire(try XCTUnwrap(pickerCalendar.date(from: parts))), "2026-10-04 09:30:00")
+    }
+    func testChinaValidityStrictRoundTripAndUTCBoundary() throws {
+        for bad in ["2026-02-30 12:00:00", "2026-10-04 25:00:00", "2026-10-04", "2026-10-04 09:30:00junk", " 2026-10-04 09:30:00", "2026-10-04T09:30:00Z"] {
+            XCTAssertNil(CouponValidityTime.parse(bad), bad)
+            XCTAssertNil(CouponValidityTime.display(bad), bad)
+        }
+        let instant = try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-10-03T16:15:00Z"))
+        XCTAssertEqual(CouponValidityTime.wire(instant), "2026-10-04 00:15:00")
+        XCTAssertEqual(CouponValidityTime.parse("2026-10-04 00:15:00"), instant)
+        XCTAssertEqual(CouponValidityTime.display("2028-02-29 23:59:59"), "2028.02.29 23:59:59")
+        XCTAssertNil(CouponValidityTime.display(nil))
+    }
     func testWireTypesValidationAndExactPublishFields() throws {
         var draft = CouponManagementDraft()
         XCTAssertEqual(draft.blocker, "couponManagement.nameRequired")
@@ -50,7 +96,7 @@ import FoundationNetworking
             guard case .json(let data) = request.body else { return XCTFail("JSON required") }
             let body = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
             XCTAssertEqual(body["couponType"] as? Int, type)
-            XCTAssertEqual(Set(body.keys), Set(["name", "startTime", "endTime", "publishCount", "couponType"]))
+            XCTAssertEqual(Set(body.keys), Set(["scope", "name", "startTime", "endTime", "publishCount", "couponType"]))
         }
         draft.couponType = 4; XCTAssertEqual(draft.blocker, "couponManagement.typeRequired")
         draft.couponType = 0; draft.quantity = "0"; XCTAssertEqual(draft.blocker, "couponManagement.quantityRequired")
@@ -70,7 +116,7 @@ import FoundationNetworking
         XCTAssertThrowsError(try CouponManagementContract.decodePublished(Data(#"{"code":200,"data":[{"id":1},{"id":1}]}"#.utf8), status: 200))
         XCTAssertThrowsError(try CouponManagementContract.decodePublished(Data(#"{"code":200}"#.utf8), status: 200))
         let stop = CouponManagementContract.stop(try CouponDefinitionID(710))
-        XCTAssertEqual(stop.body, .multipart(["couponId": "710"]))
+        XCTAssertEqual(stop.body, .multipart(["couponId": "710", "scope": "MERCHANT"]))
         let encoded = try stop.encodedBody(boundary: "Example-1")
         XCTAssertEqual(encoded.contentType, "multipart/form-data; boundary=Example-1")
         XCTAssertTrue(String(decoding: encoded.data, as: UTF8.self).contains("name=\"couponId\"\r\n\r\n710"))
@@ -127,7 +173,7 @@ import FoundationNetworking
         XCTAssertEqual(fake.requests.filter { !$0.mutates }.count, 3)
         await core.prepareStop(try CouponDefinitionID(710)); XCTAssertEqual(core.issue, .locked)
     }
-    func testDefiniteRejectionPreservesMessageAndReleasesLock() async throws {
+    func testSyntheticDefiniteRejectionPreservesMessageAndReleasesLock() async throws {
         let fake = Fake(), locks = MemoryLocks(); let session = try session(); let core = make(fake, locks) { session }
         fake.response = Data(#"{"code":429,"msg":"发券太频繁,请稍后再试"}"#.utf8)
         core.change(CouponManagementSyntheticFixtures.draft()); await core.preparePublish(); await core.confirm(try XCTUnwrap(core.review))
@@ -191,7 +237,7 @@ import FoundationNetworking
         let response: Data
         let status: Int
         let fail: Bool
-        init(response: String = #"{"code":200,"msg":"Acknowledged fixture"}"#, status: Int = 200, fail: Bool = false) { self.response = Data(response.utf8); self.status = status; self.fail = fail }
+        init(response: String = #"{"code":200,"msg":"Acknowledged fixture","data":{"id":910}}"#, status: Int = 200, fail: Bool = false) { self.response = Data(response.utf8); self.status = status; self.fail = fail }
         func send(_ request: URLRequest) async throws -> (Data, Int) {
             requests.append(request)
             if request.url?.path == "/api/coupon/mypublishlist" { return (CouponManagementSyntheticFixtures.published, 200) }
@@ -212,7 +258,7 @@ import FoundationNetworking
         let before = await http.saved(); XCTAssertTrue(before.isEmpty)
         let adapter = CouponManagementAdapter(transport: granted, dormantWritesEnabled: true)
         let publishResult = await adapter.submit(publish, session: current)
-        XCTAssertEqual(publishResult, .acknowledged("Acknowledged fixture"))
+        XCTAssertEqual(publishResult, .receipt(try CouponDefinitionID(910), "Acknowledged fixture"))
         let stopResult = await adapter.submit(CouponManagementContract.stop(try CouponDefinitionID(710)), session: current)
         XCTAssertEqual(stopResult, .acknowledged("Acknowledged fixture"))
         let requests = await http.saved(); XCTAssertEqual(requests.count, 2)
@@ -235,14 +281,14 @@ import FoundationNetworking
         XCTAssertEqual(core.issue, .locked); XCTAssertEqual(locks.items.count, 1)
         let requests = await http.saved(); XCTAssertEqual(requests.count, 1)
     }
-    func testDormantHTTPResponseRejectionPreservesOriginalBusinessMessage() async throws {
+    func testDormantHTTPAmbiguousRejectionPreservesOriginalMessageAndUnknown() async throws {
         let http = WriteHTTP(response: #"{"code":429,"msg":"发券太频繁,请稍后再试"}"#), current = try session()
         let credential = try CouponManagementReadCredentials(session: current, token: "synthetic-token")
         let config = try APIConfiguration(baseURL: XCTUnwrap(URL(string: "https://example.test")))
         let transport = CouponManagementHTTPDormantTransport(configuration: config, http: http, dormantWritesEnabled: true, credentials: { credential })
         let adapter = CouponManagementAdapter(transport: transport, dormantWritesEnabled: true)
         let outcome = await adapter.submit(try CouponManagementContract.publish(CouponManagementSyntheticFixtures.draft()), session: current)
-        XCTAssertEqual(outcome, .rejected("发券太频繁,请稍后再试"))
+        XCTAssertEqual(outcome, .unknownWithMessage("发券太频繁,请稍后再试"))
     }
 
     func testApprovedReadGrantRejectsForeignAccountAndWritePaths() async throws {
@@ -267,6 +313,16 @@ import FoundationNetworking
         let calls = await http.saved(); XCTAssertEqual(calls.count, 1)
     }
 
+    func testMalformedEnvelopeCodeTypesCannotProveSuccessOrBusinessRejection() throws {
+        for code in ["true", "false", "\"500\"", "null", "409.5"] {
+            for status in [200, 400] {
+                let data = Data("{\"code\":\(code),\"msg\":\"Not proof of rejection\"}".utf8)
+                XCTAssertThrowsError(try CouponManagementContract.requireSuccess(data, status: status)) { error in
+                    XCTAssertEqual(error as? CouponManagementError, .malformed)
+                }
+            }
+        }
+    }
     func testLongDeploymentNamespaceUsesBoundedDurableFilename() throws {
         let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: folder) }

@@ -138,7 +138,7 @@ final class IMExpandedTests: XCTestCase {
         do { _ = try await writer.perform(.start(targetMemberID: 2), expectedIdentity: identity); XCTFail() } catch { }
     }
     func testUntrustedResultNeverBecomesReviewAction() throws {
-        let raw = #"{"id":1,"conversationId":9,"senderId":7,"msgType":3,"content":"hi","extraJson":"{\"result\":{\"outcome\":\"approved\"},\"buttons\":[{\"text\":\"Open\",\"action\":\"https://evil.example\"}]}"}"#
+        let raw = #"{"id":1,"conversationId":9,"senderId":7,"status":0,"msgType":3,"content":"hi","extraJson":"{\"result\":{\"outcome\":\"approved\"},\"buttons\":[{\"text\":\"Open\",\"action\":\"https://evil.example\"}]}"}"#
         let message = try JSONDecoder().decode(MessagingMessage.self, from: Data(raw.utf8))
         XCTAssertEqual(IMCardAction.actions(for: message).first?.destination, .unsupported)
     }

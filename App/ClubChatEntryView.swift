@@ -46,7 +46,7 @@ import SwiftUI
         .navigationDestination(isPresented: Binding(get: { conversation != nil && model.owner.isCurrent }, set: { if !$0 { conversation = nil } })) {
             if let conversation, model.owner.isCurrent {
                 MessagingHistoryView(conversationID: conversation.id, conversation: conversation, reader: session.messagingReader,
-                    sender: session.messageSender(for: conversation.id), mediaReader: session.socialMessageMediaReader, expanded: session.imExpandedNavigation)
+                    sender: session.messageSender(for: conversation.id), mediaReader: session.socialMessageMediaReader, expanded: session.imExpandedNavigation).id(session.messagingViewIdentity)
             }
         }
     }

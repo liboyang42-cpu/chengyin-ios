@@ -6,7 +6,7 @@ import FoundationNetworking
 /// Ephemeral credentials supplied by the existing auth owner. Never persisted in a lock or draft.
 public struct CouponManagementReadCredentials: Equatable {
     public let session: CouponManagementSession
-    fileprivate let token: String
+    let token: String
     public init(session: CouponManagementSession, token: String) throws {
         guard AuthRequestBuilder.isValidToken(token) else { throw CouponManagementError.signedOut }
         self.session = session; self.token = token
@@ -24,7 +24,7 @@ public struct CouponManagementReadCredentials: Equatable {
     }
     public func send(_ descriptor: CouponManagementRequest, session: CouponManagementSession) async throws -> (Data, Int) {
         guard !descriptor.mutates, descriptor.path == "/api/coupon/mypublishlist", case .multipart(let fields) = descriptor.body,
-              Set(fields.keys).isSubset(of: ["keyword"]) else { throw CouponManagementError.unavailable }
+              fields["scope"] == "MERCHANT", Set(fields.keys).isSubset(of: ["keyword", "scope"]) else { throw CouponManagementError.unavailable }
         guard let captured = credentials(), captured.session == session else { throw CouponManagementError.signedOut }
         try Task.checkCancellation()
         let request = try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent("api/coupon/mypublishlist"), fields: fields, token: captured.token)
@@ -53,21 +53,22 @@ public struct CouponManagementReadCredentials: Equatable {
             switch (descriptor.path, descriptor.body) {
             case ("/api/coupon/publish", .json(let data)):
                 guard let value = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-                      Set(value.keys).isSubset(of: ["name", "description", "startTime", "endTime", "publishCount", "couponType"]),
+                      Set(value.keys).isSubset(of: ["scope", "name", "description", "startTime", "endTime", "publishCount", "couponType"]),
+                      value["scope"] as? String == "MERCHANT",
                       let name = value["name"] as? String, !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
                       let count = value["publishCount"] as? Int, count > 0,
                       let type = value["couponType"] as? Int, (0...3).contains(type),
                       let start = value["startTime"] as? String, let end = value["endTime"] as? String,
-                      let startDate = ISO8601DateFormatter().date(from: start), let endDate = ISO8601DateFormatter().date(from: end), endDate > startDate,
+                      let startDate = CouponValidityTime.parse(start), let endDate = CouponValidityTime.parse(end), endDate > startDate,
                       value["description"] == nil || value["description"] is String else { throw CouponManagementError.invalid }
             case ("/api/coupon/stop", .multipart(let fields)):
                 guard let raw = fields["couponId"], let id = Int(raw), id > 0,
-                      fields == ["couponId": String(id)] else { throw CouponManagementError.invalid }
+                      fields == ["couponId": String(id), "scope": "MERCHANT"] else { throw CouponManagementError.invalid }
             default: throw CouponManagementError.unavailable
             }
         } else {
             guard descriptor.path == "/api/coupon/mypublishlist", case .multipart(let fields) = descriptor.body,
-                  Set(fields.keys).isSubset(of: ["keyword"]) else { throw CouponManagementError.unavailable }
+                  fields["scope"] == "MERCHANT", Set(fields.keys).isSubset(of: ["keyword", "scope"]) else { throw CouponManagementError.unavailable }
         }
         try Task.checkCancellation()
         let payload = try descriptor.encodedBody(boundary: "CouponNative-" + UUID().uuidString)

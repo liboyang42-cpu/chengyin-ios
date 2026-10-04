@@ -4,7 +4,7 @@ import SwiftUI
 @MainActor private final class MessageFixtureStore:MessagingReading,MessageActionWriting {
     let isConfigured=true
     let identity:MessagingReadIdentity? = .init(accountID:9001,epoch:1)
-    private var rows:[[String:Any]]=[["id":1,"conversationId":901,"senderId":8001,"msgType":1,"content":"Fixture received message"]]
+    private var rows:[[String:Any]]=[["id":1,"conversationId":901,"senderId":8001,"status":0,"msgType":1,"content":"Fixture received message"]]
     private var receipts:[String:MessagingMessage]=[:]
     func messagingConversations() async throws -> [MessagingConversation] { [] }
     func messagingMessages(conversationID:Int,cursor:Int) async throws -> MessagingPage {
@@ -18,7 +18,7 @@ import SwiftUI
         if args.contains("--reference-message-rejected") { throw MessagingReadFailure(code: 403) }
         if args.contains("--reference-message-pending") { try await Task.sleep(for: .seconds(30)) }
         if let existing=receipts[intent.clientMessageID] { return existing }
-        let row:[String:Any]=["id":rows.count+1,"conversationId":901,"senderId":9001,"msgType":1,"content":intent.content]
+        let row:[String:Any]=["id":rows.count+1,"conversationId":901,"senderId":9001,"status":0,"msgType":1,"content":intent.content]
         let message=try JSONDecoder().decode(MessagingMessage.self,from:JSONSerialization.data(withJSONObject:row))
         rows.append(row);receipts[intent.clientMessageID]=message;return message
     }

@@ -43,10 +43,22 @@ final class ClubManagementFlowTests: XCTestCase {
         XCTAssertTrue(button.waitForExistence(timeout: 5), app.debugDescription)
         XCTAssertTrue(detail.exists, app.debugDescription)
         XCTAssertTrue(button.isEnabled, app.debugDescription)
-        button.tap()
+        XCTAssertTrue(revealFixtureElement(button, in: app, maximumSwipes: 5), app.debugDescription)
+        guard let snapshot = try? button.snapshot(), snapshot.isEnabled,
+              !snapshot.frame.isEmpty, app.frame.insetBy(dx: 4, dy: 4).contains(snapshot.frame),
+              snapshot.frame.minY >= detail.frame.maxY, button.isHittable,
+              button.descendants(matching: .button).count == 0,
+              let readsBefore = Int(app.staticTexts["club.management.reads"].label) else {
+            XCTFail("Expected an enabled visible detail action leaf and fixture read counter: " + app.debugDescription)
+            return app
+        }
+        // The run97 AX activation tap left the enabled row untouched (reads stayed 1).
+        // Tap its verified content frame once; require fresh read and review below.
+        button.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
         let sheet = app! // SwiftUI modal can expose Other rather than XCUIElementTypeSheet.
         let title = action == "approve" ? "Approve application" : action == "reject" ? "Reject application" : "Remove member"
         XCTAssertTrue(sheet.navigationBars[title].waitForExistence(timeout: 10), app.debugDescription)
+        XCTAssertEqual(app.staticTexts["club.management.reads"].label, String(readsBefore + 1), "Preparing review must perform one new authoritative fixture read")
         XCTAssertTrue(sheet.staticTexts.matching(NSPredicate(format:"label CONTAINS %@","Fixture club (#81)")).firstMatch.exists,app.debugDescription)
         let name = target == 703 ? "Fixture applicant" : "Fixture member"
         XCTAssertTrue(sheet.staticTexts.matching(NSPredicate(format:"label CONTAINS %@","\(name) (#\(target))")).firstMatch.exists,app.debugDescription)
@@ -251,9 +263,23 @@ final class ClubManagementFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["club.management.unknown"].waitForExistence(timeout: 10))
         app.buttons["club.management.roleChange"].tap()
         XCTAssertTrue(app.navigationBars["Club management"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.navigationBars["Application details"].exists)
+        XCTAssertFalse(app.staticTexts["club.management.joinMessage"].exists)
+        XCTAssertFalse(element("club.management.detail.loading").exists)
         XCTAssertTrue(app.staticTexts["club.management.unknown"].exists)
         app.buttons["club.management.refresh"].tap()
         XCTAssertFalse(app.buttons["club.management.request.703"].exists)
+        XCTAssertTrue(app.staticTexts["club.management.unknown"].exists)
+        count(1)
+        // Restoring the same role is not evidence that an unknown write failed.
+        app.buttons["club.management.roleChange"].tap()
+        XCTAssertTrue(app.staticTexts["club.management.unknown"].waitForExistence(timeout: 5))
+        let refresh = app.buttons["club.management.refresh"]
+        let ready = XCTNSPredicateExpectation(predicate: NSPredicate(format: "enabled == true"), object: refresh)
+        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 5), .completed)
+        refresh.tap()
+        XCTAssertFalse(app.buttons["club.management.request.703"].exists)
+        XCTAssertFalse(app.buttons["club.management.confirm"].exists)
         XCTAssertTrue(app.staticTexts["club.management.unknown"].exists)
         count(1)
     }
@@ -286,6 +312,10 @@ final class ClubManagementFlowTests: XCTestCase {
             XCTAssertTrue(app.buttons["club.management.releaseRead"].waitForExistence(timeout: 5))
             app.buttons["club.management.roleChange"].tap()
             XCTAssertTrue(app.navigationBars["Club management"].waitForExistence(timeout: 5))
+            XCTAssertFalse(app.navigationBars["Application details"].exists)
+            XCTAssertFalse(app.staticTexts["club.management.joinMessage"].exists)
+            XCTAssertFalse(element("club.management.detail.loading").exists)
+            XCTAssertFalse(app.buttons["club.management.confirm"].exists)
             XCTAssertFalse(app.buttons["club.management.request.703"].exists)
             app.buttons["club.management.roleChange"].tap()
             XCTAssertTrue(app.buttons["club.management.request.703"].waitForExistence(timeout: 5))

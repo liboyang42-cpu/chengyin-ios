@@ -14,8 +14,8 @@ class WaitlistReviewUIContracts(unittest.TestCase):
         self.assertEqual(method.count('XCTAssertFalse(app.buttons["registration.form.readStatus"].exists)'), 2)
         self.assertIn('XCTAssertTrue(app.navigationBars["Activity registration"].exists)', method)
 
-    def test_order_diagnostic_does_not_relax_the_pending_exact_assertion(self):
+    def test_order_readback_preserves_exact_localized_label_and_full_identity(self):
         source = (ROOT / 'Tests/AppUITests/RegistrationWaitlistOrderUITests.swift').read_text()
-        self.assertIn('"订单号, OFFLINE-WAITLIST-9417"', source)
+        self.assertIn('"订单号、OFFLINE-WAITLIST-9417"', source)
         self.assertEqual(source.count('XCTAssertTrue(app.staticTexts[orderNumber].waitForExistence(timeout: 5), app.debugDescription)'), 2)
         self.assertIn('XCTAssertFalse(review.isEnabled)', source)

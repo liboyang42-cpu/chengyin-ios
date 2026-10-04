@@ -94,6 +94,40 @@ public struct CouponDefinition: Decodable, Equatable, Identifiable {
         return day.replacingOccurrences(of: "-", with: ".")
     }
 }
+/// Coupon validity uses the existing merchant contract's China civil time, never the device zone.
+public enum CouponValidityTime {
+    public static var timeZone: TimeZone { TimeZone(secondsFromGMT: 8 * 3600)! }
+    public static var calendar: Calendar {
+        var value = Calendar(identifier: .gregorian)
+        value.timeZone = timeZone
+        return value
+    }
+    private static func formatter(_ pattern: String) -> DateFormatter {
+        let value = DateFormatter()
+        value.locale = Locale(identifier: "en_US_POSIX")
+        value.calendar = calendar
+        value.timeZone = timeZone
+        value.dateFormat = pattern
+        value.isLenient = false
+        return value
+    }
+    public static func wire(_ date: Date) -> String {
+        formatter("yyyy-MM-dd HH:mm:ss").string(from: date)
+    }
+    public static func parse(_ raw: String) -> Date? {
+        let value = formatter("yyyy-MM-dd HH:mm:ss")
+        guard raw.range(of: #"^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}$"#, options: .regularExpression) != nil,
+              let date = value.date(from: raw), value.string(from: date) == raw else { return nil }
+        return date
+    }
+    public static func display(_ date: Date) -> String {
+        formatter("yyyy.MM.dd HH:mm:ss").string(from: date)
+    }
+    public static func display(_ raw: String?) -> String? {
+        guard let raw, let date = parse(raw) else { return nil }
+        return display(date)
+    }
+}
 public struct CouponManagementDraft: Codable, Equatable {
     public var name = ""
     public var description = ""
@@ -109,14 +143,17 @@ public struct CouponManagementDraft: Codable, Equatable {
         guard let start = startTime, let end = endTime else { return "couponManagement.datesRequired" }
         guard let type = couponType, (0...3).contains(type) else { return "couponManagement.typeRequired" }
         guard let count = Int(quantity.trimmingCharacters(in: .whitespacesAndNewlines)), count > 0 else { return "couponManagement.quantityRequired" }
-        if end <= start { return "couponManagement.dateOrder" }
+        guard start.timeIntervalSince1970.isFinite, end.timeIntervalSince1970.isFinite,
+              let wireStart = CouponValidityTime.parse(CouponValidityTime.wire(start)),
+              let wireEnd = CouponValidityTime.parse(CouponValidityTime.wire(end)),
+              wireEnd > wireStart else { return "couponManagement.dateOrder" }
         return nil
     }
     public static func typeKey(_ value: Int?) -> String {
         switch value { case 0: return "couponManagement.gift"; case 1: return "couponManagement.tenPercent"; case 2: return "couponManagement.twentyPercent"; case 3: return "couponManagement.experience"; default: return "couponManagement.coupon" }
     }
 }
-public struct CouponManagementSession: Equatable {
+public struct CouponManagementSession: Equatable, Hashable {
     public let accountID: Int
     public let namespace: String
     public let epoch: UInt64
@@ -131,7 +168,8 @@ public struct CouponManagementSession: Equatable {
 public struct CouponPublisherPermission: Equatable {
     public let revision: String
     public let mayPublish: Bool
-    public init(revision: String, mayPublish: Bool) { self.revision = revision; self.mayPublish = mayPublish }
+    public let merchantID: Int?
+    public init(revision: String, mayPublish: Bool, merchantID: Int? = nil) { self.revision = revision; self.mayPublish = mayPublish; self.merchantID = merchantID }
 }
 /// Host must supply fresh source-backed publisher eligibility, not a cached display role.
 @MainActor public protocol CouponPublisherAuthorizing: AnyObject {

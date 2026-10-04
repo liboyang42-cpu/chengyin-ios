@@ -13,6 +13,38 @@ final class ModuleFlowTests: XCTestCase {
         XCTAssertEqual(XCTWaiter.wait(for:[ready],timeout:10),.completed,app.debugDescription,file:file,line:line)
         element.tap()
     }
+    private func chooseClubMemberAction(_ id: String, label: String,
+                                        file: StaticString = #filePath, line: UInt = #line) {
+        let sheet = app.sheets.firstMatch
+        XCTAssertTrue(sheet.waitForExistence(timeout: 5), app.debugDescription, file: file, line: line)
+        let matches = sheet.buttons.matching(identifier: id)
+        XCTAssertTrue(matches.firstMatch.waitForExistence(timeout: 5), app.debugDescription, file: file, line: line)
+        let leaves = matches.allElementsBoundByIndex.filter {
+            $0.descendants(matching: .button).count == 0
+        }
+        guard leaves.count == 1, let leaf = leaves.first, let snapshot = try? leaf.snapshot(),
+              snapshot.label == label, snapshot.isEnabled, leaf.isHittable,
+              !snapshot.frame.isEmpty, sheet.frame.contains(snapshot.frame),
+              app.frame.insetBy(dx: 4, dy: 4).contains(snapshot.frame) else {
+            XCTFail("Expected one visible enabled club-choice native leaf: " + app.debugDescription, file: file, line: line)
+            return
+        }
+        leaf.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+    }
+    private func cancelClubMemberChoice(file: StaticString = #filePath, line: UInt = #line) {
+        let sheet = app.sheets.firstMatch
+        XCTAssertTrue(sheet.waitForExistence(timeout: 5), app.debugDescription, file: file, line: line)
+        if app.popovers.firstMatch.exists {
+            // Adaptive confirmation popovers have an outside dismissal region, not a Cancel row.
+            dismissFixtureConfirmationPopover(in: app, file: file, line: line)
+        } else {
+            tapFixtureSheetAction("Cancel", in: sheet, app: app, file: file, line: line)
+        }
+        let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: sheet)
+        XCTAssertEqual(XCTWaiter.wait(for: [dismissed], timeout: 5), .completed, app.debugDescription, file: file, line: line)
+        XCTAssertFalse(app.staticTexts["Fixture customer"].exists, file: file, line: line)
+        XCTAssertFalse(app.staticTexts["Example city explorer"].exists, file: file, line: line)
+    }
     private func capture(_ name:String) {
         let attachment=XCTAttachment(screenshot:app.screenshot());attachment.name=name;attachment.lifetime = .keepAlways;add(attachment)
     }
@@ -88,14 +120,14 @@ final class ModuleFlowTests: XCTestCase {
         for scenario in ["customerOwner", "customerAdministrator"] {
             launch(["--uitesting-club-fixture", scenario])
             tap(app.buttons["club.member.704"])
-            tap(app.buttons["club.member.choice.public"])
+            chooseClubMemberAction("club.member.choice.public", label: "Public profile")
             XCTAssertTrue(app.staticTexts["Example city explorer"].waitForExistence(timeout: 5))
             tap(app.navigationBars.buttons.firstMatch)
             tap(app.buttons["club.member.704"])
-            tap(app.buttons["Cancel"])
+            cancelClubMemberChoice()
             XCTAssertTrue(app.buttons["club.member.704"].exists)
             tap(app.buttons["club.member.704"])
-            tap(app.buttons["club.member.choice.customer"])
+            chooseClubMemberAction("club.member.choice.customer", label: "Customer detail")
             XCTAssertTrue(app.staticTexts["Fixture customer"].waitForExistence(timeout: 5), app.debugDescription)
             tap(app.navigationBars.buttons.firstMatch)
             XCTAssertTrue(app.buttons["club.member.704"].waitForExistence(timeout: 5))
@@ -106,7 +138,7 @@ final class ModuleFlowTests: XCTestCase {
         for (scenario, member) in [("customerDenied", 704), ("customerOwner", 703)] {
             launch(["--uitesting-club-fixture", scenario])
             tap(app.buttons["club.member.\(member)"])
-            tap(app.buttons["club.member.choice.customer"])
+            chooseClubMemberAction("club.member.choice.customer", label: "Customer detail")
             XCTAssertTrue(app.staticTexts["club.gov.error"].waitForExistence(timeout: 5), app.debugDescription)
             XCTAssertFalse(app.staticTexts["Fixture customer"].exists)
             app.terminate()
@@ -115,33 +147,33 @@ final class ModuleFlowTests: XCTestCase {
     func testClubCustomerDetailClearsOnRoleRevisionThenRechecks() {
         launch(["--uitesting-club-fixture", "customerOwner"])
         tap(app.buttons["club.member.704"])
-        tap(app.buttons["club.member.choice.customer"])
+        chooseClubMemberAction("club.member.choice.customer", label: "Customer detail")
         XCTAssertTrue(app.staticTexts["Fixture customer"].waitForExistence(timeout: 5))
         tap(app.buttons["club.fixture.revokeRole"])
         XCTAssertTrue(app.buttons["club.member.704"].waitForExistence(timeout: 5), app.debugDescription)
         XCTAssertFalse(app.staticTexts["Fixture customer"].exists)
         tap(app.buttons["club.member.704"])
-        tap(app.buttons["club.member.choice.customer"])
+        chooseClubMemberAction("club.member.choice.customer", label: "Customer detail")
         XCTAssertTrue(app.staticTexts["club.gov.error"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.staticTexts["Fixture customer"].exists)
     }
     func testClubCustomerRoleABADoesNotRestoreOldPrivateDestination() {
         launch(["--uitesting-club-fixture", "customerOwner"])
         tap(app.buttons["club.member.704"])
-        tap(app.buttons["club.member.choice.customer"])
+        chooseClubMemberAction("club.member.choice.customer", label: "Customer detail")
         XCTAssertTrue(app.staticTexts["Fixture customer"].waitForExistence(timeout: 5))
         tap(app.buttons["club.fixture.revokeRole"])
         tap(app.buttons["club.fixture.restoreRole"])
         XCTAssertTrue(app.buttons["club.member.704"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.staticTexts["Fixture customer"].exists)
         tap(app.buttons["club.member.704"])
-        tap(app.buttons["club.member.choice.customer"])
+        chooseClubMemberAction("club.member.choice.customer", label: "Customer detail")
         XCTAssertTrue(app.staticTexts["Fixture customer"].waitForExistence(timeout: 5))
     }
     func testClubCustomerDetailClearsOnAccountSwitch() {
         launch(["--uitesting-club-fixture", "customerOwner"])
         tap(app.buttons["club.member.704"])
-        tap(app.buttons["club.member.choice.customer"])
+        chooseClubMemberAction("club.member.choice.customer", label: "Customer detail")
         XCTAssertTrue(app.staticTexts["Fixture customer"].waitForExistence(timeout: 5))
         tap(app.buttons["club.fixture.switchAccount"])
         XCTAssertTrue(app.staticTexts["club.members.error"].waitForExistence(timeout: 5), app.debugDescription)

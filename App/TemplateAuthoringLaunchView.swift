@@ -11,7 +11,8 @@ import SwiftUI
                 } label: { Label("templateAuthor.title", systemImage: "square.and.pencil") }
                     .accessibilityIdentifier("templateAuthor.openEditor")
                 NavigationLink {
-                    TemplateAuthoringMineView(coordinator: session.templateAuthoringEditor(), sessionRevision: session.sessionRevision, memberDetail: { AnyView(SessionMemberTemplateDetailView(id: $0)) })
+                    TemplateAuthoringMineView(coordinator: session.templateShelfCoordinator(), sessionRevision: session.sessionRevision, memberDetail: { AnyView(SessionOwnedMemberTemplateDetailView(id: $0)) })
+                        .id(session.templateShelfViewIdentity)
                 } label: { Label("templateAuthor.mine", systemImage: "square.stack") }
                     .accessibilityIdentifier("templateAuthor.openMine")
                 NavigationLink {

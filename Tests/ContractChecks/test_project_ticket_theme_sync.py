@@ -33,3 +33,22 @@ class TicketThemeSync(unittest.TestCase):
             key='projectEdit.'+suffix
             for lang in ['en','zh-Hans']:
                 self.assertEqual(source[key][lang],catalog[key]['localizations'][lang]['stringUnit']['value'])
+
+class TicketThemeSyncUIInteractionContracts(unittest.TestCase):
+    def test_native_control_transition_is_required_before_unchanged_date_assertions(self):
+        source = (ROOT / 'Tests/AppUITests/ProjectEditFlowTests.swift').read_text()
+        method = source.split('func testFreeExploreTicketThemeDateSyncAndReturnToManualDates()')[1].split('func testLocalEditReviewAndCancelledConfirmation')[0]
+        self.assertIn('let nativeSwitch = sync.switches.firstMatch', method)
+        self.assertEqual(method.count('if nativeSwitch.exists { nativeSwitch.tap() }'), 2)
+        self.assertEqual(method.count('CGVector(dx: 0.93, dy: 0.5)'), 2)
+        self.assertNotIn('sync.tap()', method)
+        self.assertNotIn('while ', method)
+        self.assertNotIn('for ', method)
+        self.assertIn('NSPredicate(format: "value == %@", "1")', method)
+        self.assertIn('NSPredicate(format: "value == %@", "0")', method)
+        self.assertLess(method.index('XCTWaiter.wait(for: [enabled], timeout: 3)'), method.index('app.staticTexts["2030-05-01 00:00:00"]'))
+        self.assertIn('app.staticTexts["2030-05-30 23:59:59"]', method)
+        self.assertIn('XCTAssertFalse(app.textFields["projectEdit.ticketStart"].exists)', method)
+        self.assertIn('XCTAssertEqual(app.textFields["projectEdit.ticketStart"].value as? String, "2030-05-01 00:00:00")', method)
+        self.assertIn('app.buttons["projectEdit.review"].tap()', method)
+        self.assertIn('app.buttons["projectEdit.cancelReview"]', method)

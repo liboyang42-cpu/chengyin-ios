@@ -19,7 +19,7 @@ import Foundation
         XCTAssertFalse(session.makeSocialMessageMediaReader().isConfigured)
         do { _ = try await session.objectCardReader.list(category: .all); XCTFail() } catch {}
         let message = try JSONDecoder().decode(MessagingMessage.self,
-            from: Data(#"{"id":21,"conversationId":9,"msgType":2,"content":"https://media.example.com/a.png"}"#.utf8))
+            from: Data(#"{"id":21,"conversationId":9,"status":0,"msgType":2,"content":"https://media.example.com/a.png"}"#.utf8))
         do {
             _ = try await session.socialMessageMediaReader.image(.init(message: message), expectedIdentity: .init(accountID: 7, epoch: 1))
             XCTFail()

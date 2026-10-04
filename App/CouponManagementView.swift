@@ -32,6 +32,7 @@ import SwiftUI
             else {
                 List {
                     CouponManagementNotice(model: model)
+                    Text("couponManagement.chinaTime").font(.footnote).foregroundStyle(.secondary)
                     if model.working || model.core.loading { ProgressView("couponManagement.loading") }
                     else if model.core.rows.isEmpty { Text("couponManagement.empty").foregroundStyle(.secondary) }
                     ForEach(model.core.rows) { row in
@@ -42,7 +43,7 @@ import SwiftUI
                                 Text(row.name ?? appLocalized("couponManagement.coupon", locale: locale)).font(.headline)
                                 Text(LocalizedStringKey(row.typeKey)).font(.subheadline)
                                 if row.state != .active { Text(LocalizedStringKey(row.state.key)).font(.caption) }
-                                Text("\(CouponDefinition.displayDay(row.startTime) ?? "—") – \(CouponDefinition.displayDay(row.endTime) ?? "—")").font(.caption).foregroundStyle(.secondary)
+                                Text("\(CouponValidityTime.display(row.startTime) ?? "—") – \(CouponValidityTime.display(row.endTime) ?? "—")").font(.caption).foregroundStyle(.secondary)
                             }.padding(.vertical, 4)
                         }.accessibilityIdentifier("couponManagement.definition.\(row.id.value)")
                     }
@@ -51,7 +52,7 @@ import SwiftUI
                 .toolbar {
                     ToolbarItem(placement: .primaryAction) {
                         Button { creating = true } label: { Label("couponManagement.create", systemImage: "plus") }
-                            .disabled(model.working).accessibilityIdentifier("couponManagement.create")
+                            .disabled(model.working || !model.core.canReviewPublish).accessibilityIdentifier("couponManagement.create")
                     }
                 }
             }
@@ -72,11 +73,17 @@ import SwiftUI
         Section {
             if !model.core.canSubmit { Text("couponManagement.dormant").font(.footnote) }
             if model.core.canSimulate { Text("couponManagement.synthetic").font(.footnote).foregroundStyle(.secondary) }
+            if model.core.canSubmit && (!model.core.canReviewPublish || !model.core.canReviewStop) {
+                Text("couponManagement.unavailable").font(.footnote)
+            }
             if let issue = model.core.issue { Text(LocalizedStringKey(issue.messageKey)).accessibilityIdentifier("couponManagement.issue") }
             if let issue = model.core.issue, case .server(let message) = issue { Text(message) }
             if let message = model.core.serverMessage { Text(message).accessibilityIdentifier("couponManagement.serverMessage") }
             if model.core.simulated { Text("couponManagement.simulated") }
-            if model.core.acknowledged { Text("couponManagement.acknowledged") }
+            if model.core.acknowledged {
+                Text(LocalizedStringKey(model.core.verifiedRecord == nil ? "couponManagement.readbackPending" : "couponManagement.readbackVerified"))
+                    .accessibilityIdentifier("couponManagement.readback")
+            }
         }
     }
 }
@@ -93,9 +100,10 @@ import SwiftUI
                     Text(row.description?.isEmpty == false ? row.description! : appLocalized("couponManagement.noDescription", locale: locale))
                     LabeledContent("couponManagement.status") { Text(LocalizedStringKey(row.state.key)) }
                     LabeledContent("couponManagement.type") { Text(LocalizedStringKey(row.typeKey)) }
-                    LabeledContent("couponManagement.start", value: CouponDefinition.displayDay(row.startTime) ?? "—")
-                    LabeledContent("couponManagement.end", value: CouponDefinition.displayDay(row.endTime) ?? "—")
+                    LabeledContent("couponManagement.start", value: CouponValidityTime.display(row.startTime) ?? "—")
+                    LabeledContent("couponManagement.end", value: CouponValidityTime.display(row.endTime) ?? "—")
                     Text("couponManagement.dateNotice").font(.footnote)
+                    Text("couponManagement.chinaTime").font(.footnote)
                 }
                 Section("couponManagement.counts") {
                     count("couponManagement.published", row.publishCount)
@@ -110,7 +118,7 @@ import SwiftUI
                     Text("couponManagement.stopPolicy").font(.footnote)
                     if row.state.canStop {
                         Button("couponManagement.reviewStop", role: .destructive) { model.run { await model.core.prepareStop(id) } }
-                            .disabled(model.working).accessibilityIdentifier("couponManagement.stop.review")
+                            .disabled(model.working || !model.core.canReviewStop).accessibilityIdentifier("couponManagement.stop.review")
                     }
                     Text("couponManagement.claimUnavailable").font(.footnote)
                 }
@@ -134,14 +142,8 @@ import SwiftUI
     }
     private func date(_ start: Bool) -> Binding<Date> {
         Binding(get: { (start ? model.core.draft.startTime : model.core.draft.endTime) ?? Date() }, set: { value in
-            var draft = model.core.draft; if start { draft.startTime = Calendar.current.startOfDay(for: value) } else { draft.endTime = Calendar.current.startOfDay(for: value) }; model.update(draft)
+            var draft = model.core.draft; if start { draft.startTime = value } else { draft.endTime = value }; model.update(draft)
         })
-    }
-    private var dateRange: ClosedRange<Date> {
-        let now = Date(), calendar = Calendar.current
-        let lower = calendar.date(byAdding: .day, value: -1, to: now) ?? now
-        let upper = calendar.date(byAdding: .day, value: 365 * 2, to: now) ?? now
-        return lower...upper
     }
     var body: some View {
         Form {
@@ -152,20 +154,23 @@ import SwiftUI
                 Picker("couponManagement.type", selection: binding(\.couponType)) {
                     Text("couponManagement.chooseType").tag(Int?.none)
                     ForEach(0..<4) { type in Text(LocalizedStringKey(CouponManagementDraft.typeKey(type))).tag(Optional(type)) }
-                }
+                }.accessibilityIdentifier("couponManagement.type")
                 TextField("couponManagement.quantity", text: binding(\.quantity)).keyboardType(.numberPad).accessibilityIdentifier("couponManagement.quantity")
             }.disabled(model.working)
             Section("couponManagement.dates") {
-                Toggle("couponManagement.setStart", isOn: Binding(get: { model.core.draft.startTime != nil }, set: { value in var draft = model.core.draft; draft.startTime = value ? Calendar.current.startOfDay(for: Date()) : nil; model.update(draft) }))
-                if model.core.draft.startTime != nil { DatePicker("couponManagement.start", selection: date(true), in: dateRange, displayedComponents: [.date]) }
-                Toggle("couponManagement.setEnd", isOn: Binding(get: { model.core.draft.endTime != nil }, set: { value in var draft = model.core.draft; draft.endTime = value ? Calendar.current.startOfDay(for: Date()) : nil; model.update(draft) }))
-                if model.core.draft.endTime != nil { DatePicker("couponManagement.end", selection: date(false), in: dateRange, displayedComponents: [.date]) }
+                Text("couponManagement.chinaTime").font(.footnote)
+                Toggle("couponManagement.setStart", isOn: Binding(get: { model.core.draft.startTime != nil }, set: { value in var draft = model.core.draft; draft.startTime = value ? Date() : nil; model.update(draft) })).accessibilityIdentifier("couponManagement.setStart")
+                if model.core.draft.startTime != nil { DatePicker("couponManagement.start", selection: date(true), displayedComponents: [.date, .hourAndMinute]) }
+                Toggle("couponManagement.setEnd", isOn: Binding(get: { model.core.draft.endTime != nil }, set: { value in var draft = model.core.draft; draft.endTime = value ? Date() : nil; model.update(draft) })).accessibilityIdentifier("couponManagement.setEnd")
+                if model.core.draft.endTime != nil { DatePicker("couponManagement.end", selection: date(false), displayedComponents: [.date, .hourAndMinute]) }
             }.disabled(model.working)
             if let blocker = model.core.draft.blocker { Text(LocalizedStringKey(blocker)).foregroundStyle(.secondary) }
             Button("couponManagement.reviewPublish") { model.run { await model.core.preparePublish() } }
-                .disabled(model.working || model.core.draft.blocker != nil).accessibilityIdentifier("couponManagement.publish.review")
+                .disabled(model.working || model.core.draft.blocker != nil || !model.core.canReviewPublish).accessibilityIdentifier("couponManagement.publish.review")
             if let review = model.core.review { CouponManagementReviewSection(model: model, review: review) }
         }
+        .environment(\.timeZone, CouponValidityTime.timeZone)
+        .environment(\.calendar, CouponValidityTime.calendar)
         .navigationTitle("couponManagement.create")
         .interactiveDismissDisabled(model.core.draft.dirty || model.working)
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("couponManagement.cancel") { if model.core.draft.dirty { discard = true } else { dismiss() } }.disabled(model.working) } }
@@ -184,19 +189,20 @@ import SwiftUI
         Section {
             switch review.intent {
             case .publish(let draft):
+                Text("couponManagement.chinaTime").font(.footnote)
                 Text(draft.name).font(.headline)
                 Text(draft.description)
                 LabeledContent("couponManagement.quantity", value: draft.quantity)
                 Text(LocalizedStringKey(CouponManagementDraft.typeKey(draft.couponType)))
-                if let start = draft.startTime { LabeledContent("couponManagement.start") { Text(start.formatted(date: .abbreviated, time: .shortened)) } }
-                if let end = draft.endTime { LabeledContent("couponManagement.end") { Text(end.formatted(date: .abbreviated, time: .shortened)) } }
+                if let start = draft.startTime { LabeledContent("couponManagement.start") { Text(CouponValidityTime.display(start)) } }
+                if let end = draft.endTime { LabeledContent("couponManagement.end") { Text(CouponValidityTime.display(end)) } }
             case .stop(let row):
                 Text(row.name ?? appLocalized("couponManagement.coupon", locale: locale)).font(.headline)
                 Text("couponManagement.stopPolicy")
             }
             Text("couponManagement.reviewNotice").font(.footnote)
             Button(LocalizedStringKey(model.core.canSimulate ? "couponManagement.simulate" : "couponManagement.confirmSubmission")) { model.run { await model.core.confirm(review) } }
-                .disabled(model.working || !model.core.canSubmit).accessibilityIdentifier("couponManagement.confirm")
+                .disabled(model.working || !model.core.canConfirm(review)).accessibilityIdentifier("couponManagement.confirm")
             Button("couponManagement.cancel") { model.cancelReview() }.disabled(model.working)
         } header: {
             Text("couponManagement.review").accessibilityIdentifier("couponManagement.review")

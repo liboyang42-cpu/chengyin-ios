@@ -49,3 +49,43 @@ import XCTest
         XCTAssertTrue(wire.requests.isEmpty)
     }
 }
+
+#if DEBUG
+@MainActor final class MerchantOnboardingFixtureCounterTests: XCTestCase {
+    func testReviewAndCancelCannotDispatchOrResetMonotonicCounters() async throws {
+        for scenario in ["rejected", "submit-unknown"] {
+            let fixture = MerchantOnboardingFixture(name: scenario)
+            let coordinator = MerchantOnboardingCoordinator(server: fixture)
+            let model = MerchantOnboardingModel(coordinator: coordinator)
+            model.reset(); await model.load(); await model.checkIdentity()
+            guard case .loaded(.application(let application)) = coordinator.loadState else {
+                return XCTFail("Expected authoritative rejected fixture application")
+            }
+            model.reapply(application)
+            model.prepare()
+            XCTAssertNotNil(model.confirmation)
+            XCTAssertEqual(fixture.submissionCount, 0)
+            XCTAssertEqual(fixture.uploadCount, 0)
+            model.cancelConfirmation()
+            XCTAssertNil(model.confirmation)
+            XCTAssertEqual(fixture.submissionCount, 0)
+            XCTAssertEqual(fixture.uploadCount, 0)
+            model.prepare()
+            let approved = try XCTUnwrap(model.confirmation)
+            XCTAssertEqual(fixture.submissionCount, 0)
+            await coordinator.confirm(approved)
+            XCTAssertEqual(fixture.submissionCount, 1)
+            XCTAssertEqual(fixture.uploadCount, 0)
+            model.cancelConfirmation()
+            model.reset(); await model.load()
+            XCTAssertEqual(fixture.submissionCount, 1, "Cancel and readback must never erase a dispatch")
+            XCTAssertEqual(fixture.uploadCount, 0)
+            if scenario == "submit-unknown" {
+                XCTAssertEqual(coordinator.submission, .outcomeUnknown)
+            }
+            fixture.replaceAccount()
+            XCTAssertEqual(fixture.submissionCount, 1, "Counters remain monotonic even across account replacement")
+        }
+    }
+}
+#endif

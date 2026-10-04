@@ -4,7 +4,7 @@ import XCTest
 final class MessagingHistoryTests: XCTestCase {
     private func page(_ ids: [Int], conversation: Int = 9, cursor: Int? = nil,
                       more: Bool = false, text: String = "Fixture") throws -> MessagingPage {
-        var object: [String: Any] = ["list": ids.map { ["id": $0, "conversationId": conversation, "content": text] }, "hasMore": more]
+        var object: [String: Any] = ["list": ids.map { ["id": $0, "conversationId": conversation, "status": 0, "content": text] }, "hasMore": more]
         if let cursor { object["nextCursor"] = cursor }
         return try JSONDecoder().decode(MessagingPage.self, from: JSONSerialization.data(withJSONObject: object))
     }

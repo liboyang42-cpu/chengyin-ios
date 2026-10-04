@@ -63,7 +63,7 @@ public struct IMCardAction: Equatable {
     public let isReject: Bool
     public let destination: IMCardDestination
     public static func actions(for message: MessagingMessage) -> [Self] {
-        guard let card = message.card else { return [] }
+        guard message.isPayloadVisible, let card = message.card else { return [] }
         if message.senderID == 0, let result = card.result, !result.isEmpty {
             return [Self(label: "im.full.reviewResult", isReject: false, destination: .review(result))]
         }

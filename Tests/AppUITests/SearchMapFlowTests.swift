@@ -153,4 +153,22 @@ final class SearchMapFlowTests: XCTestCase {
         XCTAssertTrue(app.buttons["searchMap.showMap"].exists)
     }
 
+    func testMapMarkerSelectionKeepsDistinctObjectsInLightAppearance() {
+        verifyMapMarkerSelection(accessible: false)
+    }
+    func testMapMarkerSelectionKeepsDistinctObjectsInDarkLargeText() {
+        verifyMapMarkerSelection(accessible: true)
+    }
+    private func verifyMapMarkerSelection(accessible: Bool) {
+        launch(entry: "markerStyle", accessible: accessible)
+        let merchant = app.buttons["searchMap.pin.style-merchant"]
+        let activity = app.buttons["searchMap.pin.style-activity"]
+        reveal(merchant); XCTAssertFalse(merchant.isSelected); merchant.tap()
+        XCTAssertTrue(merchant.isSelected)
+        reveal(activity); XCTAssertFalse(activity.isSelected); activity.tap()
+        XCTAssertTrue(activity.isSelected); XCTAssertFalse(merchant.isSelected)
+        XCTAssertEqual(activity.label, "A very long neighborhood discovery walk with the complete destination name · 城市街区探索漫步与完整目的地名称，重要信息保留到最后")
+        let clear = app.buttons["mapStyle.fixture.clear"]; reveal(clear); clear.tap()
+        XCTAssertFalse(activity.isSelected); XCTAssertFalse(merchant.isSelected)
+    }
 }

@@ -122,7 +122,8 @@ struct MessagingHistoryView: View {
                 ForEach(history.messages) { message in
                     NavigationLink {
                         MessagingMessageDetailView(message: message, conversation: conversation,
-                            reader: reader, identity: loadedIdentity, mediaReader: mediaReader, expanded: expanded)
+                            reader: reader, identity: loadedIdentity, mediaReader: mediaReader, expanded: expanded,
+                            currentMessage: { history.messages.first { $0.id == message.id } })
                     } label: {
                         MessagingBubble(message: message, conversation: conversation,
                             accountID: loadedIdentity?.accountID ?? 0)

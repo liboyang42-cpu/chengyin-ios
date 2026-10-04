@@ -10,20 +10,20 @@ public struct CouponManagementRequest: Equatable, Codable {
 }
 public enum CouponManagementContract {
     public static func published(keyword: String? = nil) -> CouponManagementRequest {
-        let fields = keyword.flatMap { $0.isEmpty ? nil : ["keyword": $0] } ?? [:]
+        var fields = ["scope": "MERCHANT"]
+        if let keyword, !keyword.isEmpty { fields["keyword"] = keyword }
         return .init(path: "/api/coupon/mypublishlist", body: .multipart(fields), mutates: false)
     }
     public static func publish(_ draft: CouponManagementDraft) throws -> CouponManagementRequest {
         guard draft.blocker == nil, let start = draft.startTime, let end = draft.endTime,
               let type = draft.couponType, let count = Int(draft.quantity.trimmingCharacters(in: .whitespacesAndNewlines)) else { throw CouponManagementError.invalid }
-        let formatter = ISO8601DateFormatter(); formatter.formatOptions = [.withInternetDateTime]
-        var body: [String: Any] = ["name": draft.name.trimmingCharacters(in: .whitespacesAndNewlines), "startTime": formatter.string(from: start), "endTime": formatter.string(from: end), "couponType": type, "publishCount": count]
+        var body: [String: Any] = ["scope": "MERCHANT", "name": draft.name.trimmingCharacters(in: .whitespacesAndNewlines), "startTime": CouponValidityTime.wire(start), "endTime": CouponValidityTime.wire(end), "couponType": type, "publishCount": count]
         let description = draft.description.trimmingCharacters(in: .whitespacesAndNewlines)
         if !description.isEmpty { body["description"] = description }
         return .init(path: "/api/coupon/publish", body: .json(try JSONSerialization.data(withJSONObject: body, options: [.sortedKeys])), mutates: true)
     }
     public static func stop(_ id: CouponDefinitionID) -> CouponManagementRequest {
-        .init(path: "/api/coupon/stop", body: .multipart(["couponId": String(id.value)]), mutates: true)
+        .init(path: "/api/coupon/stop", body: .multipart(["couponId": String(id.value), "scope": "MERCHANT"]), mutates: true)
     }
     private struct ListEnvelope: Decodable { let code: Int; let msg: String?; let data: [CouponDefinition]? }
     public static func decodePublished(_ data: Data, status: Int) throws -> [CouponDefinition] {
@@ -33,12 +33,13 @@ public enum CouponManagementContract {
         return rows
     }
     public static func requireSuccess(_ data: Data, status: Int) throws {
-        guard let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let code = object["code"] as? Int else { throw CouponManagementError.malformed }
+        struct Envelope: Decodable { let code: Int; let msg: String? }
+        guard let envelope = try? JSONDecoder().decode(Envelope.self, from: data) else { throw CouponManagementError.malformed }
+        let code = envelope.code
         guard (200..<300).contains(status), code == 200 else {
             // Conflicting HTTP failure and business-success envelope cannot prove rejection.
             guard code != 200 else { throw CouponManagementError.malformed }
-            if let message = object["msg"] as? String, !message.isEmpty { throw CouponManagementError.server(message) }
+            if let message = envelope.msg, !message.isEmpty { throw CouponManagementError.server(message) }
             if status == 401 || code == 401 { throw CouponManagementError.signedOut }
             throw CouponManagementError.malformed
         }
@@ -52,7 +53,7 @@ public enum CouponManagementContract {
     var isSynthetic: Bool { get }
     func send(_ request: CouponManagementRequest, session: CouponManagementSession) async throws -> (Data, Int)
 }
-public enum CouponManagementOutcome: Equatable { case simulated(String?), acknowledged(String?), notSent, rejected(String), unknown }
+public enum CouponManagementOutcome: Equatable { case simulated(String?), acknowledged(String?), receipt(CouponDefinitionID, String?), notSent, rejected(String), unknown, unknownWithMessage(String) }
 @MainActor public final class CouponManagementAdapter {
     private let transport: (any CouponManagementTransport)?
     private let syntheticWritesEnabled: Bool
@@ -69,6 +70,10 @@ public enum CouponManagementOutcome: Equatable { case simulated(String?), acknow
         #endif
     }
     public var canSubmit: Bool { canSimulate || (dormantWritesEnabled && transport?.isSynthetic == false) }
+    public func permits(_ action: CouponManagementWriteApproval.Action) -> Bool {
+        guard canSubmit else { return false }
+        return (transport as? any CouponManagementReviewedTransport)?.permitsAction(action) ?? true
+    }
     public func published(session: CouponManagementSession, keyword: String? = nil) async throws -> [CouponDefinition] {
         guard let transport else { throw CouponManagementError.unavailable }
         try Task.checkCancellation()
@@ -76,17 +81,33 @@ public enum CouponManagementOutcome: Equatable { case simulated(String?), acknow
         try Task.checkCancellation()
         return try CouponManagementContract.decodePublished(data, status: status)
     }
-    func submit(_ request: CouponManagementRequest, session: CouponManagementSession) async -> CouponManagementOutcome {
+    func submit(_ request: CouponManagementRequest, session: CouponManagementSession, authorization: CouponManagementDispatchAuthorization? = nil) async -> CouponManagementOutcome {
         guard canSubmit, request.mutates, let transport else { return .notSent }
         let response: (Data, Int)
-        do { response = try await transport.send(request, session: session) }
+        do {
+            if let reviewed = transport as? any CouponManagementReviewedTransport {
+                guard let authorization else { return .notSent }
+                response = try await reviewed.sendReviewed(request, session: session, authorization: authorization)
+            } else { response = try await transport.send(request, session: session) }
+        }
         catch { return .unknown }
         let (data, status) = response
         do {
-            guard (200..<300).contains(status) || (400..<500).contains(status) else { return .unknown }
+            // The pinned controller returns ordinary HTTP 200; 202 is not a publication receipt.
+            guard status == 200 || (400..<500).contains(status) else { return .unknown }
             try CouponManagementContract.requireSuccess(data, status: status)
+            if !transport.isSynthetic, request.path == "/api/coupon/publish" {
+                struct Receipt: Decodable { struct Value: Decodable { let id: CouponDefinitionID }; let data: Value }
+                guard let id = (try? JSONDecoder().decode(Receipt.self, from: data))?.data.id else { return .unknown }
+                return .receipt(id, CouponManagementContract.message(data))
+            }
             return transport.isSynthetic ? .simulated(CouponManagementContract.message(data)) : .acknowledged(CouponManagementContract.message(data))
-        } catch CouponManagementError.server(let message) { return .rejected(message) }
+        } catch CouponManagementError.server(let message) {
+            // The server also returns HTTP 200/code 500 for unknown exceptions. Neither a
+            // business-looking message nor an arbitrary non-200 code proves not-applied.
+            // Only the explicitly synthetic transport can assert a definitive fixture rejection.
+            return transport.isSynthetic ? .rejected(message) : .unknownWithMessage(message)
+        }
         catch { return .unknown }
     }
 }
@@ -101,7 +122,7 @@ extension CouponManagementRequest {
             guard !boundary.isEmpty, boundary.utf8.count <= 70,
                   boundary.allSatisfy({ $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "-") }) else { throw CouponManagementError.invalid }
             let parts = try fields.sorted { $0.key < $1.key }.map { key, value -> String in
-                guard ["keyword", "couponId"].contains(key), !value.contains(boundary) else { throw CouponManagementError.invalid }
+                guard ["keyword", "couponId", "scope"].contains(key), !value.contains(boundary) else { throw CouponManagementError.invalid }
                 return "--\(boundary)\r\nContent-Disposition: form-data; name=\"\(key)\"\r\n\r\n\(value)\r\n"
             }.joined()
             return ("multipart/form-data; boundary=\(boundary)", Data((parts + "--\(boundary)--\r\n").utf8))

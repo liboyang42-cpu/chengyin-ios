@@ -1205,5 +1205,56 @@
         }
       }
     }
+  },
+  "couponManagement.chinaTime": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Validity times are shown in China Standard Time (UTC+8)."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "有效期均为北京时间（UTC+8）。"
+        }
+      }
+    }
+  },
+  "couponManagement.readbackPending": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Server acknowledged. Current record is not yet verified; do not submit again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务器已确认，当前记录尚未核验，请勿重复提交。"
+        }
+      }
+    }
+  },
+  "couponManagement.readbackVerified": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Server acknowledged; current coupon record verified."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务器已确认，并已核验当前优惠券记录。"
+        }
+      }
+    }
   }
 }

@@ -21,7 +21,7 @@ import SwiftUI
             Section {
                 Text("templateAuthor.mineScope").foregroundStyle(.secondary)
                 Text("templateAuthor.shelf.pageScope").font(.caption)
-                if !coordinator.canSubmit { Text("templateAuthor.unavailable") }
+                if !coordinator.canRead { Text("templateAuthor.unavailable") }
                 TextField("templateAuthor.shelf.keyword", text: $keyword)
                     .disabled(busy).accessibilityIdentifier("templateAuthor.shelf.keyword")
                 Button("templateAuthor.shelf.refresh") { Task { await refresh() } }
@@ -41,9 +41,9 @@ import SwiftUI
                     Text("templateAuthor.existingEditUnavailable").font(.caption).foregroundStyle(.secondary)
                     Button(LocalizedStringKey(row.publishStatus == 1 ? "templateAuthor.shelf.removeLibrary" : "templateAuthor.shelf.addLibrary")) {
                         prepare(row.id, .libraryStatus)
-                    }.disabled(locked || busy || !coordinator.rows.contains(row)).accessibilityIdentifier("templateAuthor.shelf.library.\(row.id)")
+                    }.disabled(!coordinator.canSubmit || locked || busy || !coordinator.rows.contains(row)).accessibilityIdentifier("templateAuthor.shelf.library.\(row.id)")
                     Button("templateAuthor.shelf.delete", role: .destructive) { prepare(row.id, .remove) }
-                        .disabled(locked || busy || !coordinator.rows.contains(row)).accessibilityIdentifier("templateAuthor.shelf.delete.\(row.id)")
+                        .disabled(!coordinator.canSubmit || locked || busy || !coordinator.rows.contains(row)).accessibilityIdentifier("templateAuthor.shelf.delete.\(row.id)")
                 }
             }
             if hasMore {
@@ -127,7 +127,7 @@ import SwiftUI
         await coordinator.shelfReader.refresh(keyword: keyword)
         guard stamp == viewRequest, !Task.isCancelled else { return }
         // Preserve the independent, unfiltered first-100 write preflight and reconciliation.
-        await coordinator.loadMine()
+        if coordinator.canSubmit { await coordinator.loadMine() }
         guard stamp == viewRequest, !Task.isCancelled else { return }
         sync(); busy = false
     }

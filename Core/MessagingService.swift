@@ -9,6 +9,7 @@ public struct MessagingReadFailure: Error, Equatable {
     public let errorCode: String?
     public let message: String?
     public var isUnauthorized: Bool { httpStatus == 401 || code == 401 }
+    public var isForbidden: Bool { httpStatus == 403 || code == 403 }
     public var isClosed: Bool { errorCode == "HANGOUT_CLOSED" }
     public init(httpStatus: Int? = nil, code: Int? = nil, errorCode: String? = nil, message: String? = nil) {
         self.httpStatus = httpStatus; self.code = code
@@ -30,9 +31,9 @@ public struct MessagingService {
         guard Set(rows.map(\.id)).count == rows.count else { throw APIError.malformedResponse }
         return rows
     }
-    /// cursor 0 = latest; the normal source page size is 30. No undocumented size cap.
+    /// cursor 0 = latest; the normal source page size is 30. The verified server bounds each page to 50.
     public func messages(conversationID: Int, cursor: Int = 0, size: Int = 30, token: String) async throws -> MessagingPage {
-        guard conversationID > 0, cursor >= 0, size > 0 else { throw APIError.invalidRequest }
+        guard conversationID > 0, cursor >= 0, (1...50).contains(size) else { throw APIError.invalidRequest }
         let page: MessagingPage = try await execute(path: "api/im/messages", fields: [
             "conversation_id": String(conversationID), "cursor_id": String(cursor), "size": String(size)
         ], token: token)

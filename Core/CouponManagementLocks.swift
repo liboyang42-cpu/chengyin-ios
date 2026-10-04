@@ -7,6 +7,8 @@ public struct CouponManagementPending: Codable, Equatable {
     public let resource: String
     public let request: CouponManagementRequest
     public let createdAt: Date
+    /// Exact wire payload, never headers or credentials. Optional for backward decoding.
+    public var wire: CouponManagementWire? = nil
 }
 @MainActor public protocol CouponManagementLocking: AnyObject {
     func pending(ownerKey: String, resource: String) throws -> CouponManagementPending?

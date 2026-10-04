@@ -66,11 +66,13 @@ import MapKit
             } else {
                 Map {
                     MapPolyline(coordinates: route.coordinates.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) })
-                        .stroke(.blue, lineWidth: 5)
+                        .stroke(QuestifyMapAppearance.routeCasing, lineWidth: 9)
+                    MapPolyline(coordinates: route.coordinates.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) })
+                        .stroke(QuestifyMapAppearance.route, lineWidth: 5)
                     if let target = model?.target {
                         Marker(target.title, coordinate: .init(latitude: target.coordinate.point.latitude, longitude: target.coordinate.point.longitude))
                     }
-                }.mapStyle(.standard(pointsOfInterest: .excludingAll))
+                }.mapStyle(QuestifyMapAppearance.baseStyle)
             }
         } else {
             ContentUnavailableView("walking.mapPending", systemImage: "map", description: Text("walking.safety"))

@@ -68,7 +68,7 @@ final class MessagingFixtureReader: MessagingReading {
     }
     private func message(id: Int, conversationID: Int, text: String, sender: Int, type: Int = 1,
                          extra: String = "") -> [String: Any] {
-        ["id": id, "conversationId": conversationID, "senderId": sender, "msgType": type,
+        ["id": id, "conversationId": conversationID, "senderId": sender, "status":0,"msgType": type,
          "content": text, "extraJson": extra, "senderName": "Fixture sender",
          "createTime": "2026-10-01 10:00:00"]
     }

@@ -32,6 +32,10 @@ import SwiftUI
         self.reader = reader; self.mode = mode; self.onSignIn = onSignIn; self.destination = destination
         _filter = State(initialValue: initialFilter); _area = State(initialValue: initialArea)
     }
+    private struct MapPresentationIdentity: Hashable {
+        let area: RoamSearchArea
+        let scope: UUID
+    }
     var body: some View {
         ScrollViewReader { scroll in
         ScrollView {
@@ -54,7 +58,7 @@ import SwiftUI
                 if let area {
                     if mapEnabled {
                         SearchMapCanvas(area: area, pins: pins, selectedID: selectedPin, offline: reader.isOfflineExample) { selectedPin = $0 }
-                            .id(area)
+                            .id(MapPresentationIdentity(area: area, scope: reader.scope))
                     } else {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("searchMap.appleMapDisclosure").font(.footnote)

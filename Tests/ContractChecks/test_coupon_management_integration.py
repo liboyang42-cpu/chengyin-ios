@@ -13,9 +13,12 @@ class CouponManagementIntegrationTests(unittest.TestCase):
  def test_session_has_stable_identity_and_default_grants_absent(self):
   s=self.read('App/AppSession.swift')
   part=s[s.index('var couponManagementSession:'):s.index('private var walletEpochCache:')]
-  self.assertIn('epoch: gate.currentStamp, authorizationRevision: account.effectiveRole',part)
+  self.assertIn('CouponManagementRuntimeIdentity.session(context: context, viewerRevision: compositionViewerRevision',part)
+  self.assertIn('self.currentRuntimeDependencyContext == captured',part)
+  self.assertIn('self.couponManagementSession == capturedSession',part)
   self.assertIn('readApproval: OperationEndpointApproval? = nil',part)
-  self.assertIn('authorizer: publisher ?? CouponPublisherUnavailable()',part)
+  self.assertIn('publisher ?? CouponPublisherUnavailable()',part)
+  self.assertIn('CouponMerchantPublisherAuthorizer',part)
   self.assertNotIn('dormantWritesEnabled: true',part)
   self.assertNotIn('UUID()',part)
  def test_fixture_does_not_construct_real_session(self):
@@ -44,4 +47,4 @@ class CouponManagementIntegrationTests(unittest.TestCase):
   self.assertIn('CouponManagementFileLocks',self.read('App/SessionCouponManagementView.swift'))
   self.assertNotIn('MemoryLocks',self.read('App/SessionCouponManagementView.swift'))
   c=json.loads(self.read('Resources/Localizable.xcstrings'))['strings']
-  self.assertEqual(len([k for k in c if k.startswith('couponManagement.')]),71)
+  self.assertEqual(len([k for k in c if k.startswith('couponManagement.')]),74)

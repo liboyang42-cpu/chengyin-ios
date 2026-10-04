@@ -672,7 +672,16 @@
     "TeamFlowTests.testNonmemberInvitationHasNoOwnedDetailShortcut": 60,
     "TeamFlowTests.testPostJoinOpensReadOnlyDetailBackAndReopens": 90,
     "TemplateOwnShelfFlowTests.testOwnedDetailBackAndReopenKeepsStableDestination": 90,
-    "IntegratedNativeAcceptanceFlowTests.testNormalRootTeamReadOnlyJourney": 180
+    "IntegratedNativeAcceptanceFlowTests.testNormalRootTeamReadOnlyJourney": 180,
+    "IntegratedNativeAcceptanceFlowTests.testNormalRootOwnedShelfPaginationAndDetailWithoutMutation": 180,
+    "IntegratedNativeAcceptanceFlowTests.testNormalRootIMHistoryNeverMarksReadOrSends": 180,
+    "IntegratedNativeAcceptanceFlowTests.testNormalRootIMHistoryDefaultNilNeverDispatches": 120,
+    "CouponRuntimeFlowTests.testNormalRootReadOnlyLeaseCannotConfirm": 180,
+    "CouponRuntimeFlowTests.testNormalRootExplicitCreateThenOwnedStop": 180,
+    "CouponRuntimeFlowTests.testNormalRootTimeoutCannotRepeatConfirmedPublication": 180,
+    "CouponRuntimeFlowTests.testNormalRootFreshPermissionRevokedAtConfirmDoesNotWrite": 180,
+    "CouponRuntimeFlowTests.testNormalRootDiskRestartDoesNotRedispatchUnknownCreation": 360,
+    "CouponRuntimeFlowTests.testChineseNormalRootLabelsAndReadOnlyConfirmation": 180
   },
   "estimate_provenance": {
     "basis": "Conservative grouping assumptions, not executed case timings. Successful measurements take priority. 23 original assumptions plus explicitly scoped later additions.",
@@ -1322,6 +1331,69 @@
         "source": "queuedRun96",
         "measured": false,
         "basis": "Normal-root sign-in, Account/team navigation, disabled write review and ledger validation. Existing same-class run96 successful methods132.433\u2013162.555s; use180s rounded above observed maximum. This new method is unmeasured."
+      },
+      {
+        "method": "IntegratedNativeAcceptanceFlowTests.testNormalRootOwnedShelfPaginationAndDetailWithoutMutation",
+        "seconds": 180,
+        "source": "queuedRuntimeReadBridges",
+        "measured": false,
+        "basis": "Synthetic login, normal account navigation, two shelf pages and owned detail; rounded above measured same-class132.433\u2013162.555 second journeys."
+      },
+      {
+        "method": "IntegratedNativeAcceptanceFlowTests.testNormalRootIMHistoryNeverMarksReadOrSends",
+        "seconds": 180,
+        "source": "queuedRuntimeReadBridges",
+        "measured": false,
+        "basis": "Synthetic login, normal account navigation, conversation and two history pages; rounded above measured same-class132.433\u2013162.555 second journeys."
+      },
+      {
+        "method": "IntegratedNativeAcceptanceFlowTests.testNormalRootIMHistoryDefaultNilNeverDispatches",
+        "seconds": 120,
+        "source": "queuedRuntimeReadBridges",
+        "measured": false,
+        "basis": "Synthetic login and normal account navigation to explicitly unavailable history; bounded unmeasured assumption."
+      },
+      {
+        "method": "CouponRuntimeFlowTests.testNormalRootReadOnlyLeaseCannotConfirm",
+        "seconds": 180,
+        "source": "couponRuntimeIndependentReview",
+        "measured": false,
+        "basis": "Normal-root login/navigation and confirmed coupon journey;180s per launch based on existing normal-root observed132.433\u2013162.555s, restart case has two launches."
+      },
+      {
+        "method": "CouponRuntimeFlowTests.testNormalRootExplicitCreateThenOwnedStop",
+        "seconds": 180,
+        "source": "couponRuntimeIndependentReview",
+        "measured": false,
+        "basis": "Normal-root login/navigation and confirmed coupon journey;180s per launch based on existing normal-root observed132.433\u2013162.555s, restart case has two launches."
+      },
+      {
+        "method": "CouponRuntimeFlowTests.testNormalRootTimeoutCannotRepeatConfirmedPublication",
+        "seconds": 180,
+        "source": "couponRuntimeIndependentReview",
+        "measured": false,
+        "basis": "Normal-root login/navigation and confirmed coupon journey;180s per launch based on existing normal-root observed132.433\u2013162.555s, restart case has two launches."
+      },
+      {
+        "method": "CouponRuntimeFlowTests.testNormalRootFreshPermissionRevokedAtConfirmDoesNotWrite",
+        "seconds": 180,
+        "source": "couponRuntimeIndependentReview",
+        "measured": false,
+        "basis": "Normal-root login/navigation and confirmed coupon journey;180s per launch based on existing normal-root observed132.433\u2013162.555s, restart case has two launches."
+      },
+      {
+        "method": "CouponRuntimeFlowTests.testNormalRootDiskRestartDoesNotRedispatchUnknownCreation",
+        "seconds": 360,
+        "source": "couponRuntimeIndependentReview",
+        "measured": false,
+        "basis": "Normal-root login/navigation and confirmed coupon journey;180s per launch based on existing normal-root observed132.433\u2013162.555s, restart case has two launches."
+      },
+      {
+        "method": "CouponRuntimeFlowTests.testChineseNormalRootLabelsAndReadOnlyConfirmation",
+        "seconds": 180,
+        "source": "couponRuntimeIndependentReview",
+        "measured": false,
+        "basis": "Normal-root login/navigation and confirmed coupon journey;180s per launch based on existing normal-root observed132.433\u2013162.555s, restart case has two launches."
       }
     ],
     "baseline_estimate_count": 23

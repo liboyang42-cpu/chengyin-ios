@@ -8,6 +8,15 @@ import SwiftUI
             .id(session.playerJourneyReader.scope)
     }
 }
+/// Owned-shelf-only reader. Participation keeps its existing broader member-detail service.
+@MainActor struct SessionOwnedMemberTemplateDetailView: View {
+    let id: MemberPlayTemplateID
+    @EnvironmentObject private var session: AppSession
+    var body: some View {
+        MemberTemplateDetailView(id: id, reader: session.makeOwnedMemberTemplateReader())
+            .id(session.templateShelfViewIdentity)
+    }
+}
 /// A navigation destination rather than an editing sheet: back never commits a draft.
 @MainActor struct MemberTemplateDetailView: View {
     let id: MemberPlayTemplateID

@@ -3,11 +3,24 @@ import XCTest
 /// Authored synthetic-only cases. Apple/XCUITest runtime NOT_RUN.
 @MainActor final class TemplateOwnShelfFlowTests: XCTestCase {
     override func setUpWithError() throws { continueAfterFailure = false }
-    private func reveal(_ element: XCUIElement, in app: XCUIApplication) {
-        _ = element.waitForExistence(timeout: 5)
-        for _ in 0..<12 { if element.exists && element.isHittable { break }; app.swipeUp() }
+    private func reveal(_ element: XCUIElement, in app: XCUIApplication,
+                        towardTop: Bool = false, requiresHittable: Bool = true) {
+        let visible = revealFixtureElement(element, in: app, towardTop: towardTop,
+                                           maximumSwipes: 12, requiresHittable: requiresHittable)
+        if !visible {
+            // Capture before the assertion aborts this synthetic-only test. A defer
+            // cannot be relied on to run after XCTest's stop-on-failure interruption.
+            // Fixed synthetic control facts only: no arbitrary text, IDs or account data.
+            for identifier in ["templateAuthor.shelf.refresh", "memberTemplate.mine.901",
+                               "templateAuthor.shelf.library.901", "templateAuthor.shelf.delete.901"] {
+                let control = app.buttons[identifier]
+                print("OWNED_SHELF_FIXTURE_REVEAL \(identifier) exists=\(control.exists) enabled=\(control.exists && control.isEnabled) hittable=\(control.exists && control.isHittable)")
+            }
+            attachFixtureScreenshot(self, app: app, name: "Owned shelf reveal failure")
+        }
+        XCTAssertTrue(visible, app.debugDescription)
         XCTAssertTrue(element.exists, app.debugDescription)
-        XCTAssertTrue(element.isHittable, app.debugDescription)
+        if requiresHittable { XCTAssertTrue(element.isHittable, app.debugDescription) }
     }
     func app(_ extras: [String] = [], language: String = "en") -> XCUIApplication {
         let app = XCUIApplication(); app.launchArguments = ["--uitesting-reset-language", "--ui-template-authoring", "--template-author-shelf", "-AppleLanguages", "(\(language))", "-AppleLocale", language == "en" ? "en_US" : "zh_CN"] + extras; app.launch(); return app
@@ -39,7 +52,7 @@ import XCTest
     }
     func testDeleteRequiresSeparateReviewAndSimulationIsLabelled() {
         let app = app(); defer { attachFailureScreenshot(self, app: app); app.terminate() }; let button = app.buttons["templateAuthor.shelf.delete.901"]
-        XCTAssertTrue(button.waitForExistence(timeout: 3)); button.tap()
+        reveal(button, in: app); XCTAssertTrue(button.waitForExistence(timeout: 3)); XCTAssertTrue(button.isEnabled); button.tap()
         XCTAssertTrue(app.staticTexts["Delete this exact template from your own shelf? This may not be reversible."].exists)
         app.buttons["templateAuthor.shelf.confirm"].tap()
         let status = app.staticTexts["templateAuthor.shelf.status"]
@@ -48,12 +61,14 @@ import XCTest
     }
     func testUnknownLocksBothActionsAcrossReopen() {
         let app = app(["--template-author-unknown"]); defer { attachFailureScreenshot(self, app: app); app.terminate() }; let button = app.buttons["templateAuthor.shelf.delete.901"]
-        XCTAssertTrue(button.waitForExistence(timeout: 3)); button.tap(); app.buttons["templateAuthor.shelf.confirm"].tap()
+        reveal(button, in: app); XCTAssertTrue(button.waitForExistence(timeout: 3)); XCTAssertTrue(button.isEnabled); button.tap(); app.buttons["templateAuthor.shelf.confirm"].tap()
         let status = app.staticTexts["templateAuthor.shelf.status"]
         reveal(status, in: app)
         XCTAssertEqual(status.label, "This change is unresolved. Further shelf changes are locked; refreshing alone cannot confirm an unknown request.")
         app.buttons["templateAuthor.fixture.reopen"].tap()
-        XCTAssertTrue(button.waitForExistence(timeout: 3)); XCTAssertFalse(button.isEnabled)
+        reveal(button, in: app, requiresHittable: false); XCTAssertTrue(button.waitForExistence(timeout: 3)); XCTAssertFalse(button.isEnabled)
+        let library = app.buttons["templateAuthor.shelf.library.901"]
+        reveal(library, in: app, towardTop: true, requiresHittable: false)
         XCTAssertFalse(app.buttons["templateAuthor.shelf.library.901"].isEnabled)
     }
     func testAccountChangeDismissesReviewAndSignoutClearsShelf() {

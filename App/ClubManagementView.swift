@@ -150,7 +150,20 @@ struct ClubManagementView: View {
         .appNavigationTitle(key: {
             switch selected { case .request: return "club.management.request"; case .member: return "club.management.member" }
         }())
+        // The root List's task is suspended while this destination is pushed.
+        // Invalidate its selection here, where viewer changes are still observed.
+        .onChange(of: readContext) { _, _ in invalidateDetailContext() }
         .onDisappear { leaveScreen() }
+    }
+    private func invalidateDetailContext() {
+        guard screenIdentity != identity || screenRevision != viewerRevision else { return }
+        // Fence cancellation-ignoring completions and cancel only undispatched review.
+        // leaveScreen preserves dispatched/unknown coordinator journal entries.
+        leaveScreen()
+        selection = nil; snapshot = nil; stale = false
+        failed = false; denied = false; serverReadMessage = nil; readbackUnavailable = false
+        // Do not mark the new context as read. The returning root must fetch it.
+        screenRevision = nil
     }
     private func leaveScreen() {
         generation &+= 1

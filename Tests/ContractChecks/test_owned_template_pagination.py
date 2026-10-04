@@ -41,3 +41,14 @@ class OwnedTemplatePagination(unittest.TestCase):
         self.assertNotIn('NavigationLink { memberDetail(id) }',view)
         self.assertIn('.onChange(of: sessionRevision) { _, _ in selectedMember = nil }',view)
         self.assertIn('testOwnedDetailBackAndReopenKeepsStableDestination',read('Tests/AppUITests/TemplateOwnShelfFlowTests.swift'))
+
+    def test_shelf_delete_queries_reveal_without_relaxing_business_assertions(self):
+        text=read('Tests/AppUITests/TemplateOwnShelfFlowTests.swift')
+        self.assertIn('maximumSwipes: 12, requiresHittable: requiresHittable',text)
+        self.assertIn('attachFixtureScreenshot(self, app: app, name: "Owned shelf reveal failure")',text)
+        self.assertIn('OWNED_SHELF_FIXTURE_REVEAL',text)
+        self.assertEqual(text.count('reveal(button, in: app); XCTAssertTrue(button.waitForExistence(timeout: 3)); XCTAssertTrue(button.isEnabled); button.tap()'),2)
+        self.assertIn('XCTAssertEqual(status.label, "Simulation completed. No template was saved to a server or published.")',text)
+        self.assertIn('XCTAssertEqual(status.label, "This change is unresolved. Further shelf changes are locked; refreshing alone cannot confirm an unknown request.")',text)
+        self.assertIn('reveal(button, in: app, requiresHittable: false); XCTAssertTrue(button.waitForExistence(timeout: 3)); XCTAssertFalse(button.isEnabled)',text)
+        self.assertIn('XCTAssertFalse(app.buttons["templateAuthor.shelf.library.901"].isEnabled)',text)

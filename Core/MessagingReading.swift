@@ -31,11 +31,13 @@ public final class MessagingSessionReader: MessagingReading {
     private let service: MessagingService?
     private let currentSession: () -> MessagingReadSession?
     private let onUnauthorized: (MessagingReadSession) -> Void
-    public var isConfigured: Bool { service != nil }
+    private let isAvailable: () -> Bool
+    public var isConfigured: Bool { service != nil && isAvailable() }
     public var identity: MessagingReadIdentity? { currentSession()?.identity }
     public init(service: MessagingService?, currentSession: @escaping () -> MessagingReadSession?,
+                isAvailable: @escaping () -> Bool = { true },
                 onUnauthorized: @escaping (MessagingReadSession) -> Void = { _ in }) {
-        self.service = service; self.currentSession = currentSession; self.onUnauthorized = onUnauthorized
+        self.service = service; self.currentSession = currentSession; self.isAvailable = isAvailable; self.onUnauthorized = onUnauthorized
     }
     public func messagingConversations() async throws -> [MessagingConversation] {
         try await read { service, token in try await service.conversations(token: token) }
@@ -46,16 +48,16 @@ public final class MessagingSessionReader: MessagingReading {
         }
     }
     private func read<Value>(_ operation: (MessagingService, String) async throws -> Value) async throws -> Value {
-        guard let service else { throw APIError.notConfigured }
+        guard let service, isAvailable() else { throw APIError.notConfigured }
         guard let snapshot = currentSession() else { throw APIError.unauthorized }
         try Task.checkCancellation()
         do {
             let result = try await operation(service, snapshot.token)
             try Task.checkCancellation()
-            guard currentSession() == snapshot else { throw CancellationError() }
+            guard isAvailable(), currentSession() == snapshot else { throw CancellationError() }
             return result
         } catch {
-            guard !Task.isCancelled, currentSession() == snapshot else { throw CancellationError() }
+            guard !Task.isCancelled, isAvailable(), currentSession() == snapshot else { throw CancellationError() }
             if let failure = error as? MessagingReadFailure, failure.isUnauthorized {
                 onUnauthorized(snapshot)
                 throw APIError.unauthorized

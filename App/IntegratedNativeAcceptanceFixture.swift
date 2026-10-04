@@ -19,6 +19,7 @@ import SwiftUI
     weak var session: AppSession?
     @Published private(set) var ledger: [Entry] = []
     @Published private(set) var violations: [String] = []
+    private var retainedMessagingHistoryApproval: MessagingHistoryReadApproval?
     private var pendingAccount: Int?
     private var retained: Grants?
 
@@ -68,6 +69,7 @@ import SwiftUI
     private struct Grants {
         let context: RuntimeDependencyContext
         let map: ManualMapReadApproval
+        let shelf: TemplateShelfReadApproval
         let teams: TeamReadApproval
         let orders: OwnedOrderReadApproval
         let play: RuntimeDependencyConfiguration
@@ -93,7 +95,14 @@ import SwiftUI
             makeTransport: { self }, sessionDependencies: { context in
                 guard let grants = self.grants(context) else { return .dormant }
                 return .init(configuration: grants.play)
-            }, teamReadApproval: { self.grants($0)?.teams }, manualMapReadApproval: { self.grants($0)?.map }, ownedOrderReadApproval: { self.grants($0)?.orders })
+            }, templateShelfReadApproval: { self.grants($0)?.shelf }, messagingHistoryReadApproval: { self.messagingHistoryApproval($0) }, teamReadApproval: { self.grants($0)?.teams }, manualMapReadApproval: { self.grants($0)?.map }, ownedOrderReadApproval: { self.grants($0)?.orders })
+    }
+    private func messagingHistoryApproval(_ context: RuntimeDependencyContext) -> MessagingHistoryReadApproval? {
+        guard grants(context) != nil else { retainedMessagingHistoryApproval?.revoke(); return nil }
+        if let retainedMessagingHistoryApproval, retainedMessagingHistoryApproval.matches(context) { return retainedMessagingHistoryApproval }
+        retainedMessagingHistoryApproval?.revoke()
+        retainedMessagingHistoryApproval = try? .init(context: context, expiresAt: Date().addingTimeInterval(600))
+        return retainedMessagingHistoryApproval
     }
     private func grants(_ context: RuntimeDependencyContext) -> Grants? {
         guard mode == .ready, let session, let account = session.account,
@@ -103,15 +112,16 @@ import SwiftUI
               context.session.namespace == deployment.storageScope.service,
               context.session.token == "synthetic-\(account.id)", context.session.token == vault.value else { return nil }
         if let retained, ContentDraftContextFence.matches(retained.context, context) { return retained }
-        retained?.teams.revoke(); retained?.orders.revoke()
+        retained?.shelf.revoke(); retained?.teams.revoke(); retained?.orders.revoke()
         let expires = Date().addingTimeInterval(600)
         guard let map = try? ManualMapReadApproval(context: context, expiresAt: expires),
+              let shelf = try? TemplateShelfReadApproval(context: context, expiresAt: expires),
               let teams = try? TeamReadApproval(context: context, expiresAt: expires),
               let orders = try? OwnedOrderReadApproval(context: context, expiresAt: expires),
               let endpoints = try? OperationEndpointApproval(baseURL: Self.base, namespace: context.session.namespace,
                 accountID: account.id, paths: ["api/play/nodes", "api/play/route-state"]) else { return nil }
         // A stable issuance is retained per exact account/session context. No write capabilities.
-        let value = Grants(context: context, map: map, teams: teams, orders: orders,
+        let value = Grants(context: context, map: map, shelf: shelf, teams: teams, orders: orders,
             play: .init(market: .china, endpoints: endpoints, play: [.reads], playReadApprovalID: UUID()))
         retained = value
         return value
@@ -184,12 +194,22 @@ import SwiftUI
         } else if path == "api/logout" {
             guard session.account == nil, vault.value == nil, session.roamArea == nil,
                   ["synthetic-7", "synthetic-8"].contains(token ?? ""), matchesForm(request, fields: [:]) else { try reject("logout isolation") }
-            retained?.teams.revoke(); retained?.orders.revoke(); retained = nil; pendingAccount = nil
+            retained?.shelf.revoke(); retained?.teams.revoke(); retained?.orders.revoke(); retained = nil; pendingAccount = nil
             route = "logout"; json = #"{"code":200}"#
         } else {
             guard let owner = session.account?.id, [7, 8].contains(owner), session.account?.effectiveRole == "player",
                   token == "synthetic-\(owner)", token == vault.value else { try reject("complete current identity") }
             switch path {
+            case "api/template/my-list":
+                guard case .page(let page, let keyword)? = TemplateShelfReadRoute(request: request, baseURL: Self.base), page <= 2 else { try reject("shelf page shape") }
+                fields = ["is_quote": "", "keyword": keyword, "category_id": "", "pageNum": String(page), "pageSize": "10"]
+                route = "shelf.list"
+                let rows = page == 1 ? (1...10).map { "{\"id\":\(100 + $0),\"title\":\"Owner \(owner) template \($0)\",\"memberId\":\(owner)}" }.joined(separator: ",") : "{\"id\":111,\"title\":\"Owner \(owner) last template\",\"memberId\":\(owner)}"
+                json = "{\"code\":200,\"data\":{\"rows\":[\(rows)],\"total\":11}}"
+            case "api/template/myinfo":
+                guard TemplateShelfReadRoute(request: request, baseURL: Self.base) == .detail(MemberPlayTemplateID(rawValue: 111)!) else { try reject("shelf detail shape") }
+                fields = ["id": "111"]; route = "shelf.detail"
+                json = "{\"code\":200,\"data\":{\"id\":111,\"memberId\":\(owner),\"title\":\"Owner \(owner) fresh template\",\"draftStatus\":0}}"
             case "api/team/my":
                 guard TeamReadRoute(request: request, baseURL: Self.base) == .mine else { try reject("team list shape") }
                 route = "teams.list"
@@ -232,6 +252,17 @@ import SwiftUI
                 route = path.hasSuffix("/nodes") ? "play-nodes" : "play-route"
                 let graph = #"{"routeMode":"BRANCH_GRAPH","sessionId":99,"version":1,"status":"ACTIVE","nodeStates":{"1":"PLAYABLE","2":"HIDDEN"}}"#
                 json = route == "play-nodes" ? "{\"code\":200,\"data\":{\"topicId\":71,\"topicName\":\"Synthetic read-only play\",\"registered\":true,\"playable\":true,\"nodes\":[{\"nodeId\":1,\"name\":\"Visible synthetic node\"},{\"nodeId\":2,\"name\":\"Hidden synthetic node\"}],\"routeState\":\(graph)}}" : "{\"code\":200,\"data\":\(graph)}"
+            case "api/im/conversations":
+                fields = [:]; route = "history.conversations"
+                json = #"{"code":200,"data":[{"conversationId":901,"type":1,"unread":3,"counterparty":{"id":9,"nickname":"Synthetic conversation"}}]}"#
+            case "api/im/messages":
+                guard let history = MessagingHistoryReadRoute(request: request, baseURL: Self.base),
+                      case .messages(let conversation, let cursor, let size) = history,
+                      conversation == 901, [0, 42].contains(cursor), size == 30 else { try reject("IM history shape") }
+                fields = ["conversation_id": "901", "cursor_id": String(cursor), "size": "30"]; route = "history.messages"
+                json = cursor == 0
+                    ? #"{"code":200,"data":{"list":[{"id":52,"conversationId":901,"senderId":9,"senderName":"Synthetic sender","status":0,"msgType":1,"content":"Synthetic latest history"},{"id":53,"conversationId":901,"senderId":9,"status":1,"msgType":2,"content":"https://withheld.example/SYNTHETIC-RECALLED-PAYLOAD","extraJson":"SYNTHETIC-RECALLED-EXTRA"}],"nextCursor":42,"hasMore":true,"blocked":true,"blockedByMe":true}}"#
+                    : #"{"code":200,"data":{"list":[{"id":12,"conversationId":901,"senderId":9,"senderName":"Synthetic sender","status":0,"msgType":1,"content":"Synthetic earlier history"}],"nextCursor":12,"hasMore":false,"blocked":true,"blockedByMe":true}}"#
             case "api/registration/list":
                 fields = ["owner_type": "3"]; route = "orders.list"
                 json = "{\"code\":200,\"data\":{\"rows\":[{\"id\":41,\"memberId\":\(owner),\"cmsActivity\":{\"name\":\"Owner \(owner) list snapshot\"}}],\"total\":1}}"

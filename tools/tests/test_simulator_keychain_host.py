@@ -120,14 +120,14 @@ class SimulatorKeychainHostTests(unittest.TestCase):
             if '--force' in command:
                 path = Path(command[command.index('--entitlements') + 1])
                 self.assertTrue(path.is_relative_to(self.root))
-                self.assertEqual(plistlib.loads(path.read_bytes()), module.ENTITLEMENTS)
+                self.assertEqual(plistlib.loads(path.read_bytes()), {})
                 self.assertEqual(command[command.index('--sign') + 1], '-')
             if '--display' in command and '--entitlements' in command:
                 if readback is not None:
                     return SimpleNamespace(stdout=readback[0], stderr=readback[1])
                 # Documented modern default display is human-readable, not an XML plist.
                 # This fixture is representative, not a claim about run94's unlogged bytes.
-                output = (plistlib.dumps(module.ENTITLEMENTS if entitlements is None else entitlements)
+                output = (plistlib.dumps({} if entitlements is None else entitlements)
                           if '--xml' in command else b'[Dict]\n    [Key] application-identifier\n    [Value]\n        [String] TESTONLY.invalid.example.questify.ios\n')
                 return SimpleNamespace(stdout=output, stderr=b'Executable=/synthetic/Questify.app/Questify\n')
             return SimpleNamespace(stdout=b'',
@@ -138,11 +138,29 @@ class SimulatorKeychainHostTests(unittest.TestCase):
         calls, run = self.fake_codesign()
         module.sign_host(self.host, self.root, run)
         self.assertEqual(len(calls), 4)
-        self.assertEqual(calls[2], ['/usr/bin/codesign', '--display', '--entitlements', '-', '--xml', str(self.host)])
+        self.assertEqual(calls[2], ['/usr/bin/codesign', '--display', '--arch', 'arm64', '--entitlements', '-', '--xml', str(self.host)])
         self.assertFalse(list(self.root.glob('questify-test-entitlements-*')))
 
+    def test_empty_signature_readback_is_required_for_each_architecture(self):
+        first = binary()
+        second = bytearray(binary()); struct.pack_into('<I', second, 4, 0x01000007)
+        table = struct.pack('>2I', 0xcafebabe, 2) + struct.pack('>5I', 0x0100000c, 0, 48, 56, 0) + struct.pack('>5I', 0x01000007, 0, 104, 56, 0)
+        (self.host / 'Questify').write_bytes(table + first + second)
+        calls, run = self.fake_codesign()
+        module.sign_host(self.host, self.root, run)
+        self.assertEqual(len(calls), 6)
+        self.assertEqual([call[call.index('--arch') + 1] for call in calls[2:]], ['arm64', 'arm64', 'x86_64', 'x86_64'])
+        calls, fake = self.fake_codesign()
+        def mismatch(command, **kwargs):
+            result = fake(command, **kwargs)
+            if '--arch' in command and 'x86_64' in command and '--entitlements' in command:
+                result.stdout = plistlib.dumps(module.ENTITLEMENTS)
+            return result
+        with self.assertRaises(ValueError): module.sign_host(self.host, self.root, mismatch)
+        self.assertEqual(len(calls), 5)
+
     def test_missing_extra_or_wrong_entitlement_fails(self):
-        for entitlements in [{}, {**module.ENTITLEMENTS, 'get-task-allow': True},
+        for entitlements in [module.ENTITLEMENTS, {**module.ENTITLEMENTS, 'get-task-allow': True},
                              {**module.ENTITLEMENTS, 'keychain-access-groups': ['real.user.group']}]:
             _, run = self.fake_codesign(entitlements=entitlements)
             with self.assertRaises(ValueError): module.sign_host(self.host, self.root, run)
@@ -170,9 +188,9 @@ class SimulatorKeychainHostTests(unittest.TestCase):
     def test_workflow_is_app_unit_only_after_restore_before_execution(self):
         source = (Path(__file__).resolve().parents[2] / '.github/workflows/native-ios.yml').read_text()
         app_unit = source.split('  app-unit-tests:\n', 1)[1].split('  ui-tests:\n', 1)[0]
-        self.assertEqual(source.count('python3 tools/prepare_simulator_keychain_host.py'), 1)
-        self.assertLess(app_unit.index('test_products.py restore'), app_unit.index('prepare_simulator_keychain_host.py'))
-        self.assertLess(app_unit.index('prepare_simulator_keychain_host.py'), app_unit.index('test-without-building'))
+        self.assertEqual(source.count('python3 tools/build_simulator_keychain_host.py'), 1)
+        self.assertLess(app_unit.index('test_products.py restore'), app_unit.index('build_simulator_keychain_host.py'))
+        self.assertLess(app_unit.index('build_simulator_keychain_host.py'), app_unit.index('test-without-building'))
         self.assertIn('--approve-ephemeral-simulator-host', app_unit)
         self.assertNotIn('continue-on-error', app_unit)
         self.assertIn('CODE_SIGNING_ALLOWED=NO ONLY_ACTIVE_ARCH=NO build-for-testing', source)
@@ -221,7 +239,7 @@ class SimulatorKeychainHostTests(unittest.TestCase):
         with self.assertRaises(ValueError): module.readback_entitlements(result.stdout, result.stderr)
 
     def test_xml_readback_ignores_stderr_diagnostics(self):
-        xml = plistlib.dumps(module.ENTITLEMENTS)
+        xml = plistlib.dumps({})
         calls, run = self.fake_codesign(readback=(xml, b'Executable=/synthetic/path\nwarning: synthetic diagnostic\n'))
         module.sign_host(self.host, self.root, run)
         self.assertEqual(len(calls), 4)

@@ -19,7 +19,7 @@ import SwiftUI
         try decode([MessagingConversation].self, [["conversationId": 12, "type": 4, "counterparty": ["nickname": "Fixture club", "bizKey": "club_81"], "lastMsgType": 4]])
     }
     func messagingMessages(conversationID: Int, cursor: Int) async throws -> MessagingPage {
-        try decode(MessagingPage.self, ["list": [["id": 44, "conversationId": 12, "senderId": 7, "msgType": 4, "extraJson": "{\"pollId\":31}"]], "hasMore": false])
+        try decode(MessagingPage.self, ["list": [["id": 44, "conversationId": 12, "senderId": 7, "status":0,"msgType": 4, "extraJson": "{\"pollId\":31}"]], "hasMore": false])
     }
     func result(_ reference: GroupPollReference, expectedIdentity: MessagingReadIdentity) async throws -> GroupPoll { try decode(GroupPoll.self, row) }
     func perform(_ mutation: GroupPollMutation, scope: IMScope, reference: GroupPollReference?) async throws -> GroupPoll {

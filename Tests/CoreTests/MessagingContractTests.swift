@@ -18,8 +18,8 @@ final class MessagingContractTests: XCTestCase {
         XCTAssertEqual(row.id, 12)
         XCTAssertEqual(row.kind, .group)
         XCTAssertEqual(row.counterparty?.bizKey, "club_7")
-        XCTAssertEqual(row.lastMessageType, 2)
-        XCTAssertEqual(row.lastMessageText, "literal preview")
+        XCTAssertNil(row.lastMessageType)
+        XCTAssertNil(row.lastMessageText)
         XCTAssertEqual(row.lastMessageAt, "2026-10-01 10:00:00")
         XCTAssertEqual(row.unread, 4)
         XCTAssertEqual(row.muted, true)
@@ -50,7 +50,7 @@ final class MessagingContractTests: XCTestCase {
         XCTAssertEqual(rows.filter(MessagingConversationScope.channels.includes).map(\.id), [4])
     }
     func testMessageRetainsGroupSenderAndUnknownTypeWithoutInferringOwnership() throws {
-        let row = try decode(MessagingMessage.self, #"{"id":8,"conversationId":2,"senderId":17,"senderName":"Fixture sender","senderAvatar":"synthetic image","msgType":99,"content":"<script>literal</script>","createTime":"2026-10-01 10:00:00"}"#)
+        let row = try decode(MessagingMessage.self, #"{"id":8,"conversationId":2,"senderId":17,"senderName":"Fixture sender","senderAvatar":"synthetic image","status":0,"msgType":99,"content":"<script>literal</script>","createTime":"2026-10-01 10:00:00"}"#)
         XCTAssertEqual(row.senderID, 17)
         XCTAssertEqual(row.senderName, "Fixture sender")
         XCTAssertEqual(row.type, 99)
@@ -59,11 +59,11 @@ final class MessagingContractTests: XCTestCase {
         let missing = try decode(MessagingMessage.self, #"{"id":8,"conversationId":2}"#)
         XCTAssertNil(missing.senderID)
         XCTAssertNil(missing.type)
-        let system = try decode(MessagingMessage.self, #"{"id":8,"conversationId":2,"senderId":0}"#)
+        let system = try decode(MessagingMessage.self, #"{"id":8,"conversationId":2,"status":0,"senderId":0}"#)
         XCTAssertEqual(system.senderID, 0)
     }
     func testMessageRejectsMissingOrInvalidRecordScope() {
-        for json in [#"{"id":0,"conversationId":2}"#, #"{"id":8,"conversationId":0}"#, #"{"id":8}"#, #"{"id":8,"conversationId":2,"senderId":-1}"#] {
+        for json in [#"{"id":0,"conversationId":2}"#, #"{"id":8,"conversationId":0}"#, #"{"id":8}"#, #"{"id":8,"conversationId":2,"status":0,"senderId":-1}"#] {
             XCTAssertThrowsError(try decode(MessagingMessage.self, json))
         }
     }
@@ -112,7 +112,7 @@ final class MessagingContractTests: XCTestCase {
         XCTAssertEqual(named.title, "Fixture name")
         XCTAssertNil(named.latitude)
         XCTAssertNil(named.longitude)
-        let message = try decode(MessagingMessage.self, #"{"id":1,"conversationId":2,"msgType":3,"extraJson":"broken"}"#)
+        let message = try decode(MessagingMessage.self, #"{"id":1,"conversationId":2,"status":0,"msgType":3,"extraJson":"broken"}"#)
         XCTAssertNil(message.card)
     }
 }

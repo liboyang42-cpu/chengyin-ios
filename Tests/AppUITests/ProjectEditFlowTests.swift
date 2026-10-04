@@ -29,12 +29,23 @@ final class ProjectEditFlowTests: XCTestCase {
         let ticket = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "projectEdit.ticket.")).firstMatch
         find(ticket, in: app); ticket.tap()
         let sync = app.switches["projectEdit.syncThemeDates"]; find(sync, in: app)
-        XCTAssertEqual(sync.value as? String, "0"); sync.tap()
-        XCTAssertTrue(app.staticTexts["2030-05-01 00:00:00"].waitForExistence(timeout: 3))
-        XCTAssertTrue(app.staticTexts["2030-05-30 23:59:59"].exists)
+        XCTAssertEqual(sync.value as? String, "0")
+        // The labelled SwiftUI row is wider than the native switch. Activate
+        // the switch itself once; never accept unchanged state or retry taps.
+        let nativeSwitch = sync.switches.firstMatch
+        XCTAssertTrue(sync.isEnabled, app.debugDescription)
+        if nativeSwitch.exists { nativeSwitch.tap() }
+        else { sync.coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap() }
+        let enabled = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "1"), object: sync)
+        XCTAssertEqual(XCTWaiter.wait(for: [enabled], timeout: 3), .completed, app.debugDescription)
+        XCTAssertTrue(app.staticTexts["2030-05-01 00:00:00"].waitForExistence(timeout: 3), app.debugDescription)
+        XCTAssertTrue(app.staticTexts["2030-05-30 23:59:59"].exists, app.debugDescription)
         XCTAssertFalse(app.textFields["projectEdit.ticketStart"].exists)
-        sync.tap()
-        XCTAssertTrue(app.textFields["projectEdit.ticketStart"].waitForExistence(timeout: 3))
+        if nativeSwitch.exists { nativeSwitch.tap() }
+        else { sync.coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap() }
+        let disabled = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "0"), object: sync)
+        XCTAssertEqual(XCTWaiter.wait(for: [disabled], timeout: 3), .completed, app.debugDescription)
+        XCTAssertTrue(app.textFields["projectEdit.ticketStart"].waitForExistence(timeout: 3), app.debugDescription)
         XCTAssertEqual(app.textFields["projectEdit.ticketStart"].value as? String, "2030-05-01 00:00:00")
         app.navigationBars.buttons.firstMatch.tap()
         app.buttons["projectEdit.review"].tap()

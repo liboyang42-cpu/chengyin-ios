@@ -5,6 +5,7 @@ import ImageIO
     let message: MessagingMessage
     let reader: any SocialMessageMediaReading
     let expectedIdentity: MessagingReadIdentity
+    var isMessageCurrent: () -> Bool = { true }
     @State private var image: UIImage?
     @State private var error: Error?
     @State private var loading = false
@@ -14,7 +15,7 @@ import ImageIO
     var body: some View {
         ScrollView([.horizontal, .vertical]) {
             VStack(alignment: .leading, spacing: 16) {
-                if reader.identity != expectedIdentity { SocialIssueView(error: APIError.unauthorized) }
+                if !isMessageCurrent() || reader.identity != expectedIdentity { SocialIssueView(error: APIError.unauthorized) }
                 else if let media {
                     if reader.isOfflineExample { Text("social.offline").font(.caption) }
                     if let image {
@@ -37,12 +38,13 @@ import ImageIO
             }.padding()
         }
         .appNavigationTitle("social.media.title").privacySensitive()
+        .onChange(of: isMessageCurrent()) { _, _ in clear() }
         .onChange(of: reader.identity) { _, _ in clear() }
         .onDisappear { clear() }
         .accessibilityIdentifier("social.media")
     }
     private func load(_ media: SocialMessageMedia) async {
-        guard !loading, reader.identity == expectedIdentity else { return }
+        guard !loading, isMessageCurrent(), reader.identity == expectedIdentity else { return }
         generation += 1; let run = generation; loading = true; requested = true; error = nil
         defer { if run == generation { loading = false } }
         do {
@@ -56,9 +58,9 @@ import ImageIO
                   width.doubleValue > 0, height.doubleValue > 0,
                   width.doubleValue * height.doubleValue <= 32_000_000,
                   let decoded = UIImage(data: data) else { throw SocialMediaFailure.notImage }
-            guard run == generation, reader.identity == expectedIdentity else { return }; image = decoded
+            guard run == generation, isMessageCurrent(), reader.identity == expectedIdentity else { return }; image = decoded
         } catch is CancellationError { }
-        catch { if run == generation, reader.identity == expectedIdentity { self.error = error } }
+        catch { if run == generation, isMessageCurrent(), reader.identity == expectedIdentity { self.error = error } }
     }
     private func clear() { generation += 1; image = nil; error = nil; loading = false; requested = false }
 }

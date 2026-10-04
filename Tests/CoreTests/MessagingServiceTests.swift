@@ -45,7 +45,7 @@ final class MessagingServiceTests: XCTestCase {
             XCTAssertFalse(body.contains("member"))
         }
     }
-    func testDifferentSourceSizeCanBeInjectedWithoutInventedServerLimit() async throws {
+    func testDifferentSizeWithinVerifiedServerBoundCanBeInjected() async throws {
         let transport = MessagingTestTransport([.json(#"{"code":200,"data":{"list":[],"hasMore":false}}"#)])
         _ = try await service(transport).messages(conversationID: 9, size: 15, token: "synthetic-token")
         let body = try XCTUnwrap(String(data: try XCTUnwrap(transport.requests.first?.httpBody), encoding: .utf8))
@@ -54,7 +54,7 @@ final class MessagingServiceTests: XCTestCase {
     func testInvalidRequestAndTokenNeverHitTransport() async throws {
         let transport = MessagingTestTransport([])
         let api = try service(transport)
-        for (id, cursor, size) in [(0, 0, 30), (9, -1, 30), (9, 0, 0)] {
+        for (id, cursor, size) in [(0, 0, 30), (9, -1, 30), (9, 0, 0), (9, 0, 51)] {
             do { _ = try await api.messages(conversationID: id, cursor: cursor, size: size, token: "synthetic-token"); XCTFail() }
             catch { XCTAssertEqual(error as? APIError, .invalidRequest) }
         }

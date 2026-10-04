@@ -14,6 +14,9 @@ struct MessagingLoadIssue {
         } else if error as? APIError == .notConfigured {
             titleKey = "messaging.unavailable"; detailKey = "messaging.unconfiguredHint"
             message = nil; canRetry = false; isTerminal = true
+        } else if failure?.isForbidden == true {
+            titleKey = "messaging.accessDenied"; detailKey = "messaging.accessDeniedHint"
+            message = nil; canRetry = false; isTerminal = true
         } else if failure?.isClosed == true {
             titleKey = "messaging.closed"; detailKey = "messaging.closedHint"
             message = nil; canRetry = false; isTerminal = true
@@ -158,10 +161,7 @@ struct MessagingConversationKindLabel: View {
 struct MessagingPreview: View {
     let conversation: MessagingConversation
     var body: some View {
-        if let text = conversation.lastMessageText, !text.isEmpty { Text(verbatim: text) }
-        else if conversation.lastMessageType == 2 { Text("messaging.image") }
-        else if conversation.lastMessageType == 4 { Text("poll.title") }
-        else if conversation.lastMessageType == 3 { Text("messaging.card") }
+        Text("messaging.previewUnavailable").foregroundStyle(.secondary)
     }
 }
 

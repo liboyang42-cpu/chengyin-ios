@@ -128,6 +128,22 @@ import XCTest
         XCTAssertFalse(app.staticTexts["Owner \(owner) list snapshot"].exists)
         XCTAssertFalse(app.buttons["profile.order.lifecycle"].exists)
     }
+    func testNormalRootOwnedShelfPaginationAndDetailWithoutMutation() throws {
+        let app = launch(); signIn(app, owner: 7)
+        tab("Account", app); tap("account.templateAuthoring", app)
+        XCTAssertTrue(app.buttons["templateAuthor.openEditor"].exists)
+        tap("templateAuthor.openMine", app)
+        XCTAssertTrue(app.staticTexts["Owner 7 template 1"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["templateAuthor.shelf.delete.101"].isEnabled)
+        XCTAssertFalse(app.buttons["templateAuthor.shelf.library.101"].isEnabled)
+        tap("templateAuthor.shelf.loadMore", app); tap("memberTemplate.mine.111", app)
+        XCTAssertTrue(app.staticTexts["Owner 7 fresh template"].waitForExistence(timeout: 5))
+        let value = try evidence(app), reads = value.ledger.filter { $0.route.hasPrefix("shelf.") }
+        XCTAssertEqual(reads.map(\.route), ["shelf.list", "shelf.list", "shelf.detail"])
+        XCTAssertEqual(reads[0].fields["pageSize"], "10"); XCTAssertEqual(reads[1].fields["pageNum"], "2")
+        XCTAssertEqual(reads[2].fields, ["id": "111"])
+        assertIdentity(reads, owner: 7, epoch: value.epoch)
+    }
     private func assertIdentity(_ entries: [Entry], owner: Int, epoch: UInt64) {
         for entry in entries {
             XCTAssertEqual(entry.accountID, owner); XCTAssertEqual(entry.role, "player")
@@ -139,6 +155,34 @@ import XCTest
             XCTAssertEqual(entry.method, entry.route.hasPrefix("play-") || entry.route == "map.places" ? "GET" : "POST")
         }
         XCTAssertEqual(Set(entries.map(\.namespace)).count, 1)
+    }
+    func testNormalRootIMHistoryNeverMarksReadOrSends() throws {
+        let app = launch(); signIn(app); tab("Account", app); tap("Messages", app)
+        XCTAssertTrue(app.buttons["messaging.conversation.901"].waitForExistence(timeout: 5))
+        tap("messaging.conversation.901", app)
+        XCTAssertTrue(app.staticTexts["Synthetic latest history"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "SYNTHETIC-RECALLED-PAYLOAD")).firstMatch.exists)
+        XCTAssertTrue(app.buttons["messaging.message.53"].exists)
+        tap("messaging.message.53", app)
+        XCTAssertTrue(app.staticTexts["Message recalled"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["messaging.message.preview"].exists)
+        XCTAssertFalse(app.buttons["poll.messageEntry"].exists)
+        XCTAssertFalse(app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "SYNTHETIC-RECALLED")).firstMatch.exists)
+        app.navigationBars.buttons.firstMatch.tap()
+        XCTAssertFalse(app.textFields["message.send.input"].exists)
+        XCTAssertFalse(app.buttons["message.send.button"].exists)
+        tap("messaging.history.earlier", app)
+        XCTAssertTrue(app.staticTexts["Synthetic earlier history"].waitForExistence(timeout: 5))
+        let reads = try evidence(app).ledger.filter { $0.route.hasPrefix("history.") }
+        XCTAssertEqual(reads.map(\.route), ["history.conversations", "history.messages", "history.messages"])
+        XCTAssertEqual(reads[1].fields, ["conversation_id": "901", "cursor_id": "0", "size": "30"])
+        XCTAssertEqual(reads[2].fields, ["conversation_id": "901", "cursor_id": "42", "size": "30"])
+        assertIdentity(reads, owner: 7, epoch: try evidence(app).epoch)
+    }
+    func testNormalRootIMHistoryDefaultNilNeverDispatches() throws {
+        let app = launch("denied"); signIn(app); tab("Account", app); tap("Messages", app)
+        XCTAssertTrue(app.staticTexts["messaging.list.unconfigured"].waitForExistence(timeout: 5))
+        XCTAssertTrue(try evidence(app).ledger.filter { $0.route.hasPrefix("history.") }.isEmpty)
     }
     func testNormalRootTeamReadOnlyJourney() throws {
         let app = launch(); signIn(app)

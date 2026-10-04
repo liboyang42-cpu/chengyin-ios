@@ -46,7 +46,7 @@ private actor FinalContextReadbackReturn {
     }
     private func media() throws -> SocialMessageMedia {
         try .init(message: JSONDecoder().decode(MessagingMessage.self, from:
-            Data(#"{"id":21,"conversationId":9,"msgType":2,"content":"https://media.example.com/a.png"}"#.utf8)))
+            Data(#"{"id":21,"conversationId":9,"status":0,"msgType":2,"content":"https://media.example.com/a.png"}"#.utf8)))
     }
     func testObjectSuccessAfterApprovedTransportAndNonisolatedDecodeCannotCrossFullContext() async throws {
         let initial = try context(), session = try ObjectCardSession(accountID: 7, epoch: 1, token: "synthetic")

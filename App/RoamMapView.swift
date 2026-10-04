@@ -17,10 +17,7 @@ struct RoamMapView: View {
                 if let point = item.coordinate {
                     Annotation(item.title, coordinate: CLLocationCoordinate2D(latitude: point.latitude, longitude: point.longitude)) {
                         Button { onSelect(item) } label: {
-                            Image(systemName: item.symbol)
-                                .font(.body.bold()).foregroundStyle(.white)
-                                .padding(10).background(.tint, in: Circle())
-                                .overlay(Circle().stroke(.white, lineWidth: 2))
+                            QuestifyMapPinSymbol(symbol: item.symbol)
                         }
                         .buttonStyle(.plain)
                         .accessibilityLabel(Text(item.title.isEmpty ? appLocalized("roam.unnamed",locale:locale) : item.title))
@@ -30,7 +27,7 @@ struct RoamMapView: View {
                 }
             }
         }
-        .mapStyle(.standard(pointsOfInterest: .excludingAll))
+        .mapStyle(QuestifyMapAppearance.baseStyle)
         .accessibilityIdentifier("roam.map")
     }
 }

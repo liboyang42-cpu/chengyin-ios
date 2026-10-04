@@ -208,12 +208,13 @@ jobs:
               f.write('TEST_SIMULATOR_ID='+chosen['udid']+'\n')
           print('Selected simulator:',chosen['name'])
           PY
-      - name: Prepare isolated simulator host Keychain entitlement
+      - name: Build isolated AppUnit simulator host with simulated Keychain entitlements
         run: |
-          # Only this job's verified restored simulator app copy is ad-hoc signed.
+          # Build an exact-commit separate AppUnit product; shared UI products stay unsigned.
           # No certificate, developer account, production target, or UI shard changes.
-          python3 tools/prepare_simulator_keychain_host.py \
-            --xctestrun "$APP_UNIT_XCTESTRUN" --commit "$GITHUB_SHA" \
+          python3 tools/build_simulator_keychain_host.py \
+            --source-root "$GITHUB_WORKSPACE" --commit "$GITHUB_SHA" \
+            --simulator "$TEST_SIMULATOR_ID" \
             --approve-ephemeral-simulator-host
       - name: Boot simulator before app-unit tests
         run: |
@@ -256,7 +257,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     needs: native
     env:
       EXPECTED_BUILD_FINGERPRINT: ${{ needs.native.outputs.build_fingerprint }}
@@ -272,6 +273,8 @@ jobs:
       shard_8: ${{ steps.completion.outputs.shard_8 }}
       shard_9: ${{ steps.completion.outputs.shard_9 }}
       shard_10: ${{ steps.completion.outputs.shard_10 }}
+      shard_11: ${{ steps.completion.outputs.shard_11 }}
+      shard_12: ${{ steps.completion.outputs.shard_12 }}
     runs-on: macos-26
     # Run49 spent 9–13 minutes on setup/build/launch before executing methods.
     # Reuse products; keep a bounded margin for the full shard and result export.
@@ -312,7 +315,7 @@ jobs:
         run: xcrun simctl bootstatus "$TEST_SIMULATOR_ID" -b
       - name: Test native module flows and session boundaries
         run: |
-          python3 tools/run_ui_shard.py --shard ${{ matrix.shard }} --count 11 \
+          python3 tools/run_ui_shard.py --shard ${{ matrix.shard }} --count 13 \
             --simulator "$TEST_SIMULATOR_ID" \
             --xctestrun "$UI_XCTESTRUN" --deadline-seconds 1800 \
             --result-bundle "$RUNNER_TEMP/questify-ui-results.xcresult" \

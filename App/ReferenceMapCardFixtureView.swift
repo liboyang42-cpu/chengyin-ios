@@ -19,4 +19,21 @@ struct ReferenceMapCardFixtureView: View {
         }.appNavigationTitle("searchMap.citySearch")
     }
 }
+/// Offline marker rendering fixture: never mounts MapKit or requests tiles.
+struct MapMarkerStyleFixtureView: View {
+    @State private var selectedID: String?
+    private let area = RoamSearchArea(coordinate: RoamCoordinate(latitude: 1, longitude: 1)!, label: "Synthetic area")
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 16) {
+                SearchMapCanvas(area: area, pins: [
+                    SearchMapPin(id: "style-merchant", title: "Synthetic merchant · 合成商户", coordinate: area.coordinate, symbol: "storefront"),
+                    SearchMapPin(id: "style-activity", title: ReferenceMapCardFixtureView.longTitle, coordinate: area.coordinate, symbol: "calendar")
+                ], selectedID: selectedID, offline: true) { selectedID = $0 }
+                Button("searchMap.clearSelection") { selectedID = nil }
+                    .frame(minHeight: 44).accessibilityIdentifier("mapStyle.fixture.clear")
+            }.padding()
+        }
+    }
+}
 #endif
