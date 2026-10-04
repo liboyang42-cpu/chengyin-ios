@@ -30,3 +30,12 @@ class ActivityTopicNavigationChecks(unittest.TestCase):
         for name in ['testLinkedTopicRequiresPositiveSafeIdentifier', 'testClubGateDoesNotDecodeHiddenTopicLink']: self.assertIn(name, unit)
         ui = (ROOT/'Tests/AppUITests/SignedInContentDetailFlowTests.swift').read_text()
         for name in ['testActivityTopicRouteBackAndReopen', 'testActivityTopicRouteClearsOnRoleChangeAndSignOut', 'testActivityTopicFailureStaysInTopicAndBackReopens']: self.assertIn(name, ui)
+
+    def test_role_refresh_assertions_match_scoped_screen_without_assuming_pop(self):
+        ui = (ROOT/'Tests/AppUITests/SignedInContentDetailFlowTests.swift').read_text()
+        flow = ui.split('func testActivityTopicRouteClearsOnRoleChangeAndSignOut()', 1)[1].split('func testActivityTopicFailure', 1)[0]
+        self.assertLess(flow.index('Synthetic merchant route'), flow.index('app.navigationBars["Route details"].buttons.firstMatch.tap()'))
+        for proof in ['"contentDetail.fixture.requests"', '"signed-in"', '"guest"', 'XCTAssertGreaterThan(reopenedReads, 3', 'Sign-out must not dispatch a detail read', '"topic.detail.content"']:
+            self.assertIn(proof, flow)
+        self.assertIn('attachFailureScreenshot(self, app: launchedApp)', ui)
+        self.assertNotIn('destroys its pushed destination', flow)

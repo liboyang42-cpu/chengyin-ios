@@ -78,5 +78,25 @@
   "templateAuthor.shelf.empty": {
     "en": "Your own template shelf is empty.",
     "zh-Hans": "我的模板列表为空。"
+  },
+  "templateAuthor.shelf.pageScope": {
+    "en": "Browse 10 at a time, up to 1,000 per search. Changes require a matching first-100 owner snapshot.",
+    "zh-Hans": "每页显示 10 项，每次搜索最多 1,000 项。修改需要与前 100 项的所有者快照一致。"
+  },
+  "templateAuthor.shelf.keyword": {
+    "en": "Search owned templates",
+    "zh-Hans": "搜索我的玩法"
+  },
+  "templateAuthor.shelf.loadMore": {
+    "en": "Load more / Retry",
+    "zh-Hans": "加载更多 / 重试"
+  },
+  "templateAuthor.shelf.moreFailed": {
+    "en": "Could not load the next page. Retry or refresh the list.",
+    "zh-Hans": "下一页加载失败，请重试或刷新列表。"
+  },
+  "templateAuthor.shelf.pageLimit": {
+    "en": "Search limit reached. Narrow your search or refresh.",
+    "zh-Hans": "已达到搜索上限，请缩小搜索范围或刷新。"
   }
 }

@@ -567,3 +567,183 @@ final class MerchantStoreHoursFlowTests: XCTestCase {
         await model.confirm(review); XCTAssertEqual(reader.saves, 1)
     }
 }
+
+final class MerchantBusinessStatusContractTests: XCTestCase {
+    func testExactBinaryResponseRejectsMissingNullStringBooleanAndUnknown() throws {
+        for raw in ["0", "1"] {
+            let value = try JSONDecoder().decode(MerchantBusinessStatusDocument.self, from: Data("{\"businessStatus\":\(raw)}".utf8))
+            XCTAssertEqual(value.businessStatus.rawValue, Int(raw))
+        }
+        for json in ["{}", #"{"businessStatus":null}"#, #"{"businessStatus":"1"}"#, #"{"businessStatus":true}"#, #"{"businessStatus":2}"#] {
+            XCTAssertThrowsError(try JSONDecoder().decode(MerchantBusinessStatusDocument.self, from: Data(json.utf8)))
+        }
+    }
+    func testExactFormWhitelistAndSharedReplayLock() throws {
+        let draft = MerchantOperationsDraft.businessStatus(try .init(merchantID: 31, status: .closed))
+        let request = try XCTUnwrap(draft.previews().first)
+        XCTAssertEqual(request.path, "api/merchant/business-status/update")
+        XCTAssertEqual(request.form, ["business_status": "0"])
+        XCTAssertEqual(draft.reviewLines, [.init("businessStatus", "0")])
+        XCTAssertEqual(draft.destination.pendingTarget, MerchantOperationsDestination.profile.pendingTarget)
+        XCTAssertThrowsError(try MerchantStoreBusinessStatus(merchantID: 0, status: .open))
+    }
+    func testOwnerRoleAndBasicReadDoNotGrantStatusEditing() throws {
+        for permissions in [[], ["merchant:basic:read"], ["merchant:coop:manage"]] {
+            let data = try JSONSerialization.data(withJSONObject: ["active": true, "merchant": ["id":31], "roleCode":"MERCHANT_OWNER", "permissions": permissions])
+            let access = try JSONDecoder().decode(MerchantOperationsAccess.self, from: data)
+            XCTAssertFalse(access.allows(.businessStatus))
+        }
+    }
+}
+
+@MainActor private final class BusinessStatusJournal: OperationPendingJournal {
+    var record: OperationPendingRecord?
+    func pending(ownerKey: String, targetKey: String) throws -> OperationPendingRecord? { record }
+    func write(_ record: OperationPendingRecord) throws { self.record = record }
+    func clear(_ record: OperationPendingRecord) throws { self.record = nil }
+}
+@MainActor final class MerchantBusinessStatusFlowTests: XCTestCase {
+    private func status(_ value: MerchantBusinessStatus, owner: Int = 31) throws -> MerchantOperationsDraft {
+        .businessStatus(try .init(merchantID: owner, status: value))
+    }
+    private func prepared(_ reader: ProfileReadbackReader) async throws -> (MerchantOperationsCoordinator, MerchantOperationsConfirmation) {
+        let model = MerchantOperationsCoordinator(reader: reader, destination: .businessStatus)
+        await model.load(); model.edit(try status(.closed)); model.prepare()
+        return (model, try XCTUnwrap(model.confirmation))
+    }
+    func testClosedStatusSurvivesUnrelatedProfileHoursSave() async throws {
+        let reader = MerchantOperationsFixtureReader()
+        try await reader.saveExample(try status(.closed))
+        guard case .draft(.profile(var profile)) = try await reader.document(.profile) else { return XCTFail("Expected profile") }
+        profile.businessTimeReplacement = "周一、二、三、四、五 09:00-18:00"
+        try await reader.saveExample(.profile(profile))
+        let result = try await reader.document(.businessStatus)
+        XCTAssertEqual(result, .draft(try status(.closed)))
+    }
+    func testCancelAndStaleConfirmationSendNothing() async throws {
+        let reader = ProfileReadbackReader(); let (model, confirmation) = try await prepared(reader)
+        model.cancelConfirmation(); await model.confirm(confirmation); XCTAssertEqual(reader.saves, 0)
+        model.prepare(); let newer = try XCTUnwrap(model.confirmation)
+        model.edit(try status(.open)); await model.confirm(newer); XCTAssertEqual(reader.saves, 0)
+    }
+    func testAuthoritativeReadbackOverridesSubmittedValueAndDoubleConfirmDoesNotResend() async throws {
+        let reader = ProfileReadbackReader(); reader.returned = try status(.open)
+        let (model, confirmation) = try await prepared(reader)
+        await model.confirm(confirmation); await model.confirm(confirmation)
+        XCTAssertEqual(reader.saves, 1); XCTAssertEqual(model.draft, try status(.open))
+        XCTAssertFalse(model.isDirty); XCTAssertFalse(model.isLocked)
+        XCTAssertEqual(model.issue, .key("merchant.operations.statusReadback"))
+    }
+    func testAcknowledgedReadbackFailureClearsStateWithoutUnknownWriteOrRetry() async throws {
+        let reader = ProfileReadbackReader(); reader.readbackError = APIError.malformedResponse
+        let (model, confirmation) = try await prepared(reader); await model.confirm(confirmation)
+        XCTAssertNil(model.draft); XCTAssertNil(model.baseline); XCTAssertFalse(model.isLocked)
+        XCTAssertEqual(model.issue, .key("merchant.operations.statusReadbackFailed"))
+        await model.confirm(confirmation); XCTAssertEqual(reader.saves, 1)
+    }
+    func testReadbackCannotAdoptDifferentMerchantOwner() async throws {
+        let reader = ProfileReadbackReader(); reader.returned = try status(.closed, owner: 32)
+        let (model, confirmation) = try await prepared(reader); await model.confirm(confirmation)
+        XCTAssertNil(model.draft); XCTAssertEqual(model.issue, .key("merchant.operations.statusReadbackFailed"))
+    }
+    func testUnknownWriteRemainsLockedAfterRefreshAndReentry() async throws {
+        let reader = ProfileReadbackReader(); reader.saveError = .outcomeUnknown
+        let (model, confirmation) = try await prepared(reader); await model.confirm(confirmation)
+        model.leaveScreen(); await model.load(); model.edit(try status(.closed)); model.prepare()
+        XCTAssertTrue(model.isLocked); XCTAssertNil(model.confirmation); XCTAssertEqual(reader.saves, 1)
+    }
+    func testRoleSessionChangeBeforeConfirmOrDuringReadbackDropsResult() async throws {
+        let reader = ProfileReadbackReader(); let (model, confirmation) = try await prepared(reader)
+        reader.scope = UUID(); await model.confirm(confirmation); XCTAssertEqual(reader.saves, 0)
+        let next = ProfileReadbackReader(); let (nextModel, nextConfirmation) = try await prepared(next)
+        next.onReadback = { next.scope = UUID() }
+        await nextModel.confirm(nextConfirmation); XCTAssertNil(nextModel.draft); XCTAssertFalse(nextModel.isCurrent)
+    }
+    func testConflictIncludingOwnerChangeBlocksDispatch() async throws {
+        let reader = ProfileReadbackReader(); let (model, confirmation) = try await prepared(reader)
+        reader.fixture.replace(.businessStatus, with: .draft(try status(.open, owner: 32)))
+        await model.confirm(confirmation); XCTAssertEqual(reader.saves, 0)
+        XCTAssertEqual(model.issue, .key("merchant.operations.conflict"))
+    }
+    func testDormantServiceExactFormAndUnknownPersistentReplayLock() async throws {
+        let transport = MerchantOperationsTransport()
+        let config = try APIConfiguration(baseURL: URL(string: "https://api.example.com")!)
+        let service = MerchantOperationsService(configuration: config, transport: transport)
+        let grant = try OperationEndpointApproval(baseURL: config.baseURL, namespace: "fixture", accountID: 8, paths: ["api/merchant/business-status/update"])
+        let journal = BusinessStatusJournal()
+        let baseline = try status(.open), draft = try status(.closed)
+        let access = #"{"code":200,"data":{"active":true,"merchant":{"id":31},"roleCode":"MERCHANT_OWNER","permissions":["merchant:profile:write","merchant:basic:read"]}}"#
+        transport.replies = [access, #"{"code":200,"data":{"businessStatus":1}}"#, #"{"code":200}"#]
+        _ = try await service.save(draft, token: "synthetic-token", approval: grant, namespace: "fixture", accountID: 8, baseline: baseline, journal: journal, checkSession: {})
+        XCTAssertEqual(transport.requests.count, 3)
+        let request = try XCTUnwrap(transport.requests.last)
+        XCTAssertEqual(request.url?.path, "/api/merchant/business-status/update")
+        XCTAssertEqual(request.httpMethod, "POST")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/x-www-form-urlencoded; charset=utf-8")
+        XCTAssertEqual(request.httpBody, Data("business_status=0".utf8)); XCTAssertNil(journal.record)
+        transport.replies = [access, #"{"code":200,"data":{"businessStatus":1}}"#, "invalid"]
+        do { _ = try await service.save(draft, token: "synthetic-token", approval: grant, namespace: "fixture", accountID: 8, baseline: baseline, journal: journal, checkSession: {}); XCTFail() }
+        catch { XCTAssertEqual(error as? MerchantOperationsFailure, .outcomeUnknown) }
+        XCTAssertNotNil(journal.record); let count = transport.requests.count
+        do { _ = try await service.save(draft, token: "synthetic-token", approval: grant, namespace: "fixture", accountID: 8, baseline: baseline, journal: journal, checkSession: {}); XCTFail() }
+        catch { XCTAssertEqual(error as? MerchantOperationsFailure, .outcomeUnknown) }
+        XCTAssertEqual(transport.requests.count, count)
+    }
+    func testMissingGrantAndRevokedProfilePermissionSendNoWrite() async throws {
+        let transport = MerchantOperationsTransport(), config = try APIConfiguration(baseURL: URL(string: "https://api.example.com")!)
+        let service = MerchantOperationsService(configuration: config, transport: transport)
+        do { _ = try await service.save(try status(.closed), token: "synthetic-token"); XCTFail() }
+        catch { XCTAssertEqual(error as? MerchantOperationsFailure, .liveWritesDisabled) }
+        XCTAssertTrue(transport.requests.isEmpty)
+        let grant = try OperationEndpointApproval(baseURL: config.baseURL, namespace: "fixture", accountID: 8, paths: ["api/merchant/business-status/update"])
+        transport.replies = [#"{"code":200,"data":{"active":true,"merchant":{"id":31},"roleCode":"MERCHANT_OWNER","permissions":["merchant:basic:read"]}}"#]
+        do { _ = try await service.save(try status(.closed), token: "synthetic-token", approval: grant, namespace: "fixture", accountID: 8, baseline: try status(.open), journal: BusinessStatusJournal(), checkSession: {}); XCTFail() }
+        catch { XCTAssertEqual(error as? MerchantOperationsFailure, .accessDenied) }
+        XCTAssertEqual(transport.requests.count, 1)
+    }
+}
+
+@MainActor private final class DelayedBusinessStatusReader: MerchantOperationsReading {
+    var scope = UUID()
+    let isConfigured = true
+    let isAuthenticated = true
+    let isOfflineExample = true
+    let fixture = MerchantOperationsFixtureReader()
+    var continuation: CheckedContinuation<MerchantOperationsDocument, Error>?
+    var delay = true
+    func access() async throws -> MerchantOperationsAccess { try await fixture.access() }
+    func document(_ destination: MerchantOperationsDestination) async throws -> MerchantOperationsDocument {
+        if delay { delay = false; return try await withCheckedThrowingContinuation { continuation = $0 } }
+        return try await fixture.document(destination)
+    }
+    func saveExample(_ draft: MerchantOperationsDraft) async throws { try await fixture.saveExample(draft) }
+}
+@MainActor final class MerchantBusinessStatusInterruptionTests: XCTestCase {
+    func testLatePriorReadCannotReplaceNewScopeDocument() async throws {
+        let reader = DelayedBusinessStatusReader(), model: MerchantOperationsCoordinator
+        model = .init(reader: reader, destination: .businessStatus)
+        let old = Task { await model.load() }
+        while reader.continuation == nil { await Task.yield() }
+        model.leaveScreen(); reader.scope = UUID(); await model.load()
+        let current = model.document
+        reader.continuation?.resume(returning: .draft(.businessStatus(try .init(merchantID: 99, status: .closed))))
+        await old.value
+        XCTAssertEqual(model.document, current)
+        XCTAssertEqual(model.draft, .businessStatus(try .init(merchantID: 31, status: .open)))
+    }
+    func testRoleABAEpochPreventsSecondRead() async throws {
+        let transport = MerchantOperationsTransport()
+        transport.replies = [#"{"code":200,"data":{"active":true,"merchant":{"id":31},"roleCode":"MERCHANT_OWNER","permissions":["merchant:profile:write","merchant:basic:read"]}}"#]
+        var session: MerchantOperationsSession? = try .init(accountID: 8, epoch: 1, token: "synthetic-token", storageNamespace: "fixture", viewerRevision: 1)
+        let original = session
+        let config = try APIConfiguration(baseURL: URL(string: "https://api.example.com")!)
+        let reader = MerchantOperationsSessionReader(service: MerchantOperationsService(configuration: config, transport: transport), currentSession: { session })
+        transport.onSend = {
+            // Same account/token and restored role still carries a new authority revision.
+            session = try? .init(accountID: 8, epoch: 1, token: "synthetic-token", storageNamespace: "fixture", viewerRevision: 3)
+        }
+        do { _ = try await reader.document(.businessStatus); XCTFail() }
+        catch { XCTAssertTrue(error is CancellationError) }
+        XCTAssertNotEqual(session, original); XCTAssertEqual(transport.requests.count, 1)
+    }
+}

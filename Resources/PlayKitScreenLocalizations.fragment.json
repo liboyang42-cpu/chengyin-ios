@@ -3775,6 +3775,40 @@
           }
         }
       }
+    },
+    "playkit.type.retry": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The last attempt did not pass. You can try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上次尝试未通过，可以再试一次。"
+          }
+        }
+      }
+    },
+    "playkit.type.finishedNotPassed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This round has ended without passing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本轮已结束，未通过。"
+          }
+        }
+      }
     }
   }
 }

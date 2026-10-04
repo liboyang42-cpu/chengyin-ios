@@ -15,18 +15,19 @@ class MerchantOperationsSourceTests(unittest.TestCase):
         service = self.text('Core/MerchantOperationsService.swift')
         routes = set(re.findall(r'"(api/[a-zA-Z0-9/-]+)"', service))
         self.assertEqual(routes, {
-            'api/merchant/access/me', 'api/merchant/info', 'api/merchant/coop-profile',
+            'api/merchant/business-status', 'api/merchant/access/me', 'api/merchant/info', 'api/merchant/coop-profile',
             'api/merchant/npc/profile', 'api/merchant/npc/voice/status', 'api/merchant/npc/avatar/status',
             'api/merchant/city-node/list', 'api/template/my-list', 'api/template/myinfo', 'api/merchant/city-node/template/submit'})
         if SOURCE.exists():
             source = '\n'.join((SOURCE/'data/api'/f).read_text() for f in ['merchant_api.dart','merchant_npc_api.dart','template_api.dart'])
-            for route in routes:
+            # New status route is verified against the mini/backend receipt, not inferred from Flutter.
+            for route in routes - {'api/merchant/business-status'}:
                 self.assertIn('/' + route, source)
 
     def test_mutation_routes_are_exact_and_scoped_before_transport(self):
         draft = self.text('Core/MerchantOperationsDraft.swift')
         routes = set(re.findall(r'path: "(api/[a-zA-Z0-9/-]+)"', draft))
-        self.assertEqual(routes, {'api/merchant/update','api/merchant/decor/save','api/merchant/coop-profile/save','api/merchant/npc/save','api/merchant/city-node/template/submit'})
+        self.assertEqual(routes, {'api/merchant/business-status/update','api/merchant/update','api/merchant/decor/save','api/merchant/coop-profile/save','api/merchant/npc/save','api/merchant/city-node/template/submit'})
         self.assertNotIn('URLRequest', draft)
         service = self.text('Core/MerchantOperationsService.swift')
         save = service.split('public func save(', 1)[1]

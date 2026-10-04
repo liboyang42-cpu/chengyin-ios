@@ -33,6 +33,7 @@ public struct TemplateAuthoringReview: Equatable, Identifiable {
     public private(set) var shelfMessageKey: String?
     private var shelfGeneration = 0
     public var shelfLocked: Bool { shelfBusy || shelfBlocked || shelfPending != nil }
+    public lazy var shelfReader = TemplateOwnShelfReader(adapter: adapter, currentSession: currentSession)
     public var session: TemplateAuthoringSession? { currentSession() }
     public var canSubmit: Bool { adapter.canSubmit }
     public var canSimulate: Bool { adapter.canSimulate }

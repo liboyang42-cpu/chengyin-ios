@@ -13,6 +13,123 @@ import XCTest
     private func reviewLeave(_ coordinator: TeamCoordinator) async throws -> TeamReview {
         await coordinator.loadDetail(.id(4101)); coordinator.prepare(.leave(teamID: 4101)); return try XCTUnwrap(coordinator.review)
     }
+    private func reviewJoin(_ c: TeamCoordinator) async throws -> TeamReview {
+        await c.loadDetail(.invitation("SYNTHETIC-TEAM"))
+        c.prepare(.join(teamID: 4101, inviteCode: "SYNTHETIC-TEAM"))
+        return try XCTUnwrap(c.review)
+    }
+    func testDirectJoinCompletionAllowsOnlyReadOnlyFreshDetail() async throws {
+        let (c, service, journal, box) = try setup(.invitation)
+        let review = try await reviewJoin(c); await c.confirm(review)
+        XCTAssertEqual(c.postJoinDetailID, 4101); XCTAssertTrue(journal.records.isEmpty)
+        await c.confirm(review); XCTAssertEqual(service.submissions.count, 1)
+        let next = TeamCoordinator(service: service, journal: journal, currentSession: { box.value })
+        await next.loadPostJoinDetail(teamID: 4101)
+        XCTAssertEqual(next.detail?.joined, true)
+        next.prepare(.leave(teamID: 4101)); XCTAssertNil(next.review)
+        await next.checkOutcome(); XCTAssertEqual(service.submissions.count, 1)
+        c.leaveScreen(); await c.loadDetail(.invitation("SYNTHETIC-TEAM"))
+        XCTAssertEqual(c.postJoinDetailID, 4101)
+    }
+    func testAcknowledgedJoinRequiresMatchingReceiptAndSuccessfulJournalClear() async throws {
+        for kind in ["ack", "wrongOperation", "wrongTeam", "clearFailure"] {
+            let (c, service, journal, _) = try setup(.invitation)
+            let review = try await reviewJoin(c)
+            service.outcomes[review.id] = .acknowledged(operationID: kind == "wrongOperation" ? UUID() : review.id, teamID: kind == "wrongTeam" ? 999 : 4101)
+            if kind == "clearFailure" {
+                // Fail only after the durable intent has been written.
+                service.outcomes[review.id] = nil
+                service.beforeSubmit = { journal.failWrites = true }
+            }
+            await c.confirm(review)
+            XCTAssertEqual(c.postJoinDetailID, kind == "ack" ? 4101 : nil)
+            if kind != "ack" { XCTAssertNotNil(c.pending); XCTAssertEqual(c.writeState, .unknown) }
+        }
+    }
+    func testOtherTerminalActionsNeverCreateJoinContinuation() async throws {
+        for action in [TeamAction.leave(teamID: 4101), .disband(teamID: 4101), .remove(teamID: 4101, memberID: 902)] {
+            let (c, service, _, _) = try setup()
+            await c.loadDetail(.invitation("SYNTHETIC-TEAM")); c.prepare(action)
+            let review = try XCTUnwrap(c.review)
+            service.outcomes[review.id] = .acknowledged(operationID: review.id, teamID: 4101)
+            await c.confirm(review); XCTAssertEqual(c.writeState, .acknowledged)
+            XCTAssertNil(c.postJoinDetailID)
+        }
+    }
+    func testUnknownJoinAndLaterReceiptNeverCreateDirectContinuation() async throws {
+        let (c, service, journal, _) = try setup(.unknownOutcome)
+        service.currentDetail = try TeamSyntheticService(scenario: .invitation).currentDetail
+        let review = try await reviewJoin(c); await c.confirm(review)
+        XCTAssertNil(c.postJoinDetailID); XCTAssertNotNil(c.pending)
+        service.currentDetail = try TeamSyntheticFixtures.detail()
+        await c.loadDetail(.invitation("SYNTHETIC-TEAM"))
+        XCTAssertNil(c.postJoinDetailID); XCTAssertNotNil(c.pending)
+        service.outcomes[review.id] = .simulated(operationID: review.id, teamID: 4101)
+        await c.checkOutcome(); XCTAssertTrue(journal.records.isEmpty)
+        XCTAssertNil(c.postJoinDetailID)
+    }
+    func testJoinContinuationInvalidatesOnSessionOrTargetChange() async throws {
+        for change in ["epoch", "role", "target"] {
+            let (c, _, _, box) = try setup(.invitation)
+            let review = try await reviewJoin(c); await c.confirm(review)
+            XCTAssertEqual(c.postJoinDetailID, 4101)
+            if change == "target" { await c.loadDetail(.invitation("OTHER")) }
+            else { box.value = try TeamSyntheticFixtures.session(epoch: 2, role: change == "role" ? "merchant" : "player") }
+            XCTAssertNil(c.postJoinDetailID)
+        }
+    }
+    func testReadOnlyContinuationKeepsPendingJournalAndRejectsRevocation() async throws {
+        let (c, service, journal, box) = try setup()
+        let session = try XCTUnwrap(box.value)
+        let record = TeamPendingRecord(operationID: UUID(), ownerKey: session.ownerKey, targetKey: "team-4101")
+        try journal.write(record)
+        await c.loadPostJoinDetail(teamID: 4101)
+        XCTAssertEqual(c.pending, record); XCTAssertEqual(c.writeState, .unknown)
+        service.outcomes[record.operationID] = .simulated(operationID: record.operationID, teamID: 4101)
+        await c.checkOutcome(); XCTAssertEqual(c.pending, record)
+        c.prepare(.leave(teamID: 4101)); XCTAssertNil(c.review)
+        service.currentDetail = try TeamSyntheticService(scenario: .invitation).currentDetail
+        await c.loadPostJoinDetail(teamID: 4101)
+        XCTAssertNil(c.detail); XCTAssertEqual(journal.records.count, 1)
+        XCTAssertTrue(service.submissions.isEmpty)
+    }
+    func testJoinedInvitationContinuationRequiresFreshMembership() async throws {
+        let (c, service, _, _) = try setup()
+        await c.loadDetail(.id(4101), requireMembership: true)
+        XCTAssertEqual(c.detail?.team.id, 4101)
+        service.currentDetail = try JSONDecoder().decode(TeamDetail.self, from: Data(TeamSyntheticFixtures.detailJSON.replacingOccurrences(of: "\"joined\":true,\"leader\":true", with: "\"joined\":false,\"leader\":false").utf8))
+        await c.loadDetail(.id(4101), requireMembership: true)
+        XCTAssertNil(c.detail); XCTAssertNil(c.review); XCTAssertTrue(service.submissions.isEmpty)
+    }
+    func testJoinedContinuationRejectsInvitationLookupAndUnknownMembership() async throws {
+        let (c, service, _, _) = try setup(.missingRole)
+        await c.loadDetail(.id(4101), requireMembership: true)
+        XCTAssertNil(c.detail)
+        await c.loadDetail(.invitation("SYNTHETIC-TEAM"), requireMembership: true)
+        XCTAssertNil(c.detail); XCTAssertEqual(c.messageKey, "team.invalidLink")
+        XCTAssertTrue(service.submissions.isEmpty)
+    }
+    func testJoinedContinuationClearsRosterWhenRefreshFails() async throws {
+        let (c, service, _, _) = try setup()
+        await c.loadDetail(.id(4101), requireMembership: true)
+        service.currentDetail = try JSONDecoder().decode(TeamDetail.self, from: Data(TeamSyntheticFixtures.detailJSON.replacingOccurrences(of: "4101", with: "4102").utf8))
+        await c.loadDetail(.id(4101), requireMembership: true)
+        XCTAssertNil(c.detail); XCTAssertTrue(service.submissions.isEmpty)
+    }
+    func testJoinedContinuationDiscardsReadAfterSessionChanges() async throws {
+        let (c, service, _, box) = try setup()
+        service.beforeRead = { box.value = try? TeamSyntheticFixtures.session(epoch: 2) }
+        await c.loadDetail(.id(4101), requireMembership: true)
+        XCTAssertNil(c.detail); XCTAssertTrue(service.submissions.isEmpty)
+    }
+    func testJoinedContinuationPreservesUnknownJournalLock() async throws {
+        let (c, service, _, _) = try setup(.unknownOutcome)
+        let review = try await reviewLeave(c); await c.confirm(review)
+        await c.loadDetail(.id(4101), requireMembership: true)
+        XCTAssertNotNil(c.pending); XCTAssertEqual(c.writeState, .unknown)
+        c.prepare(.leave(teamID: 4101)); XCTAssertNil(c.review)
+        XCTAssertEqual(service.submissions.count, 1)
+    }
     func testCancelAndReopenDiscardEarlierReviewIdentity() async throws {
         let (c, service, _, _) = try setup(); let first = try await reviewLeave(c)
         c.cancelReview(); c.prepare(.leave(teamID: 4101)); let second = try XCTUnwrap(c.review)

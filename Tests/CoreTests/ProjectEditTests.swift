@@ -2,6 +2,143 @@ import XCTest
 @testable import QuestifyCore
 
 final class ProjectEditTests: XCTestCase {
+    func testThemeDateSyncFollowsThemeAndFreezesPayloadWithStoredPreference() throws {
+        var draft = ProjectEditSyntheticFixtures.draft(product: .freeExplore)
+        var ticket = draft.tickets[0]
+        try ticket.setThemeDateSync(true, in: draft); draft.tickets[0] = ticket
+        draft.startDate = "2030-06-01"; draft.endDate = "2030-06-30"
+        XCTAssertEqual(ticket.schedule(in: draft).start, "2030-06-01 00:00:00")
+        XCTAssertEqual(ticket.schedule(in: draft).end, "2030-06-30 23:59:59")
+        let payload = try ProjectEditContract.payload(draft, topicID: 71, scope: .full)
+        let wire = try XCTUnwrap(payload["tickets"]?.array?.first?.object)
+        XCTAssertEqual(wire["startTime"], .string(ticket.schedule(in: draft).start))
+        XCTAssertEqual(wire["endTime"], .string(ticket.schedule(in: draft).end))
+        XCTAssertEqual(wire["syncWithTheme"], .bool(true))
+        draft.endDate = "2030-07-01T18:20"
+        XCTAssertEqual(ticket.schedule(in: draft).end, "2030-07-01 18:20:00")
+        draft.endDate = "2030-02-30"
+        XCTAssertTrue(ProjectEditValidation.issues(draft).contains { $0.id.hasPrefix("ticketDates") })
+        XCTAssertThrowsError(try ProjectEditContract.payload(draft, topicID: 71, scope: .full))
+    }
+    func testUnsyncKeepsVisibleDatesAndRepeatedOffPreservesManualEdits() throws {
+        var draft = ProjectEditSyntheticFixtures.draft(product: .freeExplore)
+        var ticket = draft.tickets[0]; try ticket.setThemeDateSync(true, in: draft)
+        draft.startDate = "2030-06-01"; draft.endDate = "2030-06-30"
+        let shown = ticket.schedule(in: draft)
+        try ticket.setThemeDateSync(false, in: draft)
+        XCTAssertEqual(ticket.schedule(in: draft).start, shown.start)
+        XCTAssertEqual(ticket.schedule(in: draft).end, shown.end)
+        ticket.startTime = "2030-06-15 09:30"; ticket.endTime = "2030-06-16 18:00"
+        draft.startDate = "2031-01-01"; try ticket.setThemeDateSync(false, in: draft)
+        XCTAssertEqual(ticket.startTime, "2030-06-15 09:30")
+        XCTAssertEqual(ticket.endTime, "2030-06-16 18:00")
+        draft.product = .city; ticket.localMetadata["syncWithTheme"] = .bool(true)
+        XCTAssertEqual(ticket.schedule(in: draft).start, "2030-06-15 09:30:00")
+        XCTAssertThrowsError(try ticket.setThemeDateSync(false, in: draft))
+    }
+    func testUnknownSyncMetadataAndOldEnvelopeArePreserved() throws {
+        let draft = ProjectEditSyntheticFixtures.draft(product: .freeExplore)
+        for raw in [ProjectEditJSON.string("true"), .number(1), .object(["future": .bool(true)])] {
+            var ticket = draft.tickets[0]; ticket.localMetadata = ["syncWithTheme": raw, "future": .array([.number(7)])]
+            let before = ticket
+            XCTAssertFalse(ticket.canEditThemeDateSync); XCTAssertFalse(ticket.syncsWithThemeDates)
+            XCTAssertThrowsError(try ticket.setThemeDateSync(true, in: draft))
+            XCTAssertEqual(ticket, before)
+            XCTAssertEqual(try JSONDecoder().decode(ProjectEditTicket.self, from: JSONEncoder().encode(ticket)), before)
+            var preservedDraft = draft; preservedDraft.tickets[0] = ticket
+            let wire = try ProjectEditContract.payload(preservedDraft, topicID: 71, scope: .full)["tickets"]?.array?.first?.object
+            XCTAssertEqual(wire?["syncWithTheme"], raw)
+        }
+        var old = draft.tickets[0]; old.localMetadata = [:]
+        let decoded = try JSONDecoder().decode(ProjectEditTicket.self, from: JSONEncoder().encode(old))
+        XCTAssertTrue(decoded.canEditThemeDateSync); XCTAssertFalse(decoded.syncsWithThemeDates)
+        XCTAssertNil(decoded.localMetadata["syncWithTheme"])
+        var synced = old; synced.localMetadata["future"] = .string("retained")
+        try synced.setThemeDateSync(true, in: draft)
+        let restored = try JSONDecoder().decode(ProjectEditTicket.self, from: JSONEncoder().encode(synced))
+        XCTAssertTrue(restored.syncsWithThemeDates); XCTAssertEqual(restored.localMetadata["future"], .string("retained"))
+    }
+    func testAuthoritativeTicketReadbackDoesNotInventSyncAndWhitelistOmitsIt() throws {
+        var draft = try ProjectEditContract.decodeEditDetail(projectTicketIdentityFixture(), expectedTopicID: 71, owner: .merchant).draft
+        XCTAssertFalse(draft.tickets[0].syncsWithThemeDates)
+        XCTAssertNil(draft.tickets[0].localMetadata["syncWithTheme"])
+        draft.product = .freeExplore; draft.recruitDeadline = "2030-04-20"
+        var ticket = draft.tickets[0]; try ticket.setThemeDateSync(true, in: draft); draft.tickets[0] = ticket
+        XCTAssertNil(try ProjectEditContract.payload(draft, topicID: 71, scope: .whitelist)["tickets"])
+        // A fresh authoritative read keeps server dates; matching dates never imply sync.
+        let readback = try ProjectEditContract.decodeEditDetail(projectTicketIdentityFixture(), expectedTopicID: 71, owner: .merchant)
+        XCTAssertFalse(readback.draft.tickets[0].syncsWithThemeDates)
+        XCTAssertEqual(readback.draft.tickets[0].startTime, readback.draft.tickets[0].localMetadata["startTime"]?.text)
+        var envelope = try XCTUnwrap(JSONSerialization.jsonObject(with: projectTicketIdentityFixture()) as? [String: Any])
+        var body = try XCTUnwrap(envelope["data"] as? [String: Any])
+        var rows = try XCTUnwrap(body["tickets"] as? [[String: Any]])
+        rows[0]["syncWithTheme"] = true; rows[0]["futureSyncOption"] = ["opaque": 7]
+        body["tickets"] = rows; envelope["data"] = body
+        let synced = try ProjectEditContract.decodeEditDetail(JSONSerialization.data(withJSONObject: envelope), expectedTopicID: 71, owner: .merchant).draft
+        XCTAssertTrue(synced.tickets[0].syncsWithThemeDates)
+        XCTAssertEqual(synced.tickets[0].localMetadata["futureSyncOption"], .object(["opaque": .number(7)]))
+        let wire = try ProjectEditContract.payload(synced, topicID: 71, scope: .full)["tickets"]?.array?.first?.object
+        XCTAssertEqual(wire?["syncWithTheme"], .bool(true))
+    }
+    func testSaleDatesNormalizeOnlyExplicitEditsWithoutDeviceTimeZoneConversion() throws {
+        var ticket = ProjectEditTicket()
+        ticket.saleStartTime = "2030-04-01"; ticket.saleEndTime = "2030-04-30"
+        XCTAssertEqual(try ticket.saleTimePayloads(), ["saleStartTime": .string("2030-04-01 00:00:00"), "saleEndTime": .string("2030-04-30 23:59:59")])
+        ticket.saleStartTime = "2030-04-01T09:30"; ticket.saleEndTime = "2030-04-30 18:05:12"
+        XCTAssertEqual(try ticket.saleTimePayloads()["saleStartTime"], .string("2030-04-01 09:30:00"))
+        XCTAssertEqual(try ticket.saleTimePayloads()["saleEndTime"], .string("2030-04-30 18:05:12"))
+        for invalid in ["2030-02-30", "2030-04-01T09:30Z", "2030-04-01T09:30+08:00", "2030-04-01 24:01"] {
+            ticket.saleStartTime = invalid; XCTAssertThrowsError(try ticket.saleTimePayloads())
+        }
+    }
+    func testLegacySaleValuesAndUnknownSiblingsSurviveUnrelatedEditsAndCodable() throws {
+        var ticket = ProjectEditTicket()
+        ticket.saleStartTime = "legacy date"; ticket.saleEndTime = "2030-05-01"
+        ticket.localMetadata = ["saleStartTime": .string(ticket.saleStartTime), "saleEndTime": .string(ticket.saleEndTime), "future": .object(["opaque": .bool(true)])]
+        ticket.name = "Unrelated edit"
+        let restored = try JSONDecoder().decode(ProjectEditTicket.self, from: JSONEncoder().encode(ticket))
+        XCTAssertEqual(restored.localMetadata, ticket.localMetadata)
+        XCTAssertEqual(try restored.saleTimePayloads()["saleStartTime"], .string("legacy date"))
+        XCTAssertEqual(try restored.saleTimePayloads()["saleEndTime"], .string("2030-05-01"))
+        ticket.saleStartTime = "2030-04-01"
+        XCTAssertEqual(try ticket.saleTimePayloads()["saleStartTime"], .string("2030-04-01 00:00:00"))
+        ticket.saleEndTime = ""
+        XCTAssertEqual(try ticket.saleTimePayloads()["saleEndTime"], .null)
+    }
+    func testUnsupportedSaleWireTypeIsPreservedAndCannotBeOverwritten() throws {
+        var ticket = ProjectEditTicket(); let opaque = ProjectEditJSON.object(["future": .number(1)])
+        ticket.localMetadata["saleStartTime"] = opaque
+        XCTAssertFalse(ticket.canEditSaleTime(end: false))
+        XCTAssertEqual(try ticket.saleTimePayloads()["saleStartTime"], opaque)
+        ticket.saleStartTime = "2030-04-01"
+        XCTAssertThrowsError(try ticket.saleTimePayloads())
+    }
+    func testSaleDatesFullPayloadAndAuthoritativeReadback() throws {
+        var draft = try ProjectEditContract.decodeEditDetail(projectTicketIdentityFixture(), expectedTopicID: 71, owner: .merchant).draft
+        draft.tickets[0].saleStartTime = "2030-04-01"; draft.tickets[0].saleEndTime = "2030-04-30"
+        let payload = try ProjectEditContract.payload(draft, topicID: 71, scope: .full)
+        let ticket = try XCTUnwrap(payload["tickets"]?.array?.first?.object)
+        XCTAssertEqual(ticket["saleStartTime"], .string("2030-04-01 00:00:00"))
+        XCTAssertEqual(ticket["saleEndTime"], .string("2030-04-30 23:59:59"))
+        XCTAssertEqual(payload["scope"], .string("MERCHANT"))
+        var envelope = try XCTUnwrap(JSONSerialization.jsonObject(with: projectTicketIdentityFixture()) as? [String: Any])
+        var body = try XCTUnwrap(envelope["data"] as? [String: Any])
+        var tickets = try XCTUnwrap(body["tickets"] as? [[String: Any]])
+        tickets[0]["saleStartTime"] = "2030-04-01 00:00:00"; tickets[0]["saleEndTime"] = "2030-04-30 23:59:59"
+        body["tickets"] = tickets; envelope["data"] = body
+        let readback = try ProjectEditContract.decodeEditDetail(JSONSerialization.data(withJSONObject: envelope), expectedTopicID: 71, owner: .merchant)
+        XCTAssertEqual(readback.draft.tickets[0].saleStartTime, "2030-04-01 00:00:00")
+        XCTAssertEqual(try readback.draft.tickets[0].saleTimePayloads(), try draft.tickets[0].saleTimePayloads())
+    }
+    func testSaleDateValidationAndWhitelistRemainScoped() throws {
+        var draft = ProjectEditSyntheticFixtures.draft(); let original = draft
+        draft.tickets[0].saleStartTime = "not a date"
+        XCTAssertTrue(ProjectEditValidation.issues(draft).contains { $0.id.hasPrefix("ticketSaleDates") })
+        XCTAssertThrowsError(try ProjectEditContract.payload(draft, topicID: 71, scope: .full))
+        XCTAssertFalse(draft.whitelistLockedFieldsEqual(to: original))
+        XCTAssertNil(try ProjectEditContract.payload(draft, topicID: 71, scope: .whitelist)["tickets"])
+        XCTAssertTrue(try ProjectEditTicket().saleTimePayloads().isEmpty)
+    }
     private func session(_ account: Int = 901, epoch: UInt64 = 1, scope: String = "fixture-cn") throws -> ProjectEditSession { try .init(accountID: account, epoch: epoch, storageNamespace: scope) }
     func testMissingAndFreePriceAreDifferent() {
         var d = ProjectEditSyntheticFixtures.draft(); d.tickets[0].price = ""

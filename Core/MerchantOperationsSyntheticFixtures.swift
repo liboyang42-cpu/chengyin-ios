@@ -18,6 +18,7 @@ import Foundation
             let store = try JSONDecoder().decode(MerchantStorefront.self, from: Data(MerchantOperationsFixtureData.storeJSON.utf8))
             let character = try JSONDecoder().decode(MerchantStoreCharacter.self, from: Data(MerchantOperationsFixtureData.characterJSON.utf8))
             let template = try JSONDecoder().decode(MerchantNodeTemplate.self, from: Data(MerchantOperationsFixtureData.templateJSON.utf8))
+            documents[.businessStatus] = .draft(.businessStatus(try .init(merchantID: 31, status: .open)))
             documents[.profile] = .draft(.profile(store.profile)); documents[.decor] = .draft(.decor(store.decor))
             documents[.gallery] = .draft(.gallery(store.decor)); documents[.story] = .draft(.story(store))
             documents[.cooperation] = .draft(.cooperation(store.cooperation)); documents[.character] = .draft(.character(character))

@@ -4,6 +4,7 @@ import SwiftUI
 /// Offline synthetic fixture: no URL, credentials, transport or persistence.
 enum ClubManagementFixtureScenario: String {
     case owner, admin, ordinary, empty, unknown, denied, delayed, readbackUnavailable, unknownDelayedRefresh, detailReturn, detailReturnUnavailable
+    case refreshConnection, refreshForbidden, refreshMalformed, refreshRoleChange, unknownRoleChange, refreshDelayed, refreshRoleABA, prepareRoleABA
     static func selected(arguments: [String]) -> Self? {
         guard let index = arguments.firstIndex(of: "--uitesting-club-management-fixture"), arguments.indices.contains(index + 1) else { return nil }
         return Self(rawValue: arguments[index + 1])
@@ -22,6 +23,14 @@ struct ClubManagementFixtureRootView: View {
                     // Read-only evidence of the real fixture action, without changing layout.
                     .accessibilityValue(Text(verbatim: "account=\(store.identity?.accountID ?? 0);epoch=\(store.identity?.epoch ?? 0)"))
                 Button("club.management.sign_out") { store.signOut() }.accessibilityIdentifier("club.management.signout")
+                if store.scenario == .refreshRoleChange || store.scenario == .unknownRoleChange || store.scenario == .refreshRoleABA || store.scenario == .prepareRoleABA {
+                    Button("Change viewer role") { store.changeRole() }.accessibilityIdentifier("club.management.roleChange")
+                }
+                if store.hasPendingRead {
+                    Button("Release previous read") { store.releaseRead() }.accessibilityIdentifier("club.management.releaseRead")
+                }
+                Text(store.finishedDelayedReads, format: .number).accessibilityIdentifier("club.management.finishedReads")
+                Text(store.readCount, format: .number).accessibilityIdentifier("club.management.reads")
                 Text(store.writeCount, format: .number).accessibilityIdentifier("club.management.writes")
                 Text(store.membershipChanges, format: .number).accessibilityIdentifier("club.management.changes")
             }
@@ -29,7 +38,7 @@ struct ClubManagementFixtureRootView: View {
                 if store.scenario == .detailReturn || store.scenario == .detailReturnUnavailable {
                     ClubDetailView(id: 81, reader: store, management: .init(access: store, coordinator: store.coordinator))
                 } else {
-                    ClubManagementView(clubID: 81, identity: store.identity, access: store, coordinator: store.coordinator, onMembershipChanged: { store.membershipChanges += 1 })
+                    ClubManagementView(clubID: 81, identity: store.identity, access: store, coordinator: store.coordinator, viewerRevision: store.viewerRevision, onMembershipChanged: { store.membershipChanges += 1 })
                 }
             }.id(store.identity)
         }
@@ -39,6 +48,13 @@ struct ClubManagementFixtureRootView: View {
 private final class ClubManagementFixtureStore: ObservableObject, ClubManagementAccess, ClubReading {
     @Published var identity: ClubReadIdentity? = .init(accountID: 701, epoch: 0)
     @Published var writeCount = 0
+    @Published var readCount = 0
+    @Published var viewerRevision: UInt64 = 0
+    @Published var hasPendingRead = false
+    @Published var finishedDelayedReads = 0
+    private var pendingRead: CheckedContinuation<Void, Never>?
+    func releaseRead() { let pending = pendingRead; pendingRead = nil; hasPendingRead = false; pending?.resume() }
+    func changeRole() { viewerRevision &+= 1 }
     @Published var membershipChanges = 0
     let isConfigured = true
     let scenario: ClubManagementFixtureScenario
@@ -52,12 +68,27 @@ private final class ClubManagementFixtureStore: ObservableObject, ClubManagement
     func signOut() { identity = nil; coordinator.synchronizeSession() }
     func snapshot(clubID: Int) async throws -> ClubManagementSnapshot {
         try Task.checkCancellation()
+        readCount += 1
         guard let account = identity?.accountID else { throw APIError.unauthorized }
+        if viewerRevision % 2 == 1 { throw ClubReadFailure.forbidden(message: nil) }
+        if readCount == 2, scenario == .refreshForbidden { throw ClubReadFailure.forbidden(message: "Fixture permission revoked") }
+        if readCount == 2, scenario == .refreshMalformed { throw APIError.malformedResponse }
         guard scenario != .ordinary else { throw ClubReadFailure.forbidden(message: nil) }
         if scenario == .readbackUnavailable, completed.contains(account) { throw APIError.malformedResponse }
         if scenario == .unknownDelayedRefresh, completed.contains(account) { try await Task.sleep(nanoseconds: 5_000_000_000) }
         let owner = scenario != .admin
         let club = try JSONDecoder().decode(ClubRecord.self, from: Data("{\"id\":81,\"name\":\"Fixture club\",\"isOwner\":\(owner),\"viewerIsAdmin\":true,\"isJoined\":true,\"memberCount\":2}".utf8))
+        if readCount == 2, scenario == .refreshConnection || scenario == .refreshRoleChange {
+            throw ClubManagementListConnectionFailure(freshClub: club, error: URLError(.timedOut))!
+        }
+        if readCount == 2, scenario == .refreshDelayed || scenario == .refreshRoleABA || scenario == .prepareRoleABA {
+            // Deliberately ignores cancellation, to exercise the view's completion fence.
+            await withCheckedContinuation { continuation in pendingRead = continuation; hasPendingRead = true }
+            defer { finishedDelayedReads += 1 }
+            if scenario != .prepareRoleABA {
+                throw ClubManagementListConnectionFailure(freshClub: club, error: URLError(.timedOut))!
+            }
+        }
         let done = completed.contains(account) || scenario == .empty
         let requests = try JSONDecoder().decode([ClubManagementRequest].self, from: Data((done ? "[]" : #"[{"memberId":703,"nickname":"Fixture applicant","joinMessage":"Night walks please 👋","joinTime":"2026-09-01T10:30:00"}]"#).utf8))
         let members = try JSONDecoder().decode([ClubMember].self, from: Data((done ? #"[{"memberId":701,"nickname":"Fixture owner","isOwner":true}]"# : #"[{"memberId":701,"nickname":"Fixture owner","isOwner":true},{"memberId":704,"nickname":"Fixture member","role":0}]"#).utf8))
@@ -87,7 +118,7 @@ private final class ClubManagementFixtureStore: ObservableObject, ClubManagement
         if scenario == .delayed { try await Task.sleep(nanoseconds: 2_000_000_000) }
         completed.insert(account)
         guard identity == expectedIdentity else { throw ClubActionWriteError.outcomeUnknown(.accountChanged) }
-        if scenario == .unknown || scenario == .unknownDelayedRefresh { throw ClubActionWriteError.outcomeUnknown(.transport) }
+        if scenario == .unknown || scenario == .unknownDelayedRefresh || scenario == .unknownRoleChange { throw ClubActionWriteError.outcomeUnknown(.transport) }
         return .init(state: nil, message: nil)
     }
 }

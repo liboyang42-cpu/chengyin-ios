@@ -114,6 +114,61 @@ public struct ProjectEditTicket: Identifiable, Codable, Equatable {
     public var saleEndTime = ""
     public var localMetadata: [String: ProjectEditJSON] = [:]
     public init() {}
+    /// Mini's syncWithTheme is stored/read back by the backend, but date
+    /// resolution is client-side. Never infer this preference from equal dates.
+    public var syncsWithThemeDates: Bool { localMetadata["syncWithTheme"] == .bool(true) }
+    public var canEditThemeDateSync: Bool {
+        guard let raw = localMetadata["syncWithTheme"] else { return true }
+        if raw == .null { return true }
+        if case .bool = raw { return true }
+        return false
+    }
+    public func schedule(in draft: ProjectEditDraft) -> (start: String, end: String) {
+        let synced = draft.product == .freeExplore && syncsWithThemeDates
+        let start = synced ? draft.startDate : startTime
+        let end = synced ? draft.endDate : endTime
+        return (ProjectEditValidation.dateTime(start) ?? start,
+                ProjectEditValidation.dateTime(end, endOfDay: true) ?? end)
+    }
+    public mutating func setThemeDateSync(_ enabled: Bool, in draft: ProjectEditDraft) throws {
+        guard draft.product == .freeExplore, canEditThemeDateSync else { throw ProjectEditError.invalidDraft }
+        // Turning off keeps the currently shown dates, matching mini's toggle.
+        // A repeated off does not replace manually entered dates.
+        if enabled {
+            startTime = draft.startDate; endTime = draft.endDate
+        } else if syncsWithThemeDates {
+            let current = schedule(in: draft)
+            startTime = current.start; endTime = current.end
+        }
+        localMetadata["syncWithTheme"] = .bool(enabled)
+    }
+    /// Legacy values are preserved until this field is explicitly changed. Unsupported
+    /// wire types remain read-only, including after local draft restoration.
+    public func canEditSaleTime(end: Bool) -> Bool {
+        guard let raw = localMetadata[end ? "saleEndTime" : "saleStartTime"] else { return true }
+        if raw == .null { return true }
+        return raw.text != nil
+    }
+    public func saleTimePayloads() throws -> [String: ProjectEditJSON] {
+        var result: [String: ProjectEditJSON] = [:]
+        for end in [false, true] {
+            let key = end ? "saleEndTime" : "saleStartTime"
+            let value = end ? saleEndTime : saleStartTime
+            let original = localMetadata[key]
+            if value == (original?.text ?? "") {
+                if let original { result[key] = original }
+                continue
+            }
+            guard canEditSaleTime(end: end) else { throw ProjectEditError.invalidDraft }
+            if value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                result[key] = .null
+            } else {
+                guard let normalized = ProjectEditValidation.dateTime(value, endOfDay: end) else { throw ProjectEditError.invalidDraft }
+                result[key] = .string(normalized)
+            }
+        }
+        return result
+    }
 }
 public struct ProjectEditDraft: Codable, Equatable {
     public var name = ""
@@ -222,11 +277,13 @@ public enum ProjectEditValidation {
             }
         }
         for ticket in draft.tickets {
+            need((try? ticket.saleTimePayloads()) != nil, "ticketSaleDates\(ticket.id)", "dates")
             need(!ticket.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, "ticketName\(ticket.id)", "ticketName")
             need(decimal(ticket.price).map { $0 >= 0 } ?? false, "price\(ticket.id)", "price")
             need(Int(ticket.totalStock).map { $0 >= 0 } ?? false, "stock\(ticket.id)", "number")
             need(Int(ticket.teamSize).map { $0 >= 0 } ?? false, "team\(ticket.id)", "number")
-            let ts = dateTime(ticket.startTime), te = dateTime(ticket.endTime, endOfDay: true)
+            let schedule = ticket.schedule(in: draft)
+            let ts = dateTime(schedule.start), te = dateTime(schedule.end, endOfDay: true)
             need(ts != nil && te != nil, "ticketDates\(ticket.id)", "dates")
             if let ts, let te { need(draft.product == .city ? te > ts : te >= ts, "ticketOrder\(ticket.id)", "dateOrder") }
             if draft.product == .city { need(!ticket.meetingPoint.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, "meeting\(ticket.id)", "meeting") }

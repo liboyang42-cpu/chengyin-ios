@@ -1,7 +1,17 @@
 #if DEBUG
 import SwiftUI
 
+@MainActor private final class TemplateAuthoringMemberDetailFixtureReader: MemberTemplateReading {
+    let scope = UUID()
+    let isAuthenticated = true
+    let isConfigured = true
+    func memberTemplate(id: MemberPlayTemplateID) async throws -> MemberTemplateDetail {
+        guard id.rawValue == 901 else { throw APIError.malformedResponse }
+        return try JSONDecoder().decode(MemberTemplateDetail.self, from: Data(#"{"id":901,"title":"Synthetic owned detail","draftStatus":0}"#.utf8))
+    }
+}
 @MainActor private final class TemplateAuthoringFixtureContext: ObservableObject {
+    let memberReader = TemplateAuthoringMemberDetailFixtureReader()
     let storage = TemplateAuthoringMemoryStorage()
     let transport: TemplateAuthoringSyntheticTransport
     @Published var revision: UInt64 = 1
@@ -40,7 +50,7 @@ import SwiftUI
                 .dynamicTypeSize(.large)
             NavigationStack {
                 if ProcessInfo.processInfo.arguments.contains("--template-author-shelf") {
-                    TemplateAuthoringMineView(coordinator: context.coordinator, sessionRevision: context.revision, fixtureSignOut: { context.signOut() })
+                    TemplateAuthoringMineView(coordinator: context.coordinator, sessionRevision: context.revision, memberDetail: { AnyView(MemberTemplateDetailView(id: $0, reader: context.memberReader)) }, fixtureSignOut: { context.signOut() })
                 } else { TemplateAuthoringView(coordinator: context.coordinator, sessionRevision: context.revision) }
             }.id(context.mount)
         }

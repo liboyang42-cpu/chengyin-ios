@@ -82,6 +82,14 @@ import SwiftUI
             guard self.fullEdit, let i = self.draft.chapters.firstIndex(where: { $0.id == id }) else { return }; self.draft.chapters[i] = value
         })
     }
+    func ticketDateSync(_ id: String) -> Binding<Bool> {
+        Binding(get: { self.draft.product == .freeExplore && self.ticket(id).wrappedValue.syncsWithThemeDates }, set: { enabled in
+            guard self.fullEdit, let index = self.draft.tickets.firstIndex(where: { $0.id == id }) else { return }
+            var value = self.draft.tickets[index]
+            guard (try? value.setThemeDateSync(enabled, in: self.draft)) != nil else { return }
+            self.draft.tickets[index] = value
+        })
+    }
     func ticket(_ id: String) -> Binding<ProjectEditTicket> {
         Binding(get: { self.draft.tickets.first { $0.id == id } ?? .init() }, set: { value in
             guard self.fullEdit, let i = self.draft.tickets.firstIndex(where: { $0.id == id }) else { return }; self.draft.tickets[i] = value

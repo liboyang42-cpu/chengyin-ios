@@ -31,6 +31,18 @@ struct MerchantOperationsEditor: View {
     }
     @ViewBuilder private func fields(_ draft: MerchantOperationsDraft) -> some View {
         switch draft {
+        case .businessStatus:
+            Section("merchant.operations.businessStatus") {
+                Picker("merchant.operations.businessStatus", selection: Binding<MerchantBusinessStatus>(get: {
+                    if case .businessStatus(let value) = coordinator.draft { return value.status }; return .closed
+                }, set: { status in
+                    guard case .businessStatus(var value) = coordinator.draft else { return }
+                    value.status = status; model.edit(.businessStatus(value))
+                })) {
+                    ForEach(MerchantBusinessStatus.allCases, id: \.rawValue) { value in Text(LocalizedStringKey(value.titleKey)).tag(value) }
+                }.pickerStyle(.segmented).accessibilityIdentifier("merchant.operations.status.picker")
+                Text("merchant.operations.statusHint").font(.footnote).foregroundStyle(.secondary)
+            }
         case .profile(let value):
             MerchantOperationsMediaPreview(source: value.logo, title: "merchant.operations.logo", isExample: isExample)
             Section("merchant.operations.profile") {
@@ -177,7 +189,10 @@ struct MerchantOperationsEditor: View {
         Section(title) { imageControls(field) }
     }
     @ViewBuilder private func imageControls(_ field: MerchantImageField) -> some View {
-        if let context = imageContext?(field) {
+        if field == .gallery {
+            MerchantGalleryBatchView(batch: model.galleryBatch, binding: model.galleryBatchBinding,
+                available: gallerySelectionAvailable)
+        } else if let context = imageContext?(field) {
             RetainedImageSelectionView(context: context) { image in
                 guard coordinator.isCurrent, !coordinator.isBusy, !coordinator.isLocked,
                       coordinator.confirmation == nil, context.currentScope() == context.scope,
@@ -189,6 +204,12 @@ struct MerchantOperationsEditor: View {
             }.id(context.scope.accessRevision)
             .disabled(coordinator.confirmation != nil || coordinator.isLocked)
         } else { Label("merchant.operations.uploadDisabled", systemImage: "photo").font(.footnote).foregroundStyle(.secondary) }
+    }
+    private var gallerySelectionAvailable: Bool {
+        guard !model.galleryBatch.active, !model.galleryBatch.blocked,
+              case .gallery(let value) = coordinator.draft, value.gallery.count < 9,
+              let context = imageContext?(.gallery) else { return false }
+        return context.picker.enabled && context.uploads.uploader.isConfigured && !context.uploads.locked
     }
     private func profileField(_ title: LocalizedStringKey, _ key: WritableKeyPath<MerchantStoreProfile, String>, _ id: String, multiline: Bool = false) -> some View {
         TextField(title, text: Binding(get: { if case .profile(let value) = coordinator.draft { return value[keyPath: key] }; return "" }, set: { text in
@@ -234,7 +255,9 @@ struct MerchantOperationsConfirmationView: View {
                     ForEach(confirmation.draft.reviewLines) { line in
                         VStack(alignment: .leading, spacing: 6) {
                             Text(LocalizedStringKey(line.key)).font(.caption).foregroundStyle(.secondary)
-                            if line.key == "merchant.operations.chargeType", ["0", "1"].contains(line.value) {
+                            if line.key == "merchant.operations.businessStatus", let raw = Int(line.value), let status = MerchantBusinessStatus(rawValue: raw) {
+                                Text(LocalizedStringKey(status.titleKey))
+                            } else if line.key == "merchant.operations.chargeType", ["0", "1"].contains(line.value) {
                                 Text(LocalizedStringKey(line.value == "0" ? "merchant.operations.charge.free" : "merchant.operations.charge.paid"))
                             } else { Text(verbatim: line.value.isEmpty ? "—" : line.value).fixedSize(horizontal: false, vertical: true) }
                         }

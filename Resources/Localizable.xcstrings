@@ -120416,6 +120416,648 @@
           }
         }
       }
+    },
+    "club.management.stale": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Showing the previous list. Refresh to review applications or manage members."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在显示上次名单。请刷新成功后再审核申请或管理成员。"
+          }
+        }
+      }
+    },
+    "playkit.type.retry": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The last attempt did not pass. You can try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上次尝试未通过，可以再试一次。"
+          }
+        }
+      }
+    },
+    "playkit.type.finishedNotPassed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This round has ended without passing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本轮已结束，未通过。"
+          }
+        }
+      }
+    },
+    "projectEdit.saleSchedule": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ticket sale dates"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "售票日期"
+          }
+        }
+      }
+    },
+    "projectEdit.saleStart": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sale start"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "售票开始"
+          }
+        }
+      }
+    },
+    "projectEdit.saleEnd": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sale end"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "售票结束"
+          }
+        }
+      }
+    },
+    "projectEdit.saleStoredOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These dates are saved and displayed only. They do not currently control when tickets can be purchased. Dates use the service’s wall-clock time; no device time-zone conversion is applied."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这些日期仅保存和展示，目前不控制购票时段。日期按服务端墙上时间提交，不按设备时区换算。"
+          }
+        }
+      }
+    },
+    "projectEdit.saleLegacy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An unsupported saved value is read-only and will be preserved."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不支持的已保存值为只读，并将原样保留。"
+          }
+        }
+      }
+    },
+    "merchant.operations.businessStatus": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Business status"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "营业状态"
+          }
+        }
+      }
+    },
+    "merchant.operations.statusOpen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "营业中"
+          }
+        }
+      }
+    },
+    "merchant.operations.statusClosed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Closed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已打烊"
+          }
+        }
+      }
+    },
+    "merchant.operations.statusHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This changes the displayed open or closed status only. Review before saving; booking and access rules are unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅修改营业中或已打烊的展示状态。保存前请确认，不改变报名或访问规则。"
+          }
+        }
+      }
+    },
+    "merchant.operations.statusReadback": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The change was acknowledged. The current business status has been read back from the server."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "修改已确认，已从服务器重新读取当前营业状态。"
+          }
+        }
+      }
+    },
+    "merchant.operations.statusReadbackFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The change was acknowledged, but the current business status could not be refreshed. Reload to check it; do not repeat the save."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "修改已确认，但当前营业状态刷新失败。请重新加载查看，不要重复保存。"
+          }
+        }
+      }
+    },
+    "image.crop.logo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crop logo · 1:1"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "裁剪标志 · 1:1"
+          }
+        }
+      }
+    },
+    "image.crop.cover": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crop cover · 5:3"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "裁剪封面 · 5:3"
+          }
+        }
+      }
+    },
+    "image.crop.localOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adjust the crop, then review before uploading. Nothing has been sent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "调整裁剪后，再预览并确认上传。尚未发送任何内容。"
+          }
+        }
+      }
+    },
+    "image.crop.preview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cropped photo preview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "裁剪照片预览"
+          }
+        }
+      }
+    },
+    "image.crop.horizontal": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Horizontal position"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "水平位置"
+          }
+        }
+      }
+    },
+    "image.crop.vertical": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vertical position"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "垂直位置"
+          }
+        }
+      }
+    },
+    "image.crop.zoom": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zoom"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "缩放"
+          }
+        }
+      }
+    },
+    "image.crop.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use crop and review upload"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用裁剪并预览上传"
+          }
+        }
+      }
+    },
+    "image.crop.gallery": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crop gallery photo · 16:9"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "裁剪相册照片 · 16:9"
+          }
+        }
+      }
+    },
+    "projectEdit.syncThemeDates": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Match theme dates"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "与主题日期保持一致"
+          }
+        }
+      }
+    },
+    "projectEdit.syncThemeDatesHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "While editing here, this ticket’s validity uses the theme dates. Turn off to edit its dates separately."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在本编辑器中，此票种有效期使用主题日期。关闭后可单独修改票种日期。"
+          }
+        }
+      }
+    },
+    "projectEdit.syncThemeDatesLegacy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An unrecognized saved sync setting is preserved. Date sync cannot be changed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已保留无法识别的旧版同步设置，暂不能修改日期同步。"
+          }
+        }
+      }
+    },
+    "templateAuthor.shelf.keyword": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search owned templates"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜索我的玩法"
+          }
+        }
+      }
+    },
+    "templateAuthor.shelf.loadMore": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Load more / Retry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加载更多 / 重试"
+          }
+        }
+      }
+    },
+    "templateAuthor.shelf.moreFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not load the next page. Retry or refresh the list."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下一页加载失败，请重试或刷新列表。"
+          }
+        }
+      }
+    },
+    "templateAuthor.shelf.pageLimit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search limit reached. Narrow your search or refresh."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已达到搜索上限，请缩小搜索范围或刷新。"
+          }
+        }
+      }
+    },
+    "templateAuthor.shelf.pageScope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Browse 10 at a time, up to 1,000 per search. Changes require a matching first-100 owner snapshot."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每页显示 10 项，每次搜索最多 1,000 项。修改需要与前 100 项的所有者快照一致。"
+          }
+        }
+      }
+    },
+    "image.galleryBatch.boundary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Each image needs crop, upload review, and Use. Cancel stops remaining images; already added images stay in the unsaved draft."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每张图片都需裁剪、审核上传并使用。取消仅停止剩余图片；已添加的图片保留在尚未保存的草稿中。"
+          }
+        }
+      }
+    },
+    "image.galleryBatch.select": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select gallery images"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择相册图片"
+          }
+        }
+      }
+    },
+    "image.galleryBatch.skip": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skip this image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跳过这张图片"
+          }
+        }
+      }
+    },
+    "image.galleryBatch.replace": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replace this image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "替换这张图片"
+          }
+        }
+      }
+    },
+    "image.galleryBatch.cancelAll": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel remaining images"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消剩余图片"
+          }
+        }
+      }
+    },
+    "image.galleryBatch.blocked": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An upload may already exist. Remaining images were discarded. Upload reconciliation is unavailable; no automatic retry or deletion will occur."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可能已有图片上传。已放弃剩余图片。当前无法核对上传结果，不会自动重试或删除。"
+          }
+        }
+      }
+    },
+    "image.galleryBatch.remaining %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Images remaining: %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "剩余 %lld 张图片"
+          }
+        }
+      }
+    },
+    "image.galleryBatch.applied %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Images added to local draft: %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已向本地草稿添加 %lld 张图片"
+          }
+        }
+      }
+    },
+    "image.retained.byteCount %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upload size (bytes): %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上传大小（字节）：%lld"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

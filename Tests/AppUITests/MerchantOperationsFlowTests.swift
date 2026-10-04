@@ -33,6 +33,25 @@ final class MerchantOperationsFlowTests: XCTestCase {
         XCTAssertTrue(button.exists, app.debugDescription, file: file, line: line)
         XCTAssertFalse(button.isEnabled, app.debugDescription, file: file, line: line)
     }
+    func testBusinessStatusReviewCancelAndAuthoritativeOfflineSave() {
+        let app = launch(); open("businessStatus", app: app)
+        let picker = app.segmentedControls["merchant.operations.status.picker"]
+        XCTAssertTrue(picker.waitForExistence(timeout: 4)); picker.buttons["Closed"].tap()
+        review(app); XCTAssertTrue(app.staticTexts["Closed"].exists)
+        app.buttons["merchant.operations.confirm.cancel"].tap()
+        XCTAssertFalse(app.staticTexts["merchant.operations.exampleSaved"].exists)
+        review(app); app.buttons["merchant.operations.confirm"].tap()
+        XCTAssertTrue(app.staticTexts["merchant.operations.exampleSaved"].waitForExistence(timeout: 4))
+        assertReviewLocked(app)
+    }
+    func testBusinessStatusUnknownDoesNotAllowRepeatSave() {
+        let app = launch(["--merchant-operations-unknown"]); open("businessStatus", app: app)
+        app.segmentedControls["merchant.operations.status.picker"].buttons["Closed"].tap()
+        review(app); app.buttons["merchant.operations.confirm"].tap()
+        XCTAssertTrue(app.staticTexts["merchant.operations.issue"].waitForExistence(timeout: 4))
+        assertReviewLocked(app)
+        XCTAssertFalse(app.staticTexts["merchant.operations.exampleSaved"].exists)
+    }
     func testProfileCancelThenSaveOfflineExample() {
         let app = launch(); open("profile", app: app); editName(app); review(app)
         app.buttons["merchant.operations.confirm.cancel"].tap()

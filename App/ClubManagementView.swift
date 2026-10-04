@@ -7,6 +7,7 @@ struct ClubManagementView: View {
     let identity: ClubReadIdentity?
     let access: any ClubManagementAccess
     let coordinator: ClubManagementCoordinator
+    var viewerRevision: UInt64 = 0
     var onMembershipChanged: (() -> Void)? = nil
     @State private var selection: DetailSelection?
     private enum DetailSelection: Hashable, Identifiable {
@@ -17,6 +18,11 @@ struct ClubManagementView: View {
     @State private var confirmation: ClubManagementConfirmation?
     @State private var state: ClubManagementState = .idle
     @State private var loading = false
+    @State private var stale = false
+    @State private var screenRevision: UInt64?
+    private struct ReadContext: Hashable { let identity: ClubReadIdentity?; let revision: UInt64 }
+    private var readContext: ReadContext { .init(identity: identity, revision: viewerRevision) }
+    private var contextMatches: Bool { screenIdentity == identity && access.identity == identity && screenRevision == viewerRevision }
     @State private var failed = false
     @State private var serverReadMessage: String?
     @State private var denied = false
@@ -38,7 +44,7 @@ struct ClubManagementView: View {
                     if let serverReadMessage { Text(verbatim: serverReadMessage) }
                 }
                 status
-                if let snapshot {
+                if contextMatches, let snapshot {
                     Section { Text(verbatim: snapshot.club.name) }
                     Section("club.management.requests") {
                         if snapshot.requests.isEmpty { Text("club.management.empty") }
@@ -73,7 +79,7 @@ struct ClubManagementView: View {
         .appNavigationTitle("club.management.title")
         .navigationDestination(item: $selection) { selected in detail(selected) }
         .sheet(isPresented: Binding(get: { confirmation != nil }, set: { if !$0 { cancel() } })) {
-            if let pending = confirmation {
+            if contextMatches, let pending = confirmation {
                 NavigationStack {
                     Form {
                         Text(LocalizedStringKey("club.management." + String(pending.action.rawValue) + ".body"))
@@ -92,11 +98,12 @@ struct ClubManagementView: View {
                 .accessibilityIdentifier("club.management.confirmation")
             }
         }
-        .task(id: identity) {
-            guard screenIdentity != identity || snapshot == nil && state == .idle else { return }
+        .task(id: readContext) {
+            guard screenIdentity != identity || screenRevision != viewerRevision || snapshot == nil && state == .idle else { return }
+            leaveScreen()
             generation &+= 1
-            cancel(); selection = nil; snapshot = nil; state = .idle; loading = false
-            screenIdentity = identity
+            cancel(); selection = nil; snapshot = nil; stale = false; state = .idle; loading = false
+            screenIdentity = identity; screenRevision = viewerRevision
             coordinator.synchronizeSession()
             await refresh()
         }
@@ -106,7 +113,7 @@ struct ClubManagementView: View {
         Form {
             if loading { ProgressView().accessibilityIdentifier("club.management.detail.loading") }
             status
-            if access.identity == identity, let snapshot {
+            if contextMatches, access.identity == identity, let snapshot {
                 switch selected {
                 case .request(let id):
                     if let request = snapshot.requests.first(where: { $0.id == id }) {
@@ -152,6 +159,7 @@ struct ClubManagementView: View {
         cancel()
     }
     @ViewBuilder private var status: some View {
+        if stale { Text("club.management.stale").accessibilityIdentifier("club.management.stale") }
         switch state {
         case .checking, .submitting: ProgressView()
         case .notSent: Text("club.management.not_sent")
@@ -168,7 +176,7 @@ struct ClubManagementView: View {
         Button(role: action == .approve ? nil : .destructive) {
             Task { await prepare(action, memberID: memberID) }
         } label: { Text(LocalizedStringKey("club.management." + String(action.rawValue))) }
-            .disabled(loading || state.preventsNewAction)
+            .disabled(loading || stale || !contextMatches || state.preventsNewAction)
             .accessibilityIdentifier("club.management.\(action.rawValue).\(memberID)")
     }
     private func cancel() {
@@ -177,41 +185,48 @@ struct ClubManagementView: View {
         state = coordinator.state(clubID: clubID)
     }
     @MainActor private func refresh() async {
-        guard identity != nil, access.isConfigured, !loading else { return }
-        generation &+= 1; let run = generation; let captured = identity
-        loading = true; failed = false; serverReadMessage = nil; denied = false; snapshot = nil; readbackUnavailable = false
+        guard identity != nil, access.isConfigured, contextMatches, !loading,
+              state != .checking, state != .awaitingConfirmation, state != .submitting else { return }
+        generation &+= 1; let run = generation; let captured = identity; let revision = viewerRevision
+        loading = true; failed = false; serverReadMessage = nil; denied = false
+        stale = snapshot != nil
         state = coordinator.state(clubID: clubID)
         do {
             let result = try await access.snapshot(clubID: clubID)
-            guard run == generation, identity == captured, access.identity == captured, !Task.isCancelled else { return }
-            snapshot = result; loading = false
+            guard run == generation, identity == captured, access.identity == captured, viewerRevision == revision, screenRevision == revision, !Task.isCancelled else { return }
+            guard result.club.id == clubID, result.club.canGovern else { throw ClubReadFailure.forbidden(message: nil) }
+            snapshot = result; stale = false; loading = false; readbackUnavailable = false
         } catch {
-            guard run == generation, identity == captured, access.identity == captured, !Task.isCancelled else { return }
+            guard run == generation, identity == captured, access.identity == captured, viewerRevision == revision, screenRevision == revision, !Task.isCancelled else { return }
+            if let snapshot, let failure = error as? ClubManagementListConnectionFailure, failure.canRetain(snapshot) {
+                stale = true
+            } else { snapshot = nil; stale = false }
             failed = true; loading = false
             serverReadMessage = (error as? ClubReadFailure)?.message
             denied = (error as? ClubReadFailure)?.isForbidden == true
         }
     }
     @MainActor private func prepare(_ action: ClubManagementAction, memberID: Int) async {
-        guard let identity, !state.preventsNewAction, !loading else { return }
-        generation &+= 1; let run = generation
+        guard let identity, contextMatches, !stale, !state.preventsNewAction, !loading else { return }
+        generation &+= 1; let run = generation; let revision = viewerRevision
         state = .checking
         do {
             let pending = try await coordinator.prepare(clubID: clubID, action: action, memberID: memberID, expectedIdentity: identity, ownerID: ownerID)
-            guard run == generation, access.identity == identity, !Task.isCancelled else { coordinator.cancel(pending); return }
+            guard run == generation, access.identity == identity, viewerRevision == revision, screenRevision == revision, !Task.isCancelled else { coordinator.cancel(pending); return }
             confirmation = pending; state = coordinator.state(clubID: clubID)
         } catch {
-            guard run == generation, access.identity == identity else { return }
-            snapshot = nil; failed = true; state = coordinator.state(clubID: clubID)
+            guard run == generation, access.identity == identity, viewerRevision == revision, screenRevision == revision else { return }
+            snapshot = nil; stale = false; failed = true; state = coordinator.state(clubID: clubID)
             serverReadMessage = (error as? ClubReadFailure)?.message
             denied = (error as? ClubReadFailure)?.isForbidden == true
         }
     }
     @MainActor private func confirm(_ pending: ClubManagementConfirmation) async {
-        generation &+= 1; let run = generation
-        snapshot = nil
+        guard contextMatches, !stale, pending.identity == identity else { coordinator.cancel(pending); return }
+        generation &+= 1; let run = generation; let revision = viewerRevision
+        snapshot = nil; stale = false
         _ = await coordinator.confirm(pending)
-        guard run == generation, access.identity == pending.identity, !Task.isCancelled else { return }
+        guard run == generation, access.identity == pending.identity, !Task.isCancelled, viewerRevision == revision, screenRevision == revision else { return }
         state = coordinator.state(clubID: clubID)
         switch coordinator.readback(clubID: clubID) {
         case .received(let result): snapshot = result

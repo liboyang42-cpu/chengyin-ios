@@ -69,7 +69,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                             ClubOperationsEntryButton(target: .club(id), identity: reader.clubIdentity, access: operations.access, coordinator: operations.coordinator)
                         }
                         NavigationLink {
-                            ClubManagementView(clubID:id,identity:reader.clubIdentity,access:management.access,coordinator:management.coordinator, onMembershipChanged: {
+                            ClubManagementView(clubID:id,identity:reader.clubIdentity,access:management.access,coordinator:management.coordinator, viewerRevision:management.viewerRevision, onMembershipChanged: {
                                 // Do not reload a hidden NavigationLink source while its
                                 // management destination is still showing the receipt.
                                 managementNeedsRefresh = true

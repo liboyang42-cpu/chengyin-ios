@@ -25,6 +25,33 @@ import FoundationNetworking
         XCTAssertThrowsError(try check("qa", "SUBMIT_QA", ["input": .string("answer")], #"{"mode":"TYPE","finished":true,"passed":false}"#))
         XCTAssertTrue(PlayKitScreenProjection(kind: .qa, segment: try wire(#"{"finished":true,"passed":false}"#)).complete)
     }
+    func testTypeInResultUsesOnlyAuthoritativeOutcome() throws {
+        for (json, expected) in [
+            (#"{"attempts":1,"submitted":false,"passed":false}"#, "playkit.type.retry"),
+            (#"{"attempts":2,"submitted":true,"passed":false}"#, "playkit.type.finishedNotPassed"),
+            (#"{"attempts":1,"submitted":true,"passed":true}"#, "playkit.result.passed"),
+            (#"{"attempts":9,"tries":1,"submitted":false,"passed":false}"#, "playkit.type.retry"),
+            (#"{"attempts":1,"tries":0,"submitted":true,"passed":false}"#, "playkit.type.finishedNotPassed")
+        ] {
+            XCTAssertEqual(PlayKitScreenProjection(kind: .typeIn, segment: try wire(json)).typeInResultKey, expected)
+        }
+    }
+    func testTypeInResultRejectsMissingMalformedAndContradictoryFields() throws {
+        for json in ["{}",
+                     #"{"attempts":0,"submitted":true,"passed":false}"#,
+                     #"{"attempts":-1,"submitted":true,"passed":false}"#,
+                     #"{"attempts":1.5,"submitted":true,"passed":false}"#,
+                     #"{"attempts":"1","submitted":true,"passed":false}"#,
+                     #"{"attempts":true,"submitted":true,"passed":false}"#,
+                     #"{"attempts":1,"passed":false}"#,
+                     #"{"attempts":1,"submitted":"true","passed":false}"#,
+                     #"{"attempts":1,"submitted":true,"passed":"false"}"#,
+                     #"{"attempts":1,"submitted":true}"#,
+                     #"{"attempts":1,"submitted":false,"passed":true}"#] {
+            XCTAssertNil(PlayKitScreenProjection(kind: .typeIn, segment: try wire(json)).typeInResultKey, json)
+        }
+        XCTAssertNil(PlayKitScreenProjection(kind: .stopwatch, segment: try wire(#"{"attempts":1,"submitted":true,"passed":true}"#)).typeInResultKey)
+    }
     func testReasoningResultSeparatesTerminalFailureFromRetry() throws {
         for (kind, json, expected) in [
             (PlayKitScreenKind.sort, #"{"attempts":2,"finished":true,"passed":false}"#, "playkit.reasoning.finishedNotPassed"),

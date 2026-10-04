@@ -14,7 +14,12 @@ public enum TemplateAuthoringWireRequestBuilder {
         guard jsonPaths.contains(descriptor.path) || formPaths.contains(descriptor.path) else { throw APIError.invalidRequest }
         switch descriptor.path {
         case "/api/template/my-list":
-            guard descriptor == TemplateAuthoringContract.listMine() else { throw APIError.invalidRequest }
+            if descriptor != TemplateAuthoringContract.listMine() {
+                guard case .form(let fields) = descriptor.body,
+                      let rawPage = fields["pageNum"], let page = Int(rawPage),
+                      let keyword = fields["keyword"],
+                      descriptor == (try TemplateOwnShelfPage.request(page: page, keyword: keyword)) else { throw APIError.invalidRequest }
+            }
         case "/api/template/delete", "/api/template/updateLibraryStatus":
             guard descriptor.mutates, case .form(let fields) = descriptor.body,
                   let raw = fields["template_id"], let id = Int(raw), id > 0, raw == String(id) else { throw APIError.invalidRequest }

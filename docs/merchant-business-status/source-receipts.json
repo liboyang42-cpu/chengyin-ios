@@ -1,0 +1,41 @@
+{
+  "ref": "11be8cb2f09073496f3a7d5130d558da60cf5439",
+  "sources": [
+    {
+      "path": "chengyinhub-xcx/pages/merchant/decor/index.wxml",
+      "blob": "f37504292533118f599a3cd7a9503d79e80684cb",
+      "url": "https://github.com/liboyang42-cpu/chengyin/blob/11be8cb2f09073496f3a7d5130d558da60cf5439/chengyinhub-xcx/pages/merchant/decor/index.wxml",
+      "local": "index.wxml"
+    },
+    {
+      "path": "chengyinhub-xcx/pages/merchant/decor/gallery/index.wxml",
+      "blob": "7191986534121293c7ea8b2e23f3a855326a4aac",
+      "url": "https://github.com/liboyang42-cpu/chengyin/blob/11be8cb2f09073496f3a7d5130d558da60cf5439/chengyinhub-xcx/pages/merchant/decor/gallery/index.wxml",
+      "local": "gallery.wxml"
+    },
+    {
+      "path": "chengyinhub-xcx/pages/merchant/decor/index.js",
+      "blob": "36f0d912f63369d8d110b56757387c66ae81d307",
+      "url": "https://github.com/liboyang42-cpu/chengyin/blob/11be8cb2f09073496f3a7d5130d558da60cf5439/chengyinhub-xcx/pages/merchant/decor/index.js",
+      "local": "index.js"
+    },
+    {
+      "path": "chengyinhub-xcx/pages/merchant/decor/gallery/index.js",
+      "blob": "af618b6445e0df2bdc1b801fbe49d99119e7812f",
+      "url": "https://github.com/liboyang42-cpu/chengyin/blob/11be8cb2f09073496f3a7d5130d558da60cf5439/chengyinhub-xcx/pages/merchant/decor/gallery/index.js",
+      "local": "gallery.js"
+    },
+    {
+      "path": "chengyinhub-admin/src/main/java/com/chengyinhub/web/controller/api/ApiMerchantController.java",
+      "blob": "ac739a411d2de90de83bebecf482508e1d363a2a",
+      "url": "https://github.com/liboyang42-cpu/chengyin/blob/11be8cb2f09073496f3a7d5130d558da60cf5439/chengyinhub-admin/src/main/java/com/chengyinhub/web/controller/api/ApiMerchantController.java",
+      "local": "ApiMerchantController.java"
+    },
+    {
+      "path": "chengyinhub-xcx/app.js",
+      "blob": "b62184a6198a068502225becd3e63a6c05020612",
+      "url": "https://github.com/liboyang42-cpu/chengyin/blob/11be8cb2f09073496f3a7d5130d558da60cf5439/chengyinhub-xcx/app.js",
+      "local": "app.js"
+    }
+  ]
+}

@@ -24,7 +24,7 @@ import SwiftUI
                     ContentUnavailableView("team.empty", systemImage: "person.3", description: Text("team.empty.detail"))
                 }
                 ForEach(model.coordinator.teams) { team in
-                    NavigationLink { TeamDetailView(lookup: .id(team.id), coordinator: makeCoordinator()) } label: { TeamCard(team: team) }
+                    NavigationLink { TeamDetailView(lookup: .id(team.id), coordinator: makeCoordinator(), makeCoordinator: makeCoordinator) } label: { TeamCard(team: team) }
                         .buttonStyle(.plain).accessibilityIdentifier("team.row.\(team.id)")
                 }
                 if model.coordinator.authenticated && model.coordinator.configured {
@@ -42,7 +42,13 @@ import SwiftUI
     let lookup: TeamLookup
     @StateObject private var model: TeamScreenModel
     @State private var invitationPreview = false
-    init(lookup: TeamLookup, coordinator: TeamCoordinator) { self.lookup = lookup; _model = StateObject(wrappedValue: TeamScreenModel(coordinator)) }
+    let makeCoordinator: () -> TeamCoordinator
+    let requiresMembership: Bool
+    let readOnly: Bool
+    init(lookup: TeamLookup, coordinator: TeamCoordinator, makeCoordinator: @escaping () -> TeamCoordinator, requiresMembership: Bool = false, readOnly: Bool = false) {
+        self.lookup = lookup; self.makeCoordinator = makeCoordinator; self.requiresMembership = requiresMembership; self.readOnly = readOnly
+        _model = StateObject(wrappedValue: TeamScreenModel(coordinator))
+    }
     private var invitationCode: String? { if case .invitation(let code) = lookup { return code.trimmingCharacters(in: .whitespacesAndNewlines) }; return nil }
     var body: some View {
         ScrollView {
@@ -56,17 +62,31 @@ import SwiftUI
                     Text("team.ticketSeparation").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                     if let invitationCode {
                         Text("team.join.consequence").fixedSize(horizontal: false, vertical: true)
-                        if detail.joined == true { Label("team.alreadyJoined", systemImage: "checkmark.circle") }
+                        if let teamID = model.coordinator.postJoinDetailID {
+                            NavigationLink {
+                                TeamDetailView(lookup: .id(teamID), coordinator: makeCoordinator(), makeCoordinator: makeCoordinator, requiresMembership: true, readOnly: true)
+                            } label: { Label("team.detail", systemImage: "person.3") }
+                                .frame(minHeight: 44).disabled(model.running || model.coordinator.busy)
+                                .accessibilityIdentifier("team.postJoin.openDetail")
+                        }
+                        else if detail.joined == true {
+                            Label("team.alreadyJoined", systemImage: "checkmark.circle")
+                            NavigationLink {
+                                TeamDetailView(lookup: .id(detail.team.id), coordinator: makeCoordinator(), makeCoordinator: makeCoordinator, requiresMembership: true)
+                            } label: { Label("team.detail", systemImage: "person.3") }
+                                .frame(minHeight: 44).disabled(model.actionLocked)
+                                .accessibilityIdentifier("team.invitation.openDetail")
+                        }
                         else { actionButton(.join(teamID: detail.team.id, inviteCode: invitationCode), detail: detail) }
                     }
-                    if detail.team.status == .recruiting, let code = detail.team.inviteCode, TeamLookup.validInvite(code) {
+                    if !readOnly, detail.team.status == .recruiting, let code = detail.team.inviteCode, TeamLookup.validInvite(code) {
                         Button("team.invitePreview") { invitationPreview = true }.frame(minHeight: 44).disabled(model.actionLocked).accessibilityIdentifier("team.invitePreview")
                     }
                     Text("team.members.title").font(.title2.bold()).accessibilityAddTraits(.isHeader)
                     if detail.members.isEmpty { Text("team.members.empty").foregroundStyle(.secondary) }
                     ForEach(detail.members) { member in
                         let action = TeamAction.remove(teamID: detail.team.id, memberID: member.id)
-                        TeamMemberRow(member: member, remove: action.isAllowed(detail: detail) ? { model.prepare(action) } : nil).disabled(model.actionLocked)
+                        TeamMemberRow(member: member, remove: !readOnly && action.isAllowed(detail: detail) ? { model.prepare(action) } : nil).disabled(model.actionLocked)
                         Divider()
                     }
                     actionButton(.leave(teamID: detail.team.id), detail: detail)
@@ -79,7 +99,7 @@ import SwiftUI
                         }
                     }
                 }
-                if model.coordinator.pending != nil {
+                if !readOnly, model.coordinator.pending != nil {
                     Button("team.checkOutcome") { Task { await model.run { await model.coordinator.checkOutcome() } } }
                         .frame(minHeight: 44).disabled(model.running || !model.coordinator.canSimulate).accessibilityIdentifier("team.checkOutcome")
                 }
@@ -94,11 +114,16 @@ import SwiftUI
             .sheet(isPresented: $invitationPreview) { if let team = model.coordinator.detail?.team { TeamInvitePreview(team: team) } }
     }
     @ViewBuilder private func actionButton(_ action: TeamAction, detail: TeamDetail) -> some View {
-        if action.isAllowed(detail: detail) {
+        if !readOnly, action.isAllowed(detail: detail) {
             Button { model.prepare(action) } label: { Text(LocalizedStringKey(action.key)).frame(maxWidth: .infinity, minHeight: 44) }
                 .buttonStyle(.bordered).disabled(model.actionLocked)
                 .accessibilityIdentifier(action.key)
         }
     }
-    private func reload() async { await model.run { await model.coordinator.loadDetail(lookup) } }
+    private func reload() async {
+        await model.run {
+            if readOnly, case .id(let teamID) = lookup { await model.coordinator.loadPostJoinDetail(teamID: teamID) }
+            else { await model.coordinator.loadDetail(lookup, requireMembership: requiresMembership) }
+        }
+    }
 }

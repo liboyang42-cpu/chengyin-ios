@@ -9,7 +9,7 @@ struct MerchantOperationsHomeView: View {
     @State private var loadedScope: UUID?
     @State private var loading = false
     @State private var generation = 0
-    private let destinations: [MerchantOperationsDestination] = [.profile, .decor, .gallery, .story, .cooperation, .character, .assets, .cityNodes, .templates]
+    private let destinations: [MerchantOperationsDestination] = [.profile, .businessStatus, .decor, .gallery, .story, .cooperation, .character, .assets, .cityNodes, .templates]
     var body: some View {
         ScrollView {
             LazyVStack(spacing: 18) {
@@ -39,7 +39,7 @@ struct MerchantOperationsHomeView: View {
         .task(id: reader.scope) { await load() }
     }
     private func symbol(_ destination: MerchantOperationsDestination) -> String {
-        switch destination { case .profile, .decor: return "storefront"; case .gallery: return "photo.on.rectangle"
+        switch destination { case .profile, .decor, .businessStatus: return "storefront"; case .gallery: return "photo.on.rectangle"
         case .story: return "book.closed"; case .cooperation: return "person.2"; case .character: return "person.crop.circle"
         case .assets: return "waveform"; case .cityNodes: return "mappin.and.ellipse"; case .templates, .template: return "rectangle.grid.2x2" }
     }
@@ -63,29 +63,46 @@ struct MerchantOperationsHomeView: View {
 final class MerchantOperationsViewModel: ObservableObject {
     let coordinator: MerchantOperationsCoordinator
     @Published private(set) var revision = 0
+    let galleryBatch = MerchantGalleryBatchModel()
     let imageOwner: MerchantRetainedImageDocumentOwner?
     init(reader: any MerchantOperationsReading, destination: MerchantOperationsDestination, imageHost: MerchantRetainedImageHost? = nil) {
         coordinator = .init(reader: reader, destination: destination)
         imageOwner = imageHost?.document(reader: reader, destination: destination)
     }
     func load() async {
-        imageOwner?.invalidate(); revision += 1
+        galleryBatch.cancel(); imageOwner?.invalidate(); revision += 1
         await coordinator.load(); await imageOwner?.refresh(coordinator: coordinator); revision += 1
     }
     func edit(_ value: MerchantOperationsDraft) {
-        coordinator.edit(value); imageOwner?.draftChanged(coordinator.draft); revision += 1
+        galleryBatch.cancel(); coordinator.edit(value); imageOwner?.draftChanged(coordinator.draft); revision += 1
+    }
+    var galleryBatchBinding: MerchantGalleryBatchBinding {
+        .init(draft: { [weak self] in self?.coordinator.draft },
+              accessFence: { [weak self] in self?.imageOwner?.galleryBatchAccessFence },
+              context: { [weak self] in self?.imageContext(.gallery) },
+              append: { [weak self] image, scope, before, after in
+            guard let self, self.coordinator.isCurrent, !self.coordinator.isBusy, !self.coordinator.isLocked,
+                  self.coordinator.confirmation == nil, self.coordinator.draft == before,
+                  self.imageOwner?.validatesGalleryBatchScope(scope, coordinator: self.coordinator) == true,
+                  image.scope == scope, case .merchant(_, .gallery) = scope.destination,
+                  let verified = try? image.applying(to: before, expectedScope: scope), verified == after else { return false }
+            // Only this verified append bypasses generic edit's batch cancellation. The
+            // batch still waits for applyLocally's durable result before reacquiring scope.
+            self.coordinator.edit(after); self.imageOwner?.draftChanged(self.coordinator.draft); self.revision += 1
+            return self.coordinator.draft == after
+        })
     }
     func imageContext(_ field: MerchantImageField) -> RetainedImageSelectionContext? { imageOwner?.context(field: field, coordinator: coordinator) }
-    func prepare() { coordinator.prepare(); revision += 1 }
+    func prepare() { galleryBatch.cancel(); coordinator.prepare(); revision += 1 }
     func cancel() { coordinator.cancelConfirmation(); revision += 1 }
-    func discard() { coordinator.discardChanges(); imageOwner?.draftChanged(coordinator.draft); revision += 1 }
+    func discard() { galleryBatch.cancel(); coordinator.discardChanges(); imageOwner?.draftChanged(coordinator.draft); revision += 1 }
     func confirm(_ value: MerchantOperationsConfirmation) async {
-        imageOwner?.invalidate(); revision += 1
+        galleryBatch.cancel(); imageOwner?.invalidate(); revision += 1
         await coordinator.confirm(value); await imageOwner?.refresh(coordinator: coordinator); revision += 1
     }
-    func invalidate() { imageOwner?.invalidate(); coordinator.invalidate(); revision += 1 }
-    func leaveImages() { imageOwner?.invalidate(); revision += 1 }
-    func refreshImages() async { await imageOwner?.refresh(coordinator: coordinator); revision += 1 }
+    func invalidate() { galleryBatch.cancel(); imageOwner?.invalidate(); coordinator.invalidate(); revision += 1 }
+    func leaveImages() { galleryBatch.cancel(); imageOwner?.invalidate(); revision += 1 }
+    func refreshImages() async { galleryBatch.cancel(); await imageOwner?.refresh(coordinator: coordinator); revision += 1 }
 }
 
 @MainActor

@@ -28,7 +28,7 @@ import Foundation
         case .unauthorized: return (Data(#"{"code":401}"#.utf8), 401)
         }
     }
-    public static let list = #"{"code":200,"data":[{"id":901,"title":"Synthetic interaction","description":"Fixture only","status":2,"publishStatus":0,"packType":0}]}"#
+    public static let list = #"{"code":200,"data":{"total":1,"rows":[{"id":901,"title":"Synthetic interaction","description":"Fixture only","status":2,"publishStatus":0,"packType":0}]}}"#
 }
 public enum TemplateAuthoringSyntheticFixtures {
     /// Synthetic multi-family creator input; no account, server or location data.

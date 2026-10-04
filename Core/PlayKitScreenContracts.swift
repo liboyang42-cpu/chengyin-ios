@@ -103,6 +103,16 @@ public struct PlayKitScreenProjection: Equatable {
         if passed { return "playkit.result.passed" }
         return "playkit.reasoning.tryAgain"
     }
+    /// Type-in verdict copy follows the server's submission flag, never the
+    /// configured attempt cap or the locally measured text/time.
+    public var typeInResultKey: String? {
+        guard kind == .typeIn,
+              let attempts = segment["attempts"].integer, attempts > 0,
+              let submitted = segment["submitted"].bool,
+              let passed = segment["passed"].bool else { return nil }
+        if passed { return submitted ? "playkit.result.passed" : nil }
+        return submitted ? "playkit.type.finishedNotPassed" : "playkit.type.retry"
+    }
     public var feedback: String? { segment["lastFeedback"].text ?? segment["feedback"].text }
     public var options: [PlayKitOption] {
         if kind == .predict || kind == .blindTaste { return PlayKitOption.read(segment["options"], idKey: "key") }

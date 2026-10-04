@@ -12,6 +12,21 @@ import XCTest
     func app(_ extras: [String] = [], language: String = "en") -> XCUIApplication {
         let app = XCUIApplication(); app.launchArguments = ["--uitesting-reset-language", "--ui-template-authoring", "--template-author-shelf", "-AppleLanguages", "(\(language))", "-AppleLocale", language == "en" ? "en_US" : "zh_CN"] + extras; app.launch(); return app
     }
+    func testOwnedDetailBackAndReopenKeepsStableDestination() {
+        let app = app(); defer { attachFailureScreenshot(self, app: app); app.terminate() }
+        for _ in 0..<2 {
+            let detail = app.buttons["memberTemplate.mine.901"]
+            reveal(detail, in: app); detail.tap()
+            let title = app.staticTexts["Synthetic owned detail"]
+            XCTAssertTrue(title.waitForExistence(timeout: 5), app.debugDescription)
+            XCTAssertFalse(app.buttons["templateAuthor.shelf.refresh"].isHittable)
+            app.navigationBars.buttons.firstMatch.tap()
+            XCTAssertTrue(app.buttons["templateAuthor.shelf.refresh"].waitForExistence(timeout: 5))
+            reveal(app.buttons["templateAuthor.shelf.library.901"], in: app)
+            XCTAssertTrue(app.buttons["templateAuthor.shelf.library.901"].isEnabled)
+            app.buttons["templateAuthor.fixture.reopen"].tap()
+        }
+    }
     func testLibraryReviewShowsIdentityAndCancellationDoesNotSubmit() {
         let app = app(); defer { attachFailureScreenshot(self, app: app); app.terminate() }; let button = app.buttons["templateAuthor.shelf.library.901"]
         XCTAssertTrue(button.waitForExistence(timeout: 3)); button.tap()

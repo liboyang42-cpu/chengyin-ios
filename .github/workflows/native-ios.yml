@@ -216,7 +216,9 @@ jobs:
             --xctestrun "$APP_UNIT_XCTESTRUN" --commit "$GITHUB_SHA" \
             --approve-ephemeral-simulator-host
       - name: Boot simulator before app-unit tests
-        run: xcrun simctl bootstatus "$TEST_SIMULATOR_ID" -b
+        run: |
+          set -o pipefail
+          xcrun simctl bootstatus "$TEST_SIMULATOR_ID" -b 2>&1 | tee "$RUNNER_TEMP/questify-app-unit-boot.log"
       - name: Run all app-hosted XCTest methods (isolated simulator host)
         run: |
           xcodebuild -xctestrun "$APP_UNIT_XCTESTRUN" \
@@ -227,6 +229,20 @@ jobs:
             -test-timeouts-enabled YES -default-test-execution-time-allowance 60 \
             -maximum-test-execution-time-allowance 120 \
             -only-testing:QuestifyAppUnitTests test-without-building
+      - name: Extract bounded app-unit launch diagnostics
+        if: always()
+        run: |
+          python3 tools/collect_app_unit_launch_diagnostics.py \
+            --runner-temp "$RUNNER_TEMP" --simulator "${TEST_SIMULATOR_ID:-}"
+      - name: Retain small app-unit launch diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: app-unit-launch-diagnostics-${{ github.sha }}
+          path: ${{ runner.temp }}/questify-app-unit-launch-diagnostics.json
+          if-no-files-found: warn
+          retention-days: 1
+          compression-level: 0
       - name: Retain app-unit test results briefly
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

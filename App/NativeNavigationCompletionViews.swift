@@ -54,7 +54,7 @@ private struct TeamInvitationPresentation: Hashable {
     let makeCoordinator: () -> TeamCoordinator
     var onLogin: (() -> Void)?
     var body: some View {
-        TeamDetailView(lookup: .invitation(route.code), coordinator: makeCoordinator())
+        TeamDetailView(lookup: .invitation(route.code), coordinator: makeCoordinator(), makeCoordinator: makeCoordinator)
             .toolbar { if let onLogin { Button("team.signIn", action: onLogin) } }
     }
 }

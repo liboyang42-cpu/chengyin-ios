@@ -66,7 +66,11 @@ import SwiftUI
                 .textFieldStyle(.roundedBorder).textInputAutocapitalization(.never).autocorrectionDisabled()
                 .focused($typingFocused).disabled(timing.phase != .running || !enabled)
                 .onChange(of: input) { _, value in if value.count > 4096 { input = String(value.prefix(4096)) }; onDirty() }
-            if let attempts = segment["attempts"].integer { LabeledContent("playkit.attempts") { Text(verbatim: String(attempts)) } }
+            if let attempts = segment["attempts"].integer, attempts >= 0 { LabeledContent("playkit.attempts") { Text(verbatim: String(attempts)) } }
+            if let cap = segment["tries"].integer, cap > 0 { LabeledContent("playkit.attemptLimit") { Text(verbatim: String(cap)) } }
+            if let result = PlayKitScreenProjection(kind: kind, segment: segment).typeInResultKey {
+                Text(LocalizedStringKey(result)).accessibilityIdentifier("playkit.type.result")
+            }
         }
         Text(verbatim: clockLabel).font(.system(.largeTitle, design: .rounded).monospacedDigit())
             .accessibilityLabel(Text(kind == .stopwatch && running && elapsed >= 1000 ? "playkit.stopwatch.hidden" : "playkit.challenge.clock"))

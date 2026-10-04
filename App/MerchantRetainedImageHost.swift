@@ -40,6 +40,19 @@ import Foundation
             capturedCredentials = credentials; access = value; loadedScope = scope; accessRevision = UUID(); draftRevision = UUID(); capturedDraft = draft
         } catch { if ticket == generation { invalidate() } }
     }
+    var galleryBatchAccessFence: UUID? { access == nil ? nil : accessRevision }
+    func validatesGalleryBatchScope(_ scope: RetainedImageScope, coordinator: MerchantOperationsCoordinator) -> Bool {
+        guard destination == .gallery, let credentials = cache.credentials, credentials == capturedCredentials,
+              let access, let loadedScope, let draft = coordinator.draft,
+              coordinator.isCurrent, !coordinator.isBusy, !coordinator.isLocked, coordinator.confirmation == nil,
+              reader.isAuthenticated, reader.scope == loadedScope, access.allows(.gallery),
+              draft == capturedDraft, matches(field: .gallery, draft: draft),
+              let row = access.identity.merchantID.flatMap(PublicMerchantRowID.init) else { return false }
+        return scope.accountID == credentials.accountID && scope.epoch == loadedScope && scope.realm == credentials.realm
+            && scope.namespace == credentials.namespace && scope.accessRevision == draftRevision && scope.resourceID == nil
+            && scope.destination == .merchant(merchantRowID: row.rawValue, field: .gallery)
+    }
+
     func draftChanged(_ draft: MerchantOperationsDraft?) {
         guard draft != capturedDraft else { return }
         cache.invalidate(ownerID: ownerID); draftRevision = UUID(); capturedDraft = draft

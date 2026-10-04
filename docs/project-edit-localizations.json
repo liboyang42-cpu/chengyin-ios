@@ -646,5 +646,37 @@
   "projectEdit.completion.tooLarge": {
     "en": "Completion rule configuration must not exceed 16 KiB.",
     "zh-Hans": "通关规则配置不能超过16 KiB。"
+  },
+  "projectEdit.saleSchedule": {
+    "en": "Ticket sale dates",
+    "zh-Hans": "售票日期"
+  },
+  "projectEdit.saleStart": {
+    "en": "Sale start",
+    "zh-Hans": "售票开始"
+  },
+  "projectEdit.saleEnd": {
+    "en": "Sale end",
+    "zh-Hans": "售票结束"
+  },
+  "projectEdit.saleStoredOnly": {
+    "en": "These dates are saved and displayed only. They do not currently control when tickets can be purchased. Dates use the service’s wall-clock time; no device time-zone conversion is applied.",
+    "zh-Hans": "这些日期仅保存和展示，目前不控制购票时段。日期按服务端墙上时间提交，不按设备时区换算。"
+  },
+  "projectEdit.saleLegacy": {
+    "en": "An unsupported saved value is read-only and will be preserved.",
+    "zh-Hans": "不支持的已保存值为只读，并将原样保留。"
+  },
+  "projectEdit.syncThemeDates": {
+    "en": "Match theme dates",
+    "zh-Hans": "与主题日期保持一致"
+  },
+  "projectEdit.syncThemeDatesHint": {
+    "en": "While editing here, this ticket’s validity uses the theme dates. Turn off to edit its dates separately.",
+    "zh-Hans": "在本编辑器中，此票种有效期使用主题日期。关闭后可单独修改票种日期。"
+  },
+  "projectEdit.syncThemeDatesLegacy": {
+    "en": "An unrecognized saved sync setting is preserved. Date sync cannot be changed.",
+    "zh-Hans": "已保留无法识别的旧版同步设置，暂不能修改日期同步。"
   }
 }

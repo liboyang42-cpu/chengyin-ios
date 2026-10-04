@@ -87,7 +87,7 @@ class TeamSourceChecks(unittest.TestCase):
         used = set()
         for p in list((ROOT/'App').glob('*Team*.swift')) + list((ROOT/'Core').glob('*.swift')):
             used |= set(re.findall(r'"(team\.[a-zA-Z][a-zA-Z.]+)"', p.read_text()))
-        excluded = {'team.review.confirm', 'team.review.cancel', 'team.review.leaveInstead', 'team.detail.card', 'team.invite.code', 'team.invite.close', 'team.create.size', 'team.create.inviteOnly', 'team.message'}
+        excluded = {'team.postJoin.openDetail', 'team.invitation.openDetail', 'team.review.confirm', 'team.review.cancel', 'team.review.leaveInstead', 'team.detail.card', 'team.invite.code', 'team.invite.close', 'team.create.size', 'team.create.inviteOnly', 'team.message'}
         self.assertEqual(used - set(catalog) - excluded, set())
         for key, item in catalog.items():
             self.assertEqual(set(item['localizations']), {'en','zh-Hans'}, key)

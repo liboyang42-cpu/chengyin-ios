@@ -6,6 +6,11 @@ import SwiftUI
     let sessionRevision: UInt64
     var memberDetail: ((MemberPlayTemplateID) -> AnyView)? = nil
     var fixtureSignOut: (() -> Void)? = nil
+    @State private var selectedMember: MemberPlayTemplateID?
+    @State private var keyword = ""
+    @State private var hasMore = false
+    @State private var readMessageKey: String?
+    @State private var viewRequest = UUID()
     @State private var rows: [DiscoveryPlayTemplate] = []
     @State private var messageKey: String?
     @State private var review: TemplateOwnShelfReview?
@@ -15,16 +20,18 @@ import SwiftUI
         List {
             Section {
                 Text("templateAuthor.mineScope").foregroundStyle(.secondary)
-                Text("templateAuthor.shelf.limit").font(.caption)
+                Text("templateAuthor.shelf.pageScope").font(.caption)
                 if !coordinator.canSubmit { Text("templateAuthor.unavailable") }
+                TextField("templateAuthor.shelf.keyword", text: $keyword)
+                    .disabled(busy).accessibilityIdentifier("templateAuthor.shelf.keyword")
                 Button("templateAuthor.shelf.refresh") { Task { await refresh() } }
                     .disabled(busy).accessibilityIdentifier("templateAuthor.shelf.refresh")
             }
             ForEach(rows) { row in
                 Section {
                     Text(verbatim: row.title).font(.headline)
-                    if let id = MemberPlayTemplateID(rawValue: row.id), let memberDetail {
-                        NavigationLink { memberDetail(id) } label: { Label("memberTemplate.title", systemImage: "doc.text.magnifyingglass") }
+                    if let id = MemberPlayTemplateID(rawValue: row.id), memberDetail != nil {
+                        Button { selectedMember = id } label: { Label("memberTemplate.title", systemImage: "doc.text.magnifyingglass") }
                             .accessibilityIdentifier("memberTemplate.mine.\(row.id)")
                     }
                     LabeledContent("templateAuthor.shelf.identity", value: String(row.id))
@@ -34,15 +41,25 @@ import SwiftUI
                     Text("templateAuthor.existingEditUnavailable").font(.caption).foregroundStyle(.secondary)
                     Button(LocalizedStringKey(row.publishStatus == 1 ? "templateAuthor.shelf.removeLibrary" : "templateAuthor.shelf.addLibrary")) {
                         prepare(row.id, .libraryStatus)
-                    }.disabled(locked || busy).accessibilityIdentifier("templateAuthor.shelf.library.\(row.id)")
+                    }.disabled(locked || busy || !coordinator.rows.contains(row)).accessibilityIdentifier("templateAuthor.shelf.library.\(row.id)")
                     Button("templateAuthor.shelf.delete", role: .destructive) { prepare(row.id, .remove) }
-                        .disabled(locked || busy).accessibilityIdentifier("templateAuthor.shelf.delete.\(row.id)")
+                        .disabled(locked || busy || !coordinator.rows.contains(row)).accessibilityIdentifier("templateAuthor.shelf.delete.\(row.id)")
                 }
             }
+            if hasMore {
+                Button("templateAuthor.shelf.loadMore") { Task { await loadMore() } }
+                    .disabled(busy).accessibilityIdentifier("templateAuthor.shelf.loadMore")
+            }
+            if let readMessageKey { Text(LocalizedStringKey(readMessageKey)).accessibilityIdentifier("templateAuthor.shelf.readStatus") }
             if let messageKey { Text(LocalizedStringKey(messageKey)).accessibilityIdentifier("templateAuthor.shelf.status") }
         }.navigationTitle("templateAuthor.mine")
+            // Stable typed destination survives invalidation of its source list on push.
+            .navigationDestination(item: $selectedMember) { id in
+                if let memberDetail { memberDetail(id) }
+            }
+            .onChange(of: sessionRevision) { _, _ in selectedMember = nil }
             .task(id: sessionRevision) { rows = []; review = nil; await refresh() }
-            .onDisappear { coordinator.leaveShelfScreen(); review = nil }
+            .onDisappear { viewRequest = UUID(); coordinator.shelfReader.leave(); coordinator.leaveShelfScreen(); rows = []; review = nil; busy = false }
             .sheet(item: $review, onDismiss: { coordinator.cancelShelfReview() }) { value in
                 NavigationStack {
                     Form {
@@ -60,7 +77,15 @@ import SwiftUI
                         if coordinator.canSubmit {
                             Button(LocalizedStringKey(coordinator.canSimulate ? "templateAuthor.confirmSimulation" : "templateAuthor.confirmRequest"), role: value.action == .remove ? .destructive : nil) {
                                 busy = true; locked = true
-                                Task { await coordinator.confirmShelf(value); review = nil; sync(); busy = false }
+                                Task {
+                                    let stamp = viewRequest
+                                    await coordinator.confirmShelf(value)
+                                    guard stamp == viewRequest, !Task.isCancelled else { return }
+                                    review = nil
+                                    await coordinator.shelfReader.refresh(keyword: keyword)
+                                    guard stamp == viewRequest, !Task.isCancelled else { return }
+                                    sync(); busy = false
+                                }
                             }.disabled(busy).accessibilityIdentifier("templateAuthor.shelf.confirm")
                         } else { Text("templateAuthor.unavailable") }
                     }.navigationTitle("templateAuthor.reviewTitle")
@@ -82,12 +107,28 @@ import SwiftUI
             }
     }
     private func sync() {
-        rows = coordinator.rows; messageKey = coordinator.shelfMessageKey; locked = coordinator.shelfLocked
+        coordinator.synchronizeSession(); coordinator.shelfReader.synchronizeSession()
+        rows = coordinator.shelfReader.rows; hasMore = coordinator.shelfReader.hasMore
+        readMessageKey = coordinator.shelfReader.messageKey; messageKey = coordinator.shelfMessageKey; locked = coordinator.shelfLocked
     }
     private func prepare(_ id: Int, _ action: TemplateOwnShelfAction) {
         coordinator.prepareShelf(templateID: id, action: action); review = coordinator.shelfReview; sync()
     }
+    private func loadMore() async {
+        let stamp = viewRequest; busy = true; review = nil; coordinator.cancelShelfReview()
+        await coordinator.shelfReader.loadMore()
+        guard stamp == viewRequest, !Task.isCancelled else { return }
+        sync(); busy = false
+    }
     private func refresh() async {
-        busy = true; review = nil; coordinator.synchronizeSession(); await coordinator.loadMine(); sync(); busy = false
+        let stamp = UUID(); viewRequest = stamp
+        busy = true; review = nil; rows = []; hasMore = false; readMessageKey = nil; messageKey = nil
+        coordinator.synchronizeSession()
+        await coordinator.shelfReader.refresh(keyword: keyword)
+        guard stamp == viewRequest, !Task.isCancelled else { return }
+        // Preserve the independent, unfiltered first-100 write preflight and reconciliation.
+        await coordinator.loadMine()
+        guard stamp == viewRequest, !Task.isCancelled else { return }
+        sync(); busy = false
     }
 }

@@ -61,7 +61,7 @@ class ClubManagementReturnStateChecks(unittest.TestCase):
 
     def test_reentry_does_not_erase_acknowledged_readback_failure(self):
         source = (ROOT / 'App/ClubManagementView.swift').read_text()
-        self.assertIn('screenIdentity != identity || snapshot == nil && state == .idle', source)
+        self.assertIn('screenIdentity != identity || screenRevision != viewerRevision || snapshot == nil && state == .idle', source)
         self.assertIn('club.management.readbackUnavailable', source)
 
     def test_authored_runtime_cases_cover_server_outcomes(self):

@@ -1,9 +1,17 @@
 import XCTest
 
 final class SignedInContentDetailFlowTests: XCTestCase {
+    private var launchedApp: XCUIApplication?
+    override func tearDown() {
+        attachFailureScreenshot(self, app: launchedApp)
+        launchedApp?.terminate()
+        launchedApp = nil
+        super.tearDown()
+    }
     override func setUp() { super.setUp(); continueAfterFailure = false }
     private func launch(_ options: [String] = [], language: String = "en") -> XCUIApplication {
         let app = XCUIApplication()
+        launchedApp = app
         app.launchArguments = ["--uitesting-reset-language", "--uitesting-module", "signedInContentDetail", "-AppleLanguages", "(\(language))", "-AppleLocale", language] + options
         app.launch()
         XCTAssertTrue(app.buttons["homeFeed.recommended.topic.31"].waitForExistence(timeout: 8))
@@ -33,15 +41,32 @@ final class SignedInContentDetailFlowTests: XCTestCase {
         openActivityRoute(app)
         XCTAssertTrue(app.staticTexts["Synthetic route detail"].waitForExistence(timeout: 5))
         app.buttons["contentDetail.fixture.role"].tap()
-        // Changing the activity's revision destroys its pushed destination.
-        XCTAssertTrue(app.staticTexts["Synthetic activity detail"].waitForExistence(timeout: 5))
+        // Revision replacement refreshes scoped content; it does not promise a pop.
+        // Run 96's failure AX showed this route still pushed with a fresh merchant read.
+        XCTAssertTrue(app.staticTexts["Synthetic merchant route"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.staticTexts["Synthetic route detail"].exists)
+        XCTAssertEqual(app.staticTexts["contentDetail.fixture.requests"].label, "3")
+        XCTAssertEqual(app.staticTexts["contentDetail.fixture.identity"].label, "signed-in")
+        attachFixtureScreenshot(self, app: app, name: "Activity topic refreshed after role change")
+        app.navigationBars["Route details"].buttons.firstMatch.tap()
+        XCTAssertTrue(app.staticTexts["Synthetic activity detail"].waitForExistence(timeout: 5))
         let route = app.buttons["activity.openTopic"]
         XCTAssertTrue(route.waitForExistence(timeout: 5)); route.tap()
         XCTAssertTrue(app.staticTexts["Synthetic merchant route"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["Synthetic route detail"].exists)
+        let reopenedReads = Int(app.staticTexts["contentDetail.fixture.requests"].label) ?? 0
+        XCTAssertGreaterThan(reopenedReads, 3, "Back/reopen must make a fresh scoped read")
         app.buttons["contentDetail.fixture.signOut"].tap()
+        let identity = app.staticTexts["contentDetail.fixture.identity"]
+        let signedOut = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "guest"), object: identity)
+        XCTAssertEqual(XCTWaiter.wait(for: [signedOut], timeout: 5), .completed, app.debugDescription)
         XCTAssertFalse(app.staticTexts["Synthetic merchant route"].exists)
+        XCTAssertFalse(app.staticTexts["Synthetic route detail"].exists)
+        XCTAssertFalse(app.staticTexts["Synthetic activity detail"].exists)
+        XCTAssertFalse(app.descendants(matching: .any)["topic.detail.content"].firstMatch.exists)
         XCTAssertFalse(app.buttons["activity.openTopic"].exists)
+        XCTAssertEqual(app.staticTexts["contentDetail.fixture.requests"].label, String(reopenedReads), "Sign-out must not dispatch a detail read")
+        attachFixtureScreenshot(self, app: app, name: "Activity topic cleared after sign-out")
     }
     func testActivityTopicFailureStaysInTopicAndBackReopens() {
         let app = launch(["--content-detail-topic-failure"])

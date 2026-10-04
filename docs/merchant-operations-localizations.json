@@ -654,5 +654,29 @@
   "merchant.operations.hoursMinute": {
     "en": "Minute",
     "zh-Hans": "分"
+  },
+  "merchant.operations.businessStatus": {
+    "en": "Business status",
+    "zh-Hans": "营业状态"
+  },
+  "merchant.operations.statusOpen": {
+    "en": "Open",
+    "zh-Hans": "营业中"
+  },
+  "merchant.operations.statusClosed": {
+    "en": "Closed",
+    "zh-Hans": "已打烊"
+  },
+  "merchant.operations.statusHint": {
+    "en": "This changes the displayed open or closed status only. Review before saving; booking and access rules are unchanged.",
+    "zh-Hans": "仅修改营业中或已打烊的展示状态。保存前请确认，不改变报名或访问规则。"
+  },
+  "merchant.operations.statusReadback": {
+    "en": "The change was acknowledged. The current business status has been read back from the server.",
+    "zh-Hans": "修改已确认，已从服务器重新读取当前营业状态。"
+  },
+  "merchant.operations.statusReadbackFailed": {
+    "en": "The change was acknowledged, but the current business status could not be refreshed. Reload to check it; do not repeat the save.",
+    "zh-Hans": "修改已确认，但当前营业状态刷新失败。请重新加载查看，不要重复保存。"
   }
 }

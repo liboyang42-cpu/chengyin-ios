@@ -196,6 +196,110 @@ final class ClubManagementFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["club.detail.error"].waitForExistence(timeout: 10), app.debugDescription)
         count(1)
     }
+    func testTransientRefreshRetainsReadOnlyContextAndRetryRestoresReview() throws {
+        launch("refreshConnection"); open("request", 703)
+        app.buttons["club.management.detail.refresh"].tap()
+        XCTAssertTrue(app.staticTexts["club.management.stale"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["club.management.joinMessage"].exists)
+        XCTAssertFalse(app.buttons["club.management.approve.703"].isEnabled)
+        XCTAssertFalse(app.buttons["club.management.reject.703"].isEnabled)
+        count(0)
+        app.buttons["club.management.detail.refresh"].tap()
+        let fresh = XCTNSPredicateExpectation(predicate: NSPredicate(format: "enabled == true"), object: app.buttons["club.management.approve.703"])
+        XCTAssertEqual(XCTWaiter.wait(for: [fresh], timeout: 5), .completed)
+        XCTAssertFalse(app.staticTexts["club.management.stale"].exists)
+        _ = prepare("approve", target: 703)
+        try cancelReview("Approve application")
+        count(0)
+    }
+    func testTransientListRefreshPreservesApplicantWithoutClaimingFreshness() {
+        launch("refreshConnection")
+        XCTAssertTrue(app.buttons["club.management.request.703"].waitForExistence(timeout: 5))
+        app.buttons["club.management.refresh"].tap()
+        XCTAssertTrue(app.staticTexts["club.management.stale"].waitForExistence(timeout: 5))
+        open("request", 703)
+        XCTAssertTrue(app.staticTexts["club.management.joinMessage"].exists)
+        XCTAssertFalse(app.buttons["club.management.approve.703"].isEnabled)
+        count(0)
+    }
+    func testDeniedAndMalformedRefreshClearPrivateApplicantData() {
+        for scenario in ["refreshForbidden", "refreshMalformed"] {
+            launch(scenario); open("request", 703)
+            app.buttons["club.management.detail.refresh"].tap()
+            let cleared = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: app.staticTexts["club.management.joinMessage"])
+            XCTAssertEqual(XCTWaiter.wait(for: [cleared], timeout: 5), .completed)
+            XCTAssertFalse(app.buttons["club.management.approve.703"].exists)
+            XCTAssertFalse(app.staticTexts["club.management.stale"].exists)
+            count(0); app.terminate()
+        }
+    }
+    func testRoleOnlyChangeClearsStaleApplicantWithoutAccountChange() {
+        launch("refreshRoleChange"); open("request", 703)
+        app.buttons["club.management.detail.refresh"].tap()
+        XCTAssertTrue(app.staticTexts["club.management.stale"].waitForExistence(timeout: 5))
+        app.buttons["club.management.roleChange"].tap()
+        let cleared = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: app.staticTexts["club.management.joinMessage"])
+        XCTAssertEqual(XCTWaiter.wait(for: [cleared], timeout: 5), .completed)
+        XCTAssertEqual(app.buttons["club.management.switch"].value as? String, "account=701;epoch=0")
+        XCTAssertFalse(app.buttons["club.management.request.703"].exists)
+        XCTAssertFalse(app.buttons["club.management.confirm"].exists)
+        count(0)
+    }
+    func testRoleOnlyChangeDoesNotClearUnknownWriteLock() {
+        launch("unknownRoleChange"); open("request", 703)
+        submit(prepare("approve", target: 703)); count(1)
+        XCTAssertTrue(app.staticTexts["club.management.unknown"].waitForExistence(timeout: 10))
+        app.buttons["club.management.roleChange"].tap()
+        XCTAssertTrue(app.navigationBars["Club management"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["club.management.unknown"].exists)
+        app.buttons["club.management.refresh"].tap()
+        XCTAssertFalse(app.buttons["club.management.request.703"].exists)
+        XCTAssertTrue(app.staticTexts["club.management.unknown"].exists)
+        count(1)
+    }
+
+
+    func testInterruptedRefreshClearsLoadingAndLateFailureCannotReplaceFreshList() {
+        launch("refreshDelayed"); open("request", 703)
+        app.buttons["club.management.detail.refresh"].tap()
+        XCTAssertTrue(element("club.management.detail.loading").waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["club.management.releaseRead"].waitForExistence(timeout: 5))
+        app.navigationBars["Application details"].buttons.firstMatch.tap()
+        let refresh = app.buttons["club.management.refresh"]
+        XCTAssertTrue(refresh.waitForExistence(timeout: 5)); XCTAssertTrue(refresh.isEnabled)
+        open("request", 703)
+        XCTAssertFalse(app.buttons["club.management.approve.703"].isEnabled)
+        app.buttons["club.management.detail.refresh"].tap()
+        let fresh = XCTNSPredicateExpectation(predicate: NSPredicate(format: "enabled == true"), object: app.buttons["club.management.approve.703"])
+        XCTAssertEqual(XCTWaiter.wait(for: [fresh], timeout: 5), .completed)
+        app.buttons["club.management.releaseRead"].tap()
+        let completedRead = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "1"), object: app.staticTexts["club.management.finishedReads"])
+        XCTAssertEqual(XCTWaiter.wait(for: [completedRead], timeout: 5), .completed)
+        XCTAssertFalse(app.staticTexts["club.management.stale"].exists)
+        XCTAssertTrue(app.buttons["club.management.approve.703"].isEnabled)
+        count(0)
+    }
+    func testRoleABAWhileReadPendingCannotRestoreOldReview() throws {
+        for scenario in ["refreshRoleABA", "prepareRoleABA"] {
+            launch(scenario); open("request", 703)
+            app.buttons[scenario == "refreshRoleABA" ? "club.management.detail.refresh" : "club.management.approve.703"].tap()
+            XCTAssertTrue(app.buttons["club.management.releaseRead"].waitForExistence(timeout: 5))
+            app.buttons["club.management.roleChange"].tap()
+            XCTAssertTrue(app.navigationBars["Club management"].waitForExistence(timeout: 5))
+            XCTAssertFalse(app.buttons["club.management.request.703"].exists)
+            app.buttons["club.management.roleChange"].tap()
+            XCTAssertTrue(app.buttons["club.management.request.703"].waitForExistence(timeout: 5))
+            app.buttons["club.management.releaseRead"].tap()
+        let completedRead = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "1"), object: app.staticTexts["club.management.finishedReads"])
+        XCTAssertEqual(XCTWaiter.wait(for: [completedRead], timeout: 5), .completed)
+            XCTAssertFalse(app.buttons["club.management.confirm"].exists)
+            XCTAssertFalse(app.staticTexts["club.management.stale"].exists)
+            open("request", 703)
+            _ = prepare("approve", target: 703)
+            try cancelReview("Approve application")
+            count(0); app.terminate()
+        }
+    }
     func testCancelThenSwitchAccountSendsNothing() throws {
         launch("owner"); open("request", 703)
         _ = prepare("approve", target: 703)
@@ -213,5 +317,6 @@ final class ClubManagementFlowTests: XCTestCase {
         XCTAssertFalse(app.navigationBars["Approve application"].exists, app.debugDescription)
         XCTAssertFalse(app.buttons["club.management.confirm"].exists, app.debugDescription)
     }
+
 
 }

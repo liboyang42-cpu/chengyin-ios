@@ -1649,7 +1649,7 @@ final class AppSession: ObservableObject {
         self.expireIfMatching(error:APIError.unauthorized,stamp:captured.identity.epoch,credential:self.token)
     })
     lazy var clubManagementCoordinator=ClubManagementCoordinator(access:clubManagementAccess,onMembershipChanged:{ [weak self] _ in self?.clubMembershipRevision &+= 1 })
-    var clubManagementContext:ClubManagementContext { .init(access:clubManagementAccess,coordinator:clubManagementCoordinator,operations:clubOperationsContext,governance:clubGovernanceContext) }
+    var clubManagementContext:ClubManagementContext { .init(access:clubManagementAccess,coordinator:clubManagementCoordinator,viewerRevision:compositionViewerRevision,operations:clubOperationsContext,governance:clubGovernanceContext) }
     lazy var contextualReviews: ContextualReviewHost? = regionalConfiguration?.apiConfiguration.map {
         ContextualReviewHost(writer: ContextualReviewConfiguredWriter(configuration: $0, approval: runtimeDependencies.contextualReviewApproval,
             transport: runtimeHTTPTransport, current: { [weak self] in self?.currentRuntimeDependencyContext },

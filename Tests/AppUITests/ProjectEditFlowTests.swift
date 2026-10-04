@@ -24,6 +24,23 @@ final class ProjectEditFlowTests: XCTestCase {
         let current = (field.value as? String) ?? ""
         field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: current.count) + text)
     }
+    func testFreeExploreTicketThemeDateSyncAndReturnToManualDates() {
+        let app = launch(["--project-edit-free-explore"])
+        let ticket = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "projectEdit.ticket.")).firstMatch
+        find(ticket, in: app); ticket.tap()
+        let sync = app.switches["projectEdit.syncThemeDates"]; find(sync, in: app)
+        XCTAssertEqual(sync.value as? String, "0"); sync.tap()
+        XCTAssertTrue(app.staticTexts["2030-05-01 00:00:00"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["2030-05-30 23:59:59"].exists)
+        XCTAssertFalse(app.textFields["projectEdit.ticketStart"].exists)
+        sync.tap()
+        XCTAssertTrue(app.textFields["projectEdit.ticketStart"].waitForExistence(timeout: 3))
+        XCTAssertEqual(app.textFields["projectEdit.ticketStart"].value as? String, "2030-05-01 00:00:00")
+        app.navigationBars.buttons.firstMatch.tap()
+        app.buttons["projectEdit.review"].tap()
+        let cancel = app.buttons["projectEdit.cancelReview"]; find(cancel, in: app); cancel.tap()
+        XCTAssertTrue(app.buttons["projectEdit.review"].exists)
+    }
     func testLocalEditReviewAndCancelledConfirmation() {
         let app = launch(); let name = app.textFields["projectEdit.name"]
         XCTAssertTrue(name.waitForExistence(timeout: 5)); replace(name, with: "Reviewed fixture name")

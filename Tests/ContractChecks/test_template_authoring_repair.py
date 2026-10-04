@@ -52,7 +52,8 @@ class ExactOwnShelfRepair(unittest.TestCase):
         text=read('Core/TemplateAuthoringWireRequestBuilder.swift')
         self.assertIn('fields["id"] == nil',text)
         self.assertIn('Set(fields.keys) == expected',text)
-        self.assertIn('descriptor == TemplateAuthoringContract.listMine()',text)
+        self.assertIn('descriptor != TemplateAuthoringContract.listMine()',text)
+        self.assertIn('descriptor == (try TemplateOwnShelfPage.request(page: page, keyword: keyword))',text)
     def test_own_shelf_consumes_exact_coordinator(self):
         ui=read('App/TemplateAuthoringMineView.swift')
         for call in ['coordinator.prepareShelf(', 'coordinator.confirmShelf(', 'coordinator.loadMine()', 'coordinator.leaveShelfScreen()']:

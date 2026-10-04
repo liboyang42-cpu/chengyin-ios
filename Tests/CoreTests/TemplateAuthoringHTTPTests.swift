@@ -185,3 +185,137 @@ import FoundationNetworking
         XCTAssertThrowsError(try TemplateAuthoringWireRequestBuilder.make(.init(path: "/api/template/draft", body: .json(["id":.number(42),"title":.string("Edit")]), mutates: true), configuration: config, token: "fake"))
     }
 }
+
+@MainActor final class TemplateOwnShelfPaginationTests: XCTestCase {
+    final class Transport: TemplateAuthoringTransport {
+        let authority: TemplateAuthoringAuthority = .injectedHTTP
+        var requests: [TemplateAuthoringRequest] = []
+        var replies: [Result<Data, Error>] = []
+        var beforeReply: (() -> Void)?
+        func send(_ request: TemplateAuthoringRequest) async throws -> (Data, Int) {
+            requests.append(request); beforeReply?()
+            return (try replies.removeFirst().get(), 200)
+        }
+    }
+    func session(_ epoch: UInt64 = 1) throws -> TemplateAuthoringSession {
+        try .init(accountID: 7, namespace: "fixture", epoch: epoch, authorizationRevision: "fixture")
+    }
+    func data(_ ids: [Int], total: Int? = nil) throws -> Data {
+        var payload: [String: Any] = ["rows": ids.map { ["id": $0, "title": "Fixture"] as [String: Any] }]
+        if let total { payload["total"] = total }
+        return try JSONSerialization.data(withJSONObject: ["code": 200, "data": payload])
+    }
+    func testExactBoundedReadDescriptorAndDefaultDisabled() async throws {
+        let request = try TemplateOwnShelfPage.request(page: 2, keyword: "search")
+        XCTAssertEqual(request.body, .form(["is_quote":"", "keyword":"search", "category_id":"", "pageNum":"2", "pageSize":"10"]))
+        XCTAssertFalse(request.mutates)
+        XCTAssertThrowsError(try TemplateOwnShelfPage.request(page: 0, keyword: ""))
+        XCTAssertThrowsError(try TemplateOwnShelfPage.request(page: 101, keyword: ""))
+        let config = try APIConfiguration(baseURL: XCTUnwrap(URL(string: "https://example.test")))
+        XCTAssertNoThrow(try TemplateAuthoringWireRequestBuilder.make(request, configuration: config, token: "fake-token"))
+        XCTAssertThrowsError(try TemplateAuthoringWireRequestBuilder.make(.init(path: request.path, body: request.body, mutates: true), configuration: config, token: "fake-token"))
+        let owner = try session(); let reader = TemplateOwnShelfReader(adapter: .init(), currentSession: { owner })
+        await reader.refresh(); XCTAssertTrue(reader.rows.isEmpty); XCTAssertFalse(reader.hasMore)
+    }
+    func testContinuationRetryPreservesRowsAndPageThenStopsAtTotal() async throws {
+        let t = Transport(); t.replies = [.success(try data(Array(1...10), total: 11)), .failure(TemplateAuthoringError.uncertain), .success(try data([11], total: 11))]
+        let owner = try session(); let reader = TemplateOwnShelfReader(adapter: .init(transport: t), currentSession: { owner })
+        await reader.refresh(); await reader.loadMore()
+        XCTAssertEqual(reader.page, 1); XCTAssertEqual(reader.rows.count, 10); XCTAssertTrue(reader.hasMore)
+        XCTAssertEqual(reader.messageKey, "templateAuthor.shelf.moreFailed")
+        await reader.loadMore(); XCTAssertEqual(reader.page, 2); XCTAssertEqual(reader.rows.count, 11); XCTAssertFalse(reader.hasMore)
+        await reader.loadMore(); XCTAssertEqual(t.requests.count, 3)
+        XCTAssertEqual(t.requests[1], t.requests[2])
+    }
+    func testUnknownTotalAndKeywordReset() async throws {
+        let t = Transport(); t.replies = [.success(try data(Array(1...10))), .success(try data([])), .success(try data([30]))]
+        let owner = try session(); let reader = TemplateOwnShelfReader(adapter: .init(transport: t), currentSession: { owner })
+        await reader.refresh(); XCTAssertTrue(reader.hasMore)
+        await reader.loadMore(); XCTAssertFalse(reader.hasMore)
+        await reader.refresh(keyword: "new"); XCTAssertEqual(reader.rows.map(\.id), [30]); XCTAssertEqual(reader.page, 1)
+        XCTAssertEqual(t.requests.last, try TemplateOwnShelfPage.request(page: 1, keyword: "new"))
+    }
+    func testDuplicatesAndInvalidMemberIDsFailClosed() throws {
+        for ids in [[1,1], [0], [-1], Array(1...11)] {
+            XCTAssertThrowsError(try TemplateOwnShelfPage.decode(data(ids), httpStatus: 200))
+        }
+    }
+    func testOverlappingPagePreservesPreviousRowsAndRetriesSamePage() async throws {
+        let t = Transport(); t.replies = [.success(try data(Array(1...10))), .success(try data([10,11]))]
+        let owner = try session(); let reader = TemplateOwnShelfReader(adapter: .init(transport: t), currentSession: { owner })
+        await reader.refresh(); await reader.loadMore()
+        XCTAssertEqual(reader.page, 1); XCTAssertEqual(reader.rows.count, 10); XCTAssertTrue(reader.hasMore)
+        XCTAssertEqual(reader.messageKey, "templateAuthor.shelf.moreFailed")
+    }
+    func testChangedSessionDropsSuccessfulAndFailedCallbacks() async throws {
+        for failed in [false, true] {
+            let t = Transport(); t.replies = [.success(try data(Array(1...10))), failed ? .failure(TemplateAuthoringError.uncertain) : .success(try data([11]))]
+            var owner: TemplateAuthoringSession? = try session()
+            let reader = TemplateOwnShelfReader(adapter: .init(transport: t), currentSession: { owner })
+            await reader.refresh(); t.beforeReply = { owner = nil }; await reader.loadMore()
+            XCTAssertTrue(reader.rows.isEmpty); XCTAssertNil(reader.messageKey); XCTAssertFalse(reader.busy)
+        }
+    }
+    func testLeaveFencesInFlightPage() async throws {
+        let t = Transport(); t.replies = [.success(try data([1]))]
+        let owner = try session(); let reader = TemplateOwnShelfReader(adapter: .init(transport: t), currentSession: { owner })
+        t.beforeReply = { reader.leave() }; await reader.refresh()
+        XCTAssertTrue(reader.rows.isEmpty); XCTAssertEqual(reader.page, 0); XCTAssertFalse(reader.busy)
+    }
+    func testLimitCannotIssuePage101() async throws {
+        let t = Transport()
+        for page in 0..<100 { t.replies.append(.success(try data(Array((page * 10 + 1)...(page * 10 + 10)), total: 2000))) }
+        let owner = try session(); let reader = TemplateOwnShelfReader(adapter: .init(transport: t), currentSession: { owner })
+        await reader.refresh()
+        for _ in 0..<101 { await reader.loadMore() }
+        XCTAssertEqual(t.requests.count, 100); XCTAssertEqual(reader.rows.count, 1000); XCTAssertFalse(reader.hasMore)
+        XCTAssertEqual(reader.messageKey, "templateAuthor.shelf.pageLimit")
+    }
+    func testMalformedEnvelopeAndServerRefusalDoNotFallBack() async throws {
+        let t = Transport(); t.replies = [.success(Data(#"{"code":403,"data":{"rows":[]}}"#.utf8))]
+        let owner = try session(); let reader = TemplateOwnShelfReader(adapter: .init(transport: t), currentSession: { owner })
+        await reader.refresh(); XCTAssertTrue(reader.rows.isEmpty); XCTAssertEqual(t.requests.count, 1)
+        XCTAssertEqual(t.requests.first?.path, "/api/template/my-list")
+        XCTAssertThrowsError(try TemplateOwnShelfPage.decode(Data(#"{"code":200,"data":[]}"#.utf8), httpStatus: 200))
+    }
+}
+
+@MainActor final class TemplateOwnShelfStalePageTests: XCTestCase {
+    final class Delayed: TemplateAuthoringTransport {
+        let authority: TemplateAuthoringAuthority = .injectedHTTP
+        var pending: [CheckedContinuation<(Data, Int), Error>] = []
+        func send(_ request: TemplateAuthoringRequest) async throws -> (Data, Int) {
+            try await withCheckedThrowingContinuation { pending.append($0) }
+        }
+    }
+    func testNewKeywordRejectsOldSuccessAndError() async throws {
+        for oldFails in [false, true] {
+            let t = Delayed()
+            let owner = try TemplateAuthoringSession(accountID: 7, namespace: "fixture", epoch: 1, authorizationRevision: "fixture")
+            let reader = TemplateOwnShelfReader(adapter: .init(transport: t), currentSession: { owner })
+            let old = Task { await reader.refresh(keyword: "old") }
+            while t.pending.count < 1 { await Task.yield() }
+            let new = Task { await reader.refresh(keyword: "new") }
+            while t.pending.count < 2 { await Task.yield() }
+            t.pending[1].resume(returning: (Data(#"{"code":200,"data":{"rows":[{"id":2,"title":"New"}],"total":1}}"#.utf8), 200))
+            await new.value
+            if oldFails { t.pending[0].resume(throwing: TemplateAuthoringError.uncertain) }
+            else { t.pending[0].resume(returning: (Data(#"{"code":200,"data":{"rows":[{"id":1,"title":"Old"}]}}"#.utf8), 200)) }
+            await old.value
+            XCTAssertEqual(reader.rows.map(\.id), [2]); XCTAssertNil(reader.messageKey); XCTAssertEqual(reader.keyword, "new")
+        }
+    }
+    func testSameAccountEpochAndRoleRevisionClearContinuation() async throws {
+        for changeRole in [false, true] {
+            let t = Delayed()
+            var owner = try TemplateAuthoringSession(accountID: 7, namespace: "fixture", epoch: 1, authorizationRevision: "one")
+            let reader = TemplateOwnShelfReader(adapter: .init(transport: t), currentSession: { owner })
+            let task = Task { await reader.refresh() }
+            while t.pending.isEmpty { await Task.yield() }
+            owner = try TemplateAuthoringSession(accountID: 7, namespace: "fixture", epoch: changeRole ? 1 : 2, authorizationRevision: changeRole ? "two" : "one")
+            t.pending[0].resume(returning: (Data(#"{"code":200,"data":{"rows":[{"id":1,"title":"Old"}]}}"#.utf8), 200))
+            await task.value
+            XCTAssertTrue(reader.rows.isEmpty); XCTAssertEqual(reader.page, 0); XCTAssertFalse(reader.busy)
+        }
+    }
+}

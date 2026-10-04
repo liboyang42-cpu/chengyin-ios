@@ -16,6 +16,7 @@ public struct MerchantOperationsAccess: Decodable, Equatable {
     public func allows(_ destination: MerchantOperationsDestination) -> Bool {
         guard identity.active else { return false }
         switch destination {
+        case .businessStatus: return profileWrite && identity.allows(.basicRead)
         case .profile, .decor, .gallery, .story: return profileWrite
         case .cooperation: return cooperationManage
         case .templates, .template: return identity.allows(.projects)
@@ -25,7 +26,7 @@ public struct MerchantOperationsAccess: Decodable, Equatable {
     }
 }
 public enum MerchantOperationsDestination: Hashable, Identifiable {
-    case profile, decor, gallery, story, cooperation, character, assets, cityNodes, templates, template(Int?)
+    case businessStatus, profile, decor, gallery, story, cooperation, character, assets, cityNodes, templates, template(Int?)
     public var id: String {
         switch self {
         case .template(let id): return "template:\(id.map(String.init) ?? "new")"
@@ -34,6 +35,7 @@ public enum MerchantOperationsDestination: Hashable, Identifiable {
     }
     public var titleKey: String {
         switch self {
+        case .businessStatus: return "merchant.operations.businessStatus"
         case .profile: return "merchant.operations.profile"
         case .decor: return "merchant.operations.decor"
         case .gallery: return "merchant.operations.gallery"
@@ -402,4 +404,23 @@ public struct MerchantAssetResources: Equatable {
     public let voice: MerchantVoiceResource
     public let avatar: MerchantAvatarResource
     public init(voice: MerchantVoiceResource, avatar: MerchantAvatarResource) { self.voice = voice; self.avatar = avatar }
+}
+
+/// Exact display-only business-status contract. Unknown values fail closed.
+public enum MerchantBusinessStatus: Int, Decodable, Equatable, CaseIterable {
+    case closed = 0, open = 1
+    public var titleKey: String { self == .open ? "merchant.operations.statusOpen" : "merchant.operations.statusClosed" }
+}
+public struct MerchantBusinessStatusDocument: Decodable, Equatable {
+    public let businessStatus: MerchantBusinessStatus
+}
+
+/// The server derives ownership from access/me; this local owner fence is never transmitted.
+public struct MerchantStoreBusinessStatus: Equatable {
+    public let merchantID: Int
+    public var status: MerchantBusinessStatus
+    public init(merchantID: Int, status: MerchantBusinessStatus) throws {
+        guard merchantID > 0 else { throw APIError.invalidRequest }
+        self.merchantID = merchantID; self.status = status
+    }
 }

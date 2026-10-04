@@ -37,6 +37,24 @@ final class TeamFlowTests: XCTestCase {
         XCTAssertTrue(row.waitForExistence(timeout: 5)); row.tap()
         XCTAssertTrue(app.navigationBars["Team details"].waitForExistence(timeout: 5))
     }
+    func testAlreadyJoinedInvitationOpensDetailBackAndReopens() {
+        launch(destination: "invitation")
+        let open = app.buttons["team.invitation.openDetail"]
+        reveal(open); open.tap()
+        XCTAssertTrue(app.navigationBars["Team details"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["team.invitation.openDetail"].exists)
+        app.navigationBars["Team details"].buttons.firstMatch.tap()
+        reveal(open); open.tap()
+        XCTAssertTrue(app.navigationBars["Team details"].waitForExistence(timeout: 5))
+        app.buttons["team.fixture.guest"].tap()
+        XCTAssertFalse(app.staticTexts["Synthetic teammate"].exists)
+        XCTAssertFalse(app.buttons["team.invitation.openDetail"].exists)
+    }
+    func testNonmemberInvitationHasNoOwnedDetailShortcut() {
+        launch("invitation", destination: "invitation")
+        reveal(app.buttons["team.join"])
+        XCTAssertFalse(app.buttons["team.invitation.openDetail"].exists)
+    }
     func testInvitationPreviewCloseLeavesTeamUntouched() {
         launch(destination: "detail"); let button = app.buttons["team.invitePreview"]; reveal(button); button.tap()
         XCTAssertTrue(app.staticTexts["team.invite.code"].waitForExistence(timeout: 5))
@@ -57,6 +75,23 @@ final class TeamFlowTests: XCTestCase {
         reveal(app.buttons["team.review.confirm"]); app.buttons["team.review.confirm"].tap()
         assertSimulationCompleted()
         XCTAssertFalse(app.buttons["Purchase"].exists)
+    }
+    func testPostJoinOpensReadOnlyDetailBackAndReopens() {
+        launch("invitation", destination: "invitation")
+        let join = app.buttons["team.join"]; reveal(join); join.tap()
+        reveal(app.buttons["team.review.confirm"]); app.buttons["team.review.confirm"].tap()
+        assertSimulationCompleted()
+        let open = app.buttons["team.postJoin.openDetail"]; reveal(open); open.tap()
+        XCTAssertTrue(app.navigationBars["Team details"].waitForExistence(timeout: 5))
+        reveal(app.staticTexts["Synthetic teammate"])
+        for id in ["team.leave", "team.disband", "team.checkOutcome", "team.invitePreview", "team.remove.902"] {
+            XCTAssertFalse(app.buttons[id].exists)
+        }
+        app.navigationBars["Team details"].buttons.firstMatch.tap()
+        reveal(open); open.tap()
+        XCTAssertTrue(app.navigationBars["Team details"].waitForExistence(timeout: 5))
+        app.buttons["team.fixture.guest"].tap()
+        XCTAssertFalse(app.staticTexts["Synthetic teammate"].exists)
     }
     func testUnknownOutcomeCannotReplayAfterSameAccountReauthentication() {
         launch("unknownOutcome", destination: "detail"); reviewLeave()

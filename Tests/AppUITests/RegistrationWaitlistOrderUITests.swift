@@ -19,12 +19,12 @@ final class RegistrationWaitlistOrderUITests: XCTestCase {
                 launch(scenario, language: language)
                 openOrder()
                 let orderNumber = language == "en" ? "Order number, OFFLINE-WAITLIST-9417" : "订单号, OFFLINE-WAITLIST-9417"
-                XCTAssertTrue(app.staticTexts[orderNumber].waitForExistence(timeout: 5))
+                XCTAssertTrue(app.staticTexts[orderNumber].waitForExistence(timeout: 5), app.debugDescription)
                 // Even CONVERTED never replaces the authoritative detail payment facts.
                 XCTAssertFalse(app.buttons["registration.form.readStatus"].exists)
                 app.buttons["registration.waitlist.order.close"].tap()
                 openOrder()
-                XCTAssertTrue(app.staticTexts[orderNumber].waitForExistence(timeout: 5))
+                XCTAssertTrue(app.staticTexts[orderNumber].waitForExistence(timeout: 5), app.debugDescription)
                 app.buttons["registration.waitlist.order.close"].tap()
                 let review = app.buttons["registration.form.review"]
                 XCTAssertTrue(revealFixtureElement(review, in: app)); XCTAssertFalse(review.isEnabled)

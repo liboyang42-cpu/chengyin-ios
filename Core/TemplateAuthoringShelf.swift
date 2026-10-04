@@ -44,3 +44,85 @@ public struct TemplateOwnShelfPending: Codable, Equatable {
         }
     }
 }
+
+/// Presentation-only member shelf. Never used as mutation authority or absence proof.
+public struct TemplateOwnShelfPage {
+    public static let pageSize = 10
+    public static let maximumPages = 100
+    public let rows: [DiscoveryPlayTemplate]
+    public let total: Int?
+    public static func request(page: Int, keyword: String) throws -> TemplateAuthoringRequest {
+        guard (1...maximumPages).contains(page) else { throw TemplateAuthoringError.invalidContract }
+        return .init(path: "/api/template/my-list", body: .form([
+            "is_quote": "", "keyword": keyword, "category_id": "",
+            "pageNum": String(page), "pageSize": String(pageSize)
+        ]), mutates: false)
+    }
+    public static func decode(_ data: Data, httpStatus: Int) throws -> Self {
+        try TemplateAuthoringContract.requireSuccess(data, httpStatus: httpStatus)
+        let body = try JSONDecoder().decode([String: TemplateAuthoringJSON].self, from: data)
+        guard let payload = body["data"]?.object, let raw = payload["rows"]?.array else {
+            throw TemplateAuthoringError.invalidContract
+        }
+        let rows = try JSONDecoder().decode([DiscoveryPlayTemplate].self, from: JSONEncoder().encode(raw))
+        guard rows.count <= pageSize,
+              rows.allSatisfy({ MemberPlayTemplateID(rawValue: $0.id) != nil }),
+              Set(rows.map(\.id)).count == rows.count else { throw TemplateAuthoringError.invalidContract }
+        let total = payload["total"]?.integer
+        return .init(rows: rows, total: total.flatMap { $0 >= 0 ? $0 : nil })
+    }
+}
+
+@MainActor public final class TemplateOwnShelfReader {
+    private let adapter: TemplateAuthoringAdapter
+    private let currentSession: () -> TemplateAuthoringSession?
+    private var owner: TemplateAuthoringSession?
+    private var generation = 0
+    public private(set) var rows: [DiscoveryPlayTemplate] = []
+    public private(set) var keyword = ""
+    public private(set) var page = 0
+    public private(set) var hasMore = false
+    public private(set) var busy = false
+    public private(set) var messageKey: String?
+    public init(adapter: TemplateAuthoringAdapter, currentSession: @escaping () -> TemplateAuthoringSession?) {
+        self.adapter = adapter; self.currentSession = currentSession
+    }
+    public func synchronizeSession() {
+        guard owner != currentSession() else { return }
+        leave(); owner = currentSession()
+    }
+    public func leave() { generation += 1; busy = false; rows = []; page = 0; hasMore = false; messageKey = nil }
+    public func refresh(keyword: String = "") async {
+        leave(); self.keyword = keyword; owner = currentSession()
+        await fetch(page: 1)
+    }
+    public func loadMore() async {
+        guard owner == currentSession() else { leave(); owner = currentSession(); return }
+        guard !busy, hasMore, page < TemplateOwnShelfPage.maximumPages else { return }
+        await fetch(page: page + 1)
+    }
+    private func fetch(page requested: Int) async {
+        guard let owner, owner == currentSession() else { messageKey = "templateAuthor.signIn"; return }
+        guard !busy else { return }
+        let stamp = generation; busy = true; messageKey = nil
+        defer { if generation == stamp { busy = false } }
+        do {
+            let result = try await adapter.listMinePage(page: requested, keyword: keyword)
+            guard generation == stamp else { return }
+            guard self.owner == owner, currentSession() == owner, !Task.isCancelled else { leave(); return }
+            // Offset pagination is not a snapshot. Refuse overlapping pages rather than
+            // silently hiding a shifted/missing row or letting duplicates grant authority.
+            let existing = Set(rows.map(\.id))
+            guard result.rows.allSatisfy({ !existing.contains($0.id) }) else { throw TemplateAuthoringError.invalidContract }
+            rows += result.rows; page = requested
+            let continuation = !result.rows.isEmpty && (result.total.map { rows.count < $0 } ?? (result.rows.count == TemplateOwnShelfPage.pageSize))
+            hasMore = continuation && page < TemplateOwnShelfPage.maximumPages
+            messageKey = continuation && !hasMore ? "templateAuthor.shelf.pageLimit" : rows.isEmpty ? "templateAuthor.shelf.empty" : nil
+        } catch {
+            guard generation == stamp else { return }
+            guard self.owner == owner, currentSession() == owner, !Task.isCancelled else { leave(); return }
+            // Keep successful pages and the same next page for explicit retry.
+            messageKey = requested == 1 ? "templateAuthor.listUnavailable" : "templateAuthor.shelf.moreFailed"
+        }
+    }
+}

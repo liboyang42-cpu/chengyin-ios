@@ -25,6 +25,13 @@ public enum TemplateAuthoringOutcome: Equatable {
         let (data, status) = try await transport.send(TemplateAuthoringContract.listMine())
         return try TemplateAuthoringContract.decodeList(data, httpStatus: status)
     }
+    /// Read-only continuation, separate from the conservative write/readback snapshot.
+    public func listMinePage(page: Int, keyword: String) async throws -> TemplateOwnShelfPage {
+        guard canSubmit, let transport else { throw TemplateAuthoringError.unavailable }
+        let request = try TemplateOwnShelfPage.request(page: page, keyword: keyword)
+        let (data, status) = try await transport.send(request)
+        return try TemplateOwnShelfPage.decode(data, httpStatus: status)
+    }
     public func submit(_ request: TemplateAuthoringRequest) async -> TemplateAuthoringOutcome {
         guard canSubmit, let transport, request.mutates else { return .notSent }
         do {

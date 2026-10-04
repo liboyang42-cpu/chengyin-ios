@@ -11,6 +11,37 @@ final class RetainedImageUITests: XCTestCase {
         let app = XCUIApplication(); app.launchArguments = ["--uitesting-reset-language", "--retained-images-fixture", mode, "-AppleLanguages", "(\(language))", "-AppleLocale", language == "en" ? "en_US" : "zh_CN"]
         app.launch(); return app
     }
+    func testUploadByteCountUsesSelectedLanguageInProductionReview() {
+        for language in ["en", "zh-Hans"] {
+            let app = XCUIApplication()
+            // Persist an explicit app preference opposite to the simulated OS language.
+            // Relaunch into the production review without resetting that preference.
+            let systemLanguage = language == "en" ? "zh-Hans" : "en"
+            let systemLocale = language == "en" ? "zh_CN" : "en_US"
+            let arguments = ["--uitesting-market", "US", "-AppleLanguages", "(\(systemLanguage))", "-AppleLocale", systemLocale]
+            app.launchArguments = ["--uitesting-reset-language"] + arguments
+            app.launch()
+            defer { attachFailureScreenshot(self, app: app); app.terminate() }
+            XCTAssertTrue(app.buttons["welcome.settings"].waitForExistence(timeout: 5))
+            app.buttons["welcome.settings"].tap()
+            let choice = app.buttons[language == "en" ? "English" : "简体中文"]
+            XCTAssertTrue(choice.waitForExistence(timeout: 5)); choice.tap()
+            XCTAssertTrue(app.navigationBars[language == "en" ? "Settings" : "设置"].waitForExistence(timeout: 5))
+            XCTAssertEqual(app.staticTexts["region.market.value"].label, "US")
+            app.terminate()
+            app.launchArguments = ["--retained-images-fixture", "success"] + arguments
+            app.launch()
+            XCTAssertTrue(app.buttons["image.retained.fixtureSelect"].waitForExistence(timeout: 5))
+            app.buttons["image.retained.fixtureSelect"].tap()
+            let count = app.staticTexts["image.retained.byteCount"]
+            reveal(count, in: app)
+            let prefix = language == "en" ? "Upload size (bytes): " : "上传大小（字节）："
+            XCTAssertTrue(count.label.hasPrefix(prefix), count.label)
+            XCTAssertTrue(count.label.unicodeScalars.contains { CharacterSet.decimalDigits.contains($0) }, count.label)
+            XCTAssertFalse(count.label.contains("image.retained.byteCount"))
+            XCTAssertFalse(app.buttons["image.retained.use"].exists)
+        }
+    }
     func testSelectionUploadAndUseAreSeparate() {
         let app = launch(); defer { attachFailureScreenshot(self, app: app); app.terminate() }
         XCTAssertTrue(app.buttons["image.retained.select"].waitForExistence(timeout: 5))

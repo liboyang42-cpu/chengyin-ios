@@ -238,3 +238,53 @@ extension ClubManagementCoordinatorTests {
         XCTAssertEqual(result, .blocked(.accountChanged)); XCTAssertEqual(a.writes, 0)
     }
 }
+
+final class ClubManagementRefreshRetentionTests: XCTestCase {
+    func testOnlyClassifiedConnectionFailuresCanRetainSamePermissionSnapshot() throws {
+        let snapshot = try managementSnapshot()
+        for code: URLError.Code in [.timedOut, .cannotFindHost, .cannotConnectToHost, .networkConnectionLost, .dnsLookupFailed, .notConnectedToInternet] {
+            let failure = try XCTUnwrap(ClubManagementListConnectionFailure(freshClub: snapshot.club, error: URLError(code)))
+            XCTAssertTrue(failure.canRetain(snapshot))
+            XCTAssertFalse(failure.canRetain(try managementSnapshot(owner: false, admin: true)))
+        }
+        for error: Error in [URLError(.cancelled), URLError(.userAuthenticationRequired), URLError(.serverCertificateUntrusted),
+                             APIError.malformedResponse, APIError.unauthorized, APIError.httpStatus(503),
+                             ClubReadFailure.forbidden(message: nil), ClubReadFailure.unauthorized(message: nil),
+                             ClubReadFailure.rejected(code: 500, message: "Permission denied"), CancellationError()] {
+            XCTAssertNil(ClubManagementListConnectionFailure(freshClub: snapshot.club, error: error))
+        }
+        XCTAssertNil(ClubManagementListConnectionFailure(freshClub: try managementSnapshot(owner: false).club, error: URLError(.timedOut)))
+    }
+    func testServiceRequiresFreshPermissionBeforeClassifyingListFailure() async throws {
+        let t = ManagementTransport()
+        let service = ClubManagementService(configuration: try APIConfiguration(baseURL: URL(string: "https://example.com/")!), transport: t)
+        t.handler = { request in
+            if request.url?.path == "/api/club/detail" {
+                return (Data(#"{"code":200,"data":{"id":81,"isOwner":true,"isJoined":true}}"#.utf8), 200)
+            }
+            throw URLError(.timedOut)
+        }
+        do { _ = try await service.snapshot(clubID: 81, token: "fixture-token", checkSession: {}); XCTFail() }
+        catch { XCTAssertTrue(error is ClubManagementListConnectionFailure) }
+        XCTAssertEqual(t.requests.map { $0.url!.path }, ["/api/club/detail", "/api/club/join-requests"])
+        t.handler = { _ in throw URLError(.timedOut) }
+        do { _ = try await service.snapshot(clubID: 81, token: "fixture-token", checkSession: {}); XCTFail() }
+        catch { XCTAssertFalse(error is ClubManagementListConnectionFailure) }
+    }
+    func testServerPermissionFailureAndChangedRoleCannotRetain() async throws {
+        let t = ManagementTransport()
+        let service = ClubManagementService(configuration: try APIConfiguration(baseURL: URL(string: "https://example.com/")!), transport: t)
+        for status in [200, 403] {
+            t.handler = { request in
+                if request.url?.path == "/api/club/detail" {
+                    return (Data(#"{"code":200,"data":{"id":81,"isOwner":false,"viewerIsAdmin":true,"isJoined":true}}"#.utf8), 200)
+                }
+                return (Data(#"{"code":500,"msg":"Permission denied"}"#.utf8), status)
+            }
+            do { _ = try await service.snapshot(clubID: 81, token: "fixture-token", checkSession: {}); XCTFail() }
+            catch { XCTAssertFalse(error is ClubManagementListConnectionFailure) }
+        }
+        let failure = try XCTUnwrap(ClubManagementListConnectionFailure(freshClub: try managementSnapshot(owner: false, admin: true).club, error: URLError(.timedOut)))
+        XCTAssertFalse(failure.canRetain(try managementSnapshot()))
+    }
+}

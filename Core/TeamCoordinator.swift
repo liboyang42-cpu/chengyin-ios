@@ -52,6 +52,8 @@ public struct TeamReview: Identifiable, Equatable {
     private var capturedSession: TeamSession?
     private var generation: UInt64 = 0
     private var activeLookup: TeamLookup?
+    private var completedJoinID: Int?
+    private var readOnlyDetail = false
     public private(set) var scope = UUID()
     public private(set) var teams: [OwnedTeam] = []
     public private(set) var detail: TeamDetail?
@@ -62,6 +64,14 @@ public struct TeamReview: Identifiable, Equatable {
     public private(set) var loading = false
     public private(set) var writeState: WriteState = .idle
     public private(set) var completedTeamID: Int?
+    /// Navigation evidence only; never an authorization to write or proof of current membership.
+    public var postJoinDetailID: Int? {
+        guard currentSession() == capturedSession, capturedSession != nil, !busy,
+              pending == nil, writeState == .acknowledged || writeState == .simulated,
+              case .invitation = activeLookup, let id = completedJoinID,
+              completedTeamID == id, detail?.team.id == id else { return nil }
+        return id
+    }
     public var authenticated: Bool { currentSession() != nil }
     public var configured: Bool { service.authority != .unconfigured }
     public var busy: Bool { loading || writeState == .checking || writeState == .submitting }
@@ -80,7 +90,7 @@ public struct TeamReview: Identifiable, Equatable {
     public func synchronizeSession() {
         guard currentSession() != capturedSession else { return }
         generation &+= 1; scope = UUID(); capturedSession = currentSession()
-        teams = []; detail = nil; creation = nil; review = nil; pending = nil; activeLookup = nil; messageKey = nil; completedTeamID = nil
+        teams = []; detail = nil; creation = nil; review = nil; pending = nil; activeLookup = nil; messageKey = nil; completedTeamID = nil; completedJoinID = nil
         loading = false; writeState = .idle
     }
     private func active(_ session: TeamSession, _ stamp: UInt64) -> Bool {
@@ -101,20 +111,32 @@ public struct TeamReview: Identifiable, Equatable {
         do { let rows = try await service.myTeams(session: session); guard active(session, stamp) else { return }; teams = rows }
         catch { guard active(session, stamp) else { return }; readError(error, session: session) }
     }
-    public func loadDetail(_ lookup: TeamLookup) async {
+    public func loadDetail(_ lookup: TeamLookup, requireMembership: Bool = false) async {
         synchronizeSession(); guard !busy else { return }
         guard let lookup = lookup.normalized else { detail = nil; messageKey = "team.invalidLink"; return }
         guard let session = capturedSession else { messageKey = "team.signIn"; return }
         generation &+= 1; let stamp = generation; loading = true; review = nil; messageKey = nil
         // The host uses a separate coordinator for each detail route. Never retain another target.
-        if activeLookup != lookup { detail = nil; pending = nil; writeState = .idle }; activeLookup = lookup
+        if activeLookup != lookup { detail = nil; pending = nil; writeState = .idle; completedJoinID = nil }; activeLookup = lookup
         defer { if generation == stamp { loading = false } }
+        if requireMembership {
+            detail = nil
+            guard case .id = lookup else { messageKey = "team.invalidLink"; return }
+        }
         do {
             let result = try await service.detail(lookup, session: session)
             guard active(session, stamp) else { return }
             if case .id(let id) = lookup, result.team.id != id { throw TeamFailure.invalidContract }
+            // A joined-invitation continuation must earn membership again on the exact ID read.
+            // Never retain its previous roster when membership is revoked or omitted.
+            if requireMembership, result.joined != true { detail = nil; throw TeamFailure.invalidContract }
             detail = result; try restorePending(targetKey: "team-\(result.team.id)", session: session)
         } catch { guard active(session, stamp) else { return }; readError(error, session: session) }
+    }
+    /// A continuation is permanently read-only for this isolated coordinator's lifetime.
+    public func loadPostJoinDetail(teamID: Int) async {
+        readOnlyDetail = true; review = nil
+        await loadDetail(.id(teamID), requireMembership: true)
     }
     public func loadCreation(ownerID: Int) async {
         synchronizeSession(); guard !busy else { return }
@@ -135,7 +157,7 @@ public struct TeamReview: Identifiable, Equatable {
     }
     public func prepare(_ proposedAction: TeamAction) {
         synchronizeSession(); review = nil
-        guard !busy, writeState != .blocked, let session = capturedSession else { return }
+        guard !readOnlyDetail, !busy, writeState != .blocked, let session = capturedSession else { return }
         var action = proposedAction
         if case .join(let teamID, let code) = action {
             guard let lookup = TeamLookup.invitation(code).normalized,
@@ -160,9 +182,10 @@ public struct TeamReview: Identifiable, Equatable {
     }
     public func confirm(_ value: TeamReview) async {
         synchronizeSession()
-        guard !busy, pending == nil, review == value, currentSession() == value.session else { return }
+        guard !readOnlyDetail, !busy, pending == nil, review == value, currentSession() == value.session else { return }
         review = nil
         guard canSubmit else { writeState = .notSent; messageKey = "team.writesDisabled"; return }
+        completedJoinID = nil
         let session = value.session; generation &+= 1; let stamp = generation; writeState = .checking
         do {
             if case .create(let expected, _, _) = value.action {
@@ -186,6 +209,11 @@ public struct TeamReview: Identifiable, Equatable {
             guard let persisted, persisted.operationID == record.operationID else { throw TeamFailure.persistence }
             pending = persisted
             apply(result, record: persisted, expectedTeamID: value.action.teamID)
+            if case .join(let teamID, _) = value.action,
+               pending == nil, completedTeamID == teamID,
+               writeState == .acknowledged || writeState == .simulated {
+                completedJoinID = teamID
+            }
         } catch {
             guard active(session, stamp) else { return }
             writeState = pending == nil ? .blocked : .unknown
@@ -210,7 +238,7 @@ public struct TeamReview: Identifiable, Equatable {
     }
     /// Synthetic correlated receipts only. A list refresh is not proof of an earlier outcome.
     public func checkOutcome() async {
-        synchronizeSession(); guard !busy, canSimulate, let session = capturedSession, let record = pending else { return }
+        synchronizeSession(); guard !readOnlyDetail, !busy, canSimulate, let session = capturedSession, let record = pending else { return }
         generation &+= 1; let stamp = generation; writeState = .checking
         let expected = record.targetKey.hasPrefix("team-") ? Int(record.targetKey.dropFirst(5)) : nil
         do {

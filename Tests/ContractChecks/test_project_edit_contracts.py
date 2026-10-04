@@ -81,7 +81,7 @@ class ProjectEditContracts(unittest.TestCase):
     def test_authoring_inventory_keeps_runtime_distinction(self):
         core=(ROOT/'Tests/CoreTests/ProjectEditTests.swift').read_text(); ui=(ROOT/'Tests/AppUITests/ProjectEditFlowTests.swift').read_text()
         self.assertGreaterEqual(len(re.findall(r'func test\w+',core)),26)
-        self.assertEqual(len(re.findall(r'func test\w+',ui)),9)
+        self.assertEqual(len(re.findall(r'func test\w+',ui)),10)
         self.assertIn('No UI test was run',ui)
     def test_full_edit_locks_and_source_normalizations(self):
         self.assertIn('whitelistLockedFieldsEqual',self.coordinator)

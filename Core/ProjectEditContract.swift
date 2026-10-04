@@ -40,15 +40,20 @@ public enum ProjectEditContract {
         payload["chapters"] = .array(try draft.chapters.map { .object(try chapterPayload($0, product: draft.product, storyFlow: storyFlow, editing: topicID != nil)) })
         payload["tickets"] = .array(try draft.tickets.map { ticket in
             guard let price = ProjectEditValidation.decimal(ticket.price), let stock = Int(ticket.totalStock), let team = Int(ticket.teamSize) else { throw ProjectEditError.invalidDraft }
+            let schedule = ticket.schedule(in: draft)
             var p: [String: ProjectEditJSON] = [
                 "name": .string(ticket.name), "price": .number(price), "mode": .number(Decimal(draft.product.rawValue)),
                 "totalStock": .number(Decimal(stock)), "teamSize": .number(Decimal(team)),
-                "startTime": .string(ProjectEditValidation.dateTime(ticket.startTime)!),
-                "endTime": .string(ProjectEditValidation.dateTime(ticket.endTime, endOfDay: true)!)
+                "startTime": .string(ProjectEditValidation.dateTime(schedule.start)!),
+                "endTime": .string(ProjectEditValidation.dateTime(schedule.end, endOfDay: true)!)
             ]
             let optional = ["description": ticket.description, "meetingPoint": ticket.meetingPoint, "gatherLng": ticket.gatherLng,
-                            "gatherLat": ticket.gatherLat, "saleStartTime": ticket.saleStartTime, "saleEndTime": ticket.saleEndTime]
+                            "gatherLat": ticket.gatherLat]
             for (key, value) in optional where !value.isEmpty { p[key] = .string(value) }
+            p.merge(try ticket.saleTimePayloads()) { _, edited in edited }
+            // Exact stored preference, including an untouched legacy value. The
+            // server does not resolve date sync; start/end above already do so.
+            if let sync = ticket.localMetadata["syncWithTheme"] { p["syncWithTheme"] = sync }
             return .object(p)
         })
         try ProjectEditStoryContract.validatePayload(payload)

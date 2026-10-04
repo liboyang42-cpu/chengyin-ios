@@ -157,9 +157,32 @@ import SwiftUI
                 TextField("projectEdit.teamSize", text: ticket.teamSize).keyboardType(.numberPad)
                 TextField("projectEdit.description", text: ticket.description, axis: .vertical).lineLimit(3...8)
             }
+            Section("projectEdit.saleSchedule") {
+                ProjectEditDateField(title: "projectEdit.saleStart", value: ticket.saleStartTime, identifier: "projectEdit.saleStart")
+                    .disabled(!ticket.wrappedValue.canEditSaleTime(end: false))
+                ProjectEditDateField(title: "projectEdit.saleEnd", value: ticket.saleEndTime, identifier: "projectEdit.saleEnd")
+                    .disabled(!ticket.wrappedValue.canEditSaleTime(end: true))
+                Text("projectEdit.saleStoredOnly").font(.caption).foregroundStyle(.secondary)
+                if !ticket.wrappedValue.canEditSaleTime(end: false) || !ticket.wrappedValue.canEditSaleTime(end: true) {
+                    Text("projectEdit.saleLegacy").font(.caption).foregroundStyle(.secondary)
+                }
+            }
             Section("projectEdit.ticketSchedule") {
-                ProjectEditDateField(title: "projectEdit.ticketStart", value: ticket.startTime, identifier: "projectEdit.ticketStart")
-                ProjectEditDateField(title: "projectEdit.ticketEnd", value: ticket.endTime, identifier: "projectEdit.ticketEnd")
+                if model.draft.product == .freeExplore {
+                    Toggle("projectEdit.syncThemeDates", isOn: model.ticketDateSync(ticketID))
+                        .disabled(!ticket.wrappedValue.canEditThemeDateSync)
+                        .accessibilityIdentifier("projectEdit.syncThemeDates")
+                    Text("projectEdit.syncThemeDatesHint").font(.caption).foregroundStyle(.secondary)
+                    if !ticket.wrappedValue.canEditThemeDateSync { Text("projectEdit.syncThemeDatesLegacy").font(.caption).foregroundStyle(.secondary) }
+                }
+                if model.draft.product == .freeExplore && ticket.wrappedValue.syncsWithThemeDates {
+                    let schedule = ticket.wrappedValue.schedule(in: model.draft)
+                    LabeledContent("projectEdit.ticketStart", value: schedule.start).accessibilityIdentifier("projectEdit.ticketStart")
+                    LabeledContent("projectEdit.ticketEnd", value: schedule.end).accessibilityIdentifier("projectEdit.ticketEnd")
+                } else {
+                    ProjectEditDateField(title: "projectEdit.ticketStart", value: ticket.startTime, identifier: "projectEdit.ticketStart")
+                    ProjectEditDateField(title: "projectEdit.ticketEnd", value: ticket.endTime, identifier: "projectEdit.ticketEnd")
+                }
                 if model.draft.product == .city {
                     TextField("projectEdit.meetingPoint", text: ticket.meetingPoint).accessibilityIdentifier("projectEdit.meetingPoint")
                 }
@@ -224,8 +247,19 @@ struct ProjectEditReviewView: View {
                     Section("projectEdit.ticketDetails") {
                         row("projectEdit.ticketName", ticket.name); row("projectEdit.ticketPrice", ticket.price)
                         row("projectEdit.totalStock", ticket.totalStock); row("projectEdit.teamSize", ticket.teamSize)
-                        row("projectEdit.ticketStart", ticket.startTime); row("projectEdit.ticketEnd", ticket.endTime)
+                        let schedule = ticket.schedule(in: confirmation.draft)
+                        row("projectEdit.ticketStart", schedule.start); row("projectEdit.ticketEnd", schedule.end)
+                        if confirmation.draft.product == .freeExplore {
+                            LabeledContent { Text(LocalizedStringKey(ticket.syncsWithThemeDates ? "projectEdit.yes" : "projectEdit.no")) } label: { Text("projectEdit.syncThemeDates") }
+                            if !ticket.canEditThemeDateSync { Text("projectEdit.syncThemeDatesLegacy") }
+                        }
                         row("projectEdit.meetingPoint", ticket.meetingPoint)
+                        let sale = (try? ticket.saleTimePayloads()) ?? [:]
+                        row("projectEdit.saleStart", sale["saleStartTime"]?.text ?? ticket.saleStartTime)
+                        row("projectEdit.saleEnd", sale["saleEndTime"]?.text ?? ticket.saleEndTime)
+                        Text("projectEdit.saleStoredOnly").font(.caption).foregroundStyle(.secondary)
+                        if !ticket.canEditSaleTime(end: false) || !ticket.canEditSaleTime(end: true) { Text("projectEdit.saleLegacy") }
+
                     }
                 }
                 Section("projectEdit.visibility") {

@@ -66,3 +66,25 @@ public protocol ClubManagementAccess: AnyObject {
     func perform(_ action: ClubManagementAction, clubID: Int, memberID: Int,
                  expectedIdentity: ClubReadIdentity) async throws -> ClubActionReceipt
 }
+
+/// A list transport failure after a fresh successful permission read. No server,
+/// decoding, authentication or cancellation error can create this marker.
+public struct ClubManagementListConnectionFailure: Error {
+    public let freshClub: ClubRecord
+    public init?(freshClub: ClubRecord, error: Error) {
+        guard freshClub.canGovern, let error = error as? URLError else { return nil }
+        switch error.code {
+        case .timedOut, .cannotFindHost, .cannotConnectToHost, .networkConnectionLost,
+             .dnsLookupFailed, .notConnectedToInternet:
+            self.freshClub = freshClub
+        default: return nil
+        }
+    }
+    public func canRetain(_ previous: ClubManagementSnapshot) -> Bool {
+        let old = previous.club
+        return old.id == freshClub.id && old.canGovern
+            && old.isOwner == freshClub.isOwner
+            && old.viewerIsAdmin == freshClub.viewerIsAdmin
+            && old.isJoined == freshClub.isJoined
+    }
+}

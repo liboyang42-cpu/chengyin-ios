@@ -62,6 +62,10 @@ public struct MerchantOperationsService {
     public func document(_ destination: MerchantOperationsDestination, access: MerchantOperationsAccess, token: String) async throws -> MerchantOperationsDocument {
         guard access.allows(destination) else { throw MerchantOperationsFailure.accessDenied }
         switch destination {
+        case .businessStatus:
+            let value: MerchantBusinessStatusDocument = try await read("api/merchant/business-status", body: .none, token: token)
+            guard let owner = access.identity.merchantID, owner > 0 else { throw APIError.malformedResponse }
+            return .draft(.businessStatus(try .init(merchantID: owner, status: value.businessStatus)))
         case .profile:
             let value: MerchantStoreProfile = try await read("api/merchant/info", body: .form([:]), token: token)
             guard value.id == access.identity.merchantID else { throw APIError.malformedResponse }
@@ -103,6 +107,9 @@ public struct MerchantOperationsService {
                               baseline: MerchantOperationsDraft? = nil, journal: (any OperationPendingJournal)? = nil,
                               checkSession: (() throws -> Void)? = nil) async throws -> MerchantOperationsAcknowledgment {
         guard let approval, let baseline, let journal, let checkSession, draft.destination == baseline.destination else { throw MerchantOperationsFailure.liveWritesDisabled }
+        if case .businessStatus(let proposed) = draft {
+            guard case .businessStatus(let original) = baseline, proposed.merchantID == original.merchantID else { throw MerchantOperationsFailure.notSent }
+        }
         let previews = try draft.previews()
         guard !previews.isEmpty, previews.allSatisfy({ approval.allows(configuration: configuration, namespace: namespace, accountID: accountID, path: $0.path) }) else { throw MerchantOperationsFailure.liveWritesDisabled }
         let ownerKey = "\(namespace.utf8.count):\(namespace):\(accountID)"
@@ -116,7 +123,17 @@ public struct MerchantOperationsService {
             let fresh = try await document(draft.destination, access: access, token: token)
             try checkSession(); try Task.checkCancellation()
             guard fresh == .draft(baseline) else { throw MerchantOperationsFailure.notSent }
-            requests = try previews.map { try OperationAdapterHTTP.json(configuration: configuration, path: $0.path, body: $0.json, token: token) }
+            requests = try previews.map { preview in
+                if let fields = preview.form {
+                    var request = try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent(preview.path), fields: [:], token: token, includesBody: false)
+                    var components = URLComponents()
+                    components.queryItems = fields.keys.sorted().map { URLQueryItem(name: $0, value: fields[$0]) }
+                    request.httpBody = Data((components.percentEncodedQuery ?? "").utf8)
+                    request.setValue("application/x-www-form-urlencoded; charset=utf-8", forHTTPHeaderField: "Content-Type")
+                    return request
+                }
+                return try OperationAdapterHTTP.json(configuration: configuration, path: preview.path, body: preview.json, token: token)
+            }
             guard try journal.pending(ownerKey: ownerKey, targetKey: record.targetKey) == nil else { throw MerchantOperationsFailure.outcomeUnknown }
             try journal.write(record)
         } catch let error as MerchantOperationsFailure { throw error }

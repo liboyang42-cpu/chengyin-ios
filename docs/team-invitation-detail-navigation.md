@@ -1,0 +1,11 @@
+# Joined invitation to owned-team detail
+
+The invitation screen now offers the existing team-details destination only when its latest decoded invitation says `joined == true`. It freezes the displayed team ID in the destination and allocates a new coordinator using the host's existing session-scoped factory. The ID destination requires a new read and explicit membership; it clears any previous roster before that read, rejects a missing/false membership claim, and retains exact-ID, account/epoch/role/generation and pending-operation checks. Back and reopen use native navigation; the invitation source reloads on return.
+
+This is a navigation continuation, not a team transport or write activation. It does not infer membership from a nearby row, an invitation code, a roster, or an acknowledgment. No endpoint, grant, authentication, production composition, journal reconciliation or financial behavior is changed. Pending/blocked and active operations cannot use the new link to bypass an unresolved write.
+
+Source at private `chengyin` commit `0bf8a3b13e601a82ed8b4902d775a6ed290bc26b`: `chengyinhub-xcx/pages/team/join/index.wxml` binds `joined` to visible `goDetail`; its JS uses Back when returning to the detail page or redirects to `teamId`. `ApiPlayTeamController.info` delegates both lookup forms; `PlayTeamServiceImpl.info` only permits an ID lookup for an active member. The apparently missing nonmember ID-detail join shortcut was deliberately not implemented: the backend forbids that nonmember ID read.
+
+Normal AppSession still constructs TeamReadOnlyService without production configuration and does not enable team write approval. Live availability remains gated on independently approved read configuration and exact capability evidence.
+
+Validation: repository scaffold, Python tooling and source contracts; supplementary pinned Tree-sitter parse of changed Swift. Authored Core tests cover fresh membership, omitted/revoked membership, refresh failure, changed session and existing unknown-operation locks. Authored UI tests cover joined invitation detail, Back/reopen, sign-out and absence of a nonmember shortcut. Swift typechecking, Apple builds, XCTest/UI execution, layout, VoiceOver and real-service operations remain unrun for this patch.

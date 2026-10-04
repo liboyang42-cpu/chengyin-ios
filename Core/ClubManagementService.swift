@@ -16,20 +16,27 @@ public struct ClubManagementService {
         let club = try await clubs.detail(id: clubID, token: token)
         try checkSession()
         guard club.canGovern else { throw ClubReadFailure.forbidden(message: nil) }
-        let request = try makeRequest(path: "api/club/join-requests", fields: ["clubId": clubID], token: token)
-        let (data, status) = try await transport.send(request)
-        try checkSession()
-        try validateRead(data, status)
-        let requests: [ClubManagementRequest]
-        do { requests = try JSONDecoder().decode(Rows.self, from: data).data }
-        catch { throw APIError.malformedResponse }
-        // Admins may review applications but may not remove members. Avoid requesting
-        // a member list when server membership facts do not permit that read.
-        let members = club.isOwner ? try await clubs.members(in: club, token: token) : []
-        try checkSession()
-        guard Set(requests.map(\.id)).count == requests.count,
-              Set(members.map(\.id)).count == members.count else { throw APIError.malformedResponse }
-        return ClubManagementSnapshot(club: club, requests: requests, members: members)
+        do {
+            let request = try makeRequest(path: "api/club/join-requests", fields: ["clubId": clubID], token: token)
+            let (data, status) = try await transport.send(request)
+            try checkSession()
+            try validateRead(data, status)
+            let requests: [ClubManagementRequest]
+            do { requests = try JSONDecoder().decode(Rows.self, from: data).data }
+            catch { throw APIError.malformedResponse }
+            // Admins may review applications but may not remove members. Avoid requesting
+            // a member list when server membership facts do not permit that read.
+            let members = club.isOwner ? try await clubs.members(in: club, token: token) : []
+            try checkSession()
+            guard Set(requests.map(\.id)).count == requests.count,
+                  Set(members.map(\.id)).count == members.count else { throw APIError.malformedResponse }
+            return ClubManagementSnapshot(club: club, requests: requests, members: members)
+        } catch {
+            try checkSession()
+            try Task.checkCancellation()
+            if let transient = ClubManagementListConnectionFailure(freshClub: club, error: error) { throw transient }
+            throw error
+        }
     }
     func perform(_ action: ClubManagementAction, clubID: Int, memberID: Int, token: String) async throws -> ClubActionReceipt {
         let request: URLRequest

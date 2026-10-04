@@ -44,9 +44,9 @@ import SwiftUI
             }.font(.caption).buttonStyle(.bordered).frame(minHeight: 44)
             NavigationStack {
                 switch destination {
-                case "detail": TeamDetailView(lookup: .id(4101), coordinator: environment.makeCoordinator())
-                case "invitation": TeamDetailView(lookup: .invitation("SYNTHETIC-TEAM"), coordinator: environment.makeCoordinator())
-                case "missing": TeamDetailView(lookup: .invitation(""), coordinator: environment.makeCoordinator())
+                case "detail": TeamDetailView(lookup: .id(4101), coordinator: environment.makeCoordinator(), makeCoordinator: { environment.makeCoordinator() })
+                case "invitation": TeamDetailView(lookup: .invitation("SYNTHETIC-TEAM"), coordinator: environment.makeCoordinator(), makeCoordinator: { environment.makeCoordinator() })
+                case "missing": TeamDetailView(lookup: .invitation(""), coordinator: environment.makeCoordinator(), makeCoordinator: { environment.makeCoordinator() })
                 case "create": TeamCreateView(activityID: 5101, coordinator: environment.makeCoordinator())
                 default: TeamHomeView(coordinator: environment.makeCoordinator(), makeCoordinator: environment.makeCoordinator)
                 }

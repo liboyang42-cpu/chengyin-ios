@@ -886,5 +886,13 @@
   "playkit.compare.none": {
     "en": "No entries marked. Submitting still counts as an attempt.",
     "zh-Hans": "未标记任何条目，提交仍计作一次作答。"
+  },
+  "playkit.type.retry": {
+    "en": "The last attempt did not pass. You can try again.",
+    "zh-Hans": "上次尝试未通过，可以再试一次。"
+  },
+  "playkit.type.finishedNotPassed": {
+    "en": "This round has ended without passing.",
+    "zh-Hans": "本轮已结束，未通过。"
   }
 }

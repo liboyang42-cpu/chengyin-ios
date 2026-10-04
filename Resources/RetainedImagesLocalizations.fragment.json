@@ -272,6 +272,22 @@
           }
         }
       }
+    },
+    "image.retained.byteCount %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upload size (bytes): %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上传大小（字节）：%lld"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
