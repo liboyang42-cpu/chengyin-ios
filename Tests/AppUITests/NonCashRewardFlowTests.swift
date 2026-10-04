@@ -4,7 +4,7 @@ import XCTest
 @MainActor final class NonCashRewardFlowTests: XCTestCase {
     private var app: XCUIApplication!
     override func setUp() { super.setUp(); continueAfterFailure = false; app = XCUIApplication() }
-    override func tearDownWithError() { attachFailureScreenshot(self, app: app); app.terminate(); app = nil }
+    override func tearDownWithError() throws { attachFailureScreenshot(self, app: app); app.terminate(); app = nil }
     private func tap(_ id: String) {
         let element = app.buttons[id]
         XCTAssertTrue(revealFixtureElement(element, in: app), app.debugDescription); element.tap()
