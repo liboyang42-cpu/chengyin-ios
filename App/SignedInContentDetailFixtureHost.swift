@@ -84,6 +84,7 @@ import SwiftUI
         else if path.hasSuffix("/topic/list") { json = #"{"code":200,"data":{"rows":[{"id":31,"name":"Synthetic route card"}]}}"# }
         else if path.hasSuffix("/activity/list") { json = #"{"code":200,"data":{"rows":[{"id":21,"name":"Synthetic activity card"}]}}"# }
         else if path.hasSuffix("/topic/info-to-user") || path.hasSuffix("/activity/info") {
+            if path.hasSuffix("/topic/info-to-user"), args.contains("--content-detail-topic-failure") { throw APIError.httpStatus(503) }
             detailRequests += 1
             if (args.contains("--content-detail-fail-once") || args.contains("--content-detail-pause-retry")), !failed {
                 failed = true; return (Data(), 503)
@@ -95,7 +96,7 @@ import SwiftUI
             if args.contains("--content-detail-forbidden") { return (Data(#"{"code":403}"#.utf8), 403) }
             if path.hasSuffix("/activity/info") {
                 if args.contains("--content-detail-club-gate") { json = #"{"code":200,"data":{"gate":true,"clubId":9,"message":"Join the synthetic club first","activityName":"Summary only"}}"# }
-                else { json = #"{"code":200,"data":{"id":21,"name":"Synthetic activity detail","description":"Read-only content","omsTicketList":[]}}"# }
+                else { json = #"{"code":200,"data":{"id":21,"name":"Synthetic activity detail","description":"Read-only content","topicId":31,"omsTicketList":[]}}"# }
             } else {
                 let shelf = args.contains("--content-detail-unknown-shelf") ? "null" : args.contains("--content-detail-empty-shelf") ? "[]" : #"[{"id":21,"name":"Synthetic available walk","addressName":"Synthetic square"}]"#
                 let name = role == "merchant" ? "Synthetic merchant route" : "Synthetic route detail"

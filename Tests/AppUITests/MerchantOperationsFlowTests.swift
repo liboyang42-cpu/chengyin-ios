@@ -93,4 +93,43 @@ final class MerchantOperationsFlowTests: XCTestCase {
         assertReviewLocked(app)
     }
 
+    func testStoreHoursExplicitDraftCancelReviewSaveAndReload() {
+        let app = launch(); open("profile", app: app)
+        let edit = app.buttons["merchant.operations.hours.edit"]
+        XCTAssertTrue(revealFixtureElement(edit, in: app)); edit.tap()
+        let cancel = app.buttons["merchant.operations.hours.cancel"]
+        XCTAssertTrue(revealFixtureElement(cancel, in: app)); cancel.tap()
+        XCTAssertFalse(app.buttons["merchant.operations.hours.restore"].exists)
+        XCTAssertTrue(revealFixtureElement(edit, in: app)); edit.tap()
+        let apply = app.buttons["merchant.operations.hours.apply"]
+        XCTAssertTrue(revealFixtureElement(apply, in: app)); apply.tap()
+        review(app)
+        XCTAssertTrue(app.staticTexts["周一至周日 10:00-22:00"].waitForExistence(timeout: 4))
+        app.buttons["merchant.operations.confirm.cancel"].tap()
+        review(app)
+        let confirm = app.buttons["merchant.operations.confirm"]
+        XCTAssertTrue(revealFixtureElement(confirm, in: app)); confirm.tap()
+        XCTAssertTrue(app.staticTexts["merchant.operations.exampleSaved"].waitForExistence(timeout: 4))
+        app.buttons["merchant.operations.reload"].tap()
+        let current = app.staticTexts["merchant.operations.hours.current"]
+        XCTAssertTrue(revealFixtureElement(current, in: app))
+        XCTAssertEqual(current.label, "周一至周日 10:00-22:00")
+        XCTAssertFalse(app.buttons["merchant.operations.hours.restore"].exists)
+        assertReviewLocked(app)
+    }
+
+    func testReloadDropsUnappliedLocalHoursEditor() {
+        let app = launch(); open("profile", app: app)
+        let edit = app.buttons["merchant.operations.hours.edit"]
+        XCTAssertTrue(revealFixtureElement(edit, in: app)); edit.tap()
+        let monday = app.switches["merchant.operations.hours.day.0"]
+        XCTAssertTrue(revealFixtureElement(monday, in: app)); monday.tap()
+        app.buttons["merchant.operations.reload"].tap()
+        XCTAssertTrue(revealFixtureElement(edit, in: app))
+        XCTAssertFalse(app.buttons["merchant.operations.hours.apply"].exists)
+        edit.tap()
+        XCTAssertTrue(revealFixtureElement(monday, in: app))
+        XCTAssertEqual(monday.value as? String, "1")
+    }
+
 }

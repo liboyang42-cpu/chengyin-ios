@@ -494,9 +494,14 @@ final class MerchantProfileViewerRevisionTests: XCTestCase {
     func testRoleRevisionDuringDocumentReadDropsLateResponseAndResetsBusyAfterLoad() async throws {
         let transport = MerchantOperationsTransport()
         transport.replies = [
-            #"{"code":200,"data":{"active":true,"merchant":{"id":31},"permissions":["merchant:profile:write"]}}"#,
+            #"{"code":200,"data":{"active":true,"merchant":{"id":31},"roleCode":"MERCHANT_OWNER","permissions":["merchant:profile:write"]}}"#,
             "{\"code\":200,\"data\":\(MerchantOperationsFixtureData.storeJSON)}"
         ]
+        let envelope = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(transport.replies[0].utf8)) as? [String: Any])
+        let accessData = try JSONSerialization.data(withJSONObject: XCTUnwrap(envelope["data"]))
+        let access = try JSONDecoder().decode(MerchantOperationsAccess.self, from: accessData)
+        XCTAssertEqual(access.identity.role, .owner)
+        XCTAssertTrue(access.allows(.profile))
         var current: MerchantOperationsSession? = try session(1)
         let changed = try session(2)
         let service = try MerchantOperationsService(configuration: APIConfiguration(baseURL: URL(string: "https://api.example.com")!), transport: transport)
@@ -507,6 +512,8 @@ final class MerchantProfileViewerRevisionTests: XCTestCase {
         XCTAssertNil(model.document); XCTAssertNil(model.draft); XCTAssertFalse(model.isBusy)
         XCTAssertFalse(model.isCurrent); XCTAssertFalse(model.canReview)
         XCTAssertEqual(transport.requests.count, 2)
+        XCTAssertEqual(transport.requests.map { $0.url?.path }, ["/api/merchant/access/me", "/api/merchant/info"])
+        XCTAssertEqual(current?.viewerRevision, 2)
     }
     func testScopeChangeBeforeConfirmationPreventsWrite() async throws {
         let reader = ProfileReadbackReader()
@@ -519,5 +526,44 @@ final class MerchantProfileViewerRevisionTests: XCTestCase {
         await model.confirm(confirmation)
         XCTAssertEqual(reader.saves, 0); XCTAssertFalse(model.canReview)
         model.invalidate(); XCTAssertFalse(model.isBusy); XCTAssertNil(model.confirmation)
+    }
+}
+
+@MainActor
+final class MerchantStoreHoursFlowTests: XCTestCase {
+    func testHoursReviewCancellationFrozenSaveAndAuthoritativeReadback() async throws {
+        let reader = ProfileReadbackReader()
+        let model = MerchantOperationsCoordinator(reader: reader, destination: .profile)
+        await model.load()
+        guard case .profile(var profile) = model.draft else { XCTFail(); return }
+        profile.businessTimeReplacement = "周一、五 22:00-次日01:30"
+        model.edit(.profile(profile)); model.prepare()
+        let cancelled = try XCTUnwrap(model.confirmation)
+        model.cancelConfirmation(); await model.confirm(cancelled)
+        XCTAssertEqual(reader.saves, 0)
+        model.prepare(); let review = try XCTUnwrap(model.confirmation)
+        XCTAssertTrue(review.draft.reviewLines.contains { $0.key == "merchant.operations.businessTime" && $0.value == "周一、五 22:00-次日01:30" })
+        let server = try JSONDecoder().decode(MerchantStoreProfile.self, from: Data(#"{"id":31,"businessTime":"周一、五 22:00-次日01:30"}"#.utf8))
+        reader.returned = .profile(server)
+        await model.confirm(review)
+        XCTAssertEqual(model.draft, .profile(server)); XCTAssertNil(server.businessTimeReplacement)
+        XCTAssertFalse(model.isDirty); XCTAssertEqual(reader.saves, 1)
+        await model.confirm(review); XCTAssertEqual(reader.saves, 1)
+    }
+    func testHoursScopeChangeAndUnknownOutcomeDoNotResend() async throws {
+        let reader = ProfileReadbackReader()
+        let model = MerchantOperationsCoordinator(reader: reader, destination: .profile)
+        await model.load()
+        guard case .profile(var profile) = model.draft else { XCTFail(); return }
+        profile.businessTimeReplacement = "周一至周日 10:00-22:00"
+        model.edit(.profile(profile)); model.prepare()
+        let review = try XCTUnwrap(model.confirmation)
+        reader.saveError = .outcomeUnknown
+        await model.confirm(review)
+        XCTAssertTrue(model.isLocked); XCTAssertEqual(reader.saves, 1)
+        await model.confirm(review); XCTAssertEqual(reader.saves, 1)
+        reader.scope = UUID(); model.invalidate()
+        XCTAssertNil(model.draft); XCTAssertNil(model.confirmation)
+        await model.confirm(review); XCTAssertEqual(reader.saves, 1)
     }
 }

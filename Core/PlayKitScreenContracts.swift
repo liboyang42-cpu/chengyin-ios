@@ -89,6 +89,20 @@ public struct PlayKitScreenProjection: Equatable {
               let sum = segment["sum"].integer, (count...(count * 6)).contains(sum) else { return nil }
         return sum
     }
+    /// Only an authoritative attempt/result can select retry or terminal copy.
+    /// Attempt limits alone never end a round; finished remains server-owned.
+    public var reasoningResultKey: String? {
+        guard [.sort, .match, .classify].contains(kind),
+              let attempts = segment["attempts"].integer, attempts > 0,
+              let passed = segment["passed"].bool else { return nil }
+        if kind == .sort {
+            guard let finished = segment["finished"].bool else { return nil }
+            if passed { return finished ? "playkit.result.passed" : nil }
+            if finished { return "playkit.reasoning.finishedNotPassed" }
+        }
+        if passed { return "playkit.result.passed" }
+        return "playkit.reasoning.tryAgain"
+    }
     public var feedback: String? { segment["lastFeedback"].text ?? segment["feedback"].text }
     public var options: [PlayKitOption] {
         if kind == .predict || kind == .blindTaste { return PlayKitOption.read(segment["options"], idKey: "key") }

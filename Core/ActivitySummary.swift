@@ -50,6 +50,12 @@ public struct ActivitySummary: Decodable, Equatable, Identifiable {
         productType=integer(.productType);topicID=integer(.topicId)
         likeState=ActivityLikeState(rawValue:integer(.isLiked) ?? 0) ?? .none
     }
+    /// The mini detail action accepts positive JavaScript-safe integer topic IDs only.
+    /// Missing or malformed linkage must not navigate to a guessed destination.
+    public var linkedTopicID: Int? {
+        guard let topicID, topicID > 0, topicID <= 9_007_199_254_740_991 else { return nil }
+        return topicID
+    }
     public var hasValidCoordinates: Bool {
         guard let latitude, let longitude else { return false }
         return latitude.isFinite && longitude.isFinite && (-90...90).contains(latitude) && (-180...180).contains(longitude)

@@ -49,7 +49,12 @@ import Foundation
         guard draft.blocker == nil else { throw MerchantOperationsFailure.notSent }
         saveCount += 1
         if let saveFailure { throw saveFailure }
-        documents[draft.destination] = .draft(draft)
+        if case .profile(let profile) = draft, let hours = profile.businessTimeReplacement {
+            var fields = profile.fields
+            fields["id"] = profile.id; fields["businessTime"] = hours
+            let returned = try JSONDecoder().decode(MerchantStoreProfile.self, from: JSONSerialization.data(withJSONObject: fields))
+            documents[.profile] = .draft(.profile(returned))
+        } else { documents[draft.destination] = .draft(draft) }
     }
     public func replace(_ destination: MerchantOperationsDestination, with document: MerchantOperationsDocument) { documents[destination] = document }
     public func signOut() { isAuthenticated = false; scope = UUID() }

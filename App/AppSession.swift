@@ -1628,7 +1628,7 @@ final class AppSession: ObservableObject {
                 self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
             }), journal: contextualOperationJournal)
     }
-    var clubGovernanceContext: ClubGovernanceContext { .init(access: clubGovernanceAccess, coordinator: clubGovernanceCoordinator, enrollmentProfile: .init(reader: socialAccountReader, squareReader: squareReader, actions: socialActionCoordinator), ownerRefund: clubOwnerRefundCoordinator, opsTimeFactory: { [weak self] in self?.clubOpsTimeHost?.coordinator(activityID: $0) }) }
+    var clubGovernanceContext: ClubGovernanceContext { .init(viewerRevision: compositionViewerRevision, access: clubGovernanceAccess, coordinator: clubGovernanceCoordinator, enrollmentProfile: .init(reader: socialAccountReader, squareReader: squareReader, actions: socialActionCoordinator), ownerRefund: clubOwnerRefundCoordinator, opsTimeFactory: { [weak self] in self?.clubOpsTimeHost?.coordinator(activityID: $0) }) }
     private var currentClubOperationsSession: ClubOperationsSession? {
         guard let account, let token else { return nil }
         return try? ClubOperationsSession(accountID: account.id, epoch: gate.currentStamp, token: token, storageNamespace: storageScope?.service ?? "")

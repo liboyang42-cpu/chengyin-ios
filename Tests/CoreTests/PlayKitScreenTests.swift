@@ -25,6 +25,33 @@ import FoundationNetworking
         XCTAssertThrowsError(try check("qa", "SUBMIT_QA", ["input": .string("answer")], #"{"mode":"TYPE","finished":true,"passed":false}"#))
         XCTAssertTrue(PlayKitScreenProjection(kind: .qa, segment: try wire(#"{"finished":true,"passed":false}"#)).complete)
     }
+    func testReasoningResultSeparatesTerminalFailureFromRetry() throws {
+        for (kind, json, expected) in [
+            (PlayKitScreenKind.sort, #"{"attempts":2,"finished":true,"passed":false}"#, "playkit.reasoning.finishedNotPassed"),
+            (.sort, #"{"attempts":1,"finished":false,"passed":false}"#, "playkit.reasoning.tryAgain"),
+            (.sort, #"{"attempts":2,"finished":true,"passed":true}"#, "playkit.result.passed"),
+            (.sort, #"{"attempts":99,"maxAttempts":1,"finished":false,"passed":false}"#, "playkit.reasoning.tryAgain"),
+            (.match, #"{"attempts":2,"passed":false}"#, "playkit.reasoning.tryAgain"),
+            (.classify, #"{"attempts":2,"passed":true}"#, "playkit.result.passed")
+        ] {
+            let result = PlayKitScreenProjection(kind: kind, segment: try wire(json))
+            XCTAssertEqual(result.reasoningResultKey, expected)
+        }
+    }
+    func testReasoningResultDoesNotInventUnreportedVerdicts() throws {
+        for json in ["{}", #"{"attempts":0,"finished":true,"passed":false}"#,
+                     #"{"attempts":-1,"finished":true,"passed":false}"#,
+                     #"{"attempts":1,"finished":true}"#,
+                     #"{"attempts":1,"finished":"true","passed":false}"#,
+                     #"{"attempts":1,"finished":true,"passed":"false"}"#,
+                     #"{"attempts":1,"passed":true}"#,
+                     #"{"attempts":1,"finished":"bad","passed":true}"#,
+                     #"{"attempts":1,"finished":false,"passed":true}"#,
+                     #"{"attempts":1.5,"finished":true,"passed":false}"#] {
+            XCTAssertNil(PlayKitScreenProjection(kind: .sort, segment: try wire(json)).reasoningResultKey)
+        }
+        XCTAssertNil(PlayKitScreenProjection(kind: .qa, segment: try wire(#"{"attempts":1,"finished":true,"passed":false}"#)).reasoningResultKey)
+    }
     func testPhotoContractsRejectLocalPathsAndClientScores() throws {
         try check("photoCheck", "SUBMIT_PHOTO_CHECK", ["imageUrl": .string("https://example.com/photo.jpg")], "{}")
         XCTAssertThrowsError(try check("photoCheck", "SUBMIT_PHOTO_CHECK", ["imageUrl": .string("file:///tmp/photo.jpg")], "{}"))

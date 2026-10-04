@@ -56,9 +56,13 @@ public struct MerchantStoreProfile: Decodable, Equatable {
     public var derivatives: String
     /// Distinct from legacy merchandise; nil means absent/null and must not clear it.
     public var derivativeBenefits: String?
+    /// Original opaque server value; unrelated edits never resend it.
+    public let businessTime: String?
+    public var businessTimeReplacement: String? = nil
+    public var displayedBusinessTime: String? { businessTimeReplacement ?? businessTime }
     public var website: String
     public var preference: String
-    private enum CodingKeys: String, CodingKey { case id, logo, name, description, derivatives, derivativeBenefits, website, preference }
+    private enum CodingKeys: String, CodingKey { case id, logo, name, description, derivatives, derivativeBenefits, businessTime, website, preference }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         guard !c.allKeys.isEmpty else { throw APIError.malformedResponse }
@@ -68,6 +72,7 @@ public struct MerchantStoreProfile: Decodable, Equatable {
         description = try c.decodeIfPresent(String.self, forKey: .description) ?? ""
         derivatives = try c.decodeIfPresent(String.self, forKey: .derivatives) ?? ""
         derivativeBenefits = try c.decodeIfPresent(String.self, forKey: .derivativeBenefits)
+        businessTime = try c.decodeIfPresent(String.self, forKey: .businessTime)
         website = try c.decodeIfPresent(String.self, forKey: .website) ?? ""
         preference = try c.decodeIfPresent(String.self, forKey: .preference) ?? ""
     }
@@ -78,7 +83,12 @@ public struct MerchantStoreProfile: Decodable, Equatable {
     public var fields: [String: Any] {
         var fields = legacyFields
         if let derivativeBenefits { fields["derivativeBenefits"] = derivativeBenefits }
+        if let businessTimeReplacement { fields["businessTime"] = businessTimeReplacement }
         return fields
+    }
+    public var hoursBlocker: String? {
+        guard let businessTimeReplacement else { return nil }
+        return MerchantStoreHours(wireValue: businessTimeReplacement) == nil ? "merchant.operations.hoursInvalid" : nil
     }
     /// Story editing must not start resubmitting the independently edited benefits field.
     public var legacyFields: [String: Any] {

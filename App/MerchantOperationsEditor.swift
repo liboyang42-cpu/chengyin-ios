@@ -49,6 +49,7 @@ struct MerchantOperationsEditor: View {
                 profileField("merchant.operations.preference", \.preference, "preference")
                 Text("merchant.operations.profileWhitelist").font(.footnote).foregroundStyle(.secondary)
             }
+            MerchantStoreHoursEditor(model: model)
             mediaSection("merchant.operations.logo", field: .logo)
         case .decor(let value):
             MerchantOperationsMediaPreview(source: value.coverImage, title: "merchant.operations.cover", isExample: isExample)

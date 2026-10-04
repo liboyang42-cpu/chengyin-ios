@@ -92,7 +92,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                 Section("club.members") {
                     if club.canSeeMembers {
                         NavigationLink {
-                            ClubMembersView(id: club.id, reader: reader, profile: management?.governance?.enrollmentProfile, onSignIn: onSignIn)
+                            ClubMembersView(id: club.id, reader: reader, profile: management?.governance?.enrollmentProfile, governance: management?.governance, onSignIn: onSignIn)
                         } label: { Label("club.viewMembers", systemImage: "person.3") }
                             .accessibilityIdentifier("club.openMembers")
                     } else { Text("club.joinToSeeMembers").foregroundStyle(.secondary).accessibilityIdentifier("club.members.gated") }

@@ -131,7 +131,7 @@ import XCTest
             let coordinator = RegistrationCoordinator(service: service)
             try coordinator.setAccount(id: 1, token: "fixture-token")
             var current: ProfileReadIdentity? = identity
-            let activity = try JSONDecoder().decode(ActivityDetail.self, from: Data(#"{"id":7,"name":"Fixture","omsTicketList":[{"id":11,"remainingInventory":5},{"id":12,"remainingInventory":5}]}"#.utf8))
+            let activity = try JSONDecoder().decode(ActivityDetail.self, from: Data(#"{"id":7,"name":"Fixture","omsTicketList":[{"id":11,"name":"Claimed ticket fixture","remainingInventory":5},{"id":12,"name":"Other ticket fixture","remainingInventory":5}]}"#.utf8))
             let flow = RegistrationUIFlow(activity: activity, coordinator: coordinator,
                 currentIdentity: { current }, quoteEnabled: true, creationPolicy: .offlineFixture, waitlistService: service)
             flow.open(); await flow.loadWaitlist()

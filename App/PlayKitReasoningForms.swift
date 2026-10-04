@@ -22,7 +22,9 @@ extension PlayKitScreen {
             else { classifyRows }
             if let attempts = segment["attempts"].integer, attempts > 0 {
                 LabeledContent("playkit.attempts") { Text(verbatim: String(attempts)) }
-                Text(segment["passed"].bool == true ? "playkit.result.passed" : "playkit.reasoning.tryAgain")
+                if let resultKey = PlayKitScreenProjection(kind: kind, segment: segment).reasoningResultKey {
+                    Text(LocalizedStringKey(resultKey)).accessibilityIdentifier("playkit.reasoning.result")
+                }
             }
             if let cap = segment["maxAttempts"].integer, cap > 0 { LabeledContent("playkit.attemptLimit") { Text(verbatim: String(cap)) } }
             Text("playkit.reasoning.serverOnly").font(.footnote)

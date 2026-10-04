@@ -1,5 +1,7 @@
 """Offline structural contracts only; behavioral/Apple tests remain separate."""
 import pathlib
+import json
+import re
 import unittest
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 
@@ -25,3 +27,23 @@ class WaitlistOrderNavigationContracts(unittest.TestCase):
     def test_claimed_states_do_not_recreate_when_inventory_reappears(self):
         flow = (ROOT / 'Core/RegistrationUIFlow.swift').read_text()
         self.assertIn('if let state = waitlistStatus?.state, [.claimed, .converted].contains(state) { return .intentAlreadySubmitted }', flow)
+
+    def test_flow_activity_fixture_satisfies_required_ticket_wire_fields(self):
+        # Structural preflight, not a substitute for executing Swift Decodable/XCTest.
+        source = (ROOT / 'Tests/CoreTests/RegistrationWaitlistOrderDestinationTests.swift').read_text()
+        fixtures = [json.loads(raw) for raw in re.findall(r'Data\(#"(.*?)"#\.utf8\)', source)
+                    if 'omsTicketList' in raw]
+        self.assertEqual(len(fixtures), 1, 'Keep the flow activity fixture explicitly inspected')
+        decoder = (ROOT / 'Core/ActivityDetail.swift').read_text()
+        self.assertIn('id=try c.decode(Int.self,forKey:.id)', decoder)
+        self.assertIn('name=try c.decode(String.self,forKey:.name)', decoder)
+        fixture = fixtures[0]
+        self.assertEqual(fixture['id'], 7)
+        self.assertIsInstance(fixture['name'], str)
+        self.assertEqual([ticket['id'] for ticket in fixture['omsTicketList']], [11, 12])
+        for ticket in fixture['omsTicketList']:
+            self.assertIs(type(ticket['id']), int)
+            self.assertGreater(ticket['id'], 0)
+            self.assertIsInstance(ticket['name'], str)
+            self.assertTrue(ticket['name'])
+            self.assertEqual(ticket['remainingInventory'], 5)

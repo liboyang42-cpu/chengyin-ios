@@ -12,6 +12,47 @@ final class SignedInContentDetailFlowTests: XCTestCase {
     private func openTopic(_ app: XCUIApplication) {
         app.buttons["homeFeed.recommended.topic.31"].tap()
     }
+    private func openActivityRoute(_ app: XCUIApplication) {
+        app.tabBars.buttons["Activities"].tap()
+        let card = app.buttons["activity.row.21"]
+        XCTAssertTrue(card.waitForExistence(timeout: 5)); card.tap()
+        let route = app.buttons["activity.openTopic"]
+        XCTAssertTrue(route.waitForExistence(timeout: 5)); route.tap()
+    }
+    func testActivityTopicRouteBackAndReopen() {
+        let app = launch()
+        openActivityRoute(app)
+        XCTAssertTrue(app.staticTexts["Synthetic route detail"].waitForExistence(timeout: 5))
+        app.navigationBars.buttons.firstMatch.tap()
+        let route = app.buttons["activity.openTopic"]
+        XCTAssertTrue(route.waitForExistence(timeout: 5)); route.tap()
+        XCTAssertTrue(app.staticTexts["Synthetic route detail"].waitForExistence(timeout: 5))
+    }
+    func testActivityTopicRouteClearsOnRoleChangeAndSignOut() {
+        let app = launch()
+        openActivityRoute(app)
+        XCTAssertTrue(app.staticTexts["Synthetic route detail"].waitForExistence(timeout: 5))
+        app.buttons["contentDetail.fixture.role"].tap()
+        // Changing the activity's revision destroys its pushed destination.
+        XCTAssertTrue(app.staticTexts["Synthetic activity detail"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["Synthetic route detail"].exists)
+        let route = app.buttons["activity.openTopic"]
+        XCTAssertTrue(route.waitForExistence(timeout: 5)); route.tap()
+        XCTAssertTrue(app.staticTexts["Synthetic merchant route"].waitForExistence(timeout: 5))
+        app.buttons["contentDetail.fixture.signOut"].tap()
+        XCTAssertFalse(app.staticTexts["Synthetic merchant route"].exists)
+        XCTAssertFalse(app.buttons["activity.openTopic"].exists)
+    }
+    func testActivityTopicFailureStaysInTopicAndBackReopens() {
+        let app = launch(["--content-detail-topic-failure"])
+        openActivityRoute(app)
+        XCTAssertTrue(app.descendants(matching: .any)["topic.error"].firstMatch.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["Synthetic route detail"].exists)
+        app.navigationBars.buttons.firstMatch.tap()
+        let route = app.buttons["activity.openTopic"]
+        XCTAssertTrue(route.waitForExistence(timeout: 5)); route.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["topic.error"].firstMatch.waitForExistence(timeout: 5))
+    }
     func testHomeTopicShelfOpensExactActivityDetailAndBackReopens() {
         let app = launch()
         openTopic(app)
@@ -47,6 +88,7 @@ final class SignedInContentDetailFlowTests: XCTestCase {
         XCTAssertFalse(app.staticTexts["Synthetic activity detail"].exists)
         XCTAssertFalse(app.buttons["activity.openRegistration"].exists)
         XCTAssertFalse(app.buttons["activity.openPlay"].exists)
+        XCTAssertFalse(app.buttons["activity.openTopic"].exists)
     }
     func testGuestCardsShowSignInWithZeroDetailRequests() {
         let app = launch(["--content-detail-guest"])

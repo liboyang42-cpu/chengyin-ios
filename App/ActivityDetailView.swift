@@ -30,7 +30,9 @@ struct ActivityDetailView: View {
                     .accessibilityIdentifier("activity.detail.signIn")
             } else {
                 ActivityDetailContentView(id: id, reader: session,
-                    playReaderForActivity: playReaderForActivity, registrationEnabled: registrationEnabled)
+                    playReaderForActivity: playReaderForActivity,
+                    topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) },
+                    registrationEnabled: registrationEnabled)
                     .id(session.contentDetailRevision)
             }
         }.appNavigationTitle("activity.details")
@@ -41,6 +43,7 @@ struct ActivityDetailView: View {
     let id: Int
     let reader: any ActivityReading
     var playReaderForActivity: ((Int)->PlaySessionReader)? = nil
+    var topicDestination: ((Int) -> AnyView)? = nil
     var registrationEnabled=false
     @State private var showsReview = false
     @State private var showsRegistration=false
@@ -95,6 +98,13 @@ struct ActivityDetailView: View {
             Section {
                 ActivityDetailHeader(summary:detail.summary)
                     .questifyCardListRow()
+            }
+            if let topicID = detail.summary.linkedTopicID, let topicDestination {
+                Section {
+                    NavigationLink { topicDestination(topicID) } label: {
+                        Label("activity.viewTopic", systemImage: "map")
+                    }.accessibilityIdentifier("activity.openTopic")
+                }
             }
             if let text=ActivityPresentation.nonempty(detail.summary.description) {
                 Section("activity.about") {

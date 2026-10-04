@@ -73886,6 +73886,23 @@
         }
       }
     },
+    "playkit.reasoning.finishedNotPassed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This sorting round has ended without passing. No more attempts are available."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这局排序已结束，未通过，不能再重试。"
+          }
+        }
+      }
+    },
     "playkit.reasoning.tryAgain": {
       "extractionState": "manual",
       "localizations": {
@@ -120235,6 +120252,167 @@
           "stringUnit": {
             "state": "translated",
             "value": "退出后将失去当前排队位置，重新加入时需要重新排队。"
+          }
+        }
+      }
+    },
+    "activity.viewTopic": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View theme route"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看主题路线"
+          }
+        }
+      }
+    },
+    "merchant.operations.businessTime": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store hours"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "经营时间"
+          }
+        }
+      }
+    },
+    "merchant.operations.hoursInvalid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose at least one day and different valid opening and closing times."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请至少选择一个营业日，并选择有效且不相同的开始和结束时间。"
+          }
+        }
+      }
+    },
+    "merchant.operations.hoursPreserved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Existing hours stay unchanged until you explicitly add replacement hours to the draft. These are store-local times. Unrecognized hours remain visible; the editor starts at daily 10:00–22:00 for you to review."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "现有经营时间保持不变，只有明确将新时间加入草稿后才会替换。时间按门店本地时钟填写。无法识别的旧值会保留显示，编辑器从每天 10:00–22:00 开始，请核对。"
+          }
+        }
+      }
+    },
+    "merchant.operations.hoursOvernight": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Closing time is on the following day."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结束时间为次日，属于跨夜经营。"
+          }
+        }
+      }
+    },
+    "merchant.operations.hoursUseDraft": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add hours to draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将经营时间加入草稿"
+          }
+        }
+      }
+    },
+    "merchant.operations.hoursEdit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit store hours"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑经营时间"
+          }
+        }
+      }
+    },
+    "merchant.operations.hoursRestore": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep original hours"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留原经营时间"
+          }
+        }
+      }
+    },
+    "merchant.operations.hoursHour": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hour"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "时"
+          }
+        }
+      }
+    },
+    "merchant.operations.hoursMinute": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minute"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分"
           }
         }
       }

@@ -19,7 +19,7 @@ public enum MerchantOperationsDraft: Equatable {
     }
     public var blocker: String? {
         switch self {
-        case .profile(let value): return value.benefitsBlocker
+        case .profile(let value): return value.benefitsBlocker ?? value.hoursBlocker
         case .decor(let value): return value.blocker
         case .gallery(let value): return value.gallery.count > 9 ? "merchant.operations.galleryLimit" : nil
         case .story(let value): return value.profile.description.utf16.count > 300 ? "merchant.operations.storyLimit" : nil
@@ -76,7 +76,7 @@ extension MerchantOperationsDraft {
     /// Human-readable frozen content. This does not turn a local draft into approval or publication.
     public var reviewLines: [MerchantOperationsReviewLine] {
         switch self {
-        case .profile(let v): return [.init("name", v.name), .init("description", v.description), .init("derivatives", v.derivatives), .init("derivativeBenefits", v.derivativeBenefits ?? ""), .init("website", v.website), .init("preference", v.preference)]
+        case .profile(let v): return [.init("name", v.name), .init("description", v.description), .init("derivatives", v.derivatives), .init("derivativeBenefits", v.derivativeBenefits ?? ""), .init("website", v.website), .init("preference", v.preference)] + (v.businessTimeReplacement.map { [.init("businessTime", $0)] } ?? [])
         case .decor(let v): return [.init("slogan", v.slogan), .init("cityRole", v.cityRole), .init("tags", v.tags.joined(separator: "; "))]
         case .gallery(let v): return [.init("galleryCount", String(v.gallery.count))]
         case .story(let v): return [.init("storyBody", v.profile.description)]

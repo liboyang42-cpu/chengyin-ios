@@ -5,6 +5,19 @@ final class ActivityContractTests: XCTestCase {
     func decode(_ json:String) throws -> ActivitySummary {
         try JSONDecoder().decode(ActivitySummary.self,from:Data(json.utf8))
     }
+    func testLinkedTopicRequiresPositiveSafeIdentifier() throws {
+        for raw in ["7", "\"7\"", "9007199254740991"] {
+            XCTAssertNotNil(try decode("{\"id\":1,\"name\":\"A\",\"topicId\":\(raw)}").linkedTopicID)
+        }
+        for raw in ["null", "0", "-1", "1.5", "true", "{}", "[]", "\"bad\"", "\"7?token=x\"", "9007199254740992"] {
+            XCTAssertNil(try decode("{\"id\":1,\"name\":\"A\",\"topicId\":\(raw)}").linkedTopicID)
+        }
+        XCTAssertNil(try decode(#"{"id":1,"name":"A"}"#).linkedTopicID)
+    }
+    func testClubGateDoesNotDecodeHiddenTopicLink() throws {
+        let gate = try JSONDecoder().decode(ActivityDetailAccess.self, from: Data(#"{"gate":true,"clubId":9,"topicId":7}"#.utf8))
+        XCTAssertEqual(gate, .clubRequired(clubID:9, message:nil))
+    }
     func testMissingPriceIsNotFree() throws {
         let item=try decode(#"{"id":1,"name":"A"}"#)
         XCTAssertNil(item.minimumAmount);XCTAssertFalse(item.hasZeroStartingPrice)

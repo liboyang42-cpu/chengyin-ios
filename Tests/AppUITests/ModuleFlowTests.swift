@@ -84,6 +84,69 @@ final class ModuleFlowTests: XCTestCase {
         XCTAssertFalse(app.staticTexts["Example city explorer"].exists)
         XCTAssertFalse(app.buttons["club.member.703"].exists)
     }
+    func testClubCustomerChoiceOwnerAndAdministrator() {
+        for scenario in ["customerOwner", "customerAdministrator"] {
+            launch(["--uitesting-club-fixture", scenario])
+            tap(app.buttons["club.member.704"])
+            tap(app.buttons["club.member.choice.public"])
+            XCTAssertTrue(app.staticTexts["Example city explorer"].waitForExistence(timeout: 5))
+            tap(app.navigationBars.buttons.firstMatch)
+            tap(app.buttons["club.member.704"])
+            tap(app.buttons["Cancel"])
+            XCTAssertTrue(app.buttons["club.member.704"].exists)
+            tap(app.buttons["club.member.704"])
+            tap(app.buttons["club.member.choice.customer"])
+            XCTAssertTrue(app.staticTexts["Fixture customer"].waitForExistence(timeout: 5), app.debugDescription)
+            tap(app.navigationBars.buttons.firstMatch)
+            XCTAssertTrue(app.buttons["club.member.704"].waitForExistence(timeout: 5))
+            app.terminate()
+        }
+    }
+    func testClubCustomerChoiceDeniedAndWrongMemberFailClosed() {
+        for (scenario, member) in [("customerDenied", 704), ("customerOwner", 703)] {
+            launch(["--uitesting-club-fixture", scenario])
+            tap(app.buttons["club.member.\(member)"])
+            tap(app.buttons["club.member.choice.customer"])
+            XCTAssertTrue(app.staticTexts["club.gov.error"].waitForExistence(timeout: 5), app.debugDescription)
+            XCTAssertFalse(app.staticTexts["Fixture customer"].exists)
+            app.terminate()
+        }
+    }
+    func testClubCustomerDetailClearsOnRoleRevisionThenRechecks() {
+        launch(["--uitesting-club-fixture", "customerOwner"])
+        tap(app.buttons["club.member.704"])
+        tap(app.buttons["club.member.choice.customer"])
+        XCTAssertTrue(app.staticTexts["Fixture customer"].waitForExistence(timeout: 5))
+        tap(app.buttons["club.fixture.revokeRole"])
+        XCTAssertTrue(app.buttons["club.member.704"].waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertFalse(app.staticTexts["Fixture customer"].exists)
+        tap(app.buttons["club.member.704"])
+        tap(app.buttons["club.member.choice.customer"])
+        XCTAssertTrue(app.staticTexts["club.gov.error"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["Fixture customer"].exists)
+    }
+    func testClubCustomerRoleABADoesNotRestoreOldPrivateDestination() {
+        launch(["--uitesting-club-fixture", "customerOwner"])
+        tap(app.buttons["club.member.704"])
+        tap(app.buttons["club.member.choice.customer"])
+        XCTAssertTrue(app.staticTexts["Fixture customer"].waitForExistence(timeout: 5))
+        tap(app.buttons["club.fixture.revokeRole"])
+        tap(app.buttons["club.fixture.restoreRole"])
+        XCTAssertTrue(app.buttons["club.member.704"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["Fixture customer"].exists)
+        tap(app.buttons["club.member.704"])
+        tap(app.buttons["club.member.choice.customer"])
+        XCTAssertTrue(app.staticTexts["Fixture customer"].waitForExistence(timeout: 5))
+    }
+    func testClubCustomerDetailClearsOnAccountSwitch() {
+        launch(["--uitesting-club-fixture", "customerOwner"])
+        tap(app.buttons["club.member.704"])
+        tap(app.buttons["club.member.choice.customer"])
+        XCTAssertTrue(app.staticTexts["Fixture customer"].waitForExistence(timeout: 5))
+        tap(app.buttons["club.fixture.switchAccount"])
+        XCTAssertTrue(app.staticTexts["club.members.error"].waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertFalse(app.staticTexts["Fixture customer"].exists)
+    }
     func testMessagingReadOnlyHistoryNavigation() {
         launch(["--uitesting-module","messaging"])
         XCTAssertTrue(app.staticTexts["module.fixture.notice"].waitForExistence(timeout:10))

@@ -618,5 +618,41 @@
   "merchant.operations.profileReadbackFailed": {
     "en": "The save was acknowledged, but the latest profile could not be read. Retry only reloads current data; it will not send the edit again.",
     "zh-Hans": "保存已收到确认，但暂时无法读取最新资料。重试只会重新读取，不会再次提交修改。"
+  },
+  "merchant.operations.businessTime": {
+    "en": "Store hours",
+    "zh-Hans": "经营时间"
+  },
+  "merchant.operations.hoursInvalid": {
+    "en": "Choose at least one day and different valid opening and closing times.",
+    "zh-Hans": "请至少选择一个营业日，并选择有效且不相同的开始和结束时间。"
+  },
+  "merchant.operations.hoursPreserved": {
+    "en": "Existing hours stay unchanged until you explicitly add replacement hours to the draft. These are store-local times. Unrecognized hours remain visible; the editor starts at daily 10:00–22:00 for you to review.",
+    "zh-Hans": "现有经营时间保持不变，只有明确将新时间加入草稿后才会替换。时间按门店本地时钟填写。无法识别的旧值会保留显示，编辑器从每天 10:00–22:00 开始，请核对。"
+  },
+  "merchant.operations.hoursOvernight": {
+    "en": "Closing time is on the following day.",
+    "zh-Hans": "结束时间为次日，属于跨夜经营。"
+  },
+  "merchant.operations.hoursUseDraft": {
+    "en": "Add hours to draft",
+    "zh-Hans": "将经营时间加入草稿"
+  },
+  "merchant.operations.hoursEdit": {
+    "en": "Edit store hours",
+    "zh-Hans": "编辑经营时间"
+  },
+  "merchant.operations.hoursRestore": {
+    "en": "Keep original hours",
+    "zh-Hans": "保留原经营时间"
+  },
+  "merchant.operations.hoursHour": {
+    "en": "Hour",
+    "zh-Hans": "时"
+  },
+  "merchant.operations.hoursMinute": {
+    "en": "Minute",
+    "zh-Hans": "分"
   }
 }

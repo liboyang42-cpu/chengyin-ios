@@ -202,6 +202,41 @@ final class ClubGovernanceServiceTests: XCTestCase {
             XCTAssertTrue(transport.requests.allSatisfy { $0.httpMethod == "POST" })
         }
     }
+    func testCustomerReadRequiresFreshPermissionBeforeDetailRequest() async throws {
+        let transport = GovernanceTransport()
+        transport.override = ClubGovernanceFixtures.json(#"{"active":true,"club":{"id":81},"roleCodes":[],"permissions":[],"isOwner":true,"viewerIsAdmin":true}"#)
+        do {
+            _ = try await service(transport).read(.customer, scope: .init(clubID: 81, memberID: 704), session: session(), check: {})
+            XCTFail("Legacy flags cannot authorize customer data")
+        } catch { XCTAssertEqual(error as? ClubGovernanceFailure, .forbidden) }
+        XCTAssertEqual(transport.requests.map { $0.url?.path }, ["/" + ClubGovernanceRead.access.path])
+    }
+    func testCustomerReadSendsOnlyExactClubAndMember() async throws {
+        let transport = GovernanceTransport()
+        let result = try await service(transport).read(.customer, scope: .init(clubID: 81, memberID: 704), session: session(), check: {})
+        XCTAssertEqual(result.scope, .init(clubID: 81, memberID: 704))
+        let request = try XCTUnwrap(transport.requests.last)
+        XCTAssertEqual(request.url?.path, "/api/club/crm/customers/detail")
+        let body = try XCTUnwrap(request.httpBody)
+        XCTAssertEqual(try JSONDecoder().decode([String: ClubGovernanceValue].self, from: body), ["clubId": .integer(81), "memberId": .integer(704)])
+    }
+    @MainActor func testCustomerReadSessionChangeDuringDetailDiscardsData() async throws {
+        let transport = GovernanceTransport(); var current: ClubGovernanceSession? = try session()
+        let access = ClubGovernanceSessionAccess(service: try service(transport), currentSession: { current })
+        transport.afterSend = {
+            if transport.requests.count == 2 { current = try? .init(accountID: 701, epoch: 2, token: "replacement") }
+        }
+        do { _ = try await access.read(.customer, scope: .init(clubID: 81, memberID: 704)); XCTFail() }
+        catch { XCTAssertTrue(error is CancellationError) }
+        XCTAssertEqual(transport.requests.count, 2)
+    }
+    func testCustomerDetailDenialAfterAccessNeverReturnsPrivateData() async throws {
+        let transport = GovernanceTransport()
+        transport.afterSend = { if transport.requests.count == 2 { transport.code = 403 } }
+        do { _ = try await service(transport).read(.customer, scope: .init(clubID: 81, memberID: 704), session: session(), check: {}); XCTFail() }
+        catch { XCTAssertEqual(error as? ClubGovernanceFailure, .forbidden) }
+        XCTAssertEqual(transport.requests.count, 2)
+    }
     func testAllDormantMutationsActuallyDispatchAndDecodeOffline() async throws {
         for mutation in ClubGovernanceMutation.allCases {
             let transport = GovernanceTransport(), service = try service(transport, writes: true, risks: [.administrative, .financial, .identity, .provider])
