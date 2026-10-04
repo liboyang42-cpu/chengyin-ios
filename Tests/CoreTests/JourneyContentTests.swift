@@ -33,6 +33,20 @@ private final class JourneyFakeHTTP: HTTPTransport {
         do { _ = try await service.encounter(topicID: 2, nodeID: 3, token: "fixture-token"); XCTFail() } catch {}
         XCTAssertTrue(http.requests.isEmpty)
     }
+    func testCheckAndCollectionFlagsCannotEnableEachOther() async throws {
+        let http = JourneyFakeHTTP()
+        let configuration = try APIConfiguration(baseURL: URL(string: "https://fixture.example")!)
+        let checksOnly = JourneyContentService(configuration: configuration, transport: http, checksEnabled: true)
+        let collectionOnly = JourneyContentService(configuration: configuration, transport: http, collectEnabled: true)
+        let egg = try XCTUnwrap(JourneyEgg(raw: .object(["id": .integer(1), "lat": .number(31), "lng": .number(121), "text": .string("Egg")])))
+        do { try await checksOnly.collect(topicID: 12, egg: egg, token: "fixture-token"); XCTFail() }
+        catch { XCTAssertEqual(error as? PlayExperienceError, .disabled) }
+        do {
+            _ = try await collectionOnly.act(JourneyCheckReview(session: session(), topicID: 12, nodeID: 34, checkID: "c&1", action: .roll, receipt: nil))
+            XCTFail()
+        } catch { XCTAssertEqual(error as? PlayExperienceError, .disabled) }
+        XCTAssertTrue(http.requests.isEmpty)
+    }
     func testAllowedActionsAndReceiptTruth() throws {
         let raw = try JSONDecoder().decode(PlayWireValue.self, from: Data(encounter.utf8))["data"]
         XCTAssertEqual(JourneyCheckProblem(encounter: raw)?.mods.first?.value, 0)

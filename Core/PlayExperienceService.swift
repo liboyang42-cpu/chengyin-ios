@@ -4,7 +4,7 @@ import FoundationNetworking
 #endif
 
 public enum PlayExperienceCapability: Hashable {
-    case directorCommands, reads, runPersistence, classicCompletion, hints, leader, advanced, playerCommands, circle, preference, tags, mediaUpload, thoughtClaims
+    case directorCommands, reads, runPersistence, classicCompletion, hints, leader, advanced, playerCommands, circle, preference, tags, mediaUpload, thoughtClaims, journeyChecks, journeyEggCollection, journeyAsks
 }
 public enum PlayCompletionEvidence: Codable, Equatable {
     case answer(String)
@@ -197,6 +197,22 @@ public struct PlayExperienceService {
         guard enabled.contains(capability) else { throw PlayExperienceError.disabled }
         guard let url = request.url, var route = URLComponents(url: url, resolvingAgainstBaseURL: false) else { throw APIError.invalidRequest }
         route.query = nil; route.fragment = nil
+        // Journey actions have their own reviewed/journaled coordinators. They are
+        // not classic node completion and must not borrow its dispatch capability.
+        // Bind the capability in both directions, including the HTTP method.
+        let journeyRoutes: [(String, PlayExperienceCapability)] = [
+            ("check/roll", .journeyChecks), ("check/reroll", .journeyChecks),
+            ("check/settle", .journeyChecks), ("egg/collect", .journeyEggCollection),
+            ("journey/ask", .journeyAsks)
+        ]
+        let journeyCapability = journeyRoutes.first {
+            configuration.baseURL.appendingPathComponent("api/play/" + $0.0) == route.url
+        }?.1
+        if let journeyCapability {
+            guard capability == journeyCapability, request.httpMethod == "POST" else { throw PlayExperienceError.persistenceUnavailable }
+        } else if [.journeyChecks, .journeyEggCollection, .journeyAsks].contains(capability) {
+            throw PlayExperienceError.persistenceUnavailable
+        }
         let protected = ["answer", "checkin", "arrive", "photo", "sensor-result", "run-session/save", "run-session/clear"].contains { configuration.baseURL.appendingPathComponent("api/play/" + $0) == route.url }
         if capability == .classicCompletion || capability == .runPersistence {
             guard protected else { throw PlayExperienceError.persistenceUnavailable }

@@ -82,7 +82,7 @@ private final class NarrativeHTTP: HTTPTransport {
         let owner = try owner(), model = JourneyNarrativeCoordinator(scope: try target(), query: .questions(nodeID: 34), service: try service(http), journal: journal(), currentSession: { owner })
         await model.load(); model.prepare("q1"); await model.confirm(try XCTUnwrap(model.review))
         XCTAssertEqual(http.requests.count, 4)
-        let request = http.requests[2]
+        let request = try XCTUnwrap(http.requests.dropFirst(2).first)
         XCTAssertEqual(request.url!.path, "/api/play/journey/ask"); XCTAssertEqual(request.httpMethod, "POST")
         XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json")
         let body = try JSONDecoder().decode(PlayWireValue.self, from: XCTUnwrap(request.httpBody))

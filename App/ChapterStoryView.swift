@@ -175,10 +175,13 @@ import UIKit
                         }, makeSensorProvider: makeSensorProvider, spatialApproval: spatialApproval)
                         .id("\(state.sessionID):\(kind.rawValue)")
                 } else {
-                    if state.inline {
+                    if state.inline && !state.isMultiplayer && state.config["leaderboard"]["enabled"].bool != true {
                         ContentUnavailableView("playkit.unavailable", systemImage: "rectangle.slash")
                     }
                     NavigationLink { fallback() } label: { Label("chapterStory.play", systemImage: "play.circle") }
+                }
+                if state.inline && (state.isMultiplayer || state.config["leaderboard"]["enabled"].bool == true) {
+                    PlayAdvancedInlineTeamHost(model: advanced)
                 }
             } else if advanced.phase == "loading" { ProgressView("chapterStory.loadingGame") }
             else {

@@ -1,0 +1,444 @@
+{
+  "advancedTeam.progress": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Server-recorded turns"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务器已记录轮次"
+        }
+      }
+    }
+  },
+  "advancedTeam.turnIndex": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Current turn"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前轮次"
+        }
+      }
+    }
+  },
+  "advancedTeam.myRole": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "My role"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "我的角色"
+        }
+      }
+    }
+  },
+  "advancedTeam.unassigned": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Not assigned"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "尚未分配"
+        }
+      }
+    }
+  },
+  "advancedTeam.auto": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Roles are assigned automatically by the server."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "角色由服务器自动分配。"
+        }
+      }
+    }
+  },
+  "advancedTeam.leader": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "You are the leader and can assign available roles."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "你是队长，可以分配可用角色。"
+        }
+      }
+    }
+  },
+  "advancedTeam.leaderOnly": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The leader assigns roles. Other members’ roles are not shown here."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "角色由队长分配；其他队员的角色不在此展示。"
+        }
+      }
+    }
+  },
+  "advancedTeam.turnsRecorded": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Required turns are recorded. The server still checks other game requirements."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "所需轮次已记录，其他玩法条件仍以服务器为准。"
+        }
+      }
+    }
+  },
+  "advancedTeam.complete": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Submit my current turn"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "提交我的当前轮次"
+        }
+      }
+    }
+  },
+  "advancedTeam.serverTurn": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The server confirms whose turn it is, role capacity and completion. Submitting does not award points or complete the task locally."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "是否轮到你、角色名额和完成结果由服务器确认。提交前不会提前加分或完成。"
+        }
+      }
+    }
+  },
+  "advancedTeam.expired": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Time has elapsed. Refresh to check the server state."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "本局时间已到，请刷新确认服务器状态。"
+        }
+      }
+    }
+  },
+  "advancedTeam.unavailable": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Team state is unavailable. Please refresh."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "多人状态暂不可用，请刷新。"
+        }
+      }
+    }
+  },
+  "advancedTeam.reviewChanged": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The state changed or this action is unavailable. Refresh and try again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "状态已变化，或此操作当前不可用，请刷新后重试。"
+        }
+      }
+    }
+  },
+  "advancedTeam.review": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Review team action"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "确认多人操作"
+        }
+      }
+    }
+  },
+  "advancedTeam.member": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Member"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "队员"
+        }
+      }
+    }
+  },
+  "advancedTeam.role": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Role"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "角色"
+        }
+      }
+    }
+  },
+  "advancedTeam.assign": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Assign role"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "分配角色"
+        }
+      }
+    }
+  },
+  "advancedBoard.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This game’s leaderboard"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "本玩法排行榜"
+        }
+      }
+    }
+  },
+  "advancedBoard.elapsed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Ranked by elapsed time"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "按用时排名"
+        }
+      }
+    }
+  },
+  "advancedBoard.units": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Ranked by completed turns"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "按完成轮次排名"
+        }
+      }
+    }
+  },
+  "advancedBoard.score": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Ranked by score"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "按得分排名"
+        }
+      }
+    }
+  },
+  "advancedBoard.scope": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Shows server-provided completed runs for this node, separately from the journey leaderboard."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "展示服务器返回的本节点已完成场次排名，与旅程总榜分开。"
+        }
+      }
+    }
+  },
+  "advancedBoard.loading": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Loading leaderboard…"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "正在读取排行榜…"
+        }
+      }
+    }
+  },
+  "advancedBoard.failed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The leaderboard could not be loaded. Refresh to try again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "排行榜暂时读不到，可以刷新重试。"
+        }
+      }
+    }
+  },
+  "advancedBoard.empty": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No completed runs are ranked yet"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂时没有已完成的排名记录"
+        }
+      }
+    }
+  },
+  "advancedBoard.unavailable": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This game’s leaderboard is unavailable"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此玩法排行榜当前不可用"
+        }
+      }
+    }
+  }
+}

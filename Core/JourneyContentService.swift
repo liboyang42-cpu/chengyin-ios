@@ -9,7 +9,7 @@ public struct JourneyContentService {
                 readsEnabled: Bool = false, checksEnabled: Bool = false, collectEnabled: Bool = false) {
         self.readsEnabled = readsEnabled; self.checksEnabled = checksEnabled; self.collectEnabled = collectEnabled
         api = PlayExperienceService(configuration: configuration, transport: transport,
-                                    enabled: [.reads, .classicCompletion])
+                                    enabled: [.reads, .journeyChecks, .journeyEggCollection])
     }
     public func encounter(topicID: Int, nodeID: Int, token: String) async throws -> JourneyCheckProblem? {
         guard readsEnabled else { throw PlayExperienceError.disabled }
@@ -34,7 +34,7 @@ public struct JourneyContentService {
         guard review.topicID > 0, review.nodeID > 0, !review.checkID.isEmpty else { throw APIError.invalidRequest }
         return try JourneyCheckReceipt(await api.request("api/play/check/" + review.action.rawValue,
             form: ["topicId": String(review.topicID), "nodeId": String(review.nodeID), "checkId": review.checkID],
-            capability: .classicCompletion, token: review.session.token))
+            capability: .journeyChecks, token: review.session.token))
     }
     public func companion(scope: PlaySessionScope, token: String) async throws -> String? {
         guard readsEnabled else { throw PlayExperienceError.disabled }
@@ -48,6 +48,6 @@ public struct JourneyContentService {
         var fields = ["eggId": String(egg.id), "content": egg.text]
         if let topicID, topicID > 0 { fields["topicId"] = String(topicID) }
         // Envelope success only: there is no reward/points payload to project.
-        _ = try await api.request("api/play/egg/collect", form: fields, capability: .classicCompletion, token: token)
+        _ = try await api.request("api/play/egg/collect", form: fields, capability: .journeyEggCollection, token: token)
     }
 }

@@ -14,7 +14,7 @@ class PlayObjectCardReceiptContract(unittest.TestCase):
         runtime = self.text('Core/PlayAdvancedRuntime.swift')
         self.assertIn('self.cardLifetime == cardLifetime', runtime)
         self.assertIn('cardReceipts.reconcile(result, owner: session)', runtime)
-        self.assertIn('if case PlayExperienceError.rejected = error { pending = nil; clearObjectCardReceipt(); phase = "rejected" }', runtime)
+        self.assertIn('if case PlayExperienceError.rejected = error { pending = nil; clearObjectCardReceipt(); phase = "rejected"', runtime)
         self.assertIn('if kind == .photoCheck { model.clearObjectCardReceipt() }', self.text('App/PlayKitScreen.swift'))
     def test_ordinary_mode_and_existing_media_boundary_remain(self):
         form = self.text('App/PlayKitPersonalForms.swift')

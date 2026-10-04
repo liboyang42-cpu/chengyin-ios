@@ -21,7 +21,7 @@ public struct JourneyNarrativeService {
     public let readsEnabled: Bool
     public let asksEnabled: Bool
     public init(configuration: APIConfiguration, transport: any HTTPTransport, readsEnabled: Bool = false, asksEnabled: Bool = false) {
-        api = .init(configuration: configuration, transport: transport, enabled: [.reads, .classicCompletion])
+        api = .init(configuration: configuration, transport: transport, enabled: [.reads, .journeyAsks])
         self.readsEnabled = readsEnabled; self.asksEnabled = asksEnabled
     }
     public func read(_ query: JourneyNarrativeQuery, scope: JourneyNarrativeScope, token: String) async throws -> JourneyNarrativeDocument {
@@ -32,7 +32,7 @@ public struct JourneyNarrativeService {
         guard asksEnabled else { throw PlayExperienceError.disabled }
         guard nodeID > 0, JourneyQuestion.validID(questionID) else { throw APIError.invalidRequest }
         var fields = scope.json; fields["nodeId"] = .int(nodeID); fields["questionId"] = .string(questionID)
-        return try JourneyAskReceipt(await api.request("api/play/journey/ask", json: fields, capability: .classicCompletion, token: token), nodeID: nodeID, questionID: questionID)
+        return try JourneyAskReceipt(await api.request("api/play/journey/ask", json: fields, capability: .journeyAsks, token: token), nodeID: nodeID, questionID: questionID)
     }
 }
 

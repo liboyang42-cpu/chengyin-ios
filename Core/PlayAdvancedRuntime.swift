@@ -4,6 +4,7 @@ import Observation
 public struct PlayAdvancedState: Equatable {
     public let sessionID: Int; public let activityID: Int; public let topicID: Int; public let nodeID: Int
     public let status: String; public let version: Int; public let score: Int?
+    public let ownerType: Int?
     public let readyForBase: Bool; public let deadlineAt: Int64?; public let inline: Bool
     public let config: PlayWireValue; public let draws: [PlayWireValue]; public let branch: PlayWireValue
     public let playKit: PlayWireValue; public let multiplayer: PlayWireValue
@@ -18,6 +19,7 @@ public struct PlayAdvancedState: Equatable {
               let topic = raw["topicId"].integer, topic > 0,
               let status = raw["status"].text, !status.isEmpty else { throw PlayExperienceError.malformed }
         sessionID = session; activityID = activity; topicID = topic; nodeID = node; self.version = version; self.status = status
+        ownerType = raw["ownerType"].integer
         score = raw["score"].integer; readyForBase = raw["readyForBase"].bool == true
         deadlineAt = raw["deadlineAt"].integer.flatMap { $0 > 0 ? Int64($0) : nil }
         inline = raw["present"].text == "inline"; config = raw["config"]; draws = raw["draws"].array ?? []
@@ -94,7 +96,7 @@ extension PlayExperienceService {
     public func advancedLeaderboard(activityID: Int, topicID: Int, nodeID: Int, token: String) async throws -> [PlayWireValue] {
         guard activityID >= 0, topicID > 0, nodeID > 0 else { throw APIError.invalidRequest }
         let value = try await request("api/play/advanced/leaderboard", query: ["activityId": String(activityID), "topicId": String(topicID), "nodeId": String(nodeID)], capability: .reads, token: token)
-        guard let rows = value.array, rows.allSatisfy({ ($0["rank"].integer ?? 0) > 0 && ($0["ownerId"].integer ?? 0) > 0 && $0["score"].integer != nil && ($0["elapsedSeconds"].integer ?? -1) >= 0 && ($0["completedUnits"].integer ?? -1) >= 0 && $0["displayName"].text?.isEmpty == false }) else { throw PlayExperienceError.malformed }
+        guard let rows = value.array, rows.count <= 100, rows.allSatisfy({ ($0["rank"].integer ?? 0) > 0 && ($0["ownerId"].integer ?? 0) > 0 && $0["score"].integer != nil && ($0["elapsedSeconds"].integer ?? -1) >= 0 && ($0["completedUnits"].integer ?? -1) >= 0 && $0["displayName"].text?.isEmpty == false }) else { throw PlayExperienceError.malformed }
         return rows
     }
 }
@@ -105,6 +107,82 @@ extension PlayExperienceService {
     public private(set) var phase = "idle"
     public private(set) var issue: PlayExperienceError?
     public private(set) var leaderboard: [PlayWireValue] = []
+    public private(set) var leaderboardPhase = "idle"
+    private var leaderboardGeneration: UInt64 = 0
+    private var teamSurfaceRevision: UInt64 = 0
+    private var teamSurfaceActive = false
+    private let defaultTeamSurfaceID = UUID()
+    private var teamSurfaceOwner: UUID?
+    public var canTeamInteract: Bool {
+        canInteract && (state?.deadlineAt.map { $0 > Int64(Date().timeIntervalSince1970 * 1000) } ?? true)
+    }
+    public var teamProjection: PlayAdvancedTeamProjection? {
+        guard isCurrent, !["stale", "disabled"].contains(phase), let state, let owner else { return nil }
+        return .init(state: state, actorID: owner.accountID)
+    }
+    public var leaderboardMetric: PlayAdvancedLeaderboardMetric? {
+        guard isCurrent, !["stale", "disabled"].contains(phase), let state, state.config["leaderboard"]["enabled"].bool == true else { return nil }
+        return state.config["leaderboard"]["metric"].text.flatMap(PlayAdvancedLeaderboardMetric.init(rawValue:))
+    }
+    public func beginTeamSurface(id: UUID? = nil) {
+        let identity = id ?? defaultTeamSurfaceID
+        guard teamSurfaceOwner != identity else { return }
+        teamSurfaceOwner = identity; teamSurfaceActive = true; teamSurfaceRevision &+= 1
+        clearAdvancedLeaderboard()
+    }
+    public func endTeamSurface(id: UUID? = nil) {
+        guard teamSurfaceOwner == (id ?? defaultTeamSurfaceID) else { return }
+        teamSurfaceOwner = nil; teamSurfaceActive = false; teamSurfaceRevision &+= 1
+        clearAdvancedLeaderboard()
+    }
+    private func clearAdvancedLeaderboard() {
+        leaderboardGeneration &+= 1; leaderboard = []; leaderboardPhase = "idle"
+    }
+    public func loadAdvancedLeaderboard(surfaceID: UUID? = nil) async {
+        guard teamSurfaceOwner == (surfaceID ?? defaultTeamSurfaceID), teamSurfaceActive, isCurrent, let session = owner, let state, let metric = leaderboardMetric,
+              leaderboardPhase != "loading" else { return }
+        leaderboardGeneration &+= 1; let request = leaderboardGeneration
+        let surface = teamSurfaceRevision; let runtimeGeneration = generation; leaderboardPhase = "loading"; leaderboard = []
+        do {
+            let rows = try await service.advancedLeaderboard(activityID: activityID, topicID: topicID, nodeID: nodeID, token: session.token)
+            guard request == leaderboardGeneration else { return }
+            guard teamSurfaceActive, surface == teamSurfaceRevision, currentSession() == session,
+                  self.state?.sessionID == state.sessionID, self.state?.version == state.version,
+                  leaderboardMetric == metric else { leaderboardPhase = "idle"; return }
+            leaderboard = rows; leaderboardPhase = "ready"
+        } catch {
+            guard request == leaderboardGeneration else { return }
+            guard teamSurfaceActive, surface == teamSurfaceRevision, currentSession() == session else { leaderboardPhase = "idle"; return }
+            if case PlayExperienceError.unauthorized = error {
+                failure(error, session: session, generation: runtimeGeneration)
+            } else if case APIError.unauthorized = error {
+                failure(error, session: session, generation: runtimeGeneration)
+            } else { leaderboard = []; leaderboardPhase = "failed" }
+        }
+    }
+    public func reviewTeamAction(_ action: PlayAdvancedTeamReview.Action, surfaceID: UUID? = nil) throws -> PlayAdvancedTeamReview {
+        guard let surfaceOwner = teamSurfaceOwner, surfaceOwner == (surfaceID ?? defaultTeamSurfaceID), teamSurfaceActive, canTeamInteract, let state, let owner, let team = teamProjection else { throw PlayExperienceError.staleSession }
+        switch action {
+        case .assign(let memberID, let roleID):
+            guard team.canAssign(memberID: memberID, roleID: roleID) else { throw PlayExperienceError.invalidAction }
+            return .init(action: action, sessionID: state.sessionID, nodeID: state.nodeID, version: state.version,
+                         memberName: team.members.first { $0.id == memberID }?.name, roleLabel: team.roleLabel(roleID), owner: owner, surfaceRevision: teamSurfaceRevision, surfaceID: surfaceOwner)
+        case .completeUnit:
+            guard team.canRequestUnit else { throw PlayExperienceError.invalidAction }
+            return .init(action: action, sessionID: state.sessionID, nodeID: state.nodeID, version: state.version,
+                         memberName: nil, roleLabel: team.myRole.map(team.roleLabel), owner: owner, surfaceRevision: teamSurfaceRevision, surfaceID: surfaceOwner)
+        }
+    }
+    public func submitTeamReview(_ review: PlayAdvancedTeamReview) async {
+        guard teamSurfaceActive, review.surfaceRevision == teamSurfaceRevision,
+              review.surfaceID == teamSurfaceOwner, review.owner == currentSession() else { return }
+        guard state?.sessionID == review.sessionID, state?.nodeID == review.nodeID, state?.version == review.version,
+              (try? reviewTeamAction(review.action, surfaceID: review.surfaceID)) != nil else { issue = .staleSession; return }
+        switch review.action {
+        case .assign(let memberID, let roleID): await assignRole(memberID: memberID, roleID: roleID)
+        case .completeUnit: await completeUnit()
+        }
+    }
     private var cardReceipts = PlayObjectCardReceiptCache()
     private var cardLifetime: UInt64 = 0
     private var pendingRequestedCard = false
@@ -155,14 +233,14 @@ extension PlayExperienceService {
         catch { issue = error as? PlayExperienceError ?? .invalidAction }
     }
     public func assignRole(memberID: Int, roleID: String) async {
-        guard phase == "ready", pending == nil, let state, state.isMultiplayer, owner == currentSession(),
+        guard canTeamInteract, let state, let team = teamProjection, team.canAssign(memberID: memberID, roleID: roleID), owner == currentSession(),
               state.multiplayer["members"].array?.contains(where: { $0["memberId"].integer == memberID }) == true,
               state.config["multiplayer"]["roles"].array?.contains(where: { $0["id"].text == roleID }) == true else { return }
         pending = .init(sessionID: state.sessionID, version: state.version, key: UUID().uuidString, action: "ASSIGN_ROLE", payload: ["memberId": .int(memberID), "roleId": .string(roleID)])
         await sendPending()
     }
     public func completeUnit() async {
-        guard phase == "ready", pending == nil, let state, state.isMultiplayer, state.status == "RUNNING", owner == currentSession() else { return }
+        guard canTeamInteract, let state, teamProjection?.canRequestUnit == true, owner == currentSession() else { return }
         // Source builds one unit per session/version. This is a local idempotency identity, not outcome proof.
         let unitID = "unit-\(state.sessionID)-v\(state.version)"
         pending = .init(sessionID: state.sessionID, version: state.version, key: UUID().uuidString, action: "COMPLETE_UNIT", payload: ["unitId": .string(unitID)])
@@ -206,7 +284,9 @@ extension PlayExperienceService {
               self.state == nil || self.state?.sessionID == state.sessionID else { throw PlayExperienceError.malformed }
     }
     private func accept(_ state: PlayAdvancedState, session: PlayExperienceSession, generation: UInt64) throws {
-        try validate(state, session: session, generation: generation); self.state = state; issue = nil
+        try validate(state, session: session, generation: generation)
+        if self.state?.version != state.version { clearAdvancedLeaderboard() }
+        self.state = state; issue = nil
         cardReceipts.reconcile(state, owner: session)
         // An unresolved steps proof must not disable unrelated server-present kits.
         // Step submission itself is separately unsupported until its proof contract is approved.
@@ -214,12 +294,12 @@ extension PlayExperienceService {
     }
     private func failure(_ error: Error, session: PlayExperienceSession, generation: UInt64) {
         guard self.generation == generation else { return }
-        guard currentSession() == session else { self.state = nil; clearObjectCardReceipt(); phase = "stale"; return }
+        guard currentSession() == session else { clearAdvancedLeaderboard(); self.state = nil; clearObjectCardReceipt(); phase = "stale"; return }
         issue = error as? PlayExperienceError ?? .unknownResult
-        if case PlayExperienceError.rejected = error { pending = nil; clearObjectCardReceipt(); phase = "rejected" }
-        else if case PlayExperienceError.disabled = error { pending = nil; clearObjectCardReceipt(); phase = "disabled" }
-        else if case PlayExperienceError.unauthorized = error { clearObjectCardReceipt(); phase = "stale" }
-        else if case APIError.unauthorized = error { clearObjectCardReceipt(); phase = "stale" }
+        if case PlayExperienceError.rejected = error { pending = nil; clearObjectCardReceipt(); phase = "rejected"; clearAdvancedLeaderboard() }
+        else if case PlayExperienceError.disabled = error { clearAdvancedLeaderboard(); pending = nil; clearObjectCardReceipt(); phase = "disabled" }
+        else if case PlayExperienceError.unauthorized = error { clearAdvancedLeaderboard(); clearObjectCardReceipt(); phase = "stale" }
+        else if case APIError.unauthorized = error { clearAdvancedLeaderboard(); clearObjectCardReceipt(); phase = "stale" }
         else { phase = "unknown" }
     }
 }

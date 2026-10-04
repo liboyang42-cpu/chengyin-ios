@@ -9,8 +9,11 @@ import SwiftUI
     var makeSensorProvider: (@MainActor () -> any PlayKitSensorProviding)? = nil
     var spatialApproval = PlayKitSpatialApproval()
     let onReady: (PlayAdvancedState) -> Void
+    @State private var teamSurfaceID = UUID()
+    @State private var teamSurfaceVisible = false
     @Environment(\.nativePlatformRuntime) private var nativePlatform
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.scenePhase) private var scenePhase
     var body: some View {
         List {
             Section {
@@ -64,14 +67,19 @@ import SwiftUI
                     }
                 }
                 if state.isMultiplayer {
-                    Section("playx.advanced.roles") {
-                        ForEach(Array((state.multiplayer["members"].array ?? []).enumerated()), id: \.offset) { _, member in
-                            Text(verbatim: member["name"].text ?? member["memberId"].integer.map(String.init) ?? "—")
-                        }
-                        Text("playx.advanced.turnsNotice").font(.footnote)
-                    }
+                    Section("playx.advanced.roles") { PlayAdvancedTeamControls(model: model, surfaceID: teamSurfaceID) }
+                }
+                if state.config["leaderboard"]["enabled"].bool == true {
+                    Section("advancedBoard.title") { PlayAdvancedLeaderboardView(model: model, surfaceID: teamSurfaceID) }
                 }
             }
         }.privacySensitive().navigationTitle("playx.advanced").accessibilityIdentifier("playx.advanced.view")
+        .onAppear { teamSurfaceVisible = true; model.beginTeamSurface(id: teamSurfaceID) }
+        .task(id: model.state?.version) { await model.loadAdvancedLeaderboard(surfaceID: teamSurfaceID) }
+        .onDisappear { teamSurfaceVisible = false; model.endTeamSurface(id: teamSurfaceID) }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .background { model.endTeamSurface(id: teamSurfaceID) }
+            else if phase == .active && teamSurfaceVisible { model.beginTeamSurface(id: teamSurfaceID); Task { await model.loadAdvancedLeaderboard(surfaceID: teamSurfaceID) } }
+        }
     }
 }
