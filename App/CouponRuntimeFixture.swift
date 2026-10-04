@@ -52,7 +52,7 @@ import SwiftUI
     }
     private func grants(_ context: RuntimeDependencyContext) {
         guard context.baseURL == Self.base, context.market == .china, context.role == "merchant",
-              context.session.accountID == 7, context.session.token == "synthetic-coupon-7",
+              context.session.accountID == 7, context.session.token == "test-7",
               context.session.namespace == deployment.storageScope.service else { read?.revoke(); write?.revoke(); read = nil; write = nil; return }
         if read?.context == context { return }
         read?.revoke(); write?.revoke()
@@ -78,7 +78,7 @@ import SwiftUI
         let response: [String: Any]
         switch path {
         case "api/sms/send": response = ["code": 200]
-        case "api/login/phone": response = ["code":200,"token":"synthetic-coupon-7","data":["id":7,"role":"merchant"]]
+        case "api/login/phone": response = ["code":200,"token":"test-7","data":["id":7,"role":"merchant"]]
         case "api/userInfo": response = ["code":200,"appUser":["userId":7,"role":"merchant"]]
         case "api/logout": response = ["code":200]
         case "api/merchant/access/me":
@@ -107,7 +107,7 @@ import SwiftUI
             guard mode != "readOnly", let body = request.httpBody,
                   let type = request.value(forHTTPHeaderField: "Content-Type"), type.hasPrefix(prefix) else { throw APIError.invalidRequest }
             let expected = try AuthRequestBuilder.makeFormRequest(url: url,
-                fields: ["couponId": String(ownedID), "scope": "MERCHANT"], token: "synthetic-coupon-7",
+                fields: ["couponId": String(ownedID), "scope": "MERCHANT"], token: "test-7",
                 boundary: String(type.dropFirst(prefix.count)))
             guard expected.httpBody == body else { throw APIError.invalidRequest }
             try recordPending(request, resource: "stop:\(ownedID)")

@@ -73,3 +73,10 @@ e39c367a35e1f15f9553701cbad56d0d10796c80:docs/template-authoring-validation.json
 # Run81 reviewed narrative-prose false positive; no credential value is present.
 # Audit: docs/security/gitleaks-prose-audit-2026-10-03.md
 bcd754bd41dd41b3dad22a436211cd89ee47b657:docs/public-template/composition-read-grant.md:generic-api-key:75
+
+# Exact reviewed DEBUG coupon fixture false positives from abe53580.
+# Invented recorder-only login/comparison/stop values; sealed .example transport.
+# Historical fingerprints only. Current and future commits remain scanned.
+abe535809517ceb327223679f85c14b5f5b8b6d7:App/CouponRuntimeFixture.swift:generic-api-key:55
+abe535809517ceb327223679f85c14b5f5b8b6d7:App/CouponRuntimeFixture.swift:generic-api-key:81
+abe535809517ceb327223679f85c14b5f5b8b6d7:App/CouponRuntimeFixture.swift:generic-api-key:110

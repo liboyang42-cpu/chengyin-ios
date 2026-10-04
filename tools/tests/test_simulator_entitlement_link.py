@@ -107,28 +107,42 @@ class SimulatedEntitlementTests(unittest.TestCase):
 
     def test_exact_build_command_and_product_selection(self):
         with tempfile.TemporaryDirectory() as temp:
-            root = Path(temp); calls=[]; commit='a'*40; simulator='01234567-0123-0123-0123-012345678901'
-            def run(command, **kwargs):
-                calls.append(command)
-                if command[0] == 'git':
-                    return SimpleNamespace(stdout=(commit+'\n').encode() if 'rev-parse' in command else archive())
-                if command[0] == '/usr/bin/plutil': return SimpleNamespace(stdout=plistlib.dumps(project()))
-                self.assertEqual(command[0], 'xcodebuild')
-                self.assertEqual(command[command.index('-scheme')+1], 'QuestifyAppUnitTests')
-                self.assertIn('CODE_SIGNING_ALLOWED=NO', command)
-                derived=Path(command[command.index('-derivedDataPath')+1]); products=derived/'Build/Products'
-                app=products/host.HOST_RELATIVE; app.mkdir(parents=True)
-                (app/'Questify').write_bytes(executable())
-                (app/'Info.plist').write_bytes(plistlib.dumps({'CFBundleIdentifier':host.BUNDLE_ID,'CFBundleExecutable':'Questify','CFBundleSupportedPlatforms':['iPhoneSimulator']}))
-                (products/'unit.xctestrun').write_bytes(plistlib.dumps({'TestTargets':[{'TestBundlePath':str(app/'PlugIns/QuestifyAppUnitTests.xctest'), 'TestHostPath':str(app)}]}))
-                return SimpleNamespace(stdout=b'')
-            with patch.object(build, 'toolchain', return_value={'xcode':'synthetic'}), patch.object(build, 'sign_host') as sign:
-                result=build.build(root,root,commit,simulator,run)
-                self.assertTrue(result.is_relative_to(root/'app-unit-linked/Products'))
-                sign.assert_called_once()
-                self.assertEqual(len(calls),4)
-                self.assertEqual(calls[1][-1],commit)
-                with self.assertRaises(FileExistsError): build.build(root,root,commit,simulator,run)
+            self.assert_exact_build_command_and_product_selection(Path(temp))
+
+    def test_exact_build_product_selection_through_trusted_temp_alias(self):
+        # Exercise Darwin-style lexical/canonical root differences on Linux too.
+        with tempfile.TemporaryDirectory() as temp:
+            parent = Path(temp)
+            canonical = parent/'canonical'; canonical.mkdir()
+            alias = parent/'trusted-root-alias'
+            alias.symlink_to(canonical.resolve(strict=True), target_is_directory=True)
+            self.assert_exact_build_command_and_product_selection(alias)
+
+    def assert_exact_build_command_and_product_selection(self, root):
+        calls=[]; commit='a'*40; simulator='01234567-0123-0123-0123-012345678901'
+        def run(command, **kwargs):
+            calls.append(command)
+            if command[0] == 'git':
+                return SimpleNamespace(stdout=(commit+'\n').encode() if 'rev-parse' in command else archive())
+            if command[0] == '/usr/bin/plutil': return SimpleNamespace(stdout=plistlib.dumps(project()))
+            self.assertEqual(command[0], 'xcodebuild')
+            self.assertEqual(command[command.index('-scheme')+1], 'QuestifyAppUnitTests')
+            self.assertIn('CODE_SIGNING_ALLOWED=NO', command)
+            derived=Path(command[command.index('-derivedDataPath')+1]); products=derived/'Build/Products'
+            app=products/host.HOST_RELATIVE; app.mkdir(parents=True)
+            (app/'Questify').write_bytes(executable())
+            (app/'Info.plist').write_bytes(plistlib.dumps({'CFBundleIdentifier':host.BUNDLE_ID,'CFBundleExecutable':'Questify','CFBundleSupportedPlatforms':['iPhoneSimulator']}))
+            (products/'unit.xctestrun').write_bytes(plistlib.dumps({'TestTargets':[{'TestBundlePath':str(app/'PlugIns/QuestifyAppUnitTests.xctest'), 'TestHostPath':str(app)}]}))
+            return SimpleNamespace(stdout=b'')
+        with patch.object(build, 'toolchain', return_value={'xcode':'synthetic'}), patch.object(build, 'sign_host') as sign:
+            result=build.build(root,root,commit,simulator,run)
+            # The builder canonicalizes the trusted root (Darwin /var alias).
+            # Compare that known root only; never resolve an untrusted descendant.
+            self.assertEqual(result, root.resolve(strict=True)/'app-unit-linked/Products/unit.xctestrun')
+            sign.assert_called_once()
+            self.assertEqual(len(calls),4)
+            self.assertEqual(calls[1][-1],commit)
+            with self.assertRaises(FileExistsError): build.build(root,root,commit,simulator,run)
 
     def test_bad_commit_uuid_and_checkout_fail_before_build(self):
         with tempfile.TemporaryDirectory() as temp:
