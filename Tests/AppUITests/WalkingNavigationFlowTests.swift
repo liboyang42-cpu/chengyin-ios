@@ -15,14 +15,47 @@ final class WalkingNavigationFlowTests: XCTestCase {
         XCTAssertTrue(revealFixtureElement(open, in: app, maximumSwipes: 20)); open.tap()
         XCTAssertTrue(app.buttons["walking.start"].waitForExistence(timeout: 5))
     }
+    private func summaryContains(_ control: CGRect, viewport: CGRect) -> Bool {
+        !control.isEmpty && !viewport.isEmpty && !viewport.isNull && viewport.contains(control)
+    }
+    func testSummaryVisibilityRejectsMapOcclusionAndOffscreenFrames() {
+        let viewport = CGRect(x: 0, y: 438.7, width: 420, height: 473.3)
+        XCTAssertFalse(summaryContains(CGRect(x: 20, y: 367.7, width: 309.3, height: 77.3), viewport: viewport))
+        XCTAssertTrue(summaryContains(CGRect(x: 20, y: 460, width: 309.3, height: 77.3), viewport: viewport))
+        XCTAssertFalse(summaryContains(CGRect(x: 20, y: 880, width: 309.3, height: 77.3), viewport: viewport))
+        XCTAssertFalse(summaryContains(.zero, viewport: viewport))
+        XCTAssertFalse(summaryContains(CGRect(x: 20, y: 460, width: 309.3, height: 77.3), viewport: .null))
+    }
     private func tap(_ identifier: String) {
         let button = app.buttons[identifier]
-        for _ in 0..<16 {
-            if button.exists && button.isHittable { break }
-            let summary = app.scrollViews["walking.summary"]
-            if summary.exists { summary.swipeUp() } else { app.swipeUp() }
+        // Native steps Close and synthetic expiry are fixed sheet chrome, not summary content.
+        if identifier == "walking.steps.close" || identifier == "walking.fixture.expireScope" {
+            XCTAssertTrue(button.exists); XCTAssertTrue(button.isEnabled)
+            XCTAssertTrue(button.isHittable); button.tap(); return
         }
-        XCTAssertTrue(button.exists); XCTAssertTrue(button.isHittable); button.tap()
+        let summary = app.scrollViews["walking.summary"]
+        func fullyVisible() -> Bool {
+            guard summary.exists, button.exists, !button.frame.isEmpty else { return false }
+            return summaryContains(button.frame, viewport: summary.frame.intersection(app.frame))
+        }
+        for _ in 0..<16 {
+            if fullyVisible() && button.isEnabled && button.isHittable { break }
+            guard summary.exists else { break }
+            // A clipped button can be hittable while its center lies under the map.
+            // Scroll only inside the real summary viewport, in the direction of its row.
+            let viewport = summary.frame.intersection(app.frame)
+            guard !viewport.isNull, !viewport.isEmpty,
+                  viewport.minX.isFinite, viewport.minY.isFinite,
+                  viewport.width.isFinite, viewport.height.isFinite else { break }
+            let towardTop = button.exists && button.frame.midY < viewport.midY
+            let start = CGPoint(x: viewport.midX, y: viewport.minY + viewport.height * (towardTop ? 0.3 : 0.75))
+            let end = CGPoint(x: viewport.midX, y: viewport.minY + viewport.height * (towardTop ? 0.75 : 0.3))
+            let origin = app.coordinate(withNormalizedOffset: .zero)
+            origin.withOffset(CGVector(dx: start.x - app.frame.minX, dy: start.y - app.frame.minY))
+                .press(forDuration: 0.05, thenDragTo: origin.withOffset(CGVector(dx: end.x - app.frame.minX, dy: end.y - app.frame.minY)))
+        }
+        XCTAssertTrue(fullyVisible(), app.debugDescription)
+        XCTAssertTrue(button.isEnabled); XCTAssertTrue(button.isHittable); button.tap()
     }
     func testFactoryRouteShowsStepsDistanceETAAndCancelResume() {
         launch(); tap("walking.start")

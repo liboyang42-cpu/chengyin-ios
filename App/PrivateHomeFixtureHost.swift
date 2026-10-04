@@ -84,6 +84,11 @@ import Observation
                             .accessibilityIdentifier("privateHome.fixture.revokeSource")
                     }
                 }.font(.caption2)
+                    // Payload-free DEBUG instrumentation must not cover the product
+                    // Form when its own typography is exercised at accessibility5.
+                    .dynamicTypeSize(.large)
+                    .accessibilityElement(children: .contain)
+                    .accessibilityIdentifier("privateHome.fixture.recorder")
             }
         }
     }

@@ -78,6 +78,8 @@ private struct NonCashRewardCard: View {
     let reference: NonCashRewardReference
     let reader: any NonCashRewardReading
     @StateObject private var model = AccountCollectionScreenModel<NonCashReward>()
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var presenting = false
     private var key: AccountCollectionLoadKey { .init(rewardReader: reader, awardId: reference.awardId) }
     var body: some View {
         List {
@@ -87,13 +89,44 @@ private struct NonCashRewardCard: View {
             else if let issue = model.issue(scope: key.scope) {
                 AccountCollectionIssueView(issue: issue, retry: { Task { await refresh() } })
             } else if let reward = model.value(scope: key.scope) {
-                NonCashRewardDetailContent(reward: reward, reader: reader)
+                NonCashRewardDetailContent(reward: reward, reader: reader, present: present)
             }
         }
         .listStyle(.insetGrouped).appNavigationTitle("rewards.detail")
         .modifier(AccountCollectionReadLifecycle(key: key, refresh: refresh, cancel: model.cancelPending))
+        // The owning List survives row recycling. A sheet on the content Group
+        // is distributed across lazy rows and can disappear while scrolling.
+        .sheet(isPresented: $presenting) {
+            if presentationAllowed {
+                NavigationStack {
+                    VStack(alignment: .leading, spacing: 24) {
+                        Label("rewards.demo", systemImage: "eye.slash").font(.headline)
+                        Text("rewards.presentationHint"); Text("rewards.singleUse"); Text("rewards.noCredential").font(.footnote)
+                    }.padding().accessibilityIdentifier("rewards.presentation")
+                        .appNavigationTitle("rewards.present")
+                        .toolbar { ToolbarItem(placement: .cancellationAction) {
+                            Button("action.close") { presenting = false }.accessibilityIdentifier("rewards.close")
+                        } }
+                }
+            }
+        }
+        .onChange(of: scenePhase) { _, phase in if phase != .active { presenting = false } }
+        .onChange(of: reader.scope) { _, _ in presenting = false }
+        .onChange(of: reader.isAuthenticated) { _, authenticated in if !authenticated { presenting = false } }
+        .onChange(of: reader.isConfigured) { _, configured in if !configured { presenting = false } }
+        .onDisappear { presenting = false }
+    }
+    private var presentationAllowed: Bool {
+        guard reader.isAuthenticated, reader.isConfigured, reader.isOfflineExample,
+              let reward = model.value(scope: key.scope) else { return false }
+        return reward.canPresent(at: NonCashRewardDemo.now)
+    }
+    private func present() {
+        guard presentationAllowed else { return }
+        presenting = true
     }
     private func refresh() async {
+        presenting = false
         guard reader.isAuthenticated, reader.isConfigured else { model.invalidate(); return }
         await model.load(scope: key.scope, currentScope: { reader.scope }) { try await reader.reward(reference) }
     }
@@ -102,8 +135,7 @@ private struct NonCashRewardCard: View {
 @MainActor private struct NonCashRewardDetailContent: View {
     let reward: NonCashReward
     let reader: any NonCashRewardReading
-    @Environment(\.scenePhase) private var scenePhase
-    @State private var presenting = false
+    let present: () -> Void
     var body: some View {
         Group {
             if reader.isOfflineExample { Text("rewards.demo").font(.footnote) }
@@ -125,7 +157,7 @@ private struct NonCashRewardCard: View {
             }
             Section {
                 if reader.isOfflineExample, reward.canPresent(at: NonCashRewardDemo.now) {
-                    Button("rewards.present") { presenting = true }.accessibilityIdentifier("rewards.present")
+                    Button("rewards.present", action: present).accessibilityIdentifier("rewards.present")
                 } else if !reader.isOfflineExample {
                     Text("rewards.redemptionUnavailable").accessibilityIdentifier("rewards.redemptionUnavailable")
                 } else {
@@ -134,22 +166,6 @@ private struct NonCashRewardCard: View {
                 Text("rewards.support").font(.footnote)
             }
         }
-        .sheet(isPresented: $presenting) {
-            NavigationStack {
-                VStack(alignment: .leading, spacing: 24) {
-                    Label("rewards.demo", systemImage: "eye.slash").font(.headline)
-                    Text("rewards.presentationHint"); Text("rewards.singleUse"); Text("rewards.noCredential").font(.footnote)
-                }.padding().accessibilityIdentifier("rewards.presentation")
-                    .appNavigationTitle("rewards.present")
-                    .toolbar { ToolbarItem(placement: .cancellationAction) {
-                        Button("action.close") { presenting = false }.accessibilityIdentifier("rewards.close")
-                    } }
-            }
-        }
-        .onChange(of: scenePhase) { _, phase in if phase != .active { presenting = false } }
-        .onChange(of: reader.scope) { _, _ in presenting = false }
-        .onChange(of: reader.isAuthenticated) { _, authenticated in if !authenticated { presenting = false } }
-        .onDisappear { presenting = false }
     }
 }
 

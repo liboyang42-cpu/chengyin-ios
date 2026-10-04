@@ -1,6 +1,8 @@
 import XCTest
 
 final class OwnedOrderFlowTests:XCTestCase {
+    // LabeledContent exposes its field name and exact value as one native AX label.
+
     override func setUp(){super.setUp();continueAfterFailure=false}
     private func launch(_ options:[String]=[],language:String="en")->XCUIApplication{
         let app=XCUIApplication();app.launchArguments=["--uitesting-reset-language","--uitesting-module","ownedOrderHistory","-AppleLanguages","(\(language))","-AppleLocale",language]+options;app.launch();return app
@@ -14,19 +16,19 @@ final class OwnedOrderFlowTests:XCTestCase {
     private func cleared(_ element:XCUIElement){XCTAssertEqual(XCTWaiter.wait(for:[XCTNSPredicateExpectation(predicate:NSPredicate(format:"exists == false"),object:element)],timeout:5),.completed)}
     func testNormalAccountFreshDetailBackAndExactUnroundedMoney(){
         let app=launch();openOrders(app);detail(app)
-        XCTAssertTrue(app.staticTexts["Fresh owner detail"].waitForExistence(timeout:5))
-        XCTAssertTrue(app.staticTexts["9007199254740993.0123456"].exists)
+        XCTAssertTrue(app.staticTexts["Activity or route, Fresh owner detail"].waitForExistence(timeout:5))
+        XCTAssertTrue(app.staticTexts["Amount due, 9007199254740993.0123456"].exists)
         XCTAssertFalse(app.buttons["profile.order.lifecycle"].exists)
         app.navigationBars.buttons.firstMatch.tap();detail(app)
-        XCTAssertTrue(app.staticTexts["Fresh owner detail"].waitForExistence(timeout:5))
+        XCTAssertTrue(app.staticTexts["Activity or route, Fresh owner detail"].waitForExistence(timeout:5))
         XCTAssertEqual(app.staticTexts["orders.fixture.other"].label,"0")
     }
     func testIdleLoadedScreenClearsImmediatelyOnExplicitRevocationAndExpiry(){
         for action in ["revoke","expire"]{
             let app=launch();openOrders(app);detail(app)
-            let privateTitle=app.staticTexts["Fresh owner detail"];XCTAssertTrue(privateTitle.waitForExistence(timeout:5))
+            let privateTitle=app.staticTexts["Activity or route, Fresh owner detail"];XCTAssertTrue(privateTitle.waitForExistence(timeout:5))
             app.buttons["orders.fixture."+action].tap();cleared(privateTitle)
-            XCTAssertFalse(app.staticTexts["9007199254740993.0123456"].exists)
+            XCTAssertFalse(app.staticTexts["Amount due, 9007199254740993.0123456"].exists)
             XCTAssertEqual(app.staticTexts["orders.fixture.identity"].label,"signed-in")
             XCTAssertEqual(app.staticTexts["orders.fixture.reads"].label,"2");app.terminate()
         }
@@ -40,16 +42,16 @@ final class OwnedOrderFlowTests:XCTestCase {
     func testRetryThenFreshDetail(){
         let app=launch(["--orders-fail-once"]);openOrders(app);detail(app)
         let retry=app.buttons["profile.order.detail.retry"];XCTAssertTrue(retry.waitForExistence(timeout:5));retry.tap()
-        XCTAssertTrue(app.staticTexts["Fresh owner detail"].waitForExistence(timeout:5));XCTAssertEqual(app.staticTexts["orders.fixture.other"].label,"0")
+        XCTAssertTrue(app.staticTexts["Activity or route, Fresh owner detail"].waitForExistence(timeout:5));XCTAssertEqual(app.staticTexts["orders.fixture.other"].label,"0")
     }
     func testDismissedRetryLate401DoesNotExpireCurrentSession(){
         let app=launch(["--orders-pause-retry"]);openOrders(app);detail(app)
         let retry=app.buttons["profile.order.detail.retry"];XCTAssertTrue(retry.waitForExistence(timeout:5));retry.tap()
         let release=app.buttons["orders.fixture.release"];XCTAssertTrue(release.waitForExistence(timeout:5));app.navigationBars.buttons.firstMatch.tap();release.tap();detail(app)
-        XCTAssertTrue(app.staticTexts["Fresh owner detail"].waitForExistence(timeout:5));XCTAssertEqual(app.staticTexts["orders.fixture.identity"].label,"signed-in")
+        XCTAssertTrue(app.staticTexts["Activity or route, Fresh owner detail"].waitForExistence(timeout:5));XCTAssertEqual(app.staticTexts["orders.fixture.identity"].label,"signed-in")
     }
     func testCurrent401ClearsPrivateContent(){
         let app=launch(["--orders-current401"]);openOrders(app);detail(app)
-        XCTAssertTrue(app.descendants(matching:.any)["profile.orders.signIn"].firstMatch.waitForExistence(timeout:5));XCTAssertFalse(app.staticTexts["Fresh owner detail"].exists)
+        XCTAssertTrue(app.descendants(matching:.any)["profile.orders.signIn"].firstMatch.waitForExistence(timeout:5));XCTAssertFalse(app.staticTexts["Activity or route, Fresh owner detail"].exists)
     }
 }

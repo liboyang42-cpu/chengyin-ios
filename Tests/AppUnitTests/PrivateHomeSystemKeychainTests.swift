@@ -6,6 +6,43 @@ import Security
 /// Real Security API checks, confined to unique synthetic simulator-only keys.
 /// These do not simulate locking the device or validate physical-device access groups.
 @MainActor final class PrivateHomeSystemKeychainTests: XCTestCase {
+    // Additive environment probes: preserve the adapter acceptance tests below unchanged.
+    // Only fixed operation names and numeric OSStatus are reported, never query data or paths.
+    func testSyntheticSecurityPrerequisitesReportNumericStatus() {
+        probeSyntheticSecurity(authenticationUIFail: false)
+        probeSyntheticSecurity(authenticationUIFail: true)
+    }
+    private func probeSyntheticSecurity(authenticationUIFail: Bool) {
+        let identity = namespace()
+        let base = query(service: identity.service, key: identity.key)
+        var request = base
+        request[kSecValueData as String] = Data("synthetic prerequisite".utf8)
+        request[kSecAttrGeneric as String] = Data(repeating: 0x71, count: 32)
+        request[kSecAttrAccessible as String] = kSecAttrAccessibleWhenUnlockedThisDeviceOnly
+        if authenticationUIFail { request[kSecUseAuthenticationUI as String] = kSecUseAuthenticationUIFail }
+        let status = SecItemAdd(request as CFDictionary, nil)
+        let mode = authenticationUIFail ? "anchor" : "private-home"
+        XCTAssertEqual(status, errSecSuccess, "Synthetic Security \(mode) add OSStatus=\(status)")
+        guard status == errSecSuccess else { return }
+        // Never delete after a failed insert: even an unexpected collision is not ours.
+        defer {
+            let removed = SecItemDelete(base as CFDictionary)
+            XCTAssertEqual(removed, errSecSuccess, "Synthetic Security \(mode) cleanup OSStatus=\(removed)")
+        }
+        var read = base
+        read[kSecReturnAttributes as String] = true
+        read[kSecReturnData as String] = true
+        read[kSecMatchLimit as String] = kSecMatchLimitOne
+        read[kSecUseAuthenticationUI as String] = kSecUseAuthenticationUIFail
+        var result: CFTypeRef?
+        let copied = SecItemCopyMatching(read as CFDictionary, &result)
+        XCTAssertEqual(copied, errSecSuccess, "Synthetic Security \(mode) read OSStatus=\(copied)")
+        guard copied == errSecSuccess else { return }
+        let attributes = result as? [String: Any]
+        XCTAssertEqual(attributes?[kSecAttrAccessible as String] as? String,
+                       kSecAttrAccessibleWhenUnlockedThisDeviceOnly as String)
+        XCTAssertEqual((attributes?[kSecAttrSynchronizable as String] as? NSNumber)?.boolValue, false)
+    }
     private func namespace() -> (service: String, key: String) {
         ("questify.tests.private-home." + UUID().uuidString, "synthetic-" + UUID().uuidString)
     }

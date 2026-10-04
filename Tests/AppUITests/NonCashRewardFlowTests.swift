@@ -7,6 +7,11 @@ import XCTest
     override func tearDownWithError() throws { attachFailureScreenshot(self, app: app); app.terminate(); app = nil }
     private func tap(_ id: String) {
         let element = app.buttons[id]
+        if id == "rewards.close" {
+            let close = app.navigationBars.buttons[id]
+            XCTAssertTrue(close.exists); XCTAssertTrue(close.isEnabled)
+            XCTAssertTrue(close.isHittable); close.tap(); return
+        }
         XCTAssertTrue(revealFixtureElement(element, in: app), app.debugDescription); element.tap()
     }
     private func launch(_ scenario: String? = "content") {
@@ -25,11 +30,22 @@ import XCTest
     }
     func testNormalAccountRewardDetailCloseReopenAndBack() {
         launch(); tap("rewards.row.example-0"); tap("rewards.present")
-        XCTAssertTrue(app.otherElements["rewards.presentation"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any)["rewards.presentation"].firstMatch.waitForExistence(timeout: 5))
         tap("rewards.close"); tap("rewards.present"); tap("rewards.close")
         app.navigationBars.buttons.element(boundBy: 0).tap()
         XCTAssertTrue(app.buttons["rewards.row.example-0"].waitForExistence(timeout: 5))
         attachFixtureScreenshot(self, app: app, name: "Synthetic My Rewards normal account journey")
+    }
+    func testPreviewBackgroundDismissesAndCanReopen() {
+        launch(); tap("rewards.row.example-0"); tap("rewards.present")
+        XCTAssertTrue(app.descendants(matching: .any)["rewards.presentation"].firstMatch.waitForExistence(timeout: 5))
+        XCUIDevice.shared.press(.home)
+        XCTAssertTrue(app.wait(for: .runningBackground, timeout: 5))
+        app.activate()
+        XCTAssertFalse(app.buttons["rewards.close"].exists)
+        tap("rewards.present")
+        XCTAssertTrue(app.descendants(matching: .any)["rewards.presentation"].firstMatch.waitForExistence(timeout: 5))
+        tap("rewards.close")
     }
     func testTerminalAwardHasNoPresentationAction() {
         launch(); tap("rewards.row.example-1")
@@ -43,7 +59,7 @@ import XCTest
     }
     func testWithoutOptInNoExampleOrRedemptionAppears() {
         launch(nil)
-        XCTAssertTrue(app.otherElements["rewards.unavailable"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts.matching(identifier: "rewards.unavailable").firstMatch.waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["rewards.row.example-0"].exists)
         XCTAssertFalse(app.buttons["rewards.present"].exists)
     }

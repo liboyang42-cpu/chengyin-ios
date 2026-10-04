@@ -14,8 +14,27 @@ final class OwnerDraftBrowserFlowTests: XCTestCase {
         if mode != "guest" { record("authPaths", "phone,userInfo", app) }
         return app
     }
+    // These controls live outside the scrolling content viewport. Keep the row
+    // reveal helper strict; never scroll a fixed navigation/footer action into it.
+    private func fixedControlIsReady(_ id: String, _ app: XCUIApplication) -> Bool {
+        let element: XCUIElement
+        switch id {
+        case "ownerDraft.refresh": element = app.navigationBars.buttons[id]
+        case "ownerDraft.fixture.release", "ownerDraft.fixture.replace": element = app.buttons[id]
+        default: return false
+        }
+        guard element.exists, element.isEnabled, element.isHittable,
+              !element.frame.isEmpty, app.frame.contains(element.frame) else { return false }
+        return !app.keyboards.allElementsBoundByIndex.contains { $0.frame.intersects(element.frame) }
+    }
     private func tap(_ id: String, _ app: XCUIApplication) {
-        let element = app.buttons[id]; XCTAssertTrue(revealFixtureElement(element, in: app)); element.tap()
+        let element = app.buttons[id]
+        if ["ownerDraft.refresh", "ownerDraft.fixture.release", "ownerDraft.fixture.replace"].contains(id) {
+            XCTAssertTrue(fixedControlIsReady(id, app), app.debugDescription)
+        } else {
+            XCTAssertTrue(revealFixtureElement(element, in: app), app.debugDescription)
+        }
+        element.tap()
     }
     private func record(_ name: String, _ value: String, _ app: XCUIApplication) {
         let element = app.staticTexts["ownerDraft.recorder.\(name)"]
@@ -47,8 +66,20 @@ final class OwnerDraftBrowserFlowTests: XCTestCase {
     }
     func testLoadingReleaseAndRestoreRetry() {
         let app = launch("loading"); tap("account.ownerDrafts", app)
-        XCTAssertTrue(app.otherElements["ownerDraft.loading"].waitForExistence(timeout: 5) || app.progressIndicators["ownerDraft.loading"].exists)
+        XCTAssertTrue(app.activityIndicators["ownerDraft.loading"].waitForExistence(timeout: 5))
         tap("ownerDraft.fixture.release", app); XCTAssertTrue(app.buttons["ownerDraft.row.11"].waitForExistence(timeout: 5))
+        record("list", "1", app); record("mutations", "0", app)
+    }
+    func testFixedControlsRejectDisabledAndNonChromeTargets() {
+        let app = launch("loading"); tap("account.ownerDrafts", app)
+        XCTAssertTrue(app.activityIndicators["ownerDraft.loading"].waitForExistence(timeout: 5))
+        XCTAssertFalse(fixedControlIsReady("ownerDraft.refresh", app))
+        XCTAssertFalse(fixedControlIsReady("ownerDraft.row.11", app))
+        XCTAssertTrue(fixedControlIsReady("ownerDraft.fixture.release", app))
+        XCTAssertTrue(fixedControlIsReady("ownerDraft.fixture.replace", app))
+        tap("ownerDraft.fixture.release", app)
+        XCTAssertTrue(app.buttons["ownerDraft.row.11"].waitForExistence(timeout: 5))
+        XCTAssertTrue(fixedControlIsReady("ownerDraft.refresh", app))
         record("list", "1", app); record("mutations", "0", app)
     }
     func testRestoreErrorCanRetryWithoutOpeningEditor() {

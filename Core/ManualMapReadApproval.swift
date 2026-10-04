@@ -130,7 +130,8 @@ public enum ManualMapReadRoute: Equatable {
         for chunk in chunks.dropFirst() {
             let header = "Content-Disposition: form-data; name=\""
             guard chunk.hasPrefix(header), chunk.hasSuffix("\r\n") else { return nil }
-            let pieces = String(chunk.dropFirst(header.count).dropLast(2)).components(separatedBy: "\"\r\n\r\n")
+            // CRLF is one Swift Character; trim the delimiter, not two value characters.
+            let pieces = String(chunk.dropFirst(header.count).dropLast("\r\n".count)).components(separatedBy: "\"\r\n\r\n")
             guard pieces.count == 2, fields[pieces[0]] == nil else { return nil }
             fields[pieces[0]] = pieces[1]
         }

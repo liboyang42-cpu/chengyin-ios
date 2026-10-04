@@ -82,7 +82,12 @@ final class SignedInContentDetailFlowTests: XCTestCase {
         openTopic(app)
         let error = app.descendants(matching: .any)["topic.error"].firstMatch
         XCTAssertTrue(error.waitForExistence(timeout: 5))
-        error.buttons.firstMatch.tap()
+        // SwiftUI propagates topic.error to sibling label leaves and Retry.
+        // The first Any match is the error image, not a button container.
+        let retryButtons = app.buttons.matching(identifier: "topic.error")
+        XCTAssertEqual(retryButtons.count, 1, app.debugDescription)
+        let retry = retryButtons.element(boundBy: 0)
+        XCTAssertTrue(retry.isEnabled); XCTAssertTrue(retry.isHittable); retry.tap()
         let release = app.buttons["contentDetail.fixture.release401"]
         XCTAssertTrue(release.waitForExistence(timeout: 5))
         app.navigationBars.buttons.firstMatch.tap()

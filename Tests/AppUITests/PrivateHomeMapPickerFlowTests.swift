@@ -15,8 +15,34 @@ final class PrivateHomeMapPickerFlowTests: XCTestCase {
         if accountRoute { tap("account.privateHome", app) }
         return app
     }
+    private func fixedRecorderControlIsReady(_ id: String, _ app: XCUIApplication) -> Bool {
+        guard ["privateHome.fixture.replaceOwner", "privateHome.fixture.revokeSource"].contains(id) else { return false }
+        let button = app.buttons[id]
+        guard button.exists, button.isEnabled, button.isHittable,
+              !button.frame.isEmpty, app.frame.contains(button.frame) else { return false }
+        return !app.keyboards.allElementsBoundByIndex.contains { $0.frame.intersects(button.frame) }
+    }
     private func tap(_ id: String, _ app: XCUIApplication) {
-        let button = app.buttons[id]; XCTAssertTrue(revealFixtureElement(button, in: app)); XCTAssertTrue(button.isEnabled); button.tap()
+        let button = app.buttons[id]
+        if ["privateHome.fixture.replaceOwner", "privateHome.fixture.revokeSource"].contains(id) {
+            XCTAssertTrue(fixedRecorderControlIsReady(id, app), app.debugDescription)
+        } else {
+            XCTAssertTrue(revealFixtureElement(button, in: app), app.debugDescription)
+        }
+        XCTAssertTrue(button.isEnabled); button.tap()
+    }
+    private func assertRecorderLeavesFormGestureClear(_ app: XCUIApplication) {
+        let recorder = app.descendants(matching: .any)["privateHome.fixture.recorder"].firstMatch
+        XCTAssertTrue(recorder.waitForExistence(timeout: 5))
+        XCTAssertFalse(recorder.frame.isEmpty)
+        XCTAssertTrue(app.frame.contains(recorder.frame))
+        XCTAssertLessThan(recorder.frame.height, app.frame.height * 0.25)
+        let contentTop = app.navigationBars.firstMatch.frame.maxY + 4
+        // This is the unchanged revealFixtureElement downward-gesture start.
+        let gestureStart = contentTop + (app.frame.maxY - 40 - contentTop) * 0.75
+        XCTAssertGreaterThan(recorder.frame.minY, gestureStart)
+        XCTAssertFalse(fixedRecorderControlIsReady("privateHome.map.open", app))
+        XCTAssertTrue(fixedRecorderControlIsReady("privateHome.fixture.revokeSource", app))
     }
     private func fill(_ id: String, _ value: String, _ app: XCUIApplication) {
         let field = app.textFields[id]; XCTAssertTrue(revealFixtureElement(field, in: app)); field.tap(); field.typeText(value)
@@ -86,6 +112,7 @@ final class PrivateHomeMapPickerFlowTests: XCTestCase {
         for language in ["en", "zh-Hans"] {
             let app = launch(language: language, maximum: true)
             assertFixtureEnvironment(in: app, colorScheme: "dark", dynamicTypeSize: "accessibility5")
+            assertRecorderLeavesFormGestureClear(app)
             tap("privateHome.map.open", app); tap("privateHome.map.fixture.valid", app)
             XCTAssertTrue(revealFixtureElement(app.staticTexts["privateHome.coordinateReview"], in: app))
             attachFixtureScreenshot(self, app: app, name: "Private game-home synthetic point \(language) maximum text")

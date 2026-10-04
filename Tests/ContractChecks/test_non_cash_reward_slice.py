@@ -18,6 +18,26 @@ class NonCashRewardSliceChecks(unittest.TestCase):
         self.assertIn('return []\n        #endif', source)
         self.assertIn('.onChange(of: scenePhase)', source)
         self.assertIn('.onChange(of: reader.scope)', source)
+    def test_presentation_belongs_to_stable_detail_root_and_rechecks_grants(self):
+        source = (ROOT / 'App/NonCashRewardViews.swift').read_text()
+        detail = source.split('private struct NonCashRewardDetailView: View {', 1)[1].split('private struct NonCashRewardDetailContent: View {', 1)[0]
+        rows = source.split('private struct NonCashRewardDetailContent: View {', 1)[1].split('/// Only DEBUG', 1)[0]
+        self.assertIn('@State private var presenting = false', detail)
+        self.assertIn('.sheet(isPresented: $presenting)', detail)
+        self.assertIn('if presentationAllowed', detail)
+        self.assertIn('guard presentationAllowed else { return }', detail)
+        self.assertIn('reader.isAuthenticated, reader.isConfigured, reader.isOfflineExample', detail)
+        self.assertIn('reward.canPresent(at: NonCashRewardDemo.now)', detail)
+        self.assertIn('model.value(scope: key.scope)', detail)
+        for boundary in ['scenePhase', 'reader.scope', 'reader.isAuthenticated', 'reader.isConfigured']:
+            self.assertIn('.onChange(of: ' + boundary + ')', detail)
+        self.assertIn('.onDisappear { presenting = false }', detail)
+        self.assertIn('private func refresh() async {\n        presenting = false', detail)
+        self.assertNotIn('.sheet', rows)
+        self.assertNotIn('@State', rows)
+        self.assertNotIn('.onDisappear', rows)
+        self.assertIn('Button("rewards.present", action: present)', rows)
+
     def test_all_reward_keys_are_bilingual(self):
         import re
         source = (ROOT / 'App/NonCashRewardViews.swift').read_text()

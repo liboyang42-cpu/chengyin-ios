@@ -1,11 +1,75 @@
 import XCTest
 import Security
+import Darwin
 @testable import Questify
 
 #if targetEnvironment(simulator)
 /// Opt-in Apple execution only: unique synthetic service/key and temporary ciphertext directory.
 /// No real account, user Keychain namespace, backend, or device lock manipulation.
 @MainActor final class ContentDraftSystemStorageTests: XCTestCase {
+    // This additive probe mirrors the adapter prerequisites without changing its failure policy.
+    // Fixed stage labels and numeric errno only; do not log resolved container paths or data.
+    func testSyntheticFilesystemPrerequisitesReportNumericStage() {
+        let root = FileManager.default.temporaryDirectory.resolvingSymlinksInPath()
+            .appendingPathComponent("questify-storage-probe-" + UUID().uuidString, isDirectory: true)
+        guard prerequisite(root.isFileURL && root.path != "/" && root.path == root.standardizedFileURL.path,
+                           stage: "path-shape", code: 0) else { return }
+        let components = root.pathComponents.filter { $0 != "/" }
+        guard let leaf = components.last,
+              prerequisite(!components.contains("..") && !components.contains("."), stage: "components", code: 0) else { return }
+        var parent = Darwin.open("/", O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
+        guard prerequisite(parent >= 0, stage: "open-root", code: errno) else { return }
+        defer { Darwin.close(parent) }
+        for (index, component) in components.dropLast().enumerated() {
+            let next = openat(parent, component, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
+            guard prerequisite(next >= 0, stage: "open-ancestor-\(index)", code: errno) else { return }
+            Darwin.close(parent); parent = next
+        }
+        let created = mkdirat(parent, leaf, mode_t(0o700))
+        guard prerequisite(created == 0, stage: "mkdir-leaf", code: errno) else { return }
+        // Only our successful exclusive, random leaf creation authorizes cleanup.
+        defer {
+            let removed = unlinkat(parent, leaf, AT_REMOVEDIR)
+            _ = prerequisite(removed == 0, stage: "remove-leaf", code: errno)
+        }
+        let directory = openat(parent, leaf, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
+        guard prerequisite(directory >= 0, stage: "open-leaf", code: errno) else { return }
+        defer { Darwin.close(directory) }
+        var info = stat()
+        let inspected = fstat(directory, &info)
+        guard prerequisite(inspected == 0, stage: "stat-leaf", code: errno),
+              prerequisite(info.st_uid == geteuid() && info.st_mode & 0o077 == 0, stage: "owner-mode", code: 0) else { return }
+        let protected = fcntl(directory, F_SETPROTECTIONCLASS, Int32(1))
+        guard prerequisite(protected == 0, stage: "set-directory-class-a", code: errno) else { return }
+        let protection = fcntl(directory, F_GETPROTECTIONCLASS)
+        guard prerequisite(protection == 1, stage: "get-directory-class-a", code: errno, result: protection) else { return }
+        let parentSynced = fsync(parent)
+        guard prerequisite(parentSynced == 0, stage: "fsync-parent", code: errno) else { return }
+        let directorySynced = fsync(directory)
+        guard prerequisite(directorySynced == 0, stage: "fsync-directory", code: errno) else { return }
+        let directoryFlushed = fcntl(directory, F_FULLFSYNC)
+        guard prerequisite(directoryFlushed == 0, stage: "fullfsync-directory", code: errno) else { return }
+        let file = openat(directory, "synthetic-probe", O_RDWR | O_CREAT | O_EXCL | O_NOFOLLOW | O_CLOEXEC, mode_t(0o600))
+        guard prerequisite(file >= 0, stage: "create-file", code: errno) else { return }
+        defer {
+            Darwin.close(file)
+            let removed = unlinkat(directory, "synthetic-probe", 0)
+            _ = prerequisite(removed == 0, stage: "remove-file", code: errno)
+        }
+        let fileProtected = fcntl(file, F_SETPROTECTIONCLASS, Int32(1))
+        guard prerequisite(fileProtected == 0, stage: "set-file-class-a", code: errno) else { return }
+        let fileProtection = fcntl(file, F_GETPROTECTIONCLASS)
+        guard prerequisite(fileProtection == 1, stage: "get-file-class-a", code: errno, result: fileProtection) else { return }
+        let fileSynced = fsync(file)
+        guard prerequisite(fileSynced == 0, stage: "fsync-file", code: errno) else { return }
+        let fileFlushed = fcntl(file, F_FULLFSYNC)
+        _ = prerequisite(fileFlushed == 0, stage: "fullfsync-file", code: errno)
+    }
+    private func prerequisite(_ satisfied: Bool, stage: String, code: Int32, result: Int32 = 0,
+                              file: StaticString = #filePath, line: UInt = #line) -> Bool {
+        XCTAssertTrue(satisfied, "Synthetic filesystem stage=\(stage) errno=\(code) result=\(result)", file: file, line: line)
+        return satisfied
+    }
     func testRealGenerationCASAndConditionalDelete() async throws {
         let service = "questify.tests.content-draft." + UUID().uuidString, slot = UUID().uuidString
         let store = ContentDraftSystemAnchors(service: service)

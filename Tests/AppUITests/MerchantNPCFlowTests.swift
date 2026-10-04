@@ -29,7 +29,18 @@ final class MerchantNPCFlowTests: XCTestCase {
         XCTAssertEqual(app.alerts.count, 0)
     }
     func testBackgroundClearsChat() {
-        let app = launch(); app.buttons["merchantNPC.fixture.chat"].tap()
+        let app = launch()
+        let chat = app.buttons["merchantNPC.fixture.chat"]
+        // Capture the unresolved first navigation boundary without a second tap,
+        // added wait, or changes to the privacy invalidation path.
+        attachFixtureScreenshot(self, app: app, name: "Merchant NPC before first chat entry")
+        let exists = chat.exists
+        let entryState = "exists=\(exists); enabled=\(exists && chat.isEnabled); hittable=\(exists && chat.isHittable); frame=\(exists ? chat.frame : .zero); appFrame=\(app.frame)"
+        let entryEvidence = XCTAttachment(string: entryState + "\n" + app.debugDescription)
+        entryEvidence.name = "Merchant NPC first entry accessibility and geometry"
+        entryEvidence.lifetime = .keepAlways
+        add(entryEvidence)
+        chat.tap()
         let input = app.textFields["merchantNPC.input"]; XCTAssertTrue(input.waitForExistence(timeout: 5)); input.tap(); input.typeText("Private unsent")
         XCUIDevice.shared.press(.home)
         XCTAssertTrue(app.wait(for: .runningBackground, timeout: 5), app.debugDescription)

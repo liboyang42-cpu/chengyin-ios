@@ -45,10 +45,12 @@ import UIKit
                     playReadApprovalID: approvalIssuance?() ?? stableIssuance))
             })
     }
-    private func login(_ session: AppSession) async {
+    private func login(_ session: AppSession) async throws {
         session.authChannels.cancel()
         await session.authChannels.loginWithPhone(phone: "10000000000", code: "123456")
         XCTAssertEqual(session.account?.id, 7)
+        // Stop failed setup before dependent readers or continuation waits run.
+        guard session.account?.id == 7 else { throw APIError.malformedResponse }
     }
     private func request(_ path: String = "api/play/nodes", query: String = "activityId=41", method: String = "GET") -> URLRequest {
         var request = URLRequest(url: URL(string: base.absoluteString + "/" + path + "?" + query)!)
@@ -63,9 +65,26 @@ import UIKit
         transport.playReadConfiguration = { _ in config }
         return transport
     }
+    func testInvalidPhoneIdentityCannotAuthorizePlayReads() async throws {
+        for (response, userInfoCount) in [
+            (#"{"code":200,"token":"synthetic-7"}"#, 0),
+            (#"{"code":200,"token":"synthetic-7","data":{"id":0}}"#, 0),
+            (#"{"code":200,"token":"synthetic-7","data":{"id":8}}"#, 1)
+        ] {
+            let wire = PlayReadWire(); wire.phoneResponse = response
+            let session = try root(wire).makeSession()
+            session.authChannels.cancel()
+            await session.authChannels.loginWithPhone(phone: "10000000000", code: "123456")
+            XCTAssertNil(session.account)
+            XCTAssertEqual(wire.requests.filter { $0.url?.lastPathComponent == "userInfo" }.count, userInfoCount)
+            do { _ = try await session.playReader(for: .activity(41)).playSession(); XCTFail() } catch {}
+            XCTAssertNil(session.playExperience(for: .activity(41)))
+            XCTAssertTrue(wire.playRequests.isEmpty)
+        }
+    }
     func testNormalAppSessionBothReadersDispatchExactAuthenticatedBranchReads() async throws {
         let wire = PlayReadWire(), session = try root(wire).makeSession()
-        await login(session)
+        try await login(session)
         for scope in [PlaySessionScope.activity(41), .topic(71)] {
             let legacy = session.playReader(for: scope)
             let snapshot = try await legacy.playSession()
@@ -91,7 +110,7 @@ import UIKit
         XCTAssertNil(unconfigured.playExperience(for: .activity(41)))
         for (rootRead, runtimeRead, account) in [(false, true, 7), (true, false, 7), (true, true, 8)] {
             let session = try root(wire, rootRead: rootRead, runtimeRead: runtimeRead, accountID: account).makeSession()
-            await login(session)
+            try await login(session)
             do { _ = try await session.playReader(for: .activity(41)).playSession(); XCTFail() } catch {}
             if let rich = session.playExperience(for: .activity(41)) { await rich.load(); XCTAssertNil(rich.snapshot) }
         }
@@ -140,12 +159,12 @@ import UIKit
     }
     func testExactEndpointApprovalDoesNotImplyRouteState() async throws {
         let wire = PlayReadWire(), session = try root(wire, paths: ["api/play/nodes"]).makeSession()
-        await login(session)
+        try await login(session)
         do { _ = try await session.playReader(for: .activity(41)).playSession(); XCTFail() } catch {}
         XCTAssertEqual(wire.playRequests.map { $0.url?.lastPathComponent }, ["nodes"])
     }
     func testEmptyRegistrationGateMissingPassAndErrorNeverManufactureProgress() async throws {
-        let wire = PlayReadWire(), session = try root(wire).makeSession(); await login(session)
+        let wire = PlayReadWire(), session = try root(wire).makeSession(); try await login(session)
         let reader = session.playReader(for: .topic(71)), model = PlayViewModel(reader: reader)
         wire.nodes = #"{"code":200,"data":{"topicId":71,"nodes":[],"registered":true,"playable":true}}"#
         await model.load(); XCTAssertEqual(model.visibleSnapshot?.availability, .empty)
@@ -164,7 +183,7 @@ import UIKit
     func testCurrentHTTPAndBusiness401ExpireMatchingSessionForBothReaders() async throws {
         for rich in [false, true] {
             for status in [200, 401] {
-                let wire = PlayReadWire(), session = try root(wire).makeSession(); await login(session)
+                let wire = PlayReadWire(), session = try root(wire).makeSession(); try await login(session)
                 wire.nodes = #"{"code":401}"#; wire.status = status
                 if rich { await session.playExperience(for: .activity(41))?.load() }
                 else { do { _ = try await session.playReader(for: .activity(41)).playSession(); XCTFail() } catch {} }
@@ -175,7 +194,7 @@ import UIKit
     func testLateRoleABASuccessAnd401CannotPopulateOrExpireSameEpochSession() async throws {
         for rich in [false, true] {
             for unauthorized in [false, true] {
-                let wire = PlayReadWire(), session = try root(wire).makeSession(); await login(session)
+                let wire = PlayReadWire(), session = try root(wire).makeSession(); try await login(session)
                 let reader = session.playReader(for: .activity(41)), model = PlayViewModel(reader: reader)
                 let coordinator = try XCTUnwrap(session.playExperience(for: .activity(41)))
                 wire.pause = true
@@ -198,13 +217,13 @@ import UIKit
     }
     func testLate401AfterLogoutReloginAndCancellationNeverExpiresReplacement() async throws {
         for cancel in [false, true] {
-            let wire = PlayReadWire(), session = try root(wire).makeSession(); await login(session)
+            let wire = PlayReadWire(), session = try root(wire).makeSession(); try await login(session)
             let reader = session.playReader(for: .activity(41)); wire.pause = true
             let started = expectation(description: "Read paused"); wire.onPaused = { started.fulfill() }
             let task = Task { try await reader.playSession() }
             await fulfillment(of: [started], timeout: 2)
             guard wire.hasPending else { task.cancel(); return XCTFail("Read did not reach recorder") }
-            if cancel { task.cancel() } else { await session.logout(); await login(session) }
+            if cancel { task.cancel() } else { await session.logout(); try await login(session) }
             let epoch = session.sessionRevision
             wire.finish(unauthorized: true)
             do { _ = try await task.value; XCTFail() } catch is CancellationError {} catch { XCTFail("Unexpected error: \(error)") }
@@ -216,7 +235,7 @@ import UIKit
             for unauthorized in [false, true] {
                 var approved = true
                 let wire = PlayReadWire(), session = try root(wire, approvalActive: { approved }).makeSession()
-                await login(session)
+                try await login(session)
                 let model = PlayViewModel(reader: session.playReader(for: .activity(41)))
                 let coordinator = try XCTUnwrap(session.playExperience(for: .activity(41)))
                 wire.pause = true
@@ -237,7 +256,7 @@ import UIKit
     func testLoadedSnapshotsAreNotProjectedAfterApprovalRevocation() async throws {
         var approved = true
         let wire = PlayReadWire(), session = try root(wire, approvalActive: { approved }).makeSession()
-        await login(session)
+        try await login(session)
         let reader = session.playReader(for: .activity(41)), model = PlayViewModel(reader: reader)
         let coordinator = try XCTUnwrap(session.playExperience(for: .activity(41)))
         await model.load(); await coordinator.load()
@@ -251,7 +270,7 @@ import UIKit
         for rich in [false, true] {
             var issuance = UUID()
             let wire = PlayReadWire(), session = try root(wire, approvalIssuance: { issuance }).makeSession()
-            await login(session)
+            try await login(session)
             let reader = session.playReader(for: .activity(41))
             let model = PlayViewModel(reader: reader)
             let coordinator = try XCTUnwrap(session.playExperience(for: .activity(41)))
@@ -274,7 +293,7 @@ import UIKit
     func testFreshEntryUsesNewApprovalRatherThanRetainedDormantDependencies() async throws {
         var approved = false
         let wire = PlayReadWire(), session = try root(wire, approvalActive: { approved }).makeSession()
-        await login(session)
+        try await login(session)
         let dormant = session.playReader(for: .activity(41)); XCTAssertFalse(dormant.isConfigured)
         approved = true
         let fresh = session.playReader(for: .activity(41)); XCTAssertFalse(fresh === dormant)
@@ -291,7 +310,7 @@ import UIKit
         XCTAssertTrue(wire.requests.isEmpty)
     }
     func testReadOnlyNormalSessionRunAndMutationPathsNeverDispatch() async throws {
-        let wire = PlayReadWire(), session = try root(wire, extraCapabilities: [.runPersistence, .classicCompletion, .hints, .leader, .thoughtClaims]).makeSession(); await login(session)
+        let wire = PlayReadWire(), session = try root(wire, extraCapabilities: [.runPersistence, .classicCompletion, .hints, .leader, .thoughtClaims]).makeSession(); try await login(session)
         wire.nodes = String(decoding: PlayExperienceSyntheticFixtures.envelope(PlayExperienceSyntheticFixtures.classic), as: UTF8.self)
         let coordinator = try XCTUnwrap(session.playExperience(for: .activity(41))); await coordinator.load()
         XCTAssertFalse(coordinator.canWrite); XCTAssertFalse(coordinator.canManageRun)
@@ -323,13 +342,13 @@ import UIKit
         let construction = PlayRecoveryConstruction.synthetic(anchors: PlayReadAnchors(), ciphertexts: PlayReadCiphertexts())
         let wire = PlayReadWire(), first = try root(wire, recovery: construction).makeSession()
         wire.nodes = String(decoding: PlayExperienceSyntheticFixtures.envelope(PlayExperienceSyntheticFixtures.classic), as: UTF8.self)
-        await login(first)
+        try await login(first)
         let (journal, pending, key) = try await seedUnknown(construction, app: first)
         let original = try XCTUnwrap(first.playExperience(for: .activity(41)))
         XCTAssertTrue(original === first.playExperience(for: .activity(41)))
         await original.load(); XCTAssertEqual(original.phase, .unknown)
         await first.logout(); XCTAssertNil(original.snapshot)
-        let reopened = try root(wire, recovery: construction).makeSession(); await login(reopened)
+        let reopened = try root(wire, recovery: construction).makeSession(); try await login(reopened)
         let restored = try XCTUnwrap(reopened.playExperience(for: .activity(41)))
         XCTAssertFalse(original === restored)
         await restored.load(); await restored.retryExactBranchAfterReadback()
@@ -344,12 +363,12 @@ import UIKit
     }
     func testRootUnavailableLockedAndCorruptRecoveryNeverBecomesEmptyOrDispatches() async throws {
         let unavailableWire = PlayReadWire()
-        let unavailable = try root(unavailableWire, recovery: .unavailable).makeSession(); await login(unavailable)
+        let unavailable = try root(unavailableWire, recovery: .unavailable).makeSession(); try await login(unavailable)
         XCTAssertNil(unavailable.playExperience(for: .activity(41))); XCTAssertTrue(unavailableWire.playRequests.isEmpty)
         for corrupt in [false, true] {
             let anchors = PlayReadAnchors(), blobs = PlayReadCiphertexts()
             let construction = PlayRecoveryConstruction.synthetic(anchors: anchors, ciphertexts: blobs)
-            let wire = PlayReadWire(), app = try root(wire, recovery: construction).makeSession(); await login(app)
+            let wire = PlayReadWire(), app = try root(wire, recovery: construction).makeSession(); try await login(app)
             let (journal, pending, key) = try await seedUnknown(construction, app: app)
             if corrupt { await blobs.corrupt() } else { await anchors.setLocked(true) }
             let model = try XCTUnwrap(app.playExperience(for: .activity(41)))
@@ -365,7 +384,7 @@ import UIKit
     }
     func testRootRoleBindingRejectsArbitraryRolesAndCannotReadAnotherRolePending() async throws {
         let construction = PlayRecoveryConstruction.synthetic(anchors: PlayReadAnchors(), ciphertexts: PlayReadCiphertexts())
-        let wire = PlayReadWire(), app = try root(wire, recovery: construction).makeSession(); await login(app)
+        let wire = PlayReadWire(), app = try root(wire, recovery: construction).makeSession(); try await login(app)
         wire.nodes = String(decoding: PlayExperienceSyntheticFixtures.envelope(PlayExperienceSyntheticFixtures.classic), as: UTF8.self)
         let (journal, pending, key) = try await seedUnknown(construction, app: app)
         let original = try XCTUnwrap(app.playExperience(for: .activity(41))); await original.load()
@@ -426,6 +445,7 @@ import UIKit
 @MainActor private final class PlayReadWire: HTTPTransport {
     var requests: [URLRequest] = []
     var playRequests: [URLRequest] { requests.filter { $0.url?.path.contains("/api/play/") == true } }
+    var phoneResponse = #"{"code":200,"token":"synthetic-7","data":{"id":7}}"#
     var role = "player", pause = false, status = 200
     static let route = #"{"routeMode":"BRANCH_GRAPH","sessionId":99,"version":1,"status":"ACTIVE","nodeStates":{"1":"PLAYABLE","2":"DISCOVERED_LOCKED","3":"HIDDEN"}}"#
     var nodes = #"{"code":200,"data":{"topicId":71,"registered":true,"playable":true,"nodes":[{"nodeId":1},{"nodeId":2},{"nodeId":3}],"routeState":ROUTE}}"#.replacingOccurrences(of: "ROUTE", with: PlayReadWire.route)
@@ -439,7 +459,7 @@ import UIKit
     func send(_ request: URLRequest) async throws -> (Data, Int) {
         requests.append(request)
         switch request.url?.lastPathComponent {
-        case "phone": return (Data(#"{"code":200,"token":"synthetic-7"}"#.utf8), 200)
+        case "phone": return (Data(phoneResponse.utf8), 200)
         case "userInfo": return (Data("{\"code\":200,\"appUser\":{\"id\":7,\"role\":\"\(role)\"}}".utf8), 200)
         case "logout": return (Data(#"{"code":200}"#.utf8), 200)
         case "nodes":

@@ -22,10 +22,21 @@ import XCTest
         let tokenStored: Bool
         let manualArea: Bool
     }
+    private var runningApp: XCUIApplication?
+    override func tearDownWithError() throws {
+        attachFailureScreenshot(self, app: runningApp)
+        if let app = runningApp, (testRun?.totalFailureCount ?? 0) > 0 {
+            let hierarchy = XCTAttachment(string: app.debugDescription)
+            hierarchy.name = "Integrated acceptance failure accessibility hierarchy"
+            hierarchy.lifetime = .keepAlways
+            add(hierarchy)
+        }
+        runningApp?.terminate(); runningApp = nil
+    }
     private let home = ["home.banners", "home.categories", "home.recommended", "home.nearby", "home.upcoming", "home.stream"]
     override func setUp() { super.setUp(); continueAfterFailure = false }
     private func launch(_ mode: String = "ready") -> XCUIApplication {
-        let app = XCUIApplication()
+        let app = XCUIApplication(); runningApp = app
         app.launchArguments = ["--uitesting-integrated-native", mode, "--uitesting-reset-language", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
         app.launch(); return app
     }
@@ -90,7 +101,7 @@ import XCTest
         tab("Account", app); tap("profile.open.orders", app)
         XCTAssertTrue(app.staticTexts["Owner \(owner) list snapshot"].waitForExistence(timeout: 5))
         tap("profile.order.41", app)
-        XCTAssertTrue(app.staticTexts["Owner \(owner) fresh detail"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Activity or route, Owner \(owner) fresh detail"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.staticTexts["Owner \(owner) list snapshot"].exists)
         XCTAssertFalse(app.buttons["profile.order.lifecycle"].exists)
     }
@@ -165,12 +176,12 @@ import XCTest
         let loggedOut = try evidence(app)
         XCTAssertNil(loggedOut.accountID); XCTAssertFalse(loggedOut.tokenStored); XCTAssertFalse(loggedOut.manualArea)
         XCTAssertGreaterThan(loggedOut.epoch, oldEpoch)
-        XCTAssertFalse(app.staticTexts["Owner 7 fresh detail"].exists)
+        XCTAssertFalse(app.staticTexts["Activity or route, Owner 7 fresh detail"].exists)
         // The real coordinator retains a 60-second cross-number SMS cooldown.
         // Use the supplied synthetic code for the second owner without resetting it.
         signIn(app, owner: 8, requestCode: false); orders(app, owner: 8)
         let switched = try evidence(app)
-        XCTAssertFalse(app.staticTexts["Owner 7 fresh detail"].exists)
+        XCTAssertFalse(app.staticTexts["Activity or route, Owner 7 fresh detail"].exists)
         assertIdentity(switched.ledger.filter { $0.accountID == 8 }, owner: 8, epoch: switched.epoch)
         XCTAssertEqual(switched.ledger.filter { $0.accountID == 8 && $0.route.hasPrefix("orders.") }.map(\.route), ["orders.list", "orders.detail"])
         app.terminate(); app.launch()

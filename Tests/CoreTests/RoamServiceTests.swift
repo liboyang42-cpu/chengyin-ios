@@ -132,3 +132,40 @@ final class RoamServiceTests: XCTestCase {
         }
     }
 }
+
+/// Exact real builder/parser round trip, including Swift's single-Character CRLF.
+final class ManualMapMultipartRoundTripTests: XCTestCase {
+    private let base = URL(string: "https://example.test/native")!
+    private let area = RoamSearchArea(coordinate: RoamCoordinate(latitude: 31.2, longitude: 121.5)!, label: "Manual")
+    private func request(radius: String = "2000.0", limit: String = "50") throws -> URLRequest {
+        try AuthRequestBuilder.makeFormRequest(url: base.appendingPathComponent("api/map/nearby"),
+            fields: ["latitude": "31.2", "longitude": "121.5", "radius": radius, "limit": limit],
+            token: "synthetic-7", boundary: "map-test")
+    }
+    func testBuilderMultipartPreservesEveryValueCharacterForBothReaderRadii() throws {
+        XCTAssertEqual("\r\n".count, 1)
+        for radius in ["1", "2000", "2000.0", "20000"] {
+            for limit in ["1", "50", "100"] {
+                XCTAssertEqual(ManualMapReadRoute(request: try request(radius: radius, limit: limit), baseURL: base, area: area), .nearby)
+            }
+        }
+    }
+    func testMalformedMultipartAndUnreviewedFieldsRemainRejected() throws {
+        let original = try request()
+        let body = try XCTUnwrap(String(data: try XCTUnwrap(original.httpBody), encoding: .utf8))
+        for invalid in [
+            body.replacingOccurrences(of: "\r\n", with: "\n"),
+            body.replacingOccurrences(of: "50\r\n", with: "5\r\n0\r\n"),
+            body.replacingOccurrences(of: "name=\"limit\"", with: "name=\"latitude\""),
+            body.replacingOccurrences(of: "name=\"limit\"", with: "name=\"status\""),
+            body.replacingOccurrences(of: "--map-test--\r\n", with: "--map-test--"),
+            body + "trailing"
+        ] {
+            var modified = original; modified.httpBody = Data(invalid.utf8)
+            XCTAssertNil(ManualMapReadRoute(request: modified, baseURL: base, area: area))
+        }
+        for radius in ["0", "20001", "2000.5", "02000", "NaN"] {
+            XCTAssertNil(ManualMapReadRoute(request: try request(radius: radius), baseURL: base, area: area))
+        }
+    }
+}
