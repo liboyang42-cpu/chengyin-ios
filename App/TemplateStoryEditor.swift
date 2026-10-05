@@ -41,7 +41,8 @@ import SwiftUI
             guard self.generation == stamp, self.canRead else { return "" }
             return self.beats.first(where: { $0.id == id })?[keyPath: path] ?? ""
         }, set: { value in
-            guard self.generation == stamp else { return }
+            guard self.generation == stamp, self.canEdit else { return }
+            self.model.mediaReferencesWillChange()
             self.apply { rows in
                 guard let index = rows.firstIndex(where: { $0.id == id }) else { return }
                 rows[index][keyPath: path] = value
@@ -54,7 +55,8 @@ import SwiftUI
             guard self.generation == stamp, self.canRead else { return "" }
             return self.beats.first(where: { $0.id == id })?.imgs.joined(separator: "\n") ?? ""
         }, set: { value in
-            guard self.generation == stamp else { return }
+            guard self.generation == stamp, self.canEdit else { return }
+            self.model.mediaReferencesWillChange()
             self.apply { rows in
                 guard let index = rows.firstIndex(where: { $0.id == id }) else { return }
                 rows[index].imgs = value.split(separator: "\n").map(String.init)
@@ -76,8 +78,10 @@ import SwiftUI
         guard next != beats else { return }
         do {
             var draft = model.draft; try draft.setStory(next)
-            model.draft = draft; model.changed()
+            model.mediaReferencesWillChange()
+            model.draft = draft
             beats = next; originalJSON = draft.storyJson; issueKey = draft.storyProjectionIssue
+            model.changed()
         } catch TemplateAuthoringStory.Issue.imageLimit { issueKey = "templateStory.imageLimit" }
         catch { issueKey = "templateStory.unsupported" }
     }

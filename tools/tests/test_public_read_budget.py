@@ -1,3 +1,4 @@
+from tools.tests.run109_amendment_budget_history import historical_ui_sources
 """Accepted public-read UI allowances and an exhaustive bounded planning recheck.
 
 These are explicit unmeasured estimates, never evidence of Apple execution.
@@ -8,6 +9,7 @@ import json
 from pathlib import Path
 import re
 import unittest
+from tools.tests.functional_batch_budget_history import historical_counts, historical_names
 from tools.tests.run108_runtime_budget_history import historical_profile, historical_costs, HISTORICAL_SHARD_COUNT
 from tools.tests.club_story_budget_history import before_club_story, before_club_story_costs, CLASSES
 
@@ -48,12 +50,15 @@ class PublicReadBudgetTests(unittest.TestCase):
                          | set(profile['planning_budget']['template_metadata_selectors_replan']['new_methods']))
         historical = {}
         method_count = 0
-        for path in sorted((ROOT / 'Tests/AppUITests').glob('*.swift')):
+        for path in historical_ui_sources(ROOT / 'Tests/AppUITests'):
             source = path.read_text()
             methods = re.findall(r'\bfunc\s+(test\w+)\s*\(', source)
             if not methods:
                 continue
             case = re.findall(r'\bclass\s+(\w+)\s*:\s*XCTestCase\b', source)[0]
+            methods = historical_names(case, methods)
+            if not methods:
+                continue
             if case in CLASSES:
                 continue
             methods = [case + '.' + method for method in methods if case + '.' + method not in EXPECTED and case + '.' + method not in later_methods]
@@ -92,7 +97,7 @@ class PublicReadBudgetTests(unittest.TestCase):
         self.assertEqual(template_controls['shard_count'], selectors['previous_shard_count'])
         self.assertEqual(selectors['shard_count'], current['previous_shard_count'])
         self.assertGreater(HISTORICAL_SHARD_COUNT, 16)
-        counts = SHARD.discover(ROOT / 'Tests/AppUITests')
+        counts = historical_counts(ROOT / 'Tests/AppUITests')
         costs = historical_costs(ROOT / 'Tests/AppUITests', ROOT / 'tools/ui_duration_weights.json')
         self.assertEqual(sum(counts.values()), 597 + len(EXPECTED) + discovery_feed['new_method_count'] + relation_locality['new_method_count'] + template_controls['new_method_count'] + selectors['new_method_count'] + current['new_method_count'])
         self.assertEqual(sum(counts.values()), current['method_count'])

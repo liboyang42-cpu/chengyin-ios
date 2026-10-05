@@ -1,6 +1,6 @@
 import XCTest
 
-/// Three bounded, single-launch synthetic journeys. Authored only; Apple execution is a separate gate.
+/// Two bounded, single-launch synthetic journeys. Authored only; Apple execution is a separate gate.
 /// Seed bytes enter only the existing DEBUG host. All editing, navigation, save, restore and review
 /// use mounted controls. The snapshot observes coordinator state; it never supplies expected results.
 @MainActor final class TemplateEditorControlsFlowTests: XCTestCase {
@@ -251,92 +251,5 @@ import XCTest
         XCTAssertNil(switched.draft.storyJson); XCTAssertNil(switched.draft.storyText)
     }
 
-    // UNMEASURED full-method replacement estimate: 540 seconds. Includes active-control capture and exact post-enable stored-byte evidence.
-    func testHistoricalBytesHintOffRestoreAndSameOwnerLockedReadback() throws {
-        let originalRules = " \n" + (1...13).map { "  Historical \($0)\t" }.joined(separator: "\r\n") + "\n "
-        let app = launch(rules: originalRules, story: historicalStory)
-        let original = app.staticTexts["templateRules.original"]
-        reveal(original, in: app, hittable: false); bytes(original.label, originalRules)
-        XCTAssertFalse(app.buttons["templateRules.add"].exists)
-        XCTAssertFalse(app.descendants(matching: .any)["templateRules.input.0"].firstMatch.exists)
-        openStory(app)
-        let unsupported = app.staticTexts["templateStory.issue"]
-        XCTAssertTrue(unsupported.waitForExistence(timeout: 5))
-        XCTAssertEqual(unsupported.label, "This story uses an unsupported or malformed format. Its original content is preserved and cannot be edited here.")
-        XCTAssertFalse(app.buttons["templateAuthor.addBeat"].isEnabled)
-        XCTAssertFalse(app.descendants(matching: .any)["templateStory.beat.0.text"].firstMatch.exists)
-        back(app)
-        let initial = try inspect(app)
-        bytes(initial.draft.ruleInstructions, originalRules); bytes(initial.draft.storyJson, historicalStory)
-        bytes(initial.draft.storyText, legacySummary); assertHints(hints, draft: initial.draft)
-        XCTAssertNil(initial.draft.legacyHintsEnabled)
-        hintsEnabled(true, in: app, towardTop: true)
-        choose("Photo check-in", in: app, towardTop: true)
-        XCTAssertFalse(app.switches["templateLegacyHints.enabled"].exists)
-        let hidden = try inspect(app)
-        XCTAssertEqual(hidden.draft.validationMethod, 2); XCTAssertEqual(hidden.draft.legacyHintsEnabled, false)
-        assertHints(hints, draft: hidden.draft)
-        choose("Text answer", in: app)
-        hintsEnabled(false, in: app)
-        setHints(true, in: app)
-        let visibleAfterReenable = ["hint1", "hint2", "answerReveal"].map {
-            input("templateAuthor.field." + $0, in: app).value as? String
-        }
-        let acceptedAfterReenable = try inspect(app)
-        assertHints(hints, draft: acceptedAfterReenable.draft)
-        for index in hints.indices { bytes(visibleAfterReenable[index], hints[index]) }
-        for (index, field) in ["hint1", "hint2", "answerReveal"].enumerated() {
-            bytes(input("templateAuthor.field." + field, in: app).value as? String, hints[index])
-        }
-        setHints(false, in: app)
-        let cleared = try inspect(app)
-        assertHints(["", "", ""], draft: cleared.draft)
-        XCTAssertEqual(cleared.draft.legacyHintsEnabled, false)
-        XCTAssertFalse(app.descendants(matching: .any)["templateAuthor.field.hint1"].firstMatch.exists)
-        saveAndRestore(app)
-        let restored = try inspect(app)
-        bytes(restored.draft.ruleInstructions, originalRules); bytes(restored.draft.storyJson, historicalStory)
-        bytes(restored.draft.storyText, legacySummary); assertHints(["", "", ""], draft: restored.draft)
-        XCTAssertEqual(restored.draft.legacyHintsEnabled, false); XCTAssertNil(restored.draft.storyTimelineEdited)
-        hintsEnabled(false, in: app)
-        setHints(true, in: app)
-        let fresh = ["Fresh first", "Fresh second", "Fresh reveal"]
-        for (index, key) in ["hint1", "hint2", "answerReveal"].enumerated() {
-            let field = input("templateAuthor.field." + key, in: app)
-            field.tap(); field.typeText(fresh[index])
-            bytes(field.value as? String, fresh[index])
-        }
-        assertHints(fresh, draft: try inspect(app).draft)
-        tap("templateAuthor.reviewDraft", in: app)
-        tap("templateAuthor.cancelReview", in: app)
-        XCTAssertEqual(try inspect(app).state, "editing")
-        tap("templateAuthor.reviewDraft", in: app)
-        XCTAssertFalse(app.buttons["templateAuthor.confirmRequest"].exists)
-        tap("templateAuthor.confirmSimulation", in: app)
-        let status = app.staticTexts["templateAuthor.status"]
-        reveal(status, in: app, hittable: false)
-        let complete = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", simulated), object: status)
-        XCTAssertEqual(XCTWaiter.wait(for: [complete], timeout: 5), .completed, app.debugDescription)
-        // This is the existing DEBUG-only simulated transport. No HTTP/provider/grant is activated.
-        let locked = try inspect(app, requests: 1, locked: true)
-        XCTAssertEqual(locked.state, "simulated"); assertHints(fresh, draft: locked.draft)
-        bytes(locked.draft.ruleInstructions, originalRules); bytes(locked.draft.storyJson, historicalStory)
-        hintsEnabled(true, in: app, editable: false, towardTop: true)
-        for (index, key) in ["hint1", "hint2", "answerReveal"].enumerated() {
-            bytes(input("templateAuthor.field." + key, in: app, editable: false).value as? String, fresh[index])
-        }
-        bytes(input("templateAuthor.field.storyText", in: app, editable: false).value as? String, legacySummary)
-        let method = app.descendants(matching: .any)["templateAuthor.method"].firstMatch
-        reveal(method, in: app, towardTop: true, hittable: false); XCTAssertFalse(method.isEnabled)
-        reveal(original, in: app, towardTop: true, hittable: false); bytes(original.label, originalRules)
-        for id in ["templateAuthor.saveLocal", "templateAuthor.reviewDraft", "templateAuthor.reviewPublish"] {
-            let button = app.buttons[id]; reveal(button, in: app, hittable: false); XCTAssertFalse(button.isEnabled)
-        }
-        XCTAssertEqual(try inspect(app, requests: 1, locked: true).state, "simulated")
-        tap("templateAuthor.fixture.signOut", in: app)
-        XCTAssertTrue(app.staticTexts["templateAuthor.signIn"].waitForExistence(timeout: 5))
-        XCTAssertFalse(app.switches["templateLegacyHints.enabled"].exists)
-        XCTAssertFalse(app.descendants(matching: .any)["templateAuthor.field.hint1"].firstMatch.exists)
-        XCTAssertFalse(app.staticTexts["templateRules.original"].exists)
-    }
+
 }

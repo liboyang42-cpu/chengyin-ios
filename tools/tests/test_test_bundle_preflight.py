@@ -91,9 +91,9 @@ class TestBundlePreflightTests(unittest.TestCase):
         ui = self.jobs['ui-tests']
         self.assertIn('--xctestrun "$UI_XCTESTRUN"', ui)
         self.assertEqual(self.workflow.count('name: test-products-${{ github.sha }}'), 3)
-        self.assertIn('shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]', ui)
+        self.assertIn('shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]', ui)
         self.assertIn('fail-fast: false', ui)
-        self.assertIn('python3 tools/run_ui_shard.py --shard ${{ matrix.shard }} --count 23', ui)
+        self.assertIn('python3 tools/run_ui_shard.py --shard ${{ matrix.shard }} --count 32', ui)
         self.assertIn('timeout-minutes: 37', ui)
         self.assertIn('--deadline-seconds 1800', ui)
         self.assertEqual(37 * 60 - 1800, 7 * 60)  # setup/export reserve stays seven minutes
@@ -105,7 +105,7 @@ class TestBundlePreflightTests(unittest.TestCase):
     def test_each_successful_ui_shard_emits_unique_exact_build_completion_last(self):
         ui = self.jobs['ui-tests']
         outputs = re.findall(r'^      shard_(\d+): \$\{\{ steps.completion.outputs.shard_(\d+) \}\}$', ui, re.M)
-        self.assertEqual(outputs, [(str(index), str(index)) for index in range(23)])
+        self.assertEqual(outputs, [(str(index), str(index)) for index in range(32)])
         completion = ui.split('      - name: Record successful exact-build UI shard completion\n', 1)[1]
         self.assertIn('id: completion', completion)
         self.assertIn('ci_gates.py complete-ui --shard ${{ matrix.shard }}', completion)

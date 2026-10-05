@@ -11,6 +11,7 @@ import SwiftUI
     @State private var generation = UUID()
     @State private var replaceExample = false
     @State private var validationTask: Task<Void, Never>?
+    @FocusState private var sourceFocused: Bool
     private var raw: String { model.draft.preferenceJson ?? "" }
     private var editable: Bool { model.canEdit && model.draft.id == nil && model.draft.validationMethod == .preference }
     private var currentReport: TemplatePreferenceDraftCheck? {
@@ -31,9 +32,19 @@ import SwiftUI
                     model.changed()
                 }))
                     .frame(minHeight: 220).font(.system(.body, design: .monospaced))
+                    .focused($sourceFocused)
                     .textInputAutocapitalization(.never).autocorrectionDisabled()
                     .accessibilityLabel("templateAuthor.preference.source")
                     .accessibilityIdentifier("templateAuthor.preference.source")
+                    .toolbar {
+                        ToolbarItemGroup(placement: .keyboard) {
+                            if sourceFocused {
+                                Spacer()
+                                Button("action.done") { sourceFocused = false }
+                                    .accessibilityIdentifier("templateAuthor.preference.keyboardDone")
+                            }
+                        }
+                    }
                 Button("templateAuthor.preference.example") { replaceExample = true }
                     .accessibilityIdentifier("templateAuthor.preference.example")
                 Button("templateAuthor.preference.check") { validate() }
@@ -63,7 +74,7 @@ import SwiftUI
         .onChange(of: editable) { _, _ in invalidate(); replaceExample = false }
         .onChange(of: model.coordinator.identity) { _, _ in invalidate(); replaceExample = false }
         .onChange(of: model.coordinator.session) { _, _ in invalidate(); replaceExample = false }
-        .onDisappear { invalidate(); replaceExample = false }
+        .onDisappear { sourceFocused = false; invalidate(); replaceExample = false }
         .confirmationDialog("templateAuthor.preference.replaceQuestion", isPresented: $replaceExample, titleVisibility: .visible) {
             Button("templateAuthor.preference.replace", role: .destructive) {
                 guard editable else { return }

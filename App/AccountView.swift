@@ -62,6 +62,7 @@ struct AccountView: View {
                         .accessibilityIdentifier("account.teams")
                 }
                 Section {
+                    WorkshopOwnedAccountLink(browser: session.workshopOwnedBrowser)
                     OwnerDraftAccountLink(browser: session.ownerDraftBrowser)
                     NavigationLink {
                         CreatorContentProjectsView(reader:session.creatorContentReader,onOpen:{ destination in

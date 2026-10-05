@@ -1,3 +1,4 @@
+from tools.tests.run109_amendment_budget_history import historical_ui_sources
 """Declared, unmeasured allowances preserve history and enforce exact bounded planning."""
 from decimal import Decimal
 import hashlib
@@ -6,6 +7,7 @@ import json
 from pathlib import Path
 import re
 import unittest
+from tools.tests.functional_batch_budget_history import historical_counts, historical_names
 from tools.tests.run108_runtime_budget_history import historical_profile, historical_costs, HISTORICAL_SHARD_COUNT
 from tools.tests.club_story_budget_history import before_club_story, before_club_story_costs, CLASSES
 
@@ -23,7 +25,7 @@ def inventory(profile, excluding=()):
                  | set(profile['planning_budget']['club_story_replan']['new_methods']))
     profile = before_club_story(profile)
     costs = {}; counts = {}; seen = set()
-    for path in sorted((ROOT / 'Tests/AppUITests').glob('*.swift')):
+    for path in historical_ui_sources(ROOT / 'Tests/AppUITests'):
         source = path.read_text()
         names = re.findall(r'\bfunc\s+(test\w+)\s*\(', source)
         if not names:
@@ -32,6 +34,9 @@ def inventory(profile, excluding=()):
         if len(classes) != 1 or len(names) != len(set(names)):
             raise AssertionError('Ambiguous UI inventory: ' + str(path))
         case = classes[0]
+        names = historical_names(case, names)
+        if not names:
+            continue
         if case in seen:
             raise AssertionError('Duplicate UI class: ' + case)
         seen.add(case)

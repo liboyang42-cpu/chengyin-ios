@@ -31,7 +31,7 @@ import SwiftUI
             else if sessionKey == nil { ContentUnavailableView("couponManagement.signIn", systemImage: "person.crop.circle") }
             else {
                 List {
-                    CouponManagementNotice(model: model)
+                    CouponManagementNotice(model: model, surface: .list)
                     if model.core.canRecoverCommands {
                         Button("couponManagement.checkPendingResults") { model.run { await model.core.recoverPendingCommands() } }
                             .disabled(model.working).accessibilityIdentifier("couponManagement.recover")
@@ -72,8 +72,10 @@ import SwiftUI
         .onChange(of: isSourceVisible) { _, visible in if !visible { creating = false; model.core.leave(); model.revision += 1 } }
     }
 }
+private enum CouponManagementNoticeSurface: String { case list, detail, editor }
 @MainActor private struct CouponManagementNotice: View {
     @ObservedObject var model: CouponManagementScreenModel
+    let surface: CouponManagementNoticeSurface
     var body: some View {
         Section {
             if !model.core.canSubmit { Text("couponManagement.dormant").font(.footnote) }
@@ -82,13 +84,13 @@ import SwiftUI
                 Text("couponManagement.unavailable").font(.footnote)
             }
             if model.core.recoveryFinished { Text("couponManagement.recoveryFinished") }
-            if let issue = model.core.issue { Text(LocalizedStringKey(issue.messageKey)).accessibilityIdentifier("couponManagement.issue") }
+            if let issue = model.core.issue { Text(LocalizedStringKey(issue.messageKey)).accessibilityIdentifier("couponManagement.notice.\(surface.rawValue).issue") }
             if let issue = model.core.issue, case .server(let message) = issue { Text(message) }
-            if let message = model.core.serverMessage { Text(message).accessibilityIdentifier("couponManagement.serverMessage") }
+            if let message = model.core.serverMessage { Text(message).accessibilityIdentifier("couponManagement.notice.\(surface.rawValue).serverMessage") }
             if model.core.simulated { Text("couponManagement.simulated") }
             if model.core.acknowledged {
                 Text(LocalizedStringKey(model.core.verifiedRecord == nil ? "couponManagement.readbackPending" : "couponManagement.readbackVerified"))
-                    .accessibilityIdentifier("couponManagement.readback")
+                    .accessibilityIdentifier("couponManagement.notice.\(surface.rawValue).readback")
             }
         }
     }
@@ -99,7 +101,7 @@ import SwiftUI
     let id: CouponDefinitionID
     var body: some View {
         List {
-            CouponManagementNotice(model: model)
+            CouponManagementNotice(model: model, surface: .detail)
             if let row = model.core.rows.first(where: { $0.id == id }) {
                 Section {
                     Text(row.name ?? appLocalized("couponManagement.coupon", locale: locale)).font(.title2)
@@ -153,7 +155,7 @@ import SwiftUI
     }
     var body: some View {
         Form {
-            CouponManagementNotice(model: model)
+            CouponManagementNotice(model: model, surface: .editor)
             Section("couponManagement.details") {
                 TextField("couponManagement.name", text: binding(\.name)).accessibilityIdentifier("couponManagement.name")
                 TextField("couponManagement.description", text: binding(\.description), axis: .vertical).lineLimit(2...6)

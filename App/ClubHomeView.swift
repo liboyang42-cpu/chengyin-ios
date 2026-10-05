@@ -82,10 +82,11 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
             case .unavailable:
                 VStack(alignment: .leading, spacing: 6) {
                     Label("club.locality.unavailable", systemImage: "exclamationmark.triangle")
+                        .accessibilityIdentifier("club.home.locality.unavailable")
                     Text("club.locality.unavailableHint").font(.footnote).foregroundStyle(.secondary)
                     Button("action.retry") { Task { await loadLocality() } }
                         .accessibilityIdentifier("club.home.locality.retry")
-                }.accessibilityIdentifier("club.home.locality.unavailable")
+                }
             case .ready:
                 Text("club.locality.ready").font(.footnote).foregroundStyle(.secondary)
                     .accessibilityIdentifier("club.home.locality.ready")

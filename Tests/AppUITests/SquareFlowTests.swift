@@ -96,9 +96,41 @@ final class SquareFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Your session could not be verified. Sign in again to continue"].waitForExistence(timeout: 10))
         XCTAssertFalse(app.buttons["square.row.701"].exists)
     }
+    // A one-row fixture List can rest exactly against the navigation bar and
+    // cannot scroll to create the shared helper's extra four-point clearance.
+    // Validate its entire actual native frame; do not accept a clipped row.
+    private func tapRelatedFixturePost(file: StaticString = #filePath, line: UInt = #line) {
+        let query = app.buttons.matching(identifier: "fixture.relatedPost")
+        let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            guard query.count == 1, self.app.navigationBars.count == 1 else { return false }
+            let button = query.element(boundBy: 0), frame = button.frame
+            let bar = self.app.navigationBars.element(boundBy: 0)
+            return button.exists && button.isEnabled && button.isHittable && !frame.isEmpty &&
+                self.app.frame.contains(frame) && frame.minY >= bar.frame.maxY &&
+                frame.maxY <= self.app.frame.maxY - 40 &&
+                !self.app.keyboards.allElementsBoundByIndex.contains { $0.frame.intersects(frame) }
+        }, object: app)
+        guard XCTWaiter.wait(for: [ready], timeout: 5) == .completed else {
+            XCTFail("Expected one fully visible related-post fixture row: " + app.debugDescription, file: file, line: line); return
+        }
+        query.element(boundBy: 0).tap()
+    }
+    private func tapRelatedFixtureAccountSwitch(file: StaticString = #filePath, line: UInt = #line) {
+        let query = app.navigationBars.buttons.matching(identifier: "fixture.relatedTopic.switchAccount")
+        let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            guard query.count == 1, self.app.navigationBars.count == 1 else { return false }
+            let button = query.element(boundBy: 0), frame = button.frame
+            return button.exists && button.isEnabled && button.isHittable && !frame.isEmpty &&
+                self.app.frame.contains(frame) && self.app.navigationBars.element(boundBy: 0).frame.contains(frame)
+        }, object: app)
+        guard XCTWaiter.wait(for: [ready], timeout: 5) == .completed else {
+            XCTFail("Expected one enabled account control in the native navigation bar: " + app.debugDescription, file: file, line: line); return
+        }
+        query.element(boundBy: 0).tap()
+    }
     func testRelatedTopicOpensExactLegacyReadAndReopensAfterBack() {
         launch("relatedTopic")
-        reveal(app.buttons["fixture.relatedPost"])
+        tapRelatedFixturePost()
         reveal(app.buttons["square.openRelatedTopic"])
         XCTAssertTrue(app.staticTexts["Synthetic linked topic 31"].waitForExistence(timeout: 10))
         app.navigationBars.buttons.firstMatch.tap()
@@ -107,8 +139,8 @@ final class SquareFlowTests: XCTestCase {
         XCTAssertTrue(app.descendants(matching: .any)["topic.detail.content"].firstMatch.waitForExistence(timeout: 5))
         app.navigationBars.buttons.firstMatch.tap()
         app.navigationBars["Post details"].buttons.firstMatch.tap()
-        reveal(app.buttons["fixture.relatedTopic.switchAccount"])
-        reveal(app.buttons["fixture.relatedPost"])
+        tapRelatedFixtureAccountSwitch()
+        tapRelatedFixturePost()
         XCTAssertTrue(app.navigationBars["Post details"].waitForExistence(timeout: 5))
     }
     func testCommunityTopicReferenceAndMissingLegacyAssociationRemainSeparate() {
@@ -117,13 +149,13 @@ final class SquareFlowTests: XCTestCase {
         reveal(app.buttons["square.openRelatedTopic"])
         XCTAssertTrue(app.staticTexts["Synthetic linked topic 32"].waitForExistence(timeout: 10))
         app.terminate(); launch("relatedMissing")
-        reveal(app.buttons["fixture.relatedPost"])
+        tapRelatedFixturePost()
         XCTAssertTrue(app.descendants(matching: .any)["square.detailPost"].firstMatch.waitForExistence(timeout: 10))
         XCTAssertFalse(app.buttons["square.openRelatedTopic"].exists)
     }
     func testUnavailableRelatedTopicKeepsPostAccessibleAfterBack() {
         launch("relatedUnavailable", chinese: true)
-        reveal(app.buttons["fixture.relatedPost"])
+        tapRelatedFixturePost()
         reveal(app.buttons["square.openRelatedTopic"])
         XCTAssertTrue(app.staticTexts["此路线暂不可查看"].waitForExistence(timeout: 10))
         let retry = app.buttons["重试"]

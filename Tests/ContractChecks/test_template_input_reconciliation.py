@@ -28,7 +28,7 @@ class TemplateInputReconciliationContracts(unittest.TestCase):
         self.assertIn('canReadLegacyHints && coordinator.session == session', view)
 
     def test_ui_captures_active_value_before_probe_and_keeps_exact_assertions(self):
-        source = (ROOT / 'Tests/AppUITests/TemplateEditorControlsFlowTests.swift').read_text()
+        source = '\n'.join((ROOT / ('Tests/AppUITests/' + name + '.swift')).read_text() for name in ['TemplateEditorControlsFlowTests', 'TemplateHistoricalHintFlowTests'])
         self.assertLess(source.index('let visibleAfterRejection ='), source.index('let acceptedAfterRejection = try inspect(app)'))
         self.assertLess(source.index('let visibleAfterReenable ='), source.index('let acceptedAfterReenable = try inspect(app)'))
         for token in ['bytes(visibleAfterRejection, sixty)', 'assertHints(hints, draft: acceptedAfterReenable.draft)',

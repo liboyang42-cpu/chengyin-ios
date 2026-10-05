@@ -53,15 +53,18 @@ public struct MerchantTemplateAssistEdits: Equatable {
     private var versions: [MerchantTemplateAssistField: UInt64] = [:]
     public init() {}
     public mutating func record(from old: MerchantNodeTemplate, to new: MerchantNodeTemplate) {
-        for field in MerchantTemplateAssistField.allCases where field.value(in: old) != field.value(in: new) {
+        for field in MerchantTemplateAssistField.allCases where !field.value(in: old).utf8.elementsEqual(field.value(in: new).utf8) {
             versions[field, default: 0] += 1
         }
     }
     public func unchanged(_ field: MerchantTemplateAssistField, since captured: Self) -> Bool { versions[field, default: 0] == captured.versions[field, default: 0] }
 }
 public struct MerchantTemplateAssistResult: Equatable {
+    /// Full decoded response, including wrapper and unknown fields. Not original transport bytes.
+    public let response: ProjectEditJSON
     public let raw: [String: ProjectEditJSON]
     public init(_ response: ProjectEditJSON) throws {
+        self.response = response
         guard let object = response.object else { throw MerchantTemplateAssistFailure.malformed }
         if let error = object["parseError"], error != .null { throw MerchantTemplateAssistFailure.malformed }
         // Match source: template first, node second, then the root object.

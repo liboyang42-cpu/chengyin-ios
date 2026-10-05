@@ -6,7 +6,7 @@ import SwiftUI
 enum PlayFixtureScenario: String {
     case success, choice, empty, error, expired, passRequired, registrationRequired
     case locked, terminal, unavailable, unknown, branch, media, advanced, loading
-    case readbackError, uncertainAnswer, unconfigured
+    case readbackError, uncertainAnswer, unconfigured, freeExploration
     static var selected: Self {
         let args = ProcessInfo.processInfo.arguments
         guard let index = args.firstIndex(of: "--uitesting-play-scenario"), args.indices.contains(index + 1) else { return .success }
@@ -38,6 +38,9 @@ private final class PlayFixtureState {
             return try envelope(["code": 503, "msg": "Synthetic service failure"], status: 503)
         }
         if scenario == .passRequired { return try envelope(["code": "402", "msg": "Synthetic missing or expired pass"]) }
+        if scenario == .freeExploration, request.url?.path.hasSuffix("/nodes") == true {
+            return (PlayExperienceSyntheticFixtures.envelope(PlayExperienceSyntheticFixtures.mode2), 200)
+        }
         if request.url?.path.hasSuffix("/answer") == true {
             submitted = true
             if scenario == .uncertainAnswer { throw URLError(.timedOut) }

@@ -76,6 +76,8 @@ final class MerchantOperationsViewModel: ObservableObject {
     func edit(_ value: MerchantOperationsDraft) {
         galleryBatch.cancel(); coordinator.edit(value); imageOwner?.draftChanged(coordinator.draft); revision += 1
     }
+    /// The assist flow already committed one guarded field; only refresh UI here.
+    func templateAssistChanged() { revision += 1 }
     var galleryBatchBinding: MerchantGalleryBatchBinding {
         .init(draft: { [weak self] in self?.coordinator.draft },
               accessFence: { [weak self] in self?.imageOwner?.galleryBatchAccessFence },

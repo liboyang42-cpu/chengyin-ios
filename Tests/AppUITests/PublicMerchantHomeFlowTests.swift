@@ -2,7 +2,27 @@ import XCTest
 
 /// Authored Apple-host tests. Requires DEBUG --public-merchant-home-fixture <scenario> host hook.
 final class PublicMerchantHomeFlowTests: XCTestCase {
+    private var runningApp: XCUIApplication?
     override func setUpWithError() throws { continueAfterFailure = false }
+    override func tearDownWithError() throws {
+        defer { runningApp = nil }
+        guard let app = runningApp, (testRun?.totalFailureCount ?? 0) > 0,
+              app.launchArguments.contains("--public-merchant-home-fixture") else { return }
+        attachFailureScreenshot(self, app: app)
+        // One snapshot, synthetic allowlist only. Do not inspect disappearing
+        // target properties or print arbitrary field values/URLs/credentials.
+        let knownLabels = ["Fixture shop", "Fixture review", "Synthetic activity 601", "Synthetic activity 602",
+                           "Public reviews", "Merchant profile"]
+        let snapshot = String(app.debugDescription.prefix(65_536))
+        let lines = snapshot.split(separator: "\n").filter { line in
+            line.contains("identifier: 'merchant.publicHome.") || line.contains("identifier: 'merchant.featured.fixture.") ||
+                knownLabels.contains { line.contains("label: '\($0)'") }
+        }.prefix(48).map { String($0.prefix(1024)) }
+        let projection = lines.joined(separator: "\n")
+        print("PUBLIC_MERCHANT_SYNTHETIC_FAILURE " + projection)
+        let evidence = XCTAttachment(string: projection)
+        evidence.name = "Public merchant synthetic failure projection"; evidence.lifetime = .keepAlways; add(evidence)
+    }
     private func reveal(_ element: XCUIElement, in app: XCUIApplication) {
         for _ in 0..<8 { if element.exists && element.isHittable { break }; app.swipeUp() }
         XCTAssertTrue(element.exists, app.debugDescription)
@@ -14,7 +34,7 @@ final class PublicMerchantHomeFlowTests: XCTestCase {
                                 "-AppleLocale", language == "en" ? "en_US" : "zh_CN",
                                 "--public-merchant-home-fixture", scenario]
         if largeText { app.launchArguments.append("--uitesting-large-text") }
-        app.launch(); return app
+        runningApp = app; app.launch(); return app
     }
     func testInvalidLinkHasNoRetry() {
         let app = launch("invalid")
@@ -51,6 +71,8 @@ final class PublicMerchantHomeFlowTests: XCTestCase {
         let reviews = app.buttons["merchant.publicHome.reviews"]
         XCTAssertTrue(reviews.waitForExistence(timeout: 5)); reviews.tap()
         let report = app.buttons["merchant.publicHome.report.9"]
+        // Summary, eligibility and filter rows precede the lazy review content.
+        XCTAssertTrue(revealFixtureElement(app.staticTexts["Fixture review"], in: app), app.debugDescription)
         XCTAssertTrue(app.staticTexts["Fixture review"].waitForExistence(timeout: 5), app.debugDescription)
         reveal(report, in: app); report.tap()
         let text = app.textViews["merchant.publicHome.editorText"]

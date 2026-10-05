@@ -14,6 +14,20 @@ import XCTest
     }
     func tap(_ id: String) {
         let element = app.buttons[id]
+        if id == "auth.channels.phoneSignIn" {
+            guard revealFixtureElement(element, in: app) else {
+                XCTFail(app.debugDescription); return
+            }
+            let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+                element.exists && element.isEnabled && element.isHittable
+            }, object: element)
+            guard XCTWaiter.wait(for: [ready], timeout: 5) == .completed else {
+                XCTFail(app.debugDescription); return
+            }
+            // Use the validated native button frame once; never retry an unknown sign-in.
+            element.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            return
+        }
         if element.exists && element.isHittable && (app.navigationBars.buttons[id].exists || app.menus.buttons[id].exists || id == "Gift coupon" || id == "礼品券") {
             element.tap(); return
         }
@@ -22,8 +36,11 @@ import XCTest
     func openCoupons() {
         tap("welcome.player"); tap("auth.otherChannels")
         let phone = app.textFields["auth.channels.phone"]; XCTAssertTrue(phone.waitForExistence(timeout: 5)); phone.tap(); phone.typeText("10000000000")
-        let code = app.textFields["auth.channels.code"]; code.tap(); code.typeText("123456"); tap("auth.channels.phoneSignIn")
-        XCTAssertTrue(app.tabBars.buttons[chinese ? "账号" : "Account"].waitForExistence(timeout: 8)); app.tabBars.buttons[chinese ? "账号" : "Account"].tap()
+        let code = app.textFields["auth.channels.code"]; code.tap(); code.typeText("123456")
+        XCTAssertEqual(phone.value as? String, "10000000000")
+        XCTAssertEqual(code.value as? String, "123456")
+        tap("auth.channels.phoneSignIn")
+        XCTAssertTrue(app.tabBars.buttons[chinese ? "账号" : "Account"].waitForExistence(timeout: 8), app.debugDescription); app.tabBars.buttons[chinese ? "账号" : "Account"].tap()
         tap("account.merchant"); tap("merchant.content.open"); tap("merchant.content.entry.recruiting"); tap("couponManagement.marketing.entry")
         XCTAssertTrue(app.buttons["couponManagement.definition.710"].waitForExistence(timeout: 5))
     }

@@ -140,8 +140,13 @@ import SwiftUI
 @MainActor struct TemplateAuthoringStoryView: View {
     @ObservedObject var model: TemplateAuthoringModel
     @StateObject private var editor: TemplateStoryEditor
+    @StateObject private var media: TemplateMediaReviewController
     init(model: TemplateAuthoringModel) {
-        self.model = model; _editor = StateObject(wrappedValue: .init(model: model))
+        self.model = model
+        let value = TemplateStoryEditor(model: model)
+        _editor = StateObject(wrappedValue: value)
+        _media = StateObject(wrappedValue: .init(model: model, story: value,
+            imageSelectionApproved: model.mediaImageSelectionApproved, fixtureMode: model.mediaFixtureMode))
     }
     var body: some View {
         Form {
@@ -155,6 +160,7 @@ import SwiftUI
                     LabeledContent("templateStory.imageCount", value: "\(beat.imgs.count) / \(TemplateAuthoringStory.maximumImagesPerBeat)")
                         .accessibilityIdentifier("templateStory.beat.\(index).imageCount")
                     if beat.imgs.count > TemplateAuthoringStory.maximumImagesPerBeat { Text("templateStory.historicalImages").font(.caption).foregroundStyle(.secondary) }
+                    TemplateMediaReviewFields(controller: media, beatID: beat.id, accessibilityPrefix: "templateMedia.open.beat.\(index)")
                 }
             }.onDelete { editor.remove($0) }.onMove { editor.move($0, to: $1) }
                 .deleteDisabled(editor.beats.count <= 1)
@@ -162,7 +168,9 @@ import SwiftUI
         }.disabled(!editor.canEdit)
             .navigationTitle("templateAuthor.storyTimeline")
             .toolbar { EditButton().disabled(!editor.canEdit) }
-            .onAppear { editor.load() }
+            .onAppear { editor.load(); media.reload() }
+            .onDisappear { media.retire() }
+            .modifier(TemplateMediaReviewPresentation(controller: media))
     }
 }
 

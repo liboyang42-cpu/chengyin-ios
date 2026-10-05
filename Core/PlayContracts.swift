@@ -25,6 +25,8 @@ public struct PlayNode: Decodable, Equatable, Identifiable {
     public let done: Bool?
     public let arrived: Bool?
     public let selfReported: Bool?
+    public let hasGame: Bool?
+    public let gameDone: Bool?
     public let locked: Bool?
     public let validationMethod: Int?
     public let needScan: Bool?
@@ -58,7 +60,7 @@ public struct PlayNode: Decodable, Equatable, Identifiable {
     public let advancedConfig: PlayJSONValue?
 
     private enum CodingKeys: String, CodingKey {
-        case nodeId, name, npc, address, latitude, longitude, sortId, done, arrived, selfReported, locked, validationMethod
+        case nodeId, name, npc, address, latitude, longitude, sortId, done, arrived, selfReported, hasGame, gameDone, locked, validationMethod
         case needScan, needAnswer, needGps, question, questionImg, questionAudio, options, description
         case hookText, storyText, gameTitle, ruleInstructions, requiredMaterials, duration, difficulty
         case players, photoRequireDesc, businessTime, openStatus, routeNodeState, lockReason
@@ -76,6 +78,7 @@ public struct PlayNode: Decodable, Equatable, Identifiable {
         sortID = try c.playInt(.sortId)
         done = try c.playBool(.done); arrived = try c.playBool(.arrived)
         selfReported = try c.playBool(.selfReported); locked = try c.playBool(.locked)
+        hasGame = try c.playBool(.hasGame); gameDone = try c.playBool(.gameDone)
         validationMethod = try c.playInt(.validationMethod)
         needScan = try c.playBool(.needScan); needAnswer = try c.playBool(.needAnswer); needGPS = try c.playBool(.needGps)
         question = try c.decodeIfPresent(String.self, forKey: .question)

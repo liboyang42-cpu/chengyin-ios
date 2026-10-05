@@ -1,3 +1,5 @@
+from tools.tests.run109_amendment_budget_history import historical_ui_source
+from tools.tests.run109_amendment_budget_history import historical_ui_sources
 """Current exhaustive planning and exact historical evidence for runtime repairs."""
 from copy import deepcopy
 from decimal import Decimal
@@ -6,6 +8,7 @@ import json
 from pathlib import Path
 import re
 import unittest
+from tools.tests.functional_batch_budget_history import before_functional_batch, historical_names, published_runtime_costs, HISTORICAL_SHARD_COUNT
 from tools import run_ui_shard as shard
 from tools.tests.run108_runtime_budget_history import historical_profile, BASELINE_SHA256
 
@@ -22,7 +25,7 @@ EXPECTED = {
 
 class RuntimeRepairBudgetTests(unittest.TestCase):
     def setUp(self):
-        self.profile = json.loads((ROOT / 'tools/ui_duration_weights.json').read_text())
+        self.profile = before_functional_batch(json.loads((ROOT / 'tools/ui_duration_weights.json').read_text()))
         self.plan = self.profile['planning_budget']['run108_runtime_replan']
 
     def test_six_full_method_replacements_are_unmeasured_and_bound_to_current_bytes(self):
@@ -36,7 +39,7 @@ class RuntimeRepairBudgetTests(unittest.TestCase):
             self.assertNotIn(method, self.profile['method_seconds'])
             self.assertEqual(self.profile['estimated_method_seconds'][method], record['seconds'])
             case, name = method.split('.')
-            path = ROOT / 'Tests/AppUITests' / (case + '.swift')
+            path = historical_ui_source(ROOT / 'Tests/AppUITests', case)
             source = path.read_text()
             start = source.index('    func ' + name + '(')
             end = source.index('\n    }', start) + len('\n    }')
@@ -61,11 +64,14 @@ class RuntimeRepairBudgetTests(unittest.TestCase):
     def test_complete_source_inventory_fits_once_with_unchanged_deadline_and_reserve(self):
         profile = self.profile
         costs = {}; ids = []
-        for path in sorted((ROOT / 'Tests/AppUITests').glob('*.swift')):
+        for path in historical_ui_sources(ROOT / 'Tests/AppUITests'):
             source = path.read_text(); methods = re.findall(r'\bfunc\s+(test\w+)\s*\(', source)
             if not methods:
                 continue
             case = re.findall(r'\bclass\s+(\w+)\s*:\s*XCTestCase\b', source)[0]
+            methods = historical_names(case, methods)
+            if not methods:
+                continue
             names = [case + '.' + method for method in methods]; ids.extend(names)
             costs[case] = sum(Decimal(str(profile['method_seconds'].get(method,
                 profile['estimated_method_seconds'].get(method, profile['unobserved_method_seconds'])))) for method in names)
@@ -77,7 +83,7 @@ class RuntimeRepairBudgetTests(unittest.TestCase):
         self.assertEqual((profile['planning_budget']['deadline_seconds'], profile['planning_budget']['startup_reserve_seconds'], profile['unobserved_method_seconds']), (1800, 300, 60))
         self.assertGreater(sum(costs.values()), 22 * 1500)
         groups = shard.partition(costs, 23)
-        self.assertEqual(groups, shard.partition(shard.measured_weights(ROOT / 'Tests/AppUITests', ROOT / 'tools/ui_duration_weights.json'), 23))
+        self.assertEqual(groups, shard.partition(published_runtime_costs(ROOT / 'Tests/AppUITests', ROOT / 'tools/ui_duration_weights.json'), 23))
         flat = [case for group in groups for case in group]
         self.assertEqual(len(flat), len(set(flat)))
         self.assertEqual(set(flat), set(costs))
@@ -85,6 +91,6 @@ class RuntimeRepairBudgetTests(unittest.TestCase):
         self.assertEqual(peak, Decimal('1794.380'))
         self.assertEqual(Decimal(str(self.plan['maximum_projected_seconds_with_reserve'])), peak)
         self.assertEqual(1800 - peak, Decimal(str(self.plan['forecast_headroom_seconds'])))
-        self.assertEqual(shard.DEFAULT_SHARD_COUNT, self.plan['shard_count'])
+        self.assertEqual(HISTORICAL_SHARD_COUNT, self.plan['shard_count'])
         self.assertEqual(self.plan['new_method_count'], 0)
         self.assertTrue(self.plan['assertion_target_only_migration'])

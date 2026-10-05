@@ -28,6 +28,22 @@ import XCTest
         XCTAssertTrue(account.waitForExistence(timeout: 10)); account.tap()
         tap("rewards.open")
     }
+    /// Full-method conservative estimate: 480 seconds, unmeasured after source reconstruction.
+    func testDetailDisclosesFrozenTermsExactMapOriginAndUnavailableClaimFacts() {
+        launch(); tap("rewards.row.example-0")
+        XCTAssertTrue(revealFixtureElement(app.staticTexts["rewards.read.frozenTerms"], in: app, requiresHittable: false))
+        XCTAssertTrue(revealFixtureElement(app.staticTexts["rewards.read.sourceHint"], in: app, requiresHittable: false))
+        XCTAssertEqual(app.staticTexts["rewards.read.contextId.value"].label, "example-map")
+        XCTAssertEqual(app.staticTexts["rewards.read.instanceId.value"].label, "example-season")
+        XCTAssertTrue(revealFixtureElement(app.staticTexts["rewards.read.qualificationHint"], in: app, requiresHittable: false))
+        for id in ["rewards.read.eligibility.value", "rewards.read.claimProgress.value", "rewards.read.allocation.value"] {
+            let query = app.staticTexts.matching(identifier: id)
+            XCTAssertEqual(query.count, 1)
+            XCTAssertEqual(query.element.label, "Not provided by this read contract")
+        }
+        XCTAssertFalse(app.buttons["Claim reward"].exists)
+        attachFixtureScreenshot(self, app: app, name: "Synthetic frozen reward terms and unavailable claim facts")
+    }
     func testNormalAccountRewardDetailCloseReopenAndBack() {
         launch(); tap("rewards.row.example-0"); tap("rewards.present")
         XCTAssertTrue(app.descendants(matching: .any)["rewards.presentation"].firstMatch.waitForExistence(timeout: 5))

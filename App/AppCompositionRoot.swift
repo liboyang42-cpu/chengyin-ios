@@ -87,6 +87,7 @@ extension KeychainTokenStore: AppTokenStorage {}
     let walletHistoryReadApproval: @MainActor (RuntimeDependencyContext) -> WalletHistoryReadApproval?
     let cityPlayerReadApproval: @MainActor (RuntimeDependencyContext) -> CityPlayerReadApproval?
     let teamReadApproval: @MainActor (RuntimeDependencyContext) -> TeamReadApproval?
+    let workshopOwnedReadApproval: @MainActor (RuntimeDependencyContext) -> WorkshopOwnedReadApproval?
     let ownerDraftReadApproval: @MainActor (RuntimeDependencyContext) -> OwnerDraftReadApproval?
     let couponLocks: @MainActor () -> any CouponManagementLocking
     let couponReadApproval: @MainActor (RuntimeDependencyContext) -> CouponManagementReadApproval?
@@ -103,6 +104,7 @@ extension KeychainTokenStore: AppTokenStorage {}
          walletHistoryReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> WalletHistoryReadApproval? = { _ in nil },
          cityPlayerReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> CityPlayerReadApproval? = { _ in nil },
          teamReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> TeamReadApproval? = { _ in nil },
+         workshopOwnedReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> WorkshopOwnedReadApproval? = { _ in nil },
          ownerDraftReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> OwnerDraftReadApproval? = { _ in nil },
          manualMapReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> ManualMapReadApproval? = { _ in nil },
          ownedOrderReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> OwnedOrderReadApproval? = { _ in nil }) {
@@ -115,6 +117,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         self.walletHistoryReadApproval = walletHistoryReadApproval
         self.cityPlayerReadApproval = cityPlayerReadApproval
         self.teamReadApproval = teamReadApproval
+        self.workshopOwnedReadApproval = workshopOwnedReadApproval
         self.ownerDraftReadApproval = ownerDraftReadApproval
         self.manualMapReadApproval = manualMapReadApproval
         self.ownedOrderReadApproval = ownedOrderReadApproval
@@ -141,7 +144,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         return .available
     }
     func transport() -> CompositionHTTPTransport {
-        CompositionHTTPTransport(deployment: reviewed, underlying: makeTransport(), couponReadApproval: couponReadApproval, couponWriteApproval: couponWriteApproval, templateShelfReadApproval: templateShelfReadApproval, messagingHistoryReadApproval: messagingHistoryReadApproval, walletHistoryReadApproval: walletHistoryReadApproval, cityPlayerReadApproval: cityPlayerReadApproval, teamReadApproval: teamReadApproval, ownerDraftReadApproval: ownerDraftReadApproval, manualMapReadApproval: manualMapReadApproval, ownedOrderReadApproval: ownedOrderReadApproval)
+        CompositionHTTPTransport(deployment: reviewed, underlying: makeTransport(), couponReadApproval: couponReadApproval, couponWriteApproval: couponWriteApproval, templateShelfReadApproval: templateShelfReadApproval, messagingHistoryReadApproval: messagingHistoryReadApproval, walletHistoryReadApproval: walletHistoryReadApproval, cityPlayerReadApproval: cityPlayerReadApproval, teamReadApproval: teamReadApproval, workshopOwnedReadApproval: workshopOwnedReadApproval, ownerDraftReadApproval: ownerDraftReadApproval, manualMapReadApproval: manualMapReadApproval, ownedOrderReadApproval: ownedOrderReadApproval)
     }
     func makeSession() -> AppSession { AppSession(composition: self) }
 }
@@ -198,6 +201,7 @@ extension KeychainTokenStore: AppTokenStorage {}
     private let templateShelfReadApproval: @MainActor (RuntimeDependencyContext) -> TemplateShelfReadApproval?
     private let cityPlayerReadApproval: @MainActor (RuntimeDependencyContext) -> CityPlayerReadApproval?
     private let teamReadApproval: @MainActor (RuntimeDependencyContext) -> TeamReadApproval?
+    private let workshopOwnedReadApproval: @MainActor (RuntimeDependencyContext) -> WorkshopOwnedReadApproval?
     private let ownerDraftReadApproval: @MainActor (RuntimeDependencyContext) -> OwnerDraftReadApproval?
     init(deployment: ReviewedAppDeployment?, underlying: any HTTPTransport,
          couponReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> CouponManagementReadApproval? = { _ in nil },
@@ -207,6 +211,7 @@ extension KeychainTokenStore: AppTokenStorage {}
          walletHistoryReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> WalletHistoryReadApproval? = { _ in nil },
          cityPlayerReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> CityPlayerReadApproval? = { _ in nil },
          teamReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> TeamReadApproval? = { _ in nil },
+         workshopOwnedReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> WorkshopOwnedReadApproval? = { _ in nil },
          ownerDraftReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> OwnerDraftReadApproval? = { _ in nil },
          manualMapReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> ManualMapReadApproval? = { _ in nil },
          manualMapSelection: ManualMapAreaSelection? = nil,
@@ -217,6 +222,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         self.walletHistoryReadApproval = walletHistoryReadApproval
         self.cityPlayerReadApproval = cityPlayerReadApproval
         self.teamReadApproval = teamReadApproval
+        self.workshopOwnedReadApproval = workshopOwnedReadApproval
         self.deployment = deployment; self.underlying = underlying; self.ownerDraftReadApproval = ownerDraftReadApproval
         self.manualMapReadApproval = manualMapReadApproval; self.manualMapSelection = manualMapSelection
         self.ownedOrderReadApproval = ownedOrderReadApproval
@@ -231,7 +237,7 @@ extension KeychainTokenStore: AppTokenStorage {}
     private func copy(underlying: any HTTPTransport, manualMapSelection: ManualMapAreaSelection?) -> CompositionHTTPTransport {
         let transport = CompositionHTTPTransport(deployment: deployment, underlying: underlying,
             couponReadApproval: couponReadApproval, couponWriteApproval: couponWriteApproval,
-            templateShelfReadApproval: templateShelfReadApproval, messagingHistoryReadApproval: messagingHistoryReadApproval, walletHistoryReadApproval: walletHistoryReadApproval, cityPlayerReadApproval: cityPlayerReadApproval, teamReadApproval: teamReadApproval, ownerDraftReadApproval: ownerDraftReadApproval, manualMapReadApproval: manualMapReadApproval,
+            templateShelfReadApproval: templateShelfReadApproval, messagingHistoryReadApproval: messagingHistoryReadApproval, walletHistoryReadApproval: walletHistoryReadApproval, cityPlayerReadApproval: cityPlayerReadApproval, teamReadApproval: teamReadApproval, workshopOwnedReadApproval: workshopOwnedReadApproval, ownerDraftReadApproval: ownerDraftReadApproval, manualMapReadApproval: manualMapReadApproval,
             manualMapSelection: manualMapSelection, ownedOrderReadApproval: ownedOrderReadApproval)
         // Retain the identity source across temporary clone chains. Its AppSession
         // callback is weak, so this does not retain or extend the signed-in session.
@@ -423,6 +429,18 @@ extension KeychainTokenStore: AppTokenStorage {}
             readApprovalStillValid = { [manualMapReadApproval, manualMapSelection] in
                 guard let currentApproval = manualMapReadApproval(context) else { return false }
                 return manualMapSelection?.snapshot == selectedArea && currentApproval.revision == approval.revision && currentApproval.matches(context)
+            }
+        } else if WorkshopOwnedReadRoute(request: request, baseURL: api.baseURL) != nil {
+            guard captured.isSignedInContentViewer,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL,
+                role: role, session: session)
+            guard let approval = workshopOwnedReadApproval(context), approval.matches(context) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [workshopOwnedReadApproval] in
+                guard let fresh = workshopOwnedReadApproval(context) else { return false }
+                return fresh.revision == approval.revision && fresh.matches(context)
             }
         } else if let route = OwnerDraftReadRoute(url: url, baseURL: api.baseURL) {
             guard let account = captured.accountID, let token = captured.token, let role = captured.role,

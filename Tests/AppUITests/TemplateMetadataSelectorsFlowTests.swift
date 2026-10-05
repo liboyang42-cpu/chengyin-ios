@@ -1,7 +1,8 @@
 import XCTest
 
 /// Reconstructed synthetic UI coverage, not recovery of the former patch or runtime acceptance.
-/// Three single-launch journeys. UNMEASURED planning estimates: 240 + 360 + 420 = 1,020 seconds.
+/// Historical original UNMEASURED estimates: 240 + 360 + 420 = 1,020 seconds.
+/// Full-method UNMEASURED replacements after selector-title checks: 270 + 390 + 450 = 1,110 seconds.
 /// The DEBUG probe observes the coordinator, reader and synthetic transport after ordinary controls.
 @MainActor final class TemplateMetadataSelectorsFlowTests: XCTestCase {
     private var application: XCUIApplication?
@@ -83,6 +84,11 @@ import XCTest
     private func open(_ field: String, in app: XCUIApplication) {
         tap("templateMetadata.open." + field, in: app, towardTop: true)
         XCTAssertTrue(app.buttons["templateMetadata.cancel"].waitForExistence(timeout: 5), app.debugDescription)
+        // The selected control must open its own selector, never another button
+        // sharing the Form row. Keep the actual tap and native sheet assertion.
+        let title = ["players": "Players, e.g. 2–6", "duration": "Duration in minutes",
+                     "categories": "Category IDs, comma-separated"][field]!
+        XCTAssertTrue(app.navigationBars[title].waitForExistence(timeout: 5), app.debugDescription)
     }
     private func close(_ app: XCUIApplication, save: Bool = false) {
         tap(save ? "templateMetadata.save" : "templateMetadata.cancel", in: app)
@@ -177,7 +183,7 @@ import XCTest
                       "Same-owner locked selector must still display its value: " + row.debugDescription)
     }
 
-    // UNMEASURED estimate: 240 seconds. Exact dictValue semantics, unsupported durations and real confirmation.
+    // UNMEASURED estimate: 240 seconds. Historical only; full-method replacement 270 seconds. Exact dictValue semantics, unsupported durations and real confirmation.
     func testExactDictionaryValuesCancelRestoreAndSyntheticRequest() throws {
         let app = launch("dictionary")
         let initial = try inspect(app)
@@ -219,7 +225,7 @@ import XCTest
         reads(locked, [playersRead, playersRead, durationRead, durationRead])
     }
 
-    // UNMEASURED estimate: 360 seconds. Five category reads, zero synthetic writes, 16 IDs without a cap.
+    // UNMEASURED estimate: 360 seconds. Historical only; full-method replacement 390 seconds. Five category reads, zero synthetic writes, 16 IDs without a cap.
     func testCategorySaveCancelNoopCSVAndOrderedSixteenSelections() throws {
         let app = launch("categories")
         bytes(try inspect(app).draft.activityCategoryids, originalCSV)
@@ -254,7 +260,7 @@ import XCTest
         reads(final, Array(repeating: categoriesRead, count: 5))
     }
 
-    // UNMEASURED estimate: 420 seconds. Actual canceled continuation and owner switch precede a fresh owner's confirmation.
+    // UNMEASURED estimate: 420 seconds. Historical only; full-method replacement 450 seconds. Actual canceled continuation and owner switch precede a fresh owner's confirmation.
     func testUnavailableRetryEmptyCanceledReadOwnerSwitchAndLockedValues() throws {
         let app = launch("lifecycle")
         open("players", in: app); saved("retired:group", in: app)

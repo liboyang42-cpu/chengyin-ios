@@ -122,13 +122,14 @@ import UIKit
             }
             if let node = model.snapshot?.visibleNodes.first(where: { $0.id == id }),
                node.hasAdvancedPrerequisite, let advanced = advancedModel?(id) {
+                PlayInteractionBoundContent(context: model.interactionContext) { advancedContext in
                 ChapterStoryGameHost(advanced: advanced, device: deviceModel?(id), mediaScope: mediaScope,
                     makeAudio: makeAudio, approvedArtworkHosts: approvedArtworkHosts, makeSensorProvider: makeSensorProvider, spatialApproval: spatialApproval, fallback: { nodeDestination(id) },
                     variables: { advancedVariables.merge($0) { _, new in new } },
-                    ready: { try? model.acceptAdvanced($0) },
+                    ready: { try? model.acceptAdvanced($0, context: advancedContext) },
                     inline: { activeInlineNodeID = id },
                     dirty: { value in if value { dirtyNodes.insert(id) } else { dirtyNodes.remove(id) } })
-                    .id(id)
+                }.id(id)
             } else {
                 NavigationLink { nodeDestination(id) } label: { Label("chapterStory.play", systemImage: "play.circle") }
             }

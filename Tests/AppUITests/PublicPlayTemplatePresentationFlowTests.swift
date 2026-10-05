@@ -1,6 +1,8 @@
 import XCTest
 
 /// Offline flows through the ordinary template browser/detail/gallery. Apple execution is unrun here.
+/// Full-method UNMEASURED replacement estimates: publisher 150s, maximum-text 150s,
+/// duplicates 180s, denied 120s, context replacement 180s, retry/default-disabled 180s.
 final class PublicPlayTemplatePresentationFlowTests: XCTestCase {
     private var app: XCUIApplication!
     override func setUpWithError() throws { continueAfterFailure = false; app = XCUIApplication() }
@@ -17,6 +19,20 @@ final class PublicPlayTemplatePresentationFlowTests: XCTestCase {
         tap("discovery.play.701")
     }
     private func tap(_ id: String) {
+        if id == "media.gallery.close" || id == "publicPlay.fixture.replaceOnImage" {
+            // Fixed navigation/fixture controls are deliberately outside the
+            // content viewport used by the scrolling helper.
+            let query = app.buttons.matching(identifier: id)
+            XCTAssertTrue(query.firstMatch.waitForExistence(timeout: 5), app.debugDescription)
+            let leaves = query.allElementsBoundByIndex.filter { $0.descendants(matching: .button).count == 0 }
+            XCTAssertEqual(leaves.count, 1, app.debugDescription)
+            guard let button = leaves.first, leaves.count == 1 else { return }
+            XCTAssertTrue(button.isEnabled && button.isHittable, app.debugDescription)
+            XCTAssertFalse(button.frame.isEmpty)
+            XCTAssertTrue(app.frame.contains(button.frame), app.debugDescription)
+            button.tap()
+            return
+        }
         let element = app.buttons.matching(identifier: id).firstMatch
         XCTAssertTrue(revealFixtureElement(element, in: app), app.debugDescription)
         XCTAssertTrue(element.isHittable, app.debugDescription); element.tap()

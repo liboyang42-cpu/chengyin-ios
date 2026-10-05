@@ -1,3 +1,4 @@
+from tools.tests.run109_amendment_budget_history import before_run109_amendments
 """Timing assumptions for the new authored walking camera flow, not measurements."""
 import json
 from pathlib import Path
@@ -8,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 class WalkingCameraBudgetTests(unittest.TestCase):
     def test_new_bilingual_camera_flow_uses_explicit_unmeasured_estimate(self):
-        profile = json.loads((ROOT / 'tools/ui_duration_weights.json').read_text())
+        profile = before_run109_amendments(json.loads((ROOT / 'tools/ui_duration_weights.json').read_text()))
         name = 'WalkingNavigationFlowTests.testBilingualMaximumCameraActionsAreExplicitAndClearWithRoute'
         records = [record for record in profile['estimate_provenance']['methods']
                    if record['source'] == 'walkingCameraAcceptance']

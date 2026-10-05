@@ -11,7 +11,11 @@ import SwiftUI
     @State private var tagConfirm = false
     @State private var correctedValue = ""
     @State private var error: PlayExperienceError?
-    var body: some View {
+    @ViewBuilder var body: some View {
+        if !model.hasCurrentReadLifetime { Text("playMode.recoveryBlocked") }
+        else { currentContent }
+    }
+    private var currentContent: some View {
         List {
             Section {
                 PlayRuntimePhaseText(phase: model.phase)

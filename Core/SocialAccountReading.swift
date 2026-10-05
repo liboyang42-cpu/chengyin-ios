@@ -1,4 +1,5 @@
 import Foundation
+import Observation
 
 public struct SocialAccountIdentity: Equatable, Hashable {
     public let accountID: Int?
@@ -18,6 +19,8 @@ public struct SocialAccountSession: Equatable {
 }
 @MainActor public protocol SocialAccountReading: AnyObject {
     var identity: SocialAccountIdentity { get }
+    /// Presentation lifetime only, never an authorization or role grant.
+    var presentationRevision: UInt64 { get }
     var isConfigured: Bool { get }
     var isOfflineExample: Bool { get }
     func publicProfile(memberID: Int) async throws -> SocialPublicProfile
@@ -25,11 +28,18 @@ public struct SocialAccountSession: Equatable {
     func information(id: Int) async throws -> SocialInformation
     func invitationHistory(page: Int) async throws -> SocialInviteHistory
 }
-@MainActor public final class SocialAccountSessionReader: SocialAccountReading {
+extension SocialAccountReading {
+    public var presentationRevision: UInt64 { 0 }
+}
+@MainActor @Observable public final class SocialAccountSessionReader: SocialAccountReading {
     private let service: SocialAccountService?
     private let currentSession: () -> SocialAccountSession
     private let onUnauthorized: (SocialAccountSession) -> Void
-    public var identity: SocialAccountIdentity { currentSession().identity }
+    public private(set) var presentationRevision: UInt64 = 0
+    public var identity: SocialAccountIdentity { _ = presentationRevision; return currentSession().identity }
+    /// Called by the existing session owner when account, role, token or epoch changes.
+    /// The monotonic revision also retires an unobserved A-to-B-to-A transition.
+    public func invalidatePresentation() { presentationRevision &+= 1 }
     public var isConfigured: Bool { service != nil }
     public var isOfflineExample: Bool { false }
     public init(service: SocialAccountService?, currentSession: @escaping () -> SocialAccountSession, onUnauthorized: @escaping (SocialAccountSession) -> Void = { _ in }) {
@@ -47,15 +57,15 @@ public struct SocialAccountSession: Equatable {
     }
     private func read<T>(_ operation: (SocialAccountService, String?) async throws -> T) async throws -> T {
         guard let service else { throw APIError.notConfigured }
-        let snapshot = currentSession()
+        let snapshot = currentSession(), revision = presentationRevision
         try Task.checkCancellation()
         do {
             let value = try await operation(service, snapshot.token)
             try Task.checkCancellation()
-            guard currentSession() == snapshot else { throw CancellationError() }
+            guard currentSession() == snapshot, presentationRevision == revision else { throw CancellationError() }
             return value
         } catch {
-            guard !Task.isCancelled, currentSession() == snapshot else { throw CancellationError() }
+            guard !Task.isCancelled, currentSession() == snapshot, presentationRevision == revision else { throw CancellationError() }
             if error as? APIError == .unauthorized, snapshot.token != nil { onUnauthorized(snapshot) }
             throw error
         }

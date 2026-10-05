@@ -43,12 +43,37 @@ final class PlayExperienceFlowTests: XCTestCase {
         XCTAssertFalse(app.buttons["playx.node.701"].exists); XCTAssertEqual(app.alerts.count, 0)
     }
     func testMode2ShowsSeparateVerificationStep() {
-        let app = launch("mode2"); let node = app.buttons["playx.node.701"]
-        reveal(node, app: app); XCTAssertTrue(node.waitForExistence(timeout: 5)); node.tap()
-        XCTAssertTrue(app.navigationBars["Journey task"].waitForExistence(timeout: 5), app.debugDescription)
-        let steps = app.staticTexts["Three on-site steps"]; reveal(steps, app: app)
-        XCTAssertTrue(steps.exists, app.debugDescription)
-        XCTAssertFalse(app.buttons["playx.answer.review"].exists)
+        let app = launch("mode2"), pack = app.buttons["playFree.pack.open"]
+        reveal(pack, app: app); XCTAssertTrue(pack.waitForExistence(timeout: 5)); pack.tap()
+        XCTAssertFalse(app.buttons["playx.node.701"].exists)
+        XCTAssertFalse(app.buttons["playx.run.resume"].exists); XCTAssertFalse(app.buttons["playx.run.end"].exists)
+        XCTAssertFalse(app.buttons["playx.results.load"].exists)
+        let store = app.buttons["playFree.store.701"]; reveal(store, app: app); store.tap()
+        XCTAssertTrue(app.navigationBars["Store visit"].waitForExistence(timeout: 5), app.debugDescription)
+        let steps = app.staticTexts["Three on-site steps"]; reveal(steps, app: app); XCTAssertTrue(steps.exists)
+        XCTAssertFalse(app.buttons["playx.answer.review"].exists); XCTAssertEqual(app.alerts.count, 0)
+        attachFixtureScreenshot(self, app: app, name: "Free exploration store proof is separate from orientation")
+    }
+    func testChineseFreePackKeepsStoreChoiceAfterBackAndRefresh() {
+        let app = launch("mode2", language: "zh-Hans"), pack = app.buttons["playFree.pack.open"]
+        reveal(pack, app: app); pack.tap()
+        let store = app.buttons["playFree.store.701"]; reveal(store, app: app); store.tap()
+        XCTAssertTrue(app.navigationBars["到店体验"].waitForExistence(timeout: 5))
+        app.navigationBars.buttons.firstMatch.tap()
+        let refresh = app.buttons["playFree.refresh"]; reveal(refresh, app: app); refresh.tap()
+        XCTAssertTrue(store.waitForExistence(timeout: 5)); XCTAssertFalse(app.buttons["playx.run.resume"].exists)
+        attachFixtureScreenshot(self, app: app, name: "Chinese free exploration after refresh")
+    }
+    func testOrdinaryReadFallbackUsesFreeStoreCardsAndNoOrientationAnswerForm() {
+        let app = XCUIApplication(); runningApp = app
+        app.launchArguments = ["--uitesting-reset-language", "--uitesting-module", "play", "--uitesting-play-scenario", "freeExploration", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
+        app.launch()
+        let pack = app.buttons["playFree.pack.open"]; reveal(pack, app: app); pack.tap()
+        let store = app.buttons["playFree.store.701"]; reveal(store, app: app); store.tap()
+        XCTAssertTrue(app.navigationBars["Store visit"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["play.answer.submit"].exists)
+        XCTAssertFalse(app.buttons["playx.run.resume"].exists); XCTAssertEqual(app.alerts.count, 0)
+        attachFixtureScreenshot(self, app: app, name: "Normal read fallback retains free-exploration store UI")
     }
     func testEmptyEndingIsNotReportedAsFailure() {
         let app = launch(); let load = app.buttons["playx.results.load"]; reveal(load, app: app); XCTAssertTrue(load.exists); load.tap()

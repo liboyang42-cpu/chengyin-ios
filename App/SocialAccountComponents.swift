@@ -23,6 +23,20 @@ struct SocialIssueView: View {
         }.accessibilityElement(children: .contain).accessibilityIdentifier("social.issue")
     }
 }
+/// Includes the reader instance because its immutable deployment may have changed.
+/// The extra revision retires role/credential ABA even when the visible identity repeats.
+struct SocialReadPresentationKey: Hashable {
+    let reader: ObjectIdentifier
+    let request: String
+    let identity: SocialAccountIdentity
+    let revision: UInt64
+    let configured: Bool
+    let requiresSignIn: Bool
+    @MainActor init(reader: any SocialAccountReading, request: String, requiresSignIn: Bool) {
+        self.reader = ObjectIdentifier(reader); self.request = request; self.requiresSignIn = requiresSignIn
+        identity = reader.identity; revision = reader.presentationRevision; configured = reader.isConfigured
+    }
+}
 @MainActor struct SocialReadScreen<Value, Content: View>: View {
     let reader: any SocialAccountReading
     let requestKey: String
@@ -33,33 +47,38 @@ struct SocialIssueView: View {
     @State private var error: Error?
     @State private var busy = false
     @State private var generation = 0
-    @State private var loadedIdentity: SocialAccountIdentity?
+    @State private var loadedKey: SocialReadPresentationKey?
+    @State private var loads = SignedInContentDetailLoadOwner()
+    private var key: SocialReadPresentationKey {
+        .init(reader: reader, request: requestKey, requiresSignIn: requiresSignIn)
+    }
     var body: some View {
         Group {
             if reader.isOfflineExample { Text("social.offline").font(.caption).foregroundStyle(.secondary) }
             if requiresSignIn && reader.identity.accountID == nil { SocialIssueView(error: APIError.unauthorized) }
             else if !reader.isConfigured { SocialIssueView(error: APIError.notConfigured) }
-            else if loadedIdentity != reader.identity || busy { ProgressView("social.loading") }
-            else if let error { SocialIssueView(error: error) { Task { await reload() } } }
+            else if loadedKey != key || busy { ProgressView("social.loading") }
+            else if let error { SocialIssueView(error: error) { loads.start { await reload() } } }
             else if let value { content(value) }
         }
-        .task(id: "\(requestKey):\(reader.identity)") { await reload() }
-        .onDisappear { generation += 1; busy = false }
+        .task(id: key) { await loads.run { await reload() } }
+        .onDisappear { loads.cancel(); generation += 1; busy = false }
     }
     private func reload() async {
-        generation += 1; let run = generation, identity = reader.identity
-        value = nil; error = nil; busy = false; loadedIdentity = identity
-        guard reader.isConfigured, !requiresSignIn || identity.accountID != nil else { return }
+        generation += 1; let run = generation, captured = key
+        value = nil; error = nil; busy = false; loadedKey = captured
+        guard reader.isConfigured, !requiresSignIn || captured.identity.accountID != nil else { return }
         busy = true
         defer { if generation == run { busy = false } }
         do {
             let loaded = try await load()
             try Task.checkCancellation()
-            guard generation == run, reader.identity == identity else { return }; value = loaded
+            guard generation == run, key == captured else { return }; value = loaded
         } catch is CancellationError { }
-        catch { if generation == run, reader.identity == identity { self.error = error } }
+        catch { if !Task.isCancelled, generation == run, key == captured { self.error = error } }
     }
 }
+
 struct SocialOptionalCount: View {
     let title: LocalizedStringKey
     let count: Int?

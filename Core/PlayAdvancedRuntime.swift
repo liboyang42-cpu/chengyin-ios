@@ -193,14 +193,27 @@ extension PlayExperienceService {
     let currentSession: () -> PlayExperienceSession?
     private var owner: PlayExperienceSession?
     private var generation: UInt64 = 0
+    public private(set) var startOutcomeUnknown = false
     public init(activityID: Int, topicID: Int, nodeID: Int, service: PlayExperienceService, currentSession: @escaping () -> PlayExperienceSession?) {
-        self.activityID = activityID; self.topicID = topicID; self.nodeID = nodeID; self.service = service; self.currentSession = currentSession
+        self.activityID = activityID; self.topicID = topicID; self.nodeID = nodeID; self.service = service; self.currentSession = { service.hasCurrentReadLifetime ? currentSession() : nil }
     }
+    public var readLifetimeID: String? { service.readLifetimeID }
+    public var hasCurrentReadLifetime: Bool { service.hasCurrentReadLifetime }
+    public var blocksReadRebinding: Bool { startOutcomeUnknown || pending != nil || ["loading", "submitting", "unknown", "retryable"].contains(phase) }
     public func start() async {
-        guard state == nil, ["idle", "rejected", "disabled"].contains(phase), let session = currentSession() else { return }
+        guard !startOutcomeUnknown, state == nil, ["idle", "rejected", "disabled"].contains(phase), let session = currentSession() else { return }
         generation &+= 1; let generation = generation; owner = session; phase = "loading"
-        do { try accept(await service.startAdvanced(activityID: activityID, topicID: topicID, nodeID: nodeID, token: session.token), session: session, generation: generation) }
-        catch { failure(error, session: session, generation: generation) }
+        startOutcomeUnknown = true
+        do {
+            try accept(await service.startAdvanced(activityID: activityID, topicID: topicID, nodeID: nodeID, token: session.token), session: session, generation: generation)
+            startOutcomeUnknown = false
+        } catch {
+            // Only a definite non-dispatch/rejection clears the start lock. A
+            // retired lease, lost response or stale401 is not an idempotency proof.
+            if case PlayExperienceError.disabled = error { startOutcomeUnknown = false }
+            if case PlayExperienceError.rejected = error { startOutcomeUnknown = false }
+            failure(error, session: session, generation: generation)
+        }
     }
     public var isCurrent: Bool { owner != nil && owner == currentSession() }
     public var canInteract: Bool { isCurrent && phase == "ready" && pending == nil && state?.status == "RUNNING" }

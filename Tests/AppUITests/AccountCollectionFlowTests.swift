@@ -20,6 +20,13 @@ final class AccountCollectionFlowTests: XCTestCase {
     // This module is synthetic and offline. Log only the selected control and
     // navigation bars; image-only CI evidence does not retain AX attachments.
     private func logNavigationBoundary(_ phase: String, target: XCUIElement, identifier: String) {
+        // A successful push removes the tapped source control. Never re-resolve it after
+        // navigation: exists and the next AX query can observe different hierarchies.
+        if phase == "after single tap" {
+            print("ACCOUNT_COLLECTION_NAVIGATION phase=\(phase); identifier=\(identifier); targetLookup=omitted-after-navigation")
+            print("ACCOUNT_COLLECTION_NAVIGATION_AX " + app.navigationBars.debugDescription)
+            return
+        }
         let exists = target.exists
         print("ACCOUNT_COLLECTION_NAVIGATION phase=\(phase); identifier=\(identifier); type=\(exists ? String(target.elementType.rawValue) : "absent"); exists=\(exists); enabled=\(exists && target.isEnabled); hittable=\(exists && target.isHittable); frame=\(exists ? target.frame : .zero)")
         if exists { print("ACCOUNT_COLLECTION_TARGET_AX " + target.debugDescription) }

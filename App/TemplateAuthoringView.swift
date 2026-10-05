@@ -14,6 +14,10 @@ import SwiftUI
     private(set) var storyEditorGeneration = 0
     var legacyHintGeneration = UUID()
     private(set) var metadataGeneration = UUID()
+    private(set) var mediaReviewGeneration = UUID()
+    var mediaReviewControllers: [WeakTemplateMediaReviewController] = []
+    var mediaImageSelectionApproved: () -> Bool = { false }
+    var mediaFixtureMode: String?
     private var epoch: TemplateAuthoringSession?
     private var draftIdentity: TemplateAuthoringIdentity?
     init(coordinator: TemplateAuthoringCoordinator) { self.coordinator = coordinator }
@@ -23,6 +27,7 @@ import SwiftUI
     var canReadStoryDraft: Bool { coordinator.session != nil && epoch == coordinator.session && draftIdentity == coordinator.identity }
     var canEdit: Bool { coordinator.session != nil && epoch == coordinator.session && draftIdentity == coordinator.identity && !coordinator.locked && coordinator.restore == .missing }
     func load() {
+        retireMediaReviews()
         metadataGeneration = UUID()
         storyEditorGeneration += 1
         legacyHintGeneration = UUID()
@@ -39,6 +44,7 @@ import SwiftUI
         guard canEdit else { draft = coordinator.draft; return }
         if ruleSteps.storedText != draft.ruleInstructions { resetRuleSteps() }
         coordinator.change(draft); review = nil; revision += 1
+        refreshMediaReviews()
     }
     func setGameEnabled(_ game: TemplateAdvancedGame, _ enabled: Bool) {
         guard canEdit else { return }
@@ -49,22 +55,32 @@ import SwiftUI
         changed()
     }
     func restore() {
+        retireMediaReviews()
         metadataGeneration = UUID()
         storyEditorGeneration += 1; legacyHintGeneration = UUID(); optionMediaGeneration += 1
         optionMediaIssue = nil; coordinator.restoreDraft(); draft = coordinator.draft
-        resetRuleSteps(); revision += 1
+        resetRuleSteps(); revision += 1; reloadMediaReviews()
     }
     func discard() {
+        retireMediaReviews()
         metadataGeneration = UUID()
         storyEditorGeneration += 1; legacyHintGeneration = UUID(); optionMediaGeneration += 1
         optionMediaIssue = nil; coordinator.discardLocal(); draft = coordinator.draft
-        resetRuleSteps(); revision += 1
+        resetRuleSteps(); revision += 1; reloadMediaReviews()
     }
     func save() { guard canEdit else { return }; coordinator.change(draft); coordinator.saveLocal(); revision += 1 }
     func prepare(_ intent: TemplateAuthoringIntent) { guard canEdit else { return }; metadataGeneration = UUID(); coordinator.change(draft); coordinator.prepare(intent); review = coordinator.review; revision += 1 }
     func cancel() { coordinator.cancelReview(); review = nil; revision += 1 }
     func confirm(_ value: TemplateAuthoringReview) async { busy = true; review = nil; await coordinator.confirm(value); busy = false; revision += 1 }
     func leave() { metadataGeneration = UUID(); coordinator.leaveScreen(); review = nil }
+    private func retireMediaReviews() {
+        mediaReviewGeneration = UUID()
+        mediaReviewControllers = mediaReviewControllers.filter { $0.value != nil }
+        mediaReviewControllers.forEach { $0.value?.retire() }
+    }
+    func mediaReferencesWillChange() { mediaReviewControllers.forEach { $0.value?.referencesWillChange() } }
+    func refreshMediaReviews() { mediaReviewControllers.forEach { $0.value?.refresh() } }
+    private func reloadMediaReviews() { mediaReviewControllers.forEach { $0.value?.reload() } }
     private func resetRuleSteps() {
         ruleSteps = .init(raw: draft.ruleInstructions); ruleStepIssue = nil; ruleInputRevisions = [:]
     }
@@ -102,7 +118,18 @@ import SwiftUI
         } catch { /* Unsupported or stale rows remain unchanged. */ }
     }
     func optional(_ path: WritableKeyPath<TemplateAuthoringDraft, String?>) -> Binding<String> {
-        .init(get: { self.draft[keyPath: path] ?? "" }, set: { self.draft[keyPath: path] = $0.isEmpty ? nil : $0 })
+        let isMedia = path == \.questionImg || path == \.questionAudio || path == \.audioUrl
+        let mediaGeneration = mediaReviewGeneration
+        return .init(get: {
+            if isMedia && (!self.canReadStoryDraft || self.mediaReviewGeneration != mediaGeneration) { return "" }
+            return self.draft[keyPath: path] ?? ""
+        }, set: {
+            if isMedia {
+                guard self.canEdit, self.mediaReviewGeneration == mediaGeneration else { return }
+                self.mediaReferencesWillChange()
+            }
+            self.draft[keyPath: path] = $0.isEmpty ? nil : $0
+        })
     }
     func number(_ path: WritableKeyPath<TemplateAuthoringDraft, Int?>) -> Binding<String> {
         .init(get: { self.draft[keyPath: path].map(String.init) ?? "" }, set: { self.draft[keyPath: path] = Int($0) })
@@ -110,17 +137,19 @@ import SwiftUI
     func optionMedia(_ letter: TemplateChoiceOptionMedia.Letter, _ kind: TemplateChoiceOptionMedia.Kind) -> Binding<String> {
         let bindingEpoch = epoch, bindingIdentity = draftIdentity
         let bindingGeneration = optionMediaGeneration
+        let mediaGeneration = mediaReviewGeneration
         return .init(get: {
             // A write-only lock must not hide this owner's unchanged media references.
             guard self.epoch != nil, self.epoch == self.coordinator.session, self.epoch == bindingEpoch,
                   self.draftIdentity == self.coordinator.identity, self.draftIdentity == bindingIdentity,
-                  self.optionMediaGeneration == bindingGeneration else { return "" }
+                  self.optionMediaGeneration == bindingGeneration, self.mediaReviewGeneration == mediaGeneration else { return "" }
             return self.draft.choiceOptionMedia.text(letter, kind) ?? ""
         }, set: { text in
             guard self.canEdit, self.epoch == bindingEpoch, self.draftIdentity == bindingIdentity,
-                  self.optionMediaGeneration == bindingGeneration, self.draft.validationMethod == .choice,
+                  self.optionMediaGeneration == bindingGeneration, self.mediaReviewGeneration == mediaGeneration, self.draft.validationMethod == .choice,
                   self.draft.choiceOptionMedia.isSupported else { return }
             do {
+                self.mediaReferencesWillChange()
                 try self.draft.setChoiceOptionMedia(letter, kind, to: text)
                 self.optionMediaIssue = nil
                 self.changed()
@@ -131,15 +160,22 @@ import SwiftUI
 
 /// Host within the existing navigation stack. Intro/name/edit are replacement steps.
 @MainActor struct TemplateAuthoringView: View {
+    @Environment(\.locale) private var locale
     private enum Step { case intro, name, edit }
     @StateObject private var model: TemplateAuthoringModel
+    @StateObject private var media: TemplateMediaReviewController
     @State private var step: Step = .intro
     @State private var preview = false
     @State private var discard = false
     let sessionRevision: UInt64
     let metadataReader: (any DiscoveryReading)?
-    init(coordinator: TemplateAuthoringCoordinator, sessionRevision: UInt64, metadataReader: (any DiscoveryReading)? = nil) {
-        _model = StateObject(wrappedValue: .init(coordinator: coordinator)); self.sessionRevision = sessionRevision; self.metadataReader = metadataReader
+    init(coordinator: TemplateAuthoringCoordinator, sessionRevision: UInt64, metadataReader: (any DiscoveryReading)? = nil,
+         imageSelectionApproved: @escaping () -> Bool = { false }, mediaFixtureMode: String? = nil) {
+        let value = TemplateAuthoringModel(coordinator: coordinator)
+        value.mediaImageSelectionApproved = imageSelectionApproved; value.mediaFixtureMode = mediaFixtureMode
+        _model = StateObject(wrappedValue: value)
+        _media = StateObject(wrappedValue: .init(model: value, imageSelectionApproved: imageSelectionApproved, fixtureMode: mediaFixtureMode))
+        self.sessionRevision = sessionRevision; self.metadataReader = metadataReader
     }
     var body: some View {
         Form {
@@ -160,10 +196,11 @@ import SwiftUI
         }
         .navigationTitle("templateAuthor.title")
         .disabled(model.busy)
-        .task { model.load() }
+        .task { model.load(); media.reload() }
         .onChange(of: model.draft) { _, _ in model.changed() }
-        .onChange(of: sessionRevision) { _, _ in preview = false; step = .intro; model.load() }
-        .onDisappear { model.leave() }
+        .onChange(of: sessionRevision) { _, _ in preview = false; step = .intro; model.load(); media.reload() }
+        .onDisappear { media.retire(); model.leave() }
+        .modifier(TemplateMediaReviewPresentation(controller: media))
         .sheet(isPresented: $preview) { NavigationStack { TemplateAuthoringPreviewView(draft: model.draft) } }
         .sheet(item: $model.review, onDismiss: { model.cancel() }) { value in
             NavigationStack { TemplateAuthoringReviewView(review: value, canSimulate: model.coordinator.canSimulate, canSubmit: model.coordinator.canSubmit, confirm: { Task { await model.confirm(value) } }, cancel: { model.cancel() }) }
@@ -226,6 +263,9 @@ import SwiftUI
                 }
             }
             TemplateAuthoringRewardStoryFields(model: model)
+            Section(String(localized: LocalizedStringResource("templateMedia.title", defaultValue: "Local media review", locale: locale))) {
+                TemplateMediaReviewFields(controller: media)
+            }
             Section {
                 Button("templateAuthor.saveLocal") { model.save() }.accessibilityIdentifier("templateAuthor.saveLocal")
                 Button("templateAuthor.preview") { preview = true }.disabled(!model.draft.publishIssues.isEmpty || model.draft.validationMethod == .preference).accessibilityIdentifier("templateAuthor.preview")

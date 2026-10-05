@@ -1,0 +1,407 @@
+{
+  "version": 1,
+  "scanner_version": "8.24.3",
+  "head": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+  "tree": "7e5f4e692e0ee0f253a615f12276610eabdfa07a",
+  "parents": [
+    "921d7dc109294d00322fd2b47113eb239d403db4",
+    "ffb3e811def6f683e4e8b70d65f53b4e5efff4cb"
+  ],
+  "head_reachable_commits": 114,
+  "command": "gitleaks git --redact --exit-code=2 --log-opts=\"--full-history -m HEAD\"",
+  "unmodified_scan": {
+    "exit_code": 2,
+    "findings": 42,
+    "rule": "generic-api-key",
+    "files": 13
+  },
+  "classification_counts": {
+    "forbidden_mutation_route_assertion_literal": 1,
+    "external_source_sha256_provenance": 40,
+    "native_source_sha256": 1
+  },
+  "identified_credentials": 0,
+  "unclassified": 0,
+  "source_evidence": "Every matched line has identical bytes at this main merge and at the previously audited import. The 40 external digests occur in named source-hash maps; no external source parity is asserted. The one native source digest was independently recomputed. The route literal belongs to a forbidden-write assertion. No candidate values appear in this document.",
+  "scope": "Only these exact immutable main-merge commit/path/rule/line fingerprints. Temporary PR merge 6757dfac is not ignored. No global rule, path, hash-pattern, commit-wide exclusion, or scan-range change.",
+  "findings": [
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "Tests/ContractChecks/test_account_collection_structure.py",
+      "rule": "generic-api-key",
+      "line": 18,
+      "classification": "forbidden_mutation_route_assertion_literal",
+      "source_line_sha256": "8f5df987d1ad6dc0c099c41d9425ede98a8ecd772058847fec9a6aa4ca7079d3",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/club-governance-static-evidence.json",
+      "rule": "generic-api-key",
+      "line": 11,
+      "classification": "external_source_sha256_provenance",
+      "source_line_sha256": "7254cd4695d688a856d52f04ba3c2fa56238b9807f620aae6fad1d1f6348acd3",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/club-governance-static-evidence.json",
+      "rule": "generic-api-key",
+      "line": 12,
+      "classification": "external_source_sha256_provenance",
+      "source_line_sha256": "b70c7657d842e240f366f9655515fdc11af5b8bb8d5a40e641bb5e261097443a",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/club-governance-static-evidence.json",
+      "rule": "generic-api-key",
+      "line": 13,
+      "classification": "external_source_sha256_provenance",
+      "source_line_sha256": "4900ee97ad0bc718086a17c9aff3ded16ccca2cf5c07f8a504e63b08c07bf134",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/club-governance-static-evidence.json",
+      "rule": "generic-api-key",
+      "line": 14,
+      "classification": "external_source_sha256_provenance",
+      "source_line_sha256": "1546cd5b1c151d60a0597a125adc3dadf6dff0350b7287d35476ff9f21a17d53",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/club-governance-static-evidence.json",
+      "rule": "generic-api-key",
+      "line": 15,
+      "classification": "external_source_sha256_provenance",
+      "source_line_sha256": "12ea574c9175b80be760576fcb13c5944edc0d01fd356269aeaf6eb4db7ae86e",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/club-governance-static-evidence.json",
+      "rule": "generic-api-key",
+      "line": 16,
+      "classification": "external_source_sha256_provenance",
+      "source_line_sha256": "4e4b3fb7e6bfbd9048d3c667f4309073dccaf81818685d7d8ed81ff613144e4d",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/club-governance-static-evidence.json",
+      "rule": "generic-api-key",
+      "line": 17,
+      "classification": "external_source_sha256_provenance",
+      "source_line_sha256": "f8af2ebaa6fc4b315ae64c7e3d392ed7938590995218142ed8911c2944018de6",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/community-media-templates/packets/native-template-authoring-repair/template-authoring-repair-manifest.json",
+      "rule": "generic-api-key",
+      "line": 30,
+      "classification": "external_source_sha256_provenance",
+      "source_line_sha256": "5abf5da2414dcb940376515e4837b9962b38dbe3a2b3263ad75e9692ab02aa44",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/community-media-templates/packets/native-template-authoring-repair/template-authoring-repair-manifest.json",
+      "rule": "generic-api-key",
+      "line": 31,
+      "classification": "external_source_sha256_provenance",
+      "source_line_sha256": "4a7b22ad5f62aff4892dca1be47b132fa9f6418e09aca4ff01cb32dcef07128a",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/door-referral-evidence.json",
+      "rule": "generic-api-key",
+      "line": 11,
+      "classification": "external_source_sha256_provenance",
+      "source_line_sha256": "96e3eeb7c1d988c3a3d5f661bfbb0ade83ca075750a67f3064029da081289e9d",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/door-referral-evidence.json",
+      "rule": "generic-api-key",
+      "line": 12,
+      "classification": "external_source_sha256_provenance",
+      "source_line_sha256": "24a083b5b67d53757889cfc6131a347880e85455be694839b68f0ec27c969b54",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/merchant-business-extension-verification.json",
+      "rule": "generic-api-key",
+      "line": 58,
+      "classification": "external_source_sha256_provenance",
+      "source_line_sha256": "855dce60e719fdd784076b4cacb338bb5c68e6a3e0d0ba3f86670afcf8237366",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/merchant-business-extension-verification.json",
+      "rule": "generic-api-key",
+      "line": 59,
+      "classification": "external_source_sha256_provenance",
+      "source_line_sha256": "aab66252405e703e4f3b79754b3d4b19162363ca62ff9a3c6906563153dc0cd5",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/merchant-business-extension-verification.json",
+      "rule": "generic-api-key",
+      "line": 60,
+      "classification": "external_source_sha256_provenance",
+      "source_line_sha256": "e238fda5b7b2cac9244b959129a5d6645d5de5a5274df65d5ff06b781099a40f",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/merchant-business-extension-verification.json",
+      "rule": "generic-api-key",
+      "line": 61,
+      "classification": "external_source_sha256_provenance",
+      "source_line_sha256": "556c47e1be6432e40ea62171fb13f84f88286ae8e88bfec1e44c567e9dc14f1f",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/merchant-business-verification.json",
+      "rule": "generic-api-key",
+      "line": 47,
+      "classification": "external_source_sha256_provenance",
+      "source_line_sha256": "163ab85a04456a45f960c3ca4cd8ee7d1c7796560d756667561d9dc5e0297376",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/merchant-business-verification.json",
+      "rule": "generic-api-key",
+      "line": 48,
+      "classification": "external_source_sha256_provenance",
+      "source_line_sha256": "75707151b1bef6d52201fff54a7c026eaf6ecba630d8277a05b8ba2beda69efe",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/merchant-business-verification.json",
+      "rule": "generic-api-key",
+      "line": 49,
+      "classification": "external_source_sha256_provenance",
+      "source_line_sha256": "728553ea970a449fcbad0d01a0b8acf37685907a94d8d2a1f90f7c792fb09756",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/merchant-business-verification.json",
+      "rule": "generic-api-key",
+      "line": 50,
+      "classification": "external_source_sha256_provenance",
+      "source_line_sha256": "5b03f2488401bc0b597008cf8846f79fe1ab78f75e1014457bb4ae05a8ad9293",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/merchant-business-verification.json",
+      "rule": "generic-api-key",
+      "line": 51,
+      "classification": "external_source_sha256_provenance",
+      "source_line_sha256": "b114d68882824a77bc48ba1dfba3e3104da7a1ac624da50d40c4daf8bcec4458",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/merchant-business-verification.json",
+      "rule": "generic-api-key",
+      "line": 52,
+      "classification": "external_source_sha256_provenance",
+      "source_line_sha256": "900e4c2d08b91ba71decffbdba216a903f6b820ae7a08537e11a2f981318caae",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/merchant-business-verification.json",
+      "rule": "generic-api-key",
+      "line": 53,
+      "classification": "external_source_sha256_provenance",
+      "source_line_sha256": "1ff082201aad7f2af270c71879f5324f2954c446c742148e4e91da086c7ec4fa",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/merchant-business-verification.json",
+      "rule": "generic-api-key",
+      "line": 54,
+      "classification": "external_source_sha256_provenance",
+      "source_line_sha256": "7f9e57d3da1df6850e7acb2c1eaa673b9e0c402344e2016b03252447de984ea6",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/merchant-business-verification.json",
+      "rule": "generic-api-key",
+      "line": 55,
+      "classification": "external_source_sha256_provenance",
+      "source_line_sha256": "63c8cae11edac1e591a9c6059447c2b11f8c4bec6a3e327657b4a62daa0f3768",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/merchant-business-verification.json",
+      "rule": "generic-api-key",
+      "line": 56,
+      "classification": "external_source_sha256_provenance",
+      "source_line_sha256": "8e655210b1527c754189c84cf427dda46f8e3d10a53116df643a2d40bd255f38",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/merchant-content-static-evidence.json",
+      "rule": "generic-api-key",
+      "line": 10,
+      "classification": "external_source_sha256_provenance",
+      "source_line_sha256": "b50d5423f8a747d12cdac42a0f529a2ed6ae8b48c9b10c0b1d2f3445c1f18377",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/merchant-content-static-evidence.json",
+      "rule": "generic-api-key",
+      "line": 11,
+      "classification": "external_source_sha256_provenance",
+      "source_line_sha256": "3571056c3b7f714001d3af3f9ef58709b6a2cf4191fead55149c0a2e008906b0",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/merchant-content-static-evidence.json",
+      "rule": "generic-api-key",
+      "line": 12,
+      "classification": "external_source_sha256_provenance",
+      "source_line_sha256": "3eaddab58d451e9926612e123add029263f01137e8a64f1a3d6333bf59dcdaff",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/merchant-content-static-evidence.json",
+      "rule": "generic-api-key",
+      "line": 13,
+      "classification": "external_source_sha256_provenance",
+      "source_line_sha256": "4a7b22ad5f62aff4892dca1be47b132fa9f6418e09aca4ff01cb32dcef07128a",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/merchant-content-static-evidence.json",
+      "rule": "generic-api-key",
+      "line": 14,
+      "classification": "external_source_sha256_provenance",
+      "source_line_sha256": "8592cfa30cb6a737bf86354c618c811039a358673c6959cf11019ed4b4e21a72",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/merchant-content-static-evidence.json",
+      "rule": "generic-api-key",
+      "line": 15,
+      "classification": "external_source_sha256_provenance",
+      "source_line_sha256": "5abf5da2414dcb940376515e4837b9962b38dbe3a2b3263ad75e9692ab02aa44",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/merchant-content-static-evidence.json",
+      "rule": "generic-api-key",
+      "line": 16,
+      "classification": "external_source_sha256_provenance",
+      "source_line_sha256": "82222cb640eee9ade579fee99aefd5c0c8e6b090d2b37f5dd625d3acb9d321f9",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/official-action-manifest.json",
+      "rule": "generic-api-key",
+      "line": 60,
+      "classification": "native_source_sha256",
+      "source_line_sha256": "0c3fbab9a8a45b136a054d5cd4275f5550d04ee62b84da85108146250f4abd81",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/official-action-static-evidence.json",
+      "rule": "generic-api-key",
+      "line": 11,
+      "classification": "external_source_sha256_provenance",
+      "source_line_sha256": "7a83ed022983c6d3d3fc0413ff05e4a1857d823c76980c86cb536796b16f9409",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/remaining-native-clients/images/packet-manifest.json",
+      "rule": "generic-api-key",
+      "line": 120,
+      "classification": "external_source_sha256_provenance",
+      "source_line_sha256": "ae234f8ff4ecd28e12c897a2f69b9bc2f0cd509bd90a24feffec467dad1c200d",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/remaining-native-clients/images/packet-manifest.json",
+      "rule": "generic-api-key",
+      "line": 121,
+      "classification": "external_source_sha256_provenance",
+      "source_line_sha256": "e342055d53e888751b8602fd2be2bcd64248355b95b05756c6a27ce8392d52c2",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/remaining-native-clients/images/packet-manifest.json",
+      "rule": "generic-api-key",
+      "line": 122,
+      "classification": "external_source_sha256_provenance",
+      "source_line_sha256": "57ca798e82bdf9ba572c4c33a07f68c03ae8a2f78c30cf05aa5163d4709c23d1",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/settings-native-verification.json",
+      "rule": "generic-api-key",
+      "line": 10,
+      "classification": "external_source_sha256_provenance",
+      "source_line_sha256": "89ecd510932fb1c5ece1236f292cf462caa6808ad65161cb6394e5ca1542791d",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/square-journey-chat/packets/native-square-governance-new/docs/static-evidence.json",
+      "rule": "generic-api-key",
+      "line": 65,
+      "classification": "external_source_sha256_provenance",
+      "source_line_sha256": "6257993f5a570e53cd000e9c23b46f5db0c1049d8932da6bd9ed151c31813052",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/template-authoring-validation.json",
+      "rule": "generic-api-key",
+      "line": 9,
+      "classification": "external_source_sha256_provenance",
+      "source_line_sha256": "5abf5da2414dcb940376515e4837b9962b38dbe3a2b3263ad75e9692ab02aa44",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    },
+    {
+      "commit": "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f",
+      "path": "docs/template-authoring-validation.json",
+      "rule": "generic-api-key",
+      "line": 10,
+      "classification": "external_source_sha256_provenance",
+      "source_line_sha256": "24a083b5b67d53757889cfc6131a347880e85455be694839b68f0ec27c969b54",
+      "previous_reviewed_commit": "e39c367a35e1f15f9553701cbad56d0d10796c80"
+    }
+  ]
+}

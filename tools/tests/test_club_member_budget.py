@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import re
 import unittest
+from tools.tests.functional_batch_budget_history import historical_counts, historical_names
 from tools.tests.run108_runtime_budget_history import historical_profile, historical_costs, HISTORICAL_SHARD_COUNT
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -70,7 +71,7 @@ class ClubMemberBudgetTests(unittest.TestCase):
         self.assertEqual((review['new_method_count'], review['expanded_method_count']), (0, 1))
         self.assertAlmostEqual(review['replacement_estimated_seconds'] - review['superseded_observed_seconds'],
                                review['net_declared_method_seconds_added'])
-        counts = SHARD.discover(ROOT / 'Tests/AppUITests')
+        counts = historical_counts(ROOT / 'Tests/AppUITests')
         costs = historical_costs(ROOT / 'Tests/AppUITests', ROOT / 'tools/ui_duration_weights.json')
         self.assertEqual(sum(counts.values()) - selectors['new_method_count'] - current['new_method_count'] - template_controls['new_method_count'] - relation_locality['new_method_count'] - discovery_feed['new_method_count'] - public_read['new_method_count'], 597)
         self.assertAlmostEqual(sum(costs.values()) - selectors['new_estimated_method_seconds'] - current['net_declared_method_seconds_added'] - template_controls['new_estimated_method_seconds'] - relation_locality['new_estimated_method_seconds']

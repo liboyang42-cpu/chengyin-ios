@@ -14,10 +14,36 @@ final class ClubFeedReadFlowTests: XCTestCase {
         app.launch(); tap("club.gov.openFeed", app: app); return app
     }
     private func tap(_ id: String, app: XCUIApplication) {
+        if ["media.gallery.close", "club.feed.fixture.switch", "club.feed.fixture.replace"].contains(id) {
+            tapChrome(id, app: app); return
+        }
         let button = app.buttons[id]
         XCTAssertTrue(button.waitForExistence(timeout: 5), app.debugDescription)
         XCTAssertTrue(revealFixtureElement(button, in: app), app.debugDescription)
         XCTAssertTrue(button.isHittable); button.tap()
+    }
+    // Fixed fixture header and the presented gallery's navigation bar are not
+    // scrollable feed content. Never generate feed refresh gestures to reach them.
+    private func tapChrome(_ id: String, app: XCUIApplication) {
+        let gallery = id == "media.gallery.close"
+        guard gallery || ["club.feed.fixture.switch", "club.feed.fixture.replace"].contains(id) else {
+            XCTFail("Unknown fixture chrome target"); return
+        }
+        let query = gallery ? app.navigationBars.buttons.matching(identifier: id) : app.buttons.matching(identifier: id)
+        let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            guard query.count == 1 else { return false }
+            let button = query.element(boundBy: 0), frame = button.frame
+            guard button.exists, button.isEnabled, button.isHittable, !frame.isEmpty, app.frame.contains(frame) else { return false }
+            let bars = app.navigationBars.allElementsBoundByIndex.filter { $0.exists && !$0.frame.isEmpty }
+            if gallery { return bars.contains { $0.frame.contains(frame) } }
+            let counter = app.staticTexts["club.feed.fixture.imageReads"]
+            guard counter.exists, let firstBar = bars.first else { return false }
+            return frame.minY >= counter.frame.maxY && frame.maxY <= firstBar.frame.minY
+        }, object: app)
+        guard XCTWaiter.wait(for: [ready], timeout: 5) == .completed else {
+            XCTFail("Expected exact unique enabled visible fixture chrome: " + app.debugDescription); return
+        }
+        query.element(boundBy: 0).tap()
     }
     private func absent(_ id: String, app: XCUIApplication) {
         let gone = NSPredicate(format: "exists == false")

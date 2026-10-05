@@ -100,8 +100,11 @@ extension PlayExperienceService {
     private var tagExpectedValue: String?
     private var tagMustBeConfirmed = false
     public init(scope: PlaySessionScope, nodeID: Int, service: PlayExperienceService, currentSession: @escaping () -> PlayExperienceSession?) {
-        self.scope = scope; self.nodeID = nodeID; self.service = service; self.currentSession = currentSession
+        self.scope = scope; self.nodeID = nodeID; self.service = service; self.currentSession = { service.hasCurrentReadLifetime ? currentSession() : nil }
     }
+    public var readLifetimeID: String? { service.readLifetimeID }
+    public var hasCurrentReadLifetime: Bool { service.hasCurrentReadLifetime }
+    public var blocksReadRebinding: Bool { pending != nil || tagOutcomeUnknown || ["loading", "submitting"].contains(phase) }
     public func load() async {
         guard phase != "submitting", let session = currentSession() else { return }
         if let owner, owner != session { steps = []; inheritedTags = []; submission = nil; pendingTag = nil; phase = "stale"; return }

@@ -5,10 +5,10 @@ class CI68QueryTests(unittest.TestCase):
     def test_observed_lazy_form_and_combined_labels_keep_exact_outcomes(self):
         template=(ROOT/'Tests/AppUITests/MerchantTemplateAssistFlowTests.swift').read_text()
         case=template.split('func testCancelReviewDoesNotFillAndReopenHasNoCandidate()')[1].split('func testPermissionError')[0]
-        self.assertIn('revealFixtureElement(apply, in: app)',case)
-        self.assertIn('XCTAssertTrue(apply.isEnabled)',case)
-        self.assertNotIn('apply.tap()',case)
-        self.assertIn('XCTAssertFalse(app.buttons["merchant.assist.apply"].exists)',case)
+        self.assertIn('revealFixtureElement(accept, in: app)',case)
+        self.assertIn('XCTAssertTrue(accept.isEnabled)',case)
+        self.assertNotIn('accept.tap()',case)
+        self.assertIn('XCTAssertFalse(app.buttons["merchant.assist.diff.accept.title"].exists)',case)
         report=(ROOT/'Tests/AppUITests/SquareReportFlowTests.swift').read_text()
         self.assertIn('element.staticTexts["Synthetic versioned community post"]',report)
         self.assertIn('if id != "social.post.actions" { element.tap(); return }',report)

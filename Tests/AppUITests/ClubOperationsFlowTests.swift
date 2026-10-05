@@ -16,9 +16,15 @@ final class ClubOperationsFlowTests: XCTestCase {
     // The toolbar wrapper may retain an earlier accessibilityValue after a scope change.
     // Read the Text leaf that displays the live fixture store's count and identity.
     private var visibleWriteCounters: [XCUIElement] {
-        app.staticTexts.matching(identifier: "club.ops.writeCount").allElementsBoundByIndex.filter {
-            $0.exists && $0.isHittable && !$0.frame.isEmpty && app.frame.contains($0.frame)
+        func visible(_ elements: [XCUIElement]) -> [XCUIElement] {
+            elements.filter { $0.exists && $0.isHittable && !$0.frame.isEmpty && app.frame.contains($0.frame) }
         }
+        // Run108 exposes both the covered root List and the foreground sheet's
+        // counter. Resolve the leaf through its actual toolbar, never the covered
+        // root or the stale accessibility value cached on a wrapping Other node.
+        let presented = app.toolbars.staticTexts.matching(identifier: "club.ops.writeCount")
+        if presented.count > 0 { return visible(presented.allElementsBoundByIndex) }
+        return visible(app.staticTexts.matching(identifier: "club.ops.writeCount").allElementsBoundByIndex)
     }
     private var writeCounter: XCUIElement {
         let counters = visibleWriteCounters

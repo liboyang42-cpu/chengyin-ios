@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Not mounted by any production entry. All callbacks are local, draft-ID-bound.
+/// Hosted by the bounded template media review. All callbacks are local, draft-ID-bound.
 @MainActor struct TemplateImageCropView: View {
     let draft: TemplateImageCropDraft
     let confirm: (UUID, TemplateImageCropRect) -> Void

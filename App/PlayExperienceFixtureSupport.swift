@@ -129,13 +129,21 @@ private final class PlayExperienceFixtureTransport: HTTPTransport {
     var body: some View {
         NavigationStack {
             PlayExperienceView(model: model,
-                advancedModel: { nodeID in state.retained("advanced:\(nodeID)") { PlayAdvancedCoordinator(activityID: 41, topicID: 71, nodeID: nodeID, service: service, currentSession: { state.session }) } },
+                advancedModel: { nodeID in
+                    guard let lifetime = model.makeInteractionLifetime() else { return nil }
+                    let retained: PlayAdvancedCoordinator = state.retained("advanced:\(nodeID)") { PlayAdvancedCoordinator(activityID: 41, topicID: 71, nodeID: nodeID, service: service.bound(to: lifetime), currentSession: { state.session }) }
+                    return retained
+                },
                 motionModel: { nodeID, configuration in
                     PlayStillnessCoordinator(configuration: configuration,
                         provider: PlaySyntheticMotionProvider(samples: (0...20).map { .init(x: 0, y: 0, z: 1, timestamp: Double($0) / 10) }),
                         currentContext: { state.session.flatMap { try? PlayDeviceContext(session: $0, scope: .activity(41), nodeID: nodeID) } })
                 },
-                preferenceModel: { nodeID in state.retained("preference:\(nodeID)") { PlayPreferenceCoordinator(scope: .activity(41), nodeID: nodeID, service: service, currentSession: { state.session }) } },
+                preferenceModel: { nodeID in
+                    guard let lifetime = model.makeInteractionLifetime() else { return nil }
+                    let retained: PlayPreferenceCoordinator = state.retained("preference:\(nodeID)") { PlayPreferenceCoordinator(scope: .activity(41), nodeID: nodeID, service: service.bound(to: lifetime), currentSession: { state.session }) }
+                    return retained
+                },
                 summaryModel: { topicID in state.retained("summary:\(topicID)") { PlayOperatingSummaryCoordinator(topicID: topicID, service: service, currentSession: { state.session }) } },
                 playerModel: state.retained("player") { PlayPlayerGameCoordinator(activityID: 41, service: service, currentSession: { state.session }) },
                 circleModel: state.retained("circle") { PlayCircleCoordinator(topicID: 71, service: service, currentSession: { state.session }) })

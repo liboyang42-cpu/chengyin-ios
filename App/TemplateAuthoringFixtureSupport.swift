@@ -49,6 +49,12 @@ import SwiftUI
         if let text = environment["--template-author-hint1"] { seed.hint1 = text }
         if let text = environment["--template-author-hint2"] { seed.hint2 = text }
         if let text = environment["--template-author-answer-reveal"] { seed.answerReveal = text }
+        if arguments.contains("--template-author-media-fixture") {
+            seed.questionImg = "  fixture:image-e\u{301}\r\n"
+            seed.questionAudio = "\tfixture:audio "
+            seed.voiceEnabled = true; seed.audioUrl = " fixture:narration\n"
+            seed.questionOptionMediaJson = " \n" + #"{"A":{"img":"  fixture:option-A-e\u0301\r\n"},"B":{"audio":"\tfixture:option-B-audio "}}"# + "\t "
+        }
         // Metadata seeds are input-only. Read ledgers and request snapshots never write drafts.
         switch metadataReader.metadataScenario {
         case .dictionary:
@@ -123,7 +129,8 @@ import SwiftUI
             NavigationStack {
                 if ProcessInfo.processInfo.arguments.contains("--template-author-shelf") {
                     TemplateAuthoringMineView(coordinator: context.coordinator, sessionRevision: context.revision, memberDetail: { AnyView(MemberTemplateDetailView(id: $0, reader: context.memberReader)) }, fixtureSignOut: { context.signOut() })
-                } else { TemplateAuthoringView(coordinator: context.coordinator, sessionRevision: context.revision, metadataReader: context.metadataReader) }
+                } else { TemplateAuthoringView(coordinator: context.coordinator, sessionRevision: context.revision, metadataReader: context.metadataReader,
+                    mediaFixtureMode: ProcessInfo.processInfo.arguments.contains("--template-author-media-fixture") ? "generated" : nil) }
             }.id(context.mount)
         }
     }

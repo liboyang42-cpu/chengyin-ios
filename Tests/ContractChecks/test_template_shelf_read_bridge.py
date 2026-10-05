@@ -41,7 +41,8 @@ class TemplateShelfReadBridge(unittest.TestCase):
         self.assertIn('templateShelfReadApproval: { self.grants($0)?.shelf }', s)
         self.assertIn('case "api/template/my-list":', s)
         self.assertIn('case "api/template/myinfo":', s)
-        self.assertIn('testNormalRootOwnedShelfPaginationAndDetailWithoutMutation', read('Tests/AppUITests/IntegratedNativeAcceptanceFlowTests.swift'))
+        self.assertIn('testNormalRootOwnedShelfPaginationAndDetailWithoutMutation', read('Tests/AppUITests/IntegratedActivityPlayJourneyFlowTests.swift'))
+        self.assertNotIn('func testNormalRootOwnedShelfPaginationAndDetailWithoutMutation(', read('Tests/AppUITests/IntegratedNativeAcceptanceFlowTests.swift'))
 
     def test_multipart_suffix_uses_swift_character_count_not_byte_count(self):
         s = read('Core/TemplateShelfReadApproval.swift')

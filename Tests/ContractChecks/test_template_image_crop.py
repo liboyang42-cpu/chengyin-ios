@@ -42,14 +42,19 @@ class TemplateImageCropContracts(unittest.TestCase):
                      "guard active else { return false }", "guard isCurrent() else { invalidate(); return false }"]:
             self.assertIn(text, source)
 
-    def test_unmounted_seam_has_no_picker_upload_or_target_mutation(self):
+    def test_bounded_local_host_has_no_upload_or_target_mutation(self):
         source = "\n".join(self.read("App/" + name) for name in APP_FILES)
         for text in ["URLSession", "HTTPTransport", "upload(", "uploads.", "PHPicker", "UserDefaults",
                      "TemplateAuthoringMedia", "RetainedImageScope", "requestAuthorization", "fileURL", "https://"]:
             self.assertNotIn(text, source)
         for path in (ROOT / "App").glob("*.swift"):
-            if path.name not in APP_FILES:
+            if path.name not in APP_FILES + ["TemplateMediaReviewController.swift", "TemplateMediaReviewPanel.swift"]:
                 self.assertNotIn("TemplateImageCrop", path.read_text(), str(path))
+        host = self.read("App/TemplateMediaReviewController.swift")
+        for forbidden in ["upload(", "TemplateAuthoringAdapter", "URLSession", "ImageUploadJournal", "RetainedUploadedImage"]:
+            self.assertNotIn(forbidden, host)
+        self.assertIn('imageSelectionApproved: @escaping () -> Bool = { false }', host)
+        self.assertIn('TemplateImageCropSession(isCurrent:', host)
         project = self.read("Questify.xcodeproj/project.pbxproj")
         # Project registration permits compilation, not production mounting.
         for path in [*("App/" + name for name in APP_FILES), "Core/TemplateImageCrop.swift",
@@ -73,7 +78,9 @@ class TemplateImageCropContracts(unittest.TestCase):
             for language in ["en", "zh-Hans"]:
                 self.assertTrue(entry["localizations"][language]["stringUnit"]["value"])
         catalog = json.loads(self.read("Resources/Localizable.xcstrings"))["strings"]
-        self.assertTrue(set(fragment).isdisjoint(catalog), "Fragment must stay dormant until a separately reviewed integration")
+        mounted = set(fragment).intersection(catalog)
+        self.assertIn(mounted, [set(), set(fragment)], "Central integration must merge the complete reviewed fragment")
+        for key in mounted: self.assertEqual(catalog[key], fragment[key])
         for key in ["image.crop.preview", "image.crop.horizontal", "image.crop.vertical", "image.crop.zoom",
                     "image.retained.failed", "image.retained.cancel"]:
             for language in ["en", "zh-Hans"]:

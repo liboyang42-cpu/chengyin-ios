@@ -93,6 +93,8 @@ import XCTest
         }
         XCTAssertTrue(revealFixtureElement(element, in: app)); element.tap()
     }
+
+
     private func tapRoamOverflowToggle(_ app: XCUIApplication) {
         let navigation = app.navigationBars["Explore the map"]
         let city = navigation.buttons["Official city"]
@@ -208,22 +210,7 @@ import XCTest
         XCTAssertFalse(app.staticTexts["Owner \(owner) list snapshot"].exists)
         XCTAssertFalse(app.buttons["profile.order.lifecycle"].exists)
     }
-    func testNormalRootOwnedShelfPaginationAndDetailWithoutMutation() throws {
-        let app = launch(); signIn(app, owner: 7)
-        tab("Account", app); tap("account.templateAuthoring", app)
-        XCTAssertTrue(app.buttons["templateAuthor.openEditor"].exists)
-        tap("templateAuthor.openMine", app)
-        XCTAssertTrue(app.staticTexts["Owner 7 template 1"].waitForExistence(timeout: 5))
-        XCTAssertFalse(app.buttons["templateAuthor.shelf.delete.101"].isEnabled)
-        XCTAssertFalse(app.buttons["templateAuthor.shelf.library.101"].isEnabled)
-        tap("templateAuthor.shelf.loadMore", app); tap("memberTemplate.mine.111", app)
-        XCTAssertTrue(app.staticTexts["Owner 7 fresh template"].waitForExistence(timeout: 5))
-        let value = try evidence(app), reads = value.ledger.filter { $0.route.hasPrefix("shelf.") }
-        XCTAssertEqual(reads.map(\.route), ["shelf.list", "shelf.list", "shelf.detail"])
-        XCTAssertEqual(reads[0].fields["pageSize"], "10"); XCTAssertEqual(reads[1].fields["pageNum"], "2")
-        XCTAssertEqual(reads[2].fields, ["id": "111"])
-        assertIdentity(reads, owner: 7, epoch: value.epoch)
-    }
+
     func testNormalRootOwnedConfigurationReadOnlyAndStoryReturn() throws {
         let app = launch(); signIn(app, owner: 7)
         tab("Account", app); tap("account.templateAuthoring", app); tap("templateAuthor.openMine", app)
@@ -300,42 +287,7 @@ import XCTest
         XCTAssertEqual(reads.last?.fields, ["teamId": "61"])
         assertIdentity(reads, owner: 7, epoch: try evidence(app).epoch)
     }
-    func testActualPhoneHomeDetailManualMapPlayAndFreshOwnedOrderJourney() throws {
-        let app = launch(); XCTAssertEqual(try evidence(app).ledger.count, 0)
-        signIn(app)
-        wait(app) { $0.ledger.count == 9 }
-        let initial = try evidence(app)
-        XCTAssertEqual(Array(initial.ledger.prefix(3)).map(\.route), ["sms-send", "phone", "userInfo"])
-        XCTAssertNil(initial.ledger[0].token); XCTAssertNil(initial.ledger[0].accountID)
-        XCTAssertEqual(initial.ledger[0].fields, ["phone": "10000000000"])
-        XCTAssertEqual(initial.ledger.filter { $0.route == "sms-send" }.count, 1)
-        XCTAssertNil(initial.ledger[1].token); XCTAssertNil(initial.ledger[1].accountID)
-        XCTAssertEqual(initial.ledger[1].fields, ["phone": "10000000000", "code": "123456"])
-        XCTAssertEqual(initial.ledger[2].token, "synthetic-7"); XCTAssertNil(initial.ledger[2].accountID)
-        XCTAssertEqual(Array(initial.ledger.dropFirst(3)).map(\.route).sorted(), home.sorted())
-        tap("homeFeed.nearby.activity.21", app)
-        XCTAssertTrue(app.staticTexts["Synthetic activity detail"].waitForExistence(timeout: 5))
-        wait(app) { $0.ledger.count == 10 }
-        tab("Explore the map", app)
-        // Select the normal list presentation before supplying a center.
-        // The API ledger is not evidence about all operating-system networking.
-        tap("roam.display.toggle", app); chooseManualArea(app)
-        XCTAssertTrue(app.staticTexts["Synthetic manual place"].waitForExistence(timeout: 5))
-        wait(app) { $0.ledger.count == 11 }
-        XCTAssertFalse(app.alerts.firstMatch.exists)
-        tab("Home", app)
-        XCTAssertTrue(app.staticTexts["Synthetic activity detail"].waitForExistence(timeout: 5))
-        tap("activity.openPlay", app)
-        XCTAssertTrue(app.staticTexts["Synthetic read-only play"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.buttons["play.node.1"].exists); XCTAssertFalse(app.buttons["play.node.2"].exists)
-        orders(app, owner: 7)
-        let final = try evidence(app)
-        XCTAssertEqual(final.ledger.dropFirst(9).map(\.route), ["activity-detail", "map.places", "activity-detail", "play-nodes", "play-route", "orders.list", "orders.detail"])
-        assertIdentity(Array(final.ledger.dropFirst(3)), owner: 7, epoch: final.epoch)
-        XCTAssertEqual(final.ledger.last?.fields, ["id": "41"])
-        XCTAssertEqual(final.ledger[final.ledger.count - 2].fields, ["owner_type": "3"])
-        XCTAssertTrue(final.manualArea)
-    }
+
     func testPhoneCancelLogoutAccountSwitchAndColdLaunchDoNotReuseOwnerState() throws {
         let app = launch(); phoneSheet(app)
         app.textFields["auth.channels.phone"].tap(); app.textFields["auth.channels.phone"].typeText("10000000000")

@@ -65,11 +65,13 @@ import SwiftUI
                 .accessibilityIdentifier("cooprelation.fixture.signOut")
             NavigationStack {
                 CooperationFlowWorkbench(reader: reader)
-                    .environment(\.cooperationRelationDiscovery, { flow in
-                        AnyView(CoopRelationDiscoveryView(reader: flow, profiles: profiles,
-                            displayContext: .init(topicID: 3, topicName: "Synthetic topic context", chapterID: 5)))
-                    })
             }
+            // Own the destination dependency above the navigation stack. Attaching
+            // it only to the workbench leaves pushed entries with the nil fallback.
+            .environment(\.cooperationRelationDiscovery, { flow in
+                AnyView(CoopRelationDiscoveryView(reader: flow, profiles: profiles,
+                    displayContext: .init(topicID: 3, topicName: "Synthetic topic context", chapterID: 5)))
+            })
         }.dynamicTypeSize(ProcessInfo.processInfo.arguments.contains("--uitesting-large-text") ? .accessibility5 : .large)
     }
 }

@@ -14,10 +14,10 @@ import UIKit
             case .journey(let scope):
                 if let model = session.playExperience(for: scope) {
                     PlayExperienceView(model: model,
-                        deviceModel: { nodeID in session.playDevice(scope: scope, nodeID: nodeID) },
-                        advancedModel: { nodeID in session.playAdvanced(scope: scope, nodeID: nodeID, topicID: model.snapshot?.result.topicID) },
-                        motionModel: { nodeID, configuration in session.playStillness(scope: scope, nodeID: nodeID, configuration: configuration) },
-                        preferenceModel: { nodeID in session.playPreference(scope: scope, nodeID: nodeID) },
+                        deviceModel: { nodeID in session.playDevice(scope: scope, nodeID: nodeID, lifetime: model.makeInteractionLifetime()) },
+                        advancedModel: { nodeID in session.playAdvanced(scope: scope, nodeID: nodeID, topicID: model.snapshot?.result.topicID, lifetime: model.makeInteractionLifetime()) },
+                        motionModel: { nodeID, configuration in session.playStillness(scope: scope, nodeID: nodeID, configuration: configuration, lifetime: model.makeInteractionLifetime()) },
+                        preferenceModel: { nodeID in session.playPreference(scope: scope, nodeID: nodeID, lifetime: model.makeInteractionLifetime()) },
                         summaryModel: { session.playOperatingSummary(topicID: $0) },
                         playerModel: session.playPlayer(scope: scope),
                         circleModel: session.playCircle(topicID: model.snapshot?.result.topicID),

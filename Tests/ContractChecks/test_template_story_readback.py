@@ -27,7 +27,9 @@ class TemplateStoryReadbackChecks(unittest.TestCase):
             getter = body.split('return .init(get: {', 1)[1].split('}, set:', 1)[0]
             self.assertIn('guard self.generation == stamp, self.canRead else { return "" }', getter)
             self.assertNotIn('canEdit', getter)
-            self.assertIn('guard self.generation == stamp else { return }', body)
+            self.assertIn('guard self.generation == stamp, self.canEdit else { return }', body)
+            setter = body.split('}, set:', 1)[1]
+            self.assertLess(setter.index('guard self.generation'), setter.index('self.model.mediaReferencesWillChange()'))
             self.assertIn('self.apply', body)
         forms = (ROOT / 'App/TemplateAuthoringDetailForms.swift').read_text().split('struct TemplateAuthoringStoryView:', 1)[1].split('struct TemplateAuthoringAdvancedView:', 1)[0]
         self.assertIn('ForEach(Array(editor.visibleBeats.enumerated()), id: \\.element.id)', forms)

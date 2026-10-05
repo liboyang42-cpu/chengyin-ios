@@ -22,14 +22,16 @@ public struct PlayCompletionIntent: Codable, Equatable {
     public let evidence: PlayCompletionEvidence
     public let advance: PlayRouteAdvance?
     public let routeSessionID: Int?
+    /// Missing mode identifies a legacy journal; never infer it from another run.
+    public let gameplayMode: PlayGameplayMode?
     init(review: PlayCompletionReview) {
         id = review.id; owner = .init(session: review.session); originEpoch = review.session.epoch
-        nodeID = review.nodeID; evidence = review.evidence; advance = review.advance; routeSessionID = review.routeSessionID
+        nodeID = review.nodeID; evidence = review.evidence; advance = review.advance; routeSessionID = review.routeSessionID; gameplayMode = review.gameplayMode
     }
     func review(session: PlayExperienceSession, generation: UInt64) throws -> PlayCompletionReview {
         guard owner.matches(session), nodeID > 0 else { throw PlayExperienceError.staleSession }
         return .init(nodeID: nodeID, evidence: evidence, advance: advance, session: session,
-                     generation: generation, routeSessionID: routeSessionID, id: id)
+                     generation: generation, routeSessionID: routeSessionID, id: id, gameplayMode: gameplayMode)
     }
 }
 public struct PlayPendingCompletion: Codable, Equatable {

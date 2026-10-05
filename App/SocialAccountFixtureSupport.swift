@@ -1,7 +1,8 @@
 #if DEBUG
 import SwiftUI
+import Observation
 
-@MainActor final class SocialAccountFixtureReader: SocialAccountReading {
+@MainActor @Observable final class SocialAccountFixtureReader: SocialAccountReading {
     enum Scenario: String { case content, articleHTML, articleEmpty, articleRetry, reportPolicyChanged, reportContentChanged, reportUnknown, reportDisabled, guest, empty, partial, failure, delayed, unknown, rejected, disabled, removed, unconfigured }
     let scenario: Scenario
     private var informationAttempts = 0

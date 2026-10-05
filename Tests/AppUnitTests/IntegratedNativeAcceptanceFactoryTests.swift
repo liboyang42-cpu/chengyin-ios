@@ -97,6 +97,8 @@ import XCTest
         session.roamArea = IntegratedNativeAcceptanceFixture.area
         let places = try await session.roamReader.roamPlaces(radiusM: 3000); XCTAssertEqual(places.map(\.id), [42])
         let snapshot = try await oldPlay.playSession(); XCTAssertEqual(snapshot.visibleNodes.map(\.id), [1])
+        XCTAssertEqual(snapshot.result.mode, 1)
+        XCTAssertEqual(PlayGameplayMode(serverValue: snapshot.result.mode), .cityOrientation)
         let rows = try await retainedReader.profileOrders(), detail = try await retainedReader.profileOrder(id: 41)
         XCTAssertEqual(rows.first?.title, "Owner 7 list snapshot"); XCTAssertEqual(detail.title, "Owner 7 fresh detail")
         XCTAssertEqual(detail.payableAmount, Decimal(string: "12.3456"))

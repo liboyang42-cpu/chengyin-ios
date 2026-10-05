@@ -322,6 +322,37 @@ import UIKit
         XCTAssertEqual(coordinator.clock.phase, .idle); XCTAssertFalse(coordinator.remoteRunSaveFailed)
         XCTAssertEqual(wire.playRequests.count, 1)
     }
+    func testNormalChildFactoriesKeepReadLifetimeImmutableAcrossModeChanges() async throws {
+        let wire = PlayReadWire(), session = try root(wire).makeSession(); try await login(session)
+        wire.nodes = String(decoding: PlayExperienceSyntheticFixtures.envelope(PlayExperienceSyntheticFixtures.classic), as: UTF8.self)
+        let play = try XCTUnwrap(session.playExperience(for: .activity(41))); await play.load()
+        let first = try XCTUnwrap(play.makeInteractionLifetime())
+        XCTAssertNil(session.playAdvanced(scope: .activity(41), nodeID: 701, topicID: 71))
+        XCTAssertNil(session.playPreference(scope: .activity(41), nodeID: 701))
+        let advanced = try XCTUnwrap(session.playAdvanced(scope: .activity(41), nodeID: 701, topicID: 71, lifetime: first))
+        let preference = try XCTUnwrap(session.playPreference(scope: .activity(41), nodeID: 701, lifetime: first))
+        let device = session.playDevice(scope: .activity(41), nodeID: 701, lifetime: first)
+        let configuration = try PlayStillnessConfiguration(durationSeconds: 1)
+        let stillness = try XCTUnwrap(session.playStillness(scope: .activity(41), nodeID: 701, configuration: configuration, lifetime: first))
+        XCTAssertEqual(advanced.readLifetimeID, first.identity); XCTAssertEqual(preference.readLifetimeID, first.identity)
+        XCTAssertEqual(device.readLifetimeID, first.identity); XCTAssertEqual(stillness.readLifetimeID, first.identity)
+        XCTAssertTrue(advanced === session.playAdvanced(scope: .activity(41), nodeID: 701, topicID: 71, lifetime: first))
+        wire.nodes = String(decoding: PlayExperienceSyntheticFixtures.envelope(PlayExperienceSyntheticFixtures.mode2), as: UTF8.self)
+        await play.load(); let second = try XCTUnwrap(play.makeInteractionLifetime())
+        XCTAssertNotEqual(first.identity, second.identity); XCTAssertFalse(first.isCurrent)
+        let count = wire.requests.count
+        await advanced.start(); await preference.load(); await device.capture(.scan); await stillness.start()
+        XCTAssertEqual(wire.requests.count, count)
+        XCTAssertNil(session.playAdvanced(scope: .activity(41), nodeID: 701, topicID: 71, lifetime: first))
+        let freshAdvanced = try XCTUnwrap(session.playAdvanced(scope: .activity(41), nodeID: 701, topicID: 71, lifetime: second))
+        let freshPreference = try XCTUnwrap(session.playPreference(scope: .activity(41), nodeID: 701, lifetime: second))
+        let freshDevice = session.playDevice(scope: .activity(41), nodeID: 701, lifetime: second)
+        let freshStillness = try XCTUnwrap(session.playStillness(scope: .activity(41), nodeID: 701, configuration: configuration, lifetime: second))
+        XCTAssertFalse(advanced === freshAdvanced); XCTAssertFalse(preference === freshPreference)
+        XCTAssertFalse(device === freshDevice); XCTAssertFalse(stillness === freshStillness)
+        XCTAssertFalse(advanced.hasCurrentReadLifetime); XCTAssertFalse(preference.hasCurrentReadLifetime)
+        XCTAssertEqual(freshAdvanced.readLifetimeID, second.identity)
+    }
     private func seedUnknown(_ construction: PlayRecoveryConstruction, app: AppSession,
                              role: String = "player") async throws -> (PlayDurableRecovery, PlayCompletionRecoverySnapshot, String) {
         let deployment = try deployment()

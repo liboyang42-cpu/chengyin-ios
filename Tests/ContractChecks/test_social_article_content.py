@@ -17,9 +17,9 @@ class SocialArticleContentChecks(unittest.TestCase):
                       'if row.isRemoved', 'Text("social.guide.noContent")']:
             self.assertIn(token, guide)
         screen = self.read('App/SocialAccountComponents.swift')
-        for token in ['loadedIdentity != reader.identity || busy', 'try Task.checkCancellation()',
-                      'guard generation == run, reader.identity == identity',
-                      '.task(id: "\\(requestKey):\\(reader.identity)")', '.onDisappear { generation += 1; busy = false }']:
+        for token in ['loadedKey != key || busy', 'try Task.checkCancellation()',
+                      'guard generation == run, key == captured',
+                      '.task(id: key)', '.onDisappear { loads.cancel(); generation += 1; busy = false }']:
             self.assertIn(token, screen)
 
     def test_pure_projection_has_fixed_input_output_work_and_depth_caps(self):

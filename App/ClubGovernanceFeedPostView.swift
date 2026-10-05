@@ -29,8 +29,13 @@ extension EnvironmentValues {
                         .frame(width: 48, height: 48).clipShape(Circle()).accessibilityHidden(true)
                 } else { Image(systemName: "person.crop.circle").font(.title2).accessibilityHidden(true) }
                 VStack(alignment: .leading, spacing: 4) {
-                    if let nickname = post.nickname { Text(verbatim: nickname).font(.headline) }
-                    else { Text("square.unknownAuthor").font(.headline) }
+                    Group {
+                        if let nickname = post.nickname { Text(verbatim: nickname) }
+                        else { Text("square.unknownAuthor") }
+                    }.font(.headline)
+                        // Keep the post anchor on a leaf, so time and source-club
+                        // controls retain their independently addressable IDs.
+                        .accessibilityIdentifier("club.feed.post.\(post.id)")
                     if let time = post.createTime {
                         Text(verbatim: time).font(.caption).foregroundStyle(.secondary)
                             .accessibilityIdentifier("club.feed.time.\(post.id)")
@@ -48,7 +53,6 @@ extension EnvironmentValues {
             } else if post.clubName != nil { sourceClub }
         }
         .fixedSize(horizontal: false, vertical: true)
-        .accessibilityIdentifier("club.feed.post.\(post.id)")
         .id(mediaScope)
     }
     private var sourceClub: some View {

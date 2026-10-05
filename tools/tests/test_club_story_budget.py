@@ -1,3 +1,4 @@
+from tools.tests.run109_amendment_budget_history import historical_ui_sources
 """P057 full-method planning, exact historical evidence and lossless class split.
 
 These source/tool assertions are not Swift or Apple runtime execution.
@@ -9,8 +10,10 @@ import json
 from pathlib import Path
 import re
 import unittest
+from tools.tests.functional_batch_budget_history import historical_counts, historical_names
 from tools.tests.run108_runtime_budget_history import historical_profile, historical_costs, HISTORICAL_SHARD_COUNT
 from tools.tests.club_story_budget_history import before_club_story, METHOD, CLASSES
+from tools.tests.club_story_helper_history import before_horizontal_chapter_query
 
 ROOT = Path(__file__).resolve().parents[2]
 SPEC = importlib.util.spec_from_file_location('club_story_shard', ROOT / 'tools/run_ui_shard.py')
@@ -75,7 +78,7 @@ class ClubStoryBudgetTests(unittest.TestCase):
             source = (ROOT / 'Tests/AppUITests' / (case + '.swift')).read_text()
             matches = list(re.finditer(r'^    func (test\w+)\(', source, re.M))
             self.assertEqual(len(matches), 5 if case == 'ClubStoryFlowTests' else 4)
-            helpers.append(source[source.index('    private var app:'):matches[0].start()])
+            helpers.append(before_horizontal_chapter_query(source[source.index('    private var app:'):matches[0].start()]))
             for match in matches:
                 # Test bodies retain their original four-space closing brace.
                 end = source.index('\n    }', match.start()) + len('\n    }')
@@ -95,15 +98,18 @@ class ClubStoryBudgetTests(unittest.TestCase):
         self.assertEqual(HISTORICAL_SHARD_COUNT, 23)
         self.assertEqual(current['previous_shard_count'], budget['template_metadata_selectors_replan']['shard_count'])
         self.assertEqual((current['baseline_method_count'], current['baseline_total_method_seconds']), (645, 31304.282))
-        counts = SHARD.discover(ROOT / 'Tests/AppUITests')
+        counts = historical_counts(ROOT / 'Tests/AppUITests')
         floats = historical_costs(ROOT / 'Tests/AppUITests', ROOT / 'tools/ui_duration_weights.json')
         precise = {}; inventory = set()
-        for path in sorted((ROOT / 'Tests/AppUITests').glob('*.swift')):
+        for path in historical_ui_sources(ROOT / 'Tests/AppUITests'):
             source = path.read_text(); names = re.findall(r'\bfunc\s+(test\w+)\s*\(', source)
             if not names:
                 continue
             cases = re.findall(r'\bclass\s+(\w+)\s*:\s*XCTestCase\b', source)
             self.assertEqual(len(cases), 1); case = cases[0]
+            names = historical_names(case, names)
+            if not names:
+                continue
             self.assertNotIn(case, precise)
             methods = [case + '.' + name for name in names]
             self.assertEqual(len(methods), len(set(methods)))

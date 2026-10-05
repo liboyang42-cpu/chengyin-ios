@@ -2,13 +2,15 @@ import XCTest
 
 /// Authored synthetic Apple-host tests; these are not recorded runtime passes.
 final class PublicMerchantReviewFilterFlowTests: XCTestCase {
+    private var runningApp: XCUIApplication?
     override func setUpWithError() throws { continueAfterFailure = false }
+    override func tearDownWithError() throws { attachFailureScreenshot(self, app: runningApp); runningApp = nil }
     private func launch(_ scenario: String, chinese: Bool = false) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments += ["--uitesting-reset-language", "-AppleLanguages", chinese ? "(zh-Hans)" : "(en)",
             "-AppleLocale", chinese ? "zh_CN" : "en_US", "--public-merchant-home-fixture", scenario]
         if chinese { app.launchArguments.append("--uitesting-large-text") }
-        app.launch(); return app
+        runningApp = app; app.launch(); return app
     }
     private func top(_ app: XCUIApplication) { for _ in 0..<4 { app.swipeDown() } }
     private func reveal(_ element: XCUIElement, in app: XCUIApplication) {
@@ -18,7 +20,9 @@ final class PublicMerchantReviewFilterFlowTests: XCTestCase {
     private func select(_ label: String, in app: XCUIApplication) {
         top(app)
         let picker = app.buttons["merchant.publicHome.reviewFilter"]
-        XCTAssertTrue(picker.waitForExistence(timeout: 5)); reveal(picker, in: app); picker.tap()
+        // Maximum text can leave this lazy row below the initial viewport.
+        reveal(picker, in: app)
+        XCTAssertTrue(picker.waitForExistence(timeout: 5)); picker.tap()
         XCTAssertFalse(app.buttons["Awaiting reply"].exists)
         let option = app.buttons[label]; XCTAssertTrue(option.waitForExistence(timeout: 3)); option.tap()
     }
@@ -49,8 +53,12 @@ final class PublicMerchantReviewFilterFlowTests: XCTestCase {
         select("3 stars or fewer", in: app)
         reveal(low, in: app); reveal(app.staticTexts["merchant.publicHome.review.21"], in: app)
         top(app)
-        XCTAssertTrue(app.staticTexts["22"].exists, app.debugDescription)
-        XCTAssertTrue(app.staticTexts["4.7"].exists, app.debugDescription)
+        let total = app.staticTexts["merchant.publicHome.total"]
+        let rating = app.staticTexts["merchant.publicHome.rating"]
+        XCTAssertTrue(revealFixtureElement(total, in: app), app.debugDescription)
+        XCTAssertEqual(total.label, "Reviews, 22", app.debugDescription)
+        XCTAssertTrue(revealFixtureElement(rating, in: app), app.debugDescription)
+        XCTAssertEqual(rating.label, "Rating, 4.7", app.debugDescription)
         let clear = app.buttons["merchant.publicHome.clearReviewFilter"]; reveal(clear, in: app); clear.tap()
         reveal(app.staticTexts["merchant.publicHome.review.1"], in: app)
         waitForReads(2, completed: 2, in: app)
@@ -111,6 +119,7 @@ final class PublicMerchantReviewFilterFlowTests: XCTestCase {
         let photo = app.buttons["image.retained.reviewPhoto.0"]; reveal(photo, in: app); photo.tap()
         let close = app.buttons["Close photo"]
         XCTAssertTrue(close.waitForExistence(timeout: 5)); close.tap()
+        waitForReads(1, completed: 1, in: app)
         select("3 stars or fewer", in: app)
         XCTAssertFalse(app.buttons["image.retained.reviewPhoto.0"].exists)
         select("With photos", in: app)

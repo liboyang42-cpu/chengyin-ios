@@ -31,23 +31,47 @@ final class MerchantTemplateAssistFlowTests: XCTestCase {
         let button = app.buttons["merchant.assist.generate"]
         XCTAssertTrue(revealFixtureElement(button, in: app)); button.tap()
     }
+    private func fieldAction(_ action: String, _ field: String, in app: XCUIApplication) {
+        let button = app.buttons["merchant.assist.diff." + action + "." + field]
+        XCTAssertTrue(revealFixtureElement(button, in: app, towardTop: true, maximumSwipes: 30), app.debugDescription)
+        XCTAssertTrue(button.isEnabled && button.isHittable, app.debugDescription); button.tap()
+    }
+    private func fieldState(_ field: String, _ expected: String, in app: XCUIApplication) {
+        let label = app.staticTexts["merchant.assist.diff.state." + field]
+        XCTAssertTrue(revealFixtureElement(label, in: app, towardTop: true, maximumSwipes: 30, requiresHittable: false), app.debugDescription)
+        let wait = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", expected), object: label)
+        XCTAssertEqual(XCTWaiter.wait(for: [wait], timeout: 5), .completed, app.debugDescription)
+    }
+    // UNMEASURED full-method replacement:360s. The prior67.442s observation is historical only.
     func testReviewExplicitApplyReturnsToSameUnsavedTemplate() {
         let app = open(); generate(app)
-        let apply = app.buttons["merchant.assist.apply"]
-        XCTAssertTrue(revealFixtureElement(app.descendants(matching: .any)["merchant.assist.unsupported"].firstMatch, in: app, requiresHittable: false))
-        XCTAssertTrue(revealFixtureElement(apply, in: app)); XCTAssertTrue(apply.isEnabled); apply.tap()
+        XCTAssertTrue(revealFixtureElement(app.descendants(matching: .any)["merchant.assist.unsupported"].firstMatch, in: app, maximumSwipes: 30, requiresHittable: false))
+        fieldAction("accept", "title", in: app)
+        fieldState("title", "Applied to the local draft", in: app)
+        // One native tap must not also invoke the adjacent Reject control.
+        let rejectTitle = app.buttons["merchant.assist.diff.reject.title"]
+        XCTAssertTrue(rejectTitle.exists); XCTAssertFalse(rejectTitle.isEnabled)
+        fieldAction("undo", "title", in: app); fieldState("title", "Undone", in: app)
+        fieldAction("accept", "title", in: app); fieldState("title", "Applied to the local draft", in: app)
+        fieldAction("reject", "description", in: app); fieldState("description", "Rejected", in: app)
+        let acceptDescription = app.buttons["merchant.assist.diff.accept.description"]
+        XCTAssertTrue(acceptDescription.exists); XCTAssertFalse(acceptDescription.isEnabled)
+        XCTAssertFalse(app.buttons["merchant.assist.apply"].exists)
+        let close = app.buttons["merchant.assist.close"]
+        XCTAssertTrue(close.isHittable); close.tap()
         XCTAssertFalse(app.descendants(matching: .any)["merchant.assist.sheet"].exists)
         let title = app.descendants(matching: .any)["merchant.operations.field.title"].firstMatch
         XCTAssertTrue(revealFixtureElement(title, in: app)); XCTAssertEqual(title.value as? String, "Synthetic riddle")
         XCTAssertFalse(app.staticTexts["merchant.operations.exampleSaved"].exists)
         XCTAssertFalse(app.buttons["merchant.operations.confirm"].exists)
     }
+    // UNMEASURED full-method replacement:180s. The prior91.44s observation is historical only.
     func testCancelReviewDoesNotFillAndReopenHasNoCandidate() {
         let app = open(); generate(app)
-        let apply = app.buttons["merchant.assist.apply"]
-        // Generated fields push Apply below the lazy Form viewport; reveal without applying.
-        XCTAssertTrue(revealFixtureElement(apply, in: app), app.debugDescription)
-        XCTAssertTrue(apply.isEnabled)
+        let accept = app.buttons["merchant.assist.diff.accept.title"]
+        // Reveal one real per-field candidate without accepting or rejecting it.
+        XCTAssertTrue(revealFixtureElement(accept, in: app), app.debugDescription)
+        XCTAssertTrue(accept.isEnabled)
         app.buttons["merchant.assist.close"].tap()
         let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
             !app.descendants(matching: .any)["merchant.assist.sheet"].exists
@@ -55,7 +79,7 @@ final class MerchantTemplateAssistFlowTests: XCTestCase {
         XCTAssertEqual(XCTWaiter.wait(for: [dismissed], timeout: 5), .completed, app.debugDescription)
         let assist = app.buttons["merchant.assist.open"]; XCTAssertTrue(revealFixtureElement(assist, in: app)); assist.tap()
         XCTAssertTrue(app.buttons["merchant.assist.generate"].waitForExistence(timeout: 4))
-        XCTAssertFalse(app.buttons["merchant.assist.apply"].exists)
+        XCTAssertFalse(app.buttons["merchant.assist.diff.accept.title"].exists)
         XCTAssertTrue(app.buttons["merchant.assist.generate"].isEnabled)
         attachFixtureScreenshot(self, app: app, name: "AI template canceled and reopened without candidate")
     }

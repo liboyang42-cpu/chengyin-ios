@@ -75,6 +75,13 @@ import XCTest
         let current = try XCTUnwrap(input.value as? String)
         XCTAssertEqual(current.components(separatedBy: text).count, 2)
         XCTAssertEqual(current.replacingOccurrences(of: text, with: ""), previous)
+        let done = app.buttons["sensorDraft.keyboardDone"]
+        XCTAssertTrue(done.waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertTrue(done.isEnabled && done.isHittable, app.debugDescription)
+        done.tap()
+        let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: app.keyboards.firstMatch)
+        XCTAssertEqual(XCTWaiter.wait(for: [dismissed], timeout: 5), .completed, app.debugDescription)
+        XCTAssertEqual(input.value as? String, current, "Closing the keyboard cannot change the accepted input")
         return current
     }
 
@@ -124,6 +131,7 @@ import XCTest
         XCTAssertFalse(app.buttons["templateAuthor.confirmSimulation"].exists)
     }
 
+    // UNMEASURED full-method replacement estimate: 300 seconds, including both real Done actions.
     func testCurrentSensorPreviewAndRestorePreserveExactOriginalJSON() throws {
         let app = launch(type: "steps", raw: source)
         XCTAssertEqual(field("targetSteps", in: app).value as? String, "12")

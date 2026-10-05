@@ -7,6 +7,8 @@ struct PlaySessionView: View {
     let reader: any PlayReading
     @State private var model: PlayViewModel
     @State private var selectedNodeID: Int?
+    @State private var freePackOpen = false
+    @State private var presentedMode: Int?
     init(reader: any PlayReading) {
         self.reader = reader; _model = State(initialValue: PlayViewModel(reader: reader))
     }
@@ -23,13 +25,24 @@ struct PlaySessionView: View {
             } else if let issue = model.visibleIssue {
                 PlayIssueView(issue: issue) { Task { await model.load(keepingReceipt: true) } }
             } else if let snapshot = model.visibleSnapshot {
-                overview(snapshot)
+                if snapshot.result.mode == 2 {
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 16) {
+                            FreeExplorationCardBrowser(snapshot: snapshot, packOpen: $freePackOpen) { id in
+                                guard model.visibleSnapshot == snapshot, model.visibleSnapshot?.result.mode == 2 else { return }
+                                selectedNodeID = id
+                            }
+                            Text("playFree.readOnly").font(.footnote)
+                        }.padding()
+                    }.accessibilityIdentifier("playFree.read.overview")
+                } else if snapshot.result.mode == 1 { overview(snapshot) }
+                else { ContentUnavailableView("playMode.unavailable", systemImage: "questionmark.circle") }
             } else {
                 PlayIssueView(issue: .init(APIError.malformedResponse)) { Task { await model.load() } }
             }
         }
         .privacySensitive()
-        .appNavigationTitle("play.title")
+        .appNavigationTitle(key: model.visibleSnapshot?.result.mode == 2 ? "playFree.title" : "play.title")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -39,10 +52,16 @@ struct PlaySessionView: View {
             }
         }
         .navigationDestination(item: $selectedNodeID) { nodeID in
-            PlayNodeDetailView(nodeID: nodeID, model: model)
+            if model.visibleSnapshot?.result.mode == 2 { FreeExplorationReadStoreView(nodeID: nodeID, model: model) }
+            else if model.visibleSnapshot?.result.mode == 1 { PlayNodeDetailView(nodeID: nodeID, model: model) }
+            else { Text("playMode.unavailable") }
         }
         .task(id: reader.identity) { await model.load() }
-        .onChange(of: reader.identity) { _, _ in selectedNodeID = nil }
+        .onChange(of: reader.identity) { _, _ in selectedNodeID = nil; freePackOpen = false; presentedMode = nil }
+        .onChange(of: model.visibleSnapshot?.result.mode) { _, mode in
+            guard let mode else { return }
+            if presentedMode != mode { selectedNodeID = nil; freePackOpen = false; presentedMode = mode }
+        }
     }
     private func overview(_ snapshot: PlaySnapshot) -> some View {
         List {

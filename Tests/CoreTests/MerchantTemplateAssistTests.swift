@@ -22,6 +22,21 @@ import FoundationNetworking
     }
     func cancel() { cancelled += 1 }
 }
+@MainActor private final class TemplateAssistAccessReader: MerchantOperationsReading {
+    let base = MerchantOperationsFixtureReader()
+    var scope: UUID { base.scope }
+    var isConfigured: Bool { base.isConfigured }
+    var isAuthenticated: Bool { base.isAuthenticated }
+    var isOfflineExample: Bool { true }
+    var onHeldAccess: (() -> Void)?
+    var continuation: CheckedContinuation<Void, Never>?
+    func access() async throws -> MerchantOperationsAccess {
+        if let onHeldAccess { await withCheckedContinuation { continuation = $0; onHeldAccess() } }
+        return try await base.access()
+    }
+    func document(_ destination: MerchantOperationsDestination) async throws -> MerchantOperationsDocument { try await base.document(destination) }
+    func saveExample(_ draft: MerchantOperationsDraft) async throws { try await base.saveExample(draft) }
+}
 @MainActor final class MerchantTemplateAssistTests: XCTestCase {
     private func setup(id: Int? = nil) async -> (MerchantOperationsFixtureReader, MerchantOperationsCoordinator, TemplateAssistFake, MerchantTemplateAssistFlow) {
         let reader = MerchantOperationsFixtureReader()
@@ -34,6 +49,15 @@ import FoundationNetworking
     }
     private func template(_ coordinator: MerchantOperationsCoordinator) throws -> MerchantNodeTemplate {
         guard case .template(let value) = coordinator.draft else { throw MerchantTemplateAssistFailure.stale }; return value
+    }
+    private func action(_ flow: MerchantTemplateAssistFlow, _ field: MerchantTemplateAssistField) throws -> MerchantTemplateSuggestionReview.Action {
+        let review = try XCTUnwrap(flow.visibleReview)
+        return review.action(for: try XCTUnwrap(review.suggestions.first { $0.field == field }))
+    }
+    private func accept(_ field: MerchantTemplateAssistField, in flow: MerchantTemplateAssistFlow,
+                        file: StaticString = #filePath, line: UInt = #line) async throws {
+        let accepted = await flow.change(try action(flow, field), .accept)
+        XCTAssertTrue(accepted, file: file, line: line)
     }
     func testExactInputContractRequiresShopNameAndPrompt() throws {
         XCTAssertThrowsError(try MerchantTemplateAssistInput(shopName: " ", prompt: "quiz", method: nil)) { XCTAssertEqual($0 as? MerchantTemplateAssistFailure, .shopNameRequired) }
@@ -65,22 +89,25 @@ import FoundationNetworking
         XCTAssertThrowsError(try MerchantTemplateAssistResult(.object(["parseError": .string("bad"), "template": .object(["questionName": .string("ignored")])])))
         XCTAssertThrowsError(try MerchantTemplateAssistResult(.object(["questionName": .array([])])))
     }
-    func testGenerateDoesNotMutateAndOnlyExplicitApplyReturnsToExactDraft() async throws {
+    func testGenerateDoesNotMutateAndOnlyExplicitFieldAcceptChangesExactDraft() async throws {
         let (reader, coordinator, client, flow) = await setup()
         let original = coordinator.draft
         await flow.generate()
-        XCTAssertEqual(client.calls, 1); XCTAssertEqual(coordinator.draft, original); XCTAssertEqual(reader.saveCount, 0); XCTAssertTrue(flow.canApply)
-        let returned = await flow.apply(), value = try XCTUnwrap(returned)
-        XCTAssertEqual(coordinator.draft, original); XCTAssertEqual(value.title, "Generated"); XCTAssertEqual(value.correctAnswer, "A")
-        coordinator.edit(.template(value))
-        XCTAssertEqual(try template(coordinator), value); XCTAssertNil(coordinator.confirmation); XCTAssertEqual(reader.saveCount, 0)
-        let repeated = await flow.apply(); XCTAssertNil(repeated)
+        XCTAssertEqual(client.calls, 1); XCTAssertEqual(coordinator.draft, original); XCTAssertEqual(reader.saveCount, 0); XCTAssertTrue(flow.canAcceptAny)
+        let titleAction = try action(flow, .title)
+        try await accept(.title, in: flow)
+        XCTAssertEqual(try template(coordinator).title, "Generated")
+        XCTAssertEqual(try template(coordinator).questionName, "", "Accept one field cannot silently accept another")
+        for field: MerchantTemplateAssistField in [.questionName, .optionA, .optionB, .validationMethod, .correctAnswer] { try await accept(field, in: flow) }
+        let value = try template(coordinator)
+        XCTAssertEqual(value.correctAnswer, "A"); XCTAssertNil(coordinator.confirmation); XCTAssertEqual(reader.saveCount, 0)
+        let repeated = await flow.change(titleAction, .accept); XCTAssertFalse(repeated)
     }
     func testExistingContentMethodMediaAndCouponNeverOverwritten() async throws {
         let (reader, coordinator, _, flow) = await setup(id: 71)
         let before = try template(coordinator); await flow.generate()
-        XCTAssertFalse(flow.canApply)
-        XCTAssertEqual(flow.preview, before); XCTAssertEqual(try template(coordinator).couponID, 19); XCTAssertEqual(reader.saveCount, 0)
+        XCTAssertFalse(flow.canAcceptAny)
+        XCTAssertEqual(try template(coordinator), before); XCTAssertEqual(try template(coordinator).couponID, 19); XCTAssertEqual(reader.saveCount, 0)
     }
     func testEditsAndIntentionalClearsDuringGenerationArePreserved() async throws {
         let (_, coordinator, client, flow) = await setup()
@@ -89,13 +116,16 @@ import FoundationNetworking
             coordinator.edit(.template(draft)); draft.description = ""; coordinator.edit(.template(draft))
         }
         await flow.generate()
-        let returned = await flow.apply(), value = try XCTUnwrap(returned)
+        XCTAssertFalse(flow.canChange(try action(flow, .title), change: .accept))
+        XCTAssertFalse(flow.canChange(try action(flow, .description), change: .accept))
+        for field: MerchantTemplateAssistField in [.questionName, .optionB, .feedbackText] { try await accept(field, in: flow) }
+        let value = try template(coordinator)
         XCTAssertEqual(value.title, "My title"); XCTAssertEqual(value.description, ""); XCTAssertEqual(value.method, .photo); XCTAssertEqual(value.optionA, "My option"); XCTAssertEqual(value.correctAnswer, "")
     }
     func testEditsAfterReviewAndBeforeApplyArePreserved() async throws {
         let (_, coordinator, _, flow) = await setup(); await flow.generate()
         var draft = try template(coordinator); draft.feedbackText = "Manual feedback"; coordinator.edit(.template(draft))
-        let returned = await flow.apply(); XCTAssertEqual(returned?.feedbackText, "Manual feedback")
+        try await accept(.title, in: flow); XCTAssertEqual(try template(coordinator).feedbackText, "Manual feedback")
     }
     func testUnsupportedFieldsAndStorySummaryStayVisibleAndOutOfSaveFields() throws {
         let story = String(repeating: "故事", count: 20)
@@ -123,11 +153,11 @@ import FoundationNetworking
         await retry.generate(); XCTAssertEqual(retry.failure, .provider); XCTAssertTrue(retry.canGenerate)
         retryClient.failure = nil; await retry.generate(); XCTAssertNotNil(retry.result)
     }
-    func testPermissionRevokedBeforeGenerationOrApplyNeverMutates() async {
+    func testPermissionRevokedBeforeGenerationOrApplyNeverMutates() async throws {
         let (reader, coordinator, client, flow) = await setup(); reader.denied = true
         await flow.generate(); XCTAssertEqual(flow.failure, .permission); XCTAssertEqual(client.calls, 0)
         let (applyReader, applyCoordinator, _, applyFlow) = await setup(); await applyFlow.generate(); applyReader.denied = true
-        let returned = await applyFlow.apply(); XCTAssertNil(returned); XCTAssertEqual(applyFlow.failure, .permission)
+        let changed = await applyFlow.change(try action(applyFlow, .title), .accept); XCTAssertFalse(changed); XCTAssertEqual(applyFlow.failure, .permission)
         XCTAssertFalse(coordinator.isDirty); XCTAssertFalse(applyCoordinator.isDirty); XCTAssertEqual(applyReader.saveCount, 0)
     }
     func testCancelAndSessionOrDraftReplacementDiscardLateResults() async {
@@ -138,9 +168,11 @@ import FoundationNetworking
         let (_, replacedCoordinator, replacedClient, replaced) = await setup(); replacedClient.onGenerate = { replacedCoordinator.discardChanges() }
         await replaced.generate(); XCTAssertEqual(replaced.failure, .stale); XCTAssertNil(replaced.result)
     }
-    func testSameRecordReloadFencesOldResultAndUnknownNeverRetries() async {
-        let (_, coordinator, _, flow) = await setup(); await flow.generate(); await coordinator.load()
-        XCTAssertFalse(flow.canApply); let returned = await flow.apply(); XCTAssertNil(returned)
+    func testSameRecordReloadFencesOldResultAndUnknownNeverRetries() async throws {
+        let (_, coordinator, _, flow) = await setup(); await flow.generate()
+        let oldAction = try action(flow, .title); await coordinator.load()
+        XCTAssertFalse(flow.canAcceptAny); XCTAssertNil(flow.visibleReview)
+        let changed = await flow.change(oldAction, .accept); XCTAssertFalse(changed)
         let (_, _, client, unknown) = await setup(); client.failure = .unknown
         await unknown.generate(); XCTAssertEqual(unknown.failure, .unknown); XCTAssertFalse(unknown.canGenerate)
     }
@@ -159,6 +191,46 @@ import FoundationNetworking
     }
     func testEmptyResponseHasNoApplyAndCanRetry() async {
         let (_, _, client, flow) = await setup(); client.value = .object(["title": .string("Only title")])
-        await flow.generate(); XCTAssertEqual(flow.failure, .empty); XCTAssertNil(flow.result); XCTAssertFalse(flow.canApply); XCTAssertTrue(flow.canGenerate)
+        await flow.generate(); XCTAssertEqual(flow.failure, .empty); XCTAssertNil(flow.result); XCTAssertFalse(flow.canAcceptAny); XCTAssertTrue(flow.canGenerate)
+    }
+    func testFinalFieldCheckAfterPermissionReadPreservesConcurrentEdits() async throws {
+        for sameField in [false, true] {
+            let reader = TemplateAssistAccessReader(), coordinator = MerchantOperationsCoordinator(reader: reader, destination: .template(nil))
+            await coordinator.load(); let flow = MerchantTemplateAssistFlow(coordinator: coordinator, client: TemplateAssistFake())
+            flow.shopName = "Synthetic"; flow.prompt = "Question"; await flow.generate()
+            let action = try action(flow, .title), started = expectation(description: "permission read held")
+            reader.onHeldAccess = { started.fulfill() }
+            let task = Task { await flow.change(action, .accept) }
+            await fulfillment(of: [started], timeout: 2)
+            var current = try template(coordinator)
+            if sameField { current.title = "Manual" } else { current.feedbackText = "  Preserve newest\n" }
+            coordinator.edit(.template(current))
+            reader.continuation?.resume(); reader.continuation = nil
+            let accepted = await task.value
+            XCTAssertEqual(accepted, !sameField)
+            XCTAssertEqual(try template(coordinator).title, sameField ? "Manual" : "Generated")
+            XCTAssertEqual(try template(coordinator).feedbackText, current.feedbackText)
+            XCTAssertEqual(reader.base.saveCount, 0); XCTAssertNil(coordinator.confirmation)
+        }
+    }
+    func testCancelOrIdentityReplacementDuringFieldPermissionReadPreventsCommit() async throws {
+        for interruption in ["cancel", "discard", "owner", "task"] {
+            let reader = TemplateAssistAccessReader(), coordinator = MerchantOperationsCoordinator(reader: reader, destination: .template(nil))
+            await coordinator.load(); let flow = MerchantTemplateAssistFlow(coordinator: coordinator, client: TemplateAssistFake())
+            flow.shopName = "Synthetic"; flow.prompt = "Question"; await flow.generate()
+            let action = try action(flow, .title), before = coordinator.draft, started = expectation(description: "permission read held")
+            reader.onHeldAccess = { started.fulfill() }
+            let task = Task { await flow.change(action, .accept) }
+            await fulfillment(of: [started], timeout: 2)
+            switch interruption {
+            case "cancel": flow.close()
+            case "discard": coordinator.discardChanges()
+            case "owner": reader.base.switchAccount()
+            default: task.cancel()
+            }
+            reader.continuation?.resume(); reader.continuation = nil
+            let accepted = await task.value
+            XCTAssertFalse(accepted); XCTAssertEqual(coordinator.draft, before); XCTAssertEqual(reader.base.saveCount, 0)
+        }
     }
 }

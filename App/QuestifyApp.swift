@@ -216,8 +216,10 @@ struct SessionRootView: View {
         .task { await session.bootstrap() }
         .onAppear { session.setPrivateHomePresentationActive(true) }
         .onAppear { session.setOwnerDraftPresentationActive(true) }
+        .onAppear { session.setWorkshopOwnedPresentationActive(true) }
         .onDisappear { session.setPrivateHomePresentationActive(false) }
         .onDisappear { session.setOwnerDraftPresentationActive(false) }
+        .onDisappear { session.setWorkshopOwnedPresentationActive(false) }
         .onOpenURL { session.receiveNativeURL($0) }
         .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { session.receiveWeChatUserActivity($0) }
         .sheet(item: Binding(get: { session.nativeEntry }, set: { if $0 == nil { session.dismissNativeEntry() } })) { entry in

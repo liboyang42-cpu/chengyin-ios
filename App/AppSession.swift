@@ -4,7 +4,7 @@ import SwiftUI
 
 @MainActor
 final class AppSession: ObservableObject {
-    @Published private(set) var account: Account? { willSet { invalidateOwnerDraftBrowser(); if account?.id != newValue?.id || account?.effectiveRole != newValue?.effectiveRole { invalidateShopNPCConversations(); merchantNPCSessionOwner.invalidate() }; if account?.id != newValue?.id { platformConsumers.invalidate() } } didSet { _ = runtimeDependencies; synchronizeAccountMarketingEntry() } }
+    @Published private(set) var account: Account? { willSet { if account?.id != newValue?.id || account?.effectiveRole.data(using: .utf8) != newValue?.effectiveRole.data(using: .utf8) { workshopOwnedBinding.invalidate() }; invalidateOwnerDraftBrowser(); if account?.id != newValue?.id || account?.effectiveRole != newValue?.effectiveRole { invalidateShopNPCConversations(); merchantNPCSessionOwner.invalidate() }; if account?.id != newValue?.id { platformConsumers.invalidate() } } didSet { _ = runtimeDependencies; synchronizeAccountMarketingEntry() } }
     @Published private(set) var isWorking = false { didSet { synchronizeAccountMarketingEntry() } }
     @Published private(set) var errorKey: String?
     let platformConsumers = PlatformConsumerSessionOwner()
@@ -443,6 +443,53 @@ final class AppSession: ObservableObject {
     private var retainedPlayDirectors: [String: PlayDirectorCoordinator] = [:]
     private var retainedPlayPrefabs: [String: PlayPrefabRuntimeCoordinator] = [:]
     private lazy var prefabRuntimeStore = PlayPrefabRuntimeStore(storage: templateAuthoringSecureStorage)
+    private let workshopOwnedBinding = WorkshopOwnedSessionBinding()
+    @Published private var workshopOwnedPresentationActive = true
+    private var workshopReadConfigurationChanging = false
+    private var currentWorkshopOwnedContext: RuntimeDependencyContext? {
+        guard workshopOwnedPresentationActive, !workshopReadConfigurationChanging else { return nil }
+        return currentRuntimeDependencyContext
+    }
+    func setWorkshopOwnedPresentationActive(_ active: Bool) {
+        if !active { workshopOwnedBinding.invalidate() }
+        workshopOwnedPresentationActive = active
+    }
+    @Published private var workshopReadConfigurationRevision: UInt64 = 0
+    private var currentWorkshopOwnedApproval: WorkshopOwnedReadApproval? {
+        guard let context = currentWorkshopOwnedContext,
+              let approval = composition.workshopOwnedReadApproval(context), approval.matches(context) else { return nil }
+        return approval
+    }
+    /// One session-owned instance. A nil/expired/revoked approval never constructs a browser.
+    var workshopOwnedBrowser: WorkshopOwnedBrowser? {
+        let context = currentWorkshopOwnedContext, approval = currentWorkshopOwnedApproval
+        let viewer = compositionViewerRevision, configurationRevision = workshopReadConfigurationRevision
+        workshopOwnedBinding.reconcile(context: context, configurationRevision: approval?.revision) { captured in
+            guard let api = regionalConfiguration?.apiConfiguration else { return nil }
+            let current: () -> RuntimeDependencyContext? = { [weak self] in
+                guard let self, self.compositionViewerRevision == viewer,
+                      self.workshopReadConfigurationRevision == configurationRevision else { return nil }
+                return self.currentWorkshopOwnedContext
+            }
+            return WorkshopOwnedComposition.makeBrowser(context: captured, api: api, transport: compositionTransport,
+                approval: approval, currentApproval: { [weak self] in self?.currentWorkshopOwnedApproval },
+                current: current, onUnauthorized: { [weak self] captured in
+                    guard let self, ContentDraftContextFence.matches(current(), captured) else { return }
+                    self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch,
+                        credential: captured.session.token)
+                })
+        }
+        return workshopOwnedBinding.browser
+    }
+    /// The owner of an injected reviewed selector must use this boundary BEFORE changing it,
+    /// including grant A → nil → A. This revision is only an invalidation signal, never a grant.
+    func withWorkshopReadConfigurationChange(_ change: () -> Void) {
+        workshopOwnedBinding.invalidate()
+        workshopReadConfigurationChanging = true
+        change()
+        workshopReadConfigurationChanging = false
+        workshopReadConfigurationRevision &+= 1
+    }
     @Published private var ownerDraftPresentationActive = true
     private var retainedOwnerDraftBrowser: (context: RuntimeDependencyContext, browser: OwnerDraftBrowser)?
     private var currentOwnerDraftContext: RuntimeDependencyContext? {
@@ -575,21 +622,21 @@ final class AppSession: ObservableObject {
     private func playRuntimeKey(_ scope: PlaySessionScope, suffix: String) -> String {
         "\(storageScope?.service ?? "none"):\(gate.currentStamp):\(account?.id ?? 0):\(account?.effectiveRole ?? "none"):\(scope.fields.keys.sorted().joined()):\(scope.id):\(suffix)"
     }
-    func playAdvanced(scope: PlaySessionScope, nodeID: Int, topicID: Int?) -> PlayAdvancedCoordinator? {
-        guard scope.isValid, nodeID > 0, let topicID, topicID > 0, let api = dormantPlayRuntimeService() else { return nil }
+    func playAdvanced(scope: PlaySessionScope, nodeID: Int, topicID: Int?, lifetime: PlayInteractionLifetime? = nil) -> PlayAdvancedCoordinator? {
+        guard let lifetime, lifetime.isCurrent, scope.isValid, nodeID > 0, let topicID, topicID > 0, let api = dormantPlayRuntimeService() else { return nil }
         let key = playRuntimeKey(scope, suffix: "advanced:\(nodeID)")
-        if let retained = retainedPlayAdvanced[key] { return retained }
+        if let retained = retainedPlayAdvanced[key], retained.readLifetimeID == lifetime.identity || retained.blocksReadRebinding { return retained }
         let activityID: Int
         switch scope { case .activity(let id): activityID = id; case .topic(let id): guard id == topicID else { return nil }; activityID = 0 }
-        let model = PlayAdvancedCoordinator(activityID: activityID, topicID: topicID, nodeID: nodeID, service: api,
+        let model = PlayAdvancedCoordinator(activityID: activityID, topicID: topicID, nodeID: nodeID, service: api.bound(to: lifetime),
             currentSession: { [weak self] in self?.currentPlayRuntimeSession })
         retainedPlayAdvanced[key] = model; return model
     }
-    func playPreference(scope: PlaySessionScope, nodeID: Int) -> PlayPreferenceCoordinator? {
-        guard scope.isValid, nodeID > 0, let api = dormantPlayRuntimeService() else { return nil }
+    func playPreference(scope: PlaySessionScope, nodeID: Int, lifetime: PlayInteractionLifetime? = nil) -> PlayPreferenceCoordinator? {
+        guard let lifetime, lifetime.isCurrent, scope.isValid, nodeID > 0, let api = dormantPlayRuntimeService() else { return nil }
         let key = playRuntimeKey(scope, suffix: "preference:\(nodeID)")
-        if let retained = retainedPlayPreferences[key] { return retained }
-        let model = PlayPreferenceCoordinator(scope: scope, nodeID: nodeID, service: api,
+        if let retained = retainedPlayPreferences[key], retained.readLifetimeID == lifetime.identity || retained.blocksReadRebinding { return retained }
+        let model = PlayPreferenceCoordinator(scope: scope, nodeID: nodeID, service: api.bound(to: lifetime),
             currentSession: { [weak self] in self?.currentPlayRuntimeSession })
         retainedPlayPreferences[key] = model; return model
     }
@@ -618,11 +665,12 @@ final class AppSession: ObservableObject {
         retainedPlayPrefabs[key] = model; return model
     }
     private var retainedPlayStillness: [String: PlayStillnessCoordinator] = [:]
-    func playStillness(scope: PlaySessionScope, nodeID: Int, configuration: PlayStillnessConfiguration) -> PlayStillnessCoordinator? {
-        guard scope.isValid, nodeID > 0 else { return nil }
+    func playStillness(scope: PlaySessionScope, nodeID: Int, configuration: PlayStillnessConfiguration, lifetime: PlayInteractionLifetime? = nil) -> PlayStillnessCoordinator? {
+        guard let lifetime, lifetime.isCurrent, scope.isValid, nodeID > 0 else { return nil }
         let key = playRuntimeKey(scope, suffix: "stillness:\(nodeID):\(configuration.durationSeconds):\(configuration.tolerance)")
-        if let retained = retainedPlayStillness[key] { return retained }
-        let model = PlayStillnessCoordinator(configuration: configuration, provider: makeRuntimeMotionProvider(), currentContext: { [weak self] in
+        if let retained = retainedPlayStillness[key], retained.readLifetimeID == lifetime.identity { return retained }
+        retainedPlayStillness[key]?.pause()
+        let model = PlayStillnessCoordinator(configuration: configuration, provider: makeRuntimeMotionProvider(), readLifetime: lifetime, currentContext: { [weak self] in
             guard let session = self?.currentPlayRuntimeSession else { return nil }
             return try? PlayDeviceContext(session: session, scope: scope, nodeID: nodeID)
         })
@@ -709,10 +757,11 @@ final class AppSession: ObservableObject {
         let model = PlayCircleCoordinator(topicID: id, service: api, currentSession: { [weak self] in self?.currentPlayRuntimeSession })
         retainedPlayCircles[key] = model; return model
     }
-    func playDevice(scope: PlaySessionScope, nodeID: Int) -> PlayDeviceCaptureCoordinator {
+    func playDevice(scope: PlaySessionScope, nodeID: Int, lifetime: PlayInteractionLifetime? = nil) -> PlayDeviceCaptureCoordinator {
         let key = playRuntimeKey(scope, suffix: "device:\(nodeID)")
-        if let retained = retainedPlayDevices[key] { return retained }
-        let api = dormantPlayRuntimeService()
+        if let retained = retainedPlayDevices[key], let lifetime, lifetime.isCurrent, retained.readLifetimeID == lifetime.identity { return retained }
+        retainedPlayDevices[key]?.cancel()
+        let api = lifetime.flatMap { lifetime in lifetime.isCurrent ? dormantPlayRuntimeService()?.bound(to: lifetime) : nil }
         let model = PlayDeviceCaptureCoordinator(provider: scopedPlayDeviceProvider(), filter: PlayNativePhotoFilter.render,
             upload: api?.enabled.contains(.mediaUpload) == true ? { [weak self] bytes, mime, context in
                 guard let self, let session = self.currentPlayRuntimeSession,
@@ -720,8 +769,8 @@ final class AppSession: ObservableObject {
                       let api else { throw PlayExperienceError.staleSession }
                 return try await api.uploadPhoto(bytes, mimeType: mime, token: session.token)
             } : nil,
-            current: { [weak self] in
-                guard let session = self?.currentPlayRuntimeSession else { return nil }
+            readLifetime: lifetime, current: { [weak self] in
+                guard let lifetime, lifetime.isCurrent, let session = self?.currentPlayRuntimeSession else { return nil }
                 return try? PlayDeviceContext(session: session, scope: scope, nodeID: nodeID)
             })
         retainedPlayDevices[key] = model; return model
@@ -760,6 +809,7 @@ final class AppSession: ObservableObject {
     private func commitChannelLogin(_ result: LoginResult, expected: AuthChannelSessionSnapshot) throws -> Bool {
         guard self.authChannelSnapshot == expected, self.account == nil, !self.isWorking else { return false }
         try self.vault.write(result.token)
+        self.workshopOwnedBinding.invalidate()
         self.gate.invalidate()
         sessionDefaults.set(false,forKey:self.restoreBlockedKey)
         self.commitAuthenticatedSession(token: result.token, account: result.account);self.errorKey=nil
@@ -2226,6 +2276,7 @@ final class AppSession: ObservableObject {
             // Account refresh can change roles without advancing the login operation gate.
             // Preserve an ABA fence even when the same account/role/token later returns.
             compositionViewerRevision &+= 1
+            socialAccountReader.invalidatePresentation()
             retainedNativeVerification?.flow.deactivate(); retainedNativeVerification = nil
             retainedPublishingService?.service.invalidateReviews(); retainedPublishingService = nil
             clubChatOwners.removeAll(); groupPollOwners.removeAll(); retainedIMWriter = nil; imExpandedCoordinators.removeAll(); imImageCoordinators.removeAll(); imStarters.removeAll()
@@ -2257,7 +2308,7 @@ final class AppSession: ObservableObject {
         retainedDoorCoordinator?.updateSession(doorReferralSession)
     }
 
-    private var token: String? { willSet { invalidateOwnerDraftBrowser(); if token != newValue { invalidateShopNPCConversations(); platformConsumers.invalidate() } } didSet { _ = runtimeDependencies; synchronizeAccountMarketingEntry() } }
+    private var token: String? { willSet { if token.map({ Data($0.utf8) }) != newValue.map({ Data($0.utf8) }) { workshopOwnedBinding.invalidate() }; invalidateOwnerDraftBrowser(); if token != newValue { invalidateShopNPCConversations(); platformConsumers.invalidate() } } didSet { _ = runtimeDependencies; synchronizeAccountMarketingEntry() } }
     private var didBootstrap = false
     private let restoreBlockedKey:String
     var isConfigured: Bool { storageScope != nil }
@@ -2348,6 +2399,7 @@ final class AppSession: ObservableObject {
             try? vault.clear()
             return
         }
+        workshopOwnedBinding.invalidate()
         let operation=gate.begin(.bootstrap)
         clubActionCoordinator.synchronizeSession()
         clubManagementCoordinator.synchronizeSession();clubOperationsCoordinator.synchronizeSession();clubGovernanceCoordinator.cancelReview();profileEditCoordinator.synchronizeSession()
@@ -2377,6 +2429,7 @@ final class AppSession: ObservableObject {
     func login(username:String,password:String) async {
         guard !isWorking, !authChannels.state.isWorking, !weChatAuth.isWorking else { return }
         guard let service else { errorKey="auth.notConfigured";return }
+        workshopOwnedBinding.invalidate()
         let operation=gate.begin(.login)
         clubActionCoordinator.synchronizeSession()
         clubManagementCoordinator.synchronizeSession();clubOperationsCoordinator.synchronizeSession();clubGovernanceCoordinator.cancelReview();profileEditCoordinator.synchronizeSession()
@@ -2405,6 +2458,7 @@ final class AppSession: ObservableObject {
         // Close must invalidate SMS login immediately, before SwiftUI dismisses its sheet.
         // Transport cancellation is best-effort; the coordinator generation fences late replies.
         authChannels.cancel()
+        if gate.activeKind == .login { workshopOwnedBinding.invalidate() }
         if gate.cancelLogin() { isWorking=false;errorKey=nil;clubActionCoordinator.synchronizeSession()
         clubManagementCoordinator.synchronizeSession();clubOperationsCoordinator.synchronizeSession();clubGovernanceCoordinator.cancelReview();profileEditCoordinator.synchronizeSession();merchantOnboardingCoordinator.synchronizeSession() }
     }
@@ -2414,6 +2468,7 @@ final class AppSession: ObservableObject {
         weChatAuth.cancel()
         authChannels.cancel()
         let oldToken=token
+        workshopOwnedBinding.invalidate()
         gate.invalidate()
         // Persist a non-secret tombstone before deletion. A Keychain failure cannot
         // silently restore a logged-out account at the next cold start.
@@ -2469,6 +2524,7 @@ final class AppSession: ObservableObject {
         guard error as? APIError == .unauthorized, credential != nil,
               gate.isCurrent(stamp), credential == token else { return }
         nativeWeChatPaymentAdapter.cancelPending()
+        workshopOwnedBinding.invalidate()
         gate.invalidate()
         sessionDefaults.set(true,forKey:restoreBlockedKey)
         roamArea=nil;searchMapSelection.select(nil);token=nil;account=nil;isWorking=false;errorKey="auth.expired"

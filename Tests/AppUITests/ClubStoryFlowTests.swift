@@ -13,9 +13,38 @@ final class ClubStoryFlowTests: XCTestCase {
         XCTAssertTrue(app.segmentedControls["club.story.tabs"].waitForExistence(timeout: 5))
     }
     private func tap(_ id: String) {
+        if ["club.story.chapter.0", "club.story.chapter.1", "club.story.chapter.2"].contains(id) {
+            tapChapter(id); return
+        }
         let button = app.buttons[id]
         XCTAssertTrue(revealFixtureElement(button, in: app), app.debugDescription)
         XCTAssertTrue(button.isHittable, app.debugDescription); button.tap()
+    }
+    private func tapChapter(_ id: String) {
+        // These synthetic chapter controls live in a horizontal scroller. The
+        // ordinary content helper scrolls vertically and cannot expose chapter 3.
+        let scrollers = app.scrollViews.allElementsBoundByIndex.filter { $0.buttons[id].exists }
+        guard scrollers.count == 1, let scroller = scrollers.first,
+              revealFixtureElement(scroller, in: app, towardTop: true, requiresHittable: false) else {
+            XCTFail("Expected one visible chapter selector. " + app.debugDescription); return
+        }
+        for attempt in 0...8 {
+            let matches = scroller.buttons.matching(identifier: id)
+            guard matches.count == 1 else { XCTFail("Chapter selector must stay unique. " + app.debugDescription); return }
+            let button = matches.element(boundBy: 0)
+            let visible = scroller.frame.intersection(app.frame)
+            let frame = button.frame
+            guard !visible.isEmpty, !visible.isNull, !frame.isEmpty else {
+                XCTFail("Chapter selector needs real geometry. " + app.debugDescription); return
+            }
+            if visible.contains(frame), button.isEnabled, button.isHittable {
+                button.tap(); return
+            }
+            guard attempt < 8 else { break }
+            if frame.midX < visible.midX { scroller.swipeRight() }
+            else { scroller.swipeLeft() }
+        }
+        XCTFail("Chapter must fit inside its horizontal selector before tapping. " + app.debugDescription)
     }
     private func gameplay() { app.segmentedControls["club.story.tabs"].buttons.element(boundBy: 1).tap() }
     private func back() { app.navigationBars.buttons.firstMatch.tap() }

@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import re
 import unittest
+from tools.tests.functional_batch_budget_history import historical_counts, historical_names
 from tools.tests.run108_runtime_budget_history import historical_profile, historical_costs, HISTORICAL_SHARD_COUNT
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -78,7 +79,7 @@ class TopicSocialBudgetTests(unittest.TestCase):
         self.assertEqual(budget['public_read_replan']['previous_shard_count'], replan['shard_count'])
         self.assertEqual((replan['new_method_count'], replan['new_estimated_method_seconds']), (9, 1380))
         self.assertTrue(replan['basis'])
-        counts = SHARD.discover(ROOT / 'Tests/AppUITests')
+        counts = historical_counts(ROOT / 'Tests/AppUITests')
         costs = historical_costs(ROOT / 'Tests/AppUITests', ROOT / 'tools/ui_duration_weights.json')
         self.assertGreater(sum(costs.values()), 15 * (1800 - 300))
         groups = SHARD.partition(costs, HISTORICAL_SHARD_COUNT)

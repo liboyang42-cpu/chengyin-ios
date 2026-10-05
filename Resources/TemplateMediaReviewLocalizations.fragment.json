@@ -1,0 +1,518 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "templateMedia.optionImage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choice image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选项图片"
+          }
+        }
+      }
+    },
+    "templateMedia.optionAudio": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choice audio"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选项音频"
+          }
+        }
+      }
+    },
+    "templateMedia.storyImage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Story image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "剧情图片"
+          }
+        }
+      }
+    },
+    "templateMedia.awaiting": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No local selection yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未选择本地媒体。"
+          }
+        }
+      }
+    },
+    "templateMedia.pending": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local selection is pending. Nothing has been uploaded."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地选择处理中，尚未上传任何内容。"
+          }
+        }
+      }
+    },
+    "templateMedia.cropping": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review this local image crop. The source aspect ratio is retained."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查本地图片裁剪，保持原图宽高比。"
+          }
+        }
+      }
+    },
+    "templateMedia.ready": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ready for local review only. The saved reference is unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅供本地审阅，已保存的引用保持不变。"
+          }
+        }
+      }
+    },
+    "templateMedia.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The local selection could not be inspected. Reselect or cancel."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法检查本地选择，请重新选择或取消。"
+          }
+        }
+      }
+    },
+    "templateMedia.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review a local image or audio inspection for one field. This does not upload or replace its saved reference."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按字段审阅本地图片或音频检查结果。此操作不会上传或替换已保存的引用。"
+          }
+        }
+      }
+    },
+    "templateMedia.notUploaded": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local only · Not uploaded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅限本地 · 未上传"
+          }
+        }
+      }
+    },
+    "templateMedia.saved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unchanged saved reference"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未更改的已保存引用"
+          }
+        }
+      }
+    },
+    "templateMedia.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No saved reference."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚无已保存的引用。"
+          }
+        }
+      }
+    },
+    "templateMedia.selectImage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select an image for local review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择图片供本地审阅"
+          }
+        }
+      }
+    },
+    "templateMedia.imageUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Native image selection is unavailable in this build."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此版本暂不可使用原生图片选择。"
+          }
+        }
+      }
+    },
+    "templateMedia.audioUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Native audio document selection is unavailable here. Inspection is not playable audio or an attachment."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此处暂不可使用原生音频文件选择。检查结果不是可播放音频，也不是已添加附件。"
+          }
+        }
+      }
+    },
+    "templateMedia.localImage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reviewed local image, not uploaded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已审阅的本地图片，尚未上传"
+          }
+        }
+      }
+    },
+    "templateMedia.audioEvidence": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Extension and byte-count inspection only. The bytes were not decoded or retained as playable audio."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅检查扩展名与字节数。未解码或保留为可播放音频。"
+          }
+        }
+      }
+    },
+    "templateMedia.reselect": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard selection and reselect"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "丢弃本地选择并重新选择"
+          }
+        }
+      }
+    },
+    "templateMedia.applyUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply unavailable: no uploaded reference"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂不可应用：没有已上传的引用"
+          }
+        }
+      }
+    },
+    "templateMedia.finish": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finish review without changing the reference"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结束审阅并保持引用不变"
+          }
+        }
+      }
+    },
+    "templateMedia.testOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test-only generated data · No files or network"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅测试生成数据 · 不读取文件或联网"
+          }
+        }
+      }
+    },
+    "templateMedia.testReady": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generate test selection"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生成测试选择"
+          }
+        }
+      }
+    },
+    "templateMedia.testHeld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hold test selection pending"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保持测试选择待处理"
+          }
+        }
+      }
+    },
+    "templateMedia.testFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show test inspection failure"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示测试检查失败"
+          }
+        }
+      }
+    },
+    "templateMedia.testComplete": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complete pending test selection"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成待处理测试选择"
+          }
+        }
+      }
+    },
+    "templateMedia.stale": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This local review is no longer current. Return to the editor and open the field again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地审阅已失效，请返回编辑器重新打开该字段。"
+          }
+        }
+      }
+    },
+    "templateMedia.cancel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel local review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消本地审阅"
+          }
+        }
+      }
+    },
+    "templateMedia.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local media review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地媒体审阅"
+          }
+        }
+      }
+    },
+    "template.imageCrop.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crop image · original aspect"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "裁剪图片 · 保持原图比例"
+          }
+        }
+      }
+    },
+    "template.imageCrop.localOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adjust the composition within the original image shape. Confirming only keeps a local selection; nothing is uploaded."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在原图比例内调整构图。确认仅保留本地选择，不会上传。"
+          }
+        }
+      }
+    },
+    "template.imageCrop.reset": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset to full image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重置为完整图片"
+          }
+        }
+      }
+    },
+    "template.imageCrop.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep crop locally"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留本地裁剪"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

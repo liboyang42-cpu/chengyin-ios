@@ -101,8 +101,12 @@ class TemplateAuthoringMediaIdentitySourceContracts(unittest.TestCase):
                 self.assertNotIn(forbidden, source)
         self.assertIn("@MainActor public final class TemplateAuthoringMediaIdentityScope", IDENTITY)
 
-    def test_dormant_seams_are_not_referenced_by_central_ui(self):
+    def test_identity_seams_are_only_mounted_by_bounded_local_review_controller(self):
         for path in (ROOT / "App").glob("*.swift"):
+            if path.name == "TemplateMediaReviewController.swift":
+                self.assertIn("beginSelection(target: row.target)", path.read_text())
+                self.assertNotIn("TemplateAuthoringAdapter", path.read_text())
+                continue
             source = path.read_text()
             self.assertNotIn("TemplateAuthoringMediaIdentityScope", source, str(path))
             self.assertNotIn("TemplateAuthoringMediaReferenceSnapshot", source, str(path))

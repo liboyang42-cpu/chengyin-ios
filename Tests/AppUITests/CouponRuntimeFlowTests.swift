@@ -13,12 +13,13 @@ import XCTest
     }
     func testNormalRootExplicitCreateThenOwnedStop() throws {
         launch("ready"); openCoupons(); enterDraft(); tap("couponManagement.confirm")
-        let acknowledgement = app.staticTexts["couponManagement.readback"]
+        let acknowledgement = app.staticTexts["couponManagement.notice.editor.readback"]
         XCTAssertTrue(revealFixtureElement(acknowledgement, in: app, towardTop: true, requiresHittable: false))
         XCTAssertEqual(acknowledgement.label, "Server acknowledged; current coupon record verified.")
         try closeEditor(expectedDirty: false)
         tap("couponManagement.definition.910"); tap("couponManagement.stop.review"); tap("couponManagement.confirm")
-        XCTAssertTrue(revealFixtureElement(acknowledgement, in: app, towardTop: true, requiresHittable: false))
+        let stoppedAcknowledgement = app.staticTexts["couponManagement.notice.detail.readback"]
+        XCTAssertTrue(revealFixtureElement(stoppedAcknowledgement, in: app, towardTop: true, requiresHittable: false))
         XCTAssertFalse(app.buttons["couponManagement.stop.review"].exists)
         let finished = XCTNSPredicateExpectation(predicate: NSPredicate { [self] _, _ in
             availableEvidence()?["writes"] as? Int == 2
@@ -35,7 +36,7 @@ import XCTest
     }
     func testNormalRootTimeoutCannotRepeatConfirmedPublication() throws {
         launch("unknown"); openCoupons(); enterDraft(); tap("couponManagement.confirm")
-        let issue = app.staticTexts["couponManagement.issue"]
+        let issue = app.staticTexts["couponManagement.notice.editor.issue"]
         XCTAssertTrue(revealFixtureElement(issue, in: app, towardTop: true, requiresHittable: false)); XCTAssertTrue(issue.exists)
         tap("couponManagement.publish.review")
         XCTAssertFalse(app.buttons["couponManagement.confirm"].exists)
@@ -46,7 +47,7 @@ import XCTest
     }
     func testNormalRootFreshPermissionRevokedAtConfirmDoesNotWrite() throws {
         launch("revokeOnConfirm"); openCoupons(); enterDraft(); tap("couponManagement.confirm")
-        XCTAssertTrue(revealFixtureElement(app.staticTexts["couponManagement.issue"], in: app, towardTop: true, requiresHittable: false))
+        XCTAssertTrue(revealFixtureElement(app.staticTexts["couponManagement.notice.editor.issue"], in: app, towardTop: true, requiresHittable: false))
         try closeEditor()
         let record = try evidence()
         XCTAssertEqual(record["writes"] as? Int, 0)
@@ -56,12 +57,12 @@ import XCTest
     func testNormalRootDiskRestartDoesNotRedispatchUnknownCreation() throws {
         let journal = UUID()
         launch("unknown", journalID: journal); openCoupons(); enterDraft(); tap("couponManagement.confirm")
-        XCTAssertTrue(revealFixtureElement(app.staticTexts["couponManagement.issue"], in: app, towardTop: true, requiresHittable: false))
+        XCTAssertTrue(revealFixtureElement(app.staticTexts["couponManagement.notice.editor.issue"], in: app, towardTop: true, requiresHittable: false))
         try closeEditor()
         XCTAssertEqual(try evidence()["writes"] as? Int, 1)
         app.terminate()
         launch("ready", journalID: journal); openCoupons(); enterDraft(expectReview: false)
-        XCTAssertTrue(revealFixtureElement(app.staticTexts["couponManagement.issue"], in: app, towardTop: true, requiresHittable: false))
+        XCTAssertTrue(revealFixtureElement(app.staticTexts["couponManagement.notice.editor.issue"], in: app, towardTop: true, requiresHittable: false))
         XCTAssertFalse(app.buttons["couponManagement.confirm"].exists)
         try closeEditor()
         let record = try evidence()

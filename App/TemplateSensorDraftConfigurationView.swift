@@ -17,6 +17,7 @@ import SwiftUI
 
 @MainActor struct TemplateSensorDraftConfigurationFields: View {
     @ObservedObject var model: TemplateAuthoringModel
+    @FocusState private var focusedParameter: String?
     private var value: TemplateSensorDraft { model.draft.sensorDraft ?? .init() }
     var body: some View {
         if model.canEdit, model.draft.id == nil, model.draft.validationMethod.rawValue == 7 {
@@ -33,7 +34,17 @@ import SwiftUI
                     VStack(alignment: .leading) {
                         Text(LocalizedStringKey(parameter.labelKey))
                         TextField(LocalizedStringKey(parameter.labelKey), text: Binding(get: { value.input(parameter) }, set: { model.setSensorInput(parameter, $0) }))
+                            .focused($focusedParameter, equals: parameter.rawValue)
                             .keyboardType(.numberPad).accessibilityIdentifier("sensorDraft.input." + parameter.rawValue)
+                            .toolbar {
+                                ToolbarItemGroup(placement: .keyboard) {
+                                    if focusedParameter == parameter.rawValue {
+                                        Spacer()
+                                        Button("action.done") { focusedParameter = nil }
+                                            .accessibilityIdentifier("sensorDraft.keyboardDone")
+                                    }
+                                }
+                            }
                         Text("1…\(parameter.maximum)").font(.caption).foregroundStyle(.secondary)
                         if value.integer(parameter) == nil { Text("sensorDraft.invalidField").font(.caption).foregroundStyle(.secondary) }
                     }

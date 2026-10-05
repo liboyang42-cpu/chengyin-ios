@@ -33,12 +33,13 @@ import SwiftUI
                 if model.state.visibleRows(scope: key.scope).isEmpty {
                     ContentUnavailableView("rewards.empty", systemImage: "gift")
                 }
-                ForEach(model.state.visibleRows(scope: key.scope)) { reward in
+                ForEach(model.state.visibleSelections(scope: key.scope)) { selection in
+                    let destination = NonCashRewardDetailDestination(selection: selection)
                     NavigationLink {
-                        NonCashRewardDetailView(reference: NonCashRewardReference(reward), reader: reader).id(reader.scope)
-                    } label: { NonCashRewardCard(reward: reward) }
+                        NonCashRewardDetailView(destination: destination, reader: reader).id(destination.id)
+                    } label: { NonCashRewardCard(reward: selection.reference.snapshot) }
                     .buttonStyle(QuestifyCardButtonStyle()).questifyCardListRow()
-                    .accessibilityIdentifier("rewards.row.\(reward.id)")
+                    .accessibilityIdentifier("rewards.row.\(selection.reference.awardId)")
                 }
                 if model.state.isLoadingMore { ProgressView("accountCollection.loading") }
                 else if let issue = model.state.moreIssue {
@@ -77,23 +78,39 @@ private struct NonCashRewardCard: View {
 @MainActor private struct NonCashRewardDetailView: View {
     let reference: NonCashRewardReference
     let reader: any NonCashRewardReading
-    @StateObject private var model = AccountCollectionScreenModel<NonCashReward>()
+    @StateObject private var model: NonCashRewardDetailScreenModel
     @Environment(\.scenePhase) private var scenePhase
     @State private var presenting = false
+    @State private var viewPresentation = NonCashRewardDetailViewPresentation()
     private var key: AccountCollectionLoadKey { .init(rewardReader: reader, awardId: reference.awardId) }
+    init(destination: NonCashRewardDetailDestination, reader: any NonCashRewardReading) {
+        self.reference = destination.selection.reference; self.reader = reader
+        _model = StateObject(wrappedValue: destination.makeScreenModel())
+    }
     var body: some View {
-        List {
+        // Capture this presentation before SwiftUI may defer an action closure.
+        let appearance = viewPresentation
+        let presentation = appearance.permit
+        return List {
             if !reader.isAuthenticated { AccountCollectionIssueView(issue: .login) }
             else if !reader.isConfigured { AccountCollectionIssueView(issue: .notConfigured) }
-            else if model.isLoading || model.loadedScope != key.scope { ProgressView("accountCollection.loading") }
+            else if model.state.selection.ownerScope != key.scope {
+                Text("rewards.read.reselect").accessibilityIdentifier("rewards.read.reselect")
+            } else if model.isLoading || model.loadedScope != key.scope { ProgressView("accountCollection.loading") }
             else if let issue = model.issue(scope: key.scope) {
-                AccountCollectionIssueView(issue: issue, retry: { Task { await refresh() } })
+                AccountCollectionIssueView(issue: issue, retry: { scheduleRefresh(presentation: presentation) })
             } else if let reward = model.value(scope: key.scope) {
                 NonCashRewardDetailContent(reward: reward, reader: reader, present: present)
+                if let projection = model.projection(scope: key.scope) { NonCashRewardReadFactsView(projection: projection) }
             }
         }
         .listStyle(.insetGrouped).appNavigationTitle("rewards.detail")
-        .modifier(AccountCollectionReadLifecycle(key: key, refresh: refresh, cancel: model.cancelPending))
+        .onAppear {
+            guard let permit = appearance.begin(model: model, foreground: scenePhase == .active) else { return }
+            scheduleRefresh(presentation: permit)
+        }
+        .onChange(of: key) { _, _ in scheduleRefresh(presentation: presentation) }
+        .refreshable { presenting = false; await model.refresh(reader: reader, presentation: presentation) }
         // The owning List survives row recycling. A sheet on the content Group
         // is distributed across lazy rows and can disappear while scrolling.
         .sheet(isPresented: $presenting) {
@@ -110,11 +127,17 @@ private struct NonCashRewardCard: View {
                 }
             }
         }
-        .onChange(of: scenePhase) { _, phase in if phase != .active { presenting = false } }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active { presenting = false }
+            model.setForeground(phase == .active, reader: reader, presentation: presentation)
+        }
         .onChange(of: reader.scope) { _, _ in presenting = false }
         .onChange(of: reader.isAuthenticated) { _, authenticated in if !authenticated { presenting = false } }
         .onChange(of: reader.isConfigured) { _, configured in if !configured { presenting = false } }
-        .onDisappear { presenting = false }
+        .onDisappear {
+            if appearance.end(model: model) { presenting = false }
+            if viewPresentation === appearance { viewPresentation = NonCashRewardDetailViewPresentation() }
+        }
     }
     private var presentationAllowed: Bool {
         guard reader.isAuthenticated, reader.isConfigured, reader.isOfflineExample,
@@ -125,10 +148,9 @@ private struct NonCashRewardCard: View {
         guard presentationAllowed else { return }
         presenting = true
     }
-    private func refresh() async {
+    private func scheduleRefresh(presentation: NonCashRewardReadLifetime?) {
         presenting = false
-        guard reader.isAuthenticated, reader.isConfigured else { model.invalidate(); return }
-        await model.load(scope: key.scope, currentScope: { reader.scope }) { try await reader.reward(reference) }
+        model.scheduleRefresh(reader: reader, presentation: presentation)
     }
 }
 
@@ -154,6 +176,7 @@ private struct NonCashRewardCard: View {
                 LabeledContent("rewards.asOf") { Text(reward.asOf, format: .dateTime) }
                 Text(LocalizedStringKey("rewards.validity." + reward.validityStatus.rawValue))
                 Text("rewards.expiryHint").font(.footnote)
+                Text("rewards.read.frozenTerms").font(.footnote).accessibilityIdentifier("rewards.read.frozenTerms")
             }
             Section {
                 if reader.isOfflineExample, reward.canPresent(at: NonCashRewardDemo.now) {

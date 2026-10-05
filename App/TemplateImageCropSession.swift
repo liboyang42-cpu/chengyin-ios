@@ -5,8 +5,8 @@ struct TemplateImageCropDraft: Identifiable {
     let source: RetainedSelectedImage
 }
 
-/// Dormant, in-memory selection seam. Confirmation changes only this local
-/// selection; a future host must separately review transmission and fence target
+/// In-memory selection seam. Confirmation changes only this local
+/// selection; its host must separately review transmission and fence target
 /// mutation with its owner/session/draft/field lease. No URL/proof is minted here.
 @MainActor final class TemplateImageCropSession: ObservableObject {
     @Published private(set) var draft: TemplateImageCropDraft?
@@ -44,7 +44,7 @@ struct TemplateImageCropDraft: Identifiable {
         draft = nil; failed = false
     }
 
-    /// The future host must call this on leave/background or a changed lease.
+    /// The host must call this on leave/background or a changed lease.
     /// This terminal session releases all image bytes and rejects delayed callbacks.
     func invalidate() { active = false; draft = nil; selection = nil; failed = false }
 

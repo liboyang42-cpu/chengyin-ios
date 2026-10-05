@@ -14,6 +14,11 @@ import Foundation
     private var consumedCursors = Set<String>()
     public init() {}
     public func visibleRows(scope: UUID) -> [NonCashReward] { loadedScope == scope ? rows : [] }
+    /// Freeze the accepted row owner before any lazy navigation destination is constructed.
+    public func visibleSelections(scope: UUID) -> [NonCashRewardDetailSelection] {
+        guard let loadedScope, loadedScope == scope else { return [] }
+        return rows.map { NonCashRewardDetailSelection(reference: .init($0), ownerScope: loadedScope) }
+    }
     public func invalidate() {
         generation &+= 1; rows = []; nextCursor = nil; asOf = nil; issue = nil; moreIssue = nil
         loadedScope = nil; isLoading = false; isLoadingMore = false; consumedCursors = []

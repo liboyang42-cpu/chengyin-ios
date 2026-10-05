@@ -21,7 +21,7 @@ class NonCashRewardReaderChecks(unittest.TestCase):
     def test_live_ui_does_not_enable_presentation_and_fresh_detail_is_read(self):
         source = (ROOT / 'App/NonCashRewardViews.swift').read_text()
         self.assertIn('reader.isOfflineExample, reward.canPresent', source)
-        self.assertIn('try await reader.reward(reference)', source)
+        self.assertIn('try await reader.reward(reference, lifetime: lifetime)', (ROOT / 'Core/NonCashRewardDetailModel.swift').read_text())
         self.assertIn('rewards.redemptionUnavailable', source)
         self.assertIn('model.state.nextCursor != nil', source)
         self.assertIn('AccountCollectionReadLifecycle', source)

@@ -482,16 +482,34 @@ struct ClubGovernanceEventView: View {
         }
         .navigationTitle("club.gov.story").accessibilityIdentifier("club.gov.story")
         .navigationDestination(item: $selectedTemplate) { selection in
-            if sourceIsCurrent, selection.isCurrent(snapshot: snapshot, context: context,
-                snapshotGeneration: snapshotGeneration, templates: templates), let destination = templates.destination {
-                destination(selection.route.templateID).id(selection.id)
-            } else { Text("club.story.templateUnavailable").accessibilityIdentifier("club.story.destinationUnavailable") }
+            Group {
+                if current(selection), let destination = templates.destination {
+                    destination(selection.route.templateID).id(selection.id)
+                } else { Text("club.story.templateUnavailable").accessibilityIdentifier("club.story.destinationUnavailable") }
+            }
+            // The covered List may not receive its change callback while this
+            // destination is visible. Retire from the active destination too.
+            .onChange(of: sourceRevision, initial: true) { _, _ in
+                guard selectedTemplate?.id == selection.id, !current(selection) else { return }
+                selectedTemplate = nil
+            }
         }
         .navigationDestination(item: $selectedAnswer) { target in
-            if current(target) {
-                ClubGovernanceReadView(operation: .nodeAnswer, scope: target.scope, identity: identity, access: access, coordinator: coordinator)
-                    .id(target.id)
-            } else { Text("club.story.sourceUnavailable") }
+            Group {
+                if current(target) {
+                    ClubGovernanceReadView(operation: .nodeAnswer, scope: target.scope, identity: identity, access: access, coordinator: coordinator)
+                        .id(target.id)
+                } else { Text("club.story.sourceUnavailable") }
+            }
+            .onChange(of: sourceRevision, initial: true) { _, _ in
+                guard selectedAnswer?.id == target.id, !current(target) else { return }
+                selectedAnswer = nil
+            }
+        }
+        .task(id: context) {
+            // The overview is also covered. On return, obtain a fresh source
+            // through its original scoped loader, rather than reuse old cards.
+            if !sourceIsCurrent { await reload() }
         }
         .onChange(of: sourceRevision) { _, _ in invalidateSelection(resetChapter: true) }
         .onChange(of: tab) { _, _ in invalidateSelection() }
@@ -564,6 +582,10 @@ struct ClubGovernanceEventView: View {
     private func answerRoute(_ play: ClubStoryGameplay) -> ClubStoryAnswerRoute? {
         guard sourceIsCurrent, let snapshot else { return nil }
         return .init(gameplay: play, snapshot: snapshot, context: context, snapshotGeneration: snapshotGeneration)
+    }
+    private func current(_ selection: ClubStoryTemplateSelection) -> Bool {
+        sourceIsCurrent && selection.isCurrent(snapshot: snapshot, context: context,
+            snapshotGeneration: snapshotGeneration, templates: templates)
     }
     private func current(_ route: ClubStoryAnswerRoute) -> Bool {
         sourceIsCurrent && route.isCurrent(snapshot: snapshot, context: context, snapshotGeneration: snapshotGeneration)

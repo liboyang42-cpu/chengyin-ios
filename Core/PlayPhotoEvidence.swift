@@ -11,7 +11,8 @@ public enum PlayPhotoFilter: String, CaseIterable {
 extension PlayExperienceService {
     /// Source play_api.dart uploadImage: one multipart `file`, top-level `url`.
     /// Upload is not node completion, receipt evidence, or a reward.
-    public func uploadPhoto(_ bytes: Data, mimeType: String, token: String) async throws -> String {
+    @MainActor public func uploadPhoto(_ bytes: Data, mimeType: String, token: String) async throws -> String {
+        try checkReadLifetime()
         guard enabled.contains(.mediaUpload) else { throw PlayExperienceError.disabled }
         guard AuthRequestBuilder.isValidToken(token), !bytes.isEmpty, bytes.count <= 20 * 1024 * 1024,
               ["image/jpeg", "image/png"].contains(mimeType) else { throw APIError.invalidRequest }
@@ -26,7 +27,12 @@ extension PlayExperienceService {
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         try Task.checkCancellation()
-        let (data, status) = try await transport.send(request)
+        let data: Data, status: Int
+        do {
+            try checkReadLifetime()
+            (data, status) = try await transport.send(request)
+        } catch { try checkReadLifetime(); throw error }
+        try checkReadLifetime()
         try Task.checkCancellation()
         let envelope = try? JSONDecoder().decode(PlayWireValue.self, from: data)
         if status == 401 || envelope?["code"].tolerantInteger == 401 { throw PlayExperienceError.unauthorized }

@@ -102,28 +102,28 @@ final class TopicFlowTests: XCTestCase {
     func testReviewSummaryKeepsServerTotalAcrossDifferentRoutesAndReopen() {
         launch("reviews")
         revealAndTap(app.buttons["topic.row.7"])
-        XCTAssertEqual(revealReview("topic.reviews.count").label, "12")
-        XCTAssertEqual(revealReview("topic.reviews.average").label, "4.2 / 5")
+        XCTAssertEqual(revealReview("topic.reviews.count").label, "Total reviews, 12")
+        XCTAssertEqual(revealReview("topic.reviews.average").label, "Average rating, 4.2 / 5")
         XCTAssertEqual(revealReview("topic.reviews.text.0").label, "A useful route review.")
         XCTAssertEqual(revealReview("topic.reviews.ratingUnknown.1").label, "Rating unavailable")
         XCTAssertFalse(app.staticTexts["topic.reviews.empty"].exists)
         app.navigationBars["Route details"].buttons.firstMatch.tap()
 
         revealAndTap(app.buttons["topic.row.8"])
-        XCTAssertEqual(revealReview("topic.reviews.count").label, "3")
+        XCTAssertEqual(revealReview("topic.reviews.count").label, "Total reviews, 3")
         XCTAssertEqual(revealReview("topic.reviews.text.0").label, "A different route review.")
         XCTAssertFalse(app.staticTexts["A useful route review."].exists)
         app.navigationBars["Route details"].buttons.firstMatch.tap()
 
         revealAndTap(app.buttons["topic.row.7"])
-        XCTAssertEqual(revealReview("topic.reviews.count").label, "12")
+        XCTAssertEqual(revealReview("topic.reviews.count").label, "Total reviews, 12")
         XCTAssertEqual(revealReview("topic.reviews.text.0").label, "A useful route review.")
     }
 
     func testKnownEmptyTopicReviewsUseChineseEmptyStateWithoutZeroStars() {
         launch("reviewsEmpty", language: "zh-Hans")
         revealAndTap(app.buttons["topic.row.7"])
-        XCTAssertEqual(revealReview("topic.reviews.count").label, "0")
+        XCTAssertEqual(revealReview("topic.reviews.count").label, "评价总数、0")
         XCTAssertEqual(revealReview("topic.reviews.empty").label, "这条路线还没有评价。")
         XCTAssertFalse(app.staticTexts["topic.reviews.average"].exists)
         XCTAssertFalse(app.staticTexts["topic.reviews.averageUnknown"].exists)

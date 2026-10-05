@@ -137,50 +137,72 @@ public enum PlayDeviceOutput: Equatable {
     }
     public func cancel() {}
 }
+/// Optional for non-play camera hosts; gameplay hosts must supply an issued
+/// lease. The capture result retains it through preview and media upload.
+@MainActor public struct PlayDeviceInteraction {
+    let context: PlayInteractionContext?
+    private let current: () -> PlayInteractionContext?
+    public init(context: PlayInteractionContext?, current: @escaping () -> PlayInteractionContext?) {
+        self.context = context; self.current = current
+    }
+    var isCurrent: Bool { guard let context else { return false }; return current() == context }
+}
+
 @available(macOS 14.0, *)
 @MainActor @Observable public final class PlayDeviceCaptureCoordinator {
     public private(set) var output: PlayDeviceOutput?
+    public private(set) var outputID: UUID?
     public private(set) var busy = false
     public private(set) var issue: PlayExperienceError?
     public private(set) var uploadedPhoto: PlayCompletionEvidence?
     private var capturedContext: PlayDeviceContext?
+    private var capturedInteraction: PlayDeviceInteraction?
+    public var outputInteractionContext: PlayInteractionContext? { capturedInteraction?.context }
+    public var canReviewOutput: Bool {
+        output != nil && !busy && capturedContext == current() && (capturedInteraction?.isCurrent ?? true)
+    }
     private let filter: ((Data, PlayPhotoFilter) throws -> Data)?
     private let upload: ((Data, String, PlayDeviceContext) async throws -> String)?
     private let provider: any PlayDeviceProviding
     private let current: () -> PlayDeviceContext?
+    public let readLifetimeID: String?
     private var generation: UInt64 = 0
     public init(provider: (any PlayDeviceProviding)? = nil,
                 filter: ((Data, PlayPhotoFilter) throws -> Data)? = nil,
                 upload: ((Data, String, PlayDeviceContext) async throws -> String)? = nil,
-                current: @escaping () -> PlayDeviceContext?) {
-        self.provider = provider ?? PlayDormantDeviceProvider(); self.upload = upload; self.filter = filter; self.current = current
+                readLifetime: PlayInteractionLifetime? = nil, current: @escaping () -> PlayDeviceContext?) {
+        self.provider = provider ?? PlayDormantDeviceProvider(); self.upload = upload; self.filter = filter
+        readLifetimeID = readLifetime?.identity
+        self.current = { (readLifetime?.isCurrent ?? true) ? current() : nil }
     }
     public var canUpload: Bool {
         guard case .photo = output else { return false }
-        return upload != nil && capturedContext == current() && uploadedPhoto == nil && !busy
+        return upload != nil && canReviewOutput && uploadedPhoto == nil
     }
     /// Explicit user upload step. Completion still requires the journey's separate review.
-    public func uploadPhoto() async {
-        guard !busy, uploadedPhoto == nil, let upload, let context = capturedContext, current() == context,
+    public func uploadPhoto(expectedOutputID: UUID? = nil) async {
+        guard capturedInteraction == nil || (expectedOutputID != nil && expectedOutputID == outputID),
+              canUpload, let upload, let context = capturedContext, current() == context,
               case .photo(let bytes, let mime) = output else { issue = .disabled; return }
         generation &+= 1; let generation = generation; busy = true; issue = nil; uploadedPhoto = nil
         defer { if self.generation == generation { busy = false } }
         do {
             let url = try await upload(bytes, mime, context)
-            guard self.generation == generation, current() == context, !Task.isCancelled else { return }
+            guard self.generation == generation, current() == context, (capturedInteraction?.isCurrent ?? true), !Task.isCancelled else { return }
             guard PlayExperienceService.validHTTPS(url) else { throw PlayExperienceError.malformed }
             uploadedPhoto = .photo(uploadedURL: url)
         } catch { if self.generation == generation, current() == context { issue = error as? PlayExperienceError ?? .unknownResult } }
     }
-    public func reviewedPhoto() -> PlayCompletionEvidence? {
-        guard capturedContext == current(), !busy else { return nil }; return uploadedPhoto
+    public func reviewedPhoto(expectedOutputID: UUID? = nil) -> PlayCompletionEvidence? {
+        guard capturedInteraction == nil || (expectedOutputID != nil && expectedOutputID == outputID),
+              canReviewOutput else { return nil }; return uploadedPhoto
     }
     public var supportsLibraryPhotos: Bool { supports(.photo) && provider is any PlayKitPhotoLibraryProviding }
     public var isAuthorizing: Bool { (provider as? any PlayDevicePermissionStateProviding)?.authorizationInFlight == true }
     public func supports(_ kind: PlayDeviceKind) -> Bool { provider.supported.contains(kind) }
-    public func capture(_ kind: PlayDeviceKind, photoFilter: PlayPhotoFilter? = nil, cameraFrame: PlayKitPhotoFrame? = nil, usePhotoLibrary: Bool = false) async {
-        guard !busy, let context = current(), supports(kind) else { issue = .unsupported; return }
-        generation &+= 1; let generation = generation; busy = true; output = nil; uploadedPhoto = nil; capturedContext = nil; issue = nil
+    public func capture(_ kind: PlayDeviceKind, photoFilter: PlayPhotoFilter? = nil, cameraFrame: PlayKitPhotoFrame? = nil, usePhotoLibrary: Bool = false, interaction: PlayDeviceInteraction? = nil) async {
+        guard !busy, let context = current(), supports(kind), interaction?.isCurrent ?? true else { issue = .unsupported; return }
+        generation &+= 1; let generation = generation; busy = true; output = nil; outputID = nil; uploadedPhoto = nil; capturedContext = nil; capturedInteraction = nil; issue = nil
         defer { if self.generation == generation { busy = false } }
         do {
             var result: PlayDeviceOutput
@@ -197,8 +219,8 @@ public enum PlayDeviceOutput: Equatable {
                 guard kind == .photo, case .photo(let bytes, _) = result, let filter else { throw PlayExperienceError.unsupported }
                 result = .photo(try filter(bytes, photoFilter), mimeType: "image/png")
             }
-            guard self.generation == generation, current() == context, !Task.isCancelled else { return }
-            output = result; capturedContext = context
+            guard self.generation == generation, current() == context, (interaction?.isCurrent ?? true), !Task.isCancelled else { return }
+            output = result; outputID = UUID(); capturedContext = context; capturedInteraction = interaction
         } catch {
             if self.generation == generation, current() == context {
                 issue = error is CancellationError ? nil : (error as? PlayExperienceError ?? .unknownResult)
@@ -206,5 +228,5 @@ public enum PlayDeviceOutput: Equatable {
         }
         if self.generation == generation { busy = false }
     }
-    public func cancel() { generation &+= 1; provider.cancel(); output = nil; uploadedPhoto = nil; capturedContext = nil; busy = false }
+    public func cancel() { generation &+= 1; provider.cancel(); output = nil; outputID = nil; uploadedPhoto = nil; capturedContext = nil; capturedInteraction = nil; busy = false }
 }

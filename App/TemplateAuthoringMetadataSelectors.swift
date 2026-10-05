@@ -119,13 +119,22 @@ enum TemplateMetadataField: String, CaseIterable, Identifiable {
     let reader: (any DiscoveryReading)?
     @State private var presented: TemplateMetadataField?
     var body: some View {
-        ForEach(TemplateMetadataField.allCases) { field in
-            Button { presented = field } label: {
-                LabeledContent {
-                    if let value = field.rawValue(in: model.draft) { Text(verbatim: value).foregroundStyle(.secondary) }
-                    else { Text("templateMetadata.choose").foregroundStyle(.secondary) }
-                } label: { Text(LocalizedStringKey(field.titleKey)) }
-            }.accessibilityIdentifier("templateMetadata.open." + field.rawValue)
+        // A concrete container owns the presentation. A sheet attached directly
+        // to the lazy ForEach can disappear when Form flattens its children.
+        VStack(spacing: 12) {
+            ForEach(TemplateMetadataField.allCases) { field in
+                if field != .players { Divider() }
+                Button { presented = field } label: {
+                    LabeledContent {
+                        if let value = field.rawValue(in: model.draft) { Text(verbatim: value).foregroundStyle(.secondary) }
+                        else { Text("templateMetadata.choose").foregroundStyle(.secondary) }
+                    } label: { Text(LocalizedStringKey(field.titleKey)) }
+                        .frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
+                }
+                // Three independent controls share this Form row.
+                .buttonStyle(.borderless)
+                .accessibilityIdentifier("templateMetadata.open." + field.rawValue)
+            }
         }
         .sheet(item: $presented) { field in
             NavigationStack { TemplateAuthoringMetadataSelector(model: model, reader: reader, field: field) }

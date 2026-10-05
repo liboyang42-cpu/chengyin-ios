@@ -51,18 +51,17 @@ struct MerchantTemplateAssistPresentation: Identifiable {
                         if failure == .permission { Text("merchant.assist.permissionNextStep").font(.footnote) }
                     }
                 }
-                if let result = flow.result {
-                    Section("merchant.assist.review") {
-                        ForEach(MerchantTemplateAssistField.allCases, id: \.rawValue) { field in
-                            if let value = result.suggestion(field) {
-                                VStack(alignment: .leading, spacing: 6) {
-                                    Text(LocalizedStringKey(field.titleKey)).font(.caption).foregroundStyle(.secondary)
-                                    if field == .validationMethod, let method = result.method { Text(LocalizedStringKey(method.titleKey)) }
-                                    else { Text(verbatim: value).textSelection(.enabled) }
-                                }.accessibilityIdentifier("merchant.assist.preview." + field.rawValue)
+                if let review = flow.visibleReview {
+                    let result = review.result
+                    MerchantTemplateSuggestionReviewPanel(review: review,
+                        canChange: { flow.canChange($0, change: $1) }, canReject: flow.canReject,
+                        change: { action, change in
+                            focused = false
+                            task = Task {
+                                _ = await flow.change(action, change)
+                                document.templateAssistChanged()
                             }
-                        }
-                    }
+                        }, reject: flow.reject)
                     if !result.unsupportedKeys.isEmpty {
                         Section("merchant.assist.unsupported") {
                             Text("merchant.assist.unsupportedHint").font(.footnote)
@@ -75,15 +74,11 @@ struct MerchantTemplateAssistPresentation: Identifiable {
                         }.accessibilityIdentifier("merchant.assist.unsupported")
                     }
                     Section {
-                        Text("merchant.assist.applyHint").font(.footnote)
-                        if !flow.canApply && !flow.busy { Text("merchant.assist.noChanges").font(.footnote).accessibilityIdentifier("merchant.assist.noChanges") }
-                        Button("merchant.assist.apply") {
-                            focused = false
-                            task = Task {
-                                guard let value = await flow.apply() else { return }
-                                document.edit(.template(value)); dismiss()
-                            }
-                        }.disabled(!flow.canApply).accessibilityIdentifier("merchant.assist.apply")
+                        Text("merchant.assist.diff.closeNote").font(.footnote)
+                        DisclosureGroup("merchant.assist.diff.decodedResult") {
+                            Text(verbatim: decodedResult(result)).textSelection(.enabled)
+                                .accessibilityIdentifier("merchant.assist.diff.decodedResult")
+                        }
                     }
                 }
             }
@@ -91,7 +86,7 @@ struct MerchantTemplateAssistPresentation: Identifiable {
             .accessibilityIdentifier("merchant.assist.sheet")
             .scrollDismissesKeyboard(.interactively)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { close() }.accessibilityIdentifier("merchant.assist.close") }
+                ToolbarItem(placement: .cancellationAction) { Button("action.close") { close() }.accessibilityIdentifier("merchant.assist.close") }
                 ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("action.done") { focused = false } }
             }
         }
@@ -101,6 +96,12 @@ struct MerchantTemplateAssistPresentation: Identifiable {
         .onDisappear { task?.cancel(); flow.close() }
     }
     private func close() { task?.cancel(); task = nil; flow.close(); dismiss() }
+    private func decodedResult(_ result: MerchantTemplateAssistResult) -> String {
+        let encoder = JSONEncoder(); encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        guard let data = try? encoder.encode(result.response) else { return "" }
+        return String(decoding: data, as: UTF8.self)
+    }
+
 }
 
 @MainActor extension AppSession {

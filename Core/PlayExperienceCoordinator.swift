@@ -21,7 +21,7 @@ import FoundationNetworking
     private var retired = false
     fileprivate init(service: PlayExperienceService, scope: PlaySessionScope, session: PlayExperienceSession,
                      completion: PlayCompletionRecoverySnapshot, store: any PlayCompletionRecoveryStore, isCurrent: @escaping () -> Bool) throws {
-        guard completion.value.state == .dispatching, completion.value.intent.owner.matches(session) else { throw PlayExperienceError.persistenceUnavailable }
+        guard completion.value.state == .dispatching, completion.value.intent.owner.matches(session), completion.value.intent.gameplayMode != nil else { throw PlayExperienceError.persistenceUnavailable }
         let intent = completion.value.intent
         request = try service.completionRequest(scope: scope, nodeID: intent.nodeID, evidence: intent.evidence,
             advance: intent.advance, token: session.token, boundary: intent.id.uuidString)
@@ -55,6 +55,17 @@ import FoundationNetworking
     }
 }
 
+/// An ephemeral command belongs to the exact rendered read, not just a node ID.
+/// It cannot be constructed by a view, persisted, or reused after a refresh.
+public struct PlayInteractionContext: Equatable {
+    fileprivate let owner: UUID
+    fileprivate let session: PlayExperienceSession
+    fileprivate let generation: UInt64
+    fileprivate let mode: PlayGameplayMode
+    var authoritativeMode: PlayGameplayMode { mode }
+    var lifetimeIdentity: String { "\(owner.uuidString):\(generation):\(mode.rawValue)" }
+}
+
 public struct PlayCompletionReview: Equatable {
     public let nodeID: Int
     public let evidence: PlayCompletionEvidence
@@ -62,10 +73,11 @@ public struct PlayCompletionReview: Equatable {
     let session: PlayExperienceSession
     let generation: UInt64
     let routeSessionID: Int?
+    let gameplayMode: PlayGameplayMode?
     let id: UUID
-    init(nodeID: Int, evidence: PlayCompletionEvidence, advance: PlayRouteAdvance?, session: PlayExperienceSession, generation: UInt64, routeSessionID: Int?, id: UUID = UUID()) {
+    init(nodeID: Int, evidence: PlayCompletionEvidence, advance: PlayRouteAdvance?, session: PlayExperienceSession, generation: UInt64, routeSessionID: Int?, id: UUID = UUID(), gameplayMode: PlayGameplayMode? = nil) {
         self.nodeID = nodeID; self.evidence = evidence; self.advance = advance; self.session = session
-        self.generation = generation; self.routeSessionID = routeSessionID; self.id = id
+        self.generation = generation; self.routeSessionID = routeSessionID; self.id = id; self.gameplayMode = gameplayMode
     }
 }
 /// Independent of the existing linear-answer reader. A successful write invalidates the
@@ -120,7 +132,10 @@ public struct PlayCompletionReview: Equatable {
     public private(set) var localRecoveryFailed = false
     private var loadedSession: PlayExperienceSession?
     private var authorityOwner: PlayExperienceSession?
+    private var authorityMode: PlayGameplayMode?
     private var unknownLeaderKeys: Set<String> = []
+    @ObservationIgnored private var issuedInteractionLifetime: PlayInteractionLifetime?
+    private let interactionOwner = UUID()
     private var generation: UInt64 = 0
     private var advancedReadyNodeIDs: Set<Int> = []
     private var hintUnknownNodes: Set<Int> = []
@@ -128,7 +143,42 @@ public struct PlayCompletionReview: Equatable {
     public var identity: String? {
         currentSession().map { PlayRunStorageKey.make(session: $0, scope: scope) + ":" + String($0.epoch) }
     }
+    public var hasModeRecoveryBlock: Bool {
+        guard let mode = gameplayMode, let pending = cachedCompletion?.value else { return false }
+        return pending.intent.gameplayMode != mode
+    }
     public var available: Bool { service.enabled.contains(.reads) }
+    public var gameplayMode: PlayGameplayMode? { PlayGameplayMode(serverValue: snapshot?.result.mode) }
+    public var interactionContext: PlayInteractionContext? {
+        guard phase == .ready, let session = loadedSession, session == currentSession(),
+              let mode = gameplayMode else { return nil }
+        return .init(owner: interactionOwner, session: session, generation: generation, mode: mode)
+    }
+    public func makeInteractionLifetime() -> PlayInteractionLifetime? {
+        guard let context = interactionContext else { return nil }
+        if let issuedInteractionLifetime, issuedInteractionLifetime.identity == context.lifetimeIdentity { return issuedInteractionLifetime }
+        let request = generation
+        let lifetime = PlayInteractionLifetime(context: context,
+            current: { [weak self] in self?.interactionContext },
+            onRetired: { [weak self] in self?.retireChildRead(generation: request) })
+        issuedInteractionLifetime = lifetime
+        return lifetime
+    }
+    private func retireChildRead(generation request: UInt64) {
+        guard generation == request else { return }
+        generation &+= 1; loadedSession = nil; snapshot = nil; extras = [:]
+        reward = nil; hint = nil; ending = nil; leaderboard = nil; lead = nil; advancedReadyNodeIDs = []
+        // Keep durable completion/pause records and pending thought keys intact.
+        // Nothing about a changed mode proves an earlier mutation's outcome.
+        thoughtSyncNonce = UUID(); thoughtSyncInFlight = false
+        runAttempt?.retire(); runAttempt = nil; runTask?.cancel(); runTask = nil; runTaskID = UUID()
+        pausedLease = nil; pausedOwner = nil; clock.restore(nil)
+        issue = .staleSession; phase = .needsReadback
+    }
+    private func accepts(_ context: PlayInteractionContext?) -> Bool {
+        guard let context, let current = interactionContext else { return false }
+        return context == current
+    }
     /// Read authority only; audio never grants gameplay completion authority.
     public var hasCurrentMediaSnapshot: Bool {
         snapshot != nil && loadedSession != nil && loadedSession == currentSession() && (phase == .ready || phase == .unknown)
@@ -136,7 +186,7 @@ public struct PlayCompletionReview: Equatable {
     /// A read-only projection must not enable completion, hint or leader controls.
     public var canWrite: Bool { !service.enabled.isDisjoint(with: [.classicCompletion, .hints, .leader, .thoughtClaims]) && phase == .ready && !unresolved && !thoughtSyncInFlight && pendingThoughtKeys.isEmpty && loadedSession != nil && loadedSession == currentSession() }
     /// Run state and durable pause records require their own reviewed capability.
-    public var canManageRun: Bool { service.enabled.contains(.runPersistence) && hasCurrentMediaSnapshot && !localRecoveryFailed && pausedLease?.value?.pendingRemote != true }
+    public var canManageRun: Bool { gameplayMode == .cityOrientation && service.enabled.contains(.runPersistence) && hasCurrentMediaSnapshot && !localRecoveryFailed && pausedLease?.value?.pendingRemote != true }
     public init(scope: PlaySessionScope, service: PlayExperienceService, recovery: any PlayCompletionRecoveryStore,
                 pausedStorage: any PlayPausedStorage, currentSession: @escaping () -> PlayExperienceSession?,
                 onUnauthorized: @escaping (PlayExperienceSession) -> Void = { _ in }) {
@@ -181,7 +231,20 @@ public struct PlayCompletionReview: Equatable {
             }
             unknownHintRequests[key] = hintRequests; hintUnknownNodes = Set(hintRequests.keys)
             unresolved = pending != nil || !hintUnknownNodes.isEmpty || leaderOutcomeUnknown
+            let mode = PlayGameplayMode(serverValue: snapshot.result.mode)
+            if authorityMode != mode {
+                reward = nil; hint = nil; ending = nil; leaderboard = nil; lead = nil
+                advancedReadyNodeIDs = []
+            }
+            authorityMode = mode
             self.snapshot = snapshot; extras = document.extras; loadedSession = session
+            if mode != .cityOrientation {
+                // Discard only in-memory orientation state. Free exploration does
+                // not read, clear or rewrite its durable pause records.
+                runAttempt?.retire(); runAttempt = nil; runTask?.cancel(); runTask = nil; runTaskID = UUID()
+                pausedLease = nil; pausedOwner = nil; clock.restore(nil)
+                remoteRunSaveFailed = false; localRecoveryFailed = false
+            }
             chapterStories = document.chapterStories
             storyVariables.merge(document.storyVariables) { _, new in new }
             storyVoices.merge(document.storyVoices) { _, new in new }
@@ -224,8 +287,8 @@ public struct PlayCompletionReview: Equatable {
         }
     }
     /// Called only from an accepted advanced state, never a local timer or preview.
-    public func acceptAdvanced(_ state: PlayAdvancedState) throws {
-        guard loadedSession == currentSession(), let snapshot,
+    public func acceptAdvanced(_ state: PlayAdvancedState, context: PlayInteractionContext? = nil) throws {
+        guard accepts(context), loadedSession == currentSession(), let snapshot,
               state.nodeID > 0, snapshot.visibleNodes.contains(where: { $0.id == state.nodeID }),
               state.topicID == snapshot.result.topicID, state.readyForBase else { throw PlayExperienceError.invalidAction }
         switch scope {
@@ -234,13 +297,25 @@ public struct PlayCompletionReview: Equatable {
         }
         advancedReadyNodeIDs.insert(state.nodeID)
     }
+    /// UI/provider callbacks must present the authority captured when offered.
+    public func review(nodeID: Int, evidence: PlayCompletionEvidence, context: PlayInteractionContext?) throws -> PlayCompletionReview {
+        guard accepts(context) else { throw PlayExperienceError.staleSession }
+        return try review(nodeID: nodeID, evidence: evidence)
+    }
     public func review(nodeID: Int, evidence: PlayCompletionEvidence) throws -> PlayCompletionReview {
         guard service.enabled.contains(.classicCompletion), canWrite, let session = loadedSession, let snapshot,
               snapshot.availability == .active,
               let node = snapshot.visibleNodes.first(where: { $0.id == nodeID }),
               !snapshot.isDone(node), !snapshot.isLocked(node), node.done == false else { throw PlayExperienceError.invalidAction }
-        guard !node.hasAdvancedPrerequisite || advancedReadyNodeIDs.contains(nodeID) else { throw PlayExperienceError.invalidAction }
-        let task = PlayNodeTask.resolve(mode: snapshot.result.mode, node: node)
+        let task: PlayNodeTask
+        if gameplayMode == .freeExploration {
+            guard let merchantTask = FreeExplorationPresentation.evidenceTask(for: node, in: snapshot) else { throw PlayExperienceError.unsupported }
+            task = merchantTask
+        } else {
+            guard gameplayMode == .cityOrientation else { throw PlayExperienceError.unsupported }
+            guard !node.hasAdvancedPrerequisite || advancedReadyNodeIDs.contains(nodeID) else { throw PlayExperienceError.invalidAction }
+            task = PlayNodeTask.resolve(mode: snapshot.result.mode, node: node)
+        }
         switch (task, evidence) {
         case (.answer, .answer(let text)):
             guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
@@ -258,11 +333,11 @@ public struct PlayCompletionReview: Equatable {
             advance = try PlayRouteAdvance(actionID: UUID().uuidString, expectedVersion: version)
         } else { advance = nil }
         phase = .reviewing
-        return PlayCompletionReview(nodeID: nodeID, evidence: evidence, advance: advance, session: session, generation: generation, routeSessionID: snapshot.route?.sessionID)
+        return PlayCompletionReview(nodeID: nodeID, evidence: evidence, advance: advance, session: session, generation: generation, routeSessionID: snapshot.route?.sessionID, gameplayMode: gameplayMode)
     }
     public func cancelReview() { if phase == .reviewing { phase = .ready } }
     public func submit(_ review: PlayCompletionReview) async {
-        guard service.enabled.contains(.classicCompletion), phase == .reviewing, review.session == currentSession(), review.session == loadedSession,
+        guard service.enabled.contains(.classicCompletion), review.gameplayMode == gameplayMode, gameplayMode != nil, phase == .reviewing, review.session == currentSession(), review.session == loadedSession,
               review.generation == generation, !unresolved else { return }
         await dispatch(review)
     }
@@ -333,9 +408,9 @@ public struct PlayCompletionReview: Equatable {
     }
     /// Only a verified readback offers replay. The dispatch CAS rechecks its exact generation.
     public var canRetryExactBranch: Bool {
-        guard service.enabled.contains(.classicCompletion), phase == .unknown, retryReadbackVerified, hintUnknownNodes.isEmpty, !leaderOutcomeUnknown,
+        guard gameplayMode == .cityOrientation, service.enabled.contains(.classicCompletion), phase == .unknown, retryReadbackVerified, hintUnknownNodes.isEmpty, !leaderOutcomeUnknown,
               let session = loadedSession, session == currentSession(), let snapshot,
-              let pending = cachedCompletion?.value, let advance = pending.intent.advance,
+              let pending = cachedCompletion?.value, pending.intent.gameplayMode == gameplayMode, let advance = pending.intent.advance,
               !pending.requestAcknowledged, pending.intent.owner.matches(session),
               pending.state != .dispatching || pending.dispatchProcess != recovery.processID,
               snapshot.route?.sessionID == pending.intent.routeSessionID,
@@ -348,15 +423,18 @@ public struct PlayCompletionReview: Equatable {
               let review = try? pending.value.intent.review(session: session, generation: generation) else { return }
         await dispatch(review, recovering: pending)
     }
-    public func requestHint(nodeID: Int, level: Int?) async {
-        guard service.enabled.contains(.hints), canWrite, !hintUnknownNodes.contains(nodeID), let session = loadedSession,
+    public func requestHint(nodeID: Int, level: Int?, context: PlayInteractionContext? = nil) async {
+        // Puzzle scoring is orientation-only. Generic template hints have their
+        // own source authority and are not reclassified by entry scope.
+        guard accepts(context), level == nil || gameplayMode == .cityOrientation,
+              service.enabled.contains(.hints), canWrite, !hintUnknownNodes.contains(nodeID), let session = loadedSession,
               let node = snapshot?.visibleNodes.first(where: { $0.id == nodeID }), snapshot?.isLocked(node) == false else { return }
         let request = generation; phase = .submitting; hintUnknownNodes.insert(nodeID)
         let hintKey = PlayRunStorageKey.make(session: session, scope: scope)
         unknownHintRequests[hintKey, default: [:]][nodeID] = level ?? -1
         do {
-            hint = try await service.hint(scope: scope, nodeID: nodeID, level: level, token: session.token)
-            try check(session, request); hintUnknownNodes.remove(nodeID); unknownHintRequests[hintKey]?.removeValue(forKey: nodeID); phase = .needsReadback; await load()
+            let receipt = try await service.hint(scope: scope, nodeID: nodeID, level: level, token: session.token)
+            try check(session, request); hint = receipt; hintUnknownNodes.remove(nodeID); unknownHintRequests[hintKey]?.removeValue(forKey: nodeID); phase = .needsReadback; await load()
         } catch {
             if case PlayExperienceError.rejected = error { hintUnknownNodes.remove(nodeID); unknownHintRequests[hintKey]?.removeValue(forKey: nodeID) }
             if case PlayExperienceError.disabled = error { hintUnknownNodes.remove(nodeID); unknownHintRequests[hintKey]?.removeValue(forKey: nodeID) }
@@ -364,8 +442,18 @@ public struct PlayCompletionReview: Equatable {
             fail(error, session: session, generation: request)
         }
     }
+    /// Free exploration reads its own ending only after authoritative redemption.
+    /// No orientation leaderboard or completion command is inferred from card count.
+    public func loadFreeExplorationEnding() async {
+        guard gameplayMode == .freeExploration, hasCurrentMediaSnapshot, let snapshot,
+              FreeExplorationPresentation(snapshot: snapshot)?.isFullyRedeemed == true,
+              let session = loadedSession, session == currentSession(), phase != .submitting else { return }
+        let request = generation
+        do { let value = try await service.ending(scope: scope, token: session.token); try check(session, request); ending = value }
+        catch { fail(error, session: session, generation: request) }
+    }
     public func loadEndingAndLeaderboard() async {
-        guard let session = loadedSession, session == currentSession(), phase != .submitting else { return }
+        guard gameplayMode == .cityOrientation, let session = loadedSession, session == currentSession(), phase != .submitting else { return }
         let request = generation
         do {
             let ending = try await service.ending(scope: scope, token: session.token); try check(session, request); self.ending = ending
@@ -373,21 +461,23 @@ public struct PlayCompletionReview: Equatable {
             guard board.me.id == session.accountID else { throw PlayExperienceError.malformed }; leaderboard = board
         } catch { fail(error, session: session, generation: request) }
     }
-    public func loadLead() async {
-        guard case .activity(let activity) = scope, let session = currentSession(), phase != .submitting else { return }
+    public func loadLead(context: PlayInteractionContext? = nil) async {
+        // The source's club lead tools are mode-independent, but a queued
+        // request from an earlier render must not acquire a new mode's lease.
+        guard accepts(context), case .activity(let activity) = scope, let session = currentSession(), phase != .submitting else { return }
         let request = generation
         do { let result = try await service.teamProgress(activityID: activity, token: session.token); try check(session, request); lead = result }
         catch { fail(error, session: session, generation: request) }
     }
-    public func performLead(_ action: PlayLeadAction, text: String? = nil) async {
-        guard service.enabled.contains(.leader), canWrite, !leaderOutcomeUnknown, let session = loadedSession, case .activity(let activity) = scope,
+    public func performLead(_ action: PlayLeadAction, text: String? = nil, context: PlayInteractionContext? = nil) async {
+        guard accepts(context), service.enabled.contains(.leader), canWrite, !leaderOutcomeUnknown, let session = loadedSession, case .activity(let activity) = scope,
               lead?.allows(action, accountID: session.accountID) == true else { return }
         let request = generation; phase = .submitting; leaderOutcomeUnknown = true
         let leaderKey = PlayRunStorageKey.make(session: session, scope: scope); unknownLeaderKeys.insert(leaderKey)
         do {
             try await service.lead(activityID: activity, action: action, text: text, token: session.token)
             try check(session, request); leaderOutcomeUnknown = false; unknownLeaderKeys.remove(leaderKey); phase = .needsReadback
-            await load(); await loadLead()
+            await load(); await loadLead(context: interactionContext)
         } catch {
             if case PlayExperienceError.rejected = error { leaderOutcomeUnknown = false; unknownLeaderKeys.remove(leaderKey) }
             if case PlayExperienceError.disabled = error { leaderOutcomeUnknown = false; unknownLeaderKeys.remove(leaderKey) }
@@ -395,7 +485,8 @@ public struct PlayCompletionReview: Equatable {
         }
     }
     public func restoreRun() async {
-        guard service.enabled.contains(.runPersistence), let session = currentSession(), !runStorageBusy else { return }
+        guard gameplayMode == .cityOrientation, hasCurrentMediaSnapshot,
+              service.enabled.contains(.runPersistence), let session = loadedSession, session == currentSession(), !runStorageBusy else { return }
         runStorageBusy = true; defer { runStorageBusy = false }
         let request = generation, key = PlayRunStorageKey.make(session: session, scope: scope)
         await reconcileRun(session: session, request: request, key: key)
@@ -513,10 +604,13 @@ public struct PlayCompletionReview: Equatable {
         pausedLease = nil; pausedOwner = nil; retryReadbackVerified = false
         thoughtSyncNonce = UUID(); thoughtSyncInFlight = false; pendingThoughtKeys = []; thoughtClaimSessionID = nil; thoughtSyncPhase = .idle
         chapterStories = [:]; storyVariables = [:]; storyVoices = [:]; storyThoughts = []
-        generation &+= 1; loadedSession = nil; snapshot = nil; extras = [:]; reward = nil; hint = nil; cachedCompletion = nil
+        generation &+= 1; loadedSession = nil; authorityMode = nil; snapshot = nil; extras = [:]; reward = nil; hint = nil; cachedCompletion = nil
         ending = nil; leaderboard = nil; lead = nil; advancedReadyNodeIDs = []; clock.restore(nil); phase = .idle
     }
     private func landed(_ review: PlayCompletionIntent, snapshot: PlaySnapshot) -> Bool {
+        // Legacy records without mode stay unresolved; another mode's same node
+        // ID and arrival bit cannot establish the result of the earlier write.
+        guard let mode = review.gameplayMode, mode == PlayGameplayMode(serverValue: snapshot.result.mode) else { return false }
         if let routeSessionID = review.routeSessionID, snapshot.route?.sessionID != routeSessionID { return false }
         guard let node = snapshot.visibleNodes.first(where: { $0.id == review.nodeID }) else { return false }
         if snapshot.result.mode == 2 {

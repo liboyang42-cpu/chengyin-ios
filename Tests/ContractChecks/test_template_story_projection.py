@@ -54,7 +54,8 @@ class TemplateStoryProjectionChecks(unittest.TestCase):
             self.assertIn(text, ui)
         form = read('App/TemplateAuthoringDetailForms.swift').split('struct TemplateAuthoringStoryView:')[1].split('struct TemplateAuthoringAdvancedView:')[0]
         self.assertNotIn('.onChange(of: beats)', form)
-        self.assertIn('.onAppear { editor.load() }', form)
+        self.assertIn('.onAppear { editor.load(); media.reload() }', form)
+        self.assertIn('.onDisappear { media.retire() }', form)
         self.assertIn('.disabled(!editor.canEdit)', form)
         for name in ['func load()', 'func restore()', 'func discard()']:
             method = read('App/TemplateAuthoringView.swift').split(name)[1].split('\n    func ')[0]

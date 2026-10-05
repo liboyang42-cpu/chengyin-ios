@@ -73,8 +73,40 @@ import XCTest
     private func assertSource(_ expected: String, in app: XCUIApplication, towardTop: Bool = false,
                               file: StaticString = #filePath, line: UInt = #line) {
         let source = app.textViews["templateAuthor.preference.source"]
-        reveal(source, in: app, towardTop: towardTop, file: file, line: line)
+        revealSource(source, in: app, towardTop: towardTop, file: file, line: line)
         assertBytes(source.value as? String, equal: expected, file: file, line: line)
+    }
+    private func revealSource(_ source: XCUIElement, in app: XCUIApplication, towardTop: Bool = false,
+                              file: StaticString = #filePath, line: UInt = #line) {
+        // Drag the Form gutter, not the nested TextEditor's scrolling contents.
+        // Retain full-frame visibility and native hittability requirements.
+        let form = app.collectionViews.firstMatch
+        XCTAssertTrue(form.waitForExistence(timeout: 5), app.debugDescription, file: file, line: line)
+        for attempt in 0...35 {
+            var bounds = app.frame.intersection(form.frame).insetBy(dx: 8, dy: 8)
+            let bar = app.navigationBars.firstMatch
+            if bar.exists { bounds.origin.y = max(bounds.minY, bar.frame.maxY + 8) }
+            let bottom = app.keyboards.firstMatch.exists ? app.keyboards.firstMatch.frame.minY - 8 : app.frame.maxY - 40
+            bounds.size.height = max(0, bottom - bounds.minY)
+            var up = towardTop
+            var x = bounds.minX + 20
+            if source.exists {
+                let frame = source.frame
+                if !frame.isEmpty && bounds.contains(frame) && source.isHittable { return }
+                if !frame.isEmpty {
+                    up = frame.midY < bounds.midY
+                    x = max(bounds.minX + 2, frame.minX - 12)
+                    guard x < frame.minX else { break }
+                }
+            }
+            guard attempt < 35, bounds.height > 80 else { break }
+            let start = CGPoint(x: x, y: bounds.minY + bounds.height * (up ? 0.25 : 0.75))
+            let end = CGPoint(x: x, y: bounds.minY + bounds.height * (up ? 0.75 : 0.25))
+            let origin = app.coordinate(withNormalizedOffset: .zero)
+            origin.withOffset(CGVector(dx: start.x - app.frame.minX, dy: start.y - app.frame.minY))
+                .press(forDuration: 0.05, thenDragTo: origin.withOffset(CGVector(dx: end.x - app.frame.minX, dy: end.y - app.frame.minY)))
+        }
+        XCTFail("Source must be fully visible and hittable in the outer Form. " + app.debugDescription, file: file, line: line)
     }
     private func check(_ message: String, in app: XCUIApplication,
                        file: StaticString = #filePath, line: UInt = #line) {
@@ -96,6 +128,7 @@ import XCTest
         XCTAssertFalse(app.staticTexts["templateAuthor.preference.preview"].exists, file: file, line: line)
     }
 
+    // UNMEASURED full-method replacement estimate: 180 seconds with outer-Form source reveal.
     func testNormalMethodEntryPreservesOriginalJSONAndKeepsRemoteActionsDisabled() {
         let app = launch()
         assertUnchecked(in: app)
@@ -115,12 +148,13 @@ import XCTest
         XCTAssertFalse(app.buttons["templateAuthor.confirmRequest"].exists)
     }
 
+    // UNMEASURED full-method replacement estimate: 240 seconds, including real keyboard dismissal.
     func testInvalidCurrentTextClearsOldPreviewAndSurvivesExplicitSaveRestore() {
         let app = launch()
         check(validMessage, in: app)
         reveal(app.staticTexts["templateAuthor.preference.preview"], in: app, requiresHittable: false)
         let source = app.textViews["templateAuthor.preference.source"]
-        reveal(source, in: app, towardTop: true)
+        revealSource(source, in: app, towardTop: true)
         // An actual newline plus a bare token is invalid at every insertion point in this JSON.
         // Do not depend on an undocumented caret position or replace the source through a fixture.
         let insertion = "\nINVALID_CURRENT\n"
@@ -128,6 +162,13 @@ import XCTest
         guard let current = source.value as? String else { return XCTFail("Missing edited source") }
         XCTAssertEqual(current.components(separatedBy: insertion).count, 2)
         assertBytes(current.replacingOccurrences(of: insertion, with: ""), equal: original)
+        let done = app.buttons["templateAuthor.preference.keyboardDone"]
+        XCTAssertTrue(done.waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertTrue(done.isEnabled && done.isHittable, app.debugDescription)
+        done.tap()
+        let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: app.keyboards.firstMatch)
+        XCTAssertEqual(XCTWaiter.wait(for: [dismissed], timeout: 5), .completed, app.debugDescription)
+        assertBytes(source.value as? String, equal: current)
         assertUnchecked(in: app)
         check("Invalid JSON. Your current text is retained.", in: app)
         XCTAssertFalse(app.staticTexts["templateAuthor.preference.preview"].exists)
@@ -147,6 +188,7 @@ import XCTest
         XCTAssertFalse(app.staticTexts["templateAuthor.preference.preview"].exists)
     }
 
+    // UNMEASURED full-method replacement estimate: 240 seconds with repeated outer-Form source reveal.
     func testSwitchingMethodCancelsPriorPreviewAndRequiresFreshValidation() {
         let app = launch()
         check(validMessage, in: app)

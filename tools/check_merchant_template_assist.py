@@ -18,13 +18,18 @@ class MerchantTemplateAssistSourceTests(unittest.TestCase):
         self.assertIn('approval = approval([feature])', factory)
         self.assertIn('fields["shopName"]?.text', factory)
         self.assertIn('fields["extraNote"]?.text', factory)
-    def test_sheet_reaches_existing_editor_and_explicit_apply(self):
+    def test_sheet_reaches_existing_editor_and_explicit_field_review(self):
         editor, views, sheet = map(read, ['App/MerchantOperationsEditor.swift', 'App/MerchantOperationsViews.swift', 'App/MerchantTemplateAssistSheet.swift'])
         self.assertIn('.sheet(item: $assist)', editor)
         self.assertEqual(views.count('destination: .template('), 2)
         self.assertEqual(views.count('imageHost: imageHost, templateAssistFactory: templateAssistFactory)'), 3)
-        self.assertIn('guard let value = await flow.apply()', sheet)
-        self.assertIn('document.edit(.template(value)); dismiss()', sheet)
+        self.assertIn('MerchantTemplateSuggestionReviewPanel(review: review', sheet)
+        self.assertIn('await flow.change(action, change)', sheet)
+        self.assertIn('document.templateAssistChanged()', sheet)
+        flow = read('Core/MerchantTemplateAssistFlow.swift')
+        self.assertIn('coordinator.edit(.template(next))', flow)
+        self.assertNotIn('func apply()', flow)
+        self.assertNotIn('flow.apply()', sheet)
         for source in [sheet, read('Core/MerchantTemplateAssistFlow.swift')]:
             self.assertNotRegex(source, r'\.save(?:Example|Reviewed)?\(')
             self.assertNotIn('URLSession', source)
@@ -33,7 +38,9 @@ class MerchantTemplateAssistSourceTests(unittest.TestCase):
         contracts, flow, coordinator = map(read, ['Core/MerchantTemplateAssistContracts.swift', 'Core/MerchantTemplateAssistFlow.swift', 'Core/MerchantOperationsReading.swift'])
         self.assertIn('coordinator.draftIdentity == draftIdentity', flow)
         self.assertIn('client?.session == session', flow)
-        self.assertEqual(flow.count('try await coordinator.reader.access()'), 2)
+        self.assertEqual(flow.count('try await readAccess()'), 2)
+        self.assertIn('return try await reader.access()', flow)
+        self.assertIn('permissionRead?.cancel()', flow)
         self.assertIn('edits.unchanged(field, since: capturedEdits)', contracts)
         self.assertIn('templateAssistEdits.record(from: old, to: new)', coordinator)
         self.assertIn('latest.id == captured.id', contracts)
@@ -61,9 +68,9 @@ class MerchantTemplateAssistSourceTests(unittest.TestCase):
             for locale in ['en', 'zh-Hans']:
                 self.assertTrue(item['localizations'][locale]['stringUnit']['value'].strip())
     def test_focused_cases_are_authored(self):
-        core = read('Tests/CoreTests/MerchantTemplateAssistTests.swift') + read('Tests/CoreTests/MerchantTemplateAssistRuntimeTests.swift')
+        core = read('Tests/CoreTests/MerchantTemplateAssistTests.swift') + read('Tests/CoreTests/MerchantTemplateAssistRuntimeTests.swift') + read('Tests/CoreTests/MerchantTemplateSuggestionReviewTests.swift') + read('Tests/CoreTests/MerchantTemplateAssistPermissionLifetimeTests.swift')
         ui = read('Tests/AppUITests/MerchantTemplateAssistFlowTests.swift')
-        self.assertEqual(len(re.findall(r'func test\w+\(', core)), 23)
+        self.assertEqual(len(re.findall(r'func test\w+\(', core)), 42)
         self.assertEqual(len(re.findall(r'func test\w+\(', ui)), 4)
     def test_optional_flutter_contract_reference(self):
         source = os.environ.get('CHENGYIN_FLUTTER_SOURCE_ROOT')

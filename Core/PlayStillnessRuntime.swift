@@ -34,10 +34,13 @@ import Observation
     public private(set) var issue: PlayExperienceError?
     private let provider: any PlayMotionSampleProviding
     private let currentContext: () -> PlayDeviceContext?
+    public let readLifetimeID: String?
     private var generation: UInt64 = 0
     public var available: Bool { provider.available }
-    public init(configuration: PlayStillnessConfiguration, provider: any PlayMotionSampleProviding, currentContext: @escaping () -> PlayDeviceContext?) {
-        machine = .init(configuration: configuration); self.provider = provider; self.currentContext = currentContext
+    public init(configuration: PlayStillnessConfiguration, provider: any PlayMotionSampleProviding, readLifetime: PlayInteractionLifetime? = nil, currentContext: @escaping () -> PlayDeviceContext?) {
+        machine = .init(configuration: configuration); self.provider = provider
+        readLifetimeID = readLifetime?.identity
+        self.currentContext = { (readLifetime?.isCurrent ?? true) ? currentContext() : nil }
     }
     public func start() async {
         guard !running, available, let context = currentContext(), machine.phase != .completed, machine.phase != .failed else { return }

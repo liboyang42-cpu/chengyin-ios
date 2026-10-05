@@ -11,7 +11,7 @@ final class CoopRelationDiscoveryFlowTests: XCTestCase {
         app.launch(); self.app = app
         let entry = app.buttons["coopflow.route.coopflow.relations"]
         XCTAssertTrue(entry.waitForExistence(timeout: 5)); entry.tap()
-        XCTAssertTrue(app.segmentedControls["cooprelation.tabs"].waitForExistence(timeout: 5))
+        XCTAssertTrue(revealFixtureElement(app.segmentedControls["cooprelation.tabs"], in: app), app.debugDescription)
         return app
     }
     func testMixedDiscoveryOpensOwnerAndClubProfilesAndReturnsToSelectedTab() {
@@ -61,7 +61,11 @@ final class CoopRelationDiscoveryFlowTests: XCTestCase {
     }
     func testChineseMaximumTextPreservesTabsAndDisplayOnlyContext() {
         let app = launch(language: "zh-Hans", large: true)
-        XCTAssertTrue(app.staticTexts["Synthetic topic context"].waitForExistence(timeout: 5))
+        // LabeledContent publishes the localized field and value as one row.
+        let context = app.staticTexts["主题信息、Synthetic topic context"]
+        XCTAssertTrue(revealFixtureElement(context, in: app), app.debugDescription)
+        XCTAssertEqual(context.label, "主题信息、Synthetic topic context")
+        XCTAssertTrue(revealFixtureElement(app.segmentedControls["cooprelation.tabs"], in: app), app.debugDescription)
         app.segmentedControls["cooprelation.tabs"].buttons["俱乐部"].tap()
         let club = app.buttons["cooprelation.open.clubs.0"]
         XCTAssertTrue(revealFixtureElement(club, in: app)); club.tap()

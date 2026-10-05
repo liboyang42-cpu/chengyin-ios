@@ -1,10 +1,15 @@
 """Offline configuration guards; the real full-history scanner runs in CI."""
 from pathlib import Path
 import re
+import json
+import hashlib
 import unittest
 
 
 ROOT = Path(__file__).resolve().parents[2]
+MAIN_MERGE_COMMIT = "4e7349186d21448354d3bf4c6b4ab6adfc25fc1f"
+MAIN_MERGE_RECORDS = json.loads((ROOT / "tools/tests/fixtures/gitleaks-main-merge-audit-2026-10-05.json").read_text())["findings"]
+MAIN_MERGE_FINDINGS = {f"{r['commit']}:{r['path']}:{r['rule']}:{r['line']}" for r in MAIN_MERGE_RECORDS}
 IMPORT_COMMIT = "e39c367a35e1f15f9553701cbad56d0d10796c80"
 COVERAGE_PROSE_FINDING = "bcd754bd41dd41b3dad22a436211cd89ee47b657:docs/public-template/composition-read-grant.md:generic-api-key:75"
 
@@ -18,10 +23,10 @@ class GitleaksConfigurationTests(unittest.TestCase):
     def test_reviewed_ignores_are_commit_bound(self):
         entries = [line.strip() for line in (ROOT / ".gitleaksignore").read_text().splitlines()
                    if line.strip() and not line.lstrip().startswith("#")]
-        self.assertEqual(len(entries), 46)
-        self.assertEqual(len(set(entries)), 46)
+        self.assertEqual(len(entries), 88)
+        self.assertEqual(len(set(entries)), 88)
         self.assertEqual(entries.count(COVERAGE_PROSE_FINDING), 1)
-        legacy = [entry for entry in entries if entry != COVERAGE_PROSE_FINDING and entry not in COUPON_FIXTURE_FINDINGS]
+        legacy = [entry for entry in entries if entry != COVERAGE_PROSE_FINDING and entry not in COUPON_FIXTURE_FINDINGS and entry not in MAIN_MERGE_FINDINGS]
         self.assertEqual(len(legacy), 42)
         for entry in legacy:
             with self.subTest(entry=entry):
@@ -29,6 +34,27 @@ class GitleaksConfigurationTests(unittest.TestCase):
                 commit, path, rule, line = entry.split(":")
                 self.assertNotIn(f"{path}:{rule}:{line}", entries)
                 self.assertNotIn(f"{'0' * 40}:{path}:{rule}:{line}", entries)
+
+    def test_main_merge_exceptions_bind_exact_source_lines_and_do_not_cover_new_history(self):
+        entries = {line.strip() for line in (ROOT / ".gitleaksignore").read_text().splitlines()
+                   if line.strip() and not line.lstrip().startswith("#")}
+        self.assertEqual(len(MAIN_MERGE_FINDINGS), 42)
+        self.assertTrue(MAIN_MERGE_FINDINGS.issubset(entries))
+        self.assertEqual({r["classification"] for r in MAIN_MERGE_RECORDS},
+                         {"external_source_sha256_provenance", "native_source_sha256", "forbidden_mutation_route_assertion_literal"})
+        for row in MAIN_MERGE_RECORDS:
+            with self.subTest(path=row["path"], line=row["line"]):
+                self.assertEqual(row["commit"], MAIN_MERGE_COMMIT)
+                self.assertEqual(row["rule"], "generic-api-key")
+                line = (ROOT / row["path"]).read_text().splitlines()[row["line"] - 1]
+                self.assertEqual(hashlib.sha256(line.encode()).hexdigest(), row["source_line_sha256"])
+                suffix = f"{row['path']}:{row['rule']}:{row['line']}"
+                self.assertNotIn(suffix, entries)
+                self.assertNotIn("0" * 40 + ":" + suffix, entries)
+                unlisted_line = max(r["line"] for r in MAIN_MERGE_RECORDS if r["path"] == row["path"]) + 1
+                self.assertNotIn(f"{MAIN_MERGE_COMMIT}:{row['path']}:{row['rule']}:{unlisted_line}", entries)
+                self.assertNotIn(f"{MAIN_MERGE_COMMIT}:{row['path']}:other-rule:{row['line']}", entries)
+        self.assertFalse(any(entry.startswith("6757dfac63086ac80bc849df587895bcaaa820df:") for entry in entries))
 
     def test_new_prose_exception_is_exact_and_new_text_is_not_ignored(self):
         commit, path, rule, line = COVERAGE_PROSE_FINDING.split(":")

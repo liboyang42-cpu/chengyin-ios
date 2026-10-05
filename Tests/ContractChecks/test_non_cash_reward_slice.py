@@ -31,8 +31,10 @@ class NonCashRewardSliceChecks(unittest.TestCase):
         self.assertIn('model.value(scope: key.scope)', detail)
         for boundary in ['scenePhase', 'reader.scope', 'reader.isAuthenticated', 'reader.isConfigured']:
             self.assertIn('.onChange(of: ' + boundary + ')', detail)
-        self.assertIn('.onDisappear { presenting = false }', detail)
-        self.assertIn('private func refresh() async {\n        presenting = false', detail)
+        self.assertIn('if appearance.end(model: model) { presenting = false }', detail)
+        self.assertIn('if viewPresentation === appearance', detail)
+        self.assertNotIn('model.endPresentation()', detail)
+        self.assertIn('private func scheduleRefresh(presentation: NonCashRewardReadLifetime?) {\n        presenting = false', detail)
         self.assertNotIn('.sheet', rows)
         self.assertNotIn('@State', rows)
         self.assertNotIn('.onDisappear', rows)

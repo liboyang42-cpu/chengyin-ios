@@ -14,7 +14,11 @@ import SwiftUI
     @Environment(\.nativePlatformRuntime) private var nativePlatform
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
-    var body: some View {
+    @ViewBuilder var body: some View {
+        if !model.hasCurrentReadLifetime { Text("playMode.recoveryBlocked") }
+        else { currentContent }
+    }
+    private var currentContent: some View {
         List {
             Section {
                 LabeledContent("playx.state") { PlayRuntimePhaseText(phase: model.phase) }

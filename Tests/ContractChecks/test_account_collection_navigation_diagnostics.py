@@ -41,3 +41,12 @@ class AccountCollectionNavigationDiagnosticChecks(unittest.TestCase):
         self.assertNotIn('target.identifier', logger)
         self.assertIn('diagnoseNavigation: Bool = false', self.source)
         self.assertIn('attachFailureScreenshot(self, app: app)', self.source)
+
+    def test_post_tap_diagnostics_never_resolve_the_departed_source_element(self):
+        logger = self.source.split("private func logNavigationBoundary", 1)[1].split("private func assertChineseNavigation", 1)[0]
+        guard = logger.split('if phase == "after single tap" {', 1)[1].split('\n        }', 1)[0]
+        self.assertIn('targetLookup=omitted-after-navigation', guard)
+        self.assertIn('app.navigationBars.debugDescription', guard)
+        self.assertIn('return', guard)
+        self.assertNotIn('target.', guard)
+        self.assertLess(logger.index('return'), logger.index('let exists = target.exists'))

@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "source_tree": "a99fecc7d746ab4cfbe7e550f85ff9a03a0dd966",
+  "source_file_sha256": "7586ff68d3037b28c221ae546644f571a723d1c75d386ac306cf6cde63875032",
+  "source_patch_sha256": "89efa507cd95022643aeab0af34830785f3862d67c0093add1eb697ddda22813",
+  "new_ui_method_count": 0,
+  "class_count_delta": 1,
+  "runner_changed": false,
+  "methods": [
+    {
+      "old_id": "TemplateEditorControlsFlowTests.testRuleRowsPreserveSourceUntilEditAndBoundASCIIThroughLocalRestore",
+      "new_id": "TemplateEditorControlsFlowTests.testRuleRowsPreserveSourceUntilEditAndBoundASCIIThroughLocalRestore",
+      "declaration_sha256": "ea2afb2aeaf0fbdbf3677da58285f3c12c647f681936934aa7d964844403e87b",
+      "declaration_bytes": 3029,
+      "seconds": 420,
+      "measured": false,
+      "coverage": "unchanged"
+    },
+    {
+      "old_id": "TemplateEditorControlsFlowTests.testTimelineEditsDeriveCurrentSummaryAndSurviveExplicitRestore",
+      "new_id": "TemplateEditorControlsFlowTests.testTimelineEditsDeriveCurrentSummaryAndSurviveExplicitRestore",
+      "declaration_sha256": "a3fd8813fb479679c041bde8fd7408a812c0391287ece0682ae157e14e4b886f",
+      "declaration_bytes": 3666,
+      "seconds": 420,
+      "measured": false,
+      "coverage": "unchanged"
+    },
+    {
+      "old_id": "TemplateEditorControlsFlowTests.testHistoricalBytesHintOffRestoreAndSameOwnerLockedReadback",
+      "new_id": "TemplateHistoricalHintFlowTests.testHistoricalBytesHintOffRestoreAndSameOwnerLockedReadback",
+      "declaration_sha256": "386243e2f9caa7556e174051d14b9c60e8fd9c381e599b3748bfa9c89938b2c2",
+      "declaration_bytes": 6037,
+      "seconds": 720,
+      "measured": false,
+      "coverage": "moved intact"
+    }
+  ],
+  "shared_helper_block_sha256": "ddba64d57b7c42289aa951f436e946e2ff69251635a834fa03870061b9bb61c6",
+  "helper_block_bytes": 9031,
+  "budget": {
+    "deadline_seconds": 1800,
+    "startup_reserve_seconds": 300,
+    "effective_class_seconds": {
+      "TemplateEditorControlsFlowTests": 840,
+      "TemplateHistoricalHintFlowTests": 720
+    }
+  }
+}

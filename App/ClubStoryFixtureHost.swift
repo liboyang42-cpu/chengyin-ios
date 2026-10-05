@@ -12,14 +12,18 @@ import SwiftUI
         // The pushed destinations must inherit the same reader as the root read.
         .environment(\.clubStoryTemplates, store.templates)
         .safeAreaInset(edge: .bottom) {
-            ScrollView(.horizontal) {
-                HStack {
-                    Button("Refresh source") { store.refreshSource() }.accessibilityIdentifier("club.story.fixture.refresh")
-                    Button("Switch account") { store.switchAccount() }.accessibilityIdentifier("club.story.fixture.account")
-                    Button("Replace reader") { store.replaceReader() }.accessibilityIdentifier("club.story.fixture.reader")
-                    Button("Finish detail") { store.member.finish() }.accessibilityIdentifier("club.story.fixture.finish")
-                }.padding(8)
-            }.background(.regularMaterial)
+            // Keep all synthetic transition controls inside the safe area.
+            // A horizontally clipped last button cannot be revealed by the
+            // content's vertical-scrolling accessibility helper.
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 4) {
+                Button("Refresh source") { store.refreshSource() }.accessibilityIdentifier("club.story.fixture.refresh")
+                Button("Switch account") { store.switchAccount() }.accessibilityIdentifier("club.story.fixture.account")
+                Button("Replace reader") { store.replaceReader() }.accessibilityIdentifier("club.story.fixture.reader")
+                Button("Finish detail") { store.member.finish() }.accessibilityIdentifier("club.story.fixture.finish")
+            }
+            .buttonStyle(.bordered)
+            .padding(8)
+            .background(.regularMaterial)
         }
     }
 }

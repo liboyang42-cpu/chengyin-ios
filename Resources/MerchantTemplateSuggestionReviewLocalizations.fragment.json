@@ -1,0 +1,246 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "merchant.assist.diff.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review each proposed field"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "逐字段审阅建议"
+          }
+        }
+      }
+    },
+    "merchant.assist.diff.boundary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accept changes only the selected unchanged empty field in this unsaved local draft. It never saves or publishes."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接受操作仅填入此未保存本地草稿中未改动的空字段，不会保存或发布。"
+          }
+        }
+      }
+    },
+    "merchant.assist.diff.original": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original at generation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生成时的原内容"
+          }
+        }
+      }
+    },
+    "merchant.assist.diff.proposed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI suggestion"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 建议"
+          }
+        }
+      }
+    },
+    "merchant.assist.diff.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empty"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "空"
+          }
+        }
+      }
+    },
+    "merchant.assist.diff.accept": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accept this field"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接受此字段"
+          }
+        }
+      }
+    },
+    "merchant.assist.diff.undo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Undo this accepted field"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤销此字段"
+          }
+        }
+      }
+    },
+    "merchant.assist.diff.reject": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reject this field"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拒绝此字段"
+          }
+        }
+      }
+    },
+    "merchant.assist.diff.state.pending": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pending review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待审阅"
+          }
+        }
+      }
+    },
+    "merchant.assist.diff.state.applied": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Applied to the local draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已应用到本地草稿"
+          }
+        }
+      }
+    },
+    "merchant.assist.diff.state.undone": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Undone"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已撤销"
+          }
+        }
+      }
+    },
+    "merchant.assist.diff.state.rejected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rejected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已拒绝"
+          }
+        }
+      }
+    },
+    "merchant.assist.diff.blocked": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This action is unavailable while checking permission, after a manual change, or until the related question, choices and answer are consistent. Existing nonempty content is kept."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查权限期间、手动修改后，或相关题目、选项与答案尚未一致时，暂不可执行此操作。已有非空内容保持不变。"
+          }
+        }
+      }
+    },
+    "merchant.assist.diff.closeNote": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accepted fields are already in the unsaved local draft. Closing drops the remaining suggestions; use each field’s Undo before closing if needed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已接受字段已写入未保存的本地草稿。关闭会丢弃剩余建议；如需还原，请先逐字段撤销。"
+          }
+        }
+      }
+    },
+    "merchant.assist.diff.decodedResult": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Full decoded AI result · read-only"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完整解码后的 AI 结果 · 只读"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

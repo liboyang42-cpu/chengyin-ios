@@ -8,7 +8,14 @@ import UIKit
     var body: some View {
         LazyVGrid(columns: [GridItem(.adaptive(minimum: 88))]) {
             ForEach(Array(urls.prefix(9).enumerated()), id: \.offset) { index, raw in
-                Button { selected = raw } label: { RetainedPublicImageTile(raw: raw, reader: reader) }
+                Button { selected = raw } label: {
+                    RetainedPublicImageTile(raw: raw, reader: reader)
+                        .frame(maxWidth: .infinity, minHeight: 88)
+                        .contentShape(Rectangle())
+                }
+                    // Own the thumbnail hit area instead of inheriting List's
+                    // automatic row-button behavior around a sparse placeholder.
+                    .buttonStyle(.plain)
                     .accessibilityLabel(Text("image.retained.preview"))
                     .accessibilityValue(Text("\(index + 1) / \(min(urls.count, 9))"))
                     .accessibilityIdentifier("image.retained.reviewPhoto.\(index)")

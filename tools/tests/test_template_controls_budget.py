@@ -1,3 +1,4 @@
+from tools.tests.run109_amendment_budget_history import historical_ui_sources
 """Full-method estimates preserve earlier inventories and require a minimal safe replan."""
 from decimal import Decimal
 import hashlib
@@ -6,6 +7,7 @@ import json
 from pathlib import Path
 import re
 import unittest
+from tools.tests.functional_batch_budget_history import historical_counts, historical_names
 from tools.tests.run108_runtime_budget_history import historical_profile, historical_costs, HISTORICAL_SHARD_COUNT
 from tools.tests.club_story_budget_history import before_club_story, before_club_story_costs, CLASSES
 
@@ -36,7 +38,9 @@ class TemplateControlsBudgetTests(unittest.TestCase):
             self.assertTrue(record['basis'])
             self.assertNotIn(record['method'], profile['method_seconds'])
             self.assertEqual(profile['estimated_method_seconds'][record['method']], record['seconds'])
-            case, name = record['method'].split('.')
+            mapping = json.loads((ROOT / 'Tests/ContractChecks/fixtures/template_controls_method_migration.json').read_text())
+            current_id = {row['old_id']: row['new_id'] for row in mapping['methods']}.get(record['method'], record['method'])
+            case, name = current_id.split('.')
             source = (ROOT / 'Tests/AppUITests' / (case + '.swift')).read_text()
             self.assertRegex(source, r'\bfunc\s+' + re.escape(name) + r'\s*\(')
 
@@ -63,7 +67,7 @@ class TemplateControlsBudgetTests(unittest.TestCase):
         self.assertEqual((current['previous_shard_count'], current['shard_count']), (20, 21))
         self.assertEqual(HISTORICAL_SHARD_COUNT, self.profile()['planning_budget']['club_story_replan']['shard_count'])
         self.assertEqual(budget['template_metadata_selectors_replan']['previous_shard_count'], current['shard_count'])
-        counts = SHARD.discover(ROOT / 'Tests/AppUITests')
+        counts = historical_counts(ROOT / 'Tests/AppUITests')
         costs = historical_costs(ROOT / 'Tests/AppUITests', ROOT / 'tools/ui_duration_weights.json')
         for case in CLASSES:
             del counts[case]
@@ -71,12 +75,15 @@ class TemplateControlsBudgetTests(unittest.TestCase):
         del counts['TemplateMetadataSelectorsFlowTests']
         del costs['TemplateMetadataSelectorsFlowTests']
         precise = {}
-        for path in sorted((ROOT / 'Tests/AppUITests').glob('*.swift')):
+        for path in historical_ui_sources(ROOT / 'Tests/AppUITests'):
             source = path.read_text()
             names = re.findall(r'\bfunc\s+(test\w+)\s*\(', source)
             if not names:
                 continue
             case = re.findall(r'\bclass\s+(\w+)\s*:\s*XCTestCase\b', source)[0]
+            names = historical_names(case, names)
+            if not names:
+                continue
             if case in CLASSES:
                 continue
             if case == 'TemplateMetadataSelectorsFlowTests':

@@ -26,8 +26,52 @@ import SwiftUI
     var spatialApproval = PlayKitSpatialApproval()
     @State private var selectedNode: Int?
     @State private var confirmEnd = false
+    @State private var presentedMode: PlayGameplayMode?
     @Environment(\.scenePhase) private var scenePhase
     var body: some View {
+        Group {
+            if model.gameplayMode == .freeExploration || (model.snapshot == nil && presentedMode == .freeExploration) {
+                FreeExplorationExperienceView(model: model, storeDestination: { AnyView(freeStoreDestination($0)) })
+            } else if model.gameplayMode == .cityOrientation {
+                orientationContent
+            } else if model.snapshot == nil {
+                VStack(spacing: 12) {
+                    if model.phase == .loading { ProgressView("playx.loading") }
+                    if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
+                    if !model.available { Text("playx.disabled").accessibilityIdentifier("playx.disabled") }
+                    Button("playx.refresh") { Task { await model.load() } }
+                        .disabled(!model.available || model.phase == .loading || model.phase == .submitting)
+                }.padding().accessibilityIdentifier("playMode.loading")
+            } else { ContentUnavailableView("playMode.unavailable", systemImage: "questionmark.circle") }
+        }
+        .privacySensitive().appNavigationTitle(key: model.gameplayMode == .freeExploration ? "playFree.title" : "playx.title")
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationDestination(item: $selectedNode) { id in nodeDestination(id) }
+        .confirmationDialog("playx.run.end", isPresented: $confirmEnd, titleVisibility: .visible) {
+            Button("playx.run.end", role: .destructive) { Task { await model.endRun(now: ProcessInfo.processInfo.systemUptime, savedAt: Self.milliseconds) } }
+        } message: { Text("playx.run.end.detail") }
+        .task(id: model.identity) {
+            selectedNode = nil; presentedMode = nil
+            await model.load()
+        }
+        .onChange(of: model.gameplayMode) { _, mode in
+            let previous = presentedMode
+            if let mode { presentedMode = mode }
+            if mode == .cityOrientation, previous != .cityOrientation {
+                Task { await model.restoreRun(); projectAmbient() }
+            }
+            if let mode, mode != .cityOrientation { selectedNode = nil; confirmEnd = false }
+        }
+        .onChange(of: model.snapshot?.result) { _, _ in if model.gameplayMode == .cityOrientation { projectAmbient() } }
+        .onChange(of: model.snapshot) { _, _ in invalidateShopNPC?() }
+        .onChange(of: model.hasCurrentMediaSnapshot) { _, current in if !current { invalidateShopNPC?() } }
+        .onChange(of: scenePhase) { _, next in
+            if model.gameplayMode == .cityOrientation, next != .active, model.clock.phase == .running {
+                Task { await model.pauseRun(now: ProcessInfo.processInfo.systemUptime, savedAt: Self.milliseconds) }
+            }
+        }
+    }
+    private var orientationContent: some View {
         List {
             Section {
                 Label("playx.title", systemImage: "figure.walk")
@@ -55,7 +99,7 @@ import SwiftUI
             }
             if model.unresolved {
                 Section("playx.unknown.title") {
-                    Text("playx.unknown.body")
+                    Text(LocalizedStringKey(model.hasModeRecoveryBlock ? "playMode.recoveryBlocked" : "playx.unknown.body"))
                     Button("playx.reconcile") { Task { await model.load() } }.accessibilityIdentifier("playx.reconcile")
                     if model.canRetryExactBranch {
                         Button("playx.retryExact") { Task { await model.retryExactBranchAfterReadback() } }
@@ -154,19 +198,19 @@ import SwiftUI
                 if case .activity = model.scope { PlayLeadSection(model: model) }
             }
         }
-        .privacySensitive().navigationTitle("playx.title").navigationBarTitleDisplayMode(.inline)
         .accessibilityIdentifier("playx.overview")
-        .navigationDestination(item: $selectedNode) { id in nodeDestination(id) }
-        .confirmationDialog("playx.run.end", isPresented: $confirmEnd, titleVisibility: .visible) {
-            Button("playx.run.end", role: .destructive) { Task { await model.endRun(now: ProcessInfo.processInfo.systemUptime, savedAt: Self.milliseconds) } }
-        } message: { Text("playx.run.end.detail") }
-        .task(id: model.identity) { selectedNode = nil; await model.load(); await model.restoreRun(); projectAmbient() }
-        .onChange(of: model.snapshot?.result) { _, _ in projectAmbient() }
-        .onChange(of: model.snapshot) { _, _ in invalidateShopNPC?() }
-        .onChange(of: model.hasCurrentMediaSnapshot) { _, current in if !current { invalidateShopNPC?() } }
-        .onChange(of: scenePhase) { _, next in
-            if next != .active, model.clock.phase == .running { Task { await model.pauseRun(now: ProcessInfo.processInfo.systemUptime, savedAt: Self.milliseconds) } }
-        }
+    }
+    @ViewBuilder private func freeStoreDestination(_ id: Int) -> some View {
+        if model.gameplayMode == .freeExploration {
+            FreeExplorationStoreView(nodeID: id, model: model, device: deviceModel?(id), shopNPC: shopNPCModel?(id), mediaScope: mediaScope,
+                makeExternalMaps: makeExternalMaps, storyDestination: { node in
+                    guard model.hasCurrentMediaSnapshot, let chapterID = node.chapterID,
+                          model.chapterStories[chapterID] != nil else { return nil }
+                    return AnyView(ChapterStoryView(chapterID: chapterID, nodeID: node.id, model: model,
+                        mediaScope: mediaScope, makeAudio: makeAudio, approvedArtworkHosts: approvedArtworkHosts,
+                        nodeDestination: { AnyView(freeStoreDestination($0)) }))
+                })
+        } else { Text("playMode.unavailable") }
     }
     @ViewBuilder private func narrativeLink(_ query: JourneyNarrativeQuery, subtitle: String? = nil) -> some View {
         if let narrative = narrativeModel?(query) {
@@ -177,12 +221,14 @@ import SwiftUI
             }.accessibilityIdentifier("journey.record.open." + query.key)
         }
     }
-    private func nodeDestination(_ id: Int) -> some View {
+    @ViewBuilder private func nodeDestination(_ id: Int) -> some View {
+        if model.gameplayMode == .cityOrientation {
         let configuration = try? PlayStillnessConfiguration(raw: model.extras[id]?.sensorConfig ?? .null)
-        return PlayExperienceNodeView(nodeID: id, model: model, device: deviceModel?(id), advanced: advancedModel.flatMap { $0(id) },
+        PlayExperienceNodeView(nodeID: id, model: model, device: deviceModel?(id), advanced: advancedModel.flatMap { $0(id) },
             stillness: configuration.flatMap { configuration in motionModel.flatMap { $0(id, configuration) } },
             preference: preferenceModel.flatMap { $0(id) }, journey: journeyModel.flatMap { $0(id) }, narrative: narrativeModel?(.questions(nodeID: id)), shopNPC: shopNPCModel?(id),
             mediaScope: mediaScope, makeAudio: makeAudio, makeExternalMaps: makeExternalMaps, approvedArtworkHosts: approvedArtworkHosts, makeSensorProvider: makeSensorProvider, spatialApproval: spatialApproval)
+        } else { Text("playMode.unavailable") }
     }
     private func projectAmbient() {
         guard let result = model.snapshot?.result else { return }
@@ -211,9 +257,12 @@ import SwiftUI
     @State private var review: PlayCompletionReview?
     @State private var showReview = false
     @State private var showHint = false
+    @State private var hintContext: PlayInteractionContext?
+    @State private var hintLevel: Int?
     @State private var localIssue: PlayExperienceError?
     private var node: PlayNode? { model.snapshot?.visibleNodes.first { $0.id == nodeID } }
     var body: some View {
+        let context = model.interactionContext
         List {
             if let node {
                 if let journey { PlayJourneyCheckView(model: journey, nodeDone: node.done == true) }
@@ -258,7 +307,7 @@ import SwiftUI
                                 ForEach(options.keys.sorted(), id: \.self) { key in Text(verbatim: options[key] ?? key).tag(key) }
                             }.accessibilityIdentifier("playx.answer.options")
                         } else { TextField("playx.answer.placeholder", text: $answer, axis: .vertical).accessibilityIdentifier("playx.answer.field") }
-                        Button("playx.review") { prepare(.answer(answer)) }.disabled(!model.canWrite || answer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        Button("playx.review") { prepare(.answer(answer), context: context) }.disabled(!model.canWrite || answer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                             .accessibilityIdentifier("playx.answer.review")
                     }
                 }
@@ -267,7 +316,11 @@ import SwiftUI
                         if let cost = extra.hintCost { LabeledContent("playx.hints.cost") { Text(verbatim: String(cost)) } }
                         if let cap = extra.puzzleScoreCap { LabeledContent("playx.hints.cap") { Text(verbatim: String(cap)) } }
                         ForEach(Array(extra.usedHints.enumerated()), id: \.offset) { _, text in Text(verbatim: text) }
-                        Button("playx.hints.request") { showHint = true }
+                        Button("playx.hints.request") {
+                            hintContext = context
+                            hintLevel = extra.puzzleScoring == true ? min(2, (extra.puzzleHintLevel ?? 0) + 1) : nil
+                            showHint = true
+                        }
                             .disabled(!model.canWrite || (extra.puzzleScoring != true && extra.hintCost == nil))
                             .accessibilityIdentifier("playx.hints.request")
                     }
@@ -278,12 +331,24 @@ import SwiftUI
                         .accessibilityIdentifier("playx.preference.open")
                 }
                 if let stillness, node.sensorType == "still" {
-                    NavigationLink("playx.stillness") { PlayStillnessStreamView(model: stillness) { prepare(.sensor(type: "still", payload: $0)) } }
+                    NavigationLink("playx.stillness") {
+                        PlayInteractionBoundContent(context: model.interactionContext) { issuedContext in
+                            PlayStillnessStreamView(model: stillness) { prepare(.sensor(type: "still", payload: $0), context: issuedContext) }
+                        }
+                    }
                 }
-                if let advanced, node.hasAdvancedPrerequisite { NavigationLink("playx.advanced") { PlayAdvancedView(model: advanced, device: device, mediaScope: mediaScope, makeAudio: makeAudio, approvedArtworkHosts: approvedArtworkHosts, makeSensorProvider: makeSensorProvider, spatialApproval: spatialApproval) { state in try? model.acceptAdvanced(state) } } }
+                if let advanced, node.hasAdvancedPrerequisite {
+                    NavigationLink("playx.advanced") {
+                        PlayInteractionBoundContent(context: model.interactionContext) { advancedContext in
+                            PlayAdvancedView(model: advanced, device: device, mediaScope: mediaScope, makeAudio: makeAudio, approvedArtworkHosts: approvedArtworkHosts, makeSensorProvider: makeSensorProvider, spatialApproval: spatialApproval) { state in
+                                try? model.acceptAdvanced(state, context: advancedContext)
+                            }
+                        }
+                    }
+                }
                 if let device { PlayDeviceTaskSection(model: device, task: PlayNodeTask.resolve(mode: model.snapshot?.result.mode, node: node),
                     photoFilter: node.sensorType == "filter_shot" ? PlayPhotoFilter(rawValue: model.extras[nodeID]?.sensorConfig["filterStyle"].text ?? "") : nil,
-                    unsupportedPhotoSubtype: node.validationMethod == 2 && node.sensorType?.isEmpty == false && (node.sensorType != "filter_shot" || PlayPhotoFilter(rawValue: model.extras[nodeID]?.sensorConfig["filterStyle"].text ?? "") == nil), onEvidence: prepare) }
+                    unsupportedPhotoSubtype: node.validationMethod == 2 && node.sensorType?.isEmpty == false && (node.sensorType != "filter_shot" || PlayPhotoFilter(rawValue: model.extras[nodeID]?.sensorConfig["filterStyle"].text ?? "") == nil), interaction: .init(context: context, current: { model.interactionContext }), onEvidence: { prepare($0, context: $1) }) }
                 else if PlayNodeTask.resolve(mode: model.snapshot?.result.mode, node: node) != .answer { Text("playx.device.disabled") }
             } else { Text("playx.node.unavailable") }
             if let localIssue { PlayExperienceIssueView(issue: localIssue) }
@@ -315,15 +380,16 @@ import SwiftUI
         }
         .confirmationDialog("playx.hints.request", isPresented: $showHint, titleVisibility: .visible) {
             Button("playx.hints.confirm") {
-                let extra = model.extras[nodeID]
-                Task { await model.requestHint(nodeID: nodeID, level: extra?.puzzleScoring == true ? min(2, (extra?.puzzleHintLevel ?? 0) + 1) : nil) }
+                let context = hintContext, level = hintLevel
+                hintContext = nil
+                Task { await model.requestHint(nodeID: nodeID, level: level, context: context) }
             }
         } message: { Text("playx.hints.consequence") }
-        .onDisappear { journey?.roleContent.close(); device?.cancel(); model.cancelReview(); review = nil; answer = "" }
+        .onDisappear { journey?.roleContent.close(); device?.cancel(); model.cancelReview(); review = nil; hintContext = nil; answer = "" }
     }
     private func stateRow(_ key: String, done: Bool) -> some View { Label(LocalizedStringKey(key), systemImage: done ? "checkmark.circle.fill" : "circle") }
-    private func prepare(_ evidence: PlayCompletionEvidence) {
-        do { review = try model.review(nodeID: nodeID, evidence: evidence); showReview = true; localIssue = nil }
+    private func prepare(_ evidence: PlayCompletionEvidence, context: PlayInteractionContext?) {
+        do { review = try model.review(nodeID: nodeID, evidence: evidence, context: context); showReview = true; localIssue = nil }
         catch { localIssue = error as? PlayExperienceError ?? .invalidAction }
     }
 }
@@ -356,30 +422,38 @@ struct PlayRewardSection: View {
     @State private var text = ""
     @State private var action: PlayLeadAction?
     @State private var review = false
+    @State private var actionContext: PlayInteractionContext?
     var body: some View {
+        let context = model.interactionContext
         Section("playx.lead.title") {
-            Button("playx.lead.load") { Task { await model.loadLead() } }.accessibilityIdentifier("playx.lead.load")
+            Button("playx.lead.load") { Task { await model.loadLead(context: context) } }.accessibilityIdentifier("playx.lead.load")
             if let lead = model.lead {
                 if !lead.exists { Text("playx.lead.notStarted") }
                 if let broadcast = lead.broadcast { Text(verbatim: broadcast) }
                 if let chapter = lead.chapterName { Text(verbatim: chapter) }
                 if let arrived = lead.arrived, !lead.members.isEmpty { LabeledContent("playx.lead.arrived") { Text(verbatim: "\(arrived) / \(lead.members.count)") } }
                 ForEach(lead.members) { member in Label(member.name ?? "#\(member.id)", systemImage: member.arrived ? "checkmark.circle" : "circle") }
-                if lead.exists && !lead.meArrived { actionButton(.arrive) }
+                if lead.exists && !lead.meArrived { actionButton(context: context, .arrive) }
                 if lead.isLeader {
                     TextField("playx.lead.text", text: $text, axis: .vertical).accessibilityIdentifier("playx.lead.text")
-                    if !lead.exists { actionButton(.start) }
-                    else { actionButton(.broadcast); actionButton(.unlockChapter); actionButton(.settle) }
+                    if !lead.exists { actionButton(context: context, .start) }
+                    else { actionButton(context: context, .broadcast); actionButton(context: context, .unlockChapter); actionButton(context: context, .settle) }
                 }
                 if model.leaderOutcomeUnknown { Text("playx.lead.unknown") }
             }
         }
         .confirmationDialog("playx.review", isPresented: $review, titleVisibility: .visible) {
-            Button("playx.submit") { if let action { Task { await model.performLead(action, text: action == .broadcast ? text : nil) } } }
+            Button("playx.submit") {
+                if let action {
+                    let context = actionContext, message = action == .broadcast ? text : nil
+                    actionContext = nil
+                    Task { await model.performLead(action, text: message, context: context) }
+                }
+            }
         } message: { Text(LocalizedStringKey(action == .settle ? "playx.lead.settle.consequence" : "playx.lead.review")) }
     }
-    private func actionButton(_ value: PlayLeadAction) -> some View {
-        Button(LocalizedStringKey("playx.lead." + value.rawValue)) { action = value; review = true }
+    private func actionButton(context: PlayInteractionContext?, _ value: PlayLeadAction) -> some View {
+        Button(LocalizedStringKey("playx.lead." + value.rawValue)) { action = value; actionContext = context; review = true }
             .disabled(!model.canWrite || model.leaderOutcomeUnknown || (value == .unlockChapter && model.lead?.allArrived != true) || (value == .broadcast && text.isEmpty))
             .accessibilityIdentifier("playx.lead." + value.rawValue)
     }
@@ -388,4 +462,19 @@ struct PlayRewardSection: View {
 struct PlayRuntimePhaseText: View {
     let phase: String
     var body: some View { Text(LocalizedStringKey("playx.phase." + phase)) }
+}
+
+/// Freeze authority when this interaction is mounted. A redraw must not bind
+/// an old child operation to a newly loaded mode or request generation.
+@MainActor struct PlayInteractionBoundContent<Content: View>: View {
+    @State private var context: PlayInteractionContext?
+    private let currentContext: PlayInteractionContext?
+    private let content: (PlayInteractionContext?) -> Content
+    init(context: PlayInteractionContext?, @ViewBuilder content: @escaping (PlayInteractionContext?) -> Content) {
+        _context = State(initialValue: context); currentContext = context; self.content = content
+    }
+    @ViewBuilder var body: some View {
+        if context != nil, context == currentContext { content(context) }
+        else { Text("playMode.unavailable") }
+    }
 }

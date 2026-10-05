@@ -1,0 +1,1110 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "workshopOwned.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Workshop acquisitions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "工坊领取记录"
+          }
+        }
+      }
+    },
+    "workshopOwned.unavailable.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Workshop records unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "工坊记录暂不可用"
+          }
+        }
+      }
+    },
+    "workshopOwned.unavailable.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This account’s Workshop read service is not available yet. No ownership result has been returned."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此账号的工坊查询服务尚不可用，当前未取得任何持有结果。"
+          }
+        }
+      }
+    },
+    "workshopOwned.loading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading acquisition records…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在读取领取记录…"
+          }
+        }
+      }
+    },
+    "workshopOwned.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No free acquisition records were returned. Purchased packages are not included in this view."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未查询到免费领取记录。此页面不包含已购买的玩法包。"
+          }
+        }
+      }
+    },
+    "workshopOwned.hasMore": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Showing the latest 50 records. More records exist; further pages are not available in this read view."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前显示最近 50 条记录。还有更多记录，本查询视图暂不支持继续翻页。"
+          }
+        }
+      }
+    },
+    "workshopOwned.freeClaim": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Free acquisition"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "免费领取"
+          }
+        }
+      }
+    },
+    "workshopOwned.checkedAt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status checked at (UTC)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "状态查询时间（UTC）"
+          }
+        }
+      }
+    },
+    "workshopOwned.refresh": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新记录"
+          }
+        }
+      }
+    },
+    "workshopOwned.metadata": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acquisition record"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "领取记录"
+          }
+        }
+      }
+    },
+    "workshopOwned.claimId": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录编号"
+          }
+        }
+      }
+    },
+    "workshopOwned.acquiredAt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acquired at (UTC)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "领取时间（UTC）"
+          }
+        }
+      }
+    },
+    "workshopOwned.validUntil": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frozen free-license deadline (UTC)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "领取时冻结的免费授权期限（UTC）"
+          }
+        }
+      }
+    },
+    "workshopOwned.publication": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source availability"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来源状态"
+          }
+        }
+      }
+    },
+    "workshopOwned.contentUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Package details, licensed content, editing and installation are not available through this record. Its status does not authorize a new use."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本记录暂不提供玩法包详情、授权内容、编辑或安装。此处状态不能作为新增使用的授权。"
+          }
+        }
+      }
+    },
+    "workshopOwned.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Workshop record"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "工坊记录详情"
+          }
+        }
+      }
+    },
+    "workshopOwned.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read-only records of free acquisitions by this individual account. Status reflects the server’s stated check time."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅查询当前个人账号的免费领取记录。状态对应服务器所示的查询时间。"
+          }
+        }
+      }
+    },
+    "workshopOwned.purchasesUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Purchased-package records are not available here yet. Purchased versions retain durable use without subscription renewal; specific scope and lawful withdrawal still follow their frozen terms."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此处暂不提供已购买玩法包的记录。所购版本可持久使用，不因订阅到期失效；具体范围及合法撤权仍按冻结条款处理。"
+          }
+        }
+      }
+    },
+    "workshopOwned.status.ACTIVE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recorded status: active"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录状态：有效"
+          }
+        }
+      }
+    },
+    "workshopOwned.status.SUSPENDED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recorded status: suspended"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录状态：已暂停"
+          }
+        }
+      }
+    },
+    "workshopOwned.status.REVOKED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recorded status: revoked"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录状态：已撤销"
+          }
+        }
+      }
+    },
+    "workshopOwned.status.EXPIRED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recorded free-license status: expired"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "免费授权记录状态：已到期"
+          }
+        }
+      }
+    },
+    "workshopOwned.status.UNAVAILABLE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current status unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前状态不可确认"
+          }
+        }
+      }
+    },
+    "workshopOwned.publication.LISTED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source is listed. This does not enable installation or content use."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来源仍在架。此状态不会启用安装或内容使用。"
+          }
+        }
+      }
+    },
+    "workshopOwned.publication.RETIRED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source retired from acquisition. Retirement alone does not rewrite the original frozen rights."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来源已停止新领取。普通下架本身不改变原冻结权利。"
+          }
+        }
+      }
+    },
+    "workshopOwned.publication.EMERGENCY_BLOCKED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source blocked for safety or legal review. This view does not determine refund or existing-use outcomes."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来源因安全或法律事项被停用。本页面不决定退款或既有使用的后续处置。"
+          }
+        }
+      }
+    },
+    "workshopOwned.publication.UNAVAILABLE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source status cannot be confirmed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法确认来源状态。"
+          }
+        }
+      }
+    },
+    "workshopOwned.error.session": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The account session changed. Reopen this page after signing in."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账号会话已变化，请登录后重新打开此页面。"
+          }
+        }
+      }
+    },
+    "workshopOwned.error.forbidden": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This account cannot read the requested record."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此账号无权查看该记录。"
+          }
+        }
+      }
+    },
+    "workshopOwned.error.notFound": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This record is unavailable for this account."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此账号当前无法查询该记录。"
+          }
+        }
+      }
+    },
+    "workshopOwned.error.malformed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The record could not be verified. No content access is enabled."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法核实记录，未启用任何内容访问。"
+          }
+        }
+      }
+    },
+    "workshopOwned.error.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t load records. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法读取记录，请重试。"
+          }
+        }
+      }
+    },
+    "workshopOwned.package.open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View version and frozen terms"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看版本与冻结条款"
+          }
+        }
+      }
+    },
+    "workshopOwned.package.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Package snapshot"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩法包版本快照"
+          }
+        }
+      }
+    },
+    "workshopOwned.package.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read-only metadata from the verified immutable free-acquisition snapshot. These frozen policy fields do not enable content access or any new operation."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅展示经校验的免费领取不可变快照信息。冻结的许可字段不会启用内容访问或任何新增操作。"
+          }
+        }
+      }
+    },
+    "workshopOwned.package.loading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading frozen metadata…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在读取冻结信息…"
+          }
+        }
+      }
+    },
+    "workshopOwned.package.refresh": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh metadata"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新信息"
+          }
+        }
+      }
+    },
+    "workshopOwned.package.error": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The package metadata could not be read. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法读取玩法包信息，请重试。"
+          }
+        }
+      }
+    },
+    "workshopOwned.package.sessionChanged": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The account session changed. Reopen this page after signing in."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账号会话已变化，请登录后重新打开此页。"
+          }
+        }
+      }
+    },
+    "workshopOwned.package.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The immutable snapshot cannot be read for this acquisition right now. Return to the record for its current status."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前无法读取此领取记录的不可变快照，请返回记录查看其当前状态。"
+          }
+        }
+      }
+    },
+    "workshopOwned.package.version": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frozen version label"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "冻结版本名称"
+          }
+        }
+      }
+    },
+    "workshopOwned.package.schema": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source schema version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来源结构版本"
+          }
+        }
+      }
+    },
+    "workshopOwned.package.contentHash": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source content SHA-256"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来源内容 SHA-256"
+          }
+        }
+      }
+    },
+    "workshopOwned.package.termsVersion": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frozen terms version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "冻结条款版本"
+          }
+        }
+      }
+    },
+    "workshopOwned.package.termsHash": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frozen terms SHA-256"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "冻结条款 SHA-256"
+          }
+        }
+      }
+    },
+    "workshopOwned.package.validUntil": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frozen free-license deadline (UTC)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "免费授权冻结期限（UTC）"
+          }
+        }
+      }
+    },
+    "workshopOwned.package.checkedAt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status checked at (UTC)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查询时间（UTC）"
+          }
+        }
+      }
+    },
+    "workshopOwned.package.snapshot": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Immutable attribution"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不可变来源信息"
+          }
+        }
+      }
+    },
+    "workshopOwned.package.commercialUse": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frozen commercial-use term"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "冻结的商用条款"
+          }
+        }
+      }
+    },
+    "workshopOwned.package.adaptation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frozen adaptation term"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "冻结的改编条款"
+          }
+        }
+      }
+    },
+    "workshopOwned.package.translation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frozen translation term"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "冻结的翻译条款"
+          }
+        }
+      }
+    },
+    "workshopOwned.package.exactVersionOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This free offer covers its exact acquired version. No future version is added by this read."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本免费领取条款仅覆盖领取时的准确版本。本次查询不会增加任何未来版本。"
+          }
+        }
+      }
+    },
+    "workshopOwned.package.redistributionProhibited": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frozen redistribution term: prohibited."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "冻结的再分发条款：禁止。"
+          }
+        }
+      }
+    },
+    "workshopOwned.package.frozenRights": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original frozen policy"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原冻结许可政策"
+          }
+        }
+      }
+    },
+    "workshopOwned.package.regions": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explicit regions in frozen terms"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "冻结条款中的明确地域"
+          }
+        }
+      }
+    },
+    "workshopOwned.package.themeLimit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Theme limit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题数量限制"
+          }
+        }
+      }
+    },
+    "workshopOwned.package.merchantLimit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merchant limit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商户数量限制"
+          }
+        }
+      }
+    },
+    "workshopOwned.package.runLimit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Run limit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "运行次数限制"
+          }
+        }
+      }
+    },
+    "workshopOwned.package.limitNotice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These are the frozen authorization-record limits. They do not show remaining capacity or grant installation, commercial use or game admission."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这里展示授权记录中冻结的明确限额，不代表剩余容量，也不直接授予安装、商用或游戏准入权限。"
+          }
+        }
+      }
+    },
+    "workshopOwned.package.limits": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frozen scope limits"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "冻结的使用范围限制"
+          }
+        }
+      }
+    },
+    "workshopOwned.package.bindingCount": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Required resource placeholders"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "必需资源占位数量"
+          }
+        }
+      }
+    },
+    "workshopOwned.package.manifestUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A complete released manifest, asset rights and dependency closure are not available through this snapshot."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此快照暂不提供完整发布清单、素材权利或依赖闭包。"
+          }
+        }
+      }
+    },
+    "workshopOwned.package.editorUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Editable installation and protected content require a separately reviewed post-install policy and editor integration. They remain unavailable here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可编辑安装及受保护内容仍需独立审核的安装后政策与编辑器接入，此处暂不可用。"
+          }
+        }
+      }
+    },
+    "workshopOwned.package.nextSteps": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remaining use-flow requirements"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用流程尚需的条件"
+          }
+        }
+      }
+    },
+    "workshopOwned.package.unlimited": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explicitly unlimited"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "条款明确不限"
+          }
+        }
+      }
+    },
+    "workshopOwned.package.policy.ALLOWED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allowed by the frozen term"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原冻结条款允许"
+          }
+        }
+      }
+    },
+    "workshopOwned.package.policy.PROHIBITED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prohibited by the frozen term"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原冻结条款禁止"
+          }
+        }
+      }
+    },
+    "workshopOwned.package.policy.BIND_RESOURCES_ONLY": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resource binding only"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅允许绑定资源"
+          }
+        }
+      }
+    },
+    "workshopOwned.package.policy.LOCAL_ADAPTATION": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local adaptation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "允许本地改编"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

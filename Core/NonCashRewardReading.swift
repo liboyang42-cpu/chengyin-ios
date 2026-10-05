@@ -29,6 +29,16 @@ public struct NonCashRewardReadSession: Equatable {
         self.accountID = accountID; self.epoch = epoch; self.token = token
     }
 }
+/// Caller lifetime fences stale results and unauthorized callbacks, not server authority.
+@MainActor public final class NonCashRewardReadLifetime {
+    public private(set) var isActive = true
+    public init() {}
+    public func invalidate() { isActive = false }
+    func check() throws {
+        try Task.checkCancellation()
+        guard isActive else { throw CancellationError() }
+    }
+}
 @MainActor public protocol NonCashRewardReading: AnyObject {
     var scope: UUID { get }
     var isConfigured: Bool { get }
@@ -36,6 +46,18 @@ public struct NonCashRewardReadSession: Equatable {
     var isOfflineExample: Bool { get }
     func rewards(cursor: String?) async throws -> NonCashRewardPage
     func reward(_ reference: NonCashRewardReference) async throws -> NonCashReward
+    func reward(_ reference: NonCashRewardReference, lifetime: NonCashRewardReadLifetime) async throws -> NonCashReward
+}
+/// Credential-free fixture compatibility. Session readers must fence their side effects.
+public extension NonCashRewardReading {
+    func reward(_ reference: NonCashRewardReference, lifetime: NonCashRewardReadLifetime) async throws -> NonCashReward {
+        try lifetime.check()
+        do {
+            let value = try await reward(reference)
+            try lifetime.check()
+            return value
+        } catch { try lifetime.check(); throw error }
+    }
 }
 @MainActor public final class NonCashRewardSessionReader: NonCashRewardReading {
     private let service: NonCashRewardService?
@@ -62,7 +84,12 @@ public struct NonCashRewardReadSession: Equatable {
     public func reward(_ reference: NonCashRewardReference) async throws -> NonCashReward {
         try await read { try await $0.reward(reference, token: $1) }
     }
-    private func read<T>(_ operation: (NonCashRewardService, String) async throws -> T) async throws -> T {
+    public func reward(_ reference: NonCashRewardReference, lifetime: NonCashRewardReadLifetime) async throws -> NonCashReward {
+        try await read(lifetime: lifetime) { try await $0.reward(reference, token: $1) }
+    }
+    private func read<T>(lifetime: NonCashRewardReadLifetime? = nil,
+                         _ operation: (NonCashRewardService, String) async throws -> T) async throws -> T {
+        try lifetime?.check()
         guard let session = currentSession() else { throw APIError.unauthorized }
         guard let service else { throw APIError.notConfigured }
         let captured = scope
@@ -70,10 +97,10 @@ public struct NonCashRewardReadSession: Equatable {
         do {
             let value = try await operation(service, session.token)
             try Task.checkCancellation()
-            guard currentSession() == session, scope == captured else { throw CancellationError() }
+            guard lifetime?.isActive != false, currentSession() == session, scope == captured else { throw CancellationError() }
             return value
         } catch {
-            guard !Task.isCancelled, currentSession() == session, scope == captured else { throw CancellationError() }
+            guard !Task.isCancelled, lifetime?.isActive != false, currentSession() == session, scope == captured else { throw CancellationError() }
             if error as? APIError == .unauthorized { onUnauthorized(session) }
             throw error
         }

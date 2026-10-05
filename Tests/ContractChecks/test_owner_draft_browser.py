@@ -51,8 +51,10 @@ class OwnerDraftBrowserContracts(unittest.TestCase):
         self.assertIn('body.count <= 128', s)
     def test_session_binding_revokes_before_identity_assignment_and_on_root_exit(self):
         s = self.source('App/AppSession.swift')
-        self.assertIn('var account: Account? { willSet { invalidateOwnerDraftBrowser();', s)
-        self.assertIn('private var token: String? { willSet { invalidateOwnerDraftBrowser();', s)
+        for declaration in ['var account: Account?', 'private var token: String?']:
+            owner = next(line for line in s.splitlines() if declaration in line).split('didSet')[0]
+            self.assertIn('willSet {', owner)
+            self.assertIn('invalidateOwnerDraftBrowser();', owner)
         self.assertIn('ContentDraftContextFence.matches(self.currentOwnerDraftContext, context)', s)
         self.assertIn('setOwnerDraftPresentationActive(false)', self.source('App/QuestifyApp.swift'))
         gate = next(line for line in s.splitlines() if 'private var gate = SessionOperationGate()' in line)

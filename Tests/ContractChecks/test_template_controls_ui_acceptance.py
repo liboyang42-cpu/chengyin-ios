@@ -10,7 +10,8 @@ ROOT = Path(__file__).resolve().parents[2]
 class TemplateControlsUIAcceptanceChecks(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.ui = (ROOT / 'Tests/AppUITests/TemplateEditorControlsFlowTests.swift').read_text()
+        cls.ui_sources = [(ROOT / ('Tests/AppUITests/' + name + '.swift')).read_text() for name in ['TemplateEditorControlsFlowTests', 'TemplateHistoricalHintFlowTests']]
+        cls.ui = '\n'.join(cls.ui_sources)
         cls.fixture = (ROOT / 'App/TemplateAuthoringFixtureSupport.swift').read_text()
         cls.form = (ROOT / 'App/TemplateAuthoringDetailForms.swift').read_text()
         cls.model = (ROOT / 'App/TemplateAuthoringView.swift').read_text()
@@ -24,7 +25,7 @@ class TemplateControlsUIAcceptanceChecks(unittest.TestCase):
             'testHistoricalBytesHintOffRestoreAndSameOwnerLockedReadback',
         ])
         self.assertEqual(self.ui.count('let app = launch('), 3)
-        self.assertEqual(self.ui.count('app.launch()'), 1)
+        for source in self.ui_sources: self.assertEqual(source.count('app.launch()'), 1)
         for token in ['tap("templateAuthor.begin", in: app)', 'tap("templateAuthor.continue", in: app)',
                       'field.tap(); field.typeText(addition)', 'tapFixtureNativeSwitch',
                       'attachFailureScreenshot(self, app: application)', 'maximumSwipes: 40']:

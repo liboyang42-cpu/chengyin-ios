@@ -97,12 +97,13 @@ class PlayReadCompositionContracts(unittest.TestCase):
 
     def test_read_only_run_and_each_mutation_capability_remain_independent(self):
         coordinator = self.read('Core/PlayExperienceCoordinator.swift')
-        for text in ['public var canManageRun: Bool { service.enabled.contains(.runPersistence) && hasCurrentMediaSnapshot && !localRecoveryFailed && pausedLease?.value?.pendingRemote != true }',
+        for text in ['public var canManageRun: Bool { gameplayMode == .cityOrientation && service.enabled.contains(.runPersistence) && hasCurrentMediaSnapshot && !localRecoveryFailed && pausedLease?.value?.pendingRemote != true }',
                      'guard service.enabled.contains(.classicCompletion), canWrite',
-                     'guard service.enabled.contains(.classicCompletion), phase == .unknown',
-                     'guard service.enabled.contains(.hints), canWrite',
-                     'guard service.enabled.contains(.leader), canWrite',
-                     'guard service.enabled.contains(.runPersistence), let session',
+                     'guard gameplayMode == .cityOrientation, service.enabled.contains(.classicCompletion), phase == .unknown',
+                     'guard accepts(context), level == nil || gameplayMode == .cityOrientation',
+                     'service.enabled.contains(.hints), canWrite',
+                     'guard accepts(context), service.enabled.contains(.leader), canWrite',
+                     'service.enabled.contains(.runPersistence), let session = loadedSession, session == currentSession()',
                      'guard canManageRun, let session']:
             self.assertIn(text, coordinator)
         self.assertIn('disabled(!model.canManageRun)', self.read('App/PlayExperienceView.swift'))

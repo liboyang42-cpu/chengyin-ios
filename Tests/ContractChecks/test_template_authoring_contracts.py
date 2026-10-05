@@ -116,7 +116,7 @@ class TemplateAuthoringContracts(unittest.TestCase):
         catalog.update(json.loads(self.read('tools/template_preference_draft_localizations.json')))
         catalog.update(json.loads(self.read('tools/template_choice_option_media_localizations.json')))
         for key,entry in catalog.items():self.assertEqual(set(entry),{'en','zh-Hans'},key);self.assertTrue(all(entry.values()),key)
-        identifiers={'templateAuthor.method','templateAuthor.fixture.localSnapshot','templateAuthor.preference.status','templateAuthor.shelf.readStatus','templateAuthor.status','templateAuthor.field.','templateAuthor.cancelReview','templateAuthor.game.','templateAuthor.openEditor','templateAuthor.openMine','templateAuthor.openPrefab','templateAuthor.shelf.status','templateAuthor.shelf.cancel','templateAuthor.shelf.confirm'}
+        identifiers={'templateAuthor.preference.keyboardDone','templateAuthor.method','templateAuthor.fixture.localSnapshot','templateAuthor.preference.status','templateAuthor.shelf.readStatus','templateAuthor.status','templateAuthor.field.','templateAuthor.cancelReview','templateAuthor.game.','templateAuthor.openEditor','templateAuthor.openMine','templateAuthor.openPrefab','templateAuthor.shelf.status','templateAuthor.shelf.cancel','templateAuthor.shelf.confirm'}
         for path in list((ROOT/'App').glob('TemplateAuthor*.swift'))+list((ROOT/'App').glob('TemplatePreference*.swift'))+list((ROOT/'App').glob('PrefabPreview*.swift'))+list((ROOT/'Core').glob('TemplateAuthor*.swift')):
             for key in re.findall(r'"(templateAuthor\.[A-Za-z][A-Za-z.]+)"',path.read_text()):
                 if key not in identifiers and not key.endswith('.'):self.assertIn(key,catalog,key)

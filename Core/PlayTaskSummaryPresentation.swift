@@ -13,7 +13,7 @@ public struct PlayTaskSummaryPresentation: Equatable {
         } else { completed = nil; total = nil }
         let candidates = snapshot.visibleNodes.filter { !snapshot.isDone($0) && !snapshot.isLocked($0) && $0.done == false }
         // Multiple playable branches remain a choice; their order is not an authoritative current task.
-        currentNodeID = snapshot.availability == .active && candidates.count == 1 ? candidates.first?.id : nil
+        currentNodeID = snapshot.result.mode != 2 && snapshot.availability == .active && candidates.count == 1 ? candidates.first?.id : nil
     }
     public var fraction: Double? {
         guard let completed, let total else { return nil }

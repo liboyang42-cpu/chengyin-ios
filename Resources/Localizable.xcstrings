@@ -126092,6 +126092,1513 @@
           }
         }
       }
+    },
+    "templateMedia.optionImage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choice image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选项图片"
+          }
+        }
+      }
+    },
+    "templateMedia.optionAudio": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choice audio"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选项音频"
+          }
+        }
+      }
+    },
+    "templateMedia.storyImage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Story image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "剧情图片"
+          }
+        }
+      }
+    },
+    "templateMedia.awaiting": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No local selection yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未选择本地媒体。"
+          }
+        }
+      }
+    },
+    "templateMedia.pending": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local selection is pending. Nothing has been uploaded."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地选择处理中，尚未上传任何内容。"
+          }
+        }
+      }
+    },
+    "templateMedia.cropping": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review this local image crop. The source aspect ratio is retained."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查本地图片裁剪，保持原图宽高比。"
+          }
+        }
+      }
+    },
+    "templateMedia.ready": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ready for local review only. The saved reference is unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅供本地审阅，已保存的引用保持不变。"
+          }
+        }
+      }
+    },
+    "templateMedia.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The local selection could not be inspected. Reselect or cancel."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法检查本地选择，请重新选择或取消。"
+          }
+        }
+      }
+    },
+    "templateMedia.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review a local image or audio inspection for one field. This does not upload or replace its saved reference."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按字段审阅本地图片或音频检查结果。此操作不会上传或替换已保存的引用。"
+          }
+        }
+      }
+    },
+    "templateMedia.notUploaded": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local only · Not uploaded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅限本地 · 未上传"
+          }
+        }
+      }
+    },
+    "templateMedia.saved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unchanged saved reference"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未更改的已保存引用"
+          }
+        }
+      }
+    },
+    "templateMedia.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No saved reference."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚无已保存的引用。"
+          }
+        }
+      }
+    },
+    "templateMedia.selectImage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select an image for local review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择图片供本地审阅"
+          }
+        }
+      }
+    },
+    "templateMedia.imageUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Native image selection is unavailable in this build."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此版本暂不可使用原生图片选择。"
+          }
+        }
+      }
+    },
+    "templateMedia.audioUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Native audio document selection is unavailable here. Inspection is not playable audio or an attachment."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此处暂不可使用原生音频文件选择。检查结果不是可播放音频，也不是已添加附件。"
+          }
+        }
+      }
+    },
+    "templateMedia.localImage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reviewed local image, not uploaded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已审阅的本地图片，尚未上传"
+          }
+        }
+      }
+    },
+    "templateMedia.audioEvidence": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Extension and byte-count inspection only. The bytes were not decoded or retained as playable audio."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅检查扩展名与字节数。未解码或保留为可播放音频。"
+          }
+        }
+      }
+    },
+    "templateMedia.reselect": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard selection and reselect"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "丢弃本地选择并重新选择"
+          }
+        }
+      }
+    },
+    "templateMedia.applyUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply unavailable: no uploaded reference"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂不可应用：没有已上传的引用"
+          }
+        }
+      }
+    },
+    "templateMedia.finish": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finish review without changing the reference"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结束审阅并保持引用不变"
+          }
+        }
+      }
+    },
+    "templateMedia.testOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test-only generated data · No files or network"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅测试生成数据 · 不读取文件或联网"
+          }
+        }
+      }
+    },
+    "templateMedia.testReady": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generate test selection"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生成测试选择"
+          }
+        }
+      }
+    },
+    "templateMedia.testHeld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hold test selection pending"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保持测试选择待处理"
+          }
+        }
+      }
+    },
+    "templateMedia.testFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show test inspection failure"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示测试检查失败"
+          }
+        }
+      }
+    },
+    "templateMedia.testComplete": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complete pending test selection"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成待处理测试选择"
+          }
+        }
+      }
+    },
+    "templateMedia.stale": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This local review is no longer current. Return to the editor and open the field again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地审阅已失效，请返回编辑器重新打开该字段。"
+          }
+        }
+      }
+    },
+    "templateMedia.cancel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel local review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消本地审阅"
+          }
+        }
+      }
+    },
+    "templateMedia.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local media review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地媒体审阅"
+          }
+        }
+      }
+    },
+    "template.imageCrop.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crop image · original aspect"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "裁剪图片 · 保持原图比例"
+          }
+        }
+      }
+    },
+    "template.imageCrop.localOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adjust the composition within the original image shape. Confirming only keeps a local selection; nothing is uploaded."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在原图比例内调整构图。确认仅保留本地选择，不会上传。"
+          }
+        }
+      }
+    },
+    "template.imageCrop.reset": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset to full image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重置为完整图片"
+          }
+        }
+      }
+    },
+    "template.imageCrop.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep crop locally"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留本地裁剪"
+          }
+        }
+      }
+    },
+    "rewards.read.origin": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recorded reward origin"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已记录的奖励来源"
+          }
+        }
+      }
+    },
+    "rewards.read.context": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source type"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来源类型"
+          }
+        }
+      }
+    },
+    "rewards.read.context.THEME": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Theme"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题"
+          }
+        }
+      }
+    },
+    "rewards.read.context.MAP": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Map"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地图"
+          }
+        }
+      }
+    },
+    "rewards.read.contextId": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Context identifier"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上下文标识"
+          }
+        }
+      }
+    },
+    "rewards.read.releaseId": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Release identifier"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发布版本标识"
+          }
+        }
+      }
+    },
+    "rewards.read.runId": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Run identifier"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "场次标识"
+          }
+        }
+      }
+    },
+    "rewards.read.seasonId": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Season identifier"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "赛季标识"
+          }
+        }
+      }
+    },
+    "rewards.read.rulesVersion": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recorded rules version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已记录的规则版本"
+          }
+        }
+      }
+    },
+    "rewards.read.awardedAt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Award recorded at"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "奖励记录时间"
+          }
+        }
+      }
+    },
+    "rewards.read.sourceHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These identifiers belong to this recorded award. Its qualifying event is not included in this read response."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这些标识属于本条已记录奖励。本次查询未提供对应的资格事件。"
+          }
+        }
+      }
+    },
+    "rewards.read.qualification": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qualification and claim information"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "资格与领取信息"
+          }
+        }
+      }
+    },
+    "rewards.read.eligibility": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eligibility"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "领取资格"
+          }
+        }
+      }
+    },
+    "rewards.read.claimProgress": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claim progress"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "领取进度"
+          }
+        }
+      }
+    },
+    "rewards.read.allocation": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allocation method"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分配方式"
+          }
+        }
+      }
+    },
+    "rewards.read.notProvided": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not provided by this read contract"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前查询接口未提供"
+          }
+        }
+      }
+    },
+    "rewards.read.qualificationHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A recorded award does not establish current eligibility, remaining supply, or permission to claim or redeem."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "奖励记录不能证明当前领取资格、剩余供应量，或领取、核销权限。"
+          }
+        }
+      }
+    },
+    "rewards.read.reselect": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The account or session changed. Go back and select this reward again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账号或会话已变化。请返回并重新选择奖励。"
+          }
+        }
+      }
+    },
+    "rewards.read.frozenTerms": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This award keeps its recorded validity and merchant terms. Later merchant changes do not extend or replace these terms."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本奖励保留记录时的有效期与商家条款。商家后续修改不会延长或替换本条奖励的条款。"
+          }
+        }
+      }
+    },
+    "playMode.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This play mode is unavailable."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此玩法暂不可用。"
+          }
+        }
+      }
+    },
+    "playFree.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Free exploration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自由探索"
+          }
+        }
+      }
+    },
+    "playFree.choiceHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose stores in any order. Visiting one is enough."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有先后顺序，只去一家也可以。"
+          }
+        }
+      }
+    },
+    "playFree.pack.open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open your store cards"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开门店卡包"
+          }
+        }
+      }
+    },
+    "playFree.stores": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a store"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择想去的门店"
+          }
+        }
+      }
+    },
+    "playFree.stores.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No stores are available in this read."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前没有可查看的门店。"
+          }
+        }
+      }
+    },
+    "playFree.registrationRequired": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A valid pass is required to view these stores."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要有效通行资格才能查看这些门店。"
+          }
+        }
+      }
+    },
+    "playFree.store.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "门店暂不可用"
+          }
+        }
+      }
+    },
+    "playFree.store.redeemed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redeemed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已核销"
+          }
+        }
+      }
+    },
+    "playFree.store.proofRecorded": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo proof recorded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "照片凭证已记录"
+          }
+        }
+      }
+    },
+    "playFree.store.arrived": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrival recorded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "到店已记录"
+          }
+        }
+      }
+    },
+    "playFree.store.available": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose this store"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可选择这家"
+          }
+        }
+      }
+    },
+    "playFree.store.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store status unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "门店状态暂不可用"
+          }
+        }
+      }
+    },
+    "playFree.store.untitled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unnamed store"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未命名门店"
+          }
+        }
+      }
+    },
+    "playFree.store.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store visit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "到店体验"
+          }
+        }
+      }
+    },
+    "playFree.proof.pending": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The result needs a fresh status check. Refresh before submitting again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "现场记录结果待确认，请先刷新状态再提交。"
+          }
+        }
+      }
+    },
+    "playFree.redeemed.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your redeemed stores"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已核销门店"
+          }
+        }
+      }
+    },
+    "playFree.redeemed.count %lld %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld of %lld stores redeemed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已核销 %lld / %lld 家门店"
+          }
+        }
+      }
+    },
+    "playFree.ending.read": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read your exploration ending"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看探索结语"
+          }
+        }
+      }
+    },
+    "playFree.story": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read this store’s story"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "阅读门店故事"
+          }
+        }
+      }
+    },
+    "playFree.game.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This store’s in-store task is not available in the app yet. Refresh to check its recorded status."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此门店的店内任务尚未在 App 接通，可刷新查看已记录状态。"
+          }
+        }
+      }
+    },
+    "playFree.redemption.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store-specific consent and redemption-code display are not connected yet. Photo proof does not mean redemption is complete."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前门店授权和核销码展示尚未接通。照片凭证已记录不代表已核销。"
+          }
+        }
+      }
+    },
+    "playFree.evidence.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The required on-site evidence step is not available yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所需现场凭证步骤暂不可用。"
+          }
+        }
+      }
+    },
+    "playFree.evidence.submit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submit store evidence"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提交到店凭证"
+          }
+        }
+      }
+    },
+    "playFree.evidence.notice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This submits arrival or photo evidence only. The store confirms redemption separately."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此操作仅提交到店或照片凭证，核销由门店另行确认。"
+          }
+        }
+      }
+    },
+    "playFree.readOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This connection shows store status only. On-site submissions and redemption are not available here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此连接仅展示门店状态，尚不能提交现场凭证或出示核销码。"
+          }
+        }
+      }
+    },
+    "playMode.recoveryBlocked": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An earlier submission has a different or unrecorded play mode. Its outcome must be verified before another submission."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此前提交属于其他玩法或未记录玩法，需要先核实原提交结果，才能继续提交。"
+          }
+        }
+      }
+    },
+    "merchant.assist.diff.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review each proposed field"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "逐字段审阅建议"
+          }
+        }
+      }
+    },
+    "merchant.assist.diff.boundary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accept changes only the selected unchanged empty field in this unsaved local draft. It never saves or publishes."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接受操作仅填入此未保存本地草稿中未改动的空字段，不会保存或发布。"
+          }
+        }
+      }
+    },
+    "merchant.assist.diff.original": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original at generation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生成时的原内容"
+          }
+        }
+      }
+    },
+    "merchant.assist.diff.proposed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI suggestion"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 建议"
+          }
+        }
+      }
+    },
+    "merchant.assist.diff.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empty"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "空"
+          }
+        }
+      }
+    },
+    "merchant.assist.diff.accept": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accept this field"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接受此字段"
+          }
+        }
+      }
+    },
+    "merchant.assist.diff.undo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Undo this accepted field"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤销此字段"
+          }
+        }
+      }
+    },
+    "merchant.assist.diff.reject": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reject this field"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拒绝此字段"
+          }
+        }
+      }
+    },
+    "merchant.assist.diff.state.pending": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pending review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待审阅"
+          }
+        }
+      }
+    },
+    "merchant.assist.diff.state.applied": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Applied to the local draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已应用到本地草稿"
+          }
+        }
+      }
+    },
+    "merchant.assist.diff.state.undone": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Undone"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已撤销"
+          }
+        }
+      }
+    },
+    "merchant.assist.diff.state.rejected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rejected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已拒绝"
+          }
+        }
+      }
+    },
+    "merchant.assist.diff.blocked": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This action is unavailable while checking permission, after a manual change, or until the related question, choices and answer are consistent. Existing nonempty content is kept."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查权限期间、手动修改后，或相关题目、选项与答案尚未一致时，暂不可执行此操作。已有非空内容保持不变。"
+          }
+        }
+      }
+    },
+    "merchant.assist.diff.closeNote": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accepted fields are already in the unsaved local draft. Closing drops the remaining suggestions; use each field’s Undo before closing if needed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已接受字段已写入未保存的本地草稿。关闭会丢弃剩余建议；如需还原，请先逐字段撤销。"
+          }
+        }
+      }
+    },
+    "merchant.assist.diff.decodedResult": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Full decoded AI result · read-only"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完整解码后的 AI 结果 · 只读"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

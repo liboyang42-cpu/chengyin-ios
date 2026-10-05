@@ -1,9 +1,11 @@
+from tools.tests.run109_amendment_budget_history import before_run109_amendments
 import importlib.util
 import pathlib
 import re
 import json
 import tempfile
 import unittest
+from tools.tests.functional_batch_budget_history import before_functional_batch
 from unittest import mock
 
 spec=importlib.util.spec_from_file_location('ui_shard',pathlib.Path(__file__).resolve().parents[1]/'run_ui_shard.py')
@@ -129,13 +131,14 @@ class UIShardingTests(unittest.TestCase):
                     module.measured_weights(root,profile)
     def test_trial_profile_preserves_estimate_provenance_and_all_shard_coverage(self):
         data=json.loads((module.ROOT/'tools/ui_duration_weights.json').read_text())
-        self.assertEqual(module.DEFAULT_SHARD_COUNT,23)
+        self.assertEqual(module.DEFAULT_SHARD_COUNT,32)
         self.assertEqual(data['unobserved_method_seconds'],60)
         records=data['estimate_provenance']['methods']
         self.assertEqual(data['estimate_provenance']['baseline_estimate_count'],23)
-        self.assertEqual(sum(record['source'] in ['existing14','pending9'] for record in records),23)
-        self.assertEqual(sum(record['source'] == 'reference11' for record in records),11)
-        self.assertEqual(sum(record['source'] == 'referenceChatTask16' for record in records),16)
+        historical_records=before_functional_batch(data)['estimate_provenance']['methods']
+        self.assertEqual(sum(record['source'] in ['existing14','pending9'] for record in historical_records),23)
+        self.assertEqual(sum(record['source'] == 'reference11' for record in historical_records),11)
+        self.assertEqual(sum(record['source'] == 'referenceChatTask16' for record in historical_records),16)
         self.assertEqual(len(records),len({record['method'] for record in records}))
         self.assertTrue(all(record['measured'] is False and record['basis'] for record in records))
         self.assertEqual(data['estimated_method_seconds'],{x['method']:x['seconds'] for x in records})
@@ -154,7 +157,7 @@ class UIShardingTests(unittest.TestCase):
             self.assertLessEqual(sum(costs[name] for name in group)+budget['startup_reserve_seconds'],budget['deadline_seconds'])
 
     def test_new_run96_successor_estimates_are_explicit_not_measurements(self):
-        data=json.loads((module.ROOT/'tools/ui_duration_weights.json').read_text())
+        data=before_run109_amendments(json.loads((module.ROOT/'tools/ui_duration_weights.json').read_text()))
         records=[r for r in data['estimate_provenance']['methods'] if r['source']=='queuedRun96']
         self.assertEqual(len(records),16)
         for record in records:
@@ -166,7 +169,7 @@ class UIShardingTests(unittest.TestCase):
         self.assertEqual(data['estimated_method_seconds'][image],240)
 
     def test_local_editor_estimates_keep_explicit_provenance_and_original_limits(self):
-        data=json.loads((module.ROOT/'tools/ui_duration_weights.json').read_text())
+        data=before_functional_batch(json.loads((module.ROOT/'tools/ui_duration_weights.json').read_text()))
         expected={
             'TemplatePreferenceDraftEditorFlowTests.testNormalMethodEntryPreservesOriginalJSONAndKeepsRemoteActionsDisabled':120,
             'TemplatePreferenceDraftEditorFlowTests.testInvalidCurrentTextClearsOldPreviewAndSurvivesExplicitSaveRestore':120,
@@ -186,7 +189,7 @@ class UIShardingTests(unittest.TestCase):
             self.assertEqual(data['estimated_method_seconds'][method],seconds)
 
     def test_next_player_feature_estimates_track_actual_methods_without_claiming_measurements(self):
-        data=json.loads((module.ROOT/'tools/ui_duration_weights.json').read_text())
+        data=before_functional_batch(json.loads((module.ROOT/'tools/ui_duration_weights.json').read_text()))
         expected={
             'ActivityFlowTests.testPeopleOpenExactProfilesAndPreserveReadOnlyRowsAfterBack':180,
             'MerchantBusinessFlowTests.testChineseAftercareSearchSpansLoadedPages':180,
@@ -206,7 +209,7 @@ class UIShardingTests(unittest.TestCase):
             self.assertNotIn(method,data['method_seconds'])
 
     def test_detail_favorites_estimates_match_new_source_methods_and_are_not_measurements(self):
-        data=json.loads((module.ROOT/'tools/ui_duration_weights.json').read_text())
+        data=before_functional_batch(json.loads((module.ROOT/'tools/ui_duration_weights.json').read_text()))
         expected={
             'ActivityFlowTests.testReviewPreviewKeepsServerTotalAndSurvivesBackAndReopen':180,
             'ActivityFlowTests.testKnownEmptyReviewsDoNotShowAZeroStarRating':120,

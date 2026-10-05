@@ -23,11 +23,20 @@ public struct PlayExperienceService {
     let configuration: APIConfiguration
     let transport: any HTTPTransport
     public let enabled: Set<PlayExperienceCapability>
-    public init(configuration: APIConfiguration, transport: any HTTPTransport, enabled: Set<PlayExperienceCapability> = []) {
-        self.configuration = configuration; self.transport = transport; self.enabled = enabled
+    private let readLifetime: PlayInteractionLifetime?
+    public init(configuration: APIConfiguration, transport: any HTTPTransport, enabled: Set<PlayExperienceCapability> = [], readLifetime: PlayInteractionLifetime? = nil) {
+        self.configuration = configuration; self.transport = transport; self.enabled = enabled; self.readLifetime = readLifetime
     }
+    @MainActor public var readLifetimeID: String? { readLifetime?.identity }
+    @MainActor public var hasCurrentReadLifetime: Bool { readLifetime?.isCurrent ?? true }
+    @MainActor public func bound(to lifetime: PlayInteractionLifetime) -> PlayExperienceService {
+        .init(configuration: configuration, transport: transport, enabled: enabled, readLifetime: lifetime)
+    }
+    @MainActor func checkReadLifetime() throws { try readLifetime?.check() }
+    @MainActor private func checkReturnedMode(_ value: Int?) throws { try readLifetime?.checkReturnedMode(value) }
     public func nodes(scope: PlaySessionScope, token: String) async throws -> PlayExperienceDocument {
         let document: PlayExperienceDocument = try await request("api/play/nodes", query: scopeFields(scope), capability: .reads, token: token).decoded()
+        try await checkReturnedMode(document.base.mode)
         if case .topic(let id) = scope, let returnedID = document.base.topicID, returnedID != id { throw PlayExperienceError.malformed }
         return document
     }
@@ -75,11 +84,11 @@ public struct PlayExperienceService {
     }
     public func hint(scope: PlaySessionScope, nodeID: Int, level: Int?, token: String) async throws -> PlayHintReceipt {
         guard nodeID > 0 else { throw APIError.invalidRequest }
-        var fields: [String: String] = ["nodeId": String(nodeID)]
+        var fields = try scopeFields(scope); fields["nodeId"] = String(nodeID)
         let path: String
         if let level {
             guard (1...2).contains(level) else { throw APIError.invalidRequest }
-            fields.merge(try scopeFields(scope)) { _, new in new }; fields["level"] = String(level)
+            fields["level"] = String(level)
             path = "api/play/puzzle/hint"
         } else { path = "api/play/hint/unlock" }
         return try PlayHintReceipt(await request(path, form: fields, capability: .hints, token: token))
@@ -194,6 +203,7 @@ public struct PlayExperienceService {
         return request
     }
     @MainActor private func send(_ request: URLRequest, capability: PlayExperienceCapability, attempt: PlayPreparedDispatch? = nil) async throws -> PlayWireValue {
+        try checkReadLifetime()
         guard enabled.contains(capability) else { throw PlayExperienceError.disabled }
         guard let url = request.url, var route = URLComponents(url: url, resolvingAgainstBaseURL: false) else { throw APIError.invalidRequest }
         route.query = nil; route.fragment = nil
@@ -223,7 +233,15 @@ public struct PlayExperienceService {
         } else if attempt != nil { throw PlayExperienceError.persistenceUnavailable }
         try attempt?.checkLifetime()
         try Task.checkCancellation()
-        let (data, status) = try await transport.send(request)
+        let data: Data, status: Int
+        do {
+            try checkReadLifetime()
+            (data, status) = try await transport.send(request)
+        } catch {
+            // A stale response/error cannot expire or mutate the new context.
+            try checkReadLifetime(); throw error
+        }
+        try checkReadLifetime()
         try Task.checkCancellation()
         try attempt?.checkLifetime()
         let envelope = try? JSONDecoder().decode(PlayWireValue.self, from: data)

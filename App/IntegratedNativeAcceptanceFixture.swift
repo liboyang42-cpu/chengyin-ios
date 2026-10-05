@@ -253,7 +253,7 @@ import SwiftUI
                       url.query == "activityId=21" else { try reject("play shape") }
                 route = path.hasSuffix("/nodes") ? "play-nodes" : "play-route"
                 let graph = #"{"routeMode":"BRANCH_GRAPH","sessionId":99,"version":1,"status":"ACTIVE","nodeStates":{"1":"PLAYABLE","2":"HIDDEN"}}"#
-                json = route == "play-nodes" ? "{\"code\":200,\"data\":{\"topicId\":71,\"topicName\":\"Synthetic read-only play\",\"registered\":true,\"playable\":true,\"nodes\":[{\"nodeId\":1,\"name\":\"Visible synthetic node\"},{\"nodeId\":2,\"name\":\"Hidden synthetic node\"}],\"routeState\":\(graph)}}" : "{\"code\":200,\"data\":\(graph)}"
+                json = route == "play-nodes" ? "{\"code\":200,\"data\":{\"topicId\":71,\"mode\":1,\"topicName\":\"Synthetic read-only play\",\"registered\":true,\"playable\":true,\"nodes\":[{\"nodeId\":1,\"name\":\"Visible synthetic node\"},{\"nodeId\":2,\"name\":\"Hidden synthetic node\"}],\"routeState\":\(graph)}}" : "{\"code\":200,\"data\":\(graph)}"
             case "api/im/conversations":
                 fields = [:]; route = "history.conversations"
                 json = #"{"code":200,"data":[{"conversationId":901,"type":1,"unread":3,"counterparty":{"id":9,"nickname":"Synthetic conversation"}}]}"#

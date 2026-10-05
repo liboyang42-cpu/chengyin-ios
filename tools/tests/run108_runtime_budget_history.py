@@ -1,3 +1,4 @@
+from tools.tests.run109_amendment_budget_history import historical_ui_sources
 """Reconstruct the frozen run108 timing profile for historical tests only.
 
 Live CI always uses the current full profile. This helper reverses exactly the
@@ -8,13 +9,14 @@ import hashlib
 import json
 from pathlib import Path
 import re
+from tools.tests.functional_batch_budget_history import before_functional_batch, historical_names
 
 HISTORICAL_SHARD_COUNT = 23
 BASELINE_SHA256 = '6b4124953309dd0ba7a2abd8382d1fd4370cb3ff38d831a4509daf2b295f25a8'
 
 
 def historical_profile(profile):
-    result = deepcopy(profile)
+    result = before_functional_batch(profile)
     replan = result['planning_budget'].pop('run108_runtime_replan')
     methods = set(replan['expanded_methods'])
     records = result['estimate_provenance']['methods']
@@ -41,12 +43,15 @@ def historical_profile(profile):
 def historical_costs(directory, profile_path):
     profile = historical_profile(json.loads(Path(profile_path).read_text()))
     result = {}
-    for path in sorted(Path(directory).glob('*.swift')):
+    for path in historical_ui_sources(directory):
         source = path.read_text()
         methods = re.findall(r'\bfunc\s+(test\w+)\s*\(', source)
         if not methods:
             continue
         case = re.findall(r'\bclass\s+(\w+)\s*:\s*XCTestCase\b', source)[0]
+        methods = historical_names(case, methods)
+        if not methods:
+            continue
         result[case] = sum(profile['method_seconds'].get(case + '.' + method,
             profile['estimated_method_seconds'].get(case + '.' + method, profile['unobserved_method_seconds']))
             for method in methods)

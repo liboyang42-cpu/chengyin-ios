@@ -27,6 +27,23 @@ class ClubStoryNavigationContractTests(unittest.TestCase):
                      'selectedAnswer == nil, selectedTemplate == nil', '.navigationDestination(item: $selectedTemplate)',
                      'selection.isCurrent(snapshot: snapshot', 'destination(selection.route.templateID)']:
             self.assertIn(text, view)
+    def test_active_destination_retires_only_its_own_stale_selection(self):
+        view = self.text('App/ClubGovernanceViews.swift')
+        template = view.split('.navigationDestination(item: $selectedTemplate)', 1)[1].split('.navigationDestination(item: $selectedAnswer)', 1)[0]
+        answer = view.split('.navigationDestination(item: $selectedAnswer)', 1)[1].split('private func chapterPicker', 1)[0]
+        for body, guard, clear in [(template, 'selectedTemplate?.id == selection.id, !current(selection)', 'selectedTemplate = nil'),
+                                   (answer, 'selectedAnswer?.id == target.id, !current(target)', 'selectedAnswer = nil')]:
+            self.assertIn('.onChange(of: sourceRevision, initial: true)', body)
+            self.assertLess(body.index(guard), body.index(clear))
+        self.assertIn('.task(id: context)', answer)
+        self.assertIn('if !sourceIsCurrent { await reload() }', answer)
+        self.assertIn('sourceIsCurrent && selection.isCurrent(snapshot: snapshot', view)
+    def test_all_fixture_transitions_fit_without_horizontal_scroll(self):
+        fixture = self.text('App/ClubStoryFixtureHost.swift').split('@MainActor final class ClubStoryFixtureStore', 1)[0]
+        self.assertIn('LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())]', fixture)
+        self.assertNotIn('ScrollView(.horizontal)', fixture)
+        for identifier in ['refresh', 'account', 'reader', 'finish']:
+            self.assertEqual(fixture.count('club.story.fixture.' + identifier + '\"'), 1)
     def test_destination_reuses_exact_existing_session_reader(self):
         app = self.text('App/ClubStoryViews.swift')
         for text in ['reader: playerJourneyReader', 'SessionMemberTemplateDetailView(id: id).environmentObject(self)',

@@ -1,3 +1,4 @@
+from tools.tests.run109_amendment_budget_history import historical_ui_sources
 """Unmeasured selector allowances, unchanged historical evidence, and exact bounded planning."""
 from decimal import Decimal
 import hashlib
@@ -6,6 +7,7 @@ import json
 from pathlib import Path
 import re
 import unittest
+from tools.tests.functional_batch_budget_history import historical_counts, historical_names
 from tools.tests.run108_runtime_budget_history import historical_profile, historical_costs, HISTORICAL_SHARD_COUNT
 from tools.tests.club_story_budget_history import before_club_story, before_club_story_costs, CLASSES
 
@@ -66,13 +68,13 @@ class TemplateMetadataSelectorsBudgetTests(unittest.TestCase):
         self.assertEqual(current['previous_shard_count'], budget['template_controls_replan']['shard_count'])
         self.assertEqual((current['baseline_method_count'], current['baseline_total_method_seconds']),
                          (642, 30284.282))
-        counts = SHARD.discover(ROOT / 'Tests/AppUITests')
+        counts = historical_counts(ROOT / 'Tests/AppUITests')
         costs = historical_costs(ROOT / 'Tests/AppUITests', ROOT / 'tools/ui_duration_weights.json')
         for case in CLASSES:
             del counts[case]
         costs = before_club_story_costs(costs, self.profile())
         precise = {}; inventory = set()
-        for path in sorted((ROOT / 'Tests/AppUITests').glob('*.swift')):
+        for path in historical_ui_sources(ROOT / 'Tests/AppUITests'):
             source = path.read_text()
             names = re.findall(r'\bfunc\s+(test\w+)\s*\(', source)
             if not names:
@@ -80,6 +82,9 @@ class TemplateMetadataSelectorsBudgetTests(unittest.TestCase):
             cases = re.findall(r'\bclass\s+(\w+)\s*:\s*XCTestCase\b', source)
             self.assertEqual(len(cases), 1)
             case = cases[0]
+            names = historical_names(case, names)
+            if not names:
+                continue
             if case in CLASSES:
                 continue
             self.assertNotIn(case, precise)

@@ -10,7 +10,7 @@ import XCTest
     func testV1ReadOnlyReceiptRecoveryAfterRestartAndNotFoundKeepsJournal() throws {
         let journal = UUID()
         launch("commandUnknown", journalID: journal); openCoupons(); enterDraft(); tap("couponManagement.confirm")
-        XCTAssertTrue(revealFixtureElement(app.staticTexts["couponManagement.issue"], in: app, towardTop: true, requiresHittable: false))
+        XCTAssertTrue(revealFixtureElement(app.staticTexts["couponManagement.notice.editor.issue"], in: app, towardTop: true, requiresHittable: false))
         try closeEditor(); XCTAssertEqual(try evidence()["writes"] as? Int, 1); app.terminate()
         launch("commandNotFound", journalID: journal); openCoupons(); tap("couponManagement.recover")
         let checked = XCTNSPredicateExpectation(predicate: NSPredicate { [self] _, _ in

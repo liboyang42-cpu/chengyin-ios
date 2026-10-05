@@ -40,7 +40,7 @@ class IntegratedNativeAcceptanceContracts(unittest.TestCase):
             self.assertNotIn(forbidden, source)
 
     def test_bounded_ui_cases_use_phone_inputs_and_normal_destinations(self):
-        source = self.read('Tests/AppUITests/IntegratedNativeAcceptanceFlowTests.swift')
+        source = (self.read('Tests/AppUITests/IntegratedNativeAcceptanceFlowTests.swift') + '\n' + self.read('Tests/AppUITests/IntegratedActivityPlayJourneyFlowTests.swift'))
         self.assertEqual(len(re.findall(r'func\s+test\w+\(', source)), 8)
         for required in ['auth.channels.sendCode', 'auth.channels.phoneSignIn', 'homeFeed.nearby.activity.21', 'roam.area.select',
                          'activity.openPlay', 'profile.open.orders', 'profile.order.41',
@@ -55,7 +55,7 @@ class IntegratedNativeAcceptanceContracts(unittest.TestCase):
         self.assertIn('XCTAssertTrue(value.manualArea)', source)
 
     def test_shelf_next_page_uses_bounded_native_container_progress(self):
-        source = self.read('Tests/AppUITests/IntegratedNativeAcceptanceFlowTests.swift')
+        source = (self.read('Tests/AppUITests/IntegratedNativeAcceptanceFlowTests.swift') + '\n' + self.read('Tests/AppUITests/IntegratedActivityPlayJourneyFlowTests.swift'))
         block = source.split('private func tapOwnedShelfNextPage', 1)[1].split('private func closeFrontSheet', 1)[0]
         for required in ['app.collectionViews', 'app.tables', 'app.scrollViews', 'memberTemplate.mine.',
                          '0..<30', 'bounds.contains(target.frame)', 'target.isEnabled', 'target.isHittable',
@@ -65,7 +65,7 @@ class IntegratedNativeAcceptanceContracts(unittest.TestCase):
         self.assertNotIn('maximumSwipes:', block)
 
     def test_map_overflow_requires_unique_visible_native_leaf_then_exact_action(self):
-        source = self.read('Tests/AppUITests/IntegratedNativeAcceptanceFlowTests.swift')
+        source = (self.read('Tests/AppUITests/IntegratedNativeAcceptanceFlowTests.swift') + '\n' + self.read('Tests/AppUITests/IntegratedActivityPlayJourneyFlowTests.swift'))
         block = source.split('private func tapRoamOverflowToggle', 1)[1].split('private func tapOwnedShelfNextPage', 1)[0]
         for required in ['navigation.buttons["Official city"]', 'frame.minX >= city.frame.maxX',
                          'navigation.frame.contains(frame)', 'app.frame.contains(frame)',
@@ -105,6 +105,7 @@ class IntegratedNativeAcceptanceContracts(unittest.TestCase):
         project = self.read('Questify.xcodeproj/project.pbxproj')
         for path in ['App/IntegratedNativeAcceptanceFixture.swift',
                      'Tests/AppUITests/IntegratedNativeAcceptanceFlowTests.swift',
+                     'Tests/AppUITests/IntegratedActivityPlayJourneyFlowTests.swift',
                      'Tests/AppUnitTests/IntegratedNativeAcceptanceFactoryTests.swift']:
             self.assertIn(path, project)
         proof = self.read('Tests/AppUnitTests/IntegratedNativeAcceptanceFactoryTests.swift')
@@ -114,6 +115,24 @@ class IntegratedNativeAcceptanceContracts(unittest.TestCase):
                          'capturedTransport.send(oldRequest)', 'retainedReader === session.ownedOrderReader',
                          'case tokenOnly, malformedID, nonPositiveID, mismatchedID', 'assertPhoneProjectionRejected(fault)']:
             self.assertIn(required, proof)
+
+    def test_play_tap_excludes_actual_registration_inset_and_fixture_supplies_mode(self):
+        source = (self.read('Tests/AppUITests/IntegratedNativeAcceptanceFlowTests.swift') + '\n' + self.read('Tests/AppUITests/IntegratedActivityPlayJourneyFlowTests.swift'))
+        block = source.split('private func tapActivityPlay(', 1)[1].split('private func tapRoamOverflowToggle', 1)[0]
+        for required in ['activity.openRegistration', 'app.tabBars.firstMatch',
+                         'registration.frame.minY - 12', 'tabs.frame.minY - 4',
+                         'activityPlayRowFits(row.frame, viewport: viewport)', 'row.isEnabled', 'row.isHittable',
+                         '0...10', 'row.tap(); return', 'XCTFail(']:
+            self.assertIn(required, block)
+        self.assertNotIn('sleep', block)
+        self.assertIn('tapActivityPlay(app)', source)
+        self.assertIn('XCTAssertFalse(app.navigationBars["Activity registration"].exists)', source)
+        fixture = self.read('App/IntegratedNativeAcceptanceFixture.swift')
+        play = fixture.split('json = route == "play-nodes" ? ', 1)[1].split(' : ', 1)[0]
+        play = play.replace(r'\(graph)', '{}')
+        data = json.loads(json.loads(play))['data']
+        self.assertEqual(data['mode'], 1)
+        self.assertEqual(data['topicName'], 'Synthetic read-only play')
 
 if __name__ == '__main__':
     unittest.main()

@@ -5,7 +5,8 @@ import SwiftUI
     let task: PlayNodeTask
     var photoFilter: PlayPhotoFilter? = nil
     var unsupportedPhotoSubtype = false
-    let onEvidence: (PlayCompletionEvidence) -> Void
+    let interaction: PlayDeviceInteraction
+    let onEvidence: (PlayCompletionEvidence, PlayInteractionContext?) -> Void
     private var kind: PlayDeviceKind? {
         switch task { case .scan, .merchantScan: return .scan
         case .arrive: return .location
@@ -14,34 +15,35 @@ import SwiftUI
         default: return nil }
     }
     var body: some View {
+        let outputContext = model.outputInteractionContext, outputID = model.outputID
         Section("playx.device.title") {
             if let kind {
                 Text(LocalizedStringKey("playx.device." + kind.rawValue)).font(.headline)
                 if unsupportedPhotoSubtype { Text("playhost.photo.unsupported") }
                 if !model.supports(kind) { Text("playx.device.disabled") }
-                Button("playx.device.capture") { Task { await model.capture(kind, photoFilter: photoFilter) } }
+                Button("playx.device.capture") { Task { await model.capture(kind, photoFilter: photoFilter, interaction: interaction) } }
                     .disabled(model.busy || !model.supports(kind) || unsupportedPhotoSubtype).accessibilityIdentifier("playx.device.capture")
                 if model.busy { ProgressView("playx.loading") }
                 if let output = model.output {
                     switch output {
                     case .scan(let code):
                         Text("playx.device.scanCaptured")
-                        Button("playx.review") { onEvidence(.scan(code)) }.accessibilityIdentifier("playx.device.review")
+                        Button("playx.review") { onEvidence(.scan(code), outputContext) }.disabled(!model.canReviewOutput).accessibilityIdentifier("playx.device.review")
                     case .location(let longitude, let latitude, let coordinateSystem):
                         Text("playx.device.locationCaptured")
                         Text(verbatim: coordinateSystem).font(.caption)
-                        Button("playx.review") { onEvidence(.location(longitude: longitude, latitude: latitude, coordinateSystem: coordinateSystem)) }
-                            .disabled(coordinateSystem != "GCJ02").accessibilityIdentifier("playx.device.review")
+                        Button("playx.review") { onEvidence(.location(longitude: longitude, latitude: latitude, coordinateSystem: coordinateSystem), outputContext) }
+                            .disabled(!model.canReviewOutput || coordinateSystem != "GCJ02").accessibilityIdentifier("playx.device.review")
                     case .photo(let bytes, let mime):
                         Text("playx.device.photoCaptured")
                         LabeledContent("playx.media.size") { Text(verbatim: "\(bytes.count) · \(mime)") }
                         if let image = UIImage(data: bytes) { Image(uiImage: image).resizable().scaledToFit().frame(maxHeight: 240).accessibilityLabel(Text("playhost.photo.preview")) }
                         Text("playhost.photo.notice")
-                        Button("playhost.photo.upload") { Task { await model.uploadPhoto() } }
+                        Button("playhost.photo.upload") { Task { await model.uploadPhoto(expectedOutputID: outputID) } }
                             .disabled(!model.canUpload).accessibilityIdentifier("playhost.photo.upload")
                         if model.uploadedPhoto != nil {
-                            Button("playx.review") { if let evidence = model.reviewedPhoto() { onEvidence(evidence) } }
-                                .accessibilityIdentifier("playhost.photo.review")
+                            Button("playx.review") { if let evidence = model.reviewedPhoto(expectedOutputID: outputID) { onEvidence(evidence, outputContext) } }
+                                .disabled(!model.canReviewOutput).accessibilityIdentifier("playhost.photo.review")
                         } else { Text("playx.media.uploadGate") }
                     case .sample: Text("playx.device.motionCaptured")
                     case .unavailable: Text("playx.device.disabled")

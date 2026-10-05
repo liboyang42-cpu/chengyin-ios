@@ -57,10 +57,15 @@ import SwiftUI
     }
     var body: some View {
         VStack(spacing: 4) {
-            Text(verbatim: String(images.readCount)).accessibilityIdentifier("publicPlay.fixture.imageReads")
-            Text(verbatim: String(reader.detailReads)).accessibilityIdentifier("publicPlay.fixture.detailReads")
-            Button("Replace public fixture context") { images.onRead = { reader.revision += 1 } }
-                .accessibilityIdentifier("publicPlay.fixture.replaceOnImage")
+            Group {
+                Text(verbatim: String(images.readCount)).accessibilityIdentifier("publicPlay.fixture.imageReads")
+                Text(verbatim: String(reader.detailReads)).accessibilityIdentifier("publicPlay.fixture.detailReads")
+                Button("Replace public fixture context") { images.onRead = { reader.revision += 1 } }
+                    .accessibilityIdentifier("publicPlay.fixture.replaceOnImage")
+            }
+            // Keep synthetic probes compact. The real browser/detail/gallery
+            // below still receives the requested accessibility text size.
+            .font(.caption).dynamicTypeSize(.large)
             NavigationStack {
                 DiscoveryTemplateBrowserView(reader: reader, imageReader: imageReader)
             }

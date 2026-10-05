@@ -30,7 +30,9 @@ class CommunityMediaIntegration(unittest.TestCase):
  def test_media_owner_invalidates_before_identity_replacement(self):
   s=read('App/AppSession.swift')
   self.assertIn('if account?.id != newValue?.id { platformConsumers.invalidate() }',s)
-  self.assertIn('willSet { invalidateOwnerDraftBrowser(); if token != newValue { invalidateShopNPCConversations(); platformConsumers.invalidate() } }',s)
+  token_owner = next(line for line in s.splitlines() if 'private var token: String?' in line).split('didSet')[0]
+  self.assertIn('willSet {', token_owner)
+  self.assertIn('invalidateOwnerDraftBrowser(); if token != newValue { invalidateShopNPCConversations(); platformConsumers.invalidate() } }',token_owner)
   s=read('App/PlatformConsumerSessionOwner.swift');self.assertIn('audio.forEach { $0.dispose() }',s);self.assertIn('maps.forEach { $0.invalidate() }',s)
   self.assertIn('audio: (() -> PlatformAudioPlayback)? = nil',s)
  def test_maps_use_ticket_poi_and_selected_node(self):
