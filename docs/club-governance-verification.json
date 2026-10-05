@@ -1,0 +1,72 @@
+{
+  "status": "integrated locally; no publication by worker",
+  "read_adapters": 34,
+  "dormant_mutation_adapters": 23,
+  "module_core_test_inventory": 58,
+  "module_ui_test_inventory": 6,
+  "module_bilingual_keys": 327,
+  "total_core_test_inventory": 1313,
+  "total_ui_test_inventory": 206,
+  "total_ui_classes": 30,
+  "total_bilingual_keys": 3064,
+  "ui_shards": [
+    35,
+    35,
+    34,
+    34,
+    34,
+    34
+  ],
+  "structural_sources": 405,
+  "python_contract_checks": {
+    "passed": 243
+  },
+  "tooling_tests": {
+    "passed": 16
+  },
+  "focused_tree_sitter": {
+    "files": 20,
+    "recovery_diagnostics": 0,
+    "status": "PASS"
+  },
+  "whole_tree_sitter": {
+    "files": 493,
+    "files_with_recovery": 6,
+    "diagnostics": 10,
+    "status": "same existing baseline diagnostics"
+  },
+  "swift_tests": "NOT_RUN",
+  "xcode_build": "NOT_RUN",
+  "simulator_ui": "NOT_RUN",
+  "device_accessibility": "NOT_RUN",
+  "live_backend": "NOT_RUN",
+  "publication": "NOT_RUN by this worker",
+  "shared_files_changed": [
+    "App/AppSession.swift",
+    "App/ClubManagementContext.swift",
+    "App/ClubHomeView.swift",
+    "App/ClubDetailView.swift",
+    "App/QuestifyApp.swift",
+    "Resources/Localizable.xcstrings",
+    "Questify.xcodeproj/project.pbxproj",
+    "README.md",
+    "PROGRESS.md"
+  ],
+  "module_file_hashes": {
+    "Core/ClubGovernanceValidation.swift": "8b95b90d4981d51f9d1c49dc3b0a4a8ef06bb1211a8a5768a97090f8a043eb79",
+    "Core/ClubGovernanceService.swift": "e726e105d20591b3b51f342bcecf5f6c75ee497ce95e603d4c050da3d30ed3ee",
+    "Core/ClubGovernanceCommands.swift": "5b7a7d842991aa199583185fa94f47274b9208de1833388c98a8eee11fda2f6c",
+    "Core/ClubGovernanceSyntheticFixtures.swift": "408ec93058c517659d3f7c9b9d70bd9a0caa638c2dab13095ab07f0e02fa44ac",
+    "Core/ClubGovernanceCoordinator.swift": "5fc16015adac60b0af39509f40634f16cc35f4e611c52fdd57861ba2b7f64f66",
+    "Core/ClubGovernanceFormDraft.swift": "85081a5adfb997068cda84b899c6e74600b782b9f5109bc62c91f876a3c3eafc",
+    "Core/ClubGovernanceGroupCode.swift": "b95529facbffa96e508b1211669ae3b06c73e07dca8425da04b14e10bd25119d",
+    "Core/ClubGovernanceContracts.swift": "5a8030c8952cd30f03ab3eab1925a465fbf79b03ca0c83b5952047b613bb114b",
+    "App/ClubGovernanceViews.swift": "678564562a287e4b550ed73954a1a0ec2335a5c8031535a660470fa27bf049b1",
+    "App/ClubGovernanceContext.swift": "a5eed15d56fcc56f5e228fa3dca01fba00dad1a4b72b29712fe4a84422c3c901",
+    "App/ClubGovernanceFixtureHost.swift": "3786bf59e2b311402fa1809a4b20db398cb5604bfca28cd9516f7e433f95cf30",
+    "App/ClubGovernanceCommandForm.swift": "2f5867eaaadf7a278d47d7f8c12c02fe94dd0357103304ca81b5c7a7ce8e875b",
+    "Tests/CoreTests/ClubGovernanceCoordinatorTests.swift": "1122b97046408c3d8ff51548a25c8f72c61674bc15cee96ab3dd5f0767a1909b",
+    "Tests/CoreTests/ClubGovernanceContractTests.swift": "66ce84dec063a13ea1b5fa698847774a57fa730ad5efa1d405b99a1cee937db9",
+    "Tests/AppUITests/ClubGovernanceFlowTests.swift": "eb134d6930d7139f39fd1b65992f7226523d57886b8551b4061f0a068180da4f"
+  }
+}

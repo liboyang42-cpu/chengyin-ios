@@ -1,0 +1,156 @@
+{
+  "package": "TemplateAuthoring exact HTTP and own-shelf repair",
+  "shared_tree_modified": false,
+  "production_factory_changed": false,
+  "production_writes_enabled": false,
+  "default_http_enabled": false,
+  "source_structure_checks": {
+    "status": "PASS",
+    "focused": 12,
+    "inherited": 21
+  },
+  "supplementary_tree_sitter": {
+    "status": "PASS",
+    "swift_files": 12,
+    "typecheck": false
+  },
+  "swift_core_fake_http_tests": {
+    "status": "NOT_RUN",
+    "authored": 18
+  },
+  "ui_tests": {
+    "status": "NOT_RUN",
+    "authored": 6
+  },
+  "swift_compilation": "NOT_RUN",
+  "apple_build": "NOT_RUN",
+  "simulator_device": "NOT_RUN",
+  "live_network": "NOT_RUN",
+  "source_sha256": {
+    "lib/data/api/template_api.dart": "2ae1c700e81ef8be550398b7ca6660d552830afb36c30edf5bac2ef699bc22c4",
+    "lib/data/api/my_project_api.dart": "d977f4b99cac25d28d2d42e9598ed95b3376759a2029d182de5654fa87534676",
+    "lib/feature/publish/my_projects_page.dart": "644eb99d8351150cfe01f0e266c17ce70f86505982e03cf6573b67d12cd84c57"
+  },
+  "files": [
+    {
+      "path": "App/TemplateAuthoringDetailForms.swift",
+      "action": "replace_owned",
+      "sha256": "96781f2e5b3fbb7f81aa056fb28be848b1fd9b3f7f409bda4d82b4f193c2f1f8",
+      "baseline_sha256": "9cde81492efad32816fdf4fc98b8a614ea6835395665f5c6009b5e778be2edb5"
+    },
+    {
+      "path": "App/TemplateAuthoringFixtureSupport.swift",
+      "action": "replace_owned",
+      "sha256": "e980bbe22c23a492507e09aa5598ce6fe51abab9b1103cc090c246012d71fd83",
+      "baseline_sha256": "cd074eb590ce5ce34428aade798bd046669a5a66dcd627ce119a40dc7d96f506"
+    },
+    {
+      "path": "App/TemplateAuthoringMineView.swift",
+      "action": "add",
+      "sha256": "04bd7625679758983e30ece8b060767ee957770f80e52e8f1a5dbeca2aec772e",
+      "baseline_sha256": null
+    },
+    {
+      "path": "App/TemplateAuthoringView.swift",
+      "action": "replace_owned",
+      "sha256": "77999aa00df0afacd70208f0c4063ee1be0d6d84ea72049361730c2d153dda71",
+      "baseline_sha256": "84298b24a5e6f62cb3b874d39c49e272d3a2879899eb16b10fb37b592c362e60"
+    },
+    {
+      "path": "Core/TemplateAuthoringCoordinator.swift",
+      "action": "replace_owned",
+      "sha256": "4ddcf49290e00d70add21b23bd757868bcccaaa894fcd941eafa92c0ba4e99ea",
+      "baseline_sha256": "7bff68d9bf8e7bf7ea9401ea9b0db0d58a354370e0da9b7bf03a20260b33e25d"
+    },
+    {
+      "path": "Core/TemplateAuthoringHTTPTransport.swift",
+      "action": "add",
+      "sha256": "24321e843ba5ca23efb43053617eead58297d5ed8aba23cb1c30d42350f01914",
+      "baseline_sha256": null
+    },
+    {
+      "path": "Core/TemplateAuthoringService.swift",
+      "action": "replace_owned",
+      "sha256": "8b76443fbc3ae96138efa251908e1a3e8a8a42616cd75d023e976721d9730c4a",
+      "baseline_sha256": "850b63d9ac8f9571d093a3e92512ee45c6ca28e2c74b976c062713b05c833f71"
+    },
+    {
+      "path": "Core/TemplateAuthoringShelf.swift",
+      "action": "add",
+      "sha256": "5d99baa4a56648b651779f83b942dd2fe8c5384616bc62e92baba235546e97c1",
+      "baseline_sha256": null
+    },
+    {
+      "path": "Core/TemplateAuthoringStorage.swift",
+      "action": "replace_owned",
+      "sha256": "9445b9dc16e58b5d1402c1ceefa25f936fea33c9d329d979ac8c296c1f86592a",
+      "baseline_sha256": "8e4a4984ef710bce6131208f5f74af061e18bb059fc9407d1099afca3c9097c9"
+    },
+    {
+      "path": "Core/TemplateAuthoringWireRequestBuilder.swift",
+      "action": "replace_owned",
+      "sha256": "1fd15efe0a388928284a1217b1ce0ee4b949ca71463b0a15013487b8a6b4f817",
+      "baseline_sha256": "90d9cd7ad01a37b52480c36b57c2a8dba1c7d05646978b953061471b3f4cda2b"
+    },
+    {
+      "path": "Tests/AppUITests/TemplateOwnShelfFlowTests.swift",
+      "action": "add",
+      "sha256": "9aa66a2485c88c9833e8185bf4d163b16c333a16723bb11fc8f01b8b612cd670",
+      "baseline_sha256": null
+    },
+    {
+      "path": "Tests/ContractChecks/test_template_authoring_contracts.py",
+      "action": "replace_owned",
+      "sha256": "bea3bd5afc5c6746d6fce650a27117b610c7a0b1920ad3d1751ab0d9d362ffd1",
+      "baseline_sha256": "02a5ce32806a0a1bb9e9f030ff7bccc949aae6b8410ea2a0dada31244578874b"
+    },
+    {
+      "path": "Tests/ContractChecks/test_template_authoring_repair.py",
+      "action": "add",
+      "sha256": "a3084214b548588c056e903b3bd634d64317c00ac302814780ab1893f80ea702",
+      "baseline_sha256": null
+    },
+    {
+      "path": "Tests/CoreTests/TemplateAuthoringHTTPTests.swift",
+      "action": "add",
+      "sha256": "52a838649aa31e9ad3d5b3b00ac81909d61a8d6d7ced4b47d0991fdc04f39997",
+      "baseline_sha256": null
+    },
+    {
+      "path": "docs/inherited-source-check-results.txt",
+      "action": "add",
+      "sha256": "5c4fa7ff70d8c635fafb800ad9e4cd51b5f366237c2741dbc00cb4477a53fe73",
+      "baseline_sha256": null
+    },
+    {
+      "path": "docs/merge_template_authoring_repair_labels.py",
+      "action": "add",
+      "sha256": "55b58542d7a23c30e7ab6ee47cc2bf32c41ae4f3a3a572e7fd213f973f47dbb7",
+      "baseline_sha256": null
+    },
+    {
+      "path": "docs/source-check-results.txt",
+      "action": "add",
+      "sha256": "728fcfb2eb76226fab990e5c90a358664f477999d94d4ea8fa218c671694a41e",
+      "baseline_sha256": null
+    },
+    {
+      "path": "docs/swift-parse-results.txt",
+      "action": "add",
+      "sha256": "4a179d18e158f7826af5f325aa3f0e274a74a39164eb183c60431b09b316abc3",
+      "baseline_sha256": null
+    },
+    {
+      "path": "docs/template-authoring-repair-integration.md",
+      "action": "add",
+      "sha256": "770c2788997f8552ff19e37e66c6006aaa4515bb0027d65330e921e68c71bf0a",
+      "baseline_sha256": null
+    },
+    {
+      "path": "docs/template-authoring-repair-localizations.json",
+      "action": "add",
+      "sha256": "394a08bb21bc094b998d42b57e9e708f9c125e5636000cc089dadadebf1c528d",
+      "baseline_sha256": null
+    }
+  ]
+}

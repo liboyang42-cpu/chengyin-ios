@@ -1,0 +1,91 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "nearbyMerchant.purpose": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use your device location to search the configured Chengyin service for merchants within 5 km. Coordinates are used for this search only."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用本机定位向已配置的城瘾服务查询 5 公里内商家，坐标仅用于本次查询。"
+          }
+        }
+      }
+    },
+    "nearbyMerchant.consent": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow location for this nearby search"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "允许为本次附近商家查询使用定位"
+          }
+        }
+      }
+    },
+    "nearbyMerchant.search": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Locate and search"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "定位并查询"
+          }
+        }
+      }
+    },
+    "nearbyMerchant.locationFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Location could not be obtained. Check location permission and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法获取有效定位，请检查定位权限后重试。"
+          }
+        }
+      }
+    },
+    "nearbyMerchant.unlisted": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This lead has no registered member profile."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该商家线索尚无已入驻的会员主页。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

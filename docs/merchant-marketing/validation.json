@@ -1,0 +1,14 @@
+{
+  "static_source_checks": "PASS",
+  "check_count": 218,
+  "swift_compilation": "NOT_RUN",
+  "swift_unit_tests": "NOT_RUN",
+  "ios_ui_runtime": "NOT_RUN",
+  "authored_core_test_cases": 35,
+  "authored_ui_test_cases": 7,
+  "localization_keys": 81,
+  "real_network_requests": 0,
+  "live_grants": false,
+  "digital_checkout": "NOT_IMPLEMENTED_SOURCE_IOS_SUPPRESSION",
+  "parser": "NOT_RUN"
+}

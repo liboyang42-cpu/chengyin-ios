@@ -1,0 +1,83 @@
+{
+  "purpose": "Wire all authored app-unit XCTest methods into a separate app-hosted iOS unit-test target and bounded CI job",
+  "files": [
+    {
+      "path": "tools/generate_project.py",
+      "sha256": "139df0fa887323c14c3b7e8710e0cca30f646b97723b627d9911f4d10785c4d3",
+      "baseline_sha256": "6acf09fb881be5b94c9ce662d6212837cefc73d426db1de658ab2334229f4f44"
+    },
+    {
+      "path": "tools/check_scaffold.py",
+      "sha256": "9ba68650088ec6add87f2db9c4bd84a2d7115cb9953ae0115f567b6575739e40",
+      "baseline_sha256": "3ba6af79b8c6e3aeb80e8ecb4742cea8bacd22b6a983301e974843de15ab2f44"
+    },
+    {
+      "path": ".github/workflows/native-ios.yml",
+      "sha256": "81691327d1c9c3a4b31dd91bc26960cb864c77ba82d960caa5b6fdea25b8b758",
+      "baseline_sha256": "3b16398856ca915495c36acf7886fe0ea45e0ab370666604ffc97f3468568311"
+    },
+    {
+      "path": "Config/AppUnitTests.xcconfig",
+      "sha256": "ed3f7a0b80831d9b64803acea4d6e21a9c8c6429cca3de778a36dd7b154d982c",
+      "baseline_sha256": null
+    },
+    {
+      "path": "Questify.xcodeproj/project.pbxproj",
+      "sha256": "319a16537bd7288624b527cbcdefd60efbbcfd4d595c023369844417de2e4bab",
+      "baseline_sha256": "22c41b741718b02220cbe0a0b18f27f8908cc8d44e73affa702d8aa391d8fc9a"
+    },
+    {
+      "path": "Questify.xcodeproj/xcshareddata/xcschemes/QuestifyAppUnitTests.xcscheme",
+      "sha256": "e52272e31041dd7e5b5a90a12724d7ac29573d0f90f8bc646d5cec8cca7057ca",
+      "baseline_sha256": null
+    },
+    {
+      "path": "Tests/AppUnitTests/RetainedImageNormalHostTests.swift",
+      "sha256": "3967f3d0df9df3ce344f3037c39d52ad2f27d5a5e03bf76b1938cd44ebf1fc6e",
+      "baseline_sha256": "51aa77086173fb18e89c094d0e04b94945268d560bbc1c74ad3cf3593ce3c17e"
+    },
+    {
+      "path": "tools/tests/test_app_unit_target.py",
+      "sha256": "dd2b41c4708666bf381a34ed2835b750ccbc33bbd29d5f5b56ecff22df229134",
+      "baseline_sha256": null
+    }
+  ],
+  "target": "QuestifyAppUnitTests",
+  "scheme": "QuestifyAppUnitTests",
+  "ci_job": "app-unit-tests",
+  "authored_method_inventory": {
+    "Tests/AppUnitTests/RetainedImageSanitizerTests.swift": [
+      "testMetadataStrippedAndDimensionsBounded",
+      "testRejectsMalformedAndOversizeInput",
+      "testDisabledPickerDoesNotPresent",
+      "testPickerCancellationCompletesAndAllowsAnotherSelection"
+    ],
+    "Tests/AppUnitTests/RetainedImageNormalHostTests.swift": [
+      "testNormalFactoryCachesOwnerAndUsesMerchantRowRatherThanAccount",
+      "testDraftChangeInvalidatesCapturedContextAndOtherFieldsStayUnavailable",
+      "testTemplateExistingAndNewDraftHaveExactResourceFences",
+      "testAccountAndReaderScopeChangesFenceOldContextImmediately",
+      "testAccessRevocationAndLeaveClearOwner",
+      "testPublicReviewNormalCompositionIsEntirelyDormant"
+    ]
+  },
+  "authored_methods": 10,
+  "checks": {
+    "tools_unittest": "PASS: 24 tests (8 new app-unit structural tests)",
+    "scaffold": "PASS: 657 Swift sources, 5133 bilingual keys",
+    "contract_checks": "406 PASS, 3 FAIL: existing test_template_authoring_repair isolated-checkout assumptions",
+    "apple_compiler": "NOT_RUN",
+    "ios_xctest_runtime": "NOT_RUN",
+    "remote_ci": "NOT_RUN"
+  },
+  "notes": [
+    "No App/Core implementation changed; no XCTest method or assertion removed.",
+    "Credentials.value now has explicit RetainedImageHostCredentials? type, preserving logout nil assignment and existing force unwrap.",
+    "Original Questify shared scheme unchanged; UI shard runner, six-shard exhaustive assertions and SwiftPM Core test scope unchanged.",
+    "New test bundle uses its own xcconfig, avoiding application Info.plist inheritance.",
+    "App Debug ENABLE_TESTABILITY enables @testable import Questify; release app settings unchanged.",
+    "CI job has 20-minute total bound and 60/120-second test allowances, runs entire target once, and preserves xcresult artifact for one day.",
+    "Regenerate project in shared main after integration if any App/Core/UI inventory changed concurrently; do not overwrite unrelated project entries."
+  ],
+  "apple_reference": "https://developer.apple.com/documentation/xcode/build-settings-reference"
+}

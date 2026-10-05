@@ -1,0 +1,18 @@
+{
+  "scope": "Isolated Play runtime migration; synthetic source/grammar checks only",
+  "swift_tests": "NOT_RUN",
+  "ios_build": "NOT_RUN",
+  "ui_tests": "NOT_RUN",
+  "device_acceptance": "NOT_RUN",
+  "backend_acceptance": "NOT_RUN",
+  "reason": "Swift, Xcode, Apple SDK, signed devices and approved production backend are unavailable in this executor",
+  "source_contract_checks": "PASS: 17 added checks; aggregate 231",
+  "supplementary_tree_sitter": "PASS on 17 Swift files; not compiler evidence",
+  "tools_checks": "PASS: 16",
+  "focused_tree_sitter": "PASS: 20 new/modified Swift files",
+  "whole_tree_sitter": "FAIL: 10 pre-existing diagnostics in 6 untouched files; no suppression",
+  "authored_core_tests": 1255,
+  "authored_ui_tests": 200,
+  "bilingual_keys": 2737,
+  "live_capabilities": "DISABLED"
+}

@@ -1,0 +1,70 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "nearby.acknowledged": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server acknowledged this action. Updated membership still comes from server reads."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端已确认本次操作，成员状态仍以服务端读取为准。"
+          }
+        }
+      }
+    },
+    "nearby.review.enabled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reviewed action can be submitted using an explicitly scoped operation grant."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次已核对操作可使用明确限定范围的授权提交。"
+          }
+        }
+      }
+    },
+    "nearby.review.liveConsequence": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Applying requests membership. Approval adds the applicant; rejection prevents reapplication; withdrawal removes your pending request. Confirm only the team and applicant shown here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "申请请求加入；同意会添加成员；拒绝后无法再次申请；撤回会移除待处理请求。请仅确认此处显示的队伍与申请人。"
+          }
+        }
+      }
+    },
+    "nearby.submitReviewed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submit reviewed action"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提交已核对操作"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

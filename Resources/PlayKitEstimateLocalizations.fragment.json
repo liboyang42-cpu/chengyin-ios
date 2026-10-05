@@ -1,0 +1,57 @@
+{
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "playkit.estimate.result.hit": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estimate result: on target"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "估数结果：命中"
+          }
+        }
+      }
+    },
+    "playkit.estimate.result.close": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estimate result: close"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "估数结果：接近"
+          }
+        }
+      }
+    },
+    "playkit.estimate.result.miss": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estimate result: outside the target range"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "估数结果：偏离目标范围"
+          }
+        }
+      }
+    }
+  }
+}

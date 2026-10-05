@@ -1,0 +1,190 @@
+{
+  "growth.title": {
+    "en": "Growth center",
+    "zh-Hans": "成长中心"
+  },
+  "growth.offlineExample": {
+    "en": "Offline synthetic example",
+    "zh-Hans": "离线合成示例"
+  },
+  "growth.signInRequired": {
+    "en": "Sign in to see your growth and rankings",
+    "zh-Hans": "登录后查看成长与排名"
+  },
+  "growth.notConfigured": {
+    "en": "Growth service is not configured",
+    "zh-Hans": "成长服务尚未配置"
+  },
+  "growth.unavailable": {
+    "en": "This growth information is temporarily unavailable",
+    "zh-Hans": "这部分成长信息暂不可用"
+  },
+  "growth.network": {
+    "en": "Check your connection and try again",
+    "zh-Hans": "请检查网络后重试"
+  },
+  "growth.failed": {
+    "en": "Growth information could not be loaded",
+    "zh-Hans": "成长信息加载失败"
+  },
+  "growth.loading": {
+    "en": "Loading growth…",
+    "zh-Hans": "正在加载成长信息…"
+  },
+  "growth.retry": {
+    "en": "Try again",
+    "zh-Hans": "重新加载"
+  },
+  "growth.refresh": {
+    "en": "Refresh",
+    "zh-Hans": "刷新"
+  },
+  "growth.unknown": {
+    "en": "—",
+    "zh-Hans": "—"
+  },
+  "growth.unknownValue": {
+    "en": "Not available",
+    "zh-Hans": "暂无数据"
+  },
+  "growth.score": {
+    "en": "Points and ranking",
+    "zh-Hans": "积分与排名"
+  },
+  "growth.currentPoints": {
+    "en": "Current points",
+    "zh-Hans": "当前积分"
+  },
+  "growth.myRank": {
+    "en": "My ranking",
+    "zh-Hans": "我的排名"
+  },
+  "growth.unranked": {
+    "en": "Not ranked yet",
+    "zh-Hans": "暂无排名"
+  },
+  "growth.overview": {
+    "en": "Exploration overview",
+    "zh-Hans": "足迹概览"
+  },
+  "growth.level": {
+    "en": "Level",
+    "zh-Hans": "等级"
+  },
+  "growth.experience": {
+    "en": "Exploration value (EXP)",
+    "zh-Hans": "探索值（EXP）"
+  },
+  "growth.badgeCount": {
+    "en": "Badges earned",
+    "zh-Hans": "已获徽章"
+  },
+  "growth.completedTopics": {
+    "en": "Completed topics",
+    "zh-Hans": "完成主题"
+  },
+  "growth.mileage": {
+    "en": "Total distance (km)",
+    "zh-Hans": "累计距离（公里）"
+  },
+  "growth.badges": {
+    "en": "My badges",
+    "zh-Hans": "我的徽章"
+  },
+  "growth.badges.empty": {
+    "en": "No badges yet",
+    "zh-Hans": "暂无徽章"
+  },
+  "growth.badge.unnamed": {
+    "en": "Badge",
+    "zh-Hans": "徽章"
+  },
+  "growth.badge.obtained": {
+    "en": "Earned",
+    "zh-Hans": "获得时刻"
+  },
+  "growth.badge.timezone": {
+    "en": "Time shown in China Standard Time",
+    "zh-Hans": "时间为中国标准时间"
+  },
+  "growth.missions": {
+    "en": "Growth missions",
+    "zh-Hans": "成长任务"
+  },
+  "growth.mission.unnamed": {
+    "en": "Mission",
+    "zh-Hans": "任务"
+  },
+  "growth.mission.experience": {
+    "en": "Listed EXP reward",
+    "zh-Hans": "标注经验奖励"
+  },
+  "growth.missions.readOnly": {
+    "en": "Mission information only. Rewards cannot be claimed here.",
+    "zh-Hans": "仅展示任务信息，此处不可领取奖励。"
+  },
+  "growth.board.title": {
+    "en": "Leaderboard",
+    "zh-Hans": "完整排行榜"
+  },
+  "growth.board.metric": {
+    "en": "Ranking measure",
+    "zh-Hans": "排行指标"
+  },
+  "growth.board.period": {
+    "en": "Ranking period",
+    "zh-Hans": "排行周期"
+  },
+  "growth.metric.point": {
+    "en": "Points",
+    "zh-Hans": "积分榜"
+  },
+  "growth.metric.exp": {
+    "en": "Growth",
+    "zh-Hans": "成长榜"
+  },
+  "growth.period.week": {
+    "en": "This week",
+    "zh-Hans": "周榜"
+  },
+  "growth.period.total": {
+    "en": "All time",
+    "zh-Hans": "总榜"
+  },
+  "growth.unit.point": {
+    "en": "Points",
+    "zh-Hans": "积分"
+  },
+  "growth.unit.exp": {
+    "en": "EXP",
+    "zh-Hans": "EXP"
+  },
+  "growth.board.empty": {
+    "en": "No rankings yet",
+    "zh-Hans": "暂无排行榜数据"
+  },
+  "growth.board.emptyHint": {
+    "en": "Rankings appear when the service has ranking data.",
+    "zh-Hans": "有可排名数据后将在这里展示。"
+  },
+  "growth.board.leaders": {
+    "en": "Rankings",
+    "zh-Hans": "排行榜"
+  },
+  "growth.me": {
+    "en": "Me",
+    "zh-Hans": "我"
+  },
+  "growth.explorer": {
+    "en": "Explorer",
+    "zh-Hans": "探索者"
+  },
+  "growth.rank": {
+    "en": "Rank",
+    "zh-Hans": "名次"
+  },
+  "growth.fixture.signOut": {
+    "en": "End sample session",
+    "zh-Hans": "结束示例会话"
+  }
+}

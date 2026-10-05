@@ -1,0 +1,653 @@
+{
+  "scope": "Exact changes against main immediately after explicit ownership grant; excludes this self-referential manifest",
+  "files": [
+    {
+      "path": "App/AccountView.swift",
+      "before_sha256": "82c7a5acc8417a6c82c1a6f7254bea6fcaeaa3d6b14710c01f0fa62c74e4399c",
+      "sha256": "8005c206dacf721e0283fa0b76b012ed814f9dd057229a901d7e9c2b7583e539",
+      "action": "modify"
+    },
+    {
+      "path": "App/AppSession.swift",
+      "before_sha256": "27c01431907dc147b23d7a6bd7399acead51471c4a66154e8ec3d4fd7a766856",
+      "sha256": "7bbeaa183b293d70d5f25d5317d836d633be9956848a19459689a7d7238162f2",
+      "action": "modify"
+    },
+    {
+      "path": "App/MerchantEngagementComposer.swift",
+      "before_sha256": null,
+      "sha256": "35dd52f0e8a452e344a8d0ff5424380ef83cb7fb9eecbeb82756707f98688343",
+      "action": "add"
+    },
+    {
+      "path": "App/MerchantEngagementFixtureSupport.swift",
+      "before_sha256": null,
+      "sha256": "d086a8ec8b31f14d591355b972db81fc1fe2b8b095b5ad59544eb723a9dac8d2",
+      "action": "add"
+    },
+    {
+      "path": "App/MerchantEngagementPlatformAdapters.swift",
+      "before_sha256": null,
+      "sha256": "59369159b1432c1745c1d203e1ba76283f2bc61a4c97bfd4fc43423c3364729c",
+      "action": "add"
+    },
+    {
+      "path": "App/MerchantEngagementViewModel.swift",
+      "before_sha256": null,
+      "sha256": "1d5e6bc954d710c15f655bcfb884aa1b8d24a2c19b611d428a3d0b3ae7bae746",
+      "action": "add"
+    },
+    {
+      "path": "App/MerchantEngagementViews.swift",
+      "before_sha256": null,
+      "sha256": "42747e684d057f3ce0770674be354f6b60fd7a901e1a768ef346a9e582701890",
+      "action": "add"
+    },
+    {
+      "path": "App/MerchantEvidenceSelectionView.swift",
+      "before_sha256": null,
+      "sha256": "514a00adefb6d7774dbb1ee1ad4ced6371835ac805ac2cce710cbfda684c5eb8",
+      "action": "add"
+    },
+    {
+      "path": "App/MerchantHomeView.swift",
+      "before_sha256": "6a967691fda2b574c8fda572346bf52f060634a4969e057afcf56efe24c885f8",
+      "sha256": "7e28d7a0c8a1158c11856bc81d4d05d00670771dc2d4ecad876f73ba2544ce5c",
+      "action": "modify"
+    },
+    {
+      "path": "App/MerchantOperatorInvitationLandingView.swift",
+      "before_sha256": null,
+      "sha256": "9e89f4214240a067d2a2e84cf9a495fee11a9aa0ddd728c85d90eca95bc393f6",
+      "action": "add"
+    },
+    {
+      "path": "App/ModuleFixtureSupport.swift",
+      "before_sha256": "677023989e5810b87de5221753ecaf436d1ab3fd6e3dd7ca74e15d6d230bfa19",
+      "sha256": "14856123fab78b208f5e800abddbbc8ccfe3d6736b5ef2e84fa87659f2ddd36e",
+      "action": "modify"
+    },
+    {
+      "path": "App/NearbyTeamViews.swift",
+      "before_sha256": "caecbef6869c0976067bddb361044074f1828faa9f260f89721c730e36cc6be1",
+      "sha256": "fd87ae6b37179886182311edd257aef0162b7f991e625b62876be2a164163a1e",
+      "action": "modify"
+    },
+    {
+      "path": "App/ObjectBadgeViews.swift",
+      "before_sha256": null,
+      "sha256": "42b5c30b06742df1de38b4f5160a0b83bd961a6a3060e35991c091df5ec0050a",
+      "action": "add"
+    },
+    {
+      "path": "App/ObjectCardFixtureHostView.swift",
+      "before_sha256": null,
+      "sha256": "f1d3a097cddc340724f51be5c8518cfd570f55141073ef81c6f96212a426fa16",
+      "action": "add"
+    },
+    {
+      "path": "App/ObjectCardViews.swift",
+      "before_sha256": null,
+      "sha256": "331abb63ce86a347839d0575f2e92a3e19a62533224fb61792388eeeed4ce7ab",
+      "action": "add"
+    },
+    {
+      "path": "App/ProfileAccountLinks.swift",
+      "before_sha256": "c28b4db6b4e3d21203913caee0738ca79f50f6b7ff84d5bf21cbe267da89aec6",
+      "sha256": "6fc32fd64229d581e404ecadacb84fc25f1328e04e8d6c1c6f943652898296ab",
+      "action": "modify"
+    },
+    {
+      "path": "App/PublishingManagementViews.swift",
+      "before_sha256": "3bb96e2b40c15a71abb888977ed9c2a192e7c51ef73d2f2586a707023f32630f",
+      "sha256": "96ebf16ac361eb452163c16d0fe9e65dc2def308c23ddd142635b13a6fd94a9f",
+      "action": "modify"
+    },
+    {
+      "path": "App/QuestifyApp.swift",
+      "before_sha256": "b7afb84d28602a9c9a55adad231f5afa49eb91489a7ee5e40aec1d3ce8af84c2",
+      "sha256": "7f081e0a00044ee6c92d7adbe5c744f8e9df9a4ef9e1438526a3a8964298d584",
+      "action": "modify"
+    },
+    {
+      "path": "App/SessionObjectCardsView.swift",
+      "before_sha256": null,
+      "sha256": "90b31888e32534ede43a6e2a783f0836610c27b34dd0a07733a89110520b50a2",
+      "action": "add"
+    },
+    {
+      "path": "Config/Base.xcconfig",
+      "before_sha256": "89bb101e3038fdfb5a7ac602c6b6d941066b004ca04e9c71fa74e61032dd1e3a",
+      "sha256": "2f1d214a0dc6d8ba6490d3ec383a789ec288cd308d0ce389a14e011fe7355f4c",
+      "action": "modify"
+    },
+    {
+      "path": "Core/CooperationFlowCoordinator.swift",
+      "before_sha256": "56147bcdce447f9b1d0cffa72ec4563dd796075933bcb25a178c8368fba2a3f8",
+      "sha256": "27dc932f201fb86ce30dbb0f920b76597b23690981b1e52ed195414b4a63980c",
+      "action": "modify"
+    },
+    {
+      "path": "Core/CooperationFlowService.swift",
+      "before_sha256": "64a4abd41f3adf8f2701e077ba2308cb7911ea5875ef85ebf0b034f6f460788e",
+      "sha256": "e42176a3f80defbab28bf53d03b1c534a26988ab8d2585a6a88c574b2afe4b2b",
+      "action": "modify"
+    },
+    {
+      "path": "Core/CooperationProtectedDispatch.swift",
+      "before_sha256": null,
+      "sha256": "7524838e22a75b3efcb5d6efa15d861a6678ef4eae6af440252155dd1eb2c217",
+      "action": "add"
+    },
+    {
+      "path": "Core/MerchantBusinessCoordinator.swift",
+      "before_sha256": "c5f1a438cf0488b6e3ac4561a0689c9e65b92adfca36b721ea7b54e391dda032",
+      "sha256": "9bb1415d8466655025c636e27a06a614fdb73bb78ac3f6237272375906056085",
+      "action": "modify"
+    },
+    {
+      "path": "Core/MerchantEngagementContracts.swift",
+      "before_sha256": null,
+      "sha256": "3d59a0e7875578c274653f1b50b127e507caa6872026365828dad923c4f35f42",
+      "action": "add"
+    },
+    {
+      "path": "Core/MerchantEngagementCoordinator.swift",
+      "before_sha256": null,
+      "sha256": "e9efe60a86c8a81ec8b3d4f8c675abbf602f683c4807e8b02b6862bf425d3efe",
+      "action": "add"
+    },
+    {
+      "path": "Core/MerchantEngagementModels.swift",
+      "before_sha256": null,
+      "sha256": "4c7858c523ba7b8f046856b4f87e79d03dcb656448752efb6d06cb18f3e19920",
+      "action": "add"
+    },
+    {
+      "path": "Core/MerchantEngagementReading.swift",
+      "before_sha256": null,
+      "sha256": "966750a7759c76bfbf5ce1637ce7849d6a6d7df96ad25b87daff2d1fd519c475",
+      "action": "add"
+    },
+    {
+      "path": "Core/MerchantEngagementService.swift",
+      "before_sha256": null,
+      "sha256": "db56c1fafb438157fc26d262763178274ed34d333c9c13a6fc98628b504049a8",
+      "action": "add"
+    },
+    {
+      "path": "Core/MerchantEngagementSyntheticFixtures.swift",
+      "before_sha256": null,
+      "sha256": "f10ec62521e9416c454b259fedc356423bfc157db720f19e97396b8f8815829d",
+      "action": "add"
+    },
+    {
+      "path": "Core/MerchantEvidenceSelection.swift",
+      "before_sha256": null,
+      "sha256": "197475da1ef678e2a8ace791ddca0e2b6bc76bca0d74872f3c6848c8e8d760de",
+      "action": "add"
+    },
+    {
+      "path": "Core/MerchantMutationFailureDisposition.swift",
+      "before_sha256": null,
+      "sha256": "2e1600e8664aff0741dc1c6261d7c480c829db8ec332e567af9ff00019c3b8b7",
+      "action": "add"
+    },
+    {
+      "path": "Core/MerchantOperatorInviteRoute.swift",
+      "before_sha256": null,
+      "sha256": "9941adcfc5d46e1c68b874e16cc85abb31caa8f79aca0a3f419bb78f656c930e",
+      "action": "add"
+    },
+    {
+      "path": "Core/MerchantRedemptionContext.swift",
+      "before_sha256": "7b714f996b00014ff175f8b8f06eca6647ceea401086c9456c6eb43f9fbd7155",
+      "sha256": "fae6a999f41feda888df200ec702aec14f9626ce7f9e2e1eeb0923a5d06c1d82",
+      "action": "modify"
+    },
+    {
+      "path": "Core/NearbyTeamCoordinator.swift",
+      "before_sha256": "6399738e19e6c95073e1fafbcd68939f763bfc273b7d42e4dd9b340b21ddc487",
+      "sha256": "b9ab240087be3c7d8c7b5c75bc3413d3e515a6ff1c7e8348de5cc54156c00c59",
+      "action": "modify"
+    },
+    {
+      "path": "Core/NearbyTeamHTTPReadTransport.swift",
+      "before_sha256": "09533b313f7c4776e9eba8ae6e55f64333bbbe4d30d6cedc448223e595a64c97",
+      "sha256": "ba99c06503245967c7540556c7a7ab67776c8c783ca43ca567653fb77b2831cc",
+      "action": "modify"
+    },
+    {
+      "path": "Core/NearbyTeamHTTPWriteAdapter.swift",
+      "before_sha256": null,
+      "sha256": "b81771a1c9a55c6d7bca1633908b9046cd6313370c453fc0544867829e4d7d2f",
+      "action": "add"
+    },
+    {
+      "path": "Core/NearbyTeamService.swift",
+      "before_sha256": "b975d81f09fdd77bb86b5bbecc90e25439d7d081414a3585e92cf67323a6b346",
+      "sha256": "316e833b258080a03ca98b71171599ae8558eee17ddd8f0c96783656c1ca9ed1",
+      "action": "modify"
+    },
+    {
+      "path": "Core/ObjectBadgePresentation.swift",
+      "before_sha256": null,
+      "sha256": "65ca28b76c18d5392e4576bfd0d84558236d112f9e15c89eab05155dd5b25376",
+      "action": "add"
+    },
+    {
+      "path": "Core/ObjectCardCollectionModel.swift",
+      "before_sha256": null,
+      "sha256": "08bb9879ca862b8654ab0f57c32f137fda83ebeac030b6da05824340daca7696",
+      "action": "add"
+    },
+    {
+      "path": "Core/ObjectCardContracts.swift",
+      "before_sha256": null,
+      "sha256": "5d9ca11dc754713123b9cd0903488c2b9b0157046f256a08ec8531ac3c3dca43",
+      "action": "add"
+    },
+    {
+      "path": "Core/ObjectCardMedia.swift",
+      "before_sha256": null,
+      "sha256": "643a52c45e1916f41ec0ed569e53b3ee96fd060a2ea1ab342ba0fee6bc1babb2",
+      "action": "add"
+    },
+    {
+      "path": "Core/ObjectCardReading.swift",
+      "before_sha256": null,
+      "sha256": "788ccedf4a4cd3e74fc0cacf196c68f41a2a0dec92b8eaba76a87c44367992c7",
+      "action": "add"
+    },
+    {
+      "path": "Core/ObjectCardSyntheticFixtures.swift",
+      "before_sha256": null,
+      "sha256": "d16b3b27953d59bfb88a1065219277466f35fa22bbbcb02c9c2941c1bdd1b59c",
+      "action": "add"
+    },
+    {
+      "path": "Core/PublishModesService.swift",
+      "before_sha256": "a1315e1c8d2792fa494eb76ed71713d8b5fe5df182a63cd539e0f300452bc4f2",
+      "sha256": "8a9dbf1f85b449e2290ae7e81e5fd4b4a7e556fa18a679a832171e73fa62e216",
+      "action": "modify"
+    },
+    {
+      "path": "Core/WalletCommerceSafety.swift",
+      "before_sha256": "8481a23321a495e1fa0e09fbd451a60412ebe6c0200d30bbb73d34bcdf397fb1",
+      "sha256": "e783e361b2a63fa542f27c2a84a7803cf0ca9cb3107b4fdb69b30ed77c8df643",
+      "action": "modify"
+    },
+    {
+      "path": "Core/WalletCommerceService.swift",
+      "before_sha256": "a0e1ca9095459d66e0e369a19a7d9805742e1e14a67ad9181326fe6492dc3625",
+      "sha256": "ab24faf93091ef7846fa7c25e00b459a2a3218341b486639e1ec740642962d4e",
+      "action": "modify"
+    },
+    {
+      "path": "PROGRESS.md",
+      "before_sha256": "93caddaf434082af1a62bc004ce6e07651dbe3490a935c3d47238a5efd1ceb15",
+      "sha256": "3b35c409231caeb08a110f28831d60a02eba7eb510a81f987ac43f03cb7b1583",
+      "action": "modify"
+    },
+    {
+      "path": "Questify.xcodeproj/project.pbxproj",
+      "before_sha256": "8cbab633b11c9fca24df8b31c2ee3253930f1fff1979383d08a98f77333bd710",
+      "sha256": "3c679ea791606d0efeba6a85a1965a6e9d99be3b3caae60e7c7f3ccdbf6937f4",
+      "action": "modify"
+    },
+    {
+      "path": "Resources/InfoPlist.xcstrings",
+      "before_sha256": "631db4fd9e94d5b8311484ab5d191bdee2230288df06c5c57b7a6c00ded3ad88",
+      "sha256": "8f73d27141cebeb80049bcb8270b0b09a8cc127d254354532654c61c523c116e",
+      "action": "modify"
+    },
+    {
+      "path": "Resources/Localizable.xcstrings",
+      "before_sha256": "9ef321fb0533aa9655d149a368421185dd89e9d81a83d14983c4e9f5c29ef23a",
+      "sha256": "99dc442abfb584aff92bed9d444fa55fbac80e23193e8ff702a2b90dfd6692bb",
+      "action": "modify"
+    },
+    {
+      "path": "Resources/MerchantEngagementInfoPlist.fragment.json",
+      "before_sha256": null,
+      "sha256": "b3e71cfe00e2ce5b8a4ba2c6eac7028211e45d433a9961fae6b19b3e816b536e",
+      "action": "add"
+    },
+    {
+      "path": "Resources/MerchantEngagementLocalizations.fragment.json",
+      "before_sha256": null,
+      "sha256": "670975db154312ea7a383c2730a99e1373ea943f8abbafdac8702df6f2f537d6",
+      "action": "add"
+    },
+    {
+      "path": "Resources/NearbyTeamLocalizations.fragment.json",
+      "before_sha256": "66829a4cbadf53748eb95ffce551da530552b3560b9c3d08c2b6c1c2abaedcfd",
+      "sha256": "6d7c169ca28c6161d0c7de7416f4a954b94bc77d616236e62bab3a11e8f1e1c4",
+      "action": "modify"
+    },
+    {
+      "path": "Resources/NearbyTeamWriteLocalizations.fragment.json",
+      "before_sha256": null,
+      "sha256": "1a874f207d289fb6627db399c189f0fad129e7edc39123bf32e481c1e4c0a033",
+      "action": "add"
+    },
+    {
+      "path": "Resources/ObjectCardLocalizations.fragment.json",
+      "before_sha256": null,
+      "sha256": "477ea79eb1e419f3202bf21e887123e3a945306291c50a3794e2bf0fcee42a90",
+      "action": "add"
+    },
+    {
+      "path": "Tests/AppUITests/MerchantEngagementFlowTests.swift",
+      "before_sha256": null,
+      "sha256": "a6f9f1ae5074b01659280fc7b576b586b2bd2762d205c4ea48df1a369915ff5d",
+      "action": "add"
+    },
+    {
+      "path": "Tests/AppUITests/ObjectCardFlowTests.swift",
+      "before_sha256": null,
+      "sha256": "0db08d2475ec8ee31dde1b0a949e5b7730775c6bbfe78d69eb2efaefaa672c49",
+      "action": "add"
+    },
+    {
+      "path": "Tests/ContractChecks/test_native_repair_batch_integration.py",
+      "before_sha256": null,
+      "sha256": "ba567e2fd87a41486847c2ba2e1bc6da5781509ce7e9b8f712252429915c1672",
+      "action": "add"
+    },
+    {
+      "path": "Tests/ContractChecks/test_nearby_write_adapter.py",
+      "before_sha256": null,
+      "sha256": "d66db61702f1755c73edaee8ee25bdce0414910bc522776611fed99b42670196",
+      "action": "add"
+    },
+    {
+      "path": "Tests/ContractChecks/test_publishing_modes.py",
+      "before_sha256": "2d7a3ed17f6b69fc6426cabdf44d9788050ac05a616b863a7c98cfcd24559f09",
+      "sha256": "642b83bbf6c522fdd9c229364c9fa90f9805210db0d1c1b4e1cb2104bfbd197e",
+      "action": "modify"
+    },
+    {
+      "path": "Tests/ContractChecks/test_wallet_commerce_integration.py",
+      "before_sha256": "873329c46f64bad0476e177f43514ae5fac8e6133d7899ca07dd7b6453196d21",
+      "sha256": "a4e3bf77f0cb34066fb17e49fda3c412f7d8c00b4ab805ff65cd81c07f97618f",
+      "action": "modify"
+    },
+    {
+      "path": "Tests/CoreTests/CooperationProtectedDispatchTests.swift",
+      "before_sha256": null,
+      "sha256": "87bf1e98cba0d3821db1124735f9fe64cf211096bbd102fd3c9042511908b92d",
+      "action": "add"
+    },
+    {
+      "path": "Tests/CoreTests/MerchantBusinessServiceTests.swift",
+      "before_sha256": "16efced3a1bc5f08dfd46b6b042e4ebf0e1f1d8a6ed6706d4bf52c92da35032f",
+      "sha256": "26a335e40f430ca514eb89d31996c4564301cb787c983b6b8d50216a3a2de007",
+      "action": "modify"
+    },
+    {
+      "path": "Tests/CoreTests/MerchantEngagementContractsTests.swift",
+      "before_sha256": null,
+      "sha256": "939c0c59b6ba882ca89eda7cbdb0250f463dc118e42634eebcd2913ff56486f4",
+      "action": "add"
+    },
+    {
+      "path": "Tests/CoreTests/MerchantEngagementCoordinatorTests.swift",
+      "before_sha256": null,
+      "sha256": "9f1230fc77f53a3778845e88012e13a239c5ece01316f061e5769972653bb947",
+      "action": "add"
+    },
+    {
+      "path": "Tests/CoreTests/MerchantEngagementServiceTests.swift",
+      "before_sha256": null,
+      "sha256": "9c61bfdd7001ec692ae543cc75bd8eaee367b7d0c6be04ee264484e175a51a23",
+      "action": "add"
+    },
+    {
+      "path": "Tests/CoreTests/NearbyTeamHTTPWriteTests.swift",
+      "before_sha256": null,
+      "sha256": "96821f824ca67076d93829e8626e539266819afbb8e86e9bb94d93cba3c17d97",
+      "action": "add"
+    },
+    {
+      "path": "Tests/CoreTests/ObjectCardTests.swift",
+      "before_sha256": null,
+      "sha256": "288e9f24619641e2717e1004a6843af6498897b356100ab30d2b31a835e7f2b2",
+      "action": "add"
+    },
+    {
+      "path": "Tests/CoreTests/PublishingModesTests.swift",
+      "before_sha256": "66ef56f7322102539c36733747bd5c3a834b0a43fdb08cd4bceea51b3dc3d242",
+      "sha256": "b309718cdc2600b9fc65ea437461fd3ef0b7775311191103b598f6d56285ed39",
+      "action": "modify"
+    },
+    {
+      "path": "Tests/CoreTests/WalletCommerceTests.swift",
+      "before_sha256": "98eac7fee05f40d7364bc062d9e3e8f647bf0f30724f1f14d3ba0039ab756b27",
+      "sha256": "f2283aa9a8c26bc058ee0bbe235c0a2c27c65765305cc4cf95e051b5b1ec8fe9",
+      "action": "modify"
+    },
+    {
+      "path": "docs/approved-read-repair/approved-read-repair.patch",
+      "before_sha256": null,
+      "sha256": "a3d1ef16ac2b85219d256cc987451b9d54e208c34978ab7e9d83c8974b7918b9",
+      "action": "add"
+    },
+    {
+      "path": "docs/approved-read-repair/patch-manifest.json",
+      "before_sha256": null,
+      "sha256": "b345f87d7357b92e315ef8df29652ff9c8fed97300a306296bbf3df3c1662244",
+      "action": "add"
+    },
+    {
+      "path": "docs/approved-read-repair/repair-summary.md",
+      "before_sha256": null,
+      "sha256": "06cdf62495d93121065287161120801226b2b81b104b806d8b358c9cdf4490c9",
+      "action": "add"
+    },
+    {
+      "path": "docs/cooperation-adapter-repair/README.md",
+      "before_sha256": null,
+      "sha256": "0ec0d3ead1c7c1542d2fb1e7334f75a4bd02c109db0cf6c48a454257038ac7a1",
+      "action": "add"
+    },
+    {
+      "path": "docs/cooperation-adapter-repair/manifest.json",
+      "before_sha256": null,
+      "sha256": "07fb9f29b1a32ac1115dc882fcb5ccb13df64aed8114546b39c96c9f927c2c15",
+      "action": "add"
+    },
+    {
+      "path": "docs/cooperation-adapter-repair/repair.patch",
+      "before_sha256": null,
+      "sha256": "c7b199fa8421b5236df832c1ce02704bf478dbc3dfb6c29b61160d4bfcd6a7cc",
+      "action": "add"
+    },
+    {
+      "path": "docs/cooperation-adapter-repair/source-checks.json",
+      "before_sha256": null,
+      "sha256": "2cd3f6260621f88ce949693ac7a5d2d7b91429072e129d5153222b1da56aae40",
+      "action": "add"
+    },
+    {
+      "path": "docs/cooperation-adapter-repair/syntax-check.txt",
+      "before_sha256": null,
+      "sha256": "8b61d7f762e93ffa3c6531f28f163e323e983ed2457cc9149660e8e77afbcc5c",
+      "action": "add"
+    },
+    {
+      "path": "docs/merchant-business-extension-verification.json",
+      "before_sha256": null,
+      "sha256": "731419304674fb6f0f0b1c857f72ced35086f4bdff9a2a2df940e5d38df79676",
+      "action": "add"
+    },
+    {
+      "path": "docs/merchant-business-extension.md",
+      "before_sha256": null,
+      "sha256": "a4ed1d9487fa6fdcf2a0d0ba104a43dbde54a7aebb42a031f6bf5ff44dca6ba1",
+      "action": "add"
+    },
+    {
+      "path": "docs/merchant-content-static-evidence.json",
+      "before_sha256": "a3e59e3e786f505a7cf165f81706f8b3bc1cd29e6dd88b6a0a41250bbe445e05",
+      "sha256": "5a979c1f2942568dfea35facce8fb432ce4fe6f8ac3ee6c2748f2d5434134125",
+      "action": "modify"
+    },
+    {
+      "path": "docs/native-repair-batch-checks/advisory.txt",
+      "before_sha256": null,
+      "sha256": "f9ef00017caa2702daf282381ab6c7f1ab6d560d0023b5d78f4f51e57461cbf8",
+      "action": "add"
+    },
+    {
+      "path": "docs/native-repair-batch-checks/repair-contracts.txt",
+      "before_sha256": null,
+      "sha256": "db46a94b82b4cf5c27a8c3361e39443c8fed546581b23ccbe7152b2d5a1d9fca",
+      "action": "add"
+    },
+    {
+      "path": "docs/native-repair-batch-checks/repair-cooperation-final.txt",
+      "before_sha256": null,
+      "sha256": "9e817661c35eacf85791fa28ee511e9e1187bc438559f53f0ffb556781e22734",
+      "action": "add"
+    },
+    {
+      "path": "docs/native-repair-batch-checks/repair-focusedparse.txt",
+      "before_sha256": null,
+      "sha256": "2a4c6b2257cc6f5597649b399a1a75d6d324bd020c74a4b825099560ea914800",
+      "action": "add"
+    },
+    {
+      "path": "docs/native-repair-batch-checks/repair-merchant-final.txt",
+      "before_sha256": null,
+      "sha256": "4f31ac91f94b559c31ad83693b36f410a6dd324a0658a744634c4f37946707c4",
+      "action": "add"
+    },
+    {
+      "path": "docs/native-repair-batch-checks/repair-nearby-final.txt",
+      "before_sha256": null,
+      "sha256": "a0f0facd373ce53712192e3eb6a4fc56ba18e9a910b119dbb482df24533031d3",
+      "action": "add"
+    },
+    {
+      "path": "docs/native-repair-batch-checks/repair-objects-final.txt",
+      "before_sha256": null,
+      "sha256": "0592ede24cb92e5c728ac61e142f2d8b0f6df4ce7db80434d67632e7c74f0a44",
+      "action": "add"
+    },
+    {
+      "path": "docs/native-repair-batch-checks/repair-wholeparse.txt",
+      "before_sha256": null,
+      "sha256": "dc35f6b73415e32ea9165b6b1b1ce335d7a05c64673dc3bce26ca8ecff2c45b3",
+      "action": "add"
+    },
+    {
+      "path": "docs/native-repair-batch-checks/scaffold.txt",
+      "before_sha256": null,
+      "sha256": "460749580643562c0ba72630a1b1462f7394a47affe30f1576cb39cbbaa21f17",
+      "action": "add"
+    },
+    {
+      "path": "docs/native-repair-batch-checks/tooling.txt",
+      "before_sha256": null,
+      "sha256": "25d718152414a917d6eb4a014d599eff20a2b538451c2591d104ace11b9de0dd",
+      "action": "add"
+    },
+    {
+      "path": "docs/native-repair-batch-integration.md",
+      "before_sha256": null,
+      "sha256": "fa253a50186f1be9fe83750495815660248de5bc2f176b36ea5d0af518976442",
+      "action": "add"
+    },
+    {
+      "path": "docs/native-repair-batch-inventory.json",
+      "before_sha256": null,
+      "sha256": "92fa791c6a6aa5a00c194643a7cdb72d53651d33c640f63cd89c285374e14401",
+      "action": "add"
+    },
+    {
+      "path": "docs/nearby-team-source-map.md",
+      "before_sha256": "ad5d0136bf656a10181ce45048f95ccbab3ab0207b3abccb76fde3a1ecb6c38e",
+      "sha256": "85f1c76b9bf102f51e6e4cb73243b1cc307923b336404fe2c3805d30f156640b",
+      "action": "modify"
+    },
+    {
+      "path": "docs/nearby-team-verification.json",
+      "before_sha256": "c25315fce878f26358f6948477d0f2b7ed8d95ca87b7f7a740bdae2bc3dc27f3",
+      "sha256": "ce89a26cdc896a87ce41ffa0d44529f1b7923ae0d156a302dd5c126b99612ff2",
+      "action": "modify"
+    },
+    {
+      "path": "docs/nearby-team-write-repair-verification.json",
+      "before_sha256": null,
+      "sha256": "40df842baa81362e7ac0cab8c3f141bee4ee59f00b673d6f0b697be1a52507ea",
+      "action": "add"
+    },
+    {
+      "path": "docs/nearby-team-write-repair.md",
+      "before_sha256": null,
+      "sha256": "0c4e911d8e76cfd4e9e4a98396dab5b1597369edc3d697e5aa99d9a650518216",
+      "action": "add"
+    },
+    {
+      "path": "docs/object-cards-integration.md",
+      "before_sha256": null,
+      "sha256": "3f2767675cb58ec6e3b295ff0bf976f15d01ab69832079f6f981e415b44be9c7",
+      "action": "add"
+    },
+    {
+      "path": "docs/ui-shard-inventory.json",
+      "before_sha256": "cc343ebfa5f32632735f0e0f29423ed96dda33784f3235f08c154712c822edb5",
+      "sha256": "ce075e3abd9aebecffd9a7a9ab73813bdf2367b203d599e26bf8e48c721ef962",
+      "action": "modify"
+    },
+    {
+      "path": "tools/apply_nearby_write_host_patch.py",
+      "before_sha256": null,
+      "sha256": "cf0338c633cbe0c05b85f0e6618412a543adecde9564ce15de27286f98970a28",
+      "action": "add"
+    },
+    {
+      "path": "tools/build_merchant_engagement_localizations.py",
+      "before_sha256": null,
+      "sha256": "63474616002e85603f92a4e0de1f52c2f7525ef02c2db9d3a158f14805b4093c",
+      "action": "add"
+    },
+    {
+      "path": "tools/build_object_cards_catalog.py",
+      "before_sha256": null,
+      "sha256": "bbf82061d6b718aa6d607fefbe1483032a2780f45dc877c7e3c3a182a317d4de",
+      "action": "add"
+    },
+    {
+      "path": "tools/check_cooperation_protected_dispatch.py",
+      "before_sha256": null,
+      "sha256": "f0544731a36e4eb41048d60c659aff20822b174a12a7999799abcd9efa5e962f",
+      "action": "add"
+    },
+    {
+      "path": "tools/check_merchant_engagement.py",
+      "before_sha256": null,
+      "sha256": "6a6990ae0628fa23b89f5cff213c11b6c6738842f8f6575686d54772a513812c",
+      "action": "add"
+    },
+    {
+      "path": "tools/check_nearby_team_module.py",
+      "before_sha256": "253829fddbd9b5a67acad0e859c10149b6cad197bfd9f9aaa56a0e38bdd0ae37",
+      "sha256": "0496be752a5b2a78fd3fe1c70aea0dd7266c4445436fd7ec45b952f265a5a2a1",
+      "action": "modify"
+    },
+    {
+      "path": "tools/check_nearby_write_repair.py",
+      "before_sha256": null,
+      "sha256": "247774f17d900e59aa7c4a00ecc8808cfea365a6c92bbfc91e3d781532a4c11b",
+      "action": "add"
+    },
+    {
+      "path": "tools/check_object_cards.py",
+      "before_sha256": null,
+      "sha256": "d5e63efab549f411c4eca58bacde41cb345e2b2406c0fe4de79bbc4d604c787d",
+      "action": "add"
+    }
+  ]
+}

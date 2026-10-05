@@ -1,0 +1,82 @@
+{
+  "orderLifecycle.production.caution": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Each action needs an approved account, order and destination. After an uncertain result, check the order; do not repeat the action."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "每项操作都需要获批的账户、订单和服务地址。结果不明确时请查看订单，不要重复操作。"
+        }
+      }
+    }
+  },
+  "orderLifecycle.production.acknowledged": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The server acknowledged the request. Check order, cash refund and points status separately."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务器已接收请求。请分别查看订单、现金退款及积分状态。"
+        }
+      }
+    }
+  },
+  "orderLifecycle.production.confirm.payment": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Confirm and continue payment"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "确认并继续支付"
+        }
+      }
+    }
+  },
+  "orderLifecycle.production.confirm.cancel": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Confirm cancellation"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "确认取消订单"
+        }
+      }
+    }
+  },
+  "orderLifecycle.production.confirm.refund": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Confirm cancellation and refund request"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "确认取消并申请退款"
+        }
+      }
+    }
+  }
+}

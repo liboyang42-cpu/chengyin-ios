@@ -1,0 +1,12 @@
+{
+  "source_assertions": "PASS",
+  "tree_sitter": {"status":"PASS", "swift_files":9, "tree_sitter_version":"0.26.0", "tree_sitter_swift_version":"0.7.3", "compiler_equivalent":false},
+  "core_tests": {"authored":8, "execution":"NOT_RUN"},
+  "app_unit_tests": {"authored":6, "execution":"NOT_RUN", "requires":"iOS unit-test target importing Questify"},
+  "swift_typecheck":"NOT_RUN",
+  "xcode_build":"NOT_RUN",
+  "simulator_ui":"NOT_RUN",
+  "live_requests":0,
+  "os_picker_presentations":0,
+  "grants":{"native_selection":false,"upload":false,"public_review_read":false,"public_review_write":false,"remote_image_read":false,"approved_origins":[]}
+}

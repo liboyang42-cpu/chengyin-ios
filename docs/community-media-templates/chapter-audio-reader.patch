@@ -1,0 +1,32 @@
+--- a/Core/PlayContracts.swift
++++ b/Core/PlayContracts.swift
+@@ -119,12 +119,15 @@
+     public let id: Int
+     public let name: String?
+     public let description: String?
+-    private enum CodingKeys: String, CodingKey { case chapterId, name, description }
++    /// Narration from the same authorized /api/play/nodes response.
++    public let audioURL: String?
++    private enum CodingKeys: String, CodingKey { case chapterId, name, description, audioUrl }
+     public init(from decoder: Decoder) throws {
+         let c = try decoder.container(keyedBy: CodingKeys.self)
+         guard let id = try c.playInt(.chapterId), id > 0 else { throw APIError.malformedResponse }
+         self.id = id; name = try c.decodeIfPresent(String.self, forKey: .name)
+         description = try c.decodeIfPresent(String.self, forKey: .description)
++        audioURL = try c.decodeIfPresent(String.self, forKey: .audioUrl)
+     }
+ }
+ 
+--- a/Core/PlayExperienceCoordinator.swift
++++ b/Core/PlayExperienceCoordinator.swift
+@@ -59,6 +59,10 @@
+         currentSession().map { PlayRunStorageKey.make(session: $0, scope: scope) + ":" + String($0.epoch) }
+     }
+     public var available: Bool { service.enabled.contains(.reads) }
++    /// Read authority only; audio never grants gameplay completion authority.
++    public var hasCurrentMediaSnapshot: Bool {
++        snapshot != nil && loadedSession != nil && loadedSession == currentSession() && (phase == .ready || phase == .unknown)
++    }
+     public var canWrite: Bool { phase == .ready && !unresolved && loadedSession != nil && loadedSession == currentSession() }
+     public init(scope: PlaySessionScope, service: PlayExperienceService, recovery: any PlayCompletionRecoveryStore,
+                 pausedStorage: any PlayPausedStorage, currentSession: @escaping () -> PlayExperienceSession?,

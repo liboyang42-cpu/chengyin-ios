@@ -1,0 +1,282 @@
+[
+  {
+    "key": "club.unavailable",
+    "en": "Clubs unavailable",
+    "zh-Hans": "俱乐部暂不可用"
+  },
+  {
+    "key": "club.loading",
+    "en": "Loading clubs…",
+    "zh-Hans": "正在加载俱乐部…"
+  },
+  {
+    "key": "club.refresh",
+    "en": "Refresh",
+    "zh-Hans": "刷新"
+  },
+  {
+    "key": "club.signIn",
+    "en": "Sign in",
+    "zh-Hans": "登录"
+  },
+  {
+    "key": "club.signInRequired",
+    "en": "Sign in to continue",
+    "zh-Hans": "请登录后继续"
+  },
+  {
+    "key": "club.signInHint",
+    "en": "Sign in from your account to view clubs.",
+    "zh-Hans": "请先在账户页面登录，再查看俱乐部。"
+  },
+  {
+    "key": "club.accessDenied",
+    "en": "Club access denied",
+    "zh-Hans": "暂无俱乐部访问权限"
+  },
+  {
+    "key": "club.accessDeniedHint",
+    "en": "The server did not allow this account to view this information.",
+    "zh-Hans": "服务端未允许当前账户查看此信息。"
+  },
+  {
+    "key": "club.membersUnavailable",
+    "en": "Member list unavailable",
+    "zh-Hans": "暂未获取到成员名单"
+  },
+  {
+    "key": "club.joinToSeeMembers",
+    "en": "Members are visible to the club creator and joined members.",
+    "zh-Hans": "俱乐部创建者和已加入的成员可查看成员名单。"
+  },
+  {
+    "key": "club.loadFailed",
+    "en": "Couldn’t load clubs",
+    "zh-Hans": "俱乐部加载失败"
+  },
+  {
+    "key": "club.invalidResponse",
+    "en": "The server returned an incomplete response. Try again.",
+    "zh-Hans": "服务端返回的信息不完整，请重试。"
+  },
+  {
+    "key": "club.retryHint",
+    "en": "Check your connection and try again.",
+    "zh-Hans": "请检查网络连接后重试。"
+  },
+  {
+    "key": "club.untitled",
+    "en": "Untitled club",
+    "zh-Hans": "未命名俱乐部"
+  },
+  {
+    "key": "club.memberCount %lld",
+    "en": "%lld members",
+    "zh-Hans": "%lld 名成员"
+  },
+  {
+    "key": "club.role.creator",
+    "en": "Creator",
+    "zh-Hans": "创建者"
+  },
+  {
+    "key": "club.role.administrator",
+    "en": "Administrator",
+    "zh-Hans": "管理员"
+  },
+  {
+    "key": "club.membership.joined",
+    "en": "Joined",
+    "zh-Hans": "已加入"
+  },
+  {
+    "key": "club.membership.pending",
+    "en": "Join request pending",
+    "zh-Hans": "入会申请待审批"
+  },
+  {
+    "key": "club.membership.rejected",
+    "en": "Join request declined",
+    "zh-Hans": "入会申请已拒绝"
+  },
+  {
+    "key": "club.directory",
+    "en": "Find clubs",
+    "zh-Hans": "查找俱乐部"
+  },
+  {
+    "key": "club.owned",
+    "en": "Clubs I created",
+    "zh-Hans": "我创建的俱乐部"
+  },
+  {
+    "key": "club.joined",
+    "en": "Clubs I joined",
+    "zh-Hans": "我加入的俱乐部"
+  },
+  {
+    "key": "club.nearby",
+    "en": "Nearby clubs",
+    "zh-Hans": "附近俱乐部"
+  },
+  {
+    "key": "club.emptyOwned",
+    "en": "No clubs created yet",
+    "zh-Hans": "尚未创建俱乐部"
+  },
+  {
+    "key": "club.emptyJoined",
+    "en": "No joined clubs",
+    "zh-Hans": "尚未加入俱乐部"
+  },
+  {
+    "key": "club.emptyNearby",
+    "en": "No nearby clubs returned",
+    "zh-Hans": "暂未发现附近俱乐部"
+  },
+  {
+    "key": "club.events",
+    "en": "Club activities",
+    "zh-Hans": "俱乐部活动"
+  },
+  {
+    "key": "club.emptyEvents",
+    "en": "No club activities returned",
+    "zh-Hans": "暂无俱乐部活动"
+  },
+  {
+    "key": "club.title",
+    "en": "Clubs",
+    "zh-Hans": "俱乐部"
+  },
+  {
+    "key": "club.untitledEvent",
+    "en": "Untitled activity",
+    "zh-Hans": "未命名活动"
+  },
+  {
+    "key": "club.emptyDirectory",
+    "en": "No clubs found",
+    "zh-Hans": "未找到俱乐部"
+  },
+  {
+    "key": "club.emptyDirectoryHint",
+    "en": "Try another club name or clear the search.",
+    "zh-Hans": "试试其他俱乐部名称，或清除搜索条件。"
+  },
+  {
+    "key": "club.searchPrompt",
+    "en": "Search by club name",
+    "zh-Hans": "按俱乐部名称搜索"
+  },
+  {
+    "key": "club.emptyOwnedHint",
+    "en": "Clubs you create will appear here. Joined clubs appear on the club home.",
+    "zh-Hans": "你创建的俱乐部将显示在这里，已加入的俱乐部请在俱乐部首页查看。"
+  },
+  {
+    "key": "club.style",
+    "en": "Tagline",
+    "zh-Hans": "风格"
+  },
+  {
+    "key": "club.members",
+    "en": "Members",
+    "zh-Hans": "成员"
+  },
+  {
+    "key": "club.viewerAdministrator",
+    "en": "You are an administrator",
+    "zh-Hans": "你是俱乐部管理员"
+  },
+  {
+    "key": "club.level",
+    "en": "Leader level",
+    "zh-Hans": "主理人等级"
+  },
+  {
+    "key": "club.introduction",
+    "en": "About the club",
+    "zh-Hans": "俱乐部介绍"
+  },
+  {
+    "key": "club.noIntroduction",
+    "en": "No introduction provided",
+    "zh-Hans": "暂无俱乐部介绍"
+  },
+  {
+    "key": "club.leader",
+    "en": "Leader",
+    "zh-Hans": "主理人"
+  },
+  {
+    "key": "club.city",
+    "en": "City",
+    "zh-Hans": "城市"
+  },
+  {
+    "key": "club.address",
+    "en": "Address",
+    "zh-Hans": "地址"
+  },
+  {
+    "key": "club.type",
+    "en": "Club type",
+    "zh-Hans": "俱乐部类型"
+  },
+  {
+    "key": "club.preferences",
+    "en": "Activity preferences",
+    "zh-Hans": "活动偏好"
+  },
+  {
+    "key": "club.keywords",
+    "en": "Keywords",
+    "zh-Hans": "关键词"
+  },
+  {
+    "key": "club.viewMembers",
+    "en": "View members",
+    "zh-Hans": "查看成员"
+  },
+  {
+    "key": "club.detail",
+    "en": "Club details",
+    "zh-Hans": "俱乐部详情"
+  },
+  {
+    "key": "club.emptyMembers",
+    "en": "No members",
+    "zh-Hans": "暂无成员"
+  },
+  {
+    "key": "club.membersUnavailableHint",
+    "en": "The club reports members, but their list was not returned. Refresh to try again.",
+    "zh-Hans": "俱乐部有成员，但暂未返回成员名单，请刷新重试。"
+  },
+  {
+    "key": "club.emptyMembersHint",
+    "en": "The club reports no members yet.",
+    "zh-Hans": "俱乐部暂未有成员。"
+  },
+  {
+    "key": "club.memberNumber %lld",
+    "en": "Member %lld",
+    "zh-Hans": "用户 %lld"
+  },
+  {
+    "key": "club.fixtureNotice",
+    "en": "Offline club sample • no backend connection",
+    "zh-Hans": "离线俱乐部示例 · 未连接后端"
+  },
+  {
+    "key": "club.fixtureSwitchAccount",
+    "en": "Switch sample account",
+    "zh-Hans": "切换示例账户"
+  },
+  {
+    "key": "club.fixtureSignOut",
+    "en": "Sign out of sample",
+    "zh-Hans": "退出示例账户"
+  }
+]

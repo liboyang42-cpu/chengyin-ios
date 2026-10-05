@@ -1,0 +1,434 @@
+{
+  "searchMap.title": {
+    "en": "Global search",
+    "zh-Hans": "全局搜索"
+  },
+  "searchMap.placeholder": {
+    "en": "Search topics, activities, clubs and shops",
+    "zh-Hans": "搜索主题、活动、俱乐部和商家"
+  },
+  "searchMap.search": {
+    "en": "Search",
+    "zh-Hans": "搜索"
+  },
+  "searchMap.filters": {
+    "en": "Filters",
+    "zh-Hans": "筛选"
+  },
+  "searchMap.citySearch": {
+    "en": "City-node search",
+    "zh-Hans": "城市节点搜索"
+  },
+  "searchMap.nearby": {
+    "en": "Nearby route nodes",
+    "zh-Hans": "附近路线节点"
+  },
+  "searchMap.loading": {
+    "en": "Loading…",
+    "zh-Hans": "正在加载…"
+  },
+  "searchMap.offline": {
+    "en": "Offline synthetic example",
+    "zh-Hans": "离线合成示例"
+  },
+  "searchMap.notConfigured": {
+    "en": "Search service is not configured",
+    "zh-Hans": "搜索服务尚未配置"
+  },
+  "searchMap.history": {
+    "en": "Recent searches",
+    "zh-Hans": "最近搜索"
+  },
+  "searchMap.clearHistory": {
+    "en": "Clear history",
+    "zh-Hans": "清空历史"
+  },
+  "searchMap.categories": {
+    "en": "Categories",
+    "zh-Hans": "分类"
+  },
+  "searchMap.category": {
+    "en": "Category",
+    "zh-Hans": "分类"
+  },
+  "searchMap.categoryFailed": {
+    "en": "Categories could not be loaded",
+    "zh-Hans": "分类未能加载"
+  },
+  "searchMap.all": {
+    "en": "All",
+    "zh-Hans": "全部"
+  },
+  "searchMap.kind.topic": {
+    "en": "Topics",
+    "zh-Hans": "主题"
+  },
+  "searchMap.kind.activity": {
+    "en": "Activities",
+    "zh-Hans": "活动"
+  },
+  "searchMap.kind.club": {
+    "en": "Clubs",
+    "zh-Hans": "俱乐部"
+  },
+  "searchMap.kind.merchant": {
+    "en": "Shops",
+    "zh-Hans": "商家"
+  },
+  "searchMap.partialSignIn": {
+    "en": "Sign in to include results from restricted sources",
+    "zh-Hans": "登录后可查看需要登录的搜索来源"
+  },
+  "searchMap.signIn": {
+    "en": "Sign in",
+    "zh-Hans": "去登录"
+  },
+  "searchMap.partialFailure": {
+    "en": "Some sources could not be refreshed",
+    "zh-Hans": "部分搜索来源未能更新"
+  },
+  "searchMap.allFailed": {
+    "en": "None of the sources could be loaded",
+    "zh-Hans": "所有搜索来源均未能加载"
+  },
+  "searchMap.retry": {
+    "en": "Retry",
+    "zh-Hans": "重试"
+  },
+  "searchMap.empty": {
+    "en": "No matching results",
+    "zh-Hans": "没有匹配结果"
+  },
+  "searchMap.emptyHint": {
+    "en": "Try another keyword or adjust the filters",
+    "zh-Hans": "换个关键词或调整筛选条件"
+  },
+  "searchMap.pageLimit": {
+    "en": "Shows the first 12 topics and activities from each source. Club and shop lists follow their source results.",
+    "zh-Hans": "主题和活动各展示来源的前 12 条，俱乐部和商家按来源结果展示"
+  },
+  "searchMap.untitled": {
+    "en": "Untitled result",
+    "zh-Hans": "未命名结果"
+  },
+  "searchMap.unauthorized": {
+    "en": "Sign in again to continue",
+    "zh-Hans": "请重新登录后继续"
+  },
+  "searchMap.failed": {
+    "en": "Results could not be loaded",
+    "zh-Hans": "结果未能加载"
+  },
+  "searchMap.invalidInput": {
+    "en": "Check the category, dates and price range",
+    "zh-Hans": "请检查分类、日期和价格范围"
+  },
+  "searchMap.cancel": {
+    "en": "Cancel",
+    "zh-Hans": "取消"
+  },
+  "searchMap.apply": {
+    "en": "Apply",
+    "zh-Hans": "应用"
+  },
+  "searchMap.dates": {
+    "en": "Dates",
+    "zh-Hans": "日期"
+  },
+  "searchMap.startDate": {
+    "en": "From YYYY-MM-DD",
+    "zh-Hans": "开始日期 YYYY-MM-DD"
+  },
+  "searchMap.endDate": {
+    "en": "Through YYYY-MM-DD",
+    "zh-Hans": "结束日期 YYYY-MM-DD"
+  },
+  "searchMap.dateFormat": {
+    "en": "Use YYYY-MM-DD. Leave a field empty for no limit.",
+    "zh-Hans": "使用 YYYY-MM-DD 格式，留空表示不限"
+  },
+  "searchMap.price": {
+    "en": "Listed starting price",
+    "zh-Hans": "标示起价"
+  },
+  "searchMap.minimum": {
+    "en": "Minimum (0–1000)",
+    "zh-Hans": "最低价格（0–1000）"
+  },
+  "searchMap.maximum": {
+    "en": "Maximum (0–1000)",
+    "zh-Hans": "最高价格（0–1000）"
+  },
+  "searchMap.clientFilters": {
+    "en": "Date and price filters apply locally to loaded topics and activities. Missing dates or prices stay visible. Clubs and shops are unchanged. The source price unit is not converted.",
+    "zh-Hans": "日期和价格仅在本地筛选已加载的主题及活动，缺失日期或价格的结果仍保留。俱乐部和商家不受影响，来源价格单位不做换算"
+  },
+  "searchMap.resetFilters": {
+    "en": "Reset filters",
+    "zh-Hans": "重置筛选"
+  },
+  "searchMap.manualDisclosure": {
+    "en": "Choose a manual search center, then search. Only that center is sent to the configured service for this request. No device location is captured or saved.",
+    "zh-Hans": "选择手动搜索中心后再搜索。仅本次请求将所选中心发送至已配置的服务，不获取或保存设备位置"
+  },
+  "searchMap.chooseArea": {
+    "en": "Choose search center",
+    "zh-Hans": "选择搜索中心"
+  },
+  "searchMap.searchArea": {
+    "en": "Search this area",
+    "zh-Hans": "搜索这一带"
+  },
+  "searchMap.areaRequired": {
+    "en": "Choose a search center first",
+    "zh-Hans": "请先选择搜索中心"
+  },
+  "searchMap.cityPlaceholder": {
+    "en": "Search routes and places",
+    "zh-Hans": "搜索路线、地点"
+  },
+  "searchMap.tag": {
+    "en": "Shop tag",
+    "zh-Hans": "商家标签"
+  },
+  "searchMap.cityRole": {
+    "en": "City role",
+    "zh-Hans": "城市角色"
+  },
+  "searchMap.sort": {
+    "en": "Sort",
+    "zh-Hans": "排序"
+  },
+  "searchMap.nearest": {
+    "en": "Nearest",
+    "zh-Hans": "最近"
+  },
+  "searchMap.popular": {
+    "en": "Popular",
+    "zh-Hans": "最热"
+  },
+  "searchMap.appleMapDisclosure": {
+    "en": "Showing the map loads Apple map tiles for the selected area. Your current location is not requested.",
+    "zh-Hans": "显示地图会加载所选区域的 Apple 地图，不请求当前位置"
+  },
+  "searchMap.showMap": {
+    "en": "Show Apple map",
+    "zh-Hans": "显示 Apple 地图"
+  },
+  "searchMap.offlineMap": {
+    "en": "Synthetic map preview; no map provider is contacted",
+    "zh-Hans": "合成地图预览，不连接地图服务"
+  },
+  "searchMap.relatedTopic": {
+    "en": "View related topic",
+    "zh-Hans": "查看关联主题"
+  },
+  "searchMap.layerFailed": {
+    "en": "This map layer could not be updated",
+    "zh-Hans": "此地图图层未能更新"
+  },
+  "searchMap.cityNodes": {
+    "en": "City nodes",
+    "zh-Hans": "城市节点"
+  },
+  "searchMap.listOnly": {
+    "en": "Activities shown only in the list",
+    "zh-Hans": "仅在列表显示的活动"
+  },
+  "searchMap.cityRateLimited": {
+    "en": "City lookup is busy. Choose a search center manually or retry later.",
+    "zh-Hans": "城市查询繁忙，请手动选择搜索中心或稍后重试"
+  },
+  "searchMap.cityManual": {
+    "en": "City lookup is unavailable. Use the manual search center.",
+    "zh-Hans": "城市查询暂不可用，请使用手动搜索中心"
+  },
+  "searchMap.noCoordinates": {
+    "en": "Location not provided",
+    "zh-Hans": "未提供位置"
+  },
+  "searchMap.routeNodeDomain": {
+    "en": "This is a route stop. Its node ID is not a city POI ID.",
+    "zh-Hans": "这是路线站点，其节点编号不等于城市地点编号"
+  },
+  "searchMap.nodeDetail": {
+    "en": "Node details",
+    "zh-Hans": "节点详情"
+  },
+  "searchMap.nodeDetails": {
+    "en": "About this node",
+    "zh-Hans": "节点信息"
+  },
+  "searchMap.relatedTemplate": {
+    "en": "Related route template",
+    "zh-Hans": "关联路线模板"
+  },
+  "searchMap.templateDomain": {
+    "en": "The template name is a reference; it is not a topic-detail link.",
+    "zh-Hans": "模板名称仅供参考，不对应主题详情链接"
+  },
+  "searchMap.favorited": {
+    "en": "Saved by your account",
+    "zh-Hans": "此账号已收藏"
+  },
+  "searchMap.radius": {
+    "en": "Arrival radius",
+    "zh-Hans": "到达半径"
+  },
+  "searchMap.distance": {
+    "en": "Distance",
+    "zh-Hans": "距离"
+  },
+  "searchMap.nodeReadOnly": {
+    "en": "Read-only node information. Check-in, validation and favorite changes are separate flows.",
+    "zh-Hans": "此处仅展示节点信息，打卡、验证和收藏修改需使用对应流程"
+  },
+  "searchMap.merchantAbout": {
+    "en": "About this shop",
+    "zh-Hans": "商家信息"
+  },
+  "searchMap.address": {
+    "en": "Address",
+    "zh-Hans": "地址"
+  },
+  "searchMap.hours": {
+    "en": "Business hours",
+    "zh-Hans": "营业时间"
+  },
+  "searchMap.availableTime": {
+    "en": "Available time",
+    "zh-Hans": "可用时段"
+  },
+  "searchMap.capacity": {
+    "en": "Capacity",
+    "zh-Hans": "接待人数"
+  },
+  "searchMap.featured": {
+    "en": "Featured",
+    "zh-Hans": "推荐内容"
+  },
+  "searchMap.routePreview": {
+    "en": "Route preview",
+    "zh-Hans": "路线预览"
+  },
+  "searchMap.routeMode": {
+    "en": "Travel mode",
+    "zh-Hans": "出行方式"
+  },
+  "searchMap.routeOriginDisclosure": {
+    "en": "The origin is your selected search center, not your current position.",
+    "zh-Hans": "起点是所选搜索中心，并非当前位置"
+  },
+  "searchMap.mode.walking": {
+    "en": "Walking",
+    "zh-Hans": "步行"
+  },
+  "searchMap.mode.driving": {
+    "en": "Driving",
+    "zh-Hans": "驾车"
+  },
+  "searchMap.mode.transit": {
+    "en": "Transit",
+    "zh-Hans": "公交"
+  },
+  "searchMap.straightLine": {
+    "en": "Straight-line preview",
+    "zh-Hans": "直线预览"
+  },
+  "searchMap.roadRoute": {
+    "en": "Provided road-route preview",
+    "zh-Hans": "已提供的道路路线预览"
+  },
+  "searchMap.eta": {
+    "en": "Estimated time",
+    "zh-Hans": "预计用时"
+  },
+  "searchMap.straightLineNotice": {
+    "en": "The dashed line is a geographic preview, not a walkable or drivable route. Travel time and turn instructions are unavailable.",
+    "zh-Hans": "虚线仅为地理连线，并非可步行或驾车的道路路线，暂无用时或转弯指引"
+  },
+  "searchMap.transitNotice": {
+    "en": "Transit transfers and step-by-step guidance are not available here.",
+    "zh-Hans": "此处暂不提供公交换乘及分步指引"
+  },
+  "searchMap.routeBoundary": {
+    "en": "Live route planning, device tracking and external navigation are not enabled in this migration slice.",
+    "zh-Hans": "本阶段未启用实时道路规划、设备位置跟踪及外部导航"
+  },
+  "searchMap.routeFailed": {
+    "en": "The supplied route could not be loaded",
+    "zh-Hans": "未能加载所提供的路线"
+  },
+  "searchMap.fixtureGuest": {
+    "en": "Fixture: guest",
+    "zh-Hans": "示例：游客"
+  },
+  "searchMap.fixtureAccount": {
+    "en": "Fixture: switch account",
+    "zh-Hans": "示例：切换账号"
+  },
+  "searchMap.validation.0": {
+    "en": "No validation required",
+    "zh-Hans": "无需验证"
+  },
+  "searchMap.validation.1": {
+    "en": "Written answer",
+    "zh-Hans": "文字作答"
+  },
+  "searchMap.validation.2": {
+    "en": "Photo check-in",
+    "zh-Hans": "拍照打卡"
+  },
+  "searchMap.validation.3": {
+    "en": "Multiple-choice answer",
+    "zh-Hans": "选项问答"
+  },
+  "searchMap.validation.4": {
+    "en": "Scan at the shop",
+    "zh-Hans": "到店扫码"
+  },
+  "searchMap.validation.5": {
+    "en": "GPS arrival",
+    "zh-Hans": "GPS 到达"
+  },
+  "searchMap.validation.6": {
+    "en": "Preference questions",
+    "zh-Hans": "偏好题组"
+  },
+  "searchMap.validation.7": {
+    "en": "Sensor challenge",
+    "zh-Hans": "传感器挑战"
+  },
+  "searchMap.validation.unknown": {
+    "en": "Other validation method",
+    "zh-Hans": "其他验证方式"
+  },
+  "searchMap.etaMinutes": {
+    "en": "Estimated minutes",
+    "zh-Hans": "预计分钟数"
+  },
+  "searchMap.historyUnavailable": {
+    "en": "Recent-search storage is unavailable. This session can still search.",
+    "zh-Hans": "最近搜索存储暂不可用，本次会话仍可继续搜索"
+  },
+  "searchMap.selectedPlace": {
+    "en": "Selected place",
+    "zh-Hans": "已选地点"
+  },
+  "searchMap.clearSelection": {
+    "en": "Clear selection",
+    "zh-Hans": "清除选择"
+  },
+  "searchMap.selectPlace": {
+    "en": "Select place",
+    "zh-Hans": "选择地点"
+  },
+  "searchMap.placeSelected": {
+    "en": "Place selected",
+    "zh-Hans": "已选择地点"
+  },
+  "searchMap.cityOptions": {
+    "en": "City search options",
+    "zh-Hans": "城市搜索选项"
+  }
+}

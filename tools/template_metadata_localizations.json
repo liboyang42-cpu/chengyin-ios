@@ -1,0 +1,14 @@
+{
+  "templateMetadata.choose": {"en":"Choose", "zh-Hans":"选择"},
+  "templateMetadata.saved": {"en":"Saved value", "zh-Hans":"已保存的值"},
+  "templateMetadata.unset": {"en":"Not set", "zh-Hans":"未设置"},
+  "templateMetadata.loading": {"en":"Loading choices…", "zh-Hans":"正在加载选项…"},
+  "templateMetadata.empty": {"en":"No choices are available. Your saved value is preserved.", "zh-Hans":"暂无可选项，已保存的值保持不变。"},
+  "templateMetadata.failed": {"en":"Choices could not be loaded. Your saved value is preserved.", "zh-Hans":"选项加载失败，已保存的值保持不变。"},
+  "templateMetadata.unavailable": {"en":"Choices are unavailable for this editor session.", "zh-Hans":"当前编辑会话无法使用这些选项。"},
+  "templateMetadata.unsupportedOption": {"en":"This value cannot be selected safely.", "zh-Hans":"此值无法安全选择。"},
+  "templateMetadata.save": {"en":"Save", "zh-Hans":"保存"},
+  "templateMetadata.legacyCategories": {"en":"This saved category list cannot be edited safely. Cancel to keep its exact original text, or explicitly replace it.", "zh-Hans":"此历史分类列表无法安全编辑。取消可原样保留，也可明确选择替换。"},
+  "templateMetadata.replaceCategories": {"en":"Replace saved category selection", "zh-Hans":"替换已保存的分类选择"},
+  "templateMetadata.unknownCategory": {"en":"Saved category ID", "zh-Hans":"已保存的分类编号"}
+}

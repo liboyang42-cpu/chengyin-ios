@@ -1,0 +1,117 @@
+[
+  {
+    "key": "profile.edit.title",
+    "en": "Edit profile",
+    "zh-Hans": "编辑个人资料"
+  },
+  {
+    "key": "profile.edit.details",
+    "en": "Profile details",
+    "zh-Hans": "个人资料"
+  },
+  {
+    "key": "profile.edit.name",
+    "en": "Nickname",
+    "zh-Hans": "昵称"
+  },
+  {
+    "key": "profile.edit.introduction",
+    "en": "Introduction",
+    "zh-Hans": "个人简介"
+  },
+  {
+    "key": "profile.edit.scope",
+    "en": "Only your nickname and introduction are editable here. Existing photos, contact QR image and route preferences are preserved.",
+    "zh-Hans": "此处仅编辑昵称与简介。现有照片、联系二维码和路线偏好将保留。"
+  },
+  {
+    "key": "profile.edit.review",
+    "en": "Review changes",
+    "zh-Hans": "查看更改"
+  },
+  {
+    "key": "profile.edit.reviewTitle",
+    "en": "Review profile changes",
+    "zh-Hans": "确认资料更改"
+  },
+  {
+    "key": "profile.edit.confirmHint",
+    "en": "Save these profile details to your account? Other existing profile fields will be preserved.",
+    "zh-Hans": "将这些资料保存到你的账号？其他现有资料将保留。"
+  },
+  {
+    "key": "profile.edit.confirm",
+    "en": "Save profile",
+    "zh-Hans": "保存资料"
+  },
+  {
+    "key": "profile.edit.cancel",
+    "en": "Cancel",
+    "zh-Hans": "取消"
+  },
+  {
+    "key": "profile.edit.reload",
+    "en": "Reload profile",
+    "zh-Hans": "重新加载资料"
+  },
+  {
+    "key": "profile.edit.check",
+    "en": "Check save result",
+    "zh-Hans": "查询保存结果"
+  },
+  {
+    "key": "profile.edit.signIn",
+    "en": "Sign in to edit your profile.",
+    "zh-Hans": "请登录后编辑资料。"
+  },
+  {
+    "key": "profile.edit.unavailable",
+    "en": "Profile editing is not configured.",
+    "zh-Hans": "资料编辑尚未配置。"
+  },
+  {
+    "key": "profile.edit.saved",
+    "en": "Your profile was saved and verified.",
+    "zh-Hans": "资料已保存并核实。"
+  },
+  {
+    "key": "profile.edit.unknown",
+    "en": "The save result is not confirmed. Saving is locked to prevent a duplicate update. Check the result again; no update will be resent.",
+    "zh-Hans": "保存结果尚未确认。为避免重复更新，已锁定保存。请再次查询结果，不会重新提交更新。"
+  },
+  {
+    "key": "profile.edit.loadFailed",
+    "en": "Could not safely load the complete profile. Reload before saving.",
+    "zh-Hans": "无法安全读取完整资料。保存前请重新加载。"
+  },
+  {
+    "key": "profile.edit.nameRequired",
+    "en": "Enter a nickname.",
+    "zh-Hans": "请输入昵称。"
+  },
+  {
+    "key": "profile.edit.unchanged",
+    "en": "No changes to save.",
+    "zh-Hans": "没有需要保存的更改。"
+  },
+  {
+    "key": "profile.edit.changed",
+    "en": "Your profile changed on the server. Review the refreshed details and edit again.",
+    "zh-Hans": "服务器上的资料已变化。请查看刷新后的资料并重新编辑。"
+  },
+  {
+    "key": "profile.edit.rejected",
+    "en": "Your changes were rejected. Review the message and edit before trying again.",
+    "zh-Hans": "更改被拒绝。请根据提示编辑后再试。"
+  },
+  {
+    "key": "profile.edit.notSent",
+    "en": "The update was not sent. Review your changes again.",
+    "zh-Hans": "更新尚未发送。请重新确认更改。"
+  },
+  {
+    "key": "profile.edit.readbackUnconfirmed",
+    "en": "The current profile matches your changes, but the original save request was not acknowledged and may still be running. Saving remains locked; checking again will not resend it.",
+    "zh-Hans": "当前资料与你的更改一致，但原保存请求尚未收到确认，可能仍在处理中。保存仍被锁定；再次查询不会重新提交。"
+  }
+]

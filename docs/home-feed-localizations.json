@@ -1,0 +1,167 @@
+[
+  {
+    "key": "homeFeed.unavailable",
+    "en": "Home is unavailable",
+    "zh-Hans": "首页暂不可用"
+  },
+  {
+    "key": "homeFeed.example",
+    "en": "Offline examples · synthetic content",
+    "zh-Hans": "离线示例 · 合成内容"
+  },
+  {
+    "key": "homeFeed.loading",
+    "en": "Loading…",
+    "zh-Hans": "正在加载…"
+  },
+  {
+    "key": "homeFeed.content",
+    "en": "Content",
+    "zh-Hans": "内容"
+  },
+  {
+    "key": "homeFeed.topics",
+    "en": "Routes",
+    "zh-Hans": "路线"
+  },
+  {
+    "key": "homeFeed.activities",
+    "en": "Activities",
+    "zh-Hans": "活动"
+  },
+  {
+    "key": "homeFeed.category",
+    "en": "Category",
+    "zh-Hans": "分类"
+  },
+  {
+    "key": "homeFeed.allCategories",
+    "en": "All categories",
+    "zh-Hans": "全部分类"
+  },
+  {
+    "key": "homeFeed.categoriesError",
+    "en": "Couldn’t load categories",
+    "zh-Hans": "分类加载失败"
+  },
+  {
+    "key": "homeFeed.loadError",
+    "en": "Couldn’t load this section",
+    "zh-Hans": "此分区加载失败"
+  },
+  {
+    "key": "homeFeed.empty",
+    "en": "No matching results",
+    "zh-Hans": "暂无匹配内容"
+  },
+  {
+    "key": "homeFeed.emptyHint",
+    "en": "Try another search or category",
+    "zh-Hans": "试试其他关键词或分类"
+  },
+  {
+    "key": "homeFeed.loadMore",
+    "en": "Load more",
+    "zh-Hans": "加载更多"
+  },
+  {
+    "key": "homeFeed.explore",
+    "en": "Explore",
+    "zh-Hans": "探索"
+  },
+  {
+    "key": "homeFeed.search",
+    "en": "Search routes and activities",
+    "zh-Hans": "搜索路线和活动"
+  },
+  {
+    "key": "homeFeed.title",
+    "en": "Home",
+    "zh-Hans": "首页"
+  },
+  {
+    "key": "homeFeed.bannersError",
+    "en": "Couldn’t load featured content",
+    "zh-Hans": "精选内容加载失败"
+  },
+  {
+    "key": "homeFeed.openFeatured",
+    "en": "View featured content",
+    "zh-Hans": "查看精选内容"
+  },
+  {
+    "key": "homeFeed.featured",
+    "en": "Featured",
+    "zh-Hans": "精选"
+  },
+  {
+    "key": "homeFeed.noLocation",
+    "en": "Ordered by time. Location has not been requested.",
+    "zh-Hans": "按时间排序，未请求定位"
+  },
+  {
+    "key": "homeFeed.sectionEmpty",
+    "en": "Nothing here yet",
+    "zh-Hans": "暂无内容"
+  },
+  {
+    "key": "homeFeed.recommended",
+    "en": "Recommended routes",
+    "zh-Hans": "推荐路线"
+  },
+  {
+    "key": "homeFeed.activityHighlights",
+    "en": "Activity highlights",
+    "zh-Hans": "活动精选"
+  },
+  {
+    "key": "homeFeed.upcoming",
+    "en": "Coming soon",
+    "zh-Hans": "即将上线"
+  },
+  {
+    "key": "homeFeed.retry",
+    "en": "Retry",
+    "zh-Hans": "重试"
+  },
+  {
+    "key": "homeFeed.untitled",
+    "en": "Untitled",
+    "zh-Hans": "未命名"
+  },
+  {
+    "key": "homeFeed.beta",
+    "en": "Beta",
+    "zh-Hans": "Beta"
+  },
+  {
+    "key": "homeFeed.live",
+    "en": "LIVE",
+    "zh-Hans": "进行中"
+  },
+  {
+    "key": "homeFeed.currencyUnknown",
+    "en": "Currency not provided",
+    "zh-Hans": "未提供币种"
+  },
+  {
+    "key": "homeFeed.unknown",
+    "en": "—",
+    "zh-Hans": "—"
+  },
+  {
+    "key": "homeFeed.priceFrom",
+    "en": "Starting price",
+    "zh-Hans": "起始价格"
+  },
+  {
+    "key": "homeFeed.date",
+    "en": "Date",
+    "zh-Hans": "时间"
+  },
+  {
+    "key": "homeFeed.place",
+    "en": "Place",
+    "zh-Hans": "地点"
+  }
+]

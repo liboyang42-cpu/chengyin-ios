@@ -1,0 +1,68 @@
+{
+  "module": "official_write",
+  "integration": "docs/official-action-integration.md",
+  "new_files": [
+    "App/OfficialActionFixtureHost.swift",
+    "App/OfficialActionViews.swift",
+    "Core/OfficialActionContracts.swift",
+    "Core/OfficialActionCoordinator.swift",
+    "Core/OfficialActionInjectedAccess.swift",
+    "Core/OfficialActionService.swift",
+    "README.md",
+    "Resources/OfficialActionLocalizations.fragment.json",
+    "Tests/AppUITests/OfficialActionUITests.swift",
+    "Tests/CoreTests/OfficialActionTests.swift",
+    "docs/integration.md",
+    "docs/static-evidence.json",
+    "tools/check_official_actions.py"
+  ],
+  "existing_read_module_modified": "Additive App host parameters only; Core official read module unchanged",
+  "production_enabled": false,
+  "source_backed_writes": [
+    "publish",
+    "broadcast",
+    "invites",
+    "events/{id}/signup",
+    "events/{id}/complete",
+    "events/{id}/arrivals",
+    "v2/organizer-invites/{id}/accept|decline",
+    "v2/parties/{id}/ACCEPT|DECLINE|WITHDRAW"
+  ],
+  "additional_dormant_adapters": [
+    "GET invites?status=",
+    "POST broadcast/{id}/click?channel="
+  ],
+  "gaps": [
+    "No source-backed published-event edit endpoint; unsent drafts editable only",
+    "Merchant invitation payload limited to source-tested merchantIds; richer authoring unproven",
+    "Host must provide verified merchant candidates, current-account snapshots, server roam session and explicitly approved location evidence",
+    "Persistent acknowledgment locks for participation/party/arrival await separately reviewed server-fact reconciliation policy; no reset/retry UI",
+    "Additive host integration and runtime accessibility/typecheck not executed here"
+  ],
+  "verification": {
+    "source_static": "PASS: 243 assertions",
+    "tree_sitter": "PASS: 8 Swift files, no recovery; supplementary syntax only",
+    "core_tests": "24 AUTHORED, NOT_RUN",
+    "ui_tests": "3 AUTHORED, NOT_RUN",
+    "swift_xcode": "NOT_RUN: unavailable",
+    "aggregate_contract_checks": "276 PASS",
+    "tool_tests": "16 PASS",
+    "scaffold": "PASS:459 Swift references,3997 bilingual keys",
+    "changed_swift_parse": "14 PASS",
+    "whole_checkout_parse": "10 diagnostics in 6 unrelated files; supplementary grammar only",
+    "core_inventory": 1521,
+    "ui_inventory": 233,
+    "shards": 6
+  },
+  "sha256": {
+    "Core/OfficialActionService.swift": "3dfa68ba073d40f9211c6a58f7168732102ad963342e97fb436b058a0fa6f7db",
+    "Core/OfficialActionCoordinator.swift": "b983ba946a06417d6d5f9607564b66eae4b8fb1f8e9d99e225463aa1701d7cf4",
+    "Core/OfficialActionInjectedAccess.swift": "e36e42ea866d5c9d92dc96f1a2826ab750be7607738823c9f5842f62f253a82f",
+    "Core/OfficialActionContracts.swift": "32923097b47cecae53142ef57466f42612b9ef0edc5c16ad3329389458f98630",
+    "App/OfficialActionViews.swift": "11d0ff40757147b0febea930fd1c472dd9a61fe7797dc237df9ee0dc25e98d30",
+    "App/OfficialActionFixtureHost.swift": "fbfe19b5f80b69dce6bfa5de48d2bb2260703f90b141e78b0829f6e91a955ed6",
+    "Tests/CoreTests/OfficialActionTests.swift": "f79b3a17239555fde08847fb1fafcccb75ebfcbdd46128e08e48e140602312fe",
+    "Tests/AppUITests/OfficialActionUITests.swift": "fe5750e3fb490b970e8ba77f0d09db5e1a9e41a73d5d4344e3e3655a873d551f"
+  },
+  "integrated": true
+}

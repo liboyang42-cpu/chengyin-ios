@@ -1,0 +1,63 @@
+{
+  "package": "AccountCompliance",
+  "sourceRevision": "a63e9e91c82a3282e8dd7138f943b1a8cbfc021d",
+  "productionCapabilitiesDefault": false,
+  "sharedHostModified": false,
+  "files": [
+    {
+      "path": "App/AccountComplianceViews.swift",
+      "sha256": "a2cb6e4a3d009c5a9f0e651940ed343131b5a4b4ba97cbecbc4bdd5a9f616d51",
+      "bytes": 10355
+    },
+    {
+      "path": "Core/AccountComplianceContracts.swift",
+      "sha256": "8814ed13fda34885ac9d35af7259cc4041e259c0904ffeada224cff232f9974f",
+      "bytes": 6256
+    },
+    {
+      "path": "Core/AccountComplianceCoordinator.swift",
+      "sha256": "1e6dd62f2e340abb937688bf2c61d607a53c4235365974c180a5d0928a44b441",
+      "bytes": 9292
+    },
+    {
+      "path": "Core/AccountComplianceService.swift",
+      "sha256": "6cd3ca62ef753a60e12f2bdae0a0eee50124491cd07fb7d053764de1f8ab06d6",
+      "bytes": 11304
+    },
+    {
+      "path": "Resources/AccountCompliance.xcstrings",
+      "sha256": "d634e0bb0fde71fae7722b0c0a3fbee5cc9c13c67949cb27ccf70a8faab58495",
+      "bytes": 16106
+    },
+    {
+      "path": "Tests/CoreTests/AccountComplianceTests.swift",
+      "sha256": "8a2953610e1ea27c2e68512af1c77d318baeda454e29287b29edfae8fa18661d",
+      "bytes": 13905
+    },
+    {
+      "path": "docs/account-compliance-native.md",
+      "sha256": "11bc9c7342c794a70cc4c979bd06a7aa12d78bdfd5bac402e73b4302efebbd94",
+      "bytes": 8406
+    },
+    {
+      "path": "source-validation.txt",
+      "sha256": "4d92a48b5d49e67bc1edc181dec62bd80e1c48ece4353329cfa522df1403451f",
+      "bytes": 142
+    },
+    {
+      "path": "syntax-validation.txt",
+      "sha256": "2a29c7a6116e1f9d54c8ef6c559e9e3c43ddfb5108f4ed240a5bbdd1bea44df8",
+      "bytes": 288
+    },
+    {
+      "path": "tools/build_compliance_catalog.py",
+      "sha256": "e31ad617950aa98483f7991034531bbfa4bb52cb075ff5554bd98a2a2023c888",
+      "bytes": 4105
+    },
+    {
+      "path": "tools/check_account_compliance.py",
+      "sha256": "aacb632313d1530f9dea12b0f008082b7df07299847d228bcd3db224200eb782",
+      "bytes": 3108
+    }
+  ]
+}

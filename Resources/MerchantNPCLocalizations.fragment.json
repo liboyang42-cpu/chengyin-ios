@@ -1,0 +1,614 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "merchantNPC.chatDisclosure": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Messages are sent to the merchant NPC service. Only the server’s moderated reply is shown."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "消息将发送至商家 NPC 服务，仅显示服务器审核后的回复。"
+          }
+        }
+      }
+    },
+    "merchantNPC.noReply": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No reply is available"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无回复"
+          }
+        }
+      }
+    },
+    "merchantNPC.playbackOff": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio playback is disabled"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语音播放未启用"
+          }
+        }
+      }
+    },
+    "merchantNPC.message": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Message"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "消息"
+          }
+        }
+      }
+    },
+    "merchantNPC.send": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发送"
+          }
+        }
+      }
+    },
+    "merchantNPC.retry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry the same request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试同一请求"
+          }
+        }
+      }
+    },
+    "merchantNPC.abandon": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear conversation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清空对话"
+          }
+        }
+      }
+    },
+    "merchantNPC.pending": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting for the service"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等待服务响应"
+          }
+        }
+      }
+    },
+    "merchantNPC.sessionChanged": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Session changed. Reopen this screen to continue."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "会话已变化，请重新打开页面。"
+          }
+        }
+      }
+    },
+    "merchantNPC.chatTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merchant NPC"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "门店 NPC"
+          }
+        }
+      }
+    },
+    "merchantNPC.providerOff": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording, uploads and live generation remain disabled in this migration."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本迁移版本未启用录音、上传与实时生成。"
+          }
+        }
+      }
+    },
+    "merchantNPC.voice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voice resources"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "声音资源"
+          }
+        }
+      }
+    },
+    "merchantNPC.authorizationFirst": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 · Authorization statement must be first"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 · 授权声明必须为第一段"
+          }
+        }
+      }
+    },
+    "merchantNPC.sampleReady": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approved sample reference ready"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已准备获准的样本引用"
+          }
+        }
+      }
+    },
+    "merchantNPC.sampleMissing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sample not supplied"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未提供样本"
+          }
+        }
+      }
+    },
+    "merchantNPC.recordingUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording unavailable. Server availability and an approved capture provider are required."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "录音不可用，需确认服务器可用性并接入获准的录音服务。"
+          }
+        }
+      }
+    },
+    "merchantNPC.ownsVoice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is my own voice and I control its use"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这是我本人的声音，且我有权决定其使用"
+          }
+        }
+      }
+    },
+    "merchantNPC.consent": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I explicitly consent to the selected operation after reviewing its purpose"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "了解用途并审阅后，我明确同意所选操作"
+          }
+        }
+      }
+    },
+    "merchantNPC.reviewEnroll": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review five ordered voice samples"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "审阅五段有序声音样本"
+          }
+        }
+      }
+    },
+    "merchantNPC.reviewRevoke": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review voice authorization withdrawal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "审阅撤回声音授权"
+          }
+        }
+      }
+    },
+    "merchantNPC.avatar": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avatar generation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "形象生成"
+          }
+        }
+      }
+    },
+    "merchantNPC.available": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server reports available"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务器报告可用"
+          }
+        }
+      }
+    },
+    "merchantNPC.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unavailable or not configured"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不可用或尚未配置"
+          }
+        }
+      }
+    },
+    "merchantNPC.style": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Style"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "风格"
+          }
+        }
+      }
+    },
+    "merchantNPC.chooseStyle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a server-supported style"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择服务器支持的风格"
+          }
+        }
+      }
+    },
+    "merchantNPC.imageMissing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No approved image reference"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无获准的图片引用"
+          }
+        }
+      }
+    },
+    "merchantNPC.imageReady": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approved image reference ready"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已准备获准的图片引用"
+          }
+        }
+      }
+    },
+    "merchantNPC.reviewAvatar": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review avatar generation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "审阅形象生成"
+          }
+        }
+      }
+    },
+    "merchantNPC.review": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review operation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "审阅操作"
+          }
+        }
+      }
+    },
+    "merchantNPC.reviewWarning": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm only this operation and these inputs. Submission does not mean the resource is ready."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅确认本次操作及这些输入，提交不代表资源已就绪。"
+          }
+        }
+      }
+    },
+    "merchantNPC.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm reviewed operation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认已审阅操作"
+          }
+        }
+      }
+    },
+    "merchantNPC.cancel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消审阅"
+          }
+        }
+      }
+    },
+    "merchantNPC.revokeWarning": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdraw voice authorization and request remote voice deletion. Failure does not mean deletion succeeded."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤回声音授权并请求删除远端音色；失败不代表已删除。"
+          }
+        }
+      }
+    },
+    "merchantNPC.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outcome unknown. Do not resubmit. Refresh shows resource status only, not proof of this operation."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "操作结果未知，请勿重复提交。刷新仅显示资源状态，不能证明本次操作结果。"
+          }
+        }
+      }
+    },
+    "merchantNPC.accepted": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server accepted the request; readiness comes from status"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务器已接受请求，是否就绪以状态为准"
+          }
+        }
+      }
+    },
+    "merchantNPC.refresh": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh resource status"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新资源状态"
+          }
+        }
+      }
+    },
+    "merchantNPC.resourcesTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NPC resources"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NPC 资源"
+          }
+        }
+      }
+    },
+    "merchantNPC.synthetic": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synthetic Merchant NPC preview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "门店 NPC 合成预览"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

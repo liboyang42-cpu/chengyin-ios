@@ -1,0 +1,232 @@
+[
+  {
+    "key": "topic.title",
+    "en": "Routes",
+    "zh-Hans": "路线"
+  },
+  {
+    "key": "topic.recommended",
+    "en": "Recommended routes only",
+    "zh-Hans": "只看推荐路线"
+  },
+  {
+    "key": "topic.loading",
+    "en": "Loading routes…",
+    "zh-Hans": "正在读取路线…"
+  },
+  {
+    "key": "topic.empty",
+    "en": "No routes found",
+    "zh-Hans": "暂无路线"
+  },
+  {
+    "key": "topic.beta",
+    "en": "Beta",
+    "zh-Hans": "试玩"
+  },
+  {
+    "key": "topic.startingPrice",
+    "en": "Starting amount",
+    "zh-Hans": "起始金额"
+  },
+  {
+    "key": "topic.loadMore",
+    "en": "Load more routes",
+    "zh-Hans": "加载更多路线"
+  },
+  {
+    "key": "topic.readOnly",
+    "en": "Read-only preview. Booking, payment, favorites and play are not available here.",
+    "zh-Hans": "只读预览。此处不提供报名、支付、收藏或开玩操作。"
+  },
+  {
+    "key": "topic.search",
+    "en": "Search routes",
+    "zh-Hans": "搜索路线"
+  },
+  {
+    "key": "topic.priceUnknown",
+    "en": "Amount unavailable",
+    "zh-Hans": "金额未提供"
+  },
+  {
+    "key": "topic.notConfigured",
+    "en": "Route service is not configured",
+    "zh-Hans": "路线服务尚未配置"
+  },
+  {
+    "key": "topic.unauthorized",
+    "en": "Please sign in again to refresh your route access",
+    "zh-Hans": "请重新登录以刷新路线访问权限"
+  },
+  {
+    "key": "topic.unavailable",
+    "en": "This route is unavailable",
+    "zh-Hans": "此路线暂不可查看"
+  },
+  {
+    "key": "topic.failed",
+    "en": "Could not load routes",
+    "zh-Hans": "路线读取失败"
+  },
+  {
+    "key": "topic.retry",
+    "en": "Retry",
+    "zh-Hans": "重试"
+  },
+  {
+    "key": "topic.detail",
+    "en": "Route details",
+    "zh-Hans": "路线详情"
+  },
+  {
+    "key": "topic.start",
+    "en": "Start",
+    "zh-Hans": "开始"
+  },
+  {
+    "key": "topic.end",
+    "en": "End",
+    "zh-Hans": "结束"
+  },
+  {
+    "key": "topic.merchants",
+    "en": "Participating merchants",
+    "zh-Hans": "承接商家"
+  },
+  {
+    "key": "topic.durationSeconds",
+    "en": "Duration (seconds)",
+    "zh-Hans": "时长（秒）"
+  },
+  {
+    "key": "topic.durationMinutes",
+    "en": "Duration (minutes)",
+    "zh-Hans": "时长（分钟）"
+  },
+  {
+    "key": "topic.rating",
+    "en": "Rating",
+    "zh-Hans": "评分"
+  },
+  {
+    "key": "topic.availability",
+    "en": "Availability",
+    "zh-Hans": "开放状态"
+  },
+  {
+    "key": "topic.availability.purchased",
+    "en": "You already have a registration or ticket",
+    "zh-Hans": "你已报名或购票"
+  },
+  {
+    "key": "topic.availability.recruiting",
+    "en": "Recruiting · not on sale",
+    "zh-Hans": "招募中 · 未开售"
+  },
+  {
+    "key": "topic.availability.pricing",
+    "en": "Pricing · not on sale",
+    "zh-Hans": "定价中 · 未开售"
+  },
+  {
+    "key": "topic.availability.merchantClosed",
+    "en": "Merchant temporarily closed",
+    "zh-Hans": "商家暂停营业"
+  },
+  {
+    "key": "topic.availability.selfPlay",
+    "en": "Self-play pass offered",
+    "zh-Hans": "提供自玩通行证"
+  },
+  {
+    "key": "topic.availability.sessions",
+    "en": "Session-based route",
+    "zh-Hans": "按场次开放路线"
+  },
+  {
+    "key": "topic.closedNotice",
+    "en": "Merchant temporarily closed; new registration is unavailable",
+    "zh-Hans": "商家暂停营业，暂不可报名"
+  },
+  {
+    "key": "topic.selfPlayPrice",
+    "en": "Self-play amount",
+    "zh-Hans": "自玩通行证金额"
+  },
+  {
+    "key": "topic.lockedStory",
+    "en": "Locked story",
+    "zh-Hans": "待解锁故事"
+  },
+  {
+    "key": "topic.lockedNotice",
+    "en": "Some chapters are locked. Only supplied chapters are shown.",
+    "zh-Hans": "部分章节尚未解锁，仅展示已下发章节。"
+  },
+  {
+    "key": "topic.lockedChapters",
+    "en": "Locked chapters",
+    "zh-Hans": "未解锁章节"
+  },
+  {
+    "key": "topic.chapters",
+    "en": "Chapters",
+    "zh-Hans": "章节"
+  },
+  {
+    "key": "topic.noChapters",
+    "en": "No chapters available to view",
+    "zh-Hans": "暂无可查看章节"
+  },
+  {
+    "key": "topic.stops",
+    "en": "Stops",
+    "zh-Hans": "站点"
+  },
+  {
+    "key": "topic.tickets",
+    "en": "Sessions and tickets",
+    "zh-Hans": "场次与票务"
+  },
+  {
+    "key": "topic.noTickets",
+    "en": "No sessions supplied",
+    "zh-Hans": "暂无场次信息"
+  },
+  {
+    "key": "topic.price",
+    "en": "Amount",
+    "zh-Hans": "金额"
+  },
+  {
+    "key": "topic.remaining",
+    "en": "Remaining",
+    "zh-Hans": "剩余数量"
+  },
+  {
+    "key": "topic.comments",
+    "en": "Reviews",
+    "zh-Hans": "评价"
+  },
+  {
+    "key": "topic.noComments",
+    "en": "No reviews supplied",
+    "zh-Hans": "暂无评价"
+  },
+  {
+    "key": "topic.chapter",
+    "en": "Chapter",
+    "zh-Hans": "章节"
+  },
+  {
+    "key": "topic.offlineExample",
+    "en": "Synthetic offline example",
+    "zh-Hans": "离线合成示例"
+  },
+  {
+    "key": "topic.initiator",
+    "en": "Initiator",
+    "zh-Hans": "发起人"
+  }
+]

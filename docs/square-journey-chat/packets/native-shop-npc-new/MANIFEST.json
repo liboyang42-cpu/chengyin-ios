@@ -1,0 +1,101 @@
+{
+  "package": "ShopNPCNodeConversation",
+  "shared_main_edits": false,
+  "default_backend_activation": "OFF",
+  "default_provider_activation": "OFF",
+  "default_legal_activation": "OFF",
+  "default_voice_activation": "OFF",
+  "default_media_activation": "OFF",
+  "identity_domain": "play_node_only",
+  "public_merchant_chat": "separate merchant-chat endpoint; no row-to-node mapping",
+  "validation": {
+    "source_assertions": 133,
+    "tree_sitter_parse_files": 8,
+    "tree_sitter_diagnostics": 0,
+    "authored_core_tests": 23,
+    "authored_ui_tests": 4,
+    "swift_typecheck": "NOT_RUN",
+    "swift_tests": "NOT_RUN",
+    "apple_runtime": "NOT_RUN"
+  },
+  "files": [
+    {
+      "path": "App/ShopNPCFixtureView.swift",
+      "action": "copy",
+      "destination": "App/ShopNPCFixtureView.swift",
+      "sha256": "a4d0bcebe5e5a98e9fc2e23f3f945b3ffe361d680d7fe3559a104ccd12df26b0"
+    },
+    {
+      "path": "App/ShopNPCView.swift",
+      "action": "copy",
+      "destination": "App/ShopNPCView.swift",
+      "sha256": "e7435e279f017af2886878f74c4aaca06ce78d9202b19a6960ae120f0f4f4bbd"
+    },
+    {
+      "path": "App/ShopNPCVoiceProvider.swift",
+      "action": "copy",
+      "destination": "App/ShopNPCVoiceProvider.swift",
+      "sha256": "d929817f92c52bff9891c332abfb230f7e2147ca9ec2dc8bad70e3c95ce03a1f"
+    },
+    {
+      "path": "Core/ShopNPCContracts.swift",
+      "action": "copy",
+      "destination": "Core/ShopNPCContracts.swift",
+      "sha256": "76b7a971fe37e8f2fe5bab8149689d34bd5974f6be9c7c2fa569695b5ca27e5e"
+    },
+    {
+      "path": "Core/ShopNPCCoordinator.swift",
+      "action": "copy",
+      "destination": "Core/ShopNPCCoordinator.swift",
+      "sha256": "27206bc7b7227c165e13f67ae7aca7a2a8a6d9bfb03e62800903aeb5fbfb5c11"
+    },
+    {
+      "path": "Core/ShopNPCHTTP.swift",
+      "action": "copy",
+      "destination": "Core/ShopNPCHTTP.swift",
+      "sha256": "2b0055ae974562b19a839eeb9525db6f412dff5ab13b6b299ce109d67dbb79b5"
+    },
+    {
+      "path": "Resources/ShopNPC.xcstrings",
+      "action": "merge_strings",
+      "destination": "Resources/Localizable.xcstrings",
+      "sha256": "186327fd925d4de0c1617cc8515de838813be0f8949ab6e1e35ec5127ca5481e"
+    },
+    {
+      "path": "Tests/AppUITests/ShopNPCFlowTests.swift",
+      "action": "copy",
+      "destination": "Tests/AppUITests/ShopNPCFlowTests.swift",
+      "sha256": "3d4219ed51fc98233cbe40aac36ce7adf09e877a444c427dd4c6d697f11b2fc3"
+    },
+    {
+      "path": "Tests/ContractChecks/check_shop_npc.py",
+      "action": "reference_only",
+      "destination": null,
+      "sha256": "e3eef7ee8dc323c399d7615a1515ba2d6e0d1c7407e7c16c02a23ee819c4c8b6"
+    },
+    {
+      "path": "Tests/CoreTests/ShopNPCTests.swift",
+      "action": "copy",
+      "destination": "Tests/CoreTests/ShopNPCTests.swift",
+      "sha256": "93920ed0de19682efbbffc3df550646f610b3eb34fdfbe15131114a2875cdeb7"
+    },
+    {
+      "path": "docs/INTEGRATION.md",
+      "action": "reference_only",
+      "destination": null,
+      "sha256": "1b89c903043a1ea622fb0032bfb192f33c0f4467ea8ce3f80b9b34102adc0e68"
+    },
+    {
+      "path": "docs/VALIDATION.md",
+      "action": "reference_only",
+      "destination": null,
+      "sha256": "e8771e5d49e506f09cad0153422393935a7f7ea5e4bf8e9c98189e379700ea2d"
+    },
+    {
+      "path": "docs/parser-results.txt",
+      "action": "reference_only",
+      "destination": null,
+      "sha256": "a41b6640be5c86a303d62bc0a5d0b166f7ccfdcc4e455d747dfd2b07558072d2"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "commit": "11be8cb2f09073496f3a7d5130d558da60cf5439",
+  "sources": [
+    {
+      "path": "chengyinhub-xcx/pages/template/index.js",
+      "sha": "40ae0e6c4d35cef8ba453eaa1f8c1fab64e9761d",
+      "url": "https://github.com/liboyang42-cpu/chengyin/blob/11be8cb2f09073496f3a7d5130d558da60cf5439/chengyinhub-xcx/pages/template/index.js",
+      "filename": "index.js",
+      "capture_terminal_newline_bytes": 1
+    },
+    {
+      "path": "chengyinhub-xcx/pages/template/index.wxml",
+      "sha": "beef279ec84e58b5d060ae8182b2b2d49e915478",
+      "url": "https://github.com/liboyang42-cpu/chengyin/blob/11be8cb2f09073496f3a7d5130d558da60cf5439/chengyinhub-xcx/pages/template/index.wxml",
+      "filename": "index.wxml",
+      "capture_terminal_newline_bytes": 1
+    },
+    {
+      "path": "chengyinhub-xcx/pages/templatedetail/templatedetail.js",
+      "sha": "6aa2d796caa96154529729a254387cd898249000",
+      "url": "https://github.com/liboyang42-cpu/chengyin/blob/11be8cb2f09073496f3a7d5130d558da60cf5439/chengyinhub-xcx/pages/templatedetail/templatedetail.js",
+      "filename": "templatedetail.js",
+      "capture_terminal_newline_bytes": 1
+    },
+    {
+      "path": "chengyinhub-admin/src/main/java/com/chengyinhub/web/controller/api/ApiTemplateController.java",
+      "sha": "45f410ed0f8375903f10cf8e87e824e84ad31ae0",
+      "url": "https://github.com/liboyang42-cpu/chengyin/blob/11be8cb2f09073496f3a7d5130d558da60cf5439/chengyinhub-admin/src/main/java/com/chengyinhub/web/controller/api/ApiTemplateController.java",
+      "filename": "ApiTemplateController.java",
+      "capture_terminal_newline_bytes": 1
+    },
+    {
+      "path": "chengyinhub-xcx/subpackageMember/mytemplate/mytemplate.js",
+      "sha": "163c38e49820ea442c3e318bd913fa0c3bad973a",
+      "url": "https://github.com/liboyang42-cpu/chengyin/blob/11be8cb2f09073496f3a7d5130d558da60cf5439/chengyinhub-xcx/subpackageMember/mytemplate/mytemplate.js",
+      "filename": "mytemplate.js",
+      "capture_terminal_newline_bytes": 1
+    }
+  ]
+}

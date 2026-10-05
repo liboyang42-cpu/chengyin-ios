@@ -1,0 +1,21 @@
+{
+  "msg" : "已达到当前身份优惠券数量上限（3）",
+  "code" : 500,
+  "data" : {
+    "commandReceipt" : {
+      "version" : 1,
+      "requestId" : "22222222-2222-4222-8222-222222222222",
+      "operation" : "PUBLISH",
+      "scope" : "MERCHANT",
+      "merchantId" : 11,
+      "ownerMemberId" : 9001,
+      "actorMemberId" : 7002,
+      "payloadHash" : "a72d49610a0a0687449a8068e4565db197cb007ca6d6b28ffa140235b6817cbb",
+      "outcome" : "REJECTED",
+      "reasonCode" : "QUOTA_REJECTED",
+      "couponId" : null,
+      "couponStatusAtExecution" : null,
+      "completedAt" : "2026-10-04T22:00:00.123+08:00"
+    }
+  }
+}

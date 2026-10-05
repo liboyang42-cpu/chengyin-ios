@@ -1,0 +1,24 @@
+{
+  "fixtureKind": "SYNTHETIC_TRANSPORT_ONLY_NOT_AN_ENROLLED_KEY_OR_ATTESTATION",
+  "challenge": {
+    "protocolVersion": 1,
+    "provider": "IOS_CMPEDOMETER_V1",
+    "enabled": true,
+    "rewardEnabled": false,
+    "hardwareVerified": false,
+    "accountId": 7,
+    "deviceKeyId": "ICEiIyQlJicoKSorLC0uLzAxMjM0NTY3ODk6Ozw9Pj8=",
+    "appId": "ABCDE12345.com.chengyinhub.test",
+    "environment": "production",
+    "status": "CHALLENGE",
+    "reasonCode": "APP_ATTEST_CHALLENGE_ISSUED",
+    "challengeId": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    "challengeBase64": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=",
+    "issuedAt": 1790935200000,
+    "expiresAt": 1790935500000
+  },
+  "decodedChallengeHex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+  "clientDataHashHex": "630dcd2966c4336691125448bbb25b4ff412a49c732db2c8abc1b8581bd710dd",
+  "clientDataHashBase64": "Yw3NKWbEM2aRElRIu7JbT/QSpJxzLbLIq8G4WBvXEN0=",
+  "attestationObject": null
+}

@@ -1,0 +1,15 @@
+App/AuthChannelView.swift:73:19: tree-sitter ERROR (ERROR)
+App/MerchantHomeView.swift:255:17: tree-sitter ERROR (ERROR)
+App/MessagingComponents.swift:40:17: tree-sitter ERROR (ERROR)
+App/RegistrationSheetView.swift:137:9: tree-sitter ERROR (ERROR)
+Core/RegistrationUIForm.swift:34:5: tree-sitter ERROR (ERROR)
+Core/RegistrationUIForm.swift:36:5: tree-sitter ERROR (ERROR)
+Tests/CoreTests/ParticipantCoordinatorTests.swift:56:36: tree-sitter MISSING (!)
+Tests/CoreTests/ParticipantCoordinatorTests.swift:157:36: tree-sitter MISSING (!)
+Tests/CoreTests/ParticipantCoordinatorTests.swift:196:36: tree-sitter MISSING (!)
+Tests/CoreTests/ParticipantCoordinatorTests.swift:226:36: tree-sitter MISSING (!)
+FAIL Tree-sitter parse: 804 Swift files, 6 files with recovery, 10 diagnostics
+VERSIONS: tree-sitter==0.26.0, tree-sitter-swift==0.7.3
+SCOPE: supplementary Tree-sitter parse only; no Swift typechecking, Apple SDK/API checks, compilation, or runtime tests. Grammar gaps may fail valid Swift.
+
+--- STDERR ---

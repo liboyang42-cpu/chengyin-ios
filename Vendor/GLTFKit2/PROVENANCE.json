@@ -1,0 +1,206 @@
+{
+  "repository": "https://github.com/warrenm/GLTFKit2",
+  "revision": "e69e354c4f31ea07b7816b8cbe2ddb28e897d073",
+  "version": "0.5.15",
+  "sourceOnly": true,
+  "excluded": [
+    "libktx",
+    "BasisU",
+    "Draco",
+    "upstream prebuilt XCFramework"
+  ],
+  "files": [
+    {
+      "path": "GLTFKit2.xcodeproj/project.pbxproj",
+      "upstreamPath": "GLTFKit2/GLTFKit2.xcodeproj/project.pbxproj",
+      "gitBlob": "f8ac472100e0fb7ce91d6dfff66e7e81e6c5e2e0",
+      "sha256": "30b4ca5ada1cec58ee2ac11e9514691e54d2eeba5d3985f4935111de1b55bf00"
+    },
+    {
+      "path": "GLTFKit2.xcodeproj/project.xcworkspace/contents.xcworkspacedata",
+      "upstreamPath": "GLTFKit2/GLTFKit2.xcodeproj/project.xcworkspace/contents.xcworkspacedata",
+      "gitBlob": "919434a6254f0e9651f402737811be6634a03e9c",
+      "sha256": "7f3b00b5c3fdb45242d7b87e1e5c4e25d1fa8129a16c94295ecc4e8ea2235c5f"
+    },
+    {
+      "path": "GLTFKit2.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist",
+      "upstreamPath": "GLTFKit2/GLTFKit2.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist",
+      "gitBlob": "18d981003d68d0546c4804ac2ff47dd97c6e7921",
+      "sha256": "dfa0f9bb85b95ccba9c6811adadf8cb407fb5d52088e89db83ebc308ec448542"
+    },
+    {
+      "path": "GLTFKit2.xcodeproj/xcshareddata/xcschemes/GLTFKit2.xcscheme",
+      "upstreamPath": "GLTFKit2/GLTFKit2.xcodeproj/xcshareddata/xcschemes/GLTFKit2.xcscheme",
+      "gitBlob": "afa9f6a36ac45a00870afb918e22d3f2df373618",
+      "sha256": "c49bfa017fff255c7cde8451522200fc928a7b18a79ef5a41f884c2544b5f1f9"
+    },
+    {
+      "path": "GLTFKit2/GLTFAsset.h",
+      "upstreamPath": "GLTFKit2/GLTFKit2/GLTFAsset.h",
+      "gitBlob": "d892930dcab242c738031b8b9495b55db36564b7",
+      "sha256": "c41ad2bf8480cc84c6042fd9da3b42a7bc0ec1161375f614a3348477c47c2633"
+    },
+    {
+      "path": "GLTFKit2/GLTFAsset.m",
+      "upstreamPath": "GLTFKit2/GLTFKit2/GLTFAsset.m",
+      "gitBlob": "dac7f802d2da8628d03aba0e13ef59c35a9dbe57",
+      "sha256": "e979ebbae9dc29570b3d95ee0de42bc131ca29cd630fdda304e47e4a02d0cf3e"
+    },
+    {
+      "path": "GLTFKit2/GLTFKit2.h",
+      "upstreamPath": "GLTFKit2/GLTFKit2/GLTFKit2.h",
+      "gitBlob": "b39bdae891954b4edaa7c8261f91e3e5c3e5f47c",
+      "sha256": "aa035b4ebab9b524758a7b5293a0530a5d9e00f318871791264e71679b62f58b"
+    },
+    {
+      "path": "GLTFKit2/GLTFModelIO.h",
+      "upstreamPath": "GLTFKit2/GLTFKit2/GLTFModelIO.h",
+      "gitBlob": "5690aa4b50f0d42b6629a8e42154cce3323c7c30",
+      "sha256": "7b0b88963ac34ff90a4b9fed029fd369ff1d4d9d7d39375603e01e891a67db0f"
+    },
+    {
+      "path": "GLTFKit2/GLTFModelIO.m",
+      "upstreamPath": "GLTFKit2/GLTFKit2/GLTFModelIO.m",
+      "gitBlob": "3f7b85403474e4b91edff28b36451ce1e519569d",
+      "sha256": "c2f9432c2239ef5ff072d233f0b450873679202ba343c0bd407b6023a3baef42"
+    },
+    {
+      "path": "GLTFKit2/GLTFRealityKit.swift",
+      "upstreamPath": "GLTFKit2/GLTFKit2/GLTFRealityKit.swift",
+      "gitBlob": "e9b5c1902013a28b003cea40a3bb9d8bb02a5e92",
+      "sha256": "b533a23b74d8a9eb9d6d48869c4121b65952ede62d0be229592d5ea66deff1e2"
+    },
+    {
+      "path": "GLTFKit2/GLTFSceneKit.h",
+      "upstreamPath": "GLTFKit2/GLTFKit2/GLTFSceneKit.h",
+      "gitBlob": "8fb012709a93cf653f6f34935846e3c9c9847962",
+      "sha256": "de92dc97bd0b02c2c3a9c038586104dee5b8f74608614e387dc2c6f29e944eb8"
+    },
+    {
+      "path": "GLTFKit2/GLTFSceneKit.m",
+      "upstreamPath": "GLTFKit2/GLTFKit2/GLTFSceneKit.m",
+      "gitBlob": "fb3dade9b4341a64c4f8e8f281f47d0e49462a57",
+      "sha256": "2f75f1df2af53ae6eb30bab0ee7b5c67a57a1051f8c24c539a20bb6b9b135934"
+    },
+    {
+      "path": "GLTFKit2/GLTFTypes.h",
+      "upstreamPath": "GLTFKit2/GLTFKit2/GLTFTypes.h",
+      "gitBlob": "f395d3e2e32a12f0a07ca268b76f84a26bd9c534",
+      "sha256": "c17e5e0967b1ad28b341d389e1afd068b6450aa58e55061e2cf22f3585fc6a2a"
+    },
+    {
+      "path": "GLTFKit2/Info.plist",
+      "upstreamPath": "GLTFKit2/GLTFKit2/Info.plist",
+      "gitBlob": "9bcb244429ec1db0606ce6b3d95962276a7c2377",
+      "sha256": "4b1b4f6f03a9c6285eb4af75bc4a0d0c7852014de28fb8a18b42bad3b9eb5ae3"
+    },
+    {
+      "path": "GLTFKit2/PrivacyInfo.xcprivacy",
+      "upstreamPath": "GLTFKit2/GLTFKit2/PrivacyInfo.xcprivacy",
+      "gitBlob": "e08a130bce319577ff33577af8aa04e4ff1b87c2",
+      "sha256": "521eb6ef8430773e5c010e1838fe9dd8fa5d62b7b76d1cea8d7d8daadcb144e2"
+    },
+    {
+      "path": "GLTFKit2/impl/GLTFAnimationHelpers.swift",
+      "upstreamPath": "GLTFKit2/GLTFKit2/impl/GLTFAnimationHelpers.swift",
+      "gitBlob": "53352241b3db75b5682a1a17fb98ab10fa978ac5",
+      "sha256": "fc37929cbb3e8f6e9dc9b425c0f39c0aeb7cccf5df7813c04ad655611fa73727"
+    },
+    {
+      "path": "GLTFKit2/impl/GLTFAssetReader.h",
+      "upstreamPath": "GLTFKit2/GLTFKit2/impl/GLTFAssetReader.h",
+      "gitBlob": "1e751d5af0ebaa3f3cac22b3d2ce64512d9e0060",
+      "sha256": "ab02e2262d681199353f219c2b44f7c06c51960c86b549c743621613000855f6"
+    },
+    {
+      "path": "GLTFKit2/impl/GLTFAssetReader.m",
+      "upstreamPath": "GLTFKit2/GLTFKit2/impl/GLTFAssetReader.m",
+      "gitBlob": "524198f2b05409cd95db8872a958260575b87148",
+      "sha256": "32d06caa41d74e371abc821590eb8d9de12f181ae0809c340c22e0bc82f4e501"
+    },
+    {
+      "path": "GLTFKit2/impl/GLTFKTX2Support.h",
+      "upstreamPath": "GLTFKit2/GLTFKit2/impl/GLTFKTX2Support.h",
+      "gitBlob": "874732402545f1262996f539da3a6b7ff428445a",
+      "sha256": "bb50e552cc46e322f09b752ed83f5d193eb14dfbd9e0fc7d64f7d815314e322a"
+    },
+    {
+      "path": "GLTFKit2/impl/GLTFKTX2Support.m",
+      "upstreamPath": "GLTFKit2/GLTFKit2/impl/GLTFKTX2Support.m",
+      "gitBlob": "bcfda36deaad826c1fb865d2d776136f0c9d4567",
+      "sha256": "fd0769a916ccb7d2fe766b3522e9361cd99b5f711d4c7c80e8ac9052fd4f4387"
+    },
+    {
+      "path": "GLTFKit2/impl/GLTFLogging.h",
+      "upstreamPath": "GLTFKit2/GLTFKit2/impl/GLTFLogging.h",
+      "gitBlob": "1b7228fecaa69202102c688da3d13a07ad74d01a",
+      "sha256": "25b1dd76b48327f81ac4892138a6e2ba1be837c752449c9e1c71c32644494430"
+    },
+    {
+      "path": "GLTFKit2/impl/GLTFMeshoptSupport.h",
+      "upstreamPath": "GLTFKit2/GLTFKit2/impl/GLTFMeshoptSupport.h",
+      "gitBlob": "a08c65d4f72a7c4a3f0fe4e6466639790405e382",
+      "sha256": "dc5717c4d9ffb4222fd91780c4efbd28e9d2cb1bf21dee3349923d8a6fd321c0"
+    },
+    {
+      "path": "GLTFKit2/impl/GLTFMeshoptSupport.mm",
+      "upstreamPath": "GLTFKit2/GLTFKit2/impl/GLTFMeshoptSupport.mm",
+      "gitBlob": "a42eb1c25fbc0a8570acd3b01c0dacaddfd05444",
+      "sha256": "8ee64db8648336ec7c31f7faaa2073c103d6fd46d33c116b59033ca56453a892"
+    },
+    {
+      "path": "GLTFKit2/impl/GLTFWorkflowHelper.h",
+      "upstreamPath": "GLTFKit2/GLTFKit2/impl/GLTFWorkflowHelper.h",
+      "gitBlob": "5110ddcd02edde8d72e2d829458a716afb719c91",
+      "sha256": "b53c3a1d4747ea237e890f6e2d03b39e1539776edc4f9c555c0902be04615281"
+    },
+    {
+      "path": "GLTFKit2/impl/GLTFWorkflowHelper.m",
+      "upstreamPath": "GLTFKit2/GLTFKit2/impl/GLTFWorkflowHelper.m",
+      "gitBlob": "e7cf5d0eda8606ae30b1b2fae418fa2c3ff538d5",
+      "sha256": "08ea6d4657f86412cafe6af83962fa38fd33c9ad23e9a0094f476e99cc63d03f"
+    },
+    {
+      "path": "GLTFKit2/impl/WorkflowShaders.txt",
+      "upstreamPath": "GLTFKit2/GLTFKit2/impl/WorkflowShaders.txt",
+      "gitBlob": "b5600465f6ecda63589724e6566b9b5dff6415dd",
+      "sha256": "003790a6e535c0a49d7f6b78f1b9332e5d433f7c1769f003b0d577464d160721"
+    },
+    {
+      "path": "LICENSE",
+      "upstreamPath": "LICENSE",
+      "gitBlob": "e32e4315658e866a68fe48d061d77d96eb05d087",
+      "sha256": "a6477d7077b9c48c21068196ce3674f272fc7bdfd99e709d06cca1e914a5ee4b"
+    },
+    {
+      "path": "README.md",
+      "upstreamPath": "README.md",
+      "gitBlob": "33770d626039ef306d7a4620f695a11639fec7de",
+      "sha256": "8c6b392c1f7c3a54d57fc411b02c806d82170050956297cdab5fd4cb72e53ad5"
+    },
+    {
+      "path": "deps/cgltf/LICENSE",
+      "upstreamPath": "GLTFKit2/deps/cgltf/LICENSE",
+      "gitBlob": "599d9341a7d681d7f68b614625c0664c949a6a90",
+      "sha256": "f619925f80ef862497aaf8e8155ef218fa6a2190055129523ca3df9119a9ba95"
+    },
+    {
+      "path": "deps/cgltf/README.md",
+      "upstreamPath": "GLTFKit2/deps/cgltf/README.md",
+      "gitBlob": "e647ecb3189250102b590209dad9ee575f03b873",
+      "sha256": "2d0c3896305afea67de1bc06a041cea4bb9adadb506bf0b3efb0222bba8ccdc9"
+    },
+    {
+      "path": "deps/cgltf/cgltf.h",
+      "upstreamPath": "GLTFKit2/deps/cgltf/cgltf.h",
+      "gitBlob": "78ea905f0230a36fae4b7ac69cd70a61296689f0",
+      "sha256": "e378a21c084bf1f288bb799de827bb26906efb024255f1ecf1705ea13f11c6ec"
+    },
+    {
+      "path": "deps/cgltf/cgltf_write.h",
+      "upstreamPath": "GLTFKit2/deps/cgltf/cgltf_write.h",
+      "gitBlob": "dd3f82ca5ccb9b8a1c3e125338132b349ebe839c",
+      "sha256": "fb91760451d5c63bea1c0f606ddecb5cf8c17bfe02bf0f23ee4f635af5c47996"
+    }
+  ]
+}

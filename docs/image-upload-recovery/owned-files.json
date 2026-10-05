@@ -1,0 +1,22 @@
+[
+  "App/AppSession.swift",
+  "App/IMExpandedViews.swift",
+  "App/ImageUploadSecureStorage.swift",
+  "App/MerchantNPCViews.swift",
+  "App/MerchantOperationsEditor.swift",
+  "App/PublicMerchantReviewEditor.swift",
+  "App/RetainedImageContextCache.swift",
+  "App/RetainedImageFixtureView.swift",
+  "App/RetainedImageSelectionView.swift",
+  "Core/IMMediaSelection.swift",
+  "Core/ImageUploadJournal.swift",
+  "Core/ResponseLimitedHTTPTransport.swift",
+  "Core/RetainedImageContracts.swift",
+  "Tests/AppUnitTests/RetainedImageNormalHostTests.swift",
+  "Tests/CoreTests/IMExpandedTests.swift",
+  "Tests/CoreTests/ImageUploadJournalTests.swift",
+  "Tests/CoreTests/ResponseLimitedHTTPTransportTests.swift",
+  "Tests/CoreTests/RetainedImageConsumerTests.swift",
+  "docs/image-upload-recovery/integration.md",
+  "tools/check_image_upload_recovery.py"
+]

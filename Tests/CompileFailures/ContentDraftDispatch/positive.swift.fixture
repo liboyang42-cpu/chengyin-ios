@@ -1,0 +1,13 @@
+import Foundation
+@testable import QuestifyCore
+
+@available(macOS 14.0, *)
+@MainActor func permittedReadAndCoordinator(client: ContentDraftService, lease: ContentDraftSessionLease,
+                                           identity: ContentDraftIdentity, journal: ContentDraftDurableJournal) async throws {
+    _ = try await client.list(type: .topic)
+    let model = ContentDraftCoordinator<Payload>(identity: identity, service: client, lease: lease, journal: journal)
+    await model.initialize()
+    model.prepareSave(Payload(title: "synthetic"), subjectID: nil, deviceID: "synthetic-device")
+    await model.confirm()
+}
+struct Payload: Codable, Equatable { let title: String }

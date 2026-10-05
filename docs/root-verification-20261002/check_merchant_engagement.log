@@ -1,0 +1,25 @@
+
+--- STDERR ---
+test_all_static_localization_keys (__main__.Checks.test_all_static_localization_keys) ... ok
+test_bilingual_keys_are_nonempty (__main__.Checks.test_bilingual_keys_are_nonempty) ... ok
+test_campaign_creation_does_not_chain_dispatch (__main__.Checks.test_campaign_creation_does_not_chain_dispatch) ... ok
+test_contact_once_only_and_bound_scope (__main__.Checks.test_contact_once_only_and_bound_scope) ... ok
+test_default_action_transport_is_nil (__main__.Checks.test_default_action_transport_is_nil) ... ok
+test_export_token_uses_header_only (__main__.Checks.test_export_token_uses_header_only) ... ok
+test_integrated_host_actions_stay_default_off (__main__.Checks.test_integrated_host_actions_stay_default_off) ... ok
+test_invite_route_exact_and_token_hidden (__main__.Checks.test_invite_route_exact_and_token_hidden) ... ok
+test_json_fixtures_parse (__main__.Checks.test_json_fixtures_parse) ... ok
+test_native_device_grants_default_off (__main__.Checks.test_native_device_grants_default_off) ... ok
+test_no_invented_receipt_permission_or_invite_preview_endpoint (__main__.Checks.test_no_invented_receipt_permission_or_invite_preview_endpoint) ... ok
+test_photo_selection_binds_account_and_store (__main__.Checks.test_photo_selection_binds_account_and_store) ... ok
+test_preflight_before_reserve_then_send (__main__.Checks.test_preflight_before_reserve_then_send) ... ok
+test_recovery_records_exclude_credentials (__main__.Checks.test_recovery_records_exclude_credentials) ... ok
+test_server_errors_remain_unknown (__main__.Checks.test_server_errors_remain_unknown) ... ok
+test_source_count_fields_are_not_client_sum (__main__.Checks.test_source_count_fields_are_not_client_sum) ... ok
+test_static_paths_exist_in_source (__main__.Checks.test_static_paths_exist_in_source) ... ok
+test_workbook_fixture_is_structured_masked_and_synthetic (__main__.Checks.test_workbook_fixture_is_structured_masked_and_synthetic) ... ok
+
+----------------------------------------------------------------------
+Ran 18 tests in 0.044s
+
+OK

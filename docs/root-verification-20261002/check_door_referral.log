@@ -1,0 +1,10 @@
+{
+  "static_source_checks": "PASS",
+  "core_tests_authored": 19,
+  "ui_tests_authored": 2,
+  "bilingual_keys": 16,
+  "swift_tests": "NOT_RUN: Swift unavailable",
+  "apple_build_ui_runtime": "NOT_RUN: Xcode/simulator unavailable"
+}
+
+--- STDERR ---

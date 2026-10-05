@@ -1,0 +1,130 @@
+{
+  "social.editor.discardTitle": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Discard this draft?"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "要放弃这份草稿吗？"
+        }
+      }
+    }
+  },
+  "social.editor.discardMessage": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Your unsaved text will be removed from this screen."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此页面尚未保存的文字会被清除。"
+        }
+      }
+    }
+  },
+  "social.editor.discard": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Discard draft"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "放弃草稿"
+        }
+      }
+    }
+  },
+  "social.editor.keepEditing": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Keep editing"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "继续编辑"
+        }
+      }
+    }
+  },
+  "localCopy.copied": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Copied to clipboard."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已复制到剪贴板。"
+        }
+      }
+    }
+  },
+  "localCopy.failed": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Copy failed. Select the text to copy it manually."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "复制失败，请选择文字后手动复制。"
+        }
+      }
+    }
+  },
+  "settingsNative.about.copyPhone": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Copy phone number"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "复制电话号码"
+        }
+      }
+    }
+  },
+  "withdrawal.support.copyWeChat": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Copy WeChat ID"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "复制微信号"
+        }
+      }
+    }
+  }
+}

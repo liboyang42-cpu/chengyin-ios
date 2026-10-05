@@ -1,0 +1,21 @@
+PASS default-off audio
+PASS default-off maps
+PASS stale callbacks fenced
+PASS HTTPS origins explicit
+PASS redirect checked
+PASS bounded media
+PASS ephemeral media
+PASS lifecycle hooks
+PASS no permission request
+PASS no gameplay mutations
+PASS map branches distinct
+PASS finite coordinate validation
+PASS adapters concrete
+PASS chapter same-response decoder
+PASS chapter authoritative visibility
+PASS chapter exact identity
+PASS chapter current session
+PASS bilingual catalog
+18 source-contract checks passed; Swift tests and OS runtime NOT_RUN
+
+--- STDERR ---

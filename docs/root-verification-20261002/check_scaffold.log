@@ -1,0 +1,4 @@
+PASS structural checks: 665 Swift source files, 5145 bilingual keys, references, scheme, deterministic regeneration
+SCOPE: this script does not run Swift/Xcode, previews, simulator/device, accessibility or live backend checks; see separate evidence
+
+--- STDERR ---

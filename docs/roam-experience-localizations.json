@@ -1,0 +1,402 @@
+[
+  {
+    "key": "roam.experience.offline",
+    "en": "Offline synthetic example. No real journey, reward or photo.",
+    "zh-Hans": "离线示例，不代表真实行程、奖励或照片"
+  },
+  {
+    "key": "roam.experience.readOnly",
+    "en": "Read-only records and local drafts",
+    "zh-Hans": "只读记录与本地草稿"
+  },
+  {
+    "key": "roam.experience.historyUnreadable",
+    "en": "Your roaming records could not be read. They have not been replaced.",
+    "zh-Hans": "漫游记录读不出来，原记录未被覆盖"
+  },
+  {
+    "key": "roam.experience.readFailed",
+    "en": "This information could not be read. Try again.",
+    "zh-Hans": "暂时无法读取，请重试"
+  },
+  {
+    "key": "roam.experience.noTrack",
+    "en": "No recorded route",
+    "zh-Hans": "没有已记录的轨迹"
+  },
+  {
+    "key": "roam.experience.routeSketch",
+    "en": "Recorded route sketch, not a navigation map",
+    "zh-Hans": "已记录轨迹示意图，不用于导航"
+  },
+  {
+    "key": "roam.experience.distance",
+    "en": "Recorded distance",
+    "zh-Hans": "已记录里程"
+  },
+  {
+    "key": "roam.experience.duration",
+    "en": "Recorded duration",
+    "zh-Hans": "已记录时长"
+  },
+  {
+    "key": "roam.experience.shops",
+    "en": "Recorded shops",
+    "zh-Hans": "已记录店铺"
+  },
+  {
+    "key": "roam.experience.statsUnknown",
+    "en": "Distance, duration and shop counts were not recorded.",
+    "zh-Hans": "未记录里程、时长和店铺数量"
+  },
+  {
+    "key": "roam.experience.subtitle",
+    "en": "Keep the moments from your city walks",
+    "zh-Hans": "留下城市漫游的片刻"
+  },
+  {
+    "key": "roam.experience.yourRoam",
+    "en": "Your journeys",
+    "zh-Hans": "你的漫游"
+  },
+  {
+    "key": "roam.experience.history",
+    "en": "Roaming history",
+    "zh-Hans": "漫游记录"
+  },
+  {
+    "key": "roam.experience.recovery",
+    "en": "Check a roaming session",
+    "zh-Hans": "核对漫游会话"
+  },
+  {
+    "key": "roam.experience.live",
+    "en": "Live roaming",
+    "zh-Hans": "实时漫游"
+  },
+  {
+    "key": "roam.experience.collect",
+    "en": "City collection",
+    "zh-Hans": "城市收藏"
+  },
+  {
+    "key": "roam.experience.album",
+    "en": "Stamp album",
+    "zh-Hans": "集邮册"
+  },
+  {
+    "key": "roam.experience.cityStamp",
+    "en": "City stamp",
+    "zh-Hans": "城市签"
+  },
+  {
+    "key": "roam.experience.voucher",
+    "en": "City-node voucher",
+    "zh-Hans": "据点核销码"
+  },
+  {
+    "key": "roam.experience.hangout",
+    "en": "Nearby hangouts",
+    "zh-Hans": "附近的局"
+  },
+  {
+    "key": "roam.experience.title",
+    "en": "Roaming passport",
+    "zh-Hans": "漫游护照"
+  },
+  {
+    "key": "roam.experience.liveUnavailable",
+    "en": "Live roaming is not available yet",
+    "zh-Hans": "实时漫游暂未开放"
+  },
+  {
+    "key": "roam.experience.liveHint",
+    "en": "Starting a journey needs a reviewed location adapter and verified server capability. This screen does not collect or simulate your position.",
+    "zh-Hans": "开始漫游需要经过审核的定位适配与已验证的服务能力。本页不会采集或模拟你的位置"
+  },
+  {
+    "key": "roam.experience.tileMemory",
+    "en": "Recorded tile memory",
+    "zh-Hans": "已记录版图"
+  },
+  {
+    "key": "roam.experience.loadedTiles",
+    "en": "Unique tiles returned",
+    "zh-Hans": "已返回的不重复格子"
+  },
+  {
+    "key": "roam.experience.tilePartial",
+    "en": "More pages remain. This is a partial count.",
+    "zh-Hans": "还有更多页，当前仅为部分数量"
+  },
+  {
+    "key": "roam.experience.tileComplete",
+    "en": "All returned tile pages loaded",
+    "zh-Hans": "已读取所有返回的版图页"
+  },
+  {
+    "key": "roam.experience.loadMore",
+    "en": "Load more",
+    "zh-Hans": "加载更多"
+  },
+  {
+    "key": "roam.experience.readTiles",
+    "en": "Read saved tile memory",
+    "zh-Hans": "读取已保存版图"
+  },
+  {
+    "key": "roam.experience.tileReadOnly",
+    "en": "Reading tile memory does not reveal new places or award exploration points.",
+    "zh-Hans": "读取版图不会点亮新地点或发放探索值"
+  },
+  {
+    "key": "roam.experience.historyEmpty",
+    "en": "No local roaming records",
+    "zh-Hans": "暂无本地漫游记录"
+  },
+  {
+    "key": "roam.experience.historyEmptyHint",
+    "en": "This device keeps up to 50 settled journeys. Other devices and Flutter history are not imported automatically.",
+    "zh-Hans": "本机最多保留50次已结算漫游，不会自动导入其他设备或Flutter的记录"
+  },
+  {
+    "key": "roam.experience.trips",
+    "en": "Saved journeys",
+    "zh-Hans": "已保存行程"
+  },
+  {
+    "key": "roam.experience.knownDistance",
+    "en": "Total known distance",
+    "zh-Hans": "已知里程合计"
+  },
+  {
+    "key": "roam.experience.partialStats",
+    "en": "Totals include recorded values only. Missing measurements are not zero.",
+    "zh-Hans": "汇总仅包含已记录数据，未记录不代表零"
+  },
+  {
+    "key": "roam.experience.cityWalk",
+    "en": "City walk",
+    "zh-Hans": "城市漫游"
+  },
+  {
+    "key": "roam.experience.savedRecord",
+    "en": "Saved local journey",
+    "zh-Hans": "已保存的本地行程"
+  },
+  {
+    "key": "roam.experience.recordedPlaces",
+    "en": "Recorded places",
+    "zh-Hans": "已记录地点"
+  },
+  {
+    "key": "roam.experience.savedPhotoReferences",
+    "en": "Saved photo references",
+    "zh-Hans": "已存照片引用数"
+  },
+  {
+    "key": "roam.experience.historyPrivacy",
+    "en": "Local photo references and route coordinates stay private here. Export and sharing are unavailable.",
+    "zh-Hans": "本页不会公开本地照片引用或轨迹坐标，导出与分享暂不可用"
+  },
+  {
+    "key": "roam.experience.recordMissing",
+    "en": "This journey was not found",
+    "zh-Hans": "找不到这次漫游"
+  },
+  {
+    "key": "roam.experience.recordMissingHint",
+    "en": "This is different from a read error. Only the latest 50 local journeys are kept.",
+    "zh-Hans": "这与读取失败不同，本地仅保留最近50次行程"
+  },
+  {
+    "key": "roam.experience.session",
+    "en": "Journey record",
+    "zh-Hans": "行程记录"
+  },
+  {
+    "key": "roam.experience.recoveryHint",
+    "en": "Enter a known server session ID to read its current state. This never restarts or settles a journey.",
+    "zh-Hans": "输入已知的服务端会话编号以核对当前状态，此操作不会重新开始或结算行程"
+  },
+  {
+    "key": "roam.experience.sessionID",
+    "en": "Server session ID",
+    "zh-Hans": "服务端会话编号"
+  },
+  {
+    "key": "roam.experience.checkSession",
+    "en": "Check session",
+    "zh-Hans": "核对会话"
+  },
+  {
+    "key": "roam.experience.sessionActive",
+    "en": "The server reports an active journey",
+    "zh-Hans": "服务端记录为进行中"
+  },
+  {
+    "key": "roam.experience.activeHint",
+    "en": "Location tracking is still unavailable. Checking this record does not resume the journey.",
+    "zh-Hans": "定位追踪暂不可用，核对记录不会恢复漫游"
+  },
+  {
+    "key": "roam.experience.sessionNotFound",
+    "en": "The server has no matching session",
+    "zh-Hans": "服务端没有匹配的会话"
+  },
+  {
+    "key": "roam.experience.settlementIncomplete",
+    "en": "Settlement details are incomplete",
+    "zh-Hans": "结算详情尚不完整"
+  },
+  {
+    "key": "roam.experience.incompleteHint",
+    "en": "The journey is marked finished, but its full reward receipt is not available. Check again later.",
+    "zh-Hans": "行程已标记结束，但完整奖励回执尚不可用，请稍后再核对"
+  },
+  {
+    "key": "roam.experience.settled",
+    "en": "Server settlement confirmed",
+    "zh-Hans": "已核对服务端结算"
+  },
+  {
+    "key": "roam.experience.xp",
+    "en": "Server-awarded exploration points",
+    "zh-Hans": "服务端发放的探索值"
+  },
+  {
+    "key": "roam.experience.newTiles",
+    "en": "Newly revealed tiles",
+    "zh-Hans": "新点亮格子"
+  },
+  {
+    "key": "roam.experience.newPlaces",
+    "en": "Newly discovered places",
+    "zh-Hans": "新发现地点"
+  },
+  {
+    "key": "roam.experience.recoveryNoTrack",
+    "en": "This server receipt does not contain a route or duration. It is not added as a fabricated local journey.",
+    "zh-Hans": "此服务端回执不含轨迹和时长，不会据此编造本地行程"
+  },
+  {
+    "key": "roam.experience.albumEmpty",
+    "en": "No visible stamps yet",
+    "zh-Hans": "暂无可显示的邮票"
+  },
+  {
+    "key": "roam.experience.albumEmptyHint",
+    "en": "A stamp needs a successful server receipt before it appears in your album.",
+    "zh-Hans": "邮票成功入册并取得服务端回执后才会显示"
+  },
+  {
+    "key": "roam.experience.sampleArt",
+    "en": "Synthetic city illustration",
+    "zh-Hans": "城市示例图形"
+  },
+  {
+    "key": "roam.experience.reviewNotSubmitted",
+    "en": "Not submitted to automated review",
+    "zh-Hans": "尚未送交机审"
+  },
+  {
+    "key": "roam.experience.imageUnavailable",
+    "en": "Stamp image unavailable",
+    "zh-Hans": "邮票图片暂不可用"
+  },
+  {
+    "key": "roam.experience.stampImage",
+    "en": "City stamp image",
+    "zh-Hans": "城市签图片"
+  },
+  {
+    "key": "roam.experience.albumPrivacy",
+    "en": "Viewing an existing stamp does not exchange it or publish it. Saving photos and sharing are unavailable.",
+    "zh-Hans": "查看已有邮票不会换票或发布，保存照片及分享暂不可用"
+  },
+  {
+    "key": "roam.experience.draftOnly",
+    "en": "Local caption draft only",
+    "zh-Hans": "仅本地配文草稿"
+  },
+  {
+    "key": "roam.experience.caption",
+    "en": "Write a caption, up to 30 UTF-16 units",
+    "zh-Hans": "写下配文，最多30个UTF-16单位"
+  },
+  {
+    "key": "roam.experience.remaining",
+    "en": "Units remaining",
+    "zh-Hans": "剩余单位数"
+  },
+  {
+    "key": "roam.experience.captionLimit",
+    "en": "The caption is over the source limit",
+    "zh-Hans": "配文超出来源规定的长度"
+  },
+  {
+    "key": "roam.experience.previewDraft",
+    "en": "Preview caption",
+    "zh-Hans": "预览配文"
+  },
+  {
+    "key": "roam.experience.localPreview",
+    "en": "Unsaved local preview",
+    "zh-Hans": "尚未保存的本地预览"
+  },
+  {
+    "key": "roam.experience.captionEmpty",
+    "en": "No caption",
+    "zh-Hans": "暂无配文"
+  },
+  {
+    "key": "roam.experience.mediaUnavailable",
+    "en": "Camera, uploads and exchanges are unavailable",
+    "zh-Hans": "拍摄、上传和换票暂不可用"
+  },
+  {
+    "key": "roam.experience.stampHint",
+    "en": "This draft stays on this screen. A real city stamp requires a reviewed photo workflow and an idempotent server receipt. No serial or reward is created here.",
+    "zh-Hans": "草稿仅保留在当前页面。真实城市签需要经过审核的照片流程和幂等服务端回执，本页不会生成签号或奖励"
+  },
+  {
+    "key": "roam.experience.poiID",
+    "en": "City-node ID",
+    "zh-Hans": "据点编号"
+  },
+  {
+    "key": "roam.experience.voucherMissing",
+    "en": "A city-node ID is required",
+    "zh-Hans": "需要据点编号"
+  },
+  {
+    "key": "roam.experience.voucherMissingHint",
+    "en": "Open this from a known city node. Retrying cannot supply a missing ID.",
+    "zh-Hans": "请从已知据点进入，重试无法补齐缺失的编号"
+  },
+  {
+    "key": "roam.experience.voucherUnavailable",
+    "en": "Voucher issuance is not enabled",
+    "zh-Hans": "核销码签发暂未开放"
+  },
+  {
+    "key": "roam.experience.voucherHint",
+    "en": "An issued code is a server action. No sample code, QR image or automatic renewal is presented as a usable voucher.",
+    "zh-Hans": "签发核销码属于服务端操作。本页不会将示例码、二维码图片或自动续期展示为可用凭证"
+  },
+  {
+    "key": "roam.experience.hangoutUnavailable",
+    "en": "Legacy hangouts remain unavailable",
+    "zh-Hans": "旧版组局暂不可用"
+  },
+  {
+    "key": "roam.experience.hangoutHint",
+    "en": "This source flow is retired in the native integration. Browse supported nearby activities and routes on the map. Creating, joining and leaving groups are not enabled.",
+    "zh-Hans": "原生集成未开放此旧版流程。可在地图浏览支持的附近活动与路线，创建、加入及退出群组暂不可用"
+  },
+  {
+    "key": "roam.experience.fixtureSignOut",
+    "en": "Sign out of synthetic example",
+    "zh-Hans": "退出示例账号"
+  }
+]

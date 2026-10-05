@@ -1,0 +1,122 @@
+{
+  "module": "wallet_commerce",
+  "changed_files": [
+    {
+      "path": "App/AccountView.swift",
+      "status": "modified",
+      "sha256": "38ec2d1eb23b3640ec7d2eb7a74de8f8ca29a23d6b7f9949b36d2d68e25f9215"
+    },
+    {
+      "path": "App/AppSession.swift",
+      "status": "modified",
+      "sha256": "8fde71303e41a38230c655262f04c4d832d57fcabb061be2d5506150ff395251"
+    },
+    {
+      "path": "App/QuestifyApp.swift",
+      "status": "modified",
+      "sha256": "f4f75ff6eeaf344034060ae439c0a73635c563196115b363601a95ba97f4ad76"
+    },
+    {
+      "path": "App/SessionWalletCommerceView.swift",
+      "status": "added",
+      "sha256": "f29055617bde2c91be6f189418c5958c154236438d3d8380aa7da90acbb1a3a2"
+    },
+    {
+      "path": "App/WalletCommerceFixtureHost.swift",
+      "status": "added",
+      "sha256": "ae1384e2718ce7e2444d57bc5a25856bd6f272d413f349a6035532ead0232125"
+    },
+    {
+      "path": "App/WalletCommerceViews.swift",
+      "status": "added",
+      "sha256": "788ed6d0edc0fce8dad7f1d2f91c8e219221d17ef1ce0496608ebcbc17ab8bd9"
+    },
+    {
+      "path": "Core/WalletCommerceContracts.swift",
+      "status": "added",
+      "sha256": "28f1e9373de0b711971cbb94ed293994f2647837ab0ba07decb85ece80ebc273"
+    },
+    {
+      "path": "Core/WalletCommerceSafety.swift",
+      "status": "added",
+      "sha256": "8481a23321a495e1fa0e09fbd451a60412ebe6c0200d30bbb73d34bcdf397fb1"
+    },
+    {
+      "path": "Core/WalletCommerceService.swift",
+      "status": "added",
+      "sha256": "a0e1ca9095459d66e0e369a19a7d9805742e1e14a67ad9181326fe6492dc3625"
+    },
+    {
+      "path": "Core/WalletCommerceSyntheticFixtures.swift",
+      "status": "added",
+      "sha256": "074dfac81e40da5aacc45aee3a01919ae07919b8a5796e4390520a9e3af0577b"
+    },
+    {
+      "path": "Questify.xcodeproj/project.pbxproj",
+      "status": "modified",
+      "sha256": "39f15f1d43bde40e7be98648295379d820d3aa9f24233da95654b24a0a9bf3e1"
+    },
+    {
+      "path": "Resources/Localizable.xcstrings",
+      "status": "modified",
+      "sha256": "228512b2439374acb7a827cab4e6b52dc8c275b710d584eb4c77ace410a0ce9f"
+    },
+    {
+      "path": "Tests/AppUITests/WalletCommerceFlowTests.swift",
+      "status": "added",
+      "sha256": "6176a69ac2c6ce517c5fd4090fe00381d5c266f693925c2c7e117b37952477b8"
+    },
+    {
+      "path": "Tests/ContractChecks/test_wallet_commerce_integration.py",
+      "status": "added",
+      "sha256": "873329c46f64bad0476e177f43514ae5fac8e6133d7899ca07dd7b6453196d21"
+    },
+    {
+      "path": "Tests/CoreTests/WalletCommerceTests.swift",
+      "status": "added",
+      "sha256": "98eac7fee05f40d7364bc062d9e3e8f647bf0f30724f1f14d3ba0039ab756b27"
+    },
+    {
+      "path": "docs/ui-shard-inventory.json",
+      "status": "modified",
+      "sha256": "d3bb80a023def8dd8593f95aa5edff5ddc5af61b8a93a7557c578ec7f508aae9"
+    },
+    {
+      "path": "docs/wallet-commerce-integration.md",
+      "status": "added",
+      "sha256": "cbc0288d330d1e8fd814d99344f1745709872b0c7131300a53dc6824cdd03361"
+    },
+    {
+      "path": "docs/wallet-commerce-source-map.md",
+      "status": "added",
+      "sha256": "decfe39101954bd73a547439cec745a2e14cb829405b1999df72096726ccc7ad"
+    },
+    {
+      "path": "docs/wallet-commerce-source-results.txt",
+      "status": "added",
+      "sha256": "8401145e4e99a6fd809e90fbec2fcca1f6aa7acd432ebc8886a4d8a0e03814bd"
+    },
+    {
+      "path": "docs/wallet-commerce-syntax-results.txt",
+      "status": "added",
+      "sha256": "4a179d18e158f7826af5f325aa3f0e274a74a39164eb183c60431b09b316abc3"
+    },
+    {
+      "path": "docs/wallet-commerce-verification.json",
+      "status": "added",
+      "sha256": "55bed925b3431c03daa01b737a542c73334ea1cb8800eefba6dcd45aa84929b2"
+    },
+    {
+      "path": "tools/check_scaffold.py",
+      "status": "modified",
+      "sha256": "9abd386ceb40141c83b45996d5c3cf6b1dbae315dc826318e363574cd9e7858d"
+    },
+    {
+      "path": "tools/check_wallet_commerce.py",
+      "status": "added",
+      "sha256": "18305ac3c776d4bc5fa31070b708d2057e4f6e2ee0568c737ddd855fcfa79cd4"
+    }
+  ],
+  "self_manifest": "docs/wallet-commerce-changed-files.json",
+  "note": "Manifest excludes its own hash; all entries compare against exclusive-ownership baseline."
+}

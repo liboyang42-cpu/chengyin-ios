@@ -1,0 +1,552 @@
+[
+  {
+    "key": "orderLifecycle.title",
+    "en": "Order details",
+    "zh-Hans": "订单详情"
+  },
+  {
+    "key": "orderLifecycle.offline",
+    "en": "Offline example. No real order or money changes.",
+    "zh-Hans": "离线示例，不会修改真实订单或资金。"
+  },
+  {
+    "key": "orderLifecycle.loading",
+    "en": "Loading order",
+    "zh-Hans": "正在加载订单"
+  },
+  {
+    "key": "orderLifecycle.refresh",
+    "en": "Refresh order",
+    "zh-Hans": "刷新订单"
+  },
+  {
+    "key": "orderLifecycle.untitled",
+    "en": "Order",
+    "zh-Hans": "订单"
+  },
+  {
+    "key": "orderLifecycle.number",
+    "en": "Order number",
+    "zh-Hans": "订单编号"
+  },
+  {
+    "key": "orderLifecycle.ticket",
+    "en": "Ticket",
+    "zh-Hans": "票种"
+  },
+  {
+    "key": "orderLifecycle.amount",
+    "en": "Order amount",
+    "zh-Hans": "订单金额"
+  },
+  {
+    "key": "orderLifecycle.hardOff",
+    "en": "Payments, cancellations, refunds, code issuance and redemption are unavailable in this native build.",
+    "zh-Hans": "此原生版本暂不支持支付、取消、退款、出码及核销。"
+  },
+  {
+    "key": "orderLifecycle.actions",
+    "en": "Review an action",
+    "zh-Hans": "查看操作信息"
+  },
+  {
+    "key": "orderLifecycle.payment.title",
+    "en": "Payment status",
+    "zh-Hans": "支付状态"
+  },
+  {
+    "key": "orderLifecycle.payment.paid",
+    "en": "Server reports payment completed",
+    "zh-Hans": "服务端显示支付已完成"
+  },
+  {
+    "key": "orderLifecycle.payment.registrationAccepted",
+    "en": "Registration accepted; payment settlement is not confirmed",
+    "zh-Hans": "报名已确认，支付到账尚未确认"
+  },
+  {
+    "key": "orderLifecycle.payment.failed",
+    "en": "Server reports payment not completed or order closed",
+    "zh-Hans": "服务端显示支付未完成或订单已关闭"
+  },
+  {
+    "key": "orderLifecycle.payment.pending",
+    "en": "Payment result pending",
+    "zh-Hans": "支付结果待确认"
+  },
+  {
+    "key": "orderLifecycle.payment.unknown",
+    "en": "Payment result unknown",
+    "zh-Hans": "支付结果未知"
+  },
+  {
+    "key": "orderLifecycle.payment.caution",
+    "en": "A payment-app response alone does not confirm settlement. If the result is uncertain, refresh this order before paying again.",
+    "zh-Hans": "支付应用的返回结果不能证明到账。结果不明时请刷新订单，暂不要重复支付。"
+  },
+  {
+    "key": "orderLifecycle.payment.deadline",
+    "en": "Payment deadline",
+    "zh-Hans": "支付截止时间"
+  },
+  {
+    "key": "orderLifecycle.timeline.title",
+    "en": "Order progress",
+    "zh-Hans": "订单进度"
+  },
+  {
+    "key": "orderLifecycle.timeline.created",
+    "en": "Order created",
+    "zh-Hans": "订单已创建"
+  },
+  {
+    "key": "orderLifecycle.timeline.cancelled",
+    "en": "Order cancelled",
+    "zh-Hans": "订单已取消"
+  },
+  {
+    "key": "orderLifecycle.timeline.awaitingPayment",
+    "en": "Awaiting payment",
+    "zh-Hans": "等待支付"
+  },
+  {
+    "key": "orderLifecycle.timeline.paid",
+    "en": "Payment completed",
+    "zh-Hans": "支付已完成"
+  },
+  {
+    "key": "orderLifecycle.timeline.refunded",
+    "en": "Refund reported completed",
+    "zh-Hans": "服务端显示退款已完成"
+  },
+  {
+    "key": "orderLifecycle.timeline.refunding",
+    "en": "Refund in progress",
+    "zh-Hans": "退款处理中"
+  },
+  {
+    "key": "orderLifecycle.timeline.verified",
+    "en": "Entitlement redeemed",
+    "zh-Hans": "权益已核销"
+  },
+  {
+    "key": "orderLifecycle.timeline.awaitingVerification",
+    "en": "Awaiting redemption",
+    "zh-Hans": "等待核销"
+  },
+  {
+    "key": "orderLifecycle.timeline.manualRefund",
+    "en": "Manual after-sales review",
+    "zh-Hans": "人工售后处理"
+  },
+  {
+    "key": "orderLifecycle.timeline.zone",
+    "en": "Times shown in China Standard Time (UTC+8).",
+    "zh-Hans": "时间以中国标准时间（UTC+8）显示。"
+  },
+  {
+    "key": "orderLifecycle.refund.title",
+    "en": "Refund information",
+    "zh-Hans": "退款信息"
+  },
+  {
+    "key": "orderLifecycle.refund.reason",
+    "en": "Server policy",
+    "zh-Hans": "服务端退款规则"
+  },
+  {
+    "key": "orderLifecycle.refund.deadline",
+    "en": "Refund deadline",
+    "zh-Hans": "退款截止时间"
+  },
+  {
+    "key": "orderLifecycle.refund.amount",
+    "en": "Reported refund amount",
+    "zh-Hans": "服务端退款金额"
+  },
+  {
+    "key": "orderLifecycle.refund.caution",
+    "en": "Cancellation is not proof of a cash or points refund. Amounts, eligibility and payout timing require a current server decision.",
+    "zh-Hans": "取消订单不代表现金或积分已退回。金额、资格及到账时间须以服务端最新结果为准。"
+  },
+  {
+    "key": "orderLifecycle.review.payment",
+    "en": "Review payment",
+    "zh-Hans": "查看支付信息"
+  },
+  {
+    "key": "orderLifecycle.review.cancel",
+    "en": "Review cancellation",
+    "zh-Hans": "查看取消信息"
+  },
+  {
+    "key": "orderLifecycle.review.refund",
+    "en": "Review refund request",
+    "zh-Hans": "查看退款申请信息"
+  },
+  {
+    "key": "orderLifecycle.review.title",
+    "en": "Review before confirming",
+    "zh-Hans": "确认前核对"
+  },
+  {
+    "key": "orderLifecycle.review.snapshot",
+    "en": "This is the unchanged order snapshot you reviewed. Refreshing, signing out or changing accounts invalidates this review.",
+    "zh-Hans": "此处为核对时的原始订单快照。刷新、退出登录或切换账号后须重新核对。"
+  },
+  {
+    "key": "orderLifecycle.review.simulate",
+    "en": "Confirm offline example",
+    "zh-Hans": "确认离线示例"
+  },
+  {
+    "key": "orderLifecycle.review.disabled",
+    "en": "Confirmation unavailable",
+    "zh-Hans": "暂不可提交确认"
+  },
+  {
+    "key": "orderLifecycle.review.close",
+    "en": "Keep order",
+    "zh-Hans": "保留订单"
+  },
+  {
+    "key": "orderLifecycle.attempt.submitted",
+    "en": "Waiting for the result",
+    "zh-Hans": "正在等待结果"
+  },
+  {
+    "key": "orderLifecycle.attempt.unknown",
+    "en": "Outcome unknown. Do not submit again; refresh the order and check its status.",
+    "zh-Hans": "结果未知。请勿重复提交，请刷新订单并确认状态。"
+  },
+  {
+    "key": "orderLifecycle.attempt.received",
+    "en": "Response received; check each refund status below",
+    "zh-Hans": "已收到回复，请分别核对以下退款状态"
+  },
+  {
+    "key": "orderLifecycle.attempt.cancellation",
+    "en": "Cancellation status",
+    "zh-Hans": "取消状态"
+  },
+  {
+    "key": "orderLifecycle.attempt.cash",
+    "en": "Cash refund status",
+    "zh-Hans": "现金退款状态"
+  },
+  {
+    "key": "orderLifecycle.attempt.points",
+    "en": "Points refund status",
+    "zh-Hans": "积分退回状态"
+  },
+  {
+    "key": "orderLifecycle.pass.title",
+    "en": "Ticket pass",
+    "zh-Hans": "票券出示"
+  },
+  {
+    "key": "orderLifecycle.pass.noCode",
+    "en": "Redemption code unavailable",
+    "zh-Hans": "核销码暂不可用"
+  },
+  {
+    "key": "orderLifecycle.pass.serverAuthority",
+    "en": "The server must verify ownership, entitlement and expiry. A local status or nearby location does not prove redemption eligibility.",
+    "zh-Hans": "所有权、权益及有效期须由服务端验证。本地状态或附近位置不能证明核销资格。"
+  },
+  {
+    "key": "orderLifecycle.pass.verification",
+    "en": "Redemption preview",
+    "zh-Hans": "核销预览"
+  },
+  {
+    "key": "orderLifecycle.pass.verificationHint",
+    "en": "Issuing a code and redeeming a ticket are separate server operations. This preview does neither.",
+    "zh-Hans": "出码与核销是两个独立的服务端操作，此预览不会执行。"
+  },
+  {
+    "key": "orderLifecycle.pass.unpaid",
+    "en": "Payment is required before this ticket can be used.",
+    "zh-Hans": "票券须完成支付后使用。"
+  },
+  {
+    "key": "orderLifecycle.pass.cancelled",
+    "en": "This registration is cancelled.",
+    "zh-Hans": "此报名已取消。"
+  },
+  {
+    "key": "orderLifecycle.pass.expired",
+    "en": "This registration has expired.",
+    "zh-Hans": "此报名已过期。"
+  },
+  {
+    "key": "orderLifecycle.pass.complete",
+    "en": "No unredeemed entitlement is shown.",
+    "zh-Hans": "当前未显示待核销权益。"
+  },
+  {
+    "key": "orderLifecycle.pass.unknown",
+    "en": "Ticket eligibility is unknown.",
+    "zh-Hans": "票券可用状态未知。"
+  },
+  {
+    "key": "orderLifecycle.pass.previewOnly",
+    "en": "A ready ticket status does not issue a code.",
+    "zh-Hans": "票券可用状态不会自动签发核销码。"
+  },
+  {
+    "key": "orderLifecycle.verification.preview",
+    "en": "Offline receipt preview",
+    "zh-Hans": "离线回执预览"
+  },
+  {
+    "key": "orderLifecycle.verification.reportedRedeemed",
+    "en": "Sample server response reports redemption",
+    "zh-Hans": "示例服务端回执显示已核销"
+  },
+  {
+    "key": "orderLifecycle.verification.needsChoice",
+    "en": "A selection is required; nothing has been redeemed yet",
+    "zh-Hans": "需要选择核销项，目前尚未核销"
+  },
+  {
+    "key": "orderLifecycle.verification.failed",
+    "en": "Redemption was not confirmed",
+    "zh-Hans": "未确认核销成功"
+  },
+  {
+    "key": "orderLifecycle.verification.unknown",
+    "en": "Redemption result unknown",
+    "zh-Hans": "核销结果未知"
+  },
+  {
+    "key": "orderLifecycle.verification.stations",
+    "en": "Select a station record",
+    "zh-Hans": "选择站点记录"
+  },
+  {
+    "key": "orderLifecycle.verification.chapters",
+    "en": "Select a chapter",
+    "zh-Hans": "选择章节"
+  },
+  {
+    "key": "orderLifecycle.verification.emptyChoice",
+    "en": "No selectable items were returned. Refresh with the issuer before continuing.",
+    "zh-Hans": "未返回可选项，请先向出码方核对并刷新。"
+  },
+  {
+    "key": "orderLifecycle.verification.role",
+    "en": "Merchant entry, code appearance and location do not grant verification rights. The server must authorize the current account and selected entitlement.",
+    "zh-Hans": "商家入口、码的外观及位置不能授予核销权限。服务端须校验当前账号及所选权益。"
+  },
+  {
+    "key": "orderLifecycle.verification.disabled",
+    "en": "Redemption unavailable",
+    "zh-Hans": "核销暂不可用"
+  },
+  {
+    "key": "orderLifecycle.fixture.signOut",
+    "en": "End example session",
+    "zh-Hans": "退出示例登录"
+  },
+  {
+    "key": "orderLifecycle.state.manualRefund",
+    "en": "Manual after-sales",
+    "zh-Hans": "人工售后"
+  },
+  {
+    "key": "orderLifecycle.state.refunding",
+    "en": "Refund in progress",
+    "zh-Hans": "退款处理中"
+  },
+  {
+    "key": "orderLifecycle.state.refunded",
+    "en": "Refunded",
+    "zh-Hans": "已退款"
+  },
+  {
+    "key": "orderLifecycle.state.pendingPayment",
+    "en": "Awaiting payment",
+    "zh-Hans": "待支付"
+  },
+  {
+    "key": "orderLifecycle.state.cancelled",
+    "en": "Cancelled",
+    "zh-Hans": "已取消"
+  },
+  {
+    "key": "orderLifecycle.state.expired",
+    "en": "Expired",
+    "zh-Hans": "已过期"
+  },
+  {
+    "key": "orderLifecycle.state.completed",
+    "en": "Completed",
+    "zh-Hans": "已完成"
+  },
+  {
+    "key": "orderLifecycle.state.nonRefundable",
+    "en": "Not refundable",
+    "zh-Hans": "不可退款"
+  },
+  {
+    "key": "orderLifecycle.state.notStarted",
+    "en": "Not started",
+    "zh-Hans": "未开始"
+  },
+  {
+    "key": "orderLifecycle.state.inProgress",
+    "en": "In progress",
+    "zh-Hans": "进行中"
+  },
+  {
+    "key": "orderLifecycle.state.unknown",
+    "en": "Order status updating",
+    "zh-Hans": "订单状态更新中"
+  },
+  {
+    "key": "orderLifecycle.explanation.manualRefund",
+    "en": "Check the manual handling progress.",
+    "zh-Hans": "请查看人工处理进度。"
+  },
+  {
+    "key": "orderLifecycle.explanation.refunded",
+    "en": "The server reports the refund has been returned.",
+    "zh-Hans": "服务端显示退款已退回。"
+  },
+  {
+    "key": "orderLifecycle.explanation.manualProcessing",
+    "en": "Original-route refund needs manual handling.",
+    "zh-Hans": "原路退款异常，正在人工处理。"
+  },
+  {
+    "key": "orderLifecycle.explanation.manualReview",
+    "en": "Manual refund handling awaits verification.",
+    "zh-Hans": "人工退款已处理，等待复核。"
+  },
+  {
+    "key": "orderLifecycle.explanation.refundReview",
+    "en": "Refund application awaits review.",
+    "zh-Hans": "退款申请等待审核。"
+  },
+  {
+    "key": "orderLifecycle.explanation.refundAccepted",
+    "en": "Refund accepted; use the payment-provider notice to confirm receipt.",
+    "zh-Hans": "退款已受理，到账以支付服务通知为准。"
+  },
+  {
+    "key": "orderLifecycle.explanation.refundApproved",
+    "en": "Refund approved; submission is in progress.",
+    "zh-Hans": "退款已批准，正在提交。"
+  },
+  {
+    "key": "orderLifecycle.explanation.refundUpdating",
+    "en": "Refund progress is updating.",
+    "zh-Hans": "退款进度更新中。"
+  },
+  {
+    "key": "orderLifecycle.explanation.pendingPayment",
+    "en": "Complete payment before using the ticket.",
+    "zh-Hans": "完成支付后可使用。"
+  },
+  {
+    "key": "orderLifecycle.explanation.cancelled",
+    "en": "The order is closed.",
+    "zh-Hans": "订单已关闭。"
+  },
+  {
+    "key": "orderLifecycle.explanation.expired",
+    "en": "The unpaid order expired and was closed.",
+    "zh-Hans": "超时未支付，订单已关闭。"
+  },
+  {
+    "key": "orderLifecycle.explanation.unknown",
+    "en": "Refresh to check the current order status.",
+    "zh-Hans": "请刷新查看最新订单状态。"
+  },
+  {
+    "key": "orderLifecycle.explanation.verified",
+    "en": "Redeemed orders cannot be refunded.",
+    "zh-Hans": "已核销订单不可退款。"
+  },
+  {
+    "key": "orderLifecycle.explanation.nonRefundable",
+    "en": "Self-service refund is unavailable for this order.",
+    "zh-Hans": "此订单不可自助退款。"
+  },
+  {
+    "key": "orderLifecycle.explanation.ended",
+    "en": "The scheduled activity has ended.",
+    "zh-Hans": "活动已结束。"
+  },
+  {
+    "key": "orderLifecycle.explanation.refundPolicy",
+    "en": "Check the current server refund policy and deadline.",
+    "zh-Hans": "请查看服务端最新退款规则及截止时间。"
+  },
+  {
+    "key": "orderLifecycle.issue.login",
+    "en": "Sign in again to view this order.",
+    "zh-Hans": "请重新登录后查看订单。"
+  },
+  {
+    "key": "orderLifecycle.issue.notConfigured",
+    "en": "Order access is not configured.",
+    "zh-Hans": "订单服务尚未配置。"
+  },
+  {
+    "key": "orderLifecycle.issue.unavailable",
+    "en": "This order or coupon is unavailable.",
+    "zh-Hans": "此订单或优惠券不可用。"
+  },
+  {
+    "key": "orderLifecycle.issue.malformed",
+    "en": "The response could not be verified.",
+    "zh-Hans": "无法验证服务返回的数据。"
+  },
+  {
+    "key": "orderLifecycle.issue.network",
+    "en": "Connection interrupted. Try refreshing.",
+    "zh-Hans": "网络连接中断，请刷新重试。"
+  },
+  {
+    "key": "orderLifecycle.issue.accessDenied",
+    "en": "This account does not have access.",
+    "zh-Hans": "当前账号无权访问。"
+  },
+  {
+    "key": "orderLifecycle.issue.failure",
+    "en": "Could not load the order. Try refreshing.",
+    "zh-Hans": "订单加载失败，请刷新重试。"
+  },
+  {
+    "key": "orderLifecycle.issue.expiredReview",
+    "en": "This review expired. Refresh the order and review again.",
+    "zh-Hans": "核对信息已过期，请刷新订单后重新核对。"
+  },
+  {
+    "key": "orderLifecycle.issue.ineligible",
+    "en": "Current information does not support this action.",
+    "zh-Hans": "当前信息不支持此操作。"
+  },
+  {
+    "key": "orderLifecycle.issue.alreadyAttempted",
+    "en": "An earlier attempt needs reconciliation. Do not submit again.",
+    "zh-Hans": "此前操作结果待核对，请勿重复提交。"
+  },
+  {
+    "key": "orderLifecycle.issue.stale",
+    "en": "The session or order changed. Refresh before continuing.",
+    "zh-Hans": "登录或订单状态已变化，请先刷新。"
+  },
+  {
+    "key": "orderLifecycle.issue.dispatchDisabled",
+    "en": "Submitting this action is unavailable.",
+    "zh-Hans": "此操作暂不可提交。"
+  },
+  {
+    "key": "orderLifecycle.issue.cancelled",
+    "en": "Loading stopped. Refresh when ready.",
+    "zh-Hans": "加载已停止，可刷新重试。"
+  }
+]

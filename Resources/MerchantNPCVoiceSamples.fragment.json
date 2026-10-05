@@ -1,0 +1,198 @@
+{
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "merchantVoice.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voice samples"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "声音样本"
+          }
+        }
+      }
+    },
+    "merchantVoice.disclosure": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record only your own voice. Read the authorization statement first. Samples stay in memory until you review each upload; enrollment requires a separate review. Leaving or backgrounding discards local audio."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅录制您本人的声音。先朗读授权声明。样本暂存在内存中，每次上传前需逐一确认；声纹登记另行确认。离开或切至后台将丢弃本地音频。"
+          }
+        }
+      }
+    },
+    "merchantVoice.configurationRequired": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording is off until the deployment confirms audio format, duration, size limits and recipient hosts."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "录音暂未启用，需先确认部署的音频格式、时长、大小限制及接收域名。"
+          }
+        }
+      }
+    },
+    "merchantVoice.consent": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I consent to recording my own voice and reviewing its transmission for voice enrollment"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我同意录制自己的声音，并在声纹登记前审核音频传输"
+          }
+        }
+      }
+    },
+    "merchantVoice.record": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record sample"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "录制样本"
+          }
+        }
+      }
+    },
+    "merchantVoice.stop": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop and keep sample"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止并保留样本"
+          }
+        }
+      }
+    },
+    "merchantVoice.play": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Play sample"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "播放样本"
+          }
+        }
+      }
+    },
+    "merchantVoice.stopPlayback": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop playback"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止播放"
+          }
+        }
+      }
+    },
+    "merchantVoice.reviewUpload": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review next sample upload"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "审核下一条样本上传"
+          }
+        }
+      }
+    },
+    "merchantVoice.uploadWarning": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This sends one voice recording to the displayed upload destination. Uploaded audio may remain remotely even if you leave. Uploading does not enroll your voice."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这将向所示地址发送一条录音。离开后，已上传音频仍可能保留在远端。上传不等于声纹登记。"
+          }
+        }
+      }
+    },
+    "merchantVoice.confirmUpload": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send this sample"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发送此样本"
+          }
+        }
+      }
+    },
+    "merchantVoice.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The upload outcome is unknown. Do not retry. Only operation metadata was retained; verify remote status before any further upload or enrollment. Closing or signing in again does not unlock it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上传结果未知，请勿重试。仅保留了操作元数据；进一步上传或登记前必须核实远端状态。关闭页面或重新登录不会解除锁定。"
+          }
+        }
+      }
+    }
+  }
+}

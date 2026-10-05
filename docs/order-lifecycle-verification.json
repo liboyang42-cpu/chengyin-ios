@@ -1,0 +1,71 @@
+{
+  "dateUTC": "2026-10-01",
+  "scope": "Offline source inspection, implementation and synthetic tests. No live calls or publication.",
+  "authoredCoreTests": 58,
+  "authoredUITests": 7,
+  "newBilingualKeys": 110,
+  "standaloneSourceAssertions": {
+    "status": "PASS",
+    "count": 10
+  },
+  "integratedContractAssertions": {
+    "status": "PASS",
+    "count": 176
+  },
+  "toolingTests": {
+    "status": "PASS",
+    "count": 16
+  },
+  "parserSelfTests": {
+    "status": "PASS",
+    "count": 14
+  },
+  "changedSwiftSupplementaryParse": {
+    "status": "PASS",
+    "files": 34,
+    "recoveryNodes": 0,
+    "scope": "Order integration plus nine roaming follow-on files"
+  },
+  "fullSwiftSupplementaryParse": {
+    "status": "KNOWN_PREEXISTING_DIAGNOSTICS",
+    "files": 421,
+    "filesWithRecovery": 6,
+    "recoveryNodes": 10
+  },
+  "projectScaffold": "PASS",
+  "deterministicProjectGeneration": "PASS",
+  "whitespace": "PASS",
+  "swiftCompiler": "NOT_RUN: executable unavailable",
+  "xcodebuild": "NOT_RUN: executable unavailable",
+  "swiftXCTest": "NOT_RUN",
+  "simulatorXCUITest": "NOT_RUN",
+  "screenshotsVoiceOverDynamicTypeDevice": "NOT_RUN",
+  "liveBackendProviderRedemptionFinancial": "NOT_RUN",
+  "publicationCI": "NOT_RUN",
+  "importantLimitations": [
+    "Production command dispatch remains off; DEBUG fixtures do not establish live authorization or readiness.",
+    "No provider SDK, real QR display or credentials are exposed.",
+    "Order attempt locks are memory-only; durable financial reconciliation is still required before production enablement.",
+    "Source-backed team context carries the owned registration ID but does not enable team creation."
+  ],
+  "integratedInventory": {
+    "authoredCoreTests": 1091,
+    "authoredUITests": 175,
+    "uiClasses": 26,
+    "bilingualKeys": 2248,
+    "uiShards": [
+      29,
+      29,
+      29,
+      30,
+      30,
+      28
+    ]
+  },
+  "roamFollowOn": {
+    "authoredCoreTests": 13,
+    "sourceContractChecks": 3,
+    "uiTests": 0,
+    "keys": 0
+  }
+}

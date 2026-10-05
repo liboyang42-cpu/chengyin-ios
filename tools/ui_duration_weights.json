@@ -1,0 +1,2656 @@
+{
+  "version": 1,
+  "unit": "seconds",
+  "unobserved_method_seconds": 60,
+  "source_runs": [
+    {
+      "run": 54,
+      "commit": "89763410a1e6782552ce818764a50ce86206b1db"
+    },
+    {
+      "run": 55,
+      "commit": "bf60387c879f42561f9cb7683ae7fffd9c259364"
+    },
+    {
+      "run": 62,
+      "commit": "af7ada3cf770e2200f3de6a135815b6363f76608"
+    },
+    {
+      "run": 63,
+      "commit": "a1283c096e62b91543b6a8773781878e6746c464"
+    },
+    {
+      "run": 77,
+      "run_id": 37109973489,
+      "commit": "dd9d58560b954204cc93c9113246f53efff7ad70",
+      "selection": "Maximum of prior successful observed timing and run77 successful case timing; failed cases excluded. Job success is not inferred from case success.",
+      "observed_jobs": [
+        111168029653,
+        111168029667,
+        111168029676,
+        111168029687,
+        111168029706,
+        111168029713,
+        111168029728,
+        111168029755,
+        111168029795,
+        111168029829
+      ],
+      "evidence": "docs/ci-run77-ui-observations.json"
+    },
+    {
+      "run": 96,
+      "run_id": 37196465332,
+      "commit": "5fe1c93aa1fed514eb8fade532693cd22775e73d",
+      "successful_method_observations": 509,
+      "failed_method_observations_excluded": 13,
+      "note": "Terminal successful method durations only. Shard5 incomplete; failed and unexecuted methods retain prior/default estimates. New queued methods separately declared, not measurements."
+    }
+  ],
+  "scope": "Successful observed method_seconds remain primary. Explicit estimated_method_seconds are declared unmeasured assumptions; missing cases use the conservative fallback. Grouping only: every source-discovered method executes exactly once.",
+  "method_seconds": {
+    "AccessibilityPresentationFlowTests.testHomeChineseDarkLargeTextRemainsNavigable": 51.374,
+    "AccessibilityPresentationFlowTests.testTicketWalletChineseDarkLargeTextKeepsDetailEntry": 19.835,
+    "AccountCollectionFlowTests.testChineseFavoritesAndCouponNavigation": 46.218,
+    "AccountCollectionFlowTests.testCouponDetailRefreshReplacesStatusWithoutCachedCode": 47.909,
+    "AccountCollectionFlowTests.testCouponFailureDoesNotPoisonFavorites": 25.528,
+    "AccountCollectionFlowTests.testCouponFilterMenuUsesServerStatus": 20.653,
+    "AccountCollectionFlowTests.testCouponFiltersMetadataDetailBackAndReopen": 22.409,
+    "AccountCollectionFlowTests.testFavoritePaginationRoutesToRealTopicAndReturnsToSavedCollection": 46.775,
+    "AccountCollectionFlowTests.testGuestEmptyFailureAndConfigurationAreDistinct": 49.184,
+    "AccountCollectionFlowTests.testLargeTypeDarkModeKeepsCardsAndCouponDetailsReachable": 30.15,
+    "AccountCollectionFlowTests.testLaterPageFailureKeepsRowsAndRetryReadsSamePage": 24.324,
+    "AccountCollectionFlowTests.testSessionChangeClearsPrivateCouponDetailAndFavorites": 17.818,
+    "AccountCollectionFlowTests.testUnavailableCouponHasRetryAndNoOldDetail": 12.125,
+    "ActivityFlowTests.testClubGateRemainsTerminalAcrossBackAndReopen": 24.151,
+    "ActivityFlowTests.testListAndDetailRecoverOnlyAfterExplicitRetry": 27.255,
+    "ActivityFlowTests.testNullableTicketValuesStayUnknownAndDetailCannotBook": 57.042,
+    "ActivityFlowTests.testPaginationKeepsAppliedQueryUntilDraftSearchIsSubmitted": 116.211,
+    "ClubActionFlowTests.testApplicationStaysPendingWithoutMembershipAccess": 52.373,
+    "ClubActionFlowTests.testJoinRequiresConfirmationAndUsesServerMembership": 24.759,
+    "ClubActionFlowTests.testUnknownOutcomeReadbackDoesNotUnlockOrRepeatAcrossRelogin": 36.54,
+    "ClubCommunityUITests.testChineseAccessibleComposer": 62.408,
+    "ClubCommunityUITests.testComposerCancelAndImmutableReview": 11.821,
+    "ClubCommunityUITests.testFeedCommentAndHistoryNavigation": 20.344,
+    "ClubEnrollmentFlowTests.testFocusedRosterOpensTicketAndCheckinReturnsToRoster": 38.179,
+    "ClubEnrollmentFlowTests.testIdentityChangeClearsRegistrantNamesInChinese": 17.404,
+    "ClubEnrollmentFlowTests.testPublicProfileIsARealDestination": 20.663,
+    "ClubGovernanceFlowTests.testAudienceUnknownIsNotZeroAndReviewRequiresContent": 46.698,
+    "ClubGovernanceFlowTests.testChineseSettlementPreservesUnverifiedAmount": 21.608,
+    "ClubGovernanceFlowTests.testCustomerListDetailAndLocalRemarkReview": 47.753,
+    "ClubGovernanceFlowTests.testEventRolesAreDistinctFromLegacyAdministratorFlag": 14.796,
+    "ClubGovernanceFlowTests.testSwitchAccountClearsCustomerPII": 18.665,
+    "ClubManagementFlowTests.testAdminHasApplicationsButNoRemovalDirectory": 10.448,
+    "ClubManagementFlowTests.testApproveRequiresTargetConfirmation": 20.287,
+    "ClubManagementFlowTests.testCancelThenSwitchAccountSendsNothing": 27.568,
+    "ClubManagementFlowTests.testCreatorRemovalRequiresTargetConfirmation": 21.87,
+    "ClubManagementFlowTests.testCreatorRowHasNoRemoveAction": 12.181,
+    "ClubManagementFlowTests.testRejectCancelSendsNothing": 22.045,
+    "ClubOperationsFlowTests.testAccountSwitchDuringDelayedWriteKeepsOldOutcomeHidden": 60.025,
+    "ClubOperationsFlowTests.testAdminProfileHasNoOwnerSettingsOrRoleActions": 27.351,
+    "ClubOperationsFlowTests.testCancelReviewSendsNothing": 26.125,
+    "ClubOperationsFlowTests.testChineseProfileValidationAndDiscard": 59.364,
+    "ClubOperationsFlowTests.testMemberRoleConfirmationIdentifiesTarget": 47.034,
+    "ClubOperationsFlowTests.testOrdinaryViewerIsDeniedAndCreateRoleGated": 16.956,
+    "ClubOperationsFlowTests.testOwnerSettingRequiresReviewAndSingleConfirmation": 32.347,
+    "ClubOperationsFlowTests.testPopulatedMemberQuotaKeepsItsVisibleLabelInBothLanguages": 73.922,
+    "ClubOperationsFlowTests.testTwoClubLimitPreventsCreateForm": 14.727,
+    "ClubOperationsFlowTests.testUnknownReadbackDoesNotUnlockAndReopenDoesNotReplay": 57.765,
+    "ClubOperationsFlowTests.testUnverifiedReviewContainsNoSubmitControl": 26.842,
+    "ClubOwnerRefundFlowTests.testAccountSwitchDismissesReviewAndClearsNamesInChinese": 21.097,
+    "ClubOwnerRefundFlowTests.testDisabledShippingStyleReviewCannotSubmitAndCanCancel": 23.455,
+    "ClubOwnerRefundFlowTests.testOfflineAcknowledgmentHasSeparateCashAndPointsRows": 25.876,
+    "ClubOwnerRefundFlowTests.testUnknownReadbackNeverResubmitsAndRefundRecordRemainsDistinct": 35.358,
+    "CooperationFlowTests.testEmptyGuestFailureUnavailableAndChineseStates": 47.119,
+    "CooperationFlowTests.testFreshDetailReplacesStaleSnapshotAndSignOutHidesPrivateContent": 22.447,
+    "CooperationFlowTests.testInvitationFreshDetailBackReopenAndDirectionIsolation": 31.712,
+    "CooperationFlowTests.testPartialInboxKeepsOtherSourcesAndDoesNotClaimFullEmpty": 19.298,
+    "CooperationFlowTests.testPoolClubGateAndCandidatePermissionAreNotEmptyOrRetryFailures": 14.78,
+    "CooperationFlowTests.testPoolKnownAndUnknownStatesAndOwnedCandidateDirectory": 25.635,
+    "CooperationFlowUITests.testDeniedReceivedApplicationsHaveNoInvitationReview": 16.887,
+    "CooperationFlowUITests.testInvitationReviewRetainsReadableBoundIdentityAndTermsInBothLanguages": 101.289,
+    "CooperationFlowUITests.testNormalNearbyEntryExplainsUnavailableLocationWithoutPermissionPrompt": 30.669,
+    "CooperationFlowUITests.testReceivedApplicationOpensDraftAndReviewBackPreservesText": 69.395,
+    "CooperationFlowUITests.testSessionChangeDropsNavigationAndReceivedApplicationData": 31.158,
+    "CooperationFlowUITests.testSyntheticFinanceAndDormantReview": 14.813,
+    "CooperationFlowUITests.testTemplatePreviewCannotSubmit": 17.233,
+    "CouponManagementFlowTests.testBlankDraftHasExplainableDisabledReview": 9.457,
+    "CouponManagementFlowTests.testProductionStyleGateHasDisabledConfirmation": 18.817,
+    "CouponManagementFlowTests.testPublishedDefinitionsAndSourceStopReview": 24.711,
+    "CouponManagementFlowTests.testSignOutRemovesOwnedRows": 10.907,
+    "CouponManagementFlowTests.testStoppedDefinitionHasNoStopAction": 12.029,
+    "CreatorContentFlowTests.testCreatorMetricsPreserveMoneyString": 8.796,
+    "CreatorContentFlowTests.testFailureKeepsRetryActionSeparate": 10.033,
+    "CreatorContentFlowTests.testPublishedContentAndSourceDestination": 9.244,
+    "CreatorContentFlowTests.testRejectedCreatorExplainsResubmissionBlock": 8.778,
+    "CreatorContentFlowTests.testSignOutRemovesPrivateRows": 11.754,
+    "DoorReferralUITests.testInvalidSceneFixture": 14.968,
+    "DoorReferralUITests.testOfflineFixtureNormalizesScene": 9.487,
+    "EntryFlowTests.testChinesePreferenceSurvivesRelaunchAndSwitchesBack": 37.227,
+    "EntryFlowTests.testGuestBrowsingCanReturnToIdentityEntry": 23.489,
+    "EntryFlowTests.testPlayerAndMerchantEntryCanBeClosedAndRepeated": 24.523,
+    "EntryFlowTests.testSettingsReopensAfterRepeatedColdLaunch": 51.657,
+    "EntryFlowTests.testSimulatorScannerFallbackCanBeCancelled": 21.272,
+    "EntryFlowTests.testUnconfiguredBuildCannotSubmitCredentials": 18.823,
+    "EntryFlowTests.testUnconfiguredPhoneAndAppleCannotDispatch": 15.723,
+    "GroupPollUITests.testCreateEntryDraftCancellationAndOptionLimits": 32.353,
+    "GroupPollUITests.testCreatorCloseReviewCanBeCancelledAndOtherMemberCannotClose": 42.25,
+    "GroupPollUITests.testDormantChineseGroupPollShowsExplanationWithoutSend": 20.324,
+    "GroupPollUITests.testNormalGroupMessageRendersAndVoteRequiresConfirmation": 27.883,
+    "GroupPollUITests.testUnknownVoteHasReadbackButNoRetryVoteOrNewChoice": 25.136,
+    "GrowthCenterFlowTests.testCenterBoardBackAndRefresh": 24.285,
+    "GrowthCenterFlowTests.testChineseAndAccessibilityLayoutsRemainReachable": 17.012,
+    "GrowthCenterFlowTests.testEmptyGuestFailureAndConfigurationAreDistinct": 32.777,
+    "GrowthCenterFlowTests.testMetricAndPeriodFiltersChangeIndependentParameters": 17.162,
+    "GrowthCenterFlowTests.testMissingRankIsNeutralAndFullBoardOmitsPersonalRankRow": 12.209,
+    "GrowthCenterFlowTests.testPartialSourceFailureDoesNotClaimEmptyBadgesOrZeroGrowth": 14.114,
+    "GrowthCenterFlowTests.testSessionChangeClearsPrivateBoardAndNavigation": 10.54,
+    "HomeFeedFlowTests.testEmptyStateIsNotAnError": 48.953,
+    "HomeFeedFlowTests.testPageFailureRetriesAndDuplicateFullPageStillPaginates": 25.465,
+    "HomeFeedFlowTests.testTypedDestinationsAndPriceCurrencyDisclosure": 26.785,
+    "IMExpandedUITests.testDormantControlsHaveNoSendSideEffect": 33.803,
+    "IMExpandedUITests.testSyntheticRouteReviewIsExplicit": 14.501,
+    "JourneyContentFlowTests.testChineseAndDormantNoPermissions": 6.989,
+    "JourneyContentFlowTests.testProbeFailureDoesNotBlockMainTask": 8.669,
+    "JourneyContentFlowTests.testReviewCancelAndCloseLeaveMainTaskAvailable": 13.482,
+    "JourneyContentFlowTests.testRollRerollSettlementAndServerNarrative": 26.607,
+    "JourneyContentFlowTests.testUnknownOutcomeExposesOnlyReviewedRecovery": 12.954,
+    "JourneyRoleViewFlowTests.testAssignedASeesOnlyOwnViewAndCanCloseReopen": 21.593,
+    "JourneyRoleViewFlowTests.testAssignedBHasNoRolePickerOrAContent": 46.015,
+    "JourneyRoleViewFlowTests.testMissingAssignmentHidesAllPrivateContentAndLeavesMainTask": 10.163,
+    "JourneyRoleViewFlowTests.testMixedRoleResponseIsWithheldInsteadOfFilteredOrGuessed": 6.221,
+    "JourneyRoleViewFlowTests.testSoloShowsBothServerProvidedViews": 5.936,
+    "MerchantBusinessFlowTests.testAftercareSeparatesOpinionFromRefund": 12.138,
+    "MerchantBusinessFlowTests.testBatchDetailKeepsNegativeAdjustments": 12.14,
+    "MerchantBusinessFlowTests.testCRMCustomerAndTimelineAreReachable": 15.922,
+    "MerchantBusinessFlowTests.testChineseWorkspaceHasLocalizedEntries": 6.869,
+    "MerchantBusinessFlowTests.testDeniedIdentityDoesNotExposeBusinessRoutes": 8.006,
+    "MerchantBusinessFlowTests.testLocalNoteReviewCanBeCancelledWithoutSuccess": 35.53,
+    "MerchantBusinessFlowTests.testProductionDisabledPreviewHasNoDispatchButton": 28.674,
+    "MerchantBusinessFlowTests.testScanOnlyClassifiesWithoutCameraOrRedemptionButton": 19.032,
+    "MerchantContentFlowTests.testAccountSwitchClearsPushedMerchantContent": 26.014,
+    "MerchantContentFlowTests.testCityClaimDoesNotTreatApplicationIDAsPOIID": 30.373,
+    "MerchantContentFlowTests.testDeniedAccessDoesNotShowBusinessRows": 18.362,
+    "MerchantContentFlowTests.testGameReadyEditorUsesChecklistAndDoesNotExposePlayerCommands": 40.72,
+    "MerchantContentFlowTests.testRecruitmentReviewIsCancelledWithoutSubmission": 21.985,
+    "MerchantContentFlowTests.testRegistrationShowsRejectionReasonAndEditableSourceFields": 29.648,
+    "MerchantContentFlowTests.testUnknownMutationLocksReloadAndDuplicateSubmission": 36.764,
+    "MerchantEngagementFlowTests.testCampaignCreationExplainsSeparateDispatch": 74.281,
+    "MerchantEngagementFlowTests.testChineseOrdinaryHTTPProductionReviewCanBeCancelled": 43.88,
+    "MerchantEngagementFlowTests.testChineseWorkspaceLocalizesOperations": 11.574,
+    "MerchantEngagementFlowTests.testInactiveIdentityCanPrepareInvitationWithoutStoreGuess": 18.403,
+    "MerchantEngagementFlowTests.testOrdinaryHTTPProductionFactoryReviewUsesExplicitConfirmation": 43.967,
+    "MerchantEngagementFlowTests.testProductionDisabledReviewHasNoConfirmControl": 23.887,
+    "MerchantEngagementFlowTests.testSavedSegmentAppliesCurrentFilter": 17.291,
+    "MerchantEngagementFlowTests.testSegmentReviewCanCancelWithoutSuccess": 37.409,
+    "MerchantEngagementFlowTests.testSignoutClearsPreviouslyLoadedSegments": 13.176,
+    "MerchantEngagementFlowTests.testUnknownMutationSurvivesRefreshWithoutNewSend": 72.17,
+    "MerchantMarketingUITests.testChineseDeadlineWarningAndReview": 35.796,
+    "MerchantMarketingUITests.testDashboardSyntheticAndNoFalseZeroRate": 27.669,
+    "MerchantMarketingUITests.testEmptySubscriptionsAreNotError": 11.42,
+    "MerchantMarketingUITests.testInactiveMerchantDoesNotExposeMarketing": 13.458,
+    "MerchantMarketingUITests.testNormalMerchantWorkbenchOpensDormantMarketingInBothLanguages": 80.884,
+    "MerchantMarketingUITests.testPredictionReviewRequiresAcknowledgementAndCancelIsSafe": 20.632,
+    "MerchantMarketingUITests.testSessionChangeClearsReview": 12.84,
+    "MerchantMarketingUITests.testSubscriptionsPermanentAndNoCheckoutButton": 9.222,
+    "MerchantMarketingUITests.testUnknownRetainsRoundAndLocksNewAttempt": 28.096,
+    "MerchantNPCFlowTests.testBackgroundClearsChat": 19.357,
+    "MerchantNPCFlowTests.testMerchantChatCompleteReply": 14.719,
+    "MerchantNPCFlowTests.testResourcesRequireConsentAndNoCapture": 16.111,
+    "MerchantOnboardingFlowTests.testRejectedBackfillNeedsConfirmationAndReadsPendingState": 51.298,
+    "MerchantOnboardingFlowTests.testUSIdentityGatePreventsPhotoAccessUploadAndSubmit": 28.202,
+    "MerchantOnboardingFlowTests.testUnknownSubmissionReadbackNeverUnlocksResubmission": 41.039,
+    "MerchantOperationsFlowTests.testDeniedAccessNeverShowsEditableDestinations": 9.576,
+    "MerchantOperationsFlowTests.testGalleryEditsRemainLocalAndAccountSwitchClearsNavigation": 17.524,
+    "MerchantOperationsFlowTests.testLoadFailureCanRecoverWithoutNetwork": 9.691,
+    "MerchantOperationsFlowTests.testProfileCancelThenSaveOfflineExample": 49.442,
+    "MerchantOperationsFlowTests.testUnknownExampleOutcomeCannotResubmit": 36.644,
+    "MerchantTemplateAssistFlowTests.testCancelReviewDoesNotFillAndReopenHasNoCandidate": 91.44,
+    "MerchantTemplateAssistFlowTests.testDefaultOffSheetStillExplainsManualDraftPath": 43.701,
+    "MerchantTemplateAssistFlowTests.testPermissionErrorHasNoEnabledRetryWhileProviderErrorDoes": 102.914,
+    "MerchantTemplateAssistFlowTests.testReviewExplicitApplyReturnsToSameUnsavedTemplate": 67.442,
+    "ModuleFlowTests.testDiscoveryTemplateNavigationAndBack": 18.238,
+    "ModuleFlowTests.testMerchantFinanceRoleDoesNotExposeOwnerDashboard": 12.474,
+    "ModuleFlowTests.testMessagingReadOnlyHistoryNavigation": 17.538,
+    "ModuleFlowTests.testParticipantCreateRequiresConfirmationAndReadsBack": 28.515,
+    "ModuleFlowTests.testPlayChoiceSubmissionUsesOfflineReadback": 31.446,
+    "ModuleFlowTests.testProfileOrderReadbackAndBack": 20.321,
+    "ModuleFlowTests.testRegistrationDemoReadbackDoesNotCreateAnotherIntent": 35.387,
+    "ModuleFlowTests.testRegistrationProductionPolicyCannotCreate": 12.892,
+    "ModuleFlowTests.testRoamSyntheticListOpensDetail": 17.764,
+    "ModuleFlowTests.testTextComposerUsesSyntheticServerReceiptAndReadback": 17.756,
+    "NativeEnrollmentFlowTests.testCancellingPurposeNeverPreparesAnEnrollment": 12.297,
+    "NativeEnrollmentFlowTests.testChineseEnrollmentPurposeIsLocalized": 11.267,
+    "NativeEnrollmentFlowTests.testDefaultOffCannotCreatePersistentAccess": 8.427,
+    "NativeEnrollmentFlowTests.testLostEnrollmentExposesExactRetry": 30.436,
+    "NativeEnrollmentFlowTests.testPreparationRequiresSeparateAccountEnrollmentReview": 20.474,
+    "NativeEnrollmentFlowTests.testRevocationIsExplicitAndConfirmedByStatusReadback": 33.679,
+    "NativeNavigationCompletionUITests.testBadgeSourceQueryEntryIsReachableFromNormalWall": 20.651,
+    "NativeNavigationCompletionUITests.testCouponReviewPrecedesSyntheticQRCode": 13.689,
+    "NativeNavigationCompletionUITests.testGlobalFallbackHasHomeAndCloseWithoutRawRoute": 9.189,
+    "NativeNavigationCompletionUITests.testPlayerScanManualInputIsExplicitAndCancellable": 25.295,
+    "NativePlatformFlowTests.testCancelStepPurposeDoesNotReadOrSubmit": 34.575,
+    "NativePlatformFlowTests.testChineseNativeReminderUsesTranslatedPurpose": 25.384,
+    "NativePlatformFlowTests.testDefaultOffNormalStepsHostNeverPrompts": 20.116,
+    "NativePlatformFlowTests.testDeniedNotificationDoesNotShowScheduled": 30.062,
+    "NativePlatformFlowTests.testReminderOptInReadbackAndCancellationAreLocal": 26.978,
+    "NativePlatformFlowTests.testStepsRequireTwoExplicitStagesAndDisplayAuditOnlyResult": 27.479,
+    "NativePresentationPatternFlowTests.testDisabledMediaAndCameraEntrypointsDoNotSpinOrRequestPermission": 38.766,
+    "NativePresentationPatternFlowTests.testGalleryChineseMaximumTextDarkReducedMotionKeepsPagingAndClose": 25.399,
+    "NativePresentationPatternFlowTests.testGalleryEnglishPagesClosesAndReopensAtSelectedImage": 22.084,
+    "NativePresentationPatternFlowTests.testGalleryScopeChangeDismissesWithoutStaleReopen": 20.752,
+    "NativePresentationPatternFlowTests.testMalformedImageFinishesWithRetryAndClose": 19.903,
+    "NativePresentationPatternFlowTests.testParticipationFailureRetriesAndScopeExpiryDismisses": 28.512,
+    "NativePresentationPatternFlowTests.testParticipationPlayWaitsForSheetDismissal": 18.742,
+    "NativePresentationPatternFlowTests.testParticipationSupportStaysInSheetAndReturnsBeforeClose": 71.945,
+    "NativeSettingsReuseFlowTests.testFollowSystemPersistsAcrossRelaunchWithoutChangingUSMarket": 42.567,
+    "NativeVerificationFlowTests.testCancelReviewMakesNoMutation": 21.926,
+    "NativeVerificationFlowTests.testSyntheticReviewAndAcknowledgedResult": 19.096,
+    "NativeVerificationFlowTests.testUnknownResultOffersReadbackAndKeepsCaptureLockedAfterReturn": 23.297,
+    "NearbyTeamUITests.testChineseLabelsAndMyApplications": 11.11,
+    "NearbyTeamUITests.testManualContextAndReviewCancellation": 19.424,
+    "NearbyTeamUITests.testSimulationUsesPendingStateAndNoLocationAlert": 19.124,
+    "ObjectCardFlowTests.testCollectionCapAndAccessibleFrames": 12.434,
+    "ObjectCardFlowTests.testFilterFailureDoesNotReplaceLoadedCards": 16.841,
+    "ObjectCardFlowTests.testSessionChangeAndEmptyCategory": 17.533,
+    "OfficialActionUITests.testBroadcastCannotReviewImplicitAudience": 14.218,
+    "OfficialActionUITests.testDraftSurvivesReviewDismissal": 19.191,
+    "OfficialActionUITests.testPublishReviewImmutableAndOffline": 14.452,
+    "OfficialEventFlowTests.testChineseAndLargeTextDarkReduceMotionSyntheticPresentation": 10.547,
+    "OfficialEventFlowTests.testEmptyUnconfiguredAndUnavailableHaveDistinctCopy": 24.358,
+    "OfficialEventFlowTests.testGuestCanBrowseButPrivateInboxRequiresLogin": 12.577,
+    "OfficialEventFlowTests.testListDetailBackReopenAndStatusBuckets": 31.97,
+    "OfficialEventFlowTests.testPublisherDenialIsNotRetryableFailure": 8.498,
+    "OfficialEventFlowTests.testPublisherHistoryStatsBackAndNoWrites": 13.236,
+    "OfficialEventFlowTests.testRetryRecoversWithoutStaleContent": 8.714,
+    "OfficialEventFlowTests.testSearchIsLocalAndMineDoesNotRetainInvisibleFilter": 20.002,
+    "OfficialEventFlowTests.testSignOutImmediatelyHidesPrivateInvitationsAndCanReenter": 10.323,
+    "OfficialEventFlowTests.testUnknownFactsDoNotBecomeFreeOrAvailable": 25.54,
+    "OrderLifecycleUITests.testChapterChoiceRemainsNonRedeemed": 12.869,
+    "OrderLifecycleUITests.testChineseRefundStateAndUnknownResult": 8.349,
+    "OrderLifecycleUITests.testOrderReviewDoesNotDispatchAndCanDismiss": 23.44,
+    "OrderLifecycleUITests.testPassWithoutApprovedFactoryContainsNoCodeIssuance": 21.615,
+    "OrderLifecycleUITests.testSignOutRemovesOrderContent": 9.135,
+    "OrderLifecycleUITests.testStationUsesRecordIDAndEmptyChoicesRemainBlocked": 6.831,
+    "OrderLifecycleUITests.testUnknownOutcomeCannotBeResubmitted": 17.793,
+    "PlayCompareFlowTests.testChineseNativeComparisonAndCloseDiscardFlow": 21.222,
+    "PlayCompareFlowTests.testEmptySelectionIsReviewableAndCountsAsFailedAttempt": 24.798,
+    "PlayCompareFlowTests.testExactBothSideSelectionShowsServerReceiptAndClosesInputs": 24.504,
+    "PlayCompareFlowTests.testNativeTimelineQuestionAndReadableReviewCanCancelWithoutSubmission": 17.174,
+    "PlayCompareFlowTests.testRefreshNeverSilentlyRebasesUnsentSelection": 10.801,
+    "PlayCompareFlowTests.testUnknownResultReconcilesAndReplaysWithoutDoubleAttempt": 33.683,
+    "PlayDirectorPrefabFlowTests.testDirectorBroadcastReviewCanBeCancelled": 16.999,
+    "PlayDirectorPrefabFlowTests.testDirectorChineseLabels": 8.715,
+    "PlayDirectorPrefabFlowTests.testDirectorOnlyShowsSourceAllowedActions": 8.287,
+    "PlayDirectorPrefabFlowTests.testPrefabBootAcceptsExactSourcePhrase": 14.488,
+    "PlayDirectorPrefabFlowTests.testPrefabRuntimeKeepsLocalStoryDistinctFromSync": 10.768,
+    "PlayExperienceFlowTests.testBranchDoesNotRevealHiddenTask": 18.106,
+    "PlayExperienceFlowTests.testChineseJourneyLabels": 16.824,
+    "PlayExperienceFlowTests.testClassicReviewCancelDoesNotCompleteTask": 62.686,
+    "PlayExperienceFlowTests.testDormantEnvironmentShowsNoDevicePermissionPrompt": 9.519,
+    "PlayExperienceFlowTests.testEmptyEndingIsNotReportedAsFailure": 22.008,
+    "PlayExperienceFlowTests.testMode2ShowsSeparateVerificationStep": 21.622,
+    "PlayExperienceFlowTests.testStopwatchStartsAndStopsLocally": 20.486,
+    "PlayPreferenceFlowTests.testOperatingSummaryIsSeparatePrivateDestination": 21.17,
+    "PlayPreferenceFlowTests.testPreferenceUsesSourceQuestionAndNativePicker": 25.676,
+    "ProfileEditFlowTests.testConfirmedProfileSaveIsReadBack": 25.306,
+    "ProfileEditFlowTests.testIncompleteSnapshotCannotBeEdited": 8.725,
+    "ProfileEditFlowTests.testUnknownWriteLocksReviewAndOffersReadOnlyCheck": 21.557,
+    "ProjectEditFlowTests.testBlankDraftShowsValidationRatherThanFalseSuccess": 17.173,
+    "ProjectEditFlowTests.testLocalDraftOffersExplicitRestoreAfterReopen": 14.11,
+    "ProjectEditFlowTests.testLocalEditReviewAndCancelledConfirmation": 24.323,
+    "ProjectEditFlowTests.testNewChapterRequiresStoryBeforeNodeCreation": 21.31,
+    "ProjectEditFlowTests.testSignOutClearsDraftAndClosesReview": 9.852,
+    "ProjectEditFlowTests.testSimulationIsExplicitlyNotPublication": 21.668,
+    "ProjectEditFlowTests.testUnconfiguredReviewHasNoPublishOrSimulationAction": 8.051,
+    "ProjectEditFlowTests.testUnknownOutcomeRemainsLockedAfterCheckAndReopen": 24.027,
+    "ProjectEditFlowTests.testWhitelistDisablesStructureAndScheduleButKeepsCopyEditable": 11.685,
+    "ProjectEditRichStoryFlowTests.testDreamImageAdditionIsLocalAndDoesNotPublish": 18.389,
+    "ProjectEditRichStoryFlowTests.testRichAlbumEditAppearsInReviewAndCancellationDoesNotSubmit": 40.552,
+    "ProjectEditRichStoryFlowTests.testSigningOutDismissesNestedRichEditor": 19.263,
+    "PublicMerchantHomeFlowTests.testInvalidLinkHasNoRetry": 7.272,
+    "PublicMerchantHomeFlowTests.testMissingReturnedOwnerCannotOpenReviews": 7.336,
+    "PublicMerchantHomeFlowTests.testNPCStaticIdentityDoesNotActivateChat": 8.326,
+    "PublicMerchantHomeFlowTests.testReportRequiresReviewThenReturnsModerationReceipt": 19.043,
+    "PublicMerchantHomeFlowTests.testRetryRecoversAndReviewsUseBothReturnedIDs": 12.019,
+    "PublicMerchantHomeFlowTests.testUnavailableIsNotRetryable": 8.225,
+    "PublisherLifecycleUITests.testCreatorFormShowsExactReviewAndDisabledDispatch": 38.247,
+    "PublisherLifecycleUITests.testPaidPlayersAppearBeforeRefundConfirmation": 16.755,
+    "PublisherLifecycleUITests.testPricingReviewStaysDormant": 20.413,
+    "PublishingModesFlowTests.testActivityIsDistinctFromQuickRoute": 14.471,
+    "PublishingModesFlowTests.testChineseEntryIsLocalized": 7.361,
+    "PublishingModesFlowTests.testIdentityNeverCollectsSensitiveID": 7.906,
+    "PublishingModesFlowTests.testQuickDraftCannotSkipPlaceConfirmation": 9.701,
+    "ReferenceChatTaskFlowTests.testChineseServerCompletedHasNoCurrentAction": 12.032,
+    "ReferenceChatTaskFlowTests.testFailedTaskReadCannotShowAProgressBarOrCurrentAction": 8.451,
+    "ReferenceChatTaskFlowTests.testKnownProgressAndCurrentTaskReopenPreserveServerZero": 17.817,
+    "ReferenceChatTaskFlowTests.testMerchantAIIdentityIsVisibleAndReopenStartsFresh": 21.116,
+    "ReferenceChatTaskFlowTests.testMessageAccountSwitchDoesNotRetainPrivateHistory": 80.289,
+    "ReferenceChatTaskFlowTests.testMessageEarlierPageAndDetailReturnRetainHistory": 24.036,
+    "ReferenceChatTaskFlowTests.testMessageKeyboardKeepsSendActionReachable": 16.229,
+    "ReferenceChatTaskFlowTests.testMessagePendingDoesNotPermitDuplicateSend": 11.514,
+    "ReferenceChatTaskFlowTests.testMessageRejectedDoesNotShowAcceptedReceipt": 14.813,
+    "ReferenceChatTaskFlowTests.testMessageUnknownIsNotAnAcceptedReceiptAndCancelRetryDoesNotSend": 13.012,
+    "ReferenceChatTaskFlowTests.testNPCCancelReviewRetainsDraftAndCanReopen": 13.999,
+    "ReferenceChatTaskFlowTests.testNPCChineseMaximumTextKeyboardAndReduceMotion": 12.758,
+    "ReferenceChatTaskFlowTests.testNPCFailureKeepsTheExactReviewText": 11.744,
+    "ReferenceChatTaskFlowTests.testNPCPendingDisablesDuplicateTransmissionAndScopeClearsPrivateText": 12.346,
+    "ReferenceChatTaskFlowTests.testNPCUnknownResultRetainsReviewAndDoesNotInventReply": 11.297,
+    "ReferenceChatTaskFlowTests.testUnknownTotalShowsPhaseWithoutPercentage": 7.453,
+    "ReferenceMapCardFlowTests.testCardAccessibilityAuditForNormalSyntheticFixture": 9.244,
+    "ReferenceMapCardFlowTests.testFullBilingualCardTextAndMissingArtworkAtBothAppearancesAndSizes": 60.728,
+    "RegionalEntryFlowTests.testChinaDefaultsChineseAndLanguagePersistsWithoutChangingMarket": 22.19,
+    "RegionalEntryFlowTests.testComputedLabelsUseSelectedLanguageInsteadOfDeviceLanguage": 8.45,
+    "RegionalEntryFlowTests.testUSCanChooseChineseWithoutEnablingDomesticPhone": 16.664,
+    "RegionalEntryFlowTests.testUSDefaultsEnglishAndCannotUseChinaCredentialForms": 11.827,
+    "RegistrationWaitlistUITests.testEssentialQuoteAmountCaptureInLightAndDarkBothLanguages": 44.66,
+    "RegistrationWaitlistUITests.testOfferRequiresNewConsentAndCancelledReviewDoesNotCreate": 25.462,
+    "RegistrationWaitlistUITests.testSoldOutGuidanceMatchesCapabilityAndStateInBothLanguages": 84.392,
+    "RegistrationWaitlistUITests.testUnreviewedOfferGuidanceExpiresWhileFormRemainsOpen": 36.821,
+    "RegistrationWaitlistUITests.testWaitingAndLeavingRemainInTheRegistrationForm": 16.854,
+    "RetainedImageUITests.testChineseAndAccessibilityLabels": 7.886,
+    "RetainedImageUITests.testSelectionUploadAndUseAreSeparate": 9.192,
+    "RetainedImageUITests.testUnknownUploadCannotBeRetried": 9.525,
+    "RoamExperienceFlowTests.testAlbumHidesRejectedStampAndLabelsUnsubmittedReview": 11.906,
+    "RoamExperienceFlowTests.testAlbumPageErrorKeepsAlreadyLoadedStamp": 11.636,
+    "RoamExperienceFlowTests.testCaptionDraftOnlyAndLengthValidation": 14.715,
+    "RoamExperienceFlowTests.testCorruptHistoryIsErrorNotEmpty": 13.066,
+    "RoamExperienceFlowTests.testDefaultCityStampEntryKeepsCameraDisabled": 12.055,
+    "RoamExperienceFlowTests.testEmptyHistoryIsNotAnError": 11.412,
+    "RoamExperienceFlowTests.testHistoryDistinguishesUnknownStatsAndShowsSession": 15.347,
+    "RoamExperienceFlowTests.testIncompleteSettlementNeverShowsConfirmedRewards": 12.813,
+    "RoamExperienceFlowTests.testLiveMemoryReadCannotStartGPSOrAwardXP": 11.89,
+    "RoamExperienceFlowTests.testOfflineLiveExplicitStartPauseResumeAndConfirmedFinish": 38.883,
+    "RoamExperienceFlowTests.testOfflineLiveUnknownBootstrapIsRecoveredBeforeExplicitResume": 32.94,
+    "RoamExperienceFlowTests.testRecoveryNeedsIDAndOnlyDisplaysServerResultAfterRead": 12.86,
+    "RoamExperienceFlowTests.testSignOutRemovesPrivateAlbumAndChineseLoads": 11.958,
+    "SearchMapFlowTests.testCityEmptyStateRemainsExplicit": 10.48,
+    "SearchMapFlowTests.testCityFilterCancelPreservesSelectionButApplyClearsIt": 28.359,
+    "SearchMapFlowTests.testCityListSelectionUsesSamePinAndPreservesExplicitMapGate": 23.593,
+    "SearchMapFlowTests.testCityLoadingRetryAndScopeChangeNeverKeepSelectedPlace": 29.023,
+    "SearchMapFlowTests.testCityMissingCoordinatesStayInListAndNodeOpensCorrectDomain": 17.59,
+    "SearchMapFlowTests.testEnglishAndChineseRoutePreviewLargeTypeDarkReduceMotion": 23.426,
+    "SearchMapFlowTests.testFilterValidationCancelAndReopen": 18.478,
+    "SearchMapFlowTests.testGlobalDomainsAreSeparateAndMerchantDetailUsesMerchantID": 17.057,
+    "SearchMapFlowTests.testGuestKeepsPublicResultsAndShowsExplicitGate": 12.476,
+    "SearchMapFlowTests.testManualAreaChangeClearsSelectionAndRequiresMapOptInAgain": 24.635,
+    "SearchMapFlowTests.testNearbyRouteNodeUsesTopicReferenceAndHonestRoutePreview": 10.413,
+    "SearchMapFlowTests.testPartialFailureDoesNotBecomeEmptyWholePage": 11.583,
+    "SearchMapFlowTests.testRetryRecovers": 17.083,
+    "SearchMapFlowTests.testSessionSwitchClearsResultsAndCityData": 18.128,
+    "SettingsNativeFlowTests.testAboutReadsNativeBundleAndDoesNotInventCode": 16.768,
+    "SettingsNativeFlowTests.testCNEnglishInterfacePreservesChineseSourceAndVersion": 18.78,
+    "SettingsNativeFlowTests.testChineseLargeTextContactCopyFailureOffersManualRecovery": 26.324,
+    "SettingsNativeFlowTests.testContactCopyFeedbackClearsOnBackAndReopenWithoutCalling": 28.913,
+    "SettingsNativeFlowTests.testFailedSaveKeepsPreviousValueAndNextTapCanSave": 28.926,
+    "SettingsNativeFlowTests.testLargeTextChineseSoundControlsStayNativeAndAccessible": 27.057,
+    "SettingsNativeFlowTests.testLegalFailureRetryAndBackReopen": 20.293,
+    "SettingsNativeFlowTests.testMissingMarketShowsNoRegionalLegalContent": 10.572,
+    "SettingsNativeFlowTests.testMissingMetadataIsNotReplacedByFakeVersion": 10.068,
+    "SettingsNativeFlowTests.testPrivacyMarketingAndDeletionDoNotPresentActionSwitches": 43.91,
+    "SettingsNativeFlowTests.testSoundLoadFailureAndRetry": 14.611,
+    "SettingsNativeFlowTests.testSoundSixDefaultsSaveBackAndReopen": 29.54,
+    "SettingsNativeFlowTests.testUSChineseLanguageNeverDisplaysCNAgreement": 23.184,
+    "ShopNPCFlowTests.testBackgroundClearsConversation": 19.917,
+    "ShopNPCFlowTests.testDefaultOff": 8.201,
+    "ShopNPCFlowTests.testReviewBeforeTransmission": 11.428,
+    "ShopNPCFlowTests.testVoiceRemainsOffInFixture": 7.516,
+    "SocialAccountFlowTests.testChineseGuideWithAccessibilityTextHasTranslatedDestinations": 23.906,
+    "SocialAccountFlowTests.testDisabledLiveWriterAllowsReviewButNotSubmission": 15.183,
+    "SocialAccountFlowTests.testDraftSurvivesNestedReviewAndCancelThenDiscardReopensEmpty": 34.23,
+    "SocialAccountFlowTests.testGuestPublicProfileShowsUnknownRelationshipWithoutPostsRequest": 10.639,
+    "SocialAccountFlowTests.testGuideKeepsMeaningfulNumericTitleAndRoutesToRealTabIntent": 10.623,
+    "SocialAccountFlowTests.testInvitePartialRewardAndPagination": 12.023,
+    "SocialAccountFlowTests.testMediaPreviewLoadsOnlyOnTapAndClearsAfterAccountSwitch": 9.327,
+    "SocialAccountFlowTests.testSyntheticAcknowledgementIsLabelledAndDoesNotInsertPost": 20.873,
+    "SocialAccountFlowTests.testUncertainOutcomeStaysLockedAfterDismissalAndReturn": 19.429,
+    "SquareFlowTests.testChineseEmptyStateUsesLocalizedControls": 10.363,
+    "SquareFlowTests.testDelayedOldFeedDoesNotReplaceNewSearch": 14.636,
+    "SquareFlowTests.testGuestFollowingShowsSignInGate": 19.341,
+    "SquareFlowTests.testPageFailureRetainsRowsAndRetriesSameCursor": 50.892,
+    "SquareFlowTests.testPartialCommentFailurePreservesPostAndRetries": 10.15,
+    "SquareFlowTests.testPostPaginationDetailCommentPaginationAndBack": 36.894,
+    "SquareFlowTests.testSearchSubmitAndClearRestoreFeed": 16.663,
+    "SquareFlowTests.testUnavailableDetailKeepsServerMessageAndNoComments": 10.429,
+    "SquareFlowTests.testUnconfiguredAndUnauthorizedStayHonest": 13.836,
+    "SquareGovernanceFlowTests.testAcknowledgementDoesNotClaimDeletion": 15.188,
+    "SquareGovernanceFlowTests.testAppealReasonCanBeCancelled": 8.762,
+    "SquareGovernanceFlowTests.testCancelReviewSendsNothing": 9.569,
+    "SquareGovernanceFlowTests.testDistinctCommentAuthorPermissions": 8.491,
+    "SquareGovernanceFlowTests.testNormalEntryReachesPreferencesAndGovernance": 7.107,
+    "SquareReportFlowTests.testChangedContentRefreshesQualifiedTargetAndRequiresAnotherReview": 89.799,
+    "SquareReportFlowTests.testChangedPolicyClearsReasonAndDoesNotAcknowledgeSubmission": 64.003,
+    "SquareReportFlowTests.testChineseLargeTextReasonSheetCancelsWithoutSelecting": 94.902,
+    "SquareReportFlowTests.testNormalEntryRequiresReasonAndFactsAndReviewBackPreservesBoth": 82.529,
+    "SquareReportFlowTests.testSyntheticAcknowledgementReadsBackExactCaseWithoutResubmission": 64.244,
+    "SquareReportFlowTests.testUnknownOutcomeRemainsLockedAfterCloseAndReopen": 69.163,
+    "SquareWorkspaceFlowTests.testChineseComposerAndLocalDraftEntry": 22.79,
+    "SquareWorkspaceFlowTests.testDefaultWorkspaceHasNoEnabledNetworkActions": 9.703,
+    "SquareWorkspaceFlowTests.testSuspendedRecoveryDisablesNewDraftTypingAndCompetingResume": 45.056,
+    "TeamFlowTests.testCancelLeaveThenReopenReview": 24.089,
+    "TeamFlowTests.testChineseLargeTextDarkModeReviewAndCancelRemainReachable": 21.124,
+    "TeamFlowTests.testCreatePrivateTeamReviewCancelPreservesForm": 28.671,
+    "TeamFlowTests.testInProgressFullEndedAndDisbandedRemainDistinct": 31.682,
+    "TeamFlowTests.testInvitationJoinReviewAndSimulation": 14.763,
+    "TeamFlowTests.testInvitationPreviewCloseLeavesTeamUntouched": 12.371,
+    "TeamFlowTests.testMissingInviteShowsRecoverableInvalidLinkState": 7.813,
+    "TeamFlowTests.testOwnedListDetailBackAndReopen": 18.607,
+    "TeamFlowTests.testReadFailureRetryAndEmptyStateAreDistinct": 17.33,
+    "TeamFlowTests.testSignOutClosesPrivateDetailAndReview": 10.628,
+    "TeamFlowTests.testUnknownOutcomeCannotReplayAfterSameAccountReauthentication": 22.412,
+    "TeamFlowTests.testUnknownStatusHasNoMembershipActions": 10.527,
+    "TemplateAuthoringFlowTests.testBlankNameDisablesContinue": 8.698,
+    "TemplateAuthoringFlowTests.testChineseAndLargeTextCanReachReview": 73.774,
+    "TemplateAuthoringFlowTests.testCreationStepsReplaceBackStack": 11.111,
+    "TemplateAuthoringFlowTests.testLocalSaveHasExplicitDeviceOnlyResult": 37.264,
+    "TemplateAuthoringFlowTests.testProductionDisabledReviewHasNoConfirmButton": 37.92,
+    "TemplateAuthoringFlowTests.testReviewCancellationCannotSubmit": 42.859,
+    "TemplateAuthoringFlowTests.testSavedDraftRestoreIsExplicit": 42.078,
+    "TemplateAuthoringFlowTests.testSignoutErasesEditorAndReview": 14.643,
+    "TemplateAuthoringFlowTests.testSyntheticSubmissionNeverClaimsPublication": 41.702,
+    "TemplateAuthoringFlowTests.testUnknownSubmissionRemainsLockedAfterReopen": 46.821,
+    "TemplateCompositionFlowTests.testLocalSaveReopenRetainsIndependentToggleChange": 59.027,
+    "TemplateCompositionFlowTests.testOpeningAndDisablingCoinKeepsDiceAndQuietEnabled": 38.008,
+    "TemplateCompositionFlowTests.testReviewIncludesAllEnabledCompoundConfigurations": 28.04,
+    "TemplateOwnShelfFlowTests.testAccountChangeDismissesReviewAndSignoutClearsShelf": 12.556,
+    "TemplateOwnShelfFlowTests.testChineseLargeTextCanCancelReview": 25.872,
+    "TemplateOwnShelfFlowTests.testDefaultDisabledHasNoMutationConfirmation": 9.319,
+    "TemplateOwnShelfFlowTests.testDeleteRequiresSeparateReviewAndSimulationIsLabelled": 14.645,
+    "TemplateOwnShelfFlowTests.testLibraryReviewShowsIdentityAndCancellationDoesNotSubmit": 13.131,
+    "TemplateOwnShelfFlowTests.testUnknownLocksBothActionsAcrossReopen": 13.74,
+    "TicketWalletFlowTests.testEmptyFailureGuestAndConfigurationStatesAreDistinct": 25.717,
+    "TicketWalletFlowTests.testPartialEmptyIsNotReportedAsCompleteEmptyWallet": 8.37,
+    "TicketWalletFlowTests.testRefreshReadsCurrentStatusInsteadOfKeepingTheOldTicket": 8.994,
+    "TicketWalletFlowTests.testSignOutClearsDetailAndReturnsToLoginGate": 10.904,
+    "TicketWalletFlowTests.testUnavailableDetailRetryDoesNotShowCachedContent": 7.785,
+    "TicketWalletFlowTests.testWalletDetailEntitlementsBackAndReopenNeverOffersCodeOrPayment": 21.208,
+    "TopicFlowTests.testPagedRouteDetailChapterAndBack": 29.114,
+    "TopicFlowTests.testUnavailableRouteShowsRetryWithoutContentOrPurchase": 10.663,
+    "WalkingNavigationFlowTests.testChinesePauseAndAccountChangeClearRoute": 15.159,
+    "WalkingNavigationFlowTests.testExpiredScopeDismissesStepsAndClearsDestination": 18.817,
+    "WalkingNavigationFlowTests.testFactoryRouteShowsStepsDistanceETAAndCancelResume": 37.858,
+    "WalkingNavigationFlowTests.testLockedTargetDoesNotRevealDestinationOrRoute": 22.631,
+    "WalkingNavigationFlowTests.testMaximumBilingualSummaryAndNativeStepsCanCloseAndReopen": 87.558,
+    "WalkingNavigationFlowTests.testNearDestinationKeepsVerificationBoundary": 11.823,
+    "WalkingNavigationFlowTests.testNoRouteIsUnavailableWithoutStraightLineFallback": 11.287,
+    "WalkingNavigationFlowTests.testPermissionDeniedNeverShowsRouteSteps": 15.373,
+    "WalkingNavigationFlowTests.testRoutingCanBeCancelledWithoutLateRouteAndReopened": 14.705,
+    "WalletCommerceFlowTests.testApprovalIsNotFinalPayoutAndBankAccountIsMasked": 8.464,
+    "WalletCommerceFlowTests.testBankFormIsReachableAndClearlyDormant": 7.714,
+    "WalletCommerceFlowTests.testBankHistoryUsesServerRejectedStatusInsteadOfPaid": 8.067,
+    "WalletCommerceFlowTests.testBankReviewValidatesBeforeOpeningConfirmation": 9.567,
+    "WalletCommerceFlowTests.testCheckoutIsPreviewAndCannotRedeem": 14.149,
+    "WalletCommerceFlowTests.testFailureOffersRetryWithoutInventedZero": 9.231,
+    "WalletCommerceFlowTests.testFundsStagesUnknownCurrencyAndZeroRemainDistinct": 10.008,
+    "WalletCommerceFlowTests.testSignOutHidesAccountData": 10.882,
+    "WeChatAppAuthFlowTests.testDormantBilingualEntryCanCloseAndReopen": 37.306,
+    "PrivateHomeMapPickerFlowTests.testBothLanguagesMaximumTextKeepPreviewAndCancellationReachable": 86.219,
+    "PrivateHomeMapPickerFlowTests.testCancelReopenHasNoSelectedPointAndReviewCancelNeverSaves": 127.927,
+    "PrivateHomeMapPickerFlowTests.testInactiveProviderExplainsGateAndManualEntryStillReviews": 42.015,
+    "PrivateHomeMapPickerFlowTests.testLostMapSaveRequiresExactRetryAndNoNewSelection": 48.835,
+    "PrivateHomeMapPickerFlowTests.testSameAccountRouteReplacementClearsManualFields": 56.981,
+    "PrivateHomeMapPickerFlowTests.testSameAccountRouteReplacementDiscardsPickerAndLateCallback": 69.697,
+    "PrivateHomeMapPickerFlowTests.testSelectionReviewAndConfirmUseExactPointThroughOwnerRecorder": 38.491,
+    "PrivateHomeMapPickerFlowTests.testSessionInvalidationDismissesSelectionWithoutSave": 21.164,
+    "PrivateHomeMapPickerFlowTests.testSourceRevocationAfterReviewBlocksFinalConfirmation": 38.205,
+    "PrivateHomeMapPickerFlowTests.testUnknownDatumPrecisionAndRangeClearPreviouslyValidPreview": 41.351,
+    "OwnerDraftBrowserFlowTests.testActualAccountEntryListsActivityTopicAndShowsUnsupportedEditor": 40.216,
+    "OwnerDraftBrowserFlowTests.testBackReopenAndLifetimeReplacementClearOldMetadata": 36.919,
+    "OwnerDraftBrowserFlowTests.testCappedHistoryDisclosesMoreWithoutInventingPagination": 38.279,
+    "OwnerDraftBrowserFlowTests.testChineseMaximumTypeReceiptPolicyAndUnverifiableBinding": 59.866,
+    "OwnerDraftBrowserFlowTests.testChineseMaximumTypeRetainsMetadataAndUnsupportedNotice": 54.008,
+    "OwnerDraftBrowserFlowTests.testEmptyAndRefreshStayReadOnly": 27.549,
+    "OwnerDraftBrowserFlowTests.testErrorRetryUsesSameRealEntry": 27.944,
+    "OwnerDraftBrowserFlowTests.testExplicitEmptyHistoryIsVisible": 30.865,
+    "OwnerDraftBrowserFlowTests.testFixedControlsRejectDisabledAndNonChromeTargets": 34.371,
+    "OwnerDraftBrowserFlowTests.testGuestEntryLoginSheetCanDismissWithoutGrantingAccess": 20.827,
+    "OwnerDraftBrowserFlowTests.testHistoricalReceiptShowsStaleBindingAndNoContentActions": 37.596,
+    "OwnerDraftBrowserFlowTests.testInvalidCapabilityCannotRenderHistoricalReceipt": 27.537,
+    "OwnerDraftBrowserFlowTests.testListBackAndReopenReloadsThroughActualAccountEntry": 37.616,
+    "OwnerDraftBrowserFlowTests.testLoadingReleaseAndRestoreRetry": 32.617,
+    "OwnerDraftBrowserFlowTests.testOldServerOmissionDoesNotClaimEmptyInstallationHistory": 29.052,
+    "OwnerDraftBrowserFlowTests.testReceiptBackReopenAndLifetimeReplacementClearHistoricalMetadata": 44.763,
+    "OwnerDraftBrowserFlowTests.testRestoreErrorCanRetryWithoutOpeningEditor": 33.821,
+    "OwnerDraftBrowserFlowTests.testSuspendedListBackReopenDispatchesFreshReadBeforeOldCompletion": 44.009,
+    "OwnerDraftBrowserFlowTests.testUnconfiguredNormalAccountEntryDoesNotSendDraftRequests": 29.4,
+    "ProfileEditFlowTests.testFailedReloadKeepsDraftAndAllowsReviewedSave": 21.86,
+    "RoamExperienceFlowTests.testMemoryRemainsReachableWithLiveDestinationAndOnReopen": 17.536,
+    "SignedInContentDetailFlowTests.testActivitiesCardUsesNormalSessionDetailAndRetry": 19.83,
+    "SignedInContentDetailFlowTests.testActivityTopicFailureStaysInTopicAndBackReopens": 27.508,
+    "SignedInContentDetailFlowTests.testActivityTopicRouteBackAndReopen": 21.126,
+    "SignedInContentDetailFlowTests.testCurrent403ShowsErrorWithoutSigningOutOrRenderingDetail": 17.792,
+    "SignedInContentDetailFlowTests.testDismissedActivityRetryCannotExpireTheCurrentSessionAndReopenStillWorks": 21.002,
+    "SignedInContentDetailFlowTests.testDismissedTopicRetryCannotExpireTheCurrentSessionAndReopenStillWorks": 21.636,
+    "SignedInContentDetailFlowTests.testGuestCardsShowSignInWithZeroDetailRequests": 17.267,
+    "SignedInContentDetailFlowTests.testHomeListApprovalAloneDoesNotGrantDetail": 12.27,
+    "SignedInContentDetailFlowTests.testHomeTopicShelfOpensExactActivityDetailAndBackReopens": 21.97,
+    "SignedInContentDetailFlowTests.testTopicActivityClubGateNeverShowsFullDetailOrActions": 13.442,
+    "SignedInContentDetailFlowTests.testUnknownShelfDoesNotClaimNoActivities": 10.547,
+    "WalkingNavigationFlowTests.testSummaryVisibilityRejectsMapOcclusionAndOffscreenFrames": 0.096,
+    "MerchantMarketingUITests.testPredictionReviewLargeTextKeepsFixtureControlsClearOfOptions": 46.868,
+    "MerchantOperationsFlowTests.testBenefitsReviewSaveAndReloadUsesExistingProfileEntry": 70.879,
+    "MerchantOperationsFlowTests.testReloadDropsUnappliedLocalHoursEditor": 33.986,
+    "MerchantOperationsFlowTests.testStoreHoursExplicitDraftCancelReviewSaveAndReload": 52.664,
+    "ClubCommunityUITests.testClubHomeTopicNavigationBackAndReopen": 23.778,
+    "ClubCommunityUITests.testClubHomeTopicNavigationClearsOnAccountSwitch": 11.453,
+    "ClubCommunityUITests.testClubHomeTopicNavigationClearsOnSignOut": 10.649,
+    "ClubManagementFlowTests.testAcknowledgedApplicationReturnsToFreshList": 25.911,
+    "ClubManagementFlowTests.testAcknowledgedRemovalReturnsToFreshList": 23.186,
+    "ClubManagementFlowTests.testAcknowledgementWithUnavailableReadbackIsExplicit": 22.188,
+    "ClubManagementFlowTests.testActualClubDetailReloadsOnlyAfterReturningFromManagement": 38.293,
+    "ClubManagementFlowTests.testApplicationDetailShowsServerMessageBeforeReview": 13.182,
+    "ClubManagementFlowTests.testFailedParentReloadDoesNotDismissManagementReceipt": 28.241,
+    "ClubManagementFlowTests.testInterruptedUnknownRefreshDoesNotDisableListRefresh": 28.301,
+    "ClubManagementFlowTests.testUnknownOutcomeStaysVisibleAndRefreshNeverReplays": 27.691,
+    "IntegratedNativeAcceptanceFlowTests.testPhoneCancelLogoutAccountSwitchAndColdLaunchDoNotReuseOwnerState": 162.555,
+    "RegistrationWaitlistOrderUITests.testOrderReadErrorRetryAndCloseDoNotCreateReplacement": 21.31,
+    "PublicTemplateDetailFlowTests.testEmptyProjectionAndChineseContent": 6.047,
+    "PublicTemplateDetailFlowTests.testLoadingCanBeInvalidatedBeforeCompletion": 7.87,
+    "PublicTemplateDetailFlowTests.testMerchantProjectionClearsImmediatelyOnContextChange": 13.121,
+    "PublicTemplateDetailFlowTests.testPublicContentHasNoAdoptionOrRecruitmentForGuest": 8.048,
+    "PublicTemplateDetailFlowTests.testReadFailureDoesNotLeaveShelfContentInDetail": 6.538,
+    "ClubActionFlowTests.testAccountSwitchClearsApplicationDraft": 52.697,
+    "ClubActionFlowTests.testOptionalMessageIsReviewedAndSentExactlyOnce": 49.449,
+    "ClubActionFlowTests.testOverlongMessageCannotOpenReview": 25.982,
+    "ClubActionFlowTests.testUnknownApplicationCannotBeEditedOrResentAfterReadback": 30.035,
+    "EntryFlowTests.testUnconfiguredBuildHidesUnsupportedPasswordAndKeepsPhoneDisabledAfterInput": 30.043,
+    "NonCashRewardFlowTests.testFailureRetryThenShowsSyntheticRows": 44.152,
+    "NonCashRewardFlowTests.testNormalAccountRewardDetailCloseReopenAndBack": 65.449,
+    "NonCashRewardFlowTests.testPreviewBackgroundDismissesAndCanReopen": 74.552,
+    "NonCashRewardFlowTests.testTerminalAwardHasNoPresentationAction": 53.844,
+    "NonCashRewardFlowTests.testWithoutOptInNoExampleOrRedemptionAppears": 40.188,
+    "NativeSettingsReuseFlowTests.testMaximumTextLegalMissingStateBackAndReopenInBothLanguages": 41.9,
+    "SocialAccountFlowTests.testChineseLargeTextDraftCancelKeepsTextAndKeyboardDismisses": 23.608,
+    "AccessibilityPresentationFlowTests.testMaximumTextWinsWhenBothCanonicalSizeFlagsArePresent": 12.597,
+    "OwnedOrderFlowTests.testCurrent401ClearsPrivateContent": 26.946,
+    "OwnedOrderFlowTests.testDismissedRetryLate401DoesNotExpireCurrentSession": 35.894,
+    "OwnedOrderFlowTests.testGuestUnapprovedEmptyAndMixedOwnerStates": 98.908,
+    "OwnedOrderFlowTests.testIdleLoadedScreenClearsImmediatelyOnExplicitRevocationAndExpiry": 58.355,
+    "OwnedOrderFlowTests.testNormalAccountFreshDetailBackAndExactUnroundedMoney": 29.624,
+    "OwnedOrderFlowTests.testRetryThenFreshDetail": 33.618,
+    "PrivateHomeFlowTests.testCancelReviewDoesNotSaveAndRemovesSensitiveDraft": 29.397,
+    "PrivateHomeFlowTests.testDeleteRequiresReviewAndClearsHome": 44.857,
+    "PrivateHomeFlowTests.testDisabledFeatureNeverRequestsLocationOrShowsMutationControls": 8.141,
+    "PrivateHomeFlowTests.testLostResponseLocksNewChangesAndExactRetrySettles": 43.546,
+    "RegistrationWaitlistUITests.testClosedRegistrationSessionShowsReasonAndCannotReviewInBothLanguages": 22.342
+  },
+  "selection_policy": "Most recent successful XCTest case completion in runs 62 and 63; run 63 takes precedence. Failed observations do not replace successful or historical weights. Retain prior runs 54/55 values for methods without a recent successful observation, then use unobserved_method_seconds for source-discovered methods absent from the profile. Case duration excludes Xcode setup and result finalization; estimates are not process-deadline guarantees.",
+  "estimated_method_seconds": {
+    "CooperationFlowUITests.testInvitationReviewRetainsReadableBoundIdentityAndTermsInBothLanguages": 120,
+    "MerchantEngagementFlowTests.testChineseOrdinaryHTTPProductionReviewCanBeCancelled": 60,
+    "MerchantTemplateAssistFlowTests.testCancelReviewDoesNotFillAndReopenHasNoCandidate": 60,
+    "MerchantTemplateAssistFlowTests.testDefaultOffSheetStillExplainsManualDraftPath": 60,
+    "MerchantTemplateAssistFlowTests.testPermissionErrorHasNoEnabledRetryWhileProviderErrorDoes": 60,
+    "MerchantTemplateAssistFlowTests.testReviewExplicitApplyReturnsToSameUnsavedTemplate": 60,
+    "RegistrationWaitlistUITests.testEssentialQuoteAmountCaptureInLightAndDarkBothLanguages": 240,
+    "RegistrationWaitlistUITests.testSoldOutGuidanceMatchesCapabilityAndStateInBothLanguages": 360,
+    "RegistrationWaitlistUITests.testUnreviewedOfferGuidanceExpiresWhileFormRemainsOpen": 60,
+    "SocialAccountFlowTests.testChineseLargeTextDraftCancelKeepsTextAndKeyboardDismisses": 60,
+    "SocialAccountFlowTests.testDraftSurvivesNestedReviewAndCancelThenDiscardReopensEmpty": 60,
+    "SquareReportFlowTests.testChangedContentRefreshesQualifiedTargetAndRequiresAnotherReview": 60,
+    "SquareReportFlowTests.testChangedPolicyClearsReasonAndDoesNotAcknowledgeSubmission": 60,
+    "SquareReportFlowTests.testChineseLargeTextReasonSheetCancelsWithoutSelecting": 60,
+    "SquareReportFlowTests.testNormalEntryRequiresReasonAndFactsAndReviewBackPreservesBoth": 60,
+    "SquareReportFlowTests.testSyntheticAcknowledgementReadsBackExactCaseWithoutResubmission": 60,
+    "SquareReportFlowTests.testUnknownOutcomeRemainsLockedAfterCloseAndReopen": 60,
+    "SquareWorkspaceFlowTests.testSuspendedRecoveryDisablesNewDraftTypingAndCompetingResume": 60,
+    "WalkingNavigationFlowTests.testChinesePauseAndAccountChangeClearRoute": 60,
+    "WalkingNavigationFlowTests.testFactoryRouteShowsStepsDistanceETAAndCancelResume": 60,
+    "WalkingNavigationFlowTests.testLockedTargetDoesNotRevealDestinationOrRoute": 60,
+    "WalkingNavigationFlowTests.testNoRouteIsUnavailableWithoutStraightLineFallback": 60,
+    "WalkingNavigationFlowTests.testPermissionDeniedNeverShowsRouteSteps": 60,
+    "ReferenceMapCardFlowTests.testFullBilingualCardTextAndMissingArtworkAtBothAppearancesAndSizes": 240,
+    "ReferenceMapCardFlowTests.testCardAccessibilityAuditForNormalSyntheticFixture": 60,
+    "WalkingNavigationFlowTests.testRoutingCanBeCancelledWithoutLateRouteAndReopened": 60,
+    "WalkingNavigationFlowTests.testExpiredScopeDismissesStepsAndClearsDestination": 60,
+    "WalkingNavigationFlowTests.testNearDestinationKeepsVerificationBoundary": 60,
+    "WalkingNavigationFlowTests.testMaximumBilingualSummaryAndNativeStepsCanCloseAndReopen": 120,
+    "SearchMapFlowTests.testCityListSelectionUsesSamePinAndPreservesExplicitMapGate": 60,
+    "SearchMapFlowTests.testCityFilterCancelPreservesSelectionButApplyClearsIt": 60,
+    "SearchMapFlowTests.testCityLoadingRetryAndScopeChangeNeverKeepSelectedPlace": 120,
+    "SearchMapFlowTests.testCityEmptyStateRemainsExplicit": 60,
+    "SearchMapFlowTests.testManualAreaChangeClearsSelectionAndRequiresMapOptInAgain": 60,
+    "ReferenceChatTaskFlowTests.testNPCCancelReviewRetainsDraftAndCanReopen": 60,
+    "ReferenceChatTaskFlowTests.testNPCUnknownResultRetainsReviewAndDoesNotInventReply": 60,
+    "ReferenceChatTaskFlowTests.testNPCFailureKeepsTheExactReviewText": 60,
+    "ReferenceChatTaskFlowTests.testNPCPendingDisablesDuplicateTransmissionAndScopeClearsPrivateText": 60,
+    "ReferenceChatTaskFlowTests.testNPCChineseMaximumTextKeyboardAndReduceMotion": 60,
+    "ReferenceChatTaskFlowTests.testMessageKeyboardKeepsSendActionReachable": 60,
+    "ReferenceChatTaskFlowTests.testMessageUnknownIsNotAnAcceptedReceiptAndCancelRetryDoesNotSend": 60,
+    "ReferenceChatTaskFlowTests.testMessageRejectedDoesNotShowAcceptedReceipt": 60,
+    "ReferenceChatTaskFlowTests.testMessagePendingDoesNotPermitDuplicateSend": 60,
+    "ReferenceChatTaskFlowTests.testMessageEarlierPageAndDetailReturnRetainHistory": 60,
+    "ReferenceChatTaskFlowTests.testKnownProgressAndCurrentTaskReopenPreserveServerZero": 60,
+    "ReferenceChatTaskFlowTests.testUnknownTotalShowsPhaseWithoutPercentage": 60,
+    "ReferenceChatTaskFlowTests.testChineseServerCompletedHasNoCurrentAction": 60,
+    "ReferenceChatTaskFlowTests.testFailedTaskReadCannotShowAProgressBarOrCurrentAction": 60,
+    "ReferenceChatTaskFlowTests.testMessageAccountSwitchDoesNotRetainPrivateHistory": 60,
+    "ReferenceChatTaskFlowTests.testMerchantAIIdentityIsVisibleAndReopenStartsFresh": 60,
+    "NativePresentationPatternFlowTests.testGalleryEnglishPagesClosesAndReopensAtSelectedImage": 60,
+    "NativePresentationPatternFlowTests.testGalleryChineseMaximumTextDarkReducedMotionKeepsPagingAndClose": 60,
+    "NativePresentationPatternFlowTests.testMalformedImageFinishesWithRetryAndClose": 60,
+    "NativePresentationPatternFlowTests.testGalleryScopeChangeDismissesWithoutStaleReopen": 60,
+    "NativePresentationPatternFlowTests.testDisabledMediaAndCameraEntrypointsDoNotSpinOrRequestPermission": 180,
+    "NativePresentationPatternFlowTests.testParticipationSupportStaysInSheetAndReturnsBeforeClose": 60,
+    "NativePresentationPatternFlowTests.testParticipationPlayWaitsForSheetDismissal": 60,
+    "NativePresentationPatternFlowTests.testParticipationFailureRetriesAndScopeExpiryDismisses": 120,
+    "NativeSettingsReuseFlowTests.testFollowSystemPersistsAcrossRelaunchWithoutChangingUSMarket": 120,
+    "NativeSettingsReuseFlowTests.testMaximumTextLegalMissingStateBackAndReopenInBothLanguages": 120,
+    "MerchantMarketingUITests.testPredictionReviewLargeTextKeepsFixtureControlsClearOfOptions": 90,
+    "AccessibilityPresentationFlowTests.testMaximumTextWinsWhenBothCanonicalSizeFlagsArePresent": 60,
+    "PrivateHomeFlowTests.testDisabledFeatureNeverRequestsLocationOrShowsMutationControls": 90,
+    "PrivateHomeFlowTests.testCancelReviewDoesNotSaveAndRemovesSensitiveDraft": 90,
+    "PrivateHomeFlowTests.testLostResponseLocksNewChangesAndExactRetrySettles": 90,
+    "PrivateHomeFlowTests.testDeleteRequiresReviewAndClearsHome": 90,
+    "PrivateHomeMapPickerFlowTests.testInactiveProviderExplainsGateAndManualEntryStillReviews": 120,
+    "PrivateHomeMapPickerFlowTests.testSelectionReviewAndConfirmUseExactPointThroughOwnerRecorder": 120,
+    "PrivateHomeMapPickerFlowTests.testCancelReopenHasNoSelectedPointAndReviewCancelNeverSaves": 120,
+    "PrivateHomeMapPickerFlowTests.testUnknownDatumPrecisionAndRangeClearPreviouslyValidPreview": 120,
+    "PrivateHomeMapPickerFlowTests.testSessionInvalidationDismissesSelectionWithoutSave": 120,
+    "PrivateHomeMapPickerFlowTests.testLostMapSaveRequiresExactRetryAndNoNewSelection": 120,
+    "PrivateHomeMapPickerFlowTests.testBothLanguagesMaximumTextKeepPreviewAndCancellationReachable": 180,
+    "PrivateHomeMapPickerFlowTests.testSameAccountRouteReplacementClearsManualFields": 150,
+    "PrivateHomeMapPickerFlowTests.testSameAccountRouteReplacementDiscardsPickerAndLateCallback": 150,
+    "PrivateHomeMapPickerFlowTests.testSourceRevocationAfterReviewBlocksFinalConfirmation": 150,
+    "ClubManagementFlowTests.testDeniedAndMalformedRefreshClearPrivateApplicantData": 120,
+    "ClubManagementFlowTests.testInterruptedRefreshClearsLoadingAndLateFailureCannotReplaceFreshList": 90,
+    "ClubManagementFlowTests.testRoleABAWhileReadPendingCannotRestoreOldReview": 90,
+    "ClubManagementFlowTests.testRoleOnlyChangeClearsStaleApplicantWithoutAccountChange": 60,
+    "ClubManagementFlowTests.testRoleOnlyChangeDoesNotClearUnknownWriteLock": 90,
+    "ClubManagementFlowTests.testTransientListRefreshPreservesApplicantWithoutClaimingFreshness": 60,
+    "ClubManagementFlowTests.testTransientRefreshRetainsReadOnlyContextAndRetryRestoresReview": 90,
+    "MerchantOperationsFlowTests.testBusinessStatusReviewCancelAndAuthoritativeOfflineSave": 60,
+    "MerchantOperationsFlowTests.testBusinessStatusUnknownDoesNotAllowRepeatSave": 60,
+    "ProjectEditFlowTests.testFreeExploreTicketThemeDateSyncAndReturnToManualDates": 90,
+    "RetainedImageUITests.testUploadByteCountUsesSelectedLanguageInProductionReview": 240,
+    "TeamFlowTests.testAlreadyJoinedInvitationOpensDetailBackAndReopens": 90,
+    "TeamFlowTests.testNonmemberInvitationHasNoOwnedDetailShortcut": 60,
+    "TeamFlowTests.testPostJoinOpensReadOnlyDetailBackAndReopens": 90,
+    "TemplateOwnShelfFlowTests.testOwnedDetailBackAndReopenKeepsStableDestination": 90,
+    "IntegratedNativeAcceptanceFlowTests.testNormalRootTeamReadOnlyJourney": 180,
+    "IntegratedNativeAcceptanceFlowTests.testNormalRootOwnedShelfPaginationAndDetailWithoutMutation": 180,
+    "IntegratedNativeAcceptanceFlowTests.testNormalRootIMHistoryNeverMarksReadOrSends": 180,
+    "IntegratedNativeAcceptanceFlowTests.testNormalRootIMHistoryDefaultNilNeverDispatches": 120,
+    "CouponRuntimeFlowTests.testNormalRootReadOnlyLeaseCannotConfirm": 180,
+    "CouponRuntimeFlowTests.testNormalRootExplicitCreateThenOwnedStop": 180,
+    "CouponRuntimeFlowTests.testNormalRootTimeoutCannotRepeatConfirmedPublication": 180,
+    "CouponRuntimeFlowTests.testNormalRootFreshPermissionRevokedAtConfirmDoesNotWrite": 180,
+    "CouponRuntimeFlowTests.testNormalRootDiskRestartDoesNotRedispatchUnknownCreation": 360,
+    "CouponRuntimeFlowTests.testChineseNormalRootLabelsAndReadOnlyConfirmation": 180,
+    "CouponCommandRecoveryFlowTests.testV1ReadOnlyReceiptRecoveryAfterRestartAndNotFoundKeepsJournal": 540,
+    "IntegratedNativeAcceptanceFlowTests.testNormalRootOwnedConfigurationReadOnlyAndStoryReturn": 180,
+    "TemplatePreferenceDraftEditorFlowTests.testNormalMethodEntryPreservesOriginalJSONAndKeepsRemoteActionsDisabled": 120,
+    "TemplatePreferenceDraftEditorFlowTests.testInvalidCurrentTextClearsOldPreviewAndSurvivesExplicitSaveRestore": 120,
+    "TemplatePreferenceDraftEditorFlowTests.testSwitchingMethodCancelsPriorPreviewAndRequiresFreshValidation": 120,
+    "TemplateSensorDraftFlowTests.testCurrentSensorPreviewAndRestorePreserveExactOriginalJSON": 240,
+    "TemplateSensorDraftFlowTests.testHistoricalUnknownAndAmbiguousConfigurationsRemainReadOnly": 240,
+    "ModuleFlowTests.testClubCustomerHistoryOpensReturnedTopicAndCanReopenAfterBack": 120,
+    "ModuleFlowTests.testClubCustomerHistoryMissingAndForeignIDsRemainReadOnly": 120,
+    "ModuleFlowTests.testClubCustomerHistoryTopicClearsOnAccountAndRoleChanges": 240,
+    "ClubGovernanceFlowTests.testWorkspaceCustomerHistoryUsesTheSameTopicDestination": 120,
+    "MerchantBusinessFlowTests.testReviewFiltersUseCurrentPageAndKeepServerMetrics": 120,
+    "MerchantBusinessFlowTests.testChineseAftercareSearchSpansLoadedPages": 180,
+    "ActivityFlowTests.testPeopleOpenExactProfilesAndPreserveReadOnlyRowsAfterBack": 180,
+    "AccountCollectionFlowTests.testSavedPostFailureDoesNotPoisonTopicCollection": 120,
+    "AccountCollectionFlowTests.testSavedPostPageFailureRetainsRowsAndRetryDoesNotSkip": 120,
+    "AccountCollectionFlowTests.testSavedPostsAreDefaultAndOpenLegacyDetailThenReturn": 180,
+    "AccountCollectionFlowTests.testSavedPostsDistinguishEmptyFromUnavailableAndClearOnSignOut": 240,
+    "ActivityFlowTests.testKnownEmptyReviewsDoNotShowAZeroStarRating": 120,
+    "ActivityFlowTests.testMissingReviewsRemainUnknownRatherThanEmptyOrFiveStars": 120,
+    "ActivityFlowTests.testReviewPreviewKeepsServerTotalAndSurvivesBackAndReopen": 180,
+    "TopicFlowTests.testChapterItineraryEstimateUsesChineseLabels": 120,
+    "TopicFlowTests.testChapterItineraryEstimatesUnknownLegsAndBackReopen": 180,
+    "WalkingNavigationFlowTests.testBilingualMaximumCameraActionsAreExplicitAndClearWithRoute": 180,
+    "TopicFlowTests.testReviewSummaryKeepsServerTotalAcrossDifferentRoutesAndReopen": 210,
+    "TopicFlowTests.testKnownEmptyTopicReviewsUseChineseEmptyStateWithoutZeroStars": 90,
+    "TopicFlowTests.testMissingTopicReviewMetadataStaysUnknownWithoutFalseEmpty": 90,
+    "SquareFlowTests.testRelatedTopicOpensExactLegacyReadAndReopensAfterBack": 180,
+    "SquareFlowTests.testCommunityTopicReferenceAndMissingLegacyAssociationRemainSeparate": 240,
+    "SquareFlowTests.testUnavailableRelatedTopicKeepsPostAccessibleAfterBack": 180,
+    "SettingsNativeFlowTests.testAttributionCopiesEachExactSourceAddressWithSeparateFeedback": 120,
+    "SettingsNativeFlowTests.testAttributionCopyFailureKeepsSourceVisibleAndExplicitRetrySucceeds": 90,
+    "SettingsNativeFlowTests.testChineseMaximumTextAttributionCopyResetsAfterAboutNavigation": 180,
+    "ModuleFlowTests.testClubMemberGateAndReadOnlyMemberList": 60,
+    "PublicMerchantHomeFlowTests.testFeaturedActivityUsesExactIDAfterBackAndUnavailableDetail": 210,
+    "PublicMerchantHomeFlowTests.testFeaturedCouponOpensWalletWithoutOwnedIDOrCodeInChineseLargeText": 120,
+    "PublicMerchantHomeFlowTests.testMissingUnknownAndMalformedFeaturedCardsLeaveProfileUsable": 360,
+    "PublicMerchantHomeFlowTests.testFeaturedSelectionClosesWhenReadScopeChangesThenUsesNewSnapshot": 180,
+    "PublicPlayTemplatePresentationFlowTests.testPublisherStoryGallerySelectedImageBackAndReopen": 60,
+    "PublicPlayTemplatePresentationFlowTests.testImageOnlyChineseMaximumTextHasNoInventedPublisherOrCount": 60,
+    "PublicPlayTemplatePresentationFlowTests.testDuplicateImagesAndKnownZeroRemainDistinctFromMissing": 90,
+    "PublicPlayTemplatePresentationFlowTests.testOriginDeniedCanRetryAndCloseWithoutRequestingPermission": 60,
+    "PublicPlayTemplatePresentationFlowTests.testReaderContextReplacementDismissesOldGalleryAndReloadsSameID": 60,
+    "PublicPlayTemplatePresentationFlowTests.testReadFailureRetriesAndDefaultDisabledMediaDoesNotSpin": 90,
+    "SocialAccountFlowTests.testHTMLArticleIsReadableInertAndReopensAfterBack": 180,
+    "SocialAccountFlowTests.testChineseLargeTextArticleReplacesOldContentAfterAccountSwitch": 210,
+    "SocialAccountFlowTests.testArticleRemovedEmptyAndReadFailureKeepExistingRecovery": 240,
+    "SearchMapFlowTests.testGlobalCategoryChangeRejectsEarlierCompletionAndClearReturnsSuggestions": 90,
+    "SearchMapFlowTests.testGlobalCategoryApplyResetPreservesKeywordAndCancelPreservesResults": 120,
+    "TopicTemplateNameSearchFlowTests.testTopicNameSearchAppliesCaseAndWhitespaceThenClearsNoMatches": 120,
+    "TopicTemplateNameSearchFlowTests.testTopicNameSearchRemainsIndependentFromGameKeywordAcrossTabs": 120,
+    "TopicTemplateNameSearchFlowTests.testChineseMaximumTextSearchDetailBackAndReloadKeepLocalScope": 150,
+    "OfficialEventFlowTests.testExplicitInformationWarningKeepsEventOpenableAfterBackAndScopeChange": 120,
+    "OfficialEventFlowTests.testBlankWarningReasonUsesHonestChineseFallbackAtLargeText": 90,
+    "OfficialEventFlowTests.testAbsentFalseAndMalformedMarkersNeverShowWarningFromReasonAlone": 180,
+    "PublicMerchantReviewFilterFlowTests.testAllLowPhotosAccumulatePagesWithoutRefetchOrChangingServerSummary": 180,
+    "PublicMerchantReviewFilterFlowTests.testFilteredEmptyKeepsNextPageAndRetryWhileClearRestoresEarlierRows": 120,
+    "PublicMerchantReviewFilterFlowTests.testChineseLargeTextEmptyHistoryStaysDistinctAndAverageRemainsUnknown": 120,
+    "PublicMerchantReviewFilterFlowTests.testAccountAndMerchantChangeResetFilterAndIgnoreOldUnauthorizedPage": 180,
+    "PublicMerchantReviewFilterFlowTests.testPhotoCloseAndSameScopeDetailReturnKeepFilterWithoutGrantingActions": 180,
+    "ClubFeedReadFlowTests.testSourceClubUsesActualDetailAndCanReopenAfterBackWithoutFeedPages": 120,
+    "ClubFeedReadFlowTests.testChineseLargeTextGalleryUsesThreeImagesAndReturnsToSameSource": 120,
+    "ClubFeedReadFlowTests.testMissingSourceClubIsNoninteractiveAndDefaultMediaStaysDisabled": 150,
+    "ClubFeedReadFlowTests.testNoClubsEmptyPostsAndUnknownCountRemainDifferentStates": 180,
+    "ClubFeedReadFlowTests.testReadFailureRetriesAndReplacementRevisionUsesNewSourceClub": 120,
+    "ClubFeedReadFlowTests.testAccountChangeClosesSelectedClubAndClearsPriorFeed": 120,
+    "CoopRelationDiscoveryFlowTests.testMixedDiscoveryOpensOwnerAndClubProfilesAndReturnsToSelectedTab": 120,
+    "CoopRelationDiscoveryFlowTests.testPartialIdentityRemainsNoninteractiveAndRefreshDoesNotReadProfiles": 60,
+    "CoopRelationDiscoveryFlowTests.testClubsOnlyAndEmptyTabsHaveHonestEmptyStates": 60,
+    "CoopRelationDiscoveryFlowTests.testRetryAndSessionReplacementClearPushedProfile": 120,
+    "CoopRelationDiscoveryFlowTests.testChineseMaximumTextPreservesTabsAndDisplayOnlyContext": 120,
+    "MerchantClubDiscoveryFlowTests.testMerchantLocalityHidesOwnedJoinedAndKeepsDetailReturn": 120.0,
+    "MerchantClubDiscoveryFlowTests.testUnknownLocalityKeepsAllNearbyWithRetryThenFilters": 120.0,
+    "MerchantClubDiscoveryFlowTests.testLocalityNetworkFailureKeepsAllNearbyAndNoMatchIsHonest": 120.0,
+    "MerchantClubDiscoveryFlowTests.testLateLocalityAfterPlayerSwitchCannotHidePlayerRows": 120.0,
+    "MerchantClubDiscoveryFlowTests.testMerchantSwitchFencesOldUnauthorizedBeforeNewLocality": 120.0,
+    "TemplateEditorControlsFlowTests.testRuleRowsPreserveSourceUntilEditAndBoundASCIIThroughLocalRestore": 360,
+    "TemplateEditorControlsFlowTests.testTimelineEditsDeriveCurrentSummaryAndSurviveExplicitRestore": 360,
+    "TemplateEditorControlsFlowTests.testHistoricalBytesHintOffRestoreAndSameOwnerLockedReadback": 540,
+    "TemplateMetadataSelectorsFlowTests.testExactDictionaryValuesCancelRestoreAndSyntheticRequest": 240,
+    "TemplateMetadataSelectorsFlowTests.testCategorySaveCancelNoopCSVAndOrderedSixteenSelections": 360,
+    "TemplateMetadataSelectorsFlowTests.testUnavailableRetryEmptyCanceledReadOwnerSwitchAndLockedValues": 420,
+    "ClubStoryFlowTests.testGroupedStopsHaveHoursAddressAndChapterMetadata": 120,
+    "ClubStoryFlowTests.testChapterSwitchAndExpansionResetKeepEachPlayInItsOwnChapter": 240,
+    "ClubStoryNavigationFlowTests.testTemplateDetailUsesPersonalIDAndBackSupportsRepeatedSelection": 180,
+    "ClubStoryNavigationFlowTests.testSourceRefreshDropsOpenTemplateAndOldCards": 180,
+    "ClubStoryNavigationFlowTests.testDelayedDetailCannotReappearAfterSourceRefresh": 210,
+    "ClubStoryNavigationFlowTests.testAccountAndReaderReplacementDismissOldDestination": 330,
+    "ClubStoryFlowTests.testUnavailableAndInvalidSourcesDoNotOfferTemplateNavigation": 210,
+    "ClubStoryFlowTests.testDuplicateChapterIDsKeepDisplaySelectableButAllRoutesDisabled": 150,
+    "ClubStoryFlowTests.testChineseRoutePlayAndEmptyChapterAreLocalized": 150,
+    "ClubGovernanceFlowTests.testClubStoryUsesOwnRouteAndProtectedAnswer": 210,
+    "IntegratedNativeAcceptanceFlowTests.testActualPhoneHomeDetailManualMapPlayAndFreshOwnedOrderJourney": 240,
+    "IntegratedNativeAcceptanceFlowTests.testConfiguredAuthenticationDoesNotGrantDetailMapPlayOrOwnedOrders": 210,
+    "SignedInContentDetailFlowTests.testEmptyShelfChineseAndRoleChangeClearProjection": 120,
+    "SignedInContentDetailFlowTests.testActivityTopicRouteClearsOnRoleChangeAndSignOut": 180
+  },
+  "estimate_provenance": {
+    "basis": "Conservative grouping assumptions, not executed case timings. Successful measurements take priority. 23 original assumptions plus explicitly scoped later additions.",
+    "baseline_commit": "47ebc42c9dba1a6c9c4e93df0253a3a98da81c83",
+    "reference": "docs/ci-ui-topology-trial.md",
+    "methods": [
+      {
+        "method": "CooperationFlowUITests.testInvitationReviewRetainsReadableBoundIdentityAndTermsInBothLanguages",
+        "seconds": 120,
+        "source": "pending9",
+        "basis": "60 seconds per known source launch × 2",
+        "measured": false
+      },
+      {
+        "method": "MerchantEngagementFlowTests.testChineseOrdinaryHTTPProductionReviewCanBeCancelled",
+        "seconds": 60,
+        "source": "existing14",
+        "basis": "60-second unmeasured baseline",
+        "measured": false
+      },
+      {
+        "method": "MerchantTemplateAssistFlowTests.testCancelReviewDoesNotFillAndReopenHasNoCandidate",
+        "seconds": 60,
+        "source": "existing14",
+        "basis": "60-second unmeasured baseline",
+        "measured": false
+      },
+      {
+        "method": "MerchantTemplateAssistFlowTests.testDefaultOffSheetStillExplainsManualDraftPath",
+        "seconds": 60,
+        "source": "existing14",
+        "basis": "60-second unmeasured baseline",
+        "measured": false
+      },
+      {
+        "method": "MerchantTemplateAssistFlowTests.testPermissionErrorHasNoEnabledRetryWhileProviderErrorDoes",
+        "seconds": 60,
+        "source": "existing14",
+        "basis": "60-second unmeasured baseline",
+        "measured": false
+      },
+      {
+        "method": "MerchantTemplateAssistFlowTests.testReviewExplicitApplyReturnsToSameUnsavedTemplate",
+        "seconds": 60,
+        "source": "existing14",
+        "basis": "60-second unmeasured baseline",
+        "measured": false
+      },
+      {
+        "method": "RegistrationWaitlistUITests.testEssentialQuoteAmountCaptureInLightAndDarkBothLanguages",
+        "seconds": 240,
+        "source": "pending9",
+        "basis": "60 seconds per known source launch × 4",
+        "measured": false
+      },
+      {
+        "method": "RegistrationWaitlistUITests.testSoldOutGuidanceMatchesCapabilityAndStateInBothLanguages",
+        "seconds": 360,
+        "source": "pending9",
+        "basis": "60 seconds per known source launch × 6",
+        "measured": false
+      },
+      {
+        "method": "RegistrationWaitlistUITests.testUnreviewedOfferGuidanceExpiresWhileFormRemainsOpen",
+        "seconds": 60,
+        "source": "pending9",
+        "basis": "60 seconds per known source launch × 1",
+        "measured": false
+      },
+      {
+        "method": "SocialAccountFlowTests.testChineseLargeTextDraftCancelKeepsTextAndKeyboardDismisses",
+        "seconds": 60,
+        "source": "existing14",
+        "basis": "60-second unmeasured baseline",
+        "measured": false
+      },
+      {
+        "method": "SocialAccountFlowTests.testDraftSurvivesNestedReviewAndCancelThenDiscardReopensEmpty",
+        "seconds": 60,
+        "source": "existing14",
+        "basis": "60-second unmeasured baseline",
+        "measured": false
+      },
+      {
+        "method": "SquareReportFlowTests.testChangedContentRefreshesQualifiedTargetAndRequiresAnotherReview",
+        "seconds": 60,
+        "source": "existing14",
+        "basis": "60-second unmeasured baseline",
+        "measured": false
+      },
+      {
+        "method": "SquareReportFlowTests.testChangedPolicyClearsReasonAndDoesNotAcknowledgeSubmission",
+        "seconds": 60,
+        "source": "existing14",
+        "basis": "60-second unmeasured baseline",
+        "measured": false
+      },
+      {
+        "method": "SquareReportFlowTests.testChineseLargeTextReasonSheetCancelsWithoutSelecting",
+        "seconds": 60,
+        "source": "existing14",
+        "basis": "60-second unmeasured baseline",
+        "measured": false
+      },
+      {
+        "method": "SquareReportFlowTests.testNormalEntryRequiresReasonAndFactsAndReviewBackPreservesBoth",
+        "seconds": 60,
+        "source": "existing14",
+        "basis": "60-second unmeasured baseline",
+        "measured": false
+      },
+      {
+        "method": "SquareReportFlowTests.testSyntheticAcknowledgementReadsBackExactCaseWithoutResubmission",
+        "seconds": 60,
+        "source": "existing14",
+        "basis": "60-second unmeasured baseline",
+        "measured": false
+      },
+      {
+        "method": "SquareReportFlowTests.testUnknownOutcomeRemainsLockedAfterCloseAndReopen",
+        "seconds": 60,
+        "source": "existing14",
+        "basis": "60-second unmeasured baseline",
+        "measured": false
+      },
+      {
+        "method": "SquareWorkspaceFlowTests.testSuspendedRecoveryDisablesNewDraftTypingAndCompetingResume",
+        "seconds": 60,
+        "source": "existing14",
+        "basis": "60-second unmeasured baseline",
+        "measured": false
+      },
+      {
+        "method": "WalkingNavigationFlowTests.testChinesePauseAndAccountChangeClearRoute",
+        "seconds": 60,
+        "source": "pending9",
+        "basis": "60-second unmeasured baseline",
+        "measured": false
+      },
+      {
+        "method": "WalkingNavigationFlowTests.testFactoryRouteShowsStepsDistanceETAAndCancelResume",
+        "seconds": 60,
+        "source": "pending9",
+        "basis": "60-second unmeasured baseline",
+        "measured": false
+      },
+      {
+        "method": "WalkingNavigationFlowTests.testLockedTargetDoesNotRevealDestinationOrRoute",
+        "seconds": 60,
+        "source": "pending9",
+        "basis": "60-second unmeasured baseline",
+        "measured": false
+      },
+      {
+        "method": "WalkingNavigationFlowTests.testNoRouteIsUnavailableWithoutStraightLineFallback",
+        "seconds": 60,
+        "source": "pending9",
+        "basis": "60-second unmeasured baseline",
+        "measured": false
+      },
+      {
+        "method": "WalkingNavigationFlowTests.testPermissionDeniedNeverShowsRouteSteps",
+        "seconds": 60,
+        "source": "pending9",
+        "basis": "60-second unmeasured baseline",
+        "measured": false
+      },
+      {
+        "method": "ReferenceMapCardFlowTests.testFullBilingualCardTextAndMissingArtworkAtBothAppearancesAndSizes",
+        "seconds": 240,
+        "source": "reference11",
+        "basis": "60 seconds per known source launch × 4; unmeasured reference-layout UI",
+        "measured": false
+      },
+      {
+        "method": "ReferenceMapCardFlowTests.testCardAccessibilityAuditForNormalSyntheticFixture",
+        "seconds": 60,
+        "source": "reference11",
+        "basis": "60 seconds per known source launch × 1; unmeasured reference-layout UI",
+        "measured": false
+      },
+      {
+        "method": "WalkingNavigationFlowTests.testRoutingCanBeCancelledWithoutLateRouteAndReopened",
+        "seconds": 60,
+        "source": "reference11",
+        "basis": "60 seconds per known source launch × 1; unmeasured reference-layout UI",
+        "measured": false
+      },
+      {
+        "method": "WalkingNavigationFlowTests.testExpiredScopeDismissesStepsAndClearsDestination",
+        "seconds": 60,
+        "source": "reference11",
+        "basis": "60 seconds per known source launch × 1; unmeasured reference-layout UI",
+        "measured": false
+      },
+      {
+        "method": "WalkingNavigationFlowTests.testNearDestinationKeepsVerificationBoundary",
+        "seconds": 60,
+        "source": "reference11",
+        "basis": "60 seconds per known source launch × 1; unmeasured reference-layout UI",
+        "measured": false
+      },
+      {
+        "method": "WalkingNavigationFlowTests.testMaximumBilingualSummaryAndNativeStepsCanCloseAndReopen",
+        "seconds": 120,
+        "source": "reference11",
+        "basis": "60 seconds per known source launch × 2; unmeasured reference-layout UI",
+        "measured": false
+      },
+      {
+        "method": "SearchMapFlowTests.testCityListSelectionUsesSamePinAndPreservesExplicitMapGate",
+        "seconds": 60,
+        "source": "reference11",
+        "basis": "60 seconds per known source launch × 1; unmeasured reference-layout UI",
+        "measured": false
+      },
+      {
+        "method": "SearchMapFlowTests.testCityFilterCancelPreservesSelectionButApplyClearsIt",
+        "seconds": 60,
+        "source": "reference11",
+        "basis": "60 seconds per known source launch × 1; unmeasured reference-layout UI",
+        "measured": false
+      },
+      {
+        "method": "SearchMapFlowTests.testCityLoadingRetryAndScopeChangeNeverKeepSelectedPlace",
+        "seconds": 120,
+        "source": "reference11",
+        "basis": "60 seconds per known source launch × 2; unmeasured reference-layout UI",
+        "measured": false
+      },
+      {
+        "method": "SearchMapFlowTests.testCityEmptyStateRemainsExplicit",
+        "seconds": 60,
+        "source": "reference11",
+        "basis": "60 seconds per known source launch × 1; unmeasured reference-layout UI",
+        "measured": false
+      },
+      {
+        "method": "SearchMapFlowTests.testManualAreaChangeClearsSelectionAndRequiresMapOptInAgain",
+        "seconds": 60,
+        "source": "reference11",
+        "basis": "60 seconds per known source launch × 1; unmeasured reference-layout UI",
+        "measured": false
+      },
+      {
+        "method": "ReferenceChatTaskFlowTests.testNPCCancelReviewRetainsDraftAndCanReopen",
+        "seconds": 60,
+        "source": "referenceChatTask16",
+        "basis": "60-second unmeasured baseline for one explicit app launch; reopen/review work remains unmeasured",
+        "measured": false
+      },
+      {
+        "method": "ReferenceChatTaskFlowTests.testNPCUnknownResultRetainsReviewAndDoesNotInventReply",
+        "seconds": 60,
+        "source": "referenceChatTask16",
+        "basis": "60-second unmeasured baseline for one explicit app launch; reopen/review work remains unmeasured",
+        "measured": false
+      },
+      {
+        "method": "ReferenceChatTaskFlowTests.testNPCFailureKeepsTheExactReviewText",
+        "seconds": 60,
+        "source": "referenceChatTask16",
+        "basis": "60-second unmeasured baseline for one explicit app launch; reopen/review work remains unmeasured",
+        "measured": false
+      },
+      {
+        "method": "ReferenceChatTaskFlowTests.testNPCPendingDisablesDuplicateTransmissionAndScopeClearsPrivateText",
+        "seconds": 60,
+        "source": "referenceChatTask16",
+        "basis": "60-second unmeasured baseline for one explicit app launch; reopen/review work remains unmeasured",
+        "measured": false
+      },
+      {
+        "method": "ReferenceChatTaskFlowTests.testNPCChineseMaximumTextKeyboardAndReduceMotion",
+        "seconds": 60,
+        "source": "referenceChatTask16",
+        "basis": "60-second unmeasured baseline for one explicit app launch; reopen/review work remains unmeasured",
+        "measured": false
+      },
+      {
+        "method": "ReferenceChatTaskFlowTests.testMessageKeyboardKeepsSendActionReachable",
+        "seconds": 60,
+        "source": "referenceChatTask16",
+        "basis": "60-second unmeasured baseline for one explicit app launch; reopen/review work remains unmeasured",
+        "measured": false
+      },
+      {
+        "method": "ReferenceChatTaskFlowTests.testMessageUnknownIsNotAnAcceptedReceiptAndCancelRetryDoesNotSend",
+        "seconds": 60,
+        "source": "referenceChatTask16",
+        "basis": "60-second unmeasured baseline for one explicit app launch; reopen/review work remains unmeasured",
+        "measured": false
+      },
+      {
+        "method": "ReferenceChatTaskFlowTests.testMessageRejectedDoesNotShowAcceptedReceipt",
+        "seconds": 60,
+        "source": "referenceChatTask16",
+        "basis": "60-second unmeasured baseline for one explicit app launch; reopen/review work remains unmeasured",
+        "measured": false
+      },
+      {
+        "method": "ReferenceChatTaskFlowTests.testMessagePendingDoesNotPermitDuplicateSend",
+        "seconds": 60,
+        "source": "referenceChatTask16",
+        "basis": "60-second unmeasured baseline for one explicit app launch; reopen/review work remains unmeasured",
+        "measured": false
+      },
+      {
+        "method": "ReferenceChatTaskFlowTests.testMessageEarlierPageAndDetailReturnRetainHistory",
+        "seconds": 60,
+        "source": "referenceChatTask16",
+        "basis": "60-second unmeasured baseline for one explicit app launch; reopen/review work remains unmeasured",
+        "measured": false
+      },
+      {
+        "method": "ReferenceChatTaskFlowTests.testKnownProgressAndCurrentTaskReopenPreserveServerZero",
+        "seconds": 60,
+        "source": "referenceChatTask16",
+        "basis": "60-second unmeasured baseline for one explicit app launch; reopen/review work remains unmeasured",
+        "measured": false
+      },
+      {
+        "method": "ReferenceChatTaskFlowTests.testUnknownTotalShowsPhaseWithoutPercentage",
+        "seconds": 60,
+        "source": "referenceChatTask16",
+        "basis": "60-second unmeasured baseline for one explicit app launch; reopen/review work remains unmeasured",
+        "measured": false
+      },
+      {
+        "method": "ReferenceChatTaskFlowTests.testChineseServerCompletedHasNoCurrentAction",
+        "seconds": 60,
+        "source": "referenceChatTask16",
+        "basis": "60-second unmeasured baseline for one explicit app launch; reopen/review work remains unmeasured",
+        "measured": false
+      },
+      {
+        "method": "ReferenceChatTaskFlowTests.testFailedTaskReadCannotShowAProgressBarOrCurrentAction",
+        "seconds": 60,
+        "source": "referenceChatTask16",
+        "basis": "60-second unmeasured baseline for one explicit app launch; reopen/review work remains unmeasured",
+        "measured": false
+      },
+      {
+        "method": "ReferenceChatTaskFlowTests.testMessageAccountSwitchDoesNotRetainPrivateHistory",
+        "seconds": 60,
+        "source": "referenceChatTask16",
+        "basis": "60-second unmeasured baseline for one explicit app launch; reopen/review work remains unmeasured",
+        "measured": false
+      },
+      {
+        "method": "ReferenceChatTaskFlowTests.testMerchantAIIdentityIsVisibleAndReopenStartsFresh",
+        "seconds": 60,
+        "source": "referenceChatTask16",
+        "basis": "60-second unmeasured baseline for one explicit app launch; reopen/review work remains unmeasured",
+        "measured": false
+      },
+      {
+        "method": "NativePresentationPatternFlowTests.testGalleryEnglishPagesClosesAndReopensAtSelectedImage",
+        "seconds": 60,
+        "source": "referencePresentation10",
+        "basis": "1 explicit app launch(es) at60seconds per launch; unmeasured navigation/reopen/layout work",
+        "measured": false
+      },
+      {
+        "method": "NativePresentationPatternFlowTests.testGalleryChineseMaximumTextDarkReducedMotionKeepsPagingAndClose",
+        "seconds": 60,
+        "source": "referencePresentation10",
+        "basis": "1 explicit app launch(es) at60seconds per launch; unmeasured navigation/reopen/layout work",
+        "measured": false
+      },
+      {
+        "method": "NativePresentationPatternFlowTests.testMalformedImageFinishesWithRetryAndClose",
+        "seconds": 60,
+        "source": "referencePresentation10",
+        "basis": "1 explicit app launch(es) at60seconds per launch; unmeasured navigation/reopen/layout work",
+        "measured": false
+      },
+      {
+        "method": "NativePresentationPatternFlowTests.testGalleryScopeChangeDismissesWithoutStaleReopen",
+        "seconds": 60,
+        "source": "referencePresentation10",
+        "basis": "1 explicit app launch(es) at60seconds per launch; unmeasured navigation/reopen/layout work",
+        "measured": false
+      },
+      {
+        "method": "NativePresentationPatternFlowTests.testDisabledMediaAndCameraEntrypointsDoNotSpinOrRequestPermission",
+        "seconds": 180,
+        "source": "referencePresentation10",
+        "basis": "3 explicit app launch(es) at60seconds per launch; unmeasured navigation/reopen/layout work",
+        "measured": false
+      },
+      {
+        "method": "NativePresentationPatternFlowTests.testParticipationSupportStaysInSheetAndReturnsBeforeClose",
+        "seconds": 60,
+        "source": "referencePresentation10",
+        "basis": "1 explicit app launch(es) at60seconds per launch; unmeasured navigation/reopen/layout work",
+        "measured": false
+      },
+      {
+        "method": "NativePresentationPatternFlowTests.testParticipationPlayWaitsForSheetDismissal",
+        "seconds": 60,
+        "source": "referencePresentation10",
+        "basis": "1 explicit app launch(es) at60seconds per launch; unmeasured navigation/reopen/layout work",
+        "measured": false
+      },
+      {
+        "method": "NativePresentationPatternFlowTests.testParticipationFailureRetriesAndScopeExpiryDismisses",
+        "seconds": 120,
+        "source": "referencePresentation10",
+        "basis": "2 explicit app launch(es) at60seconds per launch; unmeasured navigation/reopen/layout work",
+        "measured": false
+      },
+      {
+        "method": "NativeSettingsReuseFlowTests.testFollowSystemPersistsAcrossRelaunchWithoutChangingUSMarket",
+        "seconds": 120,
+        "source": "referencePresentation10",
+        "basis": "2 explicit app launch(es) at60seconds per launch; unmeasured navigation/reopen/layout work",
+        "measured": false
+      },
+      {
+        "method": "NativeSettingsReuseFlowTests.testMaximumTextLegalMissingStateBackAndReopenInBothLanguages",
+        "seconds": 120,
+        "source": "referencePresentation10",
+        "basis": "2 explicit app launch(es) at60seconds per launch; unmeasured navigation/reopen/layout work",
+        "measured": false
+      },
+      {
+        "method": "MerchantMarketingUITests.testPredictionReviewLargeTextKeepsFixtureControlsClearOfOptions",
+        "seconds": 90,
+        "source": "run77MarketingFixture",
+        "basis": "1 launch plus large-text scrolling, review and cancellation; unmeasured conservative source estimate",
+        "measured": false
+      },
+      {
+        "method": "AccessibilityPresentationFlowTests.testMaximumTextWinsWhenBothCanonicalSizeFlagsArePresent",
+        "seconds": 60,
+        "source": "run77FixtureEnvironment",
+        "basis": "One launch and actual root environment observation; unmeasured source estimate",
+        "measured": false
+      },
+      {
+        "method": "PrivateHomeFlowTests.testDisabledFeatureNeverRequestsLocationOrShowsMutationControls",
+        "seconds": 90,
+        "source": "privateHomeOwner",
+        "basis": "1 explicit launch plus form typing/review/retry; unmeasured conservative source estimate",
+        "measured": false
+      },
+      {
+        "method": "PrivateHomeFlowTests.testCancelReviewDoesNotSaveAndRemovesSensitiveDraft",
+        "seconds": 90,
+        "source": "privateHomeOwner",
+        "basis": "1 explicit launch plus form typing/review/retry; unmeasured conservative source estimate",
+        "measured": false
+      },
+      {
+        "method": "PrivateHomeFlowTests.testLostResponseLocksNewChangesAndExactRetrySettles",
+        "seconds": 90,
+        "source": "privateHomeOwner",
+        "basis": "1 explicit launch plus form typing/review/retry; unmeasured conservative source estimate",
+        "measured": false
+      },
+      {
+        "method": "PrivateHomeFlowTests.testDeleteRequiresReviewAndClearsHome",
+        "seconds": 90,
+        "source": "privateHomeOwner",
+        "basis": "1 explicit launch plus form typing/review/retry; unmeasured conservative source estimate",
+        "measured": false
+      },
+      {
+        "method": "PrivateHomeMapPickerFlowTests.testInactiveProviderExplainsGateAndManualEntryStillReviews",
+        "seconds": 120,
+        "source": "privateHomeMapPicker",
+        "basis": "Synthetic source-only picker flow with scrolling; unmeasured conservative estimate, no Apple execution",
+        "measured": false
+      },
+      {
+        "method": "PrivateHomeMapPickerFlowTests.testSelectionReviewAndConfirmUseExactPointThroughOwnerRecorder",
+        "seconds": 120,
+        "source": "privateHomeMapPicker",
+        "basis": "Synthetic source-only picker flow with scrolling; unmeasured conservative estimate, no Apple execution",
+        "measured": false
+      },
+      {
+        "method": "PrivateHomeMapPickerFlowTests.testCancelReopenHasNoSelectedPointAndReviewCancelNeverSaves",
+        "seconds": 120,
+        "source": "privateHomeMapPicker",
+        "basis": "Synthetic source-only picker flow with scrolling; unmeasured conservative estimate, no Apple execution",
+        "measured": false
+      },
+      {
+        "method": "PrivateHomeMapPickerFlowTests.testUnknownDatumPrecisionAndRangeClearPreviouslyValidPreview",
+        "seconds": 120,
+        "source": "privateHomeMapPicker",
+        "basis": "Synthetic source-only picker flow with scrolling; unmeasured conservative estimate, no Apple execution",
+        "measured": false
+      },
+      {
+        "method": "PrivateHomeMapPickerFlowTests.testSessionInvalidationDismissesSelectionWithoutSave",
+        "seconds": 120,
+        "source": "privateHomeMapPicker",
+        "basis": "Synthetic source-only picker flow with scrolling; unmeasured conservative estimate, no Apple execution",
+        "measured": false
+      },
+      {
+        "method": "PrivateHomeMapPickerFlowTests.testLostMapSaveRequiresExactRetryAndNoNewSelection",
+        "seconds": 120,
+        "source": "privateHomeMapPicker",
+        "basis": "Synthetic source-only picker flow with scrolling; unmeasured conservative estimate, no Apple execution",
+        "measured": false
+      },
+      {
+        "method": "PrivateHomeMapPickerFlowTests.testBothLanguagesMaximumTextKeepPreviewAndCancellationReachable",
+        "seconds": 180,
+        "source": "privateHomeMapPicker",
+        "basis": "Synthetic source-only picker flow with scrolling; unmeasured conservative estimate, no Apple execution",
+        "measured": false
+      },
+      {
+        "method": "PrivateHomeMapPickerFlowTests.testSameAccountRouteReplacementClearsManualFields",
+        "seconds": 150,
+        "source": "privateHomeMapPicker",
+        "basis": "Synthetic identity/revocation regression flow; unmeasured conservative estimate, no Apple execution",
+        "measured": false
+      },
+      {
+        "method": "PrivateHomeMapPickerFlowTests.testSameAccountRouteReplacementDiscardsPickerAndLateCallback",
+        "seconds": 150,
+        "source": "privateHomeMapPicker",
+        "basis": "Synthetic identity/revocation regression flow; unmeasured conservative estimate, no Apple execution",
+        "measured": false
+      },
+      {
+        "method": "PrivateHomeMapPickerFlowTests.testSourceRevocationAfterReviewBlocksFinalConfirmation",
+        "seconds": 150,
+        "source": "privateHomeMapPicker",
+        "basis": "Synthetic identity/revocation regression flow; unmeasured conservative estimate, no Apple execution",
+        "measured": false
+      },
+      {
+        "method": "ClubManagementFlowTests.testDeniedAndMalformedRefreshClearPrivateApplicantData",
+        "seconds": 120,
+        "source": "queuedRun96",
+        "measured": false,
+        "basis": "Two fresh launches; two denied/malformed refresh and privacy checks."
+      },
+      {
+        "method": "ClubManagementFlowTests.testInterruptedRefreshClearsLoadingAndLateFailureCannotReplaceFreshList",
+        "seconds": 90,
+        "source": "queuedRun96",
+        "measured": false,
+        "basis": "Delayed read release, back/reopen and newer-read precedence checks."
+      },
+      {
+        "method": "ClubManagementFlowTests.testRoleABAWhileReadPendingCannotRestoreOldReview",
+        "seconds": 90,
+        "source": "queuedRun96",
+        "measured": false,
+        "basis": "Delayed role ABA and stale-review rejection."
+      },
+      {
+        "method": "ClubManagementFlowTests.testRoleOnlyChangeClearsStaleApplicantWithoutAccountChange",
+        "seconds": 60,
+        "source": "queuedRun96",
+        "measured": false,
+        "basis": "One launch; stale-context refresh and role invalidation."
+      },
+      {
+        "method": "ClubManagementFlowTests.testRoleOnlyChangeDoesNotClearUnknownWriteLock",
+        "seconds": 90,
+        "source": "queuedRun96",
+        "measured": false,
+        "basis": "One launch; unknown submit, role change and lock preservation."
+      },
+      {
+        "method": "ClubManagementFlowTests.testTransientListRefreshPreservesApplicantWithoutClaimingFreshness",
+        "seconds": 60,
+        "source": "queuedRun96",
+        "measured": false,
+        "basis": "One launch; transient list failure then read-only detail."
+      },
+      {
+        "method": "ClubManagementFlowTests.testTransientRefreshRetainsReadOnlyContextAndRetryRestoresReview",
+        "seconds": 90,
+        "source": "queuedRun96",
+        "measured": false,
+        "basis": "One launch; failure, retry, review and cancel."
+      },
+      {
+        "method": "MerchantOperationsFlowTests.testBusinessStatusReviewCancelAndAuthoritativeOfflineSave",
+        "seconds": 60,
+        "source": "queuedRun96",
+        "measured": false,
+        "basis": "One launch; review cancellation then offline save and lock assertions."
+      },
+      {
+        "method": "MerchantOperationsFlowTests.testBusinessStatusUnknownDoesNotAllowRepeatSave",
+        "seconds": 60,
+        "source": "queuedRun96",
+        "measured": false,
+        "basis": "One launch; offline unknown save and replay-lock assertions."
+      },
+      {
+        "method": "ProjectEditFlowTests.testFreeExploreTicketThemeDateSyncAndReturnToManualDates",
+        "seconds": 90,
+        "source": "queuedRun96",
+        "measured": false,
+        "basis": "One launch; ticket edit, two switches, return and review cancellation."
+      },
+      {
+        "method": "RetainedImageUITests.testUploadByteCountUsesSelectedLanguageInProductionReview",
+        "seconds": 240,
+        "source": "queuedRun96",
+        "measured": false,
+        "basis": "Four launches across two explicit app languages; settings selection and production upload-review readback. 60 seconds per launch envelope; unmeasured."
+      },
+      {
+        "method": "TeamFlowTests.testAlreadyJoinedInvitationOpensDetailBackAndReopens",
+        "seconds": 90,
+        "source": "queuedRun96",
+        "measured": false,
+        "basis": "One launch; detail/back/reopen and read-only action checks."
+      },
+      {
+        "method": "TeamFlowTests.testNonmemberInvitationHasNoOwnedDetailShortcut",
+        "seconds": 60,
+        "source": "queuedRun96",
+        "measured": false,
+        "basis": "One launch; verify join and no owner shortcut."
+      },
+      {
+        "method": "TeamFlowTests.testPostJoinOpensReadOnlyDetailBackAndReopens",
+        "seconds": 90,
+        "source": "queuedRun96",
+        "measured": false,
+        "basis": "One launch; join review, read-only detail/back/reopen, guest teardown."
+      },
+      {
+        "method": "TemplateOwnShelfFlowTests.testOwnedDetailBackAndReopenKeepsStableDestination",
+        "seconds": 90,
+        "source": "queuedRun96",
+        "measured": false,
+        "basis": "One launch; two detail/back/reopen cycles with library reachability."
+      },
+      {
+        "method": "IntegratedNativeAcceptanceFlowTests.testNormalRootTeamReadOnlyJourney",
+        "seconds": 180,
+        "source": "queuedRun96",
+        "measured": false,
+        "basis": "Normal-root sign-in, Account/team navigation, disabled write review and ledger validation. Existing same-class run96 successful methods132.433–162.555s; use180s rounded above observed maximum. This new method is unmeasured."
+      },
+      {
+        "method": "IntegratedNativeAcceptanceFlowTests.testNormalRootOwnedShelfPaginationAndDetailWithoutMutation",
+        "seconds": 180,
+        "source": "queuedRuntimeReadBridges",
+        "measured": false,
+        "basis": "Synthetic login, normal account navigation, two shelf pages and owned detail; rounded above measured same-class132.433–162.555 second journeys."
+      },
+      {
+        "method": "IntegratedNativeAcceptanceFlowTests.testNormalRootIMHistoryNeverMarksReadOrSends",
+        "seconds": 180,
+        "source": "queuedRuntimeReadBridges",
+        "measured": false,
+        "basis": "Synthetic login, normal account navigation, conversation and two history pages; rounded above measured same-class132.433–162.555 second journeys."
+      },
+      {
+        "method": "IntegratedNativeAcceptanceFlowTests.testNormalRootIMHistoryDefaultNilNeverDispatches",
+        "seconds": 120,
+        "source": "queuedRuntimeReadBridges",
+        "measured": false,
+        "basis": "Synthetic login and normal account navigation to explicitly unavailable history; bounded unmeasured assumption."
+      },
+      {
+        "method": "CouponRuntimeFlowTests.testNormalRootReadOnlyLeaseCannotConfirm",
+        "seconds": 180,
+        "source": "couponRuntimeIndependentReview",
+        "measured": false,
+        "basis": "Normal-root login/navigation and confirmed coupon journey;180s per launch based on existing normal-root observed132.433–162.555s, restart case has two launches."
+      },
+      {
+        "method": "CouponRuntimeFlowTests.testNormalRootExplicitCreateThenOwnedStop",
+        "seconds": 180,
+        "source": "couponRuntimeIndependentReview",
+        "measured": false,
+        "basis": "Normal-root login/navigation and confirmed coupon journey;180s per launch based on existing normal-root observed132.433–162.555s, restart case has two launches."
+      },
+      {
+        "method": "CouponRuntimeFlowTests.testNormalRootTimeoutCannotRepeatConfirmedPublication",
+        "seconds": 180,
+        "source": "couponRuntimeIndependentReview",
+        "measured": false,
+        "basis": "Normal-root login/navigation and confirmed coupon journey;180s per launch based on existing normal-root observed132.433–162.555s, restart case has two launches."
+      },
+      {
+        "method": "CouponRuntimeFlowTests.testNormalRootFreshPermissionRevokedAtConfirmDoesNotWrite",
+        "seconds": 180,
+        "source": "couponRuntimeIndependentReview",
+        "measured": false,
+        "basis": "Normal-root login/navigation and confirmed coupon journey;180s per launch based on existing normal-root observed132.433–162.555s, restart case has two launches."
+      },
+      {
+        "method": "CouponRuntimeFlowTests.testNormalRootDiskRestartDoesNotRedispatchUnknownCreation",
+        "seconds": 360,
+        "source": "couponRuntimeIndependentReview",
+        "measured": false,
+        "basis": "Normal-root login/navigation and confirmed coupon journey;180s per launch based on existing normal-root observed132.433–162.555s, restart case has two launches."
+      },
+      {
+        "method": "CouponRuntimeFlowTests.testChineseNormalRootLabelsAndReadOnlyConfirmation",
+        "seconds": 180,
+        "source": "couponRuntimeIndependentReview",
+        "measured": false,
+        "basis": "Normal-root login/navigation and confirmed coupon journey;180s per launch based on existing normal-root observed132.433–162.555s, restart case has two launches."
+      },
+      {
+        "method": "CouponCommandRecoveryFlowTests.testV1ReadOnlyReceiptRecoveryAfterRestartAndNotFoundKeepsJournal",
+        "seconds": 540,
+        "source": "couponCommandRecoveryReview",
+        "measured": false,
+        "basis": "Three full normal-root launches in one recovery journey; preserves existing reviewed180s per launch estimate. No runtime observation yet."
+      },
+      {
+        "method": "IntegratedNativeAcceptanceFlowTests.testNormalRootOwnedConfigurationReadOnlyAndStoryReturn",
+        "seconds": 180,
+        "source": "queuedOwnedTemplateConfiguration",
+        "measured": false,
+        "basis": "Normal-root synthetic sign-in, two shelf pages, read-only owner QA inspection, story child and return; estimated from existing same-class journeys, not a measured run."
+      },
+      {
+        "method": "TemplatePreferenceDraftEditorFlowTests.testNormalMethodEntryPreservesOriginalJSONAndKeepsRemoteActionsDisabled",
+        "seconds": 120,
+        "source": "localTemplateEditorAcceptance",
+        "measured": false,
+        "basis": "One synthetic launch, real intro/name/method picker, bounded single-dimension preview and full form local-only fence assertions. Unmeasured120s planning allowance; no Apple runtime observation."
+      },
+      {
+        "method": "TemplatePreferenceDraftEditorFlowTests.testInvalidCurrentTextClearsOldPreviewAndSurvivesExplicitSaveRestore",
+        "seconds": 120,
+        "source": "localTemplateEditorAcceptance",
+        "measured": false,
+        "basis": "One synthetic launch, real small text insertion, current validation, local save, coordinator reopen and explicit restore/recheck. No full app relaunch; unmeasured120s planning allowance."
+      },
+      {
+        "method": "TemplatePreferenceDraftEditorFlowTests.testSwitchingMethodCancelsPriorPreviewAndRequiresFreshValidation",
+        "seconds": 120,
+        "source": "localTemplateEditorAcceptance",
+        "measured": false,
+        "basis": "One synthetic launch, real method picker entry, local validation, switch away/back and fresh validation. Compact single-dimension preview; unmeasured120s planning allowance."
+      },
+      {
+        "method": "TemplateSensorDraftFlowTests.testCurrentSensorPreviewAndRestorePreserveExactOriginalJSON",
+        "seconds": 240,
+        "source": "localTemplateEditorAcceptance",
+        "measured": false,
+        "basis": "Sensor acceptance owner estimate: bounded local method selection over seeded steps, parameter editing, current preview, exact original/current JSON probes and explicit save/restore. Unmeasured240s planning allowance."
+      },
+      {
+        "method": "TemplateSensorDraftFlowTests.testHistoricalUnknownAndAmbiguousConfigurationsRemainReadOnly",
+        "seconds": 240,
+        "source": "localTemplateEditorAcceptance",
+        "measured": false,
+        "basis": "Sensor acceptance owner estimate: two bounded synthetic launches, unknown historical type plus known type with unknown fields, read-only verification and source preservation. Unmeasured240s planning allowance."
+      },
+      {
+        "method": "ModuleFlowTests.testClubCustomerHistoryOpensReturnedTopicAndCanReopenAfterBack",
+        "seconds": 120,
+        "source": "cumulativeClubMerchantAcceptance",
+        "measured": false,
+        "basis": "One synthetic launch, real customer-history topic route with two open/back cycles;120s unmeasured allowance above existing same-class12–35s observations. Owner confirmed scope."
+      },
+      {
+        "method": "ModuleFlowTests.testClubCustomerHistoryMissingAndForeignIDsRemainReadOnly",
+        "seconds": 120,
+        "source": "cumulativeClubMerchantAcceptance",
+        "measured": false,
+        "basis": "One synthetic launch, current customer detail and missing/foreign topic read-only assertions;120s unmeasured allowance, owner confirmed bounded scope."
+      },
+      {
+        "method": "ModuleFlowTests.testClubCustomerHistoryTopicClearsOnAccountAndRoleChanges",
+        "seconds": 240,
+        "source": "cumulativeClubMerchantAcceptance",
+        "measured": false,
+        "basis": "Two synthetic launches: topic cleared by account switch and by role revoke/restore;120s per launch,240s unmeasured allowance. Owner confirmed no additional launches."
+      },
+      {
+        "method": "ClubGovernanceFlowTests.testWorkspaceCustomerHistoryUsesTheSameTopicDestination",
+        "seconds": 120,
+        "source": "cumulativeClubMerchantAcceptance",
+        "measured": false,
+        "basis": "One synthetic launch, workspace/customer/topic navigation and back;120s unmeasured allowance above existing same-class15–48s observations."
+      },
+      {
+        "method": "MerchantBusinessFlowTests.testReviewFiltersUseCurrentPageAndKeepServerMetrics",
+        "seconds": 120,
+        "source": "cumulativeClubMerchantAcceptance",
+        "measured": false,
+        "basis": "One synthetic launch with all/pending/low/photos filters, empty/reset and unchanged server metrics;120s unmeasured allowance above same-class7–36s observations."
+      },
+      {
+        "method": "MerchantBusinessFlowTests.testChineseAftercareSearchSpansLoadedPages",
+        "seconds": 180,
+        "source": "nextPlayerFeatureAcceptance",
+        "measured": false,
+        "basis": "One synthetic Chinese launch with four-field local search, accumulated two-page search, refresh reset and loading page two again; 180s unmeasured planning allowance. No Apple runtime observation."
+      },
+      {
+        "method": "ActivityFlowTests.testPeopleOpenExactProfilesAndPreserveReadOnlyRowsAfterBack",
+        "seconds": 180,
+        "source": "nextPlayerFeatureAcceptance",
+        "measured": false,
+        "basis": "One synthetic launch with host and participant profile navigation, repeated detail/profile reopening, read-only missing identifiers and account-switch removal; 180s unmeasured planning allowance. No Apple runtime observation."
+      },
+      {
+        "method": "ActivityFlowTests.testReviewPreviewKeepsServerTotalAndSurvivesBackAndReopen",
+        "seconds": 180,
+        "source": "detailFavoritesAcceptance",
+        "measured": false,
+        "basis": "One synthetic launch with two activity detail open/back cycles and repeated review scrolling, independent average/count/text assertions and absence checks. 180s unmeasured planning allowance; no Apple timing observation."
+      },
+      {
+        "method": "ActivityFlowTests.testKnownEmptyReviewsDoNotShowAZeroStarRating",
+        "seconds": 120,
+        "source": "detailFavoritesAcceptance",
+        "measured": false,
+        "basis": "One synthetic launch, detail navigation, review-section scrolling and confirmed-zero absence checks. 120s unmeasured allowance above existing same-class 24–116s observed methods; no Apple timing observation."
+      },
+      {
+        "method": "ActivityFlowTests.testMissingReviewsRemainUnknownRatherThanEmptyOrFiveStars",
+        "seconds": 120,
+        "source": "detailFavoritesAcceptance",
+        "measured": false,
+        "basis": "One synthetic launch, detail navigation, review-section scrolling and unavailable-metadata assertions. 120s unmeasured allowance; no Apple timing observation."
+      },
+      {
+        "method": "TopicFlowTests.testChapterItineraryEstimatesUnknownLegsAndBackReopen",
+        "seconds": 180,
+        "source": "detailFavoritesAcceptance",
+        "measured": false,
+        "basis": "One synthetic launch with four chapter opens, three back navigations, bounded scrolling and independent missing-leg, cross-chapter and empty-state assertions. 180s unmeasured allowance; no Apple timing observation."
+      },
+      {
+        "method": "TopicFlowTests.testChapterItineraryEstimateUsesChineseLabels",
+        "seconds": 120,
+        "source": "detailFavoritesAcceptance",
+        "measured": false,
+        "basis": "One synthetic Chinese launch with chapter navigation and localized estimate/notice assertions. 120s unmeasured allowance; no Apple timing observation."
+      },
+      {
+        "method": "AccountCollectionFlowTests.testSavedPostsAreDefaultAndOpenLegacyDetailThenReturn",
+        "seconds": 180,
+        "source": "detailFavoritesAcceptance",
+        "measured": false,
+        "basis": "One synthetic launch, favorites and legacy-detail sheet navigation/dismissal plus two tab switches and row restoration. 180s unmeasured allowance. The sheet fixture is not a production navigationDestination runtime test."
+      },
+      {
+        "method": "AccountCollectionFlowTests.testSavedPostPageFailureRetainsRowsAndRetryDoesNotSkip",
+        "seconds": 120,
+        "source": "detailFavoritesAcceptance",
+        "measured": false,
+        "basis": "One synthetic launch with favorites navigation, failed next-page load, scroll-to-retry and deduplication/page recovery assertions. 120s unmeasured allowance; no Apple timing observation."
+      },
+      {
+        "method": "AccountCollectionFlowTests.testSavedPostFailureDoesNotPoisonTopicCollection",
+        "seconds": 120,
+        "source": "detailFavoritesAcceptance",
+        "measured": false,
+        "basis": "One synthetic launch with saved-post failure, topic-tab navigation and failure isolation assertions. 120s unmeasured allowance; no Apple timing observation."
+      },
+      {
+        "method": "AccountCollectionFlowTests.testSavedPostsDistinguishEmptyFromUnavailableAndClearOnSignOut",
+        "seconds": 240,
+        "source": "detailFavoritesAcceptance",
+        "measured": false,
+        "basis": "Two synthetic launches: confirmed empty favorites, then populated favorites with sign-out and reopening. 120s per launch, 240s unmeasured allowance; no Apple timing observation."
+      },
+      {
+        "method": "WalkingNavigationFlowTests.testBilingualMaximumCameraActionsAreExplicitAndClearWithRoute",
+        "seconds": 180,
+        "measured": false,
+        "source": "walkingCameraAcceptance",
+        "basis": "Unmeasured bilingual maximum-text synthetic route/target camera actions with summary scrolling, steps close, pause/resume and cancel; Apple execution remains required."
+      },
+      {
+        "method": "TopicFlowTests.testReviewSummaryKeepsServerTotalAcrossDifferentRoutesAndReopen",
+        "seconds": 210,
+        "measured": false,
+        "source": "topicReviewReadout",
+        "basis": "One synthetic launch with three topic detail opens, two back navigations, bounded review scrolling, count/average/invalid-score checks and cross-route/reopen assertions. Unmeasured allowance; no Apple timing observation."
+      },
+      {
+        "method": "TopicFlowTests.testKnownEmptyTopicReviewsUseChineseEmptyStateWithoutZeroStars",
+        "seconds": 90,
+        "measured": false,
+        "source": "topicReviewReadout",
+        "basis": "One Chinese synthetic launch with route navigation, bounded scrolling and confirmed-zero/empty/composer-preservation assertions. Unmeasured allowance; no Apple timing observation."
+      },
+      {
+        "method": "TopicFlowTests.testMissingTopicReviewMetadataStaysUnknownWithoutFalseEmpty",
+        "seconds": 90,
+        "measured": false,
+        "source": "topicReviewReadout",
+        "basis": "One synthetic launch with route navigation, bounded scrolling and independent unknown-average/count/preview assertions. Unmeasured allowance; no Apple timing observation."
+      },
+      {
+        "method": "SquareFlowTests.testRelatedTopicOpensExactLegacyReadAndReopensAfterBack",
+        "seconds": 180,
+        "source": "relatedTopicAcceptance",
+        "measured": false,
+        "basis": "One synthetic launch, legacy detail/topic navigation, repeated back/reopen, explicit fixture scope reset and post reopening. Explicit unmeasured planning allowance."
+      },
+      {
+        "method": "SquareFlowTests.testCommunityTopicReferenceAndMissingLegacyAssociationRemainSeparate",
+        "seconds": 240,
+        "source": "relatedTopicAcceptance",
+        "measured": false,
+        "basis": "Two synthetic launches with community post-to-topic navigation and separate missing legacy association assertions; 120 seconds per launch. Explicit unmeasured planning allowance."
+      },
+      {
+        "method": "SquareFlowTests.testUnavailableRelatedTopicKeepsPostAccessibleAfterBack",
+        "seconds": 180,
+        "source": "relatedTopicAcceptance",
+        "measured": false,
+        "basis": "One Chinese synthetic launch, legacy post/topic navigation, unavailable read retry, back to retained post and reopening. Explicit unmeasured planning allowance."
+      },
+      {
+        "method": "SettingsNativeFlowTests.testAttributionCopiesEachExactSourceAddressWithSeparateFeedback",
+        "seconds": 120,
+        "measured": false,
+        "basis": "One synthetic launch, settings bottom scroll, two local-copy taps, distinct feedback and exact-value recorder checks.",
+        "source": "settingsAttributionCopy"
+      },
+      {
+        "method": "SettingsNativeFlowTests.testAttributionCopyFailureKeepsSourceVisibleAndExplicitRetrySucceeds",
+        "seconds": 90,
+        "measured": false,
+        "basis": "One synthetic launch, settings bottom scroll, injected first failure, explicit retry and exact-value recorder check.",
+        "source": "settingsAttributionCopy"
+      },
+      {
+        "method": "SettingsNativeFlowTests.testChineseMaximumTextAttributionCopyResetsAfterAboutNavigation",
+        "seconds": 180,
+        "measured": false,
+        "basis": "One Chinese dark-mode maximum-text launch, bounded scrolling, copy, About/back navigation and repeated copy; no Apple timing observation.",
+        "source": "settingsAttributionCopy"
+      },
+      {
+        "method": "ModuleFlowTests.testClubMemberGateAndReadOnlyMemberList",
+        "seconds": 60,
+        "measured": false,
+        "source": "clubMemberDisplayExpansion",
+        "basis": "Existing one-launch club detail/member-list flow now reads three member accessibility labels and checks creator, administrator and ordinary-member level/join text. Its 17.292s observation predates these assertions and is superseded for planning. A 60s full-method unmeasured allowance uses the existing conservative fallback, exceeds that prior observation by 42.708s, and includes the expanded assertion work despite no new launch or wait. Apple runtime measurement is still required."
+      },
+      {
+        "method": "PublicMerchantHomeFlowTests.testFeaturedActivityUsesExactIDAfterBackAndUnavailableDetail",
+        "seconds": 210,
+        "measured": false,
+        "source": "publicMerchantFeatured",
+        "basis": "Unmeasured allowance for explicit DEBUG-only public card navigation, relaunch, scope replacement and accessibility scenario; requires Apple execution."
+      },
+      {
+        "method": "PublicMerchantHomeFlowTests.testFeaturedCouponOpensWalletWithoutOwnedIDOrCodeInChineseLargeText",
+        "seconds": 120,
+        "measured": false,
+        "source": "publicMerchantFeatured",
+        "basis": "Unmeasured allowance for explicit DEBUG-only public card navigation, relaunch, scope replacement and accessibility scenario; requires Apple execution."
+      },
+      {
+        "method": "PublicMerchantHomeFlowTests.testMissingUnknownAndMalformedFeaturedCardsLeaveProfileUsable",
+        "seconds": 360,
+        "measured": false,
+        "source": "publicMerchantFeatured",
+        "basis": "Unmeasured allowance for explicit DEBUG-only public card navigation, relaunch, scope replacement and accessibility scenario; requires Apple execution."
+      },
+      {
+        "method": "PublicMerchantHomeFlowTests.testFeaturedSelectionClosesWhenReadScopeChangesThenUsesNewSnapshot",
+        "seconds": 180,
+        "measured": false,
+        "source": "publicMerchantFeatured",
+        "basis": "Unmeasured allowance for explicit DEBUG-only public card navigation, relaunch, scope replacement and accessibility scenario; requires Apple execution."
+      },
+      {
+        "method": "PublicPlayTemplatePresentationFlowTests.testPublisherStoryGallerySelectedImageBackAndReopen",
+        "seconds": 60,
+        "measured": false,
+        "source": "PublicPlayTemplatePresentationFlowTests.swift; source-authored planning estimate, no Apple run",
+        "basis": "One app launch; switch to play shelf, open detail, inspect separate attribution/story, select second image, page, close/reopen, back to shelf and reopen detail."
+      },
+      {
+        "method": "PublicPlayTemplatePresentationFlowTests.testImageOnlyChineseMaximumTextHasNoInventedPublisherOrCount",
+        "seconds": 60,
+        "measured": false,
+        "source": "PublicPlayTemplatePresentationFlowTests.swift; source-authored planning estimate, no Apple run",
+        "basis": "One app launch with Chinese maximum text/dark/reduced-motion; shelf navigation, image-only metadata check, open/close one-image gallery and check focus-return target."
+      },
+      {
+        "method": "PublicPlayTemplatePresentationFlowTests.testDuplicateImagesAndKnownZeroRemainDistinctFromMissing",
+        "seconds": 90,
+        "measured": false,
+        "source": "PublicPlayTemplatePresentationFlowTests.swift; source-authored planning estimate, no Apple run",
+        "basis": "Two app launches; navigate to duplicate-image detail and open/close gallery, then navigate to missing-metadata detail and inspect absence of fabricated image/author/count."
+      },
+      {
+        "method": "PublicPlayTemplatePresentationFlowTests.testOriginDeniedCanRetryAndCloseWithoutRequestingPermission",
+        "seconds": 60,
+        "measured": false,
+        "source": "PublicPlayTemplatePresentationFlowTests.swift; source-authored planning estimate, no Apple run",
+        "basis": "One app launch; navigate to detail, open gallery through the existing empty-origin rejecting reader, retry denial, close and verify no fixture byte read or permission alert."
+      },
+      {
+        "method": "PublicPlayTemplatePresentationFlowTests.testReaderContextReplacementDismissesOldGalleryAndReloadsSameID",
+        "seconds": 60,
+        "measured": false,
+        "source": "PublicPlayTemplatePresentationFlowTests.swift; source-authored planning estimate, no Apple run",
+        "basis": "One app launch; wait for offline thumbnails, arm context replacement, open gallery to trigger replacement, await dismissal and same-ID reload, reopen replacement image and close."
+      },
+      {
+        "method": "PublicPlayTemplatePresentationFlowTests.testReadFailureRetriesAndDefaultDisabledMediaDoesNotSpin",
+        "seconds": 90,
+        "measured": false,
+        "source": "PublicPlayTemplatePresentationFlowTests.swift; source-authored planning estimate, no Apple run",
+        "basis": "Two app launches; public detail failure/retry to content, then disabled-reader detail/gallery open, finite unavailable state and close."
+      },
+      {
+        "method": "SocialAccountFlowTests.testHTMLArticleIsReadableInertAndReopensAfterBack",
+        "seconds": 180,
+        "measured": false,
+        "basis": "One synthetic guide launch, open detail, bounded scrolling through paragraphs/lists/link label, inertness checks, back and reopen. Apple execution and timing are unrun.",
+        "source": "helpArticleReadability"
+      },
+      {
+        "method": "SocialAccountFlowTests.testChineseLargeTextArticleReplacesOldContentAfterAccountSwitch",
+        "seconds": 210,
+        "measured": false,
+        "basis": "One Chinese dark-mode accessibility3 launch, bounded article scrolling, generic warning, identity switch, reopen or scoped replacement, screenshot. Apple execution and timing are unrun.",
+        "source": "helpArticleReadability"
+      },
+      {
+        "method": "SocialAccountFlowTests.testArticleRemovedEmptyAndReadFailureKeepExistingRecovery",
+        "seconds": 240,
+        "measured": false,
+        "basis": "Three synthetic guide launches for removed, empty and failed-first-detail reads; exact entry, missing-content checks and explicit retry. Apple execution and timing are unrun.",
+        "source": "helpArticleReadability"
+      },
+      {
+        "method": "SearchMapFlowTests.testGlobalCategoryChangeRejectsEarlierCompletionAndClearReturnsSuggestions",
+        "seconds": 90,
+        "measured": false,
+        "basis": "One synthetic launch, category shortcut, category change in sheet, explicit newer-before-older completion, one-second inverted stale-row expectation, filter reset to empty-query suggestions. Apple execution and timing are unrun.",
+        "source": "searchCategoryForwarding"
+      },
+      {
+        "method": "SearchMapFlowTests.testGlobalCategoryApplyResetPreservesKeywordAndCancelPreservesResults",
+        "seconds": 120,
+        "measured": false,
+        "basis": "One synthetic launch and keyword entry, explicitly released unfiltered/category/reset reads, three sheet visits including cancelled reset, four-domain row checks and preserved keyword. Apple execution and timing are unrun.",
+        "source": "searchCategoryForwarding"
+      },
+      {
+        "method": "TopicTemplateNameSearchFlowTests.testTopicNameSearchAppliesCaseAndWhitespaceThenClearsNoMatches",
+        "seconds": 120,
+        "basis": "Unmeasured conservative allowance for authored local topic-template name-search synthetic UI flow; includes launch, navigation, query entry and explicit waits. Apple execution NOT_RUN.",
+        "measured": false,
+        "source": "topicTemplateLocalNameSearch"
+      },
+      {
+        "method": "TopicTemplateNameSearchFlowTests.testTopicNameSearchRemainsIndependentFromGameKeywordAcrossTabs",
+        "seconds": 120,
+        "basis": "Unmeasured conservative allowance for authored local topic-template name-search synthetic UI flow; includes launch, navigation, query entry and explicit waits. Apple execution NOT_RUN.",
+        "measured": false,
+        "source": "topicTemplateLocalNameSearch"
+      },
+      {
+        "method": "TopicTemplateNameSearchFlowTests.testChineseMaximumTextSearchDetailBackAndReloadKeepLocalScope",
+        "seconds": 150,
+        "basis": "Unmeasured conservative allowance for authored local topic-template name-search synthetic UI flow; includes launch, navigation, query entry and explicit waits. Apple execution NOT_RUN.",
+        "measured": false,
+        "source": "topicTemplateLocalNameSearch"
+      },
+      {
+        "method": "OfficialEventFlowTests.testExplicitInformationWarningKeepsEventOpenableAfterBackAndScopeChange",
+        "seconds": 120,
+        "basis": "One synthetic English launch, list warning read, detail/back, guest/account scope transitions, detail reopen; explicit conservative unmeasured allowance.",
+        "measured": false,
+        "source": "officialEventInformationWarning"
+      },
+      {
+        "method": "OfficialEventFlowTests.testBlankWarningReasonUsesHonestChineseFallbackAtLargeText",
+        "seconds": 90,
+        "basis": "One Chinese accessibility3 dark reduced-motion launch, reveal/read source-unknown fallback, screenshot, detail entry; explicit conservative unmeasured allowance.",
+        "measured": false,
+        "source": "officialEventInformationWarning"
+      },
+      {
+        "method": "OfficialEventFlowTests.testAbsentFalseAndMalformedMarkersNeverShowWarningFromReasonAlone",
+        "seconds": 180,
+        "basis": "Three synthetic cold launches with negative marker shapes and three detail entries; explicit conservative unmeasured allowance.",
+        "measured": false,
+        "source": "officialEventInformationWarning"
+      },
+      {
+        "method": "PublicMerchantReviewFilterFlowTests.testAllLowPhotosAccumulatePagesWithoutRefetchOrChangingServerSummary",
+        "seconds": 180,
+        "source": "publicMerchantReviewFilters",
+        "basis": "Conservative synthetic-flow planning allowance for filter selection, scrolling, repeated navigation and explicit asynchronous state checks. Not an Apple runtime measurement.",
+        "measured": false
+      },
+      {
+        "method": "PublicMerchantReviewFilterFlowTests.testFilteredEmptyKeepsNextPageAndRetryWhileClearRestoresEarlierRows",
+        "seconds": 120,
+        "source": "publicMerchantReviewFilters",
+        "basis": "Conservative synthetic-flow planning allowance for filter selection, scrolling, repeated navigation and explicit asynchronous state checks. Not an Apple runtime measurement.",
+        "measured": false
+      },
+      {
+        "method": "PublicMerchantReviewFilterFlowTests.testChineseLargeTextEmptyHistoryStaysDistinctAndAverageRemainsUnknown",
+        "seconds": 120,
+        "source": "publicMerchantReviewFilters",
+        "basis": "Conservative synthetic-flow planning allowance for filter selection, scrolling, repeated navigation and explicit asynchronous state checks. Not an Apple runtime measurement.",
+        "measured": false
+      },
+      {
+        "method": "PublicMerchantReviewFilterFlowTests.testAccountAndMerchantChangeResetFilterAndIgnoreOldUnauthorizedPage",
+        "seconds": 180,
+        "source": "publicMerchantReviewFilters",
+        "basis": "Conservative synthetic-flow planning allowance for filter selection, scrolling, repeated navigation and explicit asynchronous state checks. Not an Apple runtime measurement.",
+        "measured": false
+      },
+      {
+        "method": "PublicMerchantReviewFilterFlowTests.testPhotoCloseAndSameScopeDetailReturnKeepFilterWithoutGrantingActions",
+        "seconds": 180,
+        "source": "publicMerchantReviewFilters",
+        "basis": "Conservative synthetic-flow planning allowance for filter selection, scrolling, repeated navigation and explicit asynchronous state checks. Not an Apple runtime measurement.",
+        "measured": false
+      },
+      {
+        "method": "ClubFeedReadFlowTests.testSourceClubUsesActualDetailAndCanReopenAfterBackWithoutFeedPages",
+        "seconds": 120,
+        "measured": false,
+        "source": "clubFeedReadParity",
+        "basis": "Source-authored synthetic flow allowance including launch, navigation, bounded waits and teardown; no Apple execution."
+      },
+      {
+        "method": "ClubFeedReadFlowTests.testChineseLargeTextGalleryUsesThreeImagesAndReturnsToSameSource",
+        "seconds": 120,
+        "measured": false,
+        "source": "clubFeedReadParity",
+        "basis": "Source-authored synthetic flow allowance including launch, navigation, bounded waits and teardown; no Apple execution."
+      },
+      {
+        "method": "ClubFeedReadFlowTests.testMissingSourceClubIsNoninteractiveAndDefaultMediaStaysDisabled",
+        "seconds": 150,
+        "measured": false,
+        "source": "clubFeedReadParity",
+        "basis": "Source-authored synthetic flow allowance including launch, navigation, bounded waits and teardown; no Apple execution."
+      },
+      {
+        "method": "ClubFeedReadFlowTests.testNoClubsEmptyPostsAndUnknownCountRemainDifferentStates",
+        "seconds": 180,
+        "measured": false,
+        "source": "clubFeedReadParity",
+        "basis": "Source-authored synthetic flow allowance including launch, navigation, bounded waits and teardown; no Apple execution."
+      },
+      {
+        "method": "ClubFeedReadFlowTests.testReadFailureRetriesAndReplacementRevisionUsesNewSourceClub",
+        "seconds": 120,
+        "measured": false,
+        "source": "clubFeedReadParity",
+        "basis": "Source-authored synthetic flow allowance including launch, navigation, bounded waits and teardown; no Apple execution."
+      },
+      {
+        "method": "ClubFeedReadFlowTests.testAccountChangeClosesSelectedClubAndClearsPriorFeed",
+        "seconds": 120,
+        "measured": false,
+        "source": "clubFeedReadParity",
+        "basis": "Source-authored synthetic flow allowance including launch, navigation, bounded waits and teardown; no Apple execution."
+      },
+      {
+        "method": "CoopRelationDiscoveryFlowTests.testMixedDiscoveryOpensOwnerAndClubProfilesAndReturnsToSelectedTab",
+        "seconds": 120,
+        "source": "relationDiscoveryP076",
+        "basis": "One synthetic launch with conservative unmeasured navigation, refresh or accessibility allowance; no observed runtime",
+        "measured": false
+      },
+      {
+        "method": "CoopRelationDiscoveryFlowTests.testPartialIdentityRemainsNoninteractiveAndRefreshDoesNotReadProfiles",
+        "seconds": 60,
+        "source": "relationDiscoveryP076",
+        "basis": "One synthetic launch with conservative unmeasured navigation, refresh or accessibility allowance; no observed runtime",
+        "measured": false
+      },
+      {
+        "method": "CoopRelationDiscoveryFlowTests.testClubsOnlyAndEmptyTabsHaveHonestEmptyStates",
+        "seconds": 60,
+        "source": "relationDiscoveryP076",
+        "basis": "One synthetic launch with conservative unmeasured navigation, refresh or accessibility allowance; no observed runtime",
+        "measured": false
+      },
+      {
+        "method": "CoopRelationDiscoveryFlowTests.testRetryAndSessionReplacementClearPushedProfile",
+        "seconds": 120,
+        "source": "relationDiscoveryP076",
+        "basis": "One synthetic launch with conservative unmeasured navigation, refresh or accessibility allowance; no observed runtime",
+        "measured": false
+      },
+      {
+        "method": "CoopRelationDiscoveryFlowTests.testChineseMaximumTextPreservesTabsAndDisplayOnlyContext",
+        "seconds": 120,
+        "source": "relationDiscoveryP076",
+        "basis": "One synthetic launch with conservative unmeasured navigation, refresh or accessibility allowance; no observed runtime",
+        "measured": false
+      },
+      {
+        "method": "MerchantClubDiscoveryFlowTests.testMerchantLocalityHidesOwnedJoinedAndKeepsDetailReturn",
+        "seconds": 120.0,
+        "measured": false,
+        "source": "Tests/AppUITests/MerchantClubDiscoveryFlowTests.swift",
+        "basis": "Unmeasured conservative 120-second allowance for synthetic fixture launch, bounded UI waits, row reveal, and deterministic continuation/navigation checks; Apple execution pending."
+      },
+      {
+        "method": "MerchantClubDiscoveryFlowTests.testUnknownLocalityKeepsAllNearbyWithRetryThenFilters",
+        "seconds": 120.0,
+        "measured": false,
+        "source": "Tests/AppUITests/MerchantClubDiscoveryFlowTests.swift",
+        "basis": "Unmeasured conservative 120-second allowance for synthetic fixture launch, bounded UI waits, row reveal, and deterministic continuation/navigation checks; Apple execution pending."
+      },
+      {
+        "method": "MerchantClubDiscoveryFlowTests.testLocalityNetworkFailureKeepsAllNearbyAndNoMatchIsHonest",
+        "seconds": 120.0,
+        "measured": false,
+        "source": "Tests/AppUITests/MerchantClubDiscoveryFlowTests.swift",
+        "basis": "Unmeasured conservative 120-second allowance for synthetic fixture launch, bounded UI waits, row reveal, and deterministic continuation/navigation checks; Apple execution pending."
+      },
+      {
+        "method": "MerchantClubDiscoveryFlowTests.testLateLocalityAfterPlayerSwitchCannotHidePlayerRows",
+        "seconds": 120.0,
+        "measured": false,
+        "source": "Tests/AppUITests/MerchantClubDiscoveryFlowTests.swift",
+        "basis": "Unmeasured conservative 120-second allowance for synthetic fixture launch, bounded UI waits, row reveal, and deterministic continuation/navigation checks; Apple execution pending."
+      },
+      {
+        "method": "MerchantClubDiscoveryFlowTests.testMerchantSwitchFencesOldUnauthorizedBeforeNewLocality",
+        "seconds": 120.0,
+        "measured": false,
+        "source": "Tests/AppUITests/MerchantClubDiscoveryFlowTests.swift",
+        "basis": "Unmeasured conservative 120-second allowance for synthetic fixture launch, bounded UI waits, row reveal, and deterministic continuation/navigation checks; Apple execution pending."
+      },
+      {
+        "method": "TemplateEditorControlsFlowTests.testTimelineEditsDeriveCurrentSummaryAndSurviveExplicitRestore",
+        "seconds": 360,
+        "source": "templateEditorControlsAcceptance20261004",
+        "measured": false,
+        "basis": "Full single-launch method: normal entry; view and return without mutation; reopen timeline; edit six inert image references and second text, add third beat and tag; summary/JSON probes; local save/reopen/explicit restore; revisit child and summary. Includes form scrolling, multiple navigation cycles, child-open account-switch visibility assertions and teardown. No second app launch. Unmeasured planning allowance."
+      },
+      {
+        "method": "TemplateMetadataSelectorsFlowTests.testExactDictionaryValuesCancelRestoreAndSyntheticRequest",
+        "seconds": 240,
+        "source": "templateMetadataSelectorsReconstructed20261005",
+        "measured": false,
+        "basis": "Full single-launch synthetic journey: normal entry; nil draft and Cancel; exact whitespace-bearing dictValue selection; four disabled duration rows; Save/reopen/explicit Restore; review Cancel then ordinary synthetic confirmation; request and retained locked-draft probes. Includes scrolling, asynchronous waits and teardown. Unmeasured planning allowance, not observed runtime."
+      },
+      {
+        "method": "TemplateMetadataSelectorsFlowTests.testCategorySaveCancelNoopCSVAndOrderedSixteenSelections",
+        "seconds": 360,
+        "source": "templateMetadataSelectorsReconstructed20261005",
+        "measured": false,
+        "basis": "Full single-launch synthetic journey: raw CSV readback; no-op Save, changed-then-Cancel and toggled-back Save; select 16 IDs through ordinary lazy rows in deliberate order; five category reads; Save/reopen/explicit Restore and selected-row readback; unknown ID and independent legacy primary category retained; zero writes. Unmeasured planning allowance, not observed runtime."
+      },
+      {
+        "method": "TemplateMetadataSelectorsFlowTests.testUnavailableRetryEmptyCanceledReadOwnerSwitchAndLockedValues",
+        "seconds": 420,
+        "source": "templateMetadataSelectorsReconstructed20261005",
+        "measured": false,
+        "basis": "Full single-launch synthetic journey: unavailable, failed retry and empty dictionary reads; unknown historical values; fourth players read held in a continuation; Cancel while pending, then owner switch and release; fresh-owner selections and ordinary synthetic confirmation; disabled same-owner locked values; sign-out clearing. Includes scrolling, async waits and teardown. Unmeasured planning allowance, not observed runtime."
+      },
+      {
+        "method": "ClubStoryFlowTests.testGroupedStopsHaveHoursAddressAndChapterMetadata",
+        "seconds": 120,
+        "source": "THIRTEENTH-P057-integration-only",
+        "measured": false,
+        "counts": {
+          "launches": 1,
+          "termination_calls_including_teardown": 1,
+          "reveal_calls_max10_gestures_each": 1,
+          "taps_including_helper_taps_and_back": 2,
+          "explicit_5_second_waits": 3,
+          "other_assertion_queries": 3
+        },
+        "explicit_timeout_seconds": 15,
+        "formula_seconds": 106,
+        "basis": "Full-method unmeasured allowance: 30*1 launch + 8*1 termination + 24*1 reveal + 4*2 action + 5*3 explicit wait + 2*3 direct query + 15 failure/AX margin = 106s, rounded up to 120s. Loop scenario costs are included."
+      },
+      {
+        "method": "ClubStoryFlowTests.testChapterSwitchAndExpansionResetKeepEachPlayInItsOwnChapter",
+        "seconds": 240,
+        "source": "THIRTEENTH-P057-integration-only",
+        "measured": false,
+        "counts": {
+          "launches": 1,
+          "termination_calls_including_teardown": 1,
+          "reveal_calls_max10_gestures_each": 5,
+          "taps_including_helper_taps_and_back": 6,
+          "explicit_5_second_waits": 4,
+          "other_assertion_queries": 3
+        },
+        "explicit_timeout_seconds": 20,
+        "formula_seconds": 223,
+        "basis": "Full-method unmeasured allowance: 30*1 launch + 8*1 termination + 24*5 reveal + 4*6 action + 5*4 explicit wait + 2*3 direct query + 15 failure/AX margin = 223s, rounded up to 240s. Loop scenario costs are included."
+      },
+      {
+        "method": "ClubStoryNavigationFlowTests.testTemplateDetailUsesPersonalIDAndBackSupportsRepeatedSelection",
+        "seconds": 180,
+        "source": "THIRTEENTH-P057-integration-only",
+        "measured": false,
+        "counts": {
+          "launches": 1,
+          "termination_calls_including_teardown": 1,
+          "reveal_calls_max10_gestures_each": 3,
+          "taps_including_helper_taps_and_back": 6,
+          "explicit_5_second_waits": 3,
+          "other_assertion_queries": 2
+        },
+        "explicit_timeout_seconds": 15,
+        "formula_seconds": 168,
+        "basis": "Full-method unmeasured allowance: 30*1 launch + 8*1 termination + 24*3 reveal + 4*6 action + 5*3 explicit wait + 2*2 direct query + 15 failure/AX margin = 168s, rounded up to 180s. Loop scenario costs are included."
+      },
+      {
+        "method": "ClubStoryNavigationFlowTests.testSourceRefreshDropsOpenTemplateAndOldCards",
+        "seconds": 180,
+        "source": "THIRTEENTH-P057-integration-only",
+        "measured": false,
+        "counts": {
+          "launches": 1,
+          "termination_calls_including_teardown": 1,
+          "reveal_calls_max10_gestures_each": 3,
+          "taps_including_helper_taps_and_back": 4,
+          "explicit_5_second_waits": 3,
+          "other_assertion_queries": 2
+        },
+        "explicit_timeout_seconds": 15,
+        "formula_seconds": 160,
+        "basis": "Full-method unmeasured allowance: 30*1 launch + 8*1 termination + 24*3 reveal + 4*4 action + 5*3 explicit wait + 2*2 direct query + 15 failure/AX margin = 160s, rounded up to 180s. Loop scenario costs are included."
+      },
+      {
+        "method": "ClubStoryNavigationFlowTests.testDelayedDetailCannotReappearAfterSourceRefresh",
+        "seconds": 210,
+        "source": "THIRTEENTH-P057-integration-only",
+        "measured": false,
+        "counts": {
+          "launches": 1,
+          "termination_calls_including_teardown": 1,
+          "reveal_calls_max10_gestures_each": 4,
+          "taps_including_helper_taps_and_back": 5,
+          "explicit_5_second_waits": 3,
+          "other_assertion_queries": 1
+        },
+        "explicit_timeout_seconds": 15,
+        "formula_seconds": 186,
+        "basis": "Full-method unmeasured allowance: 30*1 launch + 8*1 termination + 24*4 reveal + 4*5 action + 5*3 explicit wait + 2*1 direct query + 15 failure/AX margin = 186s, rounded up to 210s. Loop scenario costs are included."
+      },
+      {
+        "method": "ClubStoryNavigationFlowTests.testAccountAndReaderReplacementDismissOldDestination",
+        "seconds": 330,
+        "source": "THIRTEENTH-P057-integration-only",
+        "measured": false,
+        "counts": {
+          "launches": 2,
+          "termination_calls_including_teardown": 3,
+          "reveal_calls_max10_gestures_each": 6,
+          "taps_including_helper_taps_and_back": 8,
+          "explicit_5_second_waits": 6,
+          "other_assertion_queries": 0
+        },
+        "explicit_timeout_seconds": 30,
+        "formula_seconds": 305,
+        "basis": "Full-method unmeasured allowance: 30*2 launch + 8*3 termination + 24*6 reveal + 4*8 action + 5*6 explicit wait + 2*0 direct query + 15 failure/AX margin = 305s, rounded up to 330s. Loop scenario costs are included."
+      },
+      {
+        "method": "ClubStoryFlowTests.testUnavailableAndInvalidSourcesDoNotOfferTemplateNavigation",
+        "seconds": 210,
+        "source": "THIRTEENTH-P057-integration-only",
+        "measured": false,
+        "counts": {
+          "launches": 2,
+          "termination_calls_including_teardown": 3,
+          "reveal_calls_max10_gestures_each": 2,
+          "taps_including_helper_taps_and_back": 4,
+          "explicit_5_second_waits": 4,
+          "other_assertion_queries": 3
+        },
+        "explicit_timeout_seconds": 20,
+        "formula_seconds": 189,
+        "basis": "Full-method unmeasured allowance: 30*2 launch + 8*3 termination + 24*2 reveal + 4*4 action + 5*4 explicit wait + 2*3 direct query + 15 failure/AX margin = 189s, rounded up to 210s. Loop scenario costs are included."
+      },
+      {
+        "method": "ClubStoryFlowTests.testDuplicateChapterIDsKeepDisplaySelectableButAllRoutesDisabled",
+        "seconds": 150,
+        "source": "THIRTEENTH-P057-integration-only",
+        "measured": false,
+        "counts": {
+          "launches": 1,
+          "termination_calls_including_teardown": 1,
+          "reveal_calls_max10_gestures_each": 2,
+          "taps_including_helper_taps_and_back": 3,
+          "explicit_5_second_waits": 2,
+          "other_assertion_queries": 3
+        },
+        "explicit_timeout_seconds": 10,
+        "formula_seconds": 129,
+        "basis": "Full-method unmeasured allowance: 30*1 launch + 8*1 termination + 24*2 reveal + 4*3 action + 5*2 explicit wait + 2*3 direct query + 15 failure/AX margin = 129s, rounded up to 150s. Loop scenario costs are included."
+      },
+      {
+        "method": "ClubStoryFlowTests.testChineseRoutePlayAndEmptyChapterAreLocalized",
+        "seconds": 150,
+        "source": "THIRTEENTH-P057-integration-only",
+        "measured": false,
+        "counts": {
+          "launches": 1,
+          "termination_calls_including_teardown": 1,
+          "reveal_calls_max10_gestures_each": 2,
+          "taps_including_helper_taps_and_back": 3,
+          "explicit_5_second_waits": 2,
+          "other_assertion_queries": 1
+        },
+        "explicit_timeout_seconds": 10,
+        "formula_seconds": 125,
+        "basis": "Full-method unmeasured allowance: 30*1 launch + 8*1 termination + 24*2 reveal + 4*3 action + 5*2 explicit wait + 2*1 direct query + 15 failure/AX margin = 125s, rounded up to 150s. Loop scenario costs are included."
+      },
+      {
+        "method": "ClubGovernanceFlowTests.testClubStoryUsesOwnRouteAndProtectedAnswer",
+        "seconds": 210,
+        "source": "THIRTEENTH-P057-expanded-existing",
+        "measured": false,
+        "counts": {
+          "launches": 1,
+          "termination_calls_including_teardown": 1,
+          "reveal_calls_max10_gestures_each": 4,
+          "taps_including_helper_taps_and_back": 3,
+          "explicit_5_second_waits": 4,
+          "other_assertion_queries": 3
+        },
+        "explicit_timeout_seconds": 20,
+        "formula_seconds": 202,
+        "basis": "Full-method unmeasured replacement: 30 launch + 8 termination + 24*4 reveal + 4*3 taps + 5*4 explicit waits (root, destination, chapter, puzzle) + 2*3 direct queries + 30 failure/AX margin (explicit diagnostic plus teardown capture) = 202s, rounded to 210s. Includes the added Gameplay-tab tap. The old 27.732s observation does not measure these changed bytes."
+      },
+      {
+        "method": "IntegratedNativeAcceptanceFlowTests.testActualPhoneHomeDetailManualMapPlayAndFreshOwnedOrderJourney",
+        "seconds": 240,
+        "measured": false,
+        "source": "run108RuntimeRepair_overflow",
+        "basis": "Reconstructed owner-confirmed full-method unmeasured allowance after overflow helper repair. One complete phone/Home/detail/manual area/map/play/order journey; failed partial run108 durations are excluded. Prior 138.538s observation remains history only.",
+        "integrated_method_sha256": "e60ceac484d5d1af20646fefe28c4cda1e95a5696aa8d2877703173bdf36c434",
+        "integrated_file_sha256": "8ce0537a36a2c870d3ecd61c2542642428ac4289cea0df341e44a2318dd13a55",
+        "breakdown_seconds": {
+          "startup_teardown": 45,
+          "phone_and_home": 60,
+          "manual_area_list": 35,
+          "play_and_order": 50,
+          "queries_variance": 50
+        }
+      },
+      {
+        "method": "IntegratedNativeAcceptanceFlowTests.testConfiguredAuthenticationDoesNotGrantDetailMapPlayOrOwnedOrders",
+        "seconds": 210,
+        "measured": false,
+        "source": "run108RuntimeRepair_overflow",
+        "basis": "Reconstructed owner-confirmed full-method unmeasured allowance after overflow helper repair. Complete authentication and denied detail/map/order journey; failed partial run108 durations are excluded. Prior 132.433s observation remains history only.",
+        "integrated_method_sha256": "69d019b48ce4478e1dae9358cd276f9e331b89332ffd7b42a10e605a73c87b3d",
+        "integrated_file_sha256": "8ce0537a36a2c870d3ecd61c2542642428ac4289cea0df341e44a2318dd13a55",
+        "breakdown_seconds": {
+          "startup_teardown": 45,
+          "phone_denied_detail": 60,
+          "manual_area_denied_map": 35,
+          "denied_order_ledger": 25,
+          "queries_variance": 45
+        }
+      },
+      {
+        "method": "SignedInContentDetailFlowTests.testEmptyShelfChineseAndRoleChangeClearProjection",
+        "seconds": 120,
+        "measured": false,
+        "source": "run108RuntimeRepair_home",
+        "basis": "Retain 16.259 only as old-body historical evidence; the changed role-refresh body requires an unmeasured full-method replacement. Recompute central partition; do not alter historical timing claims.",
+        "integrated_method_sha256": "09ead800fd70e6d31350220330fb533bde72261f078f26f86eaf602f2818f697",
+        "integrated_file_sha256": "172f0db6c6a73badeab368f510e1793f54abb63cafbf31e01237e21c431889ff",
+        "breakdown_seconds": {
+          "startup_localization": 30,
+          "four_ui_actions": 16,
+          "explicit_waits_8_plus_6_times_5": 38,
+          "queries_assertions": 14,
+          "teardown_screenshot_reserve": 15,
+          "variance": 7
+        }
+      },
+      {
+        "method": "TemplateEditorControlsFlowTests.testRuleRowsPreserveSourceUntilEditAndBoundASCIIThroughLocalRestore",
+        "seconds": 360,
+        "measured": false,
+        "source": "run108RuntimeRepair_input",
+        "basis": "Expanded real-control flow captures active native AX bytes before probe focus change, checks accepted stored bytes, and preserves every existing limit/raw-byte assertion. Includes one post-rejection recovery edit.",
+        "integrated_method_sha256": "db4048e75930ba3fa88976f44ce28a1549059c760e7146683f47d2d742625f56",
+        "integrated_file_sha256": "7586ff68d3037b28c221ae546644f571a723d1c75d386ac306cf6cde63875032"
+      },
+      {
+        "method": "TemplateEditorControlsFlowTests.testHistoricalBytesHintOffRestoreAndSameOwnerLockedReadback",
+        "seconds": 540,
+        "measured": false,
+        "source": "run108RuntimeRepair_input",
+        "basis": "Expanded real-control flow captures active native AX bytes before probe focus change, checks accepted stored bytes, and preserves every existing limit/raw-byte assertion.",
+        "integrated_method_sha256": "5a9a7d553f3e615341075c3f2438fc723ed2c35af0cd5e77417a6270431232d4",
+        "integrated_file_sha256": "7586ff68d3037b28c221ae546644f571a723d1c75d386ac306cf6cde63875032"
+      },
+      {
+        "method": "SignedInContentDetailFlowTests.testActivityTopicRouteClearsOnRoleChangeAndSignOut",
+        "seconds": 180,
+        "measured": false,
+        "source": "run108RuntimeRepair_activity",
+        "basis": "Full-method replacement for new back-to-list/reopen checks. No new UI method/launch. Preserve any old timing/default provenance and centrally recompute the entire partition; not a claimed observation.",
+        "integrated_method_sha256": "c4a73493046b375adc0f15e8d00d036fae91c2de6c41ea089d1fd892f64c5bb4",
+        "integrated_file_sha256": "172f0db6c6a73badeab368f510e1793f54abb63cafbf31e01237e21c431889ff",
+        "breakdown_seconds": {
+          "startup_localization": 30,
+          "nine_navigation_and_role_actions": 36,
+          "all_explicit_waits_including_launch_helpers": 63,
+          "queries_and_assertions": 16,
+          "two_screenshots_and_teardown": 20,
+          "variance": 15
+        }
+      }
+    ],
+    "baseline_estimate_count": 23
+  },
+  "planning_budget": {
+    "deadline_seconds": 1800,
+    "startup_reserve_seconds": 300,
+    "maximum_observed_startup_seconds": 287.905604,
+    "maximum_observed_harness_seconds": 287.375951,
+    "basis": "Run96 maximum observed startup or total non-method harness time, rounded up to next30seconds. Runtime deadlines unchanged. Estimates are planning assumptions, not guarantees.",
+    "shard_replan": {
+      "previous_shard_count": 15,
+      "shard_count": 16,
+      "new_method_count": 9,
+      "new_estimated_method_seconds": 1380,
+      "basis": "Nine topic-review, related-topic navigation and settings-attribution copy methods add 1380 explicitly unmeasured seconds over the fourth batch. The declared method total is 23521.574s, which cannot fit within 15 x (1800 - 300) = 22500s even under ideal balancing. Sixteen is the smallest possible count; deterministic class-level partition maximum is 1493.365s plus unchanged 300s startup reserve, leaving only 6.635s forecast headroom. Existing observations, estimates and historical replan are preserved. Apple runtime timing is unrun; the tight forecast is not a runtime guarantee."
+    },
+    "shard_replan_history": [
+      {
+        "previous_shard_count": 14,
+        "shard_count": 15,
+        "new_method_count": 9,
+        "new_estimated_method_seconds": 1380,
+        "basis": "Nine new activity-review, topic-itinerary and saved-post methods increase the declared method total to 21961.574s. Fourteen shards cannot fit within 14 x (1800 - 300) = 21000s even under ideal balancing. Fifteen is the smallest possible count; deterministic class-level partition max is 1478.623s plus the unchanged 300s startup reserve. All estimates are unmeasured, successful observations and runtime deadlines unchanged."
+      }
+    ],
+    "expanded_method_review": {
+      "source": "clubMemberDisplayExpansion",
+      "shard_count": 16,
+      "new_method_count": 0,
+      "expanded_method_count": 1,
+      "superseded_observed_seconds": 17.292,
+      "replacement_estimated_seconds": 60,
+      "net_declared_method_seconds_added": 42.708,
+      "total_method_seconds": 23564.282,
+      "maximum_projected_seconds_with_reserve": 1793.365,
+      "forecast_headroom_seconds": 6.635,
+      "basis": "One expanded method receives a new full-method unmeasured allowance. All 597 source-discovered methods remain in the sixteen-shard plan; total declared cost exceeds the fifteen-shard capacity of 22500s. The deterministic sixteen-shard maximum remains 1793.365s including the unchanged 300s startup reserve, because the changed ModuleFlowTests class is not in the maximum shard. This tight planning forecast is not a runtime guarantee; no duration was measured for the changed code."
+    },
+    "public_read_replan": {
+      "previous_shard_count": 16,
+      "shard_count": 18,
+      "new_method_count": 13,
+      "new_estimated_method_seconds": 1920.0,
+      "baseline_method_count": 597,
+      "baseline_total_method_seconds": 23564.282,
+      "method_count": 610,
+      "class_count": 89,
+      "total_method_seconds": 25484.282,
+      "maximum_projected_seconds_with_reserve": 1728.856,
+      "forecast_headroom_seconds": 71.144,
+      "new_methods": [
+        "PublicMerchantHomeFlowTests.testFeaturedActivityUsesExactIDAfterBackAndUnavailableDetail",
+        "PublicMerchantHomeFlowTests.testFeaturedCouponOpensWalletWithoutOwnedIDOrCodeInChineseLargeText",
+        "PublicMerchantHomeFlowTests.testMissingUnknownAndMalformedFeaturedCardsLeaveProfileUsable",
+        "PublicMerchantHomeFlowTests.testFeaturedSelectionClosesWhenReadScopeChangesThenUsesNewSnapshot",
+        "PublicPlayTemplatePresentationFlowTests.testPublisherStoryGallerySelectedImageBackAndReopen",
+        "PublicPlayTemplatePresentationFlowTests.testImageOnlyChineseMaximumTextHasNoInventedPublisherOrCount",
+        "PublicPlayTemplatePresentationFlowTests.testDuplicateImagesAndKnownZeroRemainDistinctFromMissing",
+        "PublicPlayTemplatePresentationFlowTests.testOriginDeniedCanRetryAndCloseWithoutRequestingPermission",
+        "PublicPlayTemplatePresentationFlowTests.testReaderContextReplacementDismissesOldGalleryAndReloadsSameID",
+        "PublicPlayTemplatePresentationFlowTests.testReadFailureRetriesAndDefaultDisabledMediaDoesNotSpin",
+        "SocialAccountFlowTests.testHTMLArticleIsReadableInertAndReopensAfterBack",
+        "SocialAccountFlowTests.testChineseLargeTextArticleReplacesOldContentAfterAccountSwitch",
+        "SocialAccountFlowTests.testArticleRemovedEmptyAndReadFailureKeepExistingRecovery"
+      ],
+      "basis": "13 source-authored public merchant, help article and public play-template methods add 1920s in explicit unmeasured allowances. 18 is the first shard count beyond the prior 16 for which the unchanged deterministic class-level partitioner fits every class under 1800s with a 300s startup reserve. Smaller deterministic plans remain recorded outside the source tree. This is a planning forecast, not an optimal bin-packing proof or runtime guarantee. Prior observations, estimates, source runs, replan records and the club expanded-method review are preserved. Apple runtime measurement remains unrun."
+    },
+    "discovery_feed_replan": {
+      "previous_shard_count": 18,
+      "shard_count": 20,
+      "new_method_count": 19,
+      "new_estimated_method_seconds": 2580,
+      "baseline_method_count": 610,
+      "baseline_total_method_seconds": 25484.282,
+      "method_count": 629,
+      "class_count": 92,
+      "total_method_seconds": 28064.282,
+      "maximum_projected_seconds_with_reserve": 1713.16,
+      "forecast_headroom_seconds": 86.84,
+      "new_methods": [
+        "SearchMapFlowTests.testGlobalCategoryChangeRejectsEarlierCompletionAndClearReturnsSuggestions",
+        "SearchMapFlowTests.testGlobalCategoryApplyResetPreservesKeywordAndCancelPreservesResults",
+        "TopicTemplateNameSearchFlowTests.testTopicNameSearchAppliesCaseAndWhitespaceThenClearsNoMatches",
+        "TopicTemplateNameSearchFlowTests.testTopicNameSearchRemainsIndependentFromGameKeywordAcrossTabs",
+        "TopicTemplateNameSearchFlowTests.testChineseMaximumTextSearchDetailBackAndReloadKeepLocalScope",
+        "OfficialEventFlowTests.testExplicitInformationWarningKeepsEventOpenableAfterBackAndScopeChange",
+        "OfficialEventFlowTests.testBlankWarningReasonUsesHonestChineseFallbackAtLargeText",
+        "OfficialEventFlowTests.testAbsentFalseAndMalformedMarkersNeverShowWarningFromReasonAlone",
+        "PublicMerchantReviewFilterFlowTests.testAllLowPhotosAccumulatePagesWithoutRefetchOrChangingServerSummary",
+        "PublicMerchantReviewFilterFlowTests.testFilteredEmptyKeepsNextPageAndRetryWhileClearRestoresEarlierRows",
+        "PublicMerchantReviewFilterFlowTests.testChineseLargeTextEmptyHistoryStaysDistinctAndAverageRemainsUnknown",
+        "PublicMerchantReviewFilterFlowTests.testAccountAndMerchantChangeResetFilterAndIgnoreOldUnauthorizedPage",
+        "PublicMerchantReviewFilterFlowTests.testPhotoCloseAndSameScopeDetailReturnKeepFilterWithoutGrantingActions",
+        "ClubFeedReadFlowTests.testSourceClubUsesActualDetailAndCanReopenAfterBackWithoutFeedPages",
+        "ClubFeedReadFlowTests.testChineseLargeTextGalleryUsesThreeImagesAndReturnsToSameSource",
+        "ClubFeedReadFlowTests.testMissingSourceClubIsNoninteractiveAndDefaultMediaStaysDisabled",
+        "ClubFeedReadFlowTests.testNoClubsEmptyPostsAndUnknownCountRemainDifferentStates",
+        "ClubFeedReadFlowTests.testReadFailureRetriesAndReplacementRevisionUsesNewSourceClub",
+        "ClubFeedReadFlowTests.testAccountChangeClosesSelectedClubAndClearsPriorFeed"
+      ],
+      "basis": "Nineteen source-authored category search, local topic-template name search, official-event warning, public merchant review filter and club-feed methods add 2580s in explicit unmeasured allowances. Twenty is the first shard count beyond the previous 18 for which the unchanged deterministic class-level partitioner fits every class under the unchanged 1800s deadline with a 300s startup reserve. The 19-shard forecast exceeds the deadline by 0.291s and is not rounded down. Smaller deterministic plans remain recorded outside the source tree. This is a planning forecast, not an optimal bin-packing proof or runtime guarantee. All previous observations, estimates, provenance, source runs, replan records and the club expanded-method review are preserved. Apple execution remains unrun."
+    },
+    "relation_locality_replan": {
+      "previous_shard_count": 20,
+      "shard_count": 20,
+      "new_method_count": 10,
+      "new_estimated_method_seconds": 1080.0,
+      "baseline_method_count": 629,
+      "baseline_total_method_seconds": 28064.282,
+      "method_count": 639,
+      "class_count": 94,
+      "total_method_seconds": 29144.282,
+      "maximum_projected_seconds_with_reserve": 1771.796,
+      "forecast_headroom_seconds": 28.204,
+      "new_methods": [
+        "CoopRelationDiscoveryFlowTests.testMixedDiscoveryOpensOwnerAndClubProfilesAndReturnsToSelectedTab",
+        "CoopRelationDiscoveryFlowTests.testPartialIdentityRemainsNoninteractiveAndRefreshDoesNotReadProfiles",
+        "CoopRelationDiscoveryFlowTests.testClubsOnlyAndEmptyTabsHaveHonestEmptyStates",
+        "CoopRelationDiscoveryFlowTests.testRetryAndSessionReplacementClearPushedProfile",
+        "CoopRelationDiscoveryFlowTests.testChineseMaximumTextPreservesTabsAndDisplayOnlyContext",
+        "MerchantClubDiscoveryFlowTests.testMerchantLocalityHidesOwnedJoinedAndKeepsDetailReturn",
+        "MerchantClubDiscoveryFlowTests.testUnknownLocalityKeepsAllNearbyWithRetryThenFilters",
+        "MerchantClubDiscoveryFlowTests.testLocalityNetworkFailureKeepsAllNearbyAndNoMatchIsHonest",
+        "MerchantClubDiscoveryFlowTests.testLateLocalityAfterPlayerSwitchCannotHidePlayerRows",
+        "MerchantClubDiscoveryFlowTests.testMerchantSwitchFencesOldUnauthorizedBeforeNewLocality"
+      ],
+      "basis": "10 source-authored relation-discovery and merchant-local-club UI methods add 1080.0s in explicit unmeasured allowances. 20 is the first count at or above the previous 20 for which the unchanged deterministic class-level partitioner fits every class under the unchanged 1800s deadline and 300s startup reserve. Smaller deterministic plans are recorded outside the source tree. This is a planning forecast, not an optimal bin-packing proof or runtime guarantee. Every previous observation, estimate, provenance record, source run, replan and expanded-method record is preserved. Apple execution remains unrun."
+    },
+    "template_controls_replan": {
+      "previous_shard_count": 20,
+      "shard_count": 21,
+      "new_method_count": 3,
+      "new_estimated_method_seconds": 1140,
+      "baseline_method_count": 639,
+      "baseline_total_method_seconds": 29144.282,
+      "method_count": 642,
+      "class_count": 95,
+      "total_method_seconds": 30284.282,
+      "maximum_projected_seconds_with_reserve": 1750.26,
+      "forecast_headroom_seconds": 49.74,
+      "new_methods": [
+        "TemplateEditorControlsFlowTests.testRuleRowsPreserveSourceUntilEditAndBoundASCIIThroughLocalRestore",
+        "TemplateEditorControlsFlowTests.testTimelineEditsDeriveCurrentSummaryAndSurviveExplicitRestore",
+        "TemplateEditorControlsFlowTests.testHistoricalBytesHintOffRestoreAndSameOwnerLockedReadback"
+      ],
+      "basis": "Three source-authored template rule, story and legacy-hint acceptance methods add 1140 explicitly unmeasured full-method seconds. Their cumulative declared cost of 30284.282s exceeds twenty shards times the unchanged 1500s method allowance, so at least twenty-one shards are necessary even with ideal balancing. The unchanged deterministic class-preserving partitioner forecasts 1821.758s for twenty shards and 1750.260s for twenty-one, including the unchanged 300s startup reserve within the 1800s deadline. All prior observations, estimates, source runs, provenance and historical planning records are preserved. This is a planning forecast, not a runtime guarantee; Apple execution remains unrun."
+    },
+    "template_metadata_selectors_replan": {
+      "previous_shard_count": 21,
+      "shard_count": 22,
+      "new_method_count": 3,
+      "new_estimated_method_seconds": 1020,
+      "baseline_method_count": 642,
+      "baseline_total_method_seconds": 30284.282,
+      "method_count": 645,
+      "class_count": 96,
+      "total_method_seconds": 31304.282,
+      "maximum_projected_seconds_with_reserve": 1734.465,
+      "forecast_headroom_seconds": 65.535,
+      "new_methods": [
+        "TemplateMetadataSelectorsFlowTests.testExactDictionaryValuesCancelRestoreAndSyntheticRequest",
+        "TemplateMetadataSelectorsFlowTests.testCategorySaveCancelNoopCSVAndOrderedSixteenSelections",
+        "TemplateMetadataSelectorsFlowTests.testUnavailableRetryEmptyCanceledReadOwnerSwitchAndLockedValues"
+      ],
+      "basis": "Three reconstructed, source-authored metadata selector journeys add 1020 explicitly unmeasured full-method seconds. The unchanged class-preserving partitioner forecasts 1802.283s for 21 shards and 1734.465s for 22, including the unchanged 300s startup reserve within the 1800s deadline. The 21-shard forecast exceeds the deadline by 2.283s and is not rounded down. Twenty-two is the first fitting count at or above the previous 21 under this deterministic partition, not an optimal bin-packing proof or runtime guarantee. Every prior observation, estimate, source run, provenance and historical planning record is preserved. Apple execution remains unrun."
+    },
+    "club_story_replan": {
+      "previous_shard_count": 22,
+      "shard_count": 23,
+      "new_method_count": 9,
+      "new_estimated_method_seconds": 1770,
+      "expanded_method_count": 1,
+      "replacement_estimated_seconds": 210,
+      "superseded_observed_seconds": 27.732,
+      "net_declared_method_seconds_added": 1952.268,
+      "baseline_method_count": 645,
+      "baseline_total_method_seconds": 31304.282,
+      "method_count": 654,
+      "class_count": 98,
+      "total_method_seconds": 33256.55,
+      "maximum_projected_seconds_with_reserve": 1772.217,
+      "forecast_headroom_seconds": 27.783,
+      "new_methods": [
+        "ClubStoryFlowTests.testGroupedStopsHaveHoursAddressAndChapterMetadata",
+        "ClubStoryFlowTests.testChapterSwitchAndExpansionResetKeepEachPlayInItsOwnChapter",
+        "ClubStoryNavigationFlowTests.testTemplateDetailUsesPersonalIDAndBackSupportsRepeatedSelection",
+        "ClubStoryNavigationFlowTests.testSourceRefreshDropsOpenTemplateAndOldCards",
+        "ClubStoryNavigationFlowTests.testDelayedDetailCannotReappearAfterSourceRefresh",
+        "ClubStoryNavigationFlowTests.testAccountAndReaderReplacementDismissOldDestination",
+        "ClubStoryFlowTests.testUnavailableAndInvalidSourcesDoNotOfferTemplateNavigation",
+        "ClubStoryFlowTests.testDuplicateChapterIDsKeepDisplaySelectableButAllRoutesDisabled",
+        "ClubStoryFlowTests.testChineseRoutePlayAndEmptyChapterAreLocalized"
+      ],
+      "expanded_methods": [
+        "ClubGovernanceFlowTests.testClubStoryUsesOwnRouteAndProtectedAnswer"
+      ],
+      "new_class_estimated_seconds": {
+        "ClubStoryFlowTests": 870,
+        "ClubStoryNavigationFlowTests": 900
+      },
+      "basis": "Nine source-authored P057 methods add 1770 explicitly unmeasured full-method seconds. The single unsplit class exceeded the 1500s method budget by 270s, so a mechanical split preserves all nine method bodies and copies the helper block exactly into two classes totaling 870s and 900s. The changed existing governance-story method receives a 210s unmeasured full-method replacement; its original 27.732s observation is retained only as superseded provenance. Net declared addition is 1952.268s. 23 is the first fitting count at or above the previous 22 under the unchanged deterministic class-preserving partitioner, 1800s deadline and 300s startup reserve. This is a planning forecast, not an optimal bin-packing proof or runtime guarantee. Every other observation, estimate, source run, provenance record and historical plan remains exact. Apple execution remains unrun."
+    },
+    "run108_runtime_replan": {
+      "previous_shard_count": 23,
+      "shard_count": 23,
+      "method_count": 654,
+      "class_count": 98,
+      "new_method_count": 0,
+      "expanded_methods": [
+        "IntegratedNativeAcceptanceFlowTests.testActualPhoneHomeDetailManualMapPlayAndFreshOwnedOrderJourney",
+        "IntegratedNativeAcceptanceFlowTests.testConfiguredAuthenticationDoesNotGrantDetailMapPlayOrOwnedOrders",
+        "SignedInContentDetailFlowTests.testActivityTopicRouteClearsOnRoleChangeAndSignOut",
+        "SignedInContentDetailFlowTests.testEmptyShelfChineseAndRoleChangeClearProjection",
+        "TemplateEditorControlsFlowTests.testHistoricalBytesHintOffRestoreAndSameOwnerLockedReadback",
+        "TemplateEditorControlsFlowTests.testRuleRowsPreserveSourceUntilEditAndBoundASCIIThroughLocalRestore"
+      ],
+      "expanded_method_count": 6,
+      "replacement_full_method_seconds": 1650,
+      "baseline_total_method_seconds": 33256.55,
+      "net_declared_seconds_added": 522.77,
+      "total_method_seconds": 33779.32,
+      "maximum_projected_seconds_with_reserve": 1794.38,
+      "forecast_headroom_seconds": 5.62,
+      "plans_maximum_with_reserve": {
+        "23": "1794.380"
+      },
+      "previous_effective_records": {
+        "IntegratedNativeAcceptanceFlowTests.testActualPhoneHomeDetailManualMapPlayAndFreshOwnedOrderJourney": {
+          "observation": 138.538,
+          "estimate": null,
+          "fallback": 60
+        },
+        "IntegratedNativeAcceptanceFlowTests.testConfiguredAuthenticationDoesNotGrantDetailMapPlayOrOwnedOrders": {
+          "observation": 132.433,
+          "estimate": null,
+          "fallback": 60
+        },
+        "SignedInContentDetailFlowTests.testEmptyShelfChineseAndRoleChangeClearProjection": {
+          "observation": 16.259,
+          "estimate": null,
+          "fallback": 60
+        },
+        "TemplateEditorControlsFlowTests.testRuleRowsPreserveSourceUntilEditAndBoundASCIIThroughLocalRestore": {
+          "observation": null,
+          "estimate": 300,
+          "fallback": 60
+        },
+        "TemplateEditorControlsFlowTests.testHistoricalBytesHintOffRestoreAndSameOwnerLockedReadback": {
+          "observation": null,
+          "estimate": 480,
+          "fallback": 60
+        },
+        "SignedInContentDetailFlowTests.testActivityTopicRouteClearsOnRoleChangeAndSignOut": {
+          "observation": null,
+          "estimate": null,
+          "fallback": 60
+        }
+      },
+      "new_provenance_record_count": 6,
+      "baseline_canonical_profile_sha256": "6b4124953309dd0ba7a2abd8382d1fd4370cb3ff38d831a4509daf2b295f25a8",
+      "inventory_sha256": "7136fd8faceb176a342ba3cb73c9c999d29722624b562acdfff50032fc54009f",
+      "timing_input_hashes": [
+        {
+          "name": "overflow",
+          "sha256": "e333115ab8962528b74dd7ae285362e98aab7f59a98ae56653df13f9a88f8f2f"
+        },
+        {
+          "name": "home",
+          "sha256": "9d10fa2ab4d70ca0e137f58f32816211d12491f016d120b433e346fbbcbfedec"
+        },
+        {
+          "name": "input",
+          "sha256": "e313781669f9de4b194c9c7d20cfae577669690e8e3b6dd8b0326a94d506d208"
+        },
+        {
+          "name": "activity",
+          "sha256": "c47a3dce174b8d85cb5080e873c94b5bb72fa2496aa825ab0214693577330739"
+        }
+      ],
+      "assertion_target_only_migration": "SignedInContentDetailFlowTests.testHomeListApprovalAloneDoesNotGrantDetail retains same actions and5s wait; only truthful blocked-state identifier changes. No new timing observation claimed.",
+      "basis": "Six complete-method unmeasured replacements; all654 source methods preserved. Original observations,estimates and historical plans reconstruct exactly. Unchanged1800s deadline/300s reserve; deterministic class-level LPT forecast, not runtime acceptance."
+    }
+  },
+  "superseded_method_observations": [
+    {
+      "method": "ModuleFlowTests.testClubMemberGateAndReadOnlyMemberList",
+      "seconds": 17.292,
+      "measured": true,
+      "previous_profile_tree": "8e035c3cc83463ccbc3636b34b85fef67bebff11",
+      "previous_test_file_blob": "891c6f1416e484878909c67e27e4ee7dca3cda34",
+      "reason": "Historical observation retained as provenance only; this method gained unmeasured member level/join-date assertions and now uses the explicit 60s estimate. No claim that the old duration measures the expanded method."
+    },
+    {
+      "method": "ClubGovernanceFlowTests.testClubStoryUsesOwnRouteAndProtectedAnswer",
+      "seconds": 27.732,
+      "measured": true,
+      "previous_profile_tree": "da0d0e6192572a5b908a69ecaceee9f52eec38f3",
+      "reason": "Historical timing predates the added Gameplay-tab action and updated story view. Remove from active method_seconds only when applying the new full-method estimate; retain this original observation as superseded provenance.",
+      "previous_test_file_blob": "8cb1f73f86dec72f67e19ef1655ddfd9e549a305",
+      "expanded_test_file_sha256": "4d41464ed772a0c371669e5dd55c8a06700b5980e2cb6f17e6ece58a7d1ce7ee"
+    },
+    {
+      "method": "IntegratedNativeAcceptanceFlowTests.testActualPhoneHomeDetailManualMapPlayAndFreshOwnedOrderJourney",
+      "seconds": 138.538,
+      "measured": true,
+      "previous_commit": "344cf59fdb2c3238bd588da77df3d91101224238",
+      "previous_test_file_blob": "43fc9d5f9148388b603d201671ab32628a513f65",
+      "superseded_by": "run108_runtime_replan",
+      "reason": "Previous complete-method observation retained as history only; changed flow/helper now uses explicit full-method unmeasured allowance."
+    },
+    {
+      "method": "IntegratedNativeAcceptanceFlowTests.testConfiguredAuthenticationDoesNotGrantDetailMapPlayOrOwnedOrders",
+      "seconds": 132.433,
+      "measured": true,
+      "previous_commit": "344cf59fdb2c3238bd588da77df3d91101224238",
+      "previous_test_file_blob": "43fc9d5f9148388b603d201671ab32628a513f65",
+      "superseded_by": "run108_runtime_replan",
+      "reason": "Previous complete-method observation retained as history only; changed flow/helper now uses explicit full-method unmeasured allowance."
+    },
+    {
+      "method": "SignedInContentDetailFlowTests.testEmptyShelfChineseAndRoleChangeClearProjection",
+      "seconds": 16.259,
+      "measured": true,
+      "previous_commit": "344cf59fdb2c3238bd588da77df3d91101224238",
+      "previous_test_file_blob": "70ea9b908e32d022c4ba3e784358400ae0136544",
+      "superseded_by": "run108_runtime_replan",
+      "reason": "Previous complete-method observation retained as history only; changed flow/helper now uses explicit full-method unmeasured allowance."
+    }
+  ],
+  "superseded_estimate_provenance": [
+    {
+      "index": 177,
+      "record": {
+        "method": "TemplateEditorControlsFlowTests.testRuleRowsPreserveSourceUntilEditAndBoundASCIIThroughLocalRestore",
+        "seconds": 300,
+        "source": "templateEditorControlsAcceptance20261004",
+        "measured": false,
+        "basis": "Full single-launch method: normal intro/name entry; exact raw 11-row readback; add twelfth row and 60 ASCII keystrokes plus rejected sixty-first; remove row; edit first row; coordinator probes; local save/reopen/explicit restore and untouched companion-field checks. Includes long form scrolling and teardown. Unmeasured planning allowance, not a per-launch multiplier."
+      },
+      "superseded_by": "run108_runtime_replan"
+    },
+    {
+      "index": 179,
+      "record": {
+        "method": "TemplateEditorControlsFlowTests.testHistoricalBytesHintOffRestoreAndSameOwnerLockedReadback",
+        "seconds": 480,
+        "source": "templateEditorControlsAcceptance20261004",
+        "measured": false,
+        "basis": "Full single-launch method: historical 13-rule/unsupported story readback; text-to-photo-to-text selection; retained hints; deliberate hint-off clearing; save/reopen/explicit restore; re-enable and type three new hints; cancel first review; existing synthetic confirmation; same-owner disabled values and repeated no-redispatch readback; logout. Includes long form scrolling, asynchronous state waits and teardown. Unmeasured planning allowance."
+      },
+      "superseded_by": "run108_runtime_replan"
+    }
+  ]
+}

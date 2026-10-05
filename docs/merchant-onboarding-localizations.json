@@ -1,0 +1,442 @@
+[
+  {
+    "key": "merchant.onboarding.title",
+    "en": "Merchant application",
+    "zh-Hans": "商家入驻申请"
+  },
+  {
+    "key": "merchant.onboarding.openApplication",
+    "en": "Apply or check application",
+    "zh-Hans": "申请入驻或查看申请"
+  },
+  {
+    "key": "merchant.onboarding.openMerchant",
+    "en": "Open merchant center",
+    "zh-Hans": "进入商家中心"
+  },
+  {
+    "key": "merchant.onboarding.checking",
+    "en": "Checking your application…",
+    "zh-Hans": "正在查询申请…"
+  },
+  {
+    "key": "merchant.onboarding.stateUnavailable",
+    "en": "Your application status could not be confirmed. Check again before submitting an application.",
+    "zh-Hans": "暂时无法确认申请状态，请重新查询后再申请。"
+  },
+  {
+    "key": "merchant.onboarding.stateChanged",
+    "en": "Application or identity status has changed. Check the current status before continuing.",
+    "zh-Hans": "申请或实名登记状态已变化，请查询最新状态后继续。"
+  },
+  {
+    "key": "merchant.onboarding.step.1",
+    "en": "1. Basic information",
+    "zh-Hans": "1. 基础信息"
+  },
+  {
+    "key": "merchant.onboarding.step.2",
+    "en": "2. Business information",
+    "zh-Hans": "2. 经营信息"
+  },
+  {
+    "key": "merchant.onboarding.step.3",
+    "en": "3. Business license",
+    "zh-Hans": "3. 资质信息"
+  },
+  {
+    "key": "merchant.onboarding.step.4",
+    "en": "4. Review and confirm",
+    "zh-Hans": "4. 预览确认"
+  },
+  {
+    "key": "merchant.onboarding.regionalNotice",
+    "en": "The current service requires publisher identity registration. A US identity-registration path is not yet confirmed. Choosing merchant entry does not grant merchant access.",
+    "zh-Hans": "当前服务要求发布者实名登记，美国实名登记路径尚未确认。选择商家入口不会获得商家权限。"
+  },
+  {
+    "key": "merchant.onboarding.name",
+    "en": "Brand name",
+    "zh-Hans": "品牌名称"
+  },
+  {
+    "key": "merchant.onboarding.preference",
+    "en": "Category (optional)",
+    "zh-Hans": "品类偏好（选填）"
+  },
+  {
+    "key": "merchant.onboarding.phone",
+    "en": "Contact phone",
+    "zh-Hans": "联系手机号"
+  },
+  {
+    "key": "merchant.onboarding.address",
+    "en": "Store address",
+    "zh-Hans": "门店地址"
+  },
+  {
+    "key": "merchant.onboarding.hours",
+    "en": "Business hours",
+    "zh-Hans": "营业时间"
+  },
+  {
+    "key": "merchant.onboarding.description",
+    "en": "Description (optional)",
+    "zh-Hans": "商家简介（选填）"
+  },
+  {
+    "key": "merchant.onboarding.notSet",
+    "en": "Not set",
+    "zh-Hans": "未设置"
+  },
+  {
+    "key": "merchant.onboarding.chooseHours",
+    "en": "Choose business hours",
+    "zh-Hans": "选择营业时间"
+  },
+  {
+    "key": "merchant.onboarding.required.name",
+    "en": "Enter your brand name",
+    "zh-Hans": "请填写品牌名称"
+  },
+  {
+    "key": "merchant.onboarding.required.phone",
+    "en": "Enter a contact phone number",
+    "zh-Hans": "请填写联系手机号"
+  },
+  {
+    "key": "merchant.onboarding.required.address",
+    "en": "Enter your store address",
+    "zh-Hans": "请填写门店地址"
+  },
+  {
+    "key": "merchant.onboarding.required.hours",
+    "en": "Choose business hours",
+    "zh-Hans": "请选择营业时间"
+  },
+  {
+    "key": "merchant.onboarding.required.license",
+    "en": "Upload a business license before continuing",
+    "zh-Hans": "请先上传营业执照"
+  },
+  {
+    "key": "merchant.onboarding.licenseHint",
+    "en": "Select a clear business-license image. Photos stay on your device until you confirm upload. The selected image is converted to JPEG with location metadata removed; the local limit is 10 MB.",
+    "zh-Hans": "请选择清晰的营业执照图片。确认上传前，照片仅保留在本机。所选图片会转换为 JPEG 并去除位置元数据，本机大小限制为 10 MB。"
+  },
+  {
+    "key": "merchant.onboarding.licenseUploaded",
+    "en": "Business license received by the service",
+    "zh-Hans": "服务已接收营业执照"
+  },
+  {
+    "key": "merchant.onboarding.licenseSelected",
+    "en": "Photo selected, not uploaded",
+    "zh-Hans": "照片已选择，尚未上传"
+  },
+  {
+    "key": "merchant.onboarding.chooseLicense",
+    "en": "Choose license photo",
+    "zh-Hans": "选择营业执照照片"
+  },
+  {
+    "key": "merchant.onboarding.uploadLicense",
+    "en": "Review license upload",
+    "zh-Hans": "确认上传营业执照"
+  },
+  {
+    "key": "merchant.onboarding.discardPhoto",
+    "en": "Discard selected photo",
+    "zh-Hans": "移除所选照片"
+  },
+  {
+    "key": "merchant.onboarding.photoFailed",
+    "en": "This photo could not be prepared. Choose a supported image smaller than 10 MB.",
+    "zh-Hans": "无法处理这张照片，请选择小于 10 MB 的受支持图片。"
+  },
+  {
+    "key": "merchant.onboarding.uploadFailed",
+    "en": "The upload could not be confirmed. It may have reached the service, but no usable receipt was received. Your previous license, if any, is unchanged. Choose and confirm a new upload only if needed.",
+    "zh-Hans": "无法确认上传结果。图片可能已到达服务，但未收到有效回执；如有原执照，原执照保持不变。如确有需要，请重新选择并确认上传。"
+  },
+  {
+    "key": "merchant.onboarding.uploadConfirm.title",
+    "en": "Upload this business license?",
+    "zh-Hans": "上传这张营业执照？"
+  },
+  {
+    "key": "merchant.onboarding.uploadConfirm.action",
+    "en": "Upload license",
+    "zh-Hans": "上传营业执照"
+  },
+  {
+    "key": "merchant.onboarding.uploadConfirm.message",
+    "en": "Send the selected business-license image to the configured Chengyin service for merchant application review. The document may include personal information. Uploading alone does not submit your application.",
+    "zh-Hans": "将所选营业执照图片发送给已配置的城瘾服务，用于商家入驻审核。证件可能含有个人信息。单独上传图片不会提交入驻申请。"
+  },
+  {
+    "key": "merchant.onboarding.previous",
+    "en": "Previous",
+    "zh-Hans": "上一步"
+  },
+  {
+    "key": "merchant.onboarding.next",
+    "en": "Continue",
+    "zh-Hans": "下一步"
+  },
+  {
+    "key": "merchant.onboarding.working",
+    "en": "Please wait…",
+    "zh-Hans": "请稍候…"
+  },
+  {
+    "key": "merchant.onboarding.reviewSubmit",
+    "en": "Review submission",
+    "zh-Hans": "确认提交"
+  },
+  {
+    "key": "merchant.onboarding.submitConfirm.title",
+    "en": "Submit this merchant application?",
+    "zh-Hans": "提交这份商家入驻申请？"
+  },
+  {
+    "key": "merchant.onboarding.submitConfirm.action",
+    "en": "Submit for review",
+    "zh-Hans": "提交审核"
+  },
+  {
+    "key": "merchant.onboarding.submitConfirm.message",
+    "en": "Send the reviewed store details, contact phone, address, business hours and uploaded license reference to the configured Chengyin service for review. Submission does not grant approval or merchant access.",
+    "zh-Hans": "将已核对的门店资料、联系电话、地址、营业时间和已上传执照信息发送给已配置的城瘾服务审核。提交不代表审核通过，也不会获得商家权限。"
+  },
+  {
+    "key": "merchant.onboarding.identity.title",
+    "en": "Publisher identity registration",
+    "zh-Hans": "发布者实名登记"
+  },
+  {
+    "key": "merchant.onboarding.identity.registered",
+    "en": "Identity registration is on file",
+    "zh-Hans": "实名信息已登记"
+  },
+  {
+    "key": "merchant.onboarding.identity.checking",
+    "en": "Checking registration…",
+    "zh-Hans": "正在查询登记状态…"
+  },
+  {
+    "key": "merchant.onboarding.identity.required",
+    "en": "Identity registration is required before license upload or application submission.",
+    "zh-Hans": "上传执照或提交申请前，需要完成实名登记。"
+  },
+  {
+    "key": "merchant.onboarding.identity.regionalGate",
+    "en": "The current source service requires a mainland Chinese resident ID with an 18-character checksum. A supported US registration process has not been verified, so this app cannot complete new identity enrollment. No SSN or EIN is requested here.",
+    "zh-Hans": "当前源服务要求具有校验位的 18 位中国大陆居民身份证号。美国登记流程尚未核实，因此本应用暂不能完成新的实名登记。此处不会要求 SSN 或 EIN。"
+  },
+  {
+    "key": "merchant.onboarding.identity.unavailable",
+    "en": "Registration status is unconfirmed. No upload or application can be sent yet.",
+    "zh-Hans": "尚未确认实名登记状态，暂不能上传或提交申请。"
+  },
+  {
+    "key": "merchant.onboarding.identity.recheck",
+    "en": "Check registration again",
+    "zh-Hans": "重新查询登记状态"
+  },
+  {
+    "key": "merchant.onboarding.submitted",
+    "en": "Submission was acknowledged. The status below comes from the server; approval and merchant access are separate decisions. This application will not be sent again automatically.",
+    "zh-Hans": "服务已确认收到提交。下方状态来自服务器；审核通过与商家权限分别确认。本申请不会自动再次提交。"
+  },
+  {
+    "key": "merchant.onboarding.outcomeUnknown",
+    "en": "Submission outcome is unknown. Check the server status before taking further action. A missing or unchanged application does not prove the submission failed, so resubmission is blocked in this session.",
+    "zh-Hans": "提交结果尚不明确。请先查询服务器状态。未查到申请或状态未变化并不能证明提交失败，因此当前会话禁止重复提交。"
+  },
+  {
+    "key": "merchant.onboarding.noApplicationReadback",
+    "en": "The server currently reports no application. This readback alone does not resolve the earlier submission outcome.",
+    "zh-Hans": "服务器当前报告无申请，仅此查询结果尚不能确定先前的提交结果。"
+  },
+  {
+    "key": "merchant.onboarding.rejectedByServer",
+    "en": "The service rejected the submission",
+    "zh-Hans": "服务拒绝了本次提交"
+  },
+  {
+    "key": "merchant.onboarding.notSent",
+    "en": "The application was not sent. Review the current application and identity status.",
+    "zh-Hans": "申请尚未发送，请核对当前申请与实名登记状态。"
+  },
+  {
+    "key": "merchant.onboarding.serverStatus",
+    "en": "Server-reported application status",
+    "zh-Hans": "服务器返回的申请状态"
+  },
+  {
+    "key": "merchant.onboarding.submittedAt",
+    "en": "Submitted at",
+    "zh-Hans": "提交时间"
+  },
+  {
+    "key": "merchant.onboarding.statusDoesNotGrantAccess",
+    "en": "Merchant operating permissions are checked separately against the current account on the server.",
+    "zh-Hans": "商家经营权限会根据当前账号单独向服务器查询。"
+  },
+  {
+    "key": "merchant.onboarding.checkAgain",
+    "en": "Check application status",
+    "zh-Hans": "重新查询申请状态"
+  },
+  {
+    "key": "merchant.onboarding.reapply",
+    "en": "Edit and reapply",
+    "zh-Hans": "修改并重新申请"
+  },
+  {
+    "key": "merchant.onboarding.status.disabled",
+    "en": "Account disabled",
+    "zh-Hans": "账号已停用"
+  },
+  {
+    "key": "merchant.onboarding.status.disabled.hint",
+    "en": "Merchant operations are unavailable while the account is disabled. A platform review is needed. If no reason is shown, the service has not supplied one.",
+    "zh-Hans": "账号停用期间无法使用商家经营功能，需要等待平台复核。未显示原因时，表示服务未提供停用原因。"
+  },
+  {
+    "key": "merchant.onboarding.status.effective",
+    "en": "Active application",
+    "zh-Hans": "申请已生效"
+  },
+  {
+    "key": "merchant.onboarding.status.effective.hint",
+    "en": "The application is approved and the account is enabled. Merchant permissions still come from the current server access check.",
+    "zh-Hans": "申请已通过且账号已启用。商家权限仍以当前服务器权限查询为准。"
+  },
+  {
+    "key": "merchant.onboarding.status.rejected",
+    "en": "Application rejected",
+    "zh-Hans": "申请已驳回"
+  },
+  {
+    "key": "merchant.onboarding.status.rejected.hint",
+    "en": "Review the service’s reason, if supplied, and update your information before reapplying.",
+    "zh-Hans": "请核对服务提供的驳回原因，并完善资料后重新申请。"
+  },
+  {
+    "key": "merchant.onboarding.status.activation",
+    "en": "Awaiting activation",
+    "zh-Hans": "待启用"
+  },
+  {
+    "key": "merchant.onboarding.status.activation.hint",
+    "en": "The application passed review, but account activation or other identity conditions are not yet complete.",
+    "zh-Hans": "申请资料已通过审核，但账号启用或其他身份条件尚未完成。"
+  },
+  {
+    "key": "merchant.onboarding.status.pending",
+    "en": "Under review",
+    "zh-Hans": "审核中"
+  },
+  {
+    "key": "merchant.onboarding.status.pending.hint",
+    "en": "Your application is being reviewed. Use the status check for updates.",
+    "zh-Hans": "申请正在审核中，请查询状态获取最新进展。"
+  },
+  {
+    "key": "merchant.onboarding.days",
+    "en": "Open days",
+    "zh-Hans": "营业日"
+  },
+  {
+    "key": "merchant.onboarding.opens",
+    "en": "Opens",
+    "zh-Hans": "开始营业"
+  },
+  {
+    "key": "merchant.onboarding.closes",
+    "en": "Closes",
+    "zh-Hans": "结束营业"
+  },
+  {
+    "key": "merchant.onboarding.dayRequired",
+    "en": "Choose at least one day",
+    "zh-Hans": "请至少选择一天"
+  },
+  {
+    "key": "merchant.onboarding.saveHours",
+    "en": "Save hours",
+    "zh-Hans": "保存营业时间"
+  },
+  {
+    "key": "merchant.onboarding.fixture.changeAccount",
+    "en": "Switch test account",
+    "zh-Hans": "切换测试账号"
+  },
+  {
+    "key": "merchant.onboarding.fixture.rejection",
+    "en": "Offline example: please provide a clearer license image",
+    "zh-Hans": "离线示例：请提供更清晰的执照图片"
+  },
+  {
+    "key": "merchant.onboarding.fixture.disabled",
+    "en": "Offline example: account paused by the platform",
+    "zh-Hans": "离线示例：平台已暂停此账号"
+  },
+  {
+    "key": "merchant.onboarding.day.0",
+    "en": "Monday",
+    "zh-Hans": "周一"
+  },
+  {
+    "key": "merchant.onboarding.day.1",
+    "en": "Tuesday",
+    "zh-Hans": "周二"
+  },
+  {
+    "key": "merchant.onboarding.day.2",
+    "en": "Wednesday",
+    "zh-Hans": "周三"
+  },
+  {
+    "key": "merchant.onboarding.day.3",
+    "en": "Thursday",
+    "zh-Hans": "周四"
+  },
+  {
+    "key": "merchant.onboarding.day.4",
+    "en": "Friday",
+    "zh-Hans": "周五"
+  },
+  {
+    "key": "merchant.onboarding.day.5",
+    "en": "Saturday",
+    "zh-Hans": "周六"
+  },
+  {
+    "key": "merchant.onboarding.day.6",
+    "en": "Sunday",
+    "zh-Hans": "周日"
+  },
+  {
+    "key": "merchant.onboarding.uploadSelectedFirst",
+    "en": "Upload or discard the selected photo before continuing",
+    "zh-Hans": "请先上传或移除所选照片，再继续"
+  },
+  {
+    "key": "merchant.onboarding.licensePreview",
+    "en": "Selected business license preview",
+    "zh-Hans": "所选营业执照预览"
+  },
+  {
+    "key": "merchant.onboarding.everyDay",
+    "en": "Every day",
+    "zh-Hans": "每天"
+  },
+  {
+    "key": "merchant.onboarding.fixture.notice",
+    "en": "Offline synthetic merchant application",
+    "zh-Hans": "离线虚构商家申请"
+  }
+]

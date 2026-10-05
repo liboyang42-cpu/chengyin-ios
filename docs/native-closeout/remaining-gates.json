@@ -1,0 +1,50 @@
+[
+  {
+    "id": "wechat-sdk-adapter",
+    "kind": "IMPLEMENTATION_AND_ACTIVATION",
+    "status": "NOT_IMPLEMENTED_OFF",
+    "remaining": "Verify the official pinned WeChat SDK interface and implement WeChatAppAuthorizing/callback/universal-link routing. Separately review SDK dependency, app ID, associated domains/URL schemes, provider/legal approval and verified Apple alternative. Existing multipart App exchange and scoped coordinator are implemented."
+  },
+  {
+    "id": "npc-voice-provider",
+    "kind": "ACTIVATION_AND_VALIDATION",
+    "status": "IMPLEMENTED_OFF",
+    "remaining": "Consent-first five-sample capture/playback and source multipart upload consumer are implemented as disabled injectable seams, feeding the existing enrollment review. Independently verify duration/encoder/byte limits, ownership/legal consent, microphone/playback/provider/upload grants, receipt origins, shared journal/session-owner composition and interrupted temporary-file cleanup on Apple devices. Unknown upload manual recovery remains unresolved; no receipt endpoint is invented."
+  },
+  {
+    "id": "image-upload-recovery",
+    "kind": "RECOVERY_POLICY_AND_VALIDATION",
+    "status": "IMPLEMENTED_OFF",
+    "remaining": "Metadata-only durable write-ahead journal and fail-closed pending/acknowledged recovery are implemented for retained and IM image owners. Proof-checked same-process local application is distinct from server publication. No source status/receipt endpoint is established; authoritative/manual reconciliation remains unresolved and automatic retry/unlock stays unavailable. Validate Keychain locked/corrupt/process-death behavior on Apple devices before activation."
+  },
+  {
+    "id": "image-transport-permissions",
+    "kind": "ACTIVATION_AND_VALIDATION",
+    "status": "IMPLEMENTED_OFF",
+    "remaining": "Disabled ephemeral no-redirect/no-cookie streaming response-limited transport is implemented and injected into retained hosts. IM service stays nil and requires the bounded adapter at activation. Independently approve exact image origins, metadata/format/pixel/byte limits, OS picker permission and upload/public-image-read/review-read/write grants. Apple hierarchy, cancellation, URLSession memory bounds and Keychain acceptance remain NOT_RUN."
+  },
+  {
+    "id": "publisher-backend-authority",
+    "kind": "BACKEND_VALIDATION_AND_ACTIVATION",
+    "status": "OFF",
+    "remaining": "Audit deployed ownership/concurrency and full operation-relevant hidden-field coverage before transfer/cancellation/pricing/graduation. Visible source-backed detail fingerprints are not atomic server versions. Add approved durable journals before enabling consequences; keep each endpoint/account/namespace permission independent."
+  },
+  {
+    "id": "merchant-npc-provider",
+    "kind": "ACTIVATION_AND_VALIDATION",
+    "status": "OFF",
+    "remaining": "Independently approve merchant-row endpoints, account/region/origin, provider/legal/resource ownership/media grants and backend response/retry/unknown semantics. Validate complete moderated JSON; keep node ShopNPC identity separate."
+  },
+  {
+    "id": "apple-build-and-runtime",
+    "kind": "VALIDATION",
+    "status": "NOT_RUN",
+    "remaining": "Run Swift compiler/typechecker, all Core XCTest, Xcode build, app-hosted QuestifyAppUnitTests and six UI shards on Apple SDK. App-unit target/scheme and separate bounded CI job are implemented; no Apple tests or remote CI were executed. Verify simulator/device accessibility, Dynamic Type, navigation/background/session interruption, PhotosUI, Keychain and AVFoundation behavior."
+  },
+  {
+    "id": "historical-parser-diagnostics",
+    "kind": "VALIDATION",
+    "status": "FAIL_UNRESOLVED",
+    "remaining": "Whole Tree-sitter parse retains ten diagnostics in six historical files. One affected MerchantHome file is separately reported FAIL. Resolve with the actual Swift compiler/Apple build rather than treating advisory parsing as native acceptance."
+  }
+]

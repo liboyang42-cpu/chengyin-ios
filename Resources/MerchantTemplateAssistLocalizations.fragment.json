@@ -1,0 +1,648 @@
+{
+  "merchant.assist.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "AI template assist"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "AI 帮写模板"
+        }
+      }
+    }
+  },
+  "merchant.assist.generatedNote": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "AI-generated suggestions"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "AI 生成建议"
+        }
+      }
+    }
+  },
+  "merchant.assist.boundary": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Review suggestions before applying them to this local draft. Applying does not save or publish."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请先检查建议，再填入当前本地草稿。填入不会保存或发布。"
+        }
+      }
+    }
+  },
+  "merchant.assist.request": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Describe the template"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "描述模板玩法"
+        }
+      }
+    }
+  },
+  "merchant.assist.shopName": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Shop or template name"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "店名或模板名称"
+        }
+      }
+    }
+  },
+  "merchant.assist.prompt": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Describe the activity or riddle you want"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "描述想生成的玩法或谜题"
+        }
+      }
+    }
+  },
+  "merchant.assist.disabled": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "AI generation is not enabled for this account and deployment. You can keep editing the template manually."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前账号和环境尚未启用 AI 生成，你仍可手动编辑模板。"
+        }
+      }
+    }
+  },
+  "merchant.assist.working": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Preparing suggestions…"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "正在准备建议…"
+        }
+      }
+    }
+  },
+  "merchant.assist.generate": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Generate suggestions"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "生成建议"
+        }
+      }
+    }
+  },
+  "merchant.assist.retry": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Try again"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "重试"
+        }
+      }
+    }
+  },
+  "merchant.assist.review": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Review suggested fields"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "检查建议内容"
+        }
+      }
+    }
+  },
+  "merchant.assist.unsupported": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Returned fields this editor cannot apply"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前编辑器无法填入的返回字段"
+        }
+      }
+    }
+  },
+  "merchant.assist.unsupportedHint": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "These fields are shown in full for review but are not saved by this form. A story may supply only the first 30 characters as a description when no description was returned."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这些字段完整展示供检查，但不会由此表单保存。未返回描述时，仅将故事的前 30 个字符用作描述。"
+        }
+      }
+    }
+  },
+  "merchant.assist.applyHint": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Only untouched, empty fields will be filled. Your existing values and any changes made since generation began are preserved. Save separately after reviewing the template."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "只填入未编辑过的空字段，保留已有内容及开始生成后所作的修改。请检查模板后另行保存。"
+        }
+      }
+    }
+  },
+  "merchant.assist.noChanges": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "There are no applicable empty fields. Your draft will stay as it is."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "没有可以填入的空字段，草稿将保持原样。"
+        }
+      }
+    }
+  },
+  "merchant.assist.apply": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Apply to this draft"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "填入当前草稿"
+        }
+      }
+    }
+  },
+  "merchant.assist.permissionNextStep": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Check your merchant access and active identity in Settings, or sign in again. Repeating this request will not change your permissions."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请在设置中检查商家权限和当前身份，或重新登录。反复重试不会改变权限。"
+        }
+      }
+    }
+  },
+  "merchant.assist.error.shopNameRequired": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Enter a shop or template name first."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请先填写店名或模板名称。"
+        }
+      }
+    }
+  },
+  "merchant.assist.error.promptRequired": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Describe the activity you want before generating."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请先描述想生成的玩法。"
+        }
+      }
+    }
+  },
+  "merchant.assist.error.permission": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Your sign-in or current identity does not permit AI creation."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前登录状态或身份不允许 AI 创作。"
+        }
+      }
+    }
+  },
+  "merchant.assist.error.provider": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The service is temporarily unavailable. You can retry or continue editing manually."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务暂时不可用，可重试或继续手动编辑。"
+        }
+      }
+    }
+  },
+  "merchant.assist.error.malformed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The service returned an unreadable result. Nothing was applied."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务返回的内容无法解析，尚未填入任何内容。"
+        }
+      }
+    }
+  },
+  "merchant.assist.error.empty": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No usable content was generated. Try another description or continue manually."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "没有生成可用内容，请换种描述重试或继续手动编辑。"
+        }
+      }
+    }
+  },
+  "merchant.assist.error.disabled": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "AI generation is not enabled. No request was sent."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "尚未启用 AI 生成，未发送请求。"
+        }
+      }
+    }
+  },
+  "merchant.assist.error.unknown": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The request outcome is unknown. Do not repeat it; it may have used provider quota. Your draft was not changed."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请求结果未知，请勿重复提交，可能已消耗服务额度。草稿未被修改。"
+        }
+      }
+    }
+  },
+  "merchant.assist.error.cancelled": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Stopped waiting. Your draft was not changed; a request already sent may still complete."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已停止等待。草稿未被修改，已发送的请求仍可能完成。"
+        }
+      }
+    }
+  },
+  "merchant.assist.error.stale": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The account, access, or source draft changed. Close this sheet and reopen it from the current draft."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "账号、权限或源草稿已变化，请关闭后从当前草稿重新打开。"
+        }
+      }
+    }
+  },
+  "merchant.assist.field.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Title"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "标题"
+        }
+      }
+    }
+  },
+  "merchant.assist.field.description": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Description"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "描述"
+        }
+      }
+    }
+  },
+  "merchant.assist.field.questionName": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Question"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "题目"
+        }
+      }
+    }
+  },
+  "merchant.assist.field.questionAnswer": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Secret answer"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "口令答案"
+        }
+      }
+    }
+  },
+  "merchant.assist.field.optionA": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Option A"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "选项 A"
+        }
+      }
+    }
+  },
+  "merchant.assist.field.optionB": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Option B"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "选项 B"
+        }
+      }
+    }
+  },
+  "merchant.assist.field.optionC": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Option C"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "选项 C"
+        }
+      }
+    }
+  },
+  "merchant.assist.field.optionD": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Option D"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "选项 D"
+        }
+      }
+    }
+  },
+  "merchant.assist.field.correctAnswer": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Correct answer"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "正确选项"
+        }
+      }
+    }
+  },
+  "merchant.assist.field.feedbackText": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Completion feedback"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "完成反馈"
+        }
+      }
+    }
+  },
+  "merchant.assist.field.validationMethod": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Validation method"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "验证方式"
+        }
+      }
+    }
+  }
+}

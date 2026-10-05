@@ -1,0 +1,18 @@
+{
+  "playhost.photo.preview": {
+    "en": "Selected photo evidence",
+    "zh-Hans": "已选照片凭证"
+  },
+  "playhost.photo.notice": {
+    "en": "Review this photo before uploading. Uploading alone does not complete a task or grant rewards.",
+    "zh-Hans": "上传前请检查照片。仅上传不会完成任务或获得奖励。"
+  },
+  "playhost.photo.upload": {
+    "en": "Upload selected photo",
+    "zh-Hans": "上传所选照片"
+  },
+  "playhost.photo.unsupported": {
+    "en": "This photo filter configuration is unsupported.",
+    "zh-Hans": "暂不支持此照片滤镜配置。"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "templateAuthor.optionMedia.audio": {
+    "en": "Audio reference",
+    "zh-Hans": "音频地址"
+  },
+  "templateAuthor.optionMedia.img": {
+    "en": "Image reference",
+    "zh-Hans": "图片地址"
+  },
+  "templateAuthor.optionMedia.limit": {
+    "en": "Use at most 500 UTF-16 units per reference and 2,000 for all attachment data. This edit was not applied.",
+    "zh-Hans": "每个地址最多 500 个 UTF-16 单元，全部附件数据最多 2,000 个。本次修改未应用。"
+  },
+  "templateAuthor.optionMedia.scope": {
+    "en": "Image and audio references stay attached to choices A–D. These fields do not upload, fetch, or play media.",
+    "zh-Hans": "图片和音频地址按 A–D 选项保存。此处不上传、加载或播放媒体。"
+  },
+  "templateAuthor.optionMedia.title": {
+    "en": "Choice attachments",
+    "zh-Hans": "选项附件"
+  },
+  "templateAuthor.optionMedia.unsupported": {
+    "en": "This saved attachment data has an unsupported format. It is preserved unchanged and cannot be edited here.",
+    "zh-Hans": "已保存的附件数据格式暂不支持。原数据保持不变，此处无法编辑。"
+  }
+}

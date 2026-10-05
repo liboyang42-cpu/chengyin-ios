@@ -1,0 +1,1396 @@
+{
+  "creatorRoot.rules": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Root rules and role content"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "根层规则与角色内容"
+        }
+      }
+    }
+  },
+  "creatorRoot.separateCount": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "These controls and A/B role content are separate from the 37 configuration-family count."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这些控制项与 A/B 角色内容单独统计，不计入 37 个配置模块。"
+        }
+      }
+    }
+  },
+  "creatorRoot.mistakeTier": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Mistake damage tier"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "判错扣血档位"
+        }
+      }
+    }
+  },
+  "creatorRoot.defaultTier": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Server default (easy)"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务端默认（简单）"
+        }
+      }
+    }
+  },
+  "creatorRoot.damageServer": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The topic difficulty table decides actual damage. Selecting a tier does not assign an HP cost here."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "实际扣血由主题难度表决定。此处选择档位，不自行设定生命值损耗。"
+        }
+      }
+    }
+  },
+  "creatorRoot.variants": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Adaptive easing rules"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "自适应放宽规则"
+        }
+      }
+    }
+  },
+  "creatorRoot.firstMatch": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Rules are checked in order at session start. Only the first match applies, and the resulting session configuration is frozen."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "开局时按顺序检查规则，仅应用第一条命中规则，并冻结本局配置。"
+        }
+      }
+    }
+  },
+  "creatorRoot.variant": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Rule"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "规则"
+        }
+      }
+    }
+  },
+  "creatorRoot.addVariant": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Add easing rule"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "添加放宽规则"
+        }
+      }
+    }
+  },
+  "creatorRoot.clearVariants": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Remove all easing rules"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "移除全部放宽规则"
+        }
+      }
+    }
+  },
+  "creatorRoot.roleViews": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "A/B role content"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "A/B 角色内容"
+        }
+      }
+    }
+  },
+  "creatorRoot.roleViewsLimit": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Author and review both role views here. Real assignment and which view a player receives are server-owned; native player rendering is not verified by this preview."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "创作者可在此编辑和检查两个角色视角。真实分配及玩家能看到的内容由服务端决定；此预览不代表原生玩家端已验证。"
+        }
+      }
+    }
+  },
+  "creatorRoot.roleLabel": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Role name"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "角色名称"
+        }
+      }
+    }
+  },
+  "creatorRoot.rehearse": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Rehearse root rules locally"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "本地预演根层规则"
+        }
+      }
+    }
+  },
+  "creatorRoot.when": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "When this condition matches"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "满足此条件时"
+        }
+      }
+    }
+  },
+  "creatorRoot.relaxChanges": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Fields to ease"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "放宽字段"
+        }
+      }
+    }
+  },
+  "creatorRoot.addField": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Add an eligible field"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "添加可放宽字段"
+        }
+      }
+    }
+  },
+  "creatorRoot.eligibleOnly": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Only enabled games with meaningful easing appear here. Unlimited attempts and untimed ball challenges cannot be relaxed further."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "仅显示已启用且可实际放宽的字段。已不限次数或未限时的弹球不能继续放宽。"
+        }
+      }
+    }
+  },
+  "creatorRoot.operation": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Change"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "调整方式"
+        }
+      }
+    }
+  },
+  "creatorRoot.subtract": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reduce by"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "减少"
+        }
+      }
+    }
+  },
+  "creatorRoot.add": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Increase by"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "增加"
+        }
+      }
+    }
+  },
+  "creatorRoot.unlimited": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Make unlimited"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "改为不限"
+        }
+      }
+    }
+  },
+  "creatorRoot.amount": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Amount (1–99999)"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "调整量（1–99999）"
+        }
+      }
+    }
+  },
+  "creatorRoot.conditionScope": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Named state keys use clue., relation. or counter. prefixes. System state is read-only; node references still require server topic checks."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "具名状态键使用 clue.、relation. 或 counter. 前缀。系统状态只读；节点引用仍需服务端核对所属主题。"
+        }
+      }
+    }
+  },
+  "creatorRoot.roleTextLimit": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Each text field allows up to 200 UTF-16 units. Keep IDs A and B unchanged."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "每项文字最多 200 个 UTF-16 单位。固定标识 A、B 不可改变。"
+        }
+      }
+    }
+  },
+  "creatorRoot.roleItems": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Role-specific details (up to 8)"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "角色专属条目（最多 8 条）"
+        }
+      }
+    }
+  },
+  "creatorRoot.itemText": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Detail content"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "条目内容"
+        }
+      }
+    }
+  },
+  "creatorRoot.rollMode": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "D20 roll mode"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "D20 掷骰方式"
+        }
+      }
+    }
+  },
+  "creatorRoot.d20Bounds": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "DC 1–40; modifier −20…20; success and failure text 1–200 UTF-16 units. D20 does not require six task faces."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "DC 为 1–40；加值为 −20…20；成功、失败文案各 1–200 个 UTF-16 单位。D20 不需要六面任务。"
+        }
+      }
+    }
+  },
+  "creatorRoot.d20Preview": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "D20 local example"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "D20 本地示例"
+        }
+      }
+    }
+  },
+  "creatorRoot.diceMode": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Dice rules"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "骰子规则"
+        }
+      }
+    }
+  },
+  "creatorRoot.d6": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Six-sided tasks"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "六面任务骰"
+        }
+      }
+    }
+  },
+  "creatorRoot.d20": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "D20 check"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "D20 检定"
+        }
+      }
+    }
+  },
+  "creatorRoot.dc": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Difficulty DC"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "难度 DC"
+        }
+      }
+    }
+  },
+  "creatorRoot.modifier": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Modifier"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "加值"
+        }
+      }
+    }
+  },
+  "creatorRoot.sortAttempts": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "0 or missing means unlimited. A finite value must be 1–10; this also enables adaptive attempt rules."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "0 或未配置表示不限。有限次数为 1–10，也可用于自适应次数放宽。"
+        }
+      }
+    }
+  },
+  "creatorRoot.rehearsalLimit": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This uses sample state only. It never changes health, grants a role, starts a real session or creates player evidence."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此处仅使用示例状态，不改变生命值、不分配真实角色、不创建真实局，也不产生玩家凭证。"
+        }
+      }
+    }
+  },
+  "creatorRoot.sampleState": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Sample state"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "示例状态"
+        }
+      }
+    }
+  },
+  "creatorRoot.snapshot": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Example session snapshot"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "示例局配置快照"
+        }
+      }
+    }
+  },
+  "creatorRoot.matchedRule": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "First matching rule"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "首条命中规则"
+        }
+      }
+    }
+  },
+  "creatorRoot.noMatch": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No rule matches this sample"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此示例没有命中规则"
+        }
+      }
+    }
+  },
+  "creatorRoot.frozenPreview": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The values shown are a local example. Actual sessions apply the server rule once at start."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "显示的是本地示例值。真实局由服务端在开局时一次性应用规则。"
+        }
+      }
+    }
+  },
+  "creatorRoot.d20RuntimeLimit": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "A deterministic creator example uses 12, or 12 and 7. Live rolls and success must come from the server; this is not a gameplay receipt."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "固定创作者示例使用 12，或 12 与 7。真实骰点与成功结果必须来自服务端，此处不是游玩回执。"
+        }
+      }
+    }
+  },
+  "creatorRoot.showSample": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Show the fixed example"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "展示固定示例"
+        }
+      }
+    }
+  },
+  "creatorRoot.pips": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Example rolls"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "示例骰点"
+        }
+      }
+    }
+  },
+  "creatorRoot.kept": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Kept roll"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "保留骰点"
+        }
+      }
+    }
+  },
+  "creatorRoot.total": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Total with modifier"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "含加值总点数"
+        }
+      }
+    }
+  },
+  "creatorRoot.roll.normal": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Normal"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "普通"
+        }
+      }
+    }
+  },
+  "creatorRoot.roll.advantage": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Advantage (keep higher)"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "优势（取较高）"
+        }
+      }
+    }
+  },
+  "creatorRoot.roll.disadvantage": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Disadvantage (keep lower)"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "劣势（取较低）"
+        }
+      }
+    }
+  },
+  "creatorRoot.validation.unknown": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "An unknown field is retained and blocks submission."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已保留未知字段，暂不能提交。"
+        }
+      }
+    }
+  },
+  "creatorRoot.validation.condition": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Use a supported condition and valid state key/value."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请使用支持的条件及有效状态键和值。"
+        }
+      }
+    }
+  },
+  "creatorRoot.validation.tier": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Choose easy, medium or hard."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请选择简单、普通或困难。"
+        }
+      }
+    }
+  },
+  "creatorRoot.validation.shape": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This configuration has an invalid data shape."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此配置的数据结构不正确。"
+        }
+      }
+    }
+  },
+  "creatorRoot.validation.count": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Too many rules/items or an invalid list."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "规则／条目数量过多，或列表格式不正确。"
+        }
+      }
+    }
+  },
+  "creatorRoot.validation.empty": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Add at least one field to ease."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "至少添加一个放宽字段。"
+        }
+      }
+    }
+  },
+  "creatorRoot.validation.relax": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Choose an enabled, eligible field and a valid easing amount."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请选择已启用且可放宽的字段，并填写有效调整量。"
+        }
+      }
+    }
+  },
+  "creatorRoot.validation.direction": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This change tightens the rule or has no effect. Only easing is allowed."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此调整会收紧规则或没有效果，仅允许放宽。"
+        }
+      }
+    }
+  },
+  "creatorRoot.validation.relaxedBounds": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "After this rule applies, the full configuration would exceed a valid boundary."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "应用此规则后，完整配置将超出有效范围。"
+        }
+      }
+    }
+  },
+  "creatorRoot.validation.roles": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Configure exactly A and B, with one view for each."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "必须配置 A、B 两个角色，且每个角色恰有一个视角。"
+        }
+      }
+    }
+  },
+  "creatorRoot.validation.text": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Required content is missing, the type is invalid or text is too long."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "必填内容缺失、类型不正确或文字过长。"
+        }
+      }
+    }
+  },
+  "creatorRoot.validation.number": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Use a whole number within the permitted range."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请填写允许范围内的整数。"
+        }
+      }
+    }
+  },
+  "creatorRoot.validation.mode": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Choose a supported dice rule or roll mode."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请选择支持的骰子规则或掷骰方式。"
+        }
+      }
+    }
+  },
+  "creatorRoot.relax.timer.durationSeconds": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Whole-node time limit"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "整关时限"
+        }
+      }
+    }
+  },
+  "creatorRoot.relax.typeIn.seconds": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Typing time limit"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "打字时限"
+        }
+      }
+    }
+  },
+  "creatorRoot.relax.ballShake.seconds": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Timed ball challenge"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "弹球限时"
+        }
+      }
+    }
+  },
+  "creatorRoot.relax.sort.maxAttempts": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Sorting attempts"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "排序尝试次数"
+        }
+      }
+    }
+  },
+  "creatorRoot.relax.pricePair.maxTries": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Picture guesses"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "猜图次数"
+        }
+      }
+    }
+  },
+  "creatorRoot.relax.typeIn.tries": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Typing attempts"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "打字尝试次数"
+        }
+      }
+    }
+  },
+  "creatorRoot.relax.qa.maxTries": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Question attempts"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "问答尝试次数"
+        }
+      }
+    }
+  },
+  "creatorRoot.relax.hiddenObject.maxTries": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Hidden-object attempts"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "找东西尝试次数"
+        }
+      }
+    }
+  },
+  "creatorRoot.relax.stopwatch.tries": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Stopwatch attempts"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "停表尝试次数"
+        }
+      }
+    }
+  },
+  "creatorRoot.relax.estimate.tolerance": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Estimate tolerance"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "估数容差"
+        }
+      }
+    }
+  },
+  "creatorRoot.relax.compass.tolerance": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Compass tolerance"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "罗盘容差"
+        }
+      }
+    }
+  },
+  "creatorRoot.relax.stopwatch.toleranceMs": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Stopwatch tolerance"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "停表容差"
+        }
+      }
+    }
+  },
+  "creatorRoot.relax.reaction.goalMs": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reaction threshold"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "反应达标线"
+        }
+      }
+    }
+  },
+  "creatorRoot.relax.quietHold.seconds": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Quiet duration"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "安静时长"
+        }
+      }
+    }
+  },
+  "creatorRoot.relax.shout.seconds": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Shouting duration"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "连续喊声时长"
+        }
+      }
+    }
+  },
+  "creatorRoot.relax.countdown.seconds": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Countdown duration"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "倒计时时长"
+        }
+      }
+    }
+  },
+  "creatorRoot.relax.compass.holdSeconds": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Compass hold duration"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "罗盘保持时长"
+        }
+      }
+    }
+  },
+  "creatorRoot.relax.ballShake.goal": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Ball collision goal"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "弹球撞击目标"
+        }
+      }
+    }
+  },
+  "templateAuthor.field.maxAttempts": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Sorting attempts (0 = unlimited)"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "排序次数（0 为不限）"
+        }
+      }
+    }
+  }
+}

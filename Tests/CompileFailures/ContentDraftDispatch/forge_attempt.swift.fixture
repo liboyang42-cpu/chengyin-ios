@@ -1,0 +1,7 @@
+import Foundation
+@testable import QuestifyCore
+
+@MainActor func forgeAttempt(snapshot: ContentDraftJournalSnapshot, journal: any ContentDraftSecureJournal,
+                             lease: ContentDraftSessionLease) throws {
+    _ = try ContentDraftPreparedDispatch(snapshot: snapshot, journal: journal, lease: lease, isCurrent: { true })
+}

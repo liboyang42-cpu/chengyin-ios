@@ -1,0 +1,4 @@
+PASS 12 source-backed endpoints; dormant production factory, integrated source boundary checks
+Apple compilation/typechecking/XCTest/simulator/device: NOT_RUN
+
+--- STDERR ---

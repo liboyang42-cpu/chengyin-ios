@@ -1,0 +1,21 @@
+PASS 17 search/map offline structural/source checks; 103 bilingual keys
+ - bilingual catalog entries
+ - all literal UI localization keys
+ - all domain/mode/validation localization keys
+ - all four explicit source routes
+ - read-only node/map/category routes
+ - no live location/directions APIs
+ - no search/map mutation routes
+ - session checks context before expiry
+ - guest epoch represented
+ - query completion fenced
+ - local filters and first-page scope
+ - private sources require a credential
+ - city/detail IDs distinct from nearby/node IDs
+ - secure local-only history
+ - route fallback never invents ETA/instructions
+ - fixture omits external map tiles
+ - read-only synthetic fixtures
+Swift unit tests, iOS compilation, XCUITest, accessibility/device/provider/backend acceptance: NOT_RUN
+
+--- STDERR ---

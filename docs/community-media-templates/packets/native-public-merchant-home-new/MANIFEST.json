@@ -1,0 +1,113 @@
+{
+  "package": "PublicMerchantHome",
+  "default_backend_activation": "OFF",
+  "default_media_activation": "OFF",
+  "default_npc_activation": "OFF",
+  "shared_main_edits": false,
+  "validation": {
+    "source_assertions": 123,
+    "swift_parse_files": 12,
+    "authored_core_tests": 22,
+    "authored_ui_tests": 6,
+    "apple_runtime": "NOT_RUN",
+    "swift_tests": "NOT_RUN"
+  },
+  "files": [
+    {
+      "path": "App/PublicMerchantHomeFixtureView.swift",
+      "action": "copy",
+      "destination": "App/PublicMerchantHomeFixtureView.swift",
+      "sha256": "6de83320560ba56c2e6e861c4a5f94161813ced9f9ab5a54bff4d9850ef8293d"
+    },
+    {
+      "path": "App/PublicMerchantHomeView.swift",
+      "action": "copy",
+      "destination": "App/PublicMerchantHomeView.swift",
+      "sha256": "1ee4d7cdda29b62fb57f3a0e420bda7e59ae63ac0fafe4749c236ad9192d680a"
+    },
+    {
+      "path": "App/PublicMerchantReviewEditor.swift",
+      "action": "copy",
+      "destination": "App/PublicMerchantReviewEditor.swift",
+      "sha256": "673d56d11dfc236eb48435431d36679942e4bdae425017550c88df4d37779285"
+    },
+    {
+      "path": "App/PublicMerchantReviewsView.swift",
+      "action": "copy",
+      "destination": "App/PublicMerchantReviewsView.swift",
+      "sha256": "c85abd94b62f2f6ad18d304bca6cb61c703db7d9bc4eb0c351230805d091965e"
+    },
+    {
+      "path": "Core/PublicMerchantHome.swift",
+      "action": "copy",
+      "destination": "Core/PublicMerchantHome.swift",
+      "sha256": "cb0c52900bcf015649c82b8b19958d9c3a6dca1c4ecbf2917d0da27970501b43"
+    },
+    {
+      "path": "Core/PublicMerchantHomeReading.swift",
+      "action": "copy",
+      "destination": "Core/PublicMerchantHomeReading.swift",
+      "sha256": "94a78301d52c289fa9854bb254bd2028ad95e01a15d38232aad00086320b4194"
+    },
+    {
+      "path": "Core/PublicMerchantReviewCoordinator.swift",
+      "action": "copy",
+      "destination": "Core/PublicMerchantReviewCoordinator.swift",
+      "sha256": "a043153d6b09e1081154c02926b0372fb2e8289c974d9646abbfdb11db7d88dc"
+    },
+    {
+      "path": "Core/PublicMerchantReviewWrites.swift",
+      "action": "copy",
+      "destination": "Core/PublicMerchantReviewWrites.swift",
+      "sha256": "7830783faf03545dee3a538a48fcd3d9b9cf25097d0b5d16eb3ccabdfe450c92"
+    },
+    {
+      "path": "Core/PublicMerchantReviews.swift",
+      "action": "copy",
+      "destination": "Core/PublicMerchantReviews.swift",
+      "sha256": "7f160506368fc1f3e62600eea9cddfa7a0955afbf1d7828eeff0a9d3e5a30145"
+    },
+    {
+      "path": "Resources/PublicMerchantHome.xcstrings",
+      "action": "merge_strings",
+      "destination": "Resources/Localizable.xcstrings",
+      "sha256": "050982fdb2eff11c5f06e387b90499344a299b2ef7093adc32759d69a492c21d"
+    },
+    {
+      "path": "Tests/AppUITests/PublicMerchantHomeFlowTests.swift",
+      "action": "copy",
+      "destination": "Tests/AppUITests/PublicMerchantHomeFlowTests.swift",
+      "sha256": "f6351b588d1d326e4953885ff16a2d3dc6e7955cafd8b1b0973387ad74c6bbdd"
+    },
+    {
+      "path": "Tests/ContractChecks/check_public_merchant_home.py",
+      "action": "reference_only",
+      "destination": null,
+      "sha256": "1f1cce90c18f4d3e67f248f88778b4682d45adedc11e8f8f856371e8a4891da8"
+    },
+    {
+      "path": "Tests/CoreTests/PublicMerchantHomeTests.swift",
+      "action": "copy",
+      "destination": "Tests/CoreTests/PublicMerchantHomeTests.swift",
+      "sha256": "afb008d61b353152bb4a9ad6a8cb88e22d3270da51e84d7019f38ea2ca1a436c"
+    },
+    {
+      "path": "Tests/CoreTests/PublicMerchantReviewWriteTests.swift",
+      "action": "copy",
+      "destination": "Tests/CoreTests/PublicMerchantReviewWriteTests.swift",
+      "sha256": "acbf225eee8139bfdb1d73a6d2778334ef056df93462390f94b36ac8b419d9a7"
+    },
+    {
+      "path": "docs/INTEGRATION.md",
+      "action": "reference_only",
+      "destination": null,
+      "sha256": "f52deaf8fa966c10d1da777751dee204a448c8f782490b1148591c4c5e2619c9"
+    },
+    {
+      "path": "docs/VALIDATION.md",
+      "action": "reference_only",
+      "destination": null,
+      "sha256": "7f2102079f849992fb59fd6de8bcb84e6e6a998b10c5b1b85a6c72cf9e2d0f65"
+    }
+  ]
+}

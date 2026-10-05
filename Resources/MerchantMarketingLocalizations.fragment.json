@@ -1,0 +1,1379 @@
+{
+  "merchantMarketing.dashboard": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Marketing"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "营销概览"
+        }
+      }
+    }
+  },
+  "merchantMarketing.insight": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Shop insights"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "店铺参谋"
+        }
+      }
+    }
+  },
+  "merchantMarketing.subscriptions": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Entitlements"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "付费权益"
+        }
+      }
+    }
+  },
+  "merchantMarketing.predictions": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Prediction inbox"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "竞猜待答"
+        }
+      }
+    }
+  },
+  "merchantMarketing.unavailable": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This feature is not configured"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此功能尚未配置"
+        }
+      }
+    }
+  },
+  "merchantMarketing.signIn": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Sign in to continue"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请登录后继续"
+        }
+      }
+    }
+  },
+  "merchantMarketing.stale": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The account, permission or round changed. Review again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "账号、权限或轮次已变化，请重新确认"
+        }
+      }
+    }
+  },
+  "merchantMarketing.denied": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Your current merchant role does not grant this permission"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前商家岗位没有此权限"
+        }
+      }
+    }
+  },
+  "merchantMarketing.malformed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The server data could not be confirmed"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "无法确认服务端数据"
+        }
+      }
+    }
+  },
+  "merchantMarketing.invalid": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Review the selected answer and acknowledge its effects"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请核对答案并确认操作后果"
+        }
+      }
+    }
+  },
+  "merchantMarketing.locked": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This round has a submission record. Further settlement is blocked."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此轮已有提交记录，已禁止再次结算"
+        }
+      }
+    }
+  },
+  "merchantMarketing.unknown": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The outcome is unconfirmed. Resubmission is locked; do not settle this round again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "结果尚未确认，已锁定重复提交，请勿再次结算此轮"
+        }
+      }
+    }
+  },
+  "merchantMarketing.storage": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The safety record could not be saved. Nothing was submitted."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "无法保存安全记录，尚未提交"
+        }
+      }
+    }
+  },
+  "merchantMarketing.serverError": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The server returned a message"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务端返回了提示"
+        }
+      }
+    }
+  },
+  "merchantMarketing.dormant": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Live service access, AI processing and prediction settlement require separate activation."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "真实服务、AI 分析和竞猜结算需分别开通"
+        }
+      }
+    }
+  },
+  "merchantMarketing.section": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Section"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "栏目"
+        }
+      }
+    }
+  },
+  "merchantMarketing.loading": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Loading"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "加载中"
+        }
+      }
+    }
+  },
+  "merchantMarketing.refresh": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Refresh"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "刷新"
+        }
+      }
+    }
+  },
+  "merchantMarketing.acknowledged": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Server acknowledgement"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务端确认"
+        }
+      }
+    }
+  },
+  "merchantMarketing.winners": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Winning participants"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "猜中人数"
+        }
+      }
+    }
+  },
+  "merchantMarketing.coupons": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Coupons"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "优惠券"
+        }
+      }
+    }
+  },
+  "merchantMarketing.active": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Active coupons"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "有效优惠券"
+        }
+      }
+    }
+  },
+  "merchantMarketing.claimed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Claimed"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已领取"
+        }
+      }
+    }
+  },
+  "merchantMarketing.redeemed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Redeemed"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已核销"
+        }
+      }
+    }
+  },
+  "merchantMarketing.redemptionRate": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Redemption rate"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "核销率"
+        }
+      }
+    }
+  },
+  "merchantMarketing.content": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Content"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "内容"
+        }
+      }
+    }
+  },
+  "merchantMarketing.topics": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Topics"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "主题"
+        }
+      }
+    }
+  },
+  "merchantMarketing.exploration": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Free exploration"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "自由探索"
+        }
+      }
+    }
+  },
+  "merchantMarketing.activities": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Activities"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "活动"
+        }
+      }
+    }
+  },
+  "merchantMarketing.funnel": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Conversion funnel"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "转化漏斗"
+        }
+      }
+    }
+  },
+  "merchantMarketing.hour": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Hour"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "时段"
+        }
+      }
+    }
+  },
+  "merchantMarketing.maleRate": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Male share"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "男性占比"
+        }
+      }
+    }
+  },
+  "merchantMarketing.femaleRate": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Female share"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "女性占比"
+        }
+      }
+    }
+  },
+  "merchantMarketing.interest": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reported interest"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "兴趣偏好"
+        }
+      }
+    }
+  },
+  "merchantMarketing.facts": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Measured business facts"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "经营数据事实"
+        }
+      }
+    }
+  },
+  "merchantMarketing.window": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reporting window"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "统计范围"
+        }
+      }
+    }
+  },
+  "merchantMarketing.sample": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Sample members"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "样本人数"
+        }
+      }
+    }
+  },
+  "merchantMarketing.lowSample": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Small sample: interpret these results cautiously"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "样本较少，请谨慎解读"
+        }
+      }
+    }
+  },
+  "merchantMarketing.checkins": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Check-ins"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "到店次数"
+        }
+      }
+    }
+  },
+  "merchantMarketing.repeatRate": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Repeat visit rate"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "复访率"
+        }
+      }
+    }
+  },
+  "merchantMarketing.wait": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Average wait (minutes)"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "平均等待（分钟）"
+        }
+      }
+    }
+  },
+  "merchantMarketing.members": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Members"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "用户数"
+        }
+      }
+    }
+  },
+  "merchantMarketing.offers": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Active offers"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "生效供给"
+        }
+      }
+    }
+  },
+  "merchantMarketing.quotaRate": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Quota usage"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "额度使用率"
+        }
+      }
+    }
+  },
+  "merchantMarketing.suggestions": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "AI suggestions"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "AI 建议"
+        }
+      }
+    }
+  },
+  "merchantMarketing.suggestionNotice": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Suggestions are generated advice, separate from measured facts."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "建议为 AI 生成内容，与经营数据事实分开呈现"
+        }
+      }
+    }
+  },
+  "merchantMarketing.aiUnavailable": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Suggestions are unavailable; measured facts remain available"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂时无法生成建议，经营事实仍可查看"
+        }
+      }
+    }
+  },
+  "merchantMarketing.generatedAt": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Generated at"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "生成时间"
+        }
+      }
+    }
+  },
+  "merchantMarketing.openSuggestion": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Open related section"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "前往相关页面"
+        }
+      }
+    }
+  },
+  "merchantMarketing.recommendedTopics": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Server-recommended topics"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务端推荐主题"
+        }
+      }
+    }
+  },
+  "merchantMarketing.recommendedPartners": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Server-recommended partners"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务端推荐商家"
+        }
+      }
+    }
+  },
+  "merchantMarketing.activeEntitlements": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Active entitlements"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "生效权益"
+        }
+      }
+    }
+  },
+  "merchantMarketing.noEntitlements": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No active entitlements"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂无生效权益"
+        }
+      }
+    }
+  },
+  "merchantMarketing.permanent": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Permanent"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "永久"
+        }
+      }
+    }
+  },
+  "merchantMarketing.usage": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Used / maximum"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已使用 / 上限"
+        }
+      }
+    }
+  },
+  "merchantMarketing.capabilities": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Capabilities and quotas"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "能力与额度"
+        }
+      }
+    }
+  },
+  "merchantMarketing.iOSCheckoutUnavailable": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Digital-entitlement checkout is unavailable on iOS. No Apple purchase integration has been supplied."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "iOS 暂不支持数字权益自助购买，尚未提供 Apple 内购接口"
+        }
+      }
+    }
+  },
+  "merchantMarketing.premium": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Premium templates"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "高级模板权益"
+        }
+      }
+    }
+  },
+  "merchantMarketing.cityNode": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "City nodes"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "城市点位"
+        }
+      }
+    }
+  },
+  "merchantMarketing.promotion": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Promotion slots"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "推广位权益"
+        }
+      }
+    }
+  },
+  "merchantMarketing.brand": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Brand homepage"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "品牌主页权益"
+        }
+      }
+    }
+  },
+  "merchantMarketing.customEvent": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Custom events"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "活动定制权益"
+        }
+      }
+    }
+  },
+  "merchantMarketing.used": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Used"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已用"
+        }
+      }
+    }
+  },
+  "merchantMarketing.limit": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Limit"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "上限"
+        }
+      }
+    }
+  },
+  "merchantMarketing.remaining": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Remaining"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "剩余"
+        }
+      }
+    }
+  },
+  "merchantMarketing.couponWarning": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Settlement is one-time and cannot be undone. The server may issue coupons to winners according to the merchant rules."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "结算只能进行一次且不可撤销，服务端可能按商家规则向猜中者发券"
+        }
+      }
+    }
+  },
+  "merchantMarketing.deadlinePolicy": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The source allows 48 hours to answer. The platform voids overdue rounds; no one receives a reward. Follow the server deadline."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "源规则要求 48 小时内给出答案，超时由平台作废且无人获奖，请以服务端期限为准"
+        }
+      }
+    }
+  },
+  "merchantMarketing.emptyPredictions": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No predictions awaiting settlement"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂无待结算竞猜"
+        }
+      }
+    }
+  },
+  "merchantMarketing.unnamed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Unnamed location"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "未命名点位"
+        }
+      }
+    }
+  },
+  "merchantMarketing.today": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Answer today or the round is void"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "今天不给答案就作废"
+        }
+      }
+    }
+  },
+  "merchantMarketing.daysLeft": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Days remaining"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "剩余天数"
+        }
+      }
+    }
+  },
+  "merchantMarketing.bets": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Participants in this round"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "本轮参与人数"
+        }
+      }
+    }
+  },
+  "merchantMarketing.noBets": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No one has entered this round yet"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这一轮还没有人押"
+        }
+      }
+    }
+  },
+  "merchantMarketing.reviewHint": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Review this answer before one-time settlement"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "先确认答案再进行一次性结算"
+        }
+      }
+    }
+  },
+  "merchantMarketing.review": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Review settlement"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "确认结算"
+        }
+      }
+    }
+  },
+  "merchantMarketing.answer": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Selected answer"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "所选答案"
+        }
+      }
+    }
+  },
+  "merchantMarketing.acknowledgeEffects": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "I understand this is final and may issue coupons"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "我理解此操作不可撤销且可能发券"
+        }
+      }
+    }
+  },
+  "merchantMarketing.confirmSettlement": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Confirm settlement"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "确认结算"
+        }
+      }
+    }
+  },
+  "merchantMarketing.cancel": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Cancel"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "取消"
+        }
+      }
+    }
+  },
+  "merchantMarketing.synthetic": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Synthetic test data only"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "仅为合成测试数据"
+        }
+      }
+    }
+  },
+  "merchantMarketing.fixtureSignOut": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Sign out of example"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "退出示例账号"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,4 @@
+PASS 64 static/source-contract checks; 27 JSON fixture literals valid
+AUTHORED 13 Swift XCTest methods; NOT EXECUTED (Swift/Apple SDK absent)
+
+--- STDERR ---

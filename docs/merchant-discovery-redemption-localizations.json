@@ -1,0 +1,172 @@
+[
+  {
+    "key": "merchant.discover.title",
+    "en": "Discover merchants",
+    "zh-Hans": "发现商家"
+  },
+  {
+    "key": "merchant.discover.all",
+    "en": "All",
+    "zh-Hans": "全部"
+  },
+  {
+    "key": "merchant.discover.night",
+    "en": "Night-friendly",
+    "zh-Hans": "夜间友好"
+  },
+  {
+    "key": "merchant.discover.photos",
+    "en": "Photo-friendly",
+    "zh-Hans": "可拍照"
+  },
+  {
+    "key": "merchant.discover.teams",
+    "en": "Good for teams",
+    "zh-Hans": "适合组队"
+  },
+  {
+    "key": "merchant.discover.pets",
+    "en": "Pet-friendly",
+    "zh-Hans": "宠物友好"
+  },
+  {
+    "key": "merchant.discover.quiet",
+    "en": "Quiet",
+    "zh-Hans": "安静"
+  },
+  {
+    "key": "merchant.discover.families",
+    "en": "Family-friendly",
+    "zh-Hans": "适合亲子"
+  },
+  {
+    "key": "merchant.discover.empty",
+    "en": "No matching merchants",
+    "zh-Hans": "没有符合条件的商家"
+  },
+  {
+    "key": "merchant.discover.approvedOnly",
+    "en": "Only approved merchants are shown.",
+    "zh-Hans": "这里只显示审核通过的商家。"
+  },
+  {
+    "key": "merchant.discover.tryTag",
+    "en": "Try another tag. Only approved merchants are shown.",
+    "zh-Hans": "换个标签看看。这里只显示审核通过的商家。"
+  },
+  {
+    "key": "merchant.discover.unnamed",
+    "en": "Unnamed merchant",
+    "zh-Hans": "未命名商家"
+  },
+  {
+    "key": "merchant.discover.unavailable",
+    "en": "This merchant’s public home is unavailable.",
+    "zh-Hans": "该商家的公开主页暂不可用。"
+  },
+  {
+    "key": "merchant.cityRedeem.title",
+    "en": "Redeem city-node code",
+    "zh-Hans": "据点核销"
+  },
+  {
+    "key": "merchant.cityRedeem.instructions",
+    "en": "Scan or enter the city-node code presented by the player, then review before redeeming.",
+    "zh-Hans": "扫描或手动输入玩家出示的据点码，确认后再核销。"
+  },
+  {
+    "key": "merchant.cityRedeem.disabled",
+    "en": "Live city-node redemption is not enabled. This code will not be sent.",
+    "zh-Hans": "据点实际核销尚未启用，不会发送此码。"
+  },
+  {
+    "key": "merchant.cityRedeem.code",
+    "en": "Player’s city-node code",
+    "zh-Hans": "玩家的据点码"
+  },
+  {
+    "key": "merchant.cityRedeem.review",
+    "en": "Review code",
+    "zh-Hans": "检查并确认"
+  },
+  {
+    "key": "merchant.cityRedeem.scan",
+    "en": "Scan player’s code",
+    "zh-Hans": "扫描玩家出示的码"
+  },
+  {
+    "key": "merchant.cityRedeem.cameraConsent",
+    "en": "The camera opens only after you choose Scan and allow camera access. A scan does not redeem automatically.",
+    "zh-Hans": "仅在你选择扫描并允许相机访问后开启相机，扫码不会自动核销。"
+  },
+  {
+    "key": "merchant.cityRedeem.processing",
+    "en": "Checking…",
+    "zh-Hans": "处理中…"
+  },
+  {
+    "key": "merchant.cityRedeem.confirmTitle",
+    "en": "Redeem this city-node code?",
+    "zh-Hans": "核销此据点码？"
+  },
+  {
+    "key": "merchant.cityRedeem.confirmHint",
+    "en": "This sends the player’s code for redemption and may issue the player a coupon. The server checks merchant permission, check-in and stock.",
+    "zh-Hans": "此操作将发送玩家的据点码进行核销，并可能向玩家发券。服务器会校验商家权限、到店打卡和库存。"
+  },
+  {
+    "key": "merchant.cityRedeem.confirm",
+    "en": "Redeem code",
+    "zh-Hans": "核销"
+  },
+  {
+    "key": "merchant.cityRedeem.success",
+    "en": "Redeemed",
+    "zh-Hans": "核销成功"
+  },
+  {
+    "key": "merchant.cityRedeem.rejected",
+    "en": "Not redeemed",
+    "zh-Hans": "未核销"
+  },
+  {
+    "key": "merchant.cityRedeem.next",
+    "en": "Next code",
+    "zh-Hans": "继续扫码"
+  },
+  {
+    "key": "merchant.cityRedeem.invalid",
+    "en": "Enter a nonempty code of at most 16 KB.",
+    "zh-Hans": "请输入有效的非空据点码，长度不超过 16 KB。"
+  },
+  {
+    "key": "merchant.cityRedeem.pending",
+    "en": "A previous redemption still needs verification, or its local record cannot be read. Further redemption is blocked.",
+    "zh-Hans": "此前核销仍需核对，或本地记录无法读取，已阻止继续核销。"
+  },
+  {
+    "key": "merchant.cityRedeem.stale",
+    "en": "Your session or merchant changed. Open this page again to review a code.",
+    "zh-Hans": "登录状态或商家已变更，请重新打开此页面后确认。"
+  },
+  {
+    "key": "merchant.cityRedeem.unknown",
+    "en": "The redemption outcome is unknown. Do not rescan or redeem another code until the previous outcome is verified.",
+    "zh-Hans": "核销结果尚不确定。在核对此前结果前，请勿重扫或核销其他码。"
+  },
+  {
+    "key": "merchant.cityRedeem.denied",
+    "en": "Your current merchant permission does not allow redemption.",
+    "zh-Hans": "当前商家权限不允许核销。"
+  },
+  {
+    "key": "merchant.cityRedeem.accessFailed",
+    "en": "Merchant permission could not be checked. No redemption was sent.",
+    "zh-Hans": "暂时无法核对商家权限，尚未发送核销请求。"
+  },
+  {
+    "key": "merchant.cityRedeem.signIn",
+    "en": "Sign in again before redeeming.",
+    "zh-Hans": "请重新登录后再核销。"
+  }
+]

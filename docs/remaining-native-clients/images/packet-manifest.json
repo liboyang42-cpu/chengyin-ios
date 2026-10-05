@@ -1,0 +1,140 @@
+{
+  "packet": "retained-native-image-consumers",
+  "source_revision": "a63e9e91c82a3282e8dd7138f943b1a8cbfc021d",
+  "status": "READY_FOR_INTEGRATION",
+  "checks": {
+    "source_structural": "PASS",
+    "pinned_swift_parser": "PASS 16 files, 0 recovery",
+    "swift_typecheck": "NOT_RUN",
+    "apple_build": "NOT_RUN",
+    "core_tests": "AUTHORED 10; NOT_RUN",
+    "app_unit_tests": "AUTHORED 4; NOT_RUN",
+    "ui_tests": "AUTHORED 3; NOT_RUN",
+    "OS_network_upload_actions": "NONE"
+  },
+  "files": [
+    {
+      "path": "App/MerchantOperationsEditor.swift",
+      "sha256": "dab645a8def255534c23d0479829d9a6a930d8e17f3f3c29d0d6b0aa69a7c4ec",
+      "operation": "overlay"
+    },
+    {
+      "path": "App/PublicMerchantReviewEditor.swift",
+      "sha256": "34ba726e879a89c27a82168b5af0e1d5e5f191a4463b5fdb1b8e2472b65df3d4",
+      "operation": "overlay"
+    },
+    {
+      "path": "App/PublicMerchantReviewsView.swift",
+      "sha256": "be96df60025911d6476283a80bf98080b78b4eac9163c8f4c8b5b8a6cfc8399e",
+      "operation": "overlay"
+    },
+    {
+      "path": "App/RetainedImageFixtureView.swift",
+      "sha256": "3ef37d7023028037c16ab66289f37226b00bff7fa90be410260b2e3c3d0243a9",
+      "operation": "add"
+    },
+    {
+      "path": "App/RetainedImagePresenterHost.swift",
+      "sha256": "03cd6de62b79f6b8c5b0d763f2eb0390d12e2581c11ef653c55094b5bf7d6fb4",
+      "operation": "add"
+    },
+    {
+      "path": "App/RetainedImageSelectionView.swift",
+      "sha256": "54e3e436eb5f5d671d80dd1a9f4e23f762ef5a1b8b2c9c41a2037b68c905d4eb",
+      "operation": "add"
+    },
+    {
+      "path": "App/RetainedNativeImagePicker.swift",
+      "sha256": "5a243ea8e7b5a226bfe6cc57d9e4302c363864c22d295b81bfeb19fa66cd42d9",
+      "operation": "add"
+    },
+    {
+      "path": "App/RetainedPublicReviewImages.swift",
+      "sha256": "e95edea716502c50b929d0ab859384d9c90f10deab7cccafe8fe6abf73ffd1f7",
+      "operation": "add"
+    },
+    {
+      "path": "Core/PublicMerchantReviewCoordinator.swift",
+      "sha256": "9b09c9b195a517ab19c879ede559f068fce57f29bd7d2479fba1fa76d506abd4",
+      "operation": "overlay"
+    },
+    {
+      "path": "Core/PublicMerchantReviewWrites.swift",
+      "sha256": "91cefa14ae947edb8c8a7ea7f46a518c4a1cf7e73ee5b7949fa6291a06de0d0c",
+      "operation": "overlay"
+    },
+    {
+      "path": "Core/RetainedImageConsumerBridges.swift",
+      "sha256": "b2e641c58ab7409d4b63646e6515d28f4e6eb1396f64ed1568789be08eda4179",
+      "operation": "add"
+    },
+    {
+      "path": "Core/RetainedImageContracts.swift",
+      "sha256": "8762f719403df2010bdf7eb0082dd41dc9602cbf6a90dade2874ca6f36d10110",
+      "operation": "add"
+    },
+    {
+      "path": "Core/RetainedPublicImageReader.swift",
+      "sha256": "9c7ee50076ffde76d3a25143a7904685400586b9784c0b587365c55811167db4",
+      "operation": "add"
+    },
+    {
+      "path": "Resources/RetainedImages.xcstrings",
+      "sha256": "454321f410a7622bdf453292b1d99fddba5d18ec98a4b7c1680bd6cdcf363367",
+      "operation": "add"
+    },
+    {
+      "path": "Tests/AppUITests/RetainedImageUITests.swift",
+      "sha256": "7a5ca2ad1cb1d7046d3deea4e30a052868b519111f4de3489b0e00b8599cee08",
+      "operation": "add"
+    },
+    {
+      "path": "Tests/AppUnitTests/RetainedImageSanitizerTests.swift",
+      "sha256": "2c1fa60ea5f3c8bcc59d7356867cd2a111e5e1546f2022a9a16c8b7dae2ae802",
+      "operation": "add"
+    },
+    {
+      "path": "Tests/CoreTests/RetainedImageConsumerTests.swift",
+      "sha256": "d95a1d92afb06fab107623a85ccbf9a21a55d249889f0bef3c39a7004dca1e6c",
+      "operation": "add"
+    },
+    {
+      "path": "docs/INTEGRATION.md",
+      "sha256": "a69a462b33559acbfd97755997ae052b126b74af71f173314ef4ff7d633fca45",
+      "operation": "add"
+    },
+    {
+      "path": "tools/check_retained_images.py",
+      "sha256": "a0162c72707fd588525ae3a78a25af9a2f27c22a4e520777347f7f7d9464d6c2",
+      "operation": "add"
+    }
+  ],
+  "overlay_baseline": {
+    "Core/PublicMerchantReviewWrites.swift": "7830783faf03545dee3a538a48fcd3d9b9cf25097d0b5d16eb3ccabdfe450c92",
+    "Core/PublicMerchantReviewCoordinator.swift": "a043153d6b09e1081154c02926b0372fb2e8289c974d9646abbfdb11db7d88dc",
+    "App/PublicMerchantReviewEditor.swift": "673d56d11dfc236eb48435431d36679942e4bdae425017550c88df4d37779285",
+    "App/PublicMerchantReviewsView.swift": "3da705c268b7b13f42ec6eaa0f3eaecc9adcbefcf27fbf29204b613a57c8ecf0",
+    "App/MerchantOperationsEditor.swift": "2295b5771e8d345ca4522a089195967ed2ef6219a0a71880b51f2c45ad785c2e"
+  },
+  "source_hashes": {
+    "data/api/play_api.dart": "686fd7403e0ffcbccbb6b8226383840e86a24d062f2583be1d8b9193126e8316",
+    "data/api/publish_api.dart": "e4a2e4fe5405df5aeafc012dc7d41dc9d739e69c5363e7e65a58c5b76dbdb58e",
+    "data/api/merchant_review_api.dart": "55626b51df28b70979e4d8caeecee08cec7856d8ccee62d94985d3b224f5c9d1",
+    "data/models/merchant_review.dart": "6051c9f80cd9d4425d3f42ecab2eb9a3810f851e0e7c80b4b2877fdafb70c933",
+    "core/router/app_router.dart": "4ad5bb2e7bb2954f287a7a40fbace9bae4b50fca2728513e55e372b7e02efe8b",
+    "feature/merchant/merchant_public_reviews_page.dart": "46e79b55b2c74d7aef59df70822194b47be298fa7b547061c69bbd42c942fb3b",
+    "feature/merchant/merchant_decor_page.dart": "d41a741b58bd8935abd5ae387fa0d0f2f26f3c41b1298ef935fabe16931379c5",
+    "feature/merchant/merchant_decor_gallery_page.dart": "864e1f7594b33391db69d317ee80f2898c0d47639fe7ca7c65cb4cf692bde437",
+    "feature/merchant/merchant_npc_edit_page.dart": "c3b3efa1b7b0d07a32dd8cce3a48960d31cf1f57ca91b76197597f8b24f44e75",
+    "feature/merchant/node_template_edit_page.dart": "9b1a4874e11316dbb13db60a95986cee8aa74e7a69b79292eee8e8a71e914710",
+    "feature/club/club_image_picker.dart": "57d39a4c6a12df6efda8475641c735b7032a73fc95357ceb2523a5c1fe89dd6a"
+  },
+  "defaults": {
+    "OS_selection": false,
+    "upload": false,
+    "public_image_read": false,
+    "media_origins": [],
+    "NPC_provider": false
+  },
+  "compatibility_revision": "NPC namespace binding: captured optional image namespace required and equal for NPC bridge; no fabricated namespace defaults"
+}

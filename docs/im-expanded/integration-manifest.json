@@ -1,0 +1,160 @@
+{
+  "module": "im_full_source_backed",
+  "integration_date_utc": "2026-10-02",
+  "scope": "Exclusive additive local integration; no remote/backend/device actions",
+  "default_live_write_grants": false,
+  "runtime": "NOT_RUN",
+  "manifest_self_path": "docs/im-expanded/integration-manifest.json",
+  "changed_files": [
+    {
+      "path": "App/AccountView.swift",
+      "status": "modified",
+      "sha256": "82c7a5acc8417a6c82c1a6f7254bea6fcaeaa3d6b14710c01f0fa62c74e4399c"
+    },
+    {
+      "path": "App/AppSession.swift",
+      "status": "modified",
+      "sha256": "27c01431907dc147b23d7a6bd7399acead51471c4a66154e8ec3d4fd7a766856"
+    },
+    {
+      "path": "App/IMExpandedFixture.swift",
+      "status": "added",
+      "sha256": "c4f854c58ac8edf98877accc631a70818f30440858431740d4d6e6d85b25fea9"
+    },
+    {
+      "path": "App/IMExpandedViews.swift",
+      "status": "added",
+      "sha256": "9a9cc6285a10c18a5add5e088f8695df6c06a3ed929b9f575f3271690679846f"
+    },
+    {
+      "path": "App/MessagingHistoryView.swift",
+      "status": "modified",
+      "sha256": "966bae16eeb1875a89a35e131cd1c1f36df0648965d2387b86f8078afe54c30b"
+    },
+    {
+      "path": "App/MessagingHomeView.swift",
+      "status": "modified",
+      "sha256": "0a2621a4f541d932a496bb9076718ea437a4cf9e03b8ca8ce7fe459e3c13b323"
+    },
+    {
+      "path": "App/MessagingMessageDetailView.swift",
+      "status": "modified",
+      "sha256": "8083577674573068d19ff361175606df0b5c1686f7b2d3baaf539fcd3eaad883"
+    },
+    {
+      "path": "App/QuestifyApp.swift",
+      "status": "modified",
+      "sha256": "b7afb84d28602a9c9a55adad231f5afa49eb91489a7ee5e40aec1d3ce8af84c2"
+    },
+    {
+      "path": "App/SessionIMExpandedContext.swift",
+      "status": "added",
+      "sha256": "414dd1241a4578cf7669d82567c026544f5489c22a1a6016fac09055b4666171"
+    },
+    {
+      "path": "Core/IMExpandedContracts.swift",
+      "status": "added",
+      "sha256": "86e2065479371dbc82c328f1cc1bf2bc37a2cf2ed7e3fc40f69e258d7a3b4668"
+    },
+    {
+      "path": "Core/IMExpandedCoordinator.swift",
+      "status": "added",
+      "sha256": "73f144098fd08078091430039da72be56684df631b51d5b37b5bba18c02aab48"
+    },
+    {
+      "path": "Core/IMExpandedService.swift",
+      "status": "added",
+      "sha256": "559af8ba2be493ac13d0dc0b5116c22fe8e3943875021b64f5b055fbe37e33f8"
+    },
+    {
+      "path": "Core/IMMediaSelection.swift",
+      "status": "added",
+      "sha256": "9bf558f50b07906e1f39f68bc73c4bd420bc52ae5c345de56a105a3c76762234"
+    },
+    {
+      "path": "PROGRESS.md",
+      "status": "modified",
+      "sha256": "93caddaf434082af1a62bc004ce6e07651dbe3490a935c3d47238a5efd1ceb15"
+    },
+    {
+      "path": "Questify.xcodeproj/project.pbxproj",
+      "status": "modified",
+      "sha256": "8cbab633b11c9fca24df8b31c2ee3253930f1fff1979383d08a98f77333bd710"
+    },
+    {
+      "path": "Resources/Localizable.xcstrings",
+      "status": "modified",
+      "sha256": "9ef321fb0533aa9655d149a368421185dd89e9d81a83d14983c4e9f5c29ef23a"
+    },
+    {
+      "path": "Tests/AppUITests/IMExpandedUITests.swift",
+      "status": "added",
+      "sha256": "4699a95893aee673177b0301abe161fb4c57dc0e3648c6ed997d5e933f73d94f"
+    },
+    {
+      "path": "Tests/ContractChecks/test_im_expanded_integration.py",
+      "status": "added",
+      "sha256": "98dccbcc0958e0f4240418dc19e90be9a51064fea983a27dfbff8940966aff05"
+    },
+    {
+      "path": "Tests/CoreTests/IMExpandedTests.swift",
+      "status": "added",
+      "sha256": "9c21a83b78a8d7964492ce577a4078c30a59a7b2403609db72a8a14f1dae067a"
+    },
+    {
+      "path": "docs/im-expanded/aggregate-results.txt",
+      "status": "added",
+      "sha256": "860293149bc2d6ce8d89830ce1761a1844ba10a708d8b7dfdc956049418e549b"
+    },
+    {
+      "path": "docs/im-expanded/integration-verification.json",
+      "status": "added",
+      "sha256": "330f6e5184fcb3e1bb87d6ae1126d94ddaba7f7f7ff7b99a0202b36a3408e2b0"
+    },
+    {
+      "path": "docs/im-expanded/source-results.txt",
+      "status": "added",
+      "sha256": "c784448cf2987b94f89eefcab33349470e3f1c4424acb6401986593ccb97176a"
+    },
+    {
+      "path": "docs/im-expanded/syntax-validation.txt",
+      "status": "added",
+      "sha256": "f40528779f8df93e78e02cba516810c4b22a9353a0e709831770c6557f8b3508"
+    },
+    {
+      "path": "docs/im-expanded/ui-shards.txt",
+      "status": "added",
+      "sha256": "65b47e4439c8f258af7ed96f6d906c1f88137057f1a414aaa7fc4d026d49a245"
+    },
+    {
+      "path": "docs/im-expanded/whole-tree-syntax.txt",
+      "status": "added",
+      "sha256": "dc83ab0cdf566bd1581cee6f80a0fb774ebda243db970c8a7b17391e40135be2"
+    },
+    {
+      "path": "docs/im-expanded-integration.md",
+      "status": "added",
+      "sha256": "4e76f0cc6b311615ea0c333e84c8b0d98781466ab1d787fa1e423330e92541d1"
+    },
+    {
+      "path": "docs/im-expanded-localizations.json",
+      "status": "added",
+      "sha256": "f3ec43e0f2d5eed1c7cd9af9c4ecc6f26bfaa3351344ad3d0daba9aec5cbb483"
+    },
+    {
+      "path": "docs/merchant-content-static-evidence.json",
+      "status": "modified",
+      "sha256": "a3e59e3e786f505a7cf165f81706f8b3bc1cd29e6dd88b6a0a41250bbe445e05"
+    },
+    {
+      "path": "tools/check_im_expanded.py",
+      "status": "added",
+      "sha256": "f23285ca7cfc90439bf1436f2ec525c251319016c19e08432889667703231ff4"
+    },
+    {
+      "path": "tools/check_scaffold.py",
+      "status": "modified",
+      "sha256": "3ba6af79b8c6e3aeb80e8ecb4742cea8bacd22b6a983301e974843de15ab2f44"
+    }
+  ]
+}

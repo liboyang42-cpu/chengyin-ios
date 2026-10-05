@@ -1,0 +1,53 @@
+{
+  "scope": "local source and synthetic fixture validation only",
+  "authored_core_total": 1543,
+  "authored_ui_total": 236,
+  "ui_classes": 37,
+  "catalog_keys": 4079,
+  "nearby_core_added": 22,
+  "nearby_ui_added": 3,
+  "nearby_keys_added": 82,
+  "contract_checks": {
+    "status": "PASS",
+    "count": 289
+  },
+  "tooling_tests": {
+    "status": "PASS",
+    "count": 16
+  },
+  "parser_self_tests": {
+    "status": "PASS",
+    "count": 14
+  },
+  "focused_parser": {
+    "status": "PASS",
+    "files": 17,
+    "diagnostics": 0
+  },
+  "full_parser": {
+    "status": "FAIL_EXISTING_DIAGNOSTICS",
+    "files": 567,
+    "diagnostics": 10,
+    "affected_files": 6
+  },
+  "shards": [
+    41,
+    39,
+    39,
+    39,
+    39,
+    39
+  ],
+  "swift_compiler": "NOT_RUN",
+  "xctest": "NOT_RUN",
+  "xcode_ui_device_accessibility": "NOT_RUN",
+  "live_network_actions": 0,
+  "remote_writes": 0,
+  "mutation_execution": "concrete in-memory fake only; no live mutation grant/transport",
+  "integrated_write_repair": {
+    "document": "nearby-team-write-repair.md",
+    "core_methods_after_repair": 44,
+    "default_write_grants": false,
+    "runtime": "NOT_RUN"
+  }
+}

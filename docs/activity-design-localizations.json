@@ -1,0 +1,7 @@
+[
+  { "key": "activity.about", "en": "About this activity", "zh-Hans": "活动介绍" },
+  { "key": "activity.startingPrice", "en": "Starting price", "zh-Hans": "起始价格" },
+  { "key": "activity.date", "en": "Date", "zh-Hans": "时间" },
+  { "key": "activity.address", "en": "Address", "zh-Hans": "地址" },
+  { "key": "activity.untitled", "en": "Unnamed activity", "zh-Hans": "未命名活动" }
+]

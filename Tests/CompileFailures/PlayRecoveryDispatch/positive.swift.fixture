@@ -1,0 +1,9 @@
+import Foundation
+@testable import QuestifyCore
+@MainActor func positive(_ attempt: PlayPreparedDispatch, session: PlayExperienceSession, scope: PlaySessionScope,
+                         region: RegionalConfiguration, storage: RegionalSessionStorageScope) throws {
+    let _: URLRequest = attempt.request
+    let journal = try PlayRecoverySystemFactory.make(session: session, scope: scope, regionalConfiguration: region, storageScope: storage)
+    let _: any PlayCompletionRecoveryStore = journal
+    let _: any PlayPausedStorage = journal
+}

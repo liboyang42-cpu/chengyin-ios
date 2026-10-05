@@ -1,0 +1,36 @@
+--- a/Core/TopicContracts.swift
++++ b/Core/TopicContracts.swift
+@@ -196,6 +196,8 @@
+ }
+ 
+ public struct TopicDetail: Decodable, Equatable, Identifiable {
++    /// Fresh source evidence stays separate from display defaults; unavailable proof stays nil.
++    public let publisherAuthoritySource: PublisherTopicAuthoritySource?
+     public let categoryNames: [String]
+     public let initiatorName: String?
+     public let initiatorAvatar: String?
+@@ -232,6 +234,7 @@
+     public let tickets: [TopicTicket]
+     public let comments: [TopicComment]
+     public init(from decoder: Decoder) throws {
++        publisherAuthoritySource = try? PublisherTopicAuthoritySource(from: decoder)
+         let c = try decoder.container(keyedBy: TopicKey.self)
+         let categories: [TopicCategoryRecord] = try c.list("sysCategoryList")
+         categoryNames = categories.compactMap(\.categoryName).filter { !$0.isEmpty }
+--- a/Core/ActivityDetail.swift
++++ b/Core/ActivityDetail.swift
+@@ -21,11 +21,14 @@
+ }
+ 
+ public struct ActivityDetail: Decodable, Equatable {
++    /// Fresh source evidence stays separate from display defaults; unavailable proof stays nil.
++    public let publisherAuthoritySource: PublisherActivityAuthoritySource?
+     public let summary: ActivitySummary
+     public let tickets: [ActivityTicket]
+     public let hostMemberID: Int?
+     enum CodingKeys: String, CodingKey { case omsTicketList, memberId }
+     public init(from decoder:Decoder) throws {
++        publisherAuthoritySource = try? PublisherActivityAuthoritySource(from: decoder)
+         summary=try ActivitySummary(from:decoder)
+         let c=try decoder.container(keyedBy:CodingKeys.self)
+         tickets=try c.decodeIfPresent([ActivityTicket].self,forKey:.omsTicketList) ?? []

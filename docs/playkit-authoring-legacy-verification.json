@@ -1,0 +1,23 @@
+{
+  "scope": "five mini-program creator panels; six active legacy runtime bodies; safe static scan-overlay fallback",
+  "source_flutter_commit": "a63e9e91c82a3282e8dd7138f943b1a8cbfc021d",
+  "source_miniprogram_snapshot": "fad4d6bd7e3c3e501441fe19c8de9a9cd78230fc",
+  "new_authored_core_tests": {
+    "TemplateMiniGameTests.swift": 19,
+    "PlayKitLegacyTests.swift": 8
+  },
+  "executed_python_contracts": {
+    "run": 456,
+    "passed": 448,
+    "skipped": 8,
+    "failed": 0,
+    "source_roots": "Both CHENGYIN_FLUTTER_SOURCE_ROOT and FLUTTER_AUDIT_ROOT explicitly supplied"
+  },
+  "swift_tests": "NOT_RUN",
+  "ios_build": "NOT_RUN",
+  "ui_tests": "NOT_RUN",
+  "device_acceptance": "NOT_RUN",
+  "backend_acceptance": "NOT_RUN",
+  "visual_accessibility_acceptance": "NOT_RUN",
+  "production_capabilities": "unchanged; empty"
+}

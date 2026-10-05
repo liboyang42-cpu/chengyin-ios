@@ -1,0 +1,56 @@
+#if DEBUG
+import SwiftUI
+
+@MainActor struct ClubGovernanceFixtureHost: View {
+    @StateObject private var store = ClubGovernanceFixtureStore()
+    var body: some View {
+        if ProcessInfo.processInfo.arguments.contains("--club-story-scenario") { ClubStoryFixtureHost() }
+        else if ProcessInfo.processInfo.arguments.contains("--club-feed-scenario") { ClubFeedFixtureHost() }
+        else { legacyBody }
+    }
+    private var legacyBody: some View {
+        NavigationStack {
+            List {
+                Text("club.gov.synthetic").accessibilityIdentifier("club.gov.synthetic")
+                NavigationLink { ClubOwnerRefundFixtureView(scenario: .accepted) } label: { Text("club.refund.fixtureAccepted") }.accessibilityIdentifier("club.refund.fixtureAccepted")
+                NavigationLink { ClubOwnerRefundFixtureView(scenario: .unknown) } label: { Text("club.refund.fixtureUnknown") }.accessibilityIdentifier("club.refund.fixtureUnknown")
+                NavigationLink { ClubOwnerRefundFixtureView(scenario: .disabled) } label: { Text("club.refund.fixtureDisabled") }.accessibilityIdentifier("club.refund.fixtureDisabled")
+                NavigationLink {
+                    ClubEnrollmentView(clubID: 81, focusTopicID: 91, identity: store.identity, access: store.access, coordinator: store.coordinator)
+                        .environment(\.clubEnrollmentProfile, .init(reader: SocialAccountFixtureReader(.content), squareReader: SquareFixtureReader()))
+                        .toolbar { ToolbarItem(placement: .bottomBar) { Button("club.gov.switchAccount") { store.switchAccount() }.accessibilityIdentifier("club.gov.switchAccount") } }
+                } label: { Text("club.enroll.title") }.accessibilityIdentifier("club.enroll.fixture")
+                ClubGovernanceHomeEntries(identity: store.identity, access: store.access, coordinator: store.coordinator)
+                ClubGovernanceEntryButton(clubID: 81, identity: store.identity, access: store.access, coordinator: store.coordinator,
+                    customerTopics: .init(destination: { id in AnyView(Text(verbatim: "Synthetic history topic \(id)").accessibilityIdentifier("club.fixture.historyTopic.\(id)")) }))
+                ForEach([ClubGovernanceRead.customers, .series, .roles, .topicOverview, .editions, .dissolutionBlockers, .leaderboard, .settlement, .audienceCounts, .roster], id: \.rawValue) { operation in
+                    NavigationLink {
+                        ClubGovernanceReadView(operation: operation, scope: ClubGovernanceFixtures.scope, identity: store.identity, access: store.access, coordinator: store.coordinator)
+                            .accessibilityIdentifier("club.gov.fixture.destination." + operation.rawValue)
+                            .toolbar { ToolbarItem(placement: .bottomBar) { Button("club.gov.switchAccount") { store.switchAccount() }.accessibilityIdentifier("club.gov.switchAccount") } }
+                    } label: { Text(LocalizedStringKey("club.gov." + operation.rawValue)) }.accessibilityIdentifier("club.gov.fixture." + operation.rawValue)
+                }
+                Button("club.gov.switchAccount") { store.switchAccount() }.accessibilityIdentifier("club.gov.switchAccount")
+                Button("club.gov.simulateUnknown") { store.access.writeFailure = .unknown(message: nil) }.accessibilityIdentifier("club.gov.simulateUnknown")
+            }.accessibilityIdentifier("club.gov.fixture.root").navigationTitle("club.gov.workspace")
+        }
+    }
+}
+@MainActor private final class ClubGovernanceFixtureStore: ObservableObject {
+    let access = ClubGovernanceFixtureAccess()
+    lazy var coordinator = ClubGovernanceCoordinator(access: access)
+    @Published var identity: ClubReadIdentity? = .init(accountID: 701, epoch: 1)
+    init() {
+        var value = ClubGovernanceFixtures.value(.topicOverview).object ?? [:]
+        var chapters = value["chaptersList"]?.array ?? []
+        if var chapter = chapters.first?.object {
+            chapter["name"] = .string("Fixture chapter"); chapters[0] = .object(chapter)
+        }
+        value["chaptersList"] = .array(chapters); access.overrideValue[.topicOverview] = .object(value)
+    }
+    func switchAccount() {
+        let replacement = ClubReadIdentity(accountID: 799, epoch: (identity?.epoch ?? 0) + 1)
+        access.identity = replacement; access.readFailure = .forbidden; coordinator.cancelReview(); identity = replacement
+    }
+}
+#endif

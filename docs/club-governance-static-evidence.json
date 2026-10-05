@@ -1,0 +1,19 @@
+{
+  "read_adapters": 34,
+  "dormant_mutation_adapters": 23,
+  "bilingual_keys": 328,
+  "authored_core_tests": 73,
+  "authored_ui_tests": 6,
+  "swift_test": "NOT_RUN: Swift toolchain absent",
+  "xcode_ui": "NOT_RUN: Xcode/simulator absent",
+  "checks": "static-source checks PASS",
+  "source_hashes": {
+    "lib/data/api/club_ops_api.dart": "573a380fba5eb5e57cfd45264b52839fc2f6ab474f84e45afced1586e7d7d333",
+    "lib/data/api/club_crm_api.dart": "27ce4adaefa42436f0e1242c5554bdf07b4d978bc76e5d3ec3293d90b1d38678",
+    "lib/data/api/club_compensation_api.dart": "ac53924a561cb9045c5c495686d61b4bf2bffb4599f502410f254d909bcd5074",
+    "lib/data/api/club_topic_ops_api.dart": "8631f988318c2498159f3a0cfcf76e8770ce6f89fb9287f111f809684535ac51",
+    "lib/data/api/club_api.dart": "5b7f07ccc395be0d78bc6aac5aa84f8003606d24a03c323f93d21a08fb59422f",
+    "lib/data/api/group_code_api.dart": "ac1307686e8fada15a154d22a6e59d6362ce2f6e6052bd5a2703ed41db5f6cbf",
+    "lib/data/api/publisher_identity_api.dart": "44a79fc8f3de0e0a6640719cdd107aa3080c426e35e3bafb9791c210dae506cb"
+  }
+}

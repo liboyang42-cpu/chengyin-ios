@@ -1,0 +1,352 @@
+[
+  {
+    "key": "discovery.title",
+    "en": "Discover",
+    "zh-Hans": "发现"
+  },
+  {
+    "key": "discovery.browseTemplates",
+    "en": "Browse templates",
+    "zh-Hans": "浏览模板"
+  },
+  {
+    "key": "discovery.unavailable",
+    "en": "Discovery unavailable",
+    "zh-Hans": "发现暂不可用"
+  },
+  {
+    "key": "discovery.loading",
+    "en": "Loading…",
+    "zh-Hans": "正在加载…"
+  },
+  {
+    "key": "discovery.loadFailed",
+    "en": "Couldn’t load this content",
+    "zh-Hans": "内容加载失败"
+  },
+  {
+    "key": "discovery.signInRequired",
+    "en": "Sign in to continue",
+    "zh-Hans": "请登录后继续"
+  },
+  {
+    "key": "discovery.signInHint",
+    "en": "This service requires a current account. Return to sign-in and try again.",
+    "zh-Hans": "此服务需要有效的登录状态。请返回登录后再试。"
+  },
+  {
+    "key": "discovery.templateMissing",
+    "en": "Template not found",
+    "zh-Hans": "找不到这个玩法"
+  },
+  {
+    "key": "discovery.templateMissingHint",
+    "en": "It may have been deleted.",
+    "zh-Hans": "它可能已被删除。"
+  },
+  {
+    "key": "discovery.templateReview",
+    "en": "This template is under review",
+    "zh-Hans": "这个玩法正在审核"
+  },
+  {
+    "key": "discovery.templateReviewHint",
+    "en": "Check again after the review is complete.",
+    "zh-Hans": "审核通过后就能看到，请稍后再来。"
+  },
+  {
+    "key": "discovery.templateOffline",
+    "en": "This template has been taken down",
+    "zh-Hans": "这个玩法已下架"
+  },
+  {
+    "key": "discovery.templateOfflineHint",
+    "en": "The creator has removed it from the library.",
+    "zh-Hans": "作者已将它从玩法库下架。"
+  },
+  {
+    "key": "discovery.banners",
+    "en": "Highlights",
+    "zh-Hans": "首页精选"
+  },
+  {
+    "key": "discovery.openBanner %lld",
+    "en": "Open highlight %lld",
+    "zh-Hans": "打开第 %lld 项精选"
+  },
+  {
+    "key": "discovery.featured",
+    "en": "Featured",
+    "zh-Hans": "精选推荐"
+  },
+  {
+    "key": "discovery.latest",
+    "en": "Latest",
+    "zh-Hans": "最新玩法"
+  },
+  {
+    "key": "discovery.recommended",
+    "en": "Recommended",
+    "zh-Hans": "推荐"
+  },
+  {
+    "key": "discovery.mustPlay",
+    "en": "Must-play",
+    "zh-Hans": "必玩精选"
+  },
+  {
+    "key": "discovery.hot",
+    "en": "Popular",
+    "zh-Hans": "热门玩法"
+  },
+  {
+    "key": "discovery.emptyGames",
+    "en": "No play templates yet",
+    "zh-Hans": "暂无玩法模板"
+  },
+  {
+    "key": "discovery.emptyTopics",
+    "en": "No reusable route templates yet",
+    "zh-Hans": "还没有可复用的主题模板"
+  },
+  {
+    "key": "discovery.emptyTopicsHint",
+    "en": "New route templates will appear here. Browse Games for individual interactions.",
+    "zh-Hans": "新的整包主题开放后会出现在这里，也可以先去「游戏」里挑单个玩法。"
+  },
+  {
+    "key": "discovery.shelf",
+    "en": "Template type",
+    "zh-Hans": "模板类型"
+  },
+  {
+    "key": "discovery.topics",
+    "en": "Routes",
+    "zh-Hans": "主题"
+  },
+  {
+    "key": "discovery.games",
+    "en": "Games",
+    "zh-Hans": "游戏"
+  },
+  {
+    "key": "discovery.category",
+    "en": "Category",
+    "zh-Hans": "品类"
+  },
+  {
+    "key": "discovery.categoryMatches",
+    "en": "Selected category",
+    "zh-Hans": "所选品类"
+  },
+  {
+    "key": "discovery.otherTemplates",
+    "en": "Other templates",
+    "zh-Hans": "其他模板"
+  },
+  {
+    "key": "discovery.categoriesUnavailable",
+    "en": "Categories couldn’t be loaded. You can still browse templates.",
+    "zh-Hans": "品类加载失败，仍可浏览模板。"
+  },
+  {
+    "key": "discovery.pack",
+    "en": "Format",
+    "zh-Hans": "玩法形态"
+  },
+  {
+    "key": "discovery.allPacks",
+    "en": "All formats",
+    "zh-Hans": "全部形态"
+  },
+  {
+    "key": "discovery.pack.single",
+    "en": "Single-location play",
+    "zh-Hans": "单节点玩法"
+  },
+  {
+    "key": "discovery.pack.story",
+    "en": "Story pack",
+    "zh-Hans": "剧情包"
+  },
+  {
+    "key": "discovery.pack.shop",
+    "en": "Shop IP pack",
+    "zh-Hans": "店铺 IP 包"
+  },
+  {
+    "key": "discovery.search",
+    "en": "Search play templates",
+    "zh-Hans": "搜索玩法模板"
+  },
+  {
+    "key": "discovery.searchAction",
+    "en": "Search",
+    "zh-Hans": "搜索"
+  },
+  {
+    "key": "discovery.clearFilters",
+    "en": "Clear filters",
+    "zh-Hans": "清除筛选"
+  },
+  {
+    "key": "discovery.noResults",
+    "en": "No matching templates",
+    "zh-Hans": "未找到匹配的模板"
+  },
+  {
+    "key": "discovery.searchResults",
+    "en": "Results",
+    "zh-Hans": "搜索结果"
+  },
+  {
+    "key": "discovery.untitledPlay",
+    "en": "Untitled play",
+    "zh-Hans": "未命名玩法"
+  },
+  {
+    "key": "discovery.untitledTopic",
+    "en": "Untitled route",
+    "zh-Hans": "未命名主题"
+  },
+  {
+    "key": "discovery.players",
+    "en": "Players",
+    "zh-Hans": "建议人数"
+  },
+  {
+    "key": "discovery.duration",
+    "en": "Duration",
+    "zh-Hans": "时长"
+  },
+  {
+    "key": "discovery.minutes %lld",
+    "en": "%lld min",
+    "zh-Hans": "%lld 分钟"
+  },
+  {
+    "key": "discovery.difficulty",
+    "en": "Difficulty",
+    "zh-Hans": "难度"
+  },
+  {
+    "key": "discovery.chapters %lld",
+    "en": "%lld chapters",
+    "zh-Hans": "%lld 章"
+  },
+  {
+    "key": "discovery.locations %lld",
+    "en": "%lld locations",
+    "zh-Hans": "%lld 个点"
+  },
+  {
+    "key": "discovery.durationValue %@",
+    "en": "%@ min",
+    "zh-Hans": "%@ 分钟"
+  },
+  {
+    "key": "discovery.preview",
+    "en": "Experimental preview",
+    "zh-Hans": "实验预览"
+  },
+  {
+    "key": "discovery.experimental",
+    "en": "Experimental template",
+    "zh-Hans": "实验模板"
+  },
+  {
+    "key": "discovery.introduction",
+    "en": "Introduction",
+    "zh-Hans": "简介"
+  },
+  {
+    "key": "discovery.rules",
+    "en": "Rules",
+    "zh-Hans": "规则说明"
+  },
+  {
+    "key": "discovery.materials",
+    "en": "What to prepare",
+    "zh-Hans": "需要准备"
+  },
+  {
+    "key": "discovery.location",
+    "en": "Where to play",
+    "zh-Hans": "在哪用"
+  },
+  {
+    "key": "discovery.verification",
+    "en": "How it’s verified",
+    "zh-Hans": "怎么验证"
+  },
+  {
+    "key": "discovery.verification.none",
+    "en": "No verification",
+    "zh-Hans": "无需验证"
+  },
+  {
+    "key": "discovery.verification.text",
+    "en": "Text answer",
+    "zh-Hans": "文字作答"
+  },
+  {
+    "key": "discovery.verification.photo",
+    "en": "Photo check-in",
+    "zh-Hans": "拍照打卡"
+  },
+  {
+    "key": "discovery.verification.choice",
+    "en": "Multiple-choice question",
+    "zh-Hans": "选项问答"
+  },
+  {
+    "key": "discovery.verification.shopQR",
+    "en": "Scan at the venue",
+    "zh-Hans": "到店扫码"
+  },
+  {
+    "key": "discovery.verification.gps",
+    "en": "GPS arrival",
+    "zh-Hans": "GPS 到达"
+  },
+  {
+    "key": "discovery.verification.preferences",
+    "en": "Preference questions",
+    "zh-Hans": "偏好题组"
+  },
+  {
+    "key": "discovery.verification.sensor",
+    "en": "Sensor challenge",
+    "zh-Hans": "传感器挑战"
+  },
+  {
+    "key": "discovery.verification.other",
+    "en": "Other",
+    "zh-Hans": "其他"
+  },
+  {
+    "key": "discovery.creator",
+    "en": "From the creator",
+    "zh-Hans": "创作者说"
+  },
+  {
+    "key": "discovery.playDetails",
+    "en": "Play details",
+    "zh-Hans": "玩法详情"
+  },
+  {
+    "key": "discovery.readOnlyHint",
+    "en": "Template browsing is available. Adopting or editing a template is not available in this native build yet.",
+    "zh-Hans": "当前原生版本支持浏览模板，暂不支持套用或编辑。"
+  },
+  {
+    "key": "discovery.topicPreview",
+    "en": "Route template preview",
+    "zh-Hans": "主题模板预览"
+  },
+  {
+    "key": "discovery.topicPreviewHint",
+    "en": "This preview shows the library listing. Copying a route into your drafts and configuring its chapters are not available in this native build yet.",
+    "zh-Hans": "此预览展示模板库中的信息。当前原生版本暂不支持复制到草稿或配置章节。"
+  }
+]

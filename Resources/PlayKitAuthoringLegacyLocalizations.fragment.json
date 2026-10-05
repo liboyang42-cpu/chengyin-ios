@@ -1,0 +1,1570 @@
+{
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "playkitAuthor.instructions.sort": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter items in the correct order. The server will shuffle them for players."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请按正确顺序录入条目，服务端会为玩家打乱顺序。"
+          }
+        }
+      }
+    },
+    "playkitAuthor.instructions.match": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Each entered left/right row is a correct pair. Players receive a shuffled right column."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每行的左、右两项组成正确配对，玩家看到的右侧条目由服务端打乱。"
+          }
+        }
+      }
+    },
+    "playkitAuthor.instructions.classify": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Define categories, then assign every item to its correct category."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先定义类别，再为每个条目指定正确类别。"
+          }
+        }
+      }
+    },
+    "playkitAuthor.compass.boundary": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A direction is required. Compass alignment awards configured points only; it is not proof of arrival. Native sensor permission and device acceptance are separate."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "必须明确填写目标方位。罗盘对准仅按配置计分，不能作为到店凭证。原生传感器权限与真机验收是独立步骤。"
+          }
+        }
+      }
+    },
+    "playkitAuthor.shout.boundary": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Participants must agree to microphone use and sustain the sound continuously. Consider the location and other people before choosing this task."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参与者需要同意使用麦克风并持续发声。选择此玩法前，请考虑现场环境与周围的人。"
+          }
+        }
+      }
+    },
+    "playkitAuthor.preview": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preview this game"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预览此玩法"
+          }
+        }
+      }
+    },
+    "playkitAuthor.rowLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Item text"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "条目文案"
+          }
+        }
+      }
+    },
+    "playkitAuthor.remove": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移除"
+          }
+        }
+      }
+    },
+    "playkitAuthor.addItem": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add item"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加条目"
+          }
+        }
+      }
+    },
+    "playkitAuthor.left": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Left item"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "左侧条目"
+          }
+        }
+      }
+    },
+    "playkitAuthor.right": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Matching right item"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配对的右侧条目"
+          }
+        }
+      }
+    },
+    "playkitAuthor.removePair": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove pair"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移除这一对"
+          }
+        }
+      }
+    },
+    "playkitAuthor.balancePairs": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add blank rows to the shorter column"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "为较短的一列补充空白条目"
+          }
+        }
+      }
+    },
+    "playkitAuthor.addPair": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add pair"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加一对"
+          }
+        }
+      }
+    },
+    "playkitAuthor.categories": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Categories"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "类别"
+          }
+        }
+      }
+    },
+    "playkitAuthor.addCategory": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add category"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加类别"
+          }
+        }
+      }
+    },
+    "playkitAuthor.items": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Items"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "条目"
+          }
+        }
+      }
+    },
+    "playkitAuthor.correctCategory": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Correct category"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正确类别"
+          }
+        }
+      }
+    },
+    "playkitAuthor.previewBoundary": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Author rehearsal only. No request is sent, no live session is created and no reward is awarded. Secret answers are removed from these player controls."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅供作者试用。不会发送请求、创建真实会话或发放奖励。此处的玩家控件已移除答案字段。"
+          }
+        }
+      }
+    },
+    "playkitAuthor.previewPayload": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Values this rehearsal would submit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次试用拟提交的值"
+          }
+        }
+      }
+    },
+    "playkitAuthor.sensorPreviewBoundary": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This shows the configured sensor task and its native controls. Hardware stays off in author preview; use an accepted device-testing configuration to measure real input."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这里展示配置的传感器任务与原生控件。作者预览中不启动硬件，真实输入需在获准的真机测试配置中验证。"
+          }
+        }
+      }
+    },
+    "playkitAuthor.presentation": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Player presentation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩家呈现方式"
+          }
+        }
+      }
+    },
+    "playkitAuthor.presentation.default": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server default"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "由服务端按规则决定"
+          }
+        }
+      }
+    },
+    "playkitAuthor.presentation.inline": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Within the story"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "嵌入故事"
+          }
+        }
+      }
+    },
+    "playkitAuthor.presentation.focused": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dedicated game screen"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "独立玩法页面"
+          }
+        }
+      }
+    },
+    "playkitAuthor.presentation.focusedRequired": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This game requires a dedicated screen. An inline selection must be changed before saving."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此玩法需要独立页面，保存前请将内嵌选择改为独立页面。"
+          }
+        }
+      }
+    },
+    "playkitAuthor.validation.presentation": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a supported presentation value"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择受支持的呈现方式"
+          }
+        }
+      }
+    },
+    "playkitAuthor.validation.fullscreenOnly": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This game cannot be embedded in the story"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此玩法不能嵌入故事流"
+          }
+        }
+      }
+    },
+    "playkitAuthor.validation.row": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Every item must have the expected object shape"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每个条目都必须符合对象结构"
+          }
+        }
+      }
+    },
+    "playkitAuthor.validation.id": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Item IDs must be unique, 1–32 letters, digits, underscores or hyphens"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "条目 ID 必须唯一，使用 1 至 32 位字母、数字、下划线或短横线"
+          }
+        }
+      }
+    },
+    "playkitAuthor.validation.label": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Every item needs 1–40 UTF-16 units of text"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每个条目需填写 1 至 40 个 UTF-16 单位的文案"
+          }
+        }
+      }
+    },
+    "playkitAuthor.validation.image": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An item image must use a valid HTTPS address"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "条目图片需使用有效的 HTTPS 地址"
+          }
+        }
+      }
+    },
+    "playkitAuthor.validation.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a question of 1–200 UTF-16 units"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请填写 1 至 200 个 UTF-16 单位的题干"
+          }
+        }
+      }
+    },
+    "playkitAuthor.validation.sort.items.count": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sorting needs 2–8 items"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "排序需要 2 至 8 个条目"
+          }
+        }
+      }
+    },
+    "playkitAuthor.validation.match.left.count": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Matching needs 2–6 left items"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配对左列需要 2 至 6 个条目"
+          }
+        }
+      }
+    },
+    "playkitAuthor.validation.match.right.count": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Matching needs 2–6 right items"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配对右列需要 2 至 6 个条目"
+          }
+        }
+      }
+    },
+    "playkitAuthor.validation.match.sameCount": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The matching columns must contain the same number of items"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配对两列的条目数必须相同"
+          }
+        }
+      }
+    },
+    "playkitAuthor.validation.classify.bins.count": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Classification needs 2–4 categories"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分类需要 2 至 4 个类别"
+          }
+        }
+      }
+    },
+    "playkitAuthor.validation.classify.items.count": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Classification needs 2–10 items"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分类需要 2 至 10 个条目"
+          }
+        }
+      }
+    },
+    "playkitAuthor.validation.classify.answer": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Assign every item to an existing category, with no extra answers"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请为每个条目指定现有类别，并移除多余答案"
+          }
+        }
+      }
+    },
+    "playkitAuthor.validation.kicker": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The heading must be at most 32 UTF-16 units"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "标题不能超过 32 个 UTF-16 单位"
+          }
+        }
+      }
+    },
+    "playkitAuthor.validation.compass.bearing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter an integer direction from 0 to 359 degrees"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请填写 0 至 359 度的整数方位"
+          }
+        }
+      }
+    },
+    "playkitAuthor.validation.compass.tolerance": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compass tolerance must be an integer from 5 to 90 degrees"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "罗盘容差须为 5 至 90 度的整数"
+          }
+        }
+      }
+    },
+    "playkitAuthor.validation.compass.holdSeconds": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compass hold time must be an integer from 1 to 10 seconds"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "罗盘保持时长须为 1 至 10 秒的整数"
+          }
+        }
+      }
+    },
+    "playkitAuthor.validation.compass.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The compass hint must be at most 60 UTF-16 units"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "罗盘提示不能超过 60 个 UTF-16 单位"
+          }
+        }
+      }
+    },
+    "playkitAuthor.validation.compass.xp": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compass points must be an integer from 0 to 1000"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "罗盘奖励分须为 0 至 1000 的整数"
+          }
+        }
+      }
+    },
+    "playkitAuthor.validation.shout.seconds": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuous voice duration must be 5–300 seconds"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "持续发声时长须为 5 至 300 秒"
+          }
+        }
+      }
+    },
+    "playkitAuthor.validation.shout.xp": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voice challenge points must be an integer from 0 to 1000"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发声挑战奖励分须为 0 至 1000 的整数"
+          }
+        }
+      }
+    },
+    "templateAuthor.game.sort": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Put in order"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "排序"
+          }
+        }
+      }
+    },
+    "templateAuthor.game.match": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Match pairs"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配对"
+          }
+        }
+      }
+    },
+    "templateAuthor.game.classify": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Classify items"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分类"
+          }
+        }
+      }
+    },
+    "templateAuthor.game.compass": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compass alignment"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "罗盘指向"
+          }
+        }
+      }
+    },
+    "templateAuthor.game.shout": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuous voice challenge"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "持续发声挑战"
+          }
+        }
+      }
+    },
+    "templateAuthor.field.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Question"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "题干"
+          }
+        }
+      }
+    },
+    "templateAuthor.field.bearing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Target direction, 0–359°"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目标方位，0 至 359°"
+          }
+        }
+      }
+    },
+    "templateAuthor.field.tolerance": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Direction tolerance, 5–90°"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "方位容差，5 至 90°"
+          }
+        }
+      }
+    },
+    "templateAuthor.field.holdSeconds": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuous hold, 1–10 seconds"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "连续保持，1 至 10 秒"
+          }
+        }
+      }
+    },
+    "templateAuthor.field.compassHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Direction hint"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "方位提示"
+          }
+        }
+      }
+    },
+    "templateAuthor.advancedScope": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seven Flutter scalar panels and five newer source-backed reasoning/sensor panels are available. Other sections are preserved, but unsupported enabled sections still block publishing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已提供七个 Flutter 参数面板和五个新增的推理／传感器配置面板。其他配置会保留，但启用未支持的配置仍会阻止发布。"
+          }
+        }
+      }
+    },
+    "playkit.kind.blindTaste": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blind tasting"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "盲品"
+          }
+        }
+      }
+    },
+    "playkit.kind.diyName": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name your creation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "作品命名"
+          }
+        }
+      }
+    },
+    "playkit.kind.silentOrder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Silent ordering"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沉默点单"
+          }
+        }
+      }
+    },
+    "playkit.kind.slowTask": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Slow task"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跨日慢任务"
+          }
+        }
+      }
+    },
+    "playkit.kind.musicCorner": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Music corner"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "音乐角"
+          }
+        }
+      }
+    },
+    "playkit.kind.timeWindow": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opening window"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开放时段"
+          }
+        }
+      }
+    },
+    "playkitLegacy.scan.staticFallback": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The returned overlay is shown as a regular image. No camera anchoring or AR placement is claimed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回的叠加图以普通图片展示，不代表已贴合相机画面或完成 AR 放置。"
+          }
+        }
+      }
+    },
+    "playkitLegacy.scan.arGate": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plane and marker AR need an accepted renderer and asset configuration. The returned image remains available as the fallback."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "平面与图像识别 AR 需要已验收的渲染器和素材配置，当前仍可查看返回的图片。"
+          }
+        }
+      }
+    },
+    "playkitLegacy.music.duration": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Track duration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "曲目时长"
+          }
+        }
+      }
+    },
+    "playkitLegacy.music.boundary": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listening is optional. Playback does not submit completion or promise points."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可以自由聆听，播放不会提交完成状态，也不承诺奖励分。"
+          }
+        }
+      }
+    },
+    "playkitLegacy.silent.noWitnessCode": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The service has not supplied a witness code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端尚未提供见证码"
+          }
+        }
+      }
+    },
+    "playkitLegacy.window.opens": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opens"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开放时间"
+          }
+        }
+      }
+    },
+    "playkitLegacy.window.closes": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Closes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结束时间"
+          }
+        }
+      }
+    },
+    "playkitLegacy.window.authority": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server decides whether this time window is open. These are the configured clock labels, not a device-time unlock."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "是否开放由服务端决定。这里展示配置的时刻，不使用设备时间自动解锁。"
+          }
+        }
+      }
+    },
+    "playkitLegacy.window.subscribed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The source service reports a reminder subscription"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "源服务显示已登记提醒订阅"
+          }
+        }
+      }
+    },
+    "playkitLegacy.window.providerGate": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The source reminder uses WeChat subscription authorization. No equivalent native permission or subscription has been approved."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "源提醒依赖微信订阅授权，尚未批准等效的原生权限或订阅链路。"
+          }
+        }
+      }
+    },
+    "playkitLegacy.window.subscribe": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable reminder"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开启提醒"
+          }
+        }
+      }
+    },
+    "playkitLegacy.blind.instructions": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose what you tasted. The answer stays on the server."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择你品尝到的选项，答案由服务端保管。"
+          }
+        }
+      }
+    },
+    "playkitLegacy.blind.tryAgain": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That choice was not solved. You can choose again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这个选择尚未答对，可以重新选择。"
+          }
+        }
+      }
+    },
+    "playkitLegacy.name.placeholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name this creation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "给作品起个名字"
+          }
+        }
+      }
+    },
+    "playkitLegacy.name.audience": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The name can be shown publicly and is checked by the service before it is saved."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "作品名可能公开展示，保存前会由服务端进行内容审核。"
+          }
+        }
+      }
+    },
+    "playkitLegacy.slow.emptyReadback": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server recorded the claim but returned no reveal text"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端已记录领取，但未返回揭示文案"
+          }
+        }
+      }
+    },
+    "playkitLegacy.slow.reveal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reveal the returned discovery"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看这次返回的发现"
+          }
+        }
+      }
+    },
+    "playkitLegacy.slow.daysLeft": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Days remaining"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还需等待天数"
+          }
+        }
+      }
+    },
+    "playkitLegacy.slow.ready": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server says this discovery can be claimed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端显示这次发现已可领取"
+          }
+        }
+      }
+    },
+    "playkitLegacy.slow.claim": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review and claim"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "核对并领取"
+          }
+        }
+      }
+    },
+    "playkitLegacy.slow.start": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review and begin"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "核对并开始"
+          }
+        }
+      }
+    },
+    "playkitLegacy.slow.authority": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting and availability come from the server. Changing your device date cannot unlock this task."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等待天数和可领取状态由服务端返回，修改设备日期不能解锁任务。"
+          }
+        }
+      }
+    },
+    "playkitLegacy.silent.boundary": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This clock is only a companion. It never proves a result, completes an order or awards points."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这个计时器仅作陪伴展示，不作为结果凭证，不完成订单，也不发放奖励。"
+          }
+        }
+      }
+    },
+    "playkitLegacy.silent.elapsed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local performance time"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地表演时长"
+          }
+        }
+      }
+    },
+    "playkitLegacy.silent.stopped": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The local clock has stopped"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地计时已停止"
+          }
+        }
+      }
+    },
+    "playkitLegacy.silent.start": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start the local clock"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始本地计时"
+          }
+        }
+      }
+    },
+    "playkitLegacy.silent.giveUp": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop and speak"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止计时并说话"
+          }
+        }
+      }
+    }
+  }
+}

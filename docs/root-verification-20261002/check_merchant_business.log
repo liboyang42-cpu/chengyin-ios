@@ -1,0 +1,21 @@
+
+--- STDERR ---
+test_all_static_localization_references_present (__main__.MerchantBusinessSourceChecks.test_all_static_localization_references_present) ... ok
+test_authorization_refresh_before_journal_reserve (__main__.MerchantBusinessSourceChecks.test_authorization_refresh_before_journal_reserve) ... ok
+test_catalog_bilingual_and_nonempty (__main__.MerchantBusinessSourceChecks.test_catalog_bilingual_and_nonempty) ... ok
+test_exact_api_paths_have_source_evidence (__main__.MerchantBusinessSourceChecks.test_exact_api_paths_have_source_evidence) ... ok
+test_fixture_json_literals_valid (__main__.MerchantBusinessSourceChecks.test_fixture_json_literals_valid) ... ok
+test_fixture_no_real_contact_or_account_data (__main__.MerchantBusinessSourceChecks.test_fixture_no_real_contact_or_account_data) ... ok
+test_host_fixture_optin (__main__.MerchantBusinessSourceChecks.test_host_fixture_optin) ... ok
+test_no_invented_settlement_or_receipt_mutations (__main__.MerchantBusinessSourceChecks.test_no_invented_settlement_or_receipt_mutations) ... ok
+test_production_dormant_gate_has_no_urlsession (__main__.MerchantBusinessSourceChecks.test_production_dormant_gate_has_no_urlsession) ... ok
+test_source_money_is_not_summed_or_double (__main__.MerchantBusinessSourceChecks.test_source_money_is_not_summed_or_double) ... ok
+test_station_identifier_is_separate (__main__.MerchantBusinessSourceChecks.test_station_identifier_is_separate) ... ok
+test_swift_files_exist (__main__.MerchantBusinessSourceChecks.test_swift_files_exist) ... ok
+test_unknown_journal_has_no_expiry_or_payload (__main__.MerchantBusinessSourceChecks.test_unknown_journal_has_no_expiry_or_payload) ... ok
+test_utf16_source_limits (__main__.MerchantBusinessSourceChecks.test_utf16_source_limits) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 0.934s
+
+OK

@@ -1,0 +1,78 @@
+{
+  "schema": 1,
+  "packet": "native-wechat-auth-new",
+  "scope": "retained CN WeChat App code exchange, dormant authorization seam and native host hook",
+  "activation": "OFF; adapter/service nil; SDK/provider/legal/Apple alternative/live exchange grants false",
+  "files": [
+    {
+      "path": "Core/WeChatAppAuth.swift",
+      "action": "add",
+      "sha256": "8c6c2594949d726c6a6e10fe428a91df29097c9c5a2e97aa26dbc0a6049e9f4d"
+    },
+    {
+      "path": "App/WeChatAppAuthSection.swift",
+      "action": "add",
+      "sha256": "39b436a26c129707ed2b166ab312d19947baafe206535fcca366dc80b932d72a"
+    },
+    {
+      "path": "Resources/WeChatAppAuth.xcstrings",
+      "action": "add",
+      "sha256": "d504e4bd8e3247339d7c7b57d036b14dbf06885439e1d5da5f372e76ef4d9325"
+    },
+    {
+      "path": "Tests/CoreTests/WeChatAppAuthTests.swift",
+      "action": "add",
+      "sha256": "f12abf8bd2ef67ec26b6f730178468057b7ca6511f761946b7807c5a14e08f8a"
+    },
+    {
+      "path": "Tests/AppUITests/WeChatAppAuthFlowTests.swift",
+      "action": "add",
+      "sha256": "89f32d4fbc6e32c6a683328cf76cf3bad78bdf3739d967a442e393bf1d7202ca"
+    },
+    {
+      "path": "Tests/ContractChecks/test_wechat_app_auth.py",
+      "action": "add",
+      "sha256": "97d97d29dde54d21dda6b449d384358f07b29d0badab5760fcebd567f90173bb"
+    },
+    {
+      "path": "docs/wechat-app-auth-integration.md",
+      "action": "add",
+      "sha256": "47613242548e1ca531e09e9306d3da0dc758bdd7442899ff92417ec2068f4590"
+    },
+    {
+      "path": "docs/wechat-app-auth-host.patch",
+      "action": "add",
+      "sha256": "e200efd2e704a0f5a0df189ba49c885f575ef0a0c9104a9e6773a812c7157983"
+    }
+  ],
+  "host_merges": [
+    {
+      "path": "App/AppSession.swift",
+      "action": "merge_only",
+      "candidate_sha256": "07110928c55945389559860911ce5cfe2560da1709851b25d72e86a46830b187",
+      "baseline_sha256": "8de3be592df72f77309bae2dd48bbe993ae5386ae35fd5e8c3fdc3105793dbb3"
+    },
+    {
+      "path": "App/LoginView.swift",
+      "action": "merge_only",
+      "candidate_sha256": "35e4568b3461c9137c74584f1595caf9f6d362c3c33152c961e5d51191d9f9db",
+      "baseline_sha256": "1a1e94dd3bdacd6ca8ec4f7987f30c6021bd31d01f99dbc86e4a82a541a4b1ac"
+    }
+  ],
+  "do_not_copy": [
+    "Questify.xcodeproj",
+    "Resources/Localizable.xcstrings",
+    "Package.swift",
+    "any unlisted file"
+  ],
+  "validation": {
+    "source_checks": "PASS 6",
+    "tree_sitter": "PASS 6 Swift files, 0 diagnostics",
+    "core_xctest": "AUTHORED 14 methods; NOT_RUN",
+    "ui_xctest": "AUTHORED 1 bilingual repeated-entry method; NOT_RUN",
+    "swift_compiler": "NOT_RUN: swift absent",
+    "apple_sdk_runtime": "NOT_RUN",
+    "wechat_sdk_adapter": "NOT_IMPLEMENTED: official interface unavailable; no retained pinned headers"
+  },
+  "generated_project": "Regenerate in final tree with python tools/generate_project.py; not copied from this snapshot"
+}

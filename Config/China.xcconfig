@@ -1,0 +1,6 @@
+// Operational profile only. No new Bundle ID, store listing, provider or financial approval.
+#include "Base.xcconfig"
+QUESTIFY_MARKET = CN
+INFOPLIST_KEY_QuestifyMarket = $(QUESTIFY_MARKET)
+// Intentionally empty until a reviewed market-specific endpoint is approved.
+QUESTIFY_API_BASE_URL =

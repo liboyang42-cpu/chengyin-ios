@@ -1,0 +1,6 @@
+// Operational profile only. No new Bundle ID, store listing, provider or financial approval.
+#include "Base.xcconfig"
+QUESTIFY_MARKET = US
+INFOPLIST_KEY_QuestifyMarket = $(QUESTIFY_MARKET)
+// US auth contracts/provider verification remain pending; never reuse the CN backend implicitly.
+QUESTIFY_API_BASE_URL =

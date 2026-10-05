@@ -1,0 +1,39 @@
+{
+  "scope": "Local static source evidence only; no Apple compiler or backend execution",
+  "core_authored_methods": 1020,
+  "ui_authored_methods": 168,
+  "ui_classes": 25,
+  "bilingual_keys": 2138,
+  "ui_shards": [
+    28,
+    28,
+    28,
+    28,
+    29,
+    27
+  ],
+  "checks": {
+    "contract_python": "163 PASS",
+    "tooling_python": "16 PASS",
+    "parser_self_tests": "14 PASS",
+    "scaffold": "PASS; 326 Swift project sources",
+    "changed_swift_parser": "23 files PASS; no recovery nodes",
+    "full_tree_parser": "Retains 10 pre-existing diagnostics in 6 files; see log scope",
+    "whitespace": "PASS",
+    "swift_typechecking": "NOT_RUN",
+    "swift_tests": "NOT_RUN",
+    "xcode_builds": "NOT_RUN",
+    "simulator_ui_tests": "NOT_RUN",
+    "visual_accessibility_device": "NOT_RUN",
+    "live_backend_provider": "NOT_RUN",
+    "remote_CI": "NOT_RUN"
+  },
+  "follow_on": {
+    "new_authored_core_methods": 13,
+    "new_contract_checks": 3,
+    "changed_module_parser": "6 files PASS; supplementary syntax only",
+    "runtime": "NOT_RUN",
+    "production_mutations": "All hard-off; zero actual requests; request builder and fake executor only",
+    "aggregate_inventory": "Current integration owner must recompute after concurrent batch"
+  }
+}

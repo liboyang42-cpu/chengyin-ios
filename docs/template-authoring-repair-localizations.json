@@ -1,0 +1,102 @@
+{
+  "templateAuthor.acknowledged": {
+    "en": "The server acknowledged this request. Publication or review approval is not confirmed.",
+    "zh-Hans": "服务器已接收请求，但尚未确认发布或审核通过。"
+  },
+  "templateAuthor.httpReview": {
+    "en": "Review the exact request before submitting. Server approval may still be required.",
+    "zh-Hans": "提交前请核对请求，仍可能需要服务器审核。"
+  },
+  "templateAuthor.confirmRequest": {
+    "en": "Confirm request",
+    "zh-Hans": "确认请求"
+  },
+  "templateAuthor.shelf.limit": {
+    "en": "This shelf reads the first 100 templates. Missing rows do not prove deletion from a full page.",
+    "zh-Hans": "此列表仅读取前100个模板。满页中未出现的模板不能据此认定已删除。"
+  },
+  "templateAuthor.shelf.refresh": {
+    "en": "Refresh own shelf",
+    "zh-Hans": "刷新我的模板"
+  },
+  "templateAuthor.shelf.identity": {
+    "en": "Template ID",
+    "zh-Hans": "模板编号"
+  },
+  "templateAuthor.shelf.inLibrary": {
+    "en": "In template library",
+    "zh-Hans": "已加入模板库"
+  },
+  "templateAuthor.shelf.outLibrary": {
+    "en": "Not marked as in template library",
+    "zh-Hans": "未标记为已加入模板库"
+  },
+  "templateAuthor.shelf.addLibrary": {
+    "en": "Review adding to library",
+    "zh-Hans": "核对加入模板库"
+  },
+  "templateAuthor.shelf.removeLibrary": {
+    "en": "Review removing from library",
+    "zh-Hans": "核对移出模板库"
+  },
+  "templateAuthor.shelf.delete": {
+    "en": "Review template deletion",
+    "zh-Hans": "核对删除模板"
+  },
+  "templateAuthor.shelf.deleteReview": {
+    "en": "Delete this exact template from your own shelf? This may not be reversible.",
+    "zh-Hans": "确定删除此编号的我的模板？此操作可能无法撤销。"
+  },
+  "templateAuthor.shelf.addReview": {
+    "en": "Set this exact template’s library status to 1 (in library).",
+    "zh-Hans": "将此编号模板的模板库状态设为1（加入模板库）。"
+  },
+  "templateAuthor.shelf.removeReview": {
+    "en": "Set this exact template’s library status to 0 (out of library).",
+    "zh-Hans": "将此编号模板的模板库状态设为0（移出模板库）。"
+  },
+  "templateAuthor.shelf.readback": {
+    "en": "The exact template will be checked before sending, then the shelf will be refreshed. An uncertain response locks further changes.",
+    "zh-Hans": "发送前将核对此编号模板，随后刷新列表。结果不确定时会锁定后续修改。"
+  },
+  "templateAuthor.shelf.verified": {
+    "en": "The request was acknowledged and the fresh own-shelf state matches the requested change.",
+    "zh-Hans": "请求已获确认，刷新后的我的模板状态与所请求的修改一致。"
+  },
+  "templateAuthor.shelf.unknown": {
+    "en": "This change is unresolved. Further shelf changes are locked; refreshing alone cannot confirm an unknown request.",
+    "zh-Hans": "此次修改结果尚未确定，后续模板修改已锁定。仅刷新列表不能确认未知请求结果。"
+  },
+  "templateAuthor.shelf.stale": {
+    "en": "This template changed since review. Refresh and review it again. Nothing was sent.",
+    "zh-Hans": "此模板在核对后已变化。请刷新并重新核对，尚未发送修改请求。"
+  },
+  "templateAuthor.shelf.preflightFailed": {
+    "en": "The fresh template or secure pending record could not be verified. No change was sent.",
+    "zh-Hans": "无法核验最新模板或安全待处理记录，未发送修改请求。"
+  },
+  "templateAuthor.shelf.empty": {
+    "en": "Your own template shelf is empty.",
+    "zh-Hans": "我的模板列表为空。"
+  },
+  "templateAuthor.shelf.pageScope": {
+    "en": "Browse 10 at a time, up to 1,000 per search. Changes require a matching first-100 owner snapshot.",
+    "zh-Hans": "每页显示 10 项，每次搜索最多 1,000 项。修改需要与前 100 项的所有者快照一致。"
+  },
+  "templateAuthor.shelf.keyword": {
+    "en": "Search owned templates",
+    "zh-Hans": "搜索我的玩法"
+  },
+  "templateAuthor.shelf.loadMore": {
+    "en": "Load more / Retry",
+    "zh-Hans": "加载更多 / 重试"
+  },
+  "templateAuthor.shelf.moreFailed": {
+    "en": "Could not load the next page. Retry or refresh the list.",
+    "zh-Hans": "下一页加载失败，请重试或刷新列表。"
+  },
+  "templateAuthor.shelf.pageLimit": {
+    "en": "Search limit reached. Narrow your search or refresh.",
+    "zh-Hans": "已达到搜索上限，请缩小搜索范围或刷新。"
+  }
+}

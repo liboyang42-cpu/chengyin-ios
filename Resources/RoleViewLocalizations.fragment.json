@@ -1,0 +1,223 @@
+{
+  "roleView.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Your role content"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "你的角色内容"
+        }
+      }
+    }
+  },
+  "roleView.loading": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reading your assigned view…"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "正在读取分配给你的内容…"
+        }
+      }
+    }
+  },
+  "roleView.open": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Review role content"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "查看角色内容"
+        }
+      }
+    }
+  },
+  "roleView.unavailable": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Role content could not be verified. No private role content is shown."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂时无法核验角色内容，未显示任何角色私有内容。"
+        }
+      }
+    }
+  },
+  "roleView.refresh": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Read current role content"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "重新读取当前角色内容"
+        }
+      }
+    }
+  },
+  "roleView.missing": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Your role has not been assigned"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "尚未分配你的角色"
+        }
+      }
+    }
+  },
+  "roleView.missingDetail": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The server could not identify one role for this session. Refresh after the team assignment is resolved; this app cannot choose a role for you."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务端暂未确认你在本局中的唯一角色。队伍分配明确后可重新读取；本应用不会替你选择角色。"
+        }
+      }
+    }
+  },
+  "roleView.assignment.A": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Role A"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "角色 A"
+        }
+      }
+    }
+  },
+  "roleView.assignment.B": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Role B"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "角色 B"
+        }
+      }
+    }
+  },
+  "roleView.assignment.SOLO": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Solo: both role views"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "单人模式：两个角色视角"
+        }
+      }
+    }
+  },
+  "roleView.otherRole": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Partner role"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "另一角色"
+        }
+      }
+    }
+  },
+  "roleView.serverAssigned": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Only the server-assigned content is shown. Refresh reads the latest assignment without changing it."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这里只显示服务端分配的内容。重新读取只更新显示，不改变角色分配。"
+        }
+      }
+    }
+  },
+  "roleView.close": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Hide role content"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "收起角色内容"
+        }
+      }
+    }
+  }
+}

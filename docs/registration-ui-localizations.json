@@ -1,0 +1,367 @@
+[
+  {
+    "key": "registration.form.activity",
+    "en": "Activity",
+    "zh-Hans": "活动"
+  },
+  {
+    "key": "registration.form.awaitingPayment",
+    "en": "Awaiting payment",
+    "zh-Hans": "待支付"
+  },
+  {
+    "key": "registration.form.cancelled",
+    "en": "Cancelled",
+    "zh-Hans": "已取消"
+  },
+  {
+    "key": "registration.form.confirmCreate",
+    "en": "Create demo registration",
+    "zh-Hans": "创建演示报名"
+  },
+  {
+    "key": "registration.form.confirmHint",
+    "en": "Review the current contact, ticket and amount. This creates one offline demo order. Total currency is unconfirmed; no payment or data sharing occurs.",
+    "zh-Hans": "请核对当前联系人、票种和金额。确认后仅创建一笔离线演示订单。总额币种尚未确认，不会支付或分享信息。"
+  },
+  {
+    "key": "registration.form.confirmTitle",
+    "en": "Confirm demo registration?",
+    "zh-Hans": "确认演示报名？"
+  },
+  {
+    "key": "registration.form.confirmationChanged",
+    "en": "Your selection or session changed. Review the details again.",
+    "zh-Hans": "选择或登录状态已改变，请重新核对信息。"
+  },
+  {
+    "key": "registration.form.contact",
+    "en": "Registration contact",
+    "zh-Hans": "报名信息"
+  },
+  {
+    "key": "registration.form.contactHint",
+    "en": "Choose a saved participant or enter details. Any edits here are used for this registration only.",
+    "zh-Hans": "选择已保存的参与人或直接填写。本页修改仅用于本次报名。"
+  },
+  {
+    "key": "registration.form.couponDiscount",
+    "en": "Coupon deduction",
+    "zh-Hans": "优惠券抵扣"
+  },
+  {
+    "key": "registration.form.createdResponse",
+    "en": "Registration response received",
+    "zh-Hans": "已收到建单响应"
+  },
+  {
+    "key": "registration.form.creating",
+    "en": "Submitting registration…",
+    "zh-Hans": "正在提交报名…"
+  },
+  {
+    "key": "registration.form.creationDisabled",
+    "en": "Live registration is not enabled",
+    "zh-Hans": "实时报名尚未开放"
+  },
+  {
+    "key": "registration.form.creationDisabledHint",
+    "en": "Creating an order is disabled until the app privacy policy, server-recorded data-sharing consent, protected intent recovery and order reconciliation are approved and integrated.",
+    "zh-Hans": "应用隐私政策、服务端信息分享同意记录、安全报名意图恢复及订单核对流程完成审核和接入前，无法创建订单。"
+  },
+  {
+    "key": "registration.form.currencyHint",
+    "en": "Ticket and total currency are not supplied by this contract. Yuan-named deductions are shown in CNY. Amounts are never converted to USD.",
+    "zh-Hans": "此接口未提供票价和总额的币种。以“元”命名的抵扣项显示为 CNY，不换算为美元。"
+  },
+  {
+    "key": "registration.form.currencyUnknown",
+    "en": "Currency unconfirmed",
+    "zh-Hans": "币种待确认"
+  },
+  {
+    "key": "registration.form.endDate",
+    "en": "Ends",
+    "zh-Hans": "结束日期"
+  },
+  {
+    "key": "registration.form.expired",
+    "en": "Expired",
+    "zh-Hans": "已过期"
+  },
+  {
+    "key": "registration.form.fees",
+    "en": "Quote details",
+    "zh-Hans": "费用明细"
+  },
+  {
+    "key": "registration.form.fixtureConsent",
+    "en": "Demo only: confirm the contact-sharing step",
+    "zh-Hans": "仅演示：确认信息分享步骤"
+  },
+  {
+    "key": "registration.form.fixtureNotice",
+    "en": "Offline demo: no real registration, consent or payment is sent",
+    "zh-Hans": "离线演示：不会发送真实报名、同意记录或支付"
+  },
+  {
+    "key": "registration.form.incompleteQuote",
+    "en": "The quote is incomplete. A known total and signature are required before confirmation.",
+    "zh-Hans": "报价不完整。确认前需要明确总额和有效报价签名。"
+  },
+  {
+    "key": "registration.form.insufficientPoints",
+    "en": "Available points do not cover a deduction on this order",
+    "zh-Hans": "当前积分不足以抵扣本单"
+  },
+  {
+    "key": "registration.form.inventoryUnknown",
+    "en": "Remaining availability is unknown",
+    "zh-Hans": "剩余名额未知"
+  },
+  {
+    "key": "registration.form.loadingParticipants",
+    "en": "Loading saved participants…",
+    "zh-Hans": "正在加载参与人…"
+  },
+  {
+    "key": "registration.form.manualEntry",
+    "en": "Enter contact details",
+    "zh-Hans": "直接填写报名信息"
+  },
+  {
+    "key": "registration.form.memberDiscount",
+    "en": "Club member deduction",
+    "zh-Hans": "俱乐部会员优惠"
+  },
+  {
+    "key": "registration.form.name",
+    "en": "Full name",
+    "zh-Hans": "姓名"
+  },
+  {
+    "key": "registration.form.noPaymentProof",
+    "en": "No payment parameters were returned. This does not confirm payment or completed registration. Read the server status.",
+    "zh-Hans": "未返回支付参数，这不能证明支付或报名已完成。请读取服务端状态。"
+  },
+  {
+    "key": "registration.form.noTickets",
+    "en": "No separate ticket options were supplied. The quote is requested for this activity.",
+    "zh-Hans": "未提供独立票种，将按此活动获取报价。"
+  },
+  {
+    "key": "registration.form.open",
+    "en": "Open registration form",
+    "zh-Hans": "打开报名表"
+  },
+  {
+    "key": "registration.form.otherActivityIntent",
+    "en": "A retained submission belongs to another activity. Resolve that order before starting a new registration.",
+    "zh-Hans": "保留的报名提交属于另一活动。请先核对此订单，再开始新的报名。"
+  },
+  {
+    "key": "registration.form.outcomeUnknown",
+    "en": "Registration outcome unknown",
+    "zh-Hans": "报名结果未知"
+  },
+  {
+    "key": "registration.form.outcomeUnknownHint",
+    "en": "A registration may already exist. Do not submit again. Check your orders before another attempt; this response did not provide a registration ID for a status check.",
+    "zh-Hans": "订单可能已经创建，请勿重复提交。再次报名前请先查看订单；本次响应未提供可用于查状态的报名编号。"
+  },
+  {
+    "key": "registration.form.participantReadFailed",
+    "en": "Saved participants could not load. You can still enter your contact details.",
+    "zh-Hans": "参与人信息加载失败，仍可直接填写报名信息。"
+  },
+  {
+    "key": "registration.form.paymentCode",
+    "en": "Payment status code",
+    "zh-Hans": "支付状态码"
+  },
+  {
+    "key": "registration.form.paymentNotStarted",
+    "en": "Payment parameters were received, but no payment was started. Check the server status separately.",
+    "zh-Hans": "已收到支付参数，但未发起支付。请单独读取服务端状态。"
+  },
+  {
+    "key": "registration.form.phone",
+    "en": "Mobile number",
+    "zh-Hans": "手机号"
+  },
+  {
+    "key": "registration.form.phoneHint",
+    "en": "The current source contract requires an 11-digit mobile number starting with 1. International numbers are not supported yet.",
+    "zh-Hans": "当前来源接口要求以 1 开头的 11 位手机号，尚未支持国际号码。"
+  },
+  {
+    "key": "registration.form.pointsDiscount",
+    "en": "Points deduction",
+    "zh-Hans": "积分抵扣"
+  },
+  {
+    "key": "registration.form.pointsUnavailable",
+    "en": "Points cannot be used for this quote",
+    "zh-Hans": "此报价不支持积分抵扣"
+  },
+  {
+    "key": "registration.form.pointsUsed",
+    "en": "Points used",
+    "zh-Hans": "使用积分"
+  },
+  {
+    "key": "registration.form.quoteDisabled",
+    "en": "Quotes are disabled until an approved service is configured. No quote request has been sent.",
+    "zh-Hans": "配置获批准的服务前无法获取报价，尚未发送报价请求。"
+  },
+  {
+    "key": "registration.form.quoteFailed",
+    "en": "The quote could not be loaded",
+    "zh-Hans": "报价加载失败"
+  },
+  {
+    "key": "registration.form.quoteNeeded",
+    "en": "Request a fresh quote for this selection",
+    "zh-Hans": "请为当前选择获取最新报价"
+  },
+  {
+    "key": "registration.form.quoting",
+    "en": "Calculating quote…",
+    "zh-Hans": "正在计算费用…"
+  },
+  {
+    "key": "registration.form.readStatus",
+    "en": "Read registration status",
+    "zh-Hans": "读取报名状态"
+  },
+  {
+    "key": "registration.form.readingStatus",
+    "en": "Reading server status…",
+    "zh-Hans": "正在读取服务端状态…"
+  },
+  {
+    "key": "registration.form.refreshQuote",
+    "en": "Refresh quote",
+    "zh-Hans": "刷新报价"
+  },
+  {
+    "key": "registration.form.registered",
+    "en": "Ready to use",
+    "zh-Hans": "待使用"
+  },
+  {
+    "key": "registration.form.registrationCode",
+    "en": "Registration status code",
+    "zh-Hans": "报名状态码"
+  },
+  {
+    "key": "registration.form.registrationID",
+    "en": "Registration ID",
+    "zh-Hans": "报名编号"
+  },
+  {
+    "key": "registration.form.registrationNumber",
+    "en": "Registration number",
+    "zh-Hans": "报名单号"
+  },
+  {
+    "key": "registration.form.registrationStatus",
+    "en": "Registration state",
+    "zh-Hans": "报名状态"
+  },
+  {
+    "key": "registration.form.reloadParticipants",
+    "en": "Reload saved participants",
+    "zh-Hans": "重新加载参与人"
+  },
+  {
+    "key": "registration.form.retainedIntentHint",
+    "en": "This submission stays locked in the current app session. Closing this sheet does not cancel the order.",
+    "zh-Hans": "此提交在当前应用会话中保持锁定。关闭此页面不会取消订单。"
+  },
+  {
+    "key": "registration.form.review",
+    "en": "Review registration",
+    "zh-Hans": "核对报名"
+  },
+  {
+    "key": "registration.form.savedParticipant",
+    "en": "Saved participant",
+    "zh-Hans": "已保存的参与人"
+  },
+  {
+    "key": "registration.form.separateStatusHint",
+    "en": "These are separate server fields. A registration label does not resolve conflicting payment or verification states.",
+    "zh-Hans": "以上是相互独立的服务端字段。报名文案不能替代或消除支付、核销状态之间的冲突。"
+  },
+  {
+    "key": "registration.form.serverStatus",
+    "en": "Server status snapshot",
+    "zh-Hans": "服务端状态快照"
+  },
+  {
+    "key": "registration.form.sessionChanged",
+    "en": "Sign in again to view or continue this registration",
+    "zh-Hans": "请重新登录以查看或继续报名"
+  },
+  {
+    "key": "registration.form.sharingPurpose",
+    "en": "Live registration requires separate consent to share your name and mobile number with the organizer for registration verification.",
+    "zh-Hans": "实时报名需要单独同意将姓名、手机号提供给主办方，用于报名核验。"
+  },
+  {
+    "key": "registration.form.soldOutHint",
+    "en": "This ticket is full. A verified waitlist offer is required; waitlist redemption is not available in this native form yet.",
+    "zh-Hans": "此票种已满，需要经核实的候补名额；此原生表单尚未接入候补名额兑换。"
+  },
+  {
+    "key": "registration.form.startDate",
+    "en": "Starts",
+    "zh-Hans": "开始日期"
+  },
+  {
+    "key": "registration.form.statusUnavailable",
+    "en": "Server status could not be read. The existing submission remains locked.",
+    "zh-Hans": "无法读取服务端状态，原报名提交仍保持锁定。"
+  },
+  {
+    "key": "registration.form.ticket",
+    "en": "Ticket option",
+    "zh-Hans": "票种"
+  },
+  {
+    "key": "registration.form.ticketPrice",
+    "en": "Listed ticket price",
+    "zh-Hans": "票种价格"
+  },
+  {
+    "key": "registration.form.title",
+    "en": "Activity registration",
+    "zh-Hans": "活动报名"
+  },
+  {
+    "key": "registration.form.total",
+    "en": "Total",
+    "zh-Hans": "总计"
+  },
+  {
+    "key": "registration.form.unknownAmount",
+    "en": "Amount unknown",
+    "zh-Hans": "金额未知"
+  },
+  {
+    "key": "registration.form.unknownStatus",
+    "en": "Unknown",
+    "zh-Hans": "未知"
+  },
+  {
+    "key": "registration.form.usePoints",
+    "en": "Use points",
+    "zh-Hans": "使用积分抵扣"
+  },
+  {
+    "key": "registration.form.verificationCode",
+    "en": "Verification status code",
+    "zh-Hans": "核销状态码"
+  }
+]

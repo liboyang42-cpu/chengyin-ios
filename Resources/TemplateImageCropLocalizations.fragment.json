@@ -1,0 +1,69 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "template.imageCrop.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crop image · original aspect"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "裁剪图片 · 保持原图比例"
+          }
+        }
+      }
+    },
+    "template.imageCrop.localOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adjust the composition within the original image shape. Confirming only keeps a local selection; nothing is uploaded."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在原图比例内调整构图。确认仅保留本地选择，不会上传。"
+          }
+        }
+      }
+    },
+    "template.imageCrop.reset": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset to full image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重置为完整图片"
+          }
+        }
+      }
+    },
+    "template.imageCrop.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep crop locally"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留本地裁剪"
+          }
+        }
+      }
+    }
+  }
+}

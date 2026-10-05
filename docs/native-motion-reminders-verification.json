@@ -1,0 +1,58 @@
+{
+  "scope": "Native iPhone motion + device-local reminders code/test preparation",
+  "base_native_commit": "2d29d806eb89c47865ed2269fb2c161c1f41a093",
+  "backend": {
+    "base_commit": "0520cca248ad8d4775d99e3ae5b0d402c986d139",
+    "branch": "migration/native-ios-platform",
+    "contract": "native-platform-v1",
+    "deployed": false,
+    "merged": false,
+    "production_verifier": false,
+    "reward_enabled": false,
+    "implementation_commit": "2cd0d28327daf46e417d4673aca621a27a244ff7",
+    "publication_verified": true,
+    "branch_reference": "https://github.com/liboyang42-cpu/chengyin/tree/migration/native-ios-platform",
+    "pull_request": 1188,
+    "source_fixture_comparison": "byte-identical; 18-line canonical order and LF verified by backend owner"
+  },
+  "offline_checks": {
+    "native_contracts": 22,
+    "tree_sitter_files": 24,
+    "tree_sitter_errors": 0,
+    "project_generation": "PASS",
+    "scaffold": "PASS",
+    "play_runtime_hosts": "PASS",
+    "platform_consumers": "PASS"
+  },
+  "authored_tests": {
+    "Tests/AppUITests/NativePlatformFlowTests.swift": 6,
+    "Tests/AppUnitTests/NativePlatformAppTests.swift": 5,
+    "Tests/CoreTests/NativePlatformContractTests.swift": 7,
+    "Tests/CoreTests/NativePlatformLifecycleTests.swift": 11,
+    "Tests/CoreTests/NativePlatformServiceTests.swift": 6
+  },
+  "execution": {
+    "swift_domain": "NOT_RUN: no Swift toolchain in this Linux executor",
+    "apple_compile": "NOT_RUN: Apple CI owner",
+    "app_unit": "NOT_RUN: Apple CI owner",
+    "ui": "NOT_RUN: Apple CI owner",
+    "hardware": "NOT_RUN",
+    "notifications": "NOT_RUN",
+    "live_backend": "NOT_RUN"
+  },
+  "production": {
+    "network": false,
+    "motion_grants": false,
+    "notification_grants": false,
+    "app_attest_enrollment": false,
+    "reward": false,
+    "APNs": false,
+    "HealthKit": false
+  },
+  "limitations": [
+    "Native step audit cannot satisfy steps.reached or award any reward",
+    "App Attest production verifier/enrollment unavailable, client requires an already enrolled key",
+    "Local notification may become stale if server changes while the app is closed; on foreground refresh/cancel",
+    "Authoring/parse/structural success is not Apple runtime acceptance"
+  ]
+}

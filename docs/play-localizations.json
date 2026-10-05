@@ -1,0 +1,367 @@
+[
+  {
+    "key": "play.active",
+    "en": "Ready to explore",
+    "zh-Hans": "可以开始探索"
+  },
+  {
+    "key": "play.active.detail",
+    "en": "Open a route node to view its task and requirements.",
+    "zh-Hans": "打开路线节点，查看任务和要求。"
+  },
+  {
+    "key": "play.answer.accepted",
+    "en": "Answer accepted",
+    "zh-Hans": "答案已被接受"
+  },
+  {
+    "key": "play.answer.advancedRequired",
+    "en": "This task has an advanced prerequisite. Its authoritative session flow must be connected before submission.",
+    "zh-Hans": "此任务有高级玩法前置要求，需先接入对应的权威会话流程才能提交。"
+  },
+  {
+    "key": "play.answer.arrivalRequired",
+    "en": "This task requires verified arrival or a scan first. That verification flow is not available in this native module.",
+    "zh-Hans": "此任务需要先验证到达或扫码，原生模块暂未接入此验证流程。"
+  },
+  {
+    "key": "play.answer.branchReadOnly",
+    "en": "Branch-route progress is available to view. Answer submission requires the route recovery flow, which is not connected yet.",
+    "zh-Hans": "可以查看分支路线进度，答案提交需先接入路线冲突恢复流程。"
+  },
+  {
+    "key": "play.answer.checkProgress",
+    "en": "Refresh progress before trying another answer. A previous submission may already have been accepted.",
+    "zh-Hans": "请先刷新进度再尝试答题，之前的提交可能已经被接受。"
+  },
+  {
+    "key": "play.answer.failed",
+    "en": "The answer result could not be confirmed.",
+    "zh-Hans": "暂时无法确认答题结果。"
+  },
+  {
+    "key": "play.answer.instructions",
+    "en": "Enter your own answer, then submit once. Progress changes only after confirmation from the server.",
+    "zh-Hans": "输入你的答案后提交。完成进度仅以服务端确认结果为准。"
+  },
+  {
+    "key": "play.answer.mediaUnavailable",
+    "en": "This question includes media that this native module cannot present yet. Submission is unavailable until the complete question can be shown.",
+    "zh-Hans": "此题含有原生模块暂不支持展示的媒体，完整题目可展示后才能提交。"
+  },
+  {
+    "key": "play.answer.missingQuestion",
+    "en": "The server hasn’t supplied a complete question and options for this task.",
+    "zh-Hans": "服务端暂未提供此任务的完整题目和选项。"
+  },
+  {
+    "key": "play.answer.placeholder",
+    "en": "Your answer",
+    "zh-Hans": "输入答案"
+  },
+  {
+    "key": "play.answer.readOnly",
+    "en": "Answer submission is not enabled for this session.",
+    "zh-Hans": "当前游玩尚未启用答案提交。"
+  },
+  {
+    "key": "play.answer.readback",
+    "en": "This receipt comes from the server. The route shows separately refreshed progress.",
+    "zh-Hans": "此回执来自服务端，路线进度以单独刷新后的结果为准。"
+  },
+  {
+    "key": "play.answer.refreshProgress",
+    "en": "Check server progress",
+    "zh-Hans": "查询服务端进度"
+  },
+  {
+    "key": "play.answer.routeCompleted",
+    "en": "The server confirmed this answer completed the journey.",
+    "zh-Hans": "服务端已确认本次答题完成了整条路线。"
+  },
+  {
+    "key": "play.answer.submit",
+    "en": "Submit answer",
+    "zh-Hans": "提交答案"
+  },
+  {
+    "key": "play.answer.submitting",
+    "en": "Submitting…",
+    "zh-Hans": "正在提交…"
+  },
+  {
+    "key": "play.answer.unsupported",
+    "en": "This task uses a verification method that isn’t supported by this native module yet.",
+    "zh-Hans": "此任务所需的验证方式尚未接入原生模块。"
+  },
+  {
+    "key": "play.businessTime",
+    "en": "Business hours",
+    "zh-Hans": "营业时间"
+  },
+  {
+    "key": "play.completed",
+    "en": "Journey completed",
+    "zh-Hans": "游玩已完成"
+  },
+  {
+    "key": "play.completed.detail",
+    "en": "The server has reported this journey as completed.",
+    "zh-Hans": "服务端已确认本次游玩完成。"
+  },
+  {
+    "key": "play.completionMode",
+    "en": "Completion method",
+    "zh-Hans": "完成方式"
+  },
+  {
+    "key": "play.description",
+    "en": "About this stop",
+    "zh-Hans": "节点介绍"
+  },
+  {
+    "key": "play.difficulty",
+    "en": "Difficulty",
+    "zh-Hans": "难度"
+  },
+  {
+    "key": "play.duration",
+    "en": "Duration in minutes",
+    "zh-Hans": "时长（分钟）"
+  },
+  {
+    "key": "play.empty",
+    "en": "Route is being prepared",
+    "zh-Hans": "路线正在配置中"
+  },
+  {
+    "key": "play.empty.detail",
+    "en": "There are no route nodes yet. Return to the activity or route details and check again later.",
+    "zh-Hans": "本场路线尚无节点，请返回活动或路线详情，稍后再查看。"
+  },
+  {
+    "key": "play.expired",
+    "en": "Sign in to continue",
+    "zh-Hans": "请登录后继续"
+  },
+  {
+    "key": "play.expired.detail",
+    "en": "Your sign-in session is missing or has expired. Return to the account screen to sign in again.",
+    "zh-Hans": "当前未登录或登录已过期，请返回账户页面重新登录。"
+  },
+  {
+    "key": "play.expiresAt",
+    "en": "Pass expiry as reported",
+    "zh-Hans": "通行证到期时间（服务端）"
+  },
+  {
+    "key": "play.fixture.notice",
+    "en": "Offline synthetic journey · no live requests or proof",
+    "zh-Hans": "离线模拟游玩 · 无真实请求或验证凭证"
+  },
+  {
+    "key": "play.fixture.switch",
+    "en": "Switch fixture account",
+    "zh-Hans": "切换模拟账户"
+  },
+  {
+    "key": "play.loadFailed",
+    "en": "Couldn’t load this journey",
+    "zh-Hans": "游玩进度加载失败"
+  },
+  {
+    "key": "play.loadFailed.detail",
+    "en": "Check your connection and try again.",
+    "zh-Hans": "请检查网络连接后重试。"
+  },
+  {
+    "key": "play.loading",
+    "en": "Loading your journey…",
+    "zh-Hans": "正在加载游玩进度…"
+  },
+  {
+    "key": "play.materials",
+    "en": "Materials",
+    "zh-Hans": "所需材料"
+  },
+  {
+    "key": "play.missing",
+    "en": "Journey information is missing",
+    "zh-Hans": "游玩信息缺失"
+  },
+  {
+    "key": "play.missing.detail",
+    "en": "Open this journey from its activity, route or ticket details.",
+    "zh-Hans": "请从活动、路线或票夹详情进入游玩。"
+  },
+  {
+    "key": "play.node.completed",
+    "en": "Completed",
+    "zh-Hans": "已完成"
+  },
+  {
+    "key": "play.node.locked",
+    "en": "Locked",
+    "zh-Hans": "未解锁"
+  },
+  {
+    "key": "play.node.open",
+    "en": "View task",
+    "zh-Hans": "查看任务"
+  },
+  {
+    "key": "play.node.title",
+    "en": "Route task",
+    "zh-Hans": "节点任务"
+  },
+  {
+    "key": "play.node.unavailable",
+    "en": "This task is unavailable",
+    "zh-Hans": "此任务暂不可用"
+  },
+  {
+    "key": "play.node.unavailable.detail",
+    "en": "The node is no longer visible in the current session. Return to the route to refresh.",
+    "zh-Hans": "当前游玩中已不再显示此节点，请返回路线刷新。"
+  },
+  {
+    "key": "play.node.untitled",
+    "en": "Unnamed node",
+    "zh-Hans": "未命名节点"
+  },
+  {
+    "key": "play.nodes",
+    "en": "Your route",
+    "zh-Hans": "游玩路线"
+  },
+  {
+    "key": "play.nodes.hidden",
+    "en": "No nodes are available in the current route state.",
+    "zh-Hans": "当前路线状态下没有可显示的节点。"
+  },
+  {
+    "key": "play.openStatus",
+    "en": "Reported opening status",
+    "zh-Hans": "服务端营业状态"
+  },
+  {
+    "key": "play.passRequired",
+    "en": "Pass required or expired",
+    "zh-Hans": "需要通行证或通行证已过期"
+  },
+  {
+    "key": "play.passRequired.detail",
+    "en": "Return to the route details to check your pass. No purchase has been made here.",
+    "zh-Hans": "请返回路线详情查看通行证。此处未进行购买。"
+  },
+  {
+    "key": "play.players",
+    "en": "Players",
+    "zh-Hans": "参与人数"
+  },
+  {
+    "key": "play.progress",
+    "en": "Progress",
+    "zh-Hans": "完成进度"
+  },
+  {
+    "key": "play.progress.unknown",
+    "en": "Progress hasn’t been reported",
+    "zh-Hans": "暂未获取到完成进度"
+  },
+  {
+    "key": "play.puzzleScore",
+    "en": "Puzzle score",
+    "zh-Hans": "解谜分数"
+  },
+  {
+    "key": "play.question",
+    "en": "Question",
+    "zh-Hans": "题目"
+  },
+  {
+    "key": "play.refresh",
+    "en": "Refresh",
+    "zh-Hans": "刷新"
+  },
+  {
+    "key": "play.registrationRequired",
+    "en": "Registration required",
+    "zh-Hans": "尚未报名"
+  },
+  {
+    "key": "play.registrationRequired.detail",
+    "en": "You haven’t registered for this activity. Return to its details to review registration.",
+    "zh-Hans": "你尚未报名本场活动，请返回活动详情查看报名信息。"
+  },
+  {
+    "key": "play.result",
+    "en": "Reported result",
+    "zh-Hans": "服务端结果"
+  },
+  {
+    "key": "play.retry",
+    "en": "Try again",
+    "zh-Hans": "重试"
+  },
+  {
+    "key": "play.routeStatus",
+    "en": "Route status",
+    "zh-Hans": "路线状态"
+  },
+  {
+    "key": "play.story",
+    "en": "Story",
+    "zh-Hans": "故事"
+  },
+  {
+    "key": "play.task",
+    "en": "Task",
+    "zh-Hans": "玩法任务"
+  },
+  {
+    "key": "play.title",
+    "en": "Journey",
+    "zh-Hans": "游玩"
+  },
+  {
+    "key": "play.unavailable",
+    "en": "Journey currently unavailable",
+    "zh-Hans": "当前不可继续游玩"
+  },
+  {
+    "key": "play.unavailable.detail",
+    "en": "The server hasn’t allowed this journey to continue. Check the reported time window or route status.",
+    "zh-Hans": "服务端暂未允许继续游玩，请查看可玩时间或路线状态。"
+  },
+  {
+    "key": "play.unconfigured",
+    "en": "Service not configured",
+    "zh-Hans": "服务尚未配置"
+  },
+  {
+    "key": "play.unconfigured.detail",
+    "en": "An approved service address is needed to load this journey.",
+    "zh-Hans": "需要配置已批准的服务地址才能加载游玩进度。"
+  },
+  {
+    "key": "play.unknown",
+    "en": "Journey status unavailable",
+    "zh-Hans": "游玩状态未知"
+  },
+  {
+    "key": "play.unknown.detail",
+    "en": "Required session information is missing. Refresh before taking an action.",
+    "zh-Hans": "缺少必要的游玩信息，请刷新后再操作。"
+  },
+  {
+    "key": "play.xp",
+    "en": "Exploration XP",
+    "zh-Hans": "探索值"
+  },
+  {
+    "key": "play.xp.unknown",
+    "en": "Exploration XP hasn’t been reported",
+    "zh-Hans": "暂未获取到探索值"
+  }
+]

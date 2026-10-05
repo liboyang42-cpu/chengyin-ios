@@ -1,0 +1,272 @@
+[
+  {
+    "key": "ticketWallet.title",
+    "en": "Ticket wallet",
+    "zh-Hans": "票夹"
+  },
+  {
+    "key": "ticketWallet.detail",
+    "en": "Ticket details",
+    "zh-Hans": "票券详情"
+  },
+  {
+    "key": "ticketWallet.loading",
+    "en": "Loading tickets…",
+    "zh-Hans": "正在读取票券…"
+  },
+  {
+    "key": "ticketWallet.retry",
+    "en": "Retry",
+    "zh-Hans": "重试"
+  },
+  {
+    "key": "ticketWallet.refresh",
+    "en": "Refresh tickets",
+    "zh-Hans": "刷新票券"
+  },
+  {
+    "key": "ticketWallet.signIn",
+    "en": "Sign in",
+    "zh-Hans": "登录"
+  },
+  {
+    "key": "ticketWallet.empty",
+    "en": "Your ticket wallet is empty",
+    "zh-Hans": "票夹里还没有票"
+  },
+  {
+    "key": "ticketWallet.partialEmpty",
+    "en": "No tickets were returned by the available source. The wallet may be incomplete.",
+    "zh-Hans": "可用来源暂未返回票券，票夹内容可能不完整。"
+  },
+  {
+    "key": "ticketWallet.offlineExample",
+    "en": "Offline synthetic example",
+    "zh-Hans": "离线合成示例"
+  },
+  {
+    "key": "ticketWallet.readOnly",
+    "en": "Read-only ticket wallet. Payment, refunds, teams and completion rewards are not available here yet.",
+    "zh-Hans": "只读票夹。此处暂不提供支付、退款、队伍和完局奖励。"
+  },
+  {
+    "key": "ticketWallet.untitled",
+    "en": "Untitled ticket",
+    "zh-Hans": "未命名票券"
+  },
+  {
+    "key": "ticketWallet.participateDate",
+    "en": "Participation date",
+    "zh-Hans": "参与日期"
+  },
+  {
+    "key": "ticketWallet.number",
+    "en": "Ticket number",
+    "zh-Hans": "票号"
+  },
+  {
+    "key": "ticketWallet.contact",
+    "en": "Contact",
+    "zh-Hans": "联系人"
+  },
+  {
+    "key": "ticketWallet.phone",
+    "en": "Phone",
+    "zh-Hans": "手机号"
+  },
+  {
+    "key": "ticketWallet.verificationTime",
+    "en": "Verification time",
+    "zh-Hans": "核验时间"
+  },
+  {
+    "key": "ticketWallet.entitlements",
+    "en": "Benefits",
+    "zh-Hans": "权益明细"
+  },
+  {
+    "key": "ticketWallet.pendingChapters",
+    "en": "Chapters awaiting redemption",
+    "zh-Hans": "待核销章节"
+  },
+  {
+    "key": "ticketWallet.unknownEntitlementStatus",
+    "en": "Some chapter statuses are unavailable. Only confirmed pending chapters are counted.",
+    "zh-Hans": "部分章节状态未提供，仅统计已明确待核销的章节。"
+  },
+  {
+    "key": "ticketWallet.redemption",
+    "en": "Redemption",
+    "zh-Hans": "核销"
+  },
+  {
+    "key": "ticketWallet.noCode",
+    "en": "This screen does not issue or display a redemption code.",
+    "zh-Hans": "此页面不签发或展示核销码。"
+  },
+  {
+    "key": "ticketWallet.chapter",
+    "en": "Chapter",
+    "zh-Hans": "章节"
+  },
+  {
+    "key": "ticketWallet.unnamedChapter",
+    "en": "Unnamed chapter",
+    "zh-Hans": "未命名章节"
+  },
+  {
+    "key": "ticketWallet.redeemedAt",
+    "en": "Redeemed at",
+    "zh-Hans": "核销时间"
+  },
+  {
+    "key": "ticketWallet.partial.route",
+    "en": "Route tickets could not be loaded",
+    "zh-Hans": "路线票加载失败"
+  },
+  {
+    "key": "ticketWallet.partial.activity",
+    "en": "Activity tickets could not be loaded",
+    "zh-Hans": "活动票加载失败"
+  },
+  {
+    "key": "ticketWallet.issue.login",
+    "en": "Sign in to see your tickets",
+    "zh-Hans": "登录后查看你的票券"
+  },
+  {
+    "key": "ticketWallet.issue.notConfigured",
+    "en": "Ticket service is not configured",
+    "zh-Hans": "票券服务尚未配置"
+  },
+  {
+    "key": "ticketWallet.issue.unavailable",
+    "en": "This ticket is unavailable",
+    "zh-Hans": "此票券暂不可用"
+  },
+  {
+    "key": "ticketWallet.issue.malformed",
+    "en": "Ticket information could not be verified",
+    "zh-Hans": "无法确认票券信息"
+  },
+  {
+    "key": "ticketWallet.issue.network",
+    "en": "Tickets could not be loaded. Check your connection and retry.",
+    "zh-Hans": "票券读取失败，请检查网络后重试。"
+  },
+  {
+    "key": "ticketWallet.issue.failure",
+    "en": "Tickets could not be loaded",
+    "zh-Hans": "票券加载失败"
+  },
+  {
+    "key": "ticketWallet.status.ready",
+    "en": "Ready to use",
+    "zh-Hans": "待使用"
+  },
+  {
+    "key": "ticketWallet.status.pending",
+    "en": "Awaiting payment",
+    "zh-Hans": "待支付"
+  },
+  {
+    "key": "ticketWallet.status.verified",
+    "en": "Verified",
+    "zh-Hans": "已核验"
+  },
+  {
+    "key": "ticketWallet.status.cancelled",
+    "en": "Cancelled",
+    "zh-Hans": "已取消"
+  },
+  {
+    "key": "ticketWallet.status.expired",
+    "en": "Expired",
+    "zh-Hans": "已过期"
+  },
+  {
+    "key": "ticketWallet.status.unknown",
+    "en": "Status not confirmed",
+    "zh-Hans": "状态待确认"
+  },
+  {
+    "key": "ticketWallet.action.detail",
+    "en": "View ticket details",
+    "zh-Hans": "查看票券详情"
+  },
+  {
+    "key": "ticketWallet.action.paymentUnavailable",
+    "en": "Payment is not available in this native version yet",
+    "zh-Hans": "原生版本暂不支持支付"
+  },
+  {
+    "key": "ticketWallet.action.cancelled",
+    "en": "This ticket has been cancelled",
+    "zh-Hans": "该票已取消"
+  },
+  {
+    "key": "ticketWallet.action.expired",
+    "en": "This ticket has expired",
+    "zh-Hans": "该票已过期"
+  },
+  {
+    "key": "ticketWallet.action.unknown",
+    "en": "The ticket status must be confirmed before opening it",
+    "zh-Hans": "请先确认票券状态"
+  },
+  {
+    "key": "ticketWallet.redemption.notImplemented",
+    "en": "Redemption codes are not available in this native version yet",
+    "zh-Hans": "原生版本暂不支持核销码"
+  },
+  {
+    "key": "ticketWallet.redemption.unpaid",
+    "en": "Available after payment",
+    "zh-Hans": "支付后方可使用"
+  },
+  {
+    "key": "ticketWallet.redemption.cancelled",
+    "en": "This ticket has been cancelled",
+    "zh-Hans": "该票已取消"
+  },
+  {
+    "key": "ticketWallet.redemption.expired",
+    "en": "This ticket has expired",
+    "zh-Hans": "该票已过期"
+  },
+  {
+    "key": "ticketWallet.redemption.complete",
+    "en": "No remaining redeemable benefits",
+    "zh-Hans": "暂无剩余可核销权益"
+  },
+  {
+    "key": "ticketWallet.redemption.unknown",
+    "en": "Redemption availability could not be confirmed",
+    "zh-Hans": "无法确认核销可用状态"
+  },
+  {
+    "key": "ticketWallet.entitlementStatus.pending",
+    "en": "Awaiting redemption",
+    "zh-Hans": "待核销"
+  },
+  {
+    "key": "ticketWallet.entitlementStatus.redeemed",
+    "en": "Redeemed",
+    "zh-Hans": "已核销"
+  },
+  {
+    "key": "ticketWallet.entitlementStatus.invalid",
+    "en": "Invalid",
+    "zh-Hans": "已失效"
+  },
+  {
+    "key": "ticketWallet.entitlementStatus.unknown",
+    "en": "Unknown",
+    "zh-Hans": "未知"
+  },
+  {
+    "key": "ticketWallet.fixture.signOut",
+    "en": "End example session",
+    "zh-Hans": "结束示例会话"
+  }
+]

@@ -1,0 +1,898 @@
+{
+  "playkit.attemptLimit": {
+    "en": "Attempt limit",
+    "zh-Hans": "最多尝试次数"
+  },
+  "playkit.attempts": {
+    "en": "Attempts recorded",
+    "zh-Hans": "已记录的尝试"
+  },
+  "playkit.bingo.authority": {
+    "en": "Tiles and line progress come from the server. Reward labels describe the configured rewards, not a claim or payout receipt.",
+    "zh-Hans": "格子与连线进度由服务端返回。奖励文案是配置说明，不代表已兑换或已到账。"
+  },
+  "playkit.bingo.empty": {
+    "en": "Not completed",
+    "zh-Hans": "尚未完成"
+  },
+  "playkit.bingo.filled": {
+    "en": "Completed",
+    "zh-Hans": "已完成"
+  },
+  "playkit.bingo.fullReward": {
+    "en": "Full-board reward",
+    "zh-Hans": "九格全亮奖励"
+  },
+  "playkit.bingo.inLine": {
+    "en": "Part of a completed line",
+    "zh-Hans": "已连成线"
+  },
+  "playkit.bingo.lineReward": {
+    "en": "Line reward",
+    "zh-Hans": "连线奖励"
+  },
+  "playkit.bingo.lines": {
+    "en": "Completed lines",
+    "zh-Hans": "已完成连线"
+  },
+  "playkit.branch.ended": {
+    "en": "This branch has ended",
+    "zh-Hans": "已到达这段故事的终点"
+  },
+  "playkit.camera.gated": {
+    "en": "Camera access is not configured for this session",
+    "zh-Hans": "当前会话尚未配置相机能力"
+  },
+  "playkit.camera.photoPurpose": {
+    "en": "Take a photo for this task. Nothing is uploaded until you review the separate upload step.",
+    "zh-Hans": "为当前任务拍摄照片。只有确认单独的上传步骤后才会上传。"
+  },
+  "playkit.camera.purpose": {
+    "en": "Use the camera for this task?",
+    "zh-Hans": "为当前任务使用相机？"
+  },
+  "playkit.camera.scanPurpose": {
+    "en": "Read the task’s QR code with the camera. Review the captured code before sending it for server validation.",
+    "zh-Hans": "使用相机读取任务二维码。识别后先核对，再发送给服务端验证。"
+  },
+  "playkit.cancel": {
+    "en": "Cancel",
+    "zh-Hans": "取消"
+  },
+  "playkit.challenge.abort": {
+    "en": "Discard this attempt",
+    "zh-Hans": "放弃本次尝试"
+  },
+  "playkit.challenge.authority": {
+    "en": "Start is confirmed by the server first. Local measurements do not award a result or reward.",
+    "zh-Hans": "先由服务端确认开局。本地测量不代表通过或获得奖励。"
+  },
+  "playkit.challenge.clock": {
+    "en": "Challenge clock",
+    "zh-Hans": "挑战计时"
+  },
+  "playkit.challenge.expired": {
+    "en": "This attempt reached its time limit",
+    "zh-Hans": "本次尝试已到达时限"
+  },
+  "playkit.challenge.interrupted": {
+    "en": "The attempt was interrupted. Start again to measure a fresh attempt.",
+    "zh-Hans": "本次尝试已中断，请重新开始计量。"
+  },
+  "playkit.challenge.measurementOnly": {
+    "en": "This is your device measurement. Submit it for the server’s decision.",
+    "zh-Hans": "这是设备测量值，提交后由服务端判定。"
+  },
+  "playkit.challenge.start": {
+    "en": "Review and start",
+    "zh-Hans": "核对并开始"
+  },
+  "playkit.challenge.target": {
+    "en": "Target time",
+    "zh-Hans": "目标时间"
+  },
+  "playkit.characters": {
+    "en": "Characters",
+    "zh-Hans": "字数"
+  },
+  "playkit.choose": {
+    "en": "Choose…",
+    "zh-Hans": "请选择…"
+  },
+  "playkit.classify.instructions": {
+    "en": "Choose a category for every item. You can change any choice before submitting.",
+    "zh-Hans": "为每张卡选择一个分类，提交前都可以修改。"
+  },
+  "playkit.classify.remaining": {
+    "en": "Items still to classify",
+    "zh-Hans": "尚待分类"
+  },
+  "playkit.close": {
+    "en": "Back",
+    "zh-Hans": "返回"
+  },
+  "playkit.coin.flip": {
+    "en": "Flip the coin",
+    "zh-Hans": "抛硬币"
+  },
+  "playkit.coin.waiting": {
+    "en": "The result will appear after the server responds",
+    "zh-Hans": "服务端返回后显示结果"
+  },
+  "playkit.configurationInvalid": {
+    "en": "The task configuration is incomplete. Refresh or return to the task.",
+    "zh-Hans": "任务配置不完整，请刷新或返回任务。"
+  },
+  "playkit.confirm": {
+    "en": "Confirm submission",
+    "zh-Hans": "确认提交"
+  },
+  "playkit.daily.audience": {
+    "en": "Your message may be shown to the next visitor. Completion still depends on the server response.",
+    "zh-Hans": "这句话可能展示给下一位来访者，是否完成以服务端回执为准。"
+  },
+  "playkit.daily.message": {
+    "en": "Leave a line for the next visitor",
+    "zh-Hans": "给下一位来访者留一句"
+  },
+  "playkit.dice.kept": {
+    "en": "Kept die",
+    "zh-Hans": "采用的骰值"
+  },
+  "playkit.dice.roll": {
+    "en": "Roll the dice",
+    "zh-Hans": "掷骰子"
+  },
+  "playkit.dice.target": {
+    "en": "Difficulty",
+    "zh-Hans": "难度值"
+  },
+  "playkit.dice.total": {
+    "en": "Server total",
+    "zh-Hans": "服务端合计"
+  },
+  "playkit.dice.waiting": {
+    "en": "Dice results have not arrived yet",
+    "zh-Hans": "骰子结果尚未返回"
+  },
+  "playkit.discard": {
+    "en": "Discard and leave",
+    "zh-Hans": "放弃并返回"
+  },
+  "playkit.discardBoundary": {
+    "en": "Unsubmitted input and this attempt’s local measurements will be discarded. Any already-sent request still needs its server readback.",
+    "zh-Hans": "未提交的输入和本次本地测量将被清除。已经发出的请求仍需核对服务端结果。"
+  },
+  "playkit.discardQuestion": {
+    "en": "Discard unsubmitted changes?",
+    "zh-Hans": "放弃尚未提交的内容？"
+  },
+  "playkit.estimate.range": {
+    "en": "Allowed range",
+    "zh-Hans": "可填范围"
+  },
+  "playkit.estimate.value": {
+    "en": "Your estimate",
+    "zh-Hans": "你的估计"
+  },
+  "playkit.hidden.boundary": {
+    "en": "Only your chosen position is submitted. Target locations and hit decisions remain on the server.",
+    "zh-Hans": "只提交你点选的位置，目标位置与命中判定由服务端保管。"
+  },
+  "playkit.hidden.center": {
+    "en": "Select the image center",
+    "zh-Hans": "选择图片中心"
+  },
+  "playkit.hidden.hint": {
+    "en": "Tap a location in the image to review that position",
+    "zh-Hans": "点选图片中的位置后核对提交"
+  },
+  "playkit.hidden.scene": {
+    "en": "Search image",
+    "zh-Hans": "寻物图片"
+  },
+  "playkit.image": {
+    "en": "Task image",
+    "zh-Hans": "任务图片"
+  },
+  "playkit.imageGated": {
+    "en": "This task’s image host is not approved yet",
+    "zh-Hans": "任务图片来源尚未获准加载"
+  },
+  "playkit.imageLoading": {
+    "en": "Loading image",
+    "zh-Hans": "正在加载图片"
+  },
+  "playkit.imageUnavailable": {
+    "en": "Image unavailable. Try refreshing.",
+    "zh-Hans": "图片无法加载，请尝试刷新。"
+  },
+  "playkit.keepEditing": {
+    "en": "Keep editing",
+    "zh-Hans": "继续编辑"
+  },
+  "playkit.match.instructions": {
+    "en": "Pair each left item with a right item. Reusing a right item removes its previous pairing.",
+    "zh-Hans": "为每个左侧条目选择一个右侧条目。重复选择同一个右侧条目会解除它原先的配对。"
+  },
+  "playkit.note.audience": {
+    "en": "This message may be shown to later participants",
+    "zh-Hans": "这条留言可能展示给后来的参与者"
+  },
+  "playkit.note.placeholder": {
+    "en": "Leave a message",
+    "zh-Hans": "写下留言"
+  },
+  "playkit.pendingBoundary": {
+    "en": "A request is unresolved. New submissions are locked until its exact result is checked or the same request is retried.",
+    "zh-Hans": "有请求结果尚未确认。核对结果或重试原请求前，不能发起新提交。"
+  },
+  "playkit.photo.capture": {
+    "en": "Take a photo",
+    "zh-Hans": "拍摄照片"
+  },
+  "playkit.photo.fallbackRecorded": {
+    "en": "The server recorded a fallback outcome. Its completion state controls the next step.",
+    "zh-Hans": "服务端已记录兜底结果，下一步由服务端完成状态决定。"
+  },
+  "playkit.photo.frameGuide": {
+    "en": "Framing reference. The native camera framing overlay still requires acceptance.",
+    "zh-Hans": "取景参考。原生相机内的轮廓叠加仍待验收。"
+  },
+  "playkit.photo.noVerdict": {
+    "en": "No visual-review decision was available for this attempt",
+    "zh-Hans": "这次未能获得视觉审核结论"
+  },
+  "playkit.photo.preview": {
+    "en": "Captured photo preview",
+    "zh-Hans": "已拍照片预览"
+  },
+  "playkit.photo.remaining": {
+    "en": "Retakes remaining",
+    "zh-Hans": "剩余重拍次数"
+  },
+  "playkit.photo.serverOnly": {
+    "en": "Only the uploaded image address is submitted. The server performs the visual check; no local score is sent.",
+    "zh-Hans": "仅提交上传后的图片地址。由服务端进行视觉审核，不上报本地分数。"
+  },
+  "playkit.photo.tooLarge": {
+    "en": "This photo exceeds the 10 MB task upload limit",
+    "zh-Hans": "这张照片超过任务上传的 10 MB 限制"
+  },
+  "playkit.photo.upload": {
+    "en": "Upload selected photo",
+    "zh-Hans": "上传选中的照片"
+  },
+  "playkit.photo.uploadBoundary": {
+    "en": "The selected image will be sent to the configured service. Uploading is separate from submitting the task and does not complete it.",
+    "zh-Hans": "选中的照片将发送给已配置的服务。上传和任务提交是两个步骤，上传不代表完成任务。"
+  },
+  "playkit.photo.uploadGate": {
+    "en": "Photo upload is not configured, or this photo no longer belongs to the current task version",
+    "zh-Hans": "尚未配置图片上传，或这张照片已不属于当前任务版本"
+  },
+  "playkit.photo.uploadReview": {
+    "en": "Upload this photo?",
+    "zh-Hans": "上传这张照片？"
+  },
+  "playkit.photo.uploaded": {
+    "en": "Photo uploaded; task not submitted",
+    "zh-Hans": "照片已上传，任务尚未提交"
+  },
+  "playkit.photo.use": {
+    "en": "Use this uploaded photo",
+    "zh-Hans": "使用已上传的照片"
+  },
+  "playkit.photo.working": {
+    "en": "Preparing photo",
+    "zh-Hans": "正在处理照片"
+  },
+  "playkit.predict.answer": {
+    "en": "Settled answer",
+    "zh-Hans": "已公布答案"
+  },
+  "playkit.predict.lost": {
+    "en": "The server settled this prediction as incorrect",
+    "zh-Hans": "服务端已结算：未猜中"
+  },
+  "playkit.predict.mine": {
+    "en": "Your prediction",
+    "zh-Hans": "你的选择"
+  },
+  "playkit.predict.revealDays": {
+    "en": "Reveal day offset",
+    "zh-Hans": "揭晓天数"
+  },
+  "playkit.predict.revealHour": {
+    "en": "Reveal hour",
+    "zh-Hans": "揭晓时刻"
+  },
+  "playkit.predict.voided": {
+    "en": "This prediction round was voided; no result reward was issued for the round",
+    "zh-Hans": "本轮竞猜已作废，本轮没有结果奖励"
+  },
+  "playkit.predict.wait": {
+    "en": "Waiting for the merchant to settle the answer",
+    "zh-Hans": "等待商家公布并结算答案"
+  },
+  "playkit.predict.won": {
+    "en": "The server settled this prediction as correct",
+    "zh-Hans": "服务端已结算：猜中"
+  },
+  "playkit.profile.answer": {
+    "en": "Your answer",
+    "zh-Hans": "你的回答"
+  },
+  "playkit.profile.avatarReady": {
+    "en": "Avatar uploaded",
+    "zh-Hans": "头像已上传"
+  },
+  "playkit.profile.lockNotice": {
+    "en": "Registration is locked after the server accepts it. Check every answer and the avatar before submitting.",
+    "zh-Hans": "服务端接受后将锁定档案，请在提交前核对所有回答和头像。"
+  },
+  "playkit.qa.answer": {
+    "en": "Your answer",
+    "zh-Hans": "你的答案"
+  },
+  "playkit.qa.multiHint": {
+    "en": "Select all answers you want to submit",
+    "zh-Hans": "选择所有要提交的选项"
+  },
+  "playkit.qa.revealedAnswer": {
+    "en": "Answer revealed by the server",
+    "zh-Hans": "服务端公布的答案"
+  },
+  "playkit.random.draw": {
+    "en": "Draw the next card",
+    "zh-Hans": "抽取下一张"
+  },
+  "playkit.random.remaining": {
+    "en": "Draws remaining",
+    "zh-Hans": "剩余抽取次数"
+  },
+  "playkit.reaction.early": {
+    "en": "Too early. This round did not count.",
+    "zh-Hans": "抢跑了，本轮不计入成绩。"
+  },
+  "playkit.reaction.goal": {
+    "en": "Target reaction time",
+    "zh-Hans": "目标反应时间"
+  },
+  "playkit.reaction.next": {
+    "en": "Try the next round",
+    "zh-Hans": "开始下一轮"
+  },
+  "playkit.reaction.round": {
+    "en": "Rounds measured",
+    "zh-Hans": "已测轮数"
+  },
+  "playkit.reaction.tap": {
+    "en": "Tap now",
+    "zh-Hans": "现在点击"
+  },
+  "playkit.reaction.wait": {
+    "en": "Wait for the cue",
+    "zh-Hans": "等待提示"
+  },
+  "playkit.reasoning.serverOnly": {
+    "en": "Only the overall decision comes back from the server. No individual answer is revealed or guessed here.",
+    "zh-Hans": "这里只显示服务端的整体判定，不揭露或猜测每一项答案。"
+  },
+  "playkit.reasoning.tryAgain": {
+    "en": "The last arrangement did not pass. You can revise it while the task remains open.",
+    "zh-Hans": "上次排列未通过，任务仍开放时可以修改后重交。"
+  },
+  "playkit.reconcile": {
+    "en": "Check the pending request",
+    "zh-Hans": "核对待确认请求"
+  },
+  "playkit.refresh": {
+    "en": "Refresh server state",
+    "zh-Hans": "刷新服务端状态"
+  },
+  "playkit.result.authority": {
+    "en": "Completion and rewards are based only on the server’s returned state",
+    "zh-Hans": "是否完成及奖励仅以服务端返回状态为准"
+  },
+  "playkit.result.notPassed": {
+    "en": "Server result: not passed",
+    "zh-Hans": "服务端判定：未通过"
+  },
+  "playkit.result.passed": {
+    "en": "Server result: passed",
+    "zh-Hans": "服务端判定：已通过"
+  },
+  "playkit.result.recorded": {
+    "en": "Recorded by the server",
+    "zh-Hans": "服务端已记录"
+  },
+  "playkit.retryExact": {
+    "en": "Retry the exact reviewed request",
+    "zh-Hans": "重试已核对的原请求"
+  },
+  "playkit.review": {
+    "en": "Review submission",
+    "zh-Hans": "核对提交"
+  },
+  "playkit.reviewBoundary": {
+    "en": "Check the exact values below. Confirmation sends this action for this session and version; it does not guarantee completion or a reward.",
+    "zh-Hans": "请核对下方实际提交值。确认后仅为当前会话和版本发送此动作，不代表一定完成或获得奖励。"
+  },
+  "playkit.scan.capture": {
+    "en": "Scan the task code",
+    "zh-Hans": "扫描任务二维码"
+  },
+  "playkit.scan.captured": {
+    "en": "Code captured; not yet validated",
+    "zh-Hans": "已识别二维码，尚未验证"
+  },
+  "playkit.scan.overlayGate": {
+    "en": "Overlay and AR replies need an approved native renderer. No substitute result is shown.",
+    "zh-Hans": "显形与 AR 回复需要已验收的原生渲染器，当前不展示替代结果。"
+  },
+  "playkit.scan.working": {
+    "en": "Reading code",
+    "zh-Hans": "正在识别二维码"
+  },
+  "playkit.select": {
+    "en": "Select",
+    "zh-Hans": "选择"
+  },
+  "playkit.sending": {
+    "en": "Waiting for server response",
+    "zh-Hans": "等待服务端回应"
+  },
+  "playkit.sessionChanged": {
+    "en": "Your session changed. Return to the task and reopen it.",
+    "zh-Hans": "登录会话已变化，请返回任务后重新打开。"
+  },
+  "playkit.sessionRemaining": {
+    "en": "Session seconds remaining",
+    "zh-Hans": "会话剩余秒数"
+  },
+  "playkit.sort.down": {
+    "en": "Move down",
+    "zh-Hans": "下移"
+  },
+  "playkit.sort.instructions": {
+    "en": "Arrange the items in order. Use the arrow buttons to move an item one place.",
+    "zh-Hans": "按顺序排列条目，用箭头按钮每次移动一格。"
+  },
+  "playkit.sort.up": {
+    "en": "Move up",
+    "zh-Hans": "上移"
+  },
+  "playkit.stopwatch.hidden": {
+    "en": "Elapsed time hidden. Tap stop when you think the target time has arrived.",
+    "zh-Hans": "计时读数已隐藏，请在你认为到达目标时间时停止。"
+  },
+  "playkit.stopwatch.stop": {
+    "en": "Stop the clock",
+    "zh-Hans": "停止计时"
+  },
+  "playkit.stopwatch.tolerance": {
+    "en": "Allowed tolerance",
+    "zh-Hans": "允许误差"
+  },
+  "playkit.type.caseInsensitive": {
+    "en": "Letter case is ignored by the task",
+    "zh-Hans": "本题不区分英文字母大小写"
+  },
+  "playkit.type.caseSensitive": {
+    "en": "Match letter case exactly",
+    "zh-Hans": "请保持英文字母大小写一致"
+  },
+  "playkit.type.finish": {
+    "en": "Finish typing",
+    "zh-Hans": "完成输入"
+  },
+  "playkit.type.input": {
+    "en": "Type the target text",
+    "zh-Hans": "输入目标文字"
+  },
+  "playkit.unavailable": {
+    "en": "This task is no longer available",
+    "zh-Hans": "当前任务已不可用"
+  },
+  "playkit.version": {
+    "en": "Reviewed version",
+    "zh-Hans": "核对的版本"
+  },
+  "playkit.walk.goal": {
+    "en": "Merchant’s step goal",
+    "zh-Hans": "商家设定的步数目标"
+  },
+  "playkit.walk.goalLocked": {
+    "en": "The goal is set by the merchant and cannot be changed here",
+    "zh-Hans": "目标由商家设定，不能在这里修改"
+  },
+  "playkit.walk.noReading": {
+    "en": "No verified step reading has been returned",
+    "zh-Hans": "尚未返回经验证的步数"
+  },
+  "playkit.walk.progress": {
+    "en": "Verified step progress",
+    "zh-Hans": "经验证的步数进度"
+  },
+  "playkit.walk.providerGate": {
+    "en": "The service requires WeChat encrypted step proof. Native device steps cannot replace that proof without an approved contract.",
+    "zh-Hans": "当前服务需要微信运动的加密步数凭证。原生设备步数不能在未经契约批准的情况下替代该凭证。"
+  },
+  "playkit.walk.remaining": {
+    "en": "Steps remaining",
+    "zh-Hans": "还差步数"
+  },
+  "playkit.walk.steps": {
+    "en": "Verified steps",
+    "zh-Hans": "经验证的步数"
+  },
+  "playkit.walk.sync": {
+    "en": "Sync verified steps",
+    "zh-Hans": "同步经验证的步数"
+  },
+  "playkit.kind.coinFlip": {
+    "en": "Coin flip",
+    "zh-Hans": "抛硬币"
+  },
+  "playkit.kind.diceRoll": {
+    "en": "Dice roll",
+    "zh-Hans": "掷骰子"
+  },
+  "playkit.kind.reaction": {
+    "en": "Reaction challenge",
+    "zh-Hans": "反应挑战"
+  },
+  "playkit.kind.ballShake": {
+    "en": "Tilt and bounce",
+    "zh-Hans": "倾斜撞球"
+  },
+  "playkit.kind.quietHold": {
+    "en": "Quiet challenge",
+    "zh-Hans": "安静挑战"
+  },
+  "playkit.kind.countdown": {
+    "en": "Countdown",
+    "zh-Hans": "倒计时"
+  },
+  "playkit.kind.stopwatch": {
+    "en": "Blind stopwatch",
+    "zh-Hans": "盲停秒表"
+  },
+  "playkit.kind.qa": {
+    "en": "Question",
+    "zh-Hans": "问答"
+  },
+  "playkit.kind.branch": {
+    "en": "Story choice",
+    "zh-Hans": "故事选择"
+  },
+  "playkit.kind.estimate": {
+    "en": "Estimate",
+    "zh-Hans": "估数"
+  },
+  "playkit.kind.pricePair": {
+    "en": "Choose a picture",
+    "zh-Hans": "猜图"
+  },
+  "playkit.kind.hiddenObject": {
+    "en": "Find the object",
+    "zh-Hans": "找东西"
+  },
+  "playkit.kind.predict": {
+    "en": "Prediction",
+    "zh-Hans": "竞猜"
+  },
+  "playkit.kind.random": {
+    "en": "Draw cards",
+    "zh-Hans": "抽卡"
+  },
+  "playkit.kind.scan": {
+    "en": "Scan and discover",
+    "zh-Hans": "扫码探索"
+  },
+  "playkit.kind.walk": {
+    "en": "Walking progress",
+    "zh-Hans": "步行进度"
+  },
+  "playkit.kind.bingo": {
+    "en": "Bingo progress",
+    "zh-Hans": "九宫格进度"
+  },
+  "playkit.kind.profile": {
+    "en": "Registration",
+    "zh-Hans": "建档"
+  },
+  "playkit.kind.photoCheck": {
+    "en": "Photo check",
+    "zh-Hans": "拍照审核"
+  },
+  "playkit.kind.note": {
+    "en": "Leave a note",
+    "zh-Hans": "留一句"
+  },
+  "playkit.kind.typeIn": {
+    "en": "Typing challenge",
+    "zh-Hans": "限时打字"
+  },
+  "playkit.kind.dailySign": {
+    "en": "Relay message",
+    "zh-Hans": "接力签"
+  },
+  "playkit.kind.steps": {
+    "en": "Step challenge",
+    "zh-Hans": "步数挑战"
+  },
+  "playkit.kind.sort": {
+    "en": "Put in order",
+    "zh-Hans": "排序"
+  },
+  "playkit.kind.match": {
+    "en": "Match pairs",
+    "zh-Hans": "配对"
+  },
+  "playkit.kind.classify": {
+    "en": "Sort into categories",
+    "zh-Hans": "分类"
+  },
+  "playkit.kind.compass": {
+    "en": "Compass alignment",
+    "zh-Hans": "罗盘指向"
+  },
+  "playkit.kind.shout": {
+    "en": "Voice challenge",
+    "zh-Hans": "齐声挑战"
+  },
+  "playkit.sensor.purpose.ballShake": {
+    "en": "This activity uses motion readings to move the ball as you tilt your phone and count wall contacts. Keep a firm grip and stay still.",
+    "zh-Hans": "此玩法使用运动读数，让球随手机倾斜移动并记录撞墙次数。请握稳手机，站在安全的位置。"
+  },
+  "playkit.sensor.purpose.quietHold": {
+    "en": "This activity uses the microphone to measure ambient peak volume. Keep quiet for the required time after the server confirms the start.",
+    "zh-Hans": "此玩法使用麦克风测量环境声音峰值。服务器确认开始后，请在要求的时间内保持安静。"
+  },
+  "playkit.sensor.purpose.shout": {
+    "en": "This activity uses the microphone to measure sustained loudness. Choose a suitable place and a comfortable volume; stop if it feels uncomfortable.",
+    "zh-Hans": "此玩法使用麦克风测量持续音量。请选择合适的场所，使用舒适的音量；如有不适请停止。"
+  },
+  "playkit.sensor.purpose.compass": {
+    "en": "This activity uses the compass to read the magnetic direction of the top of your phone and requires location permission. No location coordinates are read or sent. Hold the phone upright in portrait and keep it aligned with the target.",
+    "zh-Hans": "此玩法使用罗盘读取手机顶部的磁北方位角，需要位置权限，但不会读取或发送位置坐标。请竖屏握住手机并持续对准目标方向。"
+  },
+  "playkit.sensor.audioPrivacy": {
+    "en": "Only peak volume is measured. Audio is never saved or uploaded.",
+    "zh-Hans": "仅测量声音峰值，不保存或上传音频。"
+  },
+  "playkit.compass.caution": {
+    "en": "Indoor magnetic interference can make the compass inaccurate. This reading is not proof of arrival.",
+    "zh-Hans": "室内磁场干扰可能造成罗盘偏差。此读数不能作为到店凭证。"
+  },
+  "playkit.sensor.error.configurationUnavailable": {
+    "en": "This sensor activity is not enabled for this build.",
+    "zh-Hans": "此版本尚未启用该传感器玩法。"
+  },
+  "playkit.sensor.error.permissionDenied": {
+    "en": "Sensor permission was denied. You can change it in system Settings, then try again.",
+    "zh-Hans": "传感器权限被拒绝。您可以在系统设置中修改权限后重试。"
+  },
+  "playkit.sensor.error.sensorUnavailable": {
+    "en": "The required sensor is unavailable on this device.",
+    "zh-Hans": "此设备无法使用所需的传感器。"
+  },
+  "playkit.sensor.error.interrupted": {
+    "en": "This attempt was interrupted. Start again when you are ready.",
+    "zh-Hans": "本次尝试已中断。准备好后请重新开始。"
+  },
+  "playkit.sensor.error.missingSamples": {
+    "en": "Fresh sensor readings stopped or were invalid. No missing time was counted. Please try again.",
+    "zh-Hans": "实时传感器读数已停止或无效。未计入缺失时段，请重试。"
+  },
+  "playkit.sensor.phase.idle": {
+    "en": "Ready when you are",
+    "zh-Hans": "准备好后即可开始"
+  },
+  "playkit.sensor.phase.authorizing": {
+    "en": "Checking sensor access",
+    "zh-Hans": "正在检查传感器权限"
+  },
+  "playkit.sensor.phase.calibrating": {
+    "en": "Calibrating from live readings",
+    "zh-Hans": "正在使用实时读数校准"
+  },
+  "playkit.sensor.phase.ready": {
+    "en": "Calibration ready",
+    "zh-Hans": "校准已就绪"
+  },
+  "playkit.sensor.phase.running": {
+    "en": "Measuring",
+    "zh-Hans": "正在测量"
+  },
+  "playkit.sensor.phase.measured": {
+    "en": "Measurement ready to review",
+    "zh-Hans": "测量结果已就绪，请核对"
+  },
+  "playkit.sensor.phase.interrupted": {
+    "en": "Attempt interrupted",
+    "zh-Hans": "本次尝试已中断"
+  },
+  "playkit.sensor.calibrating": {
+    "en": "Live sensor calibration",
+    "zh-Hans": "实时传感器校准"
+  },
+  "playkit.ball.calibration": {
+    "en": "Hold the phone in your starting position for 1.2 seconds.",
+    "zh-Hans": "请将手机保持在起始姿势 1.2 秒。"
+  },
+  "playkit.audio.calibration": {
+    "en": "Keep the surroundings typical and steady while we measure two seconds of background sound.",
+    "zh-Hans": "测量环境音的两秒内，请保持环境声音自然、稳定。"
+  },
+  "playkit.sensor.measuredBoundary": {
+    "en": "This is a device measurement. Only the server can accept it and determine the result.",
+    "zh-Hans": "这是设备测量结果。是否接受以及最终结果均由服务器决定。"
+  },
+  "playkit.sensor.reviewStart": {
+    "en": "Review start request",
+    "zh-Hans": "核对开始请求"
+  },
+  "playkit.sensor.startBoundary": {
+    "en": "The challenge will start only after the server acknowledges your reviewed request.",
+    "zh-Hans": "核对请求并获得服务器确认后，挑战才会开始。"
+  },
+  "playkit.sensor.calibrate": {
+    "en": "Allow sensor check and calibrate",
+    "zh-Hans": "检查传感器权限并校准"
+  },
+  "playkit.compass.begin": {
+    "en": "Allow compass check and begin",
+    "zh-Hans": "检查罗盘权限并开始"
+  },
+  "playkit.sensor.stop": {
+    "en": "Stop this attempt",
+    "zh-Hans": "停止本次尝试"
+  },
+  "playkit.ball.hits": {
+    "en": "Wall contacts",
+    "zh-Hans": "撞墙次数"
+  },
+  "playkit.sensor.secondsLeft": {
+    "en": "Seconds remaining",
+    "zh-Hans": "剩余秒数"
+  },
+  "playkit.ball.board": {
+    "en": "Tilt-controlled ball board",
+    "zh-Hans": "倾斜控制的弹球区域"
+  },
+  "playkit.ball.instruction": {
+    "en": "Tilt gently to move the ball into the edges.",
+    "zh-Hans": "轻轻倾斜手机，让球碰到边缘。"
+  },
+  "playkit.audio.livePeak": {
+    "en": "Live peak volume",
+    "zh-Hans": "实时声音峰值"
+  },
+  "playkit.audio.hot": {
+    "en": "Above the sound limit",
+    "zh-Hans": "超过声音阈值"
+  },
+  "playkit.audio.warning": {
+    "en": "Near the sound limit",
+    "zh-Hans": "接近声音阈值"
+  },
+  "playkit.audio.quiet": {
+    "en": "Below the sound limit",
+    "zh-Hans": "低于声音阈值"
+  },
+  "playkit.sensor.holdProgress": {
+    "en": "Continuous hold progress",
+    "zh-Hans": "连续保持进度"
+  },
+  "playkit.quiet.limitReached": {
+    "en": "A sound crossed the limit. The measured hold has ended.",
+    "zh-Hans": "声音超过阈值，本次保持测量已结束。"
+  },
+  "playkit.shout.continuous": {
+    "en": "Keep the volume above the limit continuously. A drop resets the hold.",
+    "zh-Hans": "请持续保持音量超过阈值。音量下降会将保持时间清零。"
+  },
+  "playkit.compass.target": {
+    "en": "Target bearing",
+    "zh-Hans": "目标方位角"
+  },
+  "playkit.compass.heading": {
+    "en": "Measured bearing",
+    "zh-Hans": "测量方位角"
+  },
+  "playkit.compass.lowAccuracy": {
+    "en": "Heading accuracy is too low. Move away from magnetic interference.",
+    "zh-Hans": "方位精度不足，请远离磁场干扰。"
+  },
+  "playkit.compass.hold": {
+    "en": "Aligned. Hold steady.",
+    "zh-Hans": "已对准，请保持稳定。"
+  },
+  "playkit.compass.turnRight": {
+    "en": "Turn right",
+    "zh-Hans": "向右转"
+  },
+  "playkit.compass.turnLeft": {
+    "en": "Turn left",
+    "zh-Hans": "向左转"
+  },
+  "playkit.compass.waitingHeading": {
+    "en": "Waiting for an actual compass reading",
+    "zh-Hans": "正在等待真实罗盘读数"
+  },
+  "playkit.kind.compare": {
+    "en": "Compare timelines",
+    "zh-Hans": "时间轴对照"
+  },
+  "playkit.compare.instructions": {
+    "en": "Compare both records and mark every missing or changed entry. You can select entries from either timeline.",
+    "zh-Hans": "对照两份记录，标出所有缺失或被改动的条目，可从任一侧多选。"
+  },
+  "playkit.compare.remaining": {
+    "en": "Submissions remaining",
+    "zh-Hans": "剩余提交次数"
+  },
+  "playkit.compare.unlimited": {
+    "en": "No submission limit",
+    "zh-Hans": "不限提交次数"
+  },
+  "playkit.compare.attempts": {
+    "en": "Submissions recorded",
+    "zh-Hans": "已记录提交次数"
+  },
+  "playkit.compare.correct": {
+    "en": "The server marked the complete selection correct.",
+    "zh-Hans": "服务端判定整组标记正确。"
+  },
+  "playkit.compare.incorrect": {
+    "en": "The server marked the complete selection incorrect. Individual answers are not revealed.",
+    "zh-Hans": "服务端判定整组标记有误，不揭示单条答案。"
+  },
+  "playkit.compare.changed": {
+    "en": "The session has changed. Your selection has not been submitted for this version. Load the latest receipt before editing again.",
+    "zh-Hans": "会话版本已更新，当前选择未针对新版本提交。继续编辑前请载入最新回执。"
+  },
+  "playkit.compare.reload": {
+    "en": "Replace selection with latest receipt",
+    "zh-Hans": "用最新回执替换选择"
+  },
+  "playkit.compare.reloadQuestion": {
+    "en": "Replace your unsent selection with the server’s last recorded selection?",
+    "zh-Hans": "用服务端最近记录的选择替换未提交的选择？"
+  },
+  "playkit.compare.marked": {
+    "en": "Entries marked",
+    "zh-Hans": "已标记条目"
+  },
+  "playkit.compare.invalid": {
+    "en": "The comparison question is incomplete or inconsistent. Refresh the server state before continuing.",
+    "zh-Hans": "对照题数据不完整或不一致，请刷新服务端状态后继续。"
+  },
+  "playkit.compare.selected": {
+    "en": "Marked",
+    "zh-Hans": "已标记"
+  },
+  "playkit.compare.unselected": {
+    "en": "Not marked",
+    "zh-Hans": "未标记"
+  },
+  "playkit.compare.reviewBoundary": {
+    "en": "These exact entries will be submitted together. One submission is recorded; only the server decides the result.",
+    "zh-Hans": "将一起提交以下条目并计作一次作答，结果仅由服务端判定。"
+  },
+  "playkit.compare.none": {
+    "en": "No entries marked. Submitting still counts as an attempt.",
+    "zh-Hans": "未标记任何条目，提交仍计作一次作答。"
+  },
+  "playkit.type.retry": {
+    "en": "The last attempt did not pass. You can try again.",
+    "zh-Hans": "上次尝试未通过，可以再试一次。"
+  },
+  "playkit.type.finishedNotPassed": {
+    "en": "This round has ended without passing.",
+    "zh-Hans": "本轮已结束，未通过。"
+  }
+}

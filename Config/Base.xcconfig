@@ -6,6 +6,7 @@ TARGETED_DEVICE_FAMILY = 1,2
 MARKETING_VERSION = 0.1.0
 CURRENT_PROJECT_VERSION = 1
 GENERATE_INFOPLIST_FILE = YES
+INFOPLIST_FILE = Config/Info.plist
 INFOPLIST_KEY_CFBundleDisplayName = Questify
 INFOPLIST_KEY_UILaunchScreen_Generation = YES
 INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES
@@ -13,4 +14,20 @@ INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPo
 INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
 CODE_SIGN_STYLE = Automatic
 // No ATS relaxation, credentials, service endpoints, capabilities, or entitlements.
+
+// Set only an approved public API base URL; never put secrets in build settings.
+QUESTIFY_MARKET = CN
+INFOPLIST_KEY_QuestifyMarket = $(QUESTIFY_MARKET)
+QUESTIFY_API_BASE_URL =
+INFOPLIST_KEY_QuestifyAPIBaseURL = $(QUESTIFY_API_BASE_URL)
+
+INFOPLIST_KEY_NSCameraUsageDescription = Use the camera to scan QR codes or take aftercare evidence photos when you choose.
+
+// Explicit deployment identity for isolated local session persistence; no default realm.
+QUESTIFY_SESSION_REALM =
+INFOPLIST_KEY_QuestifySessionRealm = $(QUESTIFY_SESSION_REALM)
+
 #include? "Local.xcconfig"
+
+// Declares the explicit iPhone step-reading purpose; does not grant or enable access.
+INFOPLIST_KEY_NSMotionUsageDescription = Read step counts from this iPhone when you choose to review a walking activity. Counts are not proof of walking and do not unlock rewards.

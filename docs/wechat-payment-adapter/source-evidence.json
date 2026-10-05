@@ -1,0 +1,37 @@
+{
+  "sdk_version": "2.0.5",
+  "official_archive_url": "https://dldir1.qq.com/WechatWebDev/opensdk/XCFramework/OpenSDK2.0.5.zip",
+  "archive_sha256": "00e7c16d76de05cae3f96fd051b928147a17e2047169a5a6e10631a293f0dd14",
+  "digest_provenance": "Measured from previously downloaded Tencent-origin archive, not a vendor-published checksum",
+  "headers": [
+    {
+      "name": "WXApi.h",
+      "sha256": "124f15d10fece25f2517ac55a82d8dd17457bf3c79e901a7e710d40e6968778f"
+    },
+    {
+      "name": "WXApiObject.h",
+      "sha256": "140af3b6b76a0bacc5cb0ff0533175f1752a5c7c3f2e8af3730a535742536a4d"
+    }
+  ],
+  "interface_evidence": {
+    "WXApiObject.h:168-203": [
+      "BUILD_WITHOUT_PAY excludes PayReq/PayResp",
+      "PayReq: partnerId,prepayId,nonceStr,timeStamp(UInt32),package,sign",
+      "PayResp: BaseResp errCode plus returnKey; no order identifier or OAuth state"
+    ],
+    "WXApi.h:93,103,171": [
+      "handleOpenURL:delegate:",
+      "handleOpenUniversalLink:delegate:",
+      "sendReq:completion:"
+    ],
+    "backend": "WechatPayServiceImpl.java:448-466 maps appId/partnerId/prepayId/packageValue/nonceStr/timeStamp/sign; native registration binds appId"
+  },
+  "pay_response_has_state": false,
+  "vendor_code_copied": false,
+  "sdk_installed": false,
+  "sdk_linked_compile": "NOT_RUN",
+  "default_apple_compile": "NOT_RUN_LOCALLY",
+  "swift_xctest": "NOT_RUN_LOCALLY",
+  "device_payment": "NOT_RUN",
+  "terms_accepted": false
+}

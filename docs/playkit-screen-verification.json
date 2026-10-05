@@ -1,0 +1,14 @@
+{
+  "swift_tests": "NOT_RUN",
+  "ios_build": "NOT_RUN",
+  "ui_tests": "NOT_RUN",
+  "device_acceptance": "NOT_RUN",
+  "backend_acceptance": "NOT_RUN",
+  "visual_accessibility_acceptance": "NOT_RUN",
+  "authored_core_tests": 45,
+  "local_verification": "Python native-local source contracts and deterministic project/resource checks only",
+  "production_grants": "unchanged; empty",
+  "source_flutter_commit": "a63e9e91c82a3282e8dd7138f943b1a8cbfc021d",
+  "source_miniprogram_snapshot": "fad4d6bd7e3c3e501441fe19c8de9a9cd78230fc",
+  "counting_scope": "22 dedicated Flutter screens, 5 additional miniprogram-only kinds; steps shares walk presentation, not a new full-screen count"
+}

@@ -1,0 +1,230 @@
+import XCTest
+
+/// Offline authored UI tests. Requires ModuleFixture.searchMap. No provider/location runtime.
+final class SearchMapFlowTests: XCTestCase {
+    private var app: XCUIApplication!
+    override func setUpWithError() throws { continueAfterFailure = false; app = XCUIApplication() }
+    override func tearDownWithError() throws { attachFailureScreenshot(self, app: app); app.terminate(); app = nil }
+    private func launch(_ scenario: String = "content", entry: String = "global", chinese: Bool = false, accessible: Bool = false) {
+        app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", chinese ? "(zh-Hans)" : "(en)", "-AppleLocale", chinese ? "zh_CN" : "en_US", "--uitesting-module", "searchMap", "--uitesting-search-map-scenario", scenario, "--uitesting-search-map-entry", entry]
+        if accessible { app.launchArguments += ["--uitesting-large-text","--uitesting-dark","--uitesting-reduce-motion"] }
+        app.launch()
+        if accessible { assertFixtureEnvironment(in: app, colorScheme: "dark", dynamicTypeSize: "accessibility3") }
+    }
+    private func reveal(_ element: XCUIElement) {
+        _ = element.waitForExistence(timeout: 5)
+        for _ in 0..<12 { if element.exists && element.isHittable { break }; app.swipeUp() }
+        XCTAssertTrue(element.exists, app.debugDescription); XCTAssertTrue(element.isHittable, app.debugDescription)
+    }
+    private func search(_ text: String = "sample") {
+        let field = app.textFields["searchMap.keyword"]
+        XCTAssertTrue(field.waitForExistence(timeout: 5)); field.tap(); field.typeText(text + "\n")
+    }
+    func testGlobalDomainsAreSeparateAndMerchantDetailUsesMerchantID() {
+        launch(); search()
+        let merchantFilter = app.buttons["searchMap.kind.merchant"]; reveal(merchantFilter); merchantFilter.tap()
+        let row = app.buttons["searchMap.result.merchant-71"]; reveal(row); row.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["searchMap.merchant.detail"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Synthetic shop"].exists)
+        XCTAssertFalse(app.staticTexts["999"].exists)
+        app.navigationBars.buttons.firstMatch.tap()
+        XCTAssertTrue(app.buttons["searchMap.result.merchant-71"].waitForExistence(timeout: 5))
+    }
+    func testGuestKeepsPublicResultsAndShowsExplicitGate() {
+        launch("guest"); search()
+        XCTAssertTrue(app.descendants(matching: .any)["searchMap.guestGate"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["searchMap.result.topic-71"].exists)
+        XCTAssertFalse(app.buttons["searchMap.result.club-71"].exists)
+    }
+    func testPartialFailureDoesNotBecomeEmptyWholePage() {
+        launch("partial"); search()
+        XCTAssertTrue(app.descendants(matching: .any)["searchMap.partialFailure"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["searchMap.result.topic-71"].exists)
+        XCTAssertFalse(app.buttons["searchMap.result.merchant-71"].exists)
+    }
+    func testFilterValidationCancelAndReopen() {
+        launch(); app.buttons["searchMap.filters"].tap()
+        let minimum = app.textFields["searchMap.filter.min"]; minimum.tap(); minimum.typeText("70")
+        let maximum = app.textFields["searchMap.filter.max"]; maximum.tap(); maximum.typeText("20")
+        app.buttons["searchMap.filter.apply"].tap()
+        XCTAssertTrue(app.descendants(matching: .any)["searchMap.filter.invalid"].waitForExistence(timeout: 5))
+        app.buttons["Cancel"].tap(); app.buttons["searchMap.filters"].tap()
+        XCTAssertEqual(app.textFields["searchMap.filter.min"].value as? String, "Minimum (0–1000)")
+    }
+    private func openGlobalFilters() {
+        XCTAssertTrue(revealFixtureElement(app.buttons["searchMap.filters"], in: app, towardTop: true))
+        app.buttons["searchMap.filters"].tap()
+    }
+    private func chooseCategory(_ title: String) {
+        let picker = app.buttons["searchMap.filter.category"]
+        XCTAssertTrue(picker.waitForExistence(timeout: 5)); picker.tap()
+        let category = app.buttons[title]
+        XCTAssertTrue(category.waitForExistence(timeout: 5)); category.tap()
+    }
+    private func releaseGlobalSearch(latest: Bool = true) {
+        let button = app.buttons[latest ? "searchMap.fixture.releaseLastSearch" : "searchMap.fixture.releaseFirstSearch"]
+        XCTAssertTrue(button.waitForExistence(timeout: 5)); button.tap()
+    }
+    private func assertCategoryRows(_ id: Int) {
+        for kind in ["topic", "activity", "club", "merchant"] {
+            XCTAssertTrue(app.buttons["searchMap.result.\(kind)-\(id)"].waitForExistence(timeout: 5), app.debugDescription)
+        }
+    }
+    func testGlobalCategoryChangeRejectsEarlierCompletionAndClearReturnsSuggestions() {
+        launch("categoryDelayed")
+        let shortcut = app.buttons["searchMap.category.7"]; reveal(shortcut); shortcut.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["searchMap.loading"].waitForExistence(timeout: 5))
+        openGlobalFilters(); chooseCategory("Synthetic outdoors")
+        app.buttons["searchMap.filter.apply"].tap()
+        XCTAssertTrue(app.descendants(matching: .any)["searchMap.loading"].waitForExistence(timeout: 5))
+        releaseGlobalSearch(); assertCategoryRows(8)
+        releaseGlobalSearch(latest: false)
+        let obsolete = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == true"), object: app.buttons["searchMap.result.club-7"])
+        obsolete.isInverted = true
+        wait(for: [obsolete], timeout: 1)
+        assertCategoryRows(8)
+        openGlobalFilters(); app.buttons["searchMap.filter.reset"].tap(); app.buttons["searchMap.filter.apply"].tap()
+        XCTAssertTrue(app.buttons["searchMap.category.7"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["searchMap.result.club-8"].exists)
+        XCTAssertFalse(app.buttons["searchMap.result.merchant-8"].exists)
+        XCTAssertFalse(app.descendants(matching: .any)["searchMap.loading"].exists)
+    }
+    func testGlobalCategoryApplyResetPreservesKeywordAndCancelPreservesResults() {
+        launch("categoryDelayed"); search()
+        XCTAssertTrue(app.descendants(matching: .any)["searchMap.loading"].waitForExistence(timeout: 5))
+        releaseGlobalSearch(); assertCategoryRows(70)
+        openGlobalFilters(); chooseCategory("Synthetic culture"); app.buttons["searchMap.filter.apply"].tap()
+        XCTAssertTrue(app.descendants(matching: .any)["searchMap.loading"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["searchMap.result.club-70"].exists)
+        XCTAssertFalse(app.buttons["searchMap.result.merchant-70"].exists)
+        releaseGlobalSearch(); assertCategoryRows(7)
+        openGlobalFilters(); app.buttons["searchMap.filter.reset"].tap(); app.buttons["searchMap.filter.cancel"].tap()
+        assertCategoryRows(7)
+        openGlobalFilters(); app.buttons["searchMap.filter.reset"].tap(); app.buttons["searchMap.filter.apply"].tap()
+        XCTAssertTrue(app.descendants(matching: .any)["searchMap.loading"].waitForExistence(timeout: 5))
+        releaseGlobalSearch(); assertCategoryRows(70)
+        XCTAssertEqual(app.textFields["searchMap.keyword"].value as? String, "sample")
+        XCTAssertFalse(app.buttons["searchMap.result.club-7"].exists)
+        XCTAssertFalse(app.buttons["searchMap.result.merchant-7"].exists)
+    }
+    func testCityMissingCoordinatesStayInListAndNodeOpensCorrectDomain() {
+        launch(entry: "city"); app.buttons["searchMap.searchArea"].tap()
+        let missing = app.buttons["searchMap.city.activity.73"]; reveal(missing)
+        let node = app.buttons["searchMap.city.node.71"]; reveal(node); node.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["searchMap.city.detail"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Synthetic city node"].exists)
+        XCTAssertFalse(app.staticTexts["Synthetic route stop"].exists)
+    }
+    func testNearbyRouteNodeUsesTopicReferenceAndHonestRoutePreview() {
+        launch("cityFallback", entry: "nearby"); app.buttons["searchMap.searchArea"].tap()
+        let node = app.buttons["searchMap.nearby.node.71"]; reveal(node); node.tap()
+        app.buttons["searchMap.openRoute"].tap()
+        XCTAssertTrue(app.staticTexts["Walking route unavailable. No walkable path has been verified."].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["Start navigation"].exists)
+        XCTAssertFalse(app.segmentedControls.buttons["Driving"].exists)
+        XCTAssertFalse(app.descendants(matching: .any)["searchMap.route.fallback"].exists)
+    }
+    func testSessionSwitchClearsResultsAndCityData() {
+        launch(); search(); XCTAssertTrue(app.buttons["searchMap.result.topic-71"].waitForExistence(timeout: 5))
+        app.buttons["searchMap.fixture.guest"].tap()
+        XCTAssertFalse(app.buttons["searchMap.result.topic-71"].exists)
+        search(); XCTAssertTrue(app.descendants(matching: .any)["searchMap.guestGate"].waitForExistence(timeout: 5))
+    }
+    func testRetryRecovers() {
+        launch("retry"); search()
+        let retry = app.buttons["Retry"].firstMatch; XCTAssertTrue(retry.waitForExistence(timeout: 5)); retry.tap()
+        XCTAssertTrue(app.buttons["searchMap.result.topic-71"].waitForExistence(timeout: 5))
+    }
+    func testEnglishAndChineseRoutePreviewLargeTypeDarkReduceMotion() {
+        for chinese in [false,true] {
+            launch(entry: "route", chinese: chinese, accessible: true)
+            XCTAssertTrue(app.navigationBars[chinese ? "路线预览" : "Route preview"].waitForExistence(timeout: 5))
+            reveal(app.staticTexts[chinese ? "步行路线不可用，尚未确认可通行道路" : "Walking route unavailable. No walkable path has been verified."])
+            app.terminate()
+        }
+    }
+    func testCityListSelectionUsesSamePinAndPreservesExplicitMapGate() {
+        launch(entry: "city"); app.buttons["searchMap.searchArea"].tap()
+        XCTAssertFalse(app.descendants(matching: .any)["searchMap.map"].exists)
+        let select = app.buttons["searchMap.select.city-71"]; reveal(select); select.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["searchMap.selectedSummary"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.descendants(matching: .any)["searchMap.map"].exists)
+        XCTAssertTrue(revealFixtureElement(app.buttons["searchMap.showMap"], in: app, towardTop: true))
+        app.buttons["searchMap.showMap"].tap()
+        XCTAssertTrue(app.buttons["searchMap.pin.city-71"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["searchMap.pin.city-71"].isSelected)
+        app.buttons["searchMap.pin.activity-71"].tap()
+        XCTAssertTrue(app.descendants(matching: .any)["searchMap.selectedSummary"].exists)
+        let clear = app.buttons["searchMap.selection.clear"]; reveal(clear); clear.tap()
+        XCTAssertFalse(app.descendants(matching: .any)["searchMap.selectedSummary"].exists)
+    }
+    func testCityFilterCancelPreservesSelectionButApplyClearsIt() {
+        launch(entry: "city"); app.buttons["searchMap.searchArea"].tap()
+        let select = app.buttons["searchMap.select.city-71"]; reveal(select); select.tap()
+        XCTAssertTrue(revealFixtureElement(app.buttons["searchMap.filters"], in: app, towardTop: true))
+        app.buttons["searchMap.filters"].tap()
+        let tag = app.textFields["searchMap.tag"]; XCTAssertTrue(tag.waitForExistence(timeout: 5)); tag.tap(); tag.typeText("unsaved")
+        app.buttons["searchMap.filter.cancel"].tap()
+        XCTAssertTrue(app.descendants(matching: .any)["searchMap.selectedSummary"].exists)
+        app.buttons["searchMap.filters"].tap()
+        XCTAssertNotEqual(app.textFields["searchMap.tag"].value as? String, "unsaved")
+        app.buttons["searchMap.filter.apply"].tap()
+        XCTAssertFalse(app.descendants(matching: .any)["searchMap.selectedSummary"].exists)
+        XCTAssertFalse(app.buttons["searchMap.city.node.71"].exists)
+    }
+    func testCityLoadingRetryAndScopeChangeNeverKeepSelectedPlace() {
+        launch("delayed", entry: "city"); app.buttons["searchMap.searchArea"].tap()
+        XCTAssertTrue(app.descendants(matching: .any)["searchMap.loading"].waitForExistence(timeout: 2))
+        XCTAssertFalse(app.buttons["searchMap.city.node.71"].exists)
+        app.buttons["searchMap.fixture.releaseCitySearch"].tap()
+        XCTAssertTrue(app.buttons["searchMap.city.node.71"].waitForExistence(timeout: 5))
+        app.terminate()
+        launch("retry", entry: "city"); app.buttons["searchMap.searchArea"].tap()
+        let retry = app.buttons["Retry"].firstMatch; reveal(retry); retry.tap()
+        let select = app.buttons["searchMap.select.city-71"]; reveal(select); select.tap()
+        app.buttons["searchMap.fixture.account"].tap()
+        XCTAssertFalse(app.descendants(matching: .any)["searchMap.selectedSummary"].exists)
+        XCTAssertFalse(app.buttons["searchMap.city.node.71"].exists)
+        XCTAssertFalse(app.descendants(matching: .any)["searchMap.map"].exists)
+    }
+    func testCityEmptyStateRemainsExplicit() {
+        launch("empty", entry: "city"); app.buttons["searchMap.searchArea"].tap()
+        XCTAssertTrue(app.staticTexts["No matching results"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.descendants(matching: .any)["searchMap.selectedSummary"].exists)
+    }
+
+    func testManualAreaChangeClearsSelectionAndRequiresMapOptInAgain() {
+        launch(entry: "city"); app.buttons["searchMap.searchArea"].tap()
+        app.buttons["searchMap.showMap"].tap()
+        let pin = app.buttons["searchMap.pin.city-71"]; reveal(pin); pin.tap()
+        XCTAssertTrue(revealFixtureElement(app.buttons["searchMap.chooseArea"], in: app, towardTop: true))
+        app.buttons["searchMap.chooseArea"].tap()
+        let latitude = app.textFields["roam.area.latitude.input"]
+        XCTAssertTrue(latitude.waitForExistence(timeout: 5)); latitude.tap(); latitude.typeText("2")
+        let longitude = app.textFields["roam.area.longitude.input"]; longitude.tap(); longitude.typeText("3")
+        app.buttons["roam.area.select"].tap()
+        XCTAssertFalse(app.descendants(matching: .any)["searchMap.selectedSummary"].exists)
+        XCTAssertFalse(app.descendants(matching: .any)["searchMap.map"].exists)
+        XCTAssertFalse(app.buttons["searchMap.city.node.71"].exists)
+        XCTAssertTrue(app.buttons["searchMap.showMap"].exists)
+    }
+
+    func testMapMarkerSelectionKeepsDistinctObjectsInLightAppearance() {
+        verifyMapMarkerSelection(accessible: false)
+    }
+    func testMapMarkerSelectionKeepsDistinctObjectsInDarkLargeText() {
+        verifyMapMarkerSelection(accessible: true)
+    }
+    private func verifyMapMarkerSelection(accessible: Bool) {
+        launch(entry: "markerStyle", accessible: accessible)
+        let merchant = app.buttons["searchMap.pin.style-merchant"]
+        let activity = app.buttons["searchMap.pin.style-activity"]
+        reveal(merchant); XCTAssertFalse(merchant.isSelected); merchant.tap()
+        XCTAssertTrue(merchant.isSelected)
+        reveal(activity); XCTAssertFalse(activity.isSelected); activity.tap()
+        XCTAssertTrue(activity.isSelected); XCTAssertFalse(merchant.isSelected)
+        XCTAssertEqual(activity.label, "A very long neighborhood discovery walk with the complete destination name · 城市街区探索漫步与完整目的地名称，重要信息保留到最后")
+        let clear = app.buttons["mapStyle.fixture.clear"]; reveal(clear); clear.tap()
+        XCTAssertFalse(activity.isSelected); XCTAssertFalse(merchant.isSelected)
+    }
+}

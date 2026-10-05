@@ -1,0 +1,146 @@
+{
+  "templateAuthor.localConfigurationOnly": {
+    "en": "This completion method can be edited and saved only on this device. Remote draft and publishing are unavailable.",
+    "zh-Hans": "此完成方式仅支持本机编辑与保存，不能提交远端草稿或发布。"
+  },
+  "templateAuthor.method.6": {
+    "en": "Preference questionnaire (local)",
+    "zh-Hans": "偏好题组（本地）"
+  },
+  "templateAuthor.method.7": {
+    "en": "Sensor challenge (local)",
+    "zh-Hans": "传感器挑战（本地）"
+  },
+  "templateAuthor.preference.instructions": {
+    "en": "Edit the source questionnaire JSON: steps/options/scores, dimensions, tiebreak, results and tags. Keys belong to the author; nothing is automatically reordered. Invalid text can still be saved locally.",
+    "zh-Hans": "编辑原始题组 JSON：步骤、选项及分值、维度、并列取舍题、结果和标签。key 由作者维护，不自动重排。格式错误的文本也可保存本地。"
+  },
+  "templateAuthor.preference.source": {
+    "en": "Preference configuration JSON",
+    "zh-Hans": "偏好题配置 JSON"
+  },
+  "templateAuthor.preference.example": {
+    "en": "Fill with editable example",
+    "zh-Hans": "填入可编辑示例"
+  },
+  "templateAuthor.preference.check": {
+    "en": "Check and preview current JSON",
+    "zh-Hans": "检查并预览当前 JSON"
+  },
+  "templateAuthor.preference.checking": {
+    "en": "Checking this configuration…",
+    "zh-Hans": "正在检查当前配置…"
+  },
+  "templateAuthor.preference.unchecked": {
+    "en": "Current text has not been checked. Use Check and preview; changing text clears the previous preview.",
+    "zh-Hans": "当前文本尚未检查。请点击「检查并预览」；修改文本会清除旧预览。"
+  },
+  "templateAuthor.preference.preview": {
+    "en": "Complete supported-field preview",
+    "zh-Hans": "完整已支持字段预览"
+  },
+  "templateAuthor.preference.previewScope": {
+    "en": "Author configuration only. Choices placeholders are retained; this does not play the questionnaire, issue rewards or share tags.",
+    "zh-Hans": "这是作者配置预览。保留选择依据占位符，不执行答题、发放奖励或共享标签。"
+  },
+  "templateAuthor.preference.unknown": {
+    "en": "These fields are preserved in the original text but are not interpreted by this preview:",
+    "zh-Hans": "以下字段保留在原文中，本预览不解释其语义："
+  },
+  "templateAuthor.preference.valid": {
+    "en": "Supported preference rules passed locally. This does not enable publishing.",
+    "zh-Hans": "已支持的偏好规则通过本地检查，此结果不代表已开通发布。"
+  },
+  "templateAuthor.preference.replaceQuestion": {
+    "en": "Replace the current preference text with the example?",
+    "zh-Hans": "用示例替换当前偏好配置文本？"
+  },
+  "templateAuthor.preference.replace": {
+    "en": "Replace with example",
+    "zh-Hans": "替换为示例"
+  },
+  "templateAuthor.preference.error.json": {
+    "en": "Invalid JSON. Your current text is retained.",
+    "zh-Hans": "JSON 格式错误，当前文本已保留。"
+  },
+  "templateAuthor.preference.error.budget": {
+    "en": "Check incomplete: this configuration exceeds the local size, depth, preview or work budget. The original text is retained; it has not been declared invalid by the server.",
+    "zh-Hans": "检查未完成：配置超过本地大小、深度、预览或运算预算。原文已保留，这不表示服务端判定其无效。"
+  },
+  "templateAuthor.preference.error.object": {
+    "en": "An object is required at this field.",
+    "zh-Hans": "此字段必须为对象。"
+  },
+  "templateAuthor.preference.error.array": {
+    "en": "An array is required; questions and dimensions must not be empty.",
+    "zh-Hans": "此字段必须为数组；题目与维度不能为空。"
+  },
+  "templateAuthor.preference.error.required": {
+    "en": "This text field is required.",
+    "zh-Hans": "此文本字段必填。"
+  },
+  "templateAuthor.preference.error.type": {
+    "en": "This value type is not supported by the local preview. The original text is retained.",
+    "zh-Hans": "本地预览尚不支持此值类型，原文已保留。"
+  },
+  "templateAuthor.preference.error.true": {
+    "en": "This declaration must be true.",
+    "zh-Hans": "此声明必须为 true。"
+  },
+  "templateAuthor.preference.error.duplicate": {
+    "en": "Keys or dimensions must be unique in their scope.",
+    "zh-Hans": "key 或维度在所属范围内不得重复。"
+  },
+  "templateAuthor.preference.error.tiebreak": {
+    "en": "Multiple dimensions require a tiebreak question.",
+    "zh-Hans": "多个维度必须配置并列取舍题。"
+  },
+  "templateAuthor.preference.error.results": {
+    "en": "Result keys must match the declared dimensions exactly.",
+    "zh-Hans": "结果分支 key 必须与已声明维度一一对应。"
+  },
+  "templateAuthor.preference.error.coupon": {
+    "en": "All results must not use the same coupon.",
+    "zh-Hans": "所有结果不能绑定同一优惠券。"
+  },
+  "templateAuthor.preference.error.tag": {
+    "en": "Only space_constraints, social_mode, arrival_window and expression_mode tags are supported.",
+    "zh-Hans": "标签仅支持 space_constraints、social_mode、arrival_window、expression_mode。"
+  },
+  "templateAuthor.preference.error.stepType": {
+    "en": "Question type must be single or discard.",
+    "zh-Hans": "题目类型必须为 single 或 discard。"
+  },
+  "templateAuthor.preference.error.options": {
+    "en": "Each question needs at least two options.",
+    "zh-Hans": "每道题至少需要两个选项。"
+  },
+  "templateAuthor.preference.error.score": {
+    "en": "Scores must name declared dimensions and use JSON integers from 0 to 2.",
+    "zh-Hans": "分值必须对应已声明维度，并使用 0 到 2 的 JSON 整数。"
+  },
+  "templateAuthor.preference.error.evidence": {
+    "en": "The result body must include {{choices}} as the choice evidence.",
+    "zh-Hans": "结果 body 必须包含 {{choices}} 选择依据。"
+  },
+  "templateAuthor.preference.error.days": {
+    "en": "nextStepDays must be the JSON integer 7 or 30.",
+    "zh-Hans": "nextStepDays 必须为 JSON 整数 7 或 30。"
+  },
+  "templateAuthor.preference.error.combinations": {
+    "en": "More than 4096 ordinary combinations: split the questionnaire as required by the server contract.",
+    "zh-Hans": "普通选项组合超过 4096，请按服务端规则拆分题组。"
+  },
+  "templateAuthor.preference.error.tie": {
+    "en": "At least one tiebreak option can still leave a tie.",
+    "zh-Hans": "至少一个并列取舍选项仍可能打平。"
+  },
+  "templateAuthor.preference.error.reachable": {
+    "en": "Every declared dimension must be able to win uniquely.",
+    "zh-Hans": "每个已声明维度都必须可以唯一胜出。"
+  },
+  "templateAuthor.preference.editorTitle": {
+    "en": "Preference questionnaire configuration",
+    "zh-Hans": "偏好题组配置"
+  }
+}

@@ -1,0 +1,846 @@
+{
+  "templateAuthor.title": {
+    "en": "Create a play template",
+    "zh-Hans": "创作玩法模板"
+  },
+  "templateAuthor.localBadge": {
+    "en": "Local draft",
+    "zh-Hans": "本地草稿"
+  },
+  "templateAuthor.unavailable": {
+    "en": "Save and preview locally. Server saves and publishing are unavailable until runtime acceptance.",
+    "zh-Hans": "可在本地保存和预览。服务端保存与发布尚未通过运行验收，暂不可用。"
+  },
+  "templateAuthor.signIn": {
+    "en": "Sign in to access your account-scoped drafts.",
+    "zh-Hans": "登录后访问当前账号的本地草稿。"
+  },
+  "templateAuthor.introTitle": {
+    "en": "Make an interaction",
+    "zh-Hans": "创作一次互动"
+  },
+  "templateAuthor.introBody": {
+    "en": "A play template describes one interaction at one place. A route template is a separate whole-route entity.",
+    "zh-Hans": "玩法模板描述一个地点上的一次互动。路线主题模板是另一种完整路线实体。"
+  },
+  "templateAuthor.introFinish": {
+    "en": "Choose how players complete it",
+    "zh-Hans": "选择完成方式"
+  },
+  "templateAuthor.introStory": {
+    "en": "Add an optional story timeline",
+    "zh-Hans": "添加可选剧情时间流"
+  },
+  "templateAuthor.introReward": {
+    "en": "Configure completion feedback",
+    "zh-Hans": "配置完成反馈"
+  },
+  "templateAuthor.begin": {
+    "en": "Start creating",
+    "zh-Hans": "开始创作"
+  },
+  "templateAuthor.nameStep": {
+    "en": "Give this play a name",
+    "zh-Hans": "给玩法起个名字"
+  },
+  "templateAuthor.continue": {
+    "en": "Continue to editor",
+    "zh-Hans": "继续编辑"
+  },
+  "templateAuthor.basics": {
+    "en": "Basics",
+    "zh-Hans": "基础信息"
+  },
+  "templateAuthor.finish": {
+    "en": "Completion method",
+    "zh-Hans": "完成方式"
+  },
+  "templateAuthor.moduleEnabled": {
+    "en": "Enable this module",
+    "zh-Hans": "启用模块"
+  },
+  "templateAuthor.sync": {
+    "en": "Include in the public library when published",
+    "zh-Hans": "发布时同步公共模板库"
+  },
+  "templateAuthor.mediaHint": {
+    "en": "Existing media references only. Uploading and fetching remote media are unavailable here.",
+    "zh-Hans": "仅编辑已有媒体引用。此处不上传或读取远程媒体。"
+  },
+  "templateAuthor.advanced": {
+    "en": "Advanced game settings",
+    "zh-Hans": "高级玩法设置"
+  },
+  "templateAuthor.reward": {
+    "en": "Completion reward",
+    "zh-Hans": "完成奖励"
+  },
+  "templateAuthor.story": {
+    "en": "Story",
+    "zh-Hans": "剧情"
+  },
+  "templateAuthor.voice": {
+    "en": "Audio",
+    "zh-Hans": "语音"
+  },
+  "templateAuthor.storyTimeline": {
+    "en": "Story timeline",
+    "zh-Hans": "剧情时间流"
+  },
+  "templateAuthor.addBeat": {
+    "en": "Add story beat",
+    "zh-Hans": "添加剧情段落"
+  },
+  "templateAuthor.storyInvalid": {
+    "en": "This story data cannot be decoded safely. The original draft is preserved.",
+    "zh-Hans": "无法安全读取剧情数据，原草稿已保留。"
+  },
+  "templateAuthor.saveLocal": {
+    "en": "Save on this device",
+    "zh-Hans": "保存到此设备"
+  },
+  "templateAuthor.preview": {
+    "en": "Player preview",
+    "zh-Hans": "玩家视角预览"
+  },
+  "templateAuthor.reviewDraft": {
+    "en": "Review server draft save",
+    "zh-Hans": "预览服务端草稿提交"
+  },
+  "templateAuthor.reviewPublish": {
+    "en": "Review publish submission",
+    "zh-Hans": "预览发布提交"
+  },
+  "templateAuthor.validationTitle": {
+    "en": "Before publishing",
+    "zh-Hans": "发布前需完善"
+  },
+  "templateAuthor.restoreTitle": {
+    "en": "Saved draft",
+    "zh-Hans": "已保存草稿"
+  },
+  "templateAuthor.restoreMessage": {
+    "en": "A draft already exists for this account and deployment. Restore or discard it before editing.",
+    "zh-Hans": "此账号与部署已有本地草稿，请先恢复或丢弃。"
+  },
+  "templateAuthor.restoreFailed": {
+    "en": "The saved draft cannot be safely restored. It has not been overwritten.",
+    "zh-Hans": "无法安全恢复已保存草稿，尚未覆盖。"
+  },
+  "templateAuthor.restore": {
+    "en": "Restore draft",
+    "zh-Hans": "恢复草稿"
+  },
+  "templateAuthor.discard": {
+    "en": "Discard local draft",
+    "zh-Hans": "丢弃本地草稿"
+  },
+  "templateAuthor.discardQuestion": {
+    "en": "Discard this local draft? This does not delete a server template.",
+    "zh-Hans": "丢弃此本地草稿？不会删除服务端模板。"
+  },
+  "templateAuthor.cancel": {
+    "en": "Cancel",
+    "zh-Hans": "取消"
+  },
+  "templateAuthor.close": {
+    "en": "Close",
+    "zh-Hans": "关闭"
+  },
+  "templateAuthor.reviewTitle": {
+    "en": "Review submission",
+    "zh-Hans": "确认提交内容"
+  },
+  "templateAuthor.publishReview": {
+    "en": "Publishing submits the play template for review and may expose the configured content in the template library.",
+    "zh-Hans": "发布会将玩法提交审核，并可能在公共模板库展示配置内容。"
+  },
+  "templateAuthor.draftReview": {
+    "en": "A server draft save sends the configured template fields to the service.",
+    "zh-Hans": "服务端草稿保存会将配置的模板字段发送至服务端。"
+  },
+  "templateAuthor.original": {
+    "en": "Source play template ID",
+    "zh-Hans": "来源玩法模板 ID"
+  },
+  "templateAuthor.fixtureNotice": {
+    "en": "Synthetic test only. No backend request or publication will occur.",
+    "zh-Hans": "仅合成测试，不会请求后端或实际发布。"
+  },
+  "templateAuthor.confirmSimulation": {
+    "en": "Simulate submission",
+    "zh-Hans": "模拟提交"
+  },
+  "templateAuthor.previewNotice": {
+    "en": "Local preview. Answers are hidden; no completion or rewards are issued.",
+    "zh-Hans": "本地预览，隐藏答案，不完成任务或发放奖励。"
+  },
+  "templateAuthor.noGameplay": {
+    "en": "This preview shows the configuration only. Device and server gameplay are not running.",
+    "zh-Hans": "预览仅展示配置，不运行设备或服务端玩法。"
+  },
+  "templateAuthor.linkedMedia": {
+    "en": "Linked media reference",
+    "zh-Hans": "已关联媒体引用"
+  },
+  "templateAuthor.rewardPreview": {
+    "en": "Completion feedback is configured.",
+    "zh-Hans": "已配置完成反馈。"
+  },
+  "templateAuthor.choose": {
+    "en": "Choose",
+    "zh-Hans": "请选择"
+  },
+  "templateAuthor.photoReview": {
+    "en": "Require photo review",
+    "zh-Hans": "照片需要审核"
+  },
+  "templateAuthor.game": {
+    "en": "Choose one game",
+    "zh-Hans": "选择一种玩法"
+  },
+  "templateAuthor.legacy": {
+    "en": "Use the standard completion method",
+    "zh-Hans": "使用基础完成方式"
+  },
+  "templateAuthor.advancedScope": {
+    "en": "Seven source-enabled game panels are available. Other stored sections are preserved and block submission until supported.",
+    "zh-Hans": "支持真源已开放的七种玩法面板。其他已存配置会保留，未支持前阻止提交。"
+  },
+  "templateAuthor.timer": {
+    "en": "Time limit",
+    "zh-Hans": "限时"
+  },
+  "templateAuthor.timerUnsupported": {
+    "en": "This game has no timed task. A saved timer is preserved but is not executed here.",
+    "zh-Hans": "此玩法没有可限时的任务，已保存计时配置保留，但此处不执行。"
+  },
+  "templateAuthor.localSaved": {
+    "en": "Saved securely on this device for this account.",
+    "zh-Hans": "已为当前账号安全保存到此设备。"
+  },
+  "templateAuthor.storageFailed": {
+    "en": "Secure storage is unavailable. Nothing was submitted.",
+    "zh-Hans": "安全存储不可用，未提交任何内容。"
+  },
+  "templateAuthor.simulated": {
+    "en": "Simulation completed. No template was saved to a server or published.",
+    "zh-Hans": "模拟完成，未向服务端保存或发布模板。"
+  },
+  "templateAuthor.uncertain": {
+    "en": "The submission outcome is unknown. Retrying and deleting this draft are blocked. No receipt lookup contract is available.",
+    "zh-Hans": "提交结果不确定，已阻止重试及删除此草稿，当前没有可用的提交回执查询契约。"
+  },
+  "templateAuthor.invalid": {
+    "en": "Complete the required fields before continuing.",
+    "zh-Hans": "请先完善必填内容。"
+  },
+  "templateAuthor.duplicateName": {
+    "en": "This template name already exists. Choose another name before trying again.",
+    "zh-Hans": "模板名称已存在，请修改名称后重试。"
+  },
+  "templateAuthor.contentRejected": {
+    "en": "The content was rejected. Review and revise it before submitting again.",
+    "zh-Hans": "内容未通过审核，请修改后再提交。"
+  },
+  "templateAuthor.rejected": {
+    "en": "The service rejected the submission. Review the draft before trying again.",
+    "zh-Hans": "服务端拒绝了提交，请检查草稿后重试。"
+  },
+  "templateAuthor.listUnavailable": {
+    "en": "Your template list is currently unavailable.",
+    "zh-Hans": "我的模板列表暂不可用。"
+  },
+  "templateAuthor.mine": {
+    "en": "My play templates",
+    "zh-Hans": "我的玩法模板"
+  },
+  "templateAuthor.mineScope": {
+    "en": "These are your play templates, separate from public route templates.",
+    "zh-Hans": "这里是个人玩法模板，与公共路线主题模板分别管理。"
+  },
+  "templateAuthor.published": {
+    "en": "Published",
+    "zh-Hans": "已发布"
+  },
+  "templateAuthor.underReview": {
+    "en": "Under review",
+    "zh-Hans": "审核中"
+  },
+  "templateAuthor.unpublished": {
+    "en": "Not published",
+    "zh-Hans": "未发布"
+  },
+  "templateAuthor.existingEditUnavailable": {
+    "en": "Editing this server template requires an owned full-detail contract that is not available in this source slice.",
+    "zh-Hans": "编辑服务端模板需要完整的个人详情契约，此真源切片未提供。"
+  },
+  "templateAuthor.fixture.signOut": {
+    "en": "Fixture: sign out",
+    "zh-Hans": "测试：退出登录"
+  },
+  "templateAuthor.fixture.switch": {
+    "en": "Fixture: switch account",
+    "zh-Hans": "测试：切换账号"
+  },
+  "templateAuthor.fixture.reopen": {
+    "en": "Fixture: reopen",
+    "zh-Hans": "测试：重新打开"
+  },
+  "templateAuthor.prefab.badge": {
+    "en": "Local narrative preview",
+    "zh-Hans": "本地剧情预览"
+  },
+  "templateAuthor.prefab.notice": {
+    "en": "Inspect the 13-scene narrative state. This is not full gameplay: photos, location, sensors and synchronization are unavailable.",
+    "zh-Hans": "查看十三幕剧情状态。此预览不等于完整游玩，不使用照片、定位、传感器或同步。"
+  },
+  "templateAuthor.prefab.title": {
+    "en": "Prefab Life preview",
+    "zh-Hans": "预制人生预览"
+  },
+  "templateAuthor.prefab.profile": {
+    "en": "Character profile",
+    "zh-Hans": "角色资料"
+  },
+  "templateAuthor.prefab.profileScope": {
+    "en": "The original Chinese keyword rules determine the skill changes; English entries use the source fallback.",
+    "zh-Hans": "技能变化遵循原始中文关键词规则，英文内容使用真源默认分类。"
+  },
+  "templateAuthor.prefab.state": {
+    "en": "Narrative state",
+    "zh-Hans": "剧情状态"
+  },
+  "templateAuthor.prefab.hp": {
+    "en": "Energy",
+    "zh-Hans": "精力"
+  },
+  "templateAuthor.prefab.luck": {
+    "en": "Luck",
+    "zh-Hans": "幸运"
+  },
+  "templateAuthor.prefab.dreams": {
+    "en": "Dreams",
+    "zh-Hans": "梦"
+  },
+  "templateAuthor.prefab.skill.rule": {
+    "en": "Rule",
+    "zh-Hans": "规则"
+  },
+  "templateAuthor.prefab.skill.window": {
+    "en": "Window",
+    "zh-Hans": "窗外"
+  },
+  "templateAuthor.prefab.skill.heart": {
+    "en": "Heart",
+    "zh-Hans": "内心"
+  },
+  "templateAuthor.prefab.skill.precision": {
+    "en": "Precision",
+    "zh-Hans": "精确"
+  },
+  "templateAuthor.prefab.observations": {
+    "en": "Observations",
+    "zh-Hans": "观察记录"
+  },
+  "templateAuthor.prefab.observation": {
+    "en": "What did you notice?",
+    "zh-Hans": "你看到了什么？"
+  },
+  "templateAuthor.prefab.addObservation": {
+    "en": "Add observation",
+    "zh-Hans": "添加观察"
+  },
+  "templateAuthor.prefab.next": {
+    "en": "Preview next scene",
+    "zh-Hans": "预览下一幕"
+  },
+  "templateAuthor.field.title": {
+    "en": "Name",
+    "zh-Hans": "名称"
+  },
+  "templateAuthor.field.description": {
+    "en": "Description, up to 30 UTF-16 units",
+    "zh-Hans": "描述，不超过 30 个 UTF-16 字符单元"
+  },
+  "templateAuthor.field.players": {
+    "en": "Players, e.g. 2–6",
+    "zh-Hans": "人数，例如 2–6"
+  },
+  "templateAuthor.field.duration": {
+    "en": "Duration in minutes",
+    "zh-Hans": "时长（分钟）"
+  },
+  "templateAuthor.field.difficulty": {
+    "en": "Difficulty",
+    "zh-Hans": "难度"
+  },
+  "templateAuthor.field.usageLocation": {
+    "en": "Suggested place",
+    "zh-Hans": "适用场景"
+  },
+  "templateAuthor.field.requiredMaterials": {
+    "en": "Required materials",
+    "zh-Hans": "所需物料"
+  },
+  "templateAuthor.field.categoryId": {
+    "en": "Category ID",
+    "zh-Hans": "类别 ID"
+  },
+  "templateAuthor.field.activityCategoryids": {
+    "en": "Category IDs, comma-separated",
+    "zh-Hans": "类别 ID，以逗号分隔"
+  },
+  "templateAuthor.field.ruleInstructions": {
+    "en": "Rules",
+    "zh-Hans": "玩法规则"
+  },
+  "templateAuthor.field.imgUrl": {
+    "en": "Cover image reference",
+    "zh-Hans": "封面图片引用"
+  },
+  "templateAuthor.field.questionName": {
+    "en": "Question",
+    "zh-Hans": "问题"
+  },
+  "templateAuthor.field.questionImg": {
+    "en": "Question image reference",
+    "zh-Hans": "题目图片引用"
+  },
+  "templateAuthor.field.questionAudio": {
+    "en": "Question audio reference",
+    "zh-Hans": "题目音频引用"
+  },
+  "templateAuthor.field.questionAnswer": {
+    "en": "Correct text answer",
+    "zh-Hans": "正确文字答案"
+  },
+  "templateAuthor.field.questionA": {
+    "en": "Option A",
+    "zh-Hans": "选项 A"
+  },
+  "templateAuthor.field.questionB": {
+    "en": "Option B",
+    "zh-Hans": "选项 B"
+  },
+  "templateAuthor.field.questionC": {
+    "en": "Option C",
+    "zh-Hans": "选项 C"
+  },
+  "templateAuthor.field.questionD": {
+    "en": "Option D",
+    "zh-Hans": "选项 D"
+  },
+  "templateAuthor.field.correctAnswer": {
+    "en": "Correct option",
+    "zh-Hans": "正确选项"
+  },
+  "templateAuthor.field.hint1": {
+    "en": "First hint",
+    "zh-Hans": "第一个提示"
+  },
+  "templateAuthor.field.hint2": {
+    "en": "Second hint",
+    "zh-Hans": "第二个提示"
+  },
+  "templateAuthor.field.answerReveal": {
+    "en": "Answer explanation",
+    "zh-Hans": "答案解析"
+  },
+  "templateAuthor.field.photoRequireDesc": {
+    "en": "Photo requirements",
+    "zh-Hans": "照片要求"
+  },
+  "templateAuthor.field.feedbackText": {
+    "en": "Completion feedback",
+    "zh-Hans": "完成反馈"
+  },
+  "templateAuthor.field.couponId": {
+    "en": "Coupon ID",
+    "zh-Hans": "优惠券 ID"
+  },
+  "templateAuthor.field.medalName": {
+    "en": "Medal name",
+    "zh-Hans": "勋章名称"
+  },
+  "templateAuthor.field.medalImg": {
+    "en": "Medal image reference",
+    "zh-Hans": "勋章图片引用"
+  },
+  "templateAuthor.field.storyText": {
+    "en": "Creator note",
+    "zh-Hans": "创作者说"
+  },
+  "templateAuthor.field.storyImg": {
+    "en": "Creator image reference",
+    "zh-Hans": "创作者图片引用"
+  },
+  "templateAuthor.field.audioUrl": {
+    "en": "Audio reference",
+    "zh-Hans": "音频引用"
+  },
+  "templateAuthor.field.audioDuration": {
+    "en": "Audio duration in seconds",
+    "zh-Hans": "音频时长（秒）"
+  },
+  "templateAuthor.field.beatTag": {
+    "en": "Story tag",
+    "zh-Hans": "剧情标签"
+  },
+  "templateAuthor.field.beatText": {
+    "en": "Story text",
+    "zh-Hans": "剧情内容"
+  },
+  "templateAuthor.field.beatImages": {
+    "en": "Image references, one per line",
+    "zh-Hans": "图片引用，每行一个"
+  },
+  "templateAuthor.field.kicker": {
+    "en": "Title, up to 32 UTF-16 units",
+    "zh-Hans": "标题，不超过 32 个 UTF-16 字符单元"
+  },
+  "templateAuthor.field.xp": {
+    "en": "Reward points",
+    "zh-Hans": "奖励分"
+  },
+  "templateAuthor.field.diceCount": {
+    "en": "Dice count: 1 or 2",
+    "zh-Hans": "骰子数量：1 或 2"
+  },
+  "templateAuthor.field.rounds": {
+    "en": "Rounds: 1–10",
+    "zh-Hans": "轮数：1–10"
+  },
+  "templateAuthor.field.goalMs": {
+    "en": "Target: 120–2000 milliseconds",
+    "zh-Hans": "达标毫秒：120–2000"
+  },
+  "templateAuthor.field.goal": {
+    "en": "Edge hits: 1–200",
+    "zh-Hans": "撞击次数：1–200"
+  },
+  "templateAuthor.field.timed": {
+    "en": "Limit this challenge",
+    "zh-Hans": "启用挑战限时"
+  },
+  "templateAuthor.field.seconds": {
+    "en": "Duration in seconds",
+    "zh-Hans": "时长（秒）"
+  },
+  "templateAuthor.field.sub": {
+    "en": "Supporting text",
+    "zh-Hans": "说明文字"
+  },
+  "templateAuthor.field.doneText": {
+    "en": "Completion text",
+    "zh-Hans": "到点时说什么"
+  },
+  "templateAuthor.field.targetSeconds": {
+    "en": "Target: 3–120 seconds",
+    "zh-Hans": "目标秒数：3–120"
+  },
+  "templateAuthor.field.toleranceMs": {
+    "en": "Tolerance: 50–5000 milliseconds",
+    "zh-Hans": "容差毫秒：50–5000"
+  },
+  "templateAuthor.field.tries": {
+    "en": "Attempts: 0–10; 0 means unlimited",
+    "zh-Hans": "次数：0–10，0 表示不限"
+  },
+  "templateAuthor.field.durationSeconds": {
+    "en": "Time limit: 10–86400 seconds",
+    "zh-Hans": "限时秒数：10–86400"
+  },
+  "templateAuthor.field.heads.label": {
+    "en": "Heads label",
+    "zh-Hans": "正面名称"
+  },
+  "templateAuthor.field.heads.action": {
+    "en": "Heads action",
+    "zh-Hans": "正面行动"
+  },
+  "templateAuthor.field.tails.label": {
+    "en": "Tails label",
+    "zh-Hans": "反面名称"
+  },
+  "templateAuthor.field.tails.action": {
+    "en": "Tails action",
+    "zh-Hans": "反面行动"
+  },
+  "templateAuthor.field.profileName": {
+    "en": "Character name",
+    "zh-Hans": "角色名称"
+  },
+  "templateAuthor.field.profilePlace": {
+    "en": "Birthplace",
+    "zh-Hans": "出生地"
+  },
+  "templateAuthor.field.profileDream": {
+    "en": "Childhood dream",
+    "zh-Hans": "童年梦想"
+  },
+  "templateAuthor.method.0": {
+    "en": "No validation",
+    "zh-Hans": "无需验证"
+  },
+  "templateAuthor.method.1": {
+    "en": "Text answer",
+    "zh-Hans": "文字作答"
+  },
+  "templateAuthor.method.2": {
+    "en": "Photo check-in",
+    "zh-Hans": "拍照打卡"
+  },
+  "templateAuthor.method.3": {
+    "en": "Multiple choice",
+    "zh-Hans": "选项问答"
+  },
+  "templateAuthor.method.4": {
+    "en": "Scan at venue",
+    "zh-Hans": "到店扫码"
+  },
+  "templateAuthor.method.5": {
+    "en": "GPS arrival",
+    "zh-Hans": "GPS 到达"
+  },
+  "templateAuthor.game.coin": {
+    "en": "Coin flip",
+    "zh-Hans": "抛硬币"
+  },
+  "templateAuthor.game.dice": {
+    "en": "Dice roll",
+    "zh-Hans": "掷骰子"
+  },
+  "templateAuthor.game.react": {
+    "en": "Reaction",
+    "zh-Hans": "变色就点"
+  },
+  "templateAuthor.game.shake": {
+    "en": "Ball challenge",
+    "zh-Hans": "弹球"
+  },
+  "templateAuthor.game.quiet": {
+    "en": "Quiet challenge",
+    "zh-Hans": "安静挑战"
+  },
+  "templateAuthor.game.countdown": {
+    "en": "Countdown",
+    "zh-Hans": "倒计时"
+  },
+  "templateAuthor.game.stopwatch": {
+    "en": "Precision stopwatch",
+    "zh-Hans": "精准停表"
+  },
+  "templateAuthor.diceFace.1": {
+    "en": "Face 1 action",
+    "zh-Hans": "第 1 面行动"
+  },
+  "templateAuthor.diceFace.2": {
+    "en": "Face 2 action",
+    "zh-Hans": "第 2 面行动"
+  },
+  "templateAuthor.diceFace.3": {
+    "en": "Face 3 action",
+    "zh-Hans": "第 3 面行动"
+  },
+  "templateAuthor.diceFace.4": {
+    "en": "Face 4 action",
+    "zh-Hans": "第 4 面行动"
+  },
+  "templateAuthor.diceFace.5": {
+    "en": "Face 5 action",
+    "zh-Hans": "第 5 面行动"
+  },
+  "templateAuthor.diceFace.6": {
+    "en": "Face 6 action",
+    "zh-Hans": "第 6 面行动"
+  },
+  "templateAuthor.validation.title": {
+    "en": "Name this play first.",
+    "zh-Hans": "请先给玩法起个名字。"
+  },
+  "templateAuthor.validation.description": {
+    "en": "Add a description.",
+    "zh-Hans": "请填写玩法描述。"
+  },
+  "templateAuthor.validation.descriptionLength": {
+    "en": "Keep the description within 30 UTF-16 units.",
+    "zh-Hans": "玩法描述不超过 30 个 UTF-16 字符单元。"
+  },
+  "templateAuthor.validation.players": {
+    "en": "Specify the player count.",
+    "zh-Hans": "请选择玩家人数。"
+  },
+  "templateAuthor.validation.duration": {
+    "en": "Set a duration greater than zero.",
+    "zh-Hans": "请设置大于零的时长。"
+  },
+  "templateAuthor.validation.category": {
+    "en": "Choose at least one category.",
+    "zh-Hans": "请选择至少一个类别。"
+  },
+  "templateAuthor.validation.finish": {
+    "en": "Enable a completion method.",
+    "zh-Hans": "请启用完成方式。"
+  },
+  "templateAuthor.validation.answer": {
+    "en": "Add the question and correct answer.",
+    "zh-Hans": "请填写问题和正确答案。"
+  },
+  "templateAuthor.validation.question": {
+    "en": "Add the question.",
+    "zh-Hans": "请填写问题。"
+  },
+  "templateAuthor.validation.choices": {
+    "en": "Add at least two options.",
+    "zh-Hans": "至少需要两个选项。"
+  },
+  "templateAuthor.validation.correctAnswer": {
+    "en": "Select a nonempty correct option.",
+    "zh-Hans": "请选择非空的正确选项。"
+  },
+  "templateAuthor.validation.reward": {
+    "en": "Configure at least one reward.",
+    "zh-Hans": "请至少配置一种奖励。"
+  },
+  "templateAuthor.validation.medal": {
+    "en": "A medal needs both a name and an image.",
+    "zh-Hans": "勋章需同时填写名称和图片。"
+  },
+  "templateAuthor.validation.audio": {
+    "en": "Add an audio reference.",
+    "zh-Hans": "请填写音频引用。"
+  },
+  "templateAuthor.validation.advancedSchema": {
+    "en": "The advanced configuration version is unsupported.",
+    "zh-Hans": "不支持此高级配置版本。"
+  },
+  "templateAuthor.validation.advancedUnsupported": {
+    "en": "An unsupported configuration is preserved. It cannot be submitted yet.",
+    "zh-Hans": "已保留尚未支持的配置，暂不能提交。"
+  },
+  "templateAuthor.validation.oneGame": {
+    "en": "Only one game may be enabled.",
+    "zh-Hans": "仅能启用一种玩法。"
+  },
+  "templateAuthor.validation.kicker": {
+    "en": "Game titles cannot exceed 32 UTF-16 units.",
+    "zh-Hans": "玩法标题不超过 32 个 UTF-16 字符单元。"
+  },
+  "templateAuthor.validation.number": {
+    "en": "Enter a finite number.",
+    "zh-Hans": "请输入有效数字。"
+  },
+  "templateAuthor.validation.coinAction": {
+    "en": "Both coin actions must contain 1–60 UTF-16 units.",
+    "zh-Hans": "正反面行动需为 1–60 个 UTF-16 字符单元。"
+  },
+  "templateAuthor.validation.coinLabel": {
+    "en": "Coin labels cannot exceed 16 UTF-16 units.",
+    "zh-Hans": "正反面名称不超过 16 个 UTF-16 字符单元。"
+  },
+  "templateAuthor.validation.diceFaces": {
+    "en": "All six dice faces need actions up to 60 UTF-16 units.",
+    "zh-Hans": "骰子六面均需填写不超过 60 个 UTF-16 字符单元的行动。"
+  },
+  "templateAuthor.validation.countdownText": {
+    "en": "Add completion text up to 60 UTF-16 units.",
+    "zh-Hans": "请填写不超过 60 个 UTF-16 字符单元的到点文字。"
+  },
+  "templateAuthor.validation.timer.durationSeconds": {
+    "en": "Time limit: 10–86400 seconds must be between 10 and 86400.",
+    "zh-Hans": "限时秒数：10–86400须在 10 至 86400 之间。"
+  },
+  "templateAuthor.validation.reaction.rounds": {
+    "en": "Rounds: 1–10 must be between 1 and 10.",
+    "zh-Hans": "轮数：1–10须在 1 至 10 之间。"
+  },
+  "templateAuthor.validation.reaction.goalMs": {
+    "en": "Target: 120–2000 milliseconds must be between 120 and 2000.",
+    "zh-Hans": "达标毫秒：120–2000须在 120 至 2000 之间。"
+  },
+  "templateAuthor.validation.ballShake.goal": {
+    "en": "Edge hits: 1–200 must be between 1 and 200.",
+    "zh-Hans": "撞击次数：1–200须在 1 至 200 之间。"
+  },
+  "templateAuthor.validation.ballShake.seconds": {
+    "en": "Duration in seconds must be between 3 and 300.",
+    "zh-Hans": "时长（秒）须在 3 至 300 之间。"
+  },
+  "templateAuthor.validation.quietHold.seconds": {
+    "en": "Duration in seconds must be between 5 and 300.",
+    "zh-Hans": "时长（秒）须在 5 至 300 之间。"
+  },
+  "templateAuthor.validation.countdown.seconds": {
+    "en": "Duration in seconds must be between 5 and 3600.",
+    "zh-Hans": "时长（秒）须在 5 至 3600 之间。"
+  },
+  "templateAuthor.validation.stopwatch.targetSeconds": {
+    "en": "Target: 3–120 seconds must be between 3 and 120.",
+    "zh-Hans": "目标秒数：3–120须在 3 至 120 之间。"
+  },
+  "templateAuthor.validation.stopwatch.toleranceMs": {
+    "en": "Tolerance: 50–5000 milliseconds must be between 50 and 5000.",
+    "zh-Hans": "容差毫秒：50–5000须在 50 至 5000 之间。"
+  },
+  "templateAuthor.validation.stopwatch.tries": {
+    "en": "Attempts: 0–10; 0 means unlimited must be between 0 and 10.",
+    "zh-Hans": "次数：0–10，0 表示不限须在 0 至 10 之间。"
+  },
+  "templateAuthor.prefab.scene.prologue": {
+    "en": "Begin",
+    "zh-Hans": "开始吧"
+  },
+  "templateAuthor.prefab.scene.register": {
+    "en": "I ask, you answer",
+    "zh-Hans": "我问，你答。"
+  },
+  "templateAuthor.prefab.scene.boot": {
+    "en": "hello world",
+    "zh-Hans": "hello world"
+  },
+  "templateAuthor.prefab.scene.walk": {
+    "en": "See a city in miniature",
+    "zh-Hans": "去看一座被缩小的城市"
+  },
+  "templateAuthor.prefab.scene.hall": {
+    "en": "Photograph the exhibition sign",
+    "zh-Hans": "拍下展示馆的招牌"
+  },
+  "templateAuthor.prefab.scene.birth": {
+    "en": "A confirmed fortune",
+    "zh-Hans": "被确认的幸运"
+  },
+  "templateAuthor.prefab.scene.dream1": {
+    "en": "Information arrives; I begin to dream",
+    "zh-Hans": "信息不断输入，我开始做梦。"
+  },
+  "templateAuthor.prefab.scene.learning": {
+    "en": "The standard answer",
+    "zh-Hans": "标准答案"
+  },
+  "templateAuthor.prefab.scene.dream2": {
+    "en": "More doors",
+    "zh-Hans": "门更多了。"
+  },
+  "templateAuthor.prefab.scene.career": {
+    "en": "What would you like to become?",
+    "zh-Hans": "长大了，你希望做什么？"
+  },
+  "templateAuthor.prefab.scene.work": {
+    "en": "The assigned position",
+    "zh-Hans": "被安排好的位置"
+  },
+  "templateAuthor.prefab.scene.dream3": {
+    "en": "Three questions",
+    "zh-Hans": "不再是画面。是三个问题。"
+  },
+  "templateAuthor.prefab.scene.flow": {
+    "en": "The path you took, and others’ paths",
+    "zh-Hans": "你走过的路，和别人走过的路"
+  },
+  "templateAuthor.adopt": {
+    "en": "Adopt as a local play draft",
+    "zh-Hans": "套用为本地玩法草稿"
+  }
+}

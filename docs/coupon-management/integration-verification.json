@@ -1,0 +1,39 @@
+{
+  "module": "coupon_author",
+  "authored_core_tests_total": 1624,
+  "authored_coupon_core_tests": 22,
+  "authored_ui_tests_total": 250,
+  "ui_classes": 40,
+  "bilingual_keys": 4328,
+  "ui_shards": 6,
+  "shard_test_counts": [
+    41,
+    41,
+    42,
+    42,
+    42,
+    42
+  ],
+  "checks": {
+    "aggregate_contracts": 313,
+    "tooling": 16,
+    "parser_advisory": 14,
+    "coupon_source_assertions": 198,
+    "focused_tree_sitter_files": 14,
+    "focused_tree_sitter_diagnostics": 0,
+    "all_module_source_gates": "PASS",
+    "scaffold": "PASS",
+    "git_diff_check": "PASS"
+  },
+  "runtime": {
+    "swift": "NOT_RUN",
+    "xcode": "NOT_RUN",
+    "xctest": "NOT_RUN",
+    "ios_ui": "NOT_RUN",
+    "device_accessibility": "NOT_RUN"
+  },
+  "live_read_approval": null,
+  "default_write_grants": false,
+  "real_network_actions": 0,
+  "claim_contract": "BLOCKED_SOURCE_GAP"
+}

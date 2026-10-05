@@ -1,0 +1,51 @@
+{
+  "module": "im_full_source_backed",
+  "integration_date_utc": "2026-10-02",
+  "authored_core_tests_total": 1636,
+  "authored_im_core_tests": 12,
+  "authored_ui_tests_total": 252,
+  "authored_im_ui_tests": 2,
+  "ui_classes": 41,
+  "bilingual_keys": 4364,
+  "new_bilingual_keys": 36,
+  "ui_shards": 6,
+  "shard_test_counts": [
+    43,
+    41,
+    42,
+    42,
+    42,
+    42
+  ],
+  "checks": {
+    "aggregate_contracts": 322,
+    "tooling": 16,
+    "parser_advisory": 14,
+    "module_source_gates": 13,
+    "focused_tree_sitter_files": 15,
+    "focused_tree_sitter_diagnostics": 0,
+    "scaffold_swift_references": 506,
+    "scaffold": "PASS",
+    "git_diff_check": "PASS",
+    "whole_tree_files": 609,
+    "whole_tree_existing_diagnostics": 10,
+    "whole_tree_existing_files": 6
+  },
+  "runtime": {
+    "swift": "NOT_RUN",
+    "xcode": "NOT_RUN",
+    "xctest": "NOT_RUN",
+    "ios_ui": "NOT_RUN",
+    "device_accessibility": "NOT_RUN",
+    "live_backend": "NOT_RUN"
+  },
+  "live_write_grant": false,
+  "default_service": null,
+  "default_image_picker": "dormant",
+  "voice_websocket_source_contract": "ABSENT; excluded from migrated scope",
+  "remaining_enablement_gaps": [
+    "bounded no-redirect transport and approved exact media origins",
+    "native metadata-stripping/downsampling image picker with explicit consent",
+    "durable crash/relaunch upload outcome reconciliation and cross-epoch anti-replay policy"
+  ]
+}

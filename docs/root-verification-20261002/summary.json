@@ -1,0 +1,445 @@
+{
+  "timestamp_utc": "20261002T023950Z",
+  "local_head": "b754aa1131d52cc7368185e04333d4b26fb49d16",
+  "code_sha256_before": "241cc844d0db803b8e25091460753aad3ec66c2ea4d71ea93e2c69d032a5351f",
+  "code_sha256_after": "241cc844d0db803b8e25091460753aad3ec66c2ea4d71ea93e2c69d032a5351f",
+  "stable_code_snapshot": true,
+  "commands": [
+    {
+      "name": "contracts",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "Tests/ContractChecks",
+        "-p",
+        "test_*.py"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/contracts.log"
+    },
+    {
+      "name": "tooling",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tools/tests",
+        "-p",
+        "test_*.py"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/tooling.log"
+    },
+    {
+      "name": "parser-self-tests",
+      "command": [
+        "/workspace/scratch/a192988f79fd/swift-syntax-venv/bin/python",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tools/advisory_tests",
+        "-p",
+        "test_swift_syntax.py"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/parser-self-tests.log"
+    },
+    {
+      "name": "check_account_compliance",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "tools/check_account_compliance.py"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/check_account_compliance.log"
+    },
+    {
+      "name": "check_club_community",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "tools/check_club_community.py"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/check_club_community.log"
+    },
+    {
+      "name": "check_club_governance",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "tools/check_club_governance.py"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/check_club_governance.log"
+    },
+    {
+      "name": "check_cooperation_flows",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "tools/check_cooperation_flows.py"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/check_cooperation_flows.log"
+    },
+    {
+      "name": "check_cooperation_protected_dispatch",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "tools/check_cooperation_protected_dispatch.py"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/check_cooperation_protected_dispatch.log"
+    },
+    {
+      "name": "check_coupon_management",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "tools/check_coupon_management.py"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/check_coupon_management.log"
+    },
+    {
+      "name": "check_door_referral",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "tools/check_door_referral.py"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/check_door_referral.log"
+    },
+    {
+      "name": "check_im_expanded",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "tools/check_im_expanded.py"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/check_im_expanded.log"
+    },
+    {
+      "name": "check_image_upload_recovery",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "tools/check_image_upload_recovery.py"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/check_image_upload_recovery.log"
+    },
+    {
+      "name": "check_journey_content",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "tools/check_journey_content.py"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/check_journey_content.log"
+    },
+    {
+      "name": "check_merchant_business",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "tools/check_merchant_business.py"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/check_merchant_business.log"
+    },
+    {
+      "name": "check_merchant_content",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "tools/check_merchant_content.py"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/check_merchant_content.log"
+    },
+    {
+      "name": "check_merchant_engagement",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "tools/check_merchant_engagement.py"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/check_merchant_engagement.log"
+    },
+    {
+      "name": "check_merchant_marketing",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "tools/check_merchant_marketing.py"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/check_merchant_marketing.log"
+    },
+    {
+      "name": "check_merchant_voice_samples",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "tools/check_merchant_voice_samples.py"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/check_merchant_voice_samples.log"
+    },
+    {
+      "name": "check_nearby_team_module",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "tools/check_nearby_team_module.py"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/check_nearby_team_module.log"
+    },
+    {
+      "name": "check_nearby_write_repair",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "tools/check_nearby_write_repair.py"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/check_nearby_write_repair.log"
+    },
+    {
+      "name": "check_object_cards",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "tools/check_object_cards.py"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/check_object_cards.log"
+    },
+    {
+      "name": "check_official_actions",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "tools/check_official_actions.py"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/check_official_actions.log"
+    },
+    {
+      "name": "check_platform_consumers",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "tools/check_platform_consumers.py"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/check_platform_consumers.log"
+    },
+    {
+      "name": "check_play_runtime_hosts",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "tools/check_play_runtime_hosts.py"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/check_play_runtime_hosts.log"
+    },
+    {
+      "name": "check_publish_modes",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "tools/check_publish_modes.py"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/check_publish_modes.log"
+    },
+    {
+      "name": "check_publisher_authority",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "tools/check_publisher_authority.py"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/check_publisher_authority.log"
+    },
+    {
+      "name": "check_publisher_lifecycle",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "tools/check_publisher_lifecycle.py"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/check_publisher_lifecycle.log"
+    },
+    {
+      "name": "check_retained_image_hosts",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "tools/check_retained_image_hosts.py"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/check_retained_image_hosts.log"
+    },
+    {
+      "name": "check_retained_images",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "tools/check_retained_images.py"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/check_retained_images.log"
+    },
+    {
+      "name": "check_scaffold",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "tools/check_scaffold.py"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/check_scaffold.log"
+    },
+    {
+      "name": "check_search_map",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "tools/check_search_map.py"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/check_search_map.log"
+    },
+    {
+      "name": "check_settings_native",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "tools/check_settings_native.py",
+        "--flutter-root",
+        "/workspace/scratch/a192988f79fd/app-audit"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/check_settings_native.log"
+    },
+    {
+      "name": "check_shop_npc_host",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "tools/check_shop_npc_host.py",
+        "/workspace/scratch/a192988f79fd/chengyin-ios"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/check_shop_npc_host.log"
+    },
+    {
+      "name": "check_square_governance",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "tools/check_square_governance.py"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/check_square_governance.log"
+    },
+    {
+      "name": "check_team_native",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "tools/check_team_native.py"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/check_team_native.log"
+    },
+    {
+      "name": "check_wallet_commerce",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "tools/check_wallet_commerce.py"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/check_wallet_commerce.log"
+    },
+    {
+      "name": "contract-check_merchant_npc",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "Tests/ContractChecks/check_merchant_npc.py"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/contract-check_merchant_npc.log"
+    },
+    {
+      "name": "contract-check_public_merchant_home",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "Tests/ContractChecks/check_public_merchant_home.py"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/contract-check_public_merchant_home.log"
+    },
+    {
+      "name": "contract-check_shop_npc",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "Tests/ContractChecks/check_shop_npc.py"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/contract-check_shop_npc.log"
+    },
+    {
+      "name": "whitespace",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/whitespace.log"
+    },
+    {
+      "name": "whole-swift-parser",
+      "command": [
+        "/workspace/scratch/a192988f79fd/swift-syntax-venv/bin/python",
+        "tools/check_swift_syntax.py"
+      ],
+      "exit_code": 1,
+      "status": "FAIL",
+      "log": "/workspace/scratch/a192988f79fd/audit-evidence/native-final-verification-20261002T023950Z/whole-swift-parser.log"
+    }
+  ],
+  "apple_swift_compiler_xctest_simulator_device": "NOT_RUN; toolchain unavailable",
+  "built_profile_check": "NOT_RUN; requires an actual Xcode-built app",
+  "coverage_note": "Python source/structural checks and supplementary grammar parse are not compilation or runtime acceptance.",
+  "evidence_paths_note": "Original cloud execution paths are retained as command provenance; use repository-relative paths when reproducing locally."
+}

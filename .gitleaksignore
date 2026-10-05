@@ -1,0 +1,82 @@
+# Exact reviewed false positives from native migration import e39c367.
+# Audit and validation limits: docs/security/gitleaks-audit-2026-10-02.md
+# Commit-bound fingerprints only: new commits, locations and rules stay scanned.
+
+# Tests/ContractChecks/test_account_collection_structure.py — Forbidden-route assertion literal
+e39c367a35e1f15f9553701cbad56d0d10796c80:Tests/ContractChecks/test_account_collection_structure.py:generic-api-key:18
+
+# docs/club-governance-static-evidence.json — External-source SHA-256 evidence
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/club-governance-static-evidence.json:generic-api-key:11
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/club-governance-static-evidence.json:generic-api-key:12
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/club-governance-static-evidence.json:generic-api-key:13
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/club-governance-static-evidence.json:generic-api-key:14
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/club-governance-static-evidence.json:generic-api-key:15
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/club-governance-static-evidence.json:generic-api-key:16
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/club-governance-static-evidence.json:generic-api-key:17
+
+# docs/community-media-templates/packets/native-template-authoring-repair/template-authoring-repair-manifest.json — External-source SHA-256 evidence
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/community-media-templates/packets/native-template-authoring-repair/template-authoring-repair-manifest.json:generic-api-key:30
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/community-media-templates/packets/native-template-authoring-repair/template-authoring-repair-manifest.json:generic-api-key:31
+
+# docs/door-referral-evidence.json — External-source SHA-256 evidence
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/door-referral-evidence.json:generic-api-key:11
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/door-referral-evidence.json:generic-api-key:12
+
+# docs/merchant-business-extension-verification.json — External-source SHA-256 evidence
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/merchant-business-extension-verification.json:generic-api-key:58
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/merchant-business-extension-verification.json:generic-api-key:59
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/merchant-business-extension-verification.json:generic-api-key:60
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/merchant-business-extension-verification.json:generic-api-key:61
+
+# docs/merchant-business-verification.json — External-source SHA-256 evidence
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/merchant-business-verification.json:generic-api-key:47
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/merchant-business-verification.json:generic-api-key:48
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/merchant-business-verification.json:generic-api-key:49
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/merchant-business-verification.json:generic-api-key:50
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/merchant-business-verification.json:generic-api-key:51
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/merchant-business-verification.json:generic-api-key:52
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/merchant-business-verification.json:generic-api-key:53
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/merchant-business-verification.json:generic-api-key:54
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/merchant-business-verification.json:generic-api-key:55
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/merchant-business-verification.json:generic-api-key:56
+
+# docs/merchant-content-static-evidence.json — External-source SHA-256 evidence
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/merchant-content-static-evidence.json:generic-api-key:10
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/merchant-content-static-evidence.json:generic-api-key:11
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/merchant-content-static-evidence.json:generic-api-key:12
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/merchant-content-static-evidence.json:generic-api-key:13
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/merchant-content-static-evidence.json:generic-api-key:14
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/merchant-content-static-evidence.json:generic-api-key:15
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/merchant-content-static-evidence.json:generic-api-key:16
+
+# docs/official-action-manifest.json — Native-file SHA-256; recomputed and matched
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/official-action-manifest.json:generic-api-key:60
+
+# docs/official-action-static-evidence.json — External-source SHA-256 evidence
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/official-action-static-evidence.json:generic-api-key:11
+
+# docs/remaining-native-clients/images/packet-manifest.json — External-source SHA-256 evidence
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/remaining-native-clients/images/packet-manifest.json:generic-api-key:120
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/remaining-native-clients/images/packet-manifest.json:generic-api-key:121
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/remaining-native-clients/images/packet-manifest.json:generic-api-key:122
+
+# docs/settings-native-verification.json — External-source SHA-256 evidence
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/settings-native-verification.json:generic-api-key:10
+
+# docs/square-journey-chat/packets/native-square-governance-new/docs/static-evidence.json — External-source SHA-256 evidence
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/square-journey-chat/packets/native-square-governance-new/docs/static-evidence.json:generic-api-key:65
+
+# docs/template-authoring-validation.json — External-source SHA-256 evidence
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/template-authoring-validation.json:generic-api-key:9
+e39c367a35e1f15f9553701cbad56d0d10796c80:docs/template-authoring-validation.json:generic-api-key:10
+
+# Run81 reviewed narrative-prose false positive; no credential value is present.
+# Audit: docs/security/gitleaks-prose-audit-2026-10-03.md
+bcd754bd41dd41b3dad22a436211cd89ee47b657:docs/public-template/composition-read-grant.md:generic-api-key:75
+
+# Exact reviewed DEBUG coupon fixture false positives from abe53580.
+# Invented recorder-only login/comparison/stop values; sealed .example transport.
+# Historical fingerprints only. Current and future commits remain scanned.
+abe535809517ceb327223679f85c14b5f5b8b6d7:App/CouponRuntimeFixture.swift:generic-api-key:55
+abe535809517ceb327223679f85c14b5f5b8b6d7:App/CouponRuntimeFixture.swift:generic-api-key:81
+abe535809517ceb327223679f85c14b5f5b8b6d7:App/CouponRuntimeFixture.swift:generic-api-key:110

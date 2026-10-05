@@ -1,0 +1,49 @@
+{
+  "package": "ClubCommunity",
+  "mode": "isolated-additive",
+  "productionWrites": "disabled",
+  "imageUploads": "disabled",
+  "sourceCheck": "PASS",
+  "treeSitter": "PASS",
+  "swiftTypecheck": "NOT_RUN",
+  "XCTest": "NOT_RUN",
+  "AppleUIRuntime": "NOT_RUN",
+  "files": [
+    {
+      "path": "App/ClubCommunityFixture.swift",
+      "sha256": "d832838e7b962f0d48e062ecdda34dcc50446f38c2ebf09bd9e2e38ed003d4ed"
+    },
+    {
+      "path": "App/ClubCommunityViews.swift",
+      "sha256": "7d4832bfecf4bc774cb7baf29c06fc7f9d1e0bce42d8010e8fb2359088d60f9d"
+    },
+    {
+      "path": "Core/ClubCommunityContracts.swift",
+      "sha256": "df728063616114602b252dba7a627b3c9bfd96ae2ef799f884e00196c02a50eb"
+    },
+    {
+      "path": "Core/ClubCommunityService.swift",
+      "sha256": "aa1518c6b324709e4097fbfd714881ebca91ad8652a4950b50cdd23fcef5ce5b"
+    },
+    {
+      "path": "Resources/ClubCommunity.xcstrings",
+      "sha256": "cf253d6351fb39530e34527a5e1045452602a86dce92b50d620a94a4791a255e"
+    },
+    {
+      "path": "Tests/CoreTests/ClubCommunityTests.swift",
+      "sha256": "e7d4b44fcc766b79dc2534a9556674376ba8d6cccc31cfe5fc1036662fb4cd74"
+    },
+    {
+      "path": "Tests/UITests/ClubCommunityUITests.swift",
+      "sha256": "1eb43b18669763e148fe7b7ee92469e7e1f3a80a48f0374353ef477084af3efc"
+    },
+    {
+      "path": "docs/ClubCommunity-integration.md",
+      "sha256": "fd8fb711fa73853d02891a926c6261696f8b3fa4b282e57a46bb5407d0d177a5"
+    },
+    {
+      "path": "tools/check_club_community.py",
+      "sha256": "8f9798ebe6fb343c55d1088fa651ffccf4307f1c65da0dbfa44863a274ecc3ff"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+// Test bundle configuration intentionally does not inherit the app Info.plist.
+PRODUCT_BUNDLE_IDENTIFIER = invalid.example.questify.ios.appunittests
+IPHONEOS_DEPLOYMENT_TARGET = 17.0
+SWIFT_VERSION = 5.0
+TARGETED_DEVICE_FAMILY = 1,2
+SUPPORTED_PLATFORMS = iphoneos iphonesimulator
+GENERATE_INFOPLIST_FILE = YES
+SWIFT_OPTIMIZATION_LEVEL = -Onone
+TEST_HOST = $(BUILT_PRODUCTS_DIR)/Questify.app/Questify
+BUNDLE_LOADER = $(TEST_HOST)
+LD_RUNPATH_SEARCH_PATHS = $(inherited) @executable_path/Frameworks @loader_path/Frameworks

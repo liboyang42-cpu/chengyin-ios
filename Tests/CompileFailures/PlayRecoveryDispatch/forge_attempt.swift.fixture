@@ -1,0 +1,5 @@
+import Foundation
+@testable import QuestifyCore
+@MainActor func forge(service: PlayExperienceService, session: PlayExperienceSession, snapshot: PlayCompletionRecoverySnapshot, store: any PlayCompletionRecoveryStore) throws {
+    _ = try PlayPreparedDispatch(service: service, scope: .activity(41), session: session, completion: snapshot, store: store, isCurrent: { true })
+}

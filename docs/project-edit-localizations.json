@@ -1,0 +1,682 @@
+{
+  "projectEdit.title": {
+    "en": "Route editor",
+    "zh-Hans": "路线编辑器"
+  },
+  "projectEdit.basics": {
+    "en": "Basic details",
+    "zh-Hans": "基本信息"
+  },
+  "projectEdit.name": {
+    "en": "Route name",
+    "zh-Hans": "路线名称"
+  },
+  "projectEdit.subtitle": {
+    "en": "Subtitle",
+    "zh-Hans": "副标题"
+  },
+  "projectEdit.description": {
+    "en": "Description",
+    "zh-Hans": "描述"
+  },
+  "projectEdit.cover": {
+    "en": "Cover reference",
+    "zh-Hans": "封面引用"
+  },
+  "projectEdit.gallery": {
+    "en": "Gallery references",
+    "zh-Hans": "横图引用"
+  },
+  "projectEdit.categories": {
+    "en": "Category IDs, separated by commas",
+    "zh-Hans": "路线类别编号，以逗号分隔"
+  },
+  "projectEdit.categoriesHint": {
+    "en": "Enter verified category IDs. The category picker is not connected yet.",
+    "zh-Hans": "请输入已核实的类别编号。类别选择器尚未接入。"
+  },
+  "projectEdit.schedule": {
+    "en": "Route schedule",
+    "zh-Hans": "路线时间"
+  },
+  "projectEdit.city": {
+    "en": "City orientation",
+    "zh-Hans": "城市定向"
+  },
+  "projectEdit.freeExplore": {
+    "en": "Free exploration",
+    "zh-Hans": "自由探索"
+  },
+  "projectEdit.startDate": {
+    "en": "Start date",
+    "zh-Hans": "开始日期"
+  },
+  "projectEdit.endDate": {
+    "en": "End date",
+    "zh-Hans": "结束日期"
+  },
+  "projectEdit.deadline": {
+    "en": "Recruitment deadline",
+    "zh-Hans": "招商截止日期"
+  },
+  "projectEdit.dateFormat": {
+    "en": "Use YYYY-MM-DD or YYYY-MM-DD HH:mm. Times stay in the source service's local-time format.",
+    "zh-Hans": "请输入 YYYY-MM-DD 或 YYYY-MM-DD HH:mm。时间按原服务的本地时间格式保留。"
+  },
+  "projectEdit.structure": {
+    "en": "Chapters and stops",
+    "zh-Hans": "章节与节点"
+  },
+  "projectEdit.chapterDetails": {
+    "en": "Chapter",
+    "zh-Hans": "章节"
+  },
+  "projectEdit.chapterName": {
+    "en": "Chapter name",
+    "zh-Hans": "章节名称"
+  },
+  "projectEdit.chapterCarryOver": {
+    "en": "Existing artwork, audio, atmosphere and merchant terms are preserved. Editing those settings is not connected yet.",
+    "zh-Hans": "已有图片、音频、配色及商家条款均会保留。这些设置的编辑尚未接入。"
+  },
+  "projectEdit.addChapter": {
+    "en": "Add chapter",
+    "zh-Hans": "添加章节"
+  },
+  "projectEdit.untitledChapter": {
+    "en": "Untitled chapter",
+    "zh-Hans": "未命名章节"
+  },
+  "projectEdit.story": {
+    "en": "Opening story",
+    "zh-Hans": "章节剧情"
+  },
+  "projectEdit.enableStoryFlow": {
+    "en": "Arrange story blocks",
+    "zh-Hans": "编排故事流"
+  },
+  "projectEdit.storyFlow": {
+    "en": "Story blocks",
+    "zh-Hans": "故事流"
+  },
+  "projectEdit.storyFlowHint": {
+    "en": "Use Edit to reorder blocks. Removing a stop block also removes that stop. Empty audio placeholders are omitted from the review payload.",
+    "zh-Hans": "点“编辑”可调整顺序。删除节点块会同时删除该节点。空音频占位不会进入待提交内容。"
+  },
+  "projectEdit.addText": {
+    "en": "Text",
+    "zh-Hans": "文字"
+  },
+  "projectEdit.addImage": {
+    "en": "Image",
+    "zh-Hans": "图片"
+  },
+  "projectEdit.addAudio": {
+    "en": "Audio",
+    "zh-Hans": "音频"
+  },
+  "projectEdit.imageReference": {
+    "en": "Image reference",
+    "zh-Hans": "图片引用"
+  },
+  "projectEdit.audioReference": {
+    "en": "Audio reference",
+    "zh-Hans": "音频引用"
+  },
+  "projectEdit.nodes": {
+    "en": "Stops",
+    "zh-Hans": "节点"
+  },
+  "projectEdit.nodeCount": {
+    "en": "Number of stops",
+    "zh-Hans": "节点数量"
+  },
+  "projectEdit.nodeDetails": {
+    "en": "Stop details",
+    "zh-Hans": "节点详情"
+  },
+  "projectEdit.nodeName": {
+    "en": "Stop name",
+    "zh-Hans": "节点名称"
+  },
+  "projectEdit.untitledNode": {
+    "en": "Untitled stop",
+    "zh-Hans": "未命名节点"
+  },
+  "projectEdit.addNode": {
+    "en": "Add stop",
+    "zh-Hans": "添加节点"
+  },
+  "projectEdit.address": {
+    "en": "Address",
+    "zh-Hans": "地址"
+  },
+  "projectEdit.longitude": {
+    "en": "Longitude",
+    "zh-Hans": "经度"
+  },
+  "projectEdit.latitude": {
+    "en": "Latitude",
+    "zh-Hans": "纬度"
+  },
+  "projectEdit.coordinatesHint": {
+    "en": "Enter verified coordinates. Map search is not connected; zero coordinates are invalid under the source rules.",
+    "zh-Hans": "请输入已核实的坐标。地图搜索尚未接入；原规则不接受零坐标。"
+  },
+  "projectEdit.nodeMinutes": {
+    "en": "Minutes at stop",
+    "zh-Hans": "节点时长（分钟）"
+  },
+  "projectEdit.nodeImages": {
+    "en": "Stop image references",
+    "zh-Hans": "节点图片引用"
+  },
+  "projectEdit.gameplay": {
+    "en": "Gameplay",
+    "zh-Hans": "玩法"
+  },
+  "projectEdit.templateID": {
+    "en": "Preserved template ID",
+    "zh-Hans": "保留的玩法模板编号"
+  },
+  "projectEdit.gameplayDeferred": {
+    "en": "Existing gameplay stays attached. Creating, selecting and editing gameplay templates is not connected yet.",
+    "zh-Hans": "已有玩法关联会保留。创建、选择和编辑玩法模板尚未接入。"
+  },
+  "projectEdit.tickets": {
+    "en": "Tickets",
+    "zh-Hans": "票务"
+  },
+  "projectEdit.addTicket": {
+    "en": "Add ticket",
+    "zh-Hans": "添加票种"
+  },
+  "projectEdit.untitledTicket": {
+    "en": "Untitled ticket",
+    "zh-Hans": "未命名票种"
+  },
+  "projectEdit.ticketDetails": {
+    "en": "Ticket details",
+    "zh-Hans": "票种详情"
+  },
+  "projectEdit.ticketName": {
+    "en": "Ticket name",
+    "zh-Hans": "票种名称"
+  },
+  "projectEdit.ticketPrice": {
+    "en": "Ticket price",
+    "zh-Hans": "票价"
+  },
+  "projectEdit.priceHint": {
+    "en": "Enter 0 for a free ticket. Leaving this blank is not a free ticket. Currency follows the source service; no conversion is performed.",
+    "zh-Hans": "免费票请填写 0。留空不代表免费。币种沿用原服务，不进行换算。"
+  },
+  "projectEdit.totalStock": {
+    "en": "Total stock",
+    "zh-Hans": "总库存"
+  },
+  "projectEdit.teamSize": {
+    "en": "Team size",
+    "zh-Hans": "队伍人数"
+  },
+  "projectEdit.ticketSchedule": {
+    "en": "Ticket schedule",
+    "zh-Hans": "票务时间"
+  },
+  "projectEdit.ticketStart": {
+    "en": "Start or meeting time",
+    "zh-Hans": "开始或集合时间"
+  },
+  "projectEdit.ticketEnd": {
+    "en": "End time",
+    "zh-Hans": "结束时间"
+  },
+  "projectEdit.meetingPoint": {
+    "en": "Meeting point",
+    "zh-Hans": "集合地点"
+  },
+  "projectEdit.ticketScopeHint": {
+    "en": "Ticket mode follows the route type. Existing sale windows and meeting coordinates are preserved.",
+    "zh-Hans": "票种模式随路线类型同步。已有售票窗口与集合坐标会保留。"
+  },
+  "projectEdit.visibility": {
+    "en": "Visibility and ownership",
+    "zh-Hans": "展示与归属"
+  },
+  "projectEdit.publishToCreative": {
+    "en": "Also share to Creative Square",
+    "zh-Hans": "同步到创意广场"
+  },
+  "projectEdit.advancedPreserved": {
+    "en": "Existing ownership, collaborators, self-play, rewards, media and commerce settings are preserved. Those advanced editors are not connected yet.",
+    "zh-Hans": "已有归属、合作者、自玩、奖励、媒体及商业设置均会保留。高级编辑功能尚未接入。"
+  },
+  "projectEdit.yes": {
+    "en": "Yes",
+    "zh-Hans": "是"
+  },
+  "projectEdit.no": {
+    "en": "No",
+    "zh-Hans": "否"
+  },
+  "projectEdit.saveLocal": {
+    "en": "Save locally",
+    "zh-Hans": "保存到本机"
+  },
+  "projectEdit.review": {
+    "en": "Review",
+    "zh-Hans": "检查"
+  },
+  "projectEdit.reviewTitle": {
+    "en": "Review route",
+    "zh-Hans": "检查路线"
+  },
+  "projectEdit.reviewHint": {
+    "en": "Review this frozen copy before continuing.",
+    "zh-Hans": "继续前请检查这份内容快照。"
+  },
+  "projectEdit.fixBeforeReview": {
+    "en": "Complete these fields",
+    "zh-Hans": "请完善以下内容"
+  },
+  "projectEdit.fixtureBadge": {
+    "en": "Synthetic fixture",
+    "zh-Hans": "模拟数据"
+  },
+  "projectEdit.localBadge": {
+    "en": "Local draft only",
+    "zh-Hans": "仅本机草稿"
+  },
+  "projectEdit.fixtureNotice": {
+    "en": "Synthetic editing demo. All data and outcomes are simulated; nothing is uploaded or published.",
+    "zh-Hans": "模拟编辑演示。所有数据及结果均为模拟，不上传、不发布。"
+  },
+  "projectEdit.unconfigured": {
+    "en": "Publishing is not connected. You can edit and save a local draft; nothing will be sent.",
+    "zh-Hans": "发布服务尚未接入。你可以编辑并保存本机草稿，不会发送任何内容。"
+  },
+  "projectEdit.confirmSimulation": {
+    "en": "Confirm simulation",
+    "zh-Hans": "确认模拟"
+  },
+  "projectEdit.simulated": {
+    "en": "Simulation completed. No project was published.",
+    "zh-Hans": "模拟已完成，没有发布任何项目。"
+  },
+  "projectEdit.loading": {
+    "en": "Loading editor…",
+    "zh-Hans": "正在加载编辑器…"
+  },
+  "projectEdit.signIn": {
+    "en": "Sign in to save an account-scoped draft. Unsaved guest edits stay on this screen only.",
+    "zh-Hans": "登录后可保存当前账号的本机草稿。游客未保存的编辑仅保留在当前页面。"
+  },
+  "projectEdit.restoreTitle": {
+    "en": "Saved local draft",
+    "zh-Hans": "已保存的本机草稿"
+  },
+  "projectEdit.restoreAvailable": {
+    "en": "A draft for this account is available. Restore it or discard it before editing.",
+    "zh-Hans": "找到当前账号的草稿。请先恢复或丢弃，再继续编辑。"
+  },
+  "projectEdit.restore": {
+    "en": "Restore draft",
+    "zh-Hans": "恢复草稿"
+  },
+  "projectEdit.localEmpty": {
+    "en": "No local draft found.",
+    "zh-Hans": "没有找到本机草稿。"
+  },
+  "projectEdit.localSaved": {
+    "en": "Draft saved on this device only.",
+    "zh-Hans": "草稿仅保存到了本机。"
+  },
+  "projectEdit.localRemoved": {
+    "en": "Local draft discarded.",
+    "zh-Hans": "已丢弃本机草稿。"
+  },
+  "projectEdit.localFailed": {
+    "en": "Local draft storage is unavailable. Your changes have not been confirmed saved.",
+    "zh-Hans": "本机草稿存储不可用，尚未确认保存当前改动。"
+  },
+  "projectEdit.memberMismatch": {
+    "en": "The stored draft belongs to another account or deployment and cannot be opened.",
+    "zh-Hans": "草稿属于其他账号或服务环境，无法打开。"
+  },
+  "projectEdit.incompatible": {
+    "en": "This saved draft is incompatible with this editor. It has not been applied.",
+    "zh-Hans": "此草稿与当前编辑器不兼容，未载入。"
+  },
+  "projectEdit.revisionConflict": {
+    "en": "The server revision changed. Reload the current project; the old local draft will not overwrite it.",
+    "zh-Hans": "服务端版本已变化。请重新加载当前项目；旧本机草稿不会覆盖新版本。"
+  },
+  "projectEdit.discardLocal": {
+    "en": "Discard local draft",
+    "zh-Hans": "丢弃本机草稿"
+  },
+  "projectEdit.discardTitle": {
+    "en": "Discard this local draft?",
+    "zh-Hans": "丢弃这份本机草稿？"
+  },
+  "projectEdit.discardHint": {
+    "en": "This removes the saved draft on this device. It does not change the published project.",
+    "zh-Hans": "此操作删除本机保存的草稿，不会改变已发布项目。"
+  },
+  "projectEdit.whitelistHint": {
+    "en": "This route is already on sale. Only text, images and categories can change. Dates, chapters and tickets are locked.",
+    "zh-Hans": "路线已过审开卖，仅可修改文案、图片及类别。日期、章节和票务已锁定。"
+  },
+  "projectEdit.lockedFields": {
+    "en": "Locked or identity fields changed. Reload and review a fresh copy.",
+    "zh-Hans": "锁定字段或归属发生变化，请重新加载并检查。"
+  },
+  "projectEdit.invalid": {
+    "en": "Some required fields need attention. Nothing has been sent.",
+    "zh-Hans": "仍有必填项未完成，没有发送任何内容。"
+  },
+  "projectEdit.unknownTitle": {
+    "en": "Outcome not confirmed",
+    "zh-Hans": "结果尚未确认"
+  },
+  "projectEdit.unknown": {
+    "en": "The previous outcome is unknown. Editing and repeat submission are locked. Checking a terminal receipt will not repeat the submission.",
+    "zh-Hans": "上次操作结果未知，已锁定编辑和重复提交。检查终态凭据不会再次提交。"
+  },
+  "projectEdit.checkOutcome": {
+    "en": "Check terminal outcome",
+    "zh-Hans": "检查最终结果"
+  },
+  "projectEdit.rejected": {
+    "en": "The simulated request was rejected. No success was reported.",
+    "zh-Hans": "模拟请求被拒绝，未报告成功。"
+  },
+  "projectEdit.notSent": {
+    "en": "The request was not sent. Review again before trying.",
+    "zh-Hans": "请求未发送，请重新检查后再尝试。"
+  },
+  "projectEdit.preflightFailed": {
+    "en": "The final check or durable intent save failed. No new submission was started.",
+    "zh-Hans": "最终检查或提交凭据保存失败，没有发起新提交。"
+  },
+  "projectEdit.loadFailed": {
+    "en": "The project or secure draft could not be loaded. Retry before editing.",
+    "zh-Hans": "无法加载项目或安全草稿，请重试后再编辑。"
+  },
+  "projectEdit.reload": {
+    "en": "Reload editor",
+    "zh-Hans": "重新加载"
+  },
+  "projectEdit.capabilityBlocked": {
+    "en": "Publishing permission or available quota does not allow this new route.",
+    "zh-Hans": "当前发布权限或剩余配额不允许新建此路线。"
+  },
+  "projectEdit.mediaDeferred": {
+    "en": "Reference text only. Media picking, uploading and preview are not connected.",
+    "zh-Hans": "仅编辑引用文本。媒体选择、上传与预览尚未接入。"
+  },
+  "projectEdit.fixture.signOut": {
+    "en": "Sign out fixture",
+    "zh-Hans": "模拟退出登录"
+  },
+  "projectEdit.fixture.reopen": {
+    "en": "Reopen fixture",
+    "zh-Hans": "重新打开模拟编辑器"
+  },
+  "projectEdit.validation.name": {
+    "en": "Enter a route name.",
+    "zh-Hans": "请填写路线名称。"
+  },
+  "projectEdit.validation.description": {
+    "en": "Enter a route description.",
+    "zh-Hans": "请填写路线描述。"
+  },
+  "projectEdit.validation.cover": {
+    "en": "Provide a cover reference.",
+    "zh-Hans": "请填写封面引用。"
+  },
+  "projectEdit.validation.categories": {
+    "en": "Choose at least one valid category.",
+    "zh-Hans": "请填写至少一个有效类别编号。"
+  },
+  "projectEdit.validation.dates": {
+    "en": "Enter a valid date or date and time.",
+    "zh-Hans": "请填写有效的日期或日期时间。"
+  },
+  "projectEdit.validation.dateOrder": {
+    "en": "End time must follow start time.",
+    "zh-Hans": "结束时间必须晚于开始时间。"
+  },
+  "projectEdit.validation.deadline": {
+    "en": "Free exploration needs a recruitment deadline.",
+    "zh-Hans": "自由探索需填写招商截止日期。"
+  },
+  "projectEdit.validation.chapters": {
+    "en": "Add at least one chapter.",
+    "zh-Hans": "请至少添加一个章节。"
+  },
+  "projectEdit.validation.story": {
+    "en": "Write a real opening story before adding city-orientation stops.",
+    "zh-Hans": "城市定向需先完成本章剧情，再添加节点。"
+  },
+  "projectEdit.validation.nodes": {
+    "en": "Each chapter needs at least one stop.",
+    "zh-Hans": "每章至少需要一个节点。"
+  },
+  "projectEdit.validation.blocks": {
+    "en": "A chapter can contain at most 200 story blocks.",
+    "zh-Hans": "每章最多 200 个内容块。"
+  },
+  "projectEdit.validation.references": {
+    "en": "A story block has a missing or duplicate stop reference.",
+    "zh-Hans": "故事流存在缺失或重复的节点引用。"
+  },
+  "projectEdit.validation.media": {
+    "en": "An image block needs a reference.",
+    "zh-Hans": "图片块需要填写引用。"
+  },
+  "projectEdit.validation.coordinates": {
+    "en": "Each stop needs usable nonzero coordinates.",
+    "zh-Hans": "每个节点都需要有效的非零坐标。"
+  },
+  "projectEdit.validation.nodeName": {
+    "en": "Enter a name for every stop.",
+    "zh-Hans": "请填写每个节点的名称。"
+  },
+  "projectEdit.validation.number": {
+    "en": "Enter a nonnegative whole number.",
+    "zh-Hans": "请输入非负整数。"
+  },
+  "projectEdit.validation.merchant": {
+    "en": "Preserved merchant terms need valid category, mode, quota and benefit values.",
+    "zh-Hans": "保留的商家条款需要有效的品类、模式、名额与权益值。"
+  },
+  "projectEdit.validation.ticketName": {
+    "en": "Enter each ticket's name.",
+    "zh-Hans": "请填写每个票种名称。"
+  },
+  "projectEdit.validation.price": {
+    "en": "Enter a nonnegative ticket price; use 0 for free.",
+    "zh-Hans": "请填写非负票价，免费请填 0。"
+  },
+  "projectEdit.validation.meeting": {
+    "en": "City-orientation tickets need a meeting point.",
+    "zh-Hans": "城市定向票需填写集合地点。"
+  },
+  "projectEdit.createLocal": {
+    "en": "Create a local draft",
+    "zh-Hans": "创建本机草稿"
+  },
+  "projectEdit.remoteEditDeferred": {
+    "en": "Editing existing server projects is not connected yet. Project previews remain available in My Projects.",
+    "zh-Hans": "服务端已有项目的编辑尚未接入。仍可在“我的项目”查看预览。"
+  },
+  "projectEdit.acknowledged": {
+    "en": "The server acknowledged this submission.",
+    "zh-Hans": "服务器已确认收到此次提交。"
+  },
+  "projectEdit.confirmLive": {
+    "en": "Submit reviewed changes",
+    "zh-Hans": "提交已核对的更改"
+  },
+  "projectEdit.confirmLiveHint": {
+    "en": "Submit these exact changes to the server. A lost response will stay locked to prevent duplicate submission.",
+    "zh-Hans": "将这些更改提交至服务器。若回执丢失，将保留锁定以避免重复提交。"
+  },
+  "projectEdit.validation.rewards": {
+    "en": "Check self-play price, quota and reward coupon ID.",
+    "zh-Hans": "请检查自玩票价格、数量及奖励券 ID。"
+  },
+  "projectEdit.completion.title": {
+    "en": "Completion rules and Bingo",
+    "zh-Hans": "通关规则与九宫格"
+  },
+  "projectEdit.completion.readOnly": {
+    "en": "This configuration contains unsupported or unreadable rules. It is preserved unchanged; edit it in the original professional publisher.",
+    "zh-Hans": "此配置含不支持或无法读取的规则，保持原样；请在原专业发布页编辑。"
+  },
+  "projectEdit.completion.mode": {
+    "en": "Completion condition",
+    "zh-Hans": "通关条件"
+  },
+  "projectEdit.completion.all": {
+    "en": "Complete all stations",
+    "zh-Hans": "完成全部站点"
+  },
+  "projectEdit.completion.atLeast": {
+    "en": "Complete at least the specified count",
+    "zh-Hans": "至少完成指定数量"
+  },
+  "projectEdit.completion.count": {
+    "en": "Required station count",
+    "zh-Hans": "所需站点数量"
+  },
+  "projectEdit.completion.enabled": {
+    "en": "Enable Bingo grid",
+    "zh-Hans": "启用宾果九宫格"
+  },
+  "projectEdit.completion.disabled": {
+    "en": "Bingo grid disabled",
+    "zh-Hans": "九宫格已关闭"
+  },
+  "projectEdit.completion.serverConditions": {
+    "en": "Edit nine cells in S order. The server decides when each cell is lit; labels do not change conditions.",
+    "zh-Hans": "按 S 形编辑九格；点亮条件由服务端判定。名称仅改变展示，不改变条件。"
+  },
+  "projectEdit.completion.label": {
+    "en": "Cell label (optional, up to 24 UTF-16 units)",
+    "zh-Hans": "格子名称（可留空，最多24字）"
+  },
+  "projectEdit.completion.coupon": {
+    "en": "Reward coupon ID (optional)",
+    "zh-Hans": "奖励券 ID（可留空）"
+  },
+  "projectEdit.completion.couponHint": {
+    "en": "Use an existing numeric reward coupon ID. The server checks eligibility; this does not issue a coupon.",
+    "zh-Hans": "只填现有奖励券的数字 ID；有效性与发放资格由服务端复核，不会立即发券。"
+  },
+  "projectEdit.completion.feedback": {
+    "en": "Reward feedback (up to 120 UTF-16 units)",
+    "zh-Hans": "奖励反馈（最多120字）"
+  },
+  "projectEdit.completion.invalidCount": {
+    "en": "Required completion count must be a positive integer.",
+    "zh-Hans": "至少完成数量须为正整数。"
+  },
+  "projectEdit.completion.invalidCells": {
+    "en": "Bingo must contain exactly nine cells.",
+    "zh-Hans": "九宫格必须正好包含9格。"
+  },
+  "projectEdit.completion.invalidLength": {
+    "en": "Cell labels allow 24 UTF-16 units and reward feedback 120.",
+    "zh-Hans": "格子名称最多24字，奖励反馈最多120字。"
+  },
+  "projectEdit.completion.invalidCoupon": {
+    "en": "Reward coupon ID must be a nonnegative integer or blank.",
+    "zh-Hans": "奖励券 ID 须为非负整数，或留空。"
+  },
+  "projectEdit.completion.rewardRequired": {
+    "en": "Add a coupon or reward feedback to at least one cell.",
+    "zh-Hans": "至少给一格配置奖励券或奖励反馈。"
+  },
+  "projectEdit.completion.invalidSource": {
+    "en": "Original rules changed. Reload this theme.",
+    "zh-Hans": "原始规则已变更，请重新载入主题。"
+  },
+  "projectEdit.completion.condition.0": {
+    "en": "Complete your first station",
+    "zh-Hans": "完成第1个点"
+  },
+  "projectEdit.completion.condition.1": {
+    "en": "Complete 3 stations",
+    "zh-Hans": "完成3个点"
+  },
+  "projectEdit.completion.condition.2": {
+    "en": "Complete 5 stations",
+    "zh-Hans": "完成5个点"
+  },
+  "projectEdit.completion.condition.3": {
+    "en": "Complete 3 stations in one day",
+    "zh-Hans": "一天内完成3个点"
+  },
+  "projectEdit.completion.condition.4": {
+    "en": "Visit on two separate days",
+    "zh-Hans": "两天各来一次"
+  },
+  "projectEdit.completion.condition.5": {
+    "en": "Visit on two consecutive days",
+    "zh-Hans": "连续两天来"
+  },
+  "projectEdit.completion.condition.6": {
+    "en": "Visit on a weekend",
+    "zh-Hans": "周末来一次"
+  },
+  "projectEdit.completion.condition.7": {
+    "en": "Complete 8 stations",
+    "zh-Hans": "完成8个点"
+  },
+  "projectEdit.completion.condition.8": {
+    "en": "Complete once before noon",
+    "zh-Hans": "中午前完成一次"
+  },
+  "projectEdit.completion.tooManyNodes": {
+    "en": "Required completion count exceeds the configured station count.",
+    "zh-Hans": "所需通关数量不能超过已配置站点总数。"
+  },
+  "projectEdit.completion.tooLarge": {
+    "en": "Completion rule configuration must not exceed 16 KiB.",
+    "zh-Hans": "通关规则配置不能超过16 KiB。"
+  },
+  "projectEdit.saleSchedule": {
+    "en": "Ticket sale dates",
+    "zh-Hans": "售票日期"
+  },
+  "projectEdit.saleStart": {
+    "en": "Sale start",
+    "zh-Hans": "售票开始"
+  },
+  "projectEdit.saleEnd": {
+    "en": "Sale end",
+    "zh-Hans": "售票结束"
+  },
+  "projectEdit.saleStoredOnly": {
+    "en": "These dates are saved and displayed only. They do not currently control when tickets can be purchased. Dates use the service’s wall-clock time; no device time-zone conversion is applied.",
+    "zh-Hans": "这些日期仅保存和展示，目前不控制购票时段。日期按服务端墙上时间提交，不按设备时区换算。"
+  },
+  "projectEdit.saleLegacy": {
+    "en": "An unsupported saved value is read-only and will be preserved.",
+    "zh-Hans": "不支持的已保存值为只读，并将原样保留。"
+  },
+  "projectEdit.syncThemeDates": {
+    "en": "Match theme dates",
+    "zh-Hans": "与主题日期保持一致"
+  },
+  "projectEdit.syncThemeDatesHint": {
+    "en": "While editing here, this ticket’s validity uses the theme dates. Turn off to edit its dates separately.",
+    "zh-Hans": "在本编辑器中，此票种有效期使用主题日期。关闭后可单独修改票种日期。"
+  },
+  "projectEdit.syncThemeDatesLegacy": {
+    "en": "An unrecognized saved sync setting is preserved. Date sync cannot be changed.",
+    "zh-Hans": "已保留无法识别的旧版同步设置，暂不能修改日期同步。"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "static_source_checks": "PASS",
+  "check_count": 198,
+  "swift_compilation": "NOT_RUN",
+  "swift_unit_tests": "NOT_RUN",
+  "ios_ui_runtime": "NOT_RUN",
+  "real_network_requests": 0,
+  "authored_core_test_cases": 22,
+  "authored_ui_test_cases": 5,
+  "claim_contract": "BLOCKED_SOURCE_GAP",
+  "live_write_grants": false
+}
+
+--- STDERR ---

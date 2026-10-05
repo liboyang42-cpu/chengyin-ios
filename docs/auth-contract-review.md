@@ -2,6 +2,10 @@
 
 Source: existing public Flutter client, `lib/data/api/auth_api.dart`, commit `a63e9e91c82a3282e8dd7138f943b1a8cbfc021d`. This is client-source evidence, not a fresh backend validation.
 
+## Current native composition correction
+
+The historical source table below is not an enablement list. Username/password-only native login cannot meet the retained password route prerequisite and remains hard unavailable. The normal CN composition now uses the bounded [SMS and session contract](cn-native-session-contract.md), with an explicit current server role before persistence/restoration; legacy role fallback is not evidence of a verified session. Shipping endpoint and capability registries remain empty.
+
 ## Observed operations
 
 | Purpose | HTTP route | Body fields in source |
@@ -30,3 +34,16 @@ Google / Facebook login routes are not present in this file. US availability doe
 - Test callback cancellation, repeated taps, offline transition, foreground restoration, cold start and changed locale
 
 No API calls were made during this review. No SMS, registration or business transaction was triggered.
+
+## Foundation implemented (fixture validation pending at authoring time)
+
+- Explicit HTTPS configuration with no default service URL; gateway prefix retained
+- Multipart request bodies and raw `Authorization` header match current Flutter client source
+- Typed login `data` versus bootstrap `appUser` response shapes, server role / userType fallback
+- No refresh endpoint assumed: current Flutter network source explicitly says none is available
+- URLSession ephemeral transport, cookies/cache disabled, credential-bearing redirects refused
+- Keychain token storage scoped to the new native bundle with WhenUnlockedThisDeviceOnly
+- Epoch-based stale-completion guard primitive; app-level lifecycle integration is a later step
+- Local response fixtures only; no real login, SMS, payment or backend write performed
+
+This foundation is not yet connected to the registration sheet. Google/Facebook, Apple authorization UI, merchant application, account recovery and a refresh mechanism remain unimplemented rather than simulated.

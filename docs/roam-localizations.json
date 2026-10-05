@@ -1,0 +1,412 @@
+[
+  {
+    "key": "roam.title",
+    "en": "Explore the map",
+    "zh-Hans": "探索地图"
+  },
+  {
+    "key": "roam.loading",
+    "en": "Loading map results…",
+    "zh-Hans": "正在读取地图信息…"
+  },
+  {
+    "key": "roam.empty",
+    "en": "Nothing to show here",
+    "zh-Hans": "这里暂时没有结果"
+  },
+  {
+    "key": "roam.emptyHint",
+    "en": "Try another layer or a wider search area.",
+    "zh-Hans": "试试其他图层或扩大搜索范围。"
+  },
+  {
+    "key": "roam.filteredEmptyHint",
+    "en": "Try another filter or clear your search.",
+    "zh-Hans": "试试其他筛选条件或清除搜索内容。"
+  },
+  {
+    "key": "roam.search",
+    "en": "Search these results",
+    "zh-Hans": "搜索当前结果"
+  },
+  {
+    "key": "roam.listOnly",
+    "en": "Show list only",
+    "zh-Hans": "仅显示列表"
+  },
+  {
+    "key": "roam.showMap",
+    "en": "Show map",
+    "zh-Hans": "显示地图"
+  },
+  {
+    "key": "roam.offlineExample",
+    "en": "Offline examples · fixed synthetic coordinates",
+    "zh-Hans": "离线示例 · 固定虚拟坐标"
+  },
+  {
+    "key": "roam.suppliedArea",
+    "en": "Selected search area",
+    "zh-Hans": "已选搜索区域"
+  },
+  {
+    "key": "roam.locationNotice",
+    "en": "Searches use the supplied area. Your device location is not requested.",
+    "zh-Hans": "搜索使用已提供的区域，不请求设备定位。"
+  },
+  {
+    "key": "roam.layer",
+    "en": "Map layer",
+    "zh-Hans": "地图图层"
+  },
+  {
+    "key": "roam.layer.places",
+    "en": "Places",
+    "zh-Hans": "据点"
+  },
+  {
+    "key": "roam.layer.routes",
+    "en": "Route locations",
+    "zh-Hans": "路线地点"
+  },
+  {
+    "key": "roam.layer.events",
+    "en": "Events and themes",
+    "zh-Hans": "活动与主题"
+  },
+  {
+    "key": "roam.layer.players",
+    "en": "Nearby walkers",
+    "zh-Hans": "附近漫游者"
+  },
+  {
+    "key": "roam.radius",
+    "en": "Search radius",
+    "zh-Hans": "搜索半径"
+  },
+  {
+    "key": "roam.placeFilter",
+    "en": "Place type",
+    "zh-Hans": "据点类型"
+  },
+  {
+    "key": "roam.eventFilter",
+    "en": "Event type",
+    "zh-Hans": "活动类型"
+  },
+  {
+    "key": "roam.filter.all",
+    "en": "All",
+    "zh-Hans": "全部"
+  },
+  {
+    "key": "roam.filter.city",
+    "en": "City places",
+    "zh-Hans": "城市地点"
+  },
+  {
+    "key": "roam.filter.merchant",
+    "en": "Merchant places",
+    "zh-Hans": "商户据点"
+  },
+  {
+    "key": "roam.filter.activity",
+    "en": "Activities",
+    "zh-Hans": "活动"
+  },
+  {
+    "key": "roam.filter.topic",
+    "en": "Themes",
+    "zh-Hans": "主题"
+  },
+  {
+    "key": "roam.playerPrivacy",
+    "en": "Walker positions are approximate. Exact locations and directions are not shown.",
+    "zh-Hans": "漫游者位置已模糊处理，不显示精确位置或路线导航。"
+  },
+  {
+    "key": "roam.noCoordinates",
+    "en": "Map position unavailable",
+    "zh-Hans": "暂无地图位置"
+  },
+  {
+    "key": "roam.readOnlyNotice",
+    "en": "Browsing only. Visits, favorites, joining and purchases are not available in this native screen yet.",
+    "zh-Hans": "此原生页面目前仅供浏览，暂不支持打卡、收藏、加入或购买。"
+  },
+  {
+    "key": "roam.unnamed",
+    "en": "Unnamed item",
+    "zh-Hans": "未命名内容"
+  },
+  {
+    "key": "roam.distanceFromArea",
+    "en": "Distance from search area",
+    "zh-Hans": "距搜索区域"
+  },
+  {
+    "key": "roam.notConfigured",
+    "en": "Map service not configured",
+    "zh-Hans": "尚未配置地图服务"
+  },
+  {
+    "key": "roam.notConfiguredHint",
+    "en": "An approved service address is needed before loading live results.",
+    "zh-Hans": "配置获准的服务地址后，才能读取实时结果。"
+  },
+  {
+    "key": "roam.signInRequired",
+    "en": "Sign in to continue",
+    "zh-Hans": "请先登录"
+  },
+  {
+    "key": "roam.signInHint",
+    "en": "Sign in from your account screen, then return to the map.",
+    "zh-Hans": "请在账户页面登录后返回地图。"
+  },
+  {
+    "key": "roam.areaRequired",
+    "en": "Choose a search area first",
+    "zh-Hans": "请先选择搜索区域"
+  },
+  {
+    "key": "roam.areaRequiredHint",
+    "en": "No search coordinates have been supplied. This screen does not collect your location.",
+    "zh-Hans": "尚未提供搜索坐标，此页面不会采集您的位置。"
+  },
+  {
+    "key": "roam.notFound",
+    "en": "This place is unavailable",
+    "zh-Hans": "此据点不存在"
+  },
+  {
+    "key": "roam.notFoundHint",
+    "en": "The service could not find this place. Return to the map for other places.",
+    "zh-Hans": "服务未找到此据点，请返回地图查看其他地点。"
+  },
+  {
+    "key": "roam.failed",
+    "en": "Could not load these results",
+    "zh-Hans": "暂时无法读取结果"
+  },
+  {
+    "key": "roam.failedHint",
+    "en": "Please try again. No visit or other action was recorded.",
+    "zh-Hans": "请稍后重试，没有记录打卡或其他操作。"
+  },
+  {
+    "key": "roam.detail",
+    "en": "Map details",
+    "zh-Hans": "地图详情"
+  },
+  {
+    "key": "roam.close",
+    "en": "Close",
+    "zh-Hans": "关闭"
+  },
+  {
+    "key": "roam.notPublished",
+    "en": "This place is not marked as published",
+    "zh-Hans": "此据点未标记为已上线"
+  },
+  {
+    "key": "roam.about",
+    "en": "About",
+    "zh-Hans": "简介"
+  },
+  {
+    "key": "roam.address",
+    "en": "Address",
+    "zh-Hans": "地址"
+  },
+  {
+    "key": "roam.tags",
+    "en": "Tags",
+    "zh-Hans": "标签"
+  },
+  {
+    "key": "roam.template",
+    "en": "Play template",
+    "zh-Hans": "玩法模板"
+  },
+  {
+    "key": "roam.checkInRadius",
+    "en": "Check-in radius",
+    "zh-Hans": "打卡半径"
+  },
+  {
+    "key": "roam.potentialXP",
+    "en": "Potential exploration points",
+    "zh-Hans": "可获得的探索值"
+  },
+  {
+    "key": "roam.yourStatus",
+    "en": "Your status",
+    "zh-Hans": "您的状态"
+  },
+  {
+    "key": "roam.completed",
+    "en": "Completed",
+    "zh-Hans": "已完成"
+  },
+  {
+    "key": "roam.notCompleted",
+    "en": "Not completed",
+    "zh-Hans": "尚未完成"
+  },
+  {
+    "key": "roam.favorited",
+    "en": "Saved as a favorite",
+    "zh-Hans": "已收藏"
+  },
+  {
+    "key": "roam.merchant",
+    "en": "Public merchant information",
+    "zh-Hans": "商家公开信息"
+  },
+  {
+    "key": "roam.merchantFailed",
+    "en": "Merchant information could not be loaded. The place details are still available.",
+    "zh-Hans": "暂时无法读取商家信息，仍可查看据点详情。"
+  },
+  {
+    "key": "roam.closed",
+    "en": "Closed",
+    "zh-Hans": "已打烊"
+  },
+  {
+    "key": "roam.open",
+    "en": "Open",
+    "zh-Hans": "营业中"
+  },
+  {
+    "key": "roam.hours",
+    "en": "Business hours",
+    "zh-Hans": "营业时间"
+  },
+  {
+    "key": "roam.featured",
+    "en": "Featured",
+    "zh-Hans": "招牌主推"
+  },
+  {
+    "key": "roam.featuredReadOnly",
+    "en": "Featured information is shown for reference. Booking and purchasing are not available here.",
+    "zh-Hans": "主推信息仅供参考，此处暂不支持报名或购买。"
+  },
+  {
+    "key": "roam.routeReadOnly",
+    "en": "This is a route location, not a city check-in place.",
+    "zh-Hans": "这是路线地点，并非城市打卡据点。"
+  },
+  {
+    "key": "roam.startDate",
+    "en": "Start time",
+    "zh-Hans": "开始时间"
+  },
+  {
+    "key": "roam.cityOrientation",
+    "en": "City orienteering",
+    "zh-Hans": "城市定向"
+  },
+  {
+    "key": "roam.freeExploration",
+    "en": "Free exploration",
+    "zh-Hans": "自由探索"
+  },
+  {
+    "key": "roam.exploration",
+    "en": "Exploration",
+    "zh-Hans": "探索进度"
+  },
+  {
+    "key": "roam.shopsVisited",
+    "en": "Shops visited",
+    "zh-Hans": "点亮的店铺"
+  },
+  {
+    "key": "roam.walkingMinutes",
+    "en": "Walking time (minutes)",
+    "zh-Hans": "已漫游时长（分钟）"
+  },
+  {
+    "key": "roam.playerSnapshot",
+    "en": "This is the last loaded snapshot. Refresh the map to update it.",
+    "zh-Hans": "这是上次读取的快照，可刷新地图更新。"
+  },
+  {
+    "key": "roam.area.title",
+    "en": "Choose a search area",
+    "zh-Hans": "选择搜索区域"
+  },
+  {
+    "key": "roam.area.explanation",
+    "en": "Enter a map search center. This does not read your GPS or publish your presence.",
+    "zh-Hans": "请输入地图搜索中心，此操作不会读取 GPS 或公开您的在线位置。"
+  },
+  {
+    "key": "roam.area.searchDisclosure",
+    "en": "After you select an area, map searches send this chosen center to the configured service.",
+    "zh-Hans": "选择区域后，地图搜索会将所选中心坐标发送至已配置的服务。"
+  },
+  {
+    "key": "roam.area.coordinates",
+    "en": "Search center coordinates",
+    "zh-Hans": "搜索中心坐标"
+  },
+  {
+    "key": "roam.area.latitude",
+    "en": "Latitude",
+    "zh-Hans": "纬度"
+  },
+  {
+    "key": "roam.area.longitude",
+    "en": "Longitude",
+    "zh-Hans": "经度"
+  },
+  {
+    "key": "roam.area.latitudeHint",
+    "en": "Decimal degrees from −90 to 90. Use a dot for decimals.",
+    "zh-Hans": "十进制度数，范围为 −90 至 90，小数点请使用英文句点。"
+  },
+  {
+    "key": "roam.area.longitudeHint",
+    "en": "Decimal degrees from −180 to 180. Use a dot for decimals.",
+    "zh-Hans": "十进制度数，范围为 −180 至 180，小数点请使用英文句点。"
+  },
+  {
+    "key": "roam.area.invalidLatitude",
+    "en": "Enter a valid latitude from −90 to 90.",
+    "zh-Hans": "请输入 −90 至 90 范围内的有效纬度。"
+  },
+  {
+    "key": "roam.area.invalidLongitude",
+    "en": "Enter a valid longitude from −180 to 180.",
+    "zh-Hans": "请输入 −180 至 180 范围内的有效经度。"
+  },
+  {
+    "key": "roam.area.name",
+    "en": "Area name (optional)",
+    "zh-Hans": "区域名称（选填）"
+  },
+  {
+    "key": "roam.area.coordinateSystem",
+    "en": "The service uses GCJ-02 coordinates. Check the coordinate format of your source; this form does not convert GPS coordinates.",
+    "zh-Hans": "服务使用 GCJ-02 坐标，请确认来源的坐标格式；此表单不会转换 GPS 坐标。"
+  },
+  {
+    "key": "roam.area.memoryOnly",
+    "en": "The selected area is kept only in memory for this session. Cancel leaves your previous selection unchanged.",
+    "zh-Hans": "所选区域仅在本次会话的内存中保留，取消不会更改之前的选择。"
+  },
+  {
+    "key": "roam.area.cancel",
+    "en": "Cancel",
+    "zh-Hans": "取消"
+  },
+  {
+    "key": "roam.area.select",
+    "en": "Use area",
+    "zh-Hans": "使用此区域"
+  }
+]

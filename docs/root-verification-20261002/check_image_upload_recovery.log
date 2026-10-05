@@ -1,0 +1,4 @@
+PASS image upload durable metadata/host/source checks; Apple/runtime tests NOT_RUN
+PASS bounded streaming adapter source checks; network/runtime NOT_RUN
+
+--- STDERR ---

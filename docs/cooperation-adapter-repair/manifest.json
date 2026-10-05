@@ -1,0 +1,35 @@
+{
+  "scope": "isolated additive protected cooperation adapter repair",
+  "files": [
+    {
+      "path": "Core/CooperationFlowService.swift",
+      "action": "modify",
+      "sha256": "e42176a3f80defbab28bf53d03b1c534a26988ab8d2585a6a88c574b2afe4b2b",
+      "base_sha256": "64a4abd41f3adf8f2701e077ba2308cb7911ea5875ef85ebf0b034f6f460788e"
+    },
+    {
+      "path": "Core/CooperationFlowCoordinator.swift",
+      "action": "modify",
+      "sha256": "27dc932f201fb86ce30dbb0f920b76597b23690981b1e52ed195414b4a63980c",
+      "base_sha256": "56147bcdce447f9b1d0cffa72ec4563dd796075933bcb25a178c8368fba2a3f8"
+    },
+    {
+      "path": "Core/CooperationProtectedDispatch.swift",
+      "action": "add",
+      "sha256": "7524838e22a75b3efcb5d6efa15d861a6678ef4eae6af440252155dd1eb2c217"
+    },
+    {
+      "path": "Tests/CoreTests/CooperationProtectedDispatchTests.swift",
+      "action": "add",
+      "sha256": "87bf1e98cba0d3821db1124735f9fe64cf211096bbd102fd3c9042511908b92d"
+    },
+    {
+      "path": "tools/check_cooperation_protected_dispatch.py",
+      "action": "add",
+      "sha256": "f0544731a36e4eb41048d60c659aff20822b174a12a7999799abcd9efa5e962f"
+    }
+  ],
+  "apple_compilation": "NOT_RUN",
+  "swift_tests": "NOT_RUN",
+  "external_actions": 0
+}

@@ -1,0 +1,902 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "media.destination.poiGallery": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Place photos"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "据点相册"
+          }
+        }
+      }
+    },
+    "media.destination.squareImages": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photos"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图片浏览"
+          }
+        }
+      }
+    },
+    "media.destination.openImage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open photo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看图片"
+          }
+        }
+      }
+    },
+    "media.destination.image": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图片"
+          }
+        }
+      }
+    },
+    "media.destination.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No photos"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无图片"
+          }
+        }
+      }
+    },
+    "media.destination.previous": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Previous"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上一张"
+          }
+        }
+      }
+    },
+    "media.destination.next": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下一张"
+          }
+        }
+      }
+    },
+    "media.destination.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo loading is not enabled"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图片加载尚未启用"
+          }
+        }
+      }
+    },
+    "media.destination.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo could not load"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图片加载失败"
+          }
+        }
+      }
+    },
+    "media.destination.zoomHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pinch or double-tap to zoom; drag to pan"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "双指或双击缩放，拖动查看细节"
+          }
+        }
+      }
+    },
+    "media.poster.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan the place poster"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "扫描据点海报"
+          }
+        }
+      }
+    },
+    "media.poster.purpose": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan with the camera and use one fresh foreground location to verify this place. Scanning alone does not complete check-in."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用相机扫描，并获取一次当前前台位置核验据点。扫描本身不代表打卡完成。"
+          }
+        }
+      }
+    },
+    "media.poster.disabled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Camera, location and check-in are not enabled for this deployment"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此环境尚未启用相机、定位与打卡提交"
+          }
+        }
+      }
+    },
+    "media.poster.consent": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow this scan and one location check"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同意本次扫描与一次定位核验"
+          }
+        }
+      }
+    },
+    "media.poster.scan": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open scanner"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开扫描相机"
+          }
+        }
+      }
+    },
+    "media.poster.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm place verification"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认提交据点核验"
+          }
+        }
+      }
+    },
+    "media.poster.ready": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ready to scan"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "准备扫描"
+          }
+        }
+      }
+    },
+    "media.poster.unsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This place has no available poster-scan method"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此据点未配置可用的海报扫描核验方式"
+          }
+        }
+      }
+    },
+    "media.poster.phase.ready": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ready to scan"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "准备扫描"
+          }
+        }
+      }
+    },
+    "media.poster.phase.locating": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking your current location…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在获取本次位置…"
+          }
+        }
+      }
+    },
+    "media.poster.phase.review": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "QR captured. Confirm to submit the code and this location."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已识别二维码。确认后将二维码与本次位置提交核验。"
+          }
+        }
+      }
+    },
+    "media.poster.phase.preflighting": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking the current place status…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在核对据点当前状态…"
+          }
+        }
+      }
+    },
+    "media.poster.phase.submitting": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Awaiting the verification result…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在等待核验结果…"
+          }
+        }
+      }
+    },
+    "media.poster.phase.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The result is unknown and this attempt is locked. Do not scan again. Return to place details to check its status."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果待确认，本次操作已锁定。请勿重新扫码，请返回据点详情核对状态。"
+          }
+        }
+      }
+    },
+    "media.poster.phase.completed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server confirmed this check-in"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端已确认本次打卡"
+          }
+        }
+      }
+    },
+    "media.poster.phase.needsRedemption": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merchant redemption is still required"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仍需商家核销，尚未完成领取"
+          }
+        }
+      }
+    },
+    "media.poster.phase.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verification is unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "核验暂不可用"
+          }
+        }
+      }
+    },
+    "media.poster.phase.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verification was not completed. Check permissions and scan again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "核验未完成，请检查权限后重新扫描。"
+          }
+        }
+      }
+    },
+    "media.stamp.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stamp camera"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "集邮相机"
+          }
+        }
+      }
+    },
+    "media.stamp.purpose": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Take a new photo and review its 4:5 center crop before uploading. Saving to the album is a separate confirmed step. No location is requested."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拍摄新照片后，先预览 4:5 中心裁切，再确认上传。上传成功后另行确认入册。本流程不请求定位。"
+          }
+        }
+      }
+    },
+    "media.stamp.disabled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Camera and photo upload are not enabled for this deployment"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此环境尚未启用相机和照片上传"
+          }
+        }
+      }
+    },
+    "media.stamp.cameraIssue": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Camera access is unavailable. Check camera permission in Settings, then return and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "相机暂不可用，请在系统设置中检查相机权限后返回重试。"
+          }
+        }
+      }
+    },
+    "media.stamp.consent": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use the camera for this stamp"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "为本枚邮票使用相机"
+          }
+        }
+      }
+    },
+    "media.stamp.capturedPreview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your captured photo, cropped to 4:5"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "实际拍摄并裁切为 4:5 的照片"
+          }
+        }
+      }
+    },
+    "media.stamp.retake": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retake photo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新拍摄"
+          }
+        }
+      }
+    },
+    "media.stamp.upload": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upload this photo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上传这张照片"
+          }
+        }
+      }
+    },
+    "media.stamp.create": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm saving to album"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认入册"
+          }
+        }
+      }
+    },
+    "media.stamp.capture": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Take photo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拍摄照片"
+          }
+        }
+      }
+    },
+    "media.stamp.exactRetry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirmation reuses the same uploaded photo and request key. Do not upload or retake while the result is unresolved."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再次确认仅使用原照片与原幂等键核对。结果确认前请勿重新上传或重拍。"
+          }
+        }
+      }
+    },
+    "media.stamp.phase.ready": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ready to take a photo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "准备拍摄"
+          }
+        }
+      }
+    },
+    "media.stamp.phase.review": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review the actual cropped photo before uploading"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先确认实际裁切后的照片"
+          }
+        }
+      }
+    },
+    "media.stamp.phase.uploading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uploading the photo…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在上传照片…"
+          }
+        }
+      }
+    },
+    "media.stamp.phase.awaitingCreate": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo uploaded. It has not been saved to the album yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "照片已上传，尚未入册。"
+          }
+        }
+      }
+    },
+    "media.stamp.phase.creating": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting for album confirmation…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在等待入册确认…"
+          }
+        }
+      }
+    },
+    "media.stamp.phase.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The previous result needs confirmation. A new capture is locked."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上次结果待确认，暂不能重新拍摄。"
+          }
+        }
+      }
+    },
+    "media.stamp.phase.created": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server confirmed the stamp was added. Moderation may still be pending."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端已确认入册，图片审核可能仍在进行中。"
+          }
+        }
+      }
+    },
+    "media.stamp.phase.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Safe recovery storage is unavailable. No upload or save can start."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安全恢复存储不可用，暂不能上传或入册。"
+          }
+        }
+      }
+    },
+    "media.stamp.phase.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The photo was not uploaded. Review it and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "照片尚未上传，请确认后重试。"
+          }
+        }
+      }
+    },
+    "withdrawal.support.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Balance and withdrawal help"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "余额与提现帮助"
+          }
+        }
+      }
+    },
+    "withdrawal.support.balance": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current balance"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前余额"
+          }
+        }
+      }
+    },
+    "withdrawal.support.notReceived": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Amounts not yet available"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未到账金额"
+          }
+        }
+      }
+    },
+    "withdrawal.support.explanation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review your balance and unsettled amounts. Support can help check the records. This screen does not confirm a transfer or an arrival date."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先核对余额与未到账金额。客服可协助核对记录；本页展示不代表已转账，也不承诺到账时间。"
+          }
+        }
+      }
+    },
+    "withdrawal.support.contact": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contact platform support"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "联系平台客服"
+          }
+        }
+      }
+    },
+    "withdrawal.support.weChat": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Support WeChat ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "客服微信号"
+          }
+        }
+      }
+    },
+    "withdrawal.support.manualContact": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select the ID to copy it and contact support yourself. No message or financial details are sent automatically."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可选择并复制微信号后自行联系。不会自动发送消息或财务信息。"
+          }
+        }
+      }
+    },
+    "withdrawal.support.unconfigured": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No reviewed support contact is configured for this deployment"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此环境尚未配置经核验的客服联系方式"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

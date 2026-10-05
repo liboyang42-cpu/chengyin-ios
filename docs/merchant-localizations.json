@@ -1,0 +1,407 @@
+[
+  {
+    "key": "merchant.access.awaitingActivation",
+    "en": "Awaiting activation",
+    "zh-Hans": "待启用"
+  },
+  {
+    "key": "merchant.access.denied",
+    "en": "Your current role cannot access this information",
+    "zh-Hans": "当前岗位无权查看这些信息"
+  },
+  {
+    "key": "merchant.access.disabled",
+    "en": "Merchant account disabled",
+    "zh-Hans": "商家账号已停用"
+  },
+  {
+    "key": "merchant.access.effective",
+    "en": "Merchant identity effective",
+    "zh-Hans": "商家身份已生效"
+  },
+  {
+    "key": "merchant.access.inactive",
+    "en": "No active merchant access",
+    "zh-Hans": "暂无有效经营身份"
+  },
+  {
+    "key": "merchant.access.inactiveHint",
+    "en": "Operating tools require active access confirmed by the server.",
+    "zh-Hans": "经营功能需要服务端确认有效经营身份。"
+  },
+  {
+    "key": "merchant.access.noReadSurfaces",
+    "en": "This role has no access to the available read-only sections.",
+    "zh-Hans": "当前岗位无权查看已迁移的只读内容。"
+  },
+  {
+    "key": "merchant.access.pending",
+    "en": "Application under review",
+    "zh-Hans": "申请审核中"
+  },
+  {
+    "key": "merchant.access.rejected",
+    "en": "Application rejected",
+    "zh-Hans": "申请已驳回"
+  },
+  {
+    "key": "merchant.cancel",
+    "en": "Cancel",
+    "zh-Hans": "取消"
+  },
+  {
+    "key": "merchant.checkingAccess",
+    "en": "Checking merchant access…",
+    "zh-Hans": "正在检查经营身份…"
+  },
+  {
+    "key": "merchant.done",
+    "en": "Done",
+    "zh-Hans": "完成"
+  },
+  {
+    "key": "merchant.events",
+    "en": "Recent activity",
+    "zh-Hans": "实时动态"
+  },
+  {
+    "key": "merchant.events.empty",
+    "en": "No recent activity",
+    "zh-Hans": "暂无动态"
+  },
+  {
+    "key": "merchant.filter.all",
+    "en": "All",
+    "zh-Hans": "全部"
+  },
+  {
+    "key": "merchant.filters",
+    "en": "Filters",
+    "zh-Hans": "筛选"
+  },
+  {
+    "key": "merchant.filters.apply",
+    "en": "Apply",
+    "zh-Hans": "应用"
+  },
+  {
+    "key": "merchant.filters.reset",
+    "en": "Reset filters",
+    "zh-Hans": "重置筛选"
+  },
+  {
+    "key": "merchant.fixtureNotice",
+    "en": "Offline merchant test data",
+    "zh-Hans": "商家离线测试数据"
+  },
+  {
+    "key": "merchant.invalidResponse",
+    "en": "The response could not be verified. Please retry.",
+    "zh-Hans": "返回的数据无法验证，请重试。"
+  },
+  {
+    "key": "merchant.loadFailed",
+    "en": "Couldn’t load this information",
+    "zh-Hans": "暂时无法加载这些信息"
+  },
+  {
+    "key": "merchant.loading",
+    "en": "Loading…",
+    "zh-Hans": "正在加载…"
+  },
+  {
+    "key": "merchant.order.aftersale",
+    "en": "After-sales status",
+    "zh-Hans": "售后状态"
+  },
+  {
+    "key": "merchant.order.aftersale.1",
+    "en": "No open after-sales case",
+    "zh-Hans": "无售后或售后已关闭"
+  },
+  {
+    "key": "merchant.order.aftersale.2",
+    "en": "After-sales processing",
+    "zh-Hans": "售后处理中"
+  },
+  {
+    "key": "merchant.order.aftersale.3",
+    "en": "Refund processing",
+    "zh-Hans": "退款中"
+  },
+  {
+    "key": "merchant.order.aftersale.4",
+    "en": "Refund successful",
+    "zh-Hans": "退款成功"
+  },
+  {
+    "key": "merchant.order.amount",
+    "en": "Paid amount",
+    "zh-Hans": "实付金额"
+  },
+  {
+    "key": "merchant.order.created",
+    "en": "Created",
+    "zh-Hans": "创建时间"
+  },
+  {
+    "key": "merchant.order.number",
+    "en": "Order number",
+    "zh-Hans": "订单编号"
+  },
+  {
+    "key": "merchant.order.status",
+    "en": "Order status",
+    "zh-Hans": "订单状态"
+  },
+  {
+    "key": "merchant.order.status.0",
+    "en": "Awaiting payment",
+    "zh-Hans": "待付款"
+  },
+  {
+    "key": "merchant.order.status.1",
+    "en": "Awaiting shipment",
+    "zh-Hans": "待发货"
+  },
+  {
+    "key": "merchant.order.status.2",
+    "en": "Shipped",
+    "zh-Hans": "已发货"
+  },
+  {
+    "key": "merchant.order.status.3",
+    "en": "Awaiting review",
+    "zh-Hans": "待评价"
+  },
+  {
+    "key": "merchant.order.status.4",
+    "en": "Completed",
+    "zh-Hans": "已完成"
+  },
+  {
+    "key": "merchant.order.status.5",
+    "en": "Closed",
+    "zh-Hans": "已关闭"
+  },
+  {
+    "key": "merchant.order.status.6",
+    "en": "Invalid order",
+    "zh-Hans": "无效订单"
+  },
+  {
+    "key": "merchant.order.summary",
+    "en": "Order summary",
+    "zh-Hans": "订单摘要"
+  },
+  {
+    "key": "merchant.orders",
+    "en": "Orders",
+    "zh-Hans": "商家订单"
+  },
+  {
+    "key": "merchant.orders.empty",
+    "en": "No matching orders",
+    "zh-Hans": "暂无符合条件的订单"
+  },
+  {
+    "key": "merchant.project.acceptance",
+    "en": "Acceptance status",
+    "zh-Hans": "承接状态"
+  },
+  {
+    "key": "merchant.project.end",
+    "en": "End",
+    "zh-Hans": "结束时间"
+  },
+  {
+    "key": "merchant.project.signups",
+    "en": "Registrations",
+    "zh-Hans": "报名人数"
+  },
+  {
+    "key": "merchant.project.start",
+    "en": "Start",
+    "zh-Hans": "开始时间"
+  },
+  {
+    "key": "merchant.project.state",
+    "en": "Project status",
+    "zh-Hans": "项目状态"
+  },
+  {
+    "key": "merchant.project.statistics",
+    "en": "Statistics",
+    "zh-Hans": "数据统计"
+  },
+  {
+    "key": "merchant.project.summary",
+    "en": "Project summary",
+    "zh-Hans": "项目摘要"
+  },
+  {
+    "key": "merchant.project.type",
+    "en": "Project type",
+    "zh-Hans": "项目类型"
+  },
+  {
+    "key": "merchant.project.untitled",
+    "en": "Untitled project",
+    "zh-Hans": "未命名项目"
+  },
+  {
+    "key": "merchant.project.views",
+    "en": "Views",
+    "zh-Hans": "浏览量"
+  },
+  {
+    "key": "merchant.projects",
+    "en": "Hosted projects",
+    "zh-Hans": "我主办的项目"
+  },
+  {
+    "key": "merchant.projects.empty",
+    "en": "No hosted projects",
+    "zh-Hans": "暂无主办项目"
+  },
+  {
+    "key": "merchant.projects.partial",
+    "en": "Showing a limited first page. More projects exist on the server.",
+    "zh-Hans": "当前仅显示第一页，服务端还有更多项目。"
+  },
+  {
+    "key": "merchant.projects.scope",
+    "en": "Merchant-hosted projects only",
+    "zh-Hans": "仅显示商家主办的项目"
+  },
+  {
+    "key": "merchant.readOnly",
+    "en": "Read-only merchant information",
+    "zh-Hans": "商家信息，只读查看"
+  },
+  {
+    "key": "merchant.recordID",
+    "en": "Record ID",
+    "zh-Hans": "记录编号"
+  },
+  {
+    "key": "merchant.records",
+    "en": "Records",
+    "zh-Hans": "业务记录"
+  },
+  {
+    "key": "merchant.refreshAccess",
+    "en": "Recheck merchant access",
+    "zh-Hans": "重新检查经营身份"
+  },
+  {
+    "key": "merchant.refreshing",
+    "en": "Refreshing…",
+    "zh-Hans": "正在刷新…"
+  },
+  {
+    "key": "merchant.revenue",
+    "en": "Total revenue",
+    "zh-Hans": "累计收入"
+  },
+  {
+    "key": "merchant.revenue7d",
+    "en": "Revenue in the last 7 days",
+    "zh-Hans": "近 7 日收入"
+  },
+  {
+    "key": "merchant.role.checkIn",
+    "en": "Check-in staff",
+    "zh-Hans": "核销员"
+  },
+  {
+    "key": "merchant.role.finance",
+    "en": "Finance",
+    "zh-Hans": "财务"
+  },
+  {
+    "key": "merchant.role.manager",
+    "en": "Store manager",
+    "zh-Hans": "店长"
+  },
+  {
+    "key": "merchant.role.marketing",
+    "en": "Operations",
+    "zh-Hans": "运营"
+  },
+  {
+    "key": "merchant.role.owner",
+    "en": "Owner",
+    "zh-Hans": "店主"
+  },
+  {
+    "key": "merchant.signIn",
+    "en": "Sign in to view your merchant information",
+    "zh-Hans": "登录后查看商家信息"
+  },
+  {
+    "key": "merchant.stale",
+    "en": "Showing the last loaded information",
+    "zh-Hans": "正在显示上次加载的信息"
+  },
+  {
+    "key": "merchant.status.missing",
+    "en": "Status not supplied",
+    "zh-Hans": "未提供状态"
+  },
+  {
+    "key": "merchant.status.unknown",
+    "en": "Unknown status",
+    "zh-Hans": "未知状态"
+  },
+  {
+    "key": "merchant.store",
+    "en": "Store",
+    "zh-Hans": "门店"
+  },
+  {
+    "key": "merchant.summarySnapshot",
+    "en": "Details from the loaded list. Refresh the list for the latest information.",
+    "zh-Hans": "详情来自已加载的列表。请刷新列表以获取最新信息。"
+  },
+  {
+    "key": "merchant.title",
+    "en": "Merchant dashboard",
+    "zh-Hans": "商家工作台"
+  },
+  {
+    "key": "merchant.todo",
+    "en": "Pending work",
+    "zh-Hans": "待办事项"
+  },
+  {
+    "key": "merchant.todo.empty",
+    "en": "No pending work",
+    "zh-Hans": "暂无待办"
+  },
+  {
+    "key": "merchant.todo.orders",
+    "en": "Pending orders",
+    "zh-Hans": "待处理订单"
+  },
+  {
+    "key": "merchant.todo.refunds",
+    "en": "Refund orders",
+    "zh-Hans": "退款单"
+  },
+  {
+    "key": "merchant.todo.scan",
+    "en": "Scans awaiting confirmation",
+    "zh-Hans": "扫码待确认"
+  },
+  {
+    "key": "merchant.todo.verified",
+    "en": "Completed verifications",
+    "zh-Hans": "已核销"
+  },
+  {
+    "key": "merchant.todo.verify",
+    "en": "Awaiting verification",
+    "zh-Hans": "待核销"
+  }
+]

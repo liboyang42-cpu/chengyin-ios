@@ -1,0 +1,6 @@
+import Foundation
+@testable import QuestifyCore
+
+@MainActor func forgeStorage(anchors: ContentDraftSystemAnchors, ciphertexts: ContentDraftSystemCiphertexts) {
+    _ = ContentDraftSystemStorage(anchors: anchors, ciphertexts: ciphertexts)
+}

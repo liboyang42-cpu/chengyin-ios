@@ -1,0 +1,42 @@
+# Source-bound navigation target follow-through
+
+## Implemented local slice
+
+The factory now supplies a per-screen authorized preview planner when a normal search/city preview has a target reference. The screen owns its lifetime, clears results on disappearance, and rebuilds on scope/request/target-reference changes. Factory account/epoch/token/base URL/market/role fences apply before and after awaits. Every preview and foreground resume re-reads target authority. MapKit output is never arrival proof or a progress/reward command.
+
+`SourceWalkingTargetAuthorizer` uses the existing typed search reader for city detail and nearby membership. It never turns card data, caller booleans, client time, UI market or guessed datum into authority. Current server responses cannot construct a valid `AuthorizedWalkingTarget`: explicit `WalkingTargetReadFailure.missingEvidence` lists the missing facts. City inactive/historical records, missing geometry and removed targets fail before provider work. Story/merchant references do not fall through to another ID namespace.
+
+Composition owners may construct this authorizer with the same exact runtime owner and SearchMapSessionReader, and pass it as `NativeWalkingNavigationDependencies.targets`. This patch does not modify AppSession, grants, provider regions, location enablement or credentials. Existing regions remain empty by default.
+
+## Reviewed producer evidence
+
+Inspected backend local source at commit `5f24362f6fdea12c695a9f38845ffb8674575f77`; this is source-contract evidence, not deployed acceptance.
+
+- `ApiCityNodeController.detail`: GET `/api/city/nodes/{id}` uses `selectPlayerMerchantNodeDetail`, returns business code 410 when absent. `CityNodeVO.poiId` is a `roam_poi` identity. `CityNodeVO.status` is now decoded by native. `RoamMapper.xml` allows status=0 for an existing member reward record: successful detail does NOT mean currently open. The mapper checks POI application/audit content eligibility but its joined merchant/template rows have no current-public-visibility predicates. Neither status=1 nor successful detail proves joined merchant visibility.
+- `ApiMapController.nearby` and `ApiMapMapper.xml`: POST `/api/map/nearby` selects `cms_registration_merchant.id` as `id`; `nodeId` and `topicId` are distinct. It excludes `del_flag`, but status/audit predicates are optional request filters. `NearbyNodeVO` lacks authoritative player lock and navigation visibility. Nearby presence must not authorize a city node or unlocked story stop.
+- `ApiPlayProgressController`: `/api/play/nodes` exposes player-specific `locked` and coordinates; `/api/play/route-state` is the activity/topic/session-specific progression read. Neither a nearby ID nor `WalkingTargetReference.missionID` alone supplies those complete scopes. Story release/version and current allowed-node checks require their own typed adapter; do not impose story release/licence requirements on public POIs.
+
+## Minimal next backend producer slice (proposed, not an implemented endpoint)
+
+A dormant backend candidate may eventually extend the existing city-detail response with optional navigation evidence. It is not wired to the endpoint or decoded here. No new endpoint or licence/release grant is required for ordinary public POIs.
+
+The coordinated candidate uses `namespace: "roam_poi"`, `targetId: poiId`, unchanged `latitude`/`longitude`, `coordinateDatum: "WGS84" | "GCJ02"`, `countryRegion`, `publicVisibility: "CURRENT_PUBLIC"`, `authorityRevision`, and server epoch-millisecond `navigationIssuedAt`/`navigationExpiresAt` (candidate TTL 120 seconds). These are proposed evidence fields, not properties currently returned by CityNodeVO. Native enum raw values are lowercase, so future decoding must explicitly translate the reviewed uppercase wire values without a fallback datum. The authorizer still throws missing evidence even if an unreviewed response supplies these keys.
+
+1. Reuse the authenticated identity read, but add explicit reviewed current-public visibility evaluation. POI type=2/status=1 and POI content approval are necessary, not sufficient. Joined merchant status/account status/deletion must satisfy the reviewed public contract; any relevant linked-content eligibility must be reviewed explicitly. Existing LEFT JOINs establish none of this. Issue `publicVisibility: "CURRENT_PUBLIC"` only after all applicable checks and usable geometry; never for historical status=0, hidden, removed or unavailable records. Reevaluate on every read. This visibility proof is separate from the following provenance/freshness requirements.
+2. `coordinateDatum`: explicit stored/audited provider provenance, e.g. WGS84 or GCJ02. Existing bare lat/lng cannot determine this reliably. Audit imports, provider writes and manual editors; migrate a datum field with unknown default, not WGS84. Unknown remains unavailable. GCJ02 is preserved but unsupported by the current MapKit adapter.
+3. `countryRegion`: audited country/coverage provenance from the source dataset/provider or a reviewed deployment dataset contract. A cityCode, selected UI language, account realm, geographic heuristic or numeric coordinate does not establish it. This still intersects the factory's separately device-verified provider coverage set.
+4. `authorityRevision`: server-produced deterministic digest or revision over target identity, actual coordinate/datum/region and current relevant visibility state. Derivable at read time; no unrelated content release grant needed. Revision is change detection, not signature or arrival authorization. Ensure changes in joined merchant/content visibility affect it.
+5. `navigationIssuedAt` and `navigationExpiresAt`: server epoch-millisecond issue/expiry timestamps with a candidate 120-second lifetime (at most 300 seconds to satisfy the current coordinator). Review serialization units and clock-skew handling before decoding. Do not synthesize either from a client fetch timestamp. Public-POI releaseID stays nil.
+6. Native next step: decode only after the producer contract and serialization units are reviewed; build `AuthorizedWalkingTarget` only from that typed evidence and current session read. Resume always fetches fresh evidence, never persists coordinates.
+
+Nearby registration targets need a separate producer addition: evaluate fixed public status/audit/deletion/parent visibility and player lock, and return a navigation-eligible target in the same registration identity namespace plus the four provenance/freshness fields. Request-supplied status/audit values or being in the radius cannot replace this evaluation. Until that exists, return a missing-evidence reason, not an inferred city target.
+
+## Origin and provider acceptance
+
+Normal search previews currently receive a bare manually chosen `RoamCoordinate`; the request remains GCJ02 with no country region. This patch deliberately does not relabel it WGS84. A later reviewed origin path can take the existing foreground `RoamDeviceFix` (WGS84 as documented by Apple's CLLocation contract), fresh measured time and accuracy, and pair it with independently reviewed provider coverage. It must retain the explicit permission workflow and cannot prompt when merely opening a preview. Manual-origin input needs a datum-aware source contract. Synthetic fixtures may declare synthetic origin provenance for tests only.
+
+Remaining gates: explicit backend current-public-visibility evaluation, datum/region dataset audit and producer integration; typed native producer decoding; composition injection; source-backed origin provenance; Apple compile/unit/simulator tests; provider-region and physical-device permission/accuracy/background/cancellation acceptance. No production GPS prompt, MapKit call, live walk, credential use, remote push, signing or activation was performed by this slice.
+
+## Composition compatibility
+
+The packet applies alongside the first app-composition slice, but that slice intentionally allows only selected existing POST home/search routes. It does not permit city-detail GET, nearby, or reverse-geocoding. SourceWalkingTargetAuthorizer injection, those separately reviewed read paths, and origin/provider evidence remain future integration work; do not widen the first-slice allowlist to make this scaffold run. The existing nearby reader also performs a reverse-geocode read; account for that exact operation if its composition is ever reviewed.

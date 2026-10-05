@@ -1,0 +1,10 @@
+{
+  "templateLegacyHints.enabled": {
+    "en": "Hints (optional)",
+    "zh-Hans": "提示（选填）"
+  },
+  "templateLegacyHints.clearNotice": {
+    "en": "Turning hints off clears both hints and the fallback answer.",
+    "zh-Hans": "关闭提示会清空两级提示和兜底答案。"
+  }
+}

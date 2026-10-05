@@ -1,0 +1,2 @@
+ERROR Swift parser preflight: missing parser dependency; install tools/requirements-swift-syntax.txt as described in docs/swift-syntax-preflight.md
+SCOPE: supplementary Tree-sitter parse only; no Swift typechecking, Apple SDK/API checks, compilation, or runtime tests. Grammar gaps may fail valid Swift.

@@ -1,0 +1,282 @@
+[
+  {
+    "key": "square.title",
+    "en": "Square",
+    "zh-Hans": "广场"
+  },
+  {
+    "key": "square.detail",
+    "en": "Post details",
+    "zh-Hans": "动态详情"
+  },
+  {
+    "key": "square.feed",
+    "en": "Feed",
+    "zh-Hans": "动态来源"
+  },
+  {
+    "key": "square.mode.latest",
+    "en": "Latest",
+    "zh-Hans": "最新"
+  },
+  {
+    "key": "square.mode.following",
+    "en": "Following",
+    "zh-Hans": "关注"
+  },
+  {
+    "key": "square.mode.nearby",
+    "en": "Nearby",
+    "zh-Hans": "附近"
+  },
+  {
+    "key": "square.mode.topic",
+    "en": "Topic",
+    "zh-Hans": "话题"
+  },
+  {
+    "key": "square.mode.community",
+    "en": "Community",
+    "zh-Hans": "社群"
+  },
+  {
+    "key": "square.mode.featured",
+    "en": "Featured",
+    "zh-Hans": "精选"
+  },
+  {
+    "key": "square.mode.trending",
+    "en": "Trending",
+    "zh-Hans": "热门"
+  },
+  {
+    "key": "square.mode.forYou",
+    "en": "For you",
+    "zh-Hans": "推荐"
+  },
+  {
+    "key": "square.loading",
+    "en": "Loading posts…",
+    "zh-Hans": "正在读取动态…"
+  },
+  {
+    "key": "square.empty",
+    "en": "No posts found",
+    "zh-Hans": "暂无动态"
+  },
+  {
+    "key": "square.failed",
+    "en": "This content could not be loaded",
+    "zh-Hans": "暂时无法读取内容"
+  },
+  {
+    "key": "square.notConfigured",
+    "en": "Square service is not configured",
+    "zh-Hans": "广场服务尚未配置"
+  },
+  {
+    "key": "square.unauthorized",
+    "en": "Your session could not be verified. Sign in again to continue",
+    "zh-Hans": "无法验证登录状态，请重新登录后继续"
+  },
+  {
+    "key": "square.signInRequired",
+    "en": "Sign in to view this feed",
+    "zh-Hans": "登录后可查看此动态来源"
+  },
+  {
+    "key": "square.cityRequired",
+    "en": "Enter a city code to view nearby posts",
+    "zh-Hans": "输入城市代码后查看附近动态"
+  },
+  {
+    "key": "square.topicRequired",
+    "en": "Enter a topic code to view this feed",
+    "zh-Hans": "输入话题代码后查看动态"
+  },
+  {
+    "key": "square.communityRequired",
+    "en": "Enter a valid community ID",
+    "zh-Hans": "请输入有效的社群编号"
+  },
+  {
+    "key": "square.unavailable",
+    "en": "This post is unavailable",
+    "zh-Hans": "此动态不可用"
+  },
+  {
+    "key": "square.retry",
+    "en": "Retry",
+    "zh-Hans": "重试"
+  },
+  {
+    "key": "square.loadMore",
+    "en": "Load more posts",
+    "zh-Hans": "加载更多动态"
+  },
+  {
+    "key": "square.moreComments",
+    "en": "Load more comments",
+    "zh-Hans": "加载更多评论"
+  },
+  {
+    "key": "square.commentsLoading",
+    "en": "Loading comments…",
+    "zh-Hans": "正在读取评论…"
+  },
+  {
+    "key": "square.noComments",
+    "en": "No comments yet",
+    "zh-Hans": "暂无评论"
+  },
+  {
+    "key": "square.invalidCursor",
+    "en": "These posts are loaded, but the server did not provide a usable next page. Pull to refresh",
+    "zh-Hans": "已读取当前动态，但服务器未提供有效的下一页信息，请下拉刷新"
+  },
+  {
+    "key": "square.readOnly",
+    "en": "Browsing only. Publishing, reactions, sharing and comment actions are not available in this native module yet",
+    "zh-Hans": "当前仅支持浏览，此原生模块暂未开放发布、互动、分享和评论操作"
+  },
+  {
+    "key": "square.offlineExample",
+    "en": "Offline synthetic example. No live backend is used",
+    "zh-Hans": "离线合成示例，未连接真实后端"
+  },
+  {
+    "key": "square.search",
+    "en": "Search posts",
+    "zh-Hans": "搜索动态"
+  },
+  {
+    "key": "square.cityPurpose",
+    "en": "Enter a city code to request its public feed. Your precise location is not requested",
+    "zh-Hans": "输入城市代码以读取该城市的公开动态，此处不请求精确位置"
+  },
+  {
+    "key": "square.cityCode",
+    "en": "City code",
+    "zh-Hans": "城市代码"
+  },
+  {
+    "key": "square.topicCode",
+    "en": "Topic code",
+    "zh-Hans": "话题代码"
+  },
+  {
+    "key": "square.communityID",
+    "en": "Community ID",
+    "zh-Hans": "社群编号"
+  },
+  {
+    "key": "square.applyFilter",
+    "en": "Apply filter",
+    "zh-Hans": "应用筛选"
+  },
+  {
+    "key": "square.unknownAuthor",
+    "en": "Author name unavailable",
+    "zh-Hans": "作者名称暂无"
+  },
+  {
+    "key": "square.verified",
+    "en": "Verified",
+    "zh-Hans": "已认证"
+  },
+  {
+    "key": "square.level",
+    "en": "Member level",
+    "zh-Hans": "会员等级"
+  },
+  {
+    "key": "square.club",
+    "en": "Club",
+    "zh-Hans": "俱乐部"
+  },
+  {
+    "key": "square.reference",
+    "en": "Related content",
+    "zh-Hans": "关联内容"
+  },
+  {
+    "key": "square.routeProgress",
+    "en": "Route progress",
+    "zh-Hans": "路线进度"
+  },
+  {
+    "key": "square.completed",
+    "en": "Completed",
+    "zh-Hans": "已完成"
+  },
+  {
+    "key": "square.likes",
+    "en": "Likes",
+    "zh-Hans": "点赞数"
+  },
+  {
+    "key": "square.comments",
+    "en": "Comments",
+    "zh-Hans": "评论"
+  },
+  {
+    "key": "square.disclosure",
+    "en": "Disclosure",
+    "zh-Hans": "披露信息"
+  },
+  {
+    "key": "square.replyTo",
+    "en": "Replying to",
+    "zh-Hans": "回复"
+  },
+  {
+    "key": "square.imageUnavailable",
+    "en": "Image unavailable",
+    "zh-Hans": "图片不可用"
+  },
+  {
+    "key": "square.imageLoading",
+    "en": "Loading image…",
+    "zh-Hans": "正在读取图片…"
+  },
+  {
+    "key": "square.postImage",
+    "en": "Post image",
+    "zh-Hans": "动态图片"
+  },
+  {
+    "key": "square.safety.dangerous",
+    "en": "Dangerous activity",
+    "zh-Hans": "危险活动"
+  },
+  {
+    "key": "square.safety.sensitive",
+    "en": "Sensitive content",
+    "zh-Hans": "敏感内容"
+  },
+  {
+    "key": "square.safety.flashing",
+    "en": "Flashing images",
+    "zh-Hans": "闪烁画面"
+  },
+  {
+    "key": "square.safety.spoiler",
+    "en": "Spoiler",
+    "zh-Hans": "剧透"
+  },
+  {
+    "key": "square.safety.closure",
+    "en": "Temporary closure",
+    "zh-Hans": "临时关闭"
+  },
+  {
+    "key": "square.safety.accessibility",
+    "en": "Accessibility limitation",
+    "zh-Hans": "无障碍限制"
+  },
+  {
+    "key": "square.safety.weather",
+    "en": "Weather risk",
+    "zh-Hans": "天气风险"
+  }
+]

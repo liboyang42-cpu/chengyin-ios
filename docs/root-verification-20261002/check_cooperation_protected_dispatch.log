@@ -1,0 +1,10 @@
+{
+  "static_source_checks": "PASS",
+  "checks": 33,
+  "swift_compilation": "NOT_RUN",
+  "swift_unit_tests": "NOT_RUN",
+  "ios_runtime": "NOT_RUN",
+  "external_requests": 0
+}
+
+--- STDERR ---

@@ -1,0 +1,78 @@
+{
+  "scope": "Authored inventory only; Swift and Apple runtime NOT_RUN",
+  "core_test_methods": 1829,
+  "ui_test_methods": 272,
+  "ui_classes": 45,
+  "app_swift": 236,
+  "core_swift": 272,
+  "all_swift": 667,
+  "bilingual_keys": 4687,
+  "shard_count": 6,
+  "shard_test_counts": [
+    45,
+    45,
+    46,
+    46,
+    46,
+    44
+  ],
+  "shards": [
+    [
+      "TeamFlowTests",
+      "MerchantBusinessFlowTests",
+      "MerchantEngagementFlowTests",
+      "CooperationFlowTests",
+      "MerchantOperationsFlowTests",
+      "HomeFeedFlowTests",
+      "OfficialActionUITests"
+    ],
+    [
+      "AccountCollectionFlowTests",
+      "ProjectEditFlowTests",
+      "SocialAccountFlowTests",
+      "TicketWalletFlowTests",
+      "PlayDirectorPrefabFlowTests",
+      "MerchantOnboardingFlowTests",
+      "ProfileEditFlowTests"
+    ],
+    [
+      "ModuleFlowTests",
+      "SearchMapFlowTests",
+      "EntryFlowTests",
+      "OrderLifecycleUITests",
+      "WalletCommerceFlowTests",
+      "NearbyTeamUITests",
+      "AccessibilityPresentationFlowTests",
+      "IMExpandedUITests"
+    ],
+    [
+      "SettingsNativeFlowTests",
+      "SquareFlowTests",
+      "GrowthCenterFlowTests",
+      "PlayExperienceFlowTests",
+      "ActivityFlowTests",
+      "PublishingModesFlowTests",
+      "CooperationFlowUITests",
+      "PlayPreferenceFlowTests"
+    ],
+    [
+      "ClubOperationsFlowTests",
+      "RoamExperienceFlowTests",
+      "MerchantContentFlowTests",
+      "ClubGovernanceFlowTests",
+      "CouponManagementFlowTests",
+      "RegionalEntryFlowTests",
+      "DoorReferralUITests",
+      "TopicFlowTests"
+    ],
+    [
+      "OfficialEventFlowTests",
+      "TemplateAuthoringFlowTests",
+      "MerchantMarketingUITests",
+      "ClubManagementFlowTests",
+      "CreatorContentFlowTests",
+      "ClubActionFlowTests",
+      "ObjectCardFlowTests"
+    ]
+  ]
+}

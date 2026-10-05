@@ -1,0 +1,57 @@
+[
+  {
+    "key": "message.send.sending",
+    "en": "Sending…",
+    "zh-Hans": "正在发送…"
+  },
+  {
+    "key": "message.send.unknown",
+    "en": "The outcome is unknown. The server may have accepted this message.",
+    "zh-Hans": "发送结果未知，服务器可能已经接收。"
+  },
+  {
+    "key": "message.send.rejected",
+    "en": "The server rejected this message.",
+    "zh-Hans": "服务器未接受这条消息。"
+  },
+  {
+    "key": "message.send.retry",
+    "en": "Retry same message",
+    "zh-Hans": "重试原消息"
+  },
+  {
+    "key": "message.send.closed",
+    "en": "This conversation is closed.",
+    "zh-Hans": "此会话已结束。"
+  },
+  {
+    "key": "message.send.accepted",
+    "en": "Server accepted the message. This is not a read receipt.",
+    "zh-Hans": "服务器已接收消息，不代表对方已读。"
+  },
+  {
+    "key": "message.send.placeholder",
+    "en": "Message",
+    "zh-Hans": "输入消息"
+  },
+  {
+    "key": "message.send.button",
+    "en": "Send",
+    "zh-Hans": "发送"
+  },
+  {
+    "key": "message.send.historyRequired",
+    "en": "Load this conversation successfully before sending.",
+    "zh-Hans": "请先成功加载此会话再发送消息。"
+  },
+  {
+    "key": "message.send.retryTitle",
+    "en": "Retry the original message?",
+    "zh-Hans": "重试这条原消息？"
+  },
+  {
+    "key": "message.send.retryHint",
+    "en": "The exact original text and message identifier will be reused. A timeout does not prove the earlier send failed.",
+    "zh-Hans": "将保留原文和原消息编号。超时不能证明上次没有发送成功。"
+  }
+]

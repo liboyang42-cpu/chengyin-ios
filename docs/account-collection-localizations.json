@@ -1,0 +1,232 @@
+[
+  {
+    "key": "accountCollection.title",
+    "en": "Saved collections",
+    "zh-Hans": "我的收藏与优惠券"
+  },
+  {
+    "key": "accountCollection.loading",
+    "en": "Loading…",
+    "zh-Hans": "正在读取…"
+  },
+  {
+    "key": "accountCollection.retry",
+    "en": "Retry",
+    "zh-Hans": "重试"
+  },
+  {
+    "key": "accountCollection.refresh",
+    "en": "Refresh",
+    "zh-Hans": "刷新"
+  },
+  {
+    "key": "accountCollection.loadMore",
+    "en": "Load more",
+    "zh-Hans": "加载更多"
+  },
+  {
+    "key": "accountCollection.offlineExample",
+    "en": "Offline synthetic example",
+    "zh-Hans": "离线合成示例"
+  },
+  {
+    "key": "accountCollection.signInRequired",
+    "en": "Sign in to see your saved collections",
+    "zh-Hans": "登录后查看收藏和优惠券"
+  },
+  {
+    "key": "accountCollection.notConfigured",
+    "en": "Collection service is not configured",
+    "zh-Hans": "尚未配置收藏服务"
+  },
+  {
+    "key": "accountCollection.unavailable",
+    "en": "This coupon is no longer available",
+    "zh-Hans": "此优惠券已不可用"
+  },
+  {
+    "key": "accountCollection.network",
+    "en": "Check your connection and try again",
+    "zh-Hans": "请检查网络后重试"
+  },
+  {
+    "key": "accountCollection.failed",
+    "en": "These items could not be loaded",
+    "zh-Hans": "暂时无法读取这些内容"
+  },
+  {
+    "key": "accountCollection.favorites.title",
+    "en": "Favorites",
+    "zh-Hans": "我的收藏"
+  },
+  {
+    "key": "accountCollection.favorites.empty",
+    "en": "No saved topics yet",
+    "zh-Hans": "还没有收藏的主题"
+  },
+  {
+    "key": "accountCollection.favorites.emptyHint",
+    "en": "Topics you save will appear here",
+    "zh-Hans": "收藏的主题会出现在这里"
+  },
+  {
+    "key": "accountCollection.favorites.untitled",
+    "en": "Untitled topic",
+    "zh-Hans": "未命名主题"
+  },
+  {
+    "key": "accountCollection.favorites.openHint",
+    "en": "Opens topic details",
+    "zh-Hans": "打开主题详情"
+  },
+  {
+    "key": "accountCollection.favorites.place",
+    "en": "Location",
+    "zh-Hans": "地点"
+  },
+  {
+    "key": "accountCollection.coupons.title",
+    "en": "My coupons",
+    "zh-Hans": "我的优惠券"
+  },
+  {
+    "key": "accountCollection.coupons.filter",
+    "en": "Show",
+    "zh-Hans": "显示"
+  },
+  {
+    "key": "accountCollection.coupons.filter.all",
+    "en": "All",
+    "zh-Hans": "全部"
+  },
+  {
+    "key": "accountCollection.coupons.filter.unused",
+    "en": "Unused",
+    "zh-Hans": "待使用"
+  },
+  {
+    "key": "accountCollection.coupons.filter.used",
+    "en": "Used",
+    "zh-Hans": "已使用"
+  },
+  {
+    "key": "accountCollection.coupons.filter.expired",
+    "en": "Expired",
+    "zh-Hans": "已过期"
+  },
+  {
+    "key": "accountCollection.coupons.search",
+    "en": "Search coupons",
+    "zh-Hans": "搜索优惠券"
+  },
+  {
+    "key": "accountCollection.coupons.empty",
+    "en": "No coupons yet",
+    "zh-Hans": "暂无优惠券"
+  },
+  {
+    "key": "accountCollection.coupons.emptyHint",
+    "en": "Coupons you receive will appear here",
+    "zh-Hans": "领取的优惠券会出现在这里"
+  },
+  {
+    "key": "accountCollection.coupons.filteredEmpty",
+    "en": "No matching coupons",
+    "zh-Hans": "没有符合条件的优惠券"
+  },
+  {
+    "key": "accountCollection.coupons.filteredEmptyHint",
+    "en": "Try another filter or search",
+    "zh-Hans": "试试其他筛选条件或关键词"
+  },
+  {
+    "key": "accountCollection.coupon.untitled",
+    "en": "Coupon",
+    "zh-Hans": "优惠券"
+  },
+  {
+    "key": "accountCollection.coupon.detail",
+    "en": "Coupon details",
+    "zh-Hans": "优惠券详情"
+  },
+  {
+    "key": "accountCollection.coupon.status.unused",
+    "en": "Unused",
+    "zh-Hans": "待使用"
+  },
+  {
+    "key": "accountCollection.coupon.status.used",
+    "en": "Used",
+    "zh-Hans": "已使用"
+  },
+  {
+    "key": "accountCollection.coupon.status.expired",
+    "en": "Expired",
+    "zh-Hans": "已过期"
+  },
+  {
+    "key": "accountCollection.coupon.status.invalid",
+    "en": "Invalid",
+    "zh-Hans": "已失效"
+  },
+  {
+    "key": "accountCollection.coupon.status.unknown",
+    "en": "Status unconfirmed",
+    "zh-Hans": "状态待确认"
+  },
+  {
+    "key": "accountCollection.coupon.validity",
+    "en": "Validity",
+    "zh-Hans": "有效期"
+  },
+  {
+    "key": "accountCollection.coupon.validFrom",
+    "en": "Valid from",
+    "zh-Hans": "开始日期"
+  },
+  {
+    "key": "accountCollection.coupon.validUntil",
+    "en": "Valid until",
+    "zh-Hans": "截止日期"
+  },
+  {
+    "key": "accountCollection.coupon.validityUnknown",
+    "en": "Validity unconfirmed",
+    "zh-Hans": "有效期待确认"
+  },
+  {
+    "key": "accountCollection.coupon.invalidHint",
+    "en": "This coupon was invalidated by the platform",
+    "zh-Hans": "该券已被平台手动失效"
+  },
+  {
+    "key": "accountCollection.coupon.calendarHint",
+    "en": "Dates use the service’s calendar day. Availability follows the latest server status.",
+    "zh-Hans": "日期按服务端自然日显示，是否可用以最新服务端状态为准。"
+  },
+  {
+    "key": "accountCollection.coupon.history",
+    "en": "Coupon history",
+    "zh-Hans": "优惠券记录"
+  },
+  {
+    "key": "accountCollection.coupon.received",
+    "en": "Received",
+    "zh-Hans": "领取日期"
+  },
+  {
+    "key": "accountCollection.coupon.used",
+    "en": "Used on",
+    "zh-Hans": "使用日期"
+  },
+  {
+    "key": "accountCollection.coupon.readOnly",
+    "en": "Read-only coupon details. Redemption codes are not available here yet.",
+    "zh-Hans": "只读优惠券详情，此处暂不提供核销码。"
+  },
+  {
+    "key": "accountCollection.fixture.signOut",
+    "en": "Sign out of this example",
+    "zh-Hans": "退出此示例账号"
+  }
+]

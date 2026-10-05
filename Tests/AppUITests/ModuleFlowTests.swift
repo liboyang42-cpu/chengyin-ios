@@ -1,0 +1,360 @@
+import XCTest
+
+final class ModuleFlowTests: XCTestCase {
+    private var app: XCUIApplication!
+    override func setUpWithError() throws { continueAfterFailure=false;app=XCUIApplication() }
+    override func tearDownWithError() throws { attachFailureScreenshot(self,app:app); app.terminate();app=nil }
+    private func launch(_ arguments:[String]) {
+        app.launchArguments=["--uitesting-reset-language","-AppleLanguages","(en)","-AppleLocale","en_US"]+arguments
+        app.launch()
+    }
+    private func tap(_ element:XCUIElement,file:StaticString=#filePath,line:UInt=#line) {
+        let ready=XCTNSPredicateExpectation(predicate:NSPredicate(format:"exists == true AND hittable == true"),object:element)
+        XCTAssertEqual(XCTWaiter.wait(for:[ready],timeout:10),.completed,app.debugDescription,file:file,line:line)
+        element.tap()
+    }
+    private func openClubHistoryTopic(file: StaticString = #filePath, line: UInt = #line) {
+        let row = app.buttons["club.gov.customer.topic.91"]
+        XCTAssertTrue(revealFixtureElement(row, in: app), app.debugDescription, file: file, line: line)
+        tap(row, file: file, line: line)
+    }
+    private func chooseClubMemberAction(_ id: String, label: String,
+                                        file: StaticString = #filePath, line: UInt = #line) {
+        let sheet = app.sheets.firstMatch
+        XCTAssertTrue(sheet.waitForExistence(timeout: 5), app.debugDescription, file: file, line: line)
+        let matches = sheet.buttons.matching(identifier: id)
+        XCTAssertTrue(matches.firstMatch.waitForExistence(timeout: 5), app.debugDescription, file: file, line: line)
+        let leaves = matches.allElementsBoundByIndex.filter {
+            $0.descendants(matching: .button).count == 0
+        }
+        guard leaves.count == 1, let leaf = leaves.first, let snapshot = try? leaf.snapshot(),
+              snapshot.label == label, snapshot.isEnabled, leaf.isHittable,
+              !snapshot.frame.isEmpty, sheet.frame.contains(snapshot.frame),
+              app.frame.insetBy(dx: 4, dy: 4).contains(snapshot.frame) else {
+            XCTFail("Expected one visible enabled club-choice native leaf: " + app.debugDescription, file: file, line: line)
+            return
+        }
+        leaf.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+    }
+    private func cancelClubMemberChoice(file: StaticString = #filePath, line: UInt = #line) {
+        let sheet = app.sheets.firstMatch
+        XCTAssertTrue(sheet.waitForExistence(timeout: 5), app.debugDescription, file: file, line: line)
+        if app.popovers.firstMatch.exists {
+            // Adaptive confirmation popovers have an outside dismissal region, not a Cancel row.
+            dismissFixtureConfirmationPopover(in: app, file: file, line: line)
+        } else {
+            tapFixtureSheetAction("Cancel", in: sheet, app: app, file: file, line: line)
+        }
+        let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: sheet)
+        XCTAssertEqual(XCTWaiter.wait(for: [dismissed], timeout: 5), .completed, app.debugDescription, file: file, line: line)
+        XCTAssertFalse(app.staticTexts["Fixture customer"].exists, file: file, line: line)
+        XCTAssertFalse(app.staticTexts["club.gov.fact.displayName"].exists, file: file, line: line)
+        XCTAssertFalse(app.staticTexts["Example city explorer"].exists, file: file, line: line)
+    }
+    private func capture(_ name:String) {
+        let attachment=XCTAttachment(screenshot:app.screenshot());attachment.name=name;attachment.lifetime = .keepAlways;add(attachment)
+    }
+    func testDiscoveryTemplateNavigationAndBack() {
+        launch(["--uitesting-module","discovery"])
+        XCTAssertTrue(app.staticTexts["module.fixture.notice"].waitForExistence(timeout:10))
+        tap(app.buttons["discovery.openTemplates"])
+        XCTAssertTrue(app.navigationBars["Browse templates"].waitForExistence(timeout:5))
+        capture("Discovery template shelf – synthetic data")
+        tap(app.navigationBars.buttons.firstMatch)
+        XCTAssertTrue(app.buttons["discovery.openTemplates"].waitForExistence(timeout:5))
+    }
+    func testProfileOrderReadbackAndBack() {
+        launch(["--uitesting-module","profile"])
+        XCTAssertTrue(app.staticTexts["module.fixture.notice"].waitForExistence(timeout:10))
+        tap(app.buttons["profile.open.orders"])
+        tap(app.buttons["profile.order.901"])
+        XCTAssertTrue(app.navigationBars["Order details"].waitForExistence(timeout:5))
+        let reference=app.staticTexts.matching(NSPredicate(format:"label CONTAINS %@", "FIXTURE-901")).firstMatch
+        XCTAssertTrue(reference.waitForExistence(timeout:5),app.debugDescription)
+        capture("Order detail – synthetic data")
+        tap(app.navigationBars["Order details"].buttons.firstMatch)
+        XCTAssertTrue(app.buttons["profile.order.901"].waitForExistence(timeout:5))
+    }
+    func testMerchantFinanceRoleDoesNotExposeOwnerDashboard() {
+        launch(["--uitesting-merchant-fixture","finance"])
+        XCTAssertTrue(app.staticTexts["merchant.fixture.notice"].waitForExistence(timeout:10))
+        XCTAssertTrue(app.buttons["merchant.orders.entry"].waitForExistence(timeout:10))
+        XCTAssertFalse(app.buttons["merchant.projects.entry"].exists)
+        XCTAssertFalse(app.descendants(matching:.any)["merchant.dashboard.revenue"].exists)
+        tap(app.buttons["merchant.orders.entry"])
+        XCTAssertTrue(app.buttons["merchant.order.row.101"].waitForExistence(timeout:10))
+        capture("Merchant finance orders – synthetic data")
+    }
+    func testClubMemberGateAndReadOnlyMemberList() {
+        launch(["--uitesting-club-fixture","owner"])
+        XCTAssertTrue(app.staticTexts["club.fixture.notice"].waitForExistence(timeout:10))
+        tap(app.buttons["club.home.owned.81"])
+        XCTAssertTrue(app.navigationBars["Club details"].waitForExistence(timeout:5))
+        let members=app.buttons["club.openMembers"]
+        if !members.isHittable { app.swipeUp() }
+        tap(members)
+        XCTAssertTrue(app.descendants(matching:.any)["club.member.701"].waitForExistence(timeout:5),app.debugDescription)
+        let creator = app.buttons["club.member.701"].label
+        XCTAssertTrue(creator.contains("Level 7"), creator)
+        XCTAssertFalse(creator.contains("2026-01-01"), creator)
+        let administrator = app.buttons["club.member.703"].label
+        XCTAssertTrue(administrator.contains("Level 4"), administrator)
+        XCTAssertTrue(administrator.contains("Joined 2026-02-03 10:15:00"), administrator)
+        let ordinary = app.buttons["club.member.704"].label
+        XCTAssertFalse(ordinary.contains("Level 0"), ordinary)
+        XCTAssertFalse(ordinary.contains("Joined"), ordinary)
+        capture("Club members – synthetic data")
+    }
+    func testClubMemberPublicProfileReturnsAndReopens() {
+        launch(["--uitesting-club-fixture", "member"])
+        tap(app.buttons["club.home.joined.81"])
+        let members = app.buttons["club.openMembers"]
+        if !members.isHittable { app.swipeUp() }
+        tap(members)
+        for memberID in [703, 704] {
+            tap(app.buttons["club.member.\(memberID)"])
+            XCTAssertTrue(app.staticTexts["Example city explorer"].waitForExistence(timeout: 5), app.debugDescription)
+            tap(app.navigationBars.buttons.firstMatch)
+            XCTAssertTrue(app.buttons["club.member.\(memberID)"].waitForExistence(timeout: 5), app.debugDescription)
+        }
+    }
+    func testClubMemberProfileClearsOnSignOut() {
+        launch(["--uitesting-club-fixture", "owner"])
+        tap(app.buttons["club.home.owned.81"])
+        let members = app.buttons["club.openMembers"]
+        if !members.isHittable { app.swipeUp() }
+        tap(members)
+        tap(app.buttons["club.member.703"])
+        XCTAssertTrue(app.staticTexts["Example city explorer"].waitForExistence(timeout: 5))
+        tap(app.buttons["club.fixture.signOut"])
+        XCTAssertTrue(app.buttons["club.home.signIn"].waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertFalse(app.staticTexts["Example city explorer"].exists)
+        XCTAssertFalse(app.buttons["club.member.703"].exists)
+    }
+    func testClubCustomerChoiceOwnerAndAdministrator() {
+        for scenario in ["customerOwner", "customerAdministrator"] {
+            launch(["--uitesting-club-fixture", scenario])
+            tap(app.buttons["club.member.704"])
+            chooseClubMemberAction("club.member.choice.public", label: "Public profile")
+            XCTAssertTrue(app.staticTexts["Example city explorer"].waitForExistence(timeout: 5))
+            tap(app.navigationBars.buttons.firstMatch)
+            tap(app.buttons["club.member.704"])
+            cancelClubMemberChoice()
+            XCTAssertTrue(app.buttons["club.member.704"].exists)
+            tap(app.buttons["club.member.704"])
+            chooseClubMemberAction("club.member.choice.customer", label: "Customer detail")
+            XCTAssertTrue(app.staticTexts["club.gov.fact.displayName"].waitForExistence(timeout: 5), app.debugDescription)
+            XCTAssertEqual(app.staticTexts["club.gov.fact.displayName"].label, "Customer, Fixture customer", "Verify the exact customer value in its actual LabeledContent AX row")
+            tap(app.navigationBars.buttons.firstMatch)
+            XCTAssertTrue(app.buttons["club.member.704"].waitForExistence(timeout: 5))
+            app.terminate()
+        }
+    }
+    func testClubCustomerChoiceDeniedAndWrongMemberFailClosed() {
+        for (scenario, member) in [("customerDenied", 704), ("customerOwner", 703)] {
+            launch(["--uitesting-club-fixture", scenario])
+            tap(app.buttons["club.member.\(member)"])
+            chooseClubMemberAction("club.member.choice.customer", label: "Customer detail")
+            XCTAssertTrue(app.staticTexts["club.gov.error"].waitForExistence(timeout: 5), app.debugDescription)
+            XCTAssertFalse(app.staticTexts["Fixture customer"].exists)
+            XCTAssertFalse(app.staticTexts["club.gov.fact.displayName"].exists)
+            app.terminate()
+        }
+    }
+    func testClubCustomerDetailClearsOnRoleRevisionThenRechecks() {
+        launch(["--uitesting-club-fixture", "customerOwner"])
+        tap(app.buttons["club.member.704"])
+        chooseClubMemberAction("club.member.choice.customer", label: "Customer detail")
+        XCTAssertTrue(app.staticTexts["club.gov.fact.displayName"].waitForExistence(timeout: 5))
+        XCTAssertEqual(app.staticTexts["club.gov.fact.displayName"].label, "Customer, Fixture customer", "Verify the exact customer value in its actual LabeledContent AX row")
+        tap(app.buttons["club.fixture.revokeRole"])
+        XCTAssertTrue(app.buttons["club.member.704"].waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertFalse(app.staticTexts["Fixture customer"].exists)
+        XCTAssertFalse(app.staticTexts["club.gov.fact.displayName"].exists)
+        tap(app.buttons["club.member.704"])
+        chooseClubMemberAction("club.member.choice.customer", label: "Customer detail")
+        XCTAssertTrue(app.staticTexts["club.gov.error"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["Fixture customer"].exists)
+        XCTAssertFalse(app.staticTexts["club.gov.fact.displayName"].exists)
+    }
+    func testClubCustomerRoleABADoesNotRestoreOldPrivateDestination() {
+        launch(["--uitesting-club-fixture", "customerOwner"])
+        tap(app.buttons["club.member.704"])
+        chooseClubMemberAction("club.member.choice.customer", label: "Customer detail")
+        XCTAssertTrue(app.staticTexts["club.gov.fact.displayName"].waitForExistence(timeout: 5))
+        XCTAssertEqual(app.staticTexts["club.gov.fact.displayName"].label, "Customer, Fixture customer", "Verify the exact customer value in its actual LabeledContent AX row")
+        tap(app.buttons["club.fixture.revokeRole"])
+        tap(app.buttons["club.fixture.restoreRole"])
+        XCTAssertTrue(app.buttons["club.member.704"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["Fixture customer"].exists)
+        XCTAssertFalse(app.staticTexts["club.gov.fact.displayName"].exists)
+        tap(app.buttons["club.member.704"])
+        chooseClubMemberAction("club.member.choice.customer", label: "Customer detail")
+        XCTAssertTrue(app.staticTexts["club.gov.fact.displayName"].waitForExistence(timeout: 5))
+        XCTAssertEqual(app.staticTexts["club.gov.fact.displayName"].label, "Customer, Fixture customer", "Verify the exact customer value in its actual LabeledContent AX row")
+    }
+    func testClubCustomerDetailClearsOnAccountSwitch() {
+        launch(["--uitesting-club-fixture", "customerOwner"])
+        tap(app.buttons["club.member.704"])
+        chooseClubMemberAction("club.member.choice.customer", label: "Customer detail")
+        XCTAssertTrue(app.staticTexts["club.gov.fact.displayName"].waitForExistence(timeout: 5))
+        XCTAssertEqual(app.staticTexts["club.gov.fact.displayName"].label, "Customer, Fixture customer", "Verify the exact customer value in its actual LabeledContent AX row")
+        tap(app.buttons["club.fixture.switchAccount"])
+        XCTAssertTrue(app.staticTexts["club.members.error"].waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertFalse(app.staticTexts["Fixture customer"].exists)
+        XCTAssertFalse(app.staticTexts["club.gov.fact.displayName"].exists)
+    }
+    func testClubCustomerHistoryOpensReturnedTopicAndCanReopenAfterBack() {
+        launch(["--uitesting-club-fixture", "customerOwner"])
+        tap(app.buttons["club.member.704"])
+        chooseClubMemberAction("club.member.choice.customer", label: "Customer detail")
+        for _ in 0..<2 {
+            openClubHistoryTopic()
+            XCTAssertTrue(app.staticTexts["club.fixture.historyTopic.91"].waitForExistence(timeout: 5), app.debugDescription)
+            XCTAssertFalse(app.staticTexts["club.fixture.historyTopic.121"].exists)
+            tap(app.navigationBars.buttons.firstMatch)
+            XCTAssertTrue(app.buttons["club.gov.customer.topic.91"].waitForExistence(timeout: 5))
+        }
+    }
+    func testClubCustomerHistoryMissingAndForeignIDsRemainReadOnly() {
+        launch(["--uitesting-club-fixture", "customerInvalidHistory"])
+        tap(app.buttons["club.member.704"])
+        chooseClubMemberAction("club.member.choice.customer", label: "Customer detail")
+        let customerFact = app.staticTexts["club.gov.fact.displayName"]
+        XCTAssertTrue(customerFact.waitForExistence(timeout: 5))
+        XCTAssertEqual(customerFact.label, "Customer, Fixture customer")
+        let history = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Foreign scope history")).firstMatch
+        XCTAssertTrue(revealFixtureElement(history, in: app), app.debugDescription)
+        XCTAssertFalse(app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "club.gov.customer.topic.")).firstMatch.exists)
+        XCTAssertFalse(app.staticTexts["club.fixture.historyTopic.92"].exists)
+    }
+    func testClubCustomerHistoryTopicClearsOnAccountAndRoleChanges() {
+        for control in ["club.fixture.switchAccount", "club.fixture.revokeRole"] {
+            launch(["--uitesting-club-fixture", "customerOwner"])
+            tap(app.buttons["club.member.704"])
+            chooseClubMemberAction("club.member.choice.customer", label: "Customer detail")
+            openClubHistoryTopic()
+            XCTAssertTrue(app.staticTexts["club.fixture.historyTopic.91"].waitForExistence(timeout: 5))
+            tap(app.buttons[control])
+            if control == "club.fixture.revokeRole" { tap(app.buttons["club.fixture.restoreRole"]) }
+            let cleared = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: app.staticTexts["club.fixture.historyTopic.91"])
+            XCTAssertEqual(XCTWaiter.wait(for: [cleared], timeout: 5), .completed, app.debugDescription)
+            app.terminate()
+        }
+    }
+    func testMessagingReadOnlyHistoryNavigation() {
+        launch(["--uitesting-module","messaging"])
+        XCTAssertTrue(app.staticTexts["module.fixture.notice"].waitForExistence(timeout:10))
+        tap(app.buttons["messaging.conversation.901"])
+        XCTAssertTrue(app.navigationBars["Conversation"].waitForExistence(timeout:5))
+        XCTAssertTrue(app.buttons["messaging.history.earlier"].waitForExistence(timeout:5))
+        XCTAssertFalse(app.textViews.firstMatch.exists,"Read-only history exposes no message composer")
+        capture("Conversation – synthetic data")
+        tap(app.navigationBars["Conversation"].buttons.firstMatch)
+        XCTAssertTrue(app.buttons["messaging.conversation.901"].waitForExistence(timeout:5))
+    }
+    func testRoamSyntheticListOpensDetail() {
+        launch(["--uitesting-module","roam"])
+        XCTAssertTrue(app.staticTexts["module.fixture.notice"].waitForExistence(timeout:10))
+        tap(app.buttons["roam.display.toggle"])
+        tap(app.buttons["roam.row.place-901"])
+        XCTAssertTrue(app.navigationBars["Map details"].waitForExistence(timeout:5))
+        capture("Map detail – synthetic data")
+    }
+    func testParticipantCreateRequiresConfirmationAndReadsBack() {
+        launch(["--uitesting-module","participants"])
+        XCTAssertTrue(app.staticTexts["module.fixture.notice"].waitForExistence(timeout:10))
+        tap(app.buttons["participant.list.add"])
+        let name=app.textFields["participant.form.name"]
+        tap(name);name.typeText("Fixture Added Person")
+        let phone=app.textFields["participant.form.phone"]
+        tap(phone);phone.typeText("13800000001")
+        tap(app.buttons["participant.form.save"])
+        XCTAssertTrue(app.alerts.firstMatch.waitForExistence(timeout:5))
+        XCTAssertFalse(app.buttons["profile.participant.912"].exists)
+        tap(app.alerts.buttons["Save participant"])
+        XCTAssertTrue(app.buttons["profile.participant.912"].waitForExistence(timeout:10),app.debugDescription)
+        XCTAssertTrue(app.buttons["profile.participant.912"].label.contains("Fixture Added Person"))
+        capture("Participant create – synthetic memory-only store")
+    }
+    func testPlayChoiceSubmissionUsesOfflineReadback() {
+        launch(["--uitesting-module","play","--uitesting-play-scenario","choice"])
+        XCTAssertTrue(app.staticTexts["module.fixture.notice"].waitForExistence(timeout:10))
+        let node=app.buttons["play.node.701"]
+        XCTAssertTrue(node.waitForExistence(timeout:10))
+        for _ in 0..<4 { if node.isHittable { break };app.swipeUp() }
+        tap(node)
+        XCTAssertTrue(app.navigationBars["Route task"].waitForExistence(timeout:5),app.debugDescription)
+        let choice=app.buttons["play.option.A"]
+        // Form lazily instantiates offscreen rows; reveal before querying existence.
+        for _ in 0..<6 { if choice.exists && choice.isHittable { break };app.swipeUp() }
+        XCTAssertTrue(choice.waitForExistence(timeout:5),app.debugDescription)
+        tap(choice)
+        let submit=app.buttons["play.answer.submit"]
+        for _ in 0..<6 { if submit.exists && submit.isHittable { break };app.swipeUp() }
+        tap(submit)
+        let receipt=app.descendants(matching:.any)["play.answer.receipt"]
+        for _ in 0..<4 { if receipt.exists { break };app.swipeUp() }
+        XCTAssertTrue(receipt.waitForExistence(timeout:10),app.debugDescription)
+        XCTAssertFalse(app.buttons["play.answer.submit"].exists,"Server-confirmed node cannot be submitted twice")
+        XCTAssertTrue(revealFixtureElement(choice, in: app, towardTop: true), app.debugDescription)
+        XCTAssertTrue(choice.isSelected, "The exact accepted A choice stays selected after authoritative readback")
+        XCTAssertFalse(choice.isEnabled, "Accepted choice remains locked against duplicate submission")
+        capture("Choice answer receipt – synthetic transport only")
+    }
+    func testTextComposerUsesSyntheticServerReceiptAndReadback() {
+        launch(["--uitesting-module","composer"])
+        XCTAssertTrue(app.staticTexts["module.fixture.notice"].waitForExistence(timeout:10))
+        let input=app.descendants(matching:.any)["message.send.input"]
+        tap(input);input.typeText("Fixture sent text")
+        tap(app.buttons["message.send.button"])
+        XCTAssertTrue(app.descendants(matching:.any)["message.send.receipt"].waitForExistence(timeout:10),app.debugDescription)
+        XCTAssertTrue(app.buttons["messaging.message.2"].waitForExistence(timeout:10),app.debugDescription)
+        XCTAssertTrue(app.buttons["messaging.message.2"].label.contains("Fixture sent text"))
+        capture("Text message receipt – synthetic memory-only store")
+    }
+    func testRegistrationProductionPolicyCannotCreate() {
+        launch(["--uitesting-registration-fixture","disabled"])
+        XCTAssertTrue(app.navigationBars["Activity registration"].waitForExistence(timeout:10))
+        let review=app.buttons["registration.form.review"]
+        for _ in 0..<8 { if review.exists && review.isHittable { break };app.swipeUp() }
+        XCTAssertTrue(review.exists,app.debugDescription)
+        XCTAssertFalse(review.isEnabled)
+        XCTAssertFalse(app.switches["registration.form.consent"].exists)
+        capture("Registration creation gate – offline fixture")
+    }
+    func testRegistrationDemoReadbackDoesNotCreateAnotherIntent() {
+        launch(["--uitesting-registration-fixture","standard"])
+        XCTAssertTrue(app.navigationBars["Activity registration"].waitForExistence(timeout:10))
+        let consent=app.switches["registration.form.consent"]
+        for _ in 0..<8 { if consent.exists && consent.isHittable { break };app.swipeUp() }
+        // iOS exposes both the full Toggle row and its UISwitch child. Tap the
+        // actual switch: tapping the row's text activation point need not toggle it.
+        let control=consent.switches.firstMatch
+        tap(control.exists ? control : consent)
+        let review=app.buttons["registration.form.review"]
+        for _ in 0..<3 { if review.exists && review.isHittable { break };app.swipeUp() }
+        XCTAssertEqual(consent.value as? String,"1",app.debugDescription)
+        XCTAssertTrue(review.isEnabled,app.debugDescription)
+        tap(review)
+        XCTAssertTrue(app.alerts.firstMatch.waitForExistence(timeout:5),app.debugDescription)
+        tap(app.alerts.buttons["Create demo registration"])
+        let read=app.buttons["registration.form.readStatus"]
+        XCTAssertTrue(read.waitForExistence(timeout:10),app.debugDescription)
+        tap(read)
+        let snapshot=app.descendants(matching:.any)["registration.form.statusSnapshot"].firstMatch
+        for _ in 0..<5 { if snapshot.exists { break };app.swipeUp() }
+        XCTAssertTrue(snapshot.waitForExistence(timeout:10),app.debugDescription)
+        let paymentStatus=app.staticTexts.matching(NSPredicate(format:"label CONTAINS %@","Awaiting payment")).firstMatch
+        // The section header can exist while its lower Form rows remain uninstantiated.
+        // Reveal the actual status value, not just the header, before asserting readback.
+        for _ in 0..<6 { if paymentStatus.exists { break };app.swipeUp() }
+        XCTAssertTrue(paymentStatus.waitForExistence(timeout:10),app.debugDescription)
+        XCTAssertFalse(app.buttons["registration.form.review"].exists)
+        capture("Registration raw status – synthetic data")
+        tap(app.buttons["registration.form.close"])
+        tap(app.buttons["registration.fixture.open"])
+        XCTAssertTrue(app.buttons["registration.form.readStatus"].waitForExistence(timeout:5))
+        XCTAssertFalse(app.buttons["registration.form.review"].exists,"Reopening must retain the original intent")
+    }
+}

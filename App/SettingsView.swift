@@ -1,11 +1,12 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @AppStorage("preferences.language") private var storedLanguage = AppLanguage.system.rawValue
+    @EnvironmentObject private var session: AppSession
+    @AppStorage("preferences.language") private var storedLanguage = RegionalLaunchConfiguration.language(nil).rawValue
     @Environment(\.dismiss) private var dismiss
 
     private var language: Binding<AppLanguage> {
-        Binding(get: { AppLanguage(storedValue: storedLanguage) },
+        Binding(get: { RegionalLaunchConfiguration.language(storedLanguage) },
                 set: { storedLanguage = $0.rawValue })
     }
 
@@ -13,16 +14,20 @@ struct SettingsView: View {
         NavigationStack {
             Form {
                 Section {
+                    LabeledContent { Text(verbatim:RegionalLaunchConfiguration.market?.rawValue ?? "—").accessibilityIdentifier("region.market.value") } label: { Text("region.market") }
+                    Text("region.languageBoundary").font(.footnote).foregroundStyle(.secondary)
+                }
+                Section {
                     Picker("settings.language", selection: language) {
                         Text("language.system").tag(AppLanguage.system)
                         Text(verbatim: "English").tag(AppLanguage.english)
                         Text(verbatim: "简体中文").tag(AppLanguage.simplifiedChinese)
                     }
                     .pickerStyle(.inline)
-                    .accessibilityIdentifier("settings.language")
                 } footer: { Text("settings.languageNotice") }
+                SettingsSupportSections(market: session.operationalMarket, complianceCoordinator: session.accountComplianceCoordinator)
             }
-            .navigationTitle("settings.title")
+            .appNavigationTitle("settings.title")
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("action.done") { dismiss() }
@@ -30,6 +35,6 @@ struct SettingsView: View {
             }
         }
         // Explicitly update sheets as well as the app root when preference changes.
-        .environment(\.locale, AppLanguage(storedValue: storedLanguage).locale)
+        .environment(\.locale, RegionalLaunchConfiguration.language(storedLanguage).locale)
     }
 }

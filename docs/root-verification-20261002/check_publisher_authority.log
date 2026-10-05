@@ -1,0 +1,4 @@
+PASS audited source keys, same-response projection, exact identity/owner/session fences, source /my plus fresh leadership, canonical fingerprint, no new grants/transport, 10 authored XCTest methods, integrated main projections
+NOT_RUN Swift typechecking, XCTest execution, Apple SDK build, simulator/device, live backend acceptance
+
+--- STDERR ---

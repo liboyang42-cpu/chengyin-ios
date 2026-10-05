@@ -1,0 +1,38 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "NSCameraUsageDescription": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use the camera to scan QR codes or take aftercare evidence photos when you choose."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当你主动选择时，使用相机扫描二维码或拍摄售后凭证照片。"
+          }
+        }
+      }
+    },
+    "NSMotionUsageDescription": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read step counts from this iPhone when you choose to review a walking activity. Counts are not proof of walking and do not unlock rewards."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅在你主动查看步行活动时读取此 iPhone 的步数。步数不能证明实际行走，也不会解锁奖励。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

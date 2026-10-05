@@ -1,0 +1,492 @@
+[
+  {
+    "key": "cooperation.title",
+    "en": "My cooperation",
+    "zh-Hans": "我的合作"
+  },
+  {
+    "key": "cooperation.detail.title",
+    "en": "Invitation details",
+    "zh-Hans": "邀约详情"
+  },
+  {
+    "key": "cooperation.direction",
+    "en": "Invitation direction",
+    "zh-Hans": "邀约方向"
+  },
+  {
+    "key": "cooperation.received",
+    "en": "Received",
+    "zh-Hans": "收到的"
+  },
+  {
+    "key": "cooperation.sent",
+    "en": "Sent",
+    "zh-Hans": "我发出的"
+  },
+  {
+    "key": "cooperation.loading",
+    "en": "Loading cooperation…",
+    "zh-Hans": "正在读取合作信息…"
+  },
+  {
+    "key": "cooperation.refresh",
+    "en": "Refresh cooperation",
+    "zh-Hans": "刷新合作信息"
+  },
+  {
+    "key": "cooperation.retry",
+    "en": "Retry",
+    "zh-Hans": "重试"
+  },
+  {
+    "key": "cooperation.login",
+    "en": "Sign in to view your cooperation",
+    "zh-Hans": "登录后查看我的合作"
+  },
+  {
+    "key": "cooperation.unconfigured",
+    "en": "Cooperation service is not configured",
+    "zh-Hans": "合作服务尚未配置"
+  },
+  {
+    "key": "cooperation.failure",
+    "en": "Cooperation could not be loaded",
+    "zh-Hans": "合作信息加载失败"
+  },
+  {
+    "key": "cooperation.malformed",
+    "en": "The cooperation response could not be read",
+    "zh-Hans": "暂时无法读取合作服务的返回内容"
+  },
+  {
+    "key": "cooperation.unavailable",
+    "en": "This invitation is no longer in this list",
+    "zh-Hans": "这条邀约不在当前列表里了"
+  },
+  {
+    "key": "cooperation.ambiguous",
+    "en": "This invitation cannot be identified safely",
+    "zh-Hans": "暂时无法准确识别这条邀约"
+  },
+  {
+    "key": "cooperation.forbidden",
+    "en": "You do not have access to this directory",
+    "zh-Hans": "你暂无权限查看此候选目录"
+  },
+  {
+    "key": "cooperation.offline",
+    "en": "Offline synthetic example",
+    "zh-Hans": "离线合成示例"
+  },
+  {
+    "key": "cooperation.partial",
+    "en": "Some cooperation sources could not be loaded",
+    "zh-Hans": "部分合作来源未能加载"
+  },
+  {
+    "key": "cooperation.readOnly",
+    "en": "Read-only cooperation. Sending or handling invitations, applications, candidate decisions, contact creation, supply, reviews and financial actions are not available here yet.",
+    "zh-Hans": "只读合作信息。此处暂不提供发出或处理邀约、申请、候选确认、建立联系、供给申报、评价及资金操作。"
+  },
+  {
+    "key": "cooperation.invitations",
+    "en": "Cooperation invitations",
+    "zh-Hans": "合作邀约"
+  },
+  {
+    "key": "cooperation.applications",
+    "en": "Club leadership applications",
+    "zh-Hans": "俱乐部带队申请"
+  },
+  {
+    "key": "cooperation.registrations",
+    "en": "Received merchant registrations",
+    "zh-Hans": "收到的商家承接报名"
+  },
+  {
+    "key": "cooperation.invitations.empty",
+    "en": "No invitations in this direction",
+    "zh-Hans": "当前方向暂无邀约"
+  },
+  {
+    "key": "cooperation.applications.empty",
+    "en": "No club applications",
+    "zh-Hans": "暂无俱乐部申请"
+  },
+  {
+    "key": "cooperation.registrations.empty",
+    "en": "No received merchant registrations",
+    "zh-Hans": "暂无收到的商家承接报名"
+  },
+  {
+    "key": "cooperation.registrations.more",
+    "en": "The server reports more registrations. Further pages are not available here yet.",
+    "zh-Hans": "服务端提示还有更多报名，此处暂不支持后续分页。"
+  },
+  {
+    "key": "cooperation.unnamed",
+    "en": "Unnamed partner",
+    "zh-Hans": "未具名合作方"
+  },
+  {
+    "key": "cooperation.unnamedTopic",
+    "en": "Unnamed topic",
+    "zh-Hans": "未命名主题"
+  },
+  {
+    "key": "cooperation.unnamedMerchant",
+    "en": "Unnamed merchant",
+    "zh-Hans": "未具名商家"
+  },
+  {
+    "key": "cooperation.unnamedClub",
+    "en": "Unnamed club",
+    "zh-Hans": "未命名俱乐部"
+  },
+  {
+    "key": "cooperation.topic",
+    "en": "Topic",
+    "zh-Hans": "主题"
+  },
+  {
+    "key": "cooperation.created",
+    "en": "Created",
+    "zh-Hans": "创建时间"
+  },
+  {
+    "key": "cooperation.start",
+    "en": "Starts",
+    "zh-Hans": "开始日期"
+  },
+  {
+    "key": "cooperation.end",
+    "en": "Ends",
+    "zh-Hans": "结束日期"
+  },
+  {
+    "key": "cooperation.expires",
+    "en": "Recruitment deadline",
+    "zh-Hans": "招募截止时间"
+  },
+  {
+    "key": "cooperation.fromClub",
+    "en": "From club",
+    "zh-Hans": "申请俱乐部"
+  },
+  {
+    "key": "cooperation.toMerchant",
+    "en": "To merchant",
+    "zh-Hans": "发给商家"
+  },
+  {
+    "key": "cooperation.message",
+    "en": "Message",
+    "zh-Hans": "留言"
+  },
+  {
+    "key": "cooperation.handleReason",
+    "en": "Recorded reply or reason",
+    "zh-Hans": "处理回复或理由"
+  },
+  {
+    "key": "cooperation.application.intent",
+    "en": "An application expresses interest only. Terms follow the merchant’s invitation.",
+    "zh-Hans": "申请只表意向，条款随商家回的邀约走。"
+  },
+  {
+    "key": "cooperation.merchant",
+    "en": "Merchant",
+    "zh-Hans": "商家"
+  },
+  {
+    "key": "cooperation.publisher",
+    "en": "Publisher",
+    "zh-Hans": "发布者"
+  },
+  {
+    "key": "cooperation.location",
+    "en": "Location",
+    "zh-Hans": "地点"
+  },
+  {
+    "key": "cooperation.about",
+    "en": "About",
+    "zh-Hans": "说明"
+  },
+  {
+    "key": "cooperation.inviteID",
+    "en": "Invitation reference",
+    "zh-Hans": "邀约编号"
+  },
+  {
+    "key": "cooperation.inviteState",
+    "en": "Related invitation status from source",
+    "zh-Hans": "相关邀约的原始状态"
+  },
+  {
+    "key": "cooperation.sourceStatus",
+    "en": "Status code from source",
+    "zh-Hans": "服务端状态码"
+  },
+  {
+    "key": "cooperation.terms",
+    "en": "Terms snapshot",
+    "zh-Hans": "条款快照"
+  },
+  {
+    "key": "cooperation.termsFrozen",
+    "en": "Terms are locked",
+    "zh-Hans": "条款已锁定"
+  },
+  {
+    "key": "cooperation.terms.traffic",
+    "en": "Traffic referral · no revenue share",
+    "zh-Hans": "引流型 · 无分成"
+  },
+  {
+    "key": "cooperation.terms.share",
+    "en": "Ticket revenue share",
+    "zh-Hans": "分成型 · 票款分成"
+  },
+  {
+    "key": "cooperation.terms.fixed",
+    "en": "Fixed fee per redeemed participant",
+    "zh-Hans": "固定型 · 按核销人头结算"
+  },
+  {
+    "key": "cooperation.shareRate",
+    "en": "Ticket revenue percentage",
+    "zh-Hans": "票款分成比例"
+  },
+  {
+    "key": "cooperation.fixedFee",
+    "en": "Fee per redeemed participant",
+    "zh-Hans": "每核销人头费用"
+  },
+  {
+    "key": "cooperation.termsUnknown",
+    "en": "Terms were not provided",
+    "zh-Hans": "暂未提供条款"
+  },
+  {
+    "key": "cooperation.amountUnknown",
+    "en": "Amount was not provided",
+    "zh-Hans": "暂未提供金额"
+  },
+  {
+    "key": "cooperation.slot.game",
+    "en": "Pending invitations for this game",
+    "zh-Hans": "本游戏挂起邀约"
+  },
+  {
+    "key": "cooperation.slot.topic",
+    "en": "Accepted invitations for this topic",
+    "zh-Hans": "本主题已接受邀约"
+  },
+  {
+    "key": "cooperation.contact",
+    "en": "Contact details supplied by the service",
+    "zh-Hans": "服务端提供的联系方式"
+  },
+  {
+    "key": "cooperation.leader",
+    "en": "Contact person",
+    "zh-Hans": "负责人"
+  },
+  {
+    "key": "cooperation.phone",
+    "en": "Phone",
+    "zh-Hans": "电话"
+  },
+  {
+    "key": "cooperation.deposit",
+    "en": "Deposit status",
+    "zh-Hans": "保证金状态"
+  },
+  {
+    "key": "cooperation.depositOwed",
+    "en": "Deposit is due after terms are locked",
+    "zh-Hans": "锁价后需缴保证金"
+  },
+  {
+    "key": "cooperation.depositAmount",
+    "en": "Deposit amount",
+    "zh-Hans": "保证金金额"
+  },
+  {
+    "key": "cooperation.refundPending",
+    "en": "Deposit refund is pending",
+    "zh-Hans": "保证金退款处理中"
+  },
+  {
+    "key": "cooperation.financeUnavailable",
+    "en": "Deposit payment and refund actions are not available in this native version.",
+    "zh-Hans": "此原生版本暂不支持保证金支付与退款操作。"
+  },
+  {
+    "key": "cooperation.legacy",
+    "en": "Historical merchant-node invitation · read only",
+    "zh-Hans": "历史商家节点邀约 · 仅供查看"
+  },
+  {
+    "key": "cooperation.pool.title",
+    "en": "Cooperation pool",
+    "zh-Hans": "合作池"
+  },
+  {
+    "key": "cooperation.pool.clubRequired",
+    "en": "Create a club before using the cooperation pool",
+    "zh-Hans": "请先创建俱乐部后使用合作池"
+  },
+  {
+    "key": "cooperation.pool.clubHint",
+    "en": "The server reports that this account has no club. Club creation is not available on this screen.",
+    "zh-Hans": "服务端确认当前账号暂无俱乐部。此页面暂不提供创建俱乐部。"
+  },
+  {
+    "key": "cooperation.pool.empty",
+    "en": "No open cooperation topics",
+    "zh-Hans": "暂无开放的合作主题"
+  },
+  {
+    "key": "cooperation.candidates.title",
+    "en": "Candidate directory",
+    "zh-Hans": "候选目录"
+  },
+  {
+    "key": "cooperation.candidates.ownerOnly",
+    "en": "Only the topic publisher can view this directory",
+    "zh-Hans": "仅主题发布者可查看候选目录"
+  },
+  {
+    "key": "cooperation.candidates.clubs",
+    "en": "Club applicants",
+    "zh-Hans": "俱乐部申请者"
+  },
+  {
+    "key": "cooperation.candidates.merchants",
+    "en": "Merchant candidates",
+    "zh-Hans": "商家候选"
+  },
+  {
+    "key": "cooperation.fixture.signOut",
+    "en": "Sign out of example",
+    "zh-Hans": "退出示例账号"
+  },
+  {
+    "key": "cooperation.status.unknown",
+    "en": "Status not confirmed",
+    "zh-Hans": "状态待确认"
+  },
+  {
+    "key": "cooperation.invite.status.0",
+    "en": "Awaiting confirmation",
+    "zh-Hans": "待确认"
+  },
+  {
+    "key": "cooperation.invite.status.1",
+    "en": "Accepted",
+    "zh-Hans": "已接受"
+  },
+  {
+    "key": "cooperation.invite.status.2",
+    "en": "Declined",
+    "zh-Hans": "已拒绝"
+  },
+  {
+    "key": "cooperation.invite.status.3",
+    "en": "Cancelled",
+    "zh-Hans": "已取消"
+  },
+  {
+    "key": "cooperation.invite.status.4",
+    "en": "Replaced",
+    "zh-Hans": "已顶替"
+  },
+  {
+    "key": "cooperation.invite.status.5",
+    "en": "Expired",
+    "zh-Hans": "已过期"
+  },
+  {
+    "key": "cooperation.application.status.0",
+    "en": "Awaiting response",
+    "zh-Hans": "待处理"
+  },
+  {
+    "key": "cooperation.application.status.1",
+    "en": "Declined",
+    "zh-Hans": "已婉拒"
+  },
+  {
+    "key": "cooperation.application.status.2",
+    "en": "Withdrawn",
+    "zh-Hans": "已撤回"
+  },
+  {
+    "key": "cooperation.application.status.3",
+    "en": "Invitation sent",
+    "zh-Hans": "已转为邀约"
+  },
+  {
+    "key": "cooperation.registration.status.0",
+    "en": "Awaiting allocation",
+    "zh-Hans": "待调配"
+  },
+  {
+    "key": "cooperation.registration.status.1",
+    "en": "Selected",
+    "zh-Hans": "已中标"
+  },
+  {
+    "key": "cooperation.registration.status.2",
+    "en": "Not selected",
+    "zh-Hans": "已落选"
+  },
+  {
+    "key": "cooperation.pool.state.open",
+    "en": "Open for applications",
+    "zh-Hans": "可申请"
+  },
+  {
+    "key": "cooperation.pool.state.applied",
+    "en": "Applied · awaiting merchant",
+    "zh-Hans": "已申请 · 等商家处理"
+  },
+  {
+    "key": "cooperation.pool.state.invited",
+    "en": "Merchant invitation received",
+    "zh-Hans": "商家已邀约"
+  },
+  {
+    "key": "cooperation.pool.state.taken",
+    "en": "Taken by another club",
+    "zh-Hans": "已被其他俱乐部承接"
+  },
+  {
+    "key": "cooperation.pool.state.cooped",
+    "en": "Cooperation in progress",
+    "zh-Hans": "合作中"
+  },
+  {
+    "key": "cooperation.pool.state.converted",
+    "en": "Approved · invitation created",
+    "zh-Hans": "已通过 · 已生成邀约"
+  },
+  {
+    "key": "cooperation.pool.state.declined",
+    "en": "Declined · applications reopened",
+    "zh-Hans": "已婉拒 · 可再申请"
+  },
+  {
+    "key": "cooperation.pool.state.withdrawn",
+    "en": "Withdrawn · applications reopened",
+    "zh-Hans": "已撤回 · 可再申请"
+  },
+  {
+    "key": "cooperation.currencyUnknown",
+    "en": "Currency has not been confirmed by the service.",
+    "zh-Hans": "服务端尚未确认币种。"
+  }
+]
