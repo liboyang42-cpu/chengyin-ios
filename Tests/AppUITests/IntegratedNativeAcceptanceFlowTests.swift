@@ -111,9 +111,16 @@ import XCTest
             XCTFail("Expected one trailing native overflow action. " + app.debugDescription); return
         }
         overflow.tap()
-        let toggle = app.buttons["roam.display.toggle"]
-        guard toggle.waitForExistence(timeout: 5), toggle.isEnabled, toggle.isHittable else {
-            XCTFail("Native overflow did not expose the exact map/list action. " + app.debugDescription); return
+        // Both run108 ready/denied AX trees expose this visible menu label, but
+        // the system overflow clone does not retain roam.display.toggle.
+        // launch() fixes en/en_US, and both journeys select list before any area.
+        let exact = app.buttons.matching(NSPredicate(format: "label == %@", "Show list only"))
+        guard exact.firstMatch.waitForExistence(timeout: 5), exact.count == 1 else {
+            XCTFail("Native overflow must expose exactly one Show list only action. " + app.debugDescription); return
+        }
+        let toggle = exact.element(boundBy: 0)
+        guard toggle.isEnabled, toggle.isHittable, !toggle.frame.isEmpty, app.frame.contains(toggle.frame) else {
+            XCTFail("The exact native Show list only action is not visible and enabled. " + app.debugDescription); return
         }
         toggle.tap()
     }

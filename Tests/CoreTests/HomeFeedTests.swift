@@ -101,4 +101,25 @@ final class HomeFeedTests: XCTestCase {
         do { _ = try await task.value; XCTFail() } catch { XCTAssertTrue(error is CancellationError) }
     }
 
+    @MainActor func testRoleOnlyAndUnobservedRoleABARetireReaderScope() async throws {
+        let transport = HomeFeedTransport()
+        var session = try HomeFeedSession(accountID: 7, epoch: 1, token: "synthetic", role: "player", viewerRevision: 1)
+        let reader = HomeFeedSessionReader(service: try service(transport), currentSession: { session })
+        let first = reader.scope
+        session = try HomeFeedSession(accountID: 7, epoch: 1, token: "synthetic", role: "merchant", viewerRevision: 2)
+        XCTAssertNotEqual(reader.scope, first)
+        let beforeABA = reader.scope
+        session = try HomeFeedSession(accountID: 7, epoch: 1, token: "synthetic", role: "player", viewerRevision: 3)
+        session = try HomeFeedSession(accountID: 7, epoch: 1, token: "synthetic", role: "merchant", viewerRevision: 4)
+        XCTAssertNotEqual(reader.scope, beforeABA)
+        XCTAssertTrue(transport.requests.isEmpty)
+    }
+    func testDefaultRoleAndRevisionPreserveConstructionAndExactIdentity() throws {
+        let original = try HomeFeedSession(accountID: 7, epoch: 1, token: "synthetic")
+        XCTAssertEqual(original, try HomeFeedSession(accountID: 7, epoch: 1, token: "synthetic", role: nil, viewerRevision: 0))
+        XCTAssertNotEqual(original, try HomeFeedSession(accountID: 7, epoch: 1, token: "synthetic", role: "player"))
+        XCTAssertNotEqual(original, try HomeFeedSession(accountID: 7, epoch: 1, token: "synthetic", viewerRevision: 1))
+        XCTAssertNotEqual(original, try HomeFeedSession(accountID: 7, epoch: 1, token: "other"))
+    }
+
 }

@@ -81,8 +81,14 @@ import SwiftUI
         let json: String
         if path.hasSuffix("/phone") { json = "{\"code\":200,\"token\":\"synthetic-7\",\"data\":{\"id\":7,\"role\":\"\(role)\"}}" }
         else if path.hasSuffix("/userInfo") { json = "{\"code\":200,\"appUser\":{\"userId\":7,\"role\":\"\(role)\"}}" }
-        else if path.hasSuffix("/topic/list") { json = #"{"code":200,"data":{"rows":[{"id":31,"name":"Synthetic route card"}]}}"# }
-        else if path.hasSuffix("/activity/list") { json = #"{"code":200,"data":{"rows":[{"id":21,"name":"Synthetic activity card"}]}}"# }
+        else if path.hasSuffix("/topic/list") {
+            let name = role == "merchant" ? "Synthetic merchant route card" : "Synthetic route card"
+            json = "{\"code\":200,\"data\":{\"rows\":[{\"id\":31,\"name\":\"\(name)\"}]}}"
+        }
+        else if path.hasSuffix("/activity/list") {
+            let name = role == "merchant" ? "Synthetic merchant activity card" : "Synthetic activity card"
+            json = "{\"code\":200,\"data\":{\"rows\":[{\"id\":21,\"name\":\"\(name)\"}]}}"
+        }
         else if path.hasSuffix("/topic/info-to-user") || path.hasSuffix("/activity/info") {
             if path.hasSuffix("/topic/info-to-user"), args.contains("--content-detail-topic-failure") { throw APIError.httpStatus(503) }
             detailRequests += 1

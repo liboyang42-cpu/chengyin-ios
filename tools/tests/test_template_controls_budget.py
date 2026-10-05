@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import re
 import unittest
+from tools.tests.run108_runtime_budget_history import historical_profile, historical_costs, HISTORICAL_SHARD_COUNT
 from tools.tests.club_story_budget_history import before_club_story, before_club_story_costs, CLASSES
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -18,7 +19,7 @@ PRIOR_PROFILE_SHA256 = '6166dd51fee24c912269c02590bb808c62c50ea50da87a6c9053f329
 
 class TemplateControlsBudgetTests(unittest.TestCase):
     def profile(self):
-        return json.loads((ROOT / 'tools/ui_duration_weights.json').read_text())
+        return historical_profile(json.loads((ROOT / 'tools/ui_duration_weights.json').read_text()))
 
     def test_full_method_estimates_match_source_and_are_explicitly_unmeasured(self):
         profile = self.profile()
@@ -60,10 +61,10 @@ class TemplateControlsBudgetTests(unittest.TestCase):
         self.assertEqual((budget['deadline_seconds'], budget['startup_reserve_seconds']), (1800, 300))
         self.assertEqual(profile['unobserved_method_seconds'], 60)
         self.assertEqual((current['previous_shard_count'], current['shard_count']), (20, 21))
-        self.assertEqual(SHARD.DEFAULT_SHARD_COUNT, self.profile()['planning_budget']['club_story_replan']['shard_count'])
+        self.assertEqual(HISTORICAL_SHARD_COUNT, self.profile()['planning_budget']['club_story_replan']['shard_count'])
         self.assertEqual(budget['template_metadata_selectors_replan']['previous_shard_count'], current['shard_count'])
         counts = SHARD.discover(ROOT / 'Tests/AppUITests')
-        costs = SHARD.measured_weights(ROOT / 'Tests/AppUITests', ROOT / 'tools/ui_duration_weights.json')
+        costs = historical_costs(ROOT / 'Tests/AppUITests', ROOT / 'tools/ui_duration_weights.json')
         for case in CLASSES:
             del counts[case]
         costs = before_club_story_costs(costs, self.profile())

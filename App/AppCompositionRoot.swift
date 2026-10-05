@@ -57,7 +57,24 @@ extension KeychainTokenStore: AppTokenStorage {}
 }
 
 @MainActor struct AppCompositionRoot {
-    enum DeploymentState { case unconfigured, reviewed(ReviewedAppDeployment) }
+    enum DeploymentState { case unconfigured, incompatibleBuild, reviewed(ReviewedAppDeployment) }
+    enum ReadSurface { case home, contentDetail }
+    enum ReadAvailability: Equatable {
+        case available, deploymentMissing, buildMismatch, homeReadNotApproved, detailReadNotApproved
+        case signInRequired, sessionUnavailable, serviceUnavailable
+        var messageKey: String? {
+            switch self {
+            case .available: return nil
+            case .deploymentMissing: return "readConfiguration.deploymentMissing"
+            case .buildMismatch: return "readConfiguration.buildMismatch"
+            case .homeReadNotApproved: return "readConfiguration.homeReadNotApproved"
+            case .detailReadNotApproved: return "readConfiguration.detailReadNotApproved"
+            case .signInRequired: return "readConfiguration.signInRequired"
+            case .sessionUnavailable: return "readConfiguration.sessionUnavailable"
+            case .serviceUnavailable: return "readConfiguration.serviceUnavailable"
+            }
+        }
+    }
     let deployment: DeploymentState
     let storage: AppScopedStorageFactory
     private let makeTransport: () -> any HTTPTransport
@@ -104,6 +121,24 @@ extension KeychainTokenStore: AppTokenStorage {}
     }
     var reviewed: ReviewedAppDeployment? {
         if case .reviewed(let value) = deployment { return value }; return nil
+    }
+    /// A diagnostic only, never an authorization token. The transport repeats its own
+    /// exact route, credential and before/after identity checks at dispatch time.
+    func readAvailability(_ surface: ReadSurface, identity: CompositionHTTPTransport.SessionIdentity?) -> ReadAvailability {
+        if case .incompatibleBuild = deployment { return .buildMismatch }
+        guard let reviewed, reviewed.regional.apiConfiguration != nil,
+              reviewed.storageScope.matches(configuration: reviewed.regional) else { return .deploymentMissing }
+        switch surface {
+        case .home:
+            guard reviewed.reads.contains(.homeAndSearch) else { return .homeReadNotApproved }
+            guard let identity, identity.isPublicTemplateViewer else { return .sessionUnavailable }
+        case .contentDetail:
+            guard reviewed.contentDetails == .activityAndTopic else { return .detailReadNotApproved }
+            guard let identity else { return .sessionUnavailable }
+            if identity.accountID == nil && identity.role == nil && identity.token == nil { return .signInRequired }
+            guard identity.isSignedInContentViewer else { return .sessionUnavailable }
+        }
+        return .available
     }
     func transport() -> CompositionHTTPTransport {
         CompositionHTTPTransport(deployment: reviewed, underlying: makeTransport(), couponReadApproval: couponReadApproval, couponWriteApproval: couponWriteApproval, templateShelfReadApproval: templateShelfReadApproval, messagingHistoryReadApproval: messagingHistoryReadApproval, walletHistoryReadApproval: walletHistoryReadApproval, cityPlayerReadApproval: cityPlayerReadApproval, teamReadApproval: teamReadApproval, ownerDraftReadApproval: ownerDraftReadApproval, manualMapReadApproval: manualMapReadApproval, ownedOrderReadApproval: ownedOrderReadApproval)
@@ -407,6 +442,7 @@ extension KeychainTokenStore: AppTokenStorage {}
                   route.accepts(request), captured.isPublicTemplateViewer else { throw APIError.notConfigured }
         } else {
             guard request.httpMethod == "POST", deployment.reads.contains(.homeAndSearch),
+                  captured.isPublicTemplateViewer,
                   reads.contains(where: { api.baseURL.appendingPathComponent($0) == url }) else { throw APIError.notConfigured }
         }
         if !auth, request.value(forHTTPHeaderField: "Authorization").map({ Data($0.utf8) }) != captured.token.map({ Data($0.utf8) }) { throw CancellationError() }

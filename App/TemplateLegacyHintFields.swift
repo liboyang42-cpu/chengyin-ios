@@ -48,7 +48,7 @@ import SwiftUI
             Text("templateLegacyHints.clearNotice").font(.caption).foregroundStyle(.secondary)
             if model.draft.legacyHintsAreEnabled {
                 ForEach(TemplateLegacyHintField.allCases) { field in
-                    TemplateAuthoringField(field.rawValue, text: model.legacyHint(field)).disabled(!model.canEdit)
+                    TemplateAuthoringField(field.rawValue, text: model.legacyHint(field), multiline: true).disabled(!model.canEdit)
                 }
             }
         }

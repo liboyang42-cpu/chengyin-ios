@@ -83,7 +83,21 @@ import XCTest
         XCTAssertEqual(detail.id, id)
         XCTAssertEqual(wire.requests.count, 1)
         XCTAssertEqual(wire.requests.first?.url?.path, "/api/template/myinfo")
-        XCTAssertEqual(String(data: try XCTUnwrap(wire.requests.first?.httpBody), encoding: .utf8), "id=142")
+        let request = try XCTUnwrap(wire.requests.first)
+        XCTAssertEqual(request.httpMethod, "POST")
+        XCTAssertNil(request.url?.query)
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "synthetic")
+        let contentType = try XCTUnwrap(request.value(forHTTPHeaderField: "Content-Type"))
+        let prefix = "multipart/form-data; boundary="
+        XCTAssertTrue(contentType.hasPrefix(prefix))
+        let boundary = String(contentType.dropFirst(prefix.count))
+        XCTAssertFalse(boundary.isEmpty)
+        XCTAssertLessThanOrEqual(boundary.count, 70)
+        XCTAssertTrue(boundary.allSatisfy { $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "-") })
+        // An independently spelled exact body rejects duplicate IDs and every extra field.
+        let expected = "--\(boundary)\r\nContent-Disposition: form-data; name=\"id\"\r\n\r\n142\r\n--\(boundary)--\r\n"
+        XCTAssertEqual(try XCTUnwrap(request.httpBody), Data(expected.utf8))
+        XCTAssertNil(request.httpBodyStream)
         wire.returnedID = 141
         do { _ = try await reader.memberTemplate(id: id); XCTFail("wrong returned ID") }
         catch { XCTAssertEqual(error as? APIError, .malformedResponse) }

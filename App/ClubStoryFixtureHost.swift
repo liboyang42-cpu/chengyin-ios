@@ -8,8 +8,9 @@ import SwiftUI
         NavigationStack {
             ClubGovernanceReadView(operation: .topicOverview, scope: ClubStoryFixtureData.scope,
                 identity: store.identity, access: store.access, coordinator: store.coordinator)
-                .environment(\.clubStoryTemplates, store.templates)
         }
+        // The pushed destinations must inherit the same reader as the root read.
+        .environment(\.clubStoryTemplates, store.templates)
         .safeAreaInset(edge: .bottom) {
             ScrollView(.horizontal) {
                 HStack {

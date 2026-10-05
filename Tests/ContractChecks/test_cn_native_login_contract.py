@@ -21,7 +21,7 @@ class CNNativeLoginContracts(unittest.TestCase):
             self.assertIn('["player", "club", "merchant"].contains(', self.text(path))
         self.assertNotIn('configuration.availability(of: .usernamePassword)', route)
     def test_shipping_config_stays_closed_and_recorders_use_two_step_phone(self):
-        self.assertIn('.init(deployment: .unconfigured)', self.text('App/RegionalLaunchConfiguration.swift'))
+        self.assertIn('.init(deployment: .unconfigured,', self.text('App/RegionalLaunchConfiguration.swift'))
         tests = self.text('Tests/AppUnitTests/AppCompositionRootTests.swift')
         for marker in ['testPasswordVerificationFlagCannotMountLegacyWeChatCodeRoute', 'testProviderUnavailableWrongOTPAndRateLimitNeverCommitOrRetry', 'testMerchantEntryIntentDoesNotGrantMerchantRoleOrWriteAccess', 'testColdRestoreRejectsLegacyRolelessProjectionWithoutDestroyingCredential', 'authChannels.loginWithPhone']:
             self.assertIn(marker, tests)

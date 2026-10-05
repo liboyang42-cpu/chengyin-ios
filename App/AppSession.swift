@@ -1603,10 +1603,28 @@ final class AppSession: ObservableObject {
         guard let self,self.currentTicketWalletSession == captured else { return }
         self.expireIfMatching(error:APIError.unauthorized,stamp:captured.epoch,credential:self.token)
     })
+    /// Normal-screen diagnostics reflect both exact composition grants and the mounted services.
+    /// They do not create approvals or bypass the transport's final identity checks.
+    var homeReadAvailability: AppCompositionRoot.ReadAvailability {
+        let availability = composition.readAvailability(.home, identity: compositionTransport.current())
+        guard availability == .available else { return availability }
+        return homeFeedService != nil ? .available : .serviceUnavailable
+    }
+    var activityListReadAvailability: AppCompositionRoot.ReadAvailability {
+        let availability = composition.readAvailability(.home, identity: compositionTransport.current())
+        guard availability == .available else { return availability }
+        return activityService != nil ? .available : .serviceUnavailable
+    }
+    var contentDetailReadAvailability: AppCompositionRoot.ReadAvailability {
+        let availability = composition.readAvailability(.contentDetail, identity: compositionTransport.current())
+        guard availability == .available else { return availability }
+        return activityService != nil && topicService != nil && currentTopicSession != nil ? .available : .serviceUnavailable
+    }
     private let homeFeedService:HomeFeedService?
     private var currentHomeFeedSession:HomeFeedSession? {
         guard let account,let token else { return nil }
-        return try? HomeFeedSession(accountID:account.id,epoch:gate.currentStamp,token:token)
+        return try? HomeFeedSession(accountID:account.id,epoch:gate.currentStamp,token:token,
+            role:account.effectiveRole,viewerRevision:compositionViewerRevision)
     }
     lazy var homeFeedReader=HomeFeedSessionReader(service:homeFeedService,currentSession:{ [weak self] in self?.currentHomeFeedSession },onUnauthorized:{ [weak self] captured in
         guard let self,self.currentHomeFeedSession == captured else { return }
@@ -2414,12 +2432,16 @@ final class AppSession: ObservableObject {
 
     func activities(page:Int,keyword:String) async throws -> [ActivitySummary] {
         guard let activityService else { throw APIError.notConfigured }
-        let stamp=gate.currentStamp, credential=token
+        let stamp = gate.currentStamp, credential = token, viewerRevision = compositionViewerRevision
         do {
-            let result=try await activityService.list(page:page,keyword:keyword,token:credential)
-            guard gate.isCurrent(stamp) else { throw CancellationError() }
+            let result = try await activityService.list(page:page,keyword:keyword,token:credential)
+            try Task.checkCancellation()
+            guard gate.isCurrent(stamp), credential == token,
+                  viewerRevision == compositionViewerRevision else { throw CancellationError() }
             return result
         } catch {
+            guard gate.isCurrent(stamp), credential == token,
+                  viewerRevision == compositionViewerRevision, !Task.isCancelled else { throw CancellationError() }
             expireIfMatching(error:error,stamp:stamp,credential:credential)
             throw error
         }

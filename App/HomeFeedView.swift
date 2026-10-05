@@ -3,6 +3,7 @@ import SwiftUI
 /// Embed in the caller's NavigationStack. The caller owns existing detail destinations.
 @MainActor struct HomeFeedView: View {
     let reader: any HomeFeedReading
+    var unavailableMessageKey: String? = nil
     /// Supply only from verified backend configuration, never language/device locale.
     var sourceTimeZone: TimeZone? = nil
     let onDestination: (HomeFeedDestination) -> Void
@@ -14,8 +15,9 @@ import SwiftUI
     private var query: HomeFeedQuery { HomeFeedQuery(kind: kind, keyword: submittedKeyword, categoryID: categoryID) }
     var body: some View {
         ZStack {
-            if !reader.isConfigured {
-                ContentUnavailableView("homeFeed.unavailable", systemImage: "network.slash", description: Text("auth.notConfigured"))
+            if !reader.isConfigured || unavailableMessageKey != nil {
+                ContentUnavailableView("homeFeed.unavailable", systemImage: "network.slash", description: Text(LocalizedStringKey(unavailableMessageKey ?? "auth.notConfigured")))
+                    .accessibilityIdentifier("homeFeed.configurationUnavailable")
             } else {
                 List {
                     if reader.isOfflineExample { Text("homeFeed.example").font(.caption) }
@@ -58,7 +60,7 @@ import SwiftUI
             }
         }
         .appNavigationTitle("homeFeed.title")
-        .task(id: reader.scope) { model.invalidate(); if reader.isConfigured { await model.reload(reader: reader, query: query) } }
+        .task(id: reader.scope) { model.invalidate(); if reader.isConfigured && unavailableMessageKey == nil { await model.reload(reader: reader, query: query) } }
         .onDisappear { model.invalidate() }
     }
     @ViewBuilder private var bannerSection: some View {

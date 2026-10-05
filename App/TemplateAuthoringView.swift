@@ -9,6 +9,7 @@ import SwiftUI
     @Published private(set) var optionMediaIssue: String?
     @Published private(set) var ruleSteps = TemplateAuthoringRuleSteps(raw: nil)
     @Published private(set) var ruleStepIssue: String?
+    @Published private(set) var ruleInputRevisions: [UUID: UUID] = [:]
     private var optionMediaGeneration = 0
     private(set) var storyEditorGeneration = 0
     var legacyHintGeneration = UUID()
@@ -65,7 +66,7 @@ import SwiftUI
     func confirm(_ value: TemplateAuthoringReview) async { busy = true; review = nil; await coordinator.confirm(value); busy = false; revision += 1 }
     func leave() { metadataGeneration = UUID(); coordinator.leaveScreen(); review = nil }
     private func resetRuleSteps() {
-        ruleSteps = .init(raw: draft.ruleInstructions); ruleStepIssue = nil
+        ruleSteps = .init(raw: draft.ruleInstructions); ruleStepIssue = nil; ruleInputRevisions = [:]
     }
     func ruleStep(_ id: UUID) -> Binding<String> {
         let bindingEpoch = epoch, bindingIdentity = draftIdentity
@@ -78,20 +79,24 @@ import SwiftUI
         }, set: { text in
             guard self.canEdit, self.epoch == bindingEpoch, self.draftIdentity == bindingIdentity,
                   self.ruleSteps.text(for: id) != nil else { return }
-            self.changeRuleSteps { try $0.update(id: id, text: text) }
+            self.changeRuleSteps(rejectedRowID: id) { try $0.update(id: id, text: text) }
         })
     }
     func addRuleStep() { changeRuleSteps { try $0.add() } }
     func removeRuleStep(_ id: UUID) { changeRuleSteps { try $0.remove(id: id) } }
-    private func changeRuleSteps(_ edit: (inout TemplateAuthoringRuleSteps) throws -> Void) {
+    private func changeRuleSteps(rejectedRowID: UUID? = nil, _ edit: (inout TemplateAuthoringRuleSteps) throws -> Void) {
         guard canEdit, ruleSteps.storedText == draft.ruleInstructions else { return }
         do {
             var next = ruleSteps
             try edit(&next)
             ruleSteps = next; draft.ruleInstructions = next.storedText; ruleStepIssue = nil
+            ruleInputRevisions = ruleInputRevisions.filter { next.text(for: $0.key) != nil }
             changed()
         } catch TemplateAuthoringRuleSteps.EditError.asciiLength {
             ruleStepIssue = "templateRules.asciiLimit"
+            // Rejecting the model write alone leaves TextField's native editing buffer ahead.
+            // Recreate only this control from the unchanged accepted row, never truncate source.
+            if let rejectedRowID { ruleInputRevisions[rejectedRowID] = UUID() }
         } catch TemplateAuthoringRuleSteps.EditError.rowLimit {
             ruleStepIssue = "templateRules.rowLimit"
         } catch { /* Unsupported or stale rows remain unchanged. */ }

@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import re
 import unittest
+from tools.tests.run108_runtime_budget_history import historical_profile, historical_costs, HISTORICAL_SHARD_COUNT
 from tools.tests.club_story_budget_history import before_club_story, before_club_story_costs, CLASSES
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -46,7 +47,7 @@ def inventory(profile, excluding=()):
 
 class DiscoveryFeedBudgetTests(unittest.TestCase):
     def test_every_new_method_has_exact_explicit_unmeasured_provenance(self):
-        profile = json.loads((ROOT / 'tools/ui_duration_weights.json').read_text())
+        profile = historical_profile(json.loads((ROOT / 'tools/ui_duration_weights.json').read_text()))
         records = [record for record in profile['estimate_provenance']['methods']
                    if record['source'] in SOURCES]
         self.assertEqual(len(records), 19)
@@ -65,7 +66,7 @@ class DiscoveryFeedBudgetTests(unittest.TestCase):
             self.assertRegex(source, r'\bfunc\s+' + re.escape(name) + r'\s*\(')
 
     def test_all_prior_observations_estimates_provenance_and_history_are_unchanged(self):
-        profile = json.loads((ROOT / 'tools/ui_duration_weights.json').read_text())
+        profile = historical_profile(json.loads((ROOT / 'tools/ui_duration_weights.json').read_text()))
         profile = before_club_story(profile)
         later = profile['planning_budget'].pop('template_metadata_selectors_replan')
         for method in later['new_methods']:
@@ -91,7 +92,7 @@ class DiscoveryFeedBudgetTests(unittest.TestCase):
         self.assertEqual(hashlib.sha256(serialized).hexdigest(), PRIOR_PROFILE_SHA256)
 
     def test_accepted_seventh_plan_reconstructs_exactly_without_new_methods(self):
-        profile = json.loads((ROOT / 'tools/ui_duration_weights.json').read_text())
+        profile = historical_profile(json.loads((ROOT / 'tools/ui_duration_weights.json').read_text()))
         counts, costs = inventory(profile, excluding=set(EXPECTED) | set(profile['planning_budget']['relation_locality_replan']['new_methods']) | set(profile['planning_budget']['template_controls_replan']['new_methods']))
         self.assertEqual((sum(counts.values()), len(costs)), (610, 89))
         self.assertEqual(sum(costs.values()), Decimal('25484.282'))
@@ -105,11 +106,11 @@ class DiscoveryFeedBudgetTests(unittest.TestCase):
         self.assertEqual(Decimal(1800) - maximum, Decimal(str(historical['forecast_headroom_seconds'])))
 
     def test_accepted_eighth_plan_is_first_fitting_without_rounding_or_skipping(self):
-        profile = json.loads((ROOT / 'tools/ui_duration_weights.json').read_text())
+        profile = historical_profile(json.loads((ROOT / 'tools/ui_duration_weights.json').read_text()))
         budget = profile['planning_budget']; current = budget['discovery_feed_replan']
         self.assertEqual((budget['deadline_seconds'], budget['startup_reserve_seconds']), (1800, 300))
         self.assertEqual((current['previous_shard_count'], current['shard_count']), (18, 20))
-        self.assertEqual(SHARD.DEFAULT_SHARD_COUNT, budget['club_story_replan']['shard_count'])
+        self.assertEqual(HISTORICAL_SHARD_COUNT, budget['club_story_replan']['shard_count'])
         self.assertEqual(budget['club_story_replan']['previous_shard_count'], budget['template_metadata_selectors_replan']['shard_count'])
         self.assertEqual(budget['template_metadata_selectors_replan']['previous_shard_count'], budget['template_controls_replan']['shard_count'])
         self.assertEqual(budget['template_controls_replan']['previous_shard_count'], budget['relation_locality_replan']['shard_count'])

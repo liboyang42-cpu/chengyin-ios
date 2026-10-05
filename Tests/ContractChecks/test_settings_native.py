@@ -21,6 +21,21 @@ class SettingsNativeSourceChecks(unittest.TestCase):
         self.assertNotIn('UIPasteboard', attribution)
         self.assertNotIn('Link(', attribution)
 
+    def test_attribution_row_identifier_is_on_title_leaf_not_copy_feedback_ancestor(self):
+        source = (ROOT/'App/SettingsSupportSections.swift').read_text()
+        attribution = source.split('@MainActor struct SettingsAttributionsSection: View {', 1)[1]
+        title = 'Text(verbatim: attribution.title).font(.subheadline.weight(.semibold))'
+        row_id = '.accessibilityIdentifier("settingsNative.attribution.\\(attribution.id)")'
+        self.assertEqual(attribution.count(row_id), 1)
+        self.assertIn(title + '\n                        ' + row_id, attribution)
+        self.assertNotIn(row_id, attribution.split('NativeCopyTextButton(', 1)[1])
+        self.assertIn('identifier: "settingsNative.attribution.copy.\\(attribution.id)"', attribution)
+        copy = (ROOT/'App/NativeCopyTextButton.swift').read_text()
+        self.assertIn('.accessibilityIdentifier(identifier)', copy)
+        self.assertIn('.accessibilityIdentifier(identifier + (status == .copied ? ".copied" : ".failed"))', copy)
+        self.assertIn('try copyText(text)', copy)
+        self.assertIn('.onDisappear { status = nil }', copy)
+
     def test_attribution_copy_labels_identify_each_source_in_both_languages(self):
         contracts = (ROOT/'Core/SettingsAboutContracts.swift').read_text()
         self.assertIn('public var copyTitleKey: String { "settingsNative.attribution.copy.\\(id)" }', contracts)

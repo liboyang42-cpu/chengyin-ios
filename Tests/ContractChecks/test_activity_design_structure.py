@@ -106,7 +106,7 @@ class ActivityDesignStructureTests(unittest.TestCase):
 
     def test_loading_search_pagination_and_map_contracts_remain(self):
         browser = app("ActivityBrowserView.swift")
-        for required in ("let keyword=appliedQuery", "appliedQuery=query", "let operation=generation", "guard generation == operation", "hasMore=result.count >= 10", "existing.insert($0.id).inserted", "try await reader.activities(page:next,keyword:keyword)"):
+        for required in ("appliedQuery = keyword", "let operation = generation", "generation == operation", "guard current()", "hasMore = result.count >= 10", "existing.insert($0.id).inserted", "try await reader.activities(page: next, keyword: appliedQuery)"):
             self.assertIn(required, browser)
         detail = app("ActivityDetailView.swift")
         self.assertIn(".task(id:id) { await loads.run { await load() } }", detail)

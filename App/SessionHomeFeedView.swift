@@ -13,7 +13,7 @@ import SwiftUI
         NavigationStack(path:$path) {
             // Unzoned content needs a separately verified event/backend timezone.
             // Market and interface language alone do not establish one.
-            HomeFeedView(reader:session.homeFeedReader) { path.append($0) }
+            HomeFeedView(reader:session.homeFeedReader, unavailableMessageKey: session.homeReadAvailability.messageKey) { path.append($0) }
                 .toolbar {
                     ToolbarItem(placement:.topBarLeading) {
                         Button("square.title",systemImage:"square.grid.2x2") { showsSquare=true }

@@ -22,7 +22,7 @@ class IntegratedNativeAcceptanceContracts(unittest.TestCase):
         for forbidden in ['session.login(', 'loginWithPhone(', 'WelcomeView(', 'TabView', 'NavigationStack', 'URLSession', 'CLLocationManager']:
             self.assertNotIn(forbidden, fixture)
         production = self.read('App/RegionalLaunchConfiguration.swift')
-        self.assertIn('.init(deployment: .unconfigured)', production)
+        self.assertIn('.init(deployment: .unconfigured,', production)
         self.assertIn('let approved:[RegionalMarket:Set<String>]=[:]', production)
 
     def test_single_recorder_fails_closed_and_grants_exact_current_context(self):
@@ -70,11 +70,15 @@ class IntegratedNativeAcceptanceContracts(unittest.TestCase):
         for required in ['navigation.buttons["Official city"]', 'frame.minX >= city.frame.maxX',
                          'navigation.frame.contains(frame)', 'app.frame.contains(frame)',
                          '$0.isEnabled && $0.isHittable', 'leaves.count == 1', 'overflow.tap()',
-                         'app.buttons["roam.display.toggle"]', 'toggle.isEnabled, toggle.isHittable']:
+                         'NSPredicate(format: "label == %@", "Show list only")', 'exact.count == 1',
+                         'toggle.isEnabled, toggle.isHittable', '!toggle.frame.isEmpty', 'app.frame.contains(toggle.frame)']:
             self.assertIn(required, block)
         self.assertEqual(block.count('overflow.tap()'), 1)
         self.assertNotIn('sleep', block)
         self.assertNotIn('"More"', block)
+        self.assertIn('"-AppleLanguages", "(en)", "-AppleLocale", "en_US"', source)
+        self.assertNotIn('label CONTAINS', block)
+        self.assertNotIn('firstMatch.tap()', block)
 
     def test_phone_fixture_matches_real_provisional_and_authoritative_parser_shapes(self):
         source = self.read('App/IntegratedNativeAcceptanceFixture.swift')

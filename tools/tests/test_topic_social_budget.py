@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import re
 import unittest
+from tools.tests.run108_runtime_budget_history import historical_profile, historical_costs, HISTORICAL_SHARD_COUNT
 
 ROOT = Path(__file__).resolve().parents[2]
 SPEC = importlib.util.spec_from_file_location('topic_social_shard', ROOT / 'tools/run_ui_shard.py')
@@ -13,7 +14,7 @@ SPEC.loader.exec_module(SHARD)
 
 class TopicSocialBudgetTests(unittest.TestCase):
     def test_six_new_flows_have_explicit_unmeasured_estimates(self):
-        profile = json.loads((ROOT / 'tools/ui_duration_weights.json').read_text())
+        profile = historical_profile(json.loads((ROOT / 'tools/ui_duration_weights.json').read_text()))
         expected = {
             'TopicFlowTests.testReviewSummaryKeepsServerTotalAcrossDifferentRoutesAndReopen': 210,
             'TopicFlowTests.testKnownEmptyTopicReviewsUseChineseEmptyStateWithoutZeroStars': 90,
@@ -38,7 +39,7 @@ class TopicSocialBudgetTests(unittest.TestCase):
             self.assertRegex(source, r'\bfunc\s+' + re.escape(name) + r'\s*\(')
 
     def test_settings_copy_estimates_remain_separate_unmeasured_records(self):
-        profile = json.loads((ROOT / 'tools/ui_duration_weights.json').read_text())
+        profile = historical_profile(json.loads((ROOT / 'tools/ui_duration_weights.json').read_text()))
         expected = {
             'SettingsNativeFlowTests.testAttributionCopiesEachExactSourceAddressWithSeparateFeedback': 120,
             'SettingsNativeFlowTests.testAttributionCopyFailureKeepsSourceVisibleAndExplicitRetrySucceeds': 90,
@@ -59,11 +60,11 @@ class TopicSocialBudgetTests(unittest.TestCase):
             self.assertIn('func ' + name + '()', source)
 
     def test_historical_sixteen_shard_record_and_current_exhaustive_bounded_plan(self):
-        profile = json.loads((ROOT / 'tools/ui_duration_weights.json').read_text())
+        profile = historical_profile(json.loads((ROOT / 'tools/ui_duration_weights.json').read_text()))
         budget = profile['planning_budget']; replan = budget['shard_replan']
         self.assertEqual((budget['deadline_seconds'], budget['startup_reserve_seconds']), (1800, 300))
         self.assertEqual((replan['previous_shard_count'], replan['shard_count']), (15, 16))
-        self.assertEqual(SHARD.DEFAULT_SHARD_COUNT, budget['club_story_replan']['shard_count'])
+        self.assertEqual(HISTORICAL_SHARD_COUNT, budget['club_story_replan']['shard_count'])
         self.assertEqual(budget['club_story_replan']['previous_shard_count'],
                          budget['template_metadata_selectors_replan']['shard_count'])
         self.assertEqual(budget['template_metadata_selectors_replan']['previous_shard_count'],
@@ -78,9 +79,9 @@ class TopicSocialBudgetTests(unittest.TestCase):
         self.assertEqual((replan['new_method_count'], replan['new_estimated_method_seconds']), (9, 1380))
         self.assertTrue(replan['basis'])
         counts = SHARD.discover(ROOT / 'Tests/AppUITests')
-        costs = SHARD.measured_weights(ROOT / 'Tests/AppUITests', ROOT / 'tools/ui_duration_weights.json')
+        costs = historical_costs(ROOT / 'Tests/AppUITests', ROOT / 'tools/ui_duration_weights.json')
         self.assertGreater(sum(costs.values()), 15 * (1800 - 300))
-        groups = SHARD.partition(costs, SHARD.DEFAULT_SHARD_COUNT)
+        groups = SHARD.partition(costs, HISTORICAL_SHARD_COUNT)
         flattened = [name for group in groups for name in group]
         self.assertEqual(len(flattened), len(set(flattened)))
         self.assertEqual(set(flattened), set(counts))

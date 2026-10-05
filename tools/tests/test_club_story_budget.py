@@ -9,6 +9,7 @@ import json
 from pathlib import Path
 import re
 import unittest
+from tools.tests.run108_runtime_budget_history import historical_profile, historical_costs, HISTORICAL_SHARD_COUNT
 from tools.tests.club_story_budget_history import before_club_story, METHOD, CLASSES
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -22,7 +23,7 @@ PRIOR_PROFILE_SHA256 = '5a727e5988c99ad9d5320cc7b277742ec2c48e156b4e8dd45cbd9ffa
 
 class ClubStoryBudgetTests(unittest.TestCase):
     def profile(self):
-        return json.loads((ROOT / 'tools/ui_duration_weights.json').read_text())
+        return historical_profile(json.loads((ROOT / 'tools/ui_duration_weights.json').read_text()))
 
     def test_ten_full_method_allowances_are_explicit_unmeasured_with_source_counts(self):
         profile = self.profile()
@@ -91,11 +92,11 @@ class ClubStoryBudgetTests(unittest.TestCase):
         self.assertEqual((budget['deadline_seconds'], budget['startup_reserve_seconds']), (1800, 300))
         self.assertEqual(profile['unobserved_method_seconds'], 60)
         self.assertEqual((current['previous_shard_count'], current['shard_count']), (22, 23))
-        self.assertEqual(SHARD.DEFAULT_SHARD_COUNT, 23)
+        self.assertEqual(HISTORICAL_SHARD_COUNT, 23)
         self.assertEqual(current['previous_shard_count'], budget['template_metadata_selectors_replan']['shard_count'])
         self.assertEqual((current['baseline_method_count'], current['baseline_total_method_seconds']), (645, 31304.282))
         counts = SHARD.discover(ROOT / 'Tests/AppUITests')
-        floats = SHARD.measured_weights(ROOT / 'Tests/AppUITests', ROOT / 'tools/ui_duration_weights.json')
+        floats = historical_costs(ROOT / 'Tests/AppUITests', ROOT / 'tools/ui_duration_weights.json')
         precise = {}; inventory = set()
         for path in sorted((ROOT / 'Tests/AppUITests').glob('*.swift')):
             source = path.read_text(); names = re.findall(r'\bfunc\s+(test\w+)\s*\(', source)

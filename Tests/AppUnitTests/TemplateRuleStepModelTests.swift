@@ -81,6 +81,26 @@ import XCTest
         historical.addRuleStep(); historical.removeRuleStep(historical.ruleSteps.rows[0].id)
         XCTAssertEqual(historical.draft.ruleInstructions, raw)
     }
+    func testRejectedInputRotatesOnlyItsNativeFieldIdentityWithoutChangingAcceptedBytes() throws {
+        let owner = try session(), sixty = String(repeating: "a", count: 60)
+        let model = makeModel(owner: { owner }, raw: sixty + "\nSecond")
+        let id = model.ruleSteps.rows[0].id, other = model.ruleSteps.rows[1].id
+        let binding = model.ruleStep(id), original = model.draft.ruleInstructions
+        XCTAssertTrue(model.ruleInputRevisions.isEmpty)
+        binding.wrappedValue = sixty + "Z"
+        let firstRejection = try XCTUnwrap(model.ruleInputRevisions[id])
+        XCTAssertNil(model.ruleInputRevisions[other])
+        XCTAssertEqual(Array(binding.wrappedValue.utf8), Array(sixty.utf8))
+        XCTAssertEqual(model.draft.ruleInstructions, original); XCTAssertEqual(model.coordinator.draft.ruleInstructions, original)
+        binding.wrappedValue = sixty + "Y"
+        let secondRejection = try XCTUnwrap(model.ruleInputRevisions[id])
+        XCTAssertNotEqual(firstRejection, secondRejection)
+        binding.wrappedValue = "Valid"
+        XCTAssertEqual(model.ruleInputRevisions[id], secondRejection)
+        XCTAssertNil(model.ruleStepIssue); XCTAssertEqual(binding.wrappedValue, "Valid")
+        model.removeRuleStep(id); XCTAssertNil(model.ruleInputRevisions[id])
+        model.load(); XCTAssertTrue(model.ruleInputRevisions.isEmpty)
+    }
     func testRuleEditInvalidatesReviewWithoutChangingRemoteGates() throws {
         let owner = try session(), model = makeModel(owner: { owner })
         model.prepare(.saveDraft); XCTAssertNotNil(model.review)

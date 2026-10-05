@@ -24,7 +24,7 @@ class PublicTemplateCompositionContracts(unittest.TestCase):
         self.assertIn('request.value(forHTTPHeaderField: "Authorization").map({ Data($0.utf8) }) != captured.token.map({ Data($0.utf8) })', root)
         self.assertIn('current() == captured', root)
         self.assertIn('let viewerRevision: UInt64', root)
-        self.assertIn('.init(deployment: .unconfigured)', (ROOT / 'App/RegionalLaunchConfiguration.swift').read_text())
+        self.assertIn('.init(deployment: .unconfigured,', (ROOT / 'App/RegionalLaunchConfiguration.swift').read_text())
 
     def test_session_services_and_viewer_projection_stay_on_existing_fenced_path(self):
         session = (ROOT / 'App/AppSession.swift').read_text()

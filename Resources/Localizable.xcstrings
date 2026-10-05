@@ -125956,6 +125956,142 @@
           }
         }
       }
+    },
+    "readConfiguration.deploymentMissing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This build has no approved service configuration. Home content is unavailable."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此版本尚未配置已批准的服务，暂时无法读取首页内容。"
+          }
+        }
+      }
+    },
+    "readConfiguration.buildMismatch": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The approved service configuration does not match this build. Service access is blocked."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已批准的服务配置与此版本不匹配，已阻止访问服务。"
+          }
+        }
+      }
+    },
+    "readConfiguration.homeReadNotApproved": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Home browsing has not been approved for this service configuration."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前服务配置尚未批准首页浏览。"
+          }
+        }
+      }
+    },
+    "readConfiguration.detailReadNotApproved": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detail reading has not been approved for this service configuration."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前服务配置尚未批准读取详情。"
+          }
+        }
+      }
+    },
+    "readConfiguration.signInRequired": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to read this detail."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先登录再查看详情。"
+          }
+        }
+      }
+    },
+    "readConfiguration.sessionUnavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The current session cannot be used for this read. Please sign in again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前会话无法用于此次读取，请重新登录。"
+          }
+        }
+      }
+    },
+    "readConfiguration.serviceUnavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The required read service is not connected in this build."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此版本尚未接入所需的读取服务。"
+          }
+        }
+      }
+    },
+    "readConfiguration.activityListReadNotApproved": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activity browsing has not been approved for this service configuration."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前服务配置尚未批准活动浏览。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

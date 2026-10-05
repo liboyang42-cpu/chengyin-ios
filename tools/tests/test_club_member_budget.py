@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import re
 import unittest
+from tools.tests.run108_runtime_budget_history import historical_profile, historical_costs, HISTORICAL_SHARD_COUNT
 
 ROOT = Path(__file__).resolve().parents[2]
 SPEC = importlib.util.spec_from_file_location('club_member_shard', ROOT / 'tools/run_ui_shard.py')
@@ -14,7 +15,7 @@ METHOD = 'ModuleFlowTests.testClubMemberGateAndReadOnlyMemberList'
 
 class ClubMemberBudgetTests(unittest.TestCase):
     def test_expanded_method_uses_unmeasured_estimate_instead_of_old_observation(self):
-        profile = json.loads((ROOT / 'tools/ui_duration_weights.json').read_text())
+        profile = historical_profile(json.loads((ROOT / 'tools/ui_duration_weights.json').read_text()))
         self.assertNotIn(METHOD, profile['method_seconds'])
         self.assertEqual(profile['estimated_method_seconds'][METHOD], 60)
         records = [record for record in profile['estimate_provenance']['methods']
@@ -34,11 +35,11 @@ class ClubMemberBudgetTests(unittest.TestCase):
         expected = sum(profile['method_seconds'].get('ModuleFlowTests.' + method,
                        profile['estimated_method_seconds'].get('ModuleFlowTests.' + method,
                        profile['unobserved_method_seconds'])) for method in methods)
-        costs = SHARD.measured_weights(ROOT / 'Tests/AppUITests', ROOT / 'tools/ui_duration_weights.json')
+        costs = historical_costs(ROOT / 'Tests/AppUITests', ROOT / 'tools/ui_duration_weights.json')
         self.assertAlmostEqual(costs['ModuleFlowTests'], expected)
 
     def test_superseded_observation_keeps_provenance_without_claiming_current_timing(self):
-        profile = json.loads((ROOT / 'tools/ui_duration_weights.json').read_text())
+        profile = historical_profile(json.loads((ROOT / 'tools/ui_duration_weights.json').read_text()))
         records = [record for record in profile['superseded_method_observations'] if record['method'] == METHOD]
         self.assertEqual(len(records), 1)
         record = records[0]
@@ -50,7 +51,7 @@ class ClubMemberBudgetTests(unittest.TestCase):
         self.assertGreater(profile['estimated_method_seconds'][METHOD], record['seconds'])
 
     def test_expansion_history_and_current_plan_preserve_deadline_reserve_coverage(self):
-        profile = json.loads((ROOT / 'tools/ui_duration_weights.json').read_text())
+        profile = historical_profile(json.loads((ROOT / 'tools/ui_duration_weights.json').read_text()))
         budget = profile['planning_budget']; review = budget['expanded_method_review']
         self.assertEqual((budget['deadline_seconds'], budget['startup_reserve_seconds']), (1800, 300))
         public_read = budget['public_read_replan']
@@ -59,7 +60,7 @@ class ClubMemberBudgetTests(unittest.TestCase):
         template_controls = budget['template_controls_replan']
         selectors = budget['template_metadata_selectors_replan']
         current = budget['club_story_replan']
-        self.assertEqual(SHARD.DEFAULT_SHARD_COUNT, current['shard_count'])
+        self.assertEqual(HISTORICAL_SHARD_COUNT, current['shard_count'])
         self.assertEqual(review['shard_count'], public_read['previous_shard_count'])
         self.assertEqual(public_read['shard_count'], discovery_feed['previous_shard_count'])
         self.assertEqual(discovery_feed['shard_count'], relation_locality['previous_shard_count'])
@@ -70,13 +71,13 @@ class ClubMemberBudgetTests(unittest.TestCase):
         self.assertAlmostEqual(review['replacement_estimated_seconds'] - review['superseded_observed_seconds'],
                                review['net_declared_method_seconds_added'])
         counts = SHARD.discover(ROOT / 'Tests/AppUITests')
-        costs = SHARD.measured_weights(ROOT / 'Tests/AppUITests', ROOT / 'tools/ui_duration_weights.json')
+        costs = historical_costs(ROOT / 'Tests/AppUITests', ROOT / 'tools/ui_duration_weights.json')
         self.assertEqual(sum(counts.values()) - selectors['new_method_count'] - current['new_method_count'] - template_controls['new_method_count'] - relation_locality['new_method_count'] - discovery_feed['new_method_count'] - public_read['new_method_count'], 597)
         self.assertAlmostEqual(sum(costs.values()) - selectors['new_estimated_method_seconds'] - current['net_declared_method_seconds_added'] - template_controls['new_estimated_method_seconds'] - relation_locality['new_estimated_method_seconds']
                                - public_read['new_estimated_method_seconds'] - discovery_feed['new_estimated_method_seconds'],
                                review['total_method_seconds'])
         self.assertGreater(sum(costs.values()), 15 * (1800 - 300))
-        groups = SHARD.partition(costs, SHARD.DEFAULT_SHARD_COUNT)
+        groups = SHARD.partition(costs, HISTORICAL_SHARD_COUNT)
         flattened = [name for group in groups for name in group]
         self.assertEqual(len(flattened), len(set(flattened)))
         self.assertEqual(set(flattened), set(counts))

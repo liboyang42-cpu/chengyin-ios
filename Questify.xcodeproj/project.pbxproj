@@ -10704,6 +10704,7 @@
 				"B29231FFB491C26A485226A3",
 				"50734D073BF36F4D47EC24A8",
 				"4A57125287F6AEF51C738309",
+				"783FC56096E91597FD59C9D5",
 				"8D624480C3173FFB897E5BAF",
 				"A6F02311300305D58EE71ED7",
 				"525EE1679C85AA5272DE7DF4",
@@ -10725,6 +10726,7 @@
 				"FE2D4882E28C03F638F82ADB",
 				"4264061C60182F82F921E108",
 				"5E34B486468D1480E07D2A68",
+				"DFB1E935DE9041174CD51B1E",
 				"24456AFD1FB8F98E7C913F65",
 				"C751393161110E3F4DE3A61D",
 				"C801192DC218631C1FC26B28",
@@ -13072,6 +13074,16 @@
 			"path" = "Config/AppUnitTests.xcconfig";
 			"sourceTree" = "<group>";
 		};
+		"783FC56096E91597FD59C9D5" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/ActivityListScopeRecoveryTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"347E85455BBF6CC9554E794C" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "783FC56096E91597FD59C9D5";
+		};
 		"8D624480C3173FFB897E5BAF" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -13281,6 +13293,16 @@
 		"68CB12E4F25340961DEEB9C0" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "5E34B486468D1480E07D2A68";
+		};
+		"DFB1E935DE9041174CD51B1E" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/NormalHomeRuntimeRecoveryTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"01A3A533CC136F5FD491AD03" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "DFB1E935DE9041174CD51B1E";
 		};
 		"24456AFD1FB8F98E7C913F65" = {
 			"isa" = "PBXFileReference";
@@ -13788,6 +13810,7 @@
 			"isa" = "PBXSourcesBuildPhase";
 			"buildActionMask" = 2147483647;
 			"files" = (
+				"347E85455BBF6CC9554E794C",
 				"699DF21ACB21028560AFD233",
 				"78DC09D3AB80ACC96A1F884A",
 				"EBEC019FDEAE55ACE06179C2",
@@ -13809,6 +13832,7 @@
 				"997AC4ABDB2256944E279FE1",
 				"B106E1C070A1A52E29288B70",
 				"68CB12E4F25340961DEEB9C0",
+				"01A3A533CC136F5FD491AD03",
 				"AB056A747AFE748DA9045840",
 				"9DD36A91BB4718B47C4F408E",
 				"3D7CF59D00AEB48DCAEB611A",

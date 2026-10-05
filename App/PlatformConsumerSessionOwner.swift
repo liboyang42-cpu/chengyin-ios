@@ -37,6 +37,9 @@ struct CommunityDormantHTTPTransport: HTTPTransport {
         Group {
             if session.account == nil {
                 TopicIssueView(issue: .unauthorized).accessibilityIdentifier("topic.detail.signIn")
+            } else if let message = session.contentDetailReadAvailability.messageKey {
+                ContentUnavailableView("topic.detail", systemImage: "network.slash", description: Text(LocalizedStringKey(message)))
+                    .accessibilityIdentifier("topic.detail.configurationUnavailable")
             } else {
                 TopicDetailView(id: id, reader: session.topicReader,
                     activityDestination: { AnyView(ActivityDetailView(id: $0, reader: session)) },

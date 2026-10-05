@@ -149,7 +149,10 @@ import UIKit
             Text("settingsNative.attribution.context").font(.footnote).foregroundStyle(.secondary)
             ForEach(SettingsSourceAttribution.all) { attribution in
                 VStack(alignment: .leading, spacing: 8) {
+                    // Keep the row anchor on this leaf. A container identifier can
+                    // overwrite the independent copy button and feedback identifiers.
                     Text(verbatim: attribution.title).font(.subheadline.weight(.semibold))
+                        .accessibilityIdentifier("settingsNative.attribution.\(attribution.id)")
                     Text(verbatim: attribution.detail).font(.footnote)
                     Text(verbatim: attribution.sourceURL).font(.footnote).foregroundStyle(.secondary)
                         .textSelection(.enabled)
@@ -157,7 +160,6 @@ import UIKit
                         title: LocalizedStringKey(attribution.copyTitleKey),
                         identifier: "settingsNative.attribution.copy.\(attribution.id)", copyText: copyText)
                 }
-                .accessibilityIdentifier("settingsNative.attribution.\(attribution.id)")
             }
         }
     }

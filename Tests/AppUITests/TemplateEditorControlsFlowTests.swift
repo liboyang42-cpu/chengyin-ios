@@ -150,6 +150,7 @@ import XCTest
         bytes(draft.hint1, expected[0]); bytes(draft.hint2, expected[1]); bytes(draft.answerReveal, expected[2])
     }
 
+    // UNMEASURED full-method replacement estimate: 360 seconds. Includes pre-probe UI capture, stored-byte evidence and recovery editing.
     func testRuleRowsPreserveSourceUntilEditAndBoundASCIIThroughLocalRestore() throws {
         let rows = (1...11).map { "Rule \($0)" }
         let original = " \r\n" + rows.map { "  " + $0 + " \t" }.joined(separator: "\n\n") + "\n "
@@ -168,7 +169,16 @@ import XCTest
         let issue = app.staticTexts["templateRules.issue"]
         reveal(issue, in: app, hittable: false)
         XCTAssertEqual(issue.label, "Use 60 or fewer ASCII characters for this step. The previous text was kept.")
+        // Capture the active control BEFORE tapping the probe, which can move keyboard focus.
+        let visibleAfterRejection = input("templateRules.input.11", in: app, towardTop: true).value as? String
+        let acceptedAfterRejection = try inspect(app)
+        bytes(acceptedAfterRejection.draft.ruleInstructions, (rows + [sixty]).joined(separator: "\n"))
+        bytes(visibleAfterRejection, sixty)
         bytes(input("templateRules.input.11", in: app, towardTop: true).value as? String, sixty)
+        bytes(try inspect(app).draft.ruleInstructions, (rows + [sixty]).joined(separator: "\n"))
+        let recoveredInput = input("templateRules.input.11", in: app, towardTop: true)
+        recoveredInput.tap(); recoveredInput.typeText(XCUIKeyboardKey.delete.rawValue + "a")
+        bytes(recoveredInput.value as? String, sixty)
         bytes(try inspect(app).draft.ruleInstructions, (rows + [sixty]).joined(separator: "\n"))
         tap("templateRules.remove.11", in: app, towardTop: true)
         reveal(add, in: app); XCTAssertTrue(add.isEnabled)
@@ -241,6 +251,7 @@ import XCTest
         XCTAssertNil(switched.draft.storyJson); XCTAssertNil(switched.draft.storyText)
     }
 
+    // UNMEASURED full-method replacement estimate: 540 seconds. Includes active-control capture and exact post-enable stored-byte evidence.
     func testHistoricalBytesHintOffRestoreAndSameOwnerLockedReadback() throws {
         let originalRules = " \n" + (1...13).map { "  Historical \($0)\t" }.joined(separator: "\r\n") + "\n "
         let app = launch(rules: originalRules, story: historicalStory)
@@ -268,6 +279,12 @@ import XCTest
         choose("Text answer", in: app)
         hintsEnabled(false, in: app)
         setHints(true, in: app)
+        let visibleAfterReenable = ["hint1", "hint2", "answerReveal"].map {
+            input("templateAuthor.field." + $0, in: app).value as? String
+        }
+        let acceptedAfterReenable = try inspect(app)
+        assertHints(hints, draft: acceptedAfterReenable.draft)
+        for index in hints.indices { bytes(visibleAfterReenable[index], hints[index]) }
         for (index, field) in ["hint1", "hint2", "answerReveal"].enumerated() {
             bytes(input("templateAuthor.field." + field, in: app).value as? String, hints[index])
         }

@@ -6,7 +6,7 @@ class PrivateHomeCompositionContracts(unittest.TestCase):
     def text(self, path): return (ROOT / path).read_text()
     def test_shipping_remains_unconfigured_and_all_inputs_default_off(self):
         root = self.text('App/AppCompositionRoot.swift')
-        self.assertIn('.init(deployment: .unconfigured)', self.text('App/RegionalLaunchConfiguration.swift'))
+        self.assertIn('.init(deployment: .unconfigured,', self.text('App/RegionalLaunchConfiguration.swift'))
         self.assertIn('privateHome: PrivateHomeTransportGrant? = nil', root)
         self.assertIn('privateHomeKeychain: (any PrivateHomeKeychainPrimitive)? = nil', root)
         self.assertIn('privateHome?.storageScope == storageScope', root)

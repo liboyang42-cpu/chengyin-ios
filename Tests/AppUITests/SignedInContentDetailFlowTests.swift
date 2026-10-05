@@ -50,6 +50,13 @@ final class SignedInContentDetailFlowTests: XCTestCase {
         attachFixtureScreenshot(self, app: app, name: "Activity topic refreshed after role change")
         app.navigationBars["Route details"].buttons.firstMatch.tap()
         XCTAssertTrue(app.staticTexts["Synthetic activity detail"].waitForExistence(timeout: 5))
+        app.navigationBars["Activity details"].buttons.firstMatch.tap()
+        let refreshedCard = app.buttons["activity.row.21"]
+        XCTAssertTrue(refreshedCard.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Synthetic merchant activity card"].firstMatch.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["Synthetic activity card"].exists)
+        refreshedCard.tap()
+        XCTAssertTrue(app.staticTexts["Synthetic activity detail"].waitForExistence(timeout: 5))
         let route = app.buttons["activity.openTopic"]
         XCTAssertTrue(route.waitForExistence(timeout: 5)); route.tap()
         XCTAssertTrue(app.staticTexts["Synthetic merchant route"].waitForExistence(timeout: 5))
@@ -129,7 +136,7 @@ final class SignedInContentDetailFlowTests: XCTestCase {
     func testHomeListApprovalAloneDoesNotGrantDetail() {
         let app = launch(["--content-detail-unapproved"])
         openTopic(app)
-        XCTAssertTrue(app.descendants(matching: .any)["topic.error"].firstMatch.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any)["topic.detail.configurationUnavailable"].firstMatch.waitForExistence(timeout: 5))
         XCTAssertEqual(app.staticTexts["contentDetail.fixture.requests"].label, "0")
         XCTAssertFalse(app.staticTexts["Synthetic route detail"].exists)
     }
@@ -139,10 +146,20 @@ final class SignedInContentDetailFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["topic.activities.empty"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["topic.activity.21"].exists)
         app.buttons["contentDetail.fixture.role"].tap()
-        XCTAssertTrue(app.staticTexts["Synthetic merchant route"].waitForExistence(timeout: 5))
+        // A role refresh now replaces Home's cache and navigation identity together.
+        XCTAssertTrue(app.buttons["homeFeed.recommended.topic.31"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.descendants(matching: .any)["topic.detail.content"].firstMatch.exists)
         XCTAssertFalse(app.staticTexts["Synthetic route detail"].exists)
+        XCTAssertTrue(app.staticTexts["Synthetic merchant route card"].firstMatch.waitForExistence(timeout: 5))
+        openTopic(app)
+        XCTAssertTrue(app.staticTexts["Synthetic merchant route"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["topic.activities.empty"].waitForExistence(timeout: 5))
         app.buttons["contentDetail.fixture.signOut"].tap()
+        let signedOut = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "guest"),
+            object: app.staticTexts["contentDetail.fixture.identity"])
+        XCTAssertEqual(XCTWaiter.wait(for: [signedOut], timeout: 5), .completed)
         XCTAssertFalse(app.staticTexts["Synthetic merchant route"].exists)
+        XCTAssertFalse(app.descendants(matching: .any)["topic.detail.content"].firstMatch.exists)
     }
     func testDismissedTopicRetryCannotExpireTheCurrentSessionAndReopenStillWorks() {
         let app = launch(["--content-detail-pause-retry"])

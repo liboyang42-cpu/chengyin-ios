@@ -12,7 +12,7 @@ class ManualMapCompositionContracts(unittest.TestCase):
         self.assertIn('approval.matches(context)', root)
         self.assertIn('currentApproval.revision == approval.revision', root)
         self.assertIn('manualMapSelection?.snapshot == selectedArea', root)
-        self.assertIn('.init(deployment: .unconfigured)', self.read('App/RegionalLaunchConfiguration.swift'))
+        self.assertIn('.init(deployment: .unconfigured,', self.read('App/RegionalLaunchConfiguration.swift'))
     def test_only_route_specific_query_exception(self):
         source = self.read('Core/ManualMapReadApproval.swift')
         for path in ['api/roam/pois', 'api/map/nearby', 'api/city/nodes']:

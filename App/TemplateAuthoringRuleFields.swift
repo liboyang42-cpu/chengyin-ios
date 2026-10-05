@@ -1,6 +1,10 @@
 import SwiftUI
 
 @MainActor struct TemplateAuthoringRuleFields: View {
+    private struct InputIdentity: Hashable {
+        let rowID: UUID
+        let rejectionRevision: UUID?
+    }
     @ObservedObject var model: TemplateAuthoringModel
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -26,6 +30,7 @@ import SwiftUI
                             }
                         }
                         TextField("templateRules.prompt", text: model.ruleStep(row.id), axis: .vertical)
+                            .id(InputIdentity(rowID: row.id, rejectionRevision: model.ruleInputRevisions[row.id]))
                             .lineLimit(1...6)
                             .accessibilityIdentifier("templateRules.input.\(index)")
                             .accessibilityLabel(Text("templateRules.stepNumber \(index + 1)"))

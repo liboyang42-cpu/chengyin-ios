@@ -3,10 +3,18 @@ import Foundation
 public struct HomeFeedSession: Equatable {
     public let accountID: Int
     public let epoch: UInt64
+    /// Cache identity only. Neither role nor revision grants access to a read route.
+    public let role: String?
+    public let viewerRevision: UInt64
     fileprivate let token: String
-    public init(accountID: Int, epoch: UInt64, token: String) throws {
+    public init(accountID: Int, epoch: UInt64, token: String, role: String? = nil, viewerRevision: UInt64 = 0) throws {
         guard accountID > 0, AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
         self.accountID = accountID; self.epoch = epoch; self.token = token
+        self.role = role; self.viewerRevision = viewerRevision
+    }
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.accountID == rhs.accountID && lhs.epoch == rhs.epoch && lhs.viewerRevision == rhs.viewerRevision &&
+            lhs.role.map { Data($0.utf8) } == rhs.role.map { Data($0.utf8) } && Data(lhs.token.utf8) == Data(rhs.token.utf8)
     }
 }
 @MainActor public protocol HomeFeedReading: AnyObject {

@@ -50,7 +50,7 @@ class IntegratedReadCompositionContracts(unittest.TestCase):
         self.assertIn('deployment.reads.contains(.homeAndSearch)', source)
         self.assertIn('let grant = deployment.privateHome', source)
         launch = self.read('App/RegionalLaunchConfiguration.swift')
-        self.assertIn('.init(deployment: .unconfigured)', launch)
+        self.assertIn('.init(deployment: .unconfigured,', launch)
         for grant in ['manualMap', 'playNodesAndRouteState', 'contentDetails']:
             self.assertNotIn(grant, launch)
 

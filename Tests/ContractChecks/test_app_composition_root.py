@@ -7,7 +7,7 @@ class AppCompositionRootContracts(unittest.TestCase):
     def test_default_is_explicitly_unconfigured_and_grants_are_not_auth_derived(self):
         root = self.text('App/AppCompositionRoot.swift')
         launch = self.text('App/RegionalLaunchConfiguration.swift')
-        self.assertIn('.init(deployment: .unconfigured)', launch)
+        self.assertIn('.init(deployment: .unconfigured,', launch)
         self.assertIn('DeploymentState = .unconfigured', root)
         self.assertIn('self.sessionDependencies = sessionDependencies ?? { _ in .dormant }', root)
         self.assertNotIn('OperationEndpointApproval(', root)

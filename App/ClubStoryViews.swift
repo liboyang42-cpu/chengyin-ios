@@ -146,11 +146,11 @@ struct ClubStoryChapterHeader: View {
                 else { Text("discovery.untitledPlay") }
             }.font(.headline).accessibilityIdentifier("club.gov.fact.title")
             Text("club.story.stop \(play.sequence)").font(.subheadline)
+                .accessibilityIdentifier("club.story.play.\(play.id)")
             if let name = play.nodeName { Text(verbatim: name).font(.subheadline) }
             if let players = play.players { Label { Text(verbatim: players) } icon: { Image(systemName: "person.2") } }
             if let duration = play.duration { Label { Text("club.story.minutes \(duration.formatted(.number.precision(.fractionLength(0...2))))") } icon: { Image(systemName: "clock") } }
             if let difficulty = play.difficulty { Text("club.story.difficulty \(difficulty)") }
         }.fixedSize(horizontal: false, vertical: true)
-            .accessibilityIdentifier("club.story.play.\(play.id)")
     }
 }
