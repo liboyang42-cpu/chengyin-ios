@@ -86,7 +86,7 @@ import FoundationNetworking
         wire.responses["/api/play/nodes"] = .reply(PlayExperienceSyntheticFixtures.envelope(free()), 200)
         let value = try model(wire, ModePauseSpy(), owner); await value.load()
         for evidence in [PlayCompletionEvidence.answer("answer"), .location(longitude: 1, latitude: 1, coordinateSystem: "GCJ02"),
-                         .sensor(type: "still", payload: ["heldSec": .int(5)]), .photo("https://example.test/proof")] {
+                         .sensor(type: "still", payload: ["heldSec": .int(5)]), .photo(uploadedURL: "https://example.test/proof")] {
             XCTAssertThrowsError(try value.review(nodeID: 701, evidence: evidence))
         }
         let review = try value.review(nodeID: 701, evidence: .scan("store-code"))
