@@ -4,7 +4,8 @@ import SwiftUI
 @MainActor struct ClubGovernanceFixtureHost: View {
     @StateObject private var store = ClubGovernanceFixtureStore()
     var body: some View {
-        if ProcessInfo.processInfo.arguments.contains("--club-feed-scenario") { ClubFeedFixtureHost() }
+        if ProcessInfo.processInfo.arguments.contains("--club-story-scenario") { ClubStoryFixtureHost() }
+        else if ProcessInfo.processInfo.arguments.contains("--club-feed-scenario") { ClubFeedFixtureHost() }
         else { legacyBody }
     }
     private var legacyBody: some View {
@@ -39,6 +40,14 @@ import SwiftUI
     let access = ClubGovernanceFixtureAccess()
     lazy var coordinator = ClubGovernanceCoordinator(access: access)
     @Published var identity: ClubReadIdentity? = .init(accountID: 701, epoch: 1)
+    init() {
+        var value = ClubGovernanceFixtures.value(.topicOverview).object ?? [:]
+        var chapters = value["chaptersList"]?.array ?? []
+        if var chapter = chapters.first?.object {
+            chapter["name"] = .string("Fixture chapter"); chapters[0] = .object(chapter)
+        }
+        value["chaptersList"] = .array(chapters); access.overrideValue[.topicOverview] = .object(value)
+    }
     func switchAccount() {
         let replacement = ClubReadIdentity(accountID: 799, epoch: (identity?.epoch ?? 0) + 1)
         access.identity = replacement; access.readFailure = .forbidden; coordinator.cancelReview(); identity = replacement

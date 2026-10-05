@@ -81,6 +81,7 @@ final class ClubGovernanceFlowTests: XCTestCase {
         let chapter = fact("title", containing: "Fixture chapter", app: app)
         reveal(chapter, app: app)
         XCTAssertTrue(chapter.waitForExistence(timeout: 5))
+        app.segmentedControls["club.story.tabs"].buttons.element(boundBy: 1).tap()
         let puzzle = fact("title", containing: "Fixture puzzle", app: app)
         reveal(puzzle, app: app)
         XCTAssertTrue(puzzle.waitForExistence(timeout: 5))

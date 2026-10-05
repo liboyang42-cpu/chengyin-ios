@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import re
 import unittest
+from tools.tests.club_story_budget_history import before_club_story, before_club_story_costs, CLASSES
 
 ROOT = Path(__file__).resolve().parents[2]
 SPEC = importlib.util.spec_from_file_location('template_metadata_selectors_shard', ROOT / 'tools/run_ui_shard.py')
@@ -45,7 +46,7 @@ class TemplateMetadataSelectorsBudgetTests(unittest.TestCase):
             self.assertIn('UNMEASURED estimate: ' + str(record['seconds']) + ' seconds.', source)
 
     def test_every_prior_profile_value_remains_exact_after_removing_only_new_additions(self):
-        profile = self.profile()
+        profile = before_club_story(self.profile())
         del profile['planning_budget']['template_metadata_selectors_replan']
         for method in EXPECTED:
             del profile['estimated_method_seconds'][method]
@@ -54,18 +55,21 @@ class TemplateMetadataSelectorsBudgetTests(unittest.TestCase):
         serialized = json.dumps(profile, sort_keys=True, separators=(',', ':')).encode()
         self.assertEqual(hashlib.sha256(serialized).hexdigest(), PRIOR_PROFILE_SHA256)
 
-    def test_every_source_method_is_partitioned_once_under_unchanged_limits(self):
-        profile = self.profile()
+    def test_historical_selector_inventory_is_partitioned_once_under_unchanged_limits(self):
+        profile = before_club_story(self.profile())
         budget = profile['planning_budget']; current = budget['template_metadata_selectors_replan']
         self.assertEqual((budget['deadline_seconds'], budget['startup_reserve_seconds']), (1800, 300))
         self.assertEqual(profile['unobserved_method_seconds'], 60)
         self.assertEqual((current['previous_shard_count'], current['shard_count']), (21, 22))
-        self.assertEqual(SHARD.DEFAULT_SHARD_COUNT, current['shard_count'])
+        self.assertEqual(SHARD.DEFAULT_SHARD_COUNT, self.profile()['planning_budget']['club_story_replan']['shard_count'])
         self.assertEqual(current['previous_shard_count'], budget['template_controls_replan']['shard_count'])
         self.assertEqual((current['baseline_method_count'], current['baseline_total_method_seconds']),
                          (642, 30284.282))
         counts = SHARD.discover(ROOT / 'Tests/AppUITests')
         costs = SHARD.measured_weights(ROOT / 'Tests/AppUITests', ROOT / 'tools/ui_duration_weights.json')
+        for case in CLASSES:
+            del counts[case]
+        costs = before_club_story_costs(costs, self.profile())
         precise = {}; inventory = set()
         for path in sorted((ROOT / 'Tests/AppUITests').glob('*.swift')):
             source = path.read_text()
@@ -75,6 +79,8 @@ class TemplateMetadataSelectorsBudgetTests(unittest.TestCase):
             cases = re.findall(r'\bclass\s+(\w+)\s*:\s*XCTestCase\b', source)
             self.assertEqual(len(cases), 1)
             case = cases[0]
+            if case in CLASSES:
+                continue
             self.assertNotIn(case, precise)
             methods = [case + '.' + name for name in names]
             self.assertEqual(len(methods), len(set(methods)))

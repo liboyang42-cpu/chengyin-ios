@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import re
 import unittest
+from tools.tests.club_story_budget_history import before_club_story, before_club_story_costs, CLASSES
 
 ROOT = Path(__file__).resolve().parents[2]
 SPEC = importlib.util.spec_from_file_location('relation_locality_shard', ROOT / 'tools/run_ui_shard.py')
@@ -17,7 +18,9 @@ PRIOR_PROFILE_SHA256 = '0d52dc610f42b8dbd8e183003a5d1eaa2c16219c24d80d414bf9cc6c
 
 
 def inventory(profile, excluding=()):
-    excluding = set(excluding) | set(profile['planning_budget']['template_metadata_selectors_replan']['new_methods'])
+    excluding = (set(excluding) | set(profile['planning_budget']['template_metadata_selectors_replan']['new_methods'])
+                 | set(profile['planning_budget']['club_story_replan']['new_methods']))
+    profile = before_club_story(profile)
     costs = {}; counts = {}; seen = set()
     for path in sorted((ROOT / 'Tests/AppUITests').glob('*.swift')):
         source = path.read_text()
@@ -63,6 +66,7 @@ class RelationLocalityBudgetTests(unittest.TestCase):
 
     def test_all_prior_observations_estimates_provenance_and_history_are_unchanged(self):
         profile = json.loads((ROOT / 'tools/ui_duration_weights.json').read_text())
+        profile = before_club_story(profile)
         later = profile['planning_budget'].pop('template_metadata_selectors_replan')
         for method in later['new_methods']:
             del profile['estimated_method_seconds'][method]
@@ -100,13 +104,14 @@ class RelationLocalityBudgetTests(unittest.TestCase):
         budget = profile['planning_budget']; current = budget['relation_locality_replan']
         self.assertEqual((budget['deadline_seconds'], budget['startup_reserve_seconds']), (1800, 300))
         self.assertEqual((current['previous_shard_count'], current['shard_count']), (20, 20))
-        self.assertEqual(SHARD.DEFAULT_SHARD_COUNT, budget['template_metadata_selectors_replan']['shard_count'])
+        self.assertEqual(SHARD.DEFAULT_SHARD_COUNT, budget['club_story_replan']['shard_count'])
+        self.assertEqual(budget['club_story_replan']['previous_shard_count'], budget['template_metadata_selectors_replan']['shard_count'])
         self.assertEqual(budget['template_metadata_selectors_replan']['previous_shard_count'], budget['template_controls_replan']['shard_count'])
         self.assertEqual(current['shard_count'], budget['template_controls_replan']['previous_shard_count'])
         counts, costs = inventory(profile, excluding=budget['template_controls_replan']['new_methods'])
         live_counts = SHARD.discover(ROOT / 'Tests/AppUITests')
         self.assertEqual(counts, {case: count for case, count in live_counts.items()
-                                  if case not in {'TemplateEditorControlsFlowTests', 'TemplateMetadataSelectorsFlowTests'}})
+                                  if case not in {'TemplateEditorControlsFlowTests', 'TemplateMetadataSelectorsFlowTests'} | CLASSES})
         self.assertEqual((sum(counts.values()), len(costs)), (639, 94))
         self.assertEqual((current['method_count'], current['class_count']), (639, 94))
         self.assertEqual(sum(costs.values()), Decimal('29144.282'))
@@ -114,6 +119,7 @@ class RelationLocalityBudgetTests(unittest.TestCase):
         float_costs = SHARD.measured_weights(ROOT / 'Tests/AppUITests', ROOT / 'tools/ui_duration_weights.json')
         del float_costs['TemplateEditorControlsFlowTests']
         del float_costs['TemplateMetadataSelectorsFlowTests']
+        float_costs = before_club_story_costs(float_costs, profile)
         self.assertEqual(set(float_costs), set(costs))
         for case in costs:
             self.assertAlmostEqual(float(costs[case]), float_costs[case])

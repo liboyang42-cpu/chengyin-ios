@@ -77,7 +77,6 @@
     "ClubEnrollmentFlowTests.testPublicProfileIsARealDestination": 20.663,
     "ClubGovernanceFlowTests.testAudienceUnknownIsNotZeroAndReviewRequiresContent": 46.698,
     "ClubGovernanceFlowTests.testChineseSettlementPreservesUnverifiedAmount": 21.608,
-    "ClubGovernanceFlowTests.testClubStoryUsesOwnRouteAndProtectedAnswer": 27.732,
     "ClubGovernanceFlowTests.testCustomerListDetailAndLocalRemarkReview": 47.753,
     "ClubGovernanceFlowTests.testEventRolesAreDistinctFromLegacyAdministratorFlag": 14.796,
     "ClubGovernanceFlowTests.testSwitchAccountClearsCustomerPII": 18.665,
@@ -762,7 +761,17 @@
     "TemplateEditorControlsFlowTests.testHistoricalBytesHintOffRestoreAndSameOwnerLockedReadback": 480,
     "TemplateMetadataSelectorsFlowTests.testExactDictionaryValuesCancelRestoreAndSyntheticRequest": 240,
     "TemplateMetadataSelectorsFlowTests.testCategorySaveCancelNoopCSVAndOrderedSixteenSelections": 360,
-    "TemplateMetadataSelectorsFlowTests.testUnavailableRetryEmptyCanceledReadOwnerSwitchAndLockedValues": 420
+    "TemplateMetadataSelectorsFlowTests.testUnavailableRetryEmptyCanceledReadOwnerSwitchAndLockedValues": 420,
+    "ClubStoryFlowTests.testGroupedStopsHaveHoursAddressAndChapterMetadata": 120,
+    "ClubStoryFlowTests.testChapterSwitchAndExpansionResetKeepEachPlayInItsOwnChapter": 240,
+    "ClubStoryNavigationFlowTests.testTemplateDetailUsesPersonalIDAndBackSupportsRepeatedSelection": 180,
+    "ClubStoryNavigationFlowTests.testSourceRefreshDropsOpenTemplateAndOldCards": 180,
+    "ClubStoryNavigationFlowTests.testDelayedDetailCannotReappearAfterSourceRefresh": 210,
+    "ClubStoryNavigationFlowTests.testAccountAndReaderReplacementDismissOldDestination": 330,
+    "ClubStoryFlowTests.testUnavailableAndInvalidSourcesDoNotOfferTemplateNavigation": 210,
+    "ClubStoryFlowTests.testDuplicateChapterIDsKeepDisplaySelectableButAllRoutesDisabled": 150,
+    "ClubStoryFlowTests.testChineseRoutePlayAndEmptyChapterAreLocalized": 150,
+    "ClubGovernanceFlowTests.testClubStoryUsesOwnRouteAndProtectedAnswer": 210
   },
   "estimate_provenance": {
     "basis": "Conservative grouping assumptions, not executed case timings. Successful measurements take priority. 23 original assumptions plus explicitly scoped later additions.",
@@ -2049,6 +2058,176 @@
         "source": "templateMetadataSelectorsReconstructed20261005",
         "measured": false,
         "basis": "Full single-launch synthetic journey: unavailable, failed retry and empty dictionary reads; unknown historical values; fourth players read held in a continuation; Cancel while pending, then owner switch and release; fresh-owner selections and ordinary synthetic confirmation; disabled same-owner locked values; sign-out clearing. Includes scrolling, async waits and teardown. Unmeasured planning allowance, not observed runtime."
+      },
+      {
+        "method": "ClubStoryFlowTests.testGroupedStopsHaveHoursAddressAndChapterMetadata",
+        "seconds": 120,
+        "source": "THIRTEENTH-P057-integration-only",
+        "measured": false,
+        "counts": {
+          "launches": 1,
+          "termination_calls_including_teardown": 1,
+          "reveal_calls_max10_gestures_each": 1,
+          "taps_including_helper_taps_and_back": 2,
+          "explicit_5_second_waits": 3,
+          "other_assertion_queries": 3
+        },
+        "explicit_timeout_seconds": 15,
+        "formula_seconds": 106,
+        "basis": "Full-method unmeasured allowance: 30*1 launch + 8*1 termination + 24*1 reveal + 4*2 action + 5*3 explicit wait + 2*3 direct query + 15 failure/AX margin = 106s, rounded up to 120s. Loop scenario costs are included."
+      },
+      {
+        "method": "ClubStoryFlowTests.testChapterSwitchAndExpansionResetKeepEachPlayInItsOwnChapter",
+        "seconds": 240,
+        "source": "THIRTEENTH-P057-integration-only",
+        "measured": false,
+        "counts": {
+          "launches": 1,
+          "termination_calls_including_teardown": 1,
+          "reveal_calls_max10_gestures_each": 5,
+          "taps_including_helper_taps_and_back": 6,
+          "explicit_5_second_waits": 4,
+          "other_assertion_queries": 3
+        },
+        "explicit_timeout_seconds": 20,
+        "formula_seconds": 223,
+        "basis": "Full-method unmeasured allowance: 30*1 launch + 8*1 termination + 24*5 reveal + 4*6 action + 5*4 explicit wait + 2*3 direct query + 15 failure/AX margin = 223s, rounded up to 240s. Loop scenario costs are included."
+      },
+      {
+        "method": "ClubStoryNavigationFlowTests.testTemplateDetailUsesPersonalIDAndBackSupportsRepeatedSelection",
+        "seconds": 180,
+        "source": "THIRTEENTH-P057-integration-only",
+        "measured": false,
+        "counts": {
+          "launches": 1,
+          "termination_calls_including_teardown": 1,
+          "reveal_calls_max10_gestures_each": 3,
+          "taps_including_helper_taps_and_back": 6,
+          "explicit_5_second_waits": 3,
+          "other_assertion_queries": 2
+        },
+        "explicit_timeout_seconds": 15,
+        "formula_seconds": 168,
+        "basis": "Full-method unmeasured allowance: 30*1 launch + 8*1 termination + 24*3 reveal + 4*6 action + 5*3 explicit wait + 2*2 direct query + 15 failure/AX margin = 168s, rounded up to 180s. Loop scenario costs are included."
+      },
+      {
+        "method": "ClubStoryNavigationFlowTests.testSourceRefreshDropsOpenTemplateAndOldCards",
+        "seconds": 180,
+        "source": "THIRTEENTH-P057-integration-only",
+        "measured": false,
+        "counts": {
+          "launches": 1,
+          "termination_calls_including_teardown": 1,
+          "reveal_calls_max10_gestures_each": 3,
+          "taps_including_helper_taps_and_back": 4,
+          "explicit_5_second_waits": 3,
+          "other_assertion_queries": 2
+        },
+        "explicit_timeout_seconds": 15,
+        "formula_seconds": 160,
+        "basis": "Full-method unmeasured allowance: 30*1 launch + 8*1 termination + 24*3 reveal + 4*4 action + 5*3 explicit wait + 2*2 direct query + 15 failure/AX margin = 160s, rounded up to 180s. Loop scenario costs are included."
+      },
+      {
+        "method": "ClubStoryNavigationFlowTests.testDelayedDetailCannotReappearAfterSourceRefresh",
+        "seconds": 210,
+        "source": "THIRTEENTH-P057-integration-only",
+        "measured": false,
+        "counts": {
+          "launches": 1,
+          "termination_calls_including_teardown": 1,
+          "reveal_calls_max10_gestures_each": 4,
+          "taps_including_helper_taps_and_back": 5,
+          "explicit_5_second_waits": 3,
+          "other_assertion_queries": 1
+        },
+        "explicit_timeout_seconds": 15,
+        "formula_seconds": 186,
+        "basis": "Full-method unmeasured allowance: 30*1 launch + 8*1 termination + 24*4 reveal + 4*5 action + 5*3 explicit wait + 2*1 direct query + 15 failure/AX margin = 186s, rounded up to 210s. Loop scenario costs are included."
+      },
+      {
+        "method": "ClubStoryNavigationFlowTests.testAccountAndReaderReplacementDismissOldDestination",
+        "seconds": 330,
+        "source": "THIRTEENTH-P057-integration-only",
+        "measured": false,
+        "counts": {
+          "launches": 2,
+          "termination_calls_including_teardown": 3,
+          "reveal_calls_max10_gestures_each": 6,
+          "taps_including_helper_taps_and_back": 8,
+          "explicit_5_second_waits": 6,
+          "other_assertion_queries": 0
+        },
+        "explicit_timeout_seconds": 30,
+        "formula_seconds": 305,
+        "basis": "Full-method unmeasured allowance: 30*2 launch + 8*3 termination + 24*6 reveal + 4*8 action + 5*6 explicit wait + 2*0 direct query + 15 failure/AX margin = 305s, rounded up to 330s. Loop scenario costs are included."
+      },
+      {
+        "method": "ClubStoryFlowTests.testUnavailableAndInvalidSourcesDoNotOfferTemplateNavigation",
+        "seconds": 210,
+        "source": "THIRTEENTH-P057-integration-only",
+        "measured": false,
+        "counts": {
+          "launches": 2,
+          "termination_calls_including_teardown": 3,
+          "reveal_calls_max10_gestures_each": 2,
+          "taps_including_helper_taps_and_back": 4,
+          "explicit_5_second_waits": 4,
+          "other_assertion_queries": 3
+        },
+        "explicit_timeout_seconds": 20,
+        "formula_seconds": 189,
+        "basis": "Full-method unmeasured allowance: 30*2 launch + 8*3 termination + 24*2 reveal + 4*4 action + 5*4 explicit wait + 2*3 direct query + 15 failure/AX margin = 189s, rounded up to 210s. Loop scenario costs are included."
+      },
+      {
+        "method": "ClubStoryFlowTests.testDuplicateChapterIDsKeepDisplaySelectableButAllRoutesDisabled",
+        "seconds": 150,
+        "source": "THIRTEENTH-P057-integration-only",
+        "measured": false,
+        "counts": {
+          "launches": 1,
+          "termination_calls_including_teardown": 1,
+          "reveal_calls_max10_gestures_each": 2,
+          "taps_including_helper_taps_and_back": 3,
+          "explicit_5_second_waits": 2,
+          "other_assertion_queries": 3
+        },
+        "explicit_timeout_seconds": 10,
+        "formula_seconds": 129,
+        "basis": "Full-method unmeasured allowance: 30*1 launch + 8*1 termination + 24*2 reveal + 4*3 action + 5*2 explicit wait + 2*3 direct query + 15 failure/AX margin = 129s, rounded up to 150s. Loop scenario costs are included."
+      },
+      {
+        "method": "ClubStoryFlowTests.testChineseRoutePlayAndEmptyChapterAreLocalized",
+        "seconds": 150,
+        "source": "THIRTEENTH-P057-integration-only",
+        "measured": false,
+        "counts": {
+          "launches": 1,
+          "termination_calls_including_teardown": 1,
+          "reveal_calls_max10_gestures_each": 2,
+          "taps_including_helper_taps_and_back": 3,
+          "explicit_5_second_waits": 2,
+          "other_assertion_queries": 1
+        },
+        "explicit_timeout_seconds": 10,
+        "formula_seconds": 125,
+        "basis": "Full-method unmeasured allowance: 30*1 launch + 8*1 termination + 24*2 reveal + 4*3 action + 5*2 explicit wait + 2*1 direct query + 15 failure/AX margin = 125s, rounded up to 150s. Loop scenario costs are included."
+      },
+      {
+        "method": "ClubGovernanceFlowTests.testClubStoryUsesOwnRouteAndProtectedAnswer",
+        "seconds": 210,
+        "source": "THIRTEENTH-P057-expanded-existing",
+        "measured": false,
+        "counts": {
+          "launches": 1,
+          "termination_calls_including_teardown": 1,
+          "reveal_calls_max10_gestures_each": 4,
+          "taps_including_helper_taps_and_back": 3,
+          "explicit_5_second_waits": 4,
+          "other_assertion_queries": 3
+        },
+        "explicit_timeout_seconds": 20,
+        "formula_seconds": 202,
+        "basis": "Full-method unmeasured replacement: 30 launch + 8 termination + 24*4 reveal + 4*3 taps + 5*4 explicit waits (root, destination, chapter, puzzle) + 2*3 direct queries + 30 failure/AX margin (explicit diagnostic plus teardown capture) = 202s, rounded to 210s. Includes the added Gameplay-tab tap. The old 27.732s observation does not measure these changed bytes."
       }
     ],
     "baseline_estimate_count": 23
@@ -2215,6 +2394,42 @@
         "TemplateMetadataSelectorsFlowTests.testUnavailableRetryEmptyCanceledReadOwnerSwitchAndLockedValues"
       ],
       "basis": "Three reconstructed, source-authored metadata selector journeys add 1020 explicitly unmeasured full-method seconds. The unchanged class-preserving partitioner forecasts 1802.283s for 21 shards and 1734.465s for 22, including the unchanged 300s startup reserve within the 1800s deadline. The 21-shard forecast exceeds the deadline by 2.283s and is not rounded down. Twenty-two is the first fitting count at or above the previous 21 under this deterministic partition, not an optimal bin-packing proof or runtime guarantee. Every prior observation, estimate, source run, provenance and historical planning record is preserved. Apple execution remains unrun."
+    },
+    "club_story_replan": {
+      "previous_shard_count": 22,
+      "shard_count": 23,
+      "new_method_count": 9,
+      "new_estimated_method_seconds": 1770,
+      "expanded_method_count": 1,
+      "replacement_estimated_seconds": 210,
+      "superseded_observed_seconds": 27.732,
+      "net_declared_method_seconds_added": 1952.268,
+      "baseline_method_count": 645,
+      "baseline_total_method_seconds": 31304.282,
+      "method_count": 654,
+      "class_count": 98,
+      "total_method_seconds": 33256.55,
+      "maximum_projected_seconds_with_reserve": 1772.217,
+      "forecast_headroom_seconds": 27.783,
+      "new_methods": [
+        "ClubStoryFlowTests.testGroupedStopsHaveHoursAddressAndChapterMetadata",
+        "ClubStoryFlowTests.testChapterSwitchAndExpansionResetKeepEachPlayInItsOwnChapter",
+        "ClubStoryNavigationFlowTests.testTemplateDetailUsesPersonalIDAndBackSupportsRepeatedSelection",
+        "ClubStoryNavigationFlowTests.testSourceRefreshDropsOpenTemplateAndOldCards",
+        "ClubStoryNavigationFlowTests.testDelayedDetailCannotReappearAfterSourceRefresh",
+        "ClubStoryNavigationFlowTests.testAccountAndReaderReplacementDismissOldDestination",
+        "ClubStoryFlowTests.testUnavailableAndInvalidSourcesDoNotOfferTemplateNavigation",
+        "ClubStoryFlowTests.testDuplicateChapterIDsKeepDisplaySelectableButAllRoutesDisabled",
+        "ClubStoryFlowTests.testChineseRoutePlayAndEmptyChapterAreLocalized"
+      ],
+      "expanded_methods": [
+        "ClubGovernanceFlowTests.testClubStoryUsesOwnRouteAndProtectedAnswer"
+      ],
+      "new_class_estimated_seconds": {
+        "ClubStoryFlowTests": 870,
+        "ClubStoryNavigationFlowTests": 900
+      },
+      "basis": "Nine source-authored P057 methods add 1770 explicitly unmeasured full-method seconds. The single unsplit class exceeded the 1500s method budget by 270s, so a mechanical split preserves all nine method bodies and copies the helper block exactly into two classes totaling 870s and 900s. The changed existing governance-story method receives a 210s unmeasured full-method replacement; its original 27.732s observation is retained only as superseded provenance. Net declared addition is 1952.268s. 23 is the first fitting count at or above the previous 22 under the unchanged deterministic class-preserving partitioner, 1800s deadline and 300s startup reserve. This is a planning forecast, not an optimal bin-packing proof or runtime guarantee. Every other observation, estimate, source run, provenance record and historical plan remains exact. Apple execution remains unrun."
     }
   },
   "superseded_method_observations": [
@@ -2225,6 +2440,15 @@
       "previous_profile_tree": "8e035c3cc83463ccbc3636b34b85fef67bebff11",
       "previous_test_file_blob": "891c6f1416e484878909c67e27e4ee7dca3cda34",
       "reason": "Historical observation retained as provenance only; this method gained unmeasured member level/join-date assertions and now uses the explicit 60s estimate. No claim that the old duration measures the expanded method."
+    },
+    {
+      "method": "ClubGovernanceFlowTests.testClubStoryUsesOwnRouteAndProtectedAnswer",
+      "seconds": 27.732,
+      "measured": true,
+      "previous_profile_tree": "da0d0e6192572a5b908a69ecaceee9f52eec38f3",
+      "reason": "Historical timing predates the added Gameplay-tab action and updated story view. Remove from active method_seconds only when applying the new full-method estimate; retain this original observation as superseded provenance.",
+      "previous_test_file_blob": "8cb1f73f86dec72f67e19ef1655ddfd9e549a305",
+      "expanded_test_file_sha256": "4d41464ed772a0c371669e5dd55c8a06700b5980e2cb6f17e6ece58a7d1ce7ee"
     }
   ]
 }

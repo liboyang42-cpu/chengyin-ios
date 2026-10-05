@@ -129,7 +129,7 @@ class UIShardingTests(unittest.TestCase):
                     module.measured_weights(root,profile)
     def test_trial_profile_preserves_estimate_provenance_and_all_shard_coverage(self):
         data=json.loads((module.ROOT/'tools/ui_duration_weights.json').read_text())
-        self.assertEqual(module.DEFAULT_SHARD_COUNT,22)
+        self.assertEqual(module.DEFAULT_SHARD_COUNT,23)
         self.assertEqual(data['unobserved_method_seconds'],60)
         records=data['estimate_provenance']['methods']
         self.assertEqual(data['estimate_provenance']['baseline_estimate_count'],23)

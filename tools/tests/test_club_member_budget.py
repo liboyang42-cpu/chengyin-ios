@@ -57,20 +57,22 @@ class ClubMemberBudgetTests(unittest.TestCase):
         discovery_feed = budget['discovery_feed_replan']
         relation_locality = budget['relation_locality_replan']
         template_controls = budget['template_controls_replan']
-        current = budget['template_metadata_selectors_replan']
+        selectors = budget['template_metadata_selectors_replan']
+        current = budget['club_story_replan']
         self.assertEqual(SHARD.DEFAULT_SHARD_COUNT, current['shard_count'])
         self.assertEqual(review['shard_count'], public_read['previous_shard_count'])
         self.assertEqual(public_read['shard_count'], discovery_feed['previous_shard_count'])
         self.assertEqual(discovery_feed['shard_count'], relation_locality['previous_shard_count'])
         self.assertEqual(relation_locality['shard_count'], template_controls['previous_shard_count'])
-        self.assertEqual(template_controls['shard_count'], current['previous_shard_count'])
+        self.assertEqual(template_controls['shard_count'], selectors['previous_shard_count'])
+        self.assertEqual(selectors['shard_count'], current['previous_shard_count'])
         self.assertEqual((review['new_method_count'], review['expanded_method_count']), (0, 1))
         self.assertAlmostEqual(review['replacement_estimated_seconds'] - review['superseded_observed_seconds'],
                                review['net_declared_method_seconds_added'])
         counts = SHARD.discover(ROOT / 'Tests/AppUITests')
         costs = SHARD.measured_weights(ROOT / 'Tests/AppUITests', ROOT / 'tools/ui_duration_weights.json')
-        self.assertEqual(sum(counts.values()) - current['new_method_count'] - template_controls['new_method_count'] - relation_locality['new_method_count'] - discovery_feed['new_method_count'] - public_read['new_method_count'], 597)
-        self.assertAlmostEqual(sum(costs.values()) - current['new_estimated_method_seconds'] - template_controls['new_estimated_method_seconds'] - relation_locality['new_estimated_method_seconds']
+        self.assertEqual(sum(counts.values()) - selectors['new_method_count'] - current['new_method_count'] - template_controls['new_method_count'] - relation_locality['new_method_count'] - discovery_feed['new_method_count'] - public_read['new_method_count'], 597)
+        self.assertAlmostEqual(sum(costs.values()) - selectors['new_estimated_method_seconds'] - current['net_declared_method_seconds_added'] - template_controls['new_estimated_method_seconds'] - relation_locality['new_estimated_method_seconds']
                                - public_read['new_estimated_method_seconds'] - discovery_feed['new_estimated_method_seconds'],
                                review['total_method_seconds'])
         self.assertGreater(sum(costs.values()), 15 * (1800 - 300))

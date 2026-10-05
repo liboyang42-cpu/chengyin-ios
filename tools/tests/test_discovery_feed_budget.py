@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import re
 import unittest
+from tools.tests.club_story_budget_history import before_club_story, before_club_story_costs, CLASSES
 
 ROOT = Path(__file__).resolve().parents[2]
 SPEC = importlib.util.spec_from_file_location('discovery_feed_shard', ROOT / 'tools/run_ui_shard.py')
@@ -17,7 +18,9 @@ PRIOR_PROFILE_SHA256 = 'a07f243fe0db6b4c83bd70ecfe5e522db80c48935f06a9dc6f65f7e3
 
 
 def inventory(profile, excluding=()):
-    excluding = set(excluding) | set(profile['planning_budget']['template_metadata_selectors_replan']['new_methods'])
+    excluding = (set(excluding) | set(profile['planning_budget']['template_metadata_selectors_replan']['new_methods'])
+                 | set(profile['planning_budget']['club_story_replan']['new_methods']))
+    profile = before_club_story(profile)
     costs = {}; counts = {}; seen = set()
     for path in sorted((ROOT / 'Tests/AppUITests').glob('*.swift')):
         source = path.read_text()
@@ -63,6 +66,7 @@ class DiscoveryFeedBudgetTests(unittest.TestCase):
 
     def test_all_prior_observations_estimates_provenance_and_history_are_unchanged(self):
         profile = json.loads((ROOT / 'tools/ui_duration_weights.json').read_text())
+        profile = before_club_story(profile)
         later = profile['planning_budget'].pop('template_metadata_selectors_replan')
         for method in later['new_methods']:
             del profile['estimated_method_seconds'][method]
@@ -105,7 +109,8 @@ class DiscoveryFeedBudgetTests(unittest.TestCase):
         budget = profile['planning_budget']; current = budget['discovery_feed_replan']
         self.assertEqual((budget['deadline_seconds'], budget['startup_reserve_seconds']), (1800, 300))
         self.assertEqual((current['previous_shard_count'], current['shard_count']), (18, 20))
-        self.assertEqual(SHARD.DEFAULT_SHARD_COUNT, budget['template_metadata_selectors_replan']['shard_count'])
+        self.assertEqual(SHARD.DEFAULT_SHARD_COUNT, budget['club_story_replan']['shard_count'])
+        self.assertEqual(budget['club_story_replan']['previous_shard_count'], budget['template_metadata_selectors_replan']['shard_count'])
         self.assertEqual(budget['template_metadata_selectors_replan']['previous_shard_count'], budget['template_controls_replan']['shard_count'])
         self.assertEqual(budget['template_controls_replan']['previous_shard_count'], budget['relation_locality_replan']['shard_count'])
         self.assertEqual(current['shard_count'], budget['relation_locality_replan']['previous_shard_count'])

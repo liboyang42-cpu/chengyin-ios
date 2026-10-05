@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 import re
 import unittest
+from tools.tests.club_story_budget_history import before_club_story, before_club_story_costs, CLASSES
 
 ROOT = Path(__file__).resolve().parents[2]
 SPEC = importlib.util.spec_from_file_location('public_read_shard', ROOT / 'tools/run_ui_shard.py')
@@ -39,6 +40,7 @@ class PublicReadBudgetTests(unittest.TestCase):
 
     def test_prior_club_expansion_and_sixteen_shard_history_reconstruct_exactly(self):
         profile = json.loads((ROOT / 'tools/ui_duration_weights.json').read_text())
+        profile = before_club_story(profile)
         later_methods = (set(profile['planning_budget']['discovery_feed_replan']['new_methods'])
                          | set(profile['planning_budget']['relation_locality_replan']['new_methods'])
                          | set(profile['planning_budget']['template_controls_replan']['new_methods'])
@@ -51,6 +53,8 @@ class PublicReadBudgetTests(unittest.TestCase):
             if not methods:
                 continue
             case = re.findall(r'\bclass\s+(\w+)\s*:\s*XCTestCase\b', source)[0]
+            if case in CLASSES:
+                continue
             methods = [case + '.' + method for method in methods if case + '.' + method not in EXPECTED and case + '.' + method not in later_methods]
             if not methods:
                 continue
@@ -76,21 +80,23 @@ class PublicReadBudgetTests(unittest.TestCase):
         discovery_feed = budget['discovery_feed_replan']
         relation_locality = budget['relation_locality_replan']
         template_controls = budget['template_controls_replan']
-        current = budget['template_metadata_selectors_replan']
+        selectors = budget['template_metadata_selectors_replan']
+        current = budget['club_story_replan']
         self.assertEqual((budget['deadline_seconds'], budget['startup_reserve_seconds']), (1800, 300))
         self.assertEqual(replan['previous_shard_count'], 16)
         self.assertEqual(SHARD.DEFAULT_SHARD_COUNT, current['shard_count'])
         self.assertEqual(replan['shard_count'], discovery_feed['previous_shard_count'])
         self.assertEqual(discovery_feed['shard_count'], relation_locality['previous_shard_count'])
         self.assertEqual(relation_locality['shard_count'], template_controls['previous_shard_count'])
-        self.assertEqual(template_controls['shard_count'], current['previous_shard_count'])
+        self.assertEqual(template_controls['shard_count'], selectors['previous_shard_count'])
+        self.assertEqual(selectors['shard_count'], current['previous_shard_count'])
         self.assertGreater(SHARD.DEFAULT_SHARD_COUNT, 16)
         counts = SHARD.discover(ROOT / 'Tests/AppUITests')
         costs = SHARD.measured_weights(ROOT / 'Tests/AppUITests', ROOT / 'tools/ui_duration_weights.json')
-        self.assertEqual(sum(counts.values()), 597 + len(EXPECTED) + discovery_feed['new_method_count'] + relation_locality['new_method_count'] + template_controls['new_method_count'] + current['new_method_count'])
+        self.assertEqual(sum(counts.values()), 597 + len(EXPECTED) + discovery_feed['new_method_count'] + relation_locality['new_method_count'] + template_controls['new_method_count'] + selectors['new_method_count'] + current['new_method_count'])
         self.assertEqual(sum(counts.values()), current['method_count'])
         self.assertEqual(len(counts), current['class_count'])
-        self.assertAlmostEqual(sum(costs.values()), 23564.282 + sum(EXPECTED.values()) + discovery_feed['new_estimated_method_seconds'] + relation_locality['new_estimated_method_seconds'] + template_controls['new_estimated_method_seconds'] + current['new_estimated_method_seconds'])
+        self.assertAlmostEqual(sum(costs.values()), 23564.282 + sum(EXPECTED.values()) + discovery_feed['new_estimated_method_seconds'] + relation_locality['new_estimated_method_seconds'] + template_controls['new_estimated_method_seconds'] + selectors['new_estimated_method_seconds'] + current['net_declared_method_seconds_added'])
         self.assertAlmostEqual(sum(costs.values()), current['total_method_seconds'])
         for count in range(16, SHARD.DEFAULT_SHARD_COUNT):
             groups = SHARD.partition(costs, count)

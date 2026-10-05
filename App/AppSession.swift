@@ -1806,7 +1806,7 @@ final class AppSession: ObservableObject {
     var clubGovernanceContext: ClubGovernanceContext { .init(viewerRevision: compositionViewerRevision, access: clubGovernanceAccess, coordinator: clubGovernanceCoordinator, enrollmentProfile: .init(reader: socialAccountReader, squareReader: squareReader, actions: socialActionCoordinator), ownerRefund: clubOwnerRefundCoordinator, opsTimeFactory: { [weak self] in self?.clubOpsTimeHost?.coordinator(activityID: $0) }, topicDestination: { [weak self] id in
         guard let self else { return AnyView(EmptyView()) }
         return AnyView(SessionTopicDetailView(id: id, session: self))
-    }) }
+    }, storyTemplates: clubStoryTemplateContext(viewerRevision: compositionViewerRevision)) }
     private var currentClubOperationsSession: ClubOperationsSession? {
         guard let account, let token else { return nil }
         return try? ClubOperationsSession(accountID: account.id, epoch: gate.currentStamp, token: token, storageNamespace: storageScope?.service ?? "")

@@ -63,7 +63,9 @@ class TopicSocialBudgetTests(unittest.TestCase):
         budget = profile['planning_budget']; replan = budget['shard_replan']
         self.assertEqual((budget['deadline_seconds'], budget['startup_reserve_seconds']), (1800, 300))
         self.assertEqual((replan['previous_shard_count'], replan['shard_count']), (15, 16))
-        self.assertEqual(SHARD.DEFAULT_SHARD_COUNT, budget['template_metadata_selectors_replan']['shard_count'])
+        self.assertEqual(SHARD.DEFAULT_SHARD_COUNT, budget['club_story_replan']['shard_count'])
+        self.assertEqual(budget['club_story_replan']['previous_shard_count'],
+                         budget['template_metadata_selectors_replan']['shard_count'])
         self.assertEqual(budget['template_metadata_selectors_replan']['previous_shard_count'],
                          budget['template_controls_replan']['shard_count'])
         self.assertEqual(budget['template_controls_replan']['previous_shard_count'],

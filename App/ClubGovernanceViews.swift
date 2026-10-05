@@ -10,6 +10,7 @@ struct ClubGovernanceEntryButton: View {
     var ownerRefund: ClubOwnerRefundCoordinator? = nil
     var opsTimeFactory: ((Int) -> ClubOpsTimeCoordinator?)? = nil
     var customerTopics = ClubCustomerTopicContext()
+    var storyTemplates = ClubStoryTemplateContext()
     @State private var presented = false
     var body: some View {
         Button { presented = true } label: { Label("club.gov.workspace", systemImage: "person.3.sequence.fill") }
@@ -20,6 +21,7 @@ struct ClubGovernanceEntryButton: View {
                     .environment(\.clubOwnerRefundCoordinator, ownerRefund)
                     .environment(\.clubOpsTimeFactory, opsTimeFactory)
                     .environment(\.clubCustomerTopics, customerTopics)
+                    .environment(\.clubStoryTemplates, storyTemplates)
             }
     }
 }
@@ -59,6 +61,7 @@ struct ClubGovernanceReadView: View {
     @Environment(\.clubOpsTimeFactory) private var opsTimeFactory
     @Environment(\.clubCustomerTopics) private var customerTopics
     @Environment(\.clubGovernanceFeed) private var feedContext
+    @Environment(\.clubStoryTemplates) private var storyTemplates
     let operation: ClubGovernanceRead
     let scope: ClubGovernanceScope
     let identity: ClubReadIdentity?
@@ -71,9 +74,9 @@ struct ClubGovernanceReadView: View {
     @State private var feedClub: ClubFeedClubRoute?
     @State private var feedMediaScope = UUID()
     private var readContext: ClubGovernanceReadContext {
-        .init(operation: operation, scope: scope, identity: identity, viewerRevision: operation == .feed ? feedContext.viewerRevision : customerTopics.viewerRevision,
+        .init(operation: operation, scope: scope, identity: identity, viewerRevision: operation == .feed ? feedContext.viewerRevision : max(customerTopics.viewerRevision, storyTemplates.viewerRevision),
               authorizationGeneration: access.authorizationGeneration,
-              readerIdentity: operation == .feed ? feedContext.readerIdentity : nil, accessIdentity: ObjectIdentifier(access))
+              readerIdentity: operation == .feed ? feedContext.readerIdentity : (operation == .topicOverview ? storyTemplates.readerIdentity : nil), accessIdentity: ObjectIdentifier(access))
     }
     @State private var failure: ClubGovernanceFailure?
     @State private var loading = false
@@ -270,7 +273,7 @@ struct ClubGovernanceReadView: View {
             Section { link(.topicStats); link(.topicSettings); link(.topicCustomers); link(.recruit); enrollmentLink(focusTopicID: scope.topicID) }
             Section { NavigationLink("context.rules.title") { ClubOperatingRulesView() }.accessibilityIdentifier("club.context.openRules") }
             Section("club.gov.story") {
-                NavigationLink { ClubGovernanceStoryView(value: value, scope: scope, identity: identity, access: access, coordinator: coordinator) } label: { Label("club.gov.story", systemImage: "book.pages") }.accessibilityIdentifier("club.gov.openStory")
+                NavigationLink { ClubGovernanceStoryView(snapshot: $snapshot, snapshotContext: $snapshotContext, snapshotGeneration: $snapshotGeneration, loading: $loading, failure: $failure, context: readContext, identity: identity, access: access, coordinator: coordinator, reload: { await load() }) } label: { Label("club.gov.story", systemImage: "book.pages") }.accessibilityIdentifier("club.gov.openStory")
             }
             Section("club.gov.events") { ForEach(Array((value["activityList"].array ?? []).enumerated()), id: \.offset) { _, row in
                 if let id = row["id"].int {
@@ -402,32 +405,172 @@ struct ClubGovernanceEventView: View {
     }
 }
 
-struct ClubGovernanceStoryView: View {
-    let value: ClubGovernanceValue
-    let scope: ClubGovernanceScope
+/// Route/play display is sourced only from the already-authorized topic projection.
+/// cmsMemberTemplate IDs remain personal-template IDs; answers keep their own .nodeAnswer read.
+@MainActor struct ClubGovernanceStoryView: View {
+    @Binding var snapshot: ClubGovernanceSnapshot?
+    @Binding var snapshotContext: ClubGovernanceReadContext?
+    @Binding var snapshotGeneration: UInt64
+    @Binding var loading: Bool
+    @Binding var failure: ClubGovernanceFailure?
+    let context: ClubGovernanceReadContext
     let identity: ClubReadIdentity?
     let access: any ClubGovernanceAccess
     let coordinator: ClubGovernanceCoordinator
+    let reload: () async -> Void
+    @Environment(\.clubStoryTemplates) private var templates
+    @State private var tab: ClubStoryTab = .route
+    @State private var selectedChapter = 0
+    @State private var storyExpanded = false
+    @State private var selectedTemplate: ClubStoryTemplateSelection?
+    @State private var selectedAnswer: ClubStoryAnswerRoute?
+    @State private var mediaScope = UUID()
+
+    private var sourceIsCurrent: Bool {
+        identity?.isSignedIn == true && identity == access.identity && access.isConfigured &&
+        snapshotContext == context && context.authorizationGeneration == access.authorizationGeneration &&
+        context.accessIdentity == ObjectIdentifier(access) && context.readerIdentity == templates.readerIdentity
+    }
+    private var presentation: ClubStoryPresentation? {
+        guard sourceIsCurrent, let snapshot else { return nil }
+        return try? ClubStoryPresentation(snapshot: snapshot)
+    }
+    private var sourceRevision: ClubStorySourceRevision {
+        .init(snapshot: snapshot, context: context, snapshotGeneration: snapshotGeneration,
+              sourceIsCurrent: sourceIsCurrent, readerScope: templates.readerScope,
+              destinationAvailable: templates.isAvailable)
+    }
     var body: some View {
         List {
-            if identity == access.identity, identity?.isSignedIn == true {
-            Text("club.gov.storyProjection")
-            ForEach(Array((value["chaptersList"].array ?? []).enumerated()), id: \.offset) { _, chapter in
-                Section {
-                    ClubGovernanceFactRows(value: chapter, fields: ["title", "name", "description", "totalTime"])
-                    ForEach(Array((chapter["nodes"].array ?? []).enumerated()), id: \.offset) { _, node in
-                        ClubGovernanceFactRows(value: node, fields: ["title", "name", "description", "totalTime"])
-                        ForEach(Array((node["cmsMemberTemplate"].object == nil ? [] : [node["cmsMemberTemplate"]]).enumerated()), id: \.offset) { _, template in
-                            ClubGovernanceFactRows(value: template, fields: ["title", "validationMethodStr", "players", "duration", "difficulty"])
-                            if [1, 3].contains(template["validationMethod"].int ?? -1), let nodeID = node["id"].int {
-                                NavigationLink { ClubGovernanceReadView(operation: .nodeAnswer, scope: .init(clubID: scope.clubID, topicID: scope.topicID, nodeID: nodeID), identity: identity, access: access, coordinator: coordinator) } label: { Text("club.gov.nodeAnswer") }
+            if identity?.isSignedIn != true || identity != access.identity {
+                Text("club.gov.signedOut").accessibilityIdentifier("club.story.signedOut")
+            } else if loading {
+                ProgressView("club.story.loading").accessibilityIdentifier("club.story.loading")
+            } else if let failure {
+                Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier("club.story.failure")
+            } else if let presentation {
+                Picker("club.story.sections", selection: $tab) {
+                    Text("club.story.route").tag(ClubStoryTab.route).accessibilityIdentifier("club.story.tab.route")
+                    Text("club.story.play").tag(ClubStoryTab.play).accessibilityIdentifier("club.story.tab.play")
+                }.pickerStyle(.segmented).accessibilityIdentifier("club.story.tabs")
+                if presentation.chapters.isEmpty {
+                    ClubStoryEmptyState(title: "club.story.noChapters", detail: "club.story.noRoute")
+                } else if tab == .route {
+                    ForEach(presentation.chapters) { chapter in
+                        Section {
+                            if chapter.stops.isEmpty {
+                                ClubStoryEmptyState(title: "club.story.noStops", detail: "club.story.awaitingStops")
+                            } else {
+                                ForEach(chapter.stops) { stop in
+                                    ClubStoryStopCard(stop: stop, imageReader: templates.imageReader)
+                                        .id("\(mediaScope).\(stop.id)")
+                                }
                             }
-                        }
+                        } header: { ClubStoryChapterHeader(chapter: chapter) }
+                    }
+                } else {
+                    chapterPicker(presentation.chapters)
+                    if let chapter = presentation.chapters.first(where: { $0.id == selectedChapter }) ?? presentation.chapters.first {
+                        playContent(chapter)
                     }
                 }
+                Section { Text("club.gov.storyProjection").font(.footnote).foregroundStyle(.secondary) }
+            } else {
+                Text("club.story.sourceUnavailable").accessibilityIdentifier("club.story.sourceUnavailable")
             }
-            } else { Text("club.gov.signedOut") }
-        }.navigationTitle("club.gov.story").accessibilityIdentifier("club.gov.story")
+            Button("club.gov.refresh") { Task { await reload() } }.disabled(loading).accessibilityIdentifier("club.story.refresh")
+        }
+        .navigationTitle("club.gov.story").accessibilityIdentifier("club.gov.story")
+        .navigationDestination(item: $selectedTemplate) { selection in
+            if sourceIsCurrent, selection.isCurrent(snapshot: snapshot, context: context,
+                snapshotGeneration: snapshotGeneration, templates: templates), let destination = templates.destination {
+                destination(selection.route.templateID).id(selection.id)
+            } else { Text("club.story.templateUnavailable").accessibilityIdentifier("club.story.destinationUnavailable") }
+        }
+        .navigationDestination(item: $selectedAnswer) { target in
+            if current(target) {
+                ClubGovernanceReadView(operation: .nodeAnswer, scope: target.scope, identity: identity, access: access, coordinator: coordinator)
+                    .id(target.id)
+            } else { Text("club.story.sourceUnavailable") }
+        }
+        .onChange(of: sourceRevision) { _, _ in invalidateSelection(resetChapter: true) }
+        .onChange(of: tab) { _, _ in invalidateSelection() }
+        .refreshable { await reload() }
+    }
+    private func chapterPicker(_ chapters: [ClubStoryChapter]) -> some View {
+        ScrollView(.horizontal) {
+            HStack(spacing: 10) {
+                ForEach(chapters) { chapter in
+                    Button {
+                        // Display selection uses the unique local ordinal. Backend IDs
+                        // authorize no chapter content; only template/answer routes need them.
+                        guard presentation?.chapters.contains(chapter) == true else { return }
+                        selectedChapter = chapter.id; invalidateSelection()
+                    } label: {
+                        ClubStoryChapterTitle(chapter: chapter).padding(.horizontal, 12).padding(.vertical, 8)
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(selectedChapter == chapter.id ? .accentColor : .secondary)
+                    .accessibilityAddTraits(selectedChapter == chapter.id ? .isSelected : [])
+                    .accessibilityIdentifier("club.story.chapter.\(chapter.id)")
+                }
+            }
+        }.scrollIndicators(.hidden)
+    }
+    @ViewBuilder private func playContent(_ chapter: ClubStoryChapter) -> some View {
+        Section {
+            if let story = chapter.description {
+                Text(verbatim: story).lineLimit(storyExpanded ? nil : 4).textSelection(.enabled)
+                    .accessibilityIdentifier("club.story.description")
+                Button(LocalizedStringKey(storyExpanded ? "club.story.collapse" : "club.story.expand")) { storyExpanded.toggle() }
+                    .accessibilityIdentifier("club.story.expand")
+            } else { Text("club.story.noStory").foregroundStyle(.secondary) }
+        } header: {
+            VStack(alignment: .leading) { Text("club.story.chapterStory"); ClubStoryChapterTitle(chapter: chapter) }
+        }
+        Section {
+            if chapter.gameplay.isEmpty {
+                ClubStoryEmptyState(title: "club.story.noPlays", detail: "club.story.awaitingPlays")
+            }
+            ForEach(chapter.gameplay) { play in
+                VStack(alignment: .leading, spacing: 12) {
+                    ClubStoryGameplayCard(play: play, imageReader: templates.imageReader)
+                    if let selection = templateSelection(play) {
+                        Button("club.story.viewTemplate") {
+                            guard selectedTemplate == nil, selectedAnswer == nil, sourceIsCurrent,
+                                  selection.isCurrent(snapshot: snapshot, context: context,
+                                      snapshotGeneration: snapshotGeneration, templates: templates) else { return }
+                            selectedTemplate = selection
+                        }.accessibilityIdentifier("club.story.template.\(play.id)")
+                    } else {
+                        Text("club.story.templateUnavailable").font(.footnote).foregroundStyle(.secondary)
+                            .accessibilityIdentifier("club.story.templateUnavailable.\(play.id)")
+                    }
+                    if let target = answerRoute(play) {
+                        Button("club.gov.nodeAnswer") {
+                            guard selectedAnswer == nil, selectedTemplate == nil, current(target) else { return }
+                            selectedAnswer = target
+                        }.accessibilityIdentifier("club.story.answer.\(play.id)")
+                    }
+                }.id("\(mediaScope).play.\(play.id)")
+            }
+        } header: { Text("club.story.chapterPlays \(chapter.gameplay.count)") }
+    }
+    private func templateSelection(_ play: ClubStoryGameplay) -> ClubStoryTemplateSelection? {
+        guard sourceIsCurrent, let snapshot else { return nil }
+        return .init(gameplay: play, snapshot: snapshot, context: context,
+                     snapshotGeneration: snapshotGeneration, templates: templates)
+    }
+    private func answerRoute(_ play: ClubStoryGameplay) -> ClubStoryAnswerRoute? {
+        guard sourceIsCurrent, let snapshot else { return nil }
+        return .init(gameplay: play, snapshot: snapshot, context: context, snapshotGeneration: snapshotGeneration)
+    }
+    private func current(_ route: ClubStoryAnswerRoute) -> Bool {
+        sourceIsCurrent && route.isCurrent(snapshot: snapshot, context: context, snapshotGeneration: snapshotGeneration)
+    }
+    private func invalidateSelection(resetChapter: Bool = false) {
+        selectedTemplate = nil; selectedAnswer = nil; storyExpanded = false
+        if resetChapter { selectedChapter = 0; mediaScope = UUID() }
     }
 }
 

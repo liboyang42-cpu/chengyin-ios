@@ -7,7 +7,7 @@ final class PublicMerchantFeaturedTests: XCTestCase {
     private let homeScope = UUID()
     private let destinationScope = UUID()
     private let snapshotID = UUID()
-    private func home(_ featured: String = Self.activity, identity: String = #""id":73,"memberId":41"#) throws -> PublicMerchantHome {
+    private func home(_ featured: String = PublicMerchantFeaturedTests.activity, identity: String = #""id":73,"memberId":41"#) throws -> PublicMerchantHome {
         try JSONDecoder().decode(PublicMerchantHome.self,
             from: Data("{\(identity),\"name\":\"Synthetic shop\",\"featured\":\(featured)}".utf8))
     }
