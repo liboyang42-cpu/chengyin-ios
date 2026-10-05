@@ -27,7 +27,7 @@ private actor SavedPostSuspendedTransport: HTTPTransport {
 
 final class AccountCollectionPostTests: XCTestCase {
     private func service(_ transport: any HTTPTransport) throws -> AccountCollectionService {
-        try AccountCollectionService(configuration: APIConfiguration(baseURL: URL(string: "https://example.invalid/test/")!), transport: transport)
+        try AccountCollectionService(configuration: APIConfiguration(baseURL: URL(string: "https://example.com/test/")!), transport: transport)
     }
     private func post(_ id: Int, generation: SquareContentGeneration = .legacySquare) throws -> SquarePost {
         try JSONDecoder().decode(SquarePost.self, from: Data("{\"id\":\(id),\"contents\":\"Synthetic saved post\"}".utf8)).qualified(as: generation)

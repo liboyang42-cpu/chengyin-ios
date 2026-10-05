@@ -107,6 +107,10 @@ final class TemplateLegacyHintTests: XCTestCase {
             XCTAssertEqual(draft, original, section)
         }
         var qa = legacy(); qa.advanced.set("qa", "enabled", .bool(true))
+        qa.advanced.set("qa", "mode", .string("TYPE"))
+        qa.advanced.set("qa", "title", .string("Which detail?"))
+        qa.advanced.set("qa", "answerText", .string("Window"))
+        XCTAssertTrue(qa.advanced.issues.isEmpty)
         XCTAssertEqual(try TemplateAuthoringContract.payload(qa)["hint1"], .string("  first  "))
     }
     func testModifiersAndUnknownSectionsDoNotHideLegacyHints() {

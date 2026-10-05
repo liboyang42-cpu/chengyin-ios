@@ -155,7 +155,7 @@ private actor SuspendedGovernanceFeedTransport: HTTPTransport {
         viewerRevision: { [unowned self] in revision }, onUnauthorized: { [unowned self] in expired.append($0) })
     init() throws {
         session = try .init(accountID: 701, epoch: 1, token: "synthetic", storageNamespace: "fixture")
-        service = ClubGovernanceService(configuration: try .init(baseURL: URL(string: "https://example.invalid")!), transport: transport)
+        service = ClubGovernanceService(configuration: try .init(baseURL: URL(string: "https://example.com")!), transport: transport)
     }
     func read(check: @escaping () throws -> Void = {}) -> Task<ClubGovernanceSnapshot, Error> {
         Task { try await access.read(.feed, scope: .init(), options: ["limit": .integer(20)], check: check) }

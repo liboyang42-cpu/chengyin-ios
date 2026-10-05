@@ -68,7 +68,7 @@ final class DiscoveryPlayTemplatePresentationTests: XCTestCase {
     }
     func testPublicReadRejectsMismatchedAndMalformedIdentityWithoutOwnerNamespace() async throws {
         let transport = PresentationTransport()
-        let service = try DiscoveryService(configuration: APIConfiguration(baseURL: URL(string: "https://api.example.invalid/prod-api")!), transport: transport)
+        let service = try DiscoveryService(configuration: APIConfiguration(baseURL: URL(string: "https://api.example.com/prod-api")!), transport: transport)
         for identity in ["8", "0", "-1", "\"7\"", "null"] {
             transport.response = "{\"code\":200,\"data\":{\"id\":\(identity)}}"
             do { _ = try await service.playTemplate(id: 7); XCTFail(identity) }
