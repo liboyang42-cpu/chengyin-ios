@@ -2,8 +2,9 @@
 import SwiftUI
 
 @MainActor final class SocialAccountFixtureReader: SocialAccountReading {
-    enum Scenario: String { case content, reportPolicyChanged, reportContentChanged, reportUnknown, reportDisabled, guest, empty, partial, failure, delayed, unknown, rejected, disabled, removed, unconfigured }
+    enum Scenario: String { case content, articleHTML, articleEmpty, articleRetry, reportPolicyChanged, reportContentChanged, reportUnknown, reportDisabled, guest, empty, partial, failure, delayed, unknown, rejected, disabled, removed, unconfigured }
     let scenario: Scenario
+    private var informationAttempts = 0
     var identity: SocialAccountIdentity
     var isConfigured: Bool { scenario != .unconfigured }
     let isOfflineExample = true
@@ -26,7 +27,16 @@ import SwiftUI
     func information(id: Int) async throws -> SocialInformation {
         try await check()
         if scenario == .removed { return try JSONDecoder().decode(SocialInformation.self, from: Data("{}".utf8)) }
-        guard let value = try SocialAccountSyntheticFixtures.information().first(where: { $0.id == id }) else { throw APIError.invalidRequest }; return value
+        guard let value = try SocialAccountSyntheticFixtures.information().first(where: { $0.id == id }) else { throw APIError.invalidRequest }
+        if [.articleHTML, .articleEmpty, .articleRetry].contains(scenario) {
+            informationAttempts += 1
+            if scenario == .articleRetry && informationAttempts == 1 { throw APIError.httpStatus(503) }
+            let heading = identity.accountID == 81 ? "Synthetic article heading / 示例正文标题" : "Replacement article heading / 替换正文标题"
+            let body = scenario == .articleEmpty ? "" : "<h2>\(heading)</h2><p>Readable <strong>bold text</strong> &amp; 中文.</p><ol><li>First instruction</li><li>Second instruction</li></ol><p><a href='javascript:fixture()'>Inert article link</a></p><script>FORBIDDEN_SCRIPT_TEXT</script><img src='https://example.invalid/never-fetch.png'>"
+            let data = try JSONSerialization.data(withJSONObject: ["id": id, "title": value.title, "contents": body])
+            return try JSONDecoder().decode(SocialInformation.self, from: data)
+        }
+        return value
     }
     func invitationHistory(page: Int) async throws -> SocialInviteHistory {
         guard identity.accountID != nil else { throw APIError.unauthorized }

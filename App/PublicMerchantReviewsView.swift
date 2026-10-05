@@ -8,6 +8,7 @@ import SwiftUI
     @State private var itemPages: [Int: Int] = [:]
     @State private var snapshot: PublicMerchantReviewPage?
     @State private var items: [PublicMerchantReviewPage.Item] = []
+    @State private var reviewFilter: PublicMerchantReviewFilter = .all
     @State private var loading = false
     @State private var failure: PublicMerchantHomeFailure?
     @State private var failedPage = 1
@@ -15,6 +16,11 @@ import SwiftUI
     @State private var loadedKey: Key?
     private struct Key: Hashable { let target: PublicMerchantReviewTarget; let scope: UUID }
     private var key: Key { .init(target: target, scope: reader.scope) }
+    // Retain the original loaded offset when filtering. A matching row must keep
+    // its photo selection and report target rather than inherit a different row's state.
+    private var visibleItems: [(offset: Int, element: PublicMerchantReviewPage.Item)] {
+        items.enumerated().filter { reviewFilter.matches($0.element) }
+    }
     var body: some View {
         List {
             if !reader.isConfigured { Text("merchant.publicHome.notConfigured") }
@@ -24,7 +30,11 @@ import SwiftUI
                 if loadedKey == key, let snapshot {
                     Section("merchant.publicHome.summary") {
                         LabeledContent("merchant.publicHome.total", value: String(snapshot.total))
-                        if let rating = snapshot.averageRating { LabeledContent("merchant.publicHome.rating", value: String(format: "%.1f", rating)) }
+                            .accessibilityIdentifier("merchant.publicHome.total")
+                        if let rating = snapshot.averageRating {
+                            LabeledContent("merchant.publicHome.rating", value: String(format: "%.1f", rating))
+                                .accessibilityIdentifier("merchant.publicHome.rating")
+                        }
                         // Do not infer an authenticated action from a public read or start an upload/provider.
                         Text("merchant.publicHome.reviewBoundary").font(.footnote)
                     }
@@ -33,8 +43,24 @@ import SwiftUI
                             PublicMerchantReviewEditor(target: target, registrationID: registration, context: writes)
                         }.accessibilityIdentifier("merchant.publicHome.createReview")
                     }
-                    if items.isEmpty { Text("merchant.publicHome.noReviews").accessibilityIdentifier("merchant.publicHome.noReviews") }
-                    ForEach(Array(items.enumerated()), id: \.offset) { _, item in
+                    Section {
+                        Picker("merchant.publicHome.reviewFilter", selection: $reviewFilter) {
+                            ForEach(PublicMerchantReviewFilter.allCases, id: \.self) { filter in
+                                Text(LocalizedStringKey("merchant.publicHome.reviewFilter." + filter.rawValue)).tag(filter)
+                            }
+                        }.pickerStyle(.menu).accessibilityIdentifier("merchant.publicHome.reviewFilter")
+                        Text("merchant.publicHome.reviewFilterScope").font(.footnote).foregroundStyle(.secondary)
+                        if reviewFilter != .all {
+                            Button("merchant.publicHome.clearReviewFilter") { reviewFilter = .all }
+                                .accessibilityIdentifier("merchant.publicHome.clearReviewFilter")
+                        }
+                    }
+                    if items.isEmpty {
+                        Text("merchant.publicHome.noReviews").accessibilityIdentifier("merchant.publicHome.noReviews")
+                    } else if visibleItems.isEmpty {
+                        Text("merchant.publicHome.noMatchingReviews").accessibilityIdentifier("merchant.publicHome.noMatchingReviews")
+                    }
+                    ForEach(visibleItems, id: \.offset) { _, item in
                         Section {
                             Group { if let name = item.authorNickname, !name.isEmpty { Text(verbatim: name) } else { Text("merchant.publicHome.player") } }
                                 .font(.headline)
@@ -79,7 +105,12 @@ import SwiftUI
         // A changed scope supersedes an in-flight request; repeated same-scope taps do not.
         if loading && loadedKey == key { return }
         generation += 1; let ticket = generation; let current = key
-        if page == 1 { snapshot = nil; items = []; itemPages = [:]; loadedKey = current }
+        if page == 1 {
+            // Same-scope refresh keeps the choice; a different merchant or account
+            // read scope starts at All before exposing its fresh response.
+            if loadedKey != current { reviewFilter = .all }
+            snapshot = nil; items = []; itemPages = [:]; loadedKey = current
+        }
         loading = true; failure = nil; failedPage = page
         do {
             let result = try await reader.page(target, page: page)

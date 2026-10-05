@@ -5,7 +5,7 @@ enum ModuleFixture: String {
     case playDirector, playPrefab, playPrefabBoot
     case ownedOrderHistory
     case signedInContentDetail
-    case publicTemplateDetail
+    case publicTemplateDetail, publicPlayTemplate
     case privateHome
     case nativeEnrollment
     case nativePlatform
@@ -51,6 +51,7 @@ struct ModuleFixtureRootView: View {
             case .ownedOrderHistory: OwnedOrderFixtureHost()
             case .signedInContentDetail: SignedInContentDetailFixtureHost()
             case .publicTemplateDetail: PublicTemplateDetailFixtureHost()
+            case .publicPlayTemplate: PublicPlayTemplateFixtureHost()
             case .privateHome: PrivateHomeFixtureHost()
             case .nativeEnrollment: NativeEnrollmentFixtureHost()
             case .nativePlatform: NativePlatformFixtureHost()

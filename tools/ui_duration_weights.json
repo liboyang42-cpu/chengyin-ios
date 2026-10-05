@@ -210,7 +210,6 @@
     "MerchantTemplateAssistFlowTests.testDefaultOffSheetStillExplainsManualDraftPath": 43.701,
     "MerchantTemplateAssistFlowTests.testPermissionErrorHasNoEnabledRetryWhileProviderErrorDoes": 102.914,
     "MerchantTemplateAssistFlowTests.testReviewExplicitApplyReturnsToSameUnsavedTemplate": 67.442,
-    "ModuleFlowTests.testClubMemberGateAndReadOnlyMemberList": 17.292,
     "ModuleFlowTests.testDiscoveryTemplateNavigationAndBack": 18.238,
     "ModuleFlowTests.testMerchantFinanceRoleDoesNotExposeOwnerDashboard": 12.474,
     "ModuleFlowTests.testMessagingReadOnlyHistoryNavigation": 17.538,
@@ -694,7 +693,76 @@
     "ModuleFlowTests.testClubCustomerHistoryTopicClearsOnAccountAndRoleChanges": 240,
     "ClubGovernanceFlowTests.testWorkspaceCustomerHistoryUsesTheSameTopicDestination": 120,
     "MerchantBusinessFlowTests.testReviewFiltersUseCurrentPageAndKeepServerMetrics": 120,
-    "MerchantBusinessFlowTests.testChineseAftercareSearchStaysOnCurrentPage": 120
+    "MerchantBusinessFlowTests.testChineseAftercareSearchSpansLoadedPages": 180,
+    "ActivityFlowTests.testPeopleOpenExactProfilesAndPreserveReadOnlyRowsAfterBack": 180,
+    "AccountCollectionFlowTests.testSavedPostFailureDoesNotPoisonTopicCollection": 120,
+    "AccountCollectionFlowTests.testSavedPostPageFailureRetainsRowsAndRetryDoesNotSkip": 120,
+    "AccountCollectionFlowTests.testSavedPostsAreDefaultAndOpenLegacyDetailThenReturn": 180,
+    "AccountCollectionFlowTests.testSavedPostsDistinguishEmptyFromUnavailableAndClearOnSignOut": 240,
+    "ActivityFlowTests.testKnownEmptyReviewsDoNotShowAZeroStarRating": 120,
+    "ActivityFlowTests.testMissingReviewsRemainUnknownRatherThanEmptyOrFiveStars": 120,
+    "ActivityFlowTests.testReviewPreviewKeepsServerTotalAndSurvivesBackAndReopen": 180,
+    "TopicFlowTests.testChapterItineraryEstimateUsesChineseLabels": 120,
+    "TopicFlowTests.testChapterItineraryEstimatesUnknownLegsAndBackReopen": 180,
+    "WalkingNavigationFlowTests.testBilingualMaximumCameraActionsAreExplicitAndClearWithRoute": 180,
+    "TopicFlowTests.testReviewSummaryKeepsServerTotalAcrossDifferentRoutesAndReopen": 210,
+    "TopicFlowTests.testKnownEmptyTopicReviewsUseChineseEmptyStateWithoutZeroStars": 90,
+    "TopicFlowTests.testMissingTopicReviewMetadataStaysUnknownWithoutFalseEmpty": 90,
+    "SquareFlowTests.testRelatedTopicOpensExactLegacyReadAndReopensAfterBack": 180,
+    "SquareFlowTests.testCommunityTopicReferenceAndMissingLegacyAssociationRemainSeparate": 240,
+    "SquareFlowTests.testUnavailableRelatedTopicKeepsPostAccessibleAfterBack": 180,
+    "SettingsNativeFlowTests.testAttributionCopiesEachExactSourceAddressWithSeparateFeedback": 120,
+    "SettingsNativeFlowTests.testAttributionCopyFailureKeepsSourceVisibleAndExplicitRetrySucceeds": 90,
+    "SettingsNativeFlowTests.testChineseMaximumTextAttributionCopyResetsAfterAboutNavigation": 180,
+    "ModuleFlowTests.testClubMemberGateAndReadOnlyMemberList": 60,
+    "PublicMerchantHomeFlowTests.testFeaturedActivityUsesExactIDAfterBackAndUnavailableDetail": 210,
+    "PublicMerchantHomeFlowTests.testFeaturedCouponOpensWalletWithoutOwnedIDOrCodeInChineseLargeText": 120,
+    "PublicMerchantHomeFlowTests.testMissingUnknownAndMalformedFeaturedCardsLeaveProfileUsable": 360,
+    "PublicMerchantHomeFlowTests.testFeaturedSelectionClosesWhenReadScopeChangesThenUsesNewSnapshot": 180,
+    "PublicPlayTemplatePresentationFlowTests.testPublisherStoryGallerySelectedImageBackAndReopen": 60,
+    "PublicPlayTemplatePresentationFlowTests.testImageOnlyChineseMaximumTextHasNoInventedPublisherOrCount": 60,
+    "PublicPlayTemplatePresentationFlowTests.testDuplicateImagesAndKnownZeroRemainDistinctFromMissing": 90,
+    "PublicPlayTemplatePresentationFlowTests.testOriginDeniedCanRetryAndCloseWithoutRequestingPermission": 60,
+    "PublicPlayTemplatePresentationFlowTests.testReaderContextReplacementDismissesOldGalleryAndReloadsSameID": 60,
+    "PublicPlayTemplatePresentationFlowTests.testReadFailureRetriesAndDefaultDisabledMediaDoesNotSpin": 90,
+    "SocialAccountFlowTests.testHTMLArticleIsReadableInertAndReopensAfterBack": 180,
+    "SocialAccountFlowTests.testChineseLargeTextArticleReplacesOldContentAfterAccountSwitch": 210,
+    "SocialAccountFlowTests.testArticleRemovedEmptyAndReadFailureKeepExistingRecovery": 240,
+    "SearchMapFlowTests.testGlobalCategoryChangeRejectsEarlierCompletionAndClearReturnsSuggestions": 90,
+    "SearchMapFlowTests.testGlobalCategoryApplyResetPreservesKeywordAndCancelPreservesResults": 120,
+    "TopicTemplateNameSearchFlowTests.testTopicNameSearchAppliesCaseAndWhitespaceThenClearsNoMatches": 120,
+    "TopicTemplateNameSearchFlowTests.testTopicNameSearchRemainsIndependentFromGameKeywordAcrossTabs": 120,
+    "TopicTemplateNameSearchFlowTests.testChineseMaximumTextSearchDetailBackAndReloadKeepLocalScope": 150,
+    "OfficialEventFlowTests.testExplicitInformationWarningKeepsEventOpenableAfterBackAndScopeChange": 120,
+    "OfficialEventFlowTests.testBlankWarningReasonUsesHonestChineseFallbackAtLargeText": 90,
+    "OfficialEventFlowTests.testAbsentFalseAndMalformedMarkersNeverShowWarningFromReasonAlone": 180,
+    "PublicMerchantReviewFilterFlowTests.testAllLowPhotosAccumulatePagesWithoutRefetchOrChangingServerSummary": 180,
+    "PublicMerchantReviewFilterFlowTests.testFilteredEmptyKeepsNextPageAndRetryWhileClearRestoresEarlierRows": 120,
+    "PublicMerchantReviewFilterFlowTests.testChineseLargeTextEmptyHistoryStaysDistinctAndAverageRemainsUnknown": 120,
+    "PublicMerchantReviewFilterFlowTests.testAccountAndMerchantChangeResetFilterAndIgnoreOldUnauthorizedPage": 180,
+    "PublicMerchantReviewFilterFlowTests.testPhotoCloseAndSameScopeDetailReturnKeepFilterWithoutGrantingActions": 180,
+    "ClubFeedReadFlowTests.testSourceClubUsesActualDetailAndCanReopenAfterBackWithoutFeedPages": 120,
+    "ClubFeedReadFlowTests.testChineseLargeTextGalleryUsesThreeImagesAndReturnsToSameSource": 120,
+    "ClubFeedReadFlowTests.testMissingSourceClubIsNoninteractiveAndDefaultMediaStaysDisabled": 150,
+    "ClubFeedReadFlowTests.testNoClubsEmptyPostsAndUnknownCountRemainDifferentStates": 180,
+    "ClubFeedReadFlowTests.testReadFailureRetriesAndReplacementRevisionUsesNewSourceClub": 120,
+    "ClubFeedReadFlowTests.testAccountChangeClosesSelectedClubAndClearsPriorFeed": 120,
+    "CoopRelationDiscoveryFlowTests.testMixedDiscoveryOpensOwnerAndClubProfilesAndReturnsToSelectedTab": 120,
+    "CoopRelationDiscoveryFlowTests.testPartialIdentityRemainsNoninteractiveAndRefreshDoesNotReadProfiles": 60,
+    "CoopRelationDiscoveryFlowTests.testClubsOnlyAndEmptyTabsHaveHonestEmptyStates": 60,
+    "CoopRelationDiscoveryFlowTests.testRetryAndSessionReplacementClearPushedProfile": 120,
+    "CoopRelationDiscoveryFlowTests.testChineseMaximumTextPreservesTabsAndDisplayOnlyContext": 120,
+    "MerchantClubDiscoveryFlowTests.testMerchantLocalityHidesOwnedJoinedAndKeepsDetailReturn": 120.0,
+    "MerchantClubDiscoveryFlowTests.testUnknownLocalityKeepsAllNearbyWithRetryThenFilters": 120.0,
+    "MerchantClubDiscoveryFlowTests.testLocalityNetworkFailureKeepsAllNearbyAndNoMatchIsHonest": 120.0,
+    "MerchantClubDiscoveryFlowTests.testLateLocalityAfterPlayerSwitchCannotHidePlayerRows": 120.0,
+    "MerchantClubDiscoveryFlowTests.testMerchantSwitchFencesOldUnauthorizedBeforeNewLocality": 120.0,
+    "TemplateEditorControlsFlowTests.testRuleRowsPreserveSourceUntilEditAndBoundASCIIThroughLocalRestore": 300,
+    "TemplateEditorControlsFlowTests.testTimelineEditsDeriveCurrentSummaryAndSurviveExplicitRestore": 360,
+    "TemplateEditorControlsFlowTests.testHistoricalBytesHintOffRestoreAndSameOwnerLockedReadback": 480,
+    "TemplateMetadataSelectorsFlowTests.testExactDictionaryValuesCancelRestoreAndSyntheticRequest": 240,
+    "TemplateMetadataSelectorsFlowTests.testCategorySaveCancelNoopCSVAndOrderedSixteenSelections": 360,
+    "TemplateMetadataSelectorsFlowTests.testUnavailableRetryEmptyCanceledReadOwnerSwitchAndLockedValues": 420
   },
   "estimate_provenance": {
     "basis": "Conservative grouping assumptions, not executed case timings. Successful measurements take priority. 23 original assumptions plus explicitly scoped later additions.",
@@ -1493,11 +1561,494 @@
         "basis": "One synthetic launch with all/pending/low/photos filters, empty/reset and unchanged server metrics;120s unmeasured allowance above same-class7\u201336s observations."
       },
       {
-        "method": "MerchantBusinessFlowTests.testChineseAftercareSearchStaysOnCurrentPage",
-        "seconds": 120,
-        "source": "cumulativeClubMerchantAcceptance",
+        "method": "MerchantBusinessFlowTests.testChineseAftercareSearchSpansLoadedPages",
+        "seconds": 180,
+        "source": "nextPlayerFeatureAcceptance",
         "measured": false,
-        "basis": "One synthetic launch with Chinese four-field local search, no matches/clear, page and bucket transitions;120s unmeasured allowance above same-class7\u201336s observations."
+        "basis": "One synthetic Chinese launch with four-field local search, accumulated two-page search, refresh reset and loading page two again; 180s unmeasured planning allowance. No Apple runtime observation."
+      },
+      {
+        "method": "ActivityFlowTests.testPeopleOpenExactProfilesAndPreserveReadOnlyRowsAfterBack",
+        "seconds": 180,
+        "source": "nextPlayerFeatureAcceptance",
+        "measured": false,
+        "basis": "One synthetic launch with host and participant profile navigation, repeated detail/profile reopening, read-only missing identifiers and account-switch removal; 180s unmeasured planning allowance. No Apple runtime observation."
+      },
+      {
+        "method": "ActivityFlowTests.testReviewPreviewKeepsServerTotalAndSurvivesBackAndReopen",
+        "seconds": 180,
+        "source": "detailFavoritesAcceptance",
+        "measured": false,
+        "basis": "One synthetic launch with two activity detail open/back cycles and repeated review scrolling, independent average/count/text assertions and absence checks. 180s unmeasured planning allowance; no Apple timing observation."
+      },
+      {
+        "method": "ActivityFlowTests.testKnownEmptyReviewsDoNotShowAZeroStarRating",
+        "seconds": 120,
+        "source": "detailFavoritesAcceptance",
+        "measured": false,
+        "basis": "One synthetic launch, detail navigation, review-section scrolling and confirmed-zero absence checks. 120s unmeasured allowance above existing same-class 24\u2013116s observed methods; no Apple timing observation."
+      },
+      {
+        "method": "ActivityFlowTests.testMissingReviewsRemainUnknownRatherThanEmptyOrFiveStars",
+        "seconds": 120,
+        "source": "detailFavoritesAcceptance",
+        "measured": false,
+        "basis": "One synthetic launch, detail navigation, review-section scrolling and unavailable-metadata assertions. 120s unmeasured allowance; no Apple timing observation."
+      },
+      {
+        "method": "TopicFlowTests.testChapterItineraryEstimatesUnknownLegsAndBackReopen",
+        "seconds": 180,
+        "source": "detailFavoritesAcceptance",
+        "measured": false,
+        "basis": "One synthetic launch with four chapter opens, three back navigations, bounded scrolling and independent missing-leg, cross-chapter and empty-state assertions. 180s unmeasured allowance; no Apple timing observation."
+      },
+      {
+        "method": "TopicFlowTests.testChapterItineraryEstimateUsesChineseLabels",
+        "seconds": 120,
+        "source": "detailFavoritesAcceptance",
+        "measured": false,
+        "basis": "One synthetic Chinese launch with chapter navigation and localized estimate/notice assertions. 120s unmeasured allowance; no Apple timing observation."
+      },
+      {
+        "method": "AccountCollectionFlowTests.testSavedPostsAreDefaultAndOpenLegacyDetailThenReturn",
+        "seconds": 180,
+        "source": "detailFavoritesAcceptance",
+        "measured": false,
+        "basis": "One synthetic launch, favorites and legacy-detail sheet navigation/dismissal plus two tab switches and row restoration. 180s unmeasured allowance. The sheet fixture is not a production navigationDestination runtime test."
+      },
+      {
+        "method": "AccountCollectionFlowTests.testSavedPostPageFailureRetainsRowsAndRetryDoesNotSkip",
+        "seconds": 120,
+        "source": "detailFavoritesAcceptance",
+        "measured": false,
+        "basis": "One synthetic launch with favorites navigation, failed next-page load, scroll-to-retry and deduplication/page recovery assertions. 120s unmeasured allowance; no Apple timing observation."
+      },
+      {
+        "method": "AccountCollectionFlowTests.testSavedPostFailureDoesNotPoisonTopicCollection",
+        "seconds": 120,
+        "source": "detailFavoritesAcceptance",
+        "measured": false,
+        "basis": "One synthetic launch with saved-post failure, topic-tab navigation and failure isolation assertions. 120s unmeasured allowance; no Apple timing observation."
+      },
+      {
+        "method": "AccountCollectionFlowTests.testSavedPostsDistinguishEmptyFromUnavailableAndClearOnSignOut",
+        "seconds": 240,
+        "source": "detailFavoritesAcceptance",
+        "measured": false,
+        "basis": "Two synthetic launches: confirmed empty favorites, then populated favorites with sign-out and reopening. 120s per launch, 240s unmeasured allowance; no Apple timing observation."
+      },
+      {
+        "method": "WalkingNavigationFlowTests.testBilingualMaximumCameraActionsAreExplicitAndClearWithRoute",
+        "seconds": 180,
+        "measured": false,
+        "source": "walkingCameraAcceptance",
+        "basis": "Unmeasured bilingual maximum-text synthetic route/target camera actions with summary scrolling, steps close, pause/resume and cancel; Apple execution remains required."
+      },
+      {
+        "method": "TopicFlowTests.testReviewSummaryKeepsServerTotalAcrossDifferentRoutesAndReopen",
+        "seconds": 210,
+        "measured": false,
+        "source": "topicReviewReadout",
+        "basis": "One synthetic launch with three topic detail opens, two back navigations, bounded review scrolling, count/average/invalid-score checks and cross-route/reopen assertions. Unmeasured allowance; no Apple timing observation."
+      },
+      {
+        "method": "TopicFlowTests.testKnownEmptyTopicReviewsUseChineseEmptyStateWithoutZeroStars",
+        "seconds": 90,
+        "measured": false,
+        "source": "topicReviewReadout",
+        "basis": "One Chinese synthetic launch with route navigation, bounded scrolling and confirmed-zero/empty/composer-preservation assertions. Unmeasured allowance; no Apple timing observation."
+      },
+      {
+        "method": "TopicFlowTests.testMissingTopicReviewMetadataStaysUnknownWithoutFalseEmpty",
+        "seconds": 90,
+        "measured": false,
+        "source": "topicReviewReadout",
+        "basis": "One synthetic launch with route navigation, bounded scrolling and independent unknown-average/count/preview assertions. Unmeasured allowance; no Apple timing observation."
+      },
+      {
+        "method": "SquareFlowTests.testRelatedTopicOpensExactLegacyReadAndReopensAfterBack",
+        "seconds": 180,
+        "source": "relatedTopicAcceptance",
+        "measured": false,
+        "basis": "One synthetic launch, legacy detail/topic navigation, repeated back/reopen, explicit fixture scope reset and post reopening. Explicit unmeasured planning allowance."
+      },
+      {
+        "method": "SquareFlowTests.testCommunityTopicReferenceAndMissingLegacyAssociationRemainSeparate",
+        "seconds": 240,
+        "source": "relatedTopicAcceptance",
+        "measured": false,
+        "basis": "Two synthetic launches with community post-to-topic navigation and separate missing legacy association assertions; 120 seconds per launch. Explicit unmeasured planning allowance."
+      },
+      {
+        "method": "SquareFlowTests.testUnavailableRelatedTopicKeepsPostAccessibleAfterBack",
+        "seconds": 180,
+        "source": "relatedTopicAcceptance",
+        "measured": false,
+        "basis": "One Chinese synthetic launch, legacy post/topic navigation, unavailable read retry, back to retained post and reopening. Explicit unmeasured planning allowance."
+      },
+      {
+        "method": "SettingsNativeFlowTests.testAttributionCopiesEachExactSourceAddressWithSeparateFeedback",
+        "seconds": 120,
+        "measured": false,
+        "basis": "One synthetic launch, settings bottom scroll, two local-copy taps, distinct feedback and exact-value recorder checks.",
+        "source": "settingsAttributionCopy"
+      },
+      {
+        "method": "SettingsNativeFlowTests.testAttributionCopyFailureKeepsSourceVisibleAndExplicitRetrySucceeds",
+        "seconds": 90,
+        "measured": false,
+        "basis": "One synthetic launch, settings bottom scroll, injected first failure, explicit retry and exact-value recorder check.",
+        "source": "settingsAttributionCopy"
+      },
+      {
+        "method": "SettingsNativeFlowTests.testChineseMaximumTextAttributionCopyResetsAfterAboutNavigation",
+        "seconds": 180,
+        "measured": false,
+        "basis": "One Chinese dark-mode maximum-text launch, bounded scrolling, copy, About/back navigation and repeated copy; no Apple timing observation.",
+        "source": "settingsAttributionCopy"
+      },
+      {
+        "method": "ModuleFlowTests.testClubMemberGateAndReadOnlyMemberList",
+        "seconds": 60,
+        "measured": false,
+        "source": "clubMemberDisplayExpansion",
+        "basis": "Existing one-launch club detail/member-list flow now reads three member accessibility labels and checks creator, administrator and ordinary-member level/join text. Its 17.292s observation predates these assertions and is superseded for planning. A 60s full-method unmeasured allowance uses the existing conservative fallback, exceeds that prior observation by 42.708s, and includes the expanded assertion work despite no new launch or wait. Apple runtime measurement is still required."
+      },
+      {
+        "method": "PublicMerchantHomeFlowTests.testFeaturedActivityUsesExactIDAfterBackAndUnavailableDetail",
+        "seconds": 210,
+        "measured": false,
+        "source": "publicMerchantFeatured",
+        "basis": "Unmeasured allowance for explicit DEBUG-only public card navigation, relaunch, scope replacement and accessibility scenario; requires Apple execution."
+      },
+      {
+        "method": "PublicMerchantHomeFlowTests.testFeaturedCouponOpensWalletWithoutOwnedIDOrCodeInChineseLargeText",
+        "seconds": 120,
+        "measured": false,
+        "source": "publicMerchantFeatured",
+        "basis": "Unmeasured allowance for explicit DEBUG-only public card navigation, relaunch, scope replacement and accessibility scenario; requires Apple execution."
+      },
+      {
+        "method": "PublicMerchantHomeFlowTests.testMissingUnknownAndMalformedFeaturedCardsLeaveProfileUsable",
+        "seconds": 360,
+        "measured": false,
+        "source": "publicMerchantFeatured",
+        "basis": "Unmeasured allowance for explicit DEBUG-only public card navigation, relaunch, scope replacement and accessibility scenario; requires Apple execution."
+      },
+      {
+        "method": "PublicMerchantHomeFlowTests.testFeaturedSelectionClosesWhenReadScopeChangesThenUsesNewSnapshot",
+        "seconds": 180,
+        "measured": false,
+        "source": "publicMerchantFeatured",
+        "basis": "Unmeasured allowance for explicit DEBUG-only public card navigation, relaunch, scope replacement and accessibility scenario; requires Apple execution."
+      },
+      {
+        "method": "PublicPlayTemplatePresentationFlowTests.testPublisherStoryGallerySelectedImageBackAndReopen",
+        "seconds": 60,
+        "measured": false,
+        "source": "PublicPlayTemplatePresentationFlowTests.swift; source-authored planning estimate, no Apple run",
+        "basis": "One app launch; switch to play shelf, open detail, inspect separate attribution/story, select second image, page, close/reopen, back to shelf and reopen detail."
+      },
+      {
+        "method": "PublicPlayTemplatePresentationFlowTests.testImageOnlyChineseMaximumTextHasNoInventedPublisherOrCount",
+        "seconds": 60,
+        "measured": false,
+        "source": "PublicPlayTemplatePresentationFlowTests.swift; source-authored planning estimate, no Apple run",
+        "basis": "One app launch with Chinese maximum text/dark/reduced-motion; shelf navigation, image-only metadata check, open/close one-image gallery and check focus-return target."
+      },
+      {
+        "method": "PublicPlayTemplatePresentationFlowTests.testDuplicateImagesAndKnownZeroRemainDistinctFromMissing",
+        "seconds": 90,
+        "measured": false,
+        "source": "PublicPlayTemplatePresentationFlowTests.swift; source-authored planning estimate, no Apple run",
+        "basis": "Two app launches; navigate to duplicate-image detail and open/close gallery, then navigate to missing-metadata detail and inspect absence of fabricated image/author/count."
+      },
+      {
+        "method": "PublicPlayTemplatePresentationFlowTests.testOriginDeniedCanRetryAndCloseWithoutRequestingPermission",
+        "seconds": 60,
+        "measured": false,
+        "source": "PublicPlayTemplatePresentationFlowTests.swift; source-authored planning estimate, no Apple run",
+        "basis": "One app launch; navigate to detail, open gallery through the existing empty-origin rejecting reader, retry denial, close and verify no fixture byte read or permission alert."
+      },
+      {
+        "method": "PublicPlayTemplatePresentationFlowTests.testReaderContextReplacementDismissesOldGalleryAndReloadsSameID",
+        "seconds": 60,
+        "measured": false,
+        "source": "PublicPlayTemplatePresentationFlowTests.swift; source-authored planning estimate, no Apple run",
+        "basis": "One app launch; wait for offline thumbnails, arm context replacement, open gallery to trigger replacement, await dismissal and same-ID reload, reopen replacement image and close."
+      },
+      {
+        "method": "PublicPlayTemplatePresentationFlowTests.testReadFailureRetriesAndDefaultDisabledMediaDoesNotSpin",
+        "seconds": 90,
+        "measured": false,
+        "source": "PublicPlayTemplatePresentationFlowTests.swift; source-authored planning estimate, no Apple run",
+        "basis": "Two app launches; public detail failure/retry to content, then disabled-reader detail/gallery open, finite unavailable state and close."
+      },
+      {
+        "method": "SocialAccountFlowTests.testHTMLArticleIsReadableInertAndReopensAfterBack",
+        "seconds": 180,
+        "measured": false,
+        "basis": "One synthetic guide launch, open detail, bounded scrolling through paragraphs/lists/link label, inertness checks, back and reopen. Apple execution and timing are unrun.",
+        "source": "helpArticleReadability"
+      },
+      {
+        "method": "SocialAccountFlowTests.testChineseLargeTextArticleReplacesOldContentAfterAccountSwitch",
+        "seconds": 210,
+        "measured": false,
+        "basis": "One Chinese dark-mode accessibility3 launch, bounded article scrolling, generic warning, identity switch, reopen or scoped replacement, screenshot. Apple execution and timing are unrun.",
+        "source": "helpArticleReadability"
+      },
+      {
+        "method": "SocialAccountFlowTests.testArticleRemovedEmptyAndReadFailureKeepExistingRecovery",
+        "seconds": 240,
+        "measured": false,
+        "basis": "Three synthetic guide launches for removed, empty and failed-first-detail reads; exact entry, missing-content checks and explicit retry. Apple execution and timing are unrun.",
+        "source": "helpArticleReadability"
+      },
+      {
+        "method": "SearchMapFlowTests.testGlobalCategoryChangeRejectsEarlierCompletionAndClearReturnsSuggestions",
+        "seconds": 90,
+        "measured": false,
+        "basis": "One synthetic launch, category shortcut, category change in sheet, explicit newer-before-older completion, one-second inverted stale-row expectation, filter reset to empty-query suggestions. Apple execution and timing are unrun.",
+        "source": "searchCategoryForwarding"
+      },
+      {
+        "method": "SearchMapFlowTests.testGlobalCategoryApplyResetPreservesKeywordAndCancelPreservesResults",
+        "seconds": 120,
+        "measured": false,
+        "basis": "One synthetic launch and keyword entry, explicitly released unfiltered/category/reset reads, three sheet visits including cancelled reset, four-domain row checks and preserved keyword. Apple execution and timing are unrun.",
+        "source": "searchCategoryForwarding"
+      },
+      {
+        "method": "TopicTemplateNameSearchFlowTests.testTopicNameSearchAppliesCaseAndWhitespaceThenClearsNoMatches",
+        "seconds": 120,
+        "basis": "Unmeasured conservative allowance for authored local topic-template name-search synthetic UI flow; includes launch, navigation, query entry and explicit waits. Apple execution NOT_RUN.",
+        "measured": false,
+        "source": "topicTemplateLocalNameSearch"
+      },
+      {
+        "method": "TopicTemplateNameSearchFlowTests.testTopicNameSearchRemainsIndependentFromGameKeywordAcrossTabs",
+        "seconds": 120,
+        "basis": "Unmeasured conservative allowance for authored local topic-template name-search synthetic UI flow; includes launch, navigation, query entry and explicit waits. Apple execution NOT_RUN.",
+        "measured": false,
+        "source": "topicTemplateLocalNameSearch"
+      },
+      {
+        "method": "TopicTemplateNameSearchFlowTests.testChineseMaximumTextSearchDetailBackAndReloadKeepLocalScope",
+        "seconds": 150,
+        "basis": "Unmeasured conservative allowance for authored local topic-template name-search synthetic UI flow; includes launch, navigation, query entry and explicit waits. Apple execution NOT_RUN.",
+        "measured": false,
+        "source": "topicTemplateLocalNameSearch"
+      },
+      {
+        "method": "OfficialEventFlowTests.testExplicitInformationWarningKeepsEventOpenableAfterBackAndScopeChange",
+        "seconds": 120,
+        "basis": "One synthetic English launch, list warning read, detail/back, guest/account scope transitions, detail reopen; explicit conservative unmeasured allowance.",
+        "measured": false,
+        "source": "officialEventInformationWarning"
+      },
+      {
+        "method": "OfficialEventFlowTests.testBlankWarningReasonUsesHonestChineseFallbackAtLargeText",
+        "seconds": 90,
+        "basis": "One Chinese accessibility3 dark reduced-motion launch, reveal/read source-unknown fallback, screenshot, detail entry; explicit conservative unmeasured allowance.",
+        "measured": false,
+        "source": "officialEventInformationWarning"
+      },
+      {
+        "method": "OfficialEventFlowTests.testAbsentFalseAndMalformedMarkersNeverShowWarningFromReasonAlone",
+        "seconds": 180,
+        "basis": "Three synthetic cold launches with negative marker shapes and three detail entries; explicit conservative unmeasured allowance.",
+        "measured": false,
+        "source": "officialEventInformationWarning"
+      },
+      {
+        "method": "PublicMerchantReviewFilterFlowTests.testAllLowPhotosAccumulatePagesWithoutRefetchOrChangingServerSummary",
+        "seconds": 180,
+        "source": "publicMerchantReviewFilters",
+        "basis": "Conservative synthetic-flow planning allowance for filter selection, scrolling, repeated navigation and explicit asynchronous state checks. Not an Apple runtime measurement.",
+        "measured": false
+      },
+      {
+        "method": "PublicMerchantReviewFilterFlowTests.testFilteredEmptyKeepsNextPageAndRetryWhileClearRestoresEarlierRows",
+        "seconds": 120,
+        "source": "publicMerchantReviewFilters",
+        "basis": "Conservative synthetic-flow planning allowance for filter selection, scrolling, repeated navigation and explicit asynchronous state checks. Not an Apple runtime measurement.",
+        "measured": false
+      },
+      {
+        "method": "PublicMerchantReviewFilterFlowTests.testChineseLargeTextEmptyHistoryStaysDistinctAndAverageRemainsUnknown",
+        "seconds": 120,
+        "source": "publicMerchantReviewFilters",
+        "basis": "Conservative synthetic-flow planning allowance for filter selection, scrolling, repeated navigation and explicit asynchronous state checks. Not an Apple runtime measurement.",
+        "measured": false
+      },
+      {
+        "method": "PublicMerchantReviewFilterFlowTests.testAccountAndMerchantChangeResetFilterAndIgnoreOldUnauthorizedPage",
+        "seconds": 180,
+        "source": "publicMerchantReviewFilters",
+        "basis": "Conservative synthetic-flow planning allowance for filter selection, scrolling, repeated navigation and explicit asynchronous state checks. Not an Apple runtime measurement.",
+        "measured": false
+      },
+      {
+        "method": "PublicMerchantReviewFilterFlowTests.testPhotoCloseAndSameScopeDetailReturnKeepFilterWithoutGrantingActions",
+        "seconds": 180,
+        "source": "publicMerchantReviewFilters",
+        "basis": "Conservative synthetic-flow planning allowance for filter selection, scrolling, repeated navigation and explicit asynchronous state checks. Not an Apple runtime measurement.",
+        "measured": false
+      },
+      {
+        "method": "ClubFeedReadFlowTests.testSourceClubUsesActualDetailAndCanReopenAfterBackWithoutFeedPages",
+        "seconds": 120,
+        "measured": false,
+        "source": "clubFeedReadParity",
+        "basis": "Source-authored synthetic flow allowance including launch, navigation, bounded waits and teardown; no Apple execution."
+      },
+      {
+        "method": "ClubFeedReadFlowTests.testChineseLargeTextGalleryUsesThreeImagesAndReturnsToSameSource",
+        "seconds": 120,
+        "measured": false,
+        "source": "clubFeedReadParity",
+        "basis": "Source-authored synthetic flow allowance including launch, navigation, bounded waits and teardown; no Apple execution."
+      },
+      {
+        "method": "ClubFeedReadFlowTests.testMissingSourceClubIsNoninteractiveAndDefaultMediaStaysDisabled",
+        "seconds": 150,
+        "measured": false,
+        "source": "clubFeedReadParity",
+        "basis": "Source-authored synthetic flow allowance including launch, navigation, bounded waits and teardown; no Apple execution."
+      },
+      {
+        "method": "ClubFeedReadFlowTests.testNoClubsEmptyPostsAndUnknownCountRemainDifferentStates",
+        "seconds": 180,
+        "measured": false,
+        "source": "clubFeedReadParity",
+        "basis": "Source-authored synthetic flow allowance including launch, navigation, bounded waits and teardown; no Apple execution."
+      },
+      {
+        "method": "ClubFeedReadFlowTests.testReadFailureRetriesAndReplacementRevisionUsesNewSourceClub",
+        "seconds": 120,
+        "measured": false,
+        "source": "clubFeedReadParity",
+        "basis": "Source-authored synthetic flow allowance including launch, navigation, bounded waits and teardown; no Apple execution."
+      },
+      {
+        "method": "ClubFeedReadFlowTests.testAccountChangeClosesSelectedClubAndClearsPriorFeed",
+        "seconds": 120,
+        "measured": false,
+        "source": "clubFeedReadParity",
+        "basis": "Source-authored synthetic flow allowance including launch, navigation, bounded waits and teardown; no Apple execution."
+      },
+      {
+        "method": "CoopRelationDiscoveryFlowTests.testMixedDiscoveryOpensOwnerAndClubProfilesAndReturnsToSelectedTab",
+        "seconds": 120,
+        "source": "relationDiscoveryP076",
+        "basis": "One synthetic launch with conservative unmeasured navigation, refresh or accessibility allowance; no observed runtime",
+        "measured": false
+      },
+      {
+        "method": "CoopRelationDiscoveryFlowTests.testPartialIdentityRemainsNoninteractiveAndRefreshDoesNotReadProfiles",
+        "seconds": 60,
+        "source": "relationDiscoveryP076",
+        "basis": "One synthetic launch with conservative unmeasured navigation, refresh or accessibility allowance; no observed runtime",
+        "measured": false
+      },
+      {
+        "method": "CoopRelationDiscoveryFlowTests.testClubsOnlyAndEmptyTabsHaveHonestEmptyStates",
+        "seconds": 60,
+        "source": "relationDiscoveryP076",
+        "basis": "One synthetic launch with conservative unmeasured navigation, refresh or accessibility allowance; no observed runtime",
+        "measured": false
+      },
+      {
+        "method": "CoopRelationDiscoveryFlowTests.testRetryAndSessionReplacementClearPushedProfile",
+        "seconds": 120,
+        "source": "relationDiscoveryP076",
+        "basis": "One synthetic launch with conservative unmeasured navigation, refresh or accessibility allowance; no observed runtime",
+        "measured": false
+      },
+      {
+        "method": "CoopRelationDiscoveryFlowTests.testChineseMaximumTextPreservesTabsAndDisplayOnlyContext",
+        "seconds": 120,
+        "source": "relationDiscoveryP076",
+        "basis": "One synthetic launch with conservative unmeasured navigation, refresh or accessibility allowance; no observed runtime",
+        "measured": false
+      },
+      {
+        "method": "MerchantClubDiscoveryFlowTests.testMerchantLocalityHidesOwnedJoinedAndKeepsDetailReturn",
+        "seconds": 120.0,
+        "measured": false,
+        "source": "Tests/AppUITests/MerchantClubDiscoveryFlowTests.swift",
+        "basis": "Unmeasured conservative 120-second allowance for synthetic fixture launch, bounded UI waits, row reveal, and deterministic continuation/navigation checks; Apple execution pending."
+      },
+      {
+        "method": "MerchantClubDiscoveryFlowTests.testUnknownLocalityKeepsAllNearbyWithRetryThenFilters",
+        "seconds": 120.0,
+        "measured": false,
+        "source": "Tests/AppUITests/MerchantClubDiscoveryFlowTests.swift",
+        "basis": "Unmeasured conservative 120-second allowance for synthetic fixture launch, bounded UI waits, row reveal, and deterministic continuation/navigation checks; Apple execution pending."
+      },
+      {
+        "method": "MerchantClubDiscoveryFlowTests.testLocalityNetworkFailureKeepsAllNearbyAndNoMatchIsHonest",
+        "seconds": 120.0,
+        "measured": false,
+        "source": "Tests/AppUITests/MerchantClubDiscoveryFlowTests.swift",
+        "basis": "Unmeasured conservative 120-second allowance for synthetic fixture launch, bounded UI waits, row reveal, and deterministic continuation/navigation checks; Apple execution pending."
+      },
+      {
+        "method": "MerchantClubDiscoveryFlowTests.testLateLocalityAfterPlayerSwitchCannotHidePlayerRows",
+        "seconds": 120.0,
+        "measured": false,
+        "source": "Tests/AppUITests/MerchantClubDiscoveryFlowTests.swift",
+        "basis": "Unmeasured conservative 120-second allowance for synthetic fixture launch, bounded UI waits, row reveal, and deterministic continuation/navigation checks; Apple execution pending."
+      },
+      {
+        "method": "MerchantClubDiscoveryFlowTests.testMerchantSwitchFencesOldUnauthorizedBeforeNewLocality",
+        "seconds": 120.0,
+        "measured": false,
+        "source": "Tests/AppUITests/MerchantClubDiscoveryFlowTests.swift",
+        "basis": "Unmeasured conservative 120-second allowance for synthetic fixture launch, bounded UI waits, row reveal, and deterministic continuation/navigation checks; Apple execution pending."
+      },
+      {
+        "method": "TemplateEditorControlsFlowTests.testRuleRowsPreserveSourceUntilEditAndBoundASCIIThroughLocalRestore",
+        "seconds": 300,
+        "source": "templateEditorControlsAcceptance20261004",
+        "measured": false,
+        "basis": "Full single-launch method: normal intro/name entry; exact raw 11-row readback; add twelfth row and 60 ASCII keystrokes plus rejected sixty-first; remove row; edit first row; coordinator probes; local save/reopen/explicit restore and untouched companion-field checks. Includes long form scrolling and teardown. Unmeasured planning allowance, not a per-launch multiplier."
+      },
+      {
+        "method": "TemplateEditorControlsFlowTests.testTimelineEditsDeriveCurrentSummaryAndSurviveExplicitRestore",
+        "seconds": 360,
+        "source": "templateEditorControlsAcceptance20261004",
+        "measured": false,
+        "basis": "Full single-launch method: normal entry; view and return without mutation; reopen timeline; edit six inert image references and second text, add third beat and tag; summary/JSON probes; local save/reopen/explicit restore; revisit child and summary. Includes form scrolling, multiple navigation cycles, child-open account-switch visibility assertions and teardown. No second app launch. Unmeasured planning allowance."
+      },
+      {
+        "method": "TemplateEditorControlsFlowTests.testHistoricalBytesHintOffRestoreAndSameOwnerLockedReadback",
+        "seconds": 480,
+        "source": "templateEditorControlsAcceptance20261004",
+        "measured": false,
+        "basis": "Full single-launch method: historical 13-rule/unsupported story readback; text-to-photo-to-text selection; retained hints; deliberate hint-off clearing; save/reopen/explicit restore; re-enable and type three new hints; cancel first review; existing synthetic confirmation; same-owner disabled values and repeated no-redispatch readback; logout. Includes long form scrolling, asynchronous state waits and teardown. Unmeasured planning allowance."
+      },
+      {
+        "method": "TemplateMetadataSelectorsFlowTests.testExactDictionaryValuesCancelRestoreAndSyntheticRequest",
+        "seconds": 240,
+        "source": "templateMetadataSelectorsReconstructed20261005",
+        "measured": false,
+        "basis": "Full single-launch synthetic journey: normal entry; nil draft and Cancel; exact whitespace-bearing dictValue selection; four disabled duration rows; Save/reopen/explicit Restore; review Cancel then ordinary synthetic confirmation; request and retained locked-draft probes. Includes scrolling, asynchronous waits and teardown. Unmeasured planning allowance, not observed runtime."
+      },
+      {
+        "method": "TemplateMetadataSelectorsFlowTests.testCategorySaveCancelNoopCSVAndOrderedSixteenSelections",
+        "seconds": 360,
+        "source": "templateMetadataSelectorsReconstructed20261005",
+        "measured": false,
+        "basis": "Full single-launch synthetic journey: raw CSV readback; no-op Save, changed-then-Cancel and toggled-back Save; select 16 IDs through ordinary lazy rows in deliberate order; five category reads; Save/reopen/explicit Restore and selected-row readback; unknown ID and independent legacy primary category retained; zero writes. Unmeasured planning allowance, not observed runtime."
+      },
+      {
+        "method": "TemplateMetadataSelectorsFlowTests.testUnavailableRetryEmptyCanceledReadOwnerSwitchAndLockedValues",
+        "seconds": 420,
+        "source": "templateMetadataSelectorsReconstructed20261005",
+        "measured": false,
+        "basis": "Full single-launch synthetic journey: unavailable, failed retry and empty dictionary reads; unknown historical values; fourth players read held in a continuation; Cancel while pending, then owner switch and release; fresh-owner selections and ordinary synthetic confirmation; disabled same-owner locked values; sign-out clearing. Includes scrolling, async waits and teardown. Unmeasured planning allowance, not observed runtime."
       }
     ],
     "baseline_estimate_count": 23
@@ -1507,6 +2058,173 @@
     "startup_reserve_seconds": 300,
     "maximum_observed_startup_seconds": 287.905604,
     "maximum_observed_harness_seconds": 287.375951,
-    "basis": "Run96 maximum observed startup or total non-method harness time, rounded up to next30seconds. Runtime deadlines unchanged. Estimates are planning assumptions, not guarantees."
-  }
+    "basis": "Run96 maximum observed startup or total non-method harness time, rounded up to next30seconds. Runtime deadlines unchanged. Estimates are planning assumptions, not guarantees.",
+    "shard_replan": {
+      "previous_shard_count": 15,
+      "shard_count": 16,
+      "new_method_count": 9,
+      "new_estimated_method_seconds": 1380,
+      "basis": "Nine topic-review, related-topic navigation and settings-attribution copy methods add 1380 explicitly unmeasured seconds over the fourth batch. The declared method total is 23521.574s, which cannot fit within 15 x (1800 - 300) = 22500s even under ideal balancing. Sixteen is the smallest possible count; deterministic class-level partition maximum is 1493.365s plus unchanged 300s startup reserve, leaving only 6.635s forecast headroom. Existing observations, estimates and historical replan are preserved. Apple runtime timing is unrun; the tight forecast is not a runtime guarantee."
+    },
+    "shard_replan_history": [
+      {
+        "previous_shard_count": 14,
+        "shard_count": 15,
+        "new_method_count": 9,
+        "new_estimated_method_seconds": 1380,
+        "basis": "Nine new activity-review, topic-itinerary and saved-post methods increase the declared method total to 21961.574s. Fourteen shards cannot fit within 14 x (1800 - 300) = 21000s even under ideal balancing. Fifteen is the smallest possible count; deterministic class-level partition max is 1478.623s plus the unchanged 300s startup reserve. All estimates are unmeasured, successful observations and runtime deadlines unchanged."
+      }
+    ],
+    "expanded_method_review": {
+      "source": "clubMemberDisplayExpansion",
+      "shard_count": 16,
+      "new_method_count": 0,
+      "expanded_method_count": 1,
+      "superseded_observed_seconds": 17.292,
+      "replacement_estimated_seconds": 60,
+      "net_declared_method_seconds_added": 42.708,
+      "total_method_seconds": 23564.282,
+      "maximum_projected_seconds_with_reserve": 1793.365,
+      "forecast_headroom_seconds": 6.635,
+      "basis": "One expanded method receives a new full-method unmeasured allowance. All 597 source-discovered methods remain in the sixteen-shard plan; total declared cost exceeds the fifteen-shard capacity of 22500s. The deterministic sixteen-shard maximum remains 1793.365s including the unchanged 300s startup reserve, because the changed ModuleFlowTests class is not in the maximum shard. This tight planning forecast is not a runtime guarantee; no duration was measured for the changed code."
+    },
+    "public_read_replan": {
+      "previous_shard_count": 16,
+      "shard_count": 18,
+      "new_method_count": 13,
+      "new_estimated_method_seconds": 1920.0,
+      "baseline_method_count": 597,
+      "baseline_total_method_seconds": 23564.282,
+      "method_count": 610,
+      "class_count": 89,
+      "total_method_seconds": 25484.282,
+      "maximum_projected_seconds_with_reserve": 1728.856,
+      "forecast_headroom_seconds": 71.144,
+      "new_methods": [
+        "PublicMerchantHomeFlowTests.testFeaturedActivityUsesExactIDAfterBackAndUnavailableDetail",
+        "PublicMerchantHomeFlowTests.testFeaturedCouponOpensWalletWithoutOwnedIDOrCodeInChineseLargeText",
+        "PublicMerchantHomeFlowTests.testMissingUnknownAndMalformedFeaturedCardsLeaveProfileUsable",
+        "PublicMerchantHomeFlowTests.testFeaturedSelectionClosesWhenReadScopeChangesThenUsesNewSnapshot",
+        "PublicPlayTemplatePresentationFlowTests.testPublisherStoryGallerySelectedImageBackAndReopen",
+        "PublicPlayTemplatePresentationFlowTests.testImageOnlyChineseMaximumTextHasNoInventedPublisherOrCount",
+        "PublicPlayTemplatePresentationFlowTests.testDuplicateImagesAndKnownZeroRemainDistinctFromMissing",
+        "PublicPlayTemplatePresentationFlowTests.testOriginDeniedCanRetryAndCloseWithoutRequestingPermission",
+        "PublicPlayTemplatePresentationFlowTests.testReaderContextReplacementDismissesOldGalleryAndReloadsSameID",
+        "PublicPlayTemplatePresentationFlowTests.testReadFailureRetriesAndDefaultDisabledMediaDoesNotSpin",
+        "SocialAccountFlowTests.testHTMLArticleIsReadableInertAndReopensAfterBack",
+        "SocialAccountFlowTests.testChineseLargeTextArticleReplacesOldContentAfterAccountSwitch",
+        "SocialAccountFlowTests.testArticleRemovedEmptyAndReadFailureKeepExistingRecovery"
+      ],
+      "basis": "13 source-authored public merchant, help article and public play-template methods add 1920s in explicit unmeasured allowances. 18 is the first shard count beyond the prior 16 for which the unchanged deterministic class-level partitioner fits every class under 1800s with a 300s startup reserve. Smaller deterministic plans remain recorded outside the source tree. This is a planning forecast, not an optimal bin-packing proof or runtime guarantee. Prior observations, estimates, source runs, replan records and the club expanded-method review are preserved. Apple runtime measurement remains unrun."
+    },
+    "discovery_feed_replan": {
+      "previous_shard_count": 18,
+      "shard_count": 20,
+      "new_method_count": 19,
+      "new_estimated_method_seconds": 2580,
+      "baseline_method_count": 610,
+      "baseline_total_method_seconds": 25484.282,
+      "method_count": 629,
+      "class_count": 92,
+      "total_method_seconds": 28064.282,
+      "maximum_projected_seconds_with_reserve": 1713.16,
+      "forecast_headroom_seconds": 86.84,
+      "new_methods": [
+        "SearchMapFlowTests.testGlobalCategoryChangeRejectsEarlierCompletionAndClearReturnsSuggestions",
+        "SearchMapFlowTests.testGlobalCategoryApplyResetPreservesKeywordAndCancelPreservesResults",
+        "TopicTemplateNameSearchFlowTests.testTopicNameSearchAppliesCaseAndWhitespaceThenClearsNoMatches",
+        "TopicTemplateNameSearchFlowTests.testTopicNameSearchRemainsIndependentFromGameKeywordAcrossTabs",
+        "TopicTemplateNameSearchFlowTests.testChineseMaximumTextSearchDetailBackAndReloadKeepLocalScope",
+        "OfficialEventFlowTests.testExplicitInformationWarningKeepsEventOpenableAfterBackAndScopeChange",
+        "OfficialEventFlowTests.testBlankWarningReasonUsesHonestChineseFallbackAtLargeText",
+        "OfficialEventFlowTests.testAbsentFalseAndMalformedMarkersNeverShowWarningFromReasonAlone",
+        "PublicMerchantReviewFilterFlowTests.testAllLowPhotosAccumulatePagesWithoutRefetchOrChangingServerSummary",
+        "PublicMerchantReviewFilterFlowTests.testFilteredEmptyKeepsNextPageAndRetryWhileClearRestoresEarlierRows",
+        "PublicMerchantReviewFilterFlowTests.testChineseLargeTextEmptyHistoryStaysDistinctAndAverageRemainsUnknown",
+        "PublicMerchantReviewFilterFlowTests.testAccountAndMerchantChangeResetFilterAndIgnoreOldUnauthorizedPage",
+        "PublicMerchantReviewFilterFlowTests.testPhotoCloseAndSameScopeDetailReturnKeepFilterWithoutGrantingActions",
+        "ClubFeedReadFlowTests.testSourceClubUsesActualDetailAndCanReopenAfterBackWithoutFeedPages",
+        "ClubFeedReadFlowTests.testChineseLargeTextGalleryUsesThreeImagesAndReturnsToSameSource",
+        "ClubFeedReadFlowTests.testMissingSourceClubIsNoninteractiveAndDefaultMediaStaysDisabled",
+        "ClubFeedReadFlowTests.testNoClubsEmptyPostsAndUnknownCountRemainDifferentStates",
+        "ClubFeedReadFlowTests.testReadFailureRetriesAndReplacementRevisionUsesNewSourceClub",
+        "ClubFeedReadFlowTests.testAccountChangeClosesSelectedClubAndClearsPriorFeed"
+      ],
+      "basis": "Nineteen source-authored category search, local topic-template name search, official-event warning, public merchant review filter and club-feed methods add 2580s in explicit unmeasured allowances. Twenty is the first shard count beyond the previous 18 for which the unchanged deterministic class-level partitioner fits every class under the unchanged 1800s deadline with a 300s startup reserve. The 19-shard forecast exceeds the deadline by 0.291s and is not rounded down. Smaller deterministic plans remain recorded outside the source tree. This is a planning forecast, not an optimal bin-packing proof or runtime guarantee. All previous observations, estimates, provenance, source runs, replan records and the club expanded-method review are preserved. Apple execution remains unrun."
+    },
+    "relation_locality_replan": {
+      "previous_shard_count": 20,
+      "shard_count": 20,
+      "new_method_count": 10,
+      "new_estimated_method_seconds": 1080.0,
+      "baseline_method_count": 629,
+      "baseline_total_method_seconds": 28064.282,
+      "method_count": 639,
+      "class_count": 94,
+      "total_method_seconds": 29144.282,
+      "maximum_projected_seconds_with_reserve": 1771.796,
+      "forecast_headroom_seconds": 28.204,
+      "new_methods": [
+        "CoopRelationDiscoveryFlowTests.testMixedDiscoveryOpensOwnerAndClubProfilesAndReturnsToSelectedTab",
+        "CoopRelationDiscoveryFlowTests.testPartialIdentityRemainsNoninteractiveAndRefreshDoesNotReadProfiles",
+        "CoopRelationDiscoveryFlowTests.testClubsOnlyAndEmptyTabsHaveHonestEmptyStates",
+        "CoopRelationDiscoveryFlowTests.testRetryAndSessionReplacementClearPushedProfile",
+        "CoopRelationDiscoveryFlowTests.testChineseMaximumTextPreservesTabsAndDisplayOnlyContext",
+        "MerchantClubDiscoveryFlowTests.testMerchantLocalityHidesOwnedJoinedAndKeepsDetailReturn",
+        "MerchantClubDiscoveryFlowTests.testUnknownLocalityKeepsAllNearbyWithRetryThenFilters",
+        "MerchantClubDiscoveryFlowTests.testLocalityNetworkFailureKeepsAllNearbyAndNoMatchIsHonest",
+        "MerchantClubDiscoveryFlowTests.testLateLocalityAfterPlayerSwitchCannotHidePlayerRows",
+        "MerchantClubDiscoveryFlowTests.testMerchantSwitchFencesOldUnauthorizedBeforeNewLocality"
+      ],
+      "basis": "10 source-authored relation-discovery and merchant-local-club UI methods add 1080.0s in explicit unmeasured allowances. 20 is the first count at or above the previous 20 for which the unchanged deterministic class-level partitioner fits every class under the unchanged 1800s deadline and 300s startup reserve. Smaller deterministic plans are recorded outside the source tree. This is a planning forecast, not an optimal bin-packing proof or runtime guarantee. Every previous observation, estimate, provenance record, source run, replan and expanded-method record is preserved. Apple execution remains unrun."
+    },
+    "template_controls_replan": {
+      "previous_shard_count": 20,
+      "shard_count": 21,
+      "new_method_count": 3,
+      "new_estimated_method_seconds": 1140,
+      "baseline_method_count": 639,
+      "baseline_total_method_seconds": 29144.282,
+      "method_count": 642,
+      "class_count": 95,
+      "total_method_seconds": 30284.282,
+      "maximum_projected_seconds_with_reserve": 1750.26,
+      "forecast_headroom_seconds": 49.74,
+      "new_methods": [
+        "TemplateEditorControlsFlowTests.testRuleRowsPreserveSourceUntilEditAndBoundASCIIThroughLocalRestore",
+        "TemplateEditorControlsFlowTests.testTimelineEditsDeriveCurrentSummaryAndSurviveExplicitRestore",
+        "TemplateEditorControlsFlowTests.testHistoricalBytesHintOffRestoreAndSameOwnerLockedReadback"
+      ],
+      "basis": "Three source-authored template rule, story and legacy-hint acceptance methods add 1140 explicitly unmeasured full-method seconds. Their cumulative declared cost of 30284.282s exceeds twenty shards times the unchanged 1500s method allowance, so at least twenty-one shards are necessary even with ideal balancing. The unchanged deterministic class-preserving partitioner forecasts 1821.758s for twenty shards and 1750.260s for twenty-one, including the unchanged 300s startup reserve within the 1800s deadline. All prior observations, estimates, source runs, provenance and historical planning records are preserved. This is a planning forecast, not a runtime guarantee; Apple execution remains unrun."
+    },
+    "template_metadata_selectors_replan": {
+      "previous_shard_count": 21,
+      "shard_count": 22,
+      "new_method_count": 3,
+      "new_estimated_method_seconds": 1020,
+      "baseline_method_count": 642,
+      "baseline_total_method_seconds": 30284.282,
+      "method_count": 645,
+      "class_count": 96,
+      "total_method_seconds": 31304.282,
+      "maximum_projected_seconds_with_reserve": 1734.465,
+      "forecast_headroom_seconds": 65.535,
+      "new_methods": [
+        "TemplateMetadataSelectorsFlowTests.testExactDictionaryValuesCancelRestoreAndSyntheticRequest",
+        "TemplateMetadataSelectorsFlowTests.testCategorySaveCancelNoopCSVAndOrderedSixteenSelections",
+        "TemplateMetadataSelectorsFlowTests.testUnavailableRetryEmptyCanceledReadOwnerSwitchAndLockedValues"
+      ],
+      "basis": "Three reconstructed, source-authored metadata selector journeys add 1020 explicitly unmeasured full-method seconds. The unchanged class-preserving partitioner forecasts 1802.283s for 21 shards and 1734.465s for 22, including the unchanged 300s startup reserve within the 1800s deadline. The 21-shard forecast exceeds the deadline by 2.283s and is not rounded down. Twenty-two is the first fitting count at or above the previous 21 under this deterministic partition, not an optimal bin-packing proof or runtime guarantee. Every prior observation, estimate, source run, provenance and historical planning record is preserved. Apple execution remains unrun."
+    }
+  },
+  "superseded_method_observations": [
+    {
+      "method": "ModuleFlowTests.testClubMemberGateAndReadOnlyMemberList",
+      "seconds": 17.292,
+      "measured": true,
+      "previous_profile_tree": "8e035c3cc83463ccbc3636b34b85fef67bebff11",
+      "previous_test_file_blob": "891c6f1416e484878909c67e27e4ee7dca3cda34",
+      "reason": "Historical observation retained as provenance only; this method gained unmeasured member level/join-date assertions and now uses the explicit 60s estimate. No claim that the old duration measures the expanded method."
+    }
+  ]
 }

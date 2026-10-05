@@ -22,6 +22,7 @@ public struct SettingsSourceAttribution: Identifiable, Equatable {
     public let title: String
     public let detail: String
     public let sourceURL: String
+    public var copyTitleKey: String { "settingsNative.attribution.copy.\(id)" }
     /// Exact Flutter settings-page attribution; retain offline. No third-party artwork is imported.
     public static let all: [Self] = [
         .init(id: "game-icons", title: "game-icons.net 游戏图标 · Creative Commons BY 3.0（要求署名）",

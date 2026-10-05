@@ -91,6 +91,7 @@ public struct SquarePost: Decodable, Equatable, Identifiable {
     public let dataID: Int?
     public let dataType: Int
     public let topicID: Int?
+    let relatedTopicIDs: SquareRelatedTopicIDs
     public let isTopicTemplate: Bool
     public let nodeTotal: Int
     public let nodeDoneCount: Int
@@ -145,6 +146,7 @@ public struct SquarePost: Decodable, Equatable, Identifiable {
         dataID = linkID > 0 && linkType > 0 ? linkID : nil
         dataType = linkID > 0 && linkType > 0 ? linkType : 0
         topicID = root["sportTopicId"].integer ?? (referenceType == "TOPIC" ? referenceID : nil)
+        relatedTopicIDs = SquareRelatedTopicIDs(root: root, reference: reference)
         isTopicTemplate = root["isTopicTemplate"].truthy
         nodeTotal = root["nodeTotal"].number ?? 0; nodeDoneCount = root["nodeDoneCount"].number ?? 0
         completed = root["completed"].truthy

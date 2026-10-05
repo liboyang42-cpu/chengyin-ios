@@ -85,14 +85,14 @@ public enum TemplateAuthoringContract {
                 string("questionA", d.questionA); string("questionB", d.questionB); string("questionC", d.questionC); string("questionD", d.questionD)
                 string("correctAnswer", d.correctAnswer); string("questionOptionMediaJson", d.questionOptionMediaJson)
             }
-            if [.text, .choice, .gps].contains(d.validationMethod) { string("hint1", d.hint1); string("hint2", d.hint2); string("answerReveal", d.answerReveal) }
+            if d.validationMethod.supportsLegacyHints && d.legacyHintsAreEnabled { string("hint1", d.hint1); string("hint2", d.hint2); string("answerReveal", d.answerReveal) }
             if d.validationMethod == .photo { string("photoRequireDesc", d.photoRequireDesc); number("photoReview", d.photoReview) }
             let raw = try d.advanced.serialize(); if !raw.isEmpty { p["advancedConfigJson"] = .string(raw) }
         }
         if d.rewardEnabled { string("feedbackText", d.feedbackText); number("couponId", d.couponId); string("medalImg", d.medalImg); string("medalName", d.medalName)
             if !(d.medalName ?? "").isEmpty || !(d.medalImg ?? "").isEmpty { string("medalStyle", d.medalStyle) }
         }
-        if d.storyEnabled { string("storyText", d.storyText); string("storyImg", d.storyImg); string("storyJson", d.storyJson) }
+        if d.storyEnabled { string("storyText", try d.preparedStoryText()); string("storyImg", d.storyImg); string("storyJson", d.storyJson) }
         if d.voiceEnabled { string("audioUrl", d.audioUrl); number("audioDuration", d.audioDuration) }
         return p
     }

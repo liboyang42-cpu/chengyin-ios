@@ -1,6 +1,6 @@
 import Foundation
 
-/// Two independently loaded own-account domains. Only audited read routes exist here.
+/// Independently loaded own-account collections. Only audited read routes exist here.
 /// Inject the app's existing ephemeral/no-redirect transport; there is no default host.
 public struct AccountCollectionService {
     private let configuration: APIConfiguration
@@ -13,6 +13,13 @@ public struct AccountCollectionService {
         let data = try await post("api/topic/like_list", fields: ["pageNum": String(pageNumber), "pageSize": String(pageSize)], token: token)
         let envelope = try decode(FavoritesEnvelope.self, data)
         return TopicPage(rows: envelope.rows, pageNumber: pageNumber, pageSize: pageSize)
+    }
+    public func favoritePosts(pageNumber: Int = 1, pageSize: Int = 10, token: String) async throws -> AccountCollectionPostPage {
+        guard pageNumber > 0, (1...100).contains(pageSize) else { throw APIError.invalidRequest }
+        let data = try await post("api/creativesquare/list", fields: ["favorite_only": "1", "pageNum": String(pageNumber), "pageSize": String(pageSize)], token: token)
+        let envelope = try decode(FavoritePostsEnvelope.self, data)
+        guard envelope.data.rows.count <= pageSize else { throw APIError.malformedResponse }
+        return AccountCollectionPostPage(rows: envelope.data.rows.map { $0.post.qualified(as: .legacySquare) }, pageNumber: pageNumber, pageSize: pageSize)
     }
     public func coupons(keyword: String? = nil, token: String) async throws -> [AccountCollectionCoupon] {
         var fields: [String: String] = [:]
@@ -64,6 +71,21 @@ public struct AccountCollectionService {
         }
     }
     private struct CouponsEnvelope: Decodable { let data: [AccountCollectionCoupon] }
+    private struct FavoritePostsEnvelope: Decodable {
+        struct Row: Decodable {
+            let post: SquarePost
+            enum CodingKeys: String, CodingKey { case id, post }
+            init(from decoder: Decoder) throws {
+                let fields = try decoder.container(keyedBy: CodingKeys.self)
+                let id = try fields.decode(Int.self, forKey: .id)
+                guard id > 0, !fields.contains(.post) else { throw APIError.malformedResponse }
+                post = try SquarePost(from: decoder)
+                guard post.id == id else { throw APIError.malformedResponse }
+            }
+        }
+        struct Page: Decodable { let rows: [Row] }
+        let data: Page
+    }
     private struct FavoritesEnvelope: Decodable {
         let rows: [TopicSummary]
         enum CodingKeys: String, CodingKey { case data }

@@ -47,6 +47,7 @@ public struct PublicMerchantHome: Decodable, Equatable {
     public let suitActivityTypes: String?
     public let demand: String?
     public let npc: NPC?
+    public let featured: PublicMerchantFeatured?
     public struct Category: Decodable, Equatable { public let categoryName: String? }
     public struct NPC: Decodable, Equatable {
         public let name: String?

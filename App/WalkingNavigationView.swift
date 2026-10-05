@@ -6,6 +6,14 @@ import MapKit
     @Environment(\.dynamicTypeSize) private var typeSize
     @State private var model: WalkingNavigationCoordinator?
     @State private var showsSteps = false
+    // Explicit controls adjust the camera within one authorized scope. Same-scope
+    // refresh preserves manual pan; a privacy boundary discards the old viewport.
+    @State private var cameraPosition: MapCameraPosition = WalkingNavigationView.neutralCamera
+    @State private var cameraGate = WalkingMapCamera.Gate()
+    @State private var retainedCameraScope: WalkingMapCamera.Scope?
+    #if DEBUG
+    @State private var cameraAction = "none"
+    #endif
     @AccessibilityFocusState private var stepsFocused: Bool
     let reference: WalkingTargetReference
     let factory: NativeWalkingNavigationFactory
@@ -47,39 +55,117 @@ import MapKit
             model?.setForeground(scenePhase == .active)
             while !Task.isCancelled {
                 model?.synchronize()
+                synchronizeCamera()
                 if scenePhase == .active { await model?.update() }
+                synchronizeCamera()
                 do { try await Task.sleep(for: .seconds(3)) } catch { break }
             }
         }
         .onChange(of: model?.phase) { _, _ in
             if model?.route == nil { showsSteps = false }
         }
+        .onChange(of: model?.cameraSnapshot) { _, _ in cameraGate.invalidate() }
+        .onChange(of: model?.cameraScope) { _, _ in synchronizeCamera() }
         .onChange(of: scenePhase) { _, value in model?.setForeground(value == .active) }
-        .onDisappear { showsSteps = false; model?.pause() }
+        .onDisappear { cameraGate.invalidate(); showsSteps = false; model?.pause(); synchronizeCamera() }
     }
 
     @ViewBuilder private var mapContent: some View {
-        if let route = model?.route {
-            if offline {
+        if offline {
+            if let model, isCameraScopeCurrent(model), model.cameraSnapshot != nil {
                 Label("walking.offlineFixture", systemImage: "map")
                     .accessibilityIdentifier("walking.fixtureMap")
+                    #if DEBUG
+                    .accessibilityValue(Text(verbatim: "cameraAction=\(cameraAction)"))
+                    #endif
             } else {
-                Map {
+                ContentUnavailableView("walking.mapPending", systemImage: "map", description: Text("walking.safety"))
+            }
+        } else if let model, isCameraScopeCurrent(model) {
+            // A map first appears only after an already-authorized route is supplied.
+            // Keep the same map only during authorized same-scope refresh. A lost
+            // scope unmounts it immediately, even before the next synchronization tick.
+            Map(position: $cameraPosition) {
+                if let snapshot = model.cameraSnapshot {
+                    let route = snapshot.route
+                    let target = snapshot.target
                     MapPolyline(coordinates: route.coordinates.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) })
                         .stroke(QuestifyMapAppearance.routeCasing, lineWidth: 9)
                     MapPolyline(coordinates: route.coordinates.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) })
                         .stroke(QuestifyMapAppearance.route, lineWidth: 5)
-                    if let target = model?.target {
-                        Marker(target.title, coordinate: .init(latitude: target.coordinate.point.latitude, longitude: target.coordinate.point.longitude))
-                    }
-                }.mapStyle(QuestifyMapAppearance.baseStyle)
-            }
+                    Marker(target.title, coordinate: .init(latitude: target.coordinate.point.latitude, longitude: target.coordinate.point.longitude))
+                }
+            }.mapStyle(QuestifyMapAppearance.baseStyle)
+                .mapControls {
+                    MapCompass().mapControlVisibility(.visible)
+                    MapScaleView()
+                }
+                .id(retainedCameraScope?.id)
+                .accessibilityIdentifier("walkingCamera.map")
         } else {
             ContentUnavailableView("walking.mapPending", systemImage: "map", description: Text("walking.safety"))
         }
     }
 
+    private static var neutralCamera: MapCameraPosition {
+        .region(MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: 0, longitude: 0),
+                                  span: MKCoordinateSpan(latitudeDelta: 150, longitudeDelta: 360)))
+    }
+    private func isCameraScopeCurrent(_ model: WalkingNavigationCoordinator) -> Bool {
+        guard let current = model.cameraScope else { return false }
+        return current.id == retainedCameraScope?.id
+    }
+    private func synchronizeCamera() {
+        model?.synchronizeCameraScope()
+        let current = model?.cameraScope
+        if current?.id != retainedCameraScope?.id {
+            cameraGate.invalidate()
+            // This is a privacy reset while the prior map is unmounted, never a
+            // recenter of the same authorized map after a refresh or manual pan.
+            cameraPosition = Self.neutralCamera
+            #if DEBUG
+            cameraAction = "none"
+            #endif
+        }
+        retainedCameraScope = current
+    }
+
+    private func cameraControl(_ model: WalkingNavigationCoordinator, action: WalkingMapCamera.Action) -> some View {
+        let request = cameraGate.request(action, snapshot: model.cameraSnapshot)
+        let key = action == .route ? "walkingCamera.showRoute" : "walkingCamera.showTarget"
+        return VStack(alignment: .leading, spacing: 4) {
+            Button {
+                // Query the live coordinator at action time, even before a scope-change
+                // render arrives. Old buttons cannot focus a revoked or replaced route.
+                guard isCameraScopeCurrent(model) else { synchronizeCamera(); return }
+                guard let request, let fit = cameraGate.consume(request, current: model.cameraSnapshot) else {
+                    synchronizeCamera(); return
+                }
+                cameraPosition = .region(MKCoordinateRegion(
+                    center: CLLocationCoordinate2D(latitude: fit.latitude, longitude: fit.longitude),
+                    span: MKCoordinateSpan(latitudeDelta: fit.latitudeSpan, longitudeDelta: fit.longitudeSpan)))
+                #if DEBUG
+                cameraAction = action == .route ? "route" : "target"
+                #endif
+            } label: {
+                Label(LocalizedStringKey(key), systemImage: action == .route ? "point.topleft.down.to.point.bottomright.curvepath" : "scope")
+                    .fixedSize(horizontal: false, vertical: true)
+            }.buttonStyle(.bordered).frame(minHeight: 44)
+                .disabled(request == nil)
+                .accessibilityHint(Text("walkingCamera.focusHint"))
+                .accessibilityIdentifier(key)
+            if request == nil {
+                Text("walkingCamera.unavailable").font(.footnote)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
     @ViewBuilder private func actions(_ model: WalkingNavigationCoordinator) -> some View {
+        if isCameraScopeCurrent(model), model.cameraSnapshot != nil {
+            cameraControl(model, action: .route)
+            cameraControl(model, action: .target)
+        }
         if model.route != nil {
             Button("walking.steps") { showsSteps = true }
                 .buttonStyle(.bordered).frame(minHeight: 44)

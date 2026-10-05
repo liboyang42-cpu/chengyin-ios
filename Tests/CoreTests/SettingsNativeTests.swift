@@ -219,6 +219,15 @@ final class SettingsNativeTests: XCTestCase {
         XCTAssertEqual(SettingsSourceAttribution.all[0].sourceURL, "https://game-icons.net/")
         XCTAssertEqual(SettingsSourceAttribution.all[1].title, "像素城市场景 · Luis Zuno（ansimuz）· CC0 1.0")
     }
+    func testAttributionCopyUsesDistinctLabelsAndExactOfflineSourceAddresses() {
+        let attributions = SettingsSourceAttribution.all
+        XCTAssertEqual(attributions.map(\.id), ["game-icons", "ansimuz"])
+        XCTAssertEqual(attributions.map(\.sourceURL), ["https://game-icons.net/", "https://ansimuz.itch.io/"])
+        XCTAssertEqual(attributions.map(\.copyTitleKey), [
+            "settingsNative.attribution.copy.game-icons", "settingsNative.attribution.copy.ansimuz"
+        ])
+        XCTAssertEqual(Set(attributions.map(\.copyTitleKey)).count, attributions.count)
+    }
     func testPlayerCodeRequiresActualSafeServerImageURL() throws {
         let good = try JSONDecoder().decode(SettingsPlayerCode.self, from: Data(#"{"qr":" https://example.com/code.png "}"#.utf8))
         XCTAssertEqual(good.imageURL.absoluteString, "https://example.com/code.png")

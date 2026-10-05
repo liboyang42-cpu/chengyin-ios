@@ -7,9 +7,12 @@ public struct ClubGovernanceReadContext: Hashable {
     public let identity: ClubReadIdentity?
     public let viewerRevision: UInt64
     public let authorizationGeneration: UUID?
-    public init(operation: ClubGovernanceRead, scope: ClubGovernanceScope, identity: ClubReadIdentity?, viewerRevision: UInt64, authorizationGeneration: UUID?) {
+    public let readerIdentity: ObjectIdentifier?
+    public let accessIdentity: ObjectIdentifier?
+    public init(operation: ClubGovernanceRead, scope: ClubGovernanceScope, identity: ClubReadIdentity?, viewerRevision: UInt64, authorizationGeneration: UUID?, readerIdentity: ObjectIdentifier? = nil, accessIdentity: ObjectIdentifier? = nil) {
         self.operation = operation; self.scope = scope; self.identity = identity
         self.viewerRevision = viewerRevision; self.authorizationGeneration = authorizationGeneration
+        self.readerIdentity = readerIdentity; self.accessIdentity = accessIdentity
     }
     public func accepts(_ snapshot: ClubGovernanceSnapshot) -> Bool {
         snapshot.operation == operation && snapshot.scope == scope

@@ -4,23 +4,78 @@ import SwiftUI
     let coordinator: MerchantBusinessCoordinator
     @Published private(set) var revision = 0
     @Published var listFilters = MerchantBusinessListFilters()
+    private(set) var aftercareLoadedPages: MerchantAftercareLoadedPages?
+    private(set) var aftercareLoadFailureKey: String?
+    private var loadGeneration = 0
     private var filterScope: MerchantBusinessScope?
     private var filterMerchantID: Int?
     init(reader: any MerchantBusinessReading, journal: any MerchantBusinessIntentStore) { coordinator = .init(reader: reader, journal: journal) }
-    func load(_ query: MerchantBusinessQuery) async {
+    func load(_ query: MerchantBusinessQuery) async { await load(query, appendAftercare: false) }
+    func loadMoreAftercare() async {
+        guard !coordinator.isBusy, let snapshot = coordinator.snapshot, let pages = aftercareLoadedPages else { return }
+        guard coordinator.isCurrent,
+              pages.matches(scope: coordinator.reader.scope, authorizationGeneration: coordinator.reader.authorizationGeneration, access: snapshot.access) else {
+            invalidate(); aftercareLoadFailureKey = "merchant.business.stale"; revision += 1; return
+        }
+        guard pages.hasMore, snapshot.document.query == .aftercare(pages.bucket, page: pages.page) else { return }
+        await load(.aftercare(pages.bucket, page: pages.page + 1), appendAftercare: true)
+    }
+    private func load(_ requested: MerchantBusinessQuery, appendAftercare: Bool) async {
+        // A refresh always starts a fresh page-one generation. No old rows survive
+        // a refresh, failed replacement, bucket/context change or dismissal.
+        let query: MerchantBusinessQuery
+        if case .aftercare = requested, !appendAftercare { query = requested.paged(1) }
+        else { query = requested }
         if filterScope != coordinator.reader.scope { listFilters = .init(); filterMerchantID = nil }
         filterScope = coordinator.reader.scope
+        if !appendAftercare { aftercareLoadedPages = nil }
+        aftercareLoadFailureKey = nil
+        loadGeneration += 1
+        let generation = loadGeneration, scope = coordinator.reader.scope, authorization = coordinator.reader.authorizationGeneration
         revision += 1; await coordinator.load(query)
-        if let currentMerchant = coordinator.snapshot?.access.merchantID {
-            if let filterMerchantID, filterMerchantID != currentMerchant { listFilters = .init() }
-            filterMerchantID = currentMerchant
+        guard generation == loadGeneration else { return }
+        defer { revision += 1 }
+        guard !Task.isCancelled, scope == coordinator.reader.scope, authorization == coordinator.reader.authorizationGeneration else {
+            aftercareLoadedPages = nil; coordinator.invalidate(); return
         }
-        revision += 1
+        guard coordinator.isCurrent, let snapshot = coordinator.snapshot, snapshot.document.query == query, coordinator.failureKey == nil else {
+            aftercareLoadedPages = nil; return
+        }
+        let currentMerchant = snapshot.access.merchantID
+        if let filterMerchantID, filterMerchantID != currentMerchant { listFilters = .init() }
+        filterMerchantID = currentMerchant
+        if case .aftercare = query, let scope {
+            do {
+                if appendAftercare {
+                    guard var pages = aftercareLoadedPages else { throw MerchantBusinessFailure.stale }
+                    try pages.append(snapshot, scope: scope, authorizationGeneration: authorization)
+                    aftercareLoadedPages = pages
+                } else {
+                    aftercareLoadedPages = try .init(snapshot: snapshot, scope: scope, authorizationGeneration: authorization)
+                }
+            } catch {
+                aftercareLoadedPages = nil; coordinator.invalidate(); aftercareLoadFailureKey = "merchant.business.stale"
+            }
+        }
+    }
+    func unfilteredRows(in section: MerchantBusinessSection, query: MerchantBusinessQuery) -> [MerchantBusinessRecord] {
+        guard case .aftercare(let bucket, _) = query else { return section.rows }
+        guard coordinator.isCurrent, let snapshot = coordinator.snapshot, let pages = aftercareLoadedPages,
+              pages.bucket == bucket,
+              pages.matches(scope: coordinator.reader.scope, authorizationGeneration: coordinator.reader.authorizationGeneration, access: snapshot.access) else { return [] }
+        return pages.rows
+    }
+    func visibleRows(in section: MerchantBusinessSection, query: MerchantBusinessQuery) -> [MerchantBusinessRecord] {
+        guard let presentation = try? MerchantBusinessSection(section.id, rows: unfilteredRows(in: section, query: query)) else { return [] }
+        return listFilters.rows(in: presentation, query: query)
     }
     func prepare(_ mutation: MerchantBusinessMutation) { coordinator.prepare(mutation); revision += 1 }
     func cancel() { coordinator.cancelConfirmation(); revision += 1 }
     func confirm(_ review: MerchantBusinessConfirmation) async { revision += 1; await coordinator.confirm(review); revision += 1 }
-    func invalidate() { coordinator.invalidate(); listFilters = .init(); filterScope = nil; filterMerchantID = nil; revision += 1 }
+    func invalidate() {
+        loadGeneration += 1; aftercareLoadedPages = nil; aftercareLoadFailureKey = nil
+        coordinator.invalidate(); listFilters = .init(); filterScope = nil; filterMerchantID = nil; revision += 1
+    }
 }
 
 @MainActor struct MerchantBusinessHomeView: View {
@@ -114,7 +169,7 @@ import SwiftUI
             if reader.isOfflineExample { Text("merchant.business.synthetic").font(.footnote).foregroundStyle(.secondary) }
             filters
             if state.isBusy { ProgressView("merchant.loading").accessibilityIdentifier("merchant.business.loading") }
-            if let key = state.failureKey {
+            if let key = model.aftercareLoadFailureKey ?? state.failureKey {
                 Section { Text(LocalizedStringKey(key)).accessibilityIdentifier("merchant.business.error")
                     if case .rejected(_, let message) = state.failure, let message { Text(message).foregroundStyle(.secondary) }
                 }
@@ -133,10 +188,10 @@ import SwiftUI
                 if case .customer = query, let tags = try? snapshot.document.payload.object?.mbObjects("systemTags") {
                     Section("merchant.business.systemTags") { ForEach(Array(tags.enumerated()), id: \.offset) { _, tag in Text(tag.mbText("label") ?? "") } }
                 }
-                if snapshot.document.rows.isEmpty && (snapshot.document.summary.isEmpty || isLocalList) {
+                if snapshot.document.sections.allSatisfy({ model.unfilteredRows(in: $0, query: snapshot.document.query).isEmpty }) && (snapshot.document.summary.isEmpty || isLocalList) {
                     Text("merchant.business.empty").foregroundStyle(.secondary).accessibilityIdentifier("merchant.business.empty")
                 } else if model.listFilters.isActive(for: snapshot.document.query), snapshot.document.sections.allSatisfy({ visibleRows($0, in: snapshot.document).isEmpty }) {
-                    Text("merchant.business.list.noMatches").foregroundStyle(.secondary).accessibilityIdentifier("merchant.business.list.noMatches")
+                    Text(LocalizedStringKey(isAftercare ? "merchant.business.aftercare.noMatches" : "merchant.business.list.noMatches")).foregroundStyle(.secondary).accessibilityIdentifier("merchant.business.list.noMatches")
                 }
                 ForEach(snapshot.document.sections) { section in
                     let rows = visibleRows(section, in: snapshot.document)
@@ -149,7 +204,12 @@ import SwiftUI
                     }
                 }
                 pageActions(snapshot)
-                if snapshot.document.hasMore || query.page > 1 {
+                if isAftercare {
+                    if snapshot.document.hasMore {
+                        Button("merchant.business.aftercare.loadMore") { Task { await model.loadMoreAftercare() } }
+                            .disabled(state.isBusy).accessibilityIdentifier("merchant.business.aftercare.loadMore")
+                    }
+                } else if snapshot.document.hasMore || query.page > 1 {
                     Section {
                         HStack {
                             Button("merchant.business.previous") { movePage(query.page - 1) }.disabled(query.page <= 1)
@@ -178,6 +238,7 @@ import SwiftUI
                 issue: state.failureKey, cancel: model.cancel, confirm: { Task { await model.confirm(review) } })
         }
         .onChange(of: reader.scope) { _, _ in editor = nil; pendingMutation = nil; selection = []; model.invalidate() }
+        .onChange(of: reader.authorizationGeneration) { _, _ in editor = nil; pendingMutation = nil; selection = []; model.invalidate() }
         .onDisappear { editor = nil; pendingMutation = nil; model.invalidate() }
     }
     @ViewBuilder private var filters: some View {
@@ -328,11 +389,12 @@ import SwiftUI
             Button("merchant.business.inviteOperator") { editor = .init(kind: .invite) }
         }
     }
+    private var isAftercare: Bool { if case .aftercare = query { return true }; return false }
     private var isLocalList: Bool {
         switch query { case .aftercare, .reviews: return true; default: return false }
     }
     private func visibleRows(_ section: MerchantBusinessSection, in document: MerchantBusinessDocument) -> [MerchantBusinessRecord] {
-        model.listFilters.rows(in: section, query: document.query)
+        model.visibleRows(in: section, query: document.query)
     }
     private var availableTags: [Int] {
         state.snapshot?.document.payload.object?["availableTags"]?.array?.compactMap { $0.object?["id"]?.integer }.filter { $0 > 0 } ?? []

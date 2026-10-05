@@ -2,13 +2,23 @@
 import SwiftUI
 
 @MainActor final class SearchMapFixtureReader: SearchMapReading {
-    enum Scenario: String { case content, empty, partial, guest, failure, retry, unauthorized, unconfigured, delayed, cityFallback }
+    enum Scenario: String { case content, empty, partial, guest, failure, retry, unauthorized, unconfigured, delayed, categoryDelayed, cityFallback }
     let scenario: Scenario
     var scope = UUID()
     var isAuthenticated: Bool
     var isConfigured: Bool { scenario != .unconfigured }
     var isOfflineExample: Bool { true }
     private var searches = 0
+    private var pendingGlobalSearches: [(id: UUID, continuation: CheckedContinuation<Void, Error>)] = []
+    func releaseGlobalSearch(latest: Bool) {
+        guard !pendingGlobalSearches.isEmpty else { return }
+        let index = latest ? pendingGlobalSearches.count - 1 : 0
+        pendingGlobalSearches.remove(at: index).continuation.resume()
+    }
+    private func cancelGlobalSearch(_ id: UUID) {
+        guard let index = pendingGlobalSearches.firstIndex(where: { $0.id == id }) else { return }
+        pendingGlobalSearches.remove(at: index).continuation.resume(throwing: CancellationError())
+    }
     private var pendingCitySearches: [UUID: CheckedContinuation<Void, Error>] = [:]
     func releaseCitySearch() {
         let pending = pendingCitySearches.values; pendingCitySearches = [:]
@@ -28,14 +38,31 @@ import SwiftUI
         if scenario == .failure { throw APIError.httpStatus(503) }
         if scenario == .unauthorized { throw APIError.unauthorized }
     }
-    func categories() async throws -> [DiscoveryCategory] { try check(); return try decode([DiscoveryCategory].self, SearchMapSyntheticFixtures.categories) }
+    func categories() async throws -> [DiscoveryCategory] {
+        try check()
+        let json = scenario == .categoryDelayed ?
+            #"[{"id":7,"categoryName":"Synthetic culture","type":1},{"id":8,"categoryName":"Synthetic outdoors","type":1}]"# : SearchMapSyntheticFixtures.categories
+        return try decode([DiscoveryCategory].self, json)
+    }
     func search(_ query: GlobalSearchQuery) async throws -> GlobalSearchResults {
         try check(); try query.validate(); searches += 1
         if scenario == .retry && searches == 1 { throw APIError.httpStatus(503) }
         if scenario == .delayed { try await Task.sleep(for: .milliseconds(query.keyword == "old" ? 1500 : 30)) }
+        if scenario == .categoryDelayed {
+            let id = UUID()
+            try await withTaskCancellationHandler(operation: {
+                try Task.checkCancellation()
+                try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                    if Task.isCancelled { continuation.resume(throwing: CancellationError()) }
+                    else { pendingGlobalSearches.append((id, continuation)) }
+                }
+            }, onCancel: { Task { @MainActor [weak self] in self?.cancelGlobalSearch(id) } })
+            try Task.checkCancellation()
+        }
         if scenario == .empty || query.keyword == "missing" { return GlobalSearchResults(rows: []) }
         let kinds = GlobalSearchKind.allCases.filter { (isAuthenticated || $0 != .club) && (scenario != .partial || $0 != .merchant) }
-        let rows = kinds.map { kind in GlobalSearchRow(kind: kind, sourceID: 71, title: "Synthetic \(kind.rawValue)", detail: "Offline \(query.keyword)") }
+        let sourceID = scenario == .categoryDelayed ? (query.categoryID ?? 70) : 71
+        let rows = kinds.map { kind in GlobalSearchRow(kind: kind, sourceID: sourceID, title: "Synthetic \(kind.rawValue)", detail: "Offline \(query.keyword)") }
         return GlobalSearchResults(rows: rows, failedKinds: scenario == .partial ? [.merchant] : [], gatedKinds: isAuthenticated ? [] : [.club])
     }
     func citySearch(_ query: CityNodeSearchQuery) async throws -> CityNodeSearchResults {
@@ -100,6 +127,12 @@ import SwiftUI
                 Button { reader.switchAccount(); walking.context = nil; scope = reader.scope } label: {
                     fixtureLabel("searchMap.fixtureAccount", symbol: "person.2")
                 }.accessibilityIdentifier("searchMap.fixture.account")
+                if entry == "global", reader.scenario == .categoryDelayed {
+                    Button("Release earliest synthetic search") { reader.releaseGlobalSearch(latest: false) }
+                        .accessibilityIdentifier("searchMap.fixture.releaseFirstSearch")
+                    Button("Release latest synthetic search") { reader.releaseGlobalSearch(latest: true) }
+                        .accessibilityIdentifier("searchMap.fixture.releaseLastSearch")
+                }
                 if entry == "city", reader.scenario == .delayed {
                     Button("Release synthetic search") { reader.releaseCitySearch() }
                         .accessibilityIdentifier("searchMap.fixture.releaseCitySearch")

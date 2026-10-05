@@ -3,7 +3,7 @@ import Foundation
 import FoundationNetworking
 #endif
 
-/// Explicitly configured and transport-injected. All six POST routes are read-only in Flutter.
+/// Explicitly configured and transport-injected read-only discovery requests.
 public struct DiscoveryService {
     private let configuration: APIConfiguration
     private let transport: any HTTPTransport
@@ -20,6 +20,10 @@ public struct DiscoveryService {
         if let type { fields["type"] = String(type) }
         let data = try await post("api/category/list", fields: fields, token: token)
         return try decode(DiscoveryArrayEnvelope<DiscoveryCategory>.self, data).data
+    }
+    public func templateMetadataDictionary(kind: TemplateMetadataKind, token: String? = nil) async throws -> [TemplateMetadataOption] {
+        let data = try await post("api/common/dict", fields: ["dictType": kind.rawValue], token: token, templateMetadata: true)
+        return try decode(TemplateMetadataEnvelope.self, data).data
     }
     public func templateHome(token: String? = nil) async throws -> DiscoveryTemplateHome {
         let data = try await post("api/template/homeData", fields: nil, token: token)
@@ -48,10 +52,12 @@ public struct DiscoveryService {
     public func playTemplate(id: Int, token: String? = nil) async throws -> DiscoveryPlayTemplate {
         guard id > 0 else { throw APIError.invalidRequest }
         let data = try await post("api/template/info", fields: ["id": String(id)], token: token, templateDetail: true)
-        return try decode(DiscoveryValueEnvelope<DiscoveryPlayTemplate>.self, data).data
+        let detail = try decode(DiscoveryValueEnvelope<DiscoveryPlayTemplate>.self, data).data
+        guard detail.id == id else { throw APIError.malformedResponse }
+        return detail
     }
     private func post(_ path: String, fields: [String: String]?, token: String?,
-                      templateDetail: Bool = false) async throws -> Data {
+                      templateDetail: Bool = false, templateMetadata: Bool = false) async throws -> Data {
         var request = try AuthRequestBuilder.makeFormRequest(
             url: configuration.baseURL.appendingPathComponent(path), fields: fields ?? [:], token: token)
         if fields == nil {
@@ -62,6 +68,12 @@ public struct DiscoveryService {
         // Check gateway status and envelope code before payload decoding, including detail refusals.
         if status == 401 { throw APIError.unauthorized }
         guard (200..<300).contains(status) else { throw APIError.httpStatus(status) }
+        if templateMetadata {
+            let status = try decode(TemplateMetadataStatusEnvelope.self, data)
+            if status.code == 401 { throw APIError.unauthorized }
+            guard status.code == 200 else { throw APIError.businessCode(status.code) }
+            return data
+        }
         let envelope = try decode(DiscoveryStatusEnvelope.self, data)
         if envelope.code == 401 { throw APIError.unauthorized }
         guard envelope.code == 200 else {

@@ -94,6 +94,15 @@ final class ModuleFlowTests: XCTestCase {
         if !members.isHittable { app.swipeUp() }
         tap(members)
         XCTAssertTrue(app.descendants(matching:.any)["club.member.701"].waitForExistence(timeout:5),app.debugDescription)
+        let creator = app.buttons["club.member.701"].label
+        XCTAssertTrue(creator.contains("Level 7"), creator)
+        XCTAssertFalse(creator.contains("2026-01-01"), creator)
+        let administrator = app.buttons["club.member.703"].label
+        XCTAssertTrue(administrator.contains("Level 4"), administrator)
+        XCTAssertTrue(administrator.contains("Joined 2026-02-03 10:15:00"), administrator)
+        let ordinary = app.buttons["club.member.704"].label
+        XCTAssertFalse(ordinary.contains("Level 0"), ordinary)
+        XCTAssertFalse(ordinary.contains("Joined"), ordinary)
         capture("Club members – synthetic data")
     }
     func testClubMemberPublicProfileReturnsAndReopens() {

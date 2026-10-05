@@ -47,18 +47,50 @@
       }
     }
   },
-  "merchant.business.aftercare.search": {
+  "merchant.business.aftercare.loadMore": {
     "localizations": {
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Search this page"
+          "value": "Load more cases"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "搜索当前页"
+          "value": "加载更多申请"
+        }
+      }
+    }
+  },
+  "merchant.business.aftercare.noMatches": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No matching cases in loaded pages. Clear your search or load more cases if available."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已加载页中没有匹配申请。请清空搜索词，或在有更多申请时继续加载。"
+        }
+      }
+    }
+  },
+  "merchant.business.aftercare.search": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Search loaded cases"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "搜索已加载申请"
         }
       }
     }
@@ -68,13 +100,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Search refund number, customer, activity or reason on this loaded page only. The same search is applied when you change pages or status."
+          "value": "Search refund number, customer, activity or reason across loaded pages in this status. Load more to include more cases. Refresh or changing status resets loaded cases and keeps your search."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "仅搜索当前已加载页的退款单号、客户、活动或原因。切换页码或分组时保留搜索词并重新筛选。"
+          "value": "搜索当前分组所有已加载页中的退款单号、客户、活动或原因。加载更多可扩大范围。刷新或切换分组会重置已加载申请并保留搜索词。"
         }
       }
     }

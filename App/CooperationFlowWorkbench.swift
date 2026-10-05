@@ -32,7 +32,10 @@ import SwiftUI
         }.navigationTitle("coopflow.title").accessibilityIdentifier("coopflow.workbench")
     }
     private func link(_ key: String, resource: CoopFlowRead) -> some View {
-        NavigationLink { CoopFlowReadView(reader: reader, resource: resource, title: key) } label: { Text(LocalizedStringKey(key)) }.accessibilityIdentifier("coopflow.route.\(key)")
+        NavigationLink {
+            if resource == .relations { CoopRelationDiscoveryEntry(reader: reader) }
+            else { CoopFlowReadView(reader: reader, resource: resource, title: key) }
+        } label: { Text(LocalizedStringKey(key)) }.accessibilityIdentifier("coopflow.route.\(key)")
     }
 }
 /// Reachable before a location provider is approved. Opening this page never requests permission.
@@ -122,10 +125,6 @@ struct CoopFlowSafetyNotice: View {
                 else { CoopFlowFields(value: value["review"], keys: ["reviewCount", "avgRating"]) }
             }
             settlementRows(value["settlements"].rows ?? [], source: .mybiz)
-        case .relations:
-            Section("coopflow.stats") { CoopFlowFields(value: value["stats"], keys: ["merchantCount", "clubCount", "pendingCoopCount"]) }
-            rows(value["relations"].rows ?? [], section: "coopflow.relations")
-            rows(value["discovery"]["merchants"].rows ?? [], section: "coopflow.discovery")
         case .invitations:
             rows(value["received"].rows ?? [], section: "cooperation.received")
             rows(value["sent"].rows ?? [], section: "cooperation.sent")

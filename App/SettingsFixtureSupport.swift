@@ -29,6 +29,8 @@ import SwiftUI
 @MainActor struct SettingsFixtureHostView: View {
     @State private var store: SettingsFixtureSoundStore
     @State private var reader: SettingsFixtureLegalReader
+    @State private var copiedText: String?
+    @State private var hasFailedCopy = false
     private let scenario: String
     init() {
         let args = ProcessInfo.processInfo.arguments
@@ -46,8 +48,20 @@ import SwiftUI
                     market: scenario == "missingMarket" ? nil : RegionalLaunchConfiguration.market,
                     soundStore: store, legalReader: reader,
                     appInformation: scenario == "missingMetadata" ? SettingsAppInformation(info: [:]) : .current(),
-                    copyText: { _ in if scenario == "copyFailure" { throw SettingsSoundStoreError.writeFailed } }
+                    copyText: { text in
+                        if scenario == "copyFailure" { throw SettingsSoundStoreError.writeFailed }
+                        if scenario == "attributionCopyFailure", !hasFailedCopy {
+                            hasFailedCopy = true
+                            throw SettingsSoundStoreError.writeFailed
+                        }
+                        copiedText = text
+                    }
                 )
+                if let copiedText {
+                    Section {
+                        Text(verbatim: copiedText).accessibilityIdentifier("settingsNative.fixture.copiedText")
+                    }
+                }
             }
             .appNavigationTitle("settings.title")
         }

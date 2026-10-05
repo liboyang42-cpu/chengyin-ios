@@ -50,6 +50,15 @@ import SwiftUI
                                 case .value: return nil
                                 }
                             })
+                        if method == .choice {
+                            if let media = snapshot.choiceOptionMedia {
+                                TemplateChoiceOptionMediaFields(configuration: media,
+                                    field: { letter, kind in .constant(media.text(letter, kind) ?? "") }, readOnly: true)
+                            } else {
+                                Text("templateAuthor.optionMedia.title")
+                                Text(LocalizedStringKey(snapshot.questionOptionMediaJson == .unsupported ? "templateOwnerConfig.unsupported" : "templateOwnerConfig.missing"))
+                            }
+                        }
                     }
                 } else if snapshot.specializedMethodLabel == nil { Section { Text("templateOwnerConfig.unsupportedMethod") } }
                 Section("templateAuthor.preference.title") {

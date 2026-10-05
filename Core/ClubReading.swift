@@ -26,11 +26,36 @@ public struct ClubReadSession: Equatable {
 public protocol ClubReading: AnyObject {
     var isClubConfigured: Bool { get }
     var clubIdentity: ClubReadIdentity { get }
+    var clubDiscoveryScope: ClubDiscoveryScope { get }
+    func clubMerchantLocality() async throws -> MerchantClubLocality
     func clubHome() async throws -> ClubHome
     func clubOwned() async throws -> [ClubRecord]
     func clubDirectory(name: String?) async throws -> [ClubRecord]
     func clubDetail(id: Int) async throws -> ClubRecord
+    func clubDetail(id: Int, isCurrent: @escaping () -> Bool) async throws -> ClubRecord
     func clubMembers(id: Int) async throws -> ClubMemberDirectory
+    func clubMembers(id: Int, isCurrent: @escaping () -> Bool) async throws -> ClubMemberDirectory
+}
+
+extension ClubReading {
+    public func clubDetail(id: Int, isCurrent: @escaping () -> Bool) async throws -> ClubRecord {
+        guard isCurrent() else { throw CancellationError() }
+        let value = try await clubDetail(id: id)
+        guard !Task.isCancelled, isCurrent() else { throw CancellationError() }
+        return value
+    }
+    public func clubMembers(id: Int, isCurrent: @escaping () -> Bool) async throws -> ClubMemberDirectory {
+        guard isCurrent() else { throw CancellationError() }
+        let value = try await clubMembers(id: id)
+        guard !Task.isCancelled, isCurrent() else { throw CancellationError() }
+        return value
+    }
+}
+
+/// Existing player/guest readers keep their original unfiltered home and make no locality request.
+public extension ClubReading {
+    var clubDiscoveryScope: ClubDiscoveryScope { .init(identity: clubIdentity) }
+    func clubMerchantLocality() async throws -> MerchantClubLocality { throw APIError.notConfigured }
 }
 
 /// Capture the live session before every operation, including both member-list reads.
@@ -61,26 +86,36 @@ public final class ClubSessionReader: ClubReading {
     public func clubDetail(id: Int) async throws -> ClubRecord {
         try await read { service, session in try await service.detail(id: id, token: session.token) }
     }
+    public func clubDetail(id: Int, isCurrent: @escaping () -> Bool) async throws -> ClubRecord {
+        try await read(isCurrent: isCurrent) { service, session in try await service.detail(id: id, token: session.token) }
+    }
     public func clubMembers(id: Int) async throws -> ClubMemberDirectory {
-        try await read { service, session in
+        try await clubMembers(id: id, isCurrent: { true })
+    }
+    public func clubMembers(id: Int, isCurrent: @escaping () -> Bool) async throws -> ClubMemberDirectory {
+        try await read(isCurrent: isCurrent) { service, session in
             guard let token = session.token else { throw ClubReadFailure.unauthorized(message: nil) }
             let club = try await service.detail(id: id, token: token)
             try Task.checkCancellation()
+            guard isCurrent() else { throw CancellationError() }
             guard self.currentSession() == session else { throw CancellationError() }
             let members = try await service.members(in: club, token: token)
             return ClubMemberDirectory(club: club, members: members)
         }
     }
-    private func read<Value>(_ operation: (ClubService, ClubReadSession) async throws -> Value) async throws -> Value {
+    private func read<Value>(isCurrent: () -> Bool = { true }, _ operation: (ClubService, ClubReadSession) async throws -> Value) async throws -> Value {
+        guard isCurrent() else { throw CancellationError() }
         guard let service else { throw APIError.notConfigured }
         let snapshot = currentSession()
         try Task.checkCancellation()
         do {
             let result = try await operation(service, snapshot)
             try Task.checkCancellation()
+            guard isCurrent() else { throw CancellationError() }
             guard currentSession() == snapshot else { throw CancellationError() }
             return result
         } catch {
+            guard isCurrent() else { throw CancellationError() }
             guard !Task.isCancelled, currentSession() == snapshot else { throw CancellationError() }
             if (error as? ClubReadFailure)?.isUnauthorized == true, snapshot.identity.isSignedIn {
                 onUnauthorized(snapshot)

@@ -36,7 +36,7 @@ class CityPlayerReadContracts(unittest.TestCase):
     def test_all_city_strings_are_bilingual(self):
         catalog = json.loads((ROOT / 'Resources/Localizable.xcstrings').read_text())['strings']
         keys = [key for key in catalog if key.startswith('city.read.')]
-        self.assertEqual(len(keys), 14)
+        self.assertEqual(len(keys), 20)
         for key in keys:
             for lang in ['en', 'zh-Hans']:
                 self.assertTrue(catalog[key]['localizations'][lang]['stringUnit']['value'])

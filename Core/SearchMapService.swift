@@ -27,8 +27,8 @@ public struct SearchMapService {
         guard query.canSearch else { return GlobalSearchResults(rows: []) }
         async let topics = attempt { try await self.topicRows(query, token: token) }
         async let activities = attempt { try await self.activityRows(query, area: nil, sortType: nil, pageSize: 12, token: token) }
-        async let clubs = attempt { try await self.clubRows(query.keyword, token: token) }
-        async let merchants = attempt { try await self.merchantRows(query.keyword, token: token) }
+        async let clubs = attempt { try await self.clubRows(query, token: token) }
+        async let merchants = attempt { try await self.merchantRows(query, token: token) }
         let (topicResult, activityResult, clubResult, merchantResult) = try await (topics, activities, clubs, merchants)
         try Task.checkCancellation()
         let failures: [(GlobalSearchKind, SearchMapFailure?)] = [(.topic, topicResult.failure), (.activity, activityResult.failure), (.club, clubResult.failure), (.merchant, merchantResult.failure)]
@@ -106,14 +106,20 @@ public struct SearchMapService {
         if let sortType { fields["sort_type"] = String(sortType) }
         return try decode(ActivityListResponse.self, await form("api/activity/list", fields: fields, token: token)).rows
     }
-    private func clubRows(_ keyword: String, token: String?) async throws -> [ClubRecord] {
+    private func clubRows(_ query: GlobalSearchQuery, token: String?) async throws -> [ClubRecord] {
         guard token != nil else { throw APIError.unauthorized }
-        let data = try await json("api/club/list", fields: ["name":keyword], token: token)
+        let data = try await json("api/club/list", fields: nameCategoryFields(query), token: token)
         return try decode(SearchMapValue<[ClubRecord]>.self, data).data
     }
-    private func merchantRows(_ keyword: String, token: String?) async throws -> [SearchMapMerchant] {
-        let data = try await json("api/merchant/list", fields: ["name":keyword], token: token)
+    private func merchantRows(_ query: GlobalSearchQuery, token: String?) async throws -> [SearchMapMerchant] {
+        let data = try await json("api/merchant/list", fields: nameCategoryFields(query), token: token)
         return try decode(SearchMapValue<[SearchMapMerchant]>.self, data).data
+    }
+    /// Club/merchant JSON uses camelCase numeric categoryId. Omission keeps the unfiltered request unchanged.
+    private func nameCategoryFields(_ query: GlobalSearchQuery) -> [String: Any] {
+        var fields: [String: Any] = ["name": query.keyword]
+        if let id = query.categoryID { fields["categoryId"] = id }
+        return fields
     }
     private func unique<T>(_ values: [T], by key: (T) -> Int) -> [T] {
         var seen = Set<Int>(); return values.filter { seen.insert(key($0)).inserted }
@@ -134,7 +140,7 @@ public struct SearchMapService {
     private func form(_ path: String, fields: [String:String], token: String?) async throws -> Data {
         try await execute(AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent(path), fields: fields, token: token))
     }
-    private func json(_ path: String, fields: [String:String], token: String?) async throws -> Data {
+    private func json(_ path: String, fields: [String:Any], token: String?) async throws -> Data {
         var request = try baseRequest(path, token: token)
         request.httpMethod = "POST"; request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONSerialization.data(withJSONObject: fields)

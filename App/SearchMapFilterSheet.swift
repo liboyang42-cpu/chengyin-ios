@@ -43,6 +43,7 @@ import SwiftUI
                         Text("searchMap.all").tag(Int?.none)
                         ForEach(categories) { Text(verbatim: $0.name).tag(Optional($0.id)) }
                     }
+                    .accessibilityIdentifier("searchMap.filter.category")
                     if categoryFailed { Text("searchMap.categoryFailed").font(.caption) }
                 }
                 Section("searchMap.dates") {
@@ -59,7 +60,7 @@ import SwiftUI
                 Button("searchMap.resetFilters") {
                     draft = GlobalSearchQuery(keyword: draft.keyword); minimum = ""; maximum = ""; start = ""; end = ""; invalid = false
                     tag = ""; cityRole = ""; sortType = 1
-                }.frame(minHeight: 44)
+                }.frame(minHeight: 44).accessibilityIdentifier("searchMap.filter.reset")
             }.textInputAutocapitalization(.never).autocorrectionDisabled()
                 .appNavigationTitle("searchMap.filters")
                 .toolbar {

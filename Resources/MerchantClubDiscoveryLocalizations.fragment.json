@@ -1,0 +1,104 @@
+{
+  "club.locality.loading": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Checking the merchant’s local area"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "正在确认同城范围"
+        }
+      }
+    }
+  },
+  "club.locality.loadingHint": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "You can still browse the club list."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "俱乐部列表仍可查看"
+        }
+      }
+    }
+  },
+  "club.locality.unavailable": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Local area not confirmed"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "同城范围暂未确认"
+        }
+      }
+    }
+  },
+  "club.locality.unavailableHint": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The merchant’s city could not be confirmed. Showing the full nearby list for now."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "店铺城市暂未确认，暂时显示完整附近俱乐部列表。"
+        }
+      }
+    }
+  },
+  "club.locality.ready": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Clubs matching the merchant’s city or address"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "按店铺城市或地址匹配的俱乐部"
+        }
+      }
+    }
+  },
+  "club.locality.empty": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No clubs match the merchant’s local area."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "本城暂无正在组织探索的同好。"
+        }
+      }
+    }
+  }
+}

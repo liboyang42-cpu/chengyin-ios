@@ -103,7 +103,7 @@ final class MerchantBusinessFlowTests: XCTestCase {
         reveal(secondPage, app: app); XCTAssertTrue(secondPage.exists)
         XCTAssertFalse(app.descendants(matching: .any)["merchant.business.row.review.63003"].exists)
     }
-    func testChineseAftercareSearchStaysOnCurrentPage() {
+    func testChineseAftercareSearchSpansLoadedPages() {
         let app = launch("listTools", language: "zh-Hans"); tap("merchant.business.open.aftercare", app: app)
         let field = app.textFields["merchant.business.aftercare.keyword"]
         for term in ["EXAMPLE-RF-1", "ALICE", "城市漫步", "WEATHER"] {
@@ -114,17 +114,24 @@ final class MerchantBusinessFlowTests: XCTestCase {
             tap("merchant.business.aftercare.clearSearch", app: app)
         }
         field.tap(); field.typeText("ALICE\n")
-        tap("merchant.business.next", app: app)
-        let empty = app.staticTexts["merchant.business.list.noMatches"]
-        reveal(empty, app: app); XCTAssertTrue(empty.waitForExistence(timeout: 5))
-        XCTAssertFalse(app.buttons["merchant.business.row.refund.62001"].exists)
+        tap("merchant.business.aftercare.loadMore", app: app)
+        let earlierMatch = app.buttons["merchant.business.row.refund.62001"]
+        reveal(earlierMatch, app: app); XCTAssertTrue(earlierMatch.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["merchant.business.list.noMatches"].exists)
         for _ in 0..<3 { app.swipeDown() }
         XCTAssertEqual(field.value as? String, "ALICE")
         XCTAssertEqual(app.buttons["merchant.business.aftercare.clearSearch"].label, "清空搜索")
         tap("merchant.business.aftercare.clearSearch", app: app)
+        field.tap(); field.typeText("EXAMPLE-RF-21\n")
         let secondPage = app.buttons["merchant.business.row.refund.62021"]
-        reveal(secondPage, app: app); XCTAssertTrue(secondPage.exists)
-        XCTAssertFalse(app.buttons["merchant.business.row.refund.62001"].exists)
+        reveal(secondPage, app: app); XCTAssertTrue(secondPage.waitForExistence(timeout: 5))
+        tap("merchant.business.refresh", app: app)
+        let empty = app.staticTexts["merchant.business.list.noMatches"]
+        reveal(empty, app: app); XCTAssertTrue(empty.waitForExistence(timeout: 5))
+        XCTAssertFalse(secondPage.exists)
+        tap("merchant.business.aftercare.loadMore", app: app)
+        reveal(secondPage, app: app); XCTAssertTrue(secondPage.waitForExistence(timeout: 5))
+
     }
 
 }

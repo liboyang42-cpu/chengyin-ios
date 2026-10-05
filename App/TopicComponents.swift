@@ -1,5 +1,18 @@
 import SwiftUI
 
+struct TopicWalkingEstimate: View {
+    let minutes: Int
+    let position: Int
+    var body: some View {
+        LabeledContent("topic.itinerary.estimatedWalkMinutes", value: String(minutes))
+            .font(.subheadline)
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel(Text("topic.itinerary.estimatedWalkMinutes"))
+            .accessibilityValue(String(minutes))
+            .accessibilityIdentifier("topic.itinerary.walk.\(position)")
+    }
+}
+
 struct TopicPrice: View {
     let value: Decimal?
     let label: LocalizedStringKey

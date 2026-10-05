@@ -96,4 +96,41 @@ final class SquareFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Your session could not be verified. Sign in again to continue"].waitForExistence(timeout: 10))
         XCTAssertFalse(app.buttons["square.row.701"].exists)
     }
+    func testRelatedTopicOpensExactLegacyReadAndReopensAfterBack() {
+        launch("relatedTopic")
+        reveal(app.buttons["fixture.relatedPost"])
+        reveal(app.buttons["square.openRelatedTopic"])
+        XCTAssertTrue(app.staticTexts["Synthetic linked topic 31"].waitForExistence(timeout: 10))
+        app.navigationBars.buttons.firstMatch.tap()
+        XCTAssertTrue(app.navigationBars["Post details"].waitForExistence(timeout: 5))
+        reveal(app.buttons["square.openRelatedTopic"])
+        XCTAssertTrue(app.descendants(matching: .any)["topic.detail.content"].firstMatch.waitForExistence(timeout: 5))
+        app.navigationBars.buttons.firstMatch.tap()
+        app.navigationBars["Post details"].buttons.firstMatch.tap()
+        reveal(app.buttons["fixture.relatedTopic.switchAccount"])
+        reveal(app.buttons["fixture.relatedPost"])
+        XCTAssertTrue(app.navigationBars["Post details"].waitForExistence(timeout: 5))
+    }
+    func testCommunityTopicReferenceAndMissingLegacyAssociationRemainSeparate() {
+        launch("relatedCommunity")
+        reveal(app.buttons["square.row.702"])
+        reveal(app.buttons["square.openRelatedTopic"])
+        XCTAssertTrue(app.staticTexts["Synthetic linked topic 32"].waitForExistence(timeout: 10))
+        app.terminate(); launch("relatedMissing")
+        reveal(app.buttons["fixture.relatedPost"])
+        XCTAssertTrue(app.descendants(matching: .any)["square.detailPost"].firstMatch.waitForExistence(timeout: 10))
+        XCTAssertFalse(app.buttons["square.openRelatedTopic"].exists)
+    }
+    func testUnavailableRelatedTopicKeepsPostAccessibleAfterBack() {
+        launch("relatedUnavailable", chinese: true)
+        reveal(app.buttons["fixture.relatedPost"])
+        reveal(app.buttons["square.openRelatedTopic"])
+        XCTAssertTrue(app.staticTexts["此路线暂不可查看"].waitForExistence(timeout: 10))
+        let retry = app.buttons["重试"]
+        reveal(retry)
+        app.navigationBars.buttons.firstMatch.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["square.detailPost"].firstMatch.waitForExistence(timeout: 5))
+        reveal(app.buttons["square.openRelatedTopic"])
+        XCTAssertTrue(retry.waitForExistence(timeout: 5))
+    }
 }

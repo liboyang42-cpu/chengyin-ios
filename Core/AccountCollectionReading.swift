@@ -16,6 +16,7 @@ public struct AccountCollectionReadSession: Equatable {
     var isAuthenticated: Bool { get }
     var isOfflineExample: Bool { get }
     func favoriteTopics(pageNumber: Int, pageSize: Int) async throws -> TopicPage
+    func favoritePosts(pageNumber: Int, pageSize: Int) async throws -> AccountCollectionPostPage
     func ownedCoupons(keyword: String?) async throws -> [AccountCollectionCoupon]
     func ownedCoupon(id: Int) async throws -> AccountCollectionCoupon
 }
@@ -41,6 +42,9 @@ public struct AccountCollectionReadSession: Equatable {
     public func favoriteTopics(pageNumber: Int, pageSize: Int) async throws -> TopicPage {
         try await read { try await $0.favorites(pageNumber: pageNumber, pageSize: pageSize, token: $1) }
     }
+    public func favoritePosts(pageNumber: Int, pageSize: Int) async throws -> AccountCollectionPostPage {
+        try await read { try await $0.favoritePosts(pageNumber: pageNumber, pageSize: pageSize, token: $1) }
+    }
     public func ownedCoupons(keyword: String?) async throws -> [AccountCollectionCoupon] {
         try await read { try await $0.coupons(keyword: keyword, token: $1) }
     }
@@ -61,6 +65,56 @@ public struct AccountCollectionReadSession: Equatable {
             guard !Task.isCancelled, currentSession() == session, scope == captured else { throw CancellationError() }
             if error as? APIError == .unauthorized { onUnauthorized(session) }
             throw error
+        }
+    }
+}
+
+/// Each saved-post destination owns its state. Session changes hide private rows
+/// immediately, and failed later reads retry the same numbered page.
+@MainActor public final class AccountCollectionPostsModel {
+    public private(set) var pagination = AccountCollectionPostPagination()
+    public private(set) var issue: AccountCollectionIssue?
+    public private(set) var moreIssue: AccountCollectionIssue?
+    public private(set) var loadedScope: UUID?
+    public private(set) var isLoading = false
+    public private(set) var isLoadingMore = false
+    private var generation: UInt64 = 0
+    public init() {}
+    public func visibleRows(scope: UUID) -> [SquarePost] { loadedScope == scope ? pagination.rows : [] }
+    public func invalidate() {
+        generation &+= 1; pagination = AccountCollectionPostPagination(); issue = nil; moreIssue = nil
+        loadedScope = nil; isLoading = false; isLoadingMore = false
+    }
+    public func cancelPending() { generation &+= 1; isLoading = false; isLoadingMore = false }
+    public func refresh(scope: UUID, currentScope: () -> UUID, operation: () async throws -> AccountCollectionPostPage) async {
+        invalidate()
+        let captured = generation
+        isLoading = true
+        defer { if captured == generation { isLoading = false } }
+        do {
+            let page = try await operation()
+            guard !Task.isCancelled, captured == generation, currentScope() == scope else { return }
+            try pagination.accept(page); loadedScope = scope
+        } catch {
+            guard !Task.isCancelled, !(error is CancellationError), captured == generation, currentScope() == scope else { return }
+            issue = AccountCollectionIssue(error); loadedScope = scope
+        }
+    }
+    public func loadMore(scope: UUID, currentScope: () -> UUID, operation: (Int) async throws -> AccountCollectionPostPage) async {
+        guard loadedScope == scope, currentScope() == scope, !isLoading, !isLoadingMore, issue == nil, pagination.hasMore else { return }
+        let captured = generation
+        let pageNumber = pagination.nextPage
+        isLoadingMore = true; moreIssue = nil
+        defer { if captured == generation { isLoadingMore = false } }
+        do {
+            let page = try await operation(pageNumber)
+            guard !Task.isCancelled, captured == generation, currentScope() == scope else { return }
+            try pagination.accept(page)
+        } catch {
+            guard !Task.isCancelled, !(error is CancellationError), captured == generation, currentScope() == scope else { return }
+            if error as? APIError == .unauthorized {
+                pagination = AccountCollectionPostPagination(); issue = .login; moreIssue = nil
+            } else { moreIssue = AccountCollectionIssue(error) }
         }
     }
 }

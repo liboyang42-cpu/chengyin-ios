@@ -6,27 +6,43 @@ struct DiscoveryTemplateDetailView: View {
     let reader: any DiscoveryReading
     let authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)?
     let authoringRevision: UInt64
+    let imageReader: any RetainedPublicImageReading
     @StateObject private var detail = DiscoveryLoader<DiscoveryPlayTemplate>()
+    @State private var galleryScope = UUID()
+    @State private var loadedKey: RequestKey?
+    @State private var readerChange: UInt64 = 0
+    private struct RequestKey: Equatable {
+        let id: Int
+        let reader: ObjectIdentifier
+        let scope: String
+        let authoringRevision: UInt64
+    }
+    private var requestKey: RequestKey {
+        _ = readerChange // Read-only ObservableObject dependencies must invalidate this view too.
+        return .init(id: id, reader: ObjectIdentifier(reader), scope: reader.discoveryPresentationIdentity,
+                     authoringRevision: authoringRevision)
+    }
 
-    init(id: Int, reader: any DiscoveryReading, authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)? = nil, authoringRevision: UInt64 = 0) {
+    init(id: Int, reader: any DiscoveryReading, authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)? = nil, authoringRevision: UInt64 = 0, imageReader: (any RetainedPublicImageReading)? = nil) {
         self.id = id; self.reader = reader; self.authoringFactory = authoringFactory; self.authoringRevision = authoringRevision
+        self.imageReader = imageReader ?? RetainedPublicImageReader()
     }
 
     var body: some View {
         Group {
             if !reader.isConfigured {
                 ContentUnavailableView("discovery.unavailable", systemImage: "network.slash", description: Text("auth.notConfigured"))
-            } else if detail.isLoading {
+            } else if detail.isLoading || loadedKey != requestKey {
                 ProgressView("discovery.loading")
             } else if let error = detail.error {
                 DiscoveryErrorView(error: error) { Task { await reload() } }
             } else if let item = detail.value {
                 List {
                     Section {
-                        if let image = item.imgUrl, !image.isEmpty { DiscoveryArtwork(source: image, height: 210) }
                         DiscoveryTitle(text: item.title, fallback: "discovery.untitledPlay").font(.title2.bold())
                         DiscoveryPlayMetadata(item: item)
                     }
+                    DiscoveryPlayTemplatePresentationView(presentation: .init(item), scope: galleryScope, imageReader: imageReader)
                     textSection("discovery.introduction", text: item.description)
                     textSection("discovery.rules", text: item.ruleInstructions)
                     textSection("discovery.materials", text: item.requiredMaterials)
@@ -34,18 +50,10 @@ struct DiscoveryTemplateDetailView: View {
                     if let verification = item.verification {
                         Section("discovery.verification") { Text(verification.label) }
                     }
-                    if let note = item.creatorNote {
-                        Section("discovery.creator") {
-                            if let image = item.storyImg, !image.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                                DiscoveryArtwork(source: image, height: 160)
-                            }
-                            Text(note).textSelection(.enabled)
-                        }
-                    }
                     if let authoringFactory {
                         Section {
                             NavigationLink {
-                                TemplateAuthoringView(coordinator: authoringFactory(item), sessionRevision: authoringRevision)
+                                TemplateAuthoringView(coordinator: authoringFactory(item), sessionRevision: authoringRevision, metadataReader: reader)
                             } label: { Label("templateAuthor.adopt", systemImage: "doc.on.doc") }
                                 .accessibilityIdentifier("templateAuthor.adopt")
                         }
@@ -58,14 +66,26 @@ struct DiscoveryTemplateDetailView: View {
         }
         .appNavigationTitle("discovery.playDetails")
         .navigationBarTitleDisplayMode(.inline)
-        .task(id: id) { if reader.isConfigured { await reload() } }
+        .task(id: requestKey) { if reader.isConfigured { await reload() } }
+        .onReceive(reader.discoveryPresentationChanges) { readerChange &+= 1 }
     }
     @ViewBuilder private func textSection(_ title: LocalizedStringKey, text: String?) -> some View {
         if let text, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             Section(title) { Text(text).textSelection(.enabled) }
         }
     }
-    private func reload() async { await detail.load { try await reader.discoveryPlayTemplate(id: id) } }
+    private func reload() async {
+        let requested = requestKey
+        galleryScope = UUID(); loadedKey = nil
+        await detail.load {
+            let value = try await reader.discoveryPlayTemplate(id: requested.id)
+            guard !Task.isCancelled, requested.scope == reader.discoveryPresentationIdentity else { throw CancellationError() }
+            guard value.id == requested.id else { throw APIError.malformedResponse }
+            return value
+        }
+        guard !Task.isCancelled, requested == requestKey else { return }
+        loadedKey = requested
+    }
 }
 
 /// Uses only the server's public template projection. Included games are inert previews.

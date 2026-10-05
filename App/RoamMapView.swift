@@ -7,6 +7,7 @@ struct RoamMapView: View {
     let area: RoamSearchArea
     let items: [RoamMapItem]
     var selectedID: String? = nil
+    var interactionID: AnyHashable? = nil
     let onSelect: (RoamMapItem) -> Void
     private var pins: [SearchMapPin] {
         items.compactMap { item in
@@ -18,7 +19,7 @@ struct RoamMapView: View {
     }
     var body: some View {
         QuestifyDensityMap(area: area, pins: pins, selectedID: selectedID,
-            mapHeight: 270, initialSpan: 0.045, pinIdentifierPrefix: "roam.pin.",
+            mapHeight: 270, initialSpan: 0.045, interactionID: interactionID, pinIdentifierPrefix: "roam.pin.",
             pinHint: { id in
                 if let item = items.first(where: { $0.id == id }) { return Text(item.kindLabel) }
                 return Text("")

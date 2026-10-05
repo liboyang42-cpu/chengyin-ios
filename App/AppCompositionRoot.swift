@@ -259,6 +259,9 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard deployment.regional.market == .china,
                   deployment.regional.canUseDomesticChinaPhone,
                   CNAccountSessionService.accepts(request, configuration: api) else { throw APIError.notConfigured }
+        } else if url == api.baseURL.appendingPathComponent("api/common/dict") {
+            guard deployment.reads.contains(.homeAndSearch), captured.isPublicTemplateViewer,
+                  TemplateMetadataReadRoute(request: request, baseURL: api.baseURL) != nil else { throw APIError.notConfigured }
         } else if url == api.baseURL.appendingPathComponent("api/merchant/coop-profile") || url == api.baseURL.appendingPathComponent("api/coupon/command-receipt") {
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,

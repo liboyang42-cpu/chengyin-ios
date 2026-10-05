@@ -137,4 +137,56 @@ final class SocialAccountFlowTests: XCTestCase {
         attachFixtureScreenshot(self, app: app, name: "Chinese social draft large text dark mode after keyboard dismissal")
     }
 
+    func testHTMLArticleIsReadableInertAndReopensAfterBack() {
+        launch("guide", scenario: "articleHTML")
+        let row = app.buttons["social.information.91"]; reveal(row); row.tap()
+        XCTAssertTrue(text("Synthetic article heading").waitForExistence(timeout: 5))
+        reveal(text("Readable bold text & 中文."))
+        reveal(text("First instruction"))
+        reveal(text("Second instruction"))
+        let label = text("Inert article link"); reveal(label); label.tap()
+        XCTAssertTrue(app.otherElements["social.information.detail"].exists || text("Inert article link").exists)
+        XCTAssertEqual(app.webViews.count, 0)
+        XCTAssertFalse(app.links["Inert article link"].exists)
+        XCTAssertFalse(text("FORBIDDEN_SCRIPT_TEXT").exists)
+        XCTAssertFalse(text("<h2>").exists)
+        reveal(app.staticTexts["social.article.limited"])
+        app.navigationBars.buttons["Play guide"].tap()
+        reveal(row); row.tap()
+        XCTAssertTrue(text("Synthetic article heading").waitForExistence(timeout: 5))
+    }
+    func testChineseLargeTextArticleReplacesOldContentAfterAccountSwitch() {
+        launch("guide", scenario: "articleHTML", language: "zh-Hans", extra: ["--uitesting-large-text", "--uitesting-dark"])
+        assertFixtureEnvironment(in: app, colorScheme: "dark", dynamicTypeSize: "accessibility3")
+        let row = app.buttons["social.information.91"]; reveal(row); row.tap()
+        XCTAssertTrue(text("示例正文标题").waitForExistence(timeout: 5))
+        reveal(app.staticTexts["social.article.limited"])
+        XCTAssertEqual(app.staticTexts["social.article.limited"].label, "部分文章内容无法显示。")
+        app.buttons["social.fixture.switch"].tap()
+        XCTAssertFalse(text("示例正文标题").exists)
+        // Reopen if SwiftUI discarded the old destination with its owning list;
+        // otherwise the existing detail must reload under the new identity.
+        if row.waitForExistence(timeout: 3) { reveal(row); row.tap() }
+        XCTAssertTrue(text("替换正文标题").waitForExistence(timeout: 5))
+        XCTAssertFalse(text("示例正文标题").exists)
+        attachFixtureScreenshot(self, app: app, name: "Chinese article large text after identity replacement")
+    }
+    func testArticleRemovedEmptyAndReadFailureKeepExistingRecovery() {
+        launch("guide", scenario: "removed")
+        var row = app.buttons["social.information.91"]; reveal(row); row.tap()
+        XCTAssertTrue(text("This guide is no longer available").waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["social.article.block.0"].exists)
+        app.terminate()
+        launch("guide", scenario: "articleEmpty")
+        row = app.buttons["social.information.91"]; reveal(row); row.tap()
+        XCTAssertTrue(text("This guide does not have readable content yet").waitForExistence(timeout: 5))
+        app.terminate()
+        launch("guide", scenario: "articleRetry")
+        row = app.buttons["social.information.91"]; reveal(row); row.tap()
+        XCTAssertTrue(text("Unable to load this information").waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["social.article.block.0"].exists)
+        app.buttons["Retry"].tap()
+        XCTAssertTrue(text("Synthetic article heading").waitForExistence(timeout: 5))
+    }
+
 }

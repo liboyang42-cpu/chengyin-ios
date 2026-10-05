@@ -7,7 +7,7 @@ import SwiftUI
             Section { Text("templateAuthor.introBody"); Text("templateAuthor.unavailable").foregroundStyle(.secondary) }
             Section {
                 NavigationLink {
-                    TemplateAuthoringView(coordinator: session.templateAuthoringEditor(), sessionRevision: session.sessionRevision)
+                    TemplateAuthoringView(coordinator: session.templateAuthoringEditor(), sessionRevision: session.sessionRevision, metadataReader: session)
                 } label: { Label("templateAuthor.title", systemImage: "square.and.pencil") }
                     .accessibilityIdentifier("templateAuthor.openEditor")
                 NavigationLink {

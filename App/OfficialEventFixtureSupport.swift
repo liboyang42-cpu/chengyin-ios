@@ -4,6 +4,7 @@ import SwiftUI
 @MainActor final class OfficialFixtureReader: OfficialEventReading {
     enum Scenario: String {
         case content, empty, failure, retry, guest, unauthorized, noPermission, unconfigured, unavailable, paused, ended, unknown
+        case warningKnown, warningUnknown, warningAbsent, warningFalse, warningMalformed
     }
     let scenario: Scenario
     private(set) var scope = UUID()
@@ -26,6 +27,18 @@ import SwiftUI
     }
     func events(city: String?) async throws -> [OfficialEvent] {
         try check()
+        let warningFields: String?
+        switch scenario {
+        case .warningKnown: warningFields = #", "recruitmentBlocked":true, "recruitmentBlockedReason":"  Synthetic source explanation: event information needs an update.  ""#
+        case .warningUnknown: warningFields = #", "recruitmentBlocked":true, "recruitmentBlockedReason":" \n\t ""#
+        case .warningAbsent: warningFields = #", "recruitmentBlockedReason":"Synthetic reason without an explicit marker""#
+        case .warningFalse: warningFields = #", "recruitmentBlocked":false, "recruitmentBlockedReason":"Synthetic reason with a false marker""#
+        case .warningMalformed: warningFields = #", "recruitmentBlocked":"true", "recruitmentBlockedReason":"Synthetic reason with a malformed marker""#
+        default: warningFields = nil
+        }
+        if let warningFields {
+            return try decode([OfficialEvent].self, "[{\"id\":71,\"title\":\"Synthetic event information\",\"status\":3\(warningFields)}]")
+        }
         return scenario == .empty ? [] : try decode([OfficialEvent].self, OfficialEventSyntheticFixtures.eventsJSON)
     }
     func detail(id: Int) async throws -> OfficialEvent {

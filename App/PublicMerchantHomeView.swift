@@ -4,6 +4,7 @@ import SwiftUI
 @MainActor struct PublicMerchantHomeContext {
     var reader: any PublicMerchantHomeReading = DisabledPublicMerchantHomeReader()
     var publicReviews: ((PublicMerchantReviewTarget) -> AnyView)?
+    var featured: PublicMerchantFeaturedContext?
     var shopNpcChat = false
     // Correct future consumer: MerchantNpcApi /api/ai/npc/merchant-chat with merchant row ID.
     // Never route this public merchant card into play-node ShopNpc /shop-chat.
@@ -21,6 +22,8 @@ import SwiftUI
     @State private var loading = false
     @State private var generation = 0
     @State private var loadedKey: Key?
+    @State private var snapshotID = UUID()
+    @State private var featuredSelection: PublicMerchantFeaturedSelection?
     private struct Key: Hashable { let target: PublicMerchantHomeTarget?; let scope: UUID; let configured: Bool }
     private var key: Key { .init(target: target, scope: context.reader.scope, configured: context.reader.isConfigured) }
     var body: some View {
@@ -34,6 +37,13 @@ import SwiftUI
         .navigationTitle("merchant.publicHome.title")
         .navigationBarTitleDisplayMode(.inline)
         .task(id: key) { await load() }
+        .navigationDestination(item: $featuredSelection) { selection in
+            if canOpen(selection), let destination = context.featured {
+                destination.destination(selection.route)
+            } else { Text("merchant.publicHome.unavailable") }
+        }
+        .onChange(of: key) { _, _ in featuredSelection = nil }
+        .onChange(of: context.featured?.scope) { _, _ in featuredSelection = nil }
         // Preserve the link backing a pushed reviews screen; key fencing still hides stale data.
         .onDisappear { generation += 1; loading = false }
     }
@@ -56,6 +66,7 @@ import SwiftUI
             }
             field(value.address); field(value.businessTime)
         }
+        featuredCard(value)
         if let review = value.reviewTarget, let destination = context.publicReviews {
             NavigationLink { destination(review) } label: { Label("merchant.publicHome.reviews", systemImage: "star.bubble") }
                 .accessibilityIdentifier("merchant.publicHome.reviews")
@@ -88,6 +99,28 @@ import SwiftUI
             }.accessibilityIdentifier("merchant.publicHome.cooperation")
         }
     }
+    @ViewBuilder private func featuredCard(_ value: PublicMerchantHome) -> some View {
+        if let target, let featured = value.publicFeatured(for: target), let route = featured.route {
+            Section("merchant.publicHome.featured.title") {
+                PublicMerchantFeaturedCard(featured: featured, image: context.image)
+                if let destination = context.featured,
+                   let selection = PublicMerchantFeaturedSelection(home: value, target: target,
+                       homeScope: context.reader.scope, destinationScope: destination.scope, snapshotID: snapshotID),
+                   canOpen(selection) {
+                    Button(LocalizedStringKey(route == .couponWallet ? "merchant.publicHome.featured.openWallet" : "merchant.publicHome.featured.openActivity")) {
+                        guard canOpen(selection) else { return }
+                        featuredSelection = selection
+                    }.accessibilityIdentifier("merchant.publicHome.featured.open")
+                }
+            }
+        }
+    }
+    private func canOpen(_ selection: PublicMerchantFeaturedSelection) -> Bool {
+        guard !loading, failure == nil, loadedKey == key, context.reader.isConfigured,
+              let home, let target, let destination = context.featured, destination.isCurrent() else { return false }
+        return selection.isCurrent(home: home, target: target, homeScope: context.reader.scope,
+                                   destinationScope: destination.scope, snapshotID: snapshotID)
+    }
     @ViewBuilder private func field(_ value: String?) -> some View { if let value, !value.isEmpty { Text(verbatim: value).textSelection(.enabled) } }
     @ViewBuilder private func labeled(_ value: String?, label: LocalizedStringKey) -> some View {
         if let value, !value.isEmpty { LabeledContent(label, value: value) }
@@ -102,6 +135,7 @@ import SwiftUI
         generation += 1
         let ticket = generation; let snapshot = key
         home = nil; failure = nil; loadedKey = nil; loading = true
+        snapshotID = UUID(); featuredSelection = nil
         guard let target else { loading = false; failure = .invalid; loadedKey = snapshot; return }
         guard context.reader.isConfigured else { loading = false; failure = .notConfigured; loadedKey = snapshot; return }
         do {

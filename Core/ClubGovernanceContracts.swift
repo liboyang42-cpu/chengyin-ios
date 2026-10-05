@@ -176,7 +176,8 @@ public enum ClubGovernanceRead: String, CaseIterable {
             allowed = ["filter", "keyword"]; fields["filter"] = .string("all"); fields["keyword"] = .string("")
         case .topicCustomers: allowed = ["filter"]; fields["filter"] = .string("")
         case .leaderboard: allowed = ["sortBy"]; fields["sortBy"] = .string("composite")
-        case .feed, .posts: allowed = ["pageNum", "pageSize"]; fields["pageNum"] = .integer(1); fields["pageSize"] = .integer(20)
+        case .feed: allowed = ["limit"]; fields["limit"] = .integer(20)
+        case .posts: allowed = ["pageNum", "pageSize"]; fields["pageNum"] = .integer(1); fields["pageSize"] = .integer(20)
         case .notificationPreview: allowed = ["audienceType", "title", "content"]; fields["channel"] = .string("IN_APP"); fields["requestId"] = .null
         default: break
         }
@@ -187,7 +188,8 @@ public enum ClubGovernanceRead: String, CaseIterable {
         if self == .customers { guard ["all", "repeat", "new", "remark"].contains(fields["filter"]?.string ?? "") else { throw ClubGovernanceFailure.invalidRequest } }
         if self == .topicCustomers { guard ["", "pending", "contacted", "verified"].contains(fields["filter"]?.string ?? "!") else { throw ClubGovernanceFailure.invalidRequest } }
         if self == .leaderboard { guard ["composite", "mileage", "pace", "duration"].contains(fields["sortBy"]?.string ?? "") else { throw ClubGovernanceFailure.invalidRequest } }
-        if [.feed, .posts].contains(self) { guard (fields["pageNum"]?.int ?? 0) > 0, (1...100).contains(fields["pageSize"]?.int ?? 0) else { throw ClubGovernanceFailure.invalidRequest } }
+        if self == .feed { guard (1...50).contains(fields["limit"]?.int ?? 0) else { throw ClubGovernanceFailure.invalidRequest } }
+        if self == .posts { guard (fields["pageNum"]?.int ?? 0) > 0, (1...100).contains(fields["pageSize"]?.int ?? 0) else { throw ClubGovernanceFailure.invalidRequest } }
         if self == .notificationPreview { try ClubGovernanceCommand.validateNotification(fields, scope: scope) }
         return fields
     }

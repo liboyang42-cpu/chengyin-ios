@@ -42,7 +42,7 @@ import SwiftUI
                     else {
                         Text(verbatim: row.title).font(.title2.bold())
                         if let summary = row.summary { Text(verbatim: summary).foregroundStyle(.secondary) }
-                        if let contents = row.contents { Text(verbatim: contents).textSelection(.enabled) }
+                        if let contents = row.contents { SocialArticleContentView(contents: contents) }
                         else { Text("social.guide.noContent") }
                     }
                 }

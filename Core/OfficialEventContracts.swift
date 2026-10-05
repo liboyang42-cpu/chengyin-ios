@@ -76,6 +76,9 @@ public struct OfficialEvent: Decodable, Equatable, Identifiable {
     public let roamEnabled: Bool
     public let paused: Bool
     public let pausedReason: String?
+    /// Public-list information only. These facts never grant or deny participation.
+    public let recruitmentBlocked: Bool?
+    public let recruitmentBlockedReason: String?
     public let eligible: Bool?
     public let contractVersion: Int?
     public let activityStart: OfficialEventTime?
@@ -87,6 +90,12 @@ public struct OfficialEvent: Decodable, Equatable, Identifiable {
     public var isCompleteRecord: Bool { id > 0 && !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
     public var isV2: Bool { (contractVersion ?? 1) >= 2 }
     public var completedMissionCount: Int { missions.filter { $0.complete == true }.count }
+    public var recruitmentWarningReason: String? {
+        guard recruitmentBlocked == true,
+              let reason = recruitmentBlockedReason?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !reason.isEmpty else { return nil }
+        return reason
+    }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: OfficialKey.self)
         id = c.integer("id") ?? 0; title = c.text("title") ?? ""
@@ -96,6 +105,8 @@ public struct OfficialEvent: Decodable, Equatable, Identifiable {
         myProgress = c.integer("myProgress").flatMap { $0 >= 0 ? $0 : nil }
         signed = c.flag("signed"); roamEnabled = c.flag("roamEnabled") == true
         paused = c.flag("paused") == true; pausedReason = c.text("pausedReason")
+        recruitmentBlocked = c.flag("recruitmentBlocked")
+        recruitmentBlockedReason = c.text("recruitmentBlockedReason")
         eligible = c.flag("eligible"); contractVersion = c.integer("contractVersion")
         activityStart = try? c.decode(OfficialEventTime.self, forKey: OfficialKey("activityStart"))
         activityEnd = try? c.decode(OfficialEventTime.self, forKey: OfficialKey("activityEnd"))

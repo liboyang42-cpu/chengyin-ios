@@ -6,20 +6,37 @@ import SwiftUI
     @Published var review: TemplateAuthoringReview?
     @Published var revision = 0
     @Published var busy = false
+    @Published private(set) var optionMediaIssue: String?
+    @Published private(set) var ruleSteps = TemplateAuthoringRuleSteps(raw: nil)
+    @Published private(set) var ruleStepIssue: String?
+    private var optionMediaGeneration = 0
+    private(set) var storyEditorGeneration = 0
+    var legacyHintGeneration = UUID()
+    private(set) var metadataGeneration = UUID()
     private var epoch: TemplateAuthoringSession?
     private var draftIdentity: TemplateAuthoringIdentity?
     init(coordinator: TemplateAuthoringCoordinator) { self.coordinator = coordinator }
+    // A pending/terminal write locks edits but must not blank the same owner's retained hints.
+    var canReadLegacyHints: Bool { coordinator.session != nil && epoch == coordinator.session && draftIdentity == coordinator.identity }
+    var canReadMetadataDraft: Bool { coordinator.session != nil && epoch == coordinator.session && draftIdentity == coordinator.identity }
+    var canReadStoryDraft: Bool { coordinator.session != nil && epoch == coordinator.session && draftIdentity == coordinator.identity }
     var canEdit: Bool { coordinator.session != nil && epoch == coordinator.session && draftIdentity == coordinator.identity && !coordinator.locked && coordinator.restore == .missing }
     func load() {
+        metadataGeneration = UUID()
+        storyEditorGeneration += 1
+        legacyHintGeneration = UUID()
         // Child editors mutate the shared local draft while the parent Form is offscreen.
         // Preserve those edits before a same-owner reappearance reload, never across identity changes.
         if canEdit, draft != coordinator.draft { coordinator.change(draft) }
         coordinator.synchronizeSession(); coordinator.open()
         draft = coordinator.draft; epoch = coordinator.session; draftIdentity = coordinator.identity
-        review = nil; revision += 1
+        resetRuleSteps()
+        review = nil; optionMediaIssue = nil; revision += 1
     }
     func changed() {
+        metadataGeneration = UUID()
         guard canEdit else { draft = coordinator.draft; return }
+        if ruleSteps.storedText != draft.ruleInstructions { resetRuleSteps() }
         coordinator.change(draft); review = nil; revision += 1
     }
     func setGameEnabled(_ game: TemplateAdvancedGame, _ enabled: Bool) {
@@ -30,18 +47,80 @@ import SwiftUI
         // Commit before returning to the parent, whose task reloads the coordinator.
         changed()
     }
-    func restore() { coordinator.restoreDraft(); draft = coordinator.draft; revision += 1 }
-    func discard() { coordinator.discardLocal(); draft = coordinator.draft; revision += 1 }
+    func restore() {
+        metadataGeneration = UUID()
+        storyEditorGeneration += 1; legacyHintGeneration = UUID(); optionMediaGeneration += 1
+        optionMediaIssue = nil; coordinator.restoreDraft(); draft = coordinator.draft
+        resetRuleSteps(); revision += 1
+    }
+    func discard() {
+        metadataGeneration = UUID()
+        storyEditorGeneration += 1; legacyHintGeneration = UUID(); optionMediaGeneration += 1
+        optionMediaIssue = nil; coordinator.discardLocal(); draft = coordinator.draft
+        resetRuleSteps(); revision += 1
+    }
     func save() { guard canEdit else { return }; coordinator.change(draft); coordinator.saveLocal(); revision += 1 }
-    func prepare(_ intent: TemplateAuthoringIntent) { guard canEdit else { return }; coordinator.change(draft); coordinator.prepare(intent); review = coordinator.review; revision += 1 }
+    func prepare(_ intent: TemplateAuthoringIntent) { guard canEdit else { return }; metadataGeneration = UUID(); coordinator.change(draft); coordinator.prepare(intent); review = coordinator.review; revision += 1 }
     func cancel() { coordinator.cancelReview(); review = nil; revision += 1 }
     func confirm(_ value: TemplateAuthoringReview) async { busy = true; review = nil; await coordinator.confirm(value); busy = false; revision += 1 }
-    func leave() { coordinator.leaveScreen(); review = nil }
+    func leave() { metadataGeneration = UUID(); coordinator.leaveScreen(); review = nil }
+    private func resetRuleSteps() {
+        ruleSteps = .init(raw: draft.ruleInstructions); ruleStepIssue = nil
+    }
+    func ruleStep(_ id: UUID) -> Binding<String> {
+        let bindingEpoch = epoch, bindingIdentity = draftIdentity
+        return .init(get: {
+            // Keep the same owner's locked review text visible; mutation still requires canEdit.
+            guard self.epoch != nil, self.epoch == self.coordinator.session, self.epoch == bindingEpoch,
+                  self.draftIdentity == self.coordinator.identity, self.draftIdentity == bindingIdentity,
+                  self.ruleSteps.storedText == self.draft.ruleInstructions else { return "" }
+            return self.ruleSteps.text(for: id) ?? ""
+        }, set: { text in
+            guard self.canEdit, self.epoch == bindingEpoch, self.draftIdentity == bindingIdentity,
+                  self.ruleSteps.text(for: id) != nil else { return }
+            self.changeRuleSteps { try $0.update(id: id, text: text) }
+        })
+    }
+    func addRuleStep() { changeRuleSteps { try $0.add() } }
+    func removeRuleStep(_ id: UUID) { changeRuleSteps { try $0.remove(id: id) } }
+    private func changeRuleSteps(_ edit: (inout TemplateAuthoringRuleSteps) throws -> Void) {
+        guard canEdit, ruleSteps.storedText == draft.ruleInstructions else { return }
+        do {
+            var next = ruleSteps
+            try edit(&next)
+            ruleSteps = next; draft.ruleInstructions = next.storedText; ruleStepIssue = nil
+            changed()
+        } catch TemplateAuthoringRuleSteps.EditError.asciiLength {
+            ruleStepIssue = "templateRules.asciiLimit"
+        } catch TemplateAuthoringRuleSteps.EditError.rowLimit {
+            ruleStepIssue = "templateRules.rowLimit"
+        } catch { /* Unsupported or stale rows remain unchanged. */ }
+    }
     func optional(_ path: WritableKeyPath<TemplateAuthoringDraft, String?>) -> Binding<String> {
         .init(get: { self.draft[keyPath: path] ?? "" }, set: { self.draft[keyPath: path] = $0.isEmpty ? nil : $0 })
     }
     func number(_ path: WritableKeyPath<TemplateAuthoringDraft, Int?>) -> Binding<String> {
         .init(get: { self.draft[keyPath: path].map(String.init) ?? "" }, set: { self.draft[keyPath: path] = Int($0) })
+    }
+    func optionMedia(_ letter: TemplateChoiceOptionMedia.Letter, _ kind: TemplateChoiceOptionMedia.Kind) -> Binding<String> {
+        let bindingEpoch = epoch, bindingIdentity = draftIdentity
+        let bindingGeneration = optionMediaGeneration
+        return .init(get: {
+            // A write-only lock must not hide this owner's unchanged media references.
+            guard self.epoch != nil, self.epoch == self.coordinator.session, self.epoch == bindingEpoch,
+                  self.draftIdentity == self.coordinator.identity, self.draftIdentity == bindingIdentity,
+                  self.optionMediaGeneration == bindingGeneration else { return "" }
+            return self.draft.choiceOptionMedia.text(letter, kind) ?? ""
+        }, set: { text in
+            guard self.canEdit, self.epoch == bindingEpoch, self.draftIdentity == bindingIdentity,
+                  self.optionMediaGeneration == bindingGeneration, self.draft.validationMethod == .choice,
+                  self.draft.choiceOptionMedia.isSupported else { return }
+            do {
+                try self.draft.setChoiceOptionMedia(letter, kind, to: text)
+                self.optionMediaIssue = nil
+                self.changed()
+            } catch { self.optionMediaIssue = "templateAuthor.optionMedia.limit" }
+        })
     }
 }
 
@@ -53,8 +132,9 @@ import SwiftUI
     @State private var preview = false
     @State private var discard = false
     let sessionRevision: UInt64
-    init(coordinator: TemplateAuthoringCoordinator, sessionRevision: UInt64) {
-        _model = StateObject(wrappedValue: .init(coordinator: coordinator)); self.sessionRevision = sessionRevision
+    let metadataReader: (any DiscoveryReading)?
+    init(coordinator: TemplateAuthoringCoordinator, sessionRevision: UInt64, metadataReader: (any DiscoveryReading)? = nil) {
+        _model = StateObject(wrappedValue: .init(coordinator: coordinator)); self.sessionRevision = sessionRevision; self.metadataReader = metadataReader
     }
     var body: some View {
         Form {
@@ -120,14 +200,12 @@ import SwiftUI
             Section("templateAuthor.basics") {
                 TemplateAuthoringField("title", text: $model.draft.title)
                 TemplateAuthoringField("description", text: $model.draft.description, multiline: true)
-                TemplateAuthoringField("players", text: model.optional(\.players))
-                TemplateAuthoringField("duration", text: model.number(\.duration))
+                TemplateAuthoringMetadataFields(model: model, reader: metadataReader)
                 TemplateAuthoringField("difficulty", text: model.optional(\.difficulty))
                 TemplateAuthoringField("usageLocation", text: model.optional(\.usageLocation))
                 TemplateAuthoringField("requiredMaterials", text: model.optional(\.requiredMaterials))
                 TemplateAuthoringField("categoryId", text: model.number(\.categoryId))
-                TemplateAuthoringField("activityCategoryids", text: model.optional(\.activityCategoryids))
-                TemplateAuthoringField("ruleInstructions", text: model.optional(\.ruleInstructions), multiline: true)
+                TemplateAuthoringRuleFields(model: model)
                 TemplateAuthoringField("imgUrl", text: model.optional(\.imgUrl))
                 Text("templateAuthor.mediaHint").font(.caption).foregroundStyle(.secondary)
                 Toggle("templateAuthor.sync", isOn: .init(get: { model.draft.isSync == 1 }, set: { model.draft.isSync = $0 ? 1 : 0 }))
@@ -135,7 +213,7 @@ import SwiftUI
             Section("templateAuthor.finish") {
                 Toggle("templateAuthor.moduleEnabled", isOn: $model.draft.finishEnabled)
                 if model.draft.finishEnabled {
-                    Picker("templateAuthor.finish", selection: $model.draft.validationMethod) {
+                    Picker("templateAuthor.finish", selection: model.legacyHintMethodBinding()) {
                         ForEach(TemplateAuthoringMethod.allCases) { Text(LocalizedStringKey($0.labelKey)).tag($0) }
                     }.disabled(!model.draft.advanced.enabledGames.isEmpty).accessibilityIdentifier("templateAuthor.method")
                     TemplateAuthoringCompletionFields(model: model)
@@ -161,12 +239,15 @@ struct TemplateAuthoringField: View {
     let key: String
     @Binding var text: String
     let multiline: Bool
-    init(_ key: String, text: Binding<String>, multiline: Bool = false) { self.key = key; _text = text; self.multiline = multiline }
+    let accessibilityID: String?
+    init(_ key: String, text: Binding<String>, multiline: Bool = false, accessibilityID: String? = nil) {
+        self.key = key; _text = text; self.multiline = multiline; self.accessibilityID = accessibilityID
+    }
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(LocalizedStringKey("templateAuthor.field." + key)).font(.subheadline)
             TextField(LocalizedStringKey("templateAuthor.field." + key), text: $text, axis: multiline ? .vertical : .horizontal)
-                .lineLimit(multiline ? 3...10 : 1...1).accessibilityIdentifier("templateAuthor.field." + key)
+                .lineLimit(multiline ? 3...10 : 1...1).accessibilityIdentifier(accessibilityID ?? "templateAuthor.field." + key)
                 .textInputAutocapitalization(.sentences)
         }.padding(.vertical, 3)
     }
@@ -218,6 +299,10 @@ struct TemplateAuthoringPreviewView: View {
                 }
                 if let question = draft.questionName { Text(verbatim: question) }
                 if draft.validationMethod == .choice { ForEach([draft.questionA, draft.questionB, draft.questionC, draft.questionD].compactMap { $0 }, id: \.self) { Text(verbatim: $0) } }
+                if draft.validationMethod == .choice {
+                    TemplateChoiceOptionMediaFields(configuration: draft.choiceOptionMedia,
+                        field: { letter, kind in .constant(draft.choiceOptionMedia.text(letter, kind) ?? "") }, readOnly: true)
+                }
                 ForEach(draft.advanced.enabledGames) { game in
                     Text(LocalizedStringKey(game.labelKey))
                     if game.isMiniProgramAddition { NavigationLink("playkitAuthor.preview") { TemplateMiniGamePreviewView(draft: draft.advanced, game: game) } }
@@ -237,7 +322,7 @@ struct TemplateAuthoringPreviewView: View {
             }
             if draft.storyEnabled {
                 Section("templateAuthor.story") {
-                    if let story = draft.storyText { Text(verbatim: story) }
+                    if let story = try? draft.preparedStoryText() { Text(verbatim: story) }
                     ForEach((try? draft.storyBeats()) ?? []) { beat in
                         VStack(alignment: .leading) { if !beat.tag.isEmpty { Text(verbatim: beat.tag).font(.caption) }; Text(verbatim: beat.text); if !beat.imgs.isEmpty { Label("templateAuthor.linkedMedia", systemImage: "photo") } }
                     }

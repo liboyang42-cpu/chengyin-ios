@@ -6,11 +6,15 @@ struct DiscoveryTemplateBrowserView: View {
     let reader: any DiscoveryReading
     let authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)?
     let authoringRevision: UInt64
+    let imageReader: (any RetainedPublicImageReading)?
     @State private var tab = Shelf.topics
     @State private var categoryID: Int?
     @State private var pack: DiscoveryPackType?
     @State private var keyword = ""
     @State private var appliedKeyword = ""
+    @State private var topicKeyword = ""
+    @FocusState private var topicSearchFocused: Bool
+    @State private var appliedTopicSearch = DiscoveryTopicTemplateNameSearch("")
     @StateObject private var topics = DiscoveryLoader<[DiscoveryTopicTemplate]>()
     @StateObject private var games = DiscoveryLoader<[DiscoveryPlayTemplate]>()
     @StateObject private var home = DiscoveryLoader<DiscoveryTemplateHome>()
@@ -24,8 +28,9 @@ struct DiscoveryTemplateBrowserView: View {
     private var query: Query { Query(tab: tab, pack: pack, keyword: appliedKeyword) }
     private var hasGameFilter: Bool { pack != nil || !appliedKeyword.isEmpty }
 
-    init(reader: any DiscoveryReading, authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)? = nil, authoringRevision: UInt64 = 0) {
+    init(reader: any DiscoveryReading, authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)? = nil, authoringRevision: UInt64 = 0, imageReader: (any RetainedPublicImageReading)? = nil) {
         self.reader = reader; self.authoringFactory = authoringFactory; self.authoringRevision = authoringRevision
+        self.imageReader = imageReader
     }
 
     var body: some View {
@@ -61,6 +66,26 @@ struct DiscoveryTemplateBrowserView: View {
     }
 
     @ViewBuilder private var topicShelf: some View {
+        Section {
+            HStack {
+                TextField("discovery.topicNameSearch", text: $topicKeyword)
+                    .focused($topicSearchFocused)
+                    .submitLabel(.search)
+                    .onSubmit { applyTopicSearch() }
+                    .accessibilityIdentifier("discovery.topicNameSearch")
+                Button("discovery.searchAction") { applyTopicSearch() }
+                    .accessibilityIdentifier("discovery.topicNameSearch.submit")
+            }
+            Text("discovery.topicNameSearchScope").font(.caption).foregroundStyle(.secondary)
+            if appliedTopicSearch.isActive {
+                Text(verbatim: appliedTopicSearch.keyword)
+                    .accessibilityIdentifier("discovery.topicNameSearch.applied")
+                Button("discovery.clearTopicNameSearch") {
+                    topicKeyword = ""; appliedTopicSearch = DiscoveryTopicTemplateNameSearch("")
+                    topicSearchFocused = false
+                }.accessibilityIdentifier("discovery.topicNameSearch.clear")
+            }
+        }
         if let categories = home.value?.categories, !categories.isEmpty {
             Section {
                 Picker("discovery.category", selection: $categoryID) {
@@ -79,10 +104,17 @@ struct DiscoveryTemplateBrowserView: View {
             if rows.isEmpty {
                 ContentUnavailableView("discovery.emptyTopics", systemImage: "map", description: Text("discovery.emptyTopicsHint"))
             } else {
-                let matching = rows.filter { $0.matchesCategory(categoryID) }
-                let other = rows.filter { !$0.matchesCategory(categoryID) }
-                topicSection(categoryID == nil ? "discovery.recommended" : "discovery.categoryMatches", rows: matching)
-                topicSection("discovery.otherTemplates", rows: other)
+                let filtered = appliedTopicSearch.filter(rows)
+                if filtered.isEmpty {
+                    ContentUnavailableView("discovery.noResults", systemImage: "magnifyingglass",
+                                           description: Text("discovery.topicNameSearchScope"))
+                        .accessibilityIdentifier("discovery.topicNameSearch.noResults")
+                } else {
+                    let matching = filtered.filter { $0.matchesCategory(categoryID) }
+                    let other = filtered.filter { !$0.matchesCategory(categoryID) }
+                    topicSection(categoryID == nil ? "discovery.recommended" : "discovery.categoryMatches", rows: matching)
+                    topicSection("discovery.otherTemplates", rows: other)
+                }
             }
         }
         // Optional category loading must never replace a successful topic shelf with an error screen.
@@ -145,6 +177,7 @@ struct DiscoveryTemplateBrowserView: View {
                 ForEach(Array(rows.enumerated()), id: \.offset) { _, item in
                     NavigationLink {
                         DiscoveryTopicTemplatePreview(coordinator: reader.publicTopicTemplateCoordinator(id: item.id))
+                            .id(item.id) // Filtering must not reuse another row's stateful detail.
                     } label: {
                         VStack(alignment: .leading, spacing: 6) {
                             DiscoveryTitle(text: item.name, fallback: "discovery.untitledTopic").font(.headline)
@@ -163,12 +196,16 @@ struct DiscoveryTemplateBrowserView: View {
             Section(title) {
                 ForEach(Array(rows.enumerated()), id: \.offset) { _, item in
                     NavigationLink {
-                        DiscoveryTemplateDetailView(id: item.id, reader: reader, authoringFactory: authoringFactory, authoringRevision: authoringRevision)
+                        DiscoveryTemplateDetailView(id: item.id, reader: reader, authoringFactory: authoringFactory, authoringRevision: authoringRevision, imageReader: imageReader)
                     } label: { DiscoveryPlayRow(item: item) }
                     .accessibilityIdentifier("discovery.play.\(item.id)")
                 }
             }
         }
+    }
+    private func applyTopicSearch() {
+        appliedTopicSearch = DiscoveryTopicTemplateNameSearch(topicKeyword)
+        topicSearchFocused = false
     }
     private func applySearch() {
         appliedKeyword = keyword.trimmingCharacters(in: .whitespacesAndNewlines)

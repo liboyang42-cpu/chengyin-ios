@@ -89,7 +89,7 @@ final class DiscoveryContractTests: XCTestCase {
         XCTAssertEqual(item.ruleInstructions, "Rules")
         XCTAssertEqual(item.requiredMaterials, "Paper")
         XCTAssertEqual(item.usageLocation, "Park")
-        XCTAssertEqual(item.creatorNote, "Creator")
+        XCTAssertEqual(DiscoveryPlayTemplatePresentation(item).storyText, "Creator")
         XCTAssertEqual(item.verification, .shopQR)
         XCTAssertEqual(item.questionName, "Prompt")
     }
@@ -176,11 +176,11 @@ final class DiscoveryContractTests: XCTestCase {
     }
     func testNumericPlayersAndPublisherArePreserved() throws {
         let item = try decode(DiscoveryPlayTemplate.self, #"{"id":1,"players":6,"publisher":42,"storyText":"  "}"#)
-        XCTAssertEqual(item.playersText, "6"); XCTAssertEqual(item.creatorNote, "42")
+        XCTAssertEqual(item.playersText, "6"); XCTAssertEqual(DiscoveryPlayTemplatePresentation(item).publisher, "42"); XCTAssertNil(DiscoveryPlayTemplatePresentation(item).storyText)
     }
-    func testCreatorFallbackAndUnknownCodes() throws {
+    func testIndependentStoryAndUnknownCodes() throws {
         let item = try decode(DiscoveryPlayTemplate.self, #"{"id":1,"players":"--","duration":0,"storyText":" note ","publisher":"publisher","packType":99,"validationMethod":99}"#)
-        XCTAssertEqual(item.creatorNote, "note")
+        XCTAssertEqual(DiscoveryPlayTemplatePresentation(item).storyText, "note")
         XCTAssertNil(item.playersText); XCTAssertNil(item.durationMinutes); XCTAssertNil(item.pack)
         XCTAssertEqual(item.verification, .other)
     }
@@ -194,6 +194,54 @@ final class DiscoveryContractTests: XCTestCase {
         XCTAssertEqual(item.totalTime, 90); XCTAssertTrue(item.previewOnly); XCTAssertFalse(item.isVerified)
         XCTAssertTrue(item.matchesCategory(nil)); XCTAssertTrue(item.matchesCategory(10)); XCTAssertFalse(item.matchesCategory(0))
         XCTAssertFalse(item.matchesCategory(2))
+    }
+    func testTopicNameSearchTrimsAndUsesCaseInsensitiveNameSubstring() throws {
+        let rows = try decode([DiscoveryTopicTemplate].self, #"[{"id":8,"name":"A Neighborhood WALK"},{"id":9,"name":"A route"}]"#)
+        let search = DiscoveryTopicTemplateNameSearch(" \tNeIgHbOrHoOd\n ")
+        XCTAssertEqual(search.keyword, "NeIgHbOrHoOd"); XCTAssertTrue(search.isActive)
+        XCTAssertEqual(search.filter(rows).map(\.id), [8])
+    }
+    func testTopicNameSearchIgnoresSubtitleAndUnrelatedFields() throws {
+        let rows = try decode([DiscoveryTopicTemplate].self, #"[{"id":8,"name":"A route","subtitle":"secret","title":"secret","publisher":"secret"},{"id":9,"name":"Secret passage"},{"id":10,"name":null,"subtitle":"secret"}]"#)
+        XCTAssertEqual(DiscoveryTopicTemplateNameSearch("SECRET").filter(rows).map(\.id), [9])
+        XCTAssertEqual(DiscoveryTopicTemplateNameSearch(" ").filter(rows), rows)
+    }
+    func testTopicNameSearchPreservesSourceOrderCategoryPriorityAndPreviewFlags() throws {
+        let rows = try decode([DiscoveryTopicTemplate].self, #"[{"id":9,"name":"Night route","categoryIds":"12","previewOnly":true},{"id":7,"name":"Day route","categoryIds":"11","templateStatus":"VERIFIED"},{"id":4,"name":"Unrelated","categoryIds":"11"},{"id":3,"name":"New route","categoryIds":"11,12","previewOnly":true}]"#)
+        let filtered = DiscoveryTopicTemplateNameSearch("route").filter(rows)
+        XCTAssertEqual(filtered.map(\.id), [9, 7, 3])
+        XCTAssertEqual(filtered.filter { $0.matchesCategory(11) }.map(\.id), [7, 3])
+        XCTAssertEqual(filtered.filter { !$0.matchesCategory(11) }.map(\.id), [9])
+        XCTAssertEqual(filtered[0], rows[0]); XCTAssertTrue(filtered[0].previewOnly)
+        XCTAssertEqual(filtered[1], rows[1]); XCTAssertTrue(filtered[1].isVerified)
+        XCTAssertEqual(DiscoveryTopicTemplateNameSearch("").filter(rows), rows)
+    }
+    func testTopicNameSearchIsLiteralWithoutAccentOrWidthFolding() throws {
+        let rows = try decode([DiscoveryTopicTemplate].self, #"[{"id":1,"name":"CAFÉ"},{"id":2,"name":"Cafe"},{"id":3,"name":"ＣＡＦＥ"},{"id":4,"name":"城市暗号"}]"#)
+        XCTAssertEqual(DiscoveryTopicTemplateNameSearch("cafe").filter(rows).map(\.id), [2])
+        XCTAssertEqual(DiscoveryTopicTemplateNameSearch("café").filter(rows).map(\.id), [1])
+        XCTAssertTrue(DiscoveryTopicTemplateNameSearch("cafe\u{0301}").filter(rows).isEmpty)
+        XCTAssertEqual(DiscoveryTopicTemplateNameSearch("暗号").filter(rows).map(\.id), [4])
+    }
+    func testTopicNameSearchUsesMiniTrimWhitespaceIncludingBOM() {
+        let whitespace: [Unicode.Scalar] = ["\u{0009}", "\u{000A}", "\u{000B}", "\u{000C}", "\u{000D}", "\u{0020}", "\u{00A0}", "\u{1680}", "\u{2000}", "\u{2001}", "\u{2002}", "\u{2003}", "\u{2004}", "\u{2005}", "\u{2006}", "\u{2007}", "\u{2008}", "\u{2009}", "\u{200A}", "\u{2028}", "\u{2029}", "\u{202F}", "\u{205F}", "\u{3000}", "\u{FEFF}"]
+        for scalar in whitespace {
+            let edge = String(scalar)
+            XCTAssertEqual(DiscoveryTopicTemplateNameSearch(edge + "Route" + edge).keyword, "Route")
+            XCTAssertFalse(DiscoveryTopicTemplateNameSearch(edge).isActive)
+        }
+        XCTAssertEqual(DiscoveryTopicTemplateNameSearch("\u{0085}Route\u{0085}").keyword, "\u{0085}Route\u{0085}")
+        XCTAssertEqual(DiscoveryTopicTemplateNameSearch("\u{200B}Route\u{200B}").keyword, "\u{200B}Route\u{200B}")
+    }
+    func testTopicNameSearchProjectsOnlyCurrentRowsAndDoesNotCacheMatches() throws {
+        let old = try decode([DiscoveryTopicTemplate].self, #"[{"id":1,"name":"Night route"}]"#)
+        let appended = try decode([DiscoveryTopicTemplate].self, #"[{"id":2,"name":"Another route"},{"id":3,"name":"Other"}]"#)
+        let search = DiscoveryTopicTemplateNameSearch("route")
+        XCTAssertEqual(search.filter(old + appended).map(\.id), [1, 2])
+        XCTAssertEqual(search.filter(appended).map(\.id), [2])
+        XCTAssertTrue(search.filter([]).isEmpty)
+        XCTAssertTrue(DiscoveryTopicTemplateNameSearch("missing").filter(old).isEmpty)
+        XCTAssertEqual(DiscoveryTopicTemplateNameSearch("").filter(appended), appended)
     }
     func testPublicTopicDurationPreservesIntegralSecondsAndExplicitZero() throws {
         for seconds in [0, 1, 59, 60, 90, 5400, Int.max] {

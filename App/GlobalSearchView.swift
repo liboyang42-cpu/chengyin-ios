@@ -46,7 +46,7 @@ import SwiftUI
                 } label: { Label("merchant.discover.title", systemImage: "storefront") }
                     .frame(minHeight: 44).accessibilityIdentifier("merchant.discover.entry")
                 if !reader.isConfigured { SearchMapIssue(key: "searchMap.notConfigured") }
-                else if loading { ProgressView("searchMap.loading").frame(maxWidth: .infinity) }
+                else if loading { ProgressView("searchMap.loading").frame(maxWidth: .infinity).accessibilityIdentifier("searchMap.loading") }
                 else if let issue { SearchMapIssue(key: issue) { Task { await search() } } }
                 else if let result { results(result) }
                 else { suggestions }
@@ -55,7 +55,7 @@ import SwiftUI
         .appNavigationTitle("searchMap.title")
         .sheet(isPresented: $showsFilters) {
             SearchMapFilterSheet(filter: filter, categories: categories, categoryFailed: categoryFailed) { next in
-                filter = next; invalidate(); Task { await search() }
+                applyFilter(next)
             }
         }
         .task(id: reader.scope) { await prepare() }
@@ -79,7 +79,9 @@ import SwiftUI
         if categoryFailed { SearchMapIssue(key: "searchMap.categoryFailed") { Task { await prepare(force: true) } } }
         LazyVGrid(columns: [GridItem(.adaptive(minimum: 125))], spacing: 12) {
             ForEach(categories) { category in
-                Button { filter.categoryID = category.id; Task { await search() } } label: {
+                Button {
+                    var next = filter; next.categoryID = category.id; applyFilter(next)
+                } label: {
                     Text(verbatim: category.name).frame(maxWidth: .infinity, minHeight: 44)
                 }.buttonStyle(.bordered).accessibilityIdentifier("searchMap.category.\(category.id)")
             }
@@ -115,6 +117,10 @@ import SwiftUI
                 .buttonStyle(QuestifyCardButtonStyle()).accessibilityIdentifier("searchMap.result.\(row.id)")
         }
         Text("searchMap.pageLimit").font(.caption).foregroundStyle(.secondary)
+    }
+    private func applyFilter(_ next: GlobalSearchQuery) {
+        // Invalidate synchronously, including category-only searches cleared to an empty query.
+        filter = next; invalidate(); Task { await search() }
     }
     private func invalidate() { gate.invalidate(); activeQuery = nil; result = nil; issue = nil; loading = false }
     private func prepare(force: Bool = false) async {

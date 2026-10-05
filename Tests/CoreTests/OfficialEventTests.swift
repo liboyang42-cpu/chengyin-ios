@@ -123,6 +123,65 @@ final class OfficialEventTests: XCTestCase {
             XCTAssertTrue(value.bannerEnabled); XCTAssertNil(value.signed)
         }
     }
+    func testInformationWarningFieldsAreStrictOptionalServerFacts() throws {
+        let missing = try decode(OfficialEvent.self, #"{"id":71,"title":"Synthetic"}"#)
+        XCTAssertNil(missing.recruitmentBlocked); XCTAssertNil(missing.recruitmentBlockedReason)
+        XCTAssertNil(missing.recruitmentWarningReason)
+        for (raw, expected) in [("true", Optional(true)), ("false", Optional(false)), ("null", nil), ("1", nil), ("0", nil), ("\"true\"", nil), ("\"1\"", nil), ("{}", nil), ("[]", nil)] {
+            let event = try decode(OfficialEvent.self, "{\"id\":71,\"title\":\"Synthetic\",\"recruitmentBlocked\":\(raw),\"recruitmentBlockedReason\":\"Synthetic reason\"}")
+            XCTAssertEqual(event.recruitmentBlocked, expected, raw)
+            XCTAssertEqual(event.recruitmentBlockedReason, "Synthetic reason", raw)
+            XCTAssertEqual(event.recruitmentWarningReason, expected == true ? "Synthetic reason" : nil, raw)
+        }
+    }
+    func testExplicitInformationWarningTrimsOnlyOuterReasonWhitespace() throws {
+        let event = try decode(OfficialEvent.self, #"{"id":71,"title":"Synthetic","recruitmentBlocked":true,"recruitmentBlockedReason":" \nSynthetic [source] reason.\n保留来源说明。\t "}"#)
+        XCTAssertEqual(event.recruitmentBlockedReason, " \nSynthetic [source] reason.\n保留来源说明。\t ")
+        XCTAssertEqual(event.recruitmentWarningReason, "Synthetic [source] reason.\n保留来源说明。")
+    }
+    func testMissingBlankOrMalformedWarningReasonNeverInventsExplanation() throws {
+        let missing = try decode(OfficialEvent.self, #"{"id":71,"title":"Synthetic","recruitmentBlocked":true}"#)
+        XCTAssertEqual(missing.recruitmentBlocked, true); XCTAssertNil(missing.recruitmentWarningReason)
+        for raw in ["null", "\"\"", "\" \\n\\t \"", "false", "7", "{}", "[]"] {
+            let event = try decode(OfficialEvent.self, "{\"id\":71,\"title\":\"Synthetic\",\"recruitmentBlocked\":true,\"recruitmentBlockedReason\":\(raw)}")
+            XCTAssertEqual(event.recruitmentBlocked, true, raw)
+            XCTAssertNil(event.recruitmentWarningReason, raw)
+        }
+    }
+    func testReasonAloneAndUnrelatedFlagsCannotCreateInformationWarning() throws {
+        for fields in [#""recruitmentBlockedReason":"Synthetic reason""#, #""paused":true,"eligible":false,"recruitmentBlockedReason":"Synthetic reason""#] {
+            let event = try decode(OfficialEvent.self, "{\"id\":71,\"title\":\"Synthetic\",\(fields)}")
+            XCTAssertNil(event.recruitmentBlocked); XCTAssertNil(event.recruitmentWarningReason)
+        }
+    }
+    func testInformationWarningCannotChangeEventIdentityStatusOrParticipation() throws {
+        for status in [1, 2, 3, 4, 5, 9] {
+            for signed in [false, true] {
+                let fields = "\"id\":71,\"title\":\"Synthetic\",\"status\":\(status),\"signed\":\(signed),\"eligible\":true,\"paused\":false"
+                let original = try decode(OfficialEvent.self, "{\(fields)}")
+                let marked = try decode(OfficialEvent.self, "{\(fields),\"recruitmentBlocked\":true,\"recruitmentBlockedReason\":\"Synthetic reason\"}")
+                XCTAssertEqual(marked.id, original.id); XCTAssertEqual(marked.isCompleteRecord, original.isCompleteRecord)
+                XCTAssertEqual(marked.statusKey, original.statusKey); XCTAssertEqual(marked.participationKey, original.participationKey)
+                XCTAssertEqual(marked.eligible, original.eligible); XCTAssertEqual(marked.paused, original.paused)
+                XCTAssertEqual(marked.signed, original.signed)
+                for bucket in OfficialEventBucket.allCases {
+                    XCTAssertEqual(bucket.includes(marked), bucket.includes(original))
+                }
+            }
+        }
+    }
+    func testPublicReadKeepsMarkedRowsAndExistingDuplicateIdentityRules() async throws {
+        let transport = OfficialTestTransport(#"{"code":200,"data":[{"id":71,"title":"Synthetic marked","status":3,"recruitmentBlocked":true,"recruitmentBlockedReason":"Synthetic reason"},{"id":71,"title":"Duplicate","status":3},{"id":72,"title":"Synthetic unmarked","status":3,"recruitmentBlocked":false},{"id":73,"title":"Synthetic unknown","status":3,"recruitmentBlocked":"true"},{"id":0,"title":"Invalid","recruitmentBlocked":true}]}"#)
+        let rows = try await service(transport).events()
+        XCTAssertEqual(rows.map(\.id), [71, 72, 73])
+        XCTAssertEqual(OfficialEventFilter.visible(rows, bucket: .live).map(\.id), [71, 72, 73])
+        XCTAssertEqual(rows[0].recruitmentWarningReason, "Synthetic reason")
+        XCTAssertEqual(rows[1].recruitmentBlocked, false); XCTAssertNil(rows[2].recruitmentBlocked)
+        let request = try XCTUnwrap(transport.requests.first)
+        XCTAssertEqual(transport.requests.count, 1); XCTAssertEqual(request.httpMethod, "GET")
+        XCTAssertEqual(request.url?.path, "/test/api/official/events"); XCTAssertNil(request.httpBody)
+        XCTAssertNil(request.value(forHTTPHeaderField: "Authorization"))
+    }
     func testSourceDatesV2MissionsAndCollectiveAreServerFacts() throws {
         let event = try decode(OfficialEvent.self, OfficialEventSyntheticFixtures.eventJSON)
         XCTAssertTrue(event.isV2); XCTAssertEqual(event.completedMissionCount, 1)

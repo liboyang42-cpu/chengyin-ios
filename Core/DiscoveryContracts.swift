@@ -63,7 +63,6 @@ public struct DiscoveryPlayTemplate: Decodable, Equatable, Identifiable {
     public let useNum: Int?
     public let packType: Int
 
-    public var creatorNote: String? { discoveryNonempty(storyText) ?? discoveryNonempty(publisher) }
     public var durationMinutes: Int? { duration.flatMap { $0 > 0 ? $0 : nil } }
     public var playersText: String? {
         let value = discoveryNonempty(players)
@@ -98,6 +97,7 @@ public struct DiscoveryPlayTemplate: Decodable, Equatable, Identifiable {
         status = try c.decodeIfPresent(Int.self, forKey: .status)
         publishStatus = try c.decodeIfPresent(Int.self, forKey: .publishStatus)
         useNum = try c.decodeIfPresent(Int.self, forKey: .useNum)
+        guard useNum.map({ $0 >= 0 }) ?? true else { throw APIError.malformedResponse }
         packType = try c.decodeIfPresent(Int.self, forKey: .packType) ?? 0
     }
 }
@@ -148,6 +148,30 @@ public struct DiscoveryTopicTemplate: Decodable, Equatable, Identifiable {
         previewOnly = try c.decodeIfPresent(Bool.self, forKey: .previewOnly) ?? false
         templateStatus = try c.discoveryScalarText(.templateStatus)
         imgUrl = try c.discoveryScalarText(.imgUrl)
+    }
+}
+
+/// Local name-only projection over an already authorized, loaded public catalog.
+/// The catalog endpoint has no keyword/pagination contract; this grants no new read or write access.
+public struct DiscoveryTopicTemplateNameSearch: Equatable {
+    public let keyword: String
+    public var isActive: Bool { !keyword.isEmpty }
+
+    public init(_ text: String) {
+        // Match the mini client's String.trim(), including BOM but excluding U+0085.
+        let whitespace = CharacterSet(charactersIn:
+            "\u{0009}\u{000A}\u{000B}\u{000C}\u{000D}\u{0020}\u{00A0}\u{1680}"
+            + "\u{2000}\u{2001}\u{2002}\u{2003}\u{2004}\u{2005}\u{2006}\u{2007}\u{2008}\u{2009}\u{200A}"
+            + "\u{2028}\u{2029}\u{202F}\u{205F}\u{3000}\u{FEFF}")
+        keyword = text.trimmingCharacters(in: whitespace)
+    }
+
+    public func filter(_ rows: [DiscoveryTopicTemplate]) -> [DiscoveryTopicTemplate] {
+        guard isActive else { return rows }
+        let needle = keyword.lowercased()
+        // Plain lowercase + literal substring, without locale, accent or width folding.
+        // Filter before category grouping and retain server order, IDs and preview flags.
+        return rows.filter { $0.name.lowercased().range(of: needle, options: .literal) != nil }
     }
 }
 

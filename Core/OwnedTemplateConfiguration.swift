@@ -53,6 +53,11 @@ public struct OwnedTemplateConfigurationSnapshot {
     public let storyText: OwnedTemplateText
     public let preferenceJson: OwnedTemplateText
     public let medalStyle: OwnedTemplateText
+    public let questionOptionMediaJson: OwnedTemplateText
+    public var choiceOptionMedia: TemplateChoiceOptionMedia? {
+        guard let raw = questionOptionMediaJson.value else { return nil }
+        return .init(raw: raw)
+    }
     public let unsupportedFields: [String]
     private let qa: [TemplateQAField: OwnedTemplateText]
     private let originalResponse: Data
@@ -72,6 +77,7 @@ public struct OwnedTemplateConfigurationSnapshot {
         title = .read("title", from: fields); storyText = .read("storyText", from: fields)
         preferenceJson = .read("preferenceJson", from: fields)
         medalStyle = .read("medalStyle", from: fields)
+        questionOptionMediaJson = .read("questionOptionMediaJson", from: fields)
         validationMethod = fields["validationMethod"]?.integer
         sensor = validationMethod == 7 ? OwnedTemplateSensorConfiguration(
             type: .read("sensorType", from: fields), config: .read("sensorConfig", from: fields)) : nil
@@ -81,13 +87,16 @@ public struct OwnedTemplateConfigurationSnapshot {
             else if let id = value.integer, id >= 0 { provenance = .value(id) }
             else { provenance = .unsupported }
         } else { provenance = .missing }
-        let known = Set(TemplateQAField.allCases.map(\.rawValue) + ["id", "memberId", "title", "originalTemplateId", "validationMethod", "storyJson", "storyText"])
+        let known = Set(TemplateQAField.allCases.map(\.rawValue) + ["id", "memberId", "title", "originalTemplateId", "validationMethod", "storyJson", "storyText", "questionOptionMediaJson"])
         var unsupported = fields.keys.filter { !known.contains($0) }
         unsupported += qa.filter { $0.value == .unsupported }.map { $0.key.rawValue }
         if validationMethod != 1 && validationMethod != 3 { unsupported.append("validationMethod") }
         if title == .unsupported { unsupported.append("title") }
         if provenance == .unsupported { unsupported.append("originalTemplateId") }
         if storyText == .unsupported { unsupported.append("storyText") }
+        if questionOptionMediaJson == .unsupported || questionOptionMediaJson.value.map({ !TemplateChoiceOptionMedia(raw: $0).isSupported }) == true {
+            unsupported.append("questionOptionMediaJson")
+        }
         unsupportedFields = Array(Set(unsupported)).sorted()
         switch fields["storyJson"] {
         case nil, .null?: story = []

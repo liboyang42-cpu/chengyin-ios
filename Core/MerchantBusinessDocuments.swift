@@ -162,6 +162,40 @@ public struct MerchantBusinessListFilters: Equatable {
     public static let aftercareSearchKeys = ["refundNo", "customerNickname", "activityTitle", "reason"]
 }
 
+/// Ephemeral read-only projection of consecutive aftercare pages. Never supplied to
+/// mutation validation or persisted. The coordinator keeps its exact server snapshot.
+public struct MerchantAftercareLoadedPages: Equatable {
+    public let scope: MerchantBusinessScope
+    public let authorizationGeneration: UUID?
+    public let access: MerchantBusinessAccess
+    public let bucket: MerchantAftercareBucket
+    public private(set) var page: Int
+    public private(set) var hasMore: Bool
+    public private(set) var rows: [MerchantBusinessRecord]
+    public init(snapshot: MerchantBusinessSnapshot, scope: MerchantBusinessScope, authorizationGeneration: UUID?) throws {
+        guard case .aftercare(let bucket, let page) = snapshot.document.query, page == 1 else { throw MerchantBusinessFailure.stale }
+        self.scope = scope; self.authorizationGeneration = authorizationGeneration
+        access = snapshot.access; self.bucket = bucket; self.page = page
+        hasMore = snapshot.document.hasMore; rows = snapshot.document.rows
+    }
+    public func matches(scope: MerchantBusinessScope?, authorizationGeneration: UUID?, access: MerchantBusinessAccess) -> Bool {
+        self.scope == scope && self.authorizationGeneration == authorizationGeneration && self.access == access
+    }
+    public mutating func append(_ snapshot: MerchantBusinessSnapshot, scope: MerchantBusinessScope, authorizationGeneration: UUID?) throws {
+        guard matches(scope: scope, authorizationGeneration: authorizationGeneration, access: snapshot.access),
+              case .aftercare(let bucket, let page) = snapshot.document.query,
+              self.bucket == bucket, hasMore, page == self.page + 1 else { throw MerchantBusinessFailure.stale }
+        // Offset pagination can repeat an ID. Keep its original position with the
+        // latest validated fields, so SwiftUI never displays duplicate identities.
+        var indices = Dictionary(uniqueKeysWithValues: rows.enumerated().map { ($0.element.id, $0.offset) })
+        for row in snapshot.document.rows {
+            if let index = indices[row.id] { rows[index] = row }
+            else { indices[row.id] = rows.count; rows.append(row) }
+        }
+        self.page = page; hasMore = snapshot.document.hasMore
+    }
+}
+
 public struct MerchantBusinessDocument: Equatable {
     public let query: MerchantBusinessQuery
     public let sections: [MerchantBusinessSection]

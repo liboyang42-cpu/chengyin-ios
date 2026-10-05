@@ -119,4 +119,49 @@ final class OfficialEventFlowTests: XCTestCase {
         attachment.name = "Official invitation guest - Chinese large text dark reduced motion synthetic"
         attachment.lifetime = .keepAlways; add(attachment)
     }
+    func testExplicitInformationWarningKeepsEventOpenableAfterBackAndScopeChange() {
+        launch("warningKnown")
+        let row = app.buttons["official.event.71"]
+        XCTAssertTrue(row.waitForExistence(timeout: 10), app.debugDescription)
+        XCTAssertTrue(row.label.contains("Information incomplete"), row.label)
+        XCTAssertTrue(row.label.contains("Synthetic source explanation: event information needs an update."), row.label)
+        row.tap()
+        XCTAssertTrue(app.navigationBars["Official event details"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["Sign up"].exists)
+        app.navigationBars["Official event details"].buttons.firstMatch.tap()
+        XCTAssertTrue(row.waitForExistence(timeout: 5))
+        XCTAssertTrue(row.label.contains("Information incomplete"), row.label)
+        app.buttons["official.fixture.guest"].tap()
+        XCTAssertTrue(row.waitForExistence(timeout: 5))
+        XCTAssertTrue(row.label.contains("Synthetic source explanation: event information needs an update."), row.label)
+        app.buttons["official.fixture.account"].tap()
+        XCTAssertTrue(row.waitForExistence(timeout: 5)); row.tap()
+        XCTAssertTrue(app.navigationBars["Official event details"].waitForExistence(timeout: 5))
+    }
+    func testBlankWarningReasonUsesHonestChineseFallbackAtLargeText() {
+        launch("warningUnknown", chinese: true, accessible: true)
+        let row = app.buttons["official.event.71"]
+        reveal(row)
+        XCTAssertTrue(row.label.contains("信息不全"), row.label)
+        XCTAssertTrue(row.label.contains("来源未提供原因"), row.label)
+        XCTAssertFalse(row.label.contains("关键承接方"), row.label)
+        let attachment = XCTAttachment(screenshot: app.screenshot())
+        attachment.name = "Official information warning - Chinese large text dark reduced motion synthetic"
+        attachment.lifetime = .keepAlways; add(attachment)
+        row.tap()
+        XCTAssertTrue(app.navigationBars["官方活动详情"].waitForExistence(timeout: 5))
+    }
+    func testAbsentFalseAndMalformedMarkersNeverShowWarningFromReasonAlone() {
+        for scenario in ["warningAbsent", "warningFalse", "warningMalformed"] {
+            launch(scenario)
+            let row = app.buttons["official.event.71"]
+            XCTAssertTrue(row.waitForExistence(timeout: 10), scenario)
+            XCTAssertFalse(row.label.contains("Information incomplete"), row.label)
+            XCTAssertFalse(row.label.contains("Reason not provided by the source"), row.label)
+            XCTAssertFalse(row.label.contains("Synthetic reason"), row.label)
+            row.tap()
+            XCTAssertTrue(app.navigationBars["Official event details"].waitForExistence(timeout: 5), scenario)
+            app.terminate()
+        }
+    }
 }

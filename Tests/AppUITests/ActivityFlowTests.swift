@@ -55,6 +55,8 @@ final class ActivityFlowTests: XCTestCase {
             waitForHittable(app.staticTexts["activity.detail.clubGate"])
             XCTAssertTrue(app.staticTexts["Club membership required"].exists)
             XCTAssertFalse(element("activity.detail.content").exists)
+            XCTAssertFalse(element("activity.reviews.count").exists)
+            XCTAssertFalse(element("activity.reviews.text.0").exists)
             XCTAssertFalse(element("activity.detail.retry").exists)
             XCTAssertFalse(app.activityIndicators.firstMatch.exists)
             goBackToList()
@@ -106,6 +108,84 @@ final class ActivityFlowTests: XCTestCase {
         XCTAssertFalse(element("activity.row.601").exists)
         XCTAssertFalse(secondPage.exists)
         XCTAssertFalse(more.exists)
+    }
+
+    func testPeopleOpenExactProfilesAndPreserveReadOnlyRowsAfterBack() {
+        launchFixture("people")
+        tap(element("activity.row.101"))
+        waitForDetail()
+        for (identifier, title) in [("activity.people.host", "Fixture host profile"),
+                                    ("activity.people.participant.0", "Fixture participant profile")] {
+            scrollTo(app.buttons[identifier], in: element("activity.detail.content"))
+            tap(app.buttons[identifier])
+            XCTAssertTrue(app.staticTexts[title].waitForExistence(timeout: 10), app.debugDescription)
+            tap(app.navigationBars.buttons.firstMatch)
+            waitForDetail()
+        }
+        let missing = element("activity.people.participant.1.readOnly")
+        scrollTo(missing, in: element("activity.detail.content"))
+        XCTAssertTrue(missing.exists)
+        XCTAssertFalse(app.buttons["activity.people.participant.1"].exists)
+        XCTAssertFalse(app.buttons["activity.people.participant.2"].exists)
+        XCTAssertTrue(element("activity.people.participant.2.readOnly").exists)
+        XCTAssertEqual(app.staticTexts["activity.people.count"].label, "12")
+        XCTAssertFalse(app.buttons["activity.openRegistration"].exists)
+        goBackToList()
+        tap(element("activity.row.101"))
+        waitForDetail()
+        scrollTo(app.buttons["activity.people.host"], in: element("activity.detail.content"))
+        tap(app.buttons["activity.people.host"])
+        XCTAssertTrue(app.staticTexts["Fixture host profile"].waitForExistence(timeout: 10))
+        tap(app.buttons["activity.people.switchAccount"])
+        waitForHittable(element("activity.row.101"))
+        XCTAssertFalse(app.staticTexts["Fixture host profile"].exists)
+        XCTAssertFalse(element("activity.detail.content").exists)
+    }
+
+    func testReviewPreviewKeepsServerTotalAndSurvivesBackAndReopen() {
+        launchFixture("reviews")
+        for _ in 0..<2 {
+            tap(element("activity.row.101"))
+            waitForDetail()
+            let detail = element("activity.detail.content")
+            scrollTo(element("activity.reviews.average"), in: detail)
+            XCTAssertEqual(element("activity.reviews.average").label, "4.2 / 5")
+            XCTAssertEqual(element("activity.reviews.count").label, "12")
+            scrollTo(element("activity.reviews.text.0"), in: detail)
+            XCTAssertEqual(element("activity.reviews.author.0").label, "Fixture reviewer")
+            XCTAssertEqual(element("activity.reviews.text.0").label, "Fixture review text")
+            scrollTo(element("activity.reviews.text.1"), in: detail)
+            XCTAssertEqual(element("activity.reviews.author.1").label, "Player")
+            XCTAssertEqual(element("activity.reviews.text.1").label, "Fixture unrated review")
+            XCTAssertFalse(element("activity.reviews.text.2").exists)
+            XCTAssertFalse(app.buttons["activity.openRegistration"].exists)
+            XCTAssertFalse(app.buttons["payment.pay"].exists)
+            goBackToList()
+            XCTAssertFalse(element("activity.reviews.text.0").exists)
+        }
+    }
+
+    func testKnownEmptyReviewsDoNotShowAZeroStarRating() {
+        launchFixture("reviews-empty")
+        tap(element("activity.row.101"))
+        waitForDetail()
+        scrollTo(element("activity.reviews.empty"), in: element("activity.detail.content"))
+        XCTAssertEqual(element("activity.reviews.count").label, "0")
+        XCTAssertFalse(element("activity.reviews.average").exists)
+        XCTAssertFalse(element("activity.reviews.previewUnavailable").exists)
+        XCTAssertFalse(element("activity.reviews.text.0").exists)
+    }
+
+    func testMissingReviewsRemainUnknownRatherThanEmptyOrFiveStars() {
+        launchFixture("reviews-unknown")
+        tap(element("activity.row.101"))
+        waitForDetail()
+        scrollTo(element("activity.reviews.previewUnavailable"), in: element("activity.detail.content"))
+        XCTAssertTrue(element("activity.reviews.averageUnknown").exists)
+        XCTAssertTrue(element("activity.reviews.countUnknown").exists)
+        XCTAssertFalse(element("activity.reviews.average").exists)
+        XCTAssertFalse(element("activity.reviews.count").exists)
+        XCTAssertFalse(element("activity.reviews.empty").exists)
     }
 
     private func launchFixture(_ scenario: String, file: StaticString=#filePath, line: UInt=#line) {

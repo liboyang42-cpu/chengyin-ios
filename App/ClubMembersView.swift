@@ -99,6 +99,14 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
                 else { Text("club.memberNumber \(member.memberId)") }
                 if member.isOwner { Text("club.role.creator").font(.caption).foregroundStyle(.secondary) }
                 else if member.isAdmin { Text("club.role.administrator").font(.caption).foregroundStyle(.secondary) }
+                if let level = member.displayedLevel {
+                    Text("club.memberLevel \(level)").font(.caption).foregroundStyle(.secondary)
+                        .accessibilityIdentifier("club.member.level.\(member.memberId)")
+                }
+                if let joined = member.displayedJoinTime {
+                    Text("club.memberJoined \(joined)").font(.caption).foregroundStyle(.secondary)
+                        .accessibilityIdentifier("club.member.joined.\(member.memberId)")
+                }
             }
         }.padding(.vertical, 4)
     }

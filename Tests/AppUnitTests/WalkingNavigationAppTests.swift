@@ -37,6 +37,25 @@ import XCTest
             XCTAssertNil(fixture.factory.make(reference: try .init(kind: .cityNode, id: 71)))
         }
     }
+    func testCameraRejectsChangedFactoryIdentityBeforePollingClearsRoute() async throws {
+        for variant in 0..<6 {
+            let fixture = WalkingNavigationFixtureSupport()
+            let owner = try XCTUnwrap(fixture.context)
+            let model = try XCTUnwrap(fixture.factory.make(reference: .init(kind: .cityNode, id: 71)))
+            await model.start()
+            var gate = WalkingMapCamera.Gate()
+            let request = try XCTUnwrap(gate.request(.route, snapshot: model.cameraSnapshot))
+            let changedSession = try PlayExperienceSession(accountID: variant == 0 ? 72 : owner.session.accountID,
+                epoch: variant == 1 ? 2 : owner.session.epoch, namespace: owner.session.namespace,
+                token: variant == 2 ? "different-synthetic" : "synthetic")
+            fixture.context = RuntimeDependencyContext(market: variant == 3 ? .china : owner.market,
+                baseURL: variant == 4 ? URL(string: "https://different.invalid/")! : owner.baseURL,
+                role: variant == 5 ? "merchant" : owner.role, session: changedSession)
+            XCTAssertNotNil(model.route)
+            XCTAssertNil(model.cameraSnapshot)
+            XCTAssertNil(gate.consume(request, current: model.cameraSnapshot))
+        }
+    }
     func testNormalFactoryRestoresOnlyMatchingIdentityAndReauthorizes() async throws {
         let fixture = WalkingNavigationFixtureSupport()
         let model = try XCTUnwrap(fixture.factory.make(reference: .init(kind: .cityNode, id: 71)))

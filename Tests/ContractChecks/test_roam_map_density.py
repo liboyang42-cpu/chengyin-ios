@@ -32,7 +32,7 @@ class RoamMapDensityContracts(unittest.TestCase):
     def test_selection_context_includes_filter_session_read_and_snapshot(self):
         for value in ['let request: RequestKey', 'let generation: Int', 'let query: String',
                       'let placeFilter: RoamPlaceFilter', 'let eventFilter: RoamEventFilter',
-                      '.id(renderedKey)', 'key == presentationKey, loadedKey == key.request',
+                      '.id(scope)', 'key == presentationKey, loadedKey == key.request',
                       '!loading, issue == nil, snapshot == visibleItems', 'visibleItems.contains(item)',
                       '.onChange(of: requestKey) { _, _ in selected = nil }']:
             self.assertIn(value, self.host)

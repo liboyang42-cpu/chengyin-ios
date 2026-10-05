@@ -281,7 +281,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]
     needs: native
     env:
       EXPECTED_BUILD_FINGERPRINT: ${{ needs.native.outputs.build_fingerprint }}
@@ -300,6 +300,14 @@ jobs:
       shard_11: ${{ steps.completion.outputs.shard_11 }}
       shard_12: ${{ steps.completion.outputs.shard_12 }}
       shard_13: ${{ steps.completion.outputs.shard_13 }}
+      shard_14: ${{ steps.completion.outputs.shard_14 }}
+      shard_15: ${{ steps.completion.outputs.shard_15 }}
+      shard_16: ${{ steps.completion.outputs.shard_16 }}
+      shard_17: ${{ steps.completion.outputs.shard_17 }}
+      shard_18: ${{ steps.completion.outputs.shard_18 }}
+      shard_19: ${{ steps.completion.outputs.shard_19 }}
+      shard_20: ${{ steps.completion.outputs.shard_20 }}
+      shard_21: ${{ steps.completion.outputs.shard_21 }}
     runs-on: macos-26
     # Run49 spent 9–13 minutes on setup/build/launch before executing methods.
     # Reuse products; keep a bounded margin for the full shard and result export.
@@ -340,7 +348,7 @@ jobs:
         run: xcrun simctl bootstatus "$TEST_SIMULATOR_ID" -b
       - name: Test native module flows and session boundaries
         run: |
-          python3 tools/run_ui_shard.py --shard ${{ matrix.shard }} --count 14 \
+          python3 tools/run_ui_shard.py --shard ${{ matrix.shard }} --count 22 \
             --simulator "$TEST_SIMULATOR_ID" \
             --xctestrun "$UI_XCTESTRUN" --deadline-seconds 1800 \
             --result-bundle "$RUNNER_TEMP/questify-ui-results.xcresult" \

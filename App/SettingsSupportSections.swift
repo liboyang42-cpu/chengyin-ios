@@ -50,7 +50,7 @@ import UIKit
             }
         }
         }
-        SettingsAttributionsSection()
+        SettingsAttributionsSection(copyText: copyText)
     }
 }
 
@@ -142,7 +142,8 @@ import UIKit
     }
 }
 
-struct SettingsAttributionsSection: View {
+@MainActor struct SettingsAttributionsSection: View {
+    let copyText: (String) throws -> Void
     var body: some View {
         Section("settingsNative.attribution.title") {
             Text("settingsNative.attribution.context").font(.footnote).foregroundStyle(.secondary)
@@ -152,6 +153,9 @@ struct SettingsAttributionsSection: View {
                     Text(verbatim: attribution.detail).font(.footnote)
                     Text(verbatim: attribution.sourceURL).font(.footnote).foregroundStyle(.secondary)
                         .textSelection(.enabled)
+                    NativeCopyTextButton(text: attribution.sourceURL,
+                        title: LocalizedStringKey(attribution.copyTitleKey),
+                        identifier: "settingsNative.attribution.copy.\(attribution.id)", copyText: copyText)
                 }
                 .accessibilityIdentifier("settingsNative.attribution.\(attribution.id)")
             }

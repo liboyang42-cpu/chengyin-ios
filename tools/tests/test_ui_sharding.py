@@ -129,7 +129,7 @@ class UIShardingTests(unittest.TestCase):
                     module.measured_weights(root,profile)
     def test_trial_profile_preserves_estimate_provenance_and_all_shard_coverage(self):
         data=json.loads((module.ROOT/'tools/ui_duration_weights.json').read_text())
-        self.assertEqual(module.DEFAULT_SHARD_COUNT,14)
+        self.assertEqual(module.DEFAULT_SHARD_COUNT,22)
         self.assertEqual(data['unobserved_method_seconds'],60)
         records=data['estimate_provenance']['methods']
         self.assertEqual(data['estimate_provenance']['baseline_estimate_count'],23)
@@ -184,3 +184,65 @@ class UIShardingTests(unittest.TestCase):
         self.assertEqual(data['unobserved_method_seconds'],60)
         for method,seconds in expected.items():
             self.assertEqual(data['estimated_method_seconds'][method],seconds)
+
+    def test_next_player_feature_estimates_track_actual_methods_without_claiming_measurements(self):
+        data=json.loads((module.ROOT/'tools/ui_duration_weights.json').read_text())
+        expected={
+            'ActivityFlowTests.testPeopleOpenExactProfilesAndPreserveReadOnlyRowsAfterBack':180,
+            'MerchantBusinessFlowTests.testChineseAftercareSearchSpansLoadedPages':180,
+        }
+        records=[record for record in data['estimate_provenance']['methods']
+                 if record['source']=='nextPlayerFeatureAcceptance']
+        self.assertEqual({record['method']:record['seconds'] for record in records},expected)
+        self.assertTrue(all(record['measured'] is False and record['basis'] for record in records))
+        retired='MerchantBusinessFlowTests.testChineseAftercareSearchStaysOnCurrentPage'
+        self.assertNotIn(retired,data['estimated_method_seconds'])
+        self.assertNotIn(retired,{record['method'] for record in data['estimate_provenance']['methods']})
+        for method,seconds in expected.items():
+            case,name=method.split('.')
+            source=(module.ROOT/'Tests/AppUITests'/(case+'.swift')).read_text()
+            self.assertRegex(source,r'\bfunc\s+'+re.escape(name)+r'\s*\(')
+            self.assertEqual(data['estimated_method_seconds'][method],seconds)
+            self.assertNotIn(method,data['method_seconds'])
+
+    def test_detail_favorites_estimates_match_new_source_methods_and_are_not_measurements(self):
+        data=json.loads((module.ROOT/'tools/ui_duration_weights.json').read_text())
+        expected={
+            'ActivityFlowTests.testReviewPreviewKeepsServerTotalAndSurvivesBackAndReopen':180,
+            'ActivityFlowTests.testKnownEmptyReviewsDoNotShowAZeroStarRating':120,
+            'ActivityFlowTests.testMissingReviewsRemainUnknownRatherThanEmptyOrFiveStars':120,
+            'TopicFlowTests.testChapterItineraryEstimatesUnknownLegsAndBackReopen':180,
+            'TopicFlowTests.testChapterItineraryEstimateUsesChineseLabels':120,
+            'AccountCollectionFlowTests.testSavedPostsAreDefaultAndOpenLegacyDetailThenReturn':180,
+            'AccountCollectionFlowTests.testSavedPostPageFailureRetainsRowsAndRetryDoesNotSkip':120,
+            'AccountCollectionFlowTests.testSavedPostFailureDoesNotPoisonTopicCollection':120,
+            'AccountCollectionFlowTests.testSavedPostsDistinguishEmptyFromUnavailableAndClearOnSignOut':240,
+        }
+        records=[record for record in data['estimate_provenance']['methods']
+                 if record['source']=='detailFavoritesAcceptance']
+        self.assertEqual({record['method']:record['seconds'] for record in records},expected)
+        self.assertTrue(all(record['measured'] is False and record['basis'] for record in records))
+        self.assertEqual(sum(expected.values()),1380)
+        for method,seconds in expected.items():
+            case,name=method.split('.')
+            source=(module.ROOT/'Tests/AppUITests'/(case+'.swift')).read_text()
+            self.assertRegex(source,r'\bfunc\s+'+re.escape(name)+r'\s*\(')
+            self.assertEqual(data['estimated_method_seconds'][method],seconds)
+            self.assertNotIn(method,data['method_seconds'])
+
+    def test_detail_favorites_replan_preserves_deadline_reserve_and_every_required_shard(self):
+        data=json.loads((module.ROOT/'tools/ui_duration_weights.json').read_text())
+        budget=data['planning_budget'];replan=budget['shard_replan_history'][-1]
+        self.assertEqual((budget['deadline_seconds'],budget['startup_reserve_seconds']),(1800,300))
+        self.assertEqual((replan['previous_shard_count'],replan['shard_count']),(14,15))
+        self.assertLessEqual(replan['shard_count'],module.DEFAULT_SHARD_COUNT)
+        self.assertEqual((replan['new_method_count'],replan['new_estimated_method_seconds']),(9,1380))
+        self.assertTrue(replan['basis'])
+        costs=module.measured_weights(module.ROOT/'Tests/AppUITests',module.ROOT/'tools/ui_duration_weights.json')
+        self.assertGreater(sum(costs.values()),replan['previous_shard_count']*
+                           (budget['deadline_seconds']-budget['startup_reserve_seconds']))
+        groups=module.partition(costs,module.DEFAULT_SHARD_COUNT)
+        self.assertEqual(len(groups),module.DEFAULT_SHARD_COUNT)
+        for group in groups:
+            self.assertLessEqual(sum(costs[name] for name in group)+budget['startup_reserve_seconds'],
+                                 budget['deadline_seconds'])

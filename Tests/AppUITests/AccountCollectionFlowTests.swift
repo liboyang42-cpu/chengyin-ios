@@ -40,6 +40,7 @@ final class AccountCollectionFlowTests: XCTestCase {
     func testFavoritePaginationRoutesToRealTopicAndReturnsToSavedCollection() {
         launch()
         open("accountCollection.openFavorites")
+        app.segmentedControls["accountCollection.favorites.tabs"].buttons["Topics"].tap()
         XCTAssertTrue(app.buttons["accountCollection.favorite.301"].waitForExistence(timeout: 10))
         attachFixtureScreenshot(self, app: app, name: "Favorite topic full-bleed cards")
         let more = app.buttons["accountCollection.favorites.loadMore"]
@@ -56,6 +57,7 @@ final class AccountCollectionFlowTests: XCTestCase {
     }
     func testLaterPageFailureKeepsRowsAndRetryReadsSamePage() {
         launch("pageFailure"); open("accountCollection.openFavorites")
+        app.segmentedControls["accountCollection.favorites.tabs"].buttons["Topics"].tap()
         let more = app.buttons["accountCollection.favorites.loadMore"]
         reveal(more); more.tap()
         XCTAssertTrue(app.staticTexts["Sample next page unavailable"].waitForExistence(timeout: 5))
@@ -98,6 +100,7 @@ final class AccountCollectionFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Sample coupons source unavailable"].waitForExistence(timeout: 10))
         app.navigationBars["My coupons"].buttons.firstMatch.tap()
         open("accountCollection.openFavorites")
+        app.segmentedControls["accountCollection.favorites.tabs"].buttons["Topics"].tap()
         XCTAssertTrue(app.buttons["accountCollection.favorite.301"].waitForExistence(timeout: 10))
         XCTAssertFalse(app.staticTexts["Sample coupons source unavailable"].exists)
     }
@@ -138,6 +141,8 @@ final class AccountCollectionFlowTests: XCTestCase {
         launch(language: "zh-Hans")
         open("accountCollection.openFavorites", diagnoseNavigation: true)
         assertChineseNavigation("我的收藏")
+        XCTAssertTrue(app.segmentedControls["accountCollection.favorites.tabs"].buttons["动态"].exists)
+        XCTAssertTrue(app.segmentedControls["accountCollection.favorites.tabs"].buttons["主题"].exists)
         app.navigationBars["我的收藏"].buttons.firstMatch.tap()
         open("accountCollection.openCoupons", diagnoseNavigation: true)
         assertChineseNavigation("我的优惠券")
@@ -148,6 +153,7 @@ final class AccountCollectionFlowTests: XCTestCase {
         launch(extra: ["--uitesting-dark", "--uitesting-large-text"])
         assertFixtureEnvironment(in: app, colorScheme: "dark", dynamicTypeSize: "accessibility3")
         open("accountCollection.openFavorites")
+        app.segmentedControls["accountCollection.favorites.tabs"].buttons["Topics"].tap()
         let favorite = app.buttons["accountCollection.favorite.301"]
         reveal(favorite)
         XCTAssertGreaterThanOrEqual(favorite.frame.height, 44)
@@ -158,6 +164,53 @@ final class AccountCollectionFlowTests: XCTestCase {
         reveal(coupon); coupon.tap()
         reveal(app.staticTexts["accountCollection.coupon.readOnly"])
         attachFixtureScreenshot(self, app: app, name: "Coupon detail large text dark mode")
+    }
+
+    func testSavedPostsAreDefaultAndOpenLegacyDetailThenReturn() {
+        launch(); open("accountCollection.openFavorites")
+        let first = app.buttons["accountCollection.post.801"]
+        XCTAssertTrue(first.waitForExistence(timeout: 10))
+        XCTAssertFalse(app.buttons["accountCollection.favorite.301"].exists)
+        reveal(first); first.tap()
+        XCTAssertTrue(app.navigationBars["Post details"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any)["square.detailPost"].firstMatch.waitForExistence(timeout: 5))
+        open("Close")
+        XCTAssertTrue(first.waitForExistence(timeout: 5))
+        let tabs = app.segmentedControls["accountCollection.favorites.tabs"]
+        tabs.buttons["Topics"].tap()
+        XCTAssertTrue(app.buttons["accountCollection.favorite.301"].waitForExistence(timeout: 5))
+        XCTAssertFalse(first.exists)
+        tabs.buttons["Posts"].tap()
+        XCTAssertTrue(first.waitForExistence(timeout: 5))
+    }
+    func testSavedPostPageFailureRetainsRowsAndRetryDoesNotSkip() {
+        launch("postPageFailure"); open("accountCollection.openFavorites")
+        let more = app.buttons["accountCollection.posts.loadMore"]
+        reveal(more); more.tap()
+        XCTAssertTrue(app.staticTexts["Sample saved post page unavailable"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["accountCollection.post.801"].exists)
+        let retry = app.buttons["accountCollection.retry"]
+        reveal(retry); retry.tap()
+        XCTAssertTrue(app.buttons["accountCollection.post.803"].waitForExistence(timeout: 5))
+        XCTAssertEqual(app.buttons.matching(identifier: "accountCollection.post.801").count, 1)
+    }
+    func testSavedPostFailureDoesNotPoisonTopicCollection() {
+        launch("postFailure"); open("accountCollection.openFavorites")
+        XCTAssertTrue(app.staticTexts["Sample saved posts unavailable"].waitForExistence(timeout: 5))
+        app.segmentedControls["accountCollection.favorites.tabs"].buttons["Topics"].tap()
+        XCTAssertTrue(app.buttons["accountCollection.favorite.301"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["Sample saved posts unavailable"].exists)
+    }
+    func testSavedPostsDistinguishEmptyFromUnavailableAndClearOnSignOut() {
+        launch("empty"); open("accountCollection.openFavorites")
+        XCTAssertTrue(app.descendants(matching: .any)["accountCollection.posts.empty"].firstMatch.waitForExistence(timeout: 5))
+        app.terminate()
+        launch("sessionChange"); open("accountCollection.openFavorites")
+        XCTAssertTrue(app.buttons["accountCollection.post.801"].waitForExistence(timeout: 5))
+        open("accountCollection.fixture.signOut")
+        open("accountCollection.openFavorites")
+        XCTAssertTrue(app.staticTexts["Sign in to see your saved collections"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["accountCollection.post.801"].exists)
     }
 
 }

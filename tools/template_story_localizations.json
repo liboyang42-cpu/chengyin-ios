@@ -1,0 +1,30 @@
+{
+  "templateStory.scope": {
+    "en": "Image references stay local and are not opened or uploaded. New image lists allow up to six references per beat.",
+    "zh-Hans": "图片引用仅保留在本地，不会自动打开或上传。每个节点新编辑的图片列表最多六个引用。"
+  },
+  "templateStory.imageCount": {
+    "en": "Image references",
+    "zh-Hans": "图片引用数量"
+  },
+  "templateStory.historicalImages": {
+    "en": "This historical list has more than six images. It is preserved; you can keep it or remove references.",
+    "zh-Hans": "此历史列表超过六张图片，已原样保留。你可以保留或移除引用。"
+  },
+  "templateStory.imageLimit": {
+    "en": "The image change was not saved. Use at most six references, or only remove references from a historical oversized list.",
+    "zh-Hans": "图片修改未保存。请最多填写六个引用，或仅从超限的历史列表中移除引用。"
+  },
+  "templateStory.unsupported": {
+    "en": "This story uses an unsupported or malformed format. Its original content is preserved and cannot be edited here.",
+    "zh-Hans": "此剧情格式不受支持或已损坏。原始内容已保留，无法在此编辑。"
+  },
+  "templateStory.derivedSummary": {
+    "en": "Review summary is derived from timeline text, joined with newlines and limited to 500 UTF-16 units. Full beat text is retained.",
+    "zh-Hans": "预览摘要由时间线文本以换行拼接生成，最多500个UTF-16单位。节点全文仍会保留。"
+  },
+  "templateStory.summaryBoundary": {
+    "en": "The summary cutoff splits a Unicode character that Swift cannot preserve exactly. Full text is kept in the draft; adjust text near the 500 UTF-16-unit boundary before preparing a request.",
+    "zh-Hans": "摘要截断点拆分了Swift无法完整保留的Unicode字符。全文仍保留在草稿中；请调整500个UTF-16单位附近的文本后再准备请求。"
+  }
+}

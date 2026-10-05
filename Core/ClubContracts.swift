@@ -73,16 +73,31 @@ public struct ClubMember: Decodable, Equatable, Identifiable {
     public let memberId: Int
     public let nickname: String?
     public let avatar: String?
+    /// Optional presentation facts from the existing scoped member-list response.
+    /// A player's level never describes the viewing account's club permissions.
+    public let levelId: Int?
+    public let joinTime: String?
     /// 0 ordinary member, 1 administrator. Other values remain uninterpreted.
     public let role: Int
     /// This row is the creator. It says nothing about the viewing account.
     public let isOwner: Bool
     public var isAdmin: Bool { role == 1 }
+    public var displayedLevel: Int? {
+        guard let levelId, levelId > 0 else { return nil }
+        return levelId
+    }
+    /// Creator rows use their creator badge instead of claiming a joining date.
+    /// Keep the server's wall-clock text; its response does not specify a time zone.
+    public var displayedJoinTime: String? {
+        guard !isOwner, let value = joinTime?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !value.isEmpty else { return nil }
+        return value
+    }
     public var trimmedNickname: String? {
         guard let value = nickname?.trimmingCharacters(in: .whitespacesAndNewlines), !value.isEmpty else { return nil }
         return value
     }
-    enum CodingKeys: String, CodingKey { case memberId, nickname, avatar, role, isOwner }
+    enum CodingKeys: String, CodingKey { case memberId, nickname, avatar, levelId, joinTime, role, isOwner }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         memberId = try c.decode(Int.self, forKey: .memberId)
@@ -91,6 +106,8 @@ public struct ClubMember: Decodable, Equatable, Identifiable {
         }
         nickname = try c.decodeIfPresent(String.self, forKey: .nickname)
         avatar = try c.decodeIfPresent(String.self, forKey: .avatar)
+        levelId = try c.decodeIfPresent(Int.self, forKey: .levelId)
+        joinTime = try c.decodeIfPresent(String.self, forKey: .joinTime)
         role = try c.decodeIfPresent(Int.self, forKey: .role) ?? 0
         isOwner = try c.decodeIfPresent(Bool.self, forKey: .isOwner) ?? false
     }

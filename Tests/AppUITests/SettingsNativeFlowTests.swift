@@ -154,4 +154,62 @@ final class SettingsNativeFlowTests: XCTestCase {
         attachFixtureScreenshot(self, app: app, name: "Settings local copy failure Chinese large text dark mode")
     }
 
+    func testAttributionCopiesEachExactSourceAddressWithSeparateFeedback() {
+        launch()
+        let gameCopy = "settingsNative.attribution.copy.game-icons"
+        let artCopy = "settingsNative.attribution.copy.ansimuz"
+        open(gameCopy)
+        XCTAssertTrue(app.staticTexts[gameCopy + ".copied"].waitForExistence(timeout: 5))
+        let receipt = app.staticTexts["settingsNative.fixture.copiedText"]
+        reveal(receipt)
+        XCTAssertEqual(receipt.label, "https://game-icons.net/")
+        XCTAssertFalse(app.staticTexts[artCopy + ".copied"].exists)
+        open(artCopy)
+        XCTAssertTrue(app.staticTexts[artCopy + ".copied"].waitForExistence(timeout: 5))
+        reveal(receipt)
+        XCTAssertEqual(receipt.label, "https://ansimuz.itch.io/")
+        XCTAssertTrue(app.navigationBars["Settings"].exists)
+        XCTAssertFalse(app.alerts.firstMatch.exists)
+    }
+
+    func testAttributionCopyFailureKeepsSourceVisibleAndExplicitRetrySucceeds() {
+        launch("attributionCopyFailure")
+        let copy = "settingsNative.attribution.copy.ansimuz"
+        open(copy)
+        XCTAssertTrue(app.staticTexts[copy + ".failed"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts[copy + ".copied"].exists)
+        XCTAssertFalse(app.staticTexts["settingsNative.fixture.copiedText"].exists)
+        XCTAssertTrue(app.staticTexts["https://ansimuz.itch.io/"].exists)
+        open(copy)
+        XCTAssertTrue(app.staticTexts[copy + ".copied"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts[copy + ".failed"].exists)
+        let receipt = app.staticTexts["settingsNative.fixture.copiedText"]
+        reveal(receipt)
+        XCTAssertEqual(receipt.label, "https://ansimuz.itch.io/")
+    }
+
+    func testChineseMaximumTextAttributionCopyResetsAfterAboutNavigation() {
+        launch(language: "zh-Hans", extra: ["--uitesting-max-text", "--uitesting-dark"])
+        assertFixtureEnvironment(in: app, colorScheme: "dark", dynamicTypeSize: "accessibility5")
+        let copy = "settingsNative.attribution.copy.game-icons"
+        let button = app.buttons[copy]
+        reveal(button)
+        XCTAssertEqual(button.label, "复制 game-icons.net 来源地址")
+        button.tap()
+        let feedback = app.staticTexts[copy + ".copied"]
+        reveal(feedback)
+        XCTAssertEqual(feedback.label, "已复制到剪贴板。")
+        let about = app.buttons["settingsNative.openAbout"]
+        for _ in 0..<12 { if about.exists && about.isHittable { break }; app.swipeDown() }
+        open("settingsNative.openAbout")
+        XCTAssertTrue(app.staticTexts["settingsNative.about.appName"].waitForExistence(timeout: 5))
+        back()
+        reveal(button)
+        XCTAssertFalse(feedback.exists)
+        button.tap()
+        reveal(feedback)
+        XCTAssertEqual(feedback.label, "已复制到剪贴板。")
+        attachFixtureScreenshot(self, app: app, name: "Chinese attribution local copy at maximum text size")
+    }
+
 }

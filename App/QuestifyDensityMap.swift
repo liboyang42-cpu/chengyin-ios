@@ -7,6 +7,7 @@ struct QuestifyDensityMap: View {
     let area: RoamSearchArea
     let pins: [SearchMapPin]
     var selectedID: String? = nil
+    var interactionID: AnyHashable? = nil
     var polyline: [RoamCoordinate] = []
     var onSelect: ((String) -> Void)? = nil
     var mapHeight: CGFloat = 300
@@ -23,13 +24,14 @@ struct QuestifyDensityMap: View {
     @ScaledMetric(relativeTo: .body) private var clusterExtra = 28.0
     init(area: RoamSearchArea, pins: [SearchMapPin], selectedID: String? = nil,
          polyline: [RoamCoordinate] = [], mapHeight: CGFloat = 300, initialSpan: Double = 0.04,
+         interactionID: AnyHashable? = nil,
          pinIdentifierPrefix: String = "searchMap.pin.", pinHint: @escaping (String) -> Text = { _ in Text("") },
          onSelect: ((String) -> Void)? = nil) {
         self.area = area; self.pins = pins; self.selectedID = selectedID
         self.polyline = polyline; self.onSelect = onSelect
-        self.mapHeight = mapHeight
+        self.mapHeight = mapHeight; self.interactionID = interactionID
         self.pinIdentifierPrefix = pinIdentifierPrefix; self.pinHint = pinHint
-        _currentFocusInput = State(initialValue: FocusInput(area: area, pins: pins, selectedID: selectedID))
+        _currentFocusInput = State(initialValue: FocusInput(area: area, pins: pins, selectedID: selectedID, interactionID: interactionID))
         _position = State(initialValue: .region(MKCoordinateRegion(
             center: CLLocationCoordinate2D(latitude: area.coordinate.latitude, longitude: area.coordinate.longitude),
             span: MKCoordinateSpan(latitudeDelta: initialSpan, longitudeDelta: initialSpan))))
@@ -42,8 +44,9 @@ struct QuestifyDensityMap: View {
         let area: RoamSearchArea
         let pins: [SearchMapPin]
         let selectedID: String?
+        let interactionID: AnyHashable?
     }
-    private var focusInput: FocusInput { FocusInput(area: area, pins: pins, selectedID: selectedID) }
+    private var focusInput: FocusInput { FocusInput(area: area, pins: pins, selectedID: selectedID, interactionID: interactionID) }
     private var currentPins: [SearchMapPin] {
         let grouped = Dictionary(grouping: pins, by: \.id)
         return pins.filter { !$0.id.isEmpty && grouped[$0.id]?.count == 1 }
@@ -119,6 +122,7 @@ struct QuestifyDensityMap: View {
             }
         }
         .onChange(of: snapshot) { _, _ in closeExpansion() }
+        .onChange(of: interactionID) { _, _ in closeExpansion() }
         .onChange(of: focusInput) { _, value in
             currentFocusInput = value
             focusGate.invalidate()
@@ -165,6 +169,10 @@ struct QuestifyDensityMap: View {
         expandedSnapshot = []
     }
     private func expand(_ group: Group) {
+        // The camera can outlive a pin query. A queued cluster action from an older
+        // render must not move it to removed members after refresh/filter changes.
+        guard focusInput == currentFocusInput,
+              group.members.allSatisfy({ currentPins.contains($0) }) else { return }
         expansionID = UUID()
         expanded = group.id
         expandedSnapshot = snapshot

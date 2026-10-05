@@ -52,16 +52,15 @@ final class ClubServiceTests: XCTestCase {
         XCTAssertEqual(t.requests[0].httpBody, Data("{}".utf8))
         XCTAssertEqual(t.requests[0].value(forHTTPHeaderField: "Content-Type"), "application/json")
     }
-    func testDirectoryUsesEmptyMultipartAndBareArray() async throws {
+    func testDirectoryUsesEmptyJSONAndBareArray() async throws {
         let t = ClubFixtureTransport()
         t.json = #"{"code":200,"data":[{"id":7,"name":"Fixture"}]}"#
         let rows = try await service(t).directory(token: "fixture-token")
         XCTAssertEqual(rows.map(\.id), [7])
         let request = t.requests[0]
         assertRequest(request, path: "api/club/list")
-        XCTAssertTrue(request.value(forHTTPHeaderField: "Content-Type")?.hasPrefix("multipart/form-data; boundary=") == true)
-        let body = String(data: try XCTUnwrap(request.httpBody), encoding: .utf8) ?? ""
-        XCTAssertFalse(body.contains("name=\"")); XCTAssertFalse(body.contains("pageNum"))
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json")
+        XCTAssertEqual(request.httpBody, Data("{}".utf8))
     }
     func testSearchUsesJSONNameWithoutInventedPaginationOrScope() async throws {
         let t = ClubFixtureTransport()
@@ -72,24 +71,26 @@ final class ClubServiceTests: XCTestCase {
         let fields = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(request.httpBody)) as? [String: String])
         XCTAssertEqual(fields, ["name": "  城市 Walk & Run  "])
     }
-    func testBlankSearchReturnsSourceUnfilteredMultipart() async throws {
+    func testBlankSearchReturnsSourceUnfilteredJSON() async throws {
         let t = ClubFixtureTransport()
         _ = try await service(t).directory(name: " \n ", token: "fixture-token")
-        XCTAssertTrue(t.requests[0].value(forHTTPHeaderField: "Content-Type")?.hasPrefix("multipart/form-data") == true)
+        XCTAssertEqual(t.requests[0].value(forHTTPHeaderField: "Content-Type"), "application/json")
+        XCTAssertEqual(t.requests[0].httpBody, Data("{}".utf8))
     }
-    func testDetailUsesIdFormAndMembersUsesClubIdForm() async throws {
+    func testDetailUsesNumericIdJSONAndMembersUsesNumericClubIdJSON() async throws {
         let t = ClubFixtureTransport(), s = try service(t)
         t.json = #"{"code":200,"data":{"id":7,"isJoined":true}}"#
         let detail = try await s.detail(id: 7, token: "fixture-token")
         assertRequest(t.requests[0], path: "api/club/detail")
-        let detailBody = String(data: try XCTUnwrap(t.requests[0].httpBody), encoding: .utf8) ?? ""
-        XCTAssertTrue(detailBody.contains("name=\"id\"\r\n\r\n7\r\n")); XCTAssertFalse(detailBody.contains("clubId"))
+        XCTAssertEqual(t.requests[0].value(forHTTPHeaderField: "Content-Type"), "application/json")
+        XCTAssertEqual(t.requests[0].httpBody, Data(#"{"id":7}"#.utf8))
         t.json = #"{"code":200,"data":[{"memberId":31,"role":1,"isOwner":false}]}"#
         let members = try await s.members(in: detail, token: "fixture-token")
         XCTAssertEqual(members.first?.memberId, 31)
         assertRequest(t.requests[1], path: "api/club/members")
-        let memberBody = String(data: try XCTUnwrap(t.requests[1].httpBody), encoding: .utf8) ?? ""
-        XCTAssertTrue(memberBody.contains("name=\"clubId\"\r\n\r\n7\r\n")); XCTAssertFalse(memberBody.contains("name=\"id\""))
+        XCTAssertEqual(t.requests[1].value(forHTTPHeaderField: "Content-Type"), "application/json")
+        XCTAssertEqual(t.requests[1].httpBody, Data(#"{"clubId":7}"#.utf8))
+        XCTAssertEqual(t.requests.count, 2)
     }
     func testMemberGateCannotUseViewerAdminInsteadOfMembership() async throws {
         let t = ClubFixtureTransport()
@@ -98,6 +99,67 @@ final class ClubServiceTests: XCTestCase {
             XCTFail()
         } catch { XCTAssertEqual(error as? ClubReadFailure, .membershipRequired) }
         XCTAssertTrue(t.requests.isEmpty)
+    }
+    func testOwnerCanRequestMembersWithoutClaimingJoinedOrSendingViewerFacts() async throws {
+        let t = ClubFixtureTransport()
+        _ = try await service(t).members(in: club(#"{"id":7,"isOwner":true,"isJoined":false}"#), token: "fixture-token")
+        XCTAssertEqual(t.requests.count, 1)
+        assertRequest(t.requests[0], path: "api/club/members")
+        XCTAssertEqual(t.requests[0].httpBody, Data(#"{"clubId":7}"#.utf8))
+    }
+    func testJSONIdentifiersRetainIntegerPrecisionBeyondDoubleRange() async throws {
+        let id = 9_007_199_254_740_993
+        let t = ClubFixtureTransport(), s = try service(t)
+        t.json = #"{"code":200,"data":{"id":9007199254740993,"isJoined":true}}"#
+        let detail = try await s.detail(id: id, token: "fixture-token")
+        XCTAssertEqual(t.requests[0].httpBody, Data(#"{"id":9007199254740993}"#.utf8))
+        t.json = #"{"code":200,"data":[]}"#
+        _ = try await s.members(in: detail, token: "fixture-token")
+        XCTAssertEqual(t.requests[1].httpBody, Data(#"{"clubId":9007199254740993}"#.utf8))
+    }
+    func testGuestDetailUsesNumericJSONWithoutInventingAuthorization() async throws {
+        let t = ClubFixtureTransport(); t.json = #"{"code":200,"data":{"id":7}}"#
+        _ = try await service(t).detail(id: 7)
+        XCTAssertNil(t.requests[0].value(forHTTPHeaderField: "Authorization"))
+        XCTAssertEqual(t.requests[0].value(forHTTPHeaderField: "Content-Type"), "application/json")
+        XCTAssertEqual(t.requests[0].httpBody, Data(#"{"id":7}"#.utf8))
+    }
+    func testMalformedMemberArrayCannotBecomeEmptyOrRetryAnotherEncoding() async throws {
+        for json in [#"{"code":200,"data":null}"#, #"{"code":200,"data":{"rows":[]}}"#, #"{"code":200,"data":[{"memberId":0}]}"#] {
+            let t = ClubFixtureTransport(); t.json = json
+            do { _ = try await service(t).members(in: club(), token: "fixture-token"); XCTFail(json) }
+            catch { XCTAssertEqual(error as? APIError, .malformedResponse, json) }
+            XCTAssertEqual(t.requests.count, 1)
+            XCTAssertEqual(t.requests[0].httpBody, Data(#"{"clubId":7}"#.utf8))
+        }
+    }
+    func testDetailAndMembersPreserveServerDenialWithoutRetryOrFallback() async throws {
+        let cases: [(Int, String, ClubReadFailure)] = [
+            (401, "bad json", .unauthorized(message: nil)),
+            (403, "bad json", .forbidden(message: nil)),
+            (200, #"{"code":401,"msg":{},"data":true}"#, .unauthorized(message: nil)),
+            (200, #"{"code":403,"msg":"Membership revoked","data":[]}"#, .forbidden(message: "Membership revoked")),
+            (200, #"{"code":500,"msg":"Source membership denial"}"#, .rejected(code: 500, message: "Source membership denial")),
+            (415, #"{"msg":"Unsupported content"}"#, .httpStatus(415, message: "Unsupported content"))
+        ]
+        for (status, json, expected) in cases {
+            for members in [false, true] {
+                let t = ClubFixtureTransport(); t.status = status; t.json = json
+                do {
+                    if members { _ = try await service(t).members(in: club(), token: "fixture-token") }
+                    else { _ = try await service(t).detail(id: 7, token: "fixture-token") }
+                    XCTFail()
+                } catch { XCTAssertEqual(error as? ClubReadFailure, expected) }
+                XCTAssertEqual(t.requests.count, 1)
+                XCTAssertEqual(t.requests[0].value(forHTTPHeaderField: "Content-Type"), "application/json")
+            }
+        }
+    }
+    func testMemberCancellationIsNotConvertedToEmptyOrRetried() async throws {
+        let t = ClubFixtureTransport(); t.failure = CancellationError()
+        do { _ = try await service(t).members(in: club(), token: "fixture-token"); XCTFail() }
+        catch { XCTAssertTrue(error is CancellationError) }
+        XCTAssertEqual(t.requests.count, 1)
     }
     func testDetailIdentityMismatchIsNotDisplayed() async throws {
         let t = ClubFixtureTransport(); t.json = #"{"code":200,"data":{"id":8}}"#
@@ -143,6 +205,10 @@ final class ClubServiceTests: XCTestCase {
         let t = ClubFixtureTransport(), s = try service(t)
         for token in ["", " ", "bad\r\nheader", "bad\tvalue"] {
             do { _ = try await s.owned(token: token); XCTFail() }
+            catch { XCTAssertEqual(error as? APIError, .invalidRequest) }
+            do { _ = try await s.detail(id: 7, token: token); XCTFail() }
+            catch { XCTAssertEqual(error as? APIError, .invalidRequest) }
+            do { _ = try await s.members(in: club(), token: token); XCTFail() }
             catch { XCTAssertEqual(error as? APIError, .invalidRequest) }
         }
         for id in [0, -1] {

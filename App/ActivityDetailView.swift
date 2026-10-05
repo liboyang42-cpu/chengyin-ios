@@ -7,13 +7,15 @@ struct ActivityDetailView: View {
     let reader: any ActivityReading
     var playReaderForActivity: ((Int)->PlaySessionReader)? = nil
     var registrationEnabled = false
+    var peopleProfile: ActivityPeopleProfileContext? = nil
     var body: some View {
         if let session = reader as? AppSession {
             SessionActivityDetailView(id: id, session: session,
                 playReaderForActivity: playReaderForActivity, registrationEnabled: registrationEnabled)
         } else {
             ActivityDetailContentView(id: id, reader: reader,
-                playReaderForActivity: playReaderForActivity, registrationEnabled: registrationEnabled)
+                playReaderForActivity: playReaderForActivity, registrationEnabled: registrationEnabled,
+                peopleProfile: peopleProfile)
         }
     }
 }
@@ -32,7 +34,8 @@ struct ActivityDetailView: View {
                 ActivityDetailContentView(id: id, reader: session,
                     playReaderForActivity: playReaderForActivity,
                     topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) },
-                    registrationEnabled: registrationEnabled)
+                    registrationEnabled: registrationEnabled,
+                    peopleProfile: .init(reader: session.socialAccountReader, squareReader: session.squareReader, actions: session.socialActionCoordinator))
                     .id(session.contentDetailRevision)
             }
         }.appNavigationTitle("activity.details")
@@ -45,6 +48,10 @@ struct ActivityDetailView: View {
     var playReaderForActivity: ((Int)->PlaySessionReader)? = nil
     var topicDestination: ((Int) -> AnyView)? = nil
     var registrationEnabled=false
+    var peopleProfile: ActivityPeopleProfileContext? = nil
+    @State private var loadedPeopleSnapshotID: UUID?
+    @State private var loadedProfileIdentity: SocialAccountIdentity?
+    @State private var profileSelection: ActivityPersonProfileSelection?
     @State private var showsReview = false
     @State private var showsRegistration=false
     @State private var access: ActivityDetailAccess?
@@ -86,6 +93,21 @@ struct ActivityDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .task(id:id) { await loads.run { await load() } }
         .onDisappear { loads.cancel(); generation += 1; loading = false }
+        .onChange(of: peopleProfile?.reader.identity) { _, _ in
+            profileSelection = nil; loadedProfileIdentity = nil
+            loads.start { await load() }
+        }
+        .navigationDestination(item: $profileSelection) { selection in
+            if let peopleProfile, let loadedPeopleSnapshotID, let access, case .allowed(let detail) = access,
+               loadedProfileIdentity == peopleProfile.reader.identity,
+               selection.matches(activityID: id, people: detail.people, identity: peopleProfile.reader.identity, snapshotID: loadedPeopleSnapshotID) {
+                SocialPublicProfileView(memberID: selection.memberID, reader: peopleProfile.reader,
+                                        squareReader: peopleProfile.squareReader, actions: peopleProfile.actions)
+                    .id(selection)
+            } else {
+                ContentUnavailableView("social.changed", systemImage: "person.crop.circle.badge.exclamationmark")
+            }
+        }
         .sheet(isPresented: $showsReview) {
             NavigationStack { ContextualReviewComposer(target: .activity(id), owner: (reader as? AppSession)?.contextualReviews?.coordinator(.activity(id))) { loads.start { await load() } } }
         }
@@ -116,6 +138,7 @@ struct ActivityDetailView: View {
                         .questifyCardListRow()
                 }
             }
+            ActivityPeopleSection(people: detail.people, onOpenProfile: profileAction(detail))
             if detail.summary.hasValidCoordinates,
                let latitude=detail.summary.latitude, let longitude=detail.summary.longitude {
                 Section("activity.location") {
@@ -129,7 +152,6 @@ struct ActivityDetailView: View {
                         .questifyCardListRow()
                 }
             }
-            Section { Button("context.review.title") { showsReview = true }.accessibilityIdentifier("activity.openReview") }
             Section("activity.tickets") {
                 if detail.tickets.isEmpty {
                     Text("activity.noTickets")
@@ -142,6 +164,8 @@ struct ActivityDetailView: View {
                         .questifyCardListRow()
                 }
             }
+            ActivityReviewsSection(reviews: detail.reviews)
+            Section { Button("context.review.title") { showsReview = true }.accessibilityIdentifier("activity.openReview") }
             if let playReaderForActivity {
                 Section {
                     NavigationLink { PlaySessionView(reader:playReaderForActivity(id)) } label: {
@@ -178,6 +202,18 @@ struct ActivityDetailView: View {
             if registrationEnabled { registrationAction }
         }
     }
+    private func profileAction(_ detail: ActivityDetail) -> ((Int) -> Void)? {
+        guard detail.summary.id == id, let peopleProfile, let snapshotID = loadedPeopleSnapshotID,
+              loadedProfileIdentity == peopleProfile.reader.identity,
+              peopleProfile.reader.identity.accountID != nil else { return nil }
+        let identity = peopleProfile.reader.identity
+        return { memberID in
+            guard identity == peopleProfile.reader.identity,
+                  loadedProfileIdentity == identity, loadedPeopleSnapshotID == snapshotID else { return }
+            profileSelection = ActivityPersonProfileSelection(activityID: id, memberID: memberID,
+                                                              people: detail.people, identity: identity, snapshotID: snapshotID)
+        }
+    }
     private var registrationAction: some View {
         VStack(spacing:0) {
             Divider()
@@ -199,12 +235,16 @@ struct ActivityDetailView: View {
     @MainActor private func load() async {
         generation += 1
         let operation=generation
-        loading=true;failed=false;access=nil
+        let profileIdentity = peopleProfile?.reader.identity
+        loading=true;failed=false;access=nil;loadedProfileIdentity=nil
+        profileSelection=nil;loadedPeopleSnapshotID=nil
         defer { if generation == operation { loading=false } }
         do {
             let result=try await reader.activityDetail(id:id)
             try Task.checkCancellation()
-            if generation == operation { access=result }
+            if generation == operation, profileIdentity == peopleProfile?.reader.identity {
+                access=result; loadedProfileIdentity=profileIdentity; loadedPeopleSnapshotID=UUID()
+            }
         }
         catch is CancellationError { }
         catch { if generation == operation, !Task.isCancelled { failed=true } }

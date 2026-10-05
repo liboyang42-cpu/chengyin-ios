@@ -23,6 +23,22 @@ private actor SearchMapSuspendedTransport: HTTPTransport {
     }
     func finish(_ json: String) { continuation?.resume(returning: (Data(json.utf8),200)); continuation = nil }
 }
+private actor SearchMapAggregateSuspendedTransport: HTTPTransport {
+    private var pending: [(URLRequest, CheckedContinuation<(Data, Int), Error>)] = []
+    var pendingCount: Int { pending.count }
+    func send(_ request: URLRequest) async throws -> (Data, Int) {
+        try await withCheckedThrowingContinuation { pending.append((request, $0)) }
+    }
+    func finishAll(unauthorized: Bool) {
+        let requests = pending; pending = []
+        for (request, continuation) in requests {
+            let paged = request.url!.path.contains("topic") || request.url!.path.contains("activity")
+            let json = unauthorized ? #"{"code":401,"data":"invalid"}"# :
+                (paged ? #"{"code":200,"data":{"rows":[]}}"# : #"{"code":200,"data":[]}"#)
+            continuation.resume(returning: (Data(json.utf8), 200))
+        }
+    }
+}
 final class SearchMapTests: XCTestCase {
     private func service(_ transport: any HTTPTransport) throws -> SearchMapService {
         SearchMapService(configuration: try APIConfiguration(baseURL: URL(string: "https://example.com/test/")!), transport: transport)
@@ -53,8 +69,11 @@ final class SearchMapTests: XCTestCase {
             XCTAssertEqual(request.cachePolicy, .reloadIgnoringLocalCacheData)
             if request.url!.path.contains("club") || request.url!.path.contains("merchant") {
                 XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json")
-                let body = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(request.httpBody)) as? [String:String])
-                XCTAssertEqual(body, ["name":"Example & 城"])
+                let body = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(request.httpBody)) as? [String:Any])
+                XCTAssertEqual(Set(body.keys), Set(["name", "categoryId"]))
+                XCTAssertEqual(body["name"] as? String, "Example & 城")
+                XCTAssertEqual(body["categoryId"] as? Int, 7)
+                XCTAssertFalse(body["categoryId"] is String)
             } else {
                 let body = String(decoding: request.httpBody!, as: UTF8.self)
                 XCTAssertTrue(body.contains("name=\"category_id\"")); XCTAssertTrue(body.contains("name=\"pageSize\"\r\n\r\n12"))
@@ -62,14 +81,67 @@ final class SearchMapTests: XCTestCase {
             }
         }
     }
+    func testCategoryOnlySearchForwardsAllDomainsWithoutKeywordOrSort() async throws {
+        let transport = SearchMapTestTransport(); await seed(transport)
+        _ = try await service(transport).search(.init(keyword: " \n ", categoryID: 7), token: "synthetic")
+        let requests = await transport.requests
+        XCTAssertEqual(requests.count, 4)
+        for request in requests {
+            if request.url!.path.contains("club") || request.url!.path.contains("merchant") {
+                let body = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(request.httpBody)) as? [String: Any])
+                XCTAssertEqual(Set(body.keys), Set(["name", "categoryId"]))
+                XCTAssertEqual(body["name"] as? String, "")
+                XCTAssertEqual(body["categoryId"] as? Int, 7)
+            } else {
+                let body = String(decoding: try XCTUnwrap(request.httpBody), as: UTF8.self)
+                XCTAssertTrue(body.contains("name=\"category_id\"\r\n\r\n7"))
+                for forbidden in ["keyword", "name", "categoryId", "sort_type"] {
+                    XCTAssertFalse(body.contains("name=\"\(forbidden)\""))
+                }
+            }
+        }
+    }
+    func testChangingAndClearingCategoryPreservesUnfilteredWireShape() async throws {
+        let transport = SearchMapTestTransport(); await seed(transport)
+        let categories: [Int?] = [nil, 7, 9, nil]
+        for category in categories {
+            _ = try await service(transport).search(.init(keyword: "  Café & 城  ", categoryID: category), token: "synthetic")
+            let requests = Array((await transport.requests).suffix(4))
+            XCTAssertEqual(requests.count, 4)
+            for request in requests {
+                if request.url!.path.contains("club") || request.url!.path.contains("merchant") {
+                    let body = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(request.httpBody)) as? [String: Any])
+                    XCTAssertEqual(Set(body.keys), Set(category == nil ? ["name"] : ["name", "categoryId"]))
+                    XCTAssertEqual(body["name"] as? String, "Café & 城")
+                    XCTAssertEqual(body["categoryId"] as? Int, category)
+                    if category == nil {
+                        XCTAssertEqual(body as? [String: String], ["name": "Café & 城"])
+                    }
+                } else {
+                    let body = String(decoding: try XCTUnwrap(request.httpBody), as: UTF8.self)
+                    XCTAssertTrue(body.contains("name=\"keyword\"\r\n\r\nCafé & 城"))
+                    XCTAssertTrue(body.contains("name=\"pageNum\"\r\n\r\n1"))
+                    XCTAssertTrue(body.contains("name=\"pageSize\"\r\n\r\n12"))
+                    XCTAssertEqual(body.contains("name=\"category_id\""), category != nil)
+                    if let category { XCTAssertTrue(body.contains("name=\"category_id\"\r\n\r\n\(category)")) }
+                    for forbidden in ["categoryId", "sort_type", "latitude", "longitude"] {
+                        XCTAssertFalse(body.contains("name=\"\(forbidden)\""))
+                    }
+                }
+            }
+        }
+    }
     func testGuestSkipsPrivateClubAndPreservesThreePublicSources() async throws {
         let t = SearchMapTestTransport(); await seed(t)
-        let result = try await service(t).search(.init(keyword: "sample"))
+        let result = try await service(t).search(.init(keyword: "sample", categoryID: 7))
         XCTAssertEqual(result.gatedKinds, [.club]); XCTAssertTrue(result.failedKinds.isEmpty)
         XCTAssertEqual(Set(result.rows.map(\.kind)), Set([.topic,.activity,.merchant]))
         let requests = await t.requests
         XCTAssertEqual(requests.count, 3); XCTAssertFalse(requests.contains { $0.url?.path == "/test/api/club/list" })
         XCTAssertTrue(requests.allSatisfy { $0.value(forHTTPHeaderField: "Authorization") == nil })
+        let merchant = try XCTUnwrap(requests.first { $0.url?.path == "/test/api/merchant/list" })
+        let body = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(merchant.httpBody)) as? [String: Any])
+        XCTAssertEqual(body["categoryId"] as? Int, 7)
     }
     func testPartialFailuresRemainVisibleAndAllFailedIsDistinct() async throws {
         let t = SearchMapTestTransport(); await seed(t)
@@ -92,7 +164,7 @@ final class SearchMapTests: XCTestCase {
     }
     func testInvalidFiltersAndTokensNeverReachTransport() async throws {
         let t = SearchMapTestTransport()
-        for query in [GlobalSearchQuery(keyword: "x", categoryID: -1), .init(keyword: "x", minimumPrice: .nan), .init(keyword: "x", minimumPrice: 60, maximumPrice: 50), .init(keyword: "x", startDate: "2030-08-01", endDate: "2030-01-01")] {
+        for query in [GlobalSearchQuery(keyword: "x", categoryID: 0), .init(keyword: "x", categoryID: -1), .init(keyword: "x", minimumPrice: .nan), .init(keyword: "x", minimumPrice: 60, maximumPrice: 50), .init(keyword: "x", startDate: "2030-08-01", endDate: "2030-01-01")] {
             do { _ = try await service(t).search(query); XCTFail() } catch { XCTAssertEqual(error as? APIError, .invalidRequest) }
         }
         for token in ["", " \n", "x\r\ny"] {
@@ -222,13 +294,32 @@ final class SearchMapTests: XCTestCase {
             }
         }
     }
+    @MainActor func testCategoryAggregateRejectsAccountChangeAndCancellationBeforeUnauthorizedExpiry() async throws {
+        let first = try SearchMapContext(accountID: 1, epoch: 1, token: "synthetic-first")
+        for cancel in [false, true] {
+            for unauthorized in [false, true] {
+                let transport = SearchMapAggregateSuspendedTransport()
+                var context = first; var expirations = 0
+                let reader = SearchMapSessionReader(service: try service(transport), currentContext: { context },
+                    onUnauthorized: { _ in expirations += 1 })
+                let task = Task { try await reader.search(.init(keyword: "sample", categoryID: 7)) }
+                while (await transport.pendingCount) < 4 { await Task.yield() }
+                if cancel { task.cancel() }
+                else { context = try SearchMapContext(accountID: 2, epoch: 1, token: "synthetic-next") }
+                await transport.finishAll(unauthorized: unauthorized)
+                do { _ = try await task.value; XCTFail("Obsolete category search was accepted") }
+                catch { XCTAssertTrue(error is CancellationError) }
+                XCTAssertEqual(expirations, 0)
+            }
+        }
+    }
     @MainActor func testCurrentAggregate401ExpiresOnlySignedInContext() async throws {
         let t = SearchMapTestTransport(); await seed(t)
         await t.set("/test/api/merchant/list", #"{"code":401,"data":"bad"}"#)
         let context = try SearchMapContext(accountID: 1, epoch: 1, token: "synthetic")
         var expired: [SearchMapContext] = []
         let reader = SearchMapSessionReader(service: try service(t), currentContext: { context }, onUnauthorized: { expired.append($0) })
-        do { _ = try await reader.search(.init(keyword: "x")); XCTFail() } catch { XCTAssertEqual(error as? APIError, .unauthorized) }
+        do { _ = try await reader.search(.init(keyword: "x", categoryID: 7)); XCTFail() } catch { XCTAssertEqual(error as? APIError, .unauthorized) }
         XCTAssertEqual(expired, [context])
         let guest = SearchMapSessionReader(service: try service(t), currentContext: { .init(guestEpoch: 1) }, onUnauthorized: { _ in XCTFail() })
         let partial = try await guest.search(.init(keyword: "x")); XCTAssertEqual(partial.gatedKinds, [.club,.merchant])

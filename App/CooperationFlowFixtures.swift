@@ -15,7 +15,7 @@ import SwiftUI
         case .registrations: return .object(["rows": .array([.object(["id": .id(6), "topicId": .id(8), "memberId": .id(102), "merchantName": .string("Synthetic merchant"), "auditStatus": .id(0)])])])
         case .invitations: return .object(["sent": .array([]), "received": .array([.object(["id": .id(2), "inviteType": .id(0), "topicId": .id(8), "fromId": .id(102), "toId": .id(101), "toType": .string("merchant"), "status": .id(0), "partner": .object(["name": .string("Synthetic partner")])])]), "slots": .object([:])])
         case .complaintTopics: return .array([.object(["topicId": .id(8), "topicName": .string("Synthetic eligible topic")])])
-        case .relations: return .object(["relations": .array([]), "discovery": .object(["merchants": .array([])]), "stats": .object(["merchantCount": .id(0), "clubCount": .id(0)])])
+        case .relations: return .object(["relations": .array([]), "discovery": .object(["merchants": .array([]), "clubs": .array([])]), "stats": .object(["merchantCount": .id(0), "clubCount": .id(0)])])
         case .clubs: return .array([.object(["id": .id(103), "name": .string("Synthetic club")])])
         case .merchants: return .array([.object(["id": .id(999), "memberId": .id(102), "name": .string("Synthetic merchant")])])
         case .ownedTopics: return .object(["rows": .array([.object(["id": .id(8), "name": .string("Synthetic owned topic"), "inviteWindowOpen": .bool(true)])])])
@@ -34,6 +34,14 @@ import SwiftUI
 @MainActor struct CoopFlowFixtureHost: View {
     @StateObject private var reader = CoopFlowFixtureReader()
     var body: some View {
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--relation-discovery-fixture") { CoopRelationFixtureHost() }
+        else { legacyBody }
+        #else
+        legacyBody
+        #endif
+    }
+    private var legacyBody: some View {
         VStack(spacing: 0) {
             // Keep the synthetic account control outside individual route toolbar lifetimes.
             Button("coopflow.fixture.signOut") { reader.session = nil }

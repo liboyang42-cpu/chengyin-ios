@@ -67,6 +67,60 @@ final class ClubContractTests: XCTestCase {
         let member = try decode(ClubMember.self, #"{"memberId":9,"role":48,"nickname":"  "}"#)
         XCTAssertEqual(member.role, 48); XCTAssertFalse(member.isAdmin); XCTAssertNil(member.trimmedNickname)
     }
+    func testMemberDisplayUsesOnlyReturnedLevelAndJoinTime() throws {
+        let member = try decode(ClubMember.self, #"{"memberId":9,"levelId":4,"joinTime":"2026-02-03 10:15:00"}"#)
+        XCTAssertEqual(member.levelId, 4)
+        XCTAssertEqual(member.displayedLevel, 4)
+        XCTAssertEqual(member.joinTime, "2026-02-03 10:15:00")
+        XCTAssertEqual(member.displayedJoinTime, "2026-02-03 10:15:00")
+        XCTAssertFalse(member.isOwner); XCTAssertFalse(member.isAdmin)
+    }
+    func testMemberDisplayOmitsMissingNullAndNonpositiveLevels() throws {
+        for fields in ["", ",\"levelId\":null", ",\"levelId\":0", ",\"levelId\":-1"] {
+            let member = try decode(ClubMember.self, "{\"memberId\":9\(fields)}")
+            XCTAssertNil(member.displayedLevel)
+        }
+        let member = try decode(ClubMember.self, #"{"memberId":9,"level":8,"playerLevel":5}"#)
+        XCTAssertNil(member.levelId); XCTAssertNil(member.displayedLevel)
+    }
+    func testMemberDisplayDoesNotLimitValidSourceLevelToClubHostLevels() throws {
+        let member = try decode(ClubMember.self, #"{"memberId":9,"levelId":37}"#)
+        XCTAssertEqual(member.displayedLevel, 37)
+        XCTAssertEqual(member.role, 0); XCTAssertFalse(member.isAdmin); XCTAssertFalse(member.isOwner)
+    }
+    func testMemberDisplayOmitsMissingNullAndBlankJoinTimes() throws {
+        for json in [#"{"memberId":9}"#, #"{"memberId":9,"joinTime":null}"#,
+                     #"{"memberId":9,"joinTime":""}"#, #"{"memberId":9,"joinTime":"  \n  "}"#] {
+            let member = try decode(ClubMember.self, json)
+            XCTAssertNil(member.displayedJoinTime)
+        }
+        let member = try decode(ClubMember.self, #"{"memberId":9,"createTime":"2026-02-03","joinedAt":"2026-02-04"}"#)
+        XCTAssertNil(member.joinTime); XCTAssertNil(member.displayedJoinTime)
+    }
+    func testMemberDisplayKeepsServerDateTextWithoutTimezoneGuess() throws {
+        let member = try decode(ClubMember.self, #"{"memberId":9,"joinTime":"  2026-02-03 10:15:00  "}"#)
+        XCTAssertEqual(member.joinTime, "  2026-02-03 10:15:00  ")
+        XCTAssertEqual(member.displayedJoinTime, "2026-02-03 10:15:00")
+    }
+    func testCreatorDisplaySuppressesJoinTimeButKeepsReturnedLevel() throws {
+        let member = try decode(ClubMember.self, #"{"memberId":9,"isOwner":true,"role":2,"levelId":7,"joinTime":"2026-01-01 09:00:00"}"#)
+        XCTAssertEqual(member.joinTime, "2026-01-01 09:00:00")
+        XCTAssertNil(member.displayedJoinTime)
+        XCTAssertEqual(member.displayedLevel, 7)
+        XCTAssertTrue(member.isOwner); XCTAssertFalse(member.isAdmin)
+    }
+    func testAdministratorDisplayDoesNotHideJoinTimeOrPromoteOwner() throws {
+        let member = try decode(ClubMember.self, #"{"memberId":9,"role":1,"levelId":4,"joinTime":"2026-02-03 10:15:00"}"#)
+        XCTAssertEqual(member.displayedJoinTime, "2026-02-03 10:15:00")
+        XCTAssertTrue(member.isAdmin); XCTAssertFalse(member.isOwner)
+    }
+    func testMalformedMemberDisplayTypesFailWithoutCoercion() throws {
+        for fields in [#""levelId":"4""#, #""levelId":true"#, #""levelId":1.5"#,
+                       #""levelId":{}"#, #""joinTime":20260203"#, #""joinTime":true"#,
+                       #""joinTime":[]"#, #""joinTime":{}"#] {
+            XCTAssertThrowsError(try decode(ClubMember.self, "{\"memberId\":9,\(fields)}"), fields)
+        }
+    }
     func testEmptyMembersDoesNotContradictReportedCount() throws {
         let populated = try decode(ClubRecord.self, #"{"id":7,"memberCount":128}"#)
         let empty = try decode(ClubRecord.self, #"{"id":7,"memberCount":0}"#)

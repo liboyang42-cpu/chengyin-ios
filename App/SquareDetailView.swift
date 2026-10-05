@@ -9,6 +9,8 @@ import SwiftUI
     var governanceContext: SquareGovernanceContext? = nil
     var workspace: SquareWorkspaceCoordinator? = nil
     @Environment(\.squareReportContext) private var reportContext
+    @Environment(\.squareRelatedTopic) private var relatedTopicContext
+    @State private var relatedTopic: SquareRelatedTopicSelection?
     @State private var reportTarget: ReportRoute?
     private struct ReportRoute: Identifiable { let id = UUID(); let target: SquareReportTarget }
     @State private var showsWorkspaceEdit = false
@@ -36,6 +38,7 @@ import SwiftUI
                 if let post {
                     Section {
                         SquarePostContent(post: post, mediaScope: reader.scope).accessibilityIdentifier("square.detailPost")
+                        SquareRelatedTopicLink(post: post, source: .init(id: id, generation: contentGeneration), squareReader: reader) { relatedTopic = $0 }
                         if let accountReader, post.memberID > 0 {
                             NavigationLink { SocialPublicProfileView(memberID: post.memberID, reader: accountReader, squareReader: reader, actions: actions) } label: { Label("social.viewAuthor", systemImage: "person.crop.circle") }
                                 .accessibilityIdentifier("social.viewAuthor")
@@ -63,6 +66,13 @@ import SwiftUI
             }
         }
         .appNavigationTitle("square.detail")
+        .navigationDestination(item: $relatedTopic) { selected in
+            if let context = relatedTopicContext {
+                SquareRelatedTopicDestination(selection: selected, squareReader: reader, topicReader: context.reader)
+            } else { SocialIssueView(error: SocialActionBlock.changed) }
+        }
+        .onChange(of: key) { _, _ in relatedTopic = nil }
+        .onChange(of: relatedTopicContext?.reader.scope) { _, _ in relatedTopic = nil }
         .sheet(item: $editor) { item in
             if let actions { NavigationStack { SocialActionEditorView(purpose: item.purpose, target: item.target, coordinator: actions, initialText: item.text, contentGeneration: contentGeneration, initialEnabled: item.enabled) }.id(actions.identity) }
         }

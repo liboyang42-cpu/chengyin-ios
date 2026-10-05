@@ -36,7 +36,7 @@ public enum CoopFlowRead: Equatable {
             if let scope { fields["scope"] = .string(scope) }
             return .object(fields)
         case .clubs(let name), .merchants(let name): return .object(name.map { ["name": .string($0)] } ?? [:])
-        case .relations: return .object(["limit": .id(20)])
+        case .relations: return .object(["limit": .id(10)])
         case .nearby(let lng, let lat):
             guard lng.isFinite, lat.isFinite, (-180...180).contains(lng), (-90...90).contains(lat) else { throw APIError.invalidRequest }
             return .object(["longitude": .string(String(lng)), "latitude": .string(String(lat)), "radius": .string("5000"), "limit": .string("30")])
@@ -86,7 +86,7 @@ public struct CoopFlowService {
         case .myBusiness: guard value["settlements"].rows != nil else { throw CoopFlowFailure.malformed }
         case .invitations: guard value["sent"].rows != nil, value["received"].rows != nil else { throw CoopFlowFailure.malformed }
         case .pool, .registrations, .ownedTopics: guard value["rows"].rows != nil else { throw CoopFlowFailure.malformed }
-        case .relations: guard value["relations"].rows != nil, value["discovery"]["merchants"].rows != nil else { throw CoopFlowFailure.malformed }
+        case .relations: _ = try CoopRelationDiscovery(value)
         default: break
         }
         return value
@@ -138,7 +138,16 @@ public struct CoopFlowService {
 @MainActor public protocol CoopFlowReading: AnyObject {
     var session: CoopFlowSession? { get }
     func read(_ resource: CoopFlowRead) async throws -> CoopFlowJSON
+    func read(_ resource: CoopFlowRead, isCurrent: @escaping () -> Bool) async throws -> CoopFlowJSON
     func settlement(source: CoopFlowSettlement.Source, id: Int) async throws -> CoopFlowSettlement
+}
+extension CoopFlowReading {
+    public func read(_ resource: CoopFlowRead, isCurrent: @escaping () -> Bool) async throws -> CoopFlowJSON {
+        guard isCurrent() else { throw CoopFlowFailure.stale }
+        let value = try await read(resource)
+        guard !Task.isCancelled, isCurrent() else { throw CoopFlowFailure.stale }
+        return value
+    }
 }
 @MainActor public final class CoopFlowSessionReader: CoopFlowReading {
     private let service: CoopFlowService?
@@ -149,16 +158,20 @@ public struct CoopFlowService {
         self.service = service; self.current = current; self.unauthorized = unauthorized
     }
     public func read(_ resource: CoopFlowRead) async throws -> CoopFlowJSON { try await fenced { try await $0.read(resource, session: $1) } }
+    public func read(_ resource: CoopFlowRead, isCurrent: @escaping () -> Bool) async throws -> CoopFlowJSON {
+        try await fenced(isCurrent: isCurrent) { try await $0.read(resource, session: $1) }
+    }
     public func settlement(source: CoopFlowSettlement.Source, id: Int) async throws -> CoopFlowSettlement {
         try await fenced { try await $0.settlement(source: source, id: id, session: $1) }
     }
-    private func fenced<T>(_ operation: (CoopFlowService, CoopFlowSession) async throws -> T) async throws -> T {
+    private func fenced<T>(isCurrent: () -> Bool = { true }, _ operation: (CoopFlowService, CoopFlowSession) async throws -> T) async throws -> T {
+        guard isCurrent() else { throw CoopFlowFailure.stale }
         guard let session else { throw APIError.unauthorized }; guard let service else { throw APIError.notConfigured }
         do {
             let result = try await operation(service, session)
-            try Task.checkCancellation(); guard current() == session else { throw CoopFlowFailure.stale }; return result
+            try Task.checkCancellation(); guard isCurrent(), current() == session else { throw CoopFlowFailure.stale }; return result
         } catch {
-            guard current() == session, !Task.isCancelled else { throw CoopFlowFailure.stale }
+            guard isCurrent(), current() == session, !Task.isCancelled else { throw CoopFlowFailure.stale }
             if error as? APIError == .unauthorized { unauthorized(session) }; throw error
         }
     }

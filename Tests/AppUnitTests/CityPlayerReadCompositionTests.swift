@@ -129,6 +129,62 @@ import XCTest
         grants.retained?.revoke(); do { _ = try await clone.send(valid); XCTFail() } catch {}
         XCTAssertEqual(wire.requests.count, count)
     }
+    func testPointSelectionRechecksAccountRoleSessionAndLeaseBeforeCardOrTap() async throws {
+        for transition in ["owner", "roleABA", "sessionABA", "revoke", "reissue", "expire", "close"] {
+            let wire = Wire(), grants = Grants(), session = try root(wire, grants).makeSession(); await login(session)
+            let reader = session.makeCityPlayerReader(); await reader.load()
+            let rendered = try XCTUnwrap(reader.pointMapContext)
+            let selected = try XCTUnwrap(CityPointSelection(pointID: "point-1", rendered: rendered, current: reader.pointMapContext))
+            XCTAssertEqual(selected.point(in: reader.pointMapContext)?.pointId, "point-1")
+            switch transition {
+            case "owner": await session.logout(); wire.account = 8; await login(session)
+            case "roleABA": wire.role = "merchant"; await session.refreshOwnAccount(); wire.role = "player"; await session.refreshOwnAccount()
+            case "sessionABA": await session.logout(); await login(session)
+            case "revoke": grants.retained?.revoke()
+            case "reissue": grants.retained?.revoke(); grants.retained = nil; _ = session.cityPlayerReadIdentity
+            case "expire": let lease = try XCTUnwrap(grants.retained); lease.expireIfNeeded(now: lease.expiresAt)
+            default: reader.cancel()
+            }
+            let count = wire.requests.count
+            XCTAssertNil(reader.pointMapContext, transition)
+            XCTAssertNil(selected.point(in: reader.pointMapContext), transition)
+            XCTAssertNil(CityPointSelection(pointID: "point-1", rendered: rendered, current: reader.pointMapContext), transition)
+            XCTAssertEqual(wire.requests.count, count, "selection must not dispatch")
+        }
+    }
+    func testPointSelectionRefreshLoadingAndUnavailableStatesDropOldProjection() async throws {
+        let wire = Wire(), session = try root(wire, Grants()).makeSession(); await login(session)
+        let reader = session.makeCityPlayerReader(); await reader.load()
+        let first = try XCTUnwrap(reader.pointMapContext)
+        let selected = try XCTUnwrap(CityPointSelection(pointID: "point-1", rendered: first, current: first))
+        await reader.load()
+        let refreshed = try XCTUnwrap(reader.pointMapContext)
+        XCTAssertEqual(first.snapshot, refreshed.snapshot); XCTAssertNotEqual(first.readID, refreshed.readID)
+        XCTAssertNil(selected.point(in: refreshed))
+        XCTAssertNil(CityPointSelection(pointID: "point-1", rendered: first, current: refreshed))
+        let paused = expectation(description: "refresh loading")
+        wire.pause = true; wire.onPaused = { paused.fulfill() }
+        let task = Task { await reader.load() }; await fulfillment(of: [paused], timeout: 2)
+        XCTAssertEqual(reader.state, .loading); XCTAssertNil(reader.pointMapContext)
+        XCTAssertNil(selected.point(in: reader.pointMapContext))
+        reader.cancel(); wire.pause = false; wire.finish(code: 200); await task.value
+        XCTAssertNil(reader.pointMapContext)
+        for mode in ["providerAbsent", "unpublished", "pointsUnavailable", "participationUnavailable", "duplicate"] {
+            wire.mode = mode; await reader.load(); XCTAssertNil(reader.pointMapContext, mode)
+            XCTAssertNil(CityPointSelection(pointID: "point-1", rendered: first, current: reader.pointMapContext), mode)
+        }
+        wire.mode = "empty"; await reader.load()
+        XCTAssertEqual(reader.pointMapContext?.points, [])
+        XCTAssertNil(selected.point(in: reader.pointMapContext))
+    }
+    func testPointSelectionAcrossDifferentReadersNeverReusesIdenticalSnapshot() async throws {
+        let wire = Wire(), session = try root(wire, Grants()).makeSession(); await login(session)
+        let firstReader = session.makeCityPlayerReader(), nextReader = session.makeCityPlayerReader()
+        await firstReader.load(); await nextReader.load()
+        let first = try XCTUnwrap(firstReader.pointMapContext), next = try XCTUnwrap(nextReader.pointMapContext)
+        XCTAssertEqual(first.snapshot, next.snapshot); XCTAssertNotEqual(first.readID, next.readID)
+        XCTAssertNil(CityPointSelection(pointID: "point-1", rendered: first, current: next))
+    }
     @MainActor private final class Grants {
         var enabled = true; var retained: CityPlayerReadApproval?
         func select(_ context: RuntimeDependencyContext) -> CityPlayerReadApproval? {

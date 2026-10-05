@@ -59,14 +59,17 @@ class OfficialSourceChecks(unittest.TestCase):
         self.assertIn('status = c.text("status")', model)
         self.assertNotIn('c.text("state")', model)
     def test_every_static_user_facing_key_has_two_languages(self):
-        catalog = json.loads(read("docs/official-event-localizations.json"))["strings"]
+        # Active keys live in the app catalog; the historical module snapshot is
+        # still checked byte-for-value below for every pre-existing entry.
+        catalog = json.loads(read("Resources/Localizable.xcstrings"))["strings"]
         ignored = {"official.issue", "official.browser", "official.filter", "official.event.", "official.detail.content", "official.participationState", "official.mission.", "official.invite.", "official.inbox.content", "official.broadcast.", "official.published.content", "official.stats.content", "official.fixture.guest", "official.fixture.account", "official.bucket."}
         literals = set()
         for directory in ["App", "Core"]:
             for path in (ROOT / directory).glob("Official*.swift"):
                 literals.update(re.findall(r'"(official\.[A-Za-z0-9_.]+)"', path.read_text()))
         self.assertFalse((literals - ignored) - set(catalog), (literals - ignored) - set(catalog))
-        for key, entry in catalog.items():
+        for key in literals - ignored:
+            entry = catalog[key]
             for language in ["en", "zh-Hans"]:
                 self.assertTrue(entry["localizations"][language]["stringUnit"]["value"], key)
     def test_common_card_and_no_unbounded_animations(self):
@@ -111,7 +114,7 @@ class OfficialSourceChecks(unittest.TestCase):
         core = read("Tests/CoreTests/OfficialEventTests.swift")
         ui = read("Tests/AppUITests/OfficialEventFlowTests.swift")
         self.assertGreaterEqual(len(re.findall(r'func test\w+', core)), 20)
-        self.assertEqual(len(re.findall(r'func test\w+', ui)), 10)
+        self.assertEqual(len(re.findall(r'func test\w+', ui)), 13)
         for text in ["testAccountEpochTokenAndGuestTransitionsDropSuccessAnd401", "testGuestEpochChangeInvalidatesPublicReadEvenAfterRoundTrip", "testCancelledReadNeverExpiresCurrentSession"]:
             self.assertIn(text, core)
         self.assertIn("testSignOutImmediatelyHidesPrivateInvitationsAndCanReenter", ui)

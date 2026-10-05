@@ -8,12 +8,48 @@ import SwiftUI
             if model.draft.validationMethod.rawValue == 7 {
                 TemplateSensorDraftConfigurationFields(model: model)
             }
-            TemplateAuthoringQAFields(method: model.draft.validationMethod, field: { model.optional($0.draftPath) })
+            TemplateAuthoringQAFields(method: model.draft.validationMethod, field: { model.optional($0.draftPath) }, includesHints: false)
+            TemplateLegacyHintFields(model: model)
+            if model.draft.validationMethod == .choice {
+                TemplateChoiceOptionMediaFields(configuration: model.draft.choiceOptionMedia,
+                    field: { model.optionMedia($0, $1) }, issueKey: model.optionMediaIssue).disabled(!model.canEdit)
+            }
             if model.draft.validationMethod == .photo {
                 TemplateAuthoringField("photoRequireDesc", text: model.optional(\.photoRequireDesc), multiline: true)
                 Toggle("templateAuthor.photoReview", isOn: .init(get: { model.draft.photoReview == 1 }, set: { model.draft.photoReview = $0 ? 1 : 0 }))
             }
         }
+    }
+}
+/// Shared choice attachment fields for local editing and owner-scoped inspection.
+/// References stay as text: rendering, playback and uploading require separate capabilities.
+@MainActor struct TemplateChoiceOptionMediaFields: View {
+    let configuration: TemplateChoiceOptionMedia
+    let field: (TemplateChoiceOptionMedia.Letter, TemplateChoiceOptionMedia.Kind) -> Binding<String>
+    var readOnly = false
+    var issueKey: String?
+    var body: some View {
+        Group {
+            Text("templateAuthor.optionMedia.title").font(.headline)
+            Text("templateAuthor.optionMedia.scope").font(.caption).foregroundStyle(.secondary)
+            if !configuration.isSupported {
+                Text("templateAuthor.optionMedia.unsupported").accessibilityIdentifier("templateAuthor.optionMedia.unsupported")
+            }
+            if let issueKey { Text(LocalizedStringKey(issueKey)).foregroundStyle(.red).accessibilityIdentifier("templateAuthor.optionMedia.limit") }
+            ForEach(TemplateChoiceOptionMedia.Letter.allCases) { letter in
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(LocalizedStringKey(letter.labelKey)).font(.subheadline)
+                    ForEach(TemplateChoiceOptionMedia.Kind.allCases) { kind in
+                        TextField(LocalizedStringKey(kind.labelKey), text: field(letter, kind))
+                            .textInputAutocapitalization(.never).autocorrectionDisabled()
+                            .accessibilityIdentifier("templateAuthor.optionMedia." + letter.rawValue + "." + kind.rawValue)
+                        if readOnly && configuration.isSupported && configuration.text(letter, kind) == nil {
+                            Text("templateOwnerConfig.missing").font(.caption).foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            }
+        }.disabled(readOnly || !configuration.isSupported)
     }
 }
 /// Same professional QA fields for local authors and scoped read-only owner inspection.
@@ -22,6 +58,7 @@ import SwiftUI
     let field: (TemplateQAField) -> Binding<String>
     var readOnly = false
     var annotation: (TemplateQAField) -> String? = { _ in nil }
+    var includesHints = true
     var body: some View {
         Group {
             if [.text, .choice].contains(method) {
@@ -38,7 +75,7 @@ import SwiftUI
                     }
                 }
             }
-            if [.text, .choice, .gps].contains(method) { entry(.hint1); entry(.hint2); entry(.answerReveal) }
+            if includesHints && [.text, .choice, .gps].contains(method) { entry(.hint1); entry(.hint2); entry(.answerReveal) }
         }.disabled(readOnly)
     }
     private func entry(_ key: TemplateQAField, multiline: Bool = false) -> some View {
@@ -52,10 +89,11 @@ import SwiftUI
     @Binding var tag: String
     @Binding var text: String
     @Binding var images: String
+    var accessibilityPrefix: String? = nil
     var body: some View {
-        TemplateAuthoringField("beatTag", text: $tag)
-        TemplateAuthoringField("beatText", text: $text, multiline: true)
-        TemplateAuthoringField("beatImages", text: $images, multiline: true)
+        TemplateAuthoringField("beatTag", text: $tag, accessibilityID: accessibilityPrefix.map { $0 + ".tag" })
+        TemplateAuthoringField("beatText", text: $text, multiline: true, accessibilityID: accessibilityPrefix.map { $0 + ".text" })
+        TemplateAuthoringField("beatImages", text: $images, multiline: true, accessibilityID: accessibilityPrefix.map { $0 + ".images" })
     }
 }
 @MainActor struct TemplateAuthoringRewardStoryFields: View {
@@ -81,9 +119,13 @@ import SwiftUI
         Section("templateAuthor.story") {
             Toggle("templateAuthor.moduleEnabled", isOn: $model.draft.storyEnabled)
             if model.draft.storyEnabled {
-                TemplateAuthoringField("storyText", text: model.optional(\.storyText), multiline: true)
+                if model.draft.storyTimelineEdited == true {
+                    Text("templateStory.derivedSummary").font(.caption).foregroundStyle(.secondary)
+                    if let summary = try? model.draft.preparedStoryText() { Text(verbatim: summary).accessibilityIdentifier("templateStory.summary") }
+                    if let issue = model.draft.storyProjectionIssue { Text(LocalizedStringKey(issue)).foregroundStyle(.red) }
+                } else { TemplateAuthoringField("storyText", text: model.optional(\.storyText), multiline: true) }
                 TemplateAuthoringField("storyImg", text: model.optional(\.storyImg))
-                NavigationLink("templateAuthor.storyTimeline") { TemplateAuthoringStoryView(model: model) }
+                NavigationLink("templateAuthor.storyTimeline") { TemplateAuthoringStoryView(model: model) }.accessibilityIdentifier("templateStory.open")
             }
         }
         Section("templateAuthor.voice") {
@@ -97,23 +139,30 @@ import SwiftUI
 }
 @MainActor struct TemplateAuthoringStoryView: View {
     @ObservedObject var model: TemplateAuthoringModel
-    @State private var beats: [TemplateStoryBeat] = []
-    @State private var invalid = false
+    @StateObject private var editor: TemplateStoryEditor
+    init(model: TemplateAuthoringModel) {
+        self.model = model; _editor = StateObject(wrappedValue: .init(model: model))
+    }
     var body: some View {
         Form {
-            if invalid { Section { Text("templateAuthor.storyInvalid") } }
-            ForEach($beats) { $beat in
+            Section {
+                Text("templateStory.scope").font(.caption).foregroundStyle(.secondary)
+                if let issue = editor.visibleIssueKey { Text(LocalizedStringKey(issue)).foregroundStyle(.red).accessibilityIdentifier("templateStory.issue") }
+            }
+            ForEach(Array(editor.visibleBeats.enumerated()), id: \.element.id) { index, beat in
                 Section {
-                    TemplateStoryBeatFields(tag: $beat.tag, text: $beat.text,
-                        images: .init(get: { beat.imgs.joined(separator: "\n") }, set: { beat.imgs = $0.split(separator: "\n").map(String.init) }))
+                    TemplateStoryBeatFields(tag: editor.text(beat.id, \.tag), text: editor.text(beat.id, \.text), images: editor.images(beat.id), accessibilityPrefix: "templateStory.beat.\(index)")
+                    LabeledContent("templateStory.imageCount", value: "\(beat.imgs.count) / \(TemplateAuthoringStory.maximumImagesPerBeat)")
+                        .accessibilityIdentifier("templateStory.beat.\(index).imageCount")
+                    if beat.imgs.count > TemplateAuthoringStory.maximumImagesPerBeat { Text("templateStory.historicalImages").font(.caption).foregroundStyle(.secondary) }
                 }
-            }.onDelete { beats.remove(atOffsets: $0) }.onMove { beats.move(fromOffsets: $0, toOffset: $1) }
-            Section { Button("templateAuthor.addBeat", systemImage: "plus") { beats.append(.init()) }.accessibilityIdentifier("templateAuthor.addBeat") }
-        }.disabled(!model.canEdit || invalid)
+            }.onDelete { editor.remove($0) }.onMove { editor.move($0, to: $1) }
+                .deleteDisabled(editor.beats.count <= 1)
+            Section { Button("templateAuthor.addBeat", systemImage: "plus") { editor.add() }.accessibilityIdentifier("templateAuthor.addBeat") }
+        }.disabled(!editor.canEdit)
             .navigationTitle("templateAuthor.storyTimeline")
-            .toolbar { EditButton() }
-            .onAppear { do { beats = try model.draft.storyBeats() } catch { invalid = true } }
-            .onChange(of: beats) { _, next in do { try model.draft.setStory(next) } catch { invalid = true } }
+            .toolbar { EditButton().disabled(!editor.canEdit) }
+            .onAppear { editor.load() }
     }
 }
 
@@ -168,4 +217,3 @@ import SwiftUI
     }
 
 }
-

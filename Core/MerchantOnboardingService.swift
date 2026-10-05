@@ -34,6 +34,14 @@ public struct MerchantOnboardingService {
         guard response.code == 200 else { throw MerchantOnboardingFailure(code: response.code, message: response.msg) }
         return data
     }
+    /// Same owner/operator-scoped empty-multipart read as application(). The server resolves
+    /// its own merchant from the token; no merchant/member ID or location is submitted.
+    public func clubLocality(token: String) async throws -> MerchantClubLocality {
+        let data = try await read(request("api/merchant/info", token: token, multipart: true))
+        struct LocalityResponse: Decodable { let data: MerchantClubLocality }
+        do { return try JSONDecoder().decode(LocalityResponse.self, from: data).data }
+        catch { throw APIError.malformedResponse }
+    }
     public func application(token: String) async throws -> MerchantOnboardingSnapshot {
         let data = try await read(request("api/merchant/info", token: token, multipart: true))
         struct ApplicationResponse: Decodable {

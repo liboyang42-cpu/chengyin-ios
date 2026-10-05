@@ -22,6 +22,8 @@ import Observation
     private let current: () -> Bool
     private let now: () -> Date
     private var generation = UUID()
+    private var cameraRevision = UUID()
+    private var cameraScopeValue: WalkingMapCamera.Scope?
     private var busy = false
     private var lastReplanAt: Date?
     private var offRouteSamples = 0
@@ -39,10 +41,31 @@ import Observation
         guard current(), phase != .cancelled else { return nil }
         return .init(reference: reference, ownerNamespace: ownerNamespace)
     }
+    /// Read-only camera input from the currently authorized session. Reading this never
+    /// asks for a fix, authorizes a target, calculates a route, or changes navigation.
+    public var cameraSnapshot: WalkingMapCamera.Snapshot? {
+        guard cameraScope != nil,
+              let target, let route, target.reference == reference,
+              target.expiresAt > now(), target.coordinate.datum == .wgs84,
+              route.datum == .wgs84, !route.isStraightLine else { return nil }
+        return .init(revision: cameraRevision, ownerNamespace: ownerNamespace, target: target, route: route)
+    }
+    /// A live retention fence, independent of whether a replacement route is loading.
+    /// Never carries a camera across account, permission, expiry or target boundaries.
+    public var cameraScope: WalkingMapCamera.Scope? {
+        guard current(), foreground, phase != .cancelled, phase != .paused,
+              location.authorization == .authorized, let scope = cameraScopeValue, scope.expiresAt > now() else { return nil }
+        if let target {
+            let currentScope = WalkingMapCamera.Scope(ownerNamespace: ownerNamespace, target: target, now: now())
+            guard currentScope.identity == scope.identity, target.expiresAt > now() else { return nil }
+        }
+        return scope
+    }
     public func start() async {
         guard !busy, foreground else { return }
         guard current() else { invalidate(); return }
         let ticket = generation
+        cameraRevision = UUID()
         busy = true; route = nil; progress = nil; target = nil; accuracyMeters = nil
         defer { if ticket == generation { busy = false } }
         do {
@@ -51,6 +74,9 @@ import Observation
             guard accepts(ticket) else { return }
             try validate(value)
             target = value
+            if cameraScopeValue != nil {
+                cameraScopeValue = .init(ownerNamespace: ownerNamespace, target: value, retaining: cameraScopeValue, now: now())
+            }
             let fix = try await freshFix(ticket)
             guard accepts(ticket) else { return }
             phase = .routing
@@ -62,6 +88,7 @@ import Observation
             // A stale request fix requires an explicit fresh-fix/new-route retry.
             try validateFix(fix)
             try validate(result, fix: fix, target: value)
+            cameraScopeValue = .init(ownerNamespace: ownerNamespace, target: value, retaining: cameraScopeValue, now: now())
             route = result; offRouteSamples = 0
             apply(fix)
         } catch { fail(error, ticket: ticket) }
@@ -106,11 +133,19 @@ import Observation
     public func cancel() {
         stopWork(); route = nil; target = nil; progress = nil; accuracyMeters = nil; phase = .cancelled
     }
-    public func synchronize() { if !current() { invalidate() } }
+    public func synchronize() {
+        if !current() { invalidate() }
+        synchronizeCameraScope()
+    }
+    /// Presentation-only cleanup. No navigation phase, route or provider is changed.
+    public func synchronizeCameraScope() {
+        // Once observed invalid, a restored context cannot revive retained geometry.
+        if cameraScopeValue != nil && cameraScope == nil { cameraScopeValue = nil }
+    }
     private func invalidate() {
         stopWork(); target = nil; route = nil; progress = nil; accuracyMeters = nil; phase = .failed(.staleContext)
     }
-    private func stopWork() { generation = UUID(); busy = false; planner.cancel(); location.stop() }
+    private func stopWork() { generation = UUID(); cameraRevision = UUID(); cameraScopeValue = nil; busy = false; planner.cancel(); location.stop() }
     private func accepts(_ ticket: UUID) -> Bool {
         guard ticket == generation else { return false }
         guard current() else { invalidate(); return false }
@@ -168,9 +203,12 @@ import Observation
     }
     private func fail(_ error: Error, ticket: UUID) {
         guard accepts(ticket) else { return }
-        if error is CancellationError { phase = .cancelled; route = nil; progress = nil; return }
+        if error is CancellationError { cameraScopeValue = nil; phase = .cancelled; route = nil; progress = nil; return }
         let failure = error as? WalkingNavigationFailure ?? (error is WalkingTargetReadFailure ? .targetUnavailable : .network)
         phase = .failed(failure); progress = nil
+        if [WalkingNavigationFailure.permissionRequired, .permissionDenied, .targetUnavailable, .coordinateUnsupported, .staleContext].contains(failure) {
+            cameraScopeValue = nil
+        }
         if failure != .weakGPS { route = nil }
         if failure == .targetUnavailable || failure == .coordinateUnsupported || failure == .staleContext { target = nil }
     }

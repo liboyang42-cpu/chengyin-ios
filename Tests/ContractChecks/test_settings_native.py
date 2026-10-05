@@ -7,6 +7,42 @@ import unittest
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 
 class SettingsNativeSourceChecks(unittest.TestCase):
+    def test_attribution_copy_reuses_local_button_and_keeps_selectable_addresses(self):
+        source = (ROOT/'App/SettingsSupportSections.swift').read_text()
+        self.assertIn('SettingsAttributionsSection(copyText: copyText)', source)
+        attribution = source.split('@MainActor struct SettingsAttributionsSection: View {', 1)[1]
+        self.assertIn('let copyText: (String) throws -> Void', attribution)
+        self.assertIn('NativeCopyTextButton(text: attribution.sourceURL,', attribution)
+        self.assertIn('title: LocalizedStringKey(attribution.copyTitleKey)', attribution)
+        self.assertIn('copyText: copyText)', attribution)
+        self.assertIn('Text(verbatim: attribution.sourceURL)', attribution)
+        self.assertIn('.textSelection(.enabled)', attribution)
+        self.assertNotIn('onAppear', attribution)
+        self.assertNotIn('UIPasteboard', attribution)
+        self.assertNotIn('Link(', attribution)
+
+    def test_attribution_copy_labels_identify_each_source_in_both_languages(self):
+        contracts = (ROOT/'Core/SettingsAboutContracts.swift').read_text()
+        self.assertIn('public var copyTitleKey: String { "settingsNative.attribution.copy.\\(id)" }', contracts)
+        catalog = json.loads((ROOT/'Resources/Localizable.xcstrings').read_text())['strings']
+        expected = {
+            'game-icons': ('Copy game-icons.net source address', '复制 game-icons.net 来源地址'),
+            'ansimuz': ('Copy ansimuz source address', '复制 ansimuz 来源地址'),
+        }
+        for identifier, values in expected.items():
+            entry = catalog['settingsNative.attribution.copy.' + identifier]['localizations']
+            for locale, value in zip(['en', 'zh-Hans'], values):
+                self.assertEqual(entry[locale]['stringUnit']['value'], value)
+
+    def test_attribution_copy_fixture_records_only_success_and_can_retry_failure(self):
+        fixture = (ROOT/'App/SettingsFixtureSupport.swift').read_text()
+        self.assertIn('if scenario == "attributionCopyFailure", !hasFailedCopy', fixture)
+        self.assertIn('hasFailedCopy = true', fixture)
+        self.assertIn('copiedText = text', fixture)
+        self.assertIn('settingsNative.fixture.copiedText', fixture)
+        self.assertLess(fixture.index('throw SettingsSoundStoreError.writeFailed', fixture.index('if scenario == "attributionCopyFailure"')), fixture.index('copiedText = text'))
+        self.assertNotIn('UIPasteboard', fixture)
+
     def test_legal_market_never_follows_language(self):
         source = (ROOT/'Core/SettingsSourceLegalCatalog.swift').read_text()
         self.assertIn('guard let market else { return .missing(.missingMarket) }', source)

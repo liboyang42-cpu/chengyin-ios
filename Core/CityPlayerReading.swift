@@ -131,6 +131,12 @@ private struct CityPayload: Decodable {
     private var generation = UUID()
     public var isConfigured: Bool { approval.map { $0.matches($0.context) } == true && isCurrent() }
     public var state: CityReadState { isConfigured ? stored : .unavailable }
+    /// Rechecks the existing lease/session fence on every render and tap. This is
+    /// a presentation projection only and never grants read or gameplay authority.
+    public var pointMapContext: CityPointMapContext? {
+        guard case .available(let snapshot) = state else { return nil }
+        return CityPointMapContext(readID: generation, snapshot: snapshot)
+    }
     public init(approval: CityPlayerReadApproval?, transport: any HTTPTransport, isCurrent: @escaping () -> Bool, onUnauthorized: @escaping () -> Void = {}) { self.approval = approval; self.transport = transport; self.isCurrent = isCurrent; self.onUnauthorized = onUnauthorized }
     public func cancel() { generation = UUID(); stored = .unavailable }
     public func load() async {

@@ -48,11 +48,15 @@ public struct ActivityDetail: Decodable, Equatable {
     public let publisherAuthoritySource: PublisherActivityAuthoritySource?
     public let summary: ActivitySummary
     public let tickets: [ActivityTicket]
+    public let people: ActivityPeople
+    public let reviews: ActivityReviews
     public let hostMemberID: Int?
     enum CodingKeys: String, CodingKey { case omsTicketList, memberId }
     public init(from decoder:Decoder) throws {
         publisherAuthoritySource = try? PublisherActivityAuthoritySource(from: decoder)
         summary=try ActivitySummary(from:decoder)
+        people=try ActivityPeople(from:decoder)
+        reviews=try ActivityReviews(from:decoder)
         let c=try decoder.container(keyedBy:CodingKeys.self)
         tickets=try c.decodeIfPresent([ActivityTicket].self,forKey:.omsTicketList) ?? []
         hostMemberID=try c.decodeIfPresent(Int.self,forKey:.memberId)

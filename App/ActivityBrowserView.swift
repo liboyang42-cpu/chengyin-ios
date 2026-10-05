@@ -4,6 +4,7 @@ import SwiftUI
 struct ActivityBrowserView: View {
     let reader: any ActivityReading
     var playReaderForActivity: ((Int)->PlaySessionReader)? = nil
+    var peopleProfile: ActivityPeopleProfileContext? = nil
     var registrationEnabled=false
     @State private var items: [ActivitySummary] = []
     @State private var query = ""
@@ -41,7 +42,7 @@ struct ActivityBrowserView: View {
                 } else {
                     List {
                         ForEach(items) { item in
-                            NavigationLink { ActivityDetailView(id:item.id,reader:reader,playReaderForActivity:playReaderForActivity,registrationEnabled:registrationEnabled) } label: { ActivityListCard(item:item) }
+                            NavigationLink { ActivityDetailView(id:item.id,reader:reader,playReaderForActivity:playReaderForActivity,registrationEnabled:registrationEnabled,peopleProfile:peopleProfile) } label: { ActivityListCard(item:item) }
                                 .buttonStyle(QuestifyCardButtonStyle())
                                 .questifyCardListRow()
                                 .accessibilityIdentifier("activity.row.\(item.id)")

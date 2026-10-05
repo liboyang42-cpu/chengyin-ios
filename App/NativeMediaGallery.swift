@@ -112,7 +112,8 @@ import UIKit
     }
 }
 
-@MainActor private struct NativeMediaImage: View {
+/// Shared bounded media tile; callers supply only current, scoped source values.
+@MainActor struct NativeMediaImage: View {
     let raw: String
     let reader: any RetainedPublicImageReading
     let zoomable: Bool

@@ -30,6 +30,36 @@ final class TopicTests: XCTestCase {
     private func decode<T: Decodable>(_ type: T.Type, _ json: String) throws -> T {
         try JSONDecoder().decode(type, from: Data(json.utf8))
     }
+    func testTopicDisplayDoesNotPromoteCollaboratorsOrPublisherToInitiator() throws {
+        let base = #"{"id":7,"name":"Synthetic route","clubName":"Synthetic club","isOwner":1"#
+        let expected = try decode(TopicDetail.self, base + "}")
+        for fields in [
+            #", "collaboratorsList":null"#,
+            #", "collaboratorsList":[]"#,
+            #", "collaboratorsList":[{"memberId":41,"memberRealName":"First collaborator","memberAvatar":"first-avatar"}]"#,
+            #", "collaboratorsList":[{"memberId":42,"memberRealName":"Other collaborator"},{"memberId":41,"memberRealName":"First collaborator"}]"#,
+            #", "memberId":99,"umsMember":{"id":99,"nickname":"Public publisher","avatar":"publisher-avatar"},"contentPublisherName":"Content entity","collaboratorsList":[{"memberId":41,"memberRealName":"Collaborator"}]"#
+        ] {
+            let actual = try decode(TopicDetail.self, base + fields + "}")
+            XCTAssertEqual(actual, expected, "Unrendered person data must not become initiator attribution")
+            XCTAssertEqual(actual.clubName, "Synthetic club")
+            XCTAssertTrue(actual.isOwner)
+        }
+    }
+    func testOmittingInitiatorPreservesSeparateCollaboratorReviewEvidenceAndOwnerProof() throws {
+        let raw = #"{"id":7,"name":"Synthetic route","isOwner":0,"betaFlag":1,"productType":1,"storyLocked":false,"totalChapterCount":0,"chaptersList":[],"omsTicketList":[],"collaboratorsList":[{"memberId":41,"memberRealName":"Collaborator","memberAvatar":"collaborator-avatar"}]}"#
+        let detail = try decode(TopicDetail.self, raw)
+        let evidence = try XCTUnwrap(detail.publisherAuthoritySource)
+        XCTAssertFalse(detail.isOwner)
+        XCTAssertFalse(evidence.viewerIsOwner, "A collaborator does not grant creator authority")
+        XCTAssertEqual(evidence.stableFacts.object?["collaboratorsList"]?.array?.first?.object?["memberId"]?.integer, 41)
+        XCTAssertEqual(evidence.stableFacts.object?["collaboratorsList"]?.array?.first?.object?["memberRealName"]?.text, "Collaborator")
+        XCTAssertEqual(evidence.stableFacts.object?["collaboratorsList"]?.array?.first?.object?["memberAvatar"]?.text, "collaborator-avatar")
+        let changed = raw.replacingOccurrences(of: "Collaborator", with: "Renamed collaborator")
+        XCTAssertNotEqual(try decode(TopicDetail.self, changed).publisherAuthoritySource, evidence)
+        let missingOwner = raw.replacingOccurrences(of: #""isOwner":0,"#, with: "")
+        XCTAssertNil(try decode(TopicDetail.self, missingOwner).publisherAuthoritySource)
+    }
     func testFullRouteCountPreservesUnknownZeroAndAuthoritativeTotal() throws {
         for fields in ["", ",\"locationCount\":null", ",\"locationCount\":-1"] {
             let raw = "{\"id\":7\(fields),\"chaptersList\":[{\"id\":11,\"nodes\":[{\"id\":21}]}]}"

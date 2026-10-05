@@ -24,13 +24,15 @@ struct ClubGovernanceEntryButton: View {
     }
 }
 struct ClubGovernanceHomeEntries: View {
+    var feedContext = ClubGovernanceFeedContext()
     let identity: ClubReadIdentity?
     let access: any ClubGovernanceAccess
     let coordinator: ClubGovernanceCoordinator
     var body: some View {
         NavigationLink { ClubGovernanceReadView(operation: .hostStatus, scope: .init(), identity: identity, access: access, coordinator: coordinator) } label: { Label("club.gov.hostStatus", systemImage: "person.badge.plus") }
             .accessibilityIdentifier("club.gov.openHost")
-        NavigationLink { ClubGovernanceReadView(operation: .feed, scope: .init(), identity: identity, access: access, coordinator: coordinator) } label: { Label("club.gov.feed", systemImage: "text.bubble") }
+        NavigationLink { ClubGovernanceReadView(operation: .feed, scope: .init(), identity: identity, access: access, coordinator: coordinator)
+                .environment(\.clubGovernanceFeed, feedContext) } label: { Label("club.gov.feed", systemImage: "text.bubble") }
             .accessibilityIdentifier("club.gov.openFeed")
     }
 }
@@ -56,6 +58,7 @@ struct ClubGovernanceFormRoute: Identifiable {
 struct ClubGovernanceReadView: View {
     @Environment(\.clubOpsTimeFactory) private var opsTimeFactory
     @Environment(\.clubCustomerTopics) private var customerTopics
+    @Environment(\.clubGovernanceFeed) private var feedContext
     let operation: ClubGovernanceRead
     let scope: ClubGovernanceScope
     let identity: ClubReadIdentity?
@@ -65,9 +68,12 @@ struct ClubGovernanceReadView: View {
     @State private var snapshotContext: ClubGovernanceReadContext?
     @State private var snapshotGeneration: UInt64 = 0
     @State private var customerTopic: ClubCustomerHistoryTopicRoute?
+    @State private var feedClub: ClubFeedClubRoute?
+    @State private var feedMediaScope = UUID()
     private var readContext: ClubGovernanceReadContext {
-        .init(operation: operation, scope: scope, identity: identity, viewerRevision: customerTopics.viewerRevision,
-              authorizationGeneration: access.authorizationGeneration)
+        .init(operation: operation, scope: scope, identity: identity, viewerRevision: operation == .feed ? feedContext.viewerRevision : customerTopics.viewerRevision,
+              authorizationGeneration: access.authorizationGeneration,
+              readerIdentity: operation == .feed ? feedContext.readerIdentity : nil, accessIdentity: ObjectIdentifier(access))
     }
     @State private var failure: ClubGovernanceFailure?
     @State private var loading = false
@@ -111,12 +117,12 @@ struct ClubGovernanceReadView: View {
                     .onChange(of: sort) { _, _ in Task { await load() } }
             }
             if let snapshot, snapshotContext == readContext, identity == access.identity { content(snapshot) }
-            if [.feed, .posts].contains(operation), snapshot != nil {
+            if operation == .posts, snapshot != nil {
                 Section {
                     HStack {
-                        Button("club.gov.previous") { page -= 1; Task { await load() } }.disabled(page <= 1 || loading)
+                        Button("club.gov.previous") { page -= 1; Task { await load() } }.disabled(page <= 1 || loading).accessibilityIdentifier("club.gov.previous")
                         Spacer(); Text(page, format: .number)
-                        Button("club.gov.next") { page += 1; Task { await load() } }.disabled(loading || (snapshot?.value.array ?? snapshot?.value["rows"].array ?? []).count < 20)
+                        Button("club.gov.next") { page += 1; Task { await load() } }.disabled(loading || (snapshot?.value.array ?? snapshot?.value["rows"].array ?? []).count < 20).accessibilityIdentifier("club.gov.next")
                     }
                 }
             }
@@ -129,7 +135,12 @@ struct ClubGovernanceReadView: View {
                 destination(target.topicID).id(target.id)
             }
         }
-        .task(id: readContext) { snapshot = nil; editor = nil; customerTopic = nil; coordinator.cancelReview(); await load() }
+        .navigationDestination(item: $feedClub) { target in
+            if let destination = feedContext.destination, current(target) {
+                destination(target.clubID).id(target.id)
+            }
+        }
+        .task(id: readContext) { snapshot = nil; editor = nil; customerTopic = nil; feedClub = nil; coordinator.cancelReview(); await load() }
         .onChange(of: readContext) { _, _ in invalidateRead() }
         .onChange(of: identity) { _, _ in invalidateRead() }
         .onDisappear { generation &+= 1 }
@@ -138,13 +149,14 @@ struct ClubGovernanceReadView: View {
     private func load() async {
         generation &+= 1; let revision = generation; let expected = identity; let context = readContext
         snapshot = nil; failure = nil; loading = true
-        snapshotContext = nil; customerTopic = nil
+        snapshotContext = nil; customerTopic = nil; feedClub = nil; feedMediaScope = UUID()
         guard expected?.isSignedIn == true else { loading = false; failure = .signedOut; return }
         var options: [String: ClubGovernanceValue] = [:]
         if operation == .customers { options = ["filter": .string(filter), "keyword": .string(keyword)] }
         if operation == .topicCustomers { options = topicCustomerFilter.options }
         if operation == .leaderboard { options = ["sortBy": .string(sort)] }
-        if [.feed, .posts].contains(operation) { options = ["pageNum": .integer(page), "pageSize": .integer(20)] }
+        if operation == .feed { options = ["limit": .integer(20)] }
+        if operation == .posts { options = ["pageNum": .integer(page), "pageSize": .integer(20)] }
         do {
             let result = try await access.read(operation, scope: scope, options: options) {
                 guard revision == generation, context == readContext, expected == identity,
@@ -160,7 +172,21 @@ struct ClubGovernanceReadView: View {
         if revision == generation { loading = false }
     }
     private func invalidateRead() {
-        generation &+= 1; snapshot = nil; snapshotContext = nil; failure = nil; editor = nil; customerTopic = nil; coordinator.cancelReview()
+        generation &+= 1; snapshot = nil; snapshotContext = nil; failure = nil; editor = nil; customerTopic = nil; feedClub = nil; feedMediaScope = UUID(); coordinator.cancelReview()
+    }
+    private func current(_ target: ClubFeedClubRoute) -> Bool {
+        identity == access.identity && access.isConfigured && snapshotContext == readContext &&
+        feedContext.destination != nil &&
+        target.isCurrent(snapshot: snapshot, context: readContext, snapshotGeneration: snapshotGeneration)
+    }
+    private func feedClubRoute(_ post: ClubFeedPost) -> ClubFeedClubRoute? {
+        guard let snapshot, snapshotContext == readContext, identity == access.identity,
+              access.isConfigured, feedContext.destination != nil else { return nil }
+        return .init(post: post, snapshot: snapshot, context: readContext, snapshotGeneration: snapshotGeneration)
+    }
+    private func selectFeedClub(_ target: ClubFeedClubRoute) {
+        guard feedClub == nil, current(target) else { return }
+        feedClub = target
     }
     private func current(_ target: ClubCustomerHistoryTopicRoute) -> Bool {
         identity == access.identity && access.isConfigured && snapshotContext == readContext &&
@@ -267,6 +293,21 @@ struct ClubGovernanceReadView: View {
             ClubGovernanceFactRows(value: value, fields: ["settledAmountText", "settledAmountStatus", "unverifiedSettledCount"], showUnknown: true)
             Text("club.gov.financialGate")
             dataRows(value["topics"].array ?? [])
+        } else if operation == .feed {
+            if let feed = try? ClubFeedPresentation(snapshot: snapshot) {
+                if feed.posts.isEmpty {
+                    if feed.clubCount == 0 {
+                        Text("club.gov.noJoinedClubs").accessibilityIdentifier("club.feed.emptyNoClubs")
+                    } else {
+                        Text("club.gov.empty").accessibilityIdentifier("club.feed.emptyPosts")
+                    }
+                }
+                ForEach(feed.posts) { post in
+                    let target = feedClubRoute(post)
+                    ClubGovernanceFeedPostView(post: post, mediaScope: feedMediaScope, imageReader: feedContext.imageReader ?? RetainedPublicImageReader(),
+                        openClub: target.map { route in { selectFeedClub(route) } })
+                }
+            } else { Text("club.gov.malformed").accessibilityIdentifier("club.feed.malformed") }
         } else if operation == .customer {
             ClubGovernanceFactRows(value: value["summary"], fields: ["displayName", "phoneText", "arrivedCount", "pendingCount", "refundedCount", "paidAmount"], showUnknown: true)
             ClubGovernanceFactRows(value: value, fields: ["remark"])
@@ -276,7 +317,6 @@ struct ClubGovernanceReadView: View {
         } else {
             ClubGovernanceFactRows(value: value, fields: ClubGovernanceFactRows.summaryFields)
             if operation == .customers { ClubGovernanceFactRows(value: value, fields: ["total", "monthNew"]) }
-            if operation == .feed && value["clubCount"].int == 0 { Text("club.gov.noJoinedClubs") }
             dataRows(value.array ?? value["items"].array ?? value["rows"].array ?? value["topics"].array ?? value["nodes"].array ?? [])
             if operation == .topicSettings {
                 if value["canManage"] == .bool(true) { edit(.saveTopicSettings, seed: ["coopOpen": value["coopOpen"], "pinned": value["pinned"], "memberOnly": value["memberOnly"]]); edit(.endTopic) }

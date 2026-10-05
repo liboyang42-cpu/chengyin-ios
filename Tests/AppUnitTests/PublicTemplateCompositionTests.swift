@@ -286,6 +286,45 @@ import XCTest
         XCTAssertNil(session.account); XCTAssertNil(vault.value)
         XCTAssertEqual(session.errorKey, "auth.expired")
     }
+    func testLocalTopicNameSearchUsesReloadedCatalogWithoutChangingWireShape() async throws {
+        let wire = Wire(); let (session, _) = try makeSession(wire, auth: true)
+        await signIn(session, recorder: wire)
+        let loader = DiscoveryLoader<[DiscoveryTopicTemplate]>()
+        let search = DiscoveryTopicTemplateNameSearch(" ROUTE ")
+        await loadCatalog(loader, session: session)
+        XCTAssertEqual(search.filter(try XCTUnwrap(loader.value)).map(\.id), [801])
+        let selected = session.publicTopicTemplateCoordinator(id: 801)
+        await selected.load()
+        wire.catalogJSON = #"{"code":200,"data":[{"id":802,"name":"Replacement"}]}"#
+        await loadCatalog(loader, session: session)
+        XCTAssertTrue(search.filter(try XCTUnwrap(loader.value)).isEmpty)
+        XCTAssertEqual(DiscoveryTopicTemplateNameSearch("").filter(try XCTUnwrap(loader.value)).map(\.id), [802])
+        let requests = wire.requests.filter { $0.url?.path.hasSuffix(Self.catalog) == true }
+        XCTAssertEqual(requests.count, 2)
+        for request in requests {
+            XCTAssertEqual(request.httpBody, Data("{}".utf8))
+            XCTAssertNil(request.url?.query)
+        }
+        await session.logout()
+        XCTAssertTrue(selected.isInvalidated); XCTAssertNil(selected.value)
+    }
+    func testLocalTopicNameSearchCannotRestoreSupersededCatalogResults() async throws {
+        let wire = Wire(); let (session, _) = try makeSession(wire, auth: true)
+        await signIn(session, recorder: wire)
+        let loader = DiscoveryLoader<[DiscoveryTopicTemplate]>()
+        wire.pauseNextCatalog = true
+        let started = expectation(description: "Old name-search catalog suspended")
+        wire.onPaused = { started.fulfill() }
+        let old = Task { await self.loadCatalog(loader, session: session) }
+        await fulfillment(of: [started], timeout: 2)
+        wire.catalogJSON = #"{"code":200,"data":[{"id":802,"name":"New route"}]}"#
+        await loadCatalog(loader, session: session)
+        wire.catalogJSON = #"{"code":200,"data":[{"id":801,"name":"Old route"}]}"#
+        wire.resume(status: 200); await old.value
+        XCTAssertEqual(DiscoveryTopicTemplateNameSearch("route").filter(try XCTUnwrap(loader.value)).map(\.id), [802])
+        XCTAssertTrue(DiscoveryTopicTemplateNameSearch("old").filter(try XCTUnwrap(loader.value)).isEmpty)
+        XCTAssertNil(loader.error); XCTAssertFalse(loader.isLoading)
+    }
     func testSupersededCatalogLoaderUnauthorizedCannotExpireSessionOrEraseNewSuccess() async throws {
         let wire = Wire(); let (session, vault) = try makeSession(wire, auth: true)
         await signIn(session, recorder: wire)
@@ -433,7 +472,7 @@ import XCTest
             let json = pendingCatalog ? catalogJSON : detailJSON
             value?.resume(returning: (Data(json.utf8), status))
         }
-        private let catalogJSON = #"{"code":200,"data":[{"id":801,"name":"Public route","locationCount":9}]}"#
+        var catalogJSON = #"{"code":200,"data":[{"id":801,"name":"Public route","locationCount":9}]}"#
         private var detailJSON: String {
             "{\"code\":200,\"data\":{\"id\":801,\"locationCount\":9,\"viewerIsMerchant\":\(viewerIsMerchant),\"chapters\":[{\"id\":21,\"recruitStatus\":{\"state\":\"OPEN\"}}]}}"
         }

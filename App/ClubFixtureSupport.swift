@@ -5,6 +5,7 @@ import SwiftUI
 enum ClubFixtureScenario: String {
     case owner, member, visitor, administrator, empty, retry, forbidden, guest, missingMembers
     case customerOwner, customerAdministrator, customerDenied, customerInvalidHistory
+    case merchantLocality, merchantLocalityRetry, merchantLocalityUnknown, merchantLocalityEmpty, merchantLocalityDelayed
     static func selected(arguments: [String]) -> Self? {
         guard let index = arguments.firstIndex(of: "--uitesting-club-fixture"), arguments.indices.contains(index + 1) else { return nil }
         return Self(rawValue: arguments[index + 1])
@@ -27,6 +28,10 @@ struct ClubFixtureRootView: View {
                 HStack {
                     Button("club.fixtureSwitchAccount") { reader.switchAccount() }.accessibilityIdentifier("club.fixture.switchAccount")
                     Button("club.fixtureSignOut") { reader.signOut() }.accessibilityIdentifier("club.fixture.signOut")
+                    if reader.isLocalityFixture {
+                        Button("Toggle player / merchant") { reader.toggleLocalityRole() }.accessibilityIdentifier("club.fixture.toggleLocalityRole")
+                        Button("Switch merchant") { reader.switchLocalityMerchant() }.accessibilityIdentifier("club.fixture.switchMerchant")
+                    }
                     if [.customerOwner, .customerAdministrator, .customerDenied, .customerInvalidHistory].contains(scenario) {
                         Button("Revoke fixture role") { governanceAccess.readFailure = .forbidden; viewerRevision &+= 1 }
                             .accessibilityIdentifier("club.fixture.revokeRole")
@@ -34,6 +39,15 @@ struct ClubFixtureRootView: View {
                             .accessibilityIdentifier("club.fixture.restoreRole")
                     }
                 }.font(.caption)
+                if scenario == .merchantLocalityDelayed {
+                    HStack {
+                        Text(verbatim: String(reader.pendingLocalityCount)).accessibilityIdentifier("club.fixture.locality.pending")
+                        Button("Release oldest locality") { reader.releaseLocality() }.disabled(reader.pendingLocalityCount == 0)
+                            .accessibilityIdentifier("club.fixture.locality.release")
+                        Button("Fail oldest locality") { reader.releaseLocality(failing: true) }.disabled(reader.pendingLocalityCount == 0)
+                            .accessibilityIdentifier("club.fixture.locality.fail")
+                    }.font(.caption)
+                }
             }.padding(8).frame(maxWidth: .infinity).background(.yellow.opacity(0.15))
             NavigationStack {
                 if [.customerOwner, .customerAdministrator, .customerDenied, .customerInvalidHistory].contains(scenario) {
@@ -66,6 +80,42 @@ final class ClubFixtureReader: ObservableObject, ClubReading {
     let governanceAccess = ClubGovernanceFixtureAccess()
     @Published private(set) var clubIdentity: ClubReadIdentity
     private let scenario: ClubFixtureScenario
+    var isLocalityFixture: Bool {
+        [.merchantLocality, .merchantLocalityRetry, .merchantLocalityUnknown, .merchantLocalityEmpty, .merchantLocalityDelayed].contains(scenario)
+    }
+    @Published private var localityRole = "merchant"
+    @Published private var localityRevision: UInt64 = 0
+    @Published private var alternateMerchant = false
+    @Published private(set) var pendingLocalityCount = 0
+    private var firstLocalityAttempt = true
+    private var pendingLocalities: [(CheckedContinuation<MerchantClubLocality, Error>, MerchantClubLocality)] = []
+    var clubDiscoveryScope: ClubDiscoveryScope {
+        .init(identity: clubIdentity, role: isLocalityFixture ? localityRole : "player",
+              viewerRevision: localityRevision, merchantID: isLocalityFixture ? (alternateMerchant ? 32 : 31) : nil,
+              merchantRevision: localityRevision)
+    }
+    func toggleLocalityRole() { localityRevision &+= 1; localityRole = localityRole == "merchant" ? "player" : "merchant" }
+    func switchLocalityMerchant() { localityRevision &+= 1; alternateMerchant.toggle() }
+    func clubMerchantLocality() async throws -> MerchantClubLocality {
+        guard isLocalityFixture, clubDiscoveryScope.isMerchantViewer else { throw APIError.notConfigured }
+        let first = firstLocalityAttempt; firstLocalityAttempt = false
+        if scenario == .merchantLocalityRetry && first { throw URLError(.notConnectedToInternet) }
+        let city = scenario == .merchantLocalityEmpty ? "Other City" : (alternateMerchant ? "B City" : "A City")
+        let value: MerchantClubLocality = try decode(["id": alternateMerchant ? 32 : 31,
+            "city": scenario == .merchantLocalityUnknown && first ? "" : city])
+        if scenario == .merchantLocalityDelayed {
+            return try await withCheckedThrowingContinuation { continuation in
+                pendingLocalities.append((continuation, value)); pendingLocalityCount = pendingLocalities.count
+            }
+        }
+        return value
+    }
+    func releaseLocality(failing: Bool = false) {
+        guard !pendingLocalities.isEmpty else { return }
+        let (continuation, value) = pendingLocalities.removeFirst(); pendingLocalityCount = pendingLocalities.count
+        if failing { continuation.resume(throwing: APIError.unauthorized) }
+        else { continuation.resume(returning: value) }
+    }
     private var firstHomeAttempt = true
     private var alternateAccount = false
     init(scenario: ClubFixtureScenario) {
@@ -99,6 +149,13 @@ final class ClubFixtureReader: ObservableObject, ClubReading {
         try authorize()
         if scenario == .retry && firstHomeAttempt { firstHomeAttempt = false; throw URLError(.notConnectedToInternet) }
         if scenario == .empty { return try decode(["owned": [], "joined": [], "nearby": [], "events": []]) }
+        if isLocalityFixture {
+            return try decode([
+                "owned": [["id": 81, "name": "Owned fixture", "isOwner": true]],
+                "joined": [["id": 82, "name": "Joined fixture", "isJoined": true]],
+                "nearby": [localityClub(id: 83), localityClub(id: 84), localityClub(id: 85)], "events": []
+            ])
+        }
         let mine = clubJSON(id: 81), nearby = clubJSON(id: 82)
         let owned = mine["isOwner"] as? Bool == true
         let joined = mine["isJoined"] as? Bool == true
@@ -123,6 +180,7 @@ final class ClubFixtureReader: ObservableObject, ClubReading {
     }
     func clubDetail(id: Int) async throws -> ClubRecord {
         try authorize()
+        if isLocalityFixture, [81, 82, 83, 84, 85].contains(id) { return try decode(localityClub(id: id)) }
         guard [81, 82].contains(id) else { throw ClubReadFailure.rejected(code: 404, message: "Fixture club is unavailable") }
         return try decode(clubJSON(id: id))
     }
@@ -133,9 +191,12 @@ final class ClubFixtureReader: ObservableObject, ClubReading {
         if scenario == .missingMembers { members = [] }
         else {
             members = try decode([
-                ["memberId": 701, "nickname": "Fixture creator", "role": 1, "isOwner": true],
-                ["memberId": 703, "nickname": "Fixture administrator", "role": 1, "isOwner": false],
-                ["memberId": 704, "nickname": "", "role": 0, "isOwner": false]
+                ["memberId": 701, "nickname": "Fixture creator", "role": 1, "isOwner": true,
+                 "levelId": 7, "joinTime": "2026-01-01 09:00:00"],
+                ["memberId": 703, "nickname": "Fixture administrator", "role": 1, "isOwner": false,
+                 "levelId": 4, "joinTime": "2026-02-03 10:15:00"],
+                ["memberId": 704, "nickname": "", "role": 0, "isOwner": false,
+                 "levelId": 0, "joinTime": "  "]
             ])
         }
         return ClubMemberDirectory(club: club, members: members)
@@ -144,6 +205,12 @@ final class ClubFixtureReader: ObservableObject, ClubReading {
         try Task.checkCancellation()
         guard clubIdentity.isSignedIn else { throw ClubReadFailure.unauthorized(message: nil) }
         if scenario == .forbidden { throw ClubReadFailure.forbidden(message: "Fixture access was denied by the server") }
+    }
+    private func localityClub(id: Int) -> [String: Any] {
+        var value: [String: Any] = ["id": id, "name": "Locality fixture club \(id)"]
+        if id == 83 { value["city"] = "A City" }
+        if id == 84 { value["city"] = "B City" }
+        return value
     }
     private func clubJSON(id: Int) -> [String: Any] {
         let owned = id == 81 && !alternateAccount && [.owner, .retry, .missingMembers, .customerOwner, .customerDenied, .customerInvalidHistory].contains(scenario)

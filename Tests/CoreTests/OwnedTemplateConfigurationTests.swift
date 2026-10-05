@@ -38,6 +38,29 @@ import FoundationNetworking
         let publicDetail = try JSONDecoder().decode(PlayWireValue.self, from: bytes)["data"].decoded(MemberTemplateDetail.self)
         XCTAssertFalse(Mirror(reflecting: publicDetail).children.contains { $0.label == "questionAnswer" || $0.label == "advancedConfigJson" })
     }
+    func testChoiceOptionMediaIsOwnerOnlyExactReadWithMissingAndUnsupportedStates() throws {
+        let raw = "\n{\"A\":{\"img\":\" exact-image \",\"future\":true}}\n"
+        let bytes = try response(["validationMethod": 3, "questionOptionMediaJson": raw])
+        let snapshot = try OwnedTemplateConfigurationSnapshot(response: bytes, requestedID: id, accountID: 7)
+        XCTAssertEqual(snapshot.questionOptionMediaJson, .value(raw))
+        XCTAssertEqual(snapshot.choiceOptionMedia?.text(.a, .image), " exact-image ")
+        XCTAssertEqual(snapshot.choiceOptionMedia?.isSupported, false)
+        XCTAssertTrue(snapshot.unsupportedFields.contains("questionOptionMediaJson"))
+        XCTAssertTrue(snapshot.hasExactBaseline(bytes))
+        XCTAssertThrowsError(try OwnedTemplateConfigurationSnapshot(response: bytes, requestedID: id, accountID: 8))
+        let missing = try OwnedTemplateConfigurationSnapshot(response: response(), requestedID: id, accountID: 7)
+        XCTAssertEqual(missing.questionOptionMediaJson, .missing); XCTAssertNil(missing.choiceOptionMedia)
+        let null = try OwnedTemplateConfigurationSnapshot(response: response(["questionOptionMediaJson": NSNull()]), requestedID: id, accountID: 7)
+        XCTAssertEqual(null.questionOptionMediaJson, .null); XCTAssertNil(null.choiceOptionMedia)
+        let unsupported = try OwnedTemplateConfigurationSnapshot(response: response(["questionOptionMediaJson": ["A": "wrong"]]), requestedID: id, accountID: 7)
+        XCTAssertEqual(unsupported.questionOptionMediaJson, .unsupported); XCTAssertNil(unsupported.choiceOptionMedia)
+        let malformed = try OwnedTemplateConfigurationSnapshot(response: response(["questionOptionMediaJson": "{unfinished"]), requestedID: id, accountID: 7)
+        XCTAssertEqual(malformed.questionOptionMediaJson, .value("{unfinished"))
+        XCTAssertEqual(malformed.choiceOptionMedia?.isSupported, false)
+        let valid = try OwnedTemplateConfigurationSnapshot(response: response(["validationMethod": 3, "questionOptionMediaJson": #"{"D":{"audio":"audio-d"}}"#]), requestedID: id, accountID: 7)
+        XCTAssertEqual(valid.choiceOptionMedia?.text(.d, .audio), "audio-d")
+        XCTAssertFalse(valid.unsupportedFields.contains("questionOptionMediaJson"))
+    }
     func testWrongMissingOwnerIDAndNoncanonicalOwnerCannotConstructSnapshot() throws {
         let invalid: [[String: Any]] = [["memberId": 8], ["memberId": NSNull()], ["memberId": "7"], ["memberId": true], ["id": 102], ["id": 0]]
         for extra in invalid {

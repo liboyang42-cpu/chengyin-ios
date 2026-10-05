@@ -276,3 +276,87 @@ final class MerchantBusinessContractsTests: XCTestCase {
     }
 
 }
+
+final class MerchantAftercareLoadedPagesTests: XCTestCase {
+    private let scope = MerchantBusinessScope(realm: "synthetic://loaded-pages", accountID: 99001, epoch: 1)
+    private func snapshot(_ query: MerchantBusinessQuery, merchantID: Int = 610, permissions: [MerchantBusinessValue]? = nil, rowOverride: MerchantBusinessObject? = nil) throws -> MerchantBusinessSnapshot {
+        var access = try XCTUnwrap(MerchantBusinessSyntheticFixtures.decode(MerchantBusinessSyntheticFixtures.access).object)
+        access["merchant"] = .object(["id": .int(merchantID), "name": .string("Synthetic workshop")])
+        if let permissions { access["permissions"] = .array(permissions); access["canManageOperators"] = .bool(false) }
+        var payload = try MerchantBusinessSyntheticFixtures.listToolsPayload(query)
+        if let rowOverride {
+            var object = try XCTUnwrap(payload.object); object["items"] = .array([.object(rowOverride)]); payload = .object(object)
+        }
+        return try .init(access: .init(access), document: .init(query: query, payload: payload))
+    }
+    func testAccumulationSearchesBothPagesAndKeepsServerSnapshotsUntouched() throws {
+        let first = try snapshot(.aftercare(.pending, page: 1)), second = try snapshot(.aftercare(.pending, page: 2))
+        var pages = try MerchantAftercareLoadedPages(snapshot: first, scope: scope, authorizationGeneration: nil)
+        try pages.append(second, scope: scope, authorizationGeneration: nil)
+        XCTAssertEqual(pages.rows.map(\.id), (1...21).map { String(62000 + $0) })
+        XCTAssertEqual(pages.page, 2); XCTAssertFalse(pages.hasMore)
+        var filter = MerchantBusinessListFilters(); filter.aftercareKeyword = "  ALICE  "
+        let section = try MerchantBusinessSection("aftercare", rows: pages.rows)
+        XCTAssertEqual(filter.rows(in: section, query: second.document.query).map(\.id), ["62001"])
+        filter.aftercareKeyword = "EXAMPLE-RF-21"
+        XCTAssertEqual(filter.rows(in: section, query: second.document.query).map(\.id), ["62021"])
+        XCTAssertEqual(first.document.rows.count, 20); XCTAssertEqual(second.document.rows.map(\.id), ["62021"])
+        XCTAssertEqual(second.document.total, 21)
+        XCTAssertEqual(try second.document.query.request().query, ["bucket": "PENDING", "pageNum": "2", "pageSize": "20"])
+    }
+    func testResetRequiresFirstAftercarePage() throws {
+        XCTAssertThrowsError(try MerchantAftercareLoadedPages(snapshot: snapshot(.aftercare(.pending, page: 2)), scope: scope, authorizationGeneration: nil))
+        XCTAssertThrowsError(try MerchantAftercareLoadedPages(snapshot: snapshot(.reviews(page: 1)), scope: scope, authorizationGeneration: nil))
+    }
+    func testAppendRejectsDifferentAccountEpochRealmOrAuthorizationWithoutChangingRows() throws {
+        var pages = try MerchantAftercareLoadedPages(snapshot: snapshot(.aftercare(.pending, page: 1)), scope: scope, authorizationGeneration: nil)
+        let before = pages, second = try snapshot(.aftercare(.pending, page: 2))
+        let others: [MerchantBusinessScope] = [
+            .init(realm: scope.realm, accountID: 99002, epoch: 1),
+            .init(realm: scope.realm, accountID: scope.accountID, epoch: 2),
+            .init(realm: "synthetic://different", accountID: scope.accountID, epoch: 1)
+        ]
+        for other in others {
+            XCTAssertThrowsError(try pages.append(second, scope: other, authorizationGeneration: nil))
+            XCTAssertEqual(pages, before)
+        }
+        XCTAssertThrowsError(try pages.append(second, scope: scope, authorizationGeneration: UUID()))
+        XCTAssertEqual(pages, before)
+    }
+    func testAppendRejectsDifferentMerchantPermissionsBucketOrPageWithoutChangingRows() throws {
+        var pages = try MerchantAftercareLoadedPages(snapshot: snapshot(.aftercare(.pending, page: 1)), scope: scope, authorizationGeneration: nil)
+        let before = pages
+        let invalid = [
+            try snapshot(.aftercare(.pending, page: 2), merchantID: 611),
+            try snapshot(.aftercare(.pending, page: 2), permissions: [.string("merchant:aftercare:read")]),
+            try snapshot(.aftercare(.processing, page: 2)),
+            try snapshot(.aftercare(.pending, page: 1)),
+            try snapshot(.reviews(page: 2))
+        ]
+        for snapshot in invalid {
+            XCTAssertThrowsError(try pages.append(snapshot, scope: scope, authorizationGeneration: nil))
+            XCTAssertEqual(pages, before)
+        }
+    }
+    func testDuplicateLoadedIdentityUsesLatestFieldsAndKeepsStableOrder() throws {
+        let first = try snapshot(.aftercare(.pending, page: 1))
+        var row = try XCTUnwrap(first.document.rows.first?.fields)
+        row["reason"] = .string("Updated synthetic reason")
+        let second = try snapshot(.aftercare(.pending, page: 2), rowOverride: row)
+        var pages = try MerchantAftercareLoadedPages(snapshot: first, scope: scope, authorizationGeneration: nil)
+        try pages.append(second, scope: scope, authorizationGeneration: nil)
+        XCTAssertEqual(pages.rows.count, 20)
+        XCTAssertEqual(pages.rows.first?.id, "62001")
+        XCTAssertEqual(pages.rows.first?.fields.mbText("reason"), "Updated synthetic reason")
+        XCTAssertEqual(first.document.rows.first?.fields.mbText("reason"), "Weather delay")
+        XCTAssertNoThrow(try MerchantBusinessSection("aftercare", rows: pages.rows))
+    }
+    func testCompletedPageCannotBeAppendedAgain() throws {
+        var pages = try MerchantAftercareLoadedPages(snapshot: snapshot(.aftercare(.pending, page: 1)), scope: scope, authorizationGeneration: nil)
+        let second = try snapshot(.aftercare(.pending, page: 2))
+        try pages.append(second, scope: scope, authorizationGeneration: nil)
+        let before = pages
+        XCTAssertThrowsError(try pages.append(second, scope: scope, authorizationGeneration: nil))
+        XCTAssertEqual(pages, before)
+    }
+}

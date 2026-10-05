@@ -29,6 +29,7 @@ struct RoamBrowserView: View {
     @State private var generation = 0
 
     private struct RequestKey: Hashable {
+        let readerID: ObjectIdentifier
         let identity: RoamReadIdentity?
         let area: RoamSearchArea?
         let layer: RoamLayer
@@ -36,7 +37,11 @@ struct RoamBrowserView: View {
         let configured: Bool
     }
     private var requestKey: RequestKey {
-        RequestKey(identity: reader.identity, area: reader.searchArea, layer: layer, radius: radiusM, configured: reader.isConfigured)
+        RequestKey(readerID: ObjectIdentifier(reader), identity: reader.identity, area: reader.searchArea, layer: layer, radius: radiusM, configured: reader.isConfigured)
+    }
+    private var cameraScope: RoamMapCameraScope? {
+        RoamMapCameraScope(readerID: ObjectIdentifier(reader), identity: reader.identity,
+            area: reader.searchArea, isConfigured: reader.isConfigured)
     }
     private struct PresentationKey: Hashable {
         let request: RequestKey
@@ -50,7 +55,7 @@ struct RoamBrowserView: View {
             placeFilter: placeFilter, eventFilter: eventFilter)
     }
     private var visibleItems: [RoamMapItem] {
-        guard loadedKey == requestKey else { return [] }
+        guard loadedKey == requestKey, !loading, issue == nil else { return [] }
         return items.filter { item in
             switch item {
             case .place(let place): if !placeFilter.includes(place) { return false }
@@ -71,19 +76,6 @@ struct RoamBrowserView: View {
                         RoamStatusView(issue: .unauthorized)
                     } else if reader.searchArea == nil {
                         RoamStatusView(issue: .areaRequired)
-                    } else if loading || loadedKey != requestKey {
-                        ProgressView("roam.loading").accessibilityIdentifier("roam.loading")
-                    } else if let issue {
-                        RoamStatusView(issue: issue) { startLoad() }
-                    } else if visibleItems.isEmpty {
-                        ContentUnavailableView {
-                            Label("roam.empty", systemImage: "map")
-                        } description: {
-                            Text(LocalizedStringKey(query.isEmpty && placeFilter == .all && eventFilter == .all ? "roam.emptyHint" : "roam.filteredEmptyHint"))
-                        } actions: {
-                            Button("action.retry") { startLoad() }
-                        }
-                        .accessibilityIdentifier("roam.empty")
                     } else {
                         results
                     }
@@ -184,17 +176,32 @@ struct RoamBrowserView: View {
         let renderedKey = presentationKey
         let renderedItems = visibleItems
         return List {
-            if showsMap, let area = reader.searchArea {
-                if visibleItems.contains(where: { $0.coordinate != nil }) {
-                    RoamMapView(area: area, items: renderedItems, selectedID: selected?.id, onSelect: { item in
-                        select(item, key: renderedKey, snapshot: renderedItems)
-                    })
-                        .listRowInsets(EdgeInsets())
-                        .id(renderedKey)
-                } else {
-                    Label("roam.noCoordinates", systemImage: "mappin.slash")
-                        .foregroundStyle(.secondary)
+            // Keep this row alive through same-scope loading, errors and empty filters.
+            // Only camera state survives; visibleItems removes old pins immediately.
+            if showsMap, let scope = cameraScope {
+                RoamMapView(area: scope.area, items: renderedItems, selectedID: selected?.id,
+                    interactionID: AnyHashable(renderedKey), onSelect: { item in
+                    select(item, key: renderedKey, snapshot: renderedItems)
+                })
+                    .listRowInsets(EdgeInsets())
+                    .id(scope)
+            }
+            if loading || loadedKey != requestKey {
+                ProgressView("roam.loading").accessibilityIdentifier("roam.loading")
+            } else if let issue {
+                RoamStatusView(issue: issue) { startLoad() }
+            } else if visibleItems.isEmpty {
+                ContentUnavailableView {
+                    Label("roam.empty", systemImage: "map")
+                } description: {
+                    Text(LocalizedStringKey(query.isEmpty && placeFilter == .all && eventFilter == .all ? "roam.emptyHint" : "roam.filteredEmptyHint"))
+                } actions: {
+                    Button("action.retry") { startLoad() }
                 }
+                .accessibilityIdentifier("roam.empty")
+            } else if showsMap && !visibleItems.contains(where: { $0.coordinate != nil }) {
+                Label("roam.noCoordinates", systemImage: "mappin.slash")
+                    .foregroundStyle(.secondary)
             }
             ForEach(visibleItems) { item in
                 Button {

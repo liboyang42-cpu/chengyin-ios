@@ -95,7 +95,7 @@ class NativePresentationReuseChecks(unittest.TestCase):
         self.assertIn('LabeledContent { Text(verbatim:RegionalLaunchConfiguration.market?', text)
         self.assertNotIn('Picker("region.market"', text)
         self.assertNotIn('AppLanguage', source('Core/SettingsSourceLegalCatalog.swift'))
-        self.assertIn('SettingsAttributionsSection()', source('App/SettingsSupportSections.swift'))
+        self.assertIn('SettingsAttributionsSection(copyText: copyText)', source('App/SettingsSupportSections.swift'))
         self.assertIn('case .loaded(.missing(let reason)):', source('App/SettingsLegalDocumentView.swift'))
 
     def test_uses_existing_bilingual_strings_and_no_new_dependency(self):

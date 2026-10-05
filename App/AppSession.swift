@@ -114,6 +114,7 @@ final class AppSession: ObservableObject {
         let writes = retained?.writeContext(journal: merchantBusinessJournal)
         var context = PublicMerchantHomeContext(reader: publicMerchantHomeReader,
             publicReviews: { AnyView(PublicMerchantReviewsView(target: $0, reader: reviews, imageReader: images, writes: writes)) })
+        context.featured = makePublicMerchantFeaturedContext(homeReader: context.reader)
         context.installMerchantNPC(grants: { [weak self] in self?.merchantNPCGrants ?? .init() },
             scopeForRow: { [weak self] in self?.merchantNPCScope(row: $0) },
             currentScope: { [weak self] in self?.merchantNPCScope(row: $0) }, client: merchantNPCClient(resource: false),
@@ -2076,6 +2077,7 @@ final class AppSession: ObservableObject {
         self.expireIfMatching(error:APIError.unauthorized,stamp:snapshot.identity.epoch,credential:self.token)
     })
     private var merchantAccessRecord: (stamp:UInt64, access:MerchantAccess)?
+    @Published private var merchantClubAccessRevision: UInt64 = 0
     var isSignedIn: Bool { account != nil && token != nil }
     var sessionRevision: UInt64 { gate.currentStamp }
     var contentDetailRevision: UInt64 { compositionViewerRevision }
@@ -2490,6 +2492,29 @@ extension AppSession: DiscoveryReading, MerchantReading {
     }
     func discoveryBanners() async throws -> [DiscoveryBanner] { try await readDiscovery { try await $0.banners(token:$1) } }
     func discoveryCategories(type:Int?) async throws -> [DiscoveryCategory] { try await readDiscovery { try await $0.categories(type:type,token:$1) } }
+    func templateMetadataDictionary(kind: TemplateMetadataKind) async throws -> [TemplateMetadataOption] {
+        try await readDiscovery { try await $0.templateMetadataDictionary(kind: kind, token: $1) }
+    }
+    func templateMetadataDictionaryRequest(kind: TemplateMetadataKind) -> DiscoveryReadRequest<[TemplateMetadataOption]> {
+        templateMetadataRequest { try await $0.templateMetadataDictionary(kind: kind, token: $1) }
+    }
+    func templateMetadataCategoriesRequest() -> DiscoveryReadRequest<[DiscoveryCategory]> {
+        templateMetadataRequest { try await $0.categories(type: 4, token: $1) }
+    }
+    // Only an accepted, still-present selector can expire its captured identity.
+    private func templateMetadataRequest<Value>(
+        _ operation: @escaping (DiscoveryService, String?) async throws -> Value
+    ) -> DiscoveryReadRequest<Value> {
+        let stamp = gate.currentStamp, credential = token, viewerRevision = compositionViewerRevision
+        return DiscoveryReadRequest(read: { [weak self] in
+            guard let self, self.gate.isCurrent(stamp), credential == self.token,
+                  viewerRevision == self.compositionViewerRevision else { throw CancellationError() }
+            return try await self.readDiscovery(expiresSession: false, operation)
+        }, onUnauthorized: { [weak self] in
+            guard let self, viewerRevision == self.compositionViewerRevision else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: stamp, credential: credential)
+        })
+    }
     func discoveryTemplateHome() async throws -> DiscoveryTemplateHome { try await readDiscovery { try await $0.templateHome(token:$1) } }
     func discoveryPlayTemplates(keyword:String,packType:DiscoveryPackType?) async throws -> [DiscoveryPlayTemplate] { try await readDiscovery { try await $0.playTemplates(keyword:keyword,packType:packType,token:$1) } }
     func publicTopicTemplateCoordinator(id: Int) -> PublicTopicTemplateCoordinator {
@@ -2547,7 +2572,7 @@ extension AppSession: DiscoveryReading, MerchantReading {
     }
     func discoveryPlayTemplate(id:Int) async throws -> DiscoveryPlayTemplate { try await readDiscovery { try await $0.playTemplate(id:id,token:$1) } }
 
-    private func readMerchant<Value>(access:MerchantAccess?=nil,_ operation:(MerchantService,String) async throws -> Value) async throws -> Value {
+    private func readMerchant<Value>(access:MerchantAccess?=nil, expectedDiscoveryScope: ClubDiscoveryScope? = nil,_ operation:(MerchantService,String) async throws -> Value) async throws -> Value {
         guard let merchantService else { throw APIError.notConfigured }
         guard account != nil, let credential=token else { throw APIError.unauthorized }
         let stamp=gate.currentStamp
@@ -2557,18 +2582,25 @@ extension AppSession: DiscoveryReading, MerchantReading {
         do {
             let value=try await operation(merchantService,credential)
             try Task.checkCancellation()
-            guard gate.isCurrent(stamp), credential == token else { throw CancellationError() }
+            guard gate.isCurrent(stamp), credential == token,
+                  expectedDiscoveryScope == nil || expectedDiscoveryScope == clubDiscoveryScope else { throw CancellationError() }
             return value
         } catch {
-            guard gate.isCurrent(stamp), credential == token else { throw CancellationError() }
+            guard expectedDiscoveryScope == nil || !Task.isCancelled else { throw CancellationError() }
+            guard gate.isCurrent(stamp), credential == token,
+                  expectedDiscoveryScope == nil || expectedDiscoveryScope == clubDiscoveryScope else { throw CancellationError() }
             expireIfMatching(error:error,stamp:stamp,credential:credential)
             throw error
         }
     }
     func merchantAccess() async throws -> MerchantAccess {
+        merchantClubAccessRevision &+= 1
         merchantAccessRecord=nil
-        let access=try await readMerchant { try await $0.access(token:$1) }
+        let localityScope = clubDiscoveryScope
+        let access=try await readMerchant(expectedDiscoveryScope: localityScope) { try await $0.access(token:$1) }
+        guard clubDiscoveryScope == localityScope else { throw CancellationError() }
         merchantAccessRecord=(gate.currentStamp,access)
+        merchantClubAccessRevision &+= 1
         return access
     }
     func merchantDashboard(access:MerchantAccess) async throws -> MerchantDashboard { try await readMerchant(access:access) { try await $0.dashboard(access:access,token:$1) } }
@@ -2581,6 +2613,29 @@ extension AppSession: DiscoveryReading, MerchantReading {
 extension AppSession: ClubReading {
     var isClubConfigured: Bool { clubReader.isClubConfigured }
     var clubIdentity: ClubReadIdentity { clubReader.clubIdentity }
+    var clubDiscoveryScope: ClubDiscoveryScope {
+        let merchantID = merchantAccessRecord.flatMap { $0.stamp == gate.currentStamp ? $0.access.merchantID : nil }
+        return .init(identity: clubIdentity, role: account?.effectiveRole,
+                     viewerRevision: compositionViewerRevision, merchantID: merchantID,
+                     merchantRevision: merchantClubAccessRevision)
+    }
+    func clubMerchantLocality() async throws -> MerchantClubLocality {
+        let captured = clubDiscoveryScope, credential = token
+        guard captured.isMerchantViewer, let credential else { throw APIError.unauthorized }
+        guard let merchantOnboardingService else { throw APIError.notConfigured }
+        try Task.checkCancellation()
+        do {
+            let result = try await merchantOnboardingService.clubLocality(token: credential)
+            guard !Task.isCancelled, clubDiscoveryScope == captured, token == credential else { throw CancellationError() }
+            guard captured.merchantID == nil || captured.merchantID == result.merchantID else { throw MerchantReadError.accessDenied }
+            return result
+        } catch {
+            guard !Task.isCancelled, clubDiscoveryScope == captured, token == credential else { throw CancellationError() }
+            // Locality is optional presentation. In particular a superseded request's 401
+            // must not expire a live session; the per-view generation accepts only its own result.
+            throw error
+        }
+    }
     func clubHome() async throws -> ClubHome { try await clubReader.clubHome() }
     func clubOwned() async throws -> [ClubRecord] { try await clubReader.clubOwned() }
     func clubDirectory(name:String?) async throws -> [ClubRecord] { try await clubReader.clubDirectory(name:name) }

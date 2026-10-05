@@ -54,6 +54,20 @@ public struct PublicMerchantReviewPage: Decodable, Equatable {
         }
     }
 }
+/// Read-only presentation predicates over already loaded, validated public reviews.
+/// Public mode has no management-only pending-reply filter. These predicates never
+/// change requests, server summary values, eligibility or review capabilities.
+public enum PublicMerchantReviewFilter: String, CaseIterable, Hashable {
+    case all, low, photos
+    public func matches(_ item: PublicMerchantReviewPage.Item) -> Bool {
+        switch self {
+        case .all: return true
+        case .low: return item.rating <= 3
+        case .photos: return !item.imageUrls.isEmpty
+        }
+    }
+}
+
 @MainActor public protocol PublicMerchantReviewReading {
     var scope: UUID { get }
     var isConfigured: Bool { get }

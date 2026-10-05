@@ -13,6 +13,20 @@ public struct RoamReadIdentity: Hashable {
         self.manualMapApprovalRevision = manualMapApprovalRevision
     }
 }
+/// Ephemeral presentation identity, deliberately separate from a query/read generation.
+/// The reader binds an immutable service/region; its replacement must never inherit a camera.
+/// Full session, authorization and manual-area revisions prevent same-account A -> B -> A reuse.
+/// Query text, local filters, radius and layer replace pins but do not recenter the map.
+public struct RoamMapCameraScope: Hashable {
+    public let readerID: ObjectIdentifier
+    public let identity: RoamReadIdentity
+    public let area: RoamSearchArea
+    public init?(readerID: ObjectIdentifier, identity: RoamReadIdentity?, area: RoamSearchArea?, isConfigured: Bool) {
+        guard isConfigured, let identity, identity.accountID > 0, let area else { return nil }
+        self.readerID = readerID; self.identity = identity; self.area = area
+    }
+}
+
 /// Construct from the live verified session; never persist, log, or expose the credential to views.
 public struct RoamReadSession: Equatable {
     public let identity: RoamReadIdentity

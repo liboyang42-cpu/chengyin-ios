@@ -6,9 +6,15 @@ struct AccountView: View {
     var onOpenGuideDestination: ((SocialGuideDestination) -> Void)? = nil
     @EnvironmentObject private var session: AppSession
     private struct SavedTopicRoute: Identifiable, Hashable { let id: Int }
+    private struct SavedPostRoute: Identifiable, Hashable {
+        let route: SquareContentRoute
+        let scope: UUID
+        var id: SquareContentRoute { route }
+    }
     private enum CreatorRoute: Hashable { case topic(Int), activity(Int), playTemplate(Int) }
     @State private var creatorRoute: CreatorRoute?
     @State private var savedTopic: SavedTopicRoute?
+    @State private var savedPost: SavedPostRoute?
     @State private var showsSettings=false
     @State private var showsTickets=false
     @State private var showsCooperation=false
@@ -87,7 +93,9 @@ struct AccountView: View {
                         Label("wallet.title", systemImage: "wallet.pass")
                     }.accessibilityIdentifier("account.wallet")
                 }
-                AccountCollectionAccountLinks(reader:session.accountCollectionReader,onOpenTopic:{ savedTopic=SavedTopicRoute(id:$0) },rewards:session.nonCashRewardReader).id(session.accountCollectionReader.scope)
+                AccountCollectionAccountLinks(reader:session.accountCollectionReader,onOpenTopic:{ savedTopic=SavedTopicRoute(id:$0) },rewards:session.nonCashRewardReader,onOpenPost:{
+                    savedPost = SavedPostRoute(route: $0, scope: session.accountCollectionReader.scope)
+                }).id(session.accountCollectionReader.scope)
                 Section {
                     NavigationLink { SessionObjectCardsView() } label: {
                         Label("objects.title", systemImage: "rectangle.stack")
@@ -137,6 +145,14 @@ struct AccountView: View {
             .navigationDestination(item:$savedTopic) { route in
                 SessionTopicDetailView(id: route.id, session: session).id(session.topicReader.scope)
             }
+            .navigationDestination(item:$savedPost) { saved in
+                if saved.scope == session.accountCollectionReader.scope, session.accountCollectionReader.isAuthenticated {
+                    SquareDetailView(id: saved.route.id, contentGeneration: saved.route.generation, reader: session.squareReader,
+                                     accountReader: session.socialAccountReader, actions: session.socialActionCoordinator)
+                        .id(session.squareReader.scope)
+                } else { AccountCollectionIssueView(issue: .login) }
+            }
+            .onChange(of: session.accountCollectionReader.scope) { _, _ in savedPost = nil }
             .sheet(isPresented:$showsSettings) { SettingsView() }
             .sheet(isPresented:$showsCooperation) { CooperationBrowserView(reader:session.cooperationReader,onClose:{ showsCooperation=false },peerReader:session.cooperationFlowReader).id(session.cooperationReader.scope) }
             .sheet(isPresented:$showsTickets) { TicketWalletView(reader:session.ticketWalletReader,onClose:{ showsTickets=false },makeTeamCoordinator:{ session.makeTeamCoordinator() },orderLifecycleCoordinator:session.orderLifecycleCoordinator).id(session.ticketWalletReader.scope) }

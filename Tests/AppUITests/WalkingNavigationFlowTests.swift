@@ -73,6 +73,35 @@ final class WalkingNavigationFlowTests: XCTestCase {
         tap("walking.start")
         XCTAssertTrue(app.staticTexts["Synthetic authorized stop"].waitForExistence(timeout: 5))
     }
+    func testBilingualMaximumCameraActionsAreExplicitAndClearWithRoute() {
+        for chinese in [false, true] {
+            launch("longText", chinese: chinese, maximumType: true)
+            XCTAssertFalse(app.buttons["walkingCamera.showRoute"].exists)
+            tap("walking.start")
+            let map = app.descendants(matching: .any)["walking.fixtureMap"].firstMatch
+            XCTAssertTrue(map.waitForExistence(timeout: 5))
+            XCTAssertEqual(map.value as? String, "cameraAction=none")
+            tap("walkingCamera.showRoute")
+            XCTAssertEqual(map.value as? String, "cameraAction=route")
+            tap("walking.steps.open"); tap("walking.steps.close")
+            XCTAssertEqual(map.value as? String, "cameraAction=route")
+            tap("walkingCamera.showTarget")
+            XCTAssertEqual(map.value as? String, "cameraAction=target")
+            tap("walking.pause")
+            XCTAssertFalse(app.buttons["walkingCamera.showRoute"].exists)
+            XCTAssertFalse(app.buttons["walkingCamera.showTarget"].exists)
+            tap("walking.start")
+            XCTAssertTrue(map.waitForExistence(timeout: 5))
+            XCTAssertEqual(map.value as? String, "cameraAction=none")
+            tap("walkingCamera.showRoute")
+            XCTAssertEqual(map.value as? String, "cameraAction=route")
+            tap("walking.cancel")
+            XCTAssertFalse(app.buttons["walkingCamera.showRoute"].exists)
+            XCTAssertFalse(app.buttons["walkingCamera.showTarget"].exists)
+            app.terminate()
+        }
+    }
+
     private func revealStep(_ element: XCUIElement) {
         let list = app.descendants(matching: .any)["walking.steps.list"].firstMatch
         XCTAssertTrue(list.waitForExistence(timeout: 5))

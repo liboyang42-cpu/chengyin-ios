@@ -4,6 +4,10 @@ import SwiftUI
 @MainActor struct ClubGovernanceFixtureHost: View {
     @StateObject private var store = ClubGovernanceFixtureStore()
     var body: some View {
+        if ProcessInfo.processInfo.arguments.contains("--club-feed-scenario") { ClubFeedFixtureHost() }
+        else { legacyBody }
+    }
+    private var legacyBody: some View {
         NavigationStack {
             List {
                 Text("club.gov.synthetic").accessibilityIdentifier("club.gov.synthetic")

@@ -37,6 +37,28 @@ import SwiftUI
         revision &+= 1
     }
 }
+@MainActor final class AccountCollectionPostsScreenModel: ObservableObject {
+    @Published private var revision: UInt64 = 0
+    let state = AccountCollectionPostsModel()
+    func invalidate() { state.invalidate(); revision &+= 1 }
+    func cancelPending() { state.cancelPending(); revision &+= 1 }
+    func refresh(reader: any AccountCollectionReading, pageSize: Int) async {
+        let scope = reader.scope
+        revision &+= 1
+        await state.refresh(scope: scope, currentScope: { reader.scope }) {
+            try await reader.favoritePosts(pageNumber: 1, pageSize: pageSize)
+        }
+        revision &+= 1
+    }
+    func loadMore(reader: any AccountCollectionReading, pageSize: Int) async {
+        let scope = reader.scope
+        revision &+= 1
+        await state.loadMore(scope: scope, currentScope: { reader.scope }) { page in
+            try await reader.favoritePosts(pageNumber: page, pageSize: pageSize)
+        }
+        revision &+= 1
+    }
+}
 struct AccountCollectionLoadKey: Hashable {
     let scope: UUID
     let configured: Bool

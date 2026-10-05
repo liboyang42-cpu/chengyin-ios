@@ -54,13 +54,11 @@ struct TopicDetailView: View {
                 if let introduction = value.introduction { Text(verbatim: introduction).textSelection(.enabled) }
                 if let audio = value.audioURL, !audio.isEmpty { PlatformAudioHost(rawURL: audio, scope: reader.scope, makeModel: makeAudio) }
                 if let club = value.clubName { Text(verbatim: club) }
-                if let initiator = value.initiatorName { LabeledContent("topic.initiator", value: initiator) }
                 if !value.categoryNames.isEmpty { Text(verbatim: value.categoryNames.joined(separator: " · ")) }
                 if let start = value.startDate { LabeledContent("topic.start", value: start) }
                 if let end = value.endDate { LabeledContent("topic.end", value: end) }
                 if let count = value.merchantCount { LabeledContent("topic.merchants", value: String(count)) }
                 if let seconds = value.totalTimeSeconds { LabeledContent("topic.durationSeconds", value: String(seconds)) }
-                if let rating = value.averageRating { LabeledContent("topic.rating", value: String(rating)) }
             }
             if let activities = value.activities {
                 Section("topic.activities") {
@@ -129,15 +127,7 @@ struct TopicDetailView: View {
             }
             Section("topic.comments") {
                 Button("context.review.title") { showsReview = true }.accessibilityIdentifier("topic.openReview")
-                if value.comments.isEmpty { Text("topic.noComments") }
-                ForEach(Array(value.comments.enumerated()), id: \.offset) { _, comment in
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(verbatim: comment.memberNickname).font(.headline)
-                        LabeledContent("topic.rating", value: String(comment.rating))
-                        Text(verbatim: comment.contents).textSelection(.enabled)
-                        Text(verbatim: comment.createTime).font(.caption).foregroundStyle(.secondary)
-                    }
-                }
+                TopicReviewsContent(reviews: value.reviews)
             }
         }
         .refreshable { await loads.run { await load() } }
@@ -170,6 +160,7 @@ struct TopicChapterView: View {
     let scope: UUID
     var publicMerchant: PublicMerchantHomeContext? = nil
     var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
+    private var itinerary: TopicChapterItinerary { TopicChapterItinerary(chapter: chapter) }
     var body: some View {
         Group {
             if scope != reader.scope { TopicIssueView(issue: .unavailable) }
@@ -178,9 +169,18 @@ struct TopicChapterView: View {
                     Section {
                         Text(verbatim: chapter.title).font(.title2)
                         if let description = chapter.description { Text(verbatim: description).textSelection(.enabled) }
+                        if itinerary.hasWalkingEstimates {
+                            Text("topic.itinerary.estimateNotice").font(.footnote).foregroundStyle(.secondary)
+                                .accessibilityIdentifier("topic.itinerary.notice")
+                        }
                     }
-                    ForEach(Array(chapter.nodes.enumerated()), id: \.offset) { _, node in
+                    ForEach(itinerary.stops) { stop in
+                        let node = stop.node
                         Section {
+                            if let minutes = stop.estimatedWalkingMinutes {
+                                TopicWalkingEstimate(minutes: minutes, position: stop.id)
+                            }
+                            LabeledContent("topic.itinerary.stopNumber", value: String(stop.id + 1)).font(.caption)
                             Text(verbatim: node.name).font(.headline)
                             if let description = node.description { Text(verbatim: description).textSelection(.enabled) }
                             if let address = node.address { Text(verbatim: address) }

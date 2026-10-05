@@ -51,6 +51,62 @@ final class SearchMapFlowTests: XCTestCase {
         app.buttons["Cancel"].tap(); app.buttons["searchMap.filters"].tap()
         XCTAssertEqual(app.textFields["searchMap.filter.min"].value as? String, "Minimum (0–1000)")
     }
+    private func openGlobalFilters() {
+        XCTAssertTrue(revealFixtureElement(app.buttons["searchMap.filters"], in: app, towardTop: true))
+        app.buttons["searchMap.filters"].tap()
+    }
+    private func chooseCategory(_ title: String) {
+        let picker = app.buttons["searchMap.filter.category"]
+        XCTAssertTrue(picker.waitForExistence(timeout: 5)); picker.tap()
+        let category = app.buttons[title]
+        XCTAssertTrue(category.waitForExistence(timeout: 5)); category.tap()
+    }
+    private func releaseGlobalSearch(latest: Bool = true) {
+        let button = app.buttons[latest ? "searchMap.fixture.releaseLastSearch" : "searchMap.fixture.releaseFirstSearch"]
+        XCTAssertTrue(button.waitForExistence(timeout: 5)); button.tap()
+    }
+    private func assertCategoryRows(_ id: Int) {
+        for kind in ["topic", "activity", "club", "merchant"] {
+            XCTAssertTrue(app.buttons["searchMap.result.\(kind)-\(id)"].waitForExistence(timeout: 5), app.debugDescription)
+        }
+    }
+    func testGlobalCategoryChangeRejectsEarlierCompletionAndClearReturnsSuggestions() {
+        launch("categoryDelayed")
+        let shortcut = app.buttons["searchMap.category.7"]; reveal(shortcut); shortcut.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["searchMap.loading"].waitForExistence(timeout: 5))
+        openGlobalFilters(); chooseCategory("Synthetic outdoors")
+        app.buttons["searchMap.filter.apply"].tap()
+        XCTAssertTrue(app.descendants(matching: .any)["searchMap.loading"].waitForExistence(timeout: 5))
+        releaseGlobalSearch(); assertCategoryRows(8)
+        releaseGlobalSearch(latest: false)
+        let obsolete = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == true"), object: app.buttons["searchMap.result.club-7"])
+        obsolete.isInverted = true
+        wait(for: [obsolete], timeout: 1)
+        assertCategoryRows(8)
+        openGlobalFilters(); app.buttons["searchMap.filter.reset"].tap(); app.buttons["searchMap.filter.apply"].tap()
+        XCTAssertTrue(app.buttons["searchMap.category.7"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["searchMap.result.club-8"].exists)
+        XCTAssertFalse(app.buttons["searchMap.result.merchant-8"].exists)
+        XCTAssertFalse(app.descendants(matching: .any)["searchMap.loading"].exists)
+    }
+    func testGlobalCategoryApplyResetPreservesKeywordAndCancelPreservesResults() {
+        launch("categoryDelayed"); search()
+        XCTAssertTrue(app.descendants(matching: .any)["searchMap.loading"].waitForExistence(timeout: 5))
+        releaseGlobalSearch(); assertCategoryRows(70)
+        openGlobalFilters(); chooseCategory("Synthetic culture"); app.buttons["searchMap.filter.apply"].tap()
+        XCTAssertTrue(app.descendants(matching: .any)["searchMap.loading"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["searchMap.result.club-70"].exists)
+        XCTAssertFalse(app.buttons["searchMap.result.merchant-70"].exists)
+        releaseGlobalSearch(); assertCategoryRows(7)
+        openGlobalFilters(); app.buttons["searchMap.filter.reset"].tap(); app.buttons["searchMap.filter.cancel"].tap()
+        assertCategoryRows(7)
+        openGlobalFilters(); app.buttons["searchMap.filter.reset"].tap(); app.buttons["searchMap.filter.apply"].tap()
+        XCTAssertTrue(app.descendants(matching: .any)["searchMap.loading"].waitForExistence(timeout: 5))
+        releaseGlobalSearch(); assertCategoryRows(70)
+        XCTAssertEqual(app.textFields["searchMap.keyword"].value as? String, "sample")
+        XCTAssertFalse(app.buttons["searchMap.result.club-7"].exists)
+        XCTAssertFalse(app.buttons["searchMap.result.merchant-7"].exists)
+    }
     func testCityMissingCoordinatesStayInListAndNodeOpensCorrectDomain() {
         launch(entry: "city"); app.buttons["searchMap.searchArea"].tap()
         let missing = app.buttons["searchMap.city.activity.73"]; reveal(missing)

@@ -17,6 +17,12 @@ private extension KeyedDecodingContainer where Key == TopicKey {
         return nil
     }
     func number(_ key: String) -> Double? { try? decode(Double.self, forKey: TopicKey(key)) }
+    /// Topic stop coordinates can arrive as decimal strings from the source API.
+    /// Keep this coercion local to coordinates; prices and other numeric facts are unchanged.
+    func coordinate(_ key: String) -> Double? {
+        let value = number(key) ?? text(key).flatMap { Double($0.trimmingCharacters(in: .whitespacesAndNewlines)) }
+        return value.flatMap { $0.isFinite ? $0 : nil }
+    }
     func money(_ key: String) -> Decimal? { try? decode(Decimal.self, forKey: TopicKey(key)) }
     func flag(_ key: String) -> Bool {
         if let b = try? decode(Bool.self, forKey: TopicKey(key)) { return b }
@@ -118,8 +124,8 @@ public struct TopicNode: Decodable, Equatable, Identifiable {
         name = c.text("name") ?? c.text("nodeName") ?? ""
         description = c.text("description")
         address = c.text("address")
-        latitude = c.number("latitude")
-        longitude = c.number("longitude")
+        latitude = c.coordinate("latitude")
+        longitude = c.coordinate("longitude")
         businessTime = c.text("businessTime")
         images = c.images("imgUrl")
         template = try c.decodeIfPresent(TopicTemplate.self, forKey: TopicKey("cmsMemberTemplate"))
@@ -222,8 +228,6 @@ public struct TopicDetail: Decodable, Equatable, Identifiable {
     /// Fresh source evidence stays separate from display defaults; unavailable proof stays nil.
     public let publisherAuthoritySource: PublisherTopicAuthoritySource?
     public let categoryNames: [String]
-    public let initiatorName: String?
-    public let initiatorAvatar: String?
     public let id: Int
     public let name: String
     public let introduction: String?
@@ -257,6 +261,8 @@ public struct TopicDetail: Decodable, Equatable, Identifiable {
     public let chapters: [TopicChapter]
     public let tickets: [TopicTicket]
     public let comments: [TopicComment]
+    /// Validated display snapshot; legacy fields above remain source-compatible.
+    public let reviews: TopicReviews
     /// Nil means omitted/unknown; an empty array means the server returned no sessions.
     public let activities: [TopicActivitySummary]?
     public init(from decoder: Decoder) throws {
@@ -264,9 +270,8 @@ public struct TopicDetail: Decodable, Equatable, Identifiable {
         let c = try decoder.container(keyedBy: TopicKey.self)
         let categories: [TopicCategoryRecord] = try c.list("sysCategoryList")
         categoryNames = categories.compactMap(\.categoryName).filter { !$0.isEmpty }
-        let collaborators: [TopicCollaboratorRecord] = try c.list("collaboratorsList")
-        initiatorName = collaborators.first?.memberRealName
-        initiatorAvatar = collaborators.first?.memberAvatar
+        // The public topic screen omits person attribution. Collaborators are not
+        // the creator; their separate publisher-review evidence remains intact.
         id = c.int("id") ?? 0
         guard id > 0 else { throw APIError.malformedResponse }
         name = c.text("name") ?? ""
@@ -300,6 +305,7 @@ public struct TopicDetail: Decodable, Equatable, Identifiable {
         chapters = try c.list("chaptersList")
         tickets = try c.list("omsTicketList")
         comments = try c.list("commentList")
+        reviews = try TopicReviews(from: decoder)
         activities = try c.decodeIfPresent([TopicActivitySummary].self, forKey: TopicKey("activityList"))
         if let activities, Set(activities.map(\.id)).count != activities.count { throw APIError.malformedResponse }
     }
@@ -327,4 +333,3 @@ public extension TopicDetail {
 }
 
 private struct TopicCategoryRecord: Decodable { let categoryName: String? }
-private struct TopicCollaboratorRecord: Decodable { let memberRealName: String?; let memberAvatar: String? }

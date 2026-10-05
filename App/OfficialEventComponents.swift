@@ -115,6 +115,16 @@ struct OfficialEventCard: View {
                                 fallbackTitle: "official.untitled", fallbackSymbol: "sparkles") {
             Label(LocalizedStringKey(event.statusKey), systemImage: "calendar")
             if event.paused { Label("official.status.paused", systemImage: "pause.circle") }
+            if event.recruitmentBlocked == true {
+                VStack(alignment: .leading, spacing: 4) {
+                    Label("official.informationIncomplete", systemImage: "exclamationmark.triangle")
+                        .fontWeight(.semibold)
+                    if let reason = event.recruitmentWarningReason { Text(verbatim: reason) }
+                    else { Text("official.informationReasonUnknown") }
+                }
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityElement(children: .combine)
+            }
             if let city = event.city, !city.isEmpty {
                 QuestifyImageEntityMetadata(label: "official.city", value: city, systemImage: "mappin")
             } else { Text("official.cityUnknown") }

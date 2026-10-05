@@ -14,7 +14,7 @@ class AccountCollectionStructureTests(unittest.TestCase):
     def test_exact_read_routes_and_no_mutations(self):
         service = self.text('Core/AccountCollectionService.swift')
         paths = set(re.findall(r'post\("(api/[^\"]+)"', service))
-        self.assertEqual(paths, {'api/topic/like_list', 'api/coupon/myrecvlist'})
+        self.assertEqual(paths, {'api/topic/like_list', 'api/coupon/myrecvlist', 'api/creativesquare/list'})
         for route in ['api/topic/like"', 'api/coupon/qr-token', 'api/coupon/verification',
                       'api/coupon/publish', 'api/coupon/stop', 'api/user/address/action']:
             self.assertNotIn(route, service)
@@ -68,6 +68,56 @@ class AccountCollectionStructureTests(unittest.TestCase):
         self.assertNotIn('URLSession', fixture)
         self.assertNotIn('mobilePhone', fixture)
         self.assertIn('#if DEBUG', fixture)
+
+    def test_saved_posts_use_exact_private_read_and_strict_legacy_rows(self):
+        service = self.text('Core/AccountCollectionService.swift')
+        method = service.split('public func favoritePosts(', 1)[1].split('public func coupons(', 1)[0]
+        self.assertIn('"favorite_only": "1"', method)
+        self.assertIn('"pageNum": String(pageNumber)', method)
+        self.assertIn('"pageSize": String(pageSize)', method)
+        self.assertIn('token: token', method)
+        self.assertIn('qualified(as: .legacySquare)', method)
+        self.assertIn('envelope.data.rows.count <= pageSize', method)
+        envelope = service.split('private struct FavoritePostsEnvelope:', 1)[1].split('private struct FavoritesEnvelope:', 1)[0]
+        self.assertIn('let data: Page', envelope)
+        self.assertIn('let rows: [Row]', envelope)
+        self.assertIn('!fields.contains(.post)', envelope)
+        self.assertIn('post.id == id', envelope)
+        for token in ['user_id', 'member_id', 'cursor', 'bookmark', 'request_id']:
+            self.assertNotIn('"' + token + '"', method)
+
+    def test_saved_post_tabs_default_posts_and_keep_real_scoped_destination(self):
+        view = self.text('App/AccountCollectionFavoritesView.swift')
+        self.assertIn('@State private var selectedTab: Tab = .posts', view)
+        for key in ['social.posts', 'searchMap.kind.topic']:
+            self.assertIn('Text("' + key + '")', view)
+            entry = json.loads(self.text('Resources/Localizable.xcstrings'))['strings'][key]
+            self.assertEqual(set(entry['localizations']), {'en', 'zh-Hans'})
+        self.assertIn('AccountCollectionFavoritePostsView(reader: reader', view)
+        self.assertIn('AccountCollectionFavoriteTopicsView(reader: reader', view)
+        self.assertIn('model.state.loadedScope == reader.scope, post.generation == .legacySquare', view)
+        self.assertIn('onOpenPost?(.init(id: post.id, generation: post.generation))', view)
+        self.assertEqual(view.count('AccountCollectionReadLifecycle(key: key, refresh: refresh, cancel: model.cancelPending)'), 2)
+        root = self.text('App/AccountView.swift')
+        self.assertIn('saved.scope == session.accountCollectionReader.scope', root)
+        self.assertIn('SquareDetailView(id: saved.route.id, contentGeneration: saved.route.generation', root)
+        self.assertIn('.onChange(of: session.accountCollectionReader.scope) { _, _ in savedPost = nil }', root)
+
+    def test_saved_post_pagination_and_races_have_behavioral_test_cases(self):
+        source = self.text('Core/AccountCollectionReading.swift')
+        model = source.split('public final class AccountCollectionPostsModel', 1)[1].split('public final class AccountCollectionReadModel', 1)[0]
+        self.assertIn('loadedScope == scope ? pagination.rows : []', model)
+        self.assertIn('captured == generation, currentScope() == scope', model)
+        self.assertIn('!isLoading, !isLoadingMore', model)
+        self.assertIn('pagination = AccountCollectionPostPagination(); issue = .login', model)
+        tests = self.text('Tests/CoreTests/AccountCollectionPostTests.swift')
+        for name in ['testRawPagesDriveContinuationWhileRowsAreDeduplicated',
+                     'testSessionReplacementLogoutAndStale401CannotExposePostsOrInvalidateNewIdentity',
+                     'testLaterFailureRetainsRowsAndRetriesSamePageThenUnauthorizedClears',
+                     'testNewRefreshWinsAndOldFailureCannotReplaceIt',
+                     'testRepeatedLoadMoreSingleFlightAndCancelRejectsPendingPage',
+                     'testScopeChangeAndExplicitTaskCancellationRejectRefresh']:
+            self.assertIn('func ' + name + '(', tests)
 
 
 if __name__ == '__main__':

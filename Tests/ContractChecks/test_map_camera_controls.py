@@ -56,7 +56,7 @@ class MapCameraControlsTests(unittest.TestCase):
             self.assertIn('QuestifyDensityMap(area: area, pins: pins, selectedID: selectedID', (ROOT / path).read_text())
         self.assertIn('.id(MapPresentationIdentity(area: area, scope: reader.scope))',
                       (ROOT / 'App/SearchMapExplorerView.swift').read_text())
-        self.assertIn('.id(renderedKey)', (ROOT / 'App/RoamBrowserView.swift').read_text())
+        self.assertIn('.id(scope)', (ROOT / 'App/RoamBrowserView.swift').read_text())
 
     def test_camera_strings_cover_both_languages_without_claiming_user_location(self):
         strings = json.loads((ROOT / 'Resources/Localizable.xcstrings').read_text())['strings']

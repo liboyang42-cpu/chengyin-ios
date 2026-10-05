@@ -21,16 +21,16 @@ public struct ClubService {
     public func directory(name: String? = nil, token: String? = nil) async throws -> [ClubRecord] {
         let data: Data
         if let name, !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            // Search binds @RequestBody Club; the list API's empty multipart is not a search body.
+            // The source list binds an optional JSON Club body for both filtered and unfiltered reads.
             data = try await post("api/club/list", json: ["name": name], token: token)
         } else {
-            data = try await post("api/club/list", form: [:], token: token)
+            data = try await post("api/club/list", json: [:], token: token)
         }
         return try decode(ClubValueEnvelope<[ClubRecord]>.self, data).data
     }
     public func detail(id: Int, token: String? = nil) async throws -> ClubRecord {
         guard id > 0 else { throw APIError.invalidRequest }
-        let data = try await post("api/club/detail", form: ["id": String(id)], token: token)
+        let data = try await post("api/club/detail", json: ["id": id], token: token)
         let club = try decode(ClubValueEnvelope<ClubRecord>.self, data).data
         guard club.id == id else { throw APIError.malformedResponse }
         return club
@@ -39,17 +39,14 @@ public struct ClubService {
     public func members(in club: ClubRecord, token: String) async throws -> [ClubMember] {
         guard AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
         guard club.canSeeMembers else { throw ClubReadFailure.membershipRequired }
-        let data = try await post("api/club/members", form: ["clubId": String(club.id)], token: token)
+        let data = try await post("api/club/members", json: ["clubId": club.id], token: token)
         return try decode(ClubValueEnvelope<[ClubMember]>.self, data).data
     }
-    private func post(_ path: String, form: [String: String] = [:], json: [String: String]? = nil,
-                      token: String?) async throws -> Data {
+    private func post(_ path: String, json: [String: Any], token: String?) async throws -> Data {
         var request = try AuthRequestBuilder.makeFormRequest(
-            url: configuration.baseURL.appendingPathComponent(path), fields: form, token: token)
-        if let json {
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.httpBody = try JSONSerialization.data(withJSONObject: json, options: [.sortedKeys])
-        }
+            url: configuration.baseURL.appendingPathComponent(path), fields: [:], token: token, includesBody: false)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: json, options: [.sortedKeys])
         try Task.checkCancellation()
         let (data, status) = try await transport.send(request)
         let message = (try? JSONDecoder().decode(ClubServerMessage.self, from: data))?.msg

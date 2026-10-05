@@ -77,6 +77,36 @@ public enum AccountCollectionCouponFilter: String, CaseIterable, Identifiable {
     }
 }
 
+/// This is a numbered legacy collection, not a community feed cursor. The raw
+/// response length controls continuation even when display IDs are duplicates.
+public struct AccountCollectionPostPage: Equatable {
+    public let rows: [SquarePost]
+    public let pageNumber: Int
+    public let pageSize: Int
+    public var hasMore: Bool { rows.count >= pageSize }
+    public init(rows: [SquarePost], pageNumber: Int, pageSize: Int) {
+        self.rows = rows; self.pageNumber = pageNumber; self.pageSize = pageSize
+    }
+}
+public struct AccountCollectionPostPagination {
+    public private(set) var rows: [SquarePost] = []
+    public private(set) var nextPage = 1
+    public private(set) var hasMore = true
+    private var pageSize: Int?
+    public init() {}
+    public mutating func accept(_ page: AccountCollectionPostPage) throws {
+        guard hasMore, page.pageNumber == nextPage, (1...100).contains(page.pageSize),
+              pageSize == nil || pageSize == page.pageSize,
+              page.rows.count <= page.pageSize,
+              page.rows.allSatisfy({ $0.id > 0 && $0.generation == .legacySquare }) else { throw APIError.malformedResponse }
+        var seen = Set(rows.map(\.id))
+        rows += page.rows.filter { seen.insert($0.id).inserted }
+        pageSize = page.pageSize
+        hasMore = page.hasMore && nextPage < Int.max
+        if nextPage < Int.max { nextPage += 1 }
+    }
+}
+
 public enum AccountCollectionReadFailure: Error, Equatable {
     case unavailable
     case rejected(code: Int, message: String?)

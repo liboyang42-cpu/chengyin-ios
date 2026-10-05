@@ -4,7 +4,7 @@ import SwiftUI
 @MainActor final class AccountCollectionFixtureReader: AccountCollectionReading {
     enum Scenario: String {
         case content, empty, failure, couponFailure, favoriteFailure, pageFailure
-        case unauthorized, unconfigured, guest, unavailable, refreshed, sessionChange
+        case unauthorized, unconfigured, guest, unavailable, refreshed, sessionChange, postFailure, postPageFailure
     }
     let scenario: Scenario
     private(set) var scope = UUID()
@@ -12,6 +12,7 @@ import SwiftUI
     var isConfigured: Bool { scenario != .unconfigured }
     var isOfflineExample: Bool { true }
     private var pageFailed = false
+    private var postPageFailed = false
     private var detailReads = 0
     init(scenario: Scenario = .content) { self.scenario = scenario; isAuthenticated = scenario != .guest }
     func signOut() { isAuthenticated = false; scope = UUID() }
@@ -36,6 +37,16 @@ import SwiftUI
             try JSONDecoder().decode(TopicSummary.self, from: Data("{\"id\":\(id),\"name\":\"Sample favorite route \(id)\",\"addressName\":\"Sample waterfront\"}".utf8))
         }
         return TopicPage(rows: rows, pageNumber: pageNumber, pageSize: pageSize)
+    }
+    func favoritePosts(pageNumber: Int, pageSize: Int) async throws -> AccountCollectionPostPage {
+        try check()
+        if scenario == .postFailure { throw AccountCollectionReadFailure.rejected(code: 500, message: "Sample saved posts unavailable") }
+        if scenario == .postPageFailure, pageNumber > 1, !postPageFailed {
+            postPageFailed = true
+            throw AccountCollectionReadFailure.rejected(code: 500, message: "Sample saved post page unavailable")
+        }
+        let ids = scenario == .empty || pageNumber > 2 ? [] : pageNumber == 1 ? Array(801..<(801 + pageSize)) : [801, 801 + pageSize]
+        return try AccountCollectionPostPage(rows: ids.map { try SquareSyntheticFixtures.post(id: $0).qualified(as: .legacySquare) }, pageNumber: pageNumber, pageSize: pageSize)
     }
     func ownedCoupons(keyword: String?) async throws -> [AccountCollectionCoupon] {
         try check()
@@ -62,7 +73,9 @@ import SwiftUI
     @State private var reader: AccountCollectionFixtureReader
     @State private var revision = 0
     @State private var topicRoute: TopicRoute?
+    @State private var postRoute: PostRoute?
     private struct TopicRoute: Identifiable { let id: Int }
+    private struct PostRoute: Identifiable { let route: SquareContentRoute; var id: Int { route.id } }
     init() {
         let arguments = ProcessInfo.processInfo.arguments
         let index = arguments.firstIndex(of: "--uitesting-account-collection-scenario")
@@ -72,7 +85,7 @@ import SwiftUI
     var body: some View {
         VStack(spacing: 0) {
             if reader.scenario == .sessionChange {
-                Button("accountCollection.fixture.signOut") { reader.signOut(); topicRoute = nil; revision += 1 }
+                Button("accountCollection.fixture.signOut") { reader.signOut(); topicRoute = nil; postRoute = nil; revision += 1 }
                     .accessibilityIdentifier("accountCollection.fixture.signOut")
             }
             NavigationStack {
@@ -81,7 +94,8 @@ import SwiftUI
                 } else {
                     Form {
                         NavigationLink {
-                            AccountCollectionFavoritesView(reader: reader, onOpenTopic: { topicRoute = TopicRoute(id: $0) }, pageSize: 2)
+                            AccountCollectionFavoritesView(reader: reader, onOpenTopic: { topicRoute = TopicRoute(id: $0) }, pageSize: 2,
+                                                           onOpenPost: { postRoute = PostRoute(route: $0) })
                         } label: { Label("accountCollection.favorites.title", systemImage: "heart") }
                         .accessibilityIdentifier("accountCollection.openFavorites")
                         NavigationLink { AccountCollectionCouponsView(reader: reader) } label: {
@@ -95,6 +109,12 @@ import SwiftUI
             NavigationStack {
                 TopicDetailView(id: route.id, reader: TopicFixtureReader())
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { topicRoute = nil } } }
+            }
+        }
+        .sheet(item: $postRoute) { saved in
+            NavigationStack {
+                SquareDetailView(id: saved.route.id, contentGeneration: saved.route.generation, reader: SquareFixtureReader())
+                    .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { postRoute = nil } } }
             }
         }
     }

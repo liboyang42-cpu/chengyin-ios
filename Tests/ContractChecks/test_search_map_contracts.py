@@ -44,6 +44,40 @@ class SearchMapSourceChecks(unittest.TestCase):
         core=self.text('Tests/CoreTests/SearchMapTests.swift')
         for name in ['testAccountTokenEpochAndGuestTransitionsDropStaleSuccessAndUnauthorized','testGuestCitySearchKeepsActivitiesAndDoesNotCallPrivateNodes','testCurrentAggregate401ExpiresOnlySignedInContext','testTypedDestinationAndMerchantIDDoNotUseMemberID','testReverseFailureDoesNotHideNearbyButAuthenticated401IsNotSwallowed']:self.assertIn(name,core)
         self.assertIn('testSessionSwitchClearsResultsAndCityData',self.text('Tests/AppUITests/SearchMapFlowTests.swift'))
+    def test_global_category_forwarding_uses_existing_json_and_form_contracts(self):
+        service=self.text('Core/SearchMapService.swift')
+        self.assertIn('self.clubRows(query, token: token)',service)
+        self.assertIn('self.merchantRows(query, token: token)',service)
+        self.assertNotIn('Rows(query.keyword, token: token)',service)
+        for route in ['api/club/list','api/merchant/list']:
+            self.assertIn(f'json("{route}", fields: nameCategoryFields(query), token: token)',service)
+        fields=service.split('private func nameCategoryFields(',1)[1].split('private func unique',1)[0]
+        self.assertIn('var fields: [String: Any] = ["name": query.keyword]',fields)
+        self.assertIn('if let id = query.categoryID { fields["categoryId"] = id }',fields)
+        self.assertNotIn('String(id)',fields)
+        self.assertIn('if let id = query.categoryID { fields["category_id"] = String(id) }',service)
+        core=self.text('Tests/CoreTests/SearchMapTests.swift')
+        for method in ['testCategoryOnlySearchForwardsAllDomainsWithoutKeywordOrSort',
+                       'testChangingAndClearingCategoryPreservesUnfilteredWireShape',
+                       'testCategoryAggregateRejectsAccountChangeAndCancellationBeforeUnauthorizedExpiry']:
+            self.assertIn(method,core)
+    def test_global_category_apply_clear_invalidates_before_starting_new_work(self):
+        app=self.text('App/GlobalSearchView.swift')
+        self.assertIn('var next = filter; next.categoryID = category.id; applyFilter(next)',app)
+        self.assertIn('filter = next; invalidate(); Task { await search() }',app)
+        self.assertIn('guard reader.isConfigured, query.canSearch else { return }',app)
+        self.assertIn('filter == query',app)
+        ui=self.text('Tests/AppUITests/SearchMapFlowTests.swift')
+        for method in ['testGlobalCategoryChangeRejectsEarlierCompletionAndClearReturnsSuggestions',
+                       'testGlobalCategoryApplyResetPreservesKeywordAndCancelPreservesResults']:
+            self.assertIn(method,ui)
+        fixture=self.text('App/SearchMapFixtureSupport.swift')
+        self.assertIn('pendingGlobalSearches.remove(at: index).continuation.resume()',fixture)
+        self.assertIn('pendingGlobalSearches.remove(at: index).continuation.resume(throwing: CancellationError())',fixture)
+        catalog=json.loads(self.text('Resources/Localizable.xcstrings'))['strings']
+        text=catalog['searchMap.clientFilters']['localizations']['en']['stringUnit']['value']
+        self.assertIn('Date and price filters apply locally to loaded topics and activities.',text)
+        self.assertIn('Missing dates or prices stay visible.',text)
     def test_catalog_matches_fragment_and_has_no_language_based_region(self):
         entries=json.loads(self.text('docs/search-map-localizations.json'));catalog=json.loads(self.text('Resources/Localizable.xcstrings'))['strings']
         for key, values in entries.items():

@@ -62,7 +62,13 @@ public struct TemplateAuthoringDraft: Codable, Equatable {
     public var description = ""
     public var isSync = 1
     public var finishEnabled = true
-    public var validationMethod: TemplateAuthoringMethod = .manual
+    public var validationMethod: TemplateAuthoringMethod = .manual {
+        didSet {
+            // An explicit method change disables hints without destroying retained text.
+            // Synthesized decoding does not invoke this observer on historical drafts.
+            if validationMethod != oldValue && !validationMethod.supportsLegacyHints { legacyHintsEnabled = false }
+        }
+    }
     public var photoReview = 0
     public var rewardEnabled = true
     public var storyEnabled = false
@@ -88,6 +94,8 @@ public struct TemplateAuthoringDraft: Codable, Equatable {
     public var hint1: String?
     public var hint2: String?
     public var answerReveal: String?
+    /// Local editor intent only. Absence infers the old draft's nonempty hint strings.
+    public var legacyHintsEnabled: Bool?
     public var photoRequireDesc: String?
     public var feedbackText: String?
     public var medalImg: String?
@@ -97,6 +105,8 @@ public struct TemplateAuthoringDraft: Codable, Equatable {
     public var preferenceJson: String?
     /// Optional local-only sensor configuration. Old envelopes decode without it.
     public var sensorDraft: TemplateSensorDraft?
+    /// Local-only explicit-edit marker; absent in historical envelopes and never sent on the wire.
+    public var storyTimelineEdited: Bool?
     public var storyText: String?
     public var storyImg: String?
     public var storyJson: String?
@@ -136,11 +146,15 @@ public struct TemplateAuthoringDraft: Codable, Equatable {
         }
         if voiceEnabled { need(!blank(audioUrl), "audio") }
         if finishEnabled { result += advanced.issues }
+        if let issue = storyProjectionIssue { result.append(issue) }
         var unique: [String] = []; for key in result where !unique.contains(key) { unique.append(key) }; return unique
     }
     public mutating func setStory(_ beats: [TemplateStoryBeat]) throws {
-        let rows = beats.filter { !$0.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !$0.imgs.isEmpty }.map(\.wire)
-        storyJson = rows.isEmpty ? nil : String(data: try JSONEncoder().encode(rows), encoding: .utf8)
+        let original = try TemplateAuthoringStory.editableBeats(raw: storyJson)
+        try TemplateAuthoringStory.validateImageEdits(beats, original: original)
+        let rows = beats.filter { !TemplateAuthoringStory.sourceTrim($0.text).isEmpty || !$0.imgs.isEmpty }.map(\.wire)
+        let encoded = rows.isEmpty ? "" : String(decoding: try JSONEncoder().encode(rows), as: UTF8.self)
+        storyJson = encoded; storyTimelineEdited = true
     }
     public func storyBeats() throws -> [TemplateStoryBeat] {
         guard let storyJson, !storyJson.isEmpty else { return [] }
