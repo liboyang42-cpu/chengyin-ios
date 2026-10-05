@@ -1,7 +1,7 @@
 import SwiftUI
 import MapKit
 
-/// No retained coordinates or query results: projection and membership are derived
+/// View-lifetime presentation snapshots only: projection and membership are derived
 /// from the current supplied pins on every render. Camera movement never fetches.
 struct QuestifyDensityMap: View {
     let area: RoamSearchArea
@@ -17,6 +17,8 @@ struct QuestifyDensityMap: View {
     @State private var expanded: [String] = []
     @State private var expansionID = UUID()
     @State private var expandedSnapshot: [SearchMapPin] = []
+    @State private var focusGate = MapMarkerDensity.FocusGate()
+    @State private var currentFocusInput: FocusInput
     @ScaledMetric(relativeTo: .body) private var diameter = 44.0
     @ScaledMetric(relativeTo: .body) private var clusterExtra = 28.0
     init(area: RoamSearchArea, pins: [SearchMapPin], selectedID: String? = nil,
@@ -27,6 +29,7 @@ struct QuestifyDensityMap: View {
         self.polyline = polyline; self.onSelect = onSelect
         self.mapHeight = mapHeight
         self.pinIdentifierPrefix = pinIdentifierPrefix; self.pinHint = pinHint
+        _currentFocusInput = State(initialValue: FocusInput(area: area, pins: pins, selectedID: selectedID))
         _position = State(initialValue: .region(MKCoordinateRegion(
             center: CLLocationCoordinate2D(latitude: area.coordinate.latitude, longitude: area.coordinate.longitude),
             span: MKCoordinateSpan(latitudeDelta: initialSpan, longitudeDelta: initialSpan))))
@@ -35,6 +38,12 @@ struct QuestifyDensityMap: View {
         let members: [SearchMapPin]
         var id: [String] { members.map(\.id) }
     }
+    private struct FocusInput: Equatable {
+        let area: RoamSearchArea
+        let pins: [SearchMapPin]
+        let selectedID: String?
+    }
+    private var focusInput: FocusInput { FocusInput(area: area, pins: pins, selectedID: selectedID) }
     private var currentPins: [SearchMapPin] {
         let grouped = Dictionary(grouping: pins, by: \.id)
         return pins.filter { !$0.id.isEmpty && grouped[$0.id]?.count == 1 }
@@ -75,9 +84,14 @@ struct QuestifyDensityMap: View {
                             MapPolyline(coordinates: polyline.map(coordinate)).stroke(QuestifyMapAppearance.route, style: StrokeStyle(lineWidth: 4, dash: [7, 4]))
                         }
                     }.mapStyle(QuestifyMapAppearance.baseStyle)
+                    .mapControls {
+                        MapCompass().mapControlVisibility(.visible)
+                        MapScaleView()
+                    }
                     .onMapCameraChange(frequency: .continuous) { _ in cameraRevision &+= 1 }
                 }
             }.frame(height: mapHeight)
+            if selectedID != nil { focusControl }
             // Always provide explicit member choice, including coincident coordinates
             // where repeated zooming cannot separate markers. No first-member action.
             if !expanded.isEmpty && expandedSnapshot == snapshot {
@@ -105,6 +119,35 @@ struct QuestifyDensityMap: View {
             }
         }
         .onChange(of: snapshot) { _, _ in closeExpansion() }
+        .onChange(of: focusInput) { _, value in
+            currentFocusInput = value
+            focusGate.invalidate()
+        }
+        .onDisappear { focusGate.invalidate() }
+    }
+    private var focusControl: some View {
+        let renderedInput = focusInput
+        let request = renderedInput == currentFocusInput ? focusGate.request(selectedID: selectedID, targets: pins.map {
+            .init(id: $0.id, coordinate: .init(latitude: $0.coordinate.latitude, longitude: $0.coordinate.longitude))
+        }) : nil
+        return VStack(alignment: .leading, spacing: 4) {
+            Button {
+                guard renderedInput == currentFocusInput, let request,
+                      let fit = focusGate.consume(request) else { return }
+                applyCameraFit(fit)
+            } label: {
+                Label("mapCamera.focusSelected", systemImage: "scope")
+                    .fixedSize(horizontal: false, vertical: true)
+            }.buttonStyle(.bordered).frame(minHeight: 44)
+                .disabled(request == nil)
+                .accessibilityHint(Text("mapCamera.focusHint"))
+                .accessibilityIdentifier("mapCamera.focusSelected")
+            if request == nil {
+                Text("mapCamera.focusUnavailable").font(.footnote)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("mapCamera.focusUnavailable")
+            }
+        }.frame(maxWidth: .infinity, alignment: .leading)
     }
     private func groups(proxy: MapProxy, size: CGSize, revision: Int) -> [Group] {
         let supplied = currentPins
@@ -130,6 +173,9 @@ struct QuestifyDensityMap: View {
         guard let fit = MapMarkerDensity.fit(group.members.map {
             .init(latitude: $0.coordinate.latitude, longitude: $0.coordinate.longitude)
         }) else { return }
+        applyCameraFit(fit)
+    }
+    private func applyCameraFit(_ fit: MapMarkerDensity.Fit) {
         position = .region(MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: fit.latitude, longitude: fit.longitude),
             span: MKCoordinateSpan(latitudeDelta: fit.latitudeSpan, longitudeDelta: fit.longitudeSpan)))
     }

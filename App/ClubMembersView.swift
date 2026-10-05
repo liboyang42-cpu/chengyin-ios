@@ -70,6 +70,7 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
                     // This existing reader rechecks access/me and exact member scope before exposing CRM data.
                     ClubGovernanceReadView(operation: .customer, scope: .init(clubID: target.clubID, memberID: target.memberID),
                                            identity: target.identity, access: governance.access, coordinator: governance.coordinator)
+                        .environment(\.clubCustomerTopics, governance.customerTopics)
                         .id(target)
                 } else if !target.customer, let profileContext, matches(profileContext, target.identity) {
                     SocialPublicProfileView(memberID: target.memberID, reader: profileContext.reader,

@@ -2,12 +2,17 @@ import SwiftUI
 
 extension PlayKitScreen {
     var reasoningForm: some View {
-        PlayKitReasoningForm(kind: kind, segment: raw, enabled: enabled, onDirty: { dirty = true }, requestReview: prepare)
+        PlayKitReasoningForm(kind: kind, segment: raw, enabled: enabled,
+            showResult: reasoningFeedback.showsResult(for: projection),
+            onDirty: { reasoningFeedback.markEdited(projection); dirty = true }, requestReview: prepare)
+            // Scope changes discard the draft; ordinary backgrounding preserves it.
+            .id(lifetime)
     }
 }
 
 @MainActor struct PlayKitReasoningForm: View {
     let kind: PlayKitScreenKind; let segment: PlayWireValue; let enabled: Bool
+    var showResult = true
     let onDirty: () -> Void; let requestReview: PlayKitReviewRequest
     @State private var order: [String] = []
     @State private var placement: [String: String] = [:]
@@ -22,7 +27,7 @@ extension PlayKitScreen {
             else { classifyRows }
             if let attempts = segment["attempts"].integer, attempts > 0 {
                 LabeledContent("playkit.attempts") { Text(verbatim: String(attempts)) }
-                if let resultKey = PlayKitScreenProjection(kind: kind, segment: segment).reasoningResultKey {
+                if showResult, let resultKey = PlayKitScreenProjection(kind: kind, segment: segment).reasoningResultKey {
                     Text(LocalizedStringKey(resultKey)).accessibilityIdentifier("playkit.reasoning.result")
                 }
             }
@@ -60,6 +65,7 @@ extension PlayKitScreen {
         Text("playkit.match.instructions").font(.footnote)
         ForEach(left) { item in
             Picker(selection: Binding(get: { placement[item.id] ?? "" }, set: { value in
+                guard enabled, value != (placement[item.id] ?? "") else { return }
                 if value.isEmpty { placement.removeValue(forKey: item.id) }
                 else {
                     // One right item can be paired once; reassignment removes its old pair.
@@ -76,6 +82,7 @@ extension PlayKitScreen {
         Text("playkit.classify.instructions").font(.footnote)
         ForEach(items) { item in
             Picker(selection: Binding(get: { placement[item.id] ?? "" }, set: { value in
+                guard enabled, value != (placement[item.id] ?? "") else { return }
                 if value.isEmpty { placement.removeValue(forKey: item.id) } else { placement[item.id] = value }; onDirty()
             })) {
                 Text("playkit.choose").tag("")
@@ -86,7 +93,7 @@ extension PlayKitScreen {
     }
     private func move(_ index: Int, _ delta: Int) {
         let destination = index + delta
-        guard enabled, order.indices.contains(index), order.indices.contains(destination) else { return }
+        guard enabled, index != destination, order.indices.contains(index), order.indices.contains(destination) else { return }
         let value = order.remove(at: index); order.insert(value, at: destination); onDirty()
     }
 }

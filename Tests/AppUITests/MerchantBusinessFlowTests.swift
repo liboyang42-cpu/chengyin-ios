@@ -72,4 +72,59 @@ final class MerchantBusinessFlowTests: XCTestCase {
         let app = launch(language: "zh-Hans")
         XCTAssertTrue(app.buttons["merchant.business.open.customers"].waitForExistence(timeout: 5)); XCTAssertTrue(app.staticTexts["经营工作区"].exists)
     }
+    func testReviewFiltersUseCurrentPageAndKeepServerMetrics() {
+        let app = launch("listTools"); tap("merchant.business.open.reviews", app: app)
+        func select(_ label: String) {
+            for _ in 0..<4 { app.swipeDown() }
+            tap("merchant.business.reviews.filter", app: app)
+            let option = app.buttons[label]; XCTAssertTrue(option.waitForExistence(timeout: 3)); option.tap()
+        }
+        select("Awaiting reply")
+        let pending = app.descendants(matching: .any)["merchant.business.row.review.63001"]
+        reveal(pending, app: app); XCTAssertTrue(pending.exists)
+        XCTAssertFalse(app.descendants(matching: .any)["merchant.business.row.review.63002"].exists)
+        select("3 stars or fewer")
+        let low = app.descendants(matching: .any)["merchant.business.row.review.63002"]
+        reveal(low, app: app); XCTAssertTrue(low.exists)
+        XCTAssertFalse(app.descendants(matching: .any)["merchant.business.row.review.63001"].exists)
+        select("With photos")
+        let photo = app.descendants(matching: .any)["merchant.business.row.review.63003"]
+        reveal(photo, app: app); XCTAssertTrue(photo.exists)
+        tap("merchant.business.next", app: app)
+        let empty = app.staticTexts["merchant.business.list.noMatches"]
+        reveal(empty, app: app); XCTAssertTrue(empty.waitForExistence(timeout: 5))
+        let serverRate = app.descendants(matching: .any)["merchant.business.summary.replyRatePct"]
+        for _ in 0..<4 { app.swipeDown() }
+        reveal(serverRate, app: app); XCTAssertTrue(serverRate.exists)
+        XCTAssertTrue(app.staticTexts["65%"].exists, app.debugDescription)
+        for _ in 0..<4 { app.swipeDown() }
+        tap("merchant.business.reviews.clearFilter", app: app)
+        let secondPage = app.descendants(matching: .any)["merchant.business.row.review.63021"]
+        reveal(secondPage, app: app); XCTAssertTrue(secondPage.exists)
+        XCTAssertFalse(app.descendants(matching: .any)["merchant.business.row.review.63003"].exists)
+    }
+    func testChineseAftercareSearchStaysOnCurrentPage() {
+        let app = launch("listTools", language: "zh-Hans"); tap("merchant.business.open.aftercare", app: app)
+        let field = app.textFields["merchant.business.aftercare.keyword"]
+        for term in ["EXAMPLE-RF-1", "ALICE", "城市漫步", "WEATHER"] {
+            XCTAssertTrue(field.waitForExistence(timeout: 3)); field.tap(); field.typeText(term + "\n")
+            let row = app.buttons["merchant.business.row.refund.62001"]
+            reveal(row, app: app); XCTAssertTrue(row.exists, term)
+            for _ in 0..<3 { app.swipeDown() }
+            tap("merchant.business.aftercare.clearSearch", app: app)
+        }
+        field.tap(); field.typeText("ALICE\n")
+        tap("merchant.business.next", app: app)
+        let empty = app.staticTexts["merchant.business.list.noMatches"]
+        reveal(empty, app: app); XCTAssertTrue(empty.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["merchant.business.row.refund.62001"].exists)
+        for _ in 0..<3 { app.swipeDown() }
+        XCTAssertEqual(field.value as? String, "ALICE")
+        XCTAssertEqual(app.buttons["merchant.business.aftercare.clearSearch"].label, "清空搜索")
+        tap("merchant.business.aftercare.clearSearch", app: app)
+        let secondPage = app.buttons["merchant.business.row.refund.62021"]
+        reveal(secondPage, app: app); XCTAssertTrue(secondPage.exists)
+        XCTAssertFalse(app.buttons["merchant.business.row.refund.62001"].exists)
+    }
+
 }

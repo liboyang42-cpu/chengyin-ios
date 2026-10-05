@@ -20,7 +20,7 @@ import Security
                 anchors: ContentDraftSystemAnchors(service: service), ciphertexts: ContentDraftSystemCiphertexts(root: root))
             let intent = PlayCompletionIntent(review: .init(nodeID: 701, evidence: .answer("synthetic"),
                 advance: nil, session: session, generation: 1, routeSessionID: nil))
-            func assertNoWrites() throws {
+            @MainActor func assertNoWrites() throws {
                 try NonClassAStorageFixture.assertUnchanged(root)
                 let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
                     kSecAttrService as String: service, kSecAttrSynchronizable as String: false,

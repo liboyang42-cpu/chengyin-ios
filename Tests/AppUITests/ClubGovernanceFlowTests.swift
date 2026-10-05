@@ -59,6 +59,16 @@ final class ClubGovernanceFlowTests: XCTestCase {
         reveal(confirm, app: app)
         XCTAssertTrue(confirm.waitForExistence(timeout: 5))
     }
+    func testWorkspaceCustomerHistoryUsesTheSameTopicDestination() {
+        let app = launch()
+        tap("club.gov.open", app: app)
+        tap("club.gov.route.customers", app: app)
+        tap("club.gov.route.customer", app: app)
+        tap("club.gov.customer.topic.91", app: app)
+        XCTAssertTrue(app.staticTexts["club.fixture.historyTopic.91"].waitForExistence(timeout: 5), app.debugDescription)
+        app.navigationBars.buttons.firstMatch.tap()
+        XCTAssertTrue(app.buttons["club.gov.customer.topic.91"].waitForExistence(timeout: 5))
+    }
     func testEventRolesAreDistinctFromLegacyAdministratorFlag() {
         let app = launch(); guard open("roles", app: app) else { return }
         XCTAssertTrue(app.buttons["club.gov.action.assignRole"].waitForExistence(timeout: 5))

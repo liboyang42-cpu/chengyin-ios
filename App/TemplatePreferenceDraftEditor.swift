@@ -43,12 +43,12 @@ import SwiftUI
                     Text(LocalizedStringKey(report.messageKey)).accessibilityIdentifier("templateAuthor.preference.status")
                     if report.status != .valid { Text(verbatim: report.path).font(.caption) }
                     if report.canPreview {
-                        Text("templateAuthor.preference.preview").font(.headline)
+                        Text("templateAuthor.preference.preview").font(.headline).accessibilityIdentifier("templateAuthor.preference.preview")
                         Text("templateAuthor.preference.previewScope").font(.caption)
                         ForEach(Array(report.fields.enumerated()), id: \.offset) { _, field in
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(verbatim: field.path).font(.caption).foregroundStyle(.secondary)
-                                Text(verbatim: field.value)
+                                Text(verbatim: field.value).accessibilityIdentifier("templateAuthor.preference.field." + field.path)
                             }
                         }
                         if !report.unknownPaths.isEmpty {
@@ -56,7 +56,7 @@ import SwiftUI
                             ForEach(Array(report.unknownPaths.enumerated()), id: \.offset) { _, path in Text(verbatim: path).font(.caption) }
                         }
                     }
-                } else if !checking { Text("templateAuthor.preference.unchecked").font(.caption) }
+                } else if !checking { Text("templateAuthor.preference.unchecked").font(.caption).accessibilityIdentifier("templateAuthor.preference.unchecked") }
             } else { Text("templateAuthor.unavailable") }
         }
         .onChange(of: raw) { _, _ in invalidate() }

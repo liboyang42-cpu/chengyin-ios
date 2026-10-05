@@ -59,4 +59,69 @@ final class MapMarkerDensityTests: XCTestCase {
         XCTAssertEqual(MapMarkerDensity.groups(points, diameter: 100), [["place-1", "place-2"]])
     }
 
+    func testExplicitFocusUsesExactSelectedIdentity() throws {
+        let targets = [MapMarkerDensity.Target(id: "city-7", coordinate: .init(latitude: 31, longitude: 121)),
+                       .init(id: "nearby-7", coordinate: .init(latitude: 32, longitude: 120))]
+        var gate = MapMarkerDensity.FocusGate()
+        let request = try XCTUnwrap(gate.request(selectedID: "nearby-7", targets: targets))
+        let fit = try XCTUnwrap(gate.consume(request))
+        XCTAssertEqual(fit.latitude, 32)
+        XCTAssertEqual(fit.longitude, 120)
+        XCTAssertEqual(fit.latitudeSpan, 0.001)
+        XCTAssertEqual(fit.longitudeSpan, 0.001)
+    }
+
+    func testFocusMissingEmptyAndAmbiguousIdentityFailClosed() {
+        let target = MapMarkerDensity.Target(id: "city-7", coordinate: .init(latitude: 31, longitude: 121))
+        let gate = MapMarkerDensity.FocusGate()
+        XCTAssertNil(gate.request(selectedID: nil, targets: [target]))
+        XCTAssertNil(gate.request(selectedID: "", targets: [.init(id: "", coordinate: target.coordinate)]))
+        XCTAssertNil(gate.request(selectedID: "city-8", targets: [target]))
+        XCTAssertNil(gate.request(selectedID: target.id, targets: []))
+        XCTAssertNil(gate.request(selectedID: target.id, targets: [target, target]))
+    }
+
+    func testFocusUnsafeGeometryDoesNotProduceARequest() {
+        let gate = MapMarkerDensity.FocusGate()
+        for coordinate in [MapMarkerDensity.Coordinate(latitude: 86, longitude: 121),
+                           .init(latitude: 31, longitude: 181),
+                           .init(latitude: .nan, longitude: 121),
+                           .init(latitude: 31, longitude: .infinity)] {
+            XCTAssertNil(gate.request(selectedID: "selected", targets: [.init(id: "selected", coordinate: coordinate)]))
+        }
+    }
+
+    func testFocusConsumptionRejectsDuplicateTapAndAllowsFreshExplicitTap() throws {
+        let targets = [MapMarkerDensity.Target(id: "selected", coordinate: .init(latitude: 31, longitude: 121))]
+        var gate = MapMarkerDensity.FocusGate()
+        let request = try XCTUnwrap(gate.request(selectedID: "selected", targets: targets))
+        XCTAssertNotNil(gate.consume(request))
+        XCTAssertNil(gate.consume(request))
+        let fresh = try XCTUnwrap(gate.request(selectedID: "selected", targets: targets))
+        XCTAssertNotNil(gate.consume(fresh))
+    }
+
+    func testFocusInvalidationRejectsRefreshRemovalAndSameSelectionReopening() throws {
+        let targets = [MapMarkerDensity.Target(id: "selected", coordinate: .init(latitude: 31, longitude: 121))]
+        var gate = MapMarkerDensity.FocusGate()
+        let old = try XCTUnwrap(gate.request(selectedID: "selected", targets: targets))
+        // The view invalidates on every input snapshot/selection change and exit.
+        gate.invalidate()
+        XCTAssertNil(gate.request(selectedID: nil, targets: []))
+        XCTAssertNil(gate.consume(old))
+        let reopened = try XCTUnwrap(gate.request(selectedID: "selected", targets: targets))
+        XCTAssertNil(gate.consume(old))
+        XCTAssertNotNil(gate.consume(reopened))
+    }
+
+    func testFocusRequestCannotCrossPresentationInstances() throws {
+        let targets = [MapMarkerDensity.Target(id: "selected", coordinate: .init(latitude: 31, longitude: 121))]
+        let first = MapMarkerDensity.FocusGate()
+        var second = MapMarkerDensity.FocusGate()
+        let foreign = try XCTUnwrap(first.request(selectedID: "selected", targets: targets))
+        XCTAssertNil(second.consume(foreign))
+        let own = try XCTUnwrap(second.request(selectedID: "selected", targets: targets))
+        XCTAssertNotNil(second.consume(own))
+    }
+
 }

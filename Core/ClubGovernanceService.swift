@@ -149,6 +149,7 @@ public struct ClubGovernanceSession: Equatable {
     var journalRealm: String { get }
     func canDispatch(_ command: ClubGovernanceCommand) -> Bool
     func read(_ operation: ClubGovernanceRead, scope: ClubGovernanceScope, options: [String: ClubGovernanceValue]) async throws -> ClubGovernanceSnapshot
+    func read(_ operation: ClubGovernanceRead, scope: ClubGovernanceScope, options: [String: ClubGovernanceValue], check: () throws -> Void) async throws -> ClubGovernanceSnapshot
     func send(_ review: ClubGovernanceReview) async throws -> ClubGovernanceValue
     func send(_ review: ClubGovernanceReview, check: () throws -> Void) async throws -> ClubGovernanceValue
     func send(_ review: ClubGovernanceReview, authorization: ClubGovernanceDispatchAuthorization, check: () throws -> Void) async throws -> ClubGovernanceValue
@@ -156,6 +157,13 @@ public struct ClubGovernanceSession: Equatable {
 public extension ClubGovernanceAccess {
     var authorizationGeneration: UUID? { nil }
     var journalRealm: String { storageNamespace }
+    func read(_ operation: ClubGovernanceRead, scope: ClubGovernanceScope, options: [String: ClubGovernanceValue], check: () throws -> Void) async throws -> ClubGovernanceSnapshot {
+        try check()
+        do {
+            let result = try await read(operation, scope: scope, options: options)
+            try check(); return result
+        } catch { try check(); throw error }
+    }
     func send(_ review: ClubGovernanceReview, check: () throws -> Void) async throws -> ClubGovernanceValue {
         guard allowsOfflineWrites else { throw ClubGovernanceFailure.notConfigured }; try check(); return try await send(review)
     }
@@ -184,23 +192,43 @@ public extension ClubGovernanceAccess {
         if allowsOfflineWrites { return service?.permits(command) == true }
         return productionService(command)?.permits(command) == true
     }
+    private let viewerRevision: () -> UInt64
     private let onUnauthorized: (ClubReadIdentity) -> Void
     public var identity: ClubReadIdentity? { currentSession()?.identity }
     public var isConfigured: Bool { service != nil }
     public var storageNamespace: String { currentSession()?.storageNamespace ?? "" }
     public var allowsOfflineWrites: Bool { service?.allowsOfflineWrites == true }
-    public init(service: ClubGovernanceService?, currentSession: @escaping () -> ClubGovernanceSession?, productionService: @escaping (ClubGovernanceCommand) -> ClubGovernanceService? = { _ in nil }, runtimeContext: @escaping () -> RuntimeDependencyContext? = { nil }, onUnauthorized: @escaping (ClubReadIdentity) -> Void = { _ in }) {
+    public init(service: ClubGovernanceService?, currentSession: @escaping () -> ClubGovernanceSession?, productionService: @escaping (ClubGovernanceCommand) -> ClubGovernanceService? = { _ in nil }, runtimeContext: @escaping () -> RuntimeDependencyContext? = { nil }, viewerRevision: @escaping () -> UInt64 = { 0 }, onUnauthorized: @escaping (ClubReadIdentity) -> Void = { _ in }) {
         self.service = service; self.currentSession = currentSession; self.onUnauthorized = onUnauthorized
-        self.productionService = productionService; self.runtimeContext = runtimeContext
+        self.productionService = productionService; self.runtimeContext = runtimeContext; self.viewerRevision = viewerRevision
     }
     private func check(_ snapshot: ClubGovernanceSession) throws {
         try Task.checkCancellation(); guard currentSession() == snapshot else { throw CancellationError() }
     }
+    private func checkRead(_ session: ClubGovernanceSession, viewerRevision: UInt64, authorization: UUID?, check readCheck: () throws -> Void) throws {
+        try check(session); try readCheck()
+        guard self.viewerRevision() == viewerRevision, authorizationGeneration == authorization else { throw CancellationError() }
+    }
     public func read(_ operation: ClubGovernanceRead, scope: ClubGovernanceScope, options: [String: ClubGovernanceValue] = [:]) async throws -> ClubGovernanceSnapshot {
+        try await read(operation, scope: scope, options: options, check: {})
+    }
+    public func read(_ operation: ClubGovernanceRead, scope: ClubGovernanceScope, options: [String: ClubGovernanceValue], check readCheck: () throws -> Void) async throws -> ClubGovernanceSnapshot {
+        try readCheck()
         guard let service else { throw ClubGovernanceFailure.notConfigured }
         guard let session = currentSession() else { throw ClubGovernanceFailure.signedOut }
-        do { return try await service.read(operation, scope: scope, options: options, session: session) { try self.check(session) } }
-        catch { try check(session); if (error as? ClubGovernanceFailure) == .signedOut || (error as? APIError) == .unauthorized { onUnauthorized(session.identity) }; throw error }
+        let revision = viewerRevision(), authorization = authorizationGeneration
+        do {
+            let result = try await service.read(operation, scope: scope, options: options, session: session) {
+                try self.checkRead(session, viewerRevision: revision, authorization: authorization, check: readCheck)
+            }
+            try checkRead(session, viewerRevision: revision, authorization: authorization, check: readCheck)
+            return result
+        } catch {
+            // Fence the read before an old response can expire a newer viewer or navigation.
+            try checkRead(session, viewerRevision: revision, authorization: authorization, check: readCheck)
+            if (error as? ClubGovernanceFailure) == .signedOut || (error as? APIError) == .unauthorized { onUnauthorized(session.identity) }
+            throw error
+        }
     }
     public func send(_ review: ClubGovernanceReview) async throws -> ClubGovernanceValue { try await send(review, check: {}) }
     public func send(_ review: ClubGovernanceReview, check: () throws -> Void) async throws -> ClubGovernanceValue {

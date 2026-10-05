@@ -37,6 +37,35 @@ public enum MapMarkerDensity {
         public let longitude: Double
         public init(latitude: Double, longitude: Double) { self.latitude = latitude; self.longitude = longitude }
     }
+    public struct Target {
+        public let id: String
+        public let coordinate: Coordinate
+        public init(id: String, coordinate: Coordinate) { self.id = id; self.coordinate = coordinate }
+    }
+    /// A view-lifetime gate for explicit camera actions. Replacing the input,
+    /// leaving the view or consuming a request invalidates older button actions.
+    /// It contains no location source, business selection or persistent state.
+    public struct FocusGate {
+        public struct Request {
+            fileprivate let revision: UUID
+            fileprivate let fit: Fit
+        }
+        private var revision = UUID()
+        public init() {}
+        public mutating func invalidate() { revision = UUID() }
+        public func request(selectedID: String?, targets: [Target]) -> Request? {
+            guard let selectedID, !selectedID.isEmpty else { return nil }
+            let matches = targets.filter { $0.id == selectedID }
+            guard matches.count == 1, let target = matches.first,
+                  let fit = MapMarkerDensity.fit([target.coordinate]) else { return nil }
+            return Request(revision: revision, fit: fit)
+        }
+        public mutating func consume(_ request: Request) -> Fit? {
+            guard request.revision == revision else { return nil }
+            invalidate()
+            return request.fit
+        }
+    }
     public struct Fit: Equatable {
         public let latitude: Double
         public let longitude: Double

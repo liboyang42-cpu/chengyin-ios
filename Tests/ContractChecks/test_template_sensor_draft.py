@@ -51,5 +51,27 @@ class TemplateSensorDraftSourceTests(unittest.TestCase):
         self.assertIn('testLocalStorePipelineRoundTripAndOwnerSeparation', tests)
         self.assertIn('testOriginalIsExactButInvalidCurrentInputNeverFallsBack', tests)
 
+    def test_ui_acceptance_uses_actual_local_state_without_permission_approval(self):
+        fixture = (ROOT / 'App/TemplateAuthoringFixtureSupport.swift').read_text().strip()
+        self.assertTrue(fixture.startswith('#if DEBUG'))
+        self.assertTrue(fixture.endswith('#endif'))
+        self.assertIn('Snapshot(draft: coordinator.draft, requestCount: transport.requests.count', fixture)
+        self.assertIn('--template-author-local-probe', fixture)
+        self.assertIn('--template-author-sensor-raw', fixture)
+        probe = fixture.split('func inspectLocalDraft()')[1].split('@MainActor struct')[0]
+        for mutation in ['coordinator.change(', 'coordinator.saveLocal(', 'coordinator.prepare(', 'coordinator.confirm(']:
+            self.assertNotIn(mutation, probe)
+        ui = (ROOT / 'Tests/AppUITests/TemplateSensorDraftFlowTests.swift').read_text()
+        self.assertEqual(ui.count('func test'), 2)
+        for assertion in ['testCurrentSensorPreviewAndRestorePreserveExactOriginalJSON',
+                          'testHistoricalUnknownAndAmbiguousConfigurationsRemainReadOnly',
+                          'Array(original.utf8), Array(raw.utf8)', 'snapshot.requestCount, 0',
+                          'sensorDraft.preview.status', 'sensorDraft.preview.preserved',
+                          'templateAuthor.saveLocal', 'templateAuthor.restore', 'com.apple.springboard']:
+            self.assertIn(assertion, ui)
+        for forbidden in ['addUIInterruptionMonitor', 'requestAuthorization', 'requestRecordPermission',
+                          'CoreMotion', 'AVFoundation', 'CMPedometer', 'AVAudioRecorder']:
+            self.assertNotIn(forbidden, ui)
+
 if __name__ == '__main__':
     unittest.main()

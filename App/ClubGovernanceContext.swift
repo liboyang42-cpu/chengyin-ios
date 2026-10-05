@@ -8,4 +8,20 @@ import SwiftUI
     var enrollmentProfile: ClubEnrollmentProfileContext? = nil
     var ownerRefund: ClubOwnerRefundCoordinator? = nil
     var opsTimeFactory: ((Int) -> ClubOpsTimeCoordinator?)? = nil
+    var topicDestination: ((Int) -> AnyView)? = nil
+    var customerTopics: ClubCustomerTopicContext { .init(viewerRevision: viewerRevision, destination: topicDestination) }
+}
+
+struct ClubCustomerTopicContext {
+    var viewerRevision: UInt64 = 0
+    var destination: ((Int) -> AnyView)? = nil
+}
+private struct ClubCustomerTopicKey: EnvironmentKey {
+    static let defaultValue = ClubCustomerTopicContext()
+}
+extension EnvironmentValues {
+    var clubCustomerTopics: ClubCustomerTopicContext {
+        get { self[ClubCustomerTopicKey.self] }
+        set { self[ClubCustomerTopicKey.self] = newValue }
+    }
 }

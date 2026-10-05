@@ -9,6 +9,7 @@ struct ClubGovernanceEntryButton: View {
     var enrollmentProfile: ClubEnrollmentProfileContext? = nil
     var ownerRefund: ClubOwnerRefundCoordinator? = nil
     var opsTimeFactory: ((Int) -> ClubOpsTimeCoordinator?)? = nil
+    var customerTopics = ClubCustomerTopicContext()
     @State private var presented = false
     var body: some View {
         Button { presented = true } label: { Label("club.gov.workspace", systemImage: "person.3.sequence.fill") }
@@ -18,6 +19,7 @@ struct ClubGovernanceEntryButton: View {
                     .environment(\.clubEnrollmentProfile, enrollmentProfile)
                     .environment(\.clubOwnerRefundCoordinator, ownerRefund)
                     .environment(\.clubOpsTimeFactory, opsTimeFactory)
+                    .environment(\.clubCustomerTopics, customerTopics)
             }
     }
 }
@@ -53,12 +55,20 @@ struct ClubGovernanceFormRoute: Identifiable {
 
 struct ClubGovernanceReadView: View {
     @Environment(\.clubOpsTimeFactory) private var opsTimeFactory
+    @Environment(\.clubCustomerTopics) private var customerTopics
     let operation: ClubGovernanceRead
     let scope: ClubGovernanceScope
     let identity: ClubReadIdentity?
     let access: any ClubGovernanceAccess
     let coordinator: ClubGovernanceCoordinator
     @State private var snapshot: ClubGovernanceSnapshot?
+    @State private var snapshotContext: ClubGovernanceReadContext?
+    @State private var snapshotGeneration: UInt64 = 0
+    @State private var customerTopic: ClubCustomerHistoryTopicRoute?
+    private var readContext: ClubGovernanceReadContext {
+        .init(operation: operation, scope: scope, identity: identity, viewerRevision: customerTopics.viewerRevision,
+              authorizationGeneration: access.authorizationGeneration)
+    }
     @State private var failure: ClubGovernanceFailure?
     @State private var loading = false
     @State private var generation: UInt64 = 0
@@ -100,7 +110,7 @@ struct ClubGovernanceReadView: View {
                 Picker("club.gov.sort", selection: $sort) { ForEach(["composite", "mileage", "pace", "duration"], id: \.self) { Text(LocalizedStringKey("club.gov.sort." + $0)).tag($0) } }
                     .onChange(of: sort) { _, _ in Task { await load() } }
             }
-            if let snapshot, identity == access.identity { content(snapshot) }
+            if let snapshot, snapshotContext == readContext, identity == access.identity { content(snapshot) }
             if [.feed, .posts].contains(operation), snapshot != nil {
                 Section {
                     HStack {
@@ -114,14 +124,21 @@ struct ClubGovernanceReadView: View {
         }
         .navigationTitle(title)
         .sheet(item: $editor) { route in NavigationStack { ClubGovernanceCommandForm(route: route, identity: identity, access: access, coordinator: coordinator) } }
-        .task(id: identity) { snapshot = nil; editor = nil; coordinator.cancelReview(); await load() }
-        .onChange(of: identity) { _, _ in generation &+= 1; snapshot = nil; failure = nil; editor = nil; coordinator.cancelReview() }
+        .navigationDestination(item: $customerTopic) { target in
+            if let destination = customerTopics.destination, current(target) {
+                destination(target.topicID).id(target.id)
+            }
+        }
+        .task(id: readContext) { snapshot = nil; editor = nil; customerTopic = nil; coordinator.cancelReview(); await load() }
+        .onChange(of: readContext) { _, _ in invalidateRead() }
+        .onChange(of: identity) { _, _ in invalidateRead() }
         .onDisappear { generation &+= 1 }
         .refreshable { await load() }
     }
     private func load() async {
-        generation &+= 1; let revision = generation; let expected = identity
+        generation &+= 1; let revision = generation; let expected = identity; let context = readContext
         snapshot = nil; failure = nil; loading = true
+        snapshotContext = nil; customerTopic = nil
         guard expected?.isSignedIn == true else { loading = false; failure = .signedOut; return }
         var options: [String: ClubGovernanceValue] = [:]
         if operation == .customers { options = ["filter": .string(filter), "keyword": .string(keyword)] }
@@ -129,14 +146,34 @@ struct ClubGovernanceReadView: View {
         if operation == .leaderboard { options = ["sortBy": .string(sort)] }
         if [.feed, .posts].contains(operation) { options = ["pageNum": .integer(page), "pageSize": .integer(20)] }
         do {
-            let result = try await access.read(operation, scope: scope, options: options)
-            guard revision == generation, expected == identity, access.identity == expected, !Task.isCancelled else { return }
-            snapshot = result
+            let result = try await access.read(operation, scope: scope, options: options) {
+                guard revision == generation, context == readContext, expected == identity,
+                      access.identity == expected, !Task.isCancelled else { throw CancellationError() }
+            }
+            guard revision == generation, context == readContext, expected == identity, access.identity == expected, !Task.isCancelled else { return }
+            guard context.accepts(result) else { throw ClubGovernanceFailure.targetChanged }
+            snapshotContext = context; snapshotGeneration = revision; snapshot = result
         } catch {
-            guard revision == generation, expected == identity, access.identity == expected, !Task.isCancelled else { return }
+            guard revision == generation, context == readContext, expected == identity, access.identity == expected, !Task.isCancelled else { return }
             failure = error as? ClubGovernanceFailure ?? .malformed
         }
         if revision == generation { loading = false }
+    }
+    private func invalidateRead() {
+        generation &+= 1; snapshot = nil; snapshotContext = nil; failure = nil; editor = nil; customerTopic = nil; coordinator.cancelReview()
+    }
+    private func current(_ target: ClubCustomerHistoryTopicRoute) -> Bool {
+        identity == access.identity && access.isConfigured && snapshotContext == readContext &&
+        target.isCurrent(snapshot: snapshot, context: readContext, snapshotGeneration: snapshotGeneration)
+    }
+    private func customerTopicRoute(_ row: ClubGovernanceValue) -> ClubCustomerHistoryTopicRoute? {
+        guard operation == .customer, let snapshot, snapshotContext == readContext,
+              customerTopics.destination != nil, identity == access.identity, access.isConfigured else { return nil }
+        return .init(record: row, snapshot: snapshot, context: readContext, snapshotGeneration: snapshotGeneration)
+    }
+    private func selectCustomerTopic(_ target: ClubCustomerHistoryTopicRoute) {
+        guard customerTopic == nil, current(target) else { return }
+        customerTopic = target
     }
     private func link(_ target: ClubGovernanceRead, _ targetScope: ClubGovernanceScope? = nil) -> some View {
         NavigationLink { ClubGovernanceReadView(operation: target, scope: targetScope ?? scope, identity: identity, access: access, coordinator: coordinator) } label: { Label(LocalizedStringKey("club.gov." + target.rawValue), systemImage: "chevron.right.circle") }
@@ -274,7 +311,16 @@ struct ClubGovernanceReadView: View {
         if rows.isEmpty { Text("club.gov.empty").foregroundStyle(.secondary) }
         ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
             Section {
-                ClubGovernanceFactRows(value: row, fields: ClubGovernanceFactRows.summaryFields, showUnknown: operation == .leaderboard || operation == .occurrences)
+                if let target = customerTopicRoute(row) {
+                    Button { selectCustomerTopic(target) } label: {
+                        VStack(alignment: .leading, spacing: 8) {
+                            ClubGovernanceFactRows(value: row, fields: ClubGovernanceFactRows.summaryFields)
+                            Label("topic.detail", systemImage: "chevron.right.circle")
+                        }
+                    }.accessibilityIdentifier("club.gov.customer.topic.\(target.topicID)")
+                } else {
+                    ClubGovernanceFactRows(value: row, fields: ClubGovernanceFactRows.summaryFields, showUnknown: operation == .leaderboard || operation == .occurrences)
+                }
                 if operation == .customers, let id = row["memberId"].int { link(.customer, .init(clubID: scope.clubID, memberID: id)) }
                 if [.topics, .eventTopics].contains(operation), let id = row["id"].int {
                     let target = ClubGovernanceScope(clubID: scope.clubID, topicID: id)

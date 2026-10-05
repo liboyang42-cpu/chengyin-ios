@@ -129,7 +129,7 @@ class UIShardingTests(unittest.TestCase):
                     module.measured_weights(root,profile)
     def test_trial_profile_preserves_estimate_provenance_and_all_shard_coverage(self):
         data=json.loads((module.ROOT/'tools/ui_duration_weights.json').read_text())
-        self.assertEqual(module.DEFAULT_SHARD_COUNT,13)
+        self.assertEqual(module.DEFAULT_SHARD_COUNT,14)
         self.assertEqual(data['unobserved_method_seconds'],60)
         records=data['estimate_provenance']['methods']
         self.assertEqual(data['estimate_provenance']['baseline_estimate_count'],23)
@@ -164,3 +164,23 @@ class UIShardingTests(unittest.TestCase):
             self.assertEqual(data['estimated_method_seconds'][record['method']],record['seconds'])
         image='RetainedImageUITests.testUploadByteCountUsesSelectedLanguageInProductionReview'
         self.assertEqual(data['estimated_method_seconds'][image],240)
+
+    def test_local_editor_estimates_keep_explicit_provenance_and_original_limits(self):
+        data=json.loads((module.ROOT/'tools/ui_duration_weights.json').read_text())
+        expected={
+            'TemplatePreferenceDraftEditorFlowTests.testNormalMethodEntryPreservesOriginalJSONAndKeepsRemoteActionsDisabled':120,
+            'TemplatePreferenceDraftEditorFlowTests.testInvalidCurrentTextClearsOldPreviewAndSurvivesExplicitSaveRestore':120,
+            'TemplatePreferenceDraftEditorFlowTests.testSwitchingMethodCancelsPriorPreviewAndRequiresFreshValidation':120,
+            'TemplateSensorDraftFlowTests.testCurrentSensorPreviewAndRestorePreserveExactOriginalJSON':240,
+            'TemplateSensorDraftFlowTests.testHistoricalUnknownAndAmbiguousConfigurationsRemainReadOnly':240,
+        }
+        records=[record for record in data['estimate_provenance']['methods']
+                 if record['source']=='localTemplateEditorAcceptance']
+        self.assertEqual({record['method']:record['seconds'] for record in records},expected)
+        self.assertTrue(all(record['measured'] is False and record['basis'] for record in records))
+        self.assertEqual(sum(expected.values()),840)
+        self.assertEqual(data['planning_budget']['deadline_seconds'],1800)
+        self.assertEqual(data['planning_budget']['startup_reserve_seconds'],300)
+        self.assertEqual(data['unobserved_method_seconds'],60)
+        for method,seconds in expected.items():
+            self.assertEqual(data['estimated_method_seconds'][method],seconds)

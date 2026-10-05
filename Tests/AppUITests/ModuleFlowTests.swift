@@ -13,6 +13,11 @@ final class ModuleFlowTests: XCTestCase {
         XCTAssertEqual(XCTWaiter.wait(for:[ready],timeout:10),.completed,app.debugDescription,file:file,line:line)
         element.tap()
     }
+    private func openClubHistoryTopic(file: StaticString = #filePath, line: UInt = #line) {
+        let row = app.buttons["club.gov.customer.topic.91"]
+        XCTAssertTrue(revealFixtureElement(row, in: app), app.debugDescription, file: file, line: line)
+        tap(row, file: file, line: line)
+    }
     private func chooseClubMemberAction(_ id: String, label: String,
                                         file: StaticString = #filePath, line: UInt = #line) {
         let sheet = app.sheets.firstMatch
@@ -189,6 +194,44 @@ final class ModuleFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["club.members.error"].waitForExistence(timeout: 5), app.debugDescription)
         XCTAssertFalse(app.staticTexts["Fixture customer"].exists)
         XCTAssertFalse(app.staticTexts["club.gov.fact.displayName"].exists)
+    }
+    func testClubCustomerHistoryOpensReturnedTopicAndCanReopenAfterBack() {
+        launch(["--uitesting-club-fixture", "customerOwner"])
+        tap(app.buttons["club.member.704"])
+        chooseClubMemberAction("club.member.choice.customer", label: "Customer detail")
+        for _ in 0..<2 {
+            openClubHistoryTopic()
+            XCTAssertTrue(app.staticTexts["club.fixture.historyTopic.91"].waitForExistence(timeout: 5), app.debugDescription)
+            XCTAssertFalse(app.staticTexts["club.fixture.historyTopic.121"].exists)
+            tap(app.navigationBars.buttons.firstMatch)
+            XCTAssertTrue(app.buttons["club.gov.customer.topic.91"].waitForExistence(timeout: 5))
+        }
+    }
+    func testClubCustomerHistoryMissingAndForeignIDsRemainReadOnly() {
+        launch(["--uitesting-club-fixture", "customerInvalidHistory"])
+        tap(app.buttons["club.member.704"])
+        chooseClubMemberAction("club.member.choice.customer", label: "Customer detail")
+        let customerFact = app.staticTexts["club.gov.fact.displayName"]
+        XCTAssertTrue(customerFact.waitForExistence(timeout: 5))
+        XCTAssertEqual(customerFact.label, "Customer, Fixture customer")
+        let history = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Foreign scope history")).firstMatch
+        XCTAssertTrue(revealFixtureElement(history, in: app), app.debugDescription)
+        XCTAssertFalse(app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "club.gov.customer.topic.")).firstMatch.exists)
+        XCTAssertFalse(app.staticTexts["club.fixture.historyTopic.92"].exists)
+    }
+    func testClubCustomerHistoryTopicClearsOnAccountAndRoleChanges() {
+        for control in ["club.fixture.switchAccount", "club.fixture.revokeRole"] {
+            launch(["--uitesting-club-fixture", "customerOwner"])
+            tap(app.buttons["club.member.704"])
+            chooseClubMemberAction("club.member.choice.customer", label: "Customer detail")
+            openClubHistoryTopic()
+            XCTAssertTrue(app.staticTexts["club.fixture.historyTopic.91"].waitForExistence(timeout: 5))
+            tap(app.buttons[control])
+            if control == "club.fixture.revokeRole" { tap(app.buttons["club.fixture.restoreRole"]) }
+            let cleared = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: app.staticTexts["club.fixture.historyTopic.91"])
+            XCTAssertEqual(XCTWaiter.wait(for: [cleared], timeout: 5), .completed, app.debugDescription)
+            app.terminate()
+        }
     }
     func testMessagingReadOnlyHistoryNavigation() {
         launch(["--uitesting-module","messaging"])

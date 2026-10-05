@@ -61,6 +61,13 @@ class ProtectedStorageLayerTests(unittest.TestCase):
         self.assertIn('F_GETPROTECTIONCLASS) == Self.completeProtectionClass', production)
         self.assertNotIn('targetEnvironment(simulator)', production)
 
+    def test_non_a_fixture_callback_and_local_helper_declare_actor_boundaries(self):
+        content = (ROOT / 'Tests/AppUnitTests/ContentDraftSystemStorageTests.swift').read_text()
+        play = (ROOT / 'Tests/AppUnitTests/PlayRecoverySystemStorageTests.swift').read_text()
+        self.assertIn('withDirectory(_ body: @MainActor (URL) async throws -> Void)', content)
+        self.assertIn('@MainActor func assertNoWrites() throws', play)
+        self.assertIn('try await NonClassAStorageFixture.assertUnchanged(root)', content)
+
     def test_compile_and_runtime_status_are_independent_for_every_outcome(self):
         spec = importlib.util.spec_from_file_location('storage_coverage', ROOT / 'tools/report_protected_storage_coverage.py')
         module = importlib.util.module_from_spec(spec)

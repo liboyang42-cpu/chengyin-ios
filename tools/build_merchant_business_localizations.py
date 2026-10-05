@@ -18,6 +18,25 @@ P={
 "scanBoundary":("Preview a code's source route without opening a camera or redeeming it.","仅预览码的源路由，不打开摄像头，也不执行核销。"),"scanInput":("Paste code for local preview","输入核销码以本地预览"),"previewRoute":("Preview route","预览路由"),"preview":("Local preview","本地预览"),"unsupportedCode":("This dynamic code type is not supported.","暂不支持此动态码类型。"),"unverifiedCode":("Classification is not verification. Authenticity and eligibility require the server.","识别码型不等于验证。真实性与可核销资格须由服务端确认。"),"scanKind.group":("Group code","团码"),"scanKind.dynamicTicket":("Dynamic ticket","动态票码"),"scanKind.coupon":("Coupon code","优惠券码"),"scanKind.legacyTicket":("Legacy ticket with choice support","支持选章或选站的旧版票码"),
 "localDraft":("This form is local until a frozen review is explicitly confirmed.","表单先保存在本页，预览确认前不会提交。"),"noteContent":("Follow-up note (up to 500 UTF-16 units)","跟进备注（最多500个UTF-16单元）"),"tagName":("Tag name","标签名称"),"tagColor":("Tag color, for example #2E6D5A","标签颜色，例如 #2E6D5A"),"decision":("Merchant opinion","商家意见"),"responseContent":("Opinion or reason","意见或原因"),"evidenceKey":("Existing evidence upload key","已有凭证上传对象键"),"evidenceHint":("Only the source evidence object-key format is accepted. Native image upload is not enabled.","仅接受源协议规定的凭证对象键格式。原生图片上传尚未启用。"),"deleteReplyWarning":("Prepare deletion of the existing public merchant reply.","准备删除现有公开商家回复。"),"reportReason":("Reason for reporting","举报原因"),"replyContent":("Public merchant reply","公开商家回复"),"role":("Role","岗位"),"chooseRole":("Choose a supplied role","选择服务端提供的岗位"),"permissions":("Permissions for this role","此岗位权限"),"rolesBoundary":("Role changes stay disabled in production. The server's current role list is authoritative.","生产岗位变更保持关闭，以服务端当前岗位列表为准。"),"reason":("Reason","原因"),"reviewDraft":("Review draft","预览草稿"),"frozenReview":("Frozen confirmation","冻结确认内容"),"storeID":("Store ID","门店ID"),"target":("Exact target","操作目标"),"refreshBeforeSend":("Before synthetic dispatch, access, store identity, target and version are fetched and checked again.","模拟提交前会重新读取并核对权限、门店身份、目标和版本。"),"confirmSynthetic":("Confirm in offline example","确认模拟提交"),"fixtureSignOut":("Sign out of example","退出示例账号")}
 P.update({"sourceType":("Source type","来源类型"),"tag":("Store tag","店内标签"),"sourceStart":("Source start date (YYYY-MM-DD)","来源开始日期（YYYY-MM-DD）"),"sourceEnd":("Source end date (YYYY-MM-DD)","来源结束日期（YYYY-MM-DD）"),"systemTags":("System tags","系统标签"),"reviewImage":("Customer review image","客户评价图片"),"imageUnavailable":("Image unavailable","图片暂不可用")})
+P.update({
+"aftercare.search":("Search this page","搜索当前页"),
+"aftercare.searchScope":("Search refund number, customer, activity or reason on this loaded page only. The same search is applied when you change pages or status.","仅搜索当前已加载页的退款单号、客户、活动或原因。切换页码或分组时保留搜索词并重新筛选。"),
+"aftercare.clearSearch":("Clear search","清空搜索"),
+"reviews.filter":("Review filter","评价筛选"),
+"reviews.filter.all":("All reviews","全部评价"),
+"reviews.filter.pending":("Awaiting reply","待回复"),
+"reviews.filter.low":("3 stars or fewer","3星及以下"),
+"reviews.filter.photos":("With photos","有图评价"),
+"reviews.filterScope":("Filter the current loaded page only. The same filter is applied when you change pages.","仅筛选当前已加载页。切换页码时保留筛选条件并重新筛选。"),
+"reviews.clearFilter":("Show all on this page","显示当前页全部评价"),
+"reviews.summaryScope":("Server-provided review metrics. Filtering this page does not change these values.","以下为服务端评价统计，不随当前页筛选条件变化。"),
+"list.noMatches":("No matching records on this page. Clear the filter or check another page.","当前页没有匹配记录。请清空筛选条件或查看其他页。"),
+"field.customerNickname":("Customer nickname","客户昵称"),
+"field.activityTitle":("Activity","活动名称"),
+"field.pendingReplyCount":("Awaiting reply (server)","待回复（服务端）"),
+"field.monthNewCount":("New reviews this month (server)","本月新增评价（服务端）"),
+"field.replyRatePct":("Reply rate (server)","回复率（服务端）")
+})
 sections={"customers":("Customers","客户"),"customer":("Customer summary","客户摘要"),"tags":("Store tags","店内标签"),"timeline":("Customer timeline","客户时间线"),"aftercare":("Aftercare cases","售后申请"),"refund":("Refund request","退款申请"),"responses":("Merchant responses","商家回应记录"),"reviews":("Customer reviews","客户评价"),"redemption":("Redemption records","核销记录"),"entry":("Income and adjustments","收入与调整"),"batch":("Batch summary","批次摘要"),"earnings":("Earning entries","收入分录"),"adjustments":("Adjustment entries","调整分录"),"verifications":("Verification actions","核销动作"),"operators":("Team members","团队成员"),"invites":("Team invitations","团队邀请"),"roles":("Roles","岗位")}
 P.update({"section."+k:v for k,v in sections.items()})
 fields={

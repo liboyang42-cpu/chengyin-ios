@@ -133,6 +133,30 @@ public struct PlayKitScreenProjection: Equatable {
     }
 }
 
+/// A retry verdict belongs to the submitted draft. Once that draft changes,
+/// keep the old verdict hidden until a later server attempt or terminal result.
+/// This only controls presentation; it never alters completion or submit gates.
+public struct PlayKitReasoningFeedbackState: Equatable {
+    private var editedKind: PlayKitScreenKind?
+    private var editedAttempt: Int?
+    public init() {}
+
+    public mutating func markEdited(_ projection: PlayKitScreenProjection) {
+        guard [.sort, .match, .classify].contains(projection.kind), !projection.complete else { return }
+        editedKind = projection.kind
+        editedAttempt = projection.segment["attempts"].integer
+    }
+
+    public func showsResult(for projection: PlayKitScreenProjection) -> Bool {
+        guard editedKind == projection.kind else { return true }
+        // An authoritative terminal result always remains visible, including
+        // sort's finished-without-passing outcome. No attempt cap is consulted.
+        if projection.complete { return true }
+        guard let attempts = projection.segment["attempts"].integer else { return false }
+        return attempts > max(0, editedAttempt ?? 0)
+    }
+}
+
 /// A bounded picker over the public estimate range, matching mini's unit / ten /
 /// power-of-ten ticks and inclusive upper endpoint. It never reads an answer,
 /// tolerance, score or verdict. Numerically unsafe ranges have no picker.

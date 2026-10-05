@@ -31,6 +31,54 @@
       }
     }
   },
+  "merchant.business.aftercare.clearSearch": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Clear search"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "清空搜索"
+        }
+      }
+    }
+  },
+  "merchant.business.aftercare.search": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Search this page"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "搜索当前页"
+        }
+      }
+    }
+  },
+  "merchant.business.aftercare.searchScope": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Search refund number, customer, activity or reason on this loaded page only. The same search is applied when you change pages or status."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "仅搜索当前已加载页的退款单号、客户、活动或原因。切换页码或分组时保留搜索词并重新筛选。"
+        }
+      }
+    }
+  },
   "merchant.business.amountPending": {
     "localizations": {
       "en": {
@@ -479,6 +527,22 @@
       }
     }
   },
+  "merchant.business.field.activityTitle": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Activity"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "活动名称"
+        }
+      }
+    }
+  },
   "merchant.business.field.actorRoleCode": {
     "localizations": {
       "en": {
@@ -747,6 +811,22 @@
         "stringUnit": {
           "state": "translated",
           "value": "所选客户ID"
+        }
+      }
+    }
+  },
+  "merchant.business.field.customerNickname": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Customer nickname"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "客户昵称"
         }
       }
     }
@@ -1055,6 +1135,22 @@
       }
     }
   },
+  "merchant.business.field.monthNewCount": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "New reviews this month (server)"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "本月新增评价（服务端）"
+        }
+      }
+    }
+  },
   "merchant.business.field.monthlyNew": {
     "localizations": {
       "en": {
@@ -1327,6 +1423,22 @@
       }
     }
   },
+  "merchant.business.field.pendingReplyCount": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Awaiting reply (server)"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "待回复（服务端）"
+        }
+      }
+    }
+  },
   "merchant.business.field.periodYm": {
     "localizations": {
       "en": {
@@ -1595,6 +1707,22 @@
         "stringUnit": {
           "state": "translated",
           "value": "回复时间"
+        }
+      }
+    }
+  },
+  "merchant.business.field.replyRatePct": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reply rate (server)"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "回复率（服务端）"
         }
       }
     }
@@ -2171,6 +2299,22 @@
         "stringUnit": {
           "state": "translated",
           "value": "无法核验恢复记录，已阻止提交。"
+        }
+      }
+    }
+  },
+  "merchant.business.list.noMatches": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No matching records on this page. Clear the filter or check another page."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前页没有匹配记录。请清空筛选条件或查看其他页。"
         }
       }
     }
@@ -2811,6 +2955,134 @@
         "stringUnit": {
           "state": "translated",
           "value": "评价管理"
+        }
+      }
+    }
+  },
+  "merchant.business.reviews.clearFilter": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Show all on this page"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "显示当前页全部评价"
+        }
+      }
+    }
+  },
+  "merchant.business.reviews.filter": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Review filter"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "评价筛选"
+        }
+      }
+    }
+  },
+  "merchant.business.reviews.filter.all": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "All reviews"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "全部评价"
+        }
+      }
+    }
+  },
+  "merchant.business.reviews.filter.low": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "3 stars or fewer"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "3星及以下"
+        }
+      }
+    }
+  },
+  "merchant.business.reviews.filter.pending": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Awaiting reply"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "待回复"
+        }
+      }
+    }
+  },
+  "merchant.business.reviews.filter.photos": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "With photos"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "有图评价"
+        }
+      }
+    }
+  },
+  "merchant.business.reviews.filterScope": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Filter the current loaded page only. The same filter is applied when you change pages."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "仅筛选当前已加载页。切换页码时保留筛选条件并重新筛选。"
+        }
+      }
+    }
+  },
+  "merchant.business.reviews.summaryScope": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Server-provided review metrics. Filtering this page does not change these values."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "以下为服务端评价统计，不随当前页筛选条件变化。"
         }
       }
     }

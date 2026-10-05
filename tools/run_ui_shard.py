@@ -14,7 +14,7 @@ except ModuleNotFoundError:
     from tools.ui_failure_evidence import EvidenceStream
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-DEFAULT_SHARD_COUNT = 13
+DEFAULT_SHARD_COUNT = 14
 
 def discover(directory):
     weights = {}

@@ -71,7 +71,7 @@ import Darwin
 /// Real, uniquely owned OS directory with a verified non-A class. Never a production bypass.
 @MainActor enum NonClassAStorageFixture {
     private enum FixtureFailure: Error { case prerequisite }
-    static func withDirectory(_ body: (URL) async throws -> Void) async throws {
+    static func withDirectory(_ body: @MainActor (URL) async throws -> Void) async throws {
         let root = FileManager.default.temporaryDirectory.resolvingSymlinksInPath()
             .appendingPathComponent("questify-non-class-a-" + UUID().uuidString, isDirectory: true)
         let components = root.pathComponents.filter { $0 != "/" }

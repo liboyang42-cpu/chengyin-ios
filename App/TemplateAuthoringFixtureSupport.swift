@@ -16,6 +16,8 @@ import SwiftUI
     let transport: TemplateAuthoringSyntheticTransport
     @Published var revision: UInt64 = 1
     @Published var mount = UUID()
+    @Published var localSnapshot = ""
+    private var inspectionSequence = 0
     var session: TemplateAuthoringSession? = try? .init(accountID: 901, namespace: "synthetic-template-author", epoch: 1, authorizationRevision: "member-fixture")
     private let disabled: Bool
     lazy var store = TemplateAuthoringLocalStore(storage: storage)
@@ -28,13 +30,33 @@ import SwiftUI
     func makeCoordinator() -> TemplateAuthoringCoordinator {
         let c = TemplateAuthoringCoordinator(adapter: .init(transport: disabled ? nil : transport), store: store, currentSession: { [weak self] in self?.session })
         let arguments = ProcessInfo.processInfo.arguments
-        let seed: TemplateAuthoringDraft = arguments.contains("--template-author-blank") ? .init() : arguments.contains("--template-author-compound") ? TemplateAuthoringSyntheticFixtures.compoundDraft() : TemplateAuthoringSyntheticFixtures.draft()
+        var seed: TemplateAuthoringDraft = arguments.contains("--template-author-blank") ? .init() : arguments.contains("--template-author-compound") ? TemplateAuthoringSyntheticFixtures.compoundDraft() : TemplateAuthoringSyntheticFixtures.draft()
+        // Only this DEBUG, in-memory authoring host consumes synthetic test data.
+        // Keep the ordinary method so UI tests must select the local editor themselves.
+        let environment = ProcessInfo.processInfo.environment
+        if let raw = environment["--template-author-preference-raw"] { seed.preferenceJson = raw }
+        if let type = environment["--template-author-sensor-type"] {
+            seed.sensorDraft = .init(type: type, config: environment["--template-author-sensor-raw"])
+        }
         c.open(seed: seed)
         return c
     }
     func signOut() { session = nil; coordinator.synchronizeSession(); revision += 1; mount = UUID() }
     func switchAccount() { session = try? .init(accountID: 902, namespace: "synthetic-template-author", epoch: revision + 1, authorizationRevision: "member-fixture"); coordinator.synchronizeSession(); revision += 1; mount = UUID() }
-    func reopen() { coordinator.leaveScreen(); coordinator = makeCoordinator(); mount = UUID() }
+    func reopen() { coordinator.leaveScreen(); coordinator = makeCoordinator(); localSnapshot = ""; mount = UUID() }
+    func inspectLocalDraft() {
+        // Read actual coordinator state after a user action, never echo the seed or
+        // manufacture a success value. This probe cannot change or save the draft.
+        struct Snapshot: Encodable {
+            let draft: TemplateAuthoringDraft
+            let requestCount: Int
+            let inspectionSequence: Int
+        }
+        inspectionSequence += 1
+        let value = Snapshot(draft: coordinator.draft, requestCount: transport.requests.count, inspectionSequence: inspectionSequence)
+        if let data = try? JSONEncoder().encode(value) { localSnapshot = String(decoding: data, as: UTF8.self) }
+        else { localSnapshot = "unavailable" }
+    }
 }
 @MainActor struct TemplateAuthoringFixtureHostView: View {
     @StateObject private var context = TemplateAuthoringFixtureContext()
@@ -48,6 +70,12 @@ import SwiftUI
                 // Harness controls must not consume the content viewport in XXXL scenarios.
                 // The authored screen below still receives the requested accessibility size.
                 .dynamicTypeSize(.large)
+            if ProcessInfo.processInfo.arguments.contains("--template-author-local-probe") {
+                Button("Inspect synthetic local draft") { context.inspectLocalDraft() }
+                    .accessibilityIdentifier("templateAuthor.fixture.localSnapshot")
+                    .accessibilityValue(context.localSnapshot)
+                    .font(.caption).dynamicTypeSize(.large)
+            }
             NavigationStack {
                 if ProcessInfo.processInfo.arguments.contains("--template-author-shelf") {
                     TemplateAuthoringMineView(coordinator: context.coordinator, sessionRevision: context.revision, memberDetail: { AnyView(MemberTemplateDetailView(id: $0, reader: context.memberReader)) }, fixtureSignOut: { context.signOut() })

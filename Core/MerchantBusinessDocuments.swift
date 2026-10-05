@@ -8,6 +8,10 @@ public struct MerchantBusinessRecord: Equatable, Identifiable {
     public let id: String
     public let fields: MerchantBusinessObject
     public var title: String {
+        if kind == .refund {
+            let number = fields.mbText("refundNo")?.trimmingCharacters(in: .whitespacesAndNewlines)
+            return number.flatMap { $0.isEmpty ? nil : $0 } ?? "#\(id)"
+        }
         for key in ["displayName", "name", "nickname", "refundNo", "authorNickname", "topicName", "title", "tagName", "periodYm"] {
             if let value = fields.mbText(key) { return value }
         }
@@ -30,6 +34,9 @@ public struct MerchantBusinessRecord: Equatable, Identifiable {
             guard Self.processing.contains(try fields.mbRequiredText("processing")),
                   ["PENDING", "AGREE", "REJECT"].contains(try fields.mbRequiredText("merchantOpinion")) else { throw MerchantBusinessFailure.malformed }
             _ = try MerchantBusinessMoney(fields["refundAmount"])
+            for key in ["customerNickname", "activityTitle"] {
+                if let value = fields[key], value != .null, value.string == nil { throw MerchantBusinessFailure.malformed }
+            }
             let canRespond = try fields.mbBool("canRespond")
             if let refunded = fields["refunded"]?.bool, refunded != (fields.mbText("processing") == "REFUNDED") { throw MerchantBusinessFailure.malformed }
             if fields["allowedDecisions"] != nil {
@@ -111,6 +118,50 @@ public struct MerchantBusinessSection: Equatable, Identifiable {
         self.id = id; self.rows = rows
     }
 }
+/// Presentation-only predicates over an already validated, currently loaded page.
+/// They never change server queries, totals, capabilities or mutation baselines.
+public enum MerchantReviewFilter: String, CaseIterable, Hashable {
+    case all, pending, low, photos
+    public func matches(_ row: MerchantBusinessRecord) -> Bool {
+        guard row.kind == .review else { return false }
+        switch self {
+        case .all: return true
+        case .pending: return row.fields["canReply"]?.bool == true && row.fields.mbText("merchantReply") == nil
+        case .low: return (row.fields["rating"]?.integer).map { $0 <= 3 } ?? false
+        case .photos: return !(row.fields["imageUrls"]?.array ?? []).isEmpty
+        }
+    }
+}
+
+public struct MerchantBusinessListFilters: Equatable {
+    public var review: MerchantReviewFilter = .all
+    public var aftercareKeyword = ""
+    public init() {}
+    public func rows(in section: MerchantBusinessSection, query: MerchantBusinessQuery) -> [MerchantBusinessRecord] {
+        switch query {
+        case .reviews: return section.rows.filter(review.matches)
+        case .aftercare:
+            let keyword = aftercareKeyword.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            guard !keyword.isEmpty else { return section.rows }
+            return section.rows.filter { row in
+                guard row.kind == .refund else { return false }
+                let values = [row.title] + Self.aftercareSearchKeys.dropFirst().compactMap { row.fields.mbText($0) }
+                return values.contains { $0.trimmingCharacters(in: .whitespacesAndNewlines).lowercased().contains(keyword) }
+            }
+        default: return section.rows
+        }
+    }
+    public func isActive(for query: MerchantBusinessQuery) -> Bool {
+        switch query {
+        case .reviews: return review != .all
+        case .aftercare: return !aftercareKeyword.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        default: return false
+        }
+    }
+    // Whitelist is intentionally narrower than the full refund payload.
+    public static let aftercareSearchKeys = ["refundNo", "customerNickname", "activityTitle", "reason"]
+}
+
 public struct MerchantBusinessDocument: Equatable {
     public let query: MerchantBusinessQuery
     public let sections: [MerchantBusinessSection]
@@ -165,6 +216,17 @@ public struct MerchantBusinessDocument: Equatable {
                 }
                 summary["averageRating"] = average
             }
+            if !isAftercare {
+                for key in Self.reviewMetricKeys {
+                    let value = object[key] ?? .null
+                    if value != .null {
+                        guard case .number = value, let count = value.integer, count >= 0,
+                              key != "replyRatePct" || count <= 100 else { throw MerchantBusinessFailure.malformed }
+                    }
+                    // Missing is unknown, never a local count or a guessed zero.
+                    summary[key] = value
+                }
+            }
         case .refund(let id):
             guard try object.mbInt("refundId", minimum: 1) == id.rawValue else { throw MerchantBusinessFailure.malformed }
             sections = [try section("refund", [object], .refund), try section("responses", object.mbObjects("responses"), .response)]
@@ -206,5 +268,6 @@ public struct MerchantBusinessDocument: Equatable {
         }
         self.sections = sections; self.summary = summary; self.total = total; self.hasMore = more
     }
+    public static let reviewMetricKeys = ["pendingReplyCount", "monthNewCount", "replyRatePct"]
     public static let overviewMoneyKeys = ["personalArrivedThisMonthGross", "personalExecutedAdjustmentsThisMonth", "personalArrivedThisMonthNet", "publicPayablePending", "adjustmentPending"]
 }

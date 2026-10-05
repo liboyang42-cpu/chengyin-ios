@@ -137,7 +137,7 @@ import SwiftUI
                 if model.draft.finishEnabled {
                     Picker("templateAuthor.finish", selection: $model.draft.validationMethod) {
                         ForEach(TemplateAuthoringMethod.allCases) { Text(LocalizedStringKey($0.labelKey)).tag($0) }
-                    }.disabled(!model.draft.advanced.enabledGames.isEmpty)
+                    }.disabled(!model.draft.advanced.enabledGames.isEmpty).accessibilityIdentifier("templateAuthor.method")
                     TemplateAuthoringCompletionFields(model: model)
                     NavigationLink("templateAuthor.advanced") { TemplateAuthoringAdvancedView(model: model) }.accessibilityIdentifier("creatorComposition.open")
                 }

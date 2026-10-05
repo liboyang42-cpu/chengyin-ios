@@ -109,6 +109,106 @@ import FoundationNetworking
         }
         XCTAssertNil(PlayKitScreenProjection(kind: .qa, segment: try wire(#"{"attempts":1,"finished":true,"passed":false}"#)).reasoningResultKey)
     }
+    func testReasoningEditHidesOnlyThePreviousDraftVerdict() throws {
+        for kind in [PlayKitScreenKind.sort, .match, .classify] {
+            let segment = try wire(#"{"attempts":1,"finished":false,"passed":false,"lastFeedback":"Previous attempt"}"#)
+            let projection = PlayKitScreenProjection(kind: kind, segment: segment)
+            var feedback = PlayKitReasoningFeedbackState()
+            XCTAssertTrue(feedback.showsResult(for: projection))
+            feedback.markEdited(projection)
+            XCTAssertFalse(feedback.showsResult(for: projection))
+            feedback.markEdited(projection)
+            XCTAssertFalse(feedback.showsResult(for: projection))
+            // Presentation does not erase authoritative attempts or mutate the result.
+            XCTAssertEqual(projection.segment, segment)
+            XCTAssertEqual(projection.segment["attempts"].integer, 1)
+            XCTAssertEqual(projection.reasoningResultKey, "playkit.reasoning.tryAgain")
+            XCTAssertFalse(projection.complete)
+        }
+    }
+    func testReasoningNewAttemptRestoresVerdictAndCanBeEditedAgain() throws {
+        for kind in [PlayKitScreenKind.sort, .match, .classify] {
+            let first = PlayKitScreenProjection(kind: kind, segment: try wire(#"{"attempts":1,"finished":false,"passed":false}"#))
+            let next = PlayKitScreenProjection(kind: kind, segment: try wire(#"{"attempts":2,"finished":false,"passed":false}"#))
+            var feedback = PlayKitReasoningFeedbackState()
+            feedback.markEdited(first)
+            XCTAssertTrue(feedback.showsResult(for: next))
+            XCTAssertEqual(next.reasoningResultKey, "playkit.reasoning.tryAgain")
+            feedback.markEdited(next)
+            XCTAssertFalse(feedback.showsResult(for: next))
+            XCTAssertFalse(feedback.showsResult(for: first))
+        }
+    }
+    func testReasoningUnchangedRecoveryAndUnrelatedUpdatesDoNotRestoreOldVerdict() throws {
+        for kind in [PlayKitScreenKind.sort, .match, .classify] {
+            var feedback = PlayKitReasoningFeedbackState()
+            feedback.markEdited(.init(kind: kind, segment: try wire(#"{"attempts":2,"finished":false,"passed":false}"#)))
+            for json in [
+                #"{"attempts":2,"finished":false,"passed":false}"#,
+                #"{"attempts":2,"finished":false,"passed":false,"version":999,"lastFeedback":"Changed copy","maxAttempts":1,"score":999}"#,
+                #"{"attempts":1,"finished":false,"passed":false}"#,
+                #"{"attempts":"3","finished":false,"passed":false}"#,
+                #"{"attempts":3.5,"finished":false,"passed":false}"#,
+                #"{"finished":false,"passed":false}"#
+            ] {
+                XCTAssertFalse(feedback.showsResult(for: .init(kind: kind, segment: try wire(json))), json)
+            }
+        }
+    }
+    func testReasoningAuthoritativeTerminalResultCannotBeHiddenByEditing() throws {
+        for (kind, json, result) in [
+            (PlayKitScreenKind.sort, #"{"attempts":2,"finished":true,"passed":false}"#, "playkit.reasoning.finishedNotPassed"),
+            (.sort, #"{"attempts":2,"finished":true,"passed":true}"#, "playkit.result.passed"),
+            (.match, #"{"attempts":2,"passed":true}"#, "playkit.result.passed"),
+            (.classify, #"{"attempts":2,"passed":true}"#, "playkit.result.passed")
+        ] {
+            var feedback = PlayKitReasoningFeedbackState()
+            feedback.markEdited(.init(kind: kind, segment: try wire(#"{"attempts":2,"finished":false,"passed":false}"#)))
+            let terminal = PlayKitScreenProjection(kind: kind, segment: try wire(json))
+            XCTAssertTrue(feedback.showsResult(for: terminal))
+            feedback.markEdited(terminal)
+            XCTAssertTrue(feedback.showsResult(for: terminal))
+            XCTAssertTrue(terminal.complete)
+            XCTAssertEqual(terminal.reasoningResultKey, result)
+        }
+    }
+    func testReasoningFirstDraftWaitsForAnActualAttempt() throws {
+        for kind in [PlayKitScreenKind.sort, .match, .classify] {
+            for json in [#"{}"#, #"{"attempts":0}"#, #"{"attempts":-1}"#] {
+                var feedback = PlayKitReasoningFeedbackState()
+                let initial = PlayKitScreenProjection(kind: kind, segment: try wire(json))
+                feedback.markEdited(initial)
+                XCTAssertFalse(feedback.showsResult(for: initial))
+                XCTAssertNil(initial.reasoningResultKey)
+                let submitted = PlayKitScreenProjection(kind: kind, segment: try wire(#"{"attempts":1,"finished":false,"passed":false}"#))
+                XCTAssertTrue(feedback.showsResult(for: submitted))
+            }
+        }
+    }
+    func testReasoningFeedbackResetAndOtherKindsKeepTheirOwnReadouts() throws {
+        let segment = try wire(#"{"attempts":1,"finished":false,"passed":false}"#)
+        let sort = PlayKitScreenProjection(kind: .sort, segment: segment)
+        var feedback = PlayKitReasoningFeedbackState()
+        feedback.markEdited(sort)
+        for kind in PlayKitScreenKind.allCases where kind != .sort {
+            XCTAssertTrue(feedback.showsResult(for: .init(kind: kind, segment: segment)))
+        }
+        feedback.markEdited(.init(kind: .qa, segment: segment))
+        XCTAssertFalse(feedback.showsResult(for: sort))
+        feedback = .init() // The owning screen clears this on scope exit/change.
+        XCTAssertTrue(feedback.showsResult(for: sort))
+    }
+    func testReasoningFeedbackDoesNotChangePayloadOrCompletionAuthority() throws {
+        let segment = try wire(#"{"items":[{"id":"a"},{"id":"b"}],"attempts":1,"maxAttempts":1,"finished":false,"passed":false}"#)
+        let payload: [String: PlayWireValue] = ["order": .array([.string("b"), .string("a")])]
+        var feedback = PlayKitReasoningFeedbackState()
+        feedback.markEdited(.init(kind: .sort, segment: segment))
+        XCTAssertFalse(feedback.showsResult(for: .init(kind: .sort, segment: segment)))
+        try PlayKitInputContract.validate(kind: "sort", action: "SUBMIT_SORT", payload: payload, segment: segment)
+        XCTAssertEqual(try PlayKitActionCatalog.payload(kind: "sort", action: "SUBMIT_SORT", detail: payload), payload)
+        let terminal = try wire(#"{"items":[{"id":"a"},{"id":"b"}],"attempts":1,"finished":true,"passed":false}"#)
+        XCTAssertThrowsError(try PlayKitInputContract.validate(kind: "sort", action: "SUBMIT_SORT", payload: payload, segment: terminal))
+    }
     func testPhotoContractsRejectLocalPathsAndClientScores() throws {
         try check("photoCheck", "SUBMIT_PHOTO_CHECK", ["imageUrl": .string("https://example.com/photo.jpg")], "{}")
         XCTAssertThrowsError(try check("photoCheck", "SUBMIT_PHOTO_CHECK", ["imageUrl": .string("file:///tmp/photo.jpg")], "{}"))

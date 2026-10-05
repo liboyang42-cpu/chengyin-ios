@@ -16,7 +16,7 @@ import subprocess
 from test_products import toolchain
 
 REQUIRED_JOBS = {'native', 'device-build', 'us-build', 'secrets', 'app-unit-tests', 'ui-tests'}
-SHARD_COUNT = 13
+SHARD_COUNT = 14
 
 
 def validate_commit(commit):

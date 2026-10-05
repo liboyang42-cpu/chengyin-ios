@@ -683,7 +683,18 @@
     "CouponRuntimeFlowTests.testNormalRootDiskRestartDoesNotRedispatchUnknownCreation": 360,
     "CouponRuntimeFlowTests.testChineseNormalRootLabelsAndReadOnlyConfirmation": 180,
     "CouponCommandRecoveryFlowTests.testV1ReadOnlyReceiptRecoveryAfterRestartAndNotFoundKeepsJournal": 540,
-    "IntegratedNativeAcceptanceFlowTests.testNormalRootOwnedConfigurationReadOnlyAndStoryReturn": 180
+    "IntegratedNativeAcceptanceFlowTests.testNormalRootOwnedConfigurationReadOnlyAndStoryReturn": 180,
+    "TemplatePreferenceDraftEditorFlowTests.testNormalMethodEntryPreservesOriginalJSONAndKeepsRemoteActionsDisabled": 120,
+    "TemplatePreferenceDraftEditorFlowTests.testInvalidCurrentTextClearsOldPreviewAndSurvivesExplicitSaveRestore": 120,
+    "TemplatePreferenceDraftEditorFlowTests.testSwitchingMethodCancelsPriorPreviewAndRequiresFreshValidation": 120,
+    "TemplateSensorDraftFlowTests.testCurrentSensorPreviewAndRestorePreserveExactOriginalJSON": 240,
+    "TemplateSensorDraftFlowTests.testHistoricalUnknownAndAmbiguousConfigurationsRemainReadOnly": 240,
+    "ModuleFlowTests.testClubCustomerHistoryOpensReturnedTopicAndCanReopenAfterBack": 120,
+    "ModuleFlowTests.testClubCustomerHistoryMissingAndForeignIDsRemainReadOnly": 120,
+    "ModuleFlowTests.testClubCustomerHistoryTopicClearsOnAccountAndRoleChanges": 240,
+    "ClubGovernanceFlowTests.testWorkspaceCustomerHistoryUsesTheSameTopicDestination": 120,
+    "MerchantBusinessFlowTests.testReviewFiltersUseCurrentPageAndKeepServerMetrics": 120,
+    "MerchantBusinessFlowTests.testChineseAftercareSearchStaysOnCurrentPage": 120
   },
   "estimate_provenance": {
     "basis": "Conservative grouping assumptions, not executed case timings. Successful measurements take priority. 23 original assumptions plus explicitly scoped later additions.",
@@ -1410,6 +1421,83 @@
         "source": "queuedOwnedTemplateConfiguration",
         "measured": false,
         "basis": "Normal-root synthetic sign-in, two shelf pages, read-only owner QA inspection, story child and return; estimated from existing same-class journeys, not a measured run."
+      },
+      {
+        "method": "TemplatePreferenceDraftEditorFlowTests.testNormalMethodEntryPreservesOriginalJSONAndKeepsRemoteActionsDisabled",
+        "seconds": 120,
+        "source": "localTemplateEditorAcceptance",
+        "measured": false,
+        "basis": "One synthetic launch, real intro/name/method picker, bounded single-dimension preview and full form local-only fence assertions. Unmeasured120s planning allowance; no Apple runtime observation."
+      },
+      {
+        "method": "TemplatePreferenceDraftEditorFlowTests.testInvalidCurrentTextClearsOldPreviewAndSurvivesExplicitSaveRestore",
+        "seconds": 120,
+        "source": "localTemplateEditorAcceptance",
+        "measured": false,
+        "basis": "One synthetic launch, real small text insertion, current validation, local save, coordinator reopen and explicit restore/recheck. No full app relaunch; unmeasured120s planning allowance."
+      },
+      {
+        "method": "TemplatePreferenceDraftEditorFlowTests.testSwitchingMethodCancelsPriorPreviewAndRequiresFreshValidation",
+        "seconds": 120,
+        "source": "localTemplateEditorAcceptance",
+        "measured": false,
+        "basis": "One synthetic launch, real method picker entry, local validation, switch away/back and fresh validation. Compact single-dimension preview; unmeasured120s planning allowance."
+      },
+      {
+        "method": "TemplateSensorDraftFlowTests.testCurrentSensorPreviewAndRestorePreserveExactOriginalJSON",
+        "seconds": 240,
+        "source": "localTemplateEditorAcceptance",
+        "measured": false,
+        "basis": "Sensor acceptance owner estimate: bounded local method selection over seeded steps, parameter editing, current preview, exact original/current JSON probes and explicit save/restore. Unmeasured240s planning allowance."
+      },
+      {
+        "method": "TemplateSensorDraftFlowTests.testHistoricalUnknownAndAmbiguousConfigurationsRemainReadOnly",
+        "seconds": 240,
+        "source": "localTemplateEditorAcceptance",
+        "measured": false,
+        "basis": "Sensor acceptance owner estimate: two bounded synthetic launches, unknown historical type plus known type with unknown fields, read-only verification and source preservation. Unmeasured240s planning allowance."
+      },
+      {
+        "method": "ModuleFlowTests.testClubCustomerHistoryOpensReturnedTopicAndCanReopenAfterBack",
+        "seconds": 120,
+        "source": "cumulativeClubMerchantAcceptance",
+        "measured": false,
+        "basis": "One synthetic launch, real customer-history topic route with two open/back cycles;120s unmeasured allowance above existing same-class12\u201335s observations. Owner confirmed scope."
+      },
+      {
+        "method": "ModuleFlowTests.testClubCustomerHistoryMissingAndForeignIDsRemainReadOnly",
+        "seconds": 120,
+        "source": "cumulativeClubMerchantAcceptance",
+        "measured": false,
+        "basis": "One synthetic launch, current customer detail and missing/foreign topic read-only assertions;120s unmeasured allowance, owner confirmed bounded scope."
+      },
+      {
+        "method": "ModuleFlowTests.testClubCustomerHistoryTopicClearsOnAccountAndRoleChanges",
+        "seconds": 240,
+        "source": "cumulativeClubMerchantAcceptance",
+        "measured": false,
+        "basis": "Two synthetic launches: topic cleared by account switch and by role revoke/restore;120s per launch,240s unmeasured allowance. Owner confirmed no additional launches."
+      },
+      {
+        "method": "ClubGovernanceFlowTests.testWorkspaceCustomerHistoryUsesTheSameTopicDestination",
+        "seconds": 120,
+        "source": "cumulativeClubMerchantAcceptance",
+        "measured": false,
+        "basis": "One synthetic launch, workspace/customer/topic navigation and back;120s unmeasured allowance above existing same-class15\u201348s observations."
+      },
+      {
+        "method": "MerchantBusinessFlowTests.testReviewFiltersUseCurrentPageAndKeepServerMetrics",
+        "seconds": 120,
+        "source": "cumulativeClubMerchantAcceptance",
+        "measured": false,
+        "basis": "One synthetic launch with all/pending/low/photos filters, empty/reset and unchanged server metrics;120s unmeasured allowance above same-class7\u201336s observations."
+      },
+      {
+        "method": "MerchantBusinessFlowTests.testChineseAftercareSearchStaysOnCurrentPage",
+        "seconds": 120,
+        "source": "cumulativeClubMerchantAcceptance",
+        "measured": false,
+        "basis": "One synthetic launch with Chinese four-field local search, no matches/clear, page and bucket transitions;120s unmeasured allowance above same-class7\u201336s observations."
       }
     ],
     "baseline_estimate_count": 23

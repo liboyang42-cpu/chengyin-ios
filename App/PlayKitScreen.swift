@@ -22,6 +22,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
     @State var answers: [String: String] = [:]
     @State var avatarURL = ""
     @State var dirty = false
+    @State var reasoningFeedback = PlayKitReasoningFeedbackState()
     @State var review: PlayKitActionReview?
     @State var reviewedCompletion: (() -> Void)?
     @State var issue: PlayExperienceError?
@@ -161,13 +162,15 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
         }
     }
     @ViewBuilder var authoritativeResult: some View {
-        if kind == .photoCheck, segment["degraded"].bool == true {
-            Label("playkit.photo.noVerdict", systemImage: "exclamationmark.bubble")
-        } else if let passed = projection.reportedPass {
-            Label(passed ? "playkit.result.passed" : "playkit.result.notPassed", systemImage: passed ? "checkmark.circle" : "info.circle")
-        } else if projection.complete { Label("playkit.result.recorded", systemImage: "checkmark.circle") }
-        if let feedback = projection.feedback, !feedback.isEmpty { Text(verbatim: feedback) }
-        if projection.complete { Text("playkit.result.authority").font(.footnote).foregroundStyle(.secondary) }
+        if reasoningFeedback.showsResult(for: projection) {
+            if kind == .photoCheck, segment["degraded"].bool == true {
+                Label("playkit.photo.noVerdict", systemImage: "exclamationmark.bubble")
+            } else if let passed = projection.reportedPass {
+                Label(passed ? "playkit.result.passed" : "playkit.result.notPassed", systemImage: passed ? "checkmark.circle" : "info.circle")
+            } else if projection.complete { Label("playkit.result.recorded", systemImage: "checkmark.circle") }
+            if let feedback = projection.feedback, !feedback.isEmpty { Text(verbatim: feedback) }
+            if projection.complete { Text("playkit.result.authority").font(.footnote).foregroundStyle(.secondary) }
+        }
     }
     @ViewBuilder private var recovery: some View {
         if model.phase == "submitting" || model.phase == "loading" { ProgressView("playkit.sending") }
@@ -203,7 +206,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
     private func clearTransient() {
         if kind == .photoCheck { model.clearObjectCardReceipt() }
         lifetime = UUID(); review = nil; reviewedCompletion = nil; text = ""; selected = []; answers = [:]; avatarURL = ""
-        dirty = false; childReset = UUID(); device?.cancel()
+        dirty = false; reasoningFeedback = .init(); childReset = UUID(); device?.cancel()
     }
 }
 

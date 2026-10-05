@@ -2,7 +2,7 @@
 import SwiftUI
 
 @MainActor final class MerchantBusinessFixtureReader: MerchantBusinessReading {
-    enum Scenario: String { case ready, denied, malformed, unknown, changedSession, disabled }
+    enum Scenario: String { case ready, denied, malformed, unknown, changedSession, disabled, listTools }
     let scenario: Scenario
     var scope: MerchantBusinessScope? = .init(realm: "synthetic://merchant-business", accountID: 99001, epoch: 1)
     let isConfigured = true
@@ -17,7 +17,8 @@ import SwiftUI
     func snapshot(_ query: MerchantBusinessQuery) async throws -> MerchantBusinessSnapshot {
         if scenario == .malformed { throw MerchantBusinessFailure.malformed }
         let grant = try await access()
-        return try .init(access: grant, document: .init(query: query, payload: MerchantBusinessSyntheticFixtures.payload(query)), roles: .init(query: .roles, payload: MerchantBusinessSyntheticFixtures.payload(.roles)))
+        let payload = try scenario == .listTools ? MerchantBusinessSyntheticFixtures.listToolsPayload(query) : MerchantBusinessSyntheticFixtures.payload(query)
+        return try .init(access: grant, document: .init(query: query, payload: payload), roles: .init(query: .roles, payload: MerchantBusinessSyntheticFixtures.payload(.roles)))
     }
     func execute(_ mutation: MerchantBusinessMutation, requestID: String, scope: MerchantBusinessScope) async throws -> MerchantBusinessReceipt {
         if scenario == .unknown { throw URLError(.timedOut) }

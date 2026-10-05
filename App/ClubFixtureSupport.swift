@@ -4,7 +4,7 @@ import SwiftUI
 /// Synthetic, in-memory fixtures only. Never creates a host, transport or credential.
 enum ClubFixtureScenario: String {
     case owner, member, visitor, administrator, empty, retry, forbidden, guest, missingMembers
-    case customerOwner, customerAdministrator, customerDenied
+    case customerOwner, customerAdministrator, customerDenied, customerInvalidHistory
     static func selected(arguments: [String]) -> Self? {
         guard let index = arguments.firstIndex(of: "--uitesting-club-fixture"), arguments.indices.contains(index + 1) else { return nil }
         return Self(rawValue: arguments[index + 1])
@@ -27,7 +27,7 @@ struct ClubFixtureRootView: View {
                 HStack {
                     Button("club.fixtureSwitchAccount") { reader.switchAccount() }.accessibilityIdentifier("club.fixture.switchAccount")
                     Button("club.fixtureSignOut") { reader.signOut() }.accessibilityIdentifier("club.fixture.signOut")
-                    if [.customerOwner, .customerAdministrator, .customerDenied].contains(scenario) {
+                    if [.customerOwner, .customerAdministrator, .customerDenied, .customerInvalidHistory].contains(scenario) {
                         Button("Revoke fixture role") { governanceAccess.readFailure = .forbidden; viewerRevision &+= 1 }
                             .accessibilityIdentifier("club.fixture.revokeRole")
                         Button("Restore fixture role") { governanceAccess.readFailure = nil; viewerRevision &+= 1 }
@@ -36,10 +36,12 @@ struct ClubFixtureRootView: View {
                 }.font(.caption)
             }.padding(8).frame(maxWidth: .infinity).background(.yellow.opacity(0.15))
             NavigationStack {
-                if [.customerOwner, .customerAdministrator, .customerDenied].contains(scenario) {
+                if [.customerOwner, .customerAdministrator, .customerDenied, .customerInvalidHistory].contains(scenario) {
                     ClubMembersView(id: 81, reader: reader,
                                     profile: .init(reader: profileReader, squareReader: squareReader),
-                                    governance: .init(viewerRevision: viewerRevision, access: governanceAccess, coordinator: ClubGovernanceCoordinator(access: governanceAccess)))
+                                    governance: .init(viewerRevision: viewerRevision, access: governanceAccess, coordinator: ClubGovernanceCoordinator(access: governanceAccess), topicDestination: { id in
+                                        AnyView(Text(verbatim: "Synthetic history topic \(id)").accessibilityIdentifier("club.fixture.historyTopic.\(id)"))
+                                    }))
                 } else {
                 ClubHomeView(reader: reader, onSignIn: { reader.signIn() }, topicDestination: { id in
                     AnyView(Text(verbatim: "Synthetic topic \(id)")
@@ -83,6 +85,14 @@ final class ClubFixtureReader: ObservableObject, ClubReading {
         governanceAccess.identity = identity
         governanceAccess.allowsOfflineWrites = false
         governanceAccess.readFailure = scenario == .customerDenied ? .forbidden : nil
+        if scenario == .customerInvalidHistory {
+            var value = ClubGovernanceFixtures.value(.customer).object ?? [:]
+            value["records"] = .array([
+                .object(["key": .string("missing-topic"), "title": .string("Missing topic history"), "statusCode": .string("PENDING")]),
+                .object(["key": .string("foreign-scope"), "topicId": .integer(92), "memberId": .integer(705), "title": .string("Foreign scope history"), "statusCode": .string("REGISTERED")])
+            ])
+            governanceAccess.overrideValue[.customer] = .object(value)
+        }
         profileReader.identity = .init(accountID: identity.accountID, epoch: identity.epoch, role: "player")
     }
     func clubHome() async throws -> ClubHome {
@@ -136,7 +146,7 @@ final class ClubFixtureReader: ObservableObject, ClubReading {
         if scenario == .forbidden { throw ClubReadFailure.forbidden(message: "Fixture access was denied by the server") }
     }
     private func clubJSON(id: Int) -> [String: Any] {
-        let owned = id == 81 && !alternateAccount && [.owner, .retry, .missingMembers, .customerOwner, .customerDenied].contains(scenario)
+        let owned = id == 81 && !alternateAccount && [.owner, .retry, .missingMembers, .customerOwner, .customerDenied, .customerInvalidHistory].contains(scenario)
         let joined = id == 81 && !alternateAccount && (owned || [.member, .customerAdministrator].contains(scenario))
         return [
             "id": id, "name": alternateAccount ? "Second account fixture club \(id)" : "Fixture club \(id)",

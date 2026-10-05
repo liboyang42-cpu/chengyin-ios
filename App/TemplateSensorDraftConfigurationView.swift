@@ -38,7 +38,7 @@ import SwiftUI
                         if value.integer(parameter) == nil { Text("sensorDraft.invalidField").font(.caption).foregroundStyle(.secondary) }
                     }
                 }
-            } else { Text("sensorDraft.preserved").foregroundStyle(.secondary) }
+            } else { Text("sensorDraft.preserved").foregroundStyle(.secondary).accessibilityIdentifier("sensorDraft.preserved") }
             NavigationLink("sensorDraft.preview") { TemplateSensorDraftPreviewView(model: model) }
                 .accessibilityIdentifier("sensorDraft.preview")
         }
@@ -60,7 +60,7 @@ struct TemplateSensorDraftPreviewContent: View {
     let draft: TemplateSensorDraft
     var body: some View {
         Text("sensorDraft.scope").foregroundStyle(.secondary)
-        if !draft.canEdit { Text("sensorDraft.preserved") }
+        if !draft.canEdit { Text("sensorDraft.preserved").accessibilityIdentifier("sensorDraft.preview.preserved") }
         else if let kind = draft.kind {
             Text(LocalizedStringKey(kind.labelKey))
             ForEach(kind.parameters, id: \.rawValue) { parameter in
@@ -68,6 +68,9 @@ struct TemplateSensorDraftPreviewContent: View {
                     if draft.input(parameter).isEmpty { Text("sensorDraft.missing") }
                     else { Text(verbatim: draft.input(parameter)) }
                 } label: { Text(LocalizedStringKey(parameter.labelKey)) }
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("sensorDraft.preview.value." + parameter.rawValue)
+                .accessibilityValue(draft.input(parameter).isEmpty ? Text("sensorDraft.missing") : Text(verbatim: draft.input(parameter)))
                 if draft.integer(parameter) == nil { Text("sensorDraft.invalidField").foregroundStyle(.secondary) }
             }
             Text(LocalizedStringKey(draft.isValid ? "sensorDraft.valid" : "sensorDraft.invalid")).accessibilityIdentifier("sensorDraft.preview.status")

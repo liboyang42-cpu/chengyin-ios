@@ -126,4 +126,153 @@ final class MerchantBusinessContractsTests: XCTestCase {
         let access = try MerchantBusinessAccess(object(MerchantBusinessSyntheticFixtures.access)); let doc = try document(.reviews(page: 1))
         XCTAssertThrowsError(try MerchantBusinessMutation.review(id: .init(63001), version: 1, action: .reply, content: "Thank you").validate(in: doc, access: access))
     }
+    func testReviewFiltersUseCapabilitiesRatingBoundaryAndPhotos() throws {
+        let pending = try MerchantBusinessRecord(kind: .review, fields: object(MerchantBusinessSyntheticFixtures.review))
+        var fields = pending.fields
+        fields["id"] = .int(63002); fields["rating"] = .int(3)
+        fields["canReply"] = .bool(false); fields["merchantReply"] = .string("Synthetic reply")
+        let repliedLow = try MerchantBusinessRecord(kind: .review, fields: fields)
+        fields["id"] = .int(63003); fields["rating"] = .int(5)
+        fields["imageUrls"] = .array([.string("https://example.com/synthetic-review.png")])
+        let photo = try MerchantBusinessRecord(kind: .review, fields: fields)
+        fields["id"] = .int(63004); fields["status"] = .string("HIDDEN")
+        fields["canReport"] = .bool(false); fields["merchantReply"] = .null; fields["imageUrls"] = .array([])
+        let hiddenUnreplied = try MerchantBusinessRecord(kind: .review, fields: fields)
+        let rows = [pending, repliedLow, photo, hiddenUnreplied]
+        XCTAssertEqual(rows.filter(MerchantReviewFilter.all.matches).map(\.id), ["63001", "63002", "63003", "63004"])
+        XCTAssertEqual(rows.filter(MerchantReviewFilter.pending.matches).map(\.id), ["63001"])
+        XCTAssertEqual(rows.filter(MerchantReviewFilter.low.matches).map(\.id), ["63002"])
+        XCTAssertEqual(rows.filter(MerchantReviewFilter.photos.matches).map(\.id), ["63003"])
+        XCTAssertFalse(MerchantReviewFilter.all.matches(try document(.refund(.init(62001))).rows[0]))
+    }
+    func testAftercareSearchMatchesOnlySourceFieldsAndTrimsCaseInsensitively() throws {
+        var fields = try object(MerchantBusinessSyntheticFixtures.refund)
+        fields["refundNo"] = .string("EXAMPLE-RF-42")
+        fields["customerNickname"] = .string("Synthetic Alice")
+        fields["activityTitle"] = .string("示例城市漫步")
+        fields["reason"] = .string("Weather delay")
+        fields["privateNote"] = .string("Do not search this field")
+        let row = try MerchantBusinessRecord(kind: .refund, fields: fields)
+        let section = try MerchantBusinessSection("aftercare", rows: [row])
+        var filters = MerchantBusinessListFilters()
+        for term in ["example-rf", "  ALICE  ", "城市漫步", "WEATHER", "\n  "] {
+            filters.aftercareKeyword = term
+            XCTAssertEqual(filters.rows(in: section, query: .aftercare(.pending, page: 1)), [row], term)
+        }
+        for term in ["no-match", "Do not search this field", "62001"] {
+            filters.aftercareKeyword = term
+            XCTAssertTrue(filters.rows(in: section, query: .aftercare(.pending, page: 1)).isEmpty, term)
+        }
+    }
+    func testAftercareSearchHandlesAbsentFieldsWithoutInventingText() throws {
+        var fields = try object(MerchantBusinessSyntheticFixtures.refund)
+        for key in MerchantBusinessListFilters.aftercareSearchKeys { fields.removeValue(forKey: key) }
+        let section = try MerchantBusinessSection("aftercare", rows: [.init(kind: .refund, fields: fields)])
+        var filters = MerchantBusinessListFilters(); filters.aftercareKeyword = "null"
+        XCTAssertTrue(filters.rows(in: section, query: .aftercare(.pending, page: 1)).isEmpty)
+        filters.aftercareKeyword = "   "
+        XCTAssertEqual(filters.rows(in: section, query: .aftercare(.pending, page: 1)).count, 1)
+        XCTAssertFalse(filters.isActive(for: .aftercare(.pending, page: 1)))
+    }
+    func testListFiltersNeverChangeDetailRowsQueriesOrServerPagination() throws {
+        var filters = MerchantBusinessListFilters(); filters.review = .photos; filters.aftercareKeyword = "missing"
+        let reviews = try document(.reviews(page: 1)), refunds = try document(.aftercare(.pending, page: 1))
+        let reviewBefore = reviews, refundBefore = refunds
+        XCTAssertTrue(filters.rows(in: reviews.sections[0], query: reviews.query).isEmpty)
+        XCTAssertTrue(filters.rows(in: refunds.sections[0], query: refunds.query).isEmpty)
+        XCTAssertEqual(reviews, reviewBefore); XCTAssertEqual(refunds, refundBefore)
+        XCTAssertEqual(try reviews.query.request().query, ["pageNum": "1", "pageSize": "20"])
+        XCTAssertEqual(try refunds.query.request().query, ["bucket": "PENDING", "pageNum": "1", "pageSize": "20"])
+        let detail = try document(.refund(.init(62001)))
+        XCTAssertEqual(filters.rows(in: detail.sections[0], query: detail.query), detail.sections[0].rows)
+        XCTAssertFalse(filters.isActive(for: detail.query))
+        filters = .init()
+        XCTAssertEqual(filters.rows(in: reviews.sections[0], query: reviews.query), reviews.rows)
+        XCTAssertEqual(filters.rows(in: refunds.sections[0], query: refunds.query), refunds.rows)
+    }
+    func testLocalSearchReevaluatesReplacementPageWithoutAccumulation() throws {
+        var filters = MerchantBusinessListFilters(); filters.aftercareKeyword = "First page"
+        var first = try object(MerchantBusinessSyntheticFixtures.refund), second = first
+        first["reason"] = .string("First page request")
+        second["refundId"] = .int(62021); second["reason"] = .string("Second page request")
+        let firstSection = try MerchantBusinessSection("aftercare", rows: [.init(kind: .refund, fields: first)])
+        let secondSection = try MerchantBusinessSection("aftercare", rows: [.init(kind: .refund, fields: second)])
+        XCTAssertEqual(filters.rows(in: firstSection, query: .aftercare(.pending, page: 1)).count, 1)
+        XCTAssertTrue(filters.rows(in: secondSection, query: .aftercare(.pending, page: 2)).isEmpty)
+        XCTAssertEqual(filters.aftercareKeyword, "First page")
+        filters.aftercareKeyword = ""
+        XCTAssertEqual(filters.rows(in: secondSection, query: .aftercare(.pending, page: 2)).map(\.id), ["62021"])
+    }
+
+    func testServerReviewMetricsRemainIndependentOfFilteredPage() throws {
+        let document = try MerchantBusinessDocument(query: .reviews(page: 1), payload: MerchantBusinessSyntheticFixtures.listToolsPayload(.reviews(page: 1)))
+        var filters = MerchantBusinessListFilters(); filters.review = .pending
+        XCTAssertEqual(filters.rows(in: document.sections[0], query: document.query).count, 1)
+        XCTAssertEqual(document.summary["pendingReplyCount"], .int(7))
+        XCTAssertEqual(document.summary["monthNewCount"], .int(12))
+        XCTAssertEqual(document.summary["replyRatePct"], .int(65))
+        XCTAssertEqual(document.total, 21); XCTAssertTrue(document.hasMore)
+        filters.review = .photos
+        XCTAssertEqual(filters.rows(in: document.sections[0], query: document.query).count, 1)
+        XCTAssertEqual(document.summary["pendingReplyCount"], .int(7))
+        XCTAssertEqual(document.rows.count, 20)
+    }
+    func testAbsentReviewMetricsStayUnknownInsteadOfZero() throws {
+        let missing = try document(.reviews(page: 1))
+        for key in MerchantBusinessDocument.reviewMetricKeys { XCTAssertEqual(missing.summary[key], .null, key) }
+        var raw = try XCTUnwrap(MerchantBusinessSyntheticFixtures.payload(.reviews(page: 1)).object)
+        for key in MerchantBusinessDocument.reviewMetricKeys { raw[key] = .null }
+        let nulls = try MerchantBusinessDocument(query: .reviews(page: 1), payload: .object(raw))
+        for key in MerchantBusinessDocument.reviewMetricKeys { XCTAssertEqual(nulls.summary[key], .null, key) }
+    }
+    func testReviewMetricsAcceptRealZeroAndPercentBoundaries() throws {
+        var raw = try XCTUnwrap(MerchantBusinessSyntheticFixtures.payload(.reviews(page: 1)).object)
+        raw["pendingReplyCount"] = .int(0); raw["monthNewCount"] = .int(0)
+        for rate in [0, 100] {
+            raw["replyRatePct"] = .int(rate)
+            let document = try MerchantBusinessDocument(query: .reviews(page: 1), payload: .object(raw))
+            XCTAssertEqual(document.summary["pendingReplyCount"], .int(0))
+            XCTAssertEqual(document.summary["monthNewCount"], .int(0))
+            XCTAssertEqual(document.summary["replyRatePct"], .int(rate))
+        }
+    }
+    func testMalformedServerMetricsAreRejectedWithoutClamping() throws {
+        let bad: [MerchantBusinessValue] = [.int(-1), .number(Decimal(string: "1.5")!), .string("7"), .bool(true), .object([:])]
+        for key in MerchantBusinessDocument.reviewMetricKeys {
+            for value in bad {
+                var raw = try XCTUnwrap(MerchantBusinessSyntheticFixtures.payload(.reviews(page: 1)).object); raw[key] = value
+                XCTAssertThrowsError(try MerchantBusinessDocument(query: .reviews(page: 1), payload: .object(raw)), "\(key): \(value)")
+            }
+        }
+        var raw = try XCTUnwrap(MerchantBusinessSyntheticFixtures.payload(.reviews(page: 1)).object); raw["replyRatePct"] = .int(101)
+        XCTAssertThrowsError(try MerchantBusinessDocument(query: .reviews(page: 1), payload: .object(raw)))
+    }
+    func testAftercareSearchDoesNotJoinUnrelatedFieldsIntoOneMatch() throws {
+        var fields = try object(MerchantBusinessSyntheticFixtures.refund)
+        fields["customerNickname"] = .string("Synthetic Alice"); fields["activityTitle"] = .string("River walk")
+        let section = try MerchantBusinessSection("aftercare", rows: [.init(kind: .refund, fields: fields)])
+        var filters = MerchantBusinessListFilters(); filters.aftercareKeyword = "Alice River"
+        XCTAssertTrue(filters.rows(in: section, query: .aftercare(.pending, page: 1)).isEmpty)
+    }
+    func testAftercareSearchUsesDisplayedRefundIDFallbackOnlyWithoutNumber() throws {
+        let numbers: [MerchantBusinessValue?] = [nil, .null, .string(""), .string("   ")]
+        for number in numbers {
+            var fields = try object(MerchantBusinessSyntheticFixtures.refund); fields["refundNo"] = number
+            let row = try MerchantBusinessRecord(kind: .refund, fields: fields)
+            XCTAssertEqual(row.title, "#62001")
+            let section = try MerchantBusinessSection("aftercare", rows: [row])
+            var filters = MerchantBusinessListFilters(); filters.aftercareKeyword = "#62001"
+            XCTAssertEqual(filters.rows(in: section, query: .aftercare(.pending, page: 1)).count, 1)
+        }
+        var fields = try object(MerchantBusinessSyntheticFixtures.refund); fields["refundNo"] = .string("  EXAMPLE-42  ")
+        XCTAssertEqual(try MerchantBusinessRecord(kind: .refund, fields: fields).title, "EXAMPLE-42")
+    }
+    func testAftercareDisplaySearchFieldsRejectInvalidTypes() throws {
+        for key in ["customerNickname", "activityTitle"] {
+            var fields = try object(MerchantBusinessSyntheticFixtures.refund); fields[key] = .int(7)
+            XCTAssertThrowsError(try MerchantBusinessRecord(kind: .refund, fields: fields))
+            fields[key] = .null; XCTAssertNoThrow(try MerchantBusinessRecord(kind: .refund, fields: fields))
+        }
+    }
+
 }

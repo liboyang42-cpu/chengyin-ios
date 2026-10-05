@@ -37,4 +37,43 @@ public enum MerchantBusinessSyntheticFixtures {
         case .roles: return try decode(roles)
         }
     }
+    /// Separate multi-page, synthetic presentation examples. No production data or live dispatch.
+    public static func listToolsPayload(_ query: MerchantBusinessQuery) throws -> MerchantBusinessValue {
+        switch query {
+        case .aftercare(let bucket, let page):
+            let ids = page == 1 ? Array(1...20) : [21]
+            let items = try ids.map { offset -> MerchantBusinessValue in
+                var row = try decode(refund).object!
+                row["refundId"] = .int(62000 + offset)
+                row["refundNo"] = .string("EXAMPLE-RF-\(offset)")
+                row["customerNickname"] = .string(offset == 1 ? "Synthetic Alice" : "Example visitor \(offset)")
+                row["activityTitle"] = .string(offset == 1 ? "示例城市漫步" : "Example activity \(offset)")
+                row["reason"] = .string(offset == 1 ? "Weather delay" : "Example request \(offset)")
+                row["bucket"] = .string(bucket.rawValue); row["refunded"] = .bool(bucket == .completed)
+                row["processing"] = .string(bucket == .completed ? "REFUNDED" : "WAITING_PLATFORM_REVIEW")
+                row["canRespond"] = .bool(bucket == .pending)
+                row.removeValue(forKey: "allowedDecisions"); row.removeValue(forKey: "responses")
+                return .object(row)
+            }
+            return .object(["bucket": .string(bucket.rawValue), "pageNum": .int(page), "pageSize": .int(20),
+                            "total": .int(21), "hasMore": .bool(page == 1), "items": .array(items)])
+        case .reviews(let page):
+            let ids = page == 1 ? Array(1...20) : [21]
+            let items = try ids.map { offset -> MerchantBusinessValue in
+                var row = try decode(review).object!
+                row["id"] = .int(63000 + offset); row["authorNickname"] = .string("Example reviewer \(offset)")
+                row["rating"] = .int(offset == 2 ? 3 : 4)
+                row["canReply"] = .bool(offset == 1)
+                row["merchantReply"] = offset == 1 ? .null : .string("Synthetic reply")
+                row["canEditReply"] = .bool(offset != 1)
+                row["imageUrls"] = offset == 3 ? .array([.string("https://example.com/synthetic-review.png")]) : .array([])
+                return .object(row)
+            }
+            return .object(["mode": .string("manage"), "pageNum": .int(page), "pageSize": .int(20),
+                            "total": .int(21), "hasMore": .bool(page == 1), "averageRating": .int(4),
+                            "pendingReplyCount": .int(7), "monthNewCount": .int(12), "replyRatePct": .int(65), "items": .array(items)])
+        default: return try payload(query)
+        }
+    }
+
 }

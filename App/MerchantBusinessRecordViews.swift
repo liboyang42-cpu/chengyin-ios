@@ -11,6 +11,7 @@ struct MerchantBusinessField: View {
             else if value == .null { Text("merchant.business.notProvided").foregroundStyle(.secondary) }
             else if let raw = value.numberText {
                 if Self.stateKeys.contains(key), Self.knownStates.contains(raw) { Text(LocalizedStringKey("merchant.business.state." + String(raw))) }
+                else if key == "replyRatePct" { Text("\(raw)%").monospacedDigit() }
                 else { Text(raw) }
             }
         } label: { Text(LocalizedStringKey("merchant.business.field." + String(key))) }
@@ -26,7 +27,7 @@ struct MerchantBusinessRecordFields: View {
     private var keys: [String] {
         switch row.kind {
         case .customer: return compact ? ["tier", "lastAction", "lastTime"] : ["phone", "contactHint", "arrivedCount", "pendingCount", "refundedCount", "paidAmount", "lastInteractionTime", "lastTime", "latestNote", "teamName", "roleName"]
-        case .refund: return compact ? ["processing", "merchantOpinion", "refundAmount"] : ["sourceType", "sourceId", "refundAmount", "reason", "processing", "merchantOpinion", "refundPolicyCode", "refundPolicyVersion", "refundDeadline", "createTime"]
+        case .refund: return compact ? ["customerNickname", "activityTitle", "reason", "processing", "merchantOpinion", "refundAmount"] : ["sourceType", "sourceId", "customerNickname", "activityTitle", "refundAmount", "reason", "processing", "merchantOpinion", "refundPolicyCode", "refundPolicyVersion", "refundDeadline", "createTime"]
         case .review: return ["rating", "content", "verifiedRedemption", "status", "merchantReply", "createTime", "repliedAt", "version"]
         case .redemption: return compact ? ["displayState", "settlementAmount", "noCashReason", "refundState"] : ["topicName", "chapterName", "storeName", "customerDisplayName", "verificationCodeTail", "fulfillmentState", "settlementState", "settlementRoute", "displayState", "settlementAmount", "noCashReason", "refundState", "occurredAt", "unitFee", "headCount"]
         case .entry: return ["entryKind", "settlementRoute", "source", "destination", "signedAmount", "headCount", "displayState", "occurredAt", "arrivalAt"]

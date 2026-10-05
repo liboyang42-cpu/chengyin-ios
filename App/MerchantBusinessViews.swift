@@ -3,12 +3,24 @@ import SwiftUI
 @MainActor final class MerchantBusinessViewModel: ObservableObject {
     let coordinator: MerchantBusinessCoordinator
     @Published private(set) var revision = 0
+    @Published var listFilters = MerchantBusinessListFilters()
+    private var filterScope: MerchantBusinessScope?
+    private var filterMerchantID: Int?
     init(reader: any MerchantBusinessReading, journal: any MerchantBusinessIntentStore) { coordinator = .init(reader: reader, journal: journal) }
-    func load(_ query: MerchantBusinessQuery) async { revision += 1; await coordinator.load(query); revision += 1 }
+    func load(_ query: MerchantBusinessQuery) async {
+        if filterScope != coordinator.reader.scope { listFilters = .init(); filterMerchantID = nil }
+        filterScope = coordinator.reader.scope
+        revision += 1; await coordinator.load(query)
+        if let currentMerchant = coordinator.snapshot?.access.merchantID {
+            if let filterMerchantID, filterMerchantID != currentMerchant { listFilters = .init() }
+            filterMerchantID = currentMerchant
+        }
+        revision += 1
+    }
     func prepare(_ mutation: MerchantBusinessMutation) { coordinator.prepare(mutation); revision += 1 }
     func cancel() { coordinator.cancelConfirmation(); revision += 1 }
     func confirm(_ review: MerchantBusinessConfirmation) async { revision += 1; await coordinator.confirm(review); revision += 1 }
-    func invalidate() { coordinator.invalidate(); revision += 1 }
+    func invalidate() { coordinator.invalidate(); listFilters = .init(); filterScope = nil; filterMerchantID = nil; revision += 1 }
 }
 
 @MainActor struct MerchantBusinessHomeView: View {
@@ -83,6 +95,7 @@ import SwiftUI
     @State private var query: MerchantBusinessQuery
     @StateObject private var model: MerchantBusinessViewModel
     @State private var keyword = ""
+    @FocusState private var aftercareSearchFocused: Bool
     @State private var segment = "all"
     @State private var sourceType = 0
     @State private var sourceStart = ""
@@ -120,11 +133,18 @@ import SwiftUI
                 if case .customer = query, let tags = try? snapshot.document.payload.object?.mbObjects("systemTags") {
                     Section("merchant.business.systemTags") { ForEach(Array(tags.enumerated()), id: \.offset) { _, tag in Text(tag.mbText("label") ?? "") } }
                 }
-                if snapshot.document.rows.isEmpty && snapshot.document.summary.isEmpty { Text("merchant.business.empty").foregroundStyle(.secondary) }
+                if snapshot.document.rows.isEmpty && (snapshot.document.summary.isEmpty || isLocalList) {
+                    Text("merchant.business.empty").foregroundStyle(.secondary).accessibilityIdentifier("merchant.business.empty")
+                } else if model.listFilters.isActive(for: snapshot.document.query), snapshot.document.sections.allSatisfy({ visibleRows($0, in: snapshot.document).isEmpty }) {
+                    Text("merchant.business.list.noMatches").foregroundStyle(.secondary).accessibilityIdentifier("merchant.business.list.noMatches")
+                }
                 ForEach(snapshot.document.sections) { section in
-                    Section(LocalizedStringKey("merchant.business.section." + String(section.id))) {
-                        ForEach(section.rows) { row in
-                            rowView(row, access: snapshot.access)
+                    let rows = visibleRows(section, in: snapshot.document)
+                    if !rows.isEmpty {
+                        Section(LocalizedStringKey("merchant.business.section." + String(section.id))) {
+                            ForEach(rows) { row in
+                                rowView(row, access: snapshot.access)
+                            }
                         }
                     }
                 }
@@ -133,10 +153,12 @@ import SwiftUI
                     Section {
                         HStack {
                             Button("merchant.business.previous") { movePage(query.page - 1) }.disabled(query.page <= 1)
+                                .accessibilityIdentifier("merchant.business.previous")
                             Spacer()
                             Text("\(query.page)").monospacedDigit().accessibilityLabel(Text("merchant.business.page"))
                             Spacer()
                             Button("merchant.business.next") { movePage(query.page + 1) }.disabled(!snapshot.document.hasMore)
+                                .accessibilityIdentifier("merchant.business.next")
                         }
                     }
                 }
@@ -181,9 +203,36 @@ import SwiftUI
             }
         }
         if case .aftercare(let bucket, _) = query {
-            Picker("merchant.business.bucket", selection: Binding(get: { bucket }, set: { query = .aftercare($0, page: 1); Task { await reload() } })) {
-                ForEach(MerchantAftercareBucket.allCases, id: \.self) { Text(LocalizedStringKey("merchant.business.bucket." + String($0.rawValue))).tag($0) }
-            }.accessibilityIdentifier("merchant.business.bucket")
+            Section {
+                Picker("merchant.business.bucket", selection: Binding(get: { bucket }, set: { query = .aftercare($0, page: 1); Task { await reload() } })) {
+                    ForEach(MerchantAftercareBucket.allCases, id: \.self) { Text(LocalizedStringKey("merchant.business.bucket." + String($0.rawValue))).tag($0) }
+                }.accessibilityIdentifier("merchant.business.bucket")
+                TextField("merchant.business.aftercare.search", text: $model.listFilters.aftercareKeyword)
+                    .textInputAutocapitalization(.never).autocorrectionDisabled().submitLabel(.search)
+                    .focused($aftercareSearchFocused).onSubmit { aftercareSearchFocused = false }
+                    .accessibilityLabel(Text("merchant.business.aftercare.search"))
+                    .accessibilityHint(Text("merchant.business.aftercare.searchScope"))
+                    .accessibilityIdentifier("merchant.business.aftercare.keyword")
+                Text("merchant.business.aftercare.searchScope").font(.footnote).foregroundStyle(.secondary)
+                if !model.listFilters.aftercareKeyword.isEmpty {
+                    Button("merchant.business.aftercare.clearSearch") { model.listFilters.aftercareKeyword = "" }
+                        .accessibilityIdentifier("merchant.business.aftercare.clearSearch")
+                }
+            }
+        }
+        if case .reviews = query {
+            Section {
+                Picker("merchant.business.reviews.filter", selection: $model.listFilters.review) {
+                    ForEach(MerchantReviewFilter.allCases, id: \.self) { filter in
+                        Text(LocalizedStringKey("merchant.business.reviews.filter." + filter.rawValue)).tag(filter)
+                    }
+                }.pickerStyle(.menu).accessibilityIdentifier("merchant.business.reviews.filter")
+                Text("merchant.business.reviews.filterScope").font(.footnote).foregroundStyle(.secondary)
+                if model.listFilters.review != .all {
+                    Button("merchant.business.reviews.clearFilter") { model.listFilters.review = .all }
+                        .accessibilityIdentifier("merchant.business.reviews.clearFilter")
+                }
+            }
         }
         if case .redemptions(let filter, _) = query {
             Picker("merchant.business.filter", selection: Binding(get: { filter }, set: { query = .redemptions(filter: $0, page: 1); Task { await reload() } })) {
@@ -194,9 +243,13 @@ import SwiftUI
     @ViewBuilder private func summary(_ document: MerchantBusinessDocument) -> some View {
         if !document.summary.isEmpty {
             Section("merchant.business.summary") {
-                ForEach(MerchantBusinessDocument.overviewMoneyKeys + ["adjustmentPendingCount", "count", "pendingAmount", "arrivedAmount", "averageRating", "all", "repeat", "new", "noted", "monthlyNew"], id: \.self) { key in
+                if case .reviews = document.query {
+                    Text("merchant.business.reviews.summaryScope").font(.footnote).foregroundStyle(.secondary)
+                }
+                ForEach(MerchantBusinessDocument.overviewMoneyKeys + ["adjustmentPendingCount", "count", "pendingAmount", "arrivedAmount", "averageRating", "pendingReplyCount", "monthNewCount", "replyRatePct", "all", "repeat", "new", "noted", "monthlyNew"], id: \.self) { key in
                     if let value = document.summary[key] {
                         MerchantBusinessField(key: key, value: value, money: MerchantBusinessDocument.overviewMoneyKeys.contains(key) || ["pendingAmount", "arrivedAmount"].contains(key))
+                            .accessibilityIdentifier("merchant.business.summary." + key)
                     }
                 }
             }
@@ -274,6 +327,12 @@ import SwiftUI
         if query == .operators, snapshot.access.canManageOperators {
             Button("merchant.business.inviteOperator") { editor = .init(kind: .invite) }
         }
+    }
+    private var isLocalList: Bool {
+        switch query { case .aftercare, .reviews: return true; default: return false }
+    }
+    private func visibleRows(_ section: MerchantBusinessSection, in document: MerchantBusinessDocument) -> [MerchantBusinessRecord] {
+        model.listFilters.rows(in: section, query: document.query)
     }
     private var availableTags: [Int] {
         state.snapshot?.document.payload.object?["availableTags"]?.array?.compactMap { $0.object?["id"]?.integer }.filter { $0 > 0 } ?? []
