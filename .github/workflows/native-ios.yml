@@ -13,8 +13,9 @@ jobs:
   native:
     name: native-products
     runs-on: macos-26
-    # Bounded headroom for Core, source-built GLTF, test bundles and packaging.
-    timeout-minutes: 15
+    # Cold Core/App/test-bundle compilation plus bounded packaging headroom.
+    # Runtime test jobs keep their independent deadlines below.
+    timeout-minutes: 25
     outputs:
       build_fingerprint: ${{ steps.identity.outputs.build_fingerprint }}
     steps:

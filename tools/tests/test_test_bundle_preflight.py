@@ -137,7 +137,7 @@ class TestBundlePreflightTests(unittest.TestCase):
         self.assertEqual(self.workflow.count('permissions:'), 1)
         for action in re.findall(r'uses: (\S+)', self.workflow):
             self.assertRegex(action, r'^[\w/-]+@[0-9a-f]{40}$')
-        ceilings = {'native': 15, 'device-build': 20, 'us-build': 10, 'secrets': 10,
+        ceilings = {'native': 25, 'device-build': 20, 'us-build': 10, 'secrets': 10,
                     'app-unit-tests': 20, 'ui-tests': 37, 'required-native-gates': 2}
         for name, minutes in ceilings.items():
             self.assertIn(f'    timeout-minutes: {minutes}\n', self.jobs[name])
