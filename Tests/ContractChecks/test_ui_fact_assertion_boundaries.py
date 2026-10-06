@@ -21,7 +21,7 @@ class UIFactAssertionBoundaryChecks(unittest.TestCase):
   body=s.split('func testLocalSaveHasExplicitDeviceOnlyResult()',1)[1].split('    func test',1)[0]
   self.assertIn('tap("templateAuthor.saveLocal", in: app)',body)
   self.assertIn('matching(identifier: "templateAuthor.status")',body)
-  self.assertIn('revealFixtureElement(status, in: app, requiresHittable: false, maximumSwipes: 50)',body)
+  self.assertIn('revealFixtureElement(status, in: app, maximumSwipes: 50, requiresHittable: false)',body)
   self.assertIn('XCTAssertEqual(query.count, 1)',body)
   self.assertIn('XCTAssertEqual(status.label, "Saved securely on this device for this account.")',body)
   self.assertNotIn('firstMatch',body)

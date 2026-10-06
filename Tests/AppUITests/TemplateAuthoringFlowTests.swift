@@ -31,7 +31,7 @@ import XCTest
         let app = app(); edit(app); tap("templateAuthor.saveLocal", in: app)
         let query = app.staticTexts.matching(identifier: "templateAuthor.status")
         let status = query.element
-        XCTAssertTrue(revealFixtureElement(status, in: app, requiresHittable: false, maximumSwipes: 50), app.debugDescription)
+        XCTAssertTrue(revealFixtureElement(status, in: app, maximumSwipes: 50, requiresHittable: false), app.debugDescription)
         XCTAssertEqual(query.count, 1)
         XCTAssertEqual(status.label, "Saved securely on this device for this account.")
     }
