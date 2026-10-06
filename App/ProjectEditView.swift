@@ -290,27 +290,7 @@ import SwiftUI
                 }
                 basicFields
                 ProjectEditPendingSection(model: model, controller: pending)
-                Section("projectEdit.structure") {
-                    ForEach(model.draft.chapters) { chapter in
-                        NavigationLink {
-                            ProjectEditChapterView(model: model, chapterID: chapter.id)
-                        } label: {
-                            VStack(alignment: .leading, spacing: 4) {
-                                ProjectEditName(value: chapter.name, fallback: "projectEdit.untitledChapter")
-                                Text(verbatim: String(chapter.nodes.count)).font(.caption).foregroundStyle(.secondary)
-                                    .accessibilityLabel(Text("projectEdit.nodeCount") + Text(verbatim: ": \(chapter.nodes.count)"))
-                            }
-                        }.accessibilityIdentifier("projectEdit.chapter." + chapter.id)
-                    }
-                    .onDelete { if model.fullEdit { model.draft.chapters.remove(atOffsets: $0) } }
-                    .onMove { if model.fullEdit { model.draft.chapters.move(fromOffsets: $0, toOffset: $1) } }
-                    Button("projectStarter.createChapter", systemImage: "plus") {
-                        let ordinal = model.draft.chapters.filter { $0.preserved["opening"] != .bool(true) }.count + 1
-                        let name = String(localized: LocalizedStringResource("projectStarter.defaultChapter", defaultValue: "Chapter \(ordinal)", locale: locale))
-                        starter.createChapter(lease: opening, name: name)
-                    }.buttonStyle(.borderless)
-                        .disabled(!model.fullEdit).accessibilityIdentifier("projectEdit.addChapter")
-                }
+                chapterStructure(opening: opening)
                 Section("projectEdit.tickets") {
                     ForEach(model.draft.tickets) { ticket in
                         NavigationLink { ProjectEditTicketView(model: model, ticketID: ticket.id) } label: {
@@ -419,6 +399,34 @@ import SwiftUI
             Button("projectEdit.discardLocal", role: .destructive) { model.discard() }
             Button("action.cancel", role: .cancel) {}
         } message: { Text("projectEdit.discardHint") }
+    }
+    private func chapterStructure(opening: ProjectEditStarterController.Lease?) -> some View {
+        Section("projectEdit.structure") {
+            ForEach(model.draft.chapters) { chapter in
+                NavigationLink {
+                    ProjectEditChapterView(model: model, chapterID: chapter.id)
+                } label: {
+                    chapterLabel(chapter)
+                }.accessibilityIdentifier("projectEdit.chapter." + chapter.id)
+            }
+            .onDelete { if model.fullEdit { model.draft.chapters.remove(atOffsets: $0) } }
+            .onMove { if model.fullEdit { model.draft.chapters.move(fromOffsets: $0, toOffset: $1) } }
+            Button("projectStarter.createChapter", systemImage: "plus") {
+                let ordinal = model.draft.chapters.filter { $0.preserved["opening"] != .bool(true) }.count + 1
+                let name = String(localized: LocalizedStringResource("projectStarter.defaultChapter", defaultValue: "Chapter \(ordinal)", locale: locale))
+                starter.createChapter(lease: opening, name: name)
+            }.buttonStyle(.borderless)
+                .disabled(!model.fullEdit).accessibilityIdentifier("projectEdit.addChapter")
+        }
+    }
+    private func chapterLabel(_ chapter: ProjectEditChapter) -> some View {
+        let nodeCount = chapter.nodes.count
+        let nodeCountLabel: Text = Text("projectEdit.nodeCount") + Text(verbatim: ": \(nodeCount)")
+        return VStack(alignment: .leading, spacing: 4) {
+            ProjectEditName(value: chapter.name, fallback: "projectEdit.untitledChapter")
+            Text(verbatim: String(nodeCount)).font(.caption).foregroundStyle(.secondary)
+                .accessibilityLabel(nodeCountLabel)
+        }
     }
     private var basicFields: some View {
         Group {
