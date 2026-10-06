@@ -1,0 +1,646 @@
+{
+  "sourceLanguage": "zh-Hans",
+  "strings": {
+    "workshopPaidInstalledText.entry": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看已安装原文"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review installed text"
+          }
+        }
+      }
+    },
+    "workshopPaidInstalledText.title": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已安装内容审阅"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installed content review"
+          }
+        }
+      }
+    },
+    "workshopPaidInstalledText.notConfigured": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "受保护正文读取尚未配置。已购记录或安装许可不能代替正文读取批准。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Protected text reading is not configured. Purchase metadata or installation approval cannot authorize this read."
+          }
+        }
+      }
+    },
+    "workshopPaidInstalledText.scope": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅审阅当前账号已安装的所购版本。原文、答案和执行说明不会进入通用草稿保存或发布。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review the purchased version installed by this account. Original text, answers and execution notes are not sent to generic draft save or publishing."
+          }
+        }
+      }
+    },
+    "workshopPaidInstalledText.sessionChanged": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账号或读取配置已改变，受保护内容已清除。请返回后重新进入。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your account or read configuration changed. Protected content was cleared. Return and reopen."
+          }
+        }
+      }
+    },
+    "workshopPaidInstalledText.loading": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在核对许可与已提交的安装记录…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking the license and committed installation…"
+          }
+        }
+      }
+    },
+    "workshopPaidInstalledText.version": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "版本名称"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version label"
+          }
+        }
+      }
+    },
+    "workshopPaidInstalledText.purchasedVersion": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所购版本标识"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Purchased version ID"
+          }
+        }
+      }
+    },
+    "workshopPaidInstalledText.installedCopy": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安装副本编号"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installed copy ID"
+          }
+        }
+      }
+    },
+    "workshopPaidInstalledText.sourceHash": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原文摘要"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original content hash"
+          }
+        }
+      }
+    },
+    "workshopPaidInstalledText.provenance": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来源与版本"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source and version"
+          }
+        }
+      }
+    },
+    "workshopPaidInstalledText.unchangedCopy": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前显示安装时的原始副本，尚无本地修改。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is the original installed copy. There are no local edits."
+          }
+        }
+      }
+    },
+    "workshopPaidInstalledText.modeUnresolved": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安装记录未绑定专业主题，城市定向或自由探索模式仍未解析。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This installation has no professional topic binding. City Orientation or Free Exploration mode is unresolved."
+          }
+        }
+      }
+    },
+    "workshopPaidInstalledText.original": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所购原文"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Purchased original"
+          }
+        }
+      }
+    },
+    "workshopPaidInstalledText.installed": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安装副本"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installed copy"
+          }
+        }
+      }
+    },
+    "workshopPaidInstalledText.comparison": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "内容对照"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compare content"
+          }
+        }
+      }
+    },
+    "workshopPaidInstalledText.protectedFields": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "受保护内容"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Protected content"
+          }
+        }
+      }
+    },
+    "workshopPaidInstalledText.field.title": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "标题"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Title"
+          }
+        }
+      }
+    },
+    "workshopPaidInstalledText.field.description": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "简介"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Description"
+          }
+        }
+      }
+    },
+    "workshopPaidInstalledText.field.ruleInstructions": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "规则说明"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rules"
+          }
+        }
+      }
+    },
+    "workshopPaidInstalledText.field.merchantGuide": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商家执行说明"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merchant execution notes"
+          }
+        }
+      }
+    },
+    "workshopPaidInstalledText.field.questionName": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "题目"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Question"
+          }
+        }
+      }
+    },
+    "workshopPaidInstalledText.field.questionAnswer": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "答案"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Answer"
+          }
+        }
+      }
+    },
+    "workshopPaidInstalledText.field.hint1": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提示一"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "First hint"
+          }
+        }
+      }
+    },
+    "workshopPaidInstalledText.field.hint2": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提示二"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Second hint"
+          }
+        }
+      }
+    },
+    "workshopPaidInstalledText.field.answerReveal": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "答案揭示"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Answer reveal"
+          }
+        }
+      }
+    },
+    "workshopPaidInstalledText.frozenTerms": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "冻结授权条款"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frozen license terms"
+          }
+        }
+      }
+    },
+    "workshopPaidInstalledText.termsVersion": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "条款版本"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terms version"
+          }
+        }
+      }
+    },
+    "workshopPaidInstalledText.termsHash": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "条款摘要"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terms hash"
+          }
+        }
+      }
+    },
+    "workshopPaidInstalledText.termsDocumentHash": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原始条款资料摘要"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original terms document hash"
+          }
+        }
+      }
+    },
+    "workshopPaidInstalledText.termsBytes": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原始条款资料字节数"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original terms document bytes"
+          }
+        }
+      }
+    },
+    "workshopPaidInstalledText.opaqueTerms": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原始条款资料已校验并保留。服务尚未声明文档格式，此处不擅自按文字、网页或PDF渲染。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original terms bytes are verified and retained. Their format is unspecified, so this view does not interpret them as text, a webpage or PDF."
+          }
+        }
+      }
+    },
+    "workshopPaidInstalledText.perpetualVersion": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "长期使用权对应冻结的所购版本，与AI订阅额度分开；后续退款或撤销仍按许可状态处理。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Durable use applies to the frozen purchased version, separately from AI subscription allowances. Refunds or revocation still follow the license status."
+          }
+        }
+      }
+    },
+    "workshopPaidInstalledText.noRedistribution": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不授予转售或再分发权限。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resale or redistribution is not granted."
+          }
+        }
+      }
+    },
+    "workshopPaidInstalledText.adaptationAllowed": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "冻结条款允许本地适配；当前页面仍仅审阅，尚未接入专业目标写入。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frozen terms allow local adaptation. This page remains review-only; professional target writing is not connected."
+          }
+        }
+      }
+    },
+    "workshopPaidInstalledText.adaptationNotGranted": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "冻结条款不授予内容修改权限。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frozen terms do not grant content editing."
+          }
+        }
+      }
+    },
+    "workshopPaidInstalledText.materializationRequired": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用到专业作品前，还需服务器目标绑定、内容归属与来源权益保护。安装副本编号不是专业玩法模板编号，此处不能保存或发布。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Applying this to a professional project requires server target binding, content ownership and source-rights protection. The installed copy ID is not a professional template ID. Save and publish are unavailable here."
+          }
+        }
+      }
+    },
+    "workshopPaidInstalledText.unavailable": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法读取正文。许可或安装状态可能已改变；保留已购及安装记录，不自动重装。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Protected text is unavailable. The license or installation may have changed. Purchase and installation records are retained; no automatic reinstall occurs."
+          }
+        }
+      }
+    },
+    "workshopPaidInstalledText.retry": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新核对"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check again"
+          }
+        }
+      }
+    },
+    "workshopPaidInstalledText.close": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

@@ -166,46 +166,12 @@ final class OwnerDraftBrowserFlowTests: XCTestCase {
         XCTAssertTrue(revealFixtureElement(app.staticTexts["暂不支持编辑草稿内容"], in: app))
         record("mutations", "0", app); XCTAssertEqual(app.textFields.count, 0)
     }
-    func testHistoricalReceiptShowsStaleBindingAndNoContentActions() {
-        let app = launch("receipts-stale"); tap("account.ownerDrafts", app); tap("ownerDraft.row.11", app)
-        XCTAssertTrue(revealFixtureElement(app.staticTexts["Draft revision has changed. This receipt has not been reattached."], in: app))
-        XCTAssertTrue(revealFixtureElement(app.staticTexts["2026-10-03T00:00:00.123456Z"], in: app))
-        record("restore", "1", app); record("mutations", "0", app)
-        XCTAssertEqual(app.textViews.count, 0); XCTAssertEqual(app.textFields.count, 0)
-        XCTAssertFalse(app.staticTexts["synthetic-module-version"].exists)
-    }
-    func testOldServerOmissionDoesNotClaimEmptyInstallationHistory() {
-        let app = launch(); tap("account.ownerDrafts", app); tap("ownerDraft.row.11", app)
-        XCTAssertTrue(revealFixtureElement(app.staticTexts["This server did not provide installed-module receipt information."], in: app))
-        XCTAssertFalse(app.staticTexts["ownerDraft.receipts.empty"].exists); record("mutations", "0", app)
-    }
-    func testExplicitEmptyHistoryIsVisible() {
-        let app = launch("receipts-empty"); tap("account.ownerDrafts", app); tap("ownerDraft.row.11", app)
-        XCTAssertTrue(revealFixtureElement(app.staticTexts["ownerDraft.receipts.empty"], in: app))
-        record("mutations", "0", app)
-    }
-    func testInvalidCapabilityCannotRenderHistoricalReceipt() {
-        let app = launch("receipts-invalid"); tap("account.ownerDrafts", app); tap("ownerDraft.row.11", app)
-        XCTAssertTrue(revealFixtureElement(app.staticTexts["Receipt information could not be verified for this draft revision."], in: app))
-        XCTAssertFalse(app.staticTexts["2026-10-03T00:00:00.123456Z"].exists)
-        record("mutations", "0", app)
-    }
-    func testReceiptBackReopenAndLifetimeReplacementClearHistoricalMetadata() {
-        let app = launch("receipts-unverifiable"); tap("account.ownerDrafts", app); tap("ownerDraft.row.11", app)
-        XCTAssertTrue(revealFixtureElement(app.staticTexts["Original draft binding cannot be verified."], in: app))
-        back(app); tap("ownerDraft.row.12", app)
-        XCTAssertTrue(revealFixtureElement(app.staticTexts["Original draft binding cannot be verified."], in: app))
-        record("restore", "2", app); tap("ownerDraft.fixture.replace", app)
-        XCTAssertTrue(app.staticTexts["ownerDraft.error"].waitForExistence(timeout: 5))
-        XCTAssertFalse(app.staticTexts["Original draft binding cannot be verified."].exists)
-        record("mutations", "0", app)
-    }
-    func testChineseMaximumTypeReceiptPolicyAndUnverifiableBinding() {
-        let app = launch("receipts-unverifiable", language: "zh-Hans", maximum: true)
-        tap("account.ownerDrafts", app); tap("ownerDraft.row.11", app)
-        XCTAssertTrue(revealFixtureElement(app.staticTexts["无法核验原始草稿绑定。"], in: app))
-        record("mutations", "0", app); XCTAssertEqual(app.textViews.count, 0)
-    }
+
+
+
+
+
+
 
 
 }

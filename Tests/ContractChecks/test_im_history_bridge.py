@@ -40,6 +40,7 @@ class IMHistoryBridgeContracts(unittest.TestCase):
                      'testCanonicalClonesAllAdjacentMutationsAndCrossScopeStayClosed',
                      'testClonedPendingReadRejectsLeaseAndTokenRotation']:
             self.assertIn(test, app)
-        ui = self.read('Tests/AppUITests/IntegratedNativeAcceptanceFlowTests.swift')
+        ui = (self.read('Tests/AppUITests/IntegratedNativeAcceptanceFlowTests.swift') + '\n' +
+              self.read('Tests/AppUITests/IntegratedDeniedAcceptanceFlowTests.swift'))
         self.assertIn('testNormalRootIMHistoryNeverMarksReadOrSends', ui)
         self.assertIn('testNormalRootIMHistoryDefaultNilNeverDispatches', ui)

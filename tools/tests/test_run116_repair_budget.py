@@ -1,3 +1,4 @@
+from tools.tests.reviewed_feature_budget_history import materialize_historical_pre_feature_ui
 from tools.tests.run117_repair_budget_history import before_run117_repairs, historical_run117_ui_source, historical_run117_workflow
 import tempfile
 """Complete run116 evidence, conservative live planning, and immutable history."""
@@ -16,10 +17,15 @@ def canonical(value):
 
 class Run116RepairBudget(unittest.TestCase):
     def setUp(self):
+        self.history_directory=tempfile.TemporaryDirectory()
+        self.addCleanup(self.history_directory.cleanup)
+        self.ui_root=materialize_historical_pre_feature_ui(self.history_directory.name)
         self.profile=before_run117_repairs(json.loads((ROOT/'tools/ui_duration_weights.json').read_text()))
+        for path in self.ui_root.glob('*.swift'):
+            path.write_bytes(historical_run117_ui_source(path).read_bytes())
         self.plan=self.profile['planning_budget']['run116_repair_replan']
         self.methods={};self.costs={}
-        for path in sorted((ROOT/'Tests/AppUITests').glob('*.swift')):
+        for path in sorted(self.ui_root.glob('*.swift')):
             path=historical_run117_ui_source(path)
             source=path.read_text();names=re.findall(r'\bfunc\s+(test\w+)\s*\(',source)
             if not names:continue
@@ -37,7 +43,7 @@ class Run116RepairBudget(unittest.TestCase):
         self.assertEqual(len(self.plan['current_inventory']),660)
         self.assertEqual(hashlib.sha256('\n'.join(sorted(self.methods)).encode()).hexdigest(),self.plan['current_inventory_sha256'])
         self.assertEqual(self.plan['method_migrations'],{});self.assertEqual(self.plan['new_coverage_methods'],0)
-        self.assertEqual(sum(shard.discover(ROOT/'Tests/AppUITests').values()),660)
+        self.assertEqual(sum(shard.discover(self.ui_root).values()),660)
     def test_all_610_successes_bind_exact_published_source_and_job_log_evidence(self):
         rows=self.profile['run116_method_observations']
         self.assertEqual(len(rows),610);self.assertEqual(len({x['method'] for x in rows}),610)
@@ -90,7 +96,7 @@ class Run116RepairBudget(unittest.TestCase):
         groups=shard.partition(self.costs,count)
         with tempfile.TemporaryDirectory() as directory:
             profile=Path(directory)/'f128-profile.json';profile.write_text(json.dumps(self.profile))
-            self.assertEqual(groups,shard.partition(shard.measured_weights(ROOT/'Tests/AppUITests',profile),count))
+            self.assertEqual(groups,shard.partition(shard.measured_weights(self.ui_root,profile),count))
         flat=sum(groups,[]);self.assertEqual(len(flat),len(set(flat)));self.assertEqual(set(flat),set(self.costs))
         maximum=max(sum(self.costs[c] for c in group)+300 for group in groups)
         self.assertEqual(maximum,Decimal(str(self.plan['maximum_projected_seconds_with_reserve'])))

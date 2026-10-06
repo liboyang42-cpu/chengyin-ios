@@ -4,7 +4,7 @@ import SwiftUI
 
 @MainActor
 final class AppSession: ObservableObject {
-    @Published private(set) var account: Account? { willSet { if account?.id != newValue?.id || account?.effectiveRole.data(using: .utf8) != newValue?.effectiveRole.data(using: .utf8) { workshopOwnedBinding.invalidate() }; invalidateOwnerDraftBrowser(); if account?.id != newValue?.id || account?.effectiveRole != newValue?.effectiveRole { invalidateShopNPCConversations(); merchantNPCSessionOwner.invalidate() }; if account?.id != newValue?.id { platformConsumers.invalidate() } } didSet { _ = runtimeDependencies; synchronizeAccountMarketingEntry() } }
+    @Published private(set) var account: Account? { willSet { if account?.id != newValue?.id || account?.effectiveRole.data(using: .utf8) != newValue?.effectiveRole.data(using: .utf8) { invalidateWorkshopReadBindings() }; invalidateOwnerDraftBrowser(); if account?.id != newValue?.id || account?.effectiveRole != newValue?.effectiveRole { invalidateShopNPCConversations(); merchantNPCSessionOwner.invalidate() }; if account?.id != newValue?.id { platformConsumers.invalidate() } } didSet { _ = runtimeDependencies; synchronizeAccountMarketingEntry() } }
     @Published private(set) var isWorking = false { didSet { synchronizeAccountMarketingEntry() } }
     @Published private(set) var errorKey: String?
     let platformConsumers = PlatformConsumerSessionOwner()
@@ -444,6 +444,11 @@ final class AppSession: ObservableObject {
     private var retainedPlayPrefabs: [String: PlayPrefabRuntimeCoordinator] = [:]
     private lazy var prefabRuntimeStore = PlayPrefabRuntimeStore(storage: templateAuthoringSecureStorage)
     private let workshopOwnedBinding = WorkshopOwnedSessionBinding()
+    private let workshopPurchasedBinding = WorkshopPurchasedSessionBinding()
+    private let workshopPaidProfessionalBinding = WorkshopPaidProfessionalSessionBinding()
+    private let workshopPaidInstalledTextBinding = WorkshopPaidInstalledTextSessionBinding()
+    private let workshopPaidInstallBinding = WorkshopPaidInstallSessionBinding()
+    private func invalidateWorkshopReadBindings() { workshopPaidProfessionalBinding.invalidate(); workshopOwnedBinding.invalidate(); workshopPurchasedBinding.invalidate(); workshopPaidInstallBinding.invalidate(); workshopPaidInstalledTextBinding.invalidate() }
     @Published private var workshopOwnedPresentationActive = true
     private var workshopReadConfigurationChanging = false
     private var currentWorkshopOwnedContext: RuntimeDependencyContext? {
@@ -451,7 +456,7 @@ final class AppSession: ObservableObject {
         return currentRuntimeDependencyContext
     }
     func setWorkshopOwnedPresentationActive(_ active: Bool) {
-        if !active { workshopOwnedBinding.invalidate() }
+        if !active { invalidateWorkshopReadBindings() }
         workshopOwnedPresentationActive = active
     }
     @Published private var workshopReadConfigurationRevision: UInt64 = 0
@@ -459,6 +464,130 @@ final class AppSession: ObservableObject {
         guard let context = currentWorkshopOwnedContext,
               let approval = composition.workshopOwnedReadApproval(context), approval.matches(context) else { return nil }
         return approval
+    }
+    private var currentWorkshopPurchasedApproval: WorkshopPurchasedReadApproval? {
+        guard let context = currentWorkshopOwnedContext,
+              let approval = composition.workshopPurchasedReadApproval(context), approval.matches(context) else { return nil }
+        return approval
+    }
+    private var currentWorkshopPaidInstallApproval: WorkshopPaidInstallApproval? {
+        guard let context = currentWorkshopOwnedContext,
+              let approval = composition.workshopPaidInstallApproval(context), approval.matches(context) else { return nil }
+        return approval
+    }
+    /// Narrow canonical context for this protected read only. Preserve the existing viewer role
+    /// whitelist; do not change shared play factories or infer a role from a purchase.
+    private var currentWorkshopPaidInstalledTextContext: RuntimeDependencyContext? {
+        guard let context = currentWorkshopOwnedContext, ["player", "club", "merchant"].contains(context.role),
+              let session = try? PlayExperienceSession(accountID: context.session.accountID, epoch: context.session.epoch,
+                namespace: context.session.namespace, token: context.session.token, role: context.role) else { return nil }
+        return RuntimeDependencyContext(market: context.market, baseURL: context.baseURL, role: context.role, session: session)
+    }
+    private var currentWorkshopPaidInstalledTextApproval: WorkshopPaidInstalledTextApproval? {
+        guard let context = currentWorkshopPaidInstalledTextContext,
+              let approval = composition.workshopPaidInstalledTextApproval(context), approval.matches(context) else { return nil }
+        return approval
+    }
+    private var currentWorkshopPaidProfessionalReadApproval: WorkshopPaidProfessionalReadApproval? {
+        guard let context = currentWorkshopPaidInstalledTextContext,
+              let approval = composition.workshopPaidProfessionalReadApproval(context), approval.matches(context) else { return nil }; return approval
+    }
+    private var currentWorkshopPaidProfessionalWriteApproval: WorkshopPaidProfessionalWriteApproval? {
+        guard let context = currentWorkshopPaidInstalledTextContext,
+              let approval = composition.workshopPaidProfessionalWriteApproval(context), approval.matches(context) else { return nil }; return approval
+    }
+    /// Historical recovery needs only its own read grant. Fresh creation separately reuses the
+    /// protected body and existing generic-target read approvals, then an explicit write grant.
+    func makeWorkshopPaidProfessionalController(reference: WorkshopPaidInstalledTextReference) -> WorkshopPaidProfessionalController? {
+        let context = currentWorkshopPaidInstalledTextContext, read = currentWorkshopPaidProfessionalReadApproval
+        let write = currentWorkshopPaidProfessionalWriteApproval, body = currentWorkshopPaidInstalledTextApproval
+        let install = currentWorkshopPaidInstallApproval, installContext = currentWorkshopOwnedContext
+        let revisions = [read?.revision, write?.revision, body?.revision, install?.revision]
+        let viewer = compositionViewerRevision, configurationRevision = workshopReadConfigurationRevision
+        let current: () -> RuntimeDependencyContext? = { [weak self] in
+            guard let self, self.compositionViewerRevision == viewer, self.workshopReadConfigurationRevision == configurationRevision,
+                  [self.currentWorkshopPaidProfessionalReadApproval?.revision, self.currentWorkshopPaidProfessionalWriteApproval?.revision,
+                   self.currentWorkshopPaidInstalledTextApproval?.revision, self.currentWorkshopPaidInstallApproval?.revision] == revisions else { return nil }
+            return self.currentWorkshopPaidInstalledTextContext
+        }
+        return workshopPaidProfessionalBinding.make(reference: reference, context: read == nil ? nil : context, revisions: revisions) { captured in
+            guard let api = regionalConfiguration?.apiConfiguration, let read, read.matches(captured), ContentDraftContextFence.matches(current(), captured),
+                  let store = try? WorkshopPaidProfessionalPendingStore(storage: templateAuthoringSecureStorage, context: captured, reference: reference) else { return nil }
+            let lease = ContentDraftSessionLease(context: captured, current: current)
+            let unauthorized: (RuntimeDependencyContext) -> Void = { [weak self] old in
+                guard let self, ContentDraftContextFence.matches(current(), captured), ContentDraftContextFence.matches(old, captured) else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
+            }
+            let service = WorkshopPaidProfessionalService(api: api, transport: compositionTransport, lease: lease,
+                readApproval: read, currentReadApproval: { [weak self] in self?.currentWorkshopPaidProfessionalReadApproval },
+                writeApproval: write, currentWriteApproval: { [weak self] in self?.currentWorkshopPaidProfessionalWriteApproval }, onUnauthorized: unauthorized)
+            var preparation: WorkshopPaidProfessionalPreparation?
+            if let body, let install, let installContext {
+                let bodyReader = WorkshopPaidInstalledTextService(api: api, transport: compositionTransport, lease: lease, approval: body,
+                    currentApproval: { [weak self] in self?.currentWorkshopPaidInstalledTextApproval }, onUnauthorized: unauthorized)
+                // Retain the existing generic-draft reader's exact context contract; do not change
+                // every legacy play/install factory merely to construct this new professional UI.
+                let oldCurrent: () -> RuntimeDependencyContext? = { [weak self] in guard current() != nil else { return nil }; return self?.currentWorkshopOwnedContext }
+                let oldLease = ContentDraftSessionLease(context: installContext, current: oldCurrent)
+                let installReader = WorkshopPaidInstallService(api: api, transport: compositionTransport, lease: oldLease, approval: install,
+                    currentApproval: { [weak self] in self?.currentWorkshopPaidInstallApproval }, onUnauthorized: unauthorized)
+                preparation = WorkshopPaidProfessionalPreparation(bodyReader: bodyReader, installReader: installReader)
+            }
+            return WorkshopPaidProfessionalController(reference: reference, service: service, preparation: preparation, store: store, lease: lease)
+        }
+    }
+    func makeWorkshopPaidInstalledTextController(reference: WorkshopPaidInstalledTextReference) -> WorkshopPaidInstalledTextController? {
+        let context = currentWorkshopPaidInstalledTextContext, approval = currentWorkshopPaidInstalledTextApproval
+        let viewer = compositionViewerRevision, configurationRevision = workshopReadConfigurationRevision
+        let current: () -> RuntimeDependencyContext? = { [weak self] in
+            guard let self, self.compositionViewerRevision == viewer,
+                  self.workshopReadConfigurationRevision == configurationRevision else { return nil }
+            return self.currentWorkshopPaidInstalledTextContext
+        }
+        return workshopPaidInstalledTextBinding.make(reference: reference, context: context, approval: approval,
+            api: regionalConfiguration?.apiConfiguration, transport: compositionTransport,
+            currentApproval: { [weak self] in self?.currentWorkshopPaidInstalledTextApproval }, current: current,
+            onUnauthorized: { [weak self] captured in
+                guard let self, ContentDraftContextFence.matches(current(), captured) else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
+            })
+    }
+    /// Independent install protocol approval; neither paid metadata nor FREE read authority is used.
+    func makeWorkshopPaidInstallController(item: WorkshopPurchasedItem) -> WorkshopPaidInstallController? {
+        let context = currentWorkshopOwnedContext, approval = currentWorkshopPaidInstallApproval
+        let viewer = compositionViewerRevision, configurationRevision = workshopReadConfigurationRevision
+        let current: () -> RuntimeDependencyContext? = { [weak self] in
+            guard let self, self.compositionViewerRevision == viewer,
+                  self.workshopReadConfigurationRevision == configurationRevision else { return nil }
+            return self.currentWorkshopOwnedContext
+        }
+        return workshopPaidInstallBinding.make(item: item, context: context, approval: approval,
+            api: regionalConfiguration?.apiConfiguration, transport: compositionTransport, storage: templateAuthoringSecureStorage,
+            currentApproval: { [weak self] in self?.currentWorkshopPaidInstallApproval }, current: current,
+            onUnauthorized: { [weak self] captured in
+                guard let self, ContentDraftContextFence.matches(current(), captured) else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
+            })
+    }
+    /// Paid ownership metadata uses a separate grant and retained browser; FREE approval is neither required nor sufficient.
+    var workshopPurchasedBrowser: WorkshopPurchasedBrowser? {
+        let context = currentWorkshopOwnedContext, approval = currentWorkshopPurchasedApproval
+        let viewer = compositionViewerRevision, configurationRevision = workshopReadConfigurationRevision
+        workshopPurchasedBinding.reconcile(context: context, configurationRevision: approval?.revision) { captured in
+            guard let api = regionalConfiguration?.apiConfiguration else { return nil }
+            let current: () -> RuntimeDependencyContext? = { [weak self] in
+                guard let self, self.compositionViewerRevision == viewer,
+                      self.workshopReadConfigurationRevision == configurationRevision else { return nil }
+                return self.currentWorkshopOwnedContext
+            }
+            return WorkshopPurchasedComposition.makeBrowser(context: captured, api: api, transport: compositionTransport,
+                approval: approval, currentApproval: { [weak self] in self?.currentWorkshopPurchasedApproval }, current: current,
+                onUnauthorized: { [weak self] captured in
+                    guard let self, ContentDraftContextFence.matches(current(), captured) else { return }
+                    self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
+                })
+        }
+        return workshopPurchasedBinding.browser
     }
     /// One session-owned instance. A nil/expired/revoked approval never constructs a browser.
     var workshopOwnedBrowser: WorkshopOwnedBrowser? {
@@ -484,7 +613,7 @@ final class AppSession: ObservableObject {
     /// The owner of an injected reviewed selector must use this boundary BEFORE changing it,
     /// including grant A → nil → A. This revision is only an invalidation signal, never a grant.
     func withWorkshopReadConfigurationChange(_ change: () -> Void) {
-        workshopOwnedBinding.invalidate()
+        invalidateWorkshopReadBindings()
         workshopReadConfigurationChanging = true
         change()
         workshopReadConfigurationChanging = false
@@ -809,7 +938,7 @@ final class AppSession: ObservableObject {
     private func commitChannelLogin(_ result: LoginResult, expected: AuthChannelSessionSnapshot) throws -> Bool {
         guard self.authChannelSnapshot == expected, self.account == nil, !self.isWorking else { return false }
         try self.vault.write(result.token)
-        self.workshopOwnedBinding.invalidate()
+        self.invalidateWorkshopReadBindings()
         self.gate.invalidate()
         sessionDefaults.set(false,forKey:self.restoreBlockedKey)
         self.commitAuthenticatedSession(token: result.token, account: result.account);self.errorKey=nil
@@ -1335,7 +1464,8 @@ final class AppSession: ObservableObject {
     }
     private var currentCouponCodeSession: CouponCodeSession? {
         guard let account, let token, let namespace = storageScope?.service else { return nil }
-        return try? CouponCodeSession(accountID: account.id, epoch: gate.currentStamp, namespace: namespace, role: account.effectiveRole, token: token)
+        return try? CouponCodeSession(accountID: account.id, epoch: gate.currentStamp, namespace: namespace,
+            role: account.effectiveRole, token: token, viewerRevision: compositionViewerRevision)
     }
     func makeCouponCodeCoordinator(historyID: Int) -> CouponCodeCoordinator {
         CouponCodeCoordinator(historyID: historyID,
@@ -2308,7 +2438,7 @@ final class AppSession: ObservableObject {
         retainedDoorCoordinator?.updateSession(doorReferralSession)
     }
 
-    private var token: String? { willSet { if token.map({ Data($0.utf8) }) != newValue.map({ Data($0.utf8) }) { workshopOwnedBinding.invalidate() }; invalidateOwnerDraftBrowser(); if token != newValue { invalidateShopNPCConversations(); platformConsumers.invalidate() } } didSet { _ = runtimeDependencies; synchronizeAccountMarketingEntry() } }
+    private var token: String? { willSet { if token.map({ Data($0.utf8) }) != newValue.map({ Data($0.utf8) }) { invalidateWorkshopReadBindings() }; invalidateOwnerDraftBrowser(); if token != newValue { invalidateShopNPCConversations(); platformConsumers.invalidate() } } didSet { _ = runtimeDependencies; synchronizeAccountMarketingEntry() } }
     private var didBootstrap = false
     private let restoreBlockedKey:String
     var isConfigured: Bool { storageScope != nil }
@@ -2399,7 +2529,7 @@ final class AppSession: ObservableObject {
             try? vault.clear()
             return
         }
-        workshopOwnedBinding.invalidate()
+        invalidateWorkshopReadBindings()
         let operation=gate.begin(.bootstrap)
         clubActionCoordinator.synchronizeSession()
         clubManagementCoordinator.synchronizeSession();clubOperationsCoordinator.synchronizeSession();clubGovernanceCoordinator.cancelReview();profileEditCoordinator.synchronizeSession()
@@ -2429,7 +2559,7 @@ final class AppSession: ObservableObject {
     func login(username:String,password:String) async {
         guard !isWorking, !authChannels.state.isWorking, !weChatAuth.isWorking else { return }
         guard let service else { errorKey="auth.notConfigured";return }
-        workshopOwnedBinding.invalidate()
+        invalidateWorkshopReadBindings()
         let operation=gate.begin(.login)
         clubActionCoordinator.synchronizeSession()
         clubManagementCoordinator.synchronizeSession();clubOperationsCoordinator.synchronizeSession();clubGovernanceCoordinator.cancelReview();profileEditCoordinator.synchronizeSession()
@@ -2458,7 +2588,7 @@ final class AppSession: ObservableObject {
         // Close must invalidate SMS login immediately, before SwiftUI dismisses its sheet.
         // Transport cancellation is best-effort; the coordinator generation fences late replies.
         authChannels.cancel()
-        if gate.activeKind == .login { workshopOwnedBinding.invalidate() }
+        if gate.activeKind == .login { invalidateWorkshopReadBindings() }
         if gate.cancelLogin() { isWorking=false;errorKey=nil;clubActionCoordinator.synchronizeSession()
         clubManagementCoordinator.synchronizeSession();clubOperationsCoordinator.synchronizeSession();clubGovernanceCoordinator.cancelReview();profileEditCoordinator.synchronizeSession();merchantOnboardingCoordinator.synchronizeSession() }
     }
@@ -2468,7 +2598,7 @@ final class AppSession: ObservableObject {
         weChatAuth.cancel()
         authChannels.cancel()
         let oldToken=token
-        workshopOwnedBinding.invalidate()
+        invalidateWorkshopReadBindings()
         gate.invalidate()
         // Persist a non-secret tombstone before deletion. A Keychain failure cannot
         // silently restore a logged-out account at the next cold start.
@@ -2524,7 +2654,7 @@ final class AppSession: ObservableObject {
         guard error as? APIError == .unauthorized, credential != nil,
               gate.isCurrent(stamp), credential == token else { return }
         nativeWeChatPaymentAdapter.cancelPending()
-        workshopOwnedBinding.invalidate()
+        invalidateWorkshopReadBindings()
         gate.invalidate()
         sessionDefaults.set(true,forKey:restoreBlockedKey)
         roamArea=nil;searchMapSelection.select(nil);token=nil;account=nil;isWorking=false;errorKey="auth.expired"

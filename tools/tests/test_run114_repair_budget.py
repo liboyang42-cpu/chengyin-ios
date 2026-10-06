@@ -1,3 +1,5 @@
+from tools.tests.reviewed_feature_budget_history import before_reviewed_features, materialize_historical_pre_feature_ui, historical_pre_feature_workflow, HISTORICAL_SHARD_COUNT
+import tempfile
 from tools.tests.run116_repair_budget_history import before_run116_repairs, historical_run116_ui_source, historical_run116_workflow
 import tempfile
 """Exhaustive current planning plus lossless published history; no runtime shortcuts."""
@@ -10,9 +12,12 @@ from tools.tests.run114_repair_budget_history import before_run114_repairs,histo
 ROOT=Path(__file__).resolve().parents[2]
 class Run114RepairBudget(unittest.TestCase):
     def setUp(self):
+        self.history_directory=tempfile.TemporaryDirectory()
+        self.addCleanup(self.history_directory.cleanup)
+        self.ui_root=materialize_historical_pre_feature_ui(self.history_directory.name)
         self.profile=before_run116_repairs(json.loads((ROOT/'tools/ui_duration_weights.json').read_text()))
         self.plan=self.profile['planning_budget']['run114_repair_replan'];self.methods={};self.costs={}
-        for path in sorted((ROOT/'Tests/AppUITests').glob('*.swift')):
+        for path in sorted((self.ui_root).glob('*.swift')):
             path=historical_run116_ui_source(path)
             source=path.read_text();names=re.findall(r'\bfunc\s+(test\w+)\s*\(',source)
             if not names:continue
@@ -27,7 +32,7 @@ class Run114RepairBudget(unittest.TestCase):
         self.assertEqual(len(self.plan['current_inventory']),660)
         self.assertEqual(hashlib.sha256('\n'.join(sorted(self.methods)).encode()).hexdigest(),self.plan['current_inventory_sha256'])
         self.assertEqual(self.plan['method_migrations'],{});self.assertEqual(self.plan['new_coverage_methods'],0)
-        self.assertEqual(sum(shard.discover(ROOT/'Tests/AppUITests').values()),660)
+        self.assertEqual(sum(shard.discover(self.ui_root).values()),660)
     def test_all_617_complete_successes_have_exact_published_source_and_log_provenance(self):
         samples=self.profile['run114_method_observations'];self.assertEqual(len(samples),617)
         self.assertEqual(len({x['method'] for x in samples}),617)
@@ -73,7 +78,7 @@ class Run114RepairBudget(unittest.TestCase):
         groups=shard.partition(self.costs,count)
         with tempfile.TemporaryDirectory() as directory:
             profile=Path(directory)/'published-profile.json';profile.write_text(json.dumps(self.profile))
-            self.assertEqual(groups,shard.partition(shard.measured_weights(ROOT/'Tests/AppUITests',profile),count))
+            self.assertEqual(groups,shard.partition(shard.measured_weights(self.ui_root,profile),count))
         flat=sum(groups,[]);self.assertEqual(set(flat),set(self.costs));self.assertEqual(len(flat),102)
         maximum=max(sum(self.costs[c] for c in group)+300 for group in groups)
         self.assertEqual(maximum,Decimal(str(self.plan['maximum_projected_seconds_with_reserve'])));self.assertLessEqual(maximum,1800)

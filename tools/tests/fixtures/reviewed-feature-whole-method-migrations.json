@@ -1,0 +1,115 @@
+[
+  {
+    "old_class": "AccountCollectionFlowTests",
+    "new_class": "AccountSavedPostCollectionFlowTests",
+    "before_sha256": "59fb4b12b92df71147db0b834844833b12c38ea5950e587c128126ec0d782f10",
+    "remaining_file_sha256": "a7e98b59a99954f21dd70d997b0deffbedaebc4335df52c4c25799e954f9e974",
+    "new_file_sha256": "da788dddda108d6f13970424e9d3b8b88a15dbce3ff911d713c25f38204abacf",
+    "non_test_declarations_sha256": "dafe203597446524f207dfecbaefdfeac7047ac3bba786f79dcead94d6c07180",
+    "all_original_methods_preserved": 15,
+    "moves": [
+      {
+        "old_id": "AccountCollectionFlowTests.testSavedPostFailureDoesNotPoisonTopicCollection",
+        "new_id": "AccountSavedPostCollectionFlowTests.testSavedPostFailureDoesNotPoisonTopicCollection",
+        "exact_declaration_sha256": "ed3e17707ff04f27d24ccaf24daeaf2fda9f5791e44b3938ce8f519e01ebc67a"
+      },
+      {
+        "old_id": "AccountCollectionFlowTests.testSavedPostPageFailureRetainsRowsAndRetryDoesNotSkip",
+        "new_id": "AccountSavedPostCollectionFlowTests.testSavedPostPageFailureRetainsRowsAndRetryDoesNotSkip",
+        "exact_declaration_sha256": "558cea0cb5a3cd9972ae35d75a60eacad98a17666fd8bafc02ee3aacff626a69"
+      },
+      {
+        "old_id": "AccountCollectionFlowTests.testSavedPostsAreDefaultAndOpenLegacyDetailThenReturn",
+        "new_id": "AccountSavedPostCollectionFlowTests.testSavedPostsAreDefaultAndOpenLegacyDetailThenReturn",
+        "exact_declaration_sha256": "3dc01aadf27a95203cf73d4909cecc4d585016016857edd3c0a13f6310542f9a"
+      },
+      {
+        "old_id": "AccountCollectionFlowTests.testSavedPostsDistinguishEmptyFromUnavailableAndClearOnSignOut",
+        "new_id": "AccountSavedPostCollectionFlowTests.testSavedPostsDistinguishEmptyFromUnavailableAndClearOnSignOut",
+        "exact_declaration_sha256": "9fbba5a26cca5a199e3446c5ccd09c520890dccc759180178d823dd8267ab825"
+      }
+    ],
+    "scaffolding_normalization": "Only whitespace on empty lines after test-declaration removal; every function declaration remains exact."
+  },
+  {
+    "old_class": "OwnerDraftBrowserFlowTests",
+    "new_class": "OwnerDraftReceiptFlowTests",
+    "before_sha256": "e788d439fe1ee83f59e4ef935e8031885a6efdd0ac01993825e7258f460d4410",
+    "remaining_file_sha256": "f7229b195dd3e47ee90ec6038ebd893ac9dd444182192c4a2de76bf861f90aa8",
+    "new_file_sha256": "f02e2cff62a7fdc0840e87815023c63bad054c6e150a39f0968a11118b194cf1",
+    "non_test_declarations_sha256": "a33a86a62932e917ea8f02421fb3bd5e20e9256de42372902de4e5bc2cd1bd03",
+    "all_original_methods_preserved": 18,
+    "moves": [
+      {
+        "old_id": "OwnerDraftBrowserFlowTests.testChineseMaximumTypeReceiptPolicyAndUnverifiableBinding",
+        "new_id": "OwnerDraftReceiptFlowTests.testChineseMaximumTypeReceiptPolicyAndUnverifiableBinding",
+        "exact_declaration_sha256": "16415fc13fd1987e32134c08787543767c9489018a2916fd3dfe05024be7c8af"
+      },
+      {
+        "old_id": "OwnerDraftBrowserFlowTests.testExplicitEmptyHistoryIsVisible",
+        "new_id": "OwnerDraftReceiptFlowTests.testExplicitEmptyHistoryIsVisible",
+        "exact_declaration_sha256": "11df9daac485b5c741a7ab2b82b018f6929ea9419586490bd63c5805ed4679e9"
+      },
+      {
+        "old_id": "OwnerDraftBrowserFlowTests.testHistoricalReceiptShowsStaleBindingAndNoContentActions",
+        "new_id": "OwnerDraftReceiptFlowTests.testHistoricalReceiptShowsStaleBindingAndNoContentActions",
+        "exact_declaration_sha256": "57a3b671be3eff167515b5bb69b330d1774b070d0da6cf92d827862d0457fbcc"
+      },
+      {
+        "old_id": "OwnerDraftBrowserFlowTests.testInvalidCapabilityCannotRenderHistoricalReceipt",
+        "new_id": "OwnerDraftReceiptFlowTests.testInvalidCapabilityCannotRenderHistoricalReceipt",
+        "exact_declaration_sha256": "4dd0278bb950a2a560da1270d40c987b906448f7591ce01c7167d0bee0c17615"
+      },
+      {
+        "old_id": "OwnerDraftBrowserFlowTests.testOldServerOmissionDoesNotClaimEmptyInstallationHistory",
+        "new_id": "OwnerDraftReceiptFlowTests.testOldServerOmissionDoesNotClaimEmptyInstallationHistory",
+        "exact_declaration_sha256": "226c627fac40b53f2cd8e4a15b92f97ed0450f7911f51b0aaf504e134b21cc45"
+      },
+      {
+        "old_id": "OwnerDraftBrowserFlowTests.testReceiptBackReopenAndLifetimeReplacementClearHistoricalMetadata",
+        "new_id": "OwnerDraftReceiptFlowTests.testReceiptBackReopenAndLifetimeReplacementClearHistoricalMetadata",
+        "exact_declaration_sha256": "8dad4aafe4098d7b0a676480ca3c7fb6d54b680881d04c63f7c04b38bdc6bc55"
+      }
+    ],
+    "scaffolding_normalization": "Only whitespace on empty lines after test-declaration removal; every function declaration remains exact."
+  },
+  {
+    "old_class": "CouponRuntimeFlowTests",
+    "new_class": "CouponRuntimeChineseFlowTests",
+    "before_sha256": "092c92c59afeb23f2fcee0db08ce7b878bc68e63e2a241cf8569e450c62397c8",
+    "remaining_file_sha256": "29d491e08624930b2943e4a59bdf605184de68c1bd6d99500637a28af1883225",
+    "new_file_sha256": "cd4248ccbbd4543e515582fd8b4b5afdbe55d1d8bb756fdedc494fda46458bf4",
+    "non_test_declarations_sha256": "4a0624cdbad4e99379f88e95a735ae54d491c4fe1bf76129d681347eaa4f1605",
+    "all_original_methods_preserved": 6,
+    "moves": [
+      {
+        "old_id": "CouponRuntimeFlowTests.testChineseNormalRootLabelsAndReadOnlyConfirmation",
+        "new_id": "CouponRuntimeChineseFlowTests.testChineseNormalRootLabelsAndReadOnlyConfirmation",
+        "exact_declaration_sha256": "249511c538960ab71642c54c63b4c63312d323b7140b4e3fef56363563c1514f"
+      }
+    ],
+    "scaffolding_normalization": "Only whitespace on empty lines after test-declaration removal; every function declaration remains exact."
+  },
+  {
+    "old_class": "IntegratedNativeAcceptanceFlowTests",
+    "new_class": "IntegratedDeniedAcceptanceFlowTests",
+    "before_sha256": "e3c025f58e11414f74e72963d594471c6a1b857df8f3c7df487b35a525d410e0",
+    "remaining_file_sha256": "c9ba0d1df3d6dac1e331fb5770b3ea064a6fb97de381782d6b74f28cc7a616d3",
+    "new_file_sha256": "24c0b29e21178acf569d1d6ed92d685934fe1ea32f39370a98819cc627edd921",
+    "non_test_declarations_sha256": "07d08a03a9a76256fb7591832a4807058963f9ab4a4aa9c98b738e486f0d8a4b",
+    "all_original_methods_preserved": 6,
+    "moves": [
+      {
+        "old_id": "IntegratedNativeAcceptanceFlowTests.testConfiguredAuthenticationDoesNotGrantDetailMapPlayOrOwnedOrders",
+        "new_id": "IntegratedDeniedAcceptanceFlowTests.testConfiguredAuthenticationDoesNotGrantDetailMapPlayOrOwnedOrders",
+        "exact_declaration_sha256": "fc542fe56bf80205352d312d40a6e875564838f9826d62f24decdbae7e31ff86"
+      },
+      {
+        "old_id": "IntegratedNativeAcceptanceFlowTests.testNormalRootIMHistoryDefaultNilNeverDispatches",
+        "new_id": "IntegratedDeniedAcceptanceFlowTests.testNormalRootIMHistoryDefaultNilNeverDispatches",
+        "exact_declaration_sha256": "f9b530a5bba427eeb49453aaa760d8930fd6236f0f583853796cd5042f2f2965"
+      }
+    ],
+    "scaffolding_normalization": "Only whitespace on empty lines after test-declaration removal; every function declaration remains exact."
+  }
+]

@@ -19,6 +19,23 @@ public struct AccountCollectionReadSession: Equatable {
     func favoritePosts(pageNumber: Int, pageSize: Int) async throws -> AccountCollectionPostPage
     func ownedCoupons(keyword: String?) async throws -> [AccountCollectionCoupon]
     func ownedCoupon(id: Int) async throws -> AccountCollectionCoupon
+    func ownedCoupons(keyword: String?, lifetime: OwnedCouponReadLifetime) async throws -> [AccountCollectionCoupon]
+    func ownedCoupon(id: Int, lifetime: OwnedCouponReadLifetime) async throws -> AccountCollectionCoupon
+}
+/// Existing credential-free fixtures retain compatibility. Real session readers fence callbacks too.
+public extension AccountCollectionReading {
+    func ownedCoupons(keyword: String?, lifetime: OwnedCouponReadLifetime) async throws -> [AccountCollectionCoupon] {
+        try lifetime.check()
+        if let expected = lifetime.ownerScope, expected != scope { throw CancellationError() }
+        do { let value = try await ownedCoupons(keyword: keyword); try lifetime.check(); if let expected = lifetime.ownerScope, expected != scope { throw CancellationError() }; return value }
+        catch { try lifetime.check(); if let expected = lifetime.ownerScope, expected != scope { throw CancellationError() }; throw error }
+    }
+    func ownedCoupon(id: Int, lifetime: OwnedCouponReadLifetime) async throws -> AccountCollectionCoupon {
+        try lifetime.check()
+        if let expected = lifetime.ownerScope, expected != scope { throw CancellationError() }
+        do { let value = try await ownedCoupon(id: id); try lifetime.check(); if let expected = lifetime.ownerScope, expected != scope { throw CancellationError() }; return value }
+        catch { try lifetime.check(); if let expected = lifetime.ownerScope, expected != scope { throw CancellationError() }; throw error }
+    }
 }
 @MainActor public final class AccountCollectionSessionReader: AccountCollectionReading {
     private let service: AccountCollectionService?
@@ -51,18 +68,27 @@ public struct AccountCollectionReadSession: Equatable {
     public func ownedCoupon(id: Int) async throws -> AccountCollectionCoupon {
         try await read { try await $0.coupon(id: id, token: $1) }
     }
-    private func read<T>(_ operation: (AccountCollectionService, String) async throws -> T) async throws -> T {
+    public func ownedCoupons(keyword: String?, lifetime: OwnedCouponReadLifetime) async throws -> [AccountCollectionCoupon] {
+        try await read(lifetime: lifetime) { try await $0.coupons(keyword: keyword, token: $1) }
+    }
+    public func ownedCoupon(id: Int, lifetime: OwnedCouponReadLifetime) async throws -> AccountCollectionCoupon {
+        try await read(lifetime: lifetime) { try await $0.coupon(id: id, token: $1) }
+    }
+    private func read<T>(lifetime: OwnedCouponReadLifetime? = nil,
+                         _ operation: (AccountCollectionService, String) async throws -> T) async throws -> T {
+        try lifetime?.check()
         guard let session = currentSession() else { throw APIError.unauthorized }
         guard let service else { throw APIError.notConfigured }
         let captured = scope
+        if let expected = lifetime?.ownerScope, expected != captured { throw CancellationError() }
         try Task.checkCancellation()
         do {
             let value = try await operation(service, session.token)
             try Task.checkCancellation()
-            guard currentSession() == session, scope == captured else { throw CancellationError() }
+            guard lifetime?.isActive != false, currentSession() == session, scope == captured else { throw CancellationError() }
             return value
         } catch {
-            guard !Task.isCancelled, currentSession() == session, scope == captured else { throw CancellationError() }
+            guard !Task.isCancelled, lifetime?.isActive != false, currentSession() == session, scope == captured else { throw CancellationError() }
             if error as? APIError == .unauthorized { onUnauthorized(session) }
             throw error
         }

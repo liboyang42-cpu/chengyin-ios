@@ -63,6 +63,7 @@ struct AccountView: View {
                 }
                 Section {
                     WorkshopOwnedAccountLink(browser: session.workshopOwnedBrowser)
+                    WorkshopPurchasedAccountLink(browser: session.workshopPurchasedBrowser, makeInstall: { session.makeWorkshopPaidInstallController(item: $0) }, makeText: { session.makeWorkshopPaidInstalledTextController(reference: $0) }, makeProfessional: { session.makeWorkshopPaidProfessionalController(reference: $0) })
                     OwnerDraftAccountLink(browser: session.ownerDraftBrowser)
                     NavigationLink {
                         CreatorContentProjectsView(reader:session.creatorContentReader,onOpen:{ destination in

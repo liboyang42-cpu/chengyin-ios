@@ -2,20 +2,28 @@ import SwiftUI
 
 /// Owned metadata stays separate from the explicitly reviewed, short-lived code screen.
 @MainActor struct AccountCollectionCouponDetailView: View {
-    let id: Int
+    let selection: OwnedCouponDetailSelection
+    private var id: Int { selection.historyID }
     let reader: any AccountCollectionReading
     @Environment(\.couponCodeFactory) private var makeCode
-    @StateObject private var model = AccountCollectionScreenModel<AccountCollectionCoupon>()
+    @StateObject private var model = OwnedCouponReadScreenModel()
+    @State private var viewPresentation = OwnedCouponReadViewPresentation()
+    @Environment(\.scenePhase) private var scenePhase
     private var key: AccountCollectionLoadKey { AccountCollectionLoadKey(reader: reader, id: id) }
+    private var request: OwnedCouponReadRequest { .detail(selection) }
     var body: some View {
-        List {
+        let appearance = viewPresentation
+        let presentation = appearance.permit
+        let offeredRequest = request
+        return List {
             if reader.isOfflineExample { Text("accountCollection.offlineExample").font(.caption) }
             if !reader.isAuthenticated { AccountCollectionIssueView(issue: .login) }
             else if !reader.isConfigured { AccountCollectionIssueView(issue: .notConfigured) }
-            else if model.isLoading || model.loadedScope != key.scope { ProgressView("accountCollection.loading") }
-            else if let issue = model.issue(scope: key.scope) {
-                AccountCollectionIssueView(issue: issue, retry: { Task { await load() } })
-            } else if let coupon = model.value(scope: key.scope), coupon.id == id {
+            else if selection.ownerScope != reader.scope { Text("couponCode.stale") }
+            else if model.isLoading || model.loadedRequest != offeredRequest { ProgressView("accountCollection.loading") }
+            else if let issue = model.issue(for: offeredRequest) {
+                AccountCollectionIssueView(issue: issue, retry: { model.schedule(request: offeredRequest, reader: reader, presentation: presentation) })
+            } else if let coupon = model.detail(for: offeredRequest), coupon.id == id {
                 Section {
                     AccountCollectionCouponRow(coupon: coupon)
                         .questifyCardListRow()
@@ -23,7 +31,10 @@ import SwiftUI
                 }
                 if coupon.status == .unused, let makeCode {
                     Section {
-                        NavigationLink { CouponCodeView(model: makeCode(coupon.id)).id(reader.scope) } label: {
+                        let destination = OwnedCouponCodeDestination(selection: selection)
+                        NavigationLink {
+                            OwnedCouponCodeDestinationView(destination: destination, reader: reader, factory: makeCode).id(destination.id)
+                        } label: {
                             Label("couponCode.show", systemImage: "qrcode")
                         }.accessibilityIdentifier("couponCode.open")
                     }
@@ -45,8 +56,13 @@ import SwiftUI
                 }
                 Section {
                     Label {
-                        Text("accountCollection.coupon.readOnly")
-                            .accessibilityIdentifier("accountCollection.coupon.readOnly")
+                        if coupon.status == .unused, makeCode != nil {
+                            Text("couponCode.authority")
+                                .accessibilityIdentifier("accountCollection.coupon.codeAuthority")
+                        } else {
+                            Text("accountCollection.coupon.readOnly")
+                                .accessibilityIdentifier("accountCollection.coupon.readOnly")
+                        }
                     } icon: { Image(systemName:"info.circle").accessibilityHidden(true) }
                     .font(.footnote).foregroundStyle(.secondary)
                 }
@@ -57,16 +73,26 @@ import SwiftUI
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button { Task { await load() } } label: { Label("accountCollection.refresh", systemImage: "arrow.clockwise") }
+                Button { model.schedule(request: offeredRequest, reader: reader, presentation: presentation) } label: { Label("accountCollection.refresh", systemImage: "arrow.clockwise") }
                     .disabled(model.isLoading || !reader.isAuthenticated || !reader.isConfigured)
                     .accessibilityIdentifier("accountCollection.coupon.detail.refresh")
             }
         }
-        .modifier(AccountCollectionReadLifecycle(key: key, refresh: load, cancel: model.cancelPending))
-    }
-    private func load() async {
-        guard reader.isAuthenticated, reader.isConfigured else { model.invalidate(); return }
-        let captured = key.scope
-        await model.load(scope: captured, currentScope: { reader.scope }) { try await reader.ownedCoupon(id: id) }
+        .onAppear {
+            guard let permit = appearance.begin(model: model, request: offeredRequest, foreground: scenePhase == .active) else { return }
+            model.schedule(request: offeredRequest, reader: reader, presentation: permit)
+        }
+        .onChange(of: key) { _, _ in
+            guard let permit = appearance.replace(model: model, request: offeredRequest, foreground: scenePhase == .active) else { return }
+            model.schedule(request: offeredRequest, reader: reader, presentation: permit)
+        }
+        .refreshable { await model.refresh(request: offeredRequest, reader: reader, presentation: presentation) }
+        .onChange(of: scenePhase) { _, phase in
+            model.setForeground(phase == .active, request: offeredRequest, reader: reader, presentation: presentation)
+        }
+        .onDisappear {
+            appearance.end(model: model)
+            if viewPresentation === appearance { viewPresentation = OwnedCouponReadViewPresentation() }
+        }
     }
 }

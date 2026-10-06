@@ -1,3 +1,4 @@
+from tools.tests.reviewed_feature_budget_history import before_reviewed_features, historical_pre_feature_ui_source
 """Exact run117-to-published-f128 inverse; live source and costs are checked separately."""
 from copy import deepcopy
 from pathlib import Path
@@ -9,6 +10,7 @@ SOURCE_SHA256 = {'ClubStoryFlowTests': '2ab6488d5df1a96e325edf80e28bc38c766a7359
 
 def canonical(value):return hashlib.sha256(json.dumps(value,sort_keys=True,separators=(',',':')).encode()).hexdigest()
 def before_run117_repairs(profile):
+    profile=before_reviewed_features(profile)
     result=deepcopy(profile)
     plan=result['planning_budget'].get('run117_repair_replan')
     if plan is None:
@@ -27,7 +29,7 @@ def before_run117_repairs(profile):
     return result
 
 def historical_run117_ui_source(path):
-    path=Path(path)
+    path=historical_pre_feature_ui_source(Path(path))
     case=path.name.removesuffix('.swift.txt') if path.name.endswith('.swift.txt') else path.stem
     if case not in SOURCE_SHA256:return path
     result=ROOT/'tools/tests/fixtures/run117_published_sources'/(case+'.swift.txt')

@@ -1,3 +1,5 @@
+from tools.tests.reviewed_feature_budget_history import before_reviewed_features, materialize_historical_pre_feature_ui, historical_pre_feature_workflow, HISTORICAL_SHARD_COUNT
+import tempfile
 """Current repair planning retains full costs and exactly reconstructs published history."""
 from copy import deepcopy
 from decimal import Decimal
@@ -10,11 +12,16 @@ REPLACEMENTS={'ClubStoryFlowTests.testChapterSwitchAndExpansionResetKeepEachPlay
 LEXICAL_ONLY={'ClubStoryFlowTests.testGroupedStopsHaveHoursAddressAndChapterMetadata', 'IntegratedNativeAcceptanceFlowTests.testPhoneCancelLogoutAccountSwitchAndColdLaunchDoNotReuseOwnerState', 'IntegratedNativeAcceptanceFlowTests.testNormalRootIMHistoryDefaultNilNeverDispatches', 'ClubStoryFlowTests.testUnavailableAndInvalidSourcesDoNotOfferTemplateNavigation', 'IntegratedNativeAcceptanceFlowTests.testNormalRootIMHistoryNeverMarksReadOrSends', 'IntegratedNativeAcceptanceFlowTests.testNormalRootTeamReadOnlyJourney', 'MerchantOnboardingFlowTests.testUSIdentityGatePreventsPhotoAccessUploadAndSubmit', 'IntegratedNativeAcceptanceFlowTests.testConfiguredAuthenticationDoesNotGrantDetailMapPlayOrOwnedOrders'}
 class Run117RepairBudget(unittest.TestCase):
     def setUp(self):
-        self.profile=json.loads((ROOT/'tools/ui_duration_weights.json').read_text())
+        self.history_directory=tempfile.TemporaryDirectory()
+        self.addCleanup(self.history_directory.cleanup)
+        self.ui_root=materialize_historical_pre_feature_ui(self.history_directory.name)
+        self.profile=before_reviewed_features(json.loads((ROOT/'tools/ui_duration_weights.json').read_text()))
+        self.profile_path=Path(self.history_directory.name)/'profile.json'
+        self.profile_path.write_text(json.dumps(self.profile))
         self.prior=before_run117_repairs(self.profile)
         self.plan=self.profile['planning_budget']['run117_repair_replan']
         self.methods={};self.costs={}
-        for path in sorted((ROOT/'Tests/AppUITests').glob('*.swift')):
+        for path in sorted(self.ui_root.glob('*.swift')):
             source=path.read_text();names=re.findall(r'\bfunc\s+(test\w+)\s*\(',source)
             if not names:continue
             cases=re.findall(r'\bclass\s+(\w+)\s*:\s*XCTestCase\b',source)
@@ -32,16 +39,16 @@ class Run117RepairBudget(unittest.TestCase):
         for k in self.methods:self.assertGreaterEqual(self.effective(self.profile,k),self.effective(self.prior,k))
         for k,v in REPLACEMENTS.items():
             self.assertEqual(self.profile['estimated_method_seconds'][k],v);self.assertNotIn(k,self.profile['method_seconds'])
-        self.assertEqual((shard.DEFAULT_SHARD_COUNT,ci_gates.SHARD_COUNT,self.plan['shard_count']),(36, 36, 36))
+        self.assertEqual((HISTORICAL_SHARD_COUNT,HISTORICAL_SHARD_COUNT,self.plan['shard_count']),(36, 36, 36))
         self.assertEqual((self.plan['deadline_seconds'],self.plan['startup_reserve_seconds']),(1800,300))
         groups=shard.partition(self.costs,36)
-        self.assertEqual(groups,shard.partition(shard.measured_weights(ROOT/'Tests/AppUITests',ROOT/'tools/ui_duration_weights.json'),36))
+        self.assertEqual(groups,shard.partition(shard.measured_weights(self.ui_root,self.profile_path),36))
         flat=sum(groups,[]);self.assertEqual(len(flat),len(set(flat)));self.assertEqual(set(flat),set(self.costs))
         peak=max(sum(self.costs[c] for c in group)+300 for group in groups)
         self.assertEqual(peak,Decimal(str(self.plan['maximum_projected_seconds_with_reserve'])))
         self.assertLessEqual(peak,1800);self.assertLessEqual(max(self.costs.values()),1500)
         self.assertGreater(self.plan['forecasts']['35'],1800)
-        workflow=(ROOT/'.github/workflows/native-ios.yml').read_text()
+        workflow=historical_pre_feature_workflow().read_text()
         outputs=re.findall(r'^      shard_(\d+): \$\{\{ steps.completion.outputs.shard_(\d+) \}\}',workflow,re.M)
         self.assertEqual(outputs,[(str(i),str(i)) for i in range(self.plan['shard_count'])])
         self.assertIn('--count '+str(self.plan['shard_count'])+' ',workflow)
@@ -86,7 +93,7 @@ class Run117RepairBudget(unittest.TestCase):
     def test_all_twelve_geometry_file_methods_are_byte_preserved_and_only_four_call_the_changed_branch(self):
         declarations={}
         for case in ('ClubStoryFlowTests','TopicFlowTests'):
-            path=ROOT/'Tests/AppUITests'/(case+'.swift')
+            path=self.ui_root/(case+'.swift')
             def methods(source):
                 result={}
                 for m in re.finditer(r'    func (test\w+)\s*\(',source):
@@ -102,7 +109,7 @@ class Run117RepairBudget(unittest.TestCase):
         self.assertIn('private func gameplay() { app.segmentedControls["club.story.tabs"].buttons.element(boundBy: 1).tap() }',source)
     def test_shelf_and_diagnostic_methods_preserve_all_existing_business_statements(self):
         for case,count in [('IntegratedNativeAcceptanceFlowTests',6),('MerchantOnboardingFlowTests',3)]:
-            path=ROOT/'Tests/AppUITests'/(case+'.swift')
+            path=self.ui_root/(case+'.swift')
             def bodies(source):
                 result={}
                 for m in re.finditer(r'    func (test\w+)\s*\(',source):

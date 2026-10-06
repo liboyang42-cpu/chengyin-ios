@@ -4,7 +4,7 @@ import SwiftUI
 @MainActor final class AccountCollectionFixtureReader: AccountCollectionReading {
     enum Scenario: String {
         case content, empty, failure, couponFailure, favoriteFailure, pageFailure
-        case unauthorized, unconfigured, guest, unavailable, refreshed, sessionChange, postFailure, postPageFailure
+        case unauthorized, unconfigured, guest, unavailable, refreshed, sessionChange, codePresentation, postFailure, postPageFailure
     }
     let scenario: Scenario
     private(set) var scope = UUID()
@@ -72,6 +72,7 @@ import SwiftUI
 @MainActor struct AccountCollectionFixtureHostView: View {
     @State private var reader: AccountCollectionFixtureReader
     @State private var revision = 0
+    @State private var codeFixture = AccountCollectionCodeFixture()
     @State private var topicRoute: TopicRoute?
     @State private var postRoute: PostRoute?
     private struct TopicRoute: Identifiable { let id: Int }
@@ -82,15 +83,26 @@ import SwiftUI
         let raw = index.flatMap { arguments.indices.contains($0 + 1) ? arguments[$0 + 1] : nil }
         _reader = State(initialValue: AccountCollectionFixtureReader(scenario: raw.flatMap(AccountCollectionFixtureReader.Scenario.init(rawValue:)) ?? .content))
     }
+    private var codeFactory: (@MainActor (Int) -> CouponCodeCoordinator)? {
+        guard reader.scenario == .codePresentation else { return nil }
+        return { id in
+            CouponCodeCoordinator(historyID: id, service: codeFixture, currentSession: {
+                reader.isAuthenticated ? codeFixture.owner : nil
+            })
+        }
+    }
     var body: some View {
         VStack(spacing: 0) {
+            if reader.scenario == .codePresentation {
+                Text(verbatim: String(codeFixture.issues)).accessibilityIdentifier("ownedCoupon.fixture.issueCount")
+            }
             if reader.scenario == .sessionChange {
                 Button("accountCollection.fixture.signOut") { reader.signOut(); topicRoute = nil; postRoute = nil; revision += 1 }
                     .accessibilityIdentifier("accountCollection.fixture.signOut")
             }
             NavigationStack {
                 if reader.scenario == .unavailable || reader.scenario == .refreshed {
-                    AccountCollectionCouponDetailView(id: 701, reader: reader)
+                    AccountCollectionCouponDetailView(selection: .init(historyID: 701, ownerScope: reader.scope), reader: reader)
                 } else {
                     Form {
                         NavigationLink {
@@ -104,6 +116,7 @@ import SwiftUI
                     }.appNavigationTitle("accountCollection.title")
                 }
             }.id(revision)
+                .environment(\.couponCodeFactory, codeFactory)
         }
         .sheet(item: $topicRoute) { route in
             NavigationStack {
@@ -118,5 +131,21 @@ import SwiftUI
             }
         }
     }
+}
+/// Only the explicitly selected offline scenario offers a non-redeemable code fixture.
+@MainActor @Observable private final class AccountCollectionCodeFixture: CouponCodeServing {
+    let enabled = true
+    let owner = try! CouponCodeSession(accountID: 1, epoch: 1, namespace: "synthetic", role: "player", token: "synthetic-token")
+    private(set) var issues = 0
+    func issue(historyID: Int, session: CouponCodeSession) async throws -> CouponCodeReceipt {
+        guard historyID == 701, session == owner else { throw CouponCodeFailure.invalid }
+        issues += 1
+        return try JSONDecoder().decode(CouponCodeReceipt.self, from: Data(#"{"useStatus":0,"expiresIn":60,"token":"SYNTHETIC-NOT-REDEEMABLE","couponName":"Sample weekend benefit","description":"Offline current merchant terms"}"#.utf8))
+    }
+    func status(historyID: Int, session: CouponCodeSession) async throws -> OrderCouponStatus {
+        guard historyID == 701, session == owner else { throw CouponCodeFailure.invalid }
+        return try JSONDecoder().decode(OrderCouponStatus.self, from: Data(#"{"useStatus":0}"#.utf8))
+    }
+    func image(_ receipt: CouponCodeReceipt) async throws -> Data { throw CouponCodeFailure.mediaUnavailable }
 }
 #endif

@@ -87,6 +87,11 @@ extension KeychainTokenStore: AppTokenStorage {}
     let walletHistoryReadApproval: @MainActor (RuntimeDependencyContext) -> WalletHistoryReadApproval?
     let cityPlayerReadApproval: @MainActor (RuntimeDependencyContext) -> CityPlayerReadApproval?
     let teamReadApproval: @MainActor (RuntimeDependencyContext) -> TeamReadApproval?
+    let workshopPaidProfessionalReadApproval: @MainActor (RuntimeDependencyContext) -> WorkshopPaidProfessionalReadApproval?
+    let workshopPaidProfessionalWriteApproval: @MainActor (RuntimeDependencyContext) -> WorkshopPaidProfessionalWriteApproval?
+    let workshopPaidInstalledTextApproval: @MainActor (RuntimeDependencyContext) -> WorkshopPaidInstalledTextApproval?
+    let workshopPaidInstallApproval: @MainActor (RuntimeDependencyContext) -> WorkshopPaidInstallApproval?
+    let workshopPurchasedReadApproval: @MainActor (RuntimeDependencyContext) -> WorkshopPurchasedReadApproval?
     let workshopOwnedReadApproval: @MainActor (RuntimeDependencyContext) -> WorkshopOwnedReadApproval?
     let ownerDraftReadApproval: @MainActor (RuntimeDependencyContext) -> OwnerDraftReadApproval?
     let couponLocks: @MainActor () -> any CouponManagementLocking
@@ -104,6 +109,11 @@ extension KeychainTokenStore: AppTokenStorage {}
          walletHistoryReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> WalletHistoryReadApproval? = { _ in nil },
          cityPlayerReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> CityPlayerReadApproval? = { _ in nil },
          teamReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> TeamReadApproval? = { _ in nil },
+         workshopPaidProfessionalReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> WorkshopPaidProfessionalReadApproval? = { _ in nil },
+         workshopPaidProfessionalWriteApproval: @escaping @MainActor (RuntimeDependencyContext) -> WorkshopPaidProfessionalWriteApproval? = { _ in nil },
+         workshopPaidInstalledTextApproval: @escaping @MainActor (RuntimeDependencyContext) -> WorkshopPaidInstalledTextApproval? = { _ in nil },
+         workshopPaidInstallApproval: @escaping @MainActor (RuntimeDependencyContext) -> WorkshopPaidInstallApproval? = { _ in nil },
+         workshopPurchasedReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> WorkshopPurchasedReadApproval? = { _ in nil },
          workshopOwnedReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> WorkshopOwnedReadApproval? = { _ in nil },
          ownerDraftReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> OwnerDraftReadApproval? = { _ in nil },
          manualMapReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> ManualMapReadApproval? = { _ in nil },
@@ -117,6 +127,11 @@ extension KeychainTokenStore: AppTokenStorage {}
         self.walletHistoryReadApproval = walletHistoryReadApproval
         self.cityPlayerReadApproval = cityPlayerReadApproval
         self.teamReadApproval = teamReadApproval
+        self.workshopPaidProfessionalReadApproval = workshopPaidProfessionalReadApproval
+        self.workshopPaidProfessionalWriteApproval = workshopPaidProfessionalWriteApproval
+        self.workshopPaidInstalledTextApproval = workshopPaidInstalledTextApproval
+        self.workshopPaidInstallApproval = workshopPaidInstallApproval
+        self.workshopPurchasedReadApproval = workshopPurchasedReadApproval
         self.workshopOwnedReadApproval = workshopOwnedReadApproval
         self.ownerDraftReadApproval = ownerDraftReadApproval
         self.manualMapReadApproval = manualMapReadApproval
@@ -144,7 +159,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         return .available
     }
     func transport() -> CompositionHTTPTransport {
-        CompositionHTTPTransport(deployment: reviewed, underlying: makeTransport(), couponReadApproval: couponReadApproval, couponWriteApproval: couponWriteApproval, templateShelfReadApproval: templateShelfReadApproval, messagingHistoryReadApproval: messagingHistoryReadApproval, walletHistoryReadApproval: walletHistoryReadApproval, cityPlayerReadApproval: cityPlayerReadApproval, teamReadApproval: teamReadApproval, workshopOwnedReadApproval: workshopOwnedReadApproval, ownerDraftReadApproval: ownerDraftReadApproval, manualMapReadApproval: manualMapReadApproval, ownedOrderReadApproval: ownedOrderReadApproval)
+        CompositionHTTPTransport(deployment: reviewed, underlying: makeTransport(), couponReadApproval: couponReadApproval, couponWriteApproval: couponWriteApproval, templateShelfReadApproval: templateShelfReadApproval, messagingHistoryReadApproval: messagingHistoryReadApproval, walletHistoryReadApproval: walletHistoryReadApproval, cityPlayerReadApproval: cityPlayerReadApproval, teamReadApproval: teamReadApproval, workshopPaidProfessionalReadApproval: workshopPaidProfessionalReadApproval, workshopPaidProfessionalWriteApproval: workshopPaidProfessionalWriteApproval, workshopPaidInstalledTextApproval: workshopPaidInstalledTextApproval, workshopPaidInstallApproval: workshopPaidInstallApproval, workshopPurchasedReadApproval: workshopPurchasedReadApproval, workshopOwnedReadApproval: workshopOwnedReadApproval, ownerDraftReadApproval: ownerDraftReadApproval, manualMapReadApproval: manualMapReadApproval, ownedOrderReadApproval: ownedOrderReadApproval)
     }
     func makeSession() -> AppSession { AppSession(composition: self) }
 }
@@ -153,7 +168,8 @@ extension KeychainTokenStore: AppTokenStorage {}
 /// require a one-use confirmed dispatch ticket. Private home keeps its separate owner grant.
 /// All other paths stay closed.
 /// No device/provider work or authorization is inferred from a feature grant.
-@MainActor final class CompositionHTTPTransport: CouponManagementConfirmedHTTPTransport {
+@MainActor final class CompositionHTTPTransport: CouponManagementConfirmedHTTPTransport, WorkshopPaidInstallMutationTransport, WorkshopPaidProfessionalMutationTransport {
+    var workshopPaidInstallBeforeForward: (() async -> Void)?
     struct SessionIdentity: Equatable {
         let epoch: UInt64
         let accountID: Int?
@@ -201,6 +217,11 @@ extension KeychainTokenStore: AppTokenStorage {}
     private let templateShelfReadApproval: @MainActor (RuntimeDependencyContext) -> TemplateShelfReadApproval?
     private let cityPlayerReadApproval: @MainActor (RuntimeDependencyContext) -> CityPlayerReadApproval?
     private let teamReadApproval: @MainActor (RuntimeDependencyContext) -> TeamReadApproval?
+    private let workshopPaidProfessionalReadApproval: @MainActor (RuntimeDependencyContext) -> WorkshopPaidProfessionalReadApproval?
+    private let workshopPaidProfessionalWriteApproval: @MainActor (RuntimeDependencyContext) -> WorkshopPaidProfessionalWriteApproval?
+    private let workshopPaidInstalledTextApproval: @MainActor (RuntimeDependencyContext) -> WorkshopPaidInstalledTextApproval?
+    private let workshopPaidInstallApproval: @MainActor (RuntimeDependencyContext) -> WorkshopPaidInstallApproval?
+    private let workshopPurchasedReadApproval: @MainActor (RuntimeDependencyContext) -> WorkshopPurchasedReadApproval?
     private let workshopOwnedReadApproval: @MainActor (RuntimeDependencyContext) -> WorkshopOwnedReadApproval?
     private let ownerDraftReadApproval: @MainActor (RuntimeDependencyContext) -> OwnerDraftReadApproval?
     init(deployment: ReviewedAppDeployment?, underlying: any HTTPTransport,
@@ -211,6 +232,11 @@ extension KeychainTokenStore: AppTokenStorage {}
          walletHistoryReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> WalletHistoryReadApproval? = { _ in nil },
          cityPlayerReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> CityPlayerReadApproval? = { _ in nil },
          teamReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> TeamReadApproval? = { _ in nil },
+         workshopPaidProfessionalReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> WorkshopPaidProfessionalReadApproval? = { _ in nil },
+         workshopPaidProfessionalWriteApproval: @escaping @MainActor (RuntimeDependencyContext) -> WorkshopPaidProfessionalWriteApproval? = { _ in nil },
+         workshopPaidInstalledTextApproval: @escaping @MainActor (RuntimeDependencyContext) -> WorkshopPaidInstalledTextApproval? = { _ in nil },
+         workshopPaidInstallApproval: @escaping @MainActor (RuntimeDependencyContext) -> WorkshopPaidInstallApproval? = { _ in nil },
+         workshopPurchasedReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> WorkshopPurchasedReadApproval? = { _ in nil },
          workshopOwnedReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> WorkshopOwnedReadApproval? = { _ in nil },
          ownerDraftReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> OwnerDraftReadApproval? = { _ in nil },
          manualMapReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> ManualMapReadApproval? = { _ in nil },
@@ -222,6 +248,11 @@ extension KeychainTokenStore: AppTokenStorage {}
         self.walletHistoryReadApproval = walletHistoryReadApproval
         self.cityPlayerReadApproval = cityPlayerReadApproval
         self.teamReadApproval = teamReadApproval
+        self.workshopPaidProfessionalReadApproval = workshopPaidProfessionalReadApproval
+        self.workshopPaidProfessionalWriteApproval = workshopPaidProfessionalWriteApproval
+        self.workshopPaidInstalledTextApproval = workshopPaidInstalledTextApproval
+        self.workshopPaidInstallApproval = workshopPaidInstallApproval
+        self.workshopPurchasedReadApproval = workshopPurchasedReadApproval
         self.workshopOwnedReadApproval = workshopOwnedReadApproval
         self.deployment = deployment; self.underlying = underlying; self.ownerDraftReadApproval = ownerDraftReadApproval
         self.manualMapReadApproval = manualMapReadApproval; self.manualMapSelection = manualMapSelection
@@ -237,11 +268,12 @@ extension KeychainTokenStore: AppTokenStorage {}
     private func copy(underlying: any HTTPTransport, manualMapSelection: ManualMapAreaSelection?) -> CompositionHTTPTransport {
         let transport = CompositionHTTPTransport(deployment: deployment, underlying: underlying,
             couponReadApproval: couponReadApproval, couponWriteApproval: couponWriteApproval,
-            templateShelfReadApproval: templateShelfReadApproval, messagingHistoryReadApproval: messagingHistoryReadApproval, walletHistoryReadApproval: walletHistoryReadApproval, cityPlayerReadApproval: cityPlayerReadApproval, teamReadApproval: teamReadApproval, workshopOwnedReadApproval: workshopOwnedReadApproval, ownerDraftReadApproval: ownerDraftReadApproval, manualMapReadApproval: manualMapReadApproval,
+            templateShelfReadApproval: templateShelfReadApproval, messagingHistoryReadApproval: messagingHistoryReadApproval, walletHistoryReadApproval: walletHistoryReadApproval, cityPlayerReadApproval: cityPlayerReadApproval, teamReadApproval: teamReadApproval, workshopPaidProfessionalReadApproval: workshopPaidProfessionalReadApproval, workshopPaidProfessionalWriteApproval: workshopPaidProfessionalWriteApproval, workshopPaidInstalledTextApproval: workshopPaidInstalledTextApproval, workshopPaidInstallApproval: workshopPaidInstallApproval, workshopPurchasedReadApproval: workshopPurchasedReadApproval, workshopOwnedReadApproval: workshopOwnedReadApproval, ownerDraftReadApproval: ownerDraftReadApproval, manualMapReadApproval: manualMapReadApproval,
             manualMapSelection: manualMapSelection, ownedOrderReadApproval: ownedOrderReadApproval)
         // Retain the identity source across temporary clone chains. Its AppSession
         // callback is weak, so this does not retain or extend the signed-in session.
         transport.current = { self.current() }
+        transport.workshopPaidInstallBeforeForward = { if let barrier = self.workshopPaidInstallBeforeForward { await barrier() } }
         transport.couponBeforeForward = { if let barrier = self.couponBeforeForward { await barrier() } }
         // Forward the mutable selector itself: later installation or revocation on
         // the root must reach every existing scoped/replaced transport clone.
@@ -281,6 +313,47 @@ extension KeychainTokenStore: AppTokenStorage {}
         } catch {
             guard valid(), !Task.isCancelled else { throw CouponManagementError.changed }
             throw error
+        }
+    }
+    /// Independent one-use professional create/cancel dispatch; a read grant never reaches this path.
+    func sendWorkshopPaidProfessional(_ request: URLRequest, authorization: WorkshopPaidProfessionalDispatchAuthorization) async throws -> (Data, Int) {
+        guard let deployment, let api = deployment.regional.apiConfiguration, let captured = current(), captured.isSignedInContentViewer,
+              let account = captured.accountID, let role = captured.role, let token = captured.token,
+              let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token, role: role),
+              let route = WorkshopPaidProfessionalRequest.accepts(request, baseURL: api.baseURL), route == .submit || route == .cancel else { throw APIError.notConfigured }
+        let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+        guard let approval = workshopPaidProfessionalWriteApproval(context), approval.matches(context) else { throw APIError.notConfigured }
+        func valid() -> Bool {
+            guard current() == captured, let fresh = workshopPaidProfessionalWriteApproval(context) else { return false }
+            return fresh.revision == approval.revision && fresh.matches(context) && approval.matches(context)
+        }
+        try Task.checkCancellation(); guard valid() else { throw CancellationError() }
+        try authorization.consume(request, context: context, revision: approval.revision)
+        do {
+            let response = try await underlying.send(request)
+            try Task.checkCancellation(); guard valid() else { throw CancellationError() }; try authorization.validate(); return response
+        } catch {
+            guard valid(), !Task.isCancelled else { throw CancellationError() }; try authorization.validate(); throw error
+        }
+    }
+    /// Dedicated one-use paid private-install dispatch. Ordinary send never admits submit.
+    func sendWorkshopPaidInstall(_ request: URLRequest, authorization: WorkshopPaidInstallDispatchAuthorization) async throws -> (Data, Int) {
+        guard let deployment, let api = deployment.regional.apiConfiguration, let captured = current(), captured.isSignedInContentViewer,
+              let account = captured.accountID, let role = captured.role, let token = captured.token,
+              let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token),
+              WorkshopPaidInstallRequest.accepts(request, baseURL: api.baseURL) == .submit else { throw APIError.notConfigured }
+        let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+        guard let approval = workshopPaidInstallApproval(context), approval.matches(context) else { throw APIError.notConfigured }
+        func valid() -> Bool { current() == captured && workshopPaidInstallApproval(context)?.revision == approval.revision && approval.matches(context) }
+        if let workshopPaidInstallBeforeForward { await workshopPaidInstallBeforeForward() }
+        try Task.checkCancellation(); guard valid() else { throw CancellationError() }
+        try authorization.consume(request, context: context, revision: approval.revision)
+        // No suspension between one-use confirmation validation and underlying dispatch.
+        do {
+            let response = try await underlying.send(request)
+            try Task.checkCancellation(); guard valid() else { throw CancellationError() }; try authorization.validate(); return response
+        } catch {
+            guard valid(), !Task.isCancelled else { throw CancellationError() }; try authorization.validate(); throw error
         }
     }
     func send(_ request: URLRequest) async throws -> (Data, Int) {
@@ -440,6 +513,45 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard let approval = workshopOwnedReadApproval(context), approval.matches(context) else { throw APIError.notConfigured }
             readApprovalStillValid = { [workshopOwnedReadApproval] in
                 guard let fresh = workshopOwnedReadApproval(context) else { return false }
+                return fresh.revision == approval.revision && fresh.matches(context)
+            }
+        } else if let route = WorkshopPaidProfessionalRequest.accepts(request, baseURL: api.baseURL), route != .submit && route != .cancel {
+            guard captured.isSignedInContentViewer, let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let approval = workshopPaidProfessionalReadApproval(context), approval.matches(context) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [workshopPaidProfessionalReadApproval] in
+                guard let fresh = workshopPaidProfessionalReadApproval(context) else { return false }
+                return fresh.revision == approval.revision && fresh.matches(context)
+            }
+        } else if WorkshopPaidInstalledTextRequest.accepts(request, baseURL: api.baseURL) {
+            guard captured.isSignedInContentViewer, let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let approval = workshopPaidInstalledTextApproval(context), approval.matches(context) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [workshopPaidInstalledTextApproval] in
+                guard let fresh = workshopPaidInstalledTextApproval(context) else { return false }
+                return fresh.revision == approval.revision && fresh.matches(context)
+            }
+        } else if let route = WorkshopPaidInstallRequest.accepts(request, baseURL: api.baseURL), route != .submit {
+            guard captured.isSignedInContentViewer, let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let approval = workshopPaidInstallApproval(context), approval.matches(context) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [workshopPaidInstallApproval] in
+                guard let fresh = workshopPaidInstallApproval(context) else { return false }
+                return fresh.revision == approval.revision && fresh.matches(context)
+            }
+        } else if WorkshopPurchasedReadRoute(request: request, baseURL: api.baseURL) != nil {
+            guard captured.isSignedInContentViewer,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL,
+                role: role, session: session)
+            guard let approval = workshopPurchasedReadApproval(context), approval.matches(context) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [workshopPurchasedReadApproval] in
+                guard let fresh = workshopPurchasedReadApproval(context) else { return false }
                 return fresh.revision == approval.revision && fresh.matches(context)
             }
         } else if let route = OwnerDraftReadRoute(url: url, baseURL: api.baseURL) {

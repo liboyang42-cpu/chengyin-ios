@@ -1,0 +1,934 @@
+{
+  "sourceLanguage": "zh-Hans",
+  "strings": {
+    "workshopPaidInstall.entry": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安装与恢复记录"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Install and recovery records"
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.entryScope": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安装需要单独启用。拥有记录不会直接授权安装或购买。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installation must be separately enabled. Ownership metadata does not enable installation or checkout."
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.notConfigured": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安装服务尚未配置。当前不会提交安装请求。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The installation service is not configured. No install request is submitted."
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.scope": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅把所购版本复制到私有工坊草稿。不会修改专业作品、发布内容或开启游戏。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy only the purchased version into a private Workshop draft. This does not edit a professional project, publish content, or start a game."
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.sessionChanged": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账号或授权已变化，请重新进入。未确认的安装结果会按原账号保留。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your account or approval changed. Reopen this page. Unconfirmed operations remain scoped to the original account."
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.submitting": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在提交原确认…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submitting the confirmed request…"
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.unknownNote": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭此页不代表安装取消。请保留原请求编号，检查结果或按原确认重试，避免重复安装。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Closing this page does not cancel an installation. Check the original request or retry that exact confirmation to avoid duplicates."
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.loading": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在读取目标与安装记录…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading targets and installation records…"
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.confirmNote": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认后会创建一个私有工坊副本。本次不付款、不改动目标正文；仍需后续专业目标绑定，才能继续编辑与发布。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirmation creates a private Workshop copy. It does not charge you or modify the target content. Professional target materialization is still required for editing and publication."
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.confirm": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认创建私有副本"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm private copy"
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.cancelReview": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回修改选择"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to selection"
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.storageBlocked": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法安全保存或恢复原请求，已阻止提交。已有记录不会被覆盖。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original request could not be safely saved or restored. Submission is blocked and existing records are preserved."
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.readOrOutcomeUnavailable": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法确认读取或安装结果。请刷新或检查原请求，不要当作安装失败。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The read or installation outcome is not confirmed. Refresh or check the original request; do not assume it failed."
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.refresh": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh"
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.request": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请求编号"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request ID"
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.checkOutcome": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查原请求结果"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check original request"
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.reviewSameRequest": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看原确认并重试"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review and retry original confirmation"
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.pending": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待确认结果"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unconfirmed outcome"
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.installed": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已创建私有工坊副本"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Private Workshop copy created"
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.ownedDraft": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "私有工坊草稿编号"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Private Workshop draft ID"
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.installedAt": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建时间"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Created at"
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.materializationRequired": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "副本尚未转换为专业编辑器模板，也未发布。安装编号不能作为玩法模板编号使用。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The copy has not been materialized as a professional editor template or published. An installation ID is not a play template ID."
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.result": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安装结果"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installation outcome"
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.noHistory": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无已保存的安装请求。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No saved installation requests."
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.moreHistory": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下一页安装记录"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next records page"
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.history": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求与恢复记录"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original requests and recovery"
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.close": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.title": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所购版本安装"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Install purchased version"
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.inactive": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前授权记录不可用于新安装；既有安装记录仍可查看。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This license is not active for a new installation. Existing records remain viewable."
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.targetsUnavailable": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目标草稿暂不可读取。未提交新的安装。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Target drafts are unavailable. No new installation was submitted."
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.noTargets": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有可用的自有目标草稿。此处不会自动创建或修改专业作品。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No eligible owner draft is available. This page does not create or modify a professional project automatically."
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.chooseTarget": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择目标"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a target"
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.unresolvedMode": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩法模式尚未绑定。主题或活动类型不能代替城市定向／自由探索模式确认。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gameplay mode is unresolved. A topic or activity storage type does not establish city-orientation or free-exploration mode."
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.chooseRegion": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择授权范围内的地区"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a licensed region"
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.regionPlanningOnly": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这是规划地区，不代表定位、门店同意或玩家准入。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is a planning region, not location proof, merchant consent, or player admission."
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.commercial": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此次用途包含商业使用"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This use is commercial"
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.review": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看本次确认"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review confirmation"
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.moreTargets": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下一页目标"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next targets page"
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.targets": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择自有目标草稿"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose an owner draft"
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.target": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目标草稿编号"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Target draft ID"
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.targetHash": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目标内容校验值"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Target payload hash"
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.license": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "授权记录编号"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "License record ID"
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.version": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所购冻结版本"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frozen purchased version"
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.sourceHash": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "源版本校验值"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source content hash"
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.targetRevision": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目标修订号"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Target revision"
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.businessType": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目标存储类型"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Target storage type"
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.region": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次规划地区"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Planning region"
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.commercialYes": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商业用途：是，仍以冻结条款为准"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Commercial use: yes, subject to frozen terms"
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.commercialNo": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商业用途：否"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Commercial use: no"
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.confirmation": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次明确确认"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explicit confirmation"
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.state.NOT_FOUND": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未查到原请求，不能据此断言未提交。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original request is not visible yet. This does not prove it was never submitted."
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.state.PREPARED": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原确认已保存，尚未确认安装完成。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The confirmation is saved; installation is not confirmed."
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.state.RESERVED": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已预留安装，尚未确认副本完成。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An installation hold exists; the copy is not yet confirmed."
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.state.EXPIRED": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次安装预留已到期，不代表长期授权到期。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This installation hold expired; it does not expire the durable license."
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.state.CANCELLED": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次安装预留已取消。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This installation hold was cancelled."
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.state.FAILED": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次安装预留已终止。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This installation hold was terminated."
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.state.INSTALLED_PRIVATE_DRAFT": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已创建私有工坊副本。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Private Workshop copy created."
+          }
+        }
+      }
+    },
+    "workshopPaidInstall.termsHash": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "冻结条款校验值"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frozen terms hash"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

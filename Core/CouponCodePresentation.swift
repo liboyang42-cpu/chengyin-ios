@@ -10,10 +10,12 @@ public struct CouponCodeSession: Equatable {
     public let epoch: UInt64
     public let namespace: String
     public let role: String
+    /// Local identity generation; never serialized into coupon API requests.
+    public let viewerRevision: UInt64
     let token: String
-    public init(accountID: Int, epoch: UInt64, namespace: String, role: String, token: String) throws {
+    public init(accountID: Int, epoch: UInt64, namespace: String, role: String, token: String, viewerRevision: UInt64 = 0) throws {
         guard accountID > 0, !namespace.isEmpty, !role.isEmpty, AuthRequestBuilder.isValidToken(token) else { throw CouponCodeFailure.invalid }
-        self.accountID = accountID; self.epoch = epoch; self.namespace = namespace; self.role = role; self.token = token
+        self.accountID = accountID; self.epoch = epoch; self.namespace = namespace; self.role = role; self.token = token; self.viewerRevision = viewerRevision
     }
 }
 /// Issuance receipt only. Never Codable for persistence; neither list metadata nor an
@@ -108,6 +110,22 @@ public struct CouponCodeReceipt: Decodable {
     }
 }
 
+/// Coupon-code presentation only. It is not a reward claim, coupon receipt or redemption grant.
+@MainActor public final class CouponCodePresentationPermit {
+    public let id = UUID()
+    fileprivate let owner: CouponCodeSession?
+    fileprivate let historyID: Int
+    fileprivate var active = true
+    fileprivate init(owner: CouponCodeSession?, historyID: Int) { self.owner = owner; self.historyID = historyID }
+}
+@MainActor public final class CouponCodeActionPermit {
+    fileprivate enum Kind: Equatable { case confirmation, retry, resume }
+    fileprivate let presentation: CouponCodePresentationPermit
+    fileprivate let kind: Kind
+    fileprivate var active = true
+    fileprivate init(presentation: CouponCodePresentationPermit, kind: Kind) { self.presentation = presentation; self.kind = kind }
+}
+
 @available(macOS 14.0, *)
 @MainActor @Observable public final class CouponCodeCoordinator {
     public enum Phase: String { case review, loading, ready, waiting, failed, disabled, login, used, expired, invalid, unavailable, stale, paused }
@@ -127,6 +145,13 @@ public struct CouponCodeReceipt: Decodable {
     private let now: () -> Date
     private let onUnauthorized: (CouponCodeSession) -> Void
     private var owner: CouponCodeSession?
+    private let selectedOwner: CouponCodeSession?
+    public private(set) var presentation: CouponCodePresentationPermit?
+    private var actionOffer: CouponCodeActionPermit?
+    private var foregroundOffer: CouponCodeActionPermit?
+    private var usesPresentationLifecycle = false
+    private var disposed = false
+    private var suspended = false
     private var generation: UInt64 = 0
     private var active = false
     private var consent = false
@@ -139,54 +164,150 @@ public struct CouponCodeReceipt: Decodable {
     public init(historyID: Int, service: any CouponCodeServing, currentSession: @escaping () -> CouponCodeSession?, now: @escaping () -> Date = Date.init,
                 onUnauthorized: @escaping (CouponCodeSession) -> Void = { _ in }) {
         self.historyID = historyID; self.service = service; self.currentSession = currentSession; self.now = now; self.onUnauthorized = onUnauthorized
+        selectedOwner = currentSession()
     }
     public var enabled: Bool { service.enabled }
     public var ownerIsCurrent: Bool { owner != nil && owner == currentSession() }
     public var canDisplay: Bool {
-        ownerIsCurrent && active && !terminal && phase == .ready && receipt?.useStatus == 0 &&
+        service.enabled && ownerIsCurrent && active && !terminal && phase == .ready && receipt?.useStatus == 0 &&
         receipt?.hasStarted(at: now()) == true && expiry.map({ $0 > now() }) == true
+    }
+    /// Called synchronously by the owning view, never by a deferred confirmation task.
+    @discardableResult public func beginPresentation() -> CouponCodePresentationPermit? {
+        invalidate(); usesPresentationLifecycle = true
+        guard selectedOwner == currentSession() else { phase = .stale; return nil }
+        disposed = false; suspended = false; phase = .review
+        let permit = CouponCodePresentationPermit(owner: selectedOwner, historyID: historyID)
+        presentation = permit; return permit
+    }
+    /// A late close from an earlier screen must not dispose a newly reviewed presentation.
+    @discardableResult public func endPresentation(presentation permit: CouponCodePresentationPermit?) -> Bool {
+        guard let permit, presentation === permit else { return false }
+        invalidate(); return true
+    }
+    private func owns(_ permit: CouponCodePresentationPermit?) -> Bool {
+        guard let permit else { return false }
+        return !disposed && permit.active && presentation === permit && permit.historyID == historyID &&
+            permit.owner == selectedOwner && selectedOwner == currentSession()
+    }
+    private func validateCurrentPresentation(_ permit: CouponCodePresentationPermit?) -> Bool {
+        guard let permit, !disposed, permit.active, presentation === permit else { return false }
+        guard selectedOwner == currentSession() else { invalidate(); phase = .stale; return false }
+        return owns(permit)
+    }
+    /// The confirmation button captures its offered permit before creating a Task.
+    public func offerConfirmation(presentation permit: CouponCodePresentationPermit?) -> CouponCodeActionPermit? {
+        guard validateCurrentPresentation(permit), !suspended, !consent, phase == .review, let permit else { return nil }
+        actionOffer?.active = false
+        let offer = CouponCodeActionPermit(presentation: permit, kind: .confirmation); actionOffer = offer
+        return offer
+    }
+    public func offerRetry(presentation permit: CouponCodePresentationPermit?) -> CouponCodeActionPermit? {
+        guard validateCurrentPresentation(permit), !suspended, active, consent, !terminal, let permit else { return nil }
+        actionOffer?.active = false
+        let offer = CouponCodeActionPermit(presentation: permit, kind: .retry); actionOffer = offer
+        return offer
+    }
+    private func admit(_ permit: CouponCodeActionPermit, kind: CouponCodeActionPermit.Kind) -> Bool {
+        guard !Task.isCancelled, permit.active, actionOffer === permit, permit.kind == kind,
+              validateCurrentPresentation(permit.presentation), !suspended else { return false }
+        permit.active = false; actionOffer = nil; return true
+    }
+    public func confirmPresentation(permit: CouponCodeActionPermit) async {
+        guard admit(permit, kind: .confirmation) else { return }; await performConfirmation(presentation: permit.presentation)
+    }
+    public func retry(permit: CouponCodeActionPermit) async {
+        guard admit(permit, kind: .retry) else { return }; await performRetry(presentation: permit.presentation)
+    }
+    public func pause(presentation permit: CouponCodePresentationPermit?) {
+        guard validateCurrentPresentation(permit) else { return }; performPause()
+    }
+    /// Capture foreground intent synchronously. A queued foreground task cannot undo a later pause.
+    public func offerResume(presentation permit: CouponCodePresentationPermit?) -> CouponCodeActionPermit? {
+        guard validateCurrentPresentation(permit), let permit else { return nil }
+        foregroundOffer?.active = false; suspended = false
+        let offer = CouponCodeActionPermit(presentation: permit, kind: .resume); foregroundOffer = offer
+        return offer
+    }
+    public func resume(permit: CouponCodeActionPermit) async {
+        guard !Task.isCancelled, permit.active, foregroundOffer === permit, permit.kind == .resume,
+              validateCurrentPresentation(permit.presentation), !suspended else { return }
+        permit.active = false; foregroundOffer = nil
+        await performResume(presentation: permit.presentation)
+    }
+    public func tick(presentation permit: CouponCodePresentationPermit?) async {
+        guard !Task.isCancelled, validateCurrentPresentation(permit), !suspended else { return }; await performTick(presentation: permit)
+    }
+    // Existing non-view call sites retain their original review semantics, but an invalidated
+    // coordinator can never be revived through these unscoped compatibility methods.
+    public func confirmPresentation() async {
+        guard !usesPresentationLifecycle, !disposed else { return }; await performConfirmation()
+    }
+    public func retry() async { guard !usesPresentationLifecycle, !disposed else { return }; await performRetry() }
+    public func tick() async { guard !usesPresentationLifecycle, !disposed else { return }; await performTick() }
+    public func pause() { guard !usesPresentationLifecycle, !disposed else { return }; performPause() }
+    public func resume() async {
+        guard !usesPresentationLifecycle, !disposed else { return }; suspended = false; await performResume()
     }
     /// Accessor only returns a server-issued token while its owner and lifetime are current.
     public var displayToken: String? { canDisplay ? receipt?.token : nil }
-    public func confirmPresentation() async {
+    private func performConfirmation(presentation expected: CouponCodePresentationPermit? = nil) async {
+        guard !usesPresentationLifecycle || owns(expected) else { return }
+        guard !disposed, !suspended, !Task.isCancelled else { return }
         guard !consent, historyID > 0 else { if historyID <= 0 { phase = .invalid }; return }
         guard let session = currentSession() else { phase = .login; return }
+        guard selectedOwner == session else { phase = .stale; return }
         guard service.enabled else { phase = .disabled; return }
         owner = session; consent = true; active = true; terminal = false
-        generation &+= 1; nextPoll = now().addingTimeInterval(5); await refresh()
+        generation &+= 1; nextPoll = now().addingTimeInterval(5); await refresh(presentation: expected)
     }
-    public func retry() async {
-        guard active, consent, !terminal else { return }; await refresh()
+    private func performRetry(presentation expected: CouponCodePresentationPermit? = nil) async {
+        guard !usesPresentationLifecycle || owns(expected) else { return }
+        guard active, consent, !terminal else { return }; await refresh(presentation: expected)
     }
     /// Called once per second by a cancellable view task; no timer survives dismissal.
-    public func tick() async {
+    private func performTick(presentation expected: CouponCodePresentationPermit? = nil) async {
+        guard !usesPresentationLifecycle || owns(expected) else { return }
         guard active, consent, !terminal else { return }
         guard ownerIsCurrent else { invalidate(); phase = .stale; return }
+        guard service.enabled else { invalidate(); phase = .disabled; return }
         let date = now()
         remainingSeconds = expiry.map { max(0, Int($0.timeIntervalSince(date).rounded(.down))) } ?? 0
         if let expiry, date >= expiry { imageBytes = nil; receipt = nil; phase = .loading }
-        if date >= nextPoll { nextPoll = date.addingTimeInterval(5); await poll() }
+        if date >= nextPoll { nextPoll = date.addingTimeInterval(5); await poll(presentation: expected) }
         guard active, !terminal else { return }
-        if date >= nextIssue { await refresh() }
+        if date >= nextIssue { await refresh(presentation: expected) }
     }
-    public func pause() {
+    private func performPause() {
+        actionOffer?.active = false; actionOffer = nil
+        foregroundOffer?.active = false; foregroundOffer = nil; suspended = true
         guard active else { return }
         generation &+= 1; active = false; issuing = false; polling = false
         imageBytes = nil; receipt = nil; expiry = nil; remainingSeconds = 0
         if !terminal { phase = .paused }
     }
-    public func resume() async {
+    private func performResume(presentation expected: CouponCodePresentationPermit? = nil) async {
+        guard !usesPresentationLifecycle || owns(expected) else { return }
         guard consent, !active, !terminal else { return }
         guard ownerIsCurrent else { invalidate(); phase = .stale; return }
-        active = true; generation &+= 1; nextPoll = now().addingTimeInterval(5); await refresh()
+        active = true; generation &+= 1; nextPoll = now().addingTimeInterval(5); await refresh(presentation: expected)
     }
     public func invalidate() {
+        presentation?.active = false; presentation = nil
+        actionOffer?.active = false; actionOffer = nil
+        foregroundOffer?.active = false; foregroundOffer = nil
+        disposed = true; suspended = false
         generation &+= 1; active = false; consent = false; owner = nil; terminal = false
         issuing = false; polling = false; receipt = nil; imageBytes = nil; expiry = nil; remainingSeconds = 0; useTime = nil; couponName = nil; couponDescription = nil; endTime = nil
     }
-    private func current(_ stamp: UInt64) -> Bool { generation == stamp && active && ownerIsCurrent && !Task.isCancelled && !terminal }
-    private func refresh() async {
-        guard !issuing, !terminal, active, let owner, ownerIsCurrent else { return }
+    private func current(_ stamp: UInt64) -> Bool {
+        generation == stamp && active && ownerIsCurrent && service.enabled && !Task.isCancelled && !terminal &&
+        !disposed && (!usesPresentationLifecycle || (presentation?.active == true && !suspended))
+    }
+    private func refresh(presentation expected: CouponCodePresentationPermit? = nil) async {
+        guard !usesPresentationLifecycle || owns(expected) else { return }
+        guard !Task.isCancelled, !disposed, !suspended, !issuing, !terminal, active, let owner, ownerIsCurrent else { return }
+        guard service.enabled else { invalidate(); phase = .disabled; return }
         let stamp = generation, requestedAt = now(); issuing = true; phase = .loading; issue = nil
         receipt = nil; imageBytes = nil; expiry = nil; remainingSeconds = 0
         defer { if generation == stamp { issuing = false } }
@@ -207,8 +328,10 @@ public struct CouponCodeReceipt: Decodable {
             guard current(stamp) else { return }; phase = .ready; pollDelayed = false
         } catch { fail(error, stamp: stamp, polling: false) }
     }
-    private func poll() async {
-        guard !polling, let owner else { return }
+    private func poll(presentation expected: CouponCodePresentationPermit? = nil) async {
+        guard !usesPresentationLifecycle || owns(expected) else { return }
+        guard !Task.isCancelled, !disposed, !suspended, active, !terminal, !polling, let owner, ownerIsCurrent else { return }
+        guard service.enabled else { invalidate(); phase = .disabled; return }
         let stamp = generation; polling = true
         defer { if generation == stamp { polling = false } }
         do {

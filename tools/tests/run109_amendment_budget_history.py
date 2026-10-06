@@ -1,3 +1,4 @@
+from tools.tests.reviewed_feature_budget_history import source_index
 """Exact accepted-173 timing/source history. Never used by the live UI runner.
 
 Two published test sources and one accepted public-code source preserve the historical assertions
@@ -42,4 +43,4 @@ def historical_ui_source(directory, case):
     return path
 
 def historical_ui_sources(directory):
-    return [historical_ui_source(directory,p.stem) for p in sorted(Path(directory).glob('*.swift')) if p.stem not in MOVED_CLASSES]
+    return [historical_ui_source(directory,Path(name).stem) for name in source_index()['baseline_ui_filenames'] if Path(name).stem not in MOVED_CLASSES]

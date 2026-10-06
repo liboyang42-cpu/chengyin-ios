@@ -40,7 +40,9 @@ class IntegratedNativeAcceptanceContracts(unittest.TestCase):
             self.assertNotIn(forbidden, source)
 
     def test_bounded_ui_cases_use_phone_inputs_and_normal_destinations(self):
-        source = (self.read('Tests/AppUITests/IntegratedNativeAcceptanceFlowTests.swift') + '\n' + self.read('Tests/AppUITests/IntegratedActivityPlayJourneyFlowTests.swift'))
+        source = (self.read('Tests/AppUITests/IntegratedNativeAcceptanceFlowTests.swift') + '\n' +
+                  self.read('Tests/AppUITests/IntegratedActivityPlayJourneyFlowTests.swift') + '\n' +
+                  self.read('Tests/AppUITests/IntegratedDeniedAcceptanceFlowTests.swift'))
         self.assertEqual(len(re.findall(r'func\s+test\w+\(', source)), 8)
         for required in ['auth.channels.sendCode', 'auth.channels.phoneSignIn', 'homeFeed.nearby.activity.21', 'roam.area.select',
                          'activity.openPlay', 'profile.open.orders', 'profile.order.41',

@@ -14,7 +14,8 @@ class CouponNoticeSurfaceChecks(unittest.TestCase):
             self.assertIn('couponManagement.notice.\\(surface.rawValue).'+kind,s)
             self.assertNotIn('.accessibilityIdentifier("couponManagement.'+kind+'")',s)
     def test_assertions_target_editor_then_owned_detail_without_first_match(self):
-        runtime=self.read('Tests/AppUITests/CouponRuntimeFlowTests.swift')
+        runtime=(self.read('Tests/AppUITests/CouponRuntimeFlowTests.swift') + '\n' +
+                 self.read('Tests/AppUITests/CouponRuntimeChineseFlowTests.swift'))
         recovery=self.read('Tests/AppUITests/CouponCommandRecoveryFlowTests.swift')
         self.assertIn('couponManagement.notice.editor.readback',runtime)
         self.assertIn('couponManagement.notice.detail.readback',runtime)
@@ -35,7 +36,8 @@ class CouponNoticeSurfaceChecks(unittest.TestCase):
         self.assertIn('XCTAssertEqual(code.value as? String, "123456")',s)
         self.assertIn('waitForExistence(timeout: 8), app.debugDescription',s)
     def test_runtime_journeys_and_recovery_method_are_preserved(self):
-        runtime=self.read('Tests/AppUITests/CouponRuntimeFlowTests.swift')
+        runtime=(self.read('Tests/AppUITests/CouponRuntimeFlowTests.swift') + '\n' +
+                 self.read('Tests/AppUITests/CouponRuntimeChineseFlowTests.swift'))
         recovery=self.read('Tests/AppUITests/CouponCommandRecoveryFlowTests.swift')
         self.assertEqual(len(re.findall(r'func test\w+',runtime)),6)
         self.assertEqual(len(re.findall(r'func test\w+',recovery)),1)

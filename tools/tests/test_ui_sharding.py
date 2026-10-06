@@ -1,3 +1,4 @@
+from tools.tests.reviewed_feature_budget_history import historical_pre_feature_ui_source
 from tools.tests.run109_amendment_budget_history import before_run109_amendments
 import importlib.util
 import pathlib
@@ -131,7 +132,7 @@ class UIShardingTests(unittest.TestCase):
                     module.measured_weights(root,profile)
     def test_trial_profile_preserves_estimate_provenance_and_all_shard_coverage(self):
         data=json.loads((module.ROOT/'tools/ui_duration_weights.json').read_text())
-        self.assertEqual(module.DEFAULT_SHARD_COUNT,36)
+        self.assertEqual(module.DEFAULT_SHARD_COUNT,38)
         self.assertEqual(data['unobserved_method_seconds'],60)
         records=data['estimate_provenance']['methods']
         self.assertEqual(data['estimate_provenance']['baseline_estimate_count'],23)
@@ -203,7 +204,7 @@ class UIShardingTests(unittest.TestCase):
         self.assertNotIn(retired,{record['method'] for record in data['estimate_provenance']['methods']})
         for method,seconds in expected.items():
             case,name=method.split('.')
-            source=(module.ROOT/'Tests/AppUITests'/(case+'.swift')).read_text()
+            source=historical_pre_feature_ui_source(module.ROOT/'Tests/AppUITests'/(case+'.swift')).read_text()
             self.assertRegex(source,r'\bfunc\s+'+re.escape(name)+r'\s*\(')
             self.assertEqual(data['estimated_method_seconds'][method],seconds)
             self.assertNotIn(method,data['method_seconds'])
@@ -228,7 +229,7 @@ class UIShardingTests(unittest.TestCase):
         self.assertEqual(sum(expected.values()),1380)
         for method,seconds in expected.items():
             case,name=method.split('.')
-            source=(module.ROOT/'Tests/AppUITests'/(case+'.swift')).read_text()
+            source=historical_pre_feature_ui_source(module.ROOT/'Tests/AppUITests'/(case+'.swift')).read_text()
             self.assertRegex(source,r'\bfunc\s+'+re.escape(name)+r'\s*\(')
             self.assertEqual(data['estimated_method_seconds'][method],seconds)
             self.assertNotIn(method,data['method_seconds'])

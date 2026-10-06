@@ -125,6 +125,70 @@ import FoundationNetworking
         let model = CouponCodeCoordinator(historyID: 71, service: api, currentSession: { owner })
         await model.confirmPresentation(); XCTAssertEqual(model.phase, .waiting); XCTAssertFalse(model.canDisplay); XCTAssertNil(model.displayToken)
     }
+    func testRoleABAGenerationCannotRedisplayCachedCodeWithoutAnInterveningTick() async throws {
+        let api = CouponCodeFixtureService(receipt: try receipt())
+        var owner = try CouponCodeSession(accountID: 1, epoch: 1, namespace: "synthetic-cn", role: "player", token: "synthetic-token", viewerRevision: 1)
+        let old = CouponCodeCoordinator(historyID: 71, service: api, currentSession: { owner })
+        let oldPresentation = try XCTUnwrap(old.beginPresentation())
+        await old.confirmPresentation(permit: try XCTUnwrap(old.offerConfirmation(presentation: oldPresentation)))
+        XCTAssertTrue(old.canDisplay); XCTAssertNotNil(old.displayToken)
+        owner = try .init(accountID: 1, epoch: 1, namespace: "synthetic-cn", role: "merchant", token: "synthetic-token", viewerRevision: 2)
+        owner = try .init(accountID: 1, epoch: 1, namespace: "synthetic-cn", role: "player", token: "synthetic-token", viewerRevision: 3)
+        // No tick/pause/current-session read occurred between the two identity changes.
+        XCTAssertFalse(old.canDisplay); XCTAssertNil(old.displayToken)
+        await old.tick(presentation: oldPresentation)
+        XCTAssertEqual(old.phase, .stale); XCTAssertNil(old.receipt); XCTAssertNil(old.imageBytes)
+        let fresh = CouponCodeCoordinator(historyID: 71, service: api, currentSession: { owner })
+        let presentation = try XCTUnwrap(fresh.beginPresentation())
+        await fresh.confirmPresentation(permit: try XCTUnwrap(fresh.offerConfirmation(presentation: presentation)))
+        XCTAssertTrue(fresh.canDisplay); XCTAssertNotNil(fresh.displayToken); XCTAssertEqual(api.issues, 2)
+    }
+    func testRoleABAGenerationRejectsQueuedConfirmationAndOldReopen() async throws {
+        let api = CouponCodeFixtureService(receipt: try receipt())
+        var owner = try CouponCodeSession(accountID: 1, epoch: 1, namespace: "synthetic-cn", role: "player", token: "synthetic-token", viewerRevision: 1)
+        let model = CouponCodeCoordinator(historyID: 71, service: api, currentSession: { owner })
+        let presentation = try XCTUnwrap(model.beginPresentation())
+        let queued = try XCTUnwrap(model.offerConfirmation(presentation: presentation))
+        owner = try .init(accountID: 1, epoch: 1, namespace: "synthetic-cn", role: "merchant", token: "synthetic-token", viewerRevision: 2)
+        owner = try .init(accountID: 1, epoch: 1, namespace: "synthetic-cn", role: "player", token: "synthetic-token", viewerRevision: 3)
+        await model.confirmPresentation(permit: queued)
+        XCTAssertEqual(api.issues, 0); XCTAssertEqual(model.phase, .stale)
+        XCTAssertNil(model.beginPresentation()); XCTAssertNil(model.displayToken)
+    }
+    func testRoleABAGenerationDropsLateUnauthorizedButCurrentUnauthorizedStillApplies() async throws {
+        let api = CouponCodeSuspendedIssueService()
+        var owner = try CouponCodeSession(accountID: 1, epoch: 1, namespace: "synthetic-cn", role: "player", token: "synthetic-token", viewerRevision: 1)
+        var unauthorized = 0
+        let old = CouponCodeCoordinator(historyID: 71, service: api, currentSession: { owner }, onUnauthorized: { _ in unauthorized += 1 })
+        let started = expectation(description: "old issue suspended"); api.onIssue = { started.fulfill() }
+        let task = Task { await old.confirmPresentation() }
+        await fulfillment(of: [started], timeout: 2)
+        owner = try .init(accountID: 1, epoch: 1, namespace: "synthetic-cn", role: "merchant", token: "synthetic-token", viewerRevision: 2)
+        owner = try .init(accountID: 1, epoch: 1, namespace: "synthetic-cn", role: "player", token: "synthetic-token", viewerRevision: 3)
+        api.failUnauthorized(); await task.value
+        XCTAssertEqual(unauthorized, 0); XCTAssertNil(old.displayToken); XCTAssertNil(old.receipt)
+        let current = CouponCodeCoordinator(historyID: 71, service: api, currentSession: { owner }, onUnauthorized: { _ in unauthorized += 1 })
+        let currentStarted = expectation(description: "current issue suspended"); api.onIssue = { currentStarted.fulfill() }
+        let currentTask = Task { await current.confirmPresentation() }
+        await fulfillment(of: [currentStarted], timeout: 2); api.failUnauthorized(); await currentTask.value
+        XCTAssertEqual(unauthorized, 1); XCTAssertEqual(current.phase, .login)
+    }
+    func testViewerGenerationRemainsLocalAndDoesNotChangeCouponIssueFields() async throws {
+        let transport = CouponCodeTestTransport { _ in
+            (Data(#"{"code":200,"data":{"useStatus":0,"expiresIn":60,"token":"SYNTHETIC"}}"#.utf8), 200)
+        }
+        let service = CouponCodeHTTPService(configuration: try .init(baseURL: URL(string: "https://example.test")!), transport: transport, enabled: true)
+        let revised = try CouponCodeSession(accountID: 1, epoch: 1, namespace: "synthetic-cn", role: "player", token: "synthetic-token", viewerRevision: 8)
+        _ = try await service.issue(historyID: 71, session: revised)
+        let request = try XCTUnwrap(transport.requests.first)
+        XCTAssertEqual(request.url?.path, "/api/coupon/qr-token")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "synthetic-token")
+        let body = String(decoding: try XCTUnwrap(request.httpBody), as: UTF8.self)
+        XCTAssertTrue(body.contains("name=\"couponHistoryId\"")); XCTAssertTrue(body.contains("\r\n71\r\n"))
+        XCTAssertFalse(body.contains("viewerRevision")); XCTAssertFalse(body.contains("name=\"couponId\""))
+        XCTAssertEqual(try session().viewerRevision, 0) // Existing initializer call sites remain source-compatible.
+    }
+
 }
 @MainActor private final class CouponCodeFixtureService: CouponCodeServing {
     var enabled = true
@@ -146,4 +210,16 @@ private final class CouponCodeTestTransport: HTTPTransport {
     let operation: @MainActor (URLRequest) async throws -> (Data, Int)
     init(_ operation: @escaping @MainActor (URLRequest) async throws -> (Data, Int)) { self.operation = operation }
     func send(_ request: URLRequest) async throws -> (Data, Int) { requests.append(request); return try await operation(request) }
+}
+
+@MainActor private final class CouponCodeSuspendedIssueService: CouponCodeServing {
+    let enabled = true
+    var onIssue: (() -> Void)?
+    private var continuation: CheckedContinuation<CouponCodeReceipt, Error>?
+    func issue(historyID: Int, session: CouponCodeSession) async throws -> CouponCodeReceipt {
+        try await withCheckedThrowingContinuation { continuation = $0; onIssue?() }
+    }
+    func failUnauthorized() { let pending = continuation; continuation = nil; pending?.resume(throwing: CouponCodeFailure.unauthorized) }
+    func status(historyID: Int, session: CouponCodeSession) async throws -> OrderCouponStatus { throw CouponCodeFailure.failed }
+    func image(_ receipt: CouponCodeReceipt) async throws -> Data { throw CouponCodeFailure.mediaUnavailable }
 }

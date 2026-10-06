@@ -11,14 +11,21 @@ private final class OfficialTestTransport: HTTPTransport {
     init(_ json: String = #"{"code":200,"data":[]}"#, status: Int = 200) { self.json = json; self.status = status }
     func send(_ request: URLRequest) async throws -> (Data, Int) { requests.append(request); return (Data(json.utf8), status) }
 }
-private final class OfficialSuspendedTransport: HTTPTransport {
-    var continuation: CheckedContinuation<(Data, Int), Error>?
-    var requests: [URLRequest] = []
+private actor OfficialSuspendedTransport: HTTPTransport {
+    private var continuation: CheckedContinuation<(Data, Int), Error>?
+    private(set) var requests: [URLRequest] = []
     func send(_ request: URLRequest) async throws -> (Data, Int) {
         requests.append(request)
         return try await withCheckedThrowingContinuation { continuation = $0 }
     }
-    func finish(_ json: String, status: Int = 200) { continuation?.resume(returning: (Data(json.utf8), status)); continuation = nil }
+    // The service runs off MainActor. Keep registration, readiness and completion
+    // on one executor instead of racing the test's read against send's write.
+    func waitForRequest() async { while continuation == nil { await Task.yield() } }
+    func finish(_ json: String, status: Int = 200) {
+        let pending = continuation
+        continuation = nil
+        pending?.resume(returning: (Data(json.utf8), status))
+    }
 }
 final class OfficialEventTests: XCTestCase {
     private func decode<T: Decodable>(_ type: T.Type, _ json: String) throws -> T { try JSONDecoder().decode(type, from: Data(json.utf8)) }
@@ -233,10 +240,10 @@ final class OfficialEventTests: XCTestCase {
                 let reader = OfficialSessionReader(service: try service(t), currentContext: { current }, onUnauthorized: { _ in expirations += 1 })
                 let scope = reader.scope
                 let task = Task { try await reader.myEvents() }
-                while t.continuation == nil { await Task.yield() }
+                await t.waitForRequest()
                 current = next
                 XCTAssertNotEqual(scope, reader.scope)
-                t.finish(unauthorized ? #"{"code":401}"# : #"{"code":200,"data":[]}"#)
+                await t.finish(unauthorized ? #"{"code":401}"# : #"{"code":200,"data":[]}"#)
                 do { _ = try await task.value; XCTFail("Stale completion accepted") } catch { XCTAssertTrue(error is CancellationError) }
                 XCTAssertEqual(expirations, 0)
             }
@@ -247,9 +254,9 @@ final class OfficialEventTests: XCTestCase {
         let t = OfficialSuspendedTransport()
         let reader = OfficialSessionReader(service: try service(t), currentContext: { current })
         let task = Task { try await reader.events() }
-        while t.continuation == nil { await Task.yield() }
+        await t.waitForRequest()
         current = OfficialReadContext(guestEpoch: 3) // Host advanced epoch for intervening login/logout.
-        t.finish(#"{"code":200,"data":[]}"#)
+        await t.finish(#"{"code":200,"data":[]}"#)
         do { _ = try await task.value; XCTFail() } catch { XCTAssertTrue(error is CancellationError) }
     }
     @MainActor func testCancelledReadNeverExpiresCurrentSession() async throws {
@@ -257,10 +264,25 @@ final class OfficialEventTests: XCTestCase {
         let t = OfficialSuspendedTransport(); var expirations = 0
         let reader = OfficialSessionReader(service: try service(t), currentContext: { context }, onUnauthorized: { _ in expirations += 1 })
         let task = Task { try await reader.myEvents() }
-        while t.continuation == nil { await Task.yield() }
-        task.cancel(); t.finish(#"{"code":401}"#)
+        await t.waitForRequest()
+        task.cancel(); await t.finish(#"{"code":401}"#)
         do { _ = try await task.value; XCTFail() } catch { XCTAssertTrue(error is CancellationError) }
         XCTAssertEqual(expirations, 0)
+    }
+    func testSuspendedTransportConsumesEachReplyOnceAndCanBeReused() async throws {
+        let transport = OfficialSuspendedTransport()
+        let request = URLRequest(url: URL(string: "https://example.com/test/")!)
+        for (json, status) in [(#"{"code":401}"#, 401), (#"{"code":200,"data":[]}"#, 200)] {
+            let task = Task { try await transport.send(request) }
+            await transport.waitForRequest()
+            await transport.finish(json, status: status)
+            await transport.finish("duplicate must not resume the same continuation", status: 500)
+            let (data, receivedStatus) = try await task.value
+            XCTAssertEqual(data, Data(json.utf8))
+            XCTAssertEqual(receivedStatus, status)
+        }
+        let requests = await transport.requests
+        XCTAssertEqual(requests.count, 2)
     }
     @MainActor func testCurrent401ExpiresExactlyTheCapturedContext() async throws {
         let context = try OfficialReadContext(accountID: 1, epoch: 7, token: "synthetic")

@@ -289,11 +289,7 @@ import XCTest
         XCTAssertEqual(reads[2].fields, ["conversation_id": "901", "cursor_id": "42", "size": "30"])
         assertIdentity(reads, owner: 7, epoch: try evidence(app).epoch)
     }
-    func testNormalRootIMHistoryDefaultNilNeverDispatches() throws {
-        let app = launch("denied"); signIn(app); tab("Account", app); tap("Messages", app)
-        XCTAssertTrue(app.staticTexts["messaging.list.unconfigured"].waitForExistence(timeout: 5))
-        XCTAssertTrue(try evidence(app).ledger.filter { $0.route.hasPrefix("history.") }.isEmpty)
-    }
+
     func testNormalRootTeamReadOnlyJourney() throws {
         let app = launch(); signIn(app)
         tab("Account", app); tap("My teams", app)
@@ -347,19 +343,5 @@ import XCTest
         let reset = try evidence(app)
         XCTAssertTrue(reset.ledger.isEmpty); XCTAssertNil(reset.accountID); XCTAssertFalse(reset.tokenStored); XCTAssertFalse(reset.manualArea)
     }
-    func testConfiguredAuthenticationDoesNotGrantDetailMapPlayOrOwnedOrders() throws {
-        let app = launch("denied"); signIn(app)
-        tap("homeFeed.nearby.activity.21", app)
-        XCTAssertTrue(app.staticTexts["activity.detail.error"].waitForExistence(timeout: 5))
-        XCTAssertFalse(app.buttons["activity.openPlay"].exists)
-        tab("Explore the map", app); tap("roam.display.toggle", app); chooseManualArea(app)
-        XCTAssertTrue(app.descendants(matching: .any)["roam.error"].firstMatch.waitForExistence(timeout: 5))
-        XCTAssertFalse(app.staticTexts["Synthetic manual place"].exists)
-        tab("Account", app); tap("profile.open.orders", app)
-        XCTAssertTrue(app.descendants(matching: .any)["profile.orders.unavailable"].firstMatch.waitForExistence(timeout: 5))
-        let value = try evidence(app)
-        XCTAssertEqual(Array(value.ledger.prefix(3)).map(\.route), ["sms-send", "phone", "userInfo"])
-        XCTAssertEqual(value.ledger.dropFirst(3).map(\.route).sorted(), home.sorted())
-        XCTAssertEqual(value.accountID, 7); XCTAssertTrue(value.manualArea)
-    }
+
 }

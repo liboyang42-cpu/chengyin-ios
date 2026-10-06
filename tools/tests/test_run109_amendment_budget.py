@@ -1,3 +1,5 @@
+from tools.tests.reviewed_feature_budget_history import before_reviewed_features, materialize_historical_pre_feature_ui, historical_pre_feature_workflow, HISTORICAL_SHARD_COUNT
+import tempfile
 from tools.tests.run114_repair_budget_history import before_run114_repairs, historical_run114_ui_source
 """Current exhaustive planning, real observation provenance and exact older history."""
 from copy import deepcopy
@@ -9,10 +11,13 @@ from tools.tests.run109_amendment_budget_history import before_run109_amendments
 ROOT=Path(__file__).resolve().parents[2]
 class Run109AmendmentBudget(unittest.TestCase):
     def setUp(self):
+        self.history_directory=tempfile.TemporaryDirectory()
+        self.addCleanup(self.history_directory.cleanup)
+        self.ui_root=materialize_historical_pre_feature_ui(self.history_directory.name)
         self.profile=before_run114_repairs(json.loads((ROOT/'tools/ui_duration_weights.json').read_text()))
         self.plan=self.profile['planning_budget']['run109_amendment_replan']
         self.methods={};self.costs={}
-        for path in sorted((ROOT/'Tests/AppUITests').glob('*.swift')):
+        for path in sorted((self.ui_root).glob('*.swift')):
             path=historical_run114_ui_source(path)
             source=path.read_text();names=re.findall(r'\bfunc\s+(test\w+)\s*\(',source)
             if not names:continue
@@ -25,7 +30,7 @@ class Run109AmendmentBudget(unittest.TestCase):
     def test_all_660_methods_execute_once_across_102_direct_classes(self):
         self.assertEqual((len(self.methods),len(self.costs)),(660,102))
         self.assertEqual(set(self.methods),set(self.plan['current_inventory']))
-        self.assertEqual(sum(shard.discover(ROOT/'Tests/AppUITests').values()),660)
+        self.assertEqual(sum(shard.discover(self.ui_root).values()),660)
         self.assertEqual(hashlib.sha256('\n'.join(sorted(self.methods)).encode()).hexdigest(),self.plan['current_inventory_sha256'])
         old=before_run109_amendments(self.profile);old_ids=set(old['planning_budget']['reviewed_native_functional_replan']['baseline_inventory'])
         old_ids.update(old['planning_budget']['reviewed_native_functional_replan']['new_methods'])

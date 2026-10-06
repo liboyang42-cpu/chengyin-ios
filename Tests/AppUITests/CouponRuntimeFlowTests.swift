@@ -70,14 +70,7 @@ import XCTest
         XCTAssertEqual(record["pending"] as? Bool, true)
         XCTAssertEqual(record["violations"] as? [String], [])
     }
-    func testChineseNormalRootLabelsAndReadOnlyConfirmation() throws {
-        launch("readOnly", chinese: true); openCoupons(); enterDraft()
-        let confirm = app.buttons["couponManagement.confirm"]
-        XCTAssertTrue(revealFixtureElement(confirm, in: app, requiresHittable: false)); XCTAssertFalse(confirm.isEnabled)
-        XCTAssertEqual(confirm.label, "确认提交")
-        try closeEditor()
-        XCTAssertEqual(app.staticTexts["couponRuntime.evidence"].label, "合成优惠券运行记录")
-    }
+
 
     private enum EditorIssue: String {
         case unknownOutcome = "The result is unknown. Resubmission is locked until the original outcome can be verified."

@@ -2,13 +2,19 @@ import SwiftUI
 
 @MainActor struct AccountCollectionCouponsView: View {
     let reader: any AccountCollectionReading
-    @StateObject private var model = AccountCollectionScreenModel<[AccountCollectionCoupon]>()
+    @StateObject private var model = OwnedCouponReadScreenModel()
+    @State private var viewPresentation = OwnedCouponReadViewPresentation()
+    @Environment(\.scenePhase) private var scenePhase
     @State private var filter = AccountCollectionCouponFilter.all
     @State private var searchText = ""
     @State private var submittedQuery = ""
     private var key: AccountCollectionLoadKey { AccountCollectionLoadKey(reader: reader, query: submittedQuery) }
+    private var request: OwnedCouponReadRequest { .list(ownerScope: key.scope, keyword: submittedQuery.isEmpty ? nil : submittedQuery) }
     var body: some View {
-        List {
+        let appearance = viewPresentation
+        let presentation = appearance.permit
+        let offeredRequest = request
+        return List {
             if reader.isOfflineExample { Text("accountCollection.offlineExample").font(.caption) }
             if !reader.isAuthenticated { AccountCollectionIssueView(issue: .login) }
             else if !reader.isConfigured { AccountCollectionIssueView(issue: .notConfigured) }
@@ -18,10 +24,10 @@ import SwiftUI
                         Text(LocalizedStringKey("accountCollection.coupons.filter." + option.rawValue)).tag(option)
                     }
                 }.pickerStyle(.menu).accessibilityIdentifier("accountCollection.coupons.filter")
-                if model.isLoading || model.loadedScope != key.scope { ProgressView("accountCollection.loading") }
-                else if let issue = model.issue(scope: key.scope) {
-                    AccountCollectionIssueView(issue: issue, retry: { Task { await load() } })
-                } else if let coupons = model.value(scope: key.scope) {
+                if model.isLoading || model.loadedRequest != offeredRequest { ProgressView("accountCollection.loading") }
+                else if let issue = model.issue(for: offeredRequest) {
+                    AccountCollectionIssueView(issue: issue, retry: { model.schedule(request: offeredRequest, reader: reader, presentation: presentation) })
+                } else if let coupons = model.rows(for: offeredRequest) {
                     let rows = coupons.filter { filter.includes($0) }
                     if rows.isEmpty {
                         if filter == .all, submittedQuery.isEmpty {
@@ -32,9 +38,11 @@ import SwiftUI
                                                    description: Text("accountCollection.coupons.filteredEmptyHint"))
                         }
                     }
-                    ForEach(Array(rows.enumerated()), id: \.offset) { _, coupon in
+                    let selections = model.selections(for: offeredRequest, filter: filter)
+                    ForEach(Array(rows.enumerated()), id: \.offset) { index, coupon in
+                        let selection = selections[index]
                         NavigationLink {
-                            AccountCollectionCouponDetailView(id: coupon.id, reader: reader)
+                            AccountCollectionCouponDetailView(selection: selection, reader: reader).id(selection.id)
                         } label: { AccountCollectionCouponRow(coupon: coupon) }
                         .buttonStyle(QuestifyCardButtonStyle())
                         .accessibilityIdentifier("accountCollection.coupon.\(coupon.id)")
@@ -52,18 +60,27 @@ import SwiftUI
         }
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button { Task { await load() } } label: { Label("accountCollection.refresh", systemImage: "arrow.clockwise") }
+                Button { model.schedule(request: offeredRequest, reader: reader, presentation: presentation) } label: { Label("accountCollection.refresh", systemImage: "arrow.clockwise") }
                     .disabled(model.isLoading || !reader.isAuthenticated || !reader.isConfigured)
                     .accessibilityIdentifier("accountCollection.coupons.refresh")
             }
         }
-        .modifier(AccountCollectionReadLifecycle(key: key, refresh: load, cancel: model.cancelPending))
-    }
-    private func load() async {
-        guard reader.isAuthenticated, reader.isConfigured else { model.invalidate(); return }
-        let captured = key.scope
-        let keyword = submittedQuery.isEmpty ? nil : submittedQuery
-        await model.load(scope: captured, currentScope: { reader.scope }) { try await reader.ownedCoupons(keyword: keyword) }
+        .onAppear {
+            guard let permit = appearance.begin(model: model, request: offeredRequest, foreground: scenePhase == .active) else { return }
+            model.schedule(request: offeredRequest, reader: reader, presentation: permit)
+        }
+        .onChange(of: key) { _, _ in
+            guard let permit = appearance.replace(model: model, request: offeredRequest, foreground: scenePhase == .active) else { return }
+            model.schedule(request: offeredRequest, reader: reader, presentation: permit)
+        }
+        .refreshable { await model.refresh(request: offeredRequest, reader: reader, presentation: presentation) }
+        .onChange(of: scenePhase) { _, phase in
+            model.setForeground(phase == .active, request: offeredRequest, reader: reader, presentation: presentation)
+        }
+        .onDisappear {
+            appearance.end(model: model)
+            if viewPresentation === appearance { viewPresentation = OwnedCouponReadViewPresentation() }
+        }
     }
 }
 

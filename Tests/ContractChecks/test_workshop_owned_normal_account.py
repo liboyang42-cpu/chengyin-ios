@@ -15,16 +15,17 @@ class WorkshopOwnedNormalAccountContractTests(unittest.TestCase):
         text = self.read('App/AppSession.swift')
         self.assertIn('private let workshopOwnedBinding = WorkshopOwnedSessionBinding()', text)
         self.assertIn('workshopOwnedBinding.reconcile(context: context, configurationRevision: approval?.revision)', text)
-        self.assertIn('workshopOwnedBinding.invalidate()\n        workshopReadConfigurationChanging = true\n        change()\n        workshopReadConfigurationChanging = false\n        workshopReadConfigurationRevision &+= 1', text)
+        self.assertIn('invalidateWorkshopReadBindings()\n        workshopReadConfigurationChanging = true\n        change()\n        workshopReadConfigurationChanging = false\n        workshopReadConfigurationRevision &+= 1', text)
+        self.assertIn('private func invalidateWorkshopReadBindings() { workshopPaidProfessionalBinding.invalidate(); workshopOwnedBinding.invalidate(); workshopPurchasedBinding.invalidate(); workshopPaidInstallBinding.invalidate(); workshopPaidInstalledTextBinding.invalidate() }', text)
         self.assertIn('transport: compositionTransport', text)
         self.assertIn('self.workshopReadConfigurationRevision == configurationRevision', text)
     def test_every_gate_mutation_invalidates_before_it_changes(self):
         lines = self.read('App/AppSession.swift').splitlines()
         for i, line in enumerate(lines):
             if 'gate.invalidate()' in line or 'let operation=gate.begin(' in line:
-                self.assertIn('workshopOwnedBinding.invalidate()', lines[i-1])
+                self.assertIn('invalidateWorkshopReadBindings()', lines[i-1])
             if 'if gate.cancelLogin()' in line:
-                self.assertIn('gate.activeKind == .login { workshopOwnedBinding.invalidate() }', lines[i-1])
+                self.assertIn('gate.activeKind == .login { invalidateWorkshopReadBindings() }', lines[i-1])
         self.assertIn('willSet { if account?.id != newValue?.id', '\n'.join(lines))
         self.assertIn('willSet { if token.map', '\n'.join(lines))
     def test_root_lifetime_is_separate_from_list_close(self):
