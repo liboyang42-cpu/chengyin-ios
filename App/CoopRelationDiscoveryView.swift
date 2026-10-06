@@ -33,7 +33,7 @@ extension EnvironmentValues {
     let reader: any CoopFlowReading
     var profiles: CoopRelationProfileContext? = nil
     var displayContext = CoopRelationDisplayContext()
-    @State private var model = CoopRelationDiscoveryModel()
+    @State private var model: CoopRelationDiscoveryModel
     @State private var tab: CoopRelationDiscoveryKind = .merchants
     @StateObject private var presentation: CoopRelationPresentationOwner
     @State private var loadedKey: LoadKey?
@@ -46,9 +46,9 @@ extension EnvironmentValues {
     private var key: LoadKey { .init(reader: ObjectIdentifier(reader), session: reader.session, scope: profiles?.scope, context: displayContext) }
     init(reader: any CoopFlowReading, profiles: CoopRelationProfileContext? = nil,
          displayContext: CoopRelationDisplayContext = .init(),
-         model: CoopRelationDiscoveryModel = .init(), presentation: CoopRelationPresentationOwner? = nil) {
+         model: CoopRelationDiscoveryModel? = nil, presentation: CoopRelationPresentationOwner? = nil) {
         self.reader = reader; self.profiles = profiles; self.displayContext = displayContext
-        _model = State(initialValue: model)
+        _model = State(initialValue: model ?? .init())
         _presentation = StateObject(wrappedValue: presentation ?? .init(identityChanges: profiles?.identityChanges))
     }
     var body: some View {

@@ -11392,6 +11392,7 @@
 				"018EB28B372D646C14C562F8",
 				"50DC4B290A84A7AE25F40550",
 				"FB8064E66CBB5F22E226652C",
+				"9E2827EE563E975CA1B065BF",
 				"9AD7425760BA5CEC11440FEA",
 				"4EE44CE616CE9371DB4F2141",
 				"7A1F84577F51C75F1188BC80",
@@ -14011,6 +14012,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "FB8064E66CBB5F22E226652C";
 		};
+		"9E2827EE563E975CA1B065BF" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/CoopRelationDiscoveryInitializationTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"3640D66558E9B18BC593979D" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "9E2827EE563E975CA1B065BF";
+		};
 		"9AD7425760BA5CEC11440FEA" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -14846,6 +14857,7 @@
 				"A6C5B38B6813011CDAE2A1B1",
 				"1CC4808D9FEF86AE36533F86",
 				"239333F2EA8D03BA7D88FFB5",
+				"3640D66558E9B18BC593979D",
 				"1C26F270353B7360937FCEC7",
 				"86898719785B6EB1E7947BE2",
 				"97A521A15DC48DFF235F9F3C",

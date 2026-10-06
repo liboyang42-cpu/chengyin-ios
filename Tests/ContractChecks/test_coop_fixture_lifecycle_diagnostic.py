@@ -19,6 +19,19 @@ class CoopFixtureLifecycleDiagnosticChecks(unittest.TestCase):
 
     def test_release_view_tokens_match_the_explicit_presentation_owner_increment(self):
         source = (ROOT / 'App/CoopRelationDiscoveryView.swift').read_text()
+        # Reverse only the reviewed actor-initialization repair before checking the
+        # original owner/lifetime Release tokens. No other production change is allowed.
+        replacements = [
+            ('@State private var model: CoopRelationDiscoveryModel',
+             '@State private var model = CoopRelationDiscoveryModel()'),
+            ('model: CoopRelationDiscoveryModel? = nil, presentation:',
+             'model: CoopRelationDiscoveryModel = .init(), presentation:'),
+            ('_model = State(initialValue: model ?? .init())',
+             '_model = State(initialValue: model)'),
+        ]
+        for current, original in replacements:
+            self.assertEqual(source.count(current), 1)
+            source = source.replace(current, original)
         stripped = re.sub(r'(?ms)^\s*#if DEBUG\s*\n.*?^\s*#endif\s*$', '', source)
         normalized = re.sub(r'\s+', '', stripped)
         # The earlier diagnostic-only c2d2/f128 source had hash

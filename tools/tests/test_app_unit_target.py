@@ -49,7 +49,7 @@ class AppUnitTargetTests(unittest.TestCase):
         by_name = {self.objects[c]['name']: self.objects[c]['buildSettings'] for c in configs}
         self.assertEqual(by_name['Debug'].get('SWIFT_ACTIVE_COMPILATION_CONDITIONS'), 'DEBUG $(inherited)')
         self.assertNotIn('SWIFT_ACTIVE_COMPILATION_CONDITIONS', by_name['Release'])
-        for filename, expected in [('ClubCommunityLifecycleTests.swift', 3), ('MerchantPublicFactoryAppTests.swift', 4), ('CoopRelationPresentationOwnerTests.swift', 5), ('CoopRelationProfileReadTests.swift', 4)]:
+        for filename, expected in [('ClubCommunityLifecycleTests.swift', 3), ('MerchantPublicFactoryAppTests.swift', 4), ('CoopRelationPresentationOwnerTests.swift', 5), ('CoopRelationProfileReadTests.swift', 4), ('CoopRelationDiscoveryInitializationTests.swift', 2)]:
             source = (ROOT/'Tests/AppUnitTests'/filename).read_text()
             guarded = source.split('#if DEBUG', 1)[1].split('#endif', 1)[0]
             self.assertEqual(len(re.findall(r'\bfunc\s+test\w+\s*\(', guarded)), expected)
