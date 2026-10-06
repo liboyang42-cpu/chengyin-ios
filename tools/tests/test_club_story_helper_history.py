@@ -1,7 +1,7 @@
 import hashlib
 from pathlib import Path
 import unittest
-from tools.tests.club_story_helper_history import before_horizontal_chapter_query, OLD_HELPER_SHA256, CURRENT_HELPER_SHA256
+from tools.tests.club_story_helper_history import before_horizontal_chapter_query, OLD_HELPER_SHA256, CURRENT_HELPER_SHA256, PREVIOUS_HELPER_SHA256
 ROOT = Path(__file__).resolve().parents[2]
 class ClubStoryHelperHistory(unittest.TestCase):
     def helper(self, case):
@@ -16,6 +16,14 @@ class ClubStoryHelperHistory(unittest.TestCase):
         self.assertEqual(before_horizontal_chapter_query(original), original)
     def test_weakened_visibility_duplicate_query_or_removed_swipe_is_rejected(self):
         source = self.helper('ClubStoryFlowTests')
+        previous=(ROOT/'tools/tests/fixtures/run114_published_sources/ClubStoryFlowTests.swift.txt').read_text()
+        previous=previous[previous.index('    private var app:'):previous.index('    func test')]
+        self.assertEqual(hashlib.sha256(previous.encode()).hexdigest(), PREVIOUS_HELPER_SHA256)
+        # Original reviewed swipe negative controls remain against their original bytes.
         for old, new in [('visible.contains(frame)', 'visible.intersects(frame)'), ('matches.count == 1', 'matches.count >= 1'), ('scroller.swipeRight()', 'scroller.swipeLeft()')]:
+            self.assertIn(old, previous)
+            with self.assertRaises(AssertionError): before_horizontal_chapter_query(previous.replace(old,new))
+        # New adaptive implementation must retain exact geometry and actual gesture.
+        for old,new in [('visible.contains(frame)','visible.intersects(frame)'),('matches.count == 1','matches.count >= 1'),('start.press(forDuration: 0.05, thenDragTo: end)','start.tap()'),('visible.minX - frame.minX + 8','0')]:
             self.assertIn(old, source)
-            with self.assertRaises(AssertionError): before_horizontal_chapter_query(source.replace(old, new))
+            with self.assertRaises(AssertionError):before_horizontal_chapter_query(source.replace(old,new))

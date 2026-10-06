@@ -44,6 +44,18 @@ class AppUnitTargetTests(unittest.TestCase):
         self.assertEqual(self.unit['productType'], 'com.apple.product-type.bundle.unit-test')
         self.assertEqual(self.objects[self.unit['productReference']]['path'], TARGET + '.xctest')
 
+    def test_unit_debug_discovers_debug_fixture_regressions_without_enabling_release(self):
+        configs = self.objects[self.unit['buildConfigurationList']]['buildConfigurations']
+        by_name = {self.objects[c]['name']: self.objects[c]['buildSettings'] for c in configs}
+        self.assertEqual(by_name['Debug'].get('SWIFT_ACTIVE_COMPILATION_CONDITIONS'), 'DEBUG $(inherited)')
+        self.assertNotIn('SWIFT_ACTIVE_COMPILATION_CONDITIONS', by_name['Release'])
+        for filename, expected in [('ClubCommunityLifecycleTests.swift', 3), ('MerchantPublicFactoryAppTests.swift', 1)]:
+            source = (ROOT/'Tests/AppUnitTests'/filename).read_text()
+            guarded = source.split('#if DEBUG', 1)[1].split('#endif', 1)[0]
+            self.assertEqual(len(re.findall(r'\bfunc\s+test\w+\s*\(', guarded)), expected)
+        for filename in ['ContentDraftDeviceStorageAcceptanceTests.swift', 'PlayRecoveryDeviceStorageAcceptanceTests.swift']:
+            self.assertIn('#if os(iOS) && !targetEnvironment(simulator)', (ROOT/'Tests/AppUnitTests'/filename).read_text())
+
     def test_authored_methods_are_not_silently_removed_or_filtered(self):
         inventory = {p.stem: re.findall(r'func\s+(test\w+)\s*\(', p.read_text())
                      for p in (ROOT / 'Tests/AppUnitTests').rglob('*.swift')}
@@ -110,8 +122,8 @@ class AppUnitTargetTests(unittest.TestCase):
         self.assertIn('simctl bootstatus', job)
         self.assertEqual(workflow.count('-only-testing:' + TARGET), 1)
         self.assertIn('run: swift test', workflow)
-        self.assertIn('shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]', workflow)
-        self.assertIn('--count 32', workflow)
+        self.assertIn('shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33]', workflow)
+        self.assertIn('--count 34', workflow)
 
     def test_generation_is_deterministic_and_committed_outputs_match(self):
         paths = ['project.pbxproj', 'xcshareddata/xcschemes/Questify.xcscheme', f'xcshareddata/xcschemes/{TARGET}.xcscheme']

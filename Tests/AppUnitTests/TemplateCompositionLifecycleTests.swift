@@ -1,6 +1,38 @@
 import XCTest
 @testable import Questify
 
+#if DEBUG
+@MainActor final class TemplateCompositionInputProbeTests: XCTestCase {
+    private func session(_ accountID: Int = 901) throws -> TemplateAuthoringSession {
+        try .init(accountID: accountID, namespace: "composition-lifecycle-fixture", epoch: 1, authorizationRevision: "member")
+    }
+    func testSyntheticInputProbeRecordsAcceptedSetterWithoutChangingDraftOnInspection() throws {
+        let owner = try session(), coordinator = TemplateAuthoringCoordinator(store: .init(storage: TemplateAuthoringMemoryStorage()), currentSession: { owner })
+        coordinator.open(seed: TemplateAuthoringSyntheticFixtures.compoundDraft())
+        let model = TemplateAuthoringModel(coordinator: coordinator); model.load()
+        XCTAssertTrue(model.gameInputProbe(.coin).contains("attempts=0"))
+        model.setGameEnabled(.coin, false)
+        let expected = model.draft, persisted = coordinator.draft, report = model.gameInputProbe(.coin)
+        XCTAssertTrue(report.contains("attempts=1")); XCTAssertTrue(report.contains("requested=false,allowed=true,before=true,after=false,saved=false"))
+        _ = model.gameInputProbe(.coin)
+        XCTAssertEqual(model.draft, expected); XCTAssertEqual(coordinator.draft, persisted)
+        XCTAssertTrue(model.draft.advanced.enabled("diceRoll")); XCTAssertTrue(model.draft.advanced.enabled("quietHold"))
+    }
+    func testSyntheticInputProbeDistinguishesRejectedSetterAndRetainsOnlyThreeEvents() throws {
+        var owner: TemplateAuthoringSession? = try session()
+        let coordinator = TemplateAuthoringCoordinator(store: .init(storage: TemplateAuthoringMemoryStorage()), currentSession: { owner })
+        coordinator.open(seed: TemplateAuthoringSyntheticFixtures.compoundDraft())
+        let model = TemplateAuthoringModel(coordinator: coordinator); model.load(); let before = model.draft
+        owner = try session(902)
+        for _ in 0..<5 { model.setGameEnabled(.coin, false) }
+        let report = model.gameInputProbe(.coin)
+        XCTAssertTrue(report.contains("attempts=5")); XCTAssertTrue(report.contains("allowed=false,before=true,after=true,saved=true"))
+        XCTAssertEqual(report.components(separatedBy: "game=coin").count - 1, 3)
+        XCTAssertEqual(model.draft, before); XCTAssertEqual(coordinator.draft, before)
+    }
+}
+#endif
+
 @MainActor final class TemplateCompositionLifecycleTests: XCTestCase {
     private func session(_ accountID: Int = 901) throws -> TemplateAuthoringSession {
         try .init(accountID: accountID, namespace: "composition-lifecycle-fixture", epoch: 1, authorizationRevision: "member")

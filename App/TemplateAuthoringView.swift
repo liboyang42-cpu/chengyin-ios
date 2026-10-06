@@ -20,6 +20,15 @@ import SwiftUI
     var mediaFixtureMode: String?
     private var epoch: TemplateAuthoringSession?
     private var draftIdentity: TemplateAuthoringIdentity?
+#if DEBUG
+    // Bounded, non-observable input facts. Only the explicitly synthetic fixture probe displays them.
+    private let gameInputProbeID = UUID()
+    private var gameInputAttempts = 0
+    private var gameInputEvents: [String] = []
+    func gameInputProbe(_ game: TemplateAdvancedGame) -> String {
+        "model=\(gameInputProbeID.uuidString);attempts=\(gameInputAttempts);canEdit=\(canEdit);modelEnabled=\(draft.advanced.enabled(game.section));coordinatorEnabled=\(coordinator.draft.advanced.enabled(game.section));locked=\(coordinator.locked);events=\(gameInputEvents.joined(separator: "|"))"
+    }
+#endif
     init(coordinator: TemplateAuthoringCoordinator) { self.coordinator = coordinator }
     // A pending/terminal write locks edits but must not blank the same owner's retained hints.
     var canReadLegacyHints: Bool { coordinator.session != nil && epoch == coordinator.session && draftIdentity == coordinator.identity }
@@ -47,6 +56,14 @@ import SwiftUI
         refreshMediaReviews()
     }
     func setGameEnabled(_ game: TemplateAdvancedGame, _ enabled: Bool) {
+#if DEBUG
+        gameInputAttempts += 1
+        let inputAllowed = canEdit, previous = draft.advanced.enabled(game.section)
+        defer {
+            gameInputEvents.append("game=\(game.rawValue),requested=\(enabled),allowed=\(inputAllowed),before=\(previous),after=\(draft.advanced.enabled(game.section)),saved=\(coordinator.draft.advanced.enabled(game.section))")
+            gameInputEvents = Array(gameInputEvents.suffix(3))
+        }
+#endif
         guard canEdit else { return }
         draft.advanced.setGameEnabled(game, enabled)
         if enabled { draft.validationMethod = .manual }

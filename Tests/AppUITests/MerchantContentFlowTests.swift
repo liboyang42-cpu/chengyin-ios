@@ -45,6 +45,13 @@ final class MerchantContentFlowTests: XCTestCase {
     func testUnknownMutationLocksReloadAndDuplicateSubmission() {
         let app = launch(["--merchant-content-unknown"]); tap("merchant.content.entry.applications", in: app)
         tap("merchant.content.withdraw", in: app); tap("merchant.content.confirm", in: app)
+        // Confirm asynchronously dismisses its NavigationStack. Do not snapshot the old
+        // sheet bar by index while it is leaving; first establish the single destination.
+        let returned = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            app.navigationBars.count == 1 && !app.buttons["merchant.content.confirm"].exists
+        }, object: app)
+        XCTAssertEqual(XCTWaiter.wait(for: [returned], timeout: 5), .completed, app.debugDescription)
+        XCTAssertEqual(app.navigationBars.count, 1)
         let issue = app.staticTexts["merchant.content.issue"]
         XCTAssertTrue(revealFixtureElement(issue, in: app, towardTop: true, requiresHittable: false))
         XCTAssertTrue(issue.waitForExistence(timeout: 4))

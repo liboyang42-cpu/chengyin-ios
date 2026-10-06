@@ -27,8 +27,12 @@ final class ProjectEditFlowTests: XCTestCase {
     func testFreeExploreTicketThemeDateSyncAndReturnToManualDates() {
         let app = launch(["--project-edit-free-explore"])
         let ticket = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "projectEdit.ticket.")).firstMatch
-        find(ticket, in: app); ticket.tap()
-        let sync = app.switches["projectEdit.syncThemeDates"]; find(sync, in: app)
+        // A clipped row can be hittable while its activation point is under the bar.
+        XCTAssertTrue(revealFixtureElement(ticket, in: app), app.debugDescription)
+        ticket.tap()
+        XCTAssertTrue(app.navigationBars["Ticket details"].waitForExistence(timeout: 3), app.debugDescription)
+        let sync = app.switches["projectEdit.syncThemeDates"]
+        XCTAssertTrue(revealFixtureElement(sync, in: app), app.debugDescription)
         XCTAssertEqual(sync.value as? String, "0")
         // The labelled SwiftUI row is wider than the native switch. Activate
         // the switch itself once; never accept unchanged state or retry taps.

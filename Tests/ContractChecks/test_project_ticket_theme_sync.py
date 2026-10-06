@@ -1,3 +1,4 @@
+import re
 """Structural contracts only; Swift/Apple behavior requires its own execution."""
 from pathlib import Path
 import json
@@ -42,8 +43,10 @@ class TicketThemeSyncUIInteractionContracts(unittest.TestCase):
         self.assertEqual(method.count('if nativeSwitch.exists { nativeSwitch.tap() }'), 2)
         self.assertEqual(method.count('CGVector(dx: 0.93, dy: 0.5)'), 2)
         self.assertNotIn('sync.tap()', method)
-        self.assertNotIn('while ', method)
-        self.assertNotIn('for ', method)
+        # Ignore explanatory line comments; retain the no-repeat executable guard.
+        executable = re.sub(r'//[^\n]*', '', method)
+        self.assertNotIn('while ', executable)
+        self.assertNotIn('for ', executable)
         self.assertIn('NSPredicate(format: "value == %@", "1")', method)
         self.assertIn('NSPredicate(format: "value == %@", "0")', method)
         self.assertLess(method.index('XCTWaiter.wait(for: [enabled], timeout: 3)'), method.index('XCTAssertEqual(syncedStart.label, "Start or meeting time, 2030-05-01 00:00:00"'))

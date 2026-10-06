@@ -105,7 +105,9 @@ final class TopicFlowTests: XCTestCase {
         XCTAssertEqual(revealReview("topic.reviews.count").label, "Total reviews, 12")
         XCTAssertEqual(revealReview("topic.reviews.average").label, "Average rating, 4.2 / 5")
         XCTAssertEqual(revealReview("topic.reviews.text.0").label, "A useful route review.")
-        XCTAssertEqual(revealReview("topic.reviews.ratingUnknown.1").label, "Rating unavailable")
+        let unavailableRating = revealReview("topic.reviews.rating.1")
+        XCTAssertEqual(app.descendants(matching: .any).matching(identifier: "topic.reviews.rating.1").count, 1, app.debugDescription)
+        XCTAssertEqual(unavailableRating.label, "Rating, Rating unavailable", app.debugDescription)
         XCTAssertFalse(app.staticTexts["topic.reviews.empty"].exists)
         app.navigationBars["Route details"].buttons.firstMatch.tap()
 

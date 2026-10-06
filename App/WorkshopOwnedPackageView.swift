@@ -8,7 +8,8 @@ import SwiftUI
         self.browser = browser; self.claimId = claimId; self.navigation = navigation
     }
     var body: some View {
-        let presentation = navigation.packagePermit
+        let displayed = navigation.packageAppearance
+        let presentation = displayed.permit
         Form {
             Section { packageText("scope").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true) }
             switch browser.phase {
@@ -51,8 +52,8 @@ import SwiftUI
             }
         }
         .modifier(PackageNavigationTitle())
-        .onAppear { navigation.schedulePackage(navigation.packageAppeared(claimId: claimId), claimId: claimId) }
-        .refreshable { [permit = navigation.packagePermit] in if let action = navigation.offerPackage(permit, claimId: claimId) { await action() } }
+        .onAppear { navigation.schedulePackage(navigation.packageViewAppeared(displayed, claimId: claimId), claimId: claimId) }
+        .refreshable { [permit = presentation] in if let action = navigation.offerPackage(permit, claimId: claimId) { await action() } }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button { navigation.schedulePackage(presentation, claimId: claimId) } label: {
@@ -60,7 +61,7 @@ import SwiftUI
                 }.disabled(browser.phase == .invalidated).accessibilityIdentifier("workshopOwned.package.refresh")
             }
         }
-        .onDisappear { navigation.packageDisappeared() }
+        .onDisappear { navigation.packageViewDisappeared(displayed) }
     }
 }
 private struct PackageValueRow: View {

@@ -19,6 +19,13 @@ final class PublicPlayTemplatePresentationFlowTests: XCTestCase {
         tap("discovery.play.701")
     }
     private func tap(_ id: String) {
+        if id == "discovery.play.701" {
+            guard let (button, visible) = revealedPlayCard() else { return }
+            let frame = button.frame
+            button.coordinate(withNormalizedOffset: .zero)
+                .withOffset(CGVector(dx: visible.midX - frame.minX, dy: visible.midY - frame.minY)).tap()
+            return
+        }
         if id == "media.gallery.close" || id == "publicPlay.fixture.replaceOnImage" {
             // Fixed navigation/fixture controls are deliberately outside the
             // content viewport used by the scrolling helper.
@@ -36,6 +43,45 @@ final class PublicPlayTemplatePresentationFlowTests: XCTestCase {
         let element = app.buttons.matching(identifier: id).firstMatch
         XCTAssertTrue(revealFixtureElement(element, in: app), app.debugDescription)
         XCTAssertTrue(element.isHittable, app.debugDescription); element.tap()
+    }
+    /// Only the known synthetic card uses geometry-directed scrolling. At accessibility5
+    /// the ordinary fixed gesture overshoots a fitting 477pt card by about 170pt and oscillates.
+    /// Keep its entire frame inside the viewport whenever it fits; taller cards need a real
+    /// enabled/hittable 44pt region of that exact native button, never a screen-only tap.
+    private func revealedPlayCard() -> (XCUIElement, CGRect)? {
+        let query = app.buttons.matching(identifier: "discovery.play.701")
+        let title = app.launchArguments.contains("(zh-Hans)") ? "浏览模板" : "Browse templates"
+        let bar = app.navigationBars[title]
+        for attempt in 0...12 {
+            guard bar.exists, !bar.frame.isEmpty else { XCTFail("Missing template browser navigation bar"); return nil }
+            var bounds = app.frame.insetBy(dx: 4, dy: 4)
+            bounds.origin.y = max(bounds.minY, bar.frame.maxY + 4)
+            var bottom = app.frame.maxY - 40
+            for keyboard in app.keyboards.allElementsBoundByIndex where keyboard.exists { bottom = min(bottom, keyboard.frame.minY - 4) }
+            bounds.size.height = max(0, bottom - bounds.minY)
+            var delta = -bounds.height * 0.3
+            if query.count == 1 {
+                let button = query.element(boundBy: 0), frame = button.frame
+                let visible = frame.intersection(bounds)
+                if button.exists && button.isEnabled && button.isHittable && !frame.isEmpty &&
+                    !visible.isNull && visible.width >= 44 && visible.height >= 44 &&
+                    frame.minX >= bounds.minX && frame.maxX <= bounds.maxX &&
+                    (frame.height > bounds.height || bounds.contains(frame)) {
+                    return (button, visible)
+                }
+                // Match the missing edge, rather than always dragging 45% of the viewport.
+                if frame.minY < bounds.minY { delta = bounds.minY - frame.minY + 8 }
+                else if frame.maxY > bounds.maxY { delta = bounds.maxY - frame.maxY - 8 }
+                delta = min(bounds.height * 0.35, max(-bounds.height * 0.35, delta))
+            } else if query.count > 1 { XCTFail("Ambiguous synthetic play card: " + app.debugDescription); return nil }
+            guard attempt < 12, bounds.height > 80, app.frame.height > 0 else { break }
+            let x = (bounds.midX - app.frame.minX) / app.frame.width
+            let start = (bounds.midY - app.frame.minY) / app.frame.height
+            let end = (bounds.midY + delta - app.frame.minY) / app.frame.height
+            app.coordinate(withNormalizedOffset: CGVector(dx: x, dy: start)).press(forDuration: 0.05,
+                thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: x, dy: end)))
+        }
+        XCTFail("Exact play card has no safe visible enabled region: " + app.debugDescription); return nil
     }
     private func expect(_ element: XCUIElement, _ predicate: String) {
         let wait = XCTNSPredicateExpectation(predicate: NSPredicate(format: predicate), object: element)

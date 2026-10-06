@@ -16,9 +16,9 @@ final class MerchantClubDiscoveryFlowTests: XCTestCase {
     private func element(_ identifier: String, app: XCUIApplication) -> XCUIElement {
         app.descendants(matching: .any)[identifier].firstMatch
     }
-    private func tap(_ identifier: String, app: XCUIApplication) {
+    private func tap(_ identifier: String, app: XCUIApplication, towardTop: Bool = false) {
         let value = app.buttons[identifier]
-        XCTAssertTrue(revealFixtureElement(value, in: app), app.debugDescription)
+        XCTAssertTrue(revealFixtureElement(value, in: app, towardTop: towardTop), app.debugDescription)
         XCTAssertTrue(value.isEnabled); XCTAssertTrue(value.isHittable); value.tap()
     }
     // These synthetic controls live ABOVE the NavigationStack. Content scrolling
@@ -63,7 +63,8 @@ final class MerchantClubDiscoveryFlowTests: XCTestCase {
         let app = launch("merchantLocalityUnknown")
         XCTAssertTrue(app.buttons["club.home.locality.retry"].waitForExistence(timeout: 5))
         XCTAssertTrue(revealFixtureElement(element("club.home.nearby.84", app: app), in: app))
-        tap("club.home.locality.retry", app: app)
+        // The nearby row is below the retry section; lazy List may remove that button from AX.
+        tap("club.home.locality.retry", app: app, towardTop: true)
         XCTAssertTrue(element("club.home.locality.ready", app: app).waitForExistence(timeout: 5))
         XCTAssertFalse(element("club.home.nearby.84", app: app).exists)
         XCTAssertTrue(element("club.home.nearby.83", app: app).exists)
@@ -72,7 +73,8 @@ final class MerchantClubDiscoveryFlowTests: XCTestCase {
         var app = launch("merchantLocalityRetry")
         XCTAssertTrue(app.buttons["club.home.locality.retry"].waitForExistence(timeout: 5))
         XCTAssertTrue(revealFixtureElement(element("club.home.nearby.84", app: app), in: app))
-        tap("club.home.locality.retry", app: app)
+        // The nearby row is below the retry section; lazy List may remove that button from AX.
+        tap("club.home.locality.retry", app: app, towardTop: true)
         XCTAssertTrue(element("club.home.locality.ready", app: app).waitForExistence(timeout: 5))
         app.terminate(); app = launch("merchantLocalityEmpty")
         XCTAssertTrue(element("club.home.locality.ready", app: app).waitForExistence(timeout: 5))

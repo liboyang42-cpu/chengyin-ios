@@ -114,7 +114,8 @@ final class TopicTemplateNameSearchFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["A neighborhood in three chapters"].waitForExistence(timeout: 10))
         XCTAssertFalse(app.buttons["templateAuthor.adopt"].exists)
         app.navigationBars.buttons.firstMatch.tap()
-        XCTAssertTrue(revealFixtureElement(app.textFields["discovery.topicNameSearch"], in: app))
+        // Back preserves the card scroll position; the search field is above that card.
+        XCTAssertTrue(revealFixtureElement(app.textFields["discovery.topicNameSearch"], in: app, towardTop: true), app.debugDescription)
         app.swipeDown()
         expect(app.staticTexts["discovery.topicNameSearch.applied"], "label == 'neighborhood'")
         XCTAssertNotNil(revealedTopicCard("discovery.topic.801"))

@@ -33,7 +33,8 @@ private struct WorkshopOwnedUnavailableView: View {
     }
     var body: some View {
         @Bindable var navigation = navigation
-        let presentation = navigation.listPermit
+        let displayed = navigation.listAppearance
+        let presentation = displayed.permit
         List {
             WorkshopOwnedScopeSection()
             switch browser.phase {
@@ -63,8 +64,8 @@ private struct WorkshopOwnedUnavailableView: View {
             }
         }
         .modifier(WorkshopOwnedNavigationTitle(key: "title"))
-        .onAppear { navigation.scheduleList(navigation.listAppeared()) }
-        .refreshable { [permit = navigation.listPermit] in if let action = navigation.offerList(permit) { await action() } }
+        .onAppear { navigation.scheduleList(navigation.listViewAppeared(displayed)) }
+        .refreshable { [permit = presentation] in if let action = navigation.offerList(permit) { await action() } }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button { navigation.scheduleList(presentation) } label: {
@@ -73,8 +74,8 @@ private struct WorkshopOwnedUnavailableView: View {
                     .accessibilityIdentifier("workshopOwned.refresh")
             }
         }
-        .navigationDestination(item: $navigation.selection) { selection in WorkshopOwnedDetailView(browser: browser, claimId: selection.id, navigation: navigation) }
-        .onDisappear { navigation.listDisappeared() }
+        .navigationDestination(item: $navigation.selection) { selection in WorkshopOwnedDetailView(browser: browser, claimId: selection.id, navigation: navigation).id(selection.id) }
+        .onDisappear { navigation.listViewDisappeared(displayed) }
     }
 }
 @MainActor struct WorkshopOwnedDetailView: View {
@@ -86,7 +87,8 @@ private struct WorkshopOwnedUnavailableView: View {
     }
     var body: some View {
         @Bindable var navigation = navigation
-        let presentation = navigation.detailPermit
+        let displayed = navigation.detailAppearance
+        let presentation = displayed.permit
         Form {
             WorkshopOwnedScopeSection()
             if browser.detailLoading {
@@ -119,12 +121,12 @@ private struct WorkshopOwnedUnavailableView: View {
             }
         }
         .modifier(WorkshopOwnedNavigationTitle(key: "detail"))
-        .onAppear { navigation.scheduleDetail(navigation.detailAppeared(claimId: claimId), claimId: claimId) }
-        .refreshable { [permit = navigation.detailPermit] in if let action = navigation.offerDetail(permit, claimId: claimId) { await action() } }
+        .onAppear { navigation.scheduleDetail(navigation.detailViewAppeared(displayed, claimId: claimId), claimId: claimId) }
+        .refreshable { [permit = presentation] in if let action = navigation.offerDetail(permit, claimId: claimId) { await action() } }
         .navigationDestination(isPresented: $navigation.showsPackage) {
             if let packageBrowser = browser.packageBrowser { WorkshopOwnedPackageView(browser: packageBrowser, claimId: claimId, navigation: navigation) }
         }
-        .onDisappear { navigation.detailDisappeared() }
+        .onDisappear { navigation.detailViewDisappeared(displayed) }
     }
 }
 private struct WorkshopOwnedScopeSection: View {

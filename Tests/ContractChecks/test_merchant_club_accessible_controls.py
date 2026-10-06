@@ -21,5 +21,7 @@ class MerchantClubAccessibleControls(unittest.TestCase):
                      'element("club.home.owned.81", app: app)','element("club.home.joined.82", app: app)',
                      'XCTAssertFalse(element("club.home.nearby.83", app: app).exists)',
                      'XCTAssertFalse(element("club.home.nearby.84", app: app).exists)',
-                     'tap("club.home.locality.retry", app: app)']:
+                     'tap("club.home.locality.retry", app: app, towardTop: true)']:
             self.assertIn(text,s)
+
+        self.assertEqual(s.count('tap("club.home.locality.retry", app: app, towardTop: true)'), 2)

@@ -119,7 +119,7 @@ class NonCashRewardDetailChecks(unittest.TestCase):
         self.assertIn('permit.invalidate(); presentation = nil',support)
         self.assertIn('testOldDeferredPullRefreshCannotBorrowReopenedPresentation',self.read('Tests/AppUnitTests/NonCashRewardDetailCompositionTests.swift'))
 
-    def test_fact_identifiers_belong_to_uncombined_value_and_header_leaves(self):
+    def test_fact_identifiers_keep_exact_labeled_values_and_header_leaves(self):
         facts=self.read('App/NonCashRewardDetailReadSupport.swift').split('struct NonCashRewardReadFactsView:',1)[1]
         self.assertNotIn('}.accessibilityIdentifier("rewards.read.origin")',facts)
         self.assertNotIn('}.accessibilityIdentifier("rewards.read.qualification")',facts)
@@ -128,8 +128,8 @@ class NonCashRewardDetailChecks(unittest.TestCase):
         self.assertIn('Text(verbatim: value).accessibilityIdentifier(id)',facts)
         self.assertIn('.accessibilityElement(children: .contain)',facts)
         ui=self.read('Tests/AppUITests/NonCashRewardFlowTests.swift')
-        self.assertIn('app.staticTexts["rewards.read.contextId.value"].label, "example-map"',ui)
-        self.assertIn('app.staticTexts["rewards.read.instanceId.value"].label, "example-season"',ui)
+        self.assertIn('("rewards.read.contextId.value", "Context identifier, example-map")',ui)
+        self.assertIn('("rewards.read.instanceId.value", "Season identifier, example-season")',ui)
         for kind in ['eligibility','claimProgress','allocation']:
             self.assertIn('rewards.read.'+kind+'.value',ui)
         self.assertIn('XCTAssertEqual(query.count, 1)',ui)

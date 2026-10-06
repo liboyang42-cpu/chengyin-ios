@@ -4,6 +4,9 @@ import SwiftUI
 @MainActor struct TemplateAdvancedGameConfigurationView: View {
     @ObservedObject var model: TemplateAuthoringModel
     let game: TemplateAdvancedGame
+#if DEBUG
+    @State private var inputProbeSnapshot = ""
+#endif
     var body: some View {
         Form {
             Section {
@@ -12,6 +15,19 @@ import SwiftUI
                 })).accessibilityIdentifier("creatorComposition.enabled." + game.rawValue)
                 Text("creatorComposition.coexist").font(.caption).foregroundStyle(.secondary)
             }
+#if DEBUG
+            if ProcessInfo.processInfo.arguments.contains("--ui-template-authoring") &&
+                ProcessInfo.processInfo.arguments.contains("--template-author-compound") &&
+                ProcessInfo.processInfo.arguments.contains("--template-author-toggle-probe") {
+                Section {
+                    Button { inputProbeSnapshot = model.gameInputProbe(game) } label: {
+                        Text(verbatim: "Inspect synthetic game toggle")
+                    }
+                    .accessibilityIdentifier("creatorComposition.probe." + game.rawValue)
+                    .accessibilityValue(inputProbeSnapshot.isEmpty ? model.gameInputProbe(game) : inputProbeSnapshot)
+                }.font(.caption).dynamicTypeSize(.large)
+            }
+#endif
             Section(LocalizedStringKey(game.labelKey)) {
                 if game.isMiniProgramAddition { TemplateMiniGameConfigurationView(model: model, game: game) }
                 else {

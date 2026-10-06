@@ -31,8 +31,8 @@ class WorkshopOwnedNormalAccountContractTests(unittest.TestCase):
         text = self.read('App/QuestifyApp.swift')
         self.assertIn('.onAppear { session.setWorkshopOwnedPresentationActive(true) }', text)
         self.assertIn('.onDisappear { session.setWorkshopOwnedPresentationActive(false) }', text)
-        self.assertIn('.onDisappear { navigation.listDisappeared() }', self.read('App/WorkshopOwnedLibraryView.swift'))
-        self.assertIn('browser.leaveList(permit, closing: selection == nil)', self.read('App/WorkshopOwnedNavigationState.swift'))
+        self.assertIn('navigation.listViewDisappeared(displayed)', self.read('App/WorkshopOwnedLibraryView.swift'))
+        self.assertIn('browser.leaveList(presentation, closing: selection == nil)', self.read('App/WorkshopOwnedNavigationState.swift'))
     def test_route_is_exact_and_cannot_expand_into_package_or_mutation(self):
         text = self.read('App/WorkshopOwnedReadRoute.swift')
         for required in ['url.query == nil', 'url.fragment == nil', 'request.httpMethod == "POST"', 'request.httpBodyStream == nil', 'String(body.count)', 'guard body.isEmpty', 'WorkshopOwnedWire.identifier', 'default: return nil']:
@@ -50,7 +50,7 @@ class WorkshopOwnedNormalAccountContractTests(unittest.TestCase):
         for name in ['testQueuedListAfterBackAndReopen', 'testQueuedDetailAfterBack', 'testQueuedReadAcrossRoleOrApprovalABA', 'testNewVisibleOfferRetiresOld401']:
             self.assertIn('func '+name, text)
         self.assertIn('let action = try listAction(old); let task = Task { await old.load(action: action) }', text)
-        self.assertIn('navigation.listDisappeared()', text)
+        self.assertIn('navigation.listDisappeared(navigation.listPermit)', text)
         self.assertIn('XCTAssertNil(previous.offer())', text)
         self.assertIn('XCTAssertNil(browser.packageBrowser', text)
         self.assertNotIn('Task { await old.load()', text)

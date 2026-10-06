@@ -41,8 +41,17 @@ final class ClubStoryFlowTests: XCTestCase {
                 button.tap(); return
             }
             guard attempt < 8 else { break }
-            if frame.midX < visible.midX { scroller.swipeRight() }
-            else { scroller.swipeLeft() }
+            // A full swipe moves past the middle chapter to either end and oscillates.
+            // Drag only the missing horizontal edge, within this exact selector's frame.
+            var delta: CGFloat = 0
+            if frame.minX < visible.minX { delta = visible.minX - frame.minX + 8 }
+            else if frame.maxX > visible.maxX { delta = visible.maxX - frame.maxX - 8 }
+            guard delta != 0 else { XCTFail("Fully visible chapter is not enabled/hittable. " + app.debugDescription); return }
+            delta = min(visible.width * 0.35, max(-visible.width * 0.35, delta))
+            let origin = scroller.coordinate(withNormalizedOffset: .zero)
+            let start = origin.withOffset(CGVector(dx: visible.midX - scroller.frame.minX, dy: visible.midY - scroller.frame.minY))
+            let end = origin.withOffset(CGVector(dx: visible.midX + delta - scroller.frame.minX, dy: visible.midY - scroller.frame.minY))
+            start.press(forDuration: 0.05, thenDragTo: end)
         }
         XCTFail("Chapter must fit inside its horizontal selector before tapping. " + app.debugDescription)
     }

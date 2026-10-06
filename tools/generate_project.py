@@ -80,7 +80,9 @@ if not unit_files:
     raise SystemExit('No app-unit sources found; refusing to generate an empty test target')
 unit_product=obj('unit-product',isa='PBXFileReference',explicitFileType='wrapper.cfbundle',includeInIndex=0,path='QuestifyAppUnitTests.xctest',sourceTree='BUILT_PRODUCTS_DIR')
 objects[products]['children'].append(unit_product)
-unit_configs=[obj('unit'+name,isa='XCBuildConfiguration',name=name,baseConfigurationReference=unit_config_ref,buildSettings={'PRODUCT_NAME':'$(TARGET_NAME)'}) for name in ['Debug','Release']]
+unit_configs=[obj('unit'+name,isa='XCBuildConfiguration',name=name,baseConfigurationReference=unit_config_ref,
+    buildSettings={'PRODUCT_NAME':'$(TARGET_NAME)', **({'SWIFT_ACTIVE_COMPILATION_CONDITIONS':'DEBUG $(inherited)'} if name=='Debug' else {})})
+    for name in ['Debug','Release']]
 unit_config_list=obj('unitconfigs',isa='XCConfigurationList',buildConfigurations=unit_configs,defaultConfigurationIsVisible=0,defaultConfigurationName='Debug')
 unit_sources=obj('unit-sources',isa='PBXSourcesBuildPhase',buildActionMask=2147483647,files=unit_files,runOnlyForDeploymentPostprocessing=0)
 unit_frameworks=obj('unit-frameworks',isa='PBXFrameworksBuildPhase',buildActionMask=2147483647,files=[],runOnlyForDeploymentPostprocessing=0)

@@ -141,6 +141,13 @@ struct ClubGovernanceReadView: View {
         .navigationDestination(item: $feedClub) { target in
             if let destination = feedContext.destination, current(target) {
                 destination(target.clubID).id(target.id)
+            } else {
+                // The read screen is offscreen while its destination is pushed.
+                // Retire the invalid route here too, so account changes cannot
+                // leave an empty detail on top of the refreshed feed.
+                Color.clear.onAppear {
+                    if feedClub?.id == target.id { feedClub = nil }
+                }
             }
         }
         .task(id: readContext) { snapshot = nil; editor = nil; customerTopic = nil; feedClub = nil; coordinator.cancelReview(); await load() }

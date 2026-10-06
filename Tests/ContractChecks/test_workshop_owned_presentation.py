@@ -17,9 +17,9 @@ class WorkshopPresentationContracts(unittest.TestCase):
  def test_view_buttons_capture_rendered_presentation_before_scheduling(self):
   a=self.source('App/WorkshopOwnedLibraryView.swift');b=self.source('App/WorkshopOwnedPackageView.swift')
   for s in [a,b]:
-   self.assertIn('let presentation = navigation.',s);self.assertIn('.refreshable { [permit = navigation.',s);self.assertNotIn('Task {',s)
+   self.assertIn('let presentation = displayed.permit',s);self.assertIn('.refreshable { [permit = presentation]',s);self.assertNotIn('Task {',s)
   self.assertIn('scheduleList(presentation)',a);self.assertIn('scheduleDetail(presentation, claimId: claimId)',a);self.assertIn('schedulePackage(presentation, claimId: claimId)',b)
-  self.assertIn('.onAppear { navigation.scheduleList(navigation.listAppeared()) }',a)
+  self.assertIn('.onAppear { navigation.scheduleList(navigation.listViewAppeared(displayed)) }',a)
  def test_navigation_push_retires_actions_without_clearing_needed_rows(self):
   s=self.source('App/WorkshopOwnedNavigationState.swift')
   self.assertIn('browser.leaveList(permit, closing: false)',s);self.assertIn('browser.leaveDetail(permit, closing: false)',s)

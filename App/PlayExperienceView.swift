@@ -27,6 +27,7 @@ import SwiftUI
     @State private var selectedNode: Int?
     @State private var confirmEnd = false
     @State private var presentedMode: PlayGameplayMode?
+    @State private var presentationMount = PlayExperiencePresentationMount()
     @Environment(\.scenePhase) private var scenePhase
     var body: some View {
         Group {
@@ -36,12 +37,12 @@ import SwiftUI
                 orientationContent
             } else if model.snapshot == nil {
                 VStack(spacing: 12) {
-                    if model.phase == .loading { ProgressView("playx.loading") }
+                    if model.phase == .loading { ProgressView("playx.loading").accessibilityIdentifier("playMode.loading") }
                     if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
                     if !model.available { Text("playx.disabled").accessibilityIdentifier("playx.disabled") }
                     Button("playx.refresh") { Task { await model.load() } }
                         .disabled(!model.available || model.phase == .loading || model.phase == .submitting)
-                }.padding().accessibilityIdentifier("playMode.loading")
+                }.padding()
             } else { ContentUnavailableView("playMode.unavailable", systemImage: "questionmark.circle") }
         }
         .privacySensitive().appNavigationTitle(key: model.gameplayMode == .freeExploration ? "playFree.title" : "playx.title")
@@ -50,8 +51,10 @@ import SwiftUI
         .confirmationDialog("playx.run.end", isPresented: $confirmEnd, titleVisibility: .visible) {
             Button("playx.run.end", role: .destructive) { Task { await model.endRun(now: ProcessInfo.processInfo.systemUptime, savedAt: Self.milliseconds) } }
         } message: { Text("playx.run.end.detail") }
-        .task(id: model.identity) {
-            selectedNode = nil; presentedMode = nil
+        .task(id: PlayExperiencePresentationKey(model: model)) {
+            // This task also restarts when returning from a pushed store. Preserve
+            // the same owner's mode host through refresh so its open card pack survives.
+            if presentationMount.enter(model) { selectedNode = nil; presentedMode = nil }
             await model.load()
         }
         .onChange(of: model.gameplayMode) { _, mode in
@@ -476,5 +479,21 @@ struct PlayRuntimePhaseText: View {
     @ViewBuilder var body: some View {
         if context != nil, context == currentContext { content(context) }
         else { Text("playMode.unavailable") }
+    }
+}
+
+/// Session AND coordinator identity delimit one visible runtime. Retaining the previous
+/// coordinator prevents pointer reuse from making a replacement look like the old owner.
+struct PlayExperiencePresentationKey: Hashable {
+    let coordinator: ObjectIdentifier
+    let session: String?
+    @MainActor init(model: PlayExperienceCoordinator) { coordinator = ObjectIdentifier(model); session = model.identity }
+}
+@MainActor final class PlayExperiencePresentationMount {
+    private var model: PlayExperienceCoordinator?
+    private var session: String?
+    func enter(_ next: PlayExperienceCoordinator) -> Bool {
+        guard model !== next || session != next.identity else { return false }
+        model = next; session = next.identity; return true
     }
 }

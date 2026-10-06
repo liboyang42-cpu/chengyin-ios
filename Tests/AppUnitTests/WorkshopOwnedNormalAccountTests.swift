@@ -1,4 +1,5 @@
 import XCTest
+import Observation
 @testable import Questify
 
 @MainActor final class WorkshopOwnedNormalAccountTests: XCTestCase {
@@ -114,6 +115,37 @@ import XCTest
         XCTAssertNil(h.session.workshopOwnedBrowser); XCTAssertEqual(h.wire.owned.count, 0)
     }
 
+    func testDefaultOffNormalAccountReadsDoNotEmitObservationChanges() async throws {
+        let h = try Harness(); defer { h.clean() }
+        for signedIn in [false, true] {
+            if signedIn { await h.login() }
+            XCTAssertNil(h.session.workshopOwnedBrowser)
+            let changed = expectation(description: "Read-only disabled binding stays unchanged")
+            changed.isInverted = true
+            _ = withObservationTracking { h.session.workshopOwnedBrowser } onChange: { changed.fulfill() }
+            for _ in 0..<12 { XCTAssertNil(h.session.workshopOwnedBrowser) }
+            await fulfillment(of: [changed], timeout: 0.1)
+            XCTAssertEqual(h.wire.owned.count, 0)
+        }
+    }
+    func testRealInvalidationStillPublishesAndSubsequentDisabledReadsStayQuiet() async throws {
+        let h = try Harness(); defer { h.clean() }; await h.login(); try h.approve()
+        let original = try XCTUnwrap(h.session.workshopOwnedBrowser)
+        let changed = expectation(description: "Actual permission revocation publishes")
+        _ = withObservationTracking { h.session.workshopOwnedBrowser } onChange: { changed.fulfill() }
+        h.session.withWorkshopReadConfigurationChange { h.approval = nil }
+        await fulfillment(of: [changed], timeout: 1)
+        XCTAssertEqual(original.phase, .invalidated); XCTAssertNil(h.session.workshopOwnedBrowser)
+        let repeated = expectation(description: "Repeated disabled reads do not invalidate again")
+        repeated.isInverted = true
+        _ = withObservationTracking { h.session.workshopOwnedBrowser } onChange: { repeated.fulfill() }
+        for _ in 0..<12 { XCTAssertNil(h.session.workshopOwnedBrowser) }
+        await fulfillment(of: [repeated], timeout: 0.1)
+        XCTAssertEqual(h.wire.owned.count, 0)
+        try h.approve(); let replacement = try XCTUnwrap(h.session.workshopOwnedBrowser)
+        XCTAssertFalse(original === replacement)
+    }
+
     // Synthetic appearance callbacks issue permits synchronously, outside every queued Task.
     private func listAction(_ browser: WorkshopOwnedBrowser) throws -> WorkshopOwnedActionPermit {
         try XCTUnwrap(browser.presentList()?.offer())
@@ -127,7 +159,7 @@ import XCTest
         let navigation = WorkshopOwnedNavigationState(browser: browser)
         let previous = try XCTUnwrap(navigation.listAppeared())
         let queued = try XCTUnwrap(navigation.offerList(previous))
-        navigation.listDisappeared() // Back runs before the already-captured action starts.
+        navigation.listDisappeared(navigation.listPermit) // Back runs before the already-captured action starts.
         XCTAssertNil(previous.offer()); XCTAssertEqual(h.wire.owned.count, 0)
         XCTAssertTrue(browser === h.session.workshopOwnedBrowser)
         let reopened = try XCTUnwrap(navigation.listAppeared())
@@ -146,7 +178,7 @@ import XCTest
         navigation.select(claimId: "synthetic-claim", presentation: list)
         let detail = try XCTUnwrap(navigation.detailAppeared(claimId: "synthetic-claim"))
         let queued = try XCTUnwrap(navigation.offerDetail(detail, claimId: "synthetic-claim"))
-        navigation.selection = nil; navigation.detailDisappeared()
+        navigation.selection = nil; navigation.detailDisappeared(detail)
         XCTAssertNil(detail.offer())
         let reopened = try XCTUnwrap(navigation.listAppeared())
         let refresh = try XCTUnwrap(navigation.offerList(reopened)); await refresh(); await queued()

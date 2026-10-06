@@ -7,8 +7,12 @@ import UIKit
     private final class Recorder: HTTPTransport {
         var paths: [String] = []
         var unauthorized = false
+        var hold = false
+        var waiting: [CheckedContinuation<Void, Never>] = []
+        func releaseAll() { let pending = waiting; waiting = []; for item in pending { item.resume() } }
         func send(_ request: URLRequest) async throws -> (Data, Int) {
             let path = request.url!.path; paths.append(path)
+            if hold { await withCheckedContinuation { waiting.append($0) } }
             if unauthorized { return (Data("{\"code\":401}".utf8), 200) }
             let item: [String: Any] = ["claimId":"synthetic-claim","acquisition":"FREE","buyerKind":"INDIVIDUAL","acquiredAt":"2026-10-01T00:00:00Z","validUntil":"2026-11-01T00:00:00Z","storedStatus":"ACTIVE","status":"ACTIVE","publicationStatus":"LISTED"]
             var payload: [String: Any] = ["schema":"workshop-owned-v1","scope":"FREE_INDIVIDUAL_ONLY","availability":"FREE_CLAIMS_ONLY","purchasedLibraryStatus":"NOT_AVAILABLE","contentUseStatus":"UNAVAILABLE","checkedAt":"2026-10-05T00:00:00Z"]
@@ -29,9 +33,9 @@ import UIKit
         let browser = try XCTUnwrap(WorkshopOwnedComposition.makeBrowser(context:c,api:try APIConfiguration(baseURL:c.baseURL),transport:recorder,approval:approval,currentApproval:{approval},current:{c},packageApproval:packageApproval,currentPackageApproval:{packageApproval},onUnauthorized:{_ in state.unauthorized += 1}))
         return .init(browser:browser,navigation:.init(browser:browser),recorder:recorder,state:state)
     }
-    private func wait(_ condition: @escaping () -> Bool) async throws {
+    private func wait(_ stage: String = "condition", file: StaticString = #filePath, line: UInt = #line, _ condition: @escaping () -> Bool) async throws {
         for _ in 0..<100 { if condition() { return }; try await Task.sleep(nanoseconds: 20_000_000) }
-        XCTAssertTrue(condition()); if !condition() { throw WorkshopOwnedIssue.unavailable }
+        XCTAssertTrue(condition(), stage, file: file, line: line); if !condition() { throw WorkshopOwnedIssue.unavailable }
     }
     /// Actual SwiftUI NavigationStack appearance/disappearance and destination binding, not only
     /// direct browser calls. Button handlers use these exact navigation-state actions in production.
@@ -40,20 +44,20 @@ import UIKit
         let host = UIHostingController(rootView: NavigationStack { WorkshopOwnedLibraryView(browser:f.browser,navigation:f.navigation) })
         let window = UIWindow(frame:UIScreen.main.bounds); window.rootViewController = host; window.makeKeyAndVisible()
         defer { window.isHidden = true; window.rootViewController = nil }
-        try await wait { f.browser.phase == .ready && f.navigation.listPermit != nil }
+        try await wait("initial list ready") { f.browser.phase == .ready && f.navigation.listPermit != nil }
         let listPermit = try XCTUnwrap(f.navigation.listPermit)
         f.navigation.select(claimId:"synthetic-claim",presentation:f.navigation.listPermit)
-        try await wait { f.browser.detail?.item?.claimId == "synthetic-claim" && f.navigation.detailPermit != nil }
+        try await wait("detail pushed and ready") { f.browser.detail?.item?.claimId == "synthetic-claim" && f.navigation.detailPermit != nil }
         XCTAssertNil(f.navigation.listPermit); XCTAssertEqual(f.browser.rows.count,1)
         let detailPermit = try XCTUnwrap(f.navigation.detailPermit)
         f.navigation.openPackage(presentation:f.navigation.detailPermit)
-        try await wait { f.browser.packageBrowser?.phase == .unavailable && f.navigation.packagePermit != nil }
+        try await wait("package pushed and unavailable") { f.browser.packageBrowser?.phase == .unavailable && f.navigation.packagePermit != nil }
         XCTAssertNil(f.navigation.detailPermit); XCTAssertNotNil(f.browser.detail)
         f.navigation.showsPackage = false
-        try await wait { f.navigation.detailPermit != nil && f.browser.detail != nil && f.navigation.packagePermit == nil }
+        try await wait("Back from package restores detail and retires package") { f.navigation.detailPermit != nil && f.browser.detail != nil && f.navigation.packagePermit == nil }
         XCTAssertFalse(f.navigation.detailPermit === detailPermit)
         f.navigation.selection = nil
-        try await wait { f.navigation.listPermit != nil && f.browser.phase == .ready && f.navigation.detailPermit == nil }
+        try await wait("Back from detail restores list and retires detail") { f.navigation.listPermit != nil && f.browser.phase == .ready && f.navigation.detailPermit == nil }
         XCTAssertFalse(f.navigation.listPermit === listPermit)
         XCTAssertTrue(f.recorder.paths.contains("/native/api/workshop/owned/package")); XCTAssertEqual(f.state.unauthorized,0)
     }
@@ -66,7 +70,7 @@ import UIKit
         let permit = try XCTUnwrap(f.navigation.listPermit), calls = f.recorder.paths.count
         // Same synchronous dismissal hook used by onDisappear; the queued button captures old permit.
         let queued = Task { [action = permit.offer()!] in await f.browser.load(action:action) }
-        f.navigation.listDisappeared(); f.recorder.unauthorized = true
+        f.navigation.listDisappeared(permit); f.recorder.unauthorized = true
         await queued.value; XCTAssertEqual(f.recorder.paths.count,calls); XCTAssertEqual(f.state.unauthorized,0)
         window.isHidden = true; window.rootViewController = nil
         XCTAssertNil(f.navigation.listPermit)
@@ -84,4 +88,133 @@ import UIKit
         await queuedDetail.value; XCTAssertEqual(f.recorder.paths.count,2); XCTAssertEqual(f.state.unauthorized,0)
         XCTAssertNotNil(f.browser.detail); XCTAssertEqual(f.browser.rows.count,1)
     }
+    func testOldListDisappearanceDoesNotCancelNewHeldRead() async throws {
+        let f = try fixture(), old = try XCTUnwrap(f.navigation.listAppeared())
+        await f.browser.load(action: old.offer()!)
+        f.navigation.listDisappeared(old)
+        let fresh = try XCTUnwrap(f.navigation.listAppeared())
+        f.recorder.hold = true; f.navigation.scheduleList(fresh)
+        try await wait("new list held") { f.recorder.waiting.count == 1 }
+        f.navigation.listDisappeared(old)
+        XCTAssertTrue(f.navigation.listPermit === fresh); XCTAssertTrue(fresh.isLive)
+        f.recorder.releaseAll()
+        try await wait("new list completes") { f.browser.phase == .ready }
+        XCTAssertEqual(f.browser.rows.count, 1); XCTAssertEqual(f.state.unauthorized, 0)
+    }
+    func testOldDetailDisappearanceDoesNotCancelNewHeldRead() async throws {
+        let f = try fixture(), list = try XCTUnwrap(f.navigation.listAppeared())
+        await f.browser.load(action: list.offer()!)
+        f.navigation.select(claimId: "synthetic-claim", presentation: list)
+        let old = try XCTUnwrap(f.navigation.detailAppeared(claimId: "synthetic-claim"))
+        await f.browser.open(claimId: "synthetic-claim", action: old.offer()!)
+        f.navigation.selection = nil
+        f.navigation.selection = .init(id: "synthetic-claim")
+        let fresh = try XCTUnwrap(f.navigation.detailAppeared(claimId: "synthetic-claim"))
+        f.recorder.hold = true; f.navigation.scheduleDetail(fresh, claimId: "synthetic-claim")
+        try await wait("new detail held") { f.recorder.waiting.count == 1 }
+        f.navigation.detailDisappeared(old)
+        XCTAssertTrue(f.navigation.detailPermit === fresh); XCTAssertTrue(fresh.isLive)
+        f.recorder.releaseAll()
+        try await wait("new detail completes") { f.browser.detail?.item?.claimId == "synthetic-claim" }
+        XCTAssertEqual(f.state.unauthorized, 0)
+    }
+    func testOldPackageDisappearanceDoesNotCancelNewHeldRead() async throws {
+        let f = try fixture(), list = try XCTUnwrap(f.navigation.listAppeared())
+        await f.browser.load(action: list.offer()!)
+        f.navigation.select(claimId: "synthetic-claim", presentation: list)
+        let detail = try XCTUnwrap(f.navigation.detailAppeared(claimId: "synthetic-claim"))
+        await f.browser.open(claimId: "synthetic-claim", action: detail.offer()!)
+        f.navigation.openPackage(presentation: detail)
+        let old = try XCTUnwrap(f.navigation.packageAppeared(claimId: "synthetic-claim"))
+        f.navigation.showsPackage = false
+        let reopenedDetail = try XCTUnwrap(f.navigation.detailAppeared(claimId: "synthetic-claim"))
+        await f.browser.open(claimId: "synthetic-claim", action: reopenedDetail.offer()!)
+        f.navigation.openPackage(presentation: reopenedDetail)
+        let fresh = try XCTUnwrap(f.navigation.packageAppeared(claimId: "synthetic-claim"))
+        f.recorder.hold = true; f.navigation.schedulePackage(fresh, claimId: "synthetic-claim")
+        try await wait("new package held") { f.recorder.waiting.count == 1 }
+        f.navigation.packageDisappeared(old)
+        XCTAssertTrue(f.navigation.packagePermit === fresh); XCTAssertTrue(fresh.isLive)
+        f.recorder.releaseAll()
+        try await wait("new package completes") { f.browser.packageBrowser?.phase == .unavailable }
+        XCTAssertEqual(f.state.unauthorized, 0)
+    }
+    func testVisibleAppearanceClosesBeforeFirstRedrawAndCannotRevive() async throws {
+        let f = try fixture(), visible = WorkshopOwnedViewAppearance()
+        let permit = try XCTUnwrap(visible.appear { f.navigation.listAppeared() })
+        let queued = try XCTUnwrap(f.navigation.offerList(permit))
+        visible.disappear { f.navigation.listDisappeared($0) }
+        await queued()
+        XCTAssertTrue(f.recorder.paths.isEmpty); XCTAssertNil(f.navigation.listPermit)
+        XCTAssertNil(visible.appear { f.navigation.listAppeared() })
+        let next = WorkshopOwnedViewAppearance()
+        let fresh = try XCTUnwrap(next.appear { f.navigation.listAppeared() })
+        visible.disappear { f.navigation.listDisappeared($0) }
+        XCTAssertTrue(f.navigation.listPermit === fresh); XCTAssertTrue(fresh.isLive)
+    }
+    func testBackBindingRetiresQueuedDetailAndPackageBeforeDisappearance() async throws {
+        let f = try fixture(), list = try XCTUnwrap(f.navigation.listAppeared())
+        await f.browser.load(action: list.offer()!)
+        f.navigation.select(claimId: "synthetic-claim", presentation: list)
+        let detail = try XCTUnwrap(f.navigation.detailAppeared(claimId: "synthetic-claim"))
+        let queuedDetail = try XCTUnwrap(f.navigation.offerDetail(detail, claimId: "synthetic-claim"))
+        f.navigation.selection = nil; await queuedDetail()
+        XCTAssertEqual(f.recorder.paths.count, 1); XCTAssertFalse(detail.isLive)
+        XCTAssertNil(f.navigation.detailAppeared(claimId: "synthetic-claim"))
+        f.navigation.selection = .init(id: "synthetic-claim")
+        let fresh = try XCTUnwrap(f.navigation.detailAppeared(claimId: "synthetic-claim"))
+        await f.browser.open(claimId: "synthetic-claim", action: fresh.offer()!)
+        f.navigation.openPackage(presentation: fresh)
+        let package = try XCTUnwrap(f.navigation.packageAppeared(claimId: "synthetic-claim"))
+        let queuedPackage = try XCTUnwrap(f.navigation.offerPackage(package, claimId: "synthetic-claim"))
+        f.navigation.showsPackage = false; await queuedPackage()
+        XCTAssertEqual(f.recorder.paths.count, 2); XCTAssertFalse(package.isLive)
+        XCTAssertNil(f.navigation.packageAppeared(claimId: "synthetic-claim"))
+    }
+    func testCurrentDisappearanceSuppressesHeld401WhileCurrent401StillExpiresSession() async throws {
+        let f = try fixture(), old = try XCTUnwrap(f.navigation.listAppeared())
+        f.recorder.hold = true; f.navigation.scheduleList(old)
+        try await wait("old list held") { f.recorder.waiting.count == 1 }
+        f.navigation.listDisappeared(old); f.recorder.unauthorized = true
+        f.recorder.releaseAll()
+        for _ in 0..<5 { await Task.yield() }
+        XCTAssertEqual(f.state.unauthorized, 0)
+        f.recorder.hold = false
+        let fresh = try XCTUnwrap(f.navigation.listAppeared())
+        await f.browser.load(action: fresh.offer()!)
+        XCTAssertEqual(f.state.unauthorized, 1)
+    }
+
+    func testBackBeforeOldDisappearanceUsesNewRouteBoxAndOldCallbacksCannotClearIt() async throws {
+        let f = try fixture(), oldListBox = f.navigation.listAppearance
+        let oldList = try XCTUnwrap(f.navigation.listViewAppeared(oldListBox))
+        await f.browser.load(action: oldList.offer()!)
+        f.navigation.select(claimId: "synthetic-claim", presentation: oldList)
+        let oldDetailBox = f.navigation.detailAppearance
+        let oldDetail = try XCTUnwrap(f.navigation.detailViewAppeared(oldDetailBox, claimId: "synthetic-claim"))
+        await f.browser.open(claimId: "synthetic-claim", action: oldDetail.offer()!)
+        f.navigation.openPackage(presentation: oldDetail)
+        let oldPackageBox = f.navigation.packageAppearance
+        _ = try XCTUnwrap(f.navigation.packageViewAppeared(oldPackageBox, claimId: "synthetic-claim"))
+        // No old onDisappear has fired. Returning still receives a fresh route-owned box.
+        f.navigation.showsPackage = false
+        let freshDetailBox = f.navigation.detailAppearance
+        let freshDetail = try XCTUnwrap(f.navigation.detailViewAppeared(freshDetailBox, claimId: "synthetic-claim"))
+        XCTAssertFalse(freshDetailBox === oldDetailBox)
+        f.navigation.detailViewDisappeared(oldDetailBox)
+        f.navigation.packageViewDisappeared(oldPackageBox)
+        XCTAssertTrue(f.navigation.detailPermit === freshDetail); XCTAssertTrue(freshDetail.isLive)
+        XCTAssertNil(f.navigation.detailViewAppeared(oldDetailBox, claimId: "synthetic-claim"))
+        f.navigation.selection = nil
+        let freshListBox = f.navigation.listAppearance
+        let freshList = try XCTUnwrap(f.navigation.listViewAppeared(freshListBox))
+        XCTAssertFalse(freshListBox === oldListBox)
+        f.navigation.listViewDisappeared(oldListBox)
+        f.navigation.detailViewDisappeared(freshDetailBox)
+        XCTAssertTrue(f.navigation.listPermit === freshList); XCTAssertTrue(freshList.isLive)
+        XCTAssertNil(f.navigation.listViewAppeared(oldListBox))
+        await f.browser.load(action: freshList.offer()!)
+        XCTAssertEqual(f.browser.rows.count, 1)
+    }
+
 }

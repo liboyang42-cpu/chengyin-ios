@@ -1,12 +1,28 @@
 #if DEBUG
 import SwiftUI
 
-@MainActor final class CoopRelationFixtureReader: ObservableObject, CoopFlowReading, ClubReading, PublicMerchantHomeReading {
-    @Published var session: CoopFlowSession? = try! .init(accountID: 101, epoch: 1, token: "synthetic-relation")
-    @Published var scope = UUID()
+/// Request accounting is observable only by its dedicated fixture label. A completed profile
+/// read must not republish the identity owner that constructs the navigation environment.
+@MainActor final class CoopRelationFixtureReadLedger: ObservableObject {
     @Published var reads = 0
     @Published var ownerReads = 0
     @Published var clubReads = 0
+}
+@MainActor private struct CoopRelationFixtureReadCounter: View {
+    @ObservedObject var ledger: CoopRelationFixtureReadLedger
+    var body: some View {
+        Text(verbatim: "\(ledger.ownerReads):\(ledger.clubReads)")
+            .accessibilityIdentifier("cooprelation.fixture.profileReads")
+    }
+}
+
+@MainActor final class CoopRelationFixtureReader: ObservableObject, CoopFlowReading, ClubReading, PublicMerchantHomeReading {
+    @Published var session: CoopFlowSession? = try! .init(accountID: 101, epoch: 1, token: "synthetic-relation")
+    @Published var scope = UUID()
+    let ledger = CoopRelationFixtureReadLedger()
+    var reads: Int { ledger.reads }
+    var ownerReads: Int { ledger.ownerReads }
+    var clubReads: Int { ledger.clubReads }
     let scenario: String
     var failNext: Bool
     var clubIdentity: ClubReadIdentity { .init(accountID: session?.accountID, epoch: session?.epoch ?? 0) }
@@ -15,7 +31,7 @@ import SwiftUI
     let isOfflineExample = true
     init(scenario: String) { self.scenario = scenario; failNext = scenario == "retry" }
     func read(_ resource: CoopFlowRead) async throws -> CoopFlowJSON {
-        reads += 1
+        ledger.reads += 1
         if failNext { failNext = false; throw CoopFlowFailure.malformed }
         let merchant: CoopFlowJSON = .object(["id": .id(8), "memberId": .id(41), "name": .string("Synthetic merchant"), "coverImage": .string("https://relation-fixture.invalid/cover.jpg"), "logo": .string("https://relation-fixture.invalid/logo.jpg")])
         let invalid: CoopFlowJSON = .object(["id": .id(41), "name": .string("Missing owner")])
@@ -26,12 +42,12 @@ import SwiftUI
     func settlement(source: CoopFlowSettlement.Source, id: Int) async throws -> CoopFlowSettlement { throw CoopFlowFailure.unavailable }
     func home(_ target: PublicMerchantHomeTarget) async throws -> PublicMerchantHome {
         guard target == .ownerMemberID(PublicMerchantOwnerID(41)!) else { throw PublicMerchantHomeFailure.invalid }
-        ownerReads += 1
+        ledger.ownerReads += 1
         return try JSONDecoder().decode(PublicMerchantHome.self, from: Data(#"{"id":8,"memberId":41,"name":"Public owner 41","description":"Synthetic public merchant profile"}"#.utf8))
     }
     func clubDetail(id: Int) async throws -> ClubRecord {
         guard id == 9 else { throw CoopFlowFailure.unavailable }
-        clubReads += 1
+        ledger.clubReads += 1
         return try JSONDecoder().decode(ClubRecord.self, from: Data(#"{"id":9,"name":"Public club 9","description":"Synthetic public club profile","memberCount":0}"#.utf8))
     }
     func clubMembers(id: Int) async throws -> ClubMemberDirectory { throw CoopFlowFailure.unavailable }
@@ -58,11 +74,16 @@ import SwiftUI
             }
         })
         VStack {
-            Text(verbatim: "\(reader.ownerReads):\(reader.clubReads)").accessibilityIdentifier("cooprelation.fixture.profileReads")
-            Button("Change synthetic identity") { reader.session = try! .init(accountID: 102, epoch: 2, token: "replacement"); reader.scope = UUID() }
-                .accessibilityIdentifier("cooprelation.fixture.replace")
-            Button("Sign out synthetic identity") { reader.session = nil; reader.scope = UUID() }
-                .accessibilityIdentifier("cooprelation.fixture.signOut")
+            VStack(spacing: 8) {
+                CoopRelationFixtureReadCounter(ledger: reader.ledger)
+                Button("Change synthetic identity") { reader.session = try! .init(accountID: 102, epoch: 2, token: "replacement"); reader.scope = UUID() }
+                    .accessibilityIdentifier("cooprelation.fixture.replace")
+                Button("Sign out synthetic identity") { reader.session = nil; reader.scope = UUID() }
+                    .accessibilityIdentifier("cooprelation.fixture.signOut")
+            }
+            // Keep harness chrome readable without consuming the product's accessibility5 viewport.
+            // The stack and real discovery/profile content still inherit the requested large size.
+            .dynamicTypeSize(.large)
             NavigationStack {
                 CooperationFlowWorkbench(reader: reader)
             }

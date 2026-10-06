@@ -5,8 +5,39 @@ import Observation
 /// row/package actions revoke the departing screen synchronously, before pushing navigation.
 @MainActor @Observable final class WorkshopOwnedNavigationState {
     struct Selection: Hashable, Identifiable { let id: String }
-    var selection: Selection?
-    var showsPackage = false
+    var selection: Selection? {
+        willSet {
+            guard selection != newValue else { return }
+            // Back/selection bindings retire work before delayed animation callbacks.
+            if let permit = listPermit { browser.leaveList(permit, closing: false) }
+            listTask?.cancel(); listTask = nil; listPermit = nil
+            listAppearance = WorkshopOwnedViewAppearance()
+            detailAppearance = WorkshopOwnedViewAppearance()
+            packageAppearance = WorkshopOwnedViewAppearance()
+            packageTask?.cancel(); packageTask = nil; packagePermit = nil
+            detailTask?.cancel(); detailTask = nil; detailPermit = nil
+            browser.closeDetail()
+            if showsPackage { showsPackage = false }
+        }
+    }
+    var showsPackage = false {
+        willSet {
+            guard showsPackage != newValue else { return }
+            detailAppearance = WorkshopOwnedViewAppearance()
+            packageAppearance = WorkshopOwnedViewAppearance()
+            if newValue {
+                if let permit = detailPermit { browser.leaveDetail(permit, closing: false) }
+                detailTask?.cancel(); detailTask = nil; detailPermit = nil
+            }
+            if showsPackage && !newValue {
+                packageTask?.cancel(); packageTask = nil; packagePermit = nil
+                browser.packageBrowser?.close()
+            }
+        }
+    }
+    private(set) var listAppearance = WorkshopOwnedViewAppearance()
+    private(set) var detailAppearance = WorkshopOwnedViewAppearance()
+    private(set) var packageAppearance = WorkshopOwnedViewAppearance()
     private(set) var listPermit: WorkshopOwnedPresentationPermit?
     private(set) var detailPermit: WorkshopOwnedPresentationPermit?
     private(set) var packagePermit: WorkshopOwnedPresentationPermit?
@@ -16,11 +47,13 @@ import Observation
     private let browser: WorkshopOwnedBrowser
     init(browser: WorkshopOwnedBrowser) { self.browser = browser }
     func listAppeared() -> WorkshopOwnedPresentationPermit? {
+        guard selection == nil else { return nil }
         let permit = browser.presentList(); listPermit = permit; return permit
     }
-    func listDisappeared() {
+    func listDisappeared(_ presentation: WorkshopOwnedPresentationPermit?) {
+        guard let presentation, listPermit === presentation else { return }
         listTask?.cancel(); listTask = nil
-        if let permit = listPermit { browser.leaveList(permit, closing: selection == nil) }; listPermit = nil
+        browser.leaveList(presentation, closing: selection == nil); listPermit = nil
     }
     func select(claimId: String, presentation: WorkshopOwnedPresentationPermit?) {
         guard let presentation, listPermit === presentation, presentation.isLive, browser.rows.contains(where: { $0.claimId == claimId }) else { return }
@@ -29,11 +62,13 @@ import Observation
         selection = .init(id: claimId)
     }
     func detailAppeared(claimId: String) -> WorkshopOwnedPresentationPermit? {
+        guard selection?.id == claimId, !showsPackage else { return nil }
         let permit = browser.presentDetail(claimId: claimId); detailPermit = permit; return permit
     }
-    func detailDisappeared() {
+    func detailDisappeared(_ presentation: WorkshopOwnedPresentationPermit?) {
+        guard let presentation, detailPermit === presentation else { return }
         detailTask?.cancel(); detailTask = nil
-        if let permit = detailPermit { browser.leaveDetail(permit, closing: !showsPackage) }; detailPermit = nil
+        browser.leaveDetail(presentation, closing: !showsPackage); detailPermit = nil
     }
     func openPackage(presentation: WorkshopOwnedPresentationPermit?) {
         guard let presentation, detailPermit === presentation, presentation.isLive, let selected = selection?.id,
@@ -43,11 +78,39 @@ import Observation
         showsPackage = true
     }
     func packageAppeared(claimId: String) -> WorkshopOwnedPresentationPermit? {
+        guard selection?.id == claimId, showsPackage else { return nil }
         let permit = browser.packageBrowser?.present(claimId: claimId); packagePermit = permit; return permit
     }
-    func packageDisappeared() {
+    func packageDisappeared(_ presentation: WorkshopOwnedPresentationPermit?) {
+        guard let presentation, packagePermit === presentation else { return }
         packageTask?.cancel(); packageTask = nil
-        if let permit = packagePermit { browser.packageBrowser?.leave(permit) }; packagePermit = nil
+        browser.packageBrowser?.leave(presentation); packagePermit = nil
+    }
+    // The navigation transition creates the next presentation BEFORE SwiftUI returns to it.
+    // A cached View's previous box must never be reused if Back arrives before old onDisappear.
+    func listViewAppeared(_ displayed: WorkshopOwnedViewAppearance) -> WorkshopOwnedPresentationPermit? {
+        guard listAppearance === displayed, selection == nil else { return nil }
+        return displayed.appear { listAppeared() }
+    }
+    func detailViewAppeared(_ displayed: WorkshopOwnedViewAppearance, claimId: String) -> WorkshopOwnedPresentationPermit? {
+        guard detailAppearance === displayed, selection?.id == claimId, !showsPackage else { return nil }
+        return displayed.appear { detailAppeared(claimId: claimId) }
+    }
+    func packageViewAppeared(_ displayed: WorkshopOwnedViewAppearance, claimId: String) -> WorkshopOwnedPresentationPermit? {
+        guard packageAppearance === displayed, selection?.id == claimId, showsPackage else { return nil }
+        return displayed.appear { packageAppeared(claimId: claimId) }
+    }
+    func listViewDisappeared(_ displayed: WorkshopOwnedViewAppearance) {
+        displayed.disappear { listDisappeared($0) }
+        if listAppearance === displayed { listAppearance = WorkshopOwnedViewAppearance() }
+    }
+    func detailViewDisappeared(_ displayed: WorkshopOwnedViewAppearance) {
+        displayed.disappear { detailDisappeared($0) }
+        if detailAppearance === displayed { detailAppearance = WorkshopOwnedViewAppearance() }
+    }
+    func packageViewDisappeared(_ displayed: WorkshopOwnedViewAppearance) {
+        displayed.disappear { packageDisappeared($0) }
+        if packageAppearance === displayed { packageAppearance = WorkshopOwnedViewAppearance() }
     }
     typealias ReadAction = @MainActor () async -> Void
     func offerList(_ permit: WorkshopOwnedPresentationPermit?) -> ReadAction? {
@@ -70,5 +133,22 @@ import Observation
     }
     func schedulePackage(_ permit: WorkshopOwnedPresentationPermit?, claimId: String) {
         guard let action = offerPackage(permit, claimId: claimId) else { return }; packageTask?.cancel(); packageTask = Task { await action() }
+    }
+}
+
+/// A visible View owns this prebuilt box. onAppear installs the permit synchronously,
+/// so even a disappearance before SwiftUI redraw retires the correct presentation.
+@MainActor @Observable final class WorkshopOwnedViewAppearance {
+    private(set) var permit: WorkshopOwnedPresentationPermit?
+    private var appeared = false
+    private var closed = false
+    func appear(_ issue: () -> WorkshopOwnedPresentationPermit?) -> WorkshopOwnedPresentationPermit? {
+        guard !closed else { return nil }
+        if !appeared { appeared = true; permit = issue() }
+        return permit
+    }
+    func disappear(_ retire: (WorkshopOwnedPresentationPermit?) -> Void) {
+        guard !closed else { return }
+        closed = true; retire(permit)
     }
 }

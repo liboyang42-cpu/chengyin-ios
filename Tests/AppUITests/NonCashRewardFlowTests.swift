@@ -33,13 +33,23 @@ import XCTest
         launch(); tap("rewards.row.example-0")
         XCTAssertTrue(revealFixtureElement(app.staticTexts["rewards.read.frozenTerms"], in: app, requiresHittable: false))
         XCTAssertTrue(revealFixtureElement(app.staticTexts["rewards.read.sourceHint"], in: app, requiresHittable: false))
-        XCTAssertEqual(app.staticTexts["rewards.read.contextId.value"].label, "example-map")
-        XCTAssertEqual(app.staticTexts["rewards.read.instanceId.value"].label, "example-season")
-        XCTAssertTrue(revealFixtureElement(app.staticTexts["rewards.read.qualificationHint"], in: app, requiresHittable: false))
-        for id in ["rewards.read.eligibility.value", "rewards.read.claimProgress.value", "rewards.read.allocation.value"] {
+        for (id, expected) in [
+            ("rewards.read.contextId.value", "Context identifier, example-map"),
+            ("rewards.read.instanceId.value", "Season identifier, example-season")
+        ] {
             let query = app.staticTexts.matching(identifier: id)
             XCTAssertEqual(query.count, 1)
-            XCTAssertEqual(query.element.label, "Not provided by this read contract")
+            XCTAssertEqual(query.element.label, expected)
+        }
+        XCTAssertTrue(revealFixtureElement(app.staticTexts["rewards.read.qualificationHint"], in: app, requiresHittable: false))
+        for (id, field) in [
+            ("rewards.read.eligibility.value", "Eligibility"),
+            ("rewards.read.claimProgress.value", "Claim progress"),
+            ("rewards.read.allocation.value", "Allocation method")
+        ] {
+            let query = app.staticTexts.matching(identifier: id)
+            XCTAssertEqual(query.count, 1)
+            XCTAssertEqual(query.element.label, field + ", Not provided by this read contract")
         }
         XCTAssertFalse(app.buttons["Claim reward"].exists)
         attachFixtureScreenshot(self, app: app, name: "Synthetic frozen reward terms and unavailable claim facts")

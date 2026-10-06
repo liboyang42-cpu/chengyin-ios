@@ -88,23 +88,29 @@ import XCTest
             if bar.exists { bounds.origin.y = max(bounds.minY, bar.frame.maxY + 8) }
             let bottom = app.keyboards.firstMatch.exists ? app.keyboards.firstMatch.frame.minY - 8 : app.frame.maxY - 40
             bounds.size.height = max(0, bottom - bounds.minY)
-            var up = towardTop
+            var delta = bounds.height * (towardTop ? 0.25 : -0.25)
             var x = bounds.minX + 20
             if source.exists {
                 let frame = source.frame
                 if !frame.isEmpty && bounds.contains(frame) && source.isHittable { return }
                 if !frame.isEmpty {
-                    up = frame.midY < bounds.midY
+                    // The source fits the viewport. Full-height swipes overshoot its
+                    // opposite edge; move only the currently missing edge and settle.
+                    if frame.minY < bounds.minY { delta = bounds.minY - frame.minY + 8 }
+                    else if frame.maxY > bounds.maxY { delta = bounds.maxY - frame.maxY - 8 }
+                    delta = min(bounds.height * 0.25, max(-bounds.height * 0.25, delta))
                     x = max(bounds.minX + 2, frame.minX - 12)
                     guard x < frame.minX else { break }
                 }
             }
             guard attempt < 35, bounds.height > 80 else { break }
-            let start = CGPoint(x: x, y: bounds.minY + bounds.height * (up ? 0.25 : 0.75))
-            let end = CGPoint(x: x, y: bounds.minY + bounds.height * (up ? 0.75 : 0.25))
+            let start = CGPoint(x: x, y: bounds.midY)
+            let end = CGPoint(x: x, y: bounds.midY + delta)
             let origin = app.coordinate(withNormalizedOffset: .zero)
             origin.withOffset(CGVector(dx: start.x - app.frame.minX, dy: start.y - app.frame.minY))
-                .press(forDuration: 0.05, thenDragTo: origin.withOffset(CGVector(dx: end.x - app.frame.minX, dy: end.y - app.frame.minY)))
+                .press(forDuration: 0.05,
+                       thenDragTo: origin.withOffset(CGVector(dx: end.x - app.frame.minX, dy: end.y - app.frame.minY)),
+                       withVelocity: .slow, thenHoldForDuration: 0.1)
         }
         XCTFail("Source must be fully visible and hittable in the outer Form. " + app.debugDescription, file: file, line: line)
     }

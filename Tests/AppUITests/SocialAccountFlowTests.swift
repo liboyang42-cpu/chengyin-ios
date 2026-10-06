@@ -139,7 +139,11 @@ final class SocialAccountFlowTests: XCTestCase {
 
     func testHTMLArticleIsReadableInertAndReopensAfterBack() {
         launch("guide", scenario: "articleHTML")
-        let row = app.buttons["social.information.91"]; reveal(row); row.tap()
+        let row = app.buttons["social.information.91"]
+        XCTAssertTrue(row.waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertEqual(app.buttons.matching(identifier: "social.information.91").count, 1, app.debugDescription)
+        XCTAssertTrue(revealFixtureElement(row, in: app), app.debugDescription)
+        XCTAssertTrue(row.isEnabled, app.debugDescription); row.tap()
         XCTAssertTrue(text("Synthetic article heading").waitForExistence(timeout: 5))
         reveal(text("Readable bold text & 中文."))
         reveal(text("First instruction"))
@@ -152,7 +156,12 @@ final class SocialAccountFlowTests: XCTestCase {
         XCTAssertFalse(text("<h2>").exists)
         reveal(app.staticTexts["social.article.limited"])
         app.navigationBars.buttons["Play guide"].tap()
-        reveal(row); row.tap()
+        // Back can restore a partly clipped row that still reports isHittable.
+        // Use the existing complete-viewport guard before the same single native tap.
+        XCTAssertTrue(row.waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertEqual(app.buttons.matching(identifier: "social.information.91").count, 1, app.debugDescription)
+        XCTAssertTrue(revealFixtureElement(row, in: app), app.debugDescription)
+        XCTAssertTrue(row.isEnabled, app.debugDescription); row.tap()
         XCTAssertTrue(text("Synthetic article heading").waitForExistence(timeout: 5))
     }
     func testChineseLargeTextArticleReplacesOldContentAfterAccountSwitch() {

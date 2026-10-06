@@ -21,6 +21,9 @@ import Observation
     }
 
     func invalidate() {
+        // Normal Account body reads reconcile the default-off binding. An already-empty
+        // binding must not publish fresh Observation mutations during that read.
+        guard browser != nil || captured != nil || revision != nil else { return }
         browser?.invalidate()
         browser = nil; captured = nil; revision = nil
     }

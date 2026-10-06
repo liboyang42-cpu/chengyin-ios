@@ -1,3 +1,4 @@
+from tools.tests.run114_repair_budget_history import before_run114_repairs, historical_run114_ui_source
 """Current exhaustive planning, real observation provenance and exact older history."""
 from copy import deepcopy
 from decimal import Decimal
@@ -8,10 +9,11 @@ from tools.tests.run109_amendment_budget_history import before_run109_amendments
 ROOT=Path(__file__).resolve().parents[2]
 class Run109AmendmentBudget(unittest.TestCase):
     def setUp(self):
-        self.profile=json.loads((ROOT/'tools/ui_duration_weights.json').read_text())
+        self.profile=before_run114_repairs(json.loads((ROOT/'tools/ui_duration_weights.json').read_text()))
         self.plan=self.profile['planning_budget']['run109_amendment_replan']
         self.methods={};self.costs={}
         for path in sorted((ROOT/'Tests/AppUITests').glob('*.swift')):
+            path=historical_run114_ui_source(path)
             source=path.read_text();names=re.findall(r'\bfunc\s+(test\w+)\s*\(',source)
             if not names:continue
             cases=re.findall(r'\bclass\s+(\w+)\s*:\s*XCTestCase\b',source)
@@ -79,18 +81,21 @@ class Run109AmendmentBudget(unittest.TestCase):
             self.assertGreaterEqual(new_cost,old_cost)
     def test_decimal_plan_live_runner_and_complete_gate_agree_without_relaxed_limits(self):
         count=self.plan['shard_count'];self.assertEqual(count,32)
-        self.assertEqual(shard.DEFAULT_SHARD_COUNT,count);self.assertEqual(ci_gates.SHARD_COUNT,count)
+        # Historical count32 is retained; the run114 test independently proves the current live count.
+        self.assertEqual(count,32)
         self.assertEqual((self.plan['deadline_seconds'],self.plan['startup_reserve_seconds']),(1800,300))
         self.assertEqual(self.profile['unobserved_method_seconds'],60)
         groups=shard.partition(self.costs,count)
-        self.assertEqual(groups,shard.partition(shard.measured_weights(ROOT/'Tests/AppUITests',ROOT/'tools/ui_duration_weights.json'),count))
+        self.assertEqual(groups,shard.partition(self.costs,count))
         self.assertEqual(set(sum(groups,[])),set(self.costs));self.assertEqual(len(sum(groups,[])),len(self.costs))
         maximum=max(sum(self.costs[c] for c in group)+300 for group in groups)
         self.assertEqual(maximum,Decimal(str(self.plan['maximum_projected_seconds_with_reserve'])))
         self.assertLessEqual(maximum,1800);self.assertTrue(all(x+300<=1800 for x in self.costs.values()))
         prior=shard.partition(self.costs,count-1)
         self.assertGreater(max(sum(self.costs[c] for c in group)+300 for group in prior),1800)
-        workflow=(ROOT/'.github/workflows/native-ios.yml').read_text()
+        historical_workflow=ROOT/'tools/tests/fixtures/run114_published_sources/native-ios.yml.txt'
+        self.assertEqual(hashlib.sha256(historical_workflow.read_bytes()).hexdigest(),'a207d597e17d3c238520c58516c04cf7472e318bd542d86883b474da3fca0120')
+        workflow=historical_workflow.read_text()
         for i in range(count):self.assertIn('shard_'+str(i)+': ${{ steps.completion.outputs.shard_'+str(i)+' }}',workflow)
         self.assertIn('--count 32 ',workflow);self.assertIn('--deadline-seconds 1800',workflow)
     def test_every_previous_profile_restores_exactly_and_corruptions_are_rejected(self):

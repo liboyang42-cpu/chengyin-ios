@@ -3,6 +3,7 @@
 Two published test sources and one accepted public-code source preserve the historical assertions
 across intact class migrations. Current execution is separately exhaustive.
 """
+from tools.tests.run114_repair_budget_history import before_run114_repairs, historical_run114_ui_source
 from copy import deepcopy
 import hashlib
 import json
@@ -15,6 +16,7 @@ MOVED_CLASSES = {'OwnerDraftHistoryFlowTests', 'IntegratedActivityPlayJourneyFlo
 ROOT = Path(__file__).resolve().parents[2]
 
 def before_run109_amendments(profile):
+    profile = before_run114_repairs(profile)
     result = deepcopy(profile)
     plan = result['planning_budget'].pop('run109_amendment_replan', None)
     if plan is not None:
@@ -33,7 +35,7 @@ def before_run109_amendments(profile):
     return result
 
 def historical_ui_source(directory, case):
-    if case not in SOURCE_SHA256: return Path(directory)/(case+'.swift')
+    if case not in SOURCE_SHA256: return historical_run114_ui_source(Path(directory)/(case+'.swift'))
     folder = 'run109_accepted_sources' if case == 'OwnerDraftBrowserFlowTests' else 'run109_published_sources'
     path = ROOT/'tools/tests/fixtures'/folder/(case+'.swift.txt')
     assert hashlib.sha256(path.read_bytes()).hexdigest() == SOURCE_SHA256[case], 'Immutable historical source changed'

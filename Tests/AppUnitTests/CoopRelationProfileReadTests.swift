@@ -1,5 +1,62 @@
 import XCTest
+import Combine
 @testable import Questify
+
+@MainActor final class CoopRelationFixtureReadLedgerTests: XCTestCase {
+    func testRealReadAccountingDoesNotRepublishTheNavigationIdentityOwner() async throws {
+        let reader = CoopRelationFixtureReader(scenario: "mixed")
+        var ownerPublications = 0, counterPublications = 0
+        let identityObservation = reader.objectWillChange.sink { ownerPublications += 1 }
+        let counterObservation = reader.ledger.objectWillChange.sink { counterPublications += 1 }
+        _ = try await reader.read(.relations)
+        _ = try await reader.home(.ownerMemberID(PublicMerchantOwnerID(41)!))
+        _ = try await reader.clubDetail(id: 9)
+        XCTAssertEqual(reader.reads, 1); XCTAssertEqual(reader.ownerReads, 1); XCTAssertEqual(reader.clubReads, 1)
+        XCTAssertEqual(ownerPublications, 0, "Fixture bookkeeping must not rebuild the environment owner during a profile read")
+        XCTAssertEqual(counterPublications, 3)
+        withExtendedLifetime((identityObservation, counterObservation)) {}
+    }
+    func testIdentityReplacementStillPublishesAndRejectsTheOldScopedProfile() async throws {
+        let reader = CoopRelationFixtureReader(scenario: "mixed"), scope = reader.scope, session = reader.session
+        let profile = CoopRelationMerchantReader(base: reader, owner: PublicMerchantOwnerID(41)!, isCurrent: { reader.scope == scope && reader.session == session })
+        _ = try await profile.home(.ownerMemberID(PublicMerchantOwnerID(41)!))
+        var publications = 0
+        let observation = reader.objectWillChange.sink { publications += 1 }
+        reader.session = try .init(accountID: 102, epoch: 2, token: "replacement")
+        reader.scope = UUID()
+        XCTAssertEqual(publications, 2); XCTAssertFalse(profile.isConfigured)
+        do { _ = try await profile.home(.ownerMemberID(PublicMerchantOwnerID(41)!)); XCTFail("Old selection dispatched after identity replacement") } catch {}
+        XCTAssertEqual(reader.ownerReads, 1)
+        withExtendedLifetime(observation) {}
+    }
+    func testAcceptedClubChoiceStaysCurrentDuringItsOwnLedgerPublication() async throws {
+        let reader = CoopRelationFixtureReader(scenario: "mixed"), model = CoopRelationDiscoveryModel()
+        let scope = CoopRelationProfileScope(merchantScope: reader.scope, clubIdentity: reader.clubIdentity, sessionRevision: 1, contentRevision: 1)
+        let context = CoopRelationDisplayContext(topicID: 3, chapterID: 5)
+        await model.load(reader: reader)
+        let choice = try XCTUnwrap(model.selection(row: try XCTUnwrap(model.value?.clubs.first), reader: reader, scope: scope, context: context))
+        model.leaveScreen()
+        let profile = CoopRelationClubProfileReader(base: reader, clubID: 9, isCurrent: { model.isCurrent(choice, reader: reader, scope: scope, context: context) })
+        var publications = 0
+        let observation = reader.objectWillChange.sink { publications += 1 }
+        let value = try await profile.clubDetail(id: 9)
+        XCTAssertEqual(value.id, 9); XCTAssertEqual(reader.clubReads, 1); XCTAssertEqual(reader.reads, 1)
+        XCTAssertEqual(publications, 0); XCTAssertTrue(profile.isClubConfigured)
+        XCTAssertTrue(model.isCurrent(choice, reader: reader, scope: scope, context: context))
+        await model.load(reader: reader)
+        XCTAssertFalse(profile.isClubConfigured, "Explicit refresh still retires the previous accepted snapshot")
+        withExtendedLifetime(observation) {}
+    }
+    func testCountersRemainMonotonicAcrossSyntheticIdentityChangesAndFailures() async throws {
+        let reader = CoopRelationFixtureReader(scenario: "retry"), ledger = reader.ledger
+        do { _ = try await reader.read(.relations); XCTFail("Expected the original first-read fixture failure") } catch {}
+        _ = try await reader.read(.relations)
+        _ = try await reader.home(.ownerMemberID(PublicMerchantOwnerID(41)!))
+        reader.session = nil; reader.scope = UUID()
+        XCTAssertTrue(reader.ledger === ledger)
+        XCTAssertEqual(reader.reads, 2); XCTAssertEqual(reader.ownerReads, 1); XCTAssertEqual(reader.clubReads, 0)
+    }
+}
 
 @MainActor final class CoopRelationProfileReadTests: XCTestCase {
     func testMerchantAdapterRejectsRowNamespaceBeforeAnyRead() async throws {

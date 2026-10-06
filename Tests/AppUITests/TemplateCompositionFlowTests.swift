@@ -6,7 +6,7 @@ import XCTest
     override func setUpWithError() throws { continueAfterFailure = false }
     override func tearDownWithError() throws { attachFailureScreenshot(self, app: app); app?.terminate(); app = nil }
     private func launch() -> XCUIApplication {
-        let app = XCUIApplication(); app.launchArguments = ["--uitesting-reset-language", "--ui-template-authoring", "--template-author-compound", "-AppleLanguages", "(en)"]; app.launch()
+        let app = XCUIApplication(); app.launchArguments = ["--uitesting-reset-language", "--ui-template-authoring", "--template-author-compound", "--template-author-toggle-probe", "-AppleLanguages", "(en)"]; app.launch()
         self.app = app
         tap("templateAuthor.begin", app); tap("templateAuthor.continue", app); return app
     }
@@ -20,9 +20,24 @@ import XCTest
         let coin = app.switches["creatorComposition.enabled.coin"]
         XCTAssertTrue(coin.waitForExistence(timeout: 5), app.debugDescription)
         XCTAssertEqual(coin.value as? String, "1", app.debugDescription)
+        let probe = app.buttons["creatorComposition.probe.coin"]
+        let before = probe.exists ? ((probe.value as? String) ?? "unavailable") : "missing"
         tapFixtureNativeSwitch(coin, in: app)
         let disabled = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "0"), object: coin)
-        XCTAssertEqual(XCTWaiter.wait(for: [disabled], timeout: 5), .completed, app.debugDescription)
+        let outcome = XCTWaiter.wait(for: [disabled], timeout: 5)
+        if outcome != .completed {
+            // Preserve the original failure screen before reading diagnostic-only fixture state.
+            // Never retry the switch or turn this failed assertion into a successful result.
+            attachFixtureScreenshot(self, app: app, name: "Coin toggle before diagnostic inspection")
+            var after = "probe unavailable"
+            if probe.exists, revealFixtureElement(probe, in: app), probe.isEnabled {
+                probe.tap(); after = (probe.value as? String) ?? "unavailable"
+            }
+            let attachment = XCTAttachment(string: "before: " + before + "\nafter: " + after)
+            attachment.name = "Synthetic coin input dispatch and model values"
+            attachment.lifetime = .keepAlways; add(attachment)
+        }
+        XCTAssertEqual(outcome, .completed, app.debugDescription)
     }
     func testOpeningAndDisablingCoinKeepsDiceAndQuietEnabled() {
         let app = launch(); tap("creatorComposition.open", app); tap("templateAuthor.game.coin", app)

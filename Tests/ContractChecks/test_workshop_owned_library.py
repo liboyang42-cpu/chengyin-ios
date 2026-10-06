@@ -42,7 +42,7 @@ class WorkshopOwnedLibraryContracts(unittest.TestCase):
         self.assertNotIn('await ',s)
     def test_vertical_navigation_and_read_only_states_exist(self):
         s=self.source('App/WorkshopOwnedLibraryView.swift')
-        for marker in ['WorkshopOwnedAccountLink','WorkshopOwnedDestination','ForEach(browser.rows)', '.navigationDestination(item: $navigation.selection)', '.onDisappear { navigation.detailDisappeared() }', '.onDisappear { navigation.listDisappeared() }','case .notEnabled','case .empty']:
+        for marker in ['WorkshopOwnedAccountLink','WorkshopOwnedDestination','ForEach(browser.rows)', '.navigationDestination(item: $navigation.selection)', 'navigation.detailViewDisappeared(displayed)', 'navigation.listViewDisappeared(displayed)','case .notEnabled','case .empty']:
             self.assertIn(marker,s)
         for marker in ['TextEditor','WebView','URLSession','AsyncImage','Link(','.lineLimit(1)','height:']:
             self.assertNotIn(marker,s)

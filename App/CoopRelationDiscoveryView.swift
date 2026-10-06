@@ -62,7 +62,11 @@ extension EnvironmentValues {
                             Button {
                                 guard canOpen(choice) else { return }
                                 selection = choice
-                            } label: { card(row) }
+                            } label: {
+                                card(row)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .contentShape(Rectangle())
+                            }
                             .buttonStyle(.plain)
                             .accessibilityIdentifier("cooprelation.open.\(row.kind.rawValue).\(row.id)")
                         } else {

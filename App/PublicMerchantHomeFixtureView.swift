@@ -1,21 +1,22 @@
 #if DEBUG
 import SwiftUI
+import UIKit
 
 /// Parent may install only behind an explicit DEBUG UI-test launch argument.
 @MainActor struct PublicMerchantHomeFixtureView: View {
     let scenario: String
     @State private var featuredScope = UUID()
-    private let transport: PublicMerchantHomeFixtureTransport
-    private let configuration: APIConfiguration
-    private let session: PublicMerchantReviewSession
-    private let journal = MerchantBusinessMemoryIntentStore()
-    init(scenario: String) {
+    @State private var fixture: PublicMerchantHomeFixtureState
+    private let ownerObserver: ((PublicMerchantHomeFixtureState) -> Void)?
+    private let probeRevision: Int
+    init(scenario: String, ownerObserver: ((PublicMerchantHomeFixtureState) -> Void)? = nil, probeRevision: Int = 0) {
         self.scenario = scenario
-        transport = PublicMerchantHomeFixtureTransport(scenario: scenario)
-        configuration = try! APIConfiguration(baseURL: URL(string: "https://example.com/")!)
-        session = try! PublicMerchantReviewSession(accountID: 8, scope: UUID(), realm: "https://example.com/", token: "fixture-token")
+        _fixture = State(initialValue: PublicMerchantHomeFixtureState(scenario: scenario))
+        self.ownerObserver = ownerObserver; self.probeRevision = probeRevision
     }
     var body: some View {
+        let transport = fixture.transport, configuration = fixture.configuration
+        let session = fixture.session, journal = fixture.journal
         let reader = PublicMerchantHomeHTTPReader(configuration: configuration, transport: transport, scope: featuredScope, isOfflineExample: true)
         let reviewReader = PublicMerchantReviewHTTPReader(configuration: configuration, transport: transport, scope: session.scope, isOfflineExample: true, session: session)
         let writer = PublicMerchantReviewHTTPWriter(configuration: configuration, transport: transport, currentSession: { session })
@@ -44,9 +45,36 @@ import SwiftUI
                 PublicMerchantHomeView(target: scenario == "invalid" ? nil : .ownerMemberID(PublicMerchantOwnerID(41)!), context: context)
             }
         }.dynamicTypeSize(ProcessInfo.processInfo.arguments.contains("--uitesting-large-text") ? .accessibility5 : .large)
+            .background {
+                if let ownerObserver {
+                    PublicMerchantHomeFixtureOwnerProbe(owner: fixture, revision: probeRevision, observe: ownerObserver)
+                        .frame(width: 0, height: 0).allowsHitTesting(false).accessibilityHidden(true)
+                }
+            }
     }
 }
-private final class PublicMerchantHomeFixtureTransport: HTTPTransport {
+/// One mounted synthetic host owns request sequencing, the review session and journal.
+/// Reconstructing the SwiftUI value must not restart the "first request" scenario.
+@MainActor final class PublicMerchantHomeFixtureState {
+    let transport: PublicMerchantHomeFixtureTransport
+    let configuration: APIConfiguration
+    let session: PublicMerchantReviewSession
+    let journal = MerchantBusinessMemoryIntentStore()
+    init(scenario: String) {
+        transport = PublicMerchantHomeFixtureTransport(scenario: scenario)
+        configuration = try! APIConfiguration(baseURL: URL(string: "https://example.com/")!)
+        session = try! PublicMerchantReviewSession(accountID: 8, scope: UUID(), realm: "https://example.com/", token: "fixture-token")
+    }
+}
+/// Optional AppUnit-only observer of actual SwiftUI state ownership; no requests or UI controls.
+@MainActor private struct PublicMerchantHomeFixtureOwnerProbe: UIViewRepresentable {
+    let owner: PublicMerchantHomeFixtureState
+    let revision: Int
+    let observe: (PublicMerchantHomeFixtureState) -> Void
+    func makeUIView(context: Context) -> UIView { UIView(frame: .zero) }
+    func updateUIView(_ uiView: UIView, context: Context) { observe(owner) }
+}
+final class PublicMerchantHomeFixtureTransport: HTTPTransport {
     let scenario: String
     private var requests = 0
     init(scenario: String) { self.scenario = scenario }
