@@ -9,6 +9,8 @@ public enum BusinessRuntimeFeature: Hashable {
     case imPollResult, imPollCreate, imPollVote, imPollClose, clubChat
     case publishingRead, publishingWrite, projectRead, projectWrite, directVerification
     case publishingAIQuota, publishingAITheme, publishingAIClub, publishingAITemplate
+    case approvedTopicReleasePrepare, approvedTopicReleasePublish, approvedTopicReleaseStatus
+    case approvedTopicReviewPrepare, approvedTopicReviewSubmit, approvedTopicReviewStatus, approvedTopicReviewCurrent
     case topicSelfPlayRead, topicSelfPlayCreate, topicSelfPlayPay, topicSelfPlayConsentRead, topicSelfPlayConsentWrite
 }
 public struct BusinessRuntimeRoute: Hashable {
@@ -147,6 +149,13 @@ public extension BusinessRuntimeFeature {
         case .publishingAIClub: paths = ["api/ai/club/design"]
         case .publishingAITemplate: paths = ["api/ai/template/fill"]
         case .publishingWrite: paths = ["api/activity/publish", "api/topic/create", "api/topic/delete", "api/topic/update_user_status", "api/activity/delete", "api/activity/update_publish_status", "api/template/delete", "api/template/updateLibraryStatus"]
+        case .approvedTopicReviewPrepare: paths = [ApprovedTopicReviewPath.prepare]
+        case .approvedTopicReviewSubmit: paths = [ApprovedTopicReviewPath.submit]
+        case .approvedTopicReviewStatus: paths = [ApprovedTopicReviewPath.status]
+        case .approvedTopicReviewCurrent: paths = [ApprovedTopicReviewPath.current]
+        case .approvedTopicReleasePrepare: paths = [ApprovedTopicReleasePaths.prepare]
+        case .approvedTopicReleasePublish: paths = [ApprovedTopicReleasePublicationPath.publish]
+        case .approvedTopicReleaseStatus: paths = [ApprovedTopicReleasePublicationPath.status]
         case .projectRead: paths = ["api/publish/home", "api/topic/edit-detail"]
         case .projectWrite: paths = ["api/topic/create", "api/topic/update", "api/topic/v2/create", "api/topic/v2/update"]
         case .directVerification: paths = ["api/merchant/access/me", "api/verify/groupcode/redeem", "api/coupon/verification", "api/registration/scan_dynamic_code", "api/registration/scan_qr_code", "api/registration/scan_qr_code_chapter", "api/registration/scan_qr_code_station", "api/verify/citynode/redeem"]

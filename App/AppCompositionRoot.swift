@@ -80,6 +80,12 @@ extension KeychainTokenStore: AppTokenStorage {}
     private let makeTransport: () -> any HTTPTransport
     /// Select independently reviewed approvals for the exact context. This builder must not
     /// turn authentication, roles, or remote booleans into OperationEndpointApproval values.
+    let projectStoryAudioUploadApproval: @MainActor (RuntimeDependencyContext) -> ProjectStoryAudioUploadApproval?
+    let makeProjectStoryAudioUploadTransport: @MainActor () -> any HTTPTransport
+    let projectStoryImageUploadApproval: @MainActor (RuntimeDependencyContext) -> ProjectStoryImageUploadApproval?
+    let makeProjectStoryImageUploadTransport: @MainActor () -> any HTTPTransport
+    let ownedTopicCoverApproval: @MainActor (RuntimeDependencyContext) -> OwnedTopicCoverApproval?
+    let makeOwnedTopicCoverTransport: @MainActor (Int) -> any HTTPTransport
     let ownedOrderReadApproval: @MainActor (RuntimeDependencyContext) -> OwnedOrderReadApproval?
     let manualMapReadApproval: @MainActor (RuntimeDependencyContext) -> ManualMapReadApproval?
     let templateShelfReadApproval: @MainActor (RuntimeDependencyContext) -> TemplateShelfReadApproval?
@@ -100,6 +106,12 @@ extension KeychainTokenStore: AppTokenStorage {}
     let sessionDependencies: @MainActor (RuntimeDependencyContext) -> NativeRuntimeDependencies
     init(deployment: DeploymentState = .unconfigured, storage: AppScopedStorageFactory? = nil,
          makeTransport: @escaping () -> any HTTPTransport = { URLSessionTransport() },
+         projectStoryAudioUploadApproval: @escaping @MainActor (RuntimeDependencyContext) -> ProjectStoryAudioUploadApproval? = { _ in nil },
+         makeProjectStoryAudioUploadTransport: @escaping @MainActor () -> any HTTPTransport = { ResponseLimitedHTTPTransport(enabled: true, maximumResponseBytes: 64 * 1024) },
+         projectStoryImageUploadApproval: @escaping @MainActor (RuntimeDependencyContext) -> ProjectStoryImageUploadApproval? = { _ in nil },
+         makeProjectStoryImageUploadTransport: @escaping @MainActor () -> any HTTPTransport = { ResponseLimitedHTTPTransport(enabled: true, maximumResponseBytes: 64 * 1024) },
+         ownedTopicCoverApproval: @escaping @MainActor (RuntimeDependencyContext) -> OwnedTopicCoverApproval? = { _ in nil },
+         makeOwnedTopicCoverTransport: @escaping @MainActor (Int) -> any HTTPTransport = { ResponseLimitedHTTPTransport(enabled: true, maximumResponseBytes: $0) },
          sessionDependencies: (@MainActor (RuntimeDependencyContext) -> NativeRuntimeDependencies)? = nil,
          couponLocks: @escaping @MainActor () -> any CouponManagementLocking = { CouponManagementAppLocks() },
          couponReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> CouponManagementReadApproval? = { _ in nil },
@@ -119,6 +131,9 @@ extension KeychainTokenStore: AppTokenStorage {}
          manualMapReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> ManualMapReadApproval? = { _ in nil },
          ownedOrderReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> OwnedOrderReadApproval? = { _ in nil }) {
         self.deployment = deployment; self.storage = storage ?? .init(); self.makeTransport = makeTransport
+        self.projectStoryAudioUploadApproval = projectStoryAudioUploadApproval; self.makeProjectStoryAudioUploadTransport = makeProjectStoryAudioUploadTransport
+        self.projectStoryImageUploadApproval = projectStoryImageUploadApproval; self.makeProjectStoryImageUploadTransport = makeProjectStoryImageUploadTransport
+        self.ownedTopicCoverApproval = ownedTopicCoverApproval; self.makeOwnedTopicCoverTransport = makeOwnedTopicCoverTransport
         self.sessionDependencies = sessionDependencies ?? { _ in .dormant }
         self.couponLocks = couponLocks
         self.couponReadApproval = couponReadApproval; self.couponWriteApproval = couponWriteApproval
@@ -204,6 +219,14 @@ extension KeychainTokenStore: AppTokenStorage {}
     /// Internal scheduling seam, never a grant; the one-use final fence runs after it.
     var couponBeforeForward: (@MainActor () async -> Void)?
     /// Installed by AppSession; no runtime capability can be inferred from a root grant.
+    var projectEditConfigurationRevision: @MainActor () -> UInt64? = { nil }
+    var projectEditConfiguration: @MainActor (RuntimeDependencyContext) -> BusinessRuntimeConfiguration? = { _ in nil }
+    var approvedReleaseConfigurationRevision: @MainActor () -> UInt64? = { nil }
+    var approvedReleaseConfiguration: @MainActor (RuntimeDependencyContext) -> BusinessRuntimeConfiguration? = { _ in nil }
+    var projectStoryAudioUploadApproval: @MainActor (RuntimeDependencyContext) -> ProjectStoryAudioUploadApproval? = { _ in nil }
+    var projectStoryImageUploadApproval: @MainActor (RuntimeDependencyContext) -> ProjectStoryImageUploadApproval? = { _ in nil }
+    var ownedTopicCoverConfigurationRevision: @MainActor () -> UInt64? = { nil }
+    var ownedTopicCoverApproval: @MainActor (RuntimeDependencyContext) -> OwnedTopicCoverApproval? = { _ in nil }
     var playReadConfiguration: @MainActor (RuntimeDependencyContext) -> RuntimeDependencyConfiguration? = { _ in nil }
     private let deployment: ReviewedAppDeployment?
     private let underlying: any HTTPTransport
@@ -278,6 +301,14 @@ extension KeychainTokenStore: AppTokenStorage {}
         // Forward the mutable selector itself: later installation or revocation on
         // the root must reach every existing scoped/replaced transport clone.
         transport.playReadConfiguration = { self.playReadConfiguration($0) }
+        transport.projectEditConfigurationRevision = { self.projectEditConfigurationRevision() }
+        transport.projectEditConfiguration = { self.projectEditConfiguration($0) }
+        transport.approvedReleaseConfigurationRevision = { self.approvedReleaseConfigurationRevision() }
+        transport.approvedReleaseConfiguration = { self.approvedReleaseConfiguration($0) }
+        transport.projectStoryAudioUploadApproval = { self.projectStoryAudioUploadApproval($0) }
+        transport.projectStoryImageUploadApproval = { self.projectStoryImageUploadApproval($0) }
+        transport.ownedTopicCoverConfigurationRevision = { self.ownedTopicCoverConfigurationRevision() }
+        transport.ownedTopicCoverApproval = { self.ownedTopicCoverApproval($0) }
         return transport
     }
     /// No ordinary send path admits these writes, even when a read or write lease exists.
@@ -363,7 +394,8 @@ extension KeychainTokenStore: AppTokenStorage {}
         let manualRead = selectedArea.flatMap { ManualMapReadRoute(request: request, baseURL: api.baseURL, area: $0.area) }
         let cityRead = CityReadRoute(request: request, baseURL: api.baseURL)
         let playRead = PlayReadRoute(request: request, baseURL: api.baseURL)
-        guard url.query == nil || manualRead != nil || playRead != nil || cityRead != nil else { throw APIError.notConfigured }
+        let ownedCover = OwnedTopicCoverCompositionRoute(request: request, baseURL: api.baseURL)
+        guard url.query == nil || manualRead != nil || playRead != nil || cityRead != nil || ownedCover != nil else { throw APIError.notConfigured }
         guard let captured = current() else { throw CancellationError() }
         let authPaths = [AuthEndpoint.smsSend, .phone, .userInfo, .logout].map { api.url(for: $0) }
         let auth = authPaths.contains(url)
@@ -373,6 +405,69 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard deployment.regional.market == .china,
                   deployment.regional.canUseDomesticChinaPhone,
                   CNAccountSessionService.accepts(request, configuration: api) else { throw APIError.notConfigured }
+        } else if ProjectStoryAudioCompositionRoute.accepts(request, baseURL: api.baseURL) {
+            guard deployment.regional.market == .china, captured.isSignedInContentViewer,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token),
+                  let revision = projectEditConfigurationRevision(),
+                  let editor = try? ProjectEditSession(accountID: account, epoch: captured.epoch, storageNamespace: deployment.storageScope.service, viewerRevision: captured.viewerRevision, configurationRevision: revision) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let issued = projectStoryAudioUploadApproval(context) else { throw APIError.notConfigured }
+            func permitted() -> Bool {
+                projectEditConfigurationRevision() == revision && projectStoryAudioUploadApproval(context) == issued &&
+                    issued.matches(configuration: api, session: editor)
+            }
+            guard permitted() else { throw APIError.notConfigured }; readApprovalStillValid = permitted
+        } else if ProjectStoryImageCompositionRoute.accepts(request, baseURL: api.baseURL) {
+            guard deployment.regional.market == .china, captured.isSignedInContentViewer,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token),
+                  let revision = projectEditConfigurationRevision(),
+                  let editor = try? ProjectEditSession(accountID: account, epoch: captured.epoch, storageNamespace: deployment.storageScope.service, viewerRevision: captured.viewerRevision, configurationRevision: revision) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let issued = projectStoryImageUploadApproval(context) else { throw APIError.notConfigured }
+            func permitted() -> Bool {
+                projectEditConfigurationRevision() == revision && projectStoryImageUploadApproval(context) == issued &&
+                    issued.matches(configuration: api, session: editor)
+            }
+            guard permitted() else { throw APIError.notConfigured }; readApprovalStillValid = permitted
+        } else if let route = ownedCover {
+            guard deployment.regional.market == .china, captured.isSignedInContentViewer,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token),
+                  let revision = ownedTopicCoverConfigurationRevision(),
+                  let editor = try? ProjectEditSession(accountID: account, epoch: captured.epoch, storageNamespace: deployment.storageScope.service, viewerRevision: captured.viewerRevision, configurationRevision: revision) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let issued = ownedTopicCoverApproval(context) else { throw APIError.notConfigured }
+            func permitted() -> Bool {
+                ownedTopicCoverConfigurationRevision() == revision && ownedTopicCoverApproval(context) == issued &&
+                    issued.permits(route.operation, configuration: api, session: editor)
+            }
+            guard permitted() else { throw APIError.notConfigured }; readApprovalStillValid = permitted
+        } else if let route = ProjectEditCompositionRoute(request: request, baseURL: api.baseURL) {
+            guard captured.isSignedInContentViewer, let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let configurationRevision = projectEditConfigurationRevision() else { throw APIError.notConfigured }
+            let exact = try BusinessRuntimeRoute.post(route.path)
+            func permitted() -> Bool {
+                guard projectEditConfigurationRevision() == configurationRevision, let configuration = projectEditConfiguration(context), configuration.matches(context) else { return false }
+                return configuration.routes[route.feature]?.contains(exact) == true
+            }
+            guard permitted() else { throw APIError.notConfigured }
+            readApprovalStillValid = permitted
+        } else if let route = ApprovedReleaseCompositionRoute(request: request, baseURL: api.baseURL) {
+            guard captured.isSignedInContentViewer, let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let configurationRevision = approvedReleaseConfigurationRevision() else { throw APIError.notConfigured }
+            let exact = try BusinessRuntimeRoute.post(route.path)
+            func permitted() -> Bool {
+                guard approvedReleaseConfigurationRevision() == configurationRevision, let configuration = approvedReleaseConfiguration(context), configuration.matches(context) else { return false }
+                return configuration.routes[route.feature]?.contains(exact) == true
+            }
+            guard permitted() else { throw APIError.notConfigured }
+            readApprovalStillValid = permitted
         } else if url == api.baseURL.appendingPathComponent("api/common/dict") {
             guard deployment.reads.contains(.homeAndSearch), captured.isPublicTemplateViewer,
                   TemplateMetadataReadRoute(request: request, baseURL: api.baseURL) != nil else { throw APIError.notConfigured }

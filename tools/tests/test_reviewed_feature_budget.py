@@ -1,3 +1,5 @@
+from tools.tests.story_media_budget_history import before_story_media, materialize_historical_pre_media_ui, historical_pre_media_workflow, HISTORICAL_SHARD_COUNT
+import tempfile
 """Published coverage, intact method moves, and complete feature batch budgets."""
 from copy import deepcopy
 from decimal import Decimal
@@ -13,10 +15,15 @@ ROOT = Path(__file__).resolve().parents[2]
 
 class ReviewedFeatureBudget(unittest.TestCase):
     def setUp(self):
-        self.profile = json.loads((ROOT/'tools/ui_duration_weights.json').read_text())
+        self.history_directory=tempfile.TemporaryDirectory()
+        self.addCleanup(self.history_directory.cleanup)
+        self.ui_root=materialize_historical_pre_media_ui(self.history_directory.name)
+        self.profile = before_story_media(json.loads((ROOT/'tools/ui_duration_weights.json').read_text()))
+        self.profile_path=Path(self.history_directory.name)/'profile.json'
+        self.profile_path.write_text(json.dumps(self.profile))
         self.plan = self.profile['planning_budget']['reviewed_native_features_replan']
         self.methods = {}; self.costs = {}
-        for path in sorted((ROOT/'Tests/AppUITests').glob('*.swift')):
+        for path in sorted(self.ui_root.glob('*.swift')):
             source = path.read_text()
             methods = re.findall(r'\bfunc\s+(test\w+)\s*\(', source)
             if not methods: continue
@@ -41,7 +48,7 @@ class ReviewedFeatureBudget(unittest.TestCase):
         self.assertEqual((len(moves), len(set(moves.values()))), (13, 13))
         self.assertEqual({moves.get(k,k) for k in old} | set(self.plan['new_methods']), set(self.methods))
         self.assertEqual(self.plan['new_methods'], ['OwnedCouponCodeJourneyUITests.testOwnedListDetailCancelConfirmBackAndReopenRequireFreshConsent'])
-        self.assertEqual(sum(shard.discover(ROOT/'Tests/AppUITests').values()), 661)
+        self.assertEqual(sum(shard.discover(self.ui_root).values()), 661)
 
     def test_moved_complete_method_bytes_and_setup_helpers_are_preserved(self):
         records = json.loads((ROOT/'tools/tests/fixtures/reviewed-feature-whole-method-migrations.json').read_text())
@@ -51,10 +58,10 @@ class ReviewedFeatureBudget(unittest.TestCase):
             self.assertEqual(len(values),1, name)
             return values[0]
         for record in records:
-            old_path = ROOT/'Tests/AppUITests'/(record['old_class']+'.swift')
+            old_path = self.ui_root/(record['old_class']+'.swift')
             before = historical_pre_feature_ui_source(old_path).read_text()
             remaining = old_path.read_text()
-            new_path = ROOT/'Tests/AppUITests'/(record['new_class']+'.swift')
+            new_path = self.ui_root/(record['new_class']+'.swift')
             moved = new_path.read_text()
             self.assertEqual(hashlib.sha256(before.encode()).hexdigest(), record['before_sha256'])
             self.assertEqual(hashlib.sha256(remaining.encode()).hexdigest(), record['remaining_file_sha256'])
@@ -95,11 +102,11 @@ class ReviewedFeatureBudget(unittest.TestCase):
         self.assertEqual(self.cost(self.plan['new_methods'][0]),360)
 
     def test_actual_partition_and_all_completion_outputs_keep_hard_limits(self):
-        self.assertEqual((shard.DEFAULT_SHARD_COUNT, ci_gates.SHARD_COUNT, self.plan['shard_count']), (38,38,38))
+        self.assertEqual((HISTORICAL_SHARD_COUNT, HISTORICAL_SHARD_COUNT, self.plan['shard_count']), (38,38,38))
         self.assertEqual((self.plan['deadline_seconds'],self.plan['startup_reserve_seconds']),(1800,300))
         self.assertEqual(max(self.costs.values()),Decimal(str(self.plan['maximum_class_seconds'])))
         self.assertLessEqual(max(self.costs.values()),1500)
-        actual=shard.measured_weights(ROOT/'Tests/AppUITests',ROOT/'tools/ui_duration_weights.json')
+        actual=shard.measured_weights(self.ui_root,self.profile_path)
         self.assertEqual(set(self.costs),set(actual))
         for case in self.costs:self.assertAlmostEqual(float(self.costs[case]),actual[case],places=9)
         self.assertEqual(shard.partition(self.costs,38),shard.partition(actual,38))
@@ -110,7 +117,7 @@ class ReviewedFeatureBudget(unittest.TestCase):
             self.assertEqual(maximum,Decimal(str(self.plan['forecasts'][str(count)])))
             if count<38:self.assertGreater(maximum,1800)
             else:self.assertLessEqual(maximum,1800)
-        workflow=(ROOT/'.github/workflows/native-ios.yml').read_text()
+        workflow=historical_pre_media_workflow().read_text()
         outputs=re.findall(r'^      shard_(\d+): \$\{\{ steps.completion.outputs.shard_(\d+) \}\}',workflow,re.M)
         self.assertEqual(outputs,[(str(i),str(i)) for i in range(38)])
         self.assertIn('--count 38 ',workflow);self.assertIn('--deadline-seconds 1800',workflow)

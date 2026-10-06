@@ -15,7 +15,7 @@ class RoamMapDensityContracts(unittest.TestCase):
         self.assertIn('MapMarkerDensity.groups(projected', self.density)
         self.assertIn('MapMarkerDensity.fit(group.members.map', self.density)
         self.assertIn('else { expand(group) }', self.density)
-        self.assertNotIn('onSelect', self.density.split('private func expand(', 1)[1])
+        self.assertNotIn('onSelect', self.density.split('private func expand(', 1)[1].split('\n    }', 1)[0])
         self.assertIn('guard matches.count == 1, let item = matches.first', self.adapter)
 
     def test_only_map_is_fixed_height_member_choices_remain_in_outer_list(self):

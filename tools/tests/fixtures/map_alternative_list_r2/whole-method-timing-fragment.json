@@ -1,0 +1,60 @@
+{
+  "scope": "Authored complete-method unmeasured allowances only. Integrator must rebind source-file hashes and run actual all-source partition. Existing observed records and complete costs are immutable; no failed prefixes may replace them.",
+  "input_profile_sha256": "324d16d6c5f8f05bcc8ca3d854eab7656a58a033d1d3cea06217c4eae58a0916",
+  "new_ui_methods": [
+    {
+      "method": "SearchMapFlowTests.testAlternativeListBilingualMaximumTypeKeepsFullTitlesAndParentSelectionInSync",
+      "test_path": "Tests/AppUITests/SearchMapFlowTests.swift",
+      "test_file_sha256": "2f3e4d5d4411d8a0c2dd722a7108411b7988ee9dfea5b2b9f5af3c18c2f5d638",
+      "declaration_sha256": "2a9d9bcac57b24e40115ffa4db43c35a46d2157a312168da3c41071bcb1bed4b",
+      "whole_method_seconds": 360,
+      "measured": false,
+      "basis": "Complete two-language journey: two cold launches, actual accessibility5/dark environment checks, synthetic point event, list opening, full long title and status checks, long-row scrolling/coordinate hit, clear selection, both app terminations and final teardown. Includes unmeasured maximum-text scroll/AX reserve."
+    },
+    {
+      "method": "SearchMapFlowTests.testAlternativeListRefreshRemovalAndDuplicateIDsCannotSelectAnotherPlace",
+      "test_path": "Tests/AppUITests/SearchMapFlowTests.swift",
+      "test_file_sha256": "2f3e4d5d4411d8a0c2dd722a7108411b7988ee9dfea5b2b9f5af3c18c2f5d638",
+      "declaration_sha256": "36fbd9eea12d5e1ab3838626709fc595780e67231e18878af1e3977dc390c7d0",
+      "whole_method_seconds": 240,
+      "measured": false,
+      "basis": "Complete cold launch through first selection, duplicate snapshot rejection, second selection, same-ID title refresh, removed-pin rejection, remaining-pin selection and teardown, including all waits and scrolling."
+    },
+    {
+      "method": "SearchMapFlowTests.testAlternativeListCloseReopenAndEmptySnapshotNeverRetainOldRows",
+      "test_path": "Tests/AppUITests/SearchMapFlowTests.swift",
+      "test_file_sha256": "2f3e4d5d4411d8a0c2dd722a7108411b7988ee9dfea5b2b9f5af3c18c2f5d638",
+      "declaration_sha256": "0b6977ff91f37459cc0c9a2d971cd7c5ff3e29b7c4f8ee90a60992b4341dfa51",
+      "whole_method_seconds": 210,
+      "measured": false,
+      "basis": "Complete cold launch, opening/selection, close/reopen, empty snapshot, restored snapshot and selection, read-only transition/disabled rows, restore normal selection, navigation departure, away-screen wait, Back return, fresh toggle and row selection, and teardown, including all waits and scrolling. Raised from the prior complete 150-second allowance to 210 seconds; no prior cost is reduced."
+    }
+  ],
+  "unchanged_search_map_methods": {
+    "SearchMapFlowTests.testMapMarkerSelectionKeepsDistinctObjectsInDarkLargeText": 60.0,
+    "SearchMapFlowTests.testMapMarkerSelectionKeepsDistinctObjectsInLightAppearance": 60.0,
+    "SearchMapFlowTests.testManualAreaChangeClearsSelectionAndRequiresMapOptInAgain": 28.18,
+    "SearchMapFlowTests.testCityEmptyStateRemainsExplicit": 11.362,
+    "SearchMapFlowTests.testCityLoadingRetryAndScopeChangeNeverKeepSelectedPlace": 37.005,
+    "SearchMapFlowTests.testCityFilterCancelPreservesSelectionButApplyClearsIt": 49.727,
+    "SearchMapFlowTests.testCityListSelectionUsesSamePinAndPreservesExplicitMapGate": 50.647,
+    "SearchMapFlowTests.testEnglishAndChineseRoutePreviewLargeTypeDarkReduceMotion": 25.707,
+    "SearchMapFlowTests.testRetryRecovers": 17.083,
+    "SearchMapFlowTests.testSessionSwitchClearsResultsAndCityData": 18.128,
+    "SearchMapFlowTests.testNearbyRouteNodeUsesTopicReferenceAndHonestRoutePreview": 13.414,
+    "SearchMapFlowTests.testCityMissingCoordinatesStayInListAndNodeOpensCorrectDomain": 19.24,
+    "SearchMapFlowTests.testGlobalCategoryApplyResetPreservesKeywordAndCancelPreservesResults": 120.0,
+    "SearchMapFlowTests.testGlobalCategoryChangeRejectsEarlierCompletionAndClearReturnsSuggestions": 90.0,
+    "SearchMapFlowTests.testFilterValidationCancelAndReopen": 19.979,
+    "SearchMapFlowTests.testPartialFailureDoesNotBecomeEmptyWholePage": 11.631,
+    "SearchMapFlowTests.testGuestKeepsPublicResultsAndShowsExplicitGate": 17.039,
+    "SearchMapFlowTests.testGlobalDomainsAreSeparateAndMerchantDetailUsesMerchantID": 20.993
+  },
+  "unchanged_class_complete_seconds": 670.135,
+  "candidate_class_complete_seconds": 1480.135,
+  "maximum_class_budget_seconds": 1500,
+  "startup_reserve_seconds": 300,
+  "deadline_seconds": 1800,
+  "central_profile_modified": false,
+  "partition_replanned": false
+}

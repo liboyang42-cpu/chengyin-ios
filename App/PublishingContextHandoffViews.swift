@@ -27,9 +27,23 @@ import SwiftUI
 @MainActor struct PublishingSubmissionResultSheet: View {
     let receipt: PublishingSubmissionHandoff
     let canNavigate: Bool
+    var canVerifyRelease = false
     let close: () -> Void
     @State private var finished = false
-    var body: some View {
+    @ViewBuilder var body: some View {
+        if let acknowledgment = receipt.bundleAcknowledgment {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    Text("contextPublish.result.acknowledged").font(.title2)
+                    Text(verbatim: receipt.title)
+                    ProjectSubmissionEvidenceView(acknowledgment: acknowledgment, currentVerificationConfigured: canVerifyRelease)
+                    Button("action.done") { finish() }.buttonStyle(.borderedProminent)
+                        .accessibilityIdentifier("projectSubmission.done")
+                }.padding()
+            }.interactiveDismissDisabled()
+        } else { legacyResult }
+    }
+    private var legacyResult: some View {
         VStack(spacing: 18) {
             Image(systemName: "checkmark.circle").font(.largeTitle).accessibilityHidden(true)
             Text("contextPublish.result.acknowledged").font(.title2)

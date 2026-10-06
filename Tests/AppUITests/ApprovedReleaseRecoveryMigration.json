@@ -1,0 +1,30 @@
+{
+  "source_packet_sha256": "a74bfcf6d1166262a2294eda1a5f30ef67928af554b577d7363b72c09fb7fc74",
+  "source_tree": "e4c2c68491c0976c2379c921802969aa8438cc60",
+  "current_unchanged_source_tree": "f055c097ed47e583c118e967a552beb9d371f38a",
+  "old_method": "ApprovedReleaseRecoveryFlowTests.testChineseUnknownAndLocalReceiptWriteFailureRecoverOnlyThePersistedRequest",
+  "old_file_sha256": "d006cdb2b3aa65a3619a0e0c99ead3fb18540220ba8f30a2e967473e0d6a1049",
+  "old_body_sha256": "415ebb5bcba83ae417594bb8fd5aeb3e207e9278819add7b0a7d1817fb321e52",
+  "helper_bytes_sha256": "1603ed8ac383990cce1264a1714a4ef3130b7e178d97e0abc9738c3643cbe56c",
+  "old_complete_unmeasured_seconds": 1200,
+  "new_coverage_count": 0,
+  "discovered_method_delta": 1,
+  "original_runtime_observation": null,
+  "normalization": "Only local declarations needed for independent methods change; reconstructing them and the launch-boundary line yields the complete original body byte-for-byte. The explicit first-app termination remains in journey one.",
+  "new_methods": [
+    {
+      "method": "ApprovedReleaseRecoveryFlowTests.testChineseMaximumTextUnknownRecoveryKeepsOnlyThePersistedRequest",
+      "file": "Tests/AppUITests/ApprovedReleaseRecoveryFlowTests.swift",
+      "file_sha256": "10a0cb6a922c8b0f26f1fb1ee10670f8409fa6c4d8f7bfa0132cf8359b7a897e",
+      "body_sha256": "58ef6499c5e543826054f0f945b4f86a1aaf9b4e5dcbf7994f3de45f4bccf777",
+      "complete_unmeasured_seconds": 900
+    },
+    {
+      "method": "ApprovedReleaseReceiptRecoveryFlowTests.testLocalReceiptWriteFailureRecoversOnlyThePersistedRequest",
+      "file": "Tests/AppUITests/ApprovedReleaseReceiptRecoveryFlowTests.swift",
+      "file_sha256": "f08ed9be3856378fc8fb791ad6ff6c6ef00408e57da430c1dec5c85c245f2eee",
+      "body_sha256": "a5b400e25b22c99e5cb841e0df8480217c8fbd7f4fae3dafd6021fc9e4ad2e8c",
+      "complete_unmeasured_seconds": 900
+    }
+  ]
+}

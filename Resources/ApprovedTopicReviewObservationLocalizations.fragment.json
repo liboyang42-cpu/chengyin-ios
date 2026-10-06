@@ -1,0 +1,230 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "topicReview.currentTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current review task"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前审核任务"
+          }
+        }
+      }
+    },
+    "topicReview.currentNotice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is the task state read from the server, separate from the status saved when you submitted. Even an approved task still needs independent release preparation and permission checks."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这里显示服务器本次读取的任务状态，与提交时保存的回执状态不同。即使任务已通过，发布前仍需独立核验快照与权限。"
+          }
+        }
+      }
+    },
+    "topicReview.currentFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The current task could not be verified. Your saved request is unchanged. Close and reopen if its context has changed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法核验当前任务。已保存的请求未改变；如上下文已变更，请关闭后重新打开。"
+          }
+        }
+      }
+    },
+    "topicReview.currentTask": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Observed task ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次读取的任务ID"
+          }
+        }
+      }
+    },
+    "topicReview.currentVersion": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Task version when checked"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次读取的任务版本"
+          }
+        }
+      }
+    },
+    "topicReview.currentState": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Task state when checked"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次读取的任务状态"
+          }
+        }
+      }
+    },
+    "topicReview.currentHash": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Observed snapshot hash"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次读取的快照哈希"
+          }
+        }
+      }
+    },
+    "topicReview.currentMatches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This task still references your submitted capture."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该任务仍对应你提交时捕获的内容。"
+          }
+        }
+      }
+    },
+    "topicReview.currentDifferent": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This task now references a different capture. The original submitted request has not been changed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该任务现已对应另一份内容。原提交请求没有被改写。"
+          }
+        }
+      }
+    },
+    "topicReview.currentRead": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check current review task"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看当前审核任务"
+          }
+        }
+      }
+    },
+    "topicReview.currentUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current-task checking is not configured or this saved request is not available for checking."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前任务查询尚未配置，或此保存请求暂不可查询。"
+          }
+        }
+      }
+    },
+    "topicReview.currentApproved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review task approved"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "审核任务已通过"
+          }
+        }
+      }
+    },
+    "topicReview.currentRejected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review task rejected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "审核任务已退回"
+          }
+        }
+      }
+    },
+    "topicReview.currentCancelled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review task cancelled"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "审核任务已取消"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

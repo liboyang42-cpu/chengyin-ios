@@ -14,7 +14,7 @@ import SwiftUI
             .navigationDestination(isPresented: $showEditor) {
                 if let seed {
                     ProjectEditView(coordinator: session.projectEditor(product: seed.product, owner: seed.owner), sessionRevision: session.sessionRevision, seed: seed, publisherClient: session.publisherLifecycleContext?.client, publisherHost: { AnyView(SessionPublisherLifecycleView(session: session, resource: $0)) })
-                        .id(session.publishingSession?.epoch)
+                        .id(session.projectEditorContextID)
                 }
             }
             .navigationDestination(item: $resource) { destination in

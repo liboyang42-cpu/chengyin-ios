@@ -1,0 +1,294 @@
+{
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "projectPending.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pending materials"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待编排素材"
+          }
+        }
+      }
+    },
+    "projectPending.localOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These materials belong to this local draft. They are not included in a publication until you explicitly place them in a chapter. Media references are shown as text."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这些素材属于本地草稿，明确编入章节前不会包含在发布内容中。媒体引用仅显示为文本。"
+          }
+        }
+      }
+    },
+    "projectPending.firstNodeScope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel discards this temporary node and keeps the chapter. A named node without usable coordinates can be saved to local pending materials; complete coordinates allow adding it to this chapter."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消会放弃当前临时节点并保留章节。已命名但坐标未齐的节点可保存为本地待编排素材；坐标有效后可加入本章。"
+          }
+        }
+      }
+    },
+    "projectPending.saveMaterial": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save to pending materials"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存到待编排"
+          }
+        }
+      }
+    },
+    "projectPending.saveUnconfirmed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local saving could not be confirmed. This form remains open. Closing does not undo a write that may already have completed. Reopen and inspect the saved draft before trying again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未能确认本地保存完成，表单仍保留当前内容。关闭不会撤销可能已完成的写入，请重新打开并检查已存草稿后再试。"
+          }
+        }
+      }
+    },
+    "projectPending.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This chapter cannot accept the material in its current mode or configuration. The pending material is unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此章节的当前模式或配置暂不能接收素材，待编排素材保持不变。"
+          }
+        }
+      }
+    },
+    "projectPending.edit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit pending material"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "补充素材内容"
+          }
+        }
+      }
+    },
+    "projectPending.arrangeStory": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrange in story"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在故事中编排"
+          }
+        }
+      }
+    },
+    "projectPending.chooseChapter": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Place in chapter"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "放入章节"
+          }
+        }
+      }
+    },
+    "projectPending.remove": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove material"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除素材"
+          }
+        }
+      }
+    },
+    "projectPending.removeConfirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove this local pending material? Cancel keeps it unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除此本地待编排素材？取消会保持原样。"
+          }
+        }
+      }
+    },
+    "projectPending.insertHere": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Insert pending node here"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在此插入待编排节点"
+          }
+        }
+      }
+    },
+    "projectPending.reviewOmission": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pending materials remain only in the local draft and are omitted from this prepared publication."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待编排素材仅保留在本地草稿中，不包含在本次准备发布的内容中。"
+          }
+        }
+      }
+    },
+    "projectPending.backToMaterials": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to materials"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回待编排素材"
+          }
+        }
+      }
+    },
+    "projectPending.storyPlacementScope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Story edits change this local draft. This material stays pending until you choose an insertion position."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "故事编辑会修改当前本地草稿。明确选择插入位置前，此素材仍留在待编排区。"
+          }
+        }
+      }
+    },
+    "projectPending.closeUnconfirmed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close this form"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭此表单"
+          }
+        }
+      }
+    },
+    "projectPending.kindPlace": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Place material"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地点素材"
+          }
+        }
+      }
+    },
+    "projectPending.kindNode": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Node material"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "节点素材"
+          }
+        }
+      }
+    }
+  }
+}

@@ -11,7 +11,9 @@ class IntegratedReadCompositionContracts(unittest.TestCase):
         source = self.read('App/AppCompositionRoot.swift')
         self.assertIn('ManualMapReadRoute(request: request, baseURL: api.baseURL, area: $0.area)', source)
         self.assertIn('PlayReadRoute(request: request, baseURL: api.baseURL)', source)
-        self.assertIn('guard url.query == nil || manualRead != nil || playRead != nil || cityRead != nil else', source)
+        self.assertIn('guard url.query == nil || manualRead != nil || playRead != nil || cityRead != nil || ownedCover != nil else', source)
+        self.assertIn('OwnedTopicCoverCompositionRoute(request: request, baseURL: api.baseURL)', source)
+        self.assertIn('issued.permits(route.operation, configuration: api, session: editor)', source)
         for marker in ['deployment.reads.contains(.manualMap)', 'deployment.reads.contains(.playNodesAndRouteState)',
                        'deployment.contentDetails == .activityAndTopic', 'captured.isSignedInContentViewer']:
             self.assertIn(marker, source)

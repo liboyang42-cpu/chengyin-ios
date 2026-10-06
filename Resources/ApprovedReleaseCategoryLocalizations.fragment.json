@@ -1,0 +1,40 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "approvedRelease.templateCategoryID": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Captured template category ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已捕获的玩法分类 ID"
+          }
+        }
+      }
+    },
+    "approvedRelease.templateActivityCategories": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Captured template activity category IDs"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已捕获的玩法活动分类 ID"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

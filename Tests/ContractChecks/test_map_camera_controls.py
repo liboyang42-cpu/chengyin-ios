@@ -44,8 +44,11 @@ class MapCameraControlsTests(unittest.TestCase):
     def test_focus_snapshot_and_one_shot_revision_fence_stale_actions(self):
         for value in ['let area: RoamSearchArea', 'let pins: [SearchMapPin]', 'let selectedID: String?',
                       'let renderedInput = focusInput', 'renderedInput == currentFocusInput',
-                      '.onDisappear { focusGate.invalidate() }']:
+                      '.onDisappear { focusGate.invalidate(); closeExpansion() }']:
             self.assertIn(value, self.ui)
+        close = self.ui.split('private func closeExpansion() {', 1)[1].split('\n    }', 1)[0]
+        self.assertIn('selectionGate.invalidate()', close)
+        self.assertIn('expansionID = UUID()', close)
         for value in ['matches.count == 1', 'MapMarkerDensity.fit([target.coordinate])',
                       'guard request.revision == revision else { return nil }',
                       'invalidate()\n            return request.fit']:

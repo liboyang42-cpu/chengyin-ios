@@ -141,6 +141,8 @@ import SwiftUI
             NavigationStack {
                 if entry == "markerStyle" {
                     MapMarkerStyleFixtureView()
+                } else if entry == "alternativeList" {
+                    MapAlternativeListFixtureView()
                 } else if entry == "cards" {
                     ReferenceMapCardFixtureView()
                 } else if entry == "city" {

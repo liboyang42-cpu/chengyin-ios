@@ -3,11 +3,14 @@ import Foundation
 public struct ProjectEditSession: Equatable {
     public let accountID: Int
     public let epoch: UInt64
+    /// Runtime-only monotonic viewer context; deliberately excluded from durable owner keys/envelopes.
+    public let viewerRevision: UInt64
+    public let configurationRevision: UInt64
     /// Exact deployment/bundle scope supplied from RegionalSessionStorageScope.service.
     public let storageNamespace: String
-    public init(accountID: Int, epoch: UInt64, storageNamespace: String) throws {
+    public init(accountID: Int, epoch: UInt64, storageNamespace: String, viewerRevision: UInt64 = 0, configurationRevision: UInt64 = 0) throws {
         guard accountID > 0, !storageNamespace.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw ProjectEditError.changedSession }
-        self.accountID = accountID; self.epoch = epoch; self.storageNamespace = storageNamespace
+        self.accountID = accountID; self.epoch = epoch; self.storageNamespace = storageNamespace; self.viewerRevision = viewerRevision; self.configurationRevision = configurationRevision
     }
     public var ownerKey: String { "\(storageNamespace.utf8.count):\(storageNamespace):\(accountID)" }
 }
@@ -31,7 +34,7 @@ public struct ProjectEditEnvelope: Codable, Equatable {
     public let savedAt: Date
     public let draft: ProjectEditDraft
     public init(session: ProjectEditSession, identity: ProjectEditDraftIdentity, draft: ProjectEditDraft, now: Date = Date()) {
-        version = 1; accountID = session.accountID; namespace = session.storageNamespace; self.identity = identity
+        version = draft.pendingMaterials == nil ? 1 : 2; accountID = session.accountID; namespace = session.storageNamespace; self.identity = identity
         baseRevision = draft.baseRevision; savedAt = now; self.draft = draft
     }
 }
@@ -68,7 +71,9 @@ public enum ProjectEditRestore {
         let data: Data?
         do { data = try storage.read(key(session, identity.bucket)) } catch { return .unavailable }
         guard let data else { return .missing }
-        guard let envelope = try? JSONDecoder().decode(ProjectEditEnvelope.self, from: data), envelope.version == 1 else { return .incompatible }
+        guard let envelope = try? JSONDecoder().decode(ProjectEditEnvelope.self, from: data),
+              (envelope.version == 1 && envelope.draft.pendingMaterials == nil) ||
+              (envelope.version == 2 && envelope.draft.pendingMaterials != nil) else { return .incompatible }
         guard envelope.accountID == session.accountID, envelope.namespace == session.storageNamespace else { return .memberMismatch }
         guard envelope.identity == identity, envelope.draft.product == baseline.product, envelope.draft.owner == baseline.owner else { return .incompatible }
         // Existing edits need a known equal revision. Empty revision never authorizes overwrite.
@@ -84,12 +89,41 @@ public enum ProjectEditRestore {
     public func pending(session: ProjectEditSession, identity: ProjectEditDraftIdentity) throws -> ProjectEditPending? {
         guard let data = try storage.read(key(session, "pending:" + identity.bucket)) else { return nil }
         let value = try JSONDecoder().decode(ProjectEditPending.self, from: data)
-        guard value.ownerKey == session.ownerKey, value.identity == identity else { throw ProjectEditError.invalidContract }
+        guard value.ownerKey == session.ownerKey, value.identity == identity, value.hasConsistentAcknowledgment else { throw ProjectEditError.invalidContract }
         return value
     }
     public func savePending(_ value: ProjectEditPending, session: ProjectEditSession) throws {
-        guard value.ownerKey == session.ownerKey else { throw ProjectEditError.changedSession }
+        guard value.ownerKey == session.ownerKey, value.hasConsistentAcknowledgment else { throw ProjectEditError.changedSession }
         try storage.write(JSONEncoder().encode(value), key: key(session, "pending:" + value.identity.bucket))
+    }
+    /// Explicit continuation of an acknowledged existing-topic update only. Synchronous
+    /// checks bracket the baseline write; an uncertain operation can never enter here.
+    public func advanceAcknowledged(_ expected: ProjectEditPending, baseline: ProjectEditSnapshot, session: ProjectEditSession, isCurrent: () -> Bool) throws {
+        guard isCurrent(), expected.serverAcknowledged == true, let topicID = expected.identity.topicID,
+              expected.completedTopicID == topicID, baseline.topicID == topicID,
+              expected.ownerKey == session.ownerKey, !baseline.draft.baseRevision.isEmpty,
+              let current = try pending(session: session, identity: expected.identity),
+              Self.exactPending(current, expected), try storedPendingMatches(expected, session: session) else { throw ProjectEditContinuationFailure.changedPending }
+        try save(baseline.draft, session: session, identity: expected.identity)
+        do {
+            guard isCurrent(), let current = try pending(session: session, identity: expected.identity),
+                  Self.exactPending(current, expected), try storedPendingMatches(expected, session: session), isCurrent() else { throw ProjectEditContinuationFailure.changedPending }
+            try clearPending(session: session, identity: expected.identity)
+        } catch { throw ProjectEditContinuationFailure.baselineSaved }
+    }
+    private func storedPendingMatches(_ expected: ProjectEditPending, session: ProjectEditSession) throws -> Bool {
+        guard let data = try storage.read(key(session, "pending:" + expected.identity.bucket)) else { return false }
+        let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]
+        // Preserve unknown future fields in the comparison instead of treating a lossy
+        // Codable projection as permission to remove a newer-format completion record.
+        let raw = try JSONDecoder().decode(ProjectEditJSON.self, from: data)
+        let known = try JSONDecoder().decode(ProjectEditJSON.self, from: encoder.encode(expected))
+        return try encoder.encode(raw) == encoder.encode(known)
+    }
+    public static func exactPending(_ lhs: ProjectEditPending, _ rhs: ProjectEditPending) -> Bool {
+        let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]
+        guard let left = try? encoder.encode(lhs), let right = try? encoder.encode(rhs) else { return false }
+        return left == right
     }
     public func clearPending(session: ProjectEditSession, identity: ProjectEditDraftIdentity) throws {
         try storage.remove(key(session, "pending:" + identity.bucket))
@@ -105,4 +139,13 @@ public struct ProjectEditPending: Codable, Equatable {
     public var completedTopicID: Int? = nil
     /// Optional for backwards-compatible decoding of existing local intents.
     public var serverAcknowledged: Bool? = nil
+    /// Submission-time evidence only. Optional preserves older local completion records.
+    public var bundleAcknowledgment: ProjectEditBundleAcknowledgment? = nil
+    public var hasConsistentAcknowledgment: Bool {
+        guard let bundleAcknowledgment else { return true }
+        guard serverAcknowledged == true, completedTopicID == bundleAcknowledgment.topicID,
+              identity.topicID == nil || identity.topicID == bundleAcknowledgment.topicID,
+              let path = try? ProjectEditStoryContract.path(payload: payload, baseline: baseline) else { return false }
+        return path == ProjectEditStoryContract.createPath || path == ProjectEditStoryContract.updatePath
+    }
 }

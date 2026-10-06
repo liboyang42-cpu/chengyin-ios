@@ -989,31 +989,194 @@ final class AppSession: ObservableObject {
         self.expireIfMatching(error:APIError.unauthorized,stamp:captured.epoch,credential:self.token)
     })
     private var retainedProjectEditors: [String: ProjectEditCoordinator] = [:]
+    @Published private var projectConfigurationRevision: UInt64 = 0
+    private var projectConfigurationChanging = false
+    /// The owner of a reviewed project selector must use this synchronous boundary BEFORE
+    /// changing any projectRead/projectWrite or approvedTopicReview*/approvedTopicRelease*
+    /// capability, ownedTopicCoverApproval, projectStoryImageUploadApproval or projectStoryAudioUploadApproval, including A → nil → identical A.
+    /// The counter only retires prior contexts. It neither grants routes nor changes stored ownership.
+    func withProjectEditConfigurationChange(_ mutation: () -> Void) {
+        let alreadyChanging = projectConfigurationChanging
+        projectConfigurationChanging = true
+        projectConfigurationRevision &+= 1
+        retainedProjectEditors.values.forEach { $0.synchronizeSession() }
+        retainedProjectEditors.removeAll()
+        defer { projectConfigurationRevision &+= 1; projectConfigurationChanging = alreadyChanging }
+        mutation()
+    }
+    var projectEditorContextID: String { "\(gate.currentStamp):\(compositionViewerRevision):\(projectConfigurationRevision)" }
+    private lazy var projectStoryAudioJournal = ProjectStoryAudioJournal(storage: ProjectEditSecureStorage(scope: storageScope))
+    private lazy var projectStoryImageJournal = ProjectStoryImageJournal(storage: ProjectEditSecureStorage(scope: storageScope))
+    private lazy var ownedTopicCoverJournal = OwnedTopicCoverJournal(storage: ProjectEditSecureStorage(scope: storageScope))
+    private lazy var projectReviewJournal = ApprovedTopicReviewJournal(storage: ProjectEditSecureStorage(scope: storageScope))
+    private lazy var projectReleaseJournal = ApprovedTopicReleasePublicationJournal(storage: ProjectEditSecureStorage(scope: storageScope))
     private lazy var projectDraftStore = ProjectEditLocalStore(storage: ProjectEditSecureStorage(scope: storageScope))
     private var currentProjectEditSession: ProjectEditSession? {
-        guard let account, token != nil, let storageScope else { return nil }
-        return try? ProjectEditSession(accountID: account.id, epoch: gate.currentStamp, storageNamespace: storageScope.service)
+        guard !projectConfigurationChanging, let account, token != nil, let storageScope else { return nil }
+        return try? ProjectEditSession(accountID: account.id, epoch: gate.currentStamp, storageNamespace: storageScope.service, viewerRevision: compositionViewerRevision, configurationRevision: projectConfigurationRevision)
     }
-    var projectEditorIsConfigured: Bool { businessRuntimeFactory?.permits(.projectRead) == true }
+    var projectEditorIsConfigured: Bool { projectRuntimeFactory?.permits(.projectRead) == true }
     func projectEditor(product: ProjectEditProduct, owner: ProjectEditOwner = .personal) -> ProjectEditCoordinator {
-        let key = "\(gate.currentStamp):\(account?.id ?? 0):\(account?.effectiveRole ?? "guest"):\(product.rawValue):\(owner.rawValue)"
+        let key = "\(projectEditorContextID):\(account?.id ?? 0):\(account?.effectiveRole ?? "guest"):\(product.rawValue):\(owner.rawValue)"
         if let retained = retainedProjectEditors[key] { return retained }
+        let service = projectEditorService(owner: owner)
+        var draft = ProjectEditDraft(product: product); draft.owner = owner
+        let coordinator = ProjectEditCoordinator(initial: .init(draft: draft), service: service, store: projectDraftStore, releasePreparationSource: makeApprovedReleasePreparationSource(owner: owner), releasePublicationSource: makeApprovedReleasePublicationSource(owner: owner), releasePublicationJournal: projectReleaseJournal, releaseReviewSource: makeApprovedTopicReviewSource(owner: owner), releaseReviewJournal: projectReviewJournal, ownedCoverSource: makeOwnedTopicCoverSource(owner: owner), ownedCoverJournal: ownedTopicCoverJournal, storyImageSource: makeProjectStoryImageSource(owner: owner), storyImageJournal: projectStoryImageJournal, storyAudioSource: makeProjectStoryAudioSource(owner: owner), storyAudioJournal: projectStoryAudioJournal,
+            currentSession: { [weak self] in self?.currentProjectEditSession })
+        retainedProjectEditors[key] = coordinator
+        return coordinator
+    }
+    /// The owned-list scope selects a read, never a mode, version, or write grant.
+    func projectEditor(target: ProjectEditRemoteTarget) -> ProjectEditCoordinator? {
+        guard creatorContentReader.isAuthenticated, creatorContentReader.isConfigured,
+              creatorContentReader.scope == target.readerScope, currentProjectEditSession != nil else { return nil }
+        let key = "remote:\(projectEditorContextID):\(account?.id ?? 0):\(account?.effectiveRole ?? "guest"):\(target.owner.rawValue):\(target.topicID)"
+        if let retained = retainedProjectEditors[key] { return retained }
+        // The placeholder has no displayed/editable snapshot. load() replaces it with
+        // the mandatory fresh productType/editScope/revision from edit-detail.
+        var placeholder = ProjectEditDraft(); placeholder.owner = target.owner
+        let coordinator = ProjectEditCoordinator(initial: .init(topicID: target.topicID, draft: placeholder),
+            service: projectEditorService(owner: target.owner), store: projectDraftStore, releasePreparationSource: makeApprovedReleasePreparationSource(owner: target.owner), releasePublicationSource: makeApprovedReleasePublicationSource(owner: target.owner), releasePublicationJournal: projectReleaseJournal, releaseReviewSource: makeApprovedTopicReviewSource(owner: target.owner), releaseReviewJournal: projectReviewJournal, ownedCoverSource: makeOwnedTopicCoverSource(owner: target.owner), ownedCoverJournal: ownedTopicCoverJournal, storyImageSource: makeProjectStoryImageSource(owner: target.owner), storyImageJournal: projectStoryImageJournal, storyAudioSource: makeProjectStoryAudioSource(owner: target.owner), storyAudioJournal: projectStoryAudioJournal,
+            currentSession: { [weak self] in self?.currentProjectEditSession })
+        retainedProjectEditors[key] = coordinator; return coordinator
+    }
+    private var approvedReleaseRuntimeFactory: BusinessRuntimeFactory? {
+        guard !projectConfigurationChanging, let api = regionalConfiguration?.apiConfiguration, storageScope != nil,
+              let context = currentRuntimeDependencyContext,
+              let configuration = (injectedRuntimeDependencies ?? composition.sessionDependencies(context)).businessConfiguration,
+              configuration.matches(context) else { return nil }
+        return BusinessRuntimeFactory(configuration: configuration, api: api, transport: runtimeHTTPTransport,
+            current: { [weak self] in self?.currentRuntimeDependencyContext })
+    }
+    private func makeProjectStoryAudioSource(owner: ProjectEditOwner) -> (any ProjectStoryAudioUploading)? {
+        guard owner == .personal, !projectConfigurationChanging, let context = currentRuntimeDependencyContext, context.market == .china,
+              let configuration = regionalConfiguration?.apiConfiguration, let session = currentProjectEditSession,
+              let approval = composition.projectStoryAudioUploadApproval(context), approval.matches(configuration: configuration, session: session) else { return nil }
+        let revision = projectConfigurationRevision, viewer = compositionViewerRevision
+        let currentApproval: () -> ProjectStoryAudioUploadApproval? = { [weak self] in
+            guard let self, !self.projectConfigurationChanging, self.projectConfigurationRevision == revision,
+                  self.compositionViewerRevision == viewer, self.currentRuntimeDependencyContext == context else { return nil }
+            return self.composition.projectStoryAudioUploadApproval(context)
+        }
+        return ProjectStoryAudioUploadClient(configuration: configuration, approval: approval,
+            transport: compositionTransport.replacingUnderlying(composition.makeProjectStoryAudioUploadTransport()),
+            credentials: { [weak self] in
+                guard let self, currentApproval() == approval, self.currentProjectEditSession == session, let token = self.token else { return nil }
+                return try? .init(session: session, token: token)
+            }, currentApproval: currentApproval)
+    }
+    private func makeProjectStoryImageSource(owner: ProjectEditOwner) -> (any ProjectStoryImageUploading)? {
+        guard owner == .personal, !projectConfigurationChanging, let context = currentRuntimeDependencyContext,
+              let configuration = regionalConfiguration?.apiConfiguration, let session = currentProjectEditSession,
+              let approval = composition.projectStoryImageUploadApproval(context), approval.matches(configuration: configuration, session: session) else { return nil }
+        let revision = projectConfigurationRevision, viewer = compositionViewerRevision
+        let currentApproval: () -> ProjectStoryImageUploadApproval? = { [weak self] in
+            guard let self, !self.projectConfigurationChanging, self.projectConfigurationRevision == revision,
+                  self.compositionViewerRevision == viewer, self.currentRuntimeDependencyContext == context else { return nil }
+            return self.composition.projectStoryImageUploadApproval(context)
+        }
+        return ProjectStoryImageUploadClient(configuration: configuration, approval: approval,
+            transport: compositionTransport.replacingUnderlying(composition.makeProjectStoryImageUploadTransport()),
+            credentials: { [weak self] in
+                guard let self, currentApproval() == approval, self.currentProjectEditSession == session, let token = self.token else { return nil }
+                return try? .init(session: session, token: token)
+            }, currentApproval: currentApproval)
+    }
+    private func makeOwnedTopicCoverSource(owner: ProjectEditOwner) -> (any OwnedTopicCoverServing)? {
+        guard owner == .personal, !projectConfigurationChanging, let context = currentRuntimeDependencyContext,
+              let configuration = regionalConfiguration?.apiConfiguration, let session = currentProjectEditSession,
+              let approval = composition.ownedTopicCoverApproval(context),
+              approval.baseURL == configuration.baseURL, approval.namespace == session.storageNamespace, approval.accountID == session.accountID else { return nil }
+        let revision = projectConfigurationRevision, viewer = compositionViewerRevision
+        let currentApproval: () -> OwnedTopicCoverApproval? = { [weak self] in
+            guard let self, !self.projectConfigurationChanging, self.projectConfigurationRevision == revision,
+                  self.compositionViewerRevision == viewer, self.currentRuntimeDependencyContext == context else { return nil }
+            return self.composition.ownedTopicCoverApproval(context)
+        }
+        return OwnedTopicCoverClient(configuration: configuration, approval: approval,
+            jsonTransport: compositionTransport.replacingUnderlying(composition.makeOwnedTopicCoverTransport(64 * 1024)),
+            imageTransport: compositionTransport.replacingUnderlying(composition.makeOwnedTopicCoverTransport(OwnedTopicCoverClient.maximumContentBytes)),
+            currentCredentials: { [weak self] in
+                guard let self, currentApproval() == approval, let current = self.currentProjectEditSession, current == session, let token = self.token else { return nil }
+                return try? .init(session: current, token: token)
+            }, currentApproval: currentApproval)
+    }
+    private func makeApprovedTopicReviewSource(owner: ProjectEditOwner) -> (any ApprovedTopicReviewServing)? {
+        let features: Set<BusinessRuntimeFeature> = [.approvedTopicReviewPrepare, .approvedTopicReviewSubmit, .approvedTopicReviewStatus, .approvedTopicReviewCurrent]
+        guard owner == .personal, let factory = approvedReleaseRuntimeFactory,
+              features.contains(where: { factory.permits($0) }), let configuration = regionalConfiguration?.apiConfiguration else { return nil }
+        let captured = factory.captured, viewerRevision = compositionViewerRevision, configurationRevision = projectConfigurationRevision
+        return ApprovedTopicReviewClient(configuration: configuration, approval: factory.approval(features), transport: factory.client(features),
+            currentCredentials: { [weak self] in
+                guard let self, !self.projectConfigurationChanging, self.projectConfigurationRevision == configurationRevision, self.compositionViewerRevision == viewerRevision, self.currentRuntimeDependencyContext == captured,
+                      let current = self.approvedReleaseRuntimeFactory, features.contains(where: { current.permits($0) }),
+                      let session = self.currentProjectEditSession, let token = self.token else { return nil }
+                return try? .init(session: session, token: token)
+            }, currentCapability: { [weak self] path in
+                guard let self, !self.projectConfigurationChanging, self.projectConfigurationRevision == configurationRevision, self.compositionViewerRevision == viewerRevision, self.currentRuntimeDependencyContext == captured, let current = self.approvedReleaseRuntimeFactory else { return false }
+                if path == ApprovedTopicReviewPath.prepare { return current.permits(.approvedTopicReviewPrepare) }
+                if path == ApprovedTopicReviewPath.submit { return current.permits(.approvedTopicReviewSubmit) }
+                if path == ApprovedTopicReviewPath.status { return current.permits(.approvedTopicReviewStatus) }
+                if path == ApprovedTopicReviewPath.current { return current.permits(.approvedTopicReviewCurrent) }
+                return false
+            })
+    }
+    private func makeApprovedReleasePreparationSource(owner: ProjectEditOwner) -> (any ApprovedTopicReleasePreparing)? {
+        guard owner == .personal, let factory = approvedReleaseRuntimeFactory,
+              factory.permits(.approvedTopicReleasePrepare), let configuration = regionalConfiguration?.apiConfiguration else { return nil }
+        let captured = factory.captured, viewerRevision = compositionViewerRevision, configurationRevision = projectConfigurationRevision
+        return ApprovedTopicReleasePreparationClient(configuration: configuration,
+            approval: factory.approval([.approvedTopicReleasePrepare]), transport: factory.client([.approvedTopicReleasePrepare]),
+            currentCredentials: { [weak self] in
+                guard let self, !self.projectConfigurationChanging, self.projectConfigurationRevision == configurationRevision, self.compositionViewerRevision == viewerRevision, self.currentRuntimeDependencyContext == captured,
+                      self.approvedReleaseRuntimeFactory?.permits(.approvedTopicReleasePrepare) == true,
+                      let session = self.currentProjectEditSession, let token = self.token else { return nil }
+                return try? .init(session: session, token: token)
+            })
+    }
+    private func makeApprovedReleasePublicationSource(owner: ProjectEditOwner) -> (any ApprovedTopicReleasePublishing)? {
+        guard owner == .personal, let factory = approvedReleaseRuntimeFactory,
+              factory.permits(.approvedTopicReleasePublish) || factory.permits(.approvedTopicReleaseStatus),
+              let configuration = regionalConfiguration?.apiConfiguration else { return nil }
+        let captured = factory.captured, viewerRevision = compositionViewerRevision, configurationRevision = projectConfigurationRevision
+        return ApprovedTopicReleasePublicationClient(configuration: configuration,
+            approval: factory.approval([.approvedTopicReleasePublish, .approvedTopicReleaseStatus]),
+            transport: factory.client([.approvedTopicReleasePublish, .approvedTopicReleaseStatus]),
+            currentCredentials: { [weak self] in
+                guard let self, !self.projectConfigurationChanging, self.projectConfigurationRevision == configurationRevision, self.compositionViewerRevision == viewerRevision, self.currentRuntimeDependencyContext == captured,
+                      let current = self.approvedReleaseRuntimeFactory,
+                      current.permits(.approvedTopicReleasePublish) || current.permits(.approvedTopicReleaseStatus),
+                      let session = self.currentProjectEditSession, let token = self.token else { return nil }
+                return try? .init(session: session, token: token)
+            }, currentCapability: { [weak self] path in
+                guard let self, !self.projectConfigurationChanging, self.projectConfigurationRevision == configurationRevision, self.compositionViewerRevision == viewerRevision, self.currentRuntimeDependencyContext == captured, let current = self.approvedReleaseRuntimeFactory else { return false }
+                if path == ApprovedTopicReleasePublicationPath.publish { return current.permits(.approvedTopicReleasePublish) }
+                if path == ApprovedTopicReleasePublicationPath.status { return current.permits(.approvedTopicReleaseStatus) }
+                return false
+            })
+    }
+    private var projectRuntimeFactory: BusinessRuntimeFactory? {
+        guard !projectConfigurationChanging, let api = regionalConfiguration?.apiConfiguration, storageScope != nil,
+              let context = currentRuntimeDependencyContext,
+              let configuration = (injectedRuntimeDependencies ?? composition.sessionDependencies(context)).businessConfiguration,
+              configuration.matches(context) else { return nil }
+        return BusinessRuntimeFactory(configuration: configuration, api: api, transport: runtimeHTTPTransport,
+            current: { [weak self] in self?.currentRuntimeDependencyContext })
+    }
+    private func projectEditorService(owner: ProjectEditOwner) -> any ProjectEditServing {
         let service: any ProjectEditServing
-        if let factory = businessRuntimeFactory, factory.permits(.projectRead), let configuration = regionalConfiguration?.apiConfiguration {
-            let captured = factory.captured
+        if let factory = projectRuntimeFactory, factory.permits(.projectRead), let configuration = regionalConfiguration?.apiConfiguration {
+            let captured = factory.captured, viewerRevision = compositionViewerRevision, configurationRevision = projectConfigurationRevision
             service = ProjectEditHTTPService(configuration: configuration, transport: factory.client([.projectRead, .projectWrite]),
                 owner: owner, approval: factory.approval([.projectWrite]), store: projectDraftStore,
                 currentCredentials: { [weak self] in
-                    guard let self, self.currentRuntimeDependencyContext == captured,
+                    guard let self, !self.projectConfigurationChanging, self.projectConfigurationRevision == configurationRevision, self.compositionViewerRevision == viewerRevision, self.currentRuntimeDependencyContext == captured,
+                          self.projectRuntimeFactory?.permits(.projectRead) == true,
                           let session = self.currentProjectEditSession, let token = self.token else { return nil }
                     return try? ProjectEditCredentials(session: session, token: token)
                 })
         } else { service = ProjectEditDisabledService() }
-        var draft = ProjectEditDraft(product: product); draft.owner = owner
-        let coordinator = ProjectEditCoordinator(initial: .init(draft: draft), service: service, store: projectDraftStore,
-            currentSession: { [weak self] in self?.currentProjectEditSession })
-        retainedProjectEditors[key] = coordinator
-        return coordinator
+        return service
     }
     private var publishingEpochCache: (stamp: UInt64, accountID: Int, role: String, epoch: UUID)?
     var publishingSession: PublishingSession? {
@@ -2498,6 +2661,35 @@ final class AppSession: ObservableObject {
             messagingService=MessagingService(configuration:configuration,transport:transport)
             messageActionService=MessageActionService(configuration:configuration,transport:transport)
         } else { service=nil;accountSessionService=nil;authChannelService=nil;activityService=nil;searchMapService=nil;registrationBackend=UnconfiguredRegistrationBackend();homeFeedService=nil;orderLifecycleService=nil;ticketWalletService=nil;squareService=nil;socialAccountService=nil;cooperationService=nil;accountCollectionService=nil;officialEventService=nil;growthCenterService=nil;creatorContentService=nil;topicService=nil;discoveryService=nil;profileService=nil;participantService=nil;merchantService=nil;merchantOperationsService=nil;merchantBusinessService=nil;merchantEngagementService=nil;cooperationFlowService=nil;merchantOnboardingService=nil;clubService=nil;clubManagementService=nil;clubOperationsService=nil;clubGovernanceService=nil;profileEditService=nil;clubActionService=nil;roamService=nil;roamExperienceService=nil;messagingService=nil;messageActionService=nil }
+        compositionTransport.projectEditConfigurationRevision = { [weak self] in
+            guard let self, !self.projectConfigurationChanging else { return nil }; return self.projectConfigurationRevision
+        }
+        compositionTransport.projectEditConfiguration = { [weak self] context in
+            guard let self, !self.projectConfigurationChanging, self.currentRuntimeDependencyContext == context else { return nil }
+            return (self.injectedRuntimeDependencies ?? self.composition.sessionDependencies(context)).businessConfiguration
+        }
+        compositionTransport.projectStoryAudioUploadApproval = { [weak self] context in
+            guard let self, !self.projectConfigurationChanging, self.currentRuntimeDependencyContext == context else { return nil }
+            return self.composition.projectStoryAudioUploadApproval(context)
+        }
+        compositionTransport.projectStoryImageUploadApproval = { [weak self] context in
+            guard let self, !self.projectConfigurationChanging, self.currentRuntimeDependencyContext == context else { return nil }
+            return self.composition.projectStoryImageUploadApproval(context)
+        }
+        compositionTransport.ownedTopicCoverConfigurationRevision = { [weak self] in
+            guard let self, !self.projectConfigurationChanging else { return nil }; return self.projectConfigurationRevision
+        }
+        compositionTransport.ownedTopicCoverApproval = { [weak self] context in
+            guard let self, !self.projectConfigurationChanging, self.currentRuntimeDependencyContext == context else { return nil }
+            return self.composition.ownedTopicCoverApproval(context)
+        }
+        compositionTransport.approvedReleaseConfigurationRevision = { [weak self] in
+            guard let self, !self.projectConfigurationChanging else { return nil }; return self.projectConfigurationRevision
+        }
+        compositionTransport.approvedReleaseConfiguration = { [weak self] context in
+            guard let self, !self.projectConfigurationChanging, self.currentRuntimeDependencyContext == context else { return nil }
+            return (self.injectedRuntimeDependencies ?? self.composition.sessionDependencies(context)).businessConfiguration
+        }
         compositionTransport.playReadConfiguration = { [weak self] context in
             guard let self, self.currentRuntimeDependencyContext == context else { return nil }
             // Re-read the reviewed selector at the boundary: retained providers must not

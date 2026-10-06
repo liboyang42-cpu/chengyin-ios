@@ -282,7 +282,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37]
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64]
     needs: native
     env:
       EXPECTED_BUILD_FINGERPRINT: ${{ needs.native.outputs.build_fingerprint }}
@@ -325,6 +325,33 @@ jobs:
       shard_35: ${{ steps.completion.outputs.shard_35 }}
       shard_36: ${{ steps.completion.outputs.shard_36 }}
       shard_37: ${{ steps.completion.outputs.shard_37 }}
+      shard_38: ${{ steps.completion.outputs.shard_38 }}
+      shard_39: ${{ steps.completion.outputs.shard_39 }}
+      shard_40: ${{ steps.completion.outputs.shard_40 }}
+      shard_41: ${{ steps.completion.outputs.shard_41 }}
+      shard_42: ${{ steps.completion.outputs.shard_42 }}
+      shard_43: ${{ steps.completion.outputs.shard_43 }}
+      shard_44: ${{ steps.completion.outputs.shard_44 }}
+      shard_45: ${{ steps.completion.outputs.shard_45 }}
+      shard_46: ${{ steps.completion.outputs.shard_46 }}
+      shard_47: ${{ steps.completion.outputs.shard_47 }}
+      shard_48: ${{ steps.completion.outputs.shard_48 }}
+      shard_49: ${{ steps.completion.outputs.shard_49 }}
+      shard_50: ${{ steps.completion.outputs.shard_50 }}
+      shard_51: ${{ steps.completion.outputs.shard_51 }}
+      shard_52: ${{ steps.completion.outputs.shard_52 }}
+      shard_53: ${{ steps.completion.outputs.shard_53 }}
+      shard_54: ${{ steps.completion.outputs.shard_54 }}
+      shard_55: ${{ steps.completion.outputs.shard_55 }}
+      shard_56: ${{ steps.completion.outputs.shard_56 }}
+      shard_57: ${{ steps.completion.outputs.shard_57 }}
+      shard_58: ${{ steps.completion.outputs.shard_58 }}
+      shard_59: ${{ steps.completion.outputs.shard_59 }}
+      shard_60: ${{ steps.completion.outputs.shard_60 }}
+      shard_61: ${{ steps.completion.outputs.shard_61 }}
+      shard_62: ${{ steps.completion.outputs.shard_62 }}
+      shard_63: ${{ steps.completion.outputs.shard_63 }}
+      shard_64: ${{ steps.completion.outputs.shard_64 }}
     runs-on: macos-26
     # Run49 spent 9–13 minutes on setup/build/launch before executing methods.
     # Reuse products; keep a bounded margin for the full shard and result export.
@@ -365,7 +392,7 @@ jobs:
         run: xcrun simctl bootstatus "$TEST_SIMULATOR_ID" -b
       - name: Test native module flows and session boundaries
         run: |
-          python3 tools/run_ui_shard.py --shard ${{ matrix.shard }} --count 38 \
+          python3 tools/run_ui_shard.py --shard ${{ matrix.shard }} --count 65 \
             --simulator "$TEST_SIMULATOR_ID" \
             --xctestrun "$UI_XCTESTRUN" --deadline-seconds 1800 \
             --result-bundle "$RUNNER_TEMP/questify-ui-results.xcresult" \

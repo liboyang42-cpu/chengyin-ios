@@ -1,0 +1,38 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "topicReview.coverSelection.reviewBinding": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This captured asset will replace the legacy cover only in a newly approved release. This request still needs review. Player access requires an authorized run pinned to that release."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此快照中的资产仅用于新审核通过版本的封面替换。本请求仍需审核；玩家只能通过获授权且固定到该版本的开局读取。"
+          }
+        }
+      }
+    },
+    "topicReview.coverSelection.approvedBinding": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This selected asset is frozen in the captured approved manifest. New players can read it only through their authorized, pinned run. The author-only locator is not a public image URL."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所选资产已冻结在当前捕获的已审核清单中。新玩家只能通过其获授权且固定版本的开局读取。作者专用地址并非公开图片链接。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

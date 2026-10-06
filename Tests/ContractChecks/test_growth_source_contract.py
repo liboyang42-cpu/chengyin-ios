@@ -88,7 +88,11 @@ class GrowthSourceChecks(unittest.TestCase):
     def test_integrated_account_and_fixture_entries_preserve_scope(self):
         account = (ROOT / "App/AccountView.swift").read_text()
         self.assertIn('GrowthCenterView(reader:session.growthCenterReader).id(session.growthCenterReader.scope)', account)
-        self.assertIn('CreatorContentProjectsView', account)
+        self.assertIn('SessionCreatorProjectsView(session: session)', account)
+        owned = (ROOT / 'App/ProjectOwnedContentViews.swift').read_text()
+        self.assertIn('CreatorContentProjectsView(reader: reader', owned)
+        self.assertIn('.id(session.creatorContentReader.scope)', owned)
+        self.assertIn('ProjectOwnedContentBrowser(reader: session.creatorContentReader', owned)
         self.assertIn('AccountCollectionAccountLinks', account)
         self.assertIn('case .growthCenter: GrowthCenterFixtureHostView()', (ROOT / "App/ModuleFixtureSupport.swift").read_text())
     def test_all_growth_strings_reach_shared_catalog(self):

@@ -1,0 +1,38 @@
+{
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "projectPending.newStoryChapter": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create chapter and arrange"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新建章节并编排"
+          }
+        }
+      }
+    },
+    "projectPending.newFreeChapter": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create chapter and place material"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新建章节并放入"
+          }
+        }
+      }
+    }
+  }
+}

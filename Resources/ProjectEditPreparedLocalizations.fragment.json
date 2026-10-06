@@ -1,0 +1,374 @@
+{
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "projectPrepared.nodes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submitted chapter nodes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次提交的章节节点"
+          }
+        }
+      }
+    },
+    "projectPrepared.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These values and their order come from the captured submission request. Image and template references are shown only as text."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以下数值及顺序来自本次捕获的提交请求。图片与玩法模板引用仅显示为文本。"
+          }
+        }
+      }
+    },
+    "projectPrepared.draftContext": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draft configuration below is context. It may contain local-only or normalized fields; the submitted nodes and complete prepared fields above show what this request includes."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下方草稿配置用于对照，可能含仅本地保留或需规范化的字段；上方提交节点与完整请求字段显示本次请求实际包含的内容。"
+          }
+        }
+      }
+    },
+    "projectPrepared.omittedChapters": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This request omits chapters. Existing chapter content is not replaced by this limited update."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此请求不含章节，本次受限更新不会替换既有章节内容。"
+          }
+        }
+      }
+    },
+    "projectPrepared.emptyChapters": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The prepared request contains an empty chapter list."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "准备请求中的章节列表为空。"
+          }
+        }
+      }
+    },
+    "projectPrepared.emptyNodes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This chapter contains no submitted nodes."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此章节不含提交节点。"
+          }
+        }
+      }
+    },
+    "projectPrepared.omittedNodes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nodes are omitted from this chapter value."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此章节值未包含节点字段。"
+          }
+        }
+      }
+    },
+    "projectPrepared.unsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This prepared value cannot be displayed in the supported structure."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此准备值无法按已支持的结构显示。"
+          }
+        }
+      }
+    },
+    "projectPrepared.emptyValue": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Included empty text"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "包含空文本"
+          }
+        }
+      }
+    },
+    "projectPrepared.omittedValue": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not included"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未包含"
+          }
+        }
+      }
+    },
+    "projectPrepared.stale": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This prepared review is no longer current. Return to the editor and prepare a new review."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此审核内容已失效，请返回编辑器重新准备审核。"
+          }
+        }
+      }
+    },
+    "projectPrepared.nodePosition %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Node %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "节点 %lld"
+          }
+        }
+      }
+    },
+    "projectPrepared.localSaveUnconfirmed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The prepared values are shown, but local saving was not confirmed. Closing this review does not undo a write that may already have completed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以下显示准备提交的值，但本地保存未获确认。关闭审核不会撤销可能已经完成的写入。"
+          }
+        }
+      }
+    },
+    "projectPrepared.allFields": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All prepared request fields"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部准备请求字段"
+          }
+        }
+      }
+    },
+    "projectPrepared.field.name": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Node name"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "节点名称"
+          }
+        }
+      }
+    },
+    "projectPrepared.field.description": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Node description"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "节点说明"
+          }
+        }
+      }
+    },
+    "projectPrepared.field.address": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Address"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地址"
+          }
+        }
+      }
+    },
+    "projectPrepared.field.longitude": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Longitude"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "经度"
+          }
+        }
+      }
+    },
+    "projectPrepared.field.latitude": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latitude"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "纬度"
+          }
+        }
+      }
+    },
+    "projectPrepared.field.imgUrl": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Image reference"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图片引用"
+          }
+        }
+      }
+    },
+    "projectPrepared.field.nodeTime": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duration in minutes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "时长（分钟）"
+          }
+        }
+      }
+    },
+    "projectPrepared.field.templateId": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Play template reference"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩法模板引用"
+          }
+        }
+      }
+    },
+    "projectPrepared.field.sortID": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submitted order"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提交顺序"
+          }
+        }
+      }
+    }
+  }
+}

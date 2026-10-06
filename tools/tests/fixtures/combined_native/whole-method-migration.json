@@ -1,0 +1,20 @@
+{
+  "old_id": "ProjectEditPendingFlowTests.testFreeIncompleteMaterialSurvivesRestoreCancelEditAndExplicitChapterPlacement",
+  "new_id": "ProjectEditPendingRestoreFlowTests.testFreeIncompleteMaterialSurvivesRestoreCancelEditAndExplicitChapterPlacement",
+  "old_source": "Tests/AppUITests/ProjectEditPendingFlowTests.swift",
+  "new_source": "Tests/AppUITests/ProjectEditPendingRestoreFlowTests.swift",
+  "original_file_sha256": "12d6561aa7f0586177e635119bc75fa5c7799cfd52b91e75bfdd3b58e61d3864",
+  "remaining_file_sha256": "abea0305a979a0fddf8acc5cabb81c6c230afd9c33241e31dc15a4f2ec2d19ab",
+  "new_file_sha256": "36e3ab9017004357c892f91620c0a133892b0750602323a18ad4a765fb9c654f",
+  "whole_method_declaration_sha256": "4a89529facbc187e28e049f4b5a86bb9cb2a7e0e5c1fcba494ad97ee375a9112",
+  "all_non_test_source_sha256": "a4c83a2b7f87bd2bc86570a4b84d8b93e20d02d67ddad351cba342592e802812",
+  "complete_method_seconds": 720,
+  "original_class_seconds": 1500,
+  "remaining_class_seconds": 780,
+  "new_class_seconds": 720,
+  "body_assertions_helpers_setup_teardown_exact": true,
+  "direct_XCTestCase": true,
+  "no_method_fragmentation": true,
+  "historical_comment_estimates_not_used": "Original source comments remain unchanged; authoritative complete-method allowance stays 720, not the older 660 comment.",
+  "blank_lines_normalized_only": true
+}

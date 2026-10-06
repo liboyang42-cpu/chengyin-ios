@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Hosted by the bounded template media review. All callbacks are local, draft-ID-bound.
+/// Local draft-ID-bound crop controls, reused by bounded template and story-image hosts.
 @MainActor struct TemplateImageCropView: View {
     let draft: TemplateImageCropDraft
     let confirm: (UUID, TemplateImageCropRect) -> Void

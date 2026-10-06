@@ -63,6 +63,8 @@ public struct ProjectEditBlock: Identifiable, Codable, Equatable {
     public var url = ""
     /// Optional for old local envelopes; preserves supported source-only story semantics.
     public var sourceFields: [String: ProjectEditJSON]?
+    /// Local filename belongs only to its exact uploaded reference; never part of the story wire payload.
+    public var localAudio: ProjectStoryAudioLocalMetadata? = nil
     public init(kind: Kind, content: String = "", nodeID: String = "", url: String = "") {
         self.kind = kind; self.content = content; self.nodeID = nodeID; self.url = url
     }
@@ -88,7 +90,7 @@ public struct ProjectEditChapter: Identifiable, Codable, Equatable {
         return !value.isEmpty && !["暂无描述", "暂无", "无"].contains(value)
     }
     public mutating func addNode(product: ProjectEditProduct) throws {
-        guard preserved["ending"]?.object == nil else { throw ProjectEditError.invalidDraft }
+        guard preserved["opening"] != .bool(true), preserved["ending"]?.object == nil else { throw ProjectEditError.invalidDraft }
         guard product != .city || hasRealStory else { throw ProjectEditError.storyRequired }
         let node = ProjectEditNode(); nodes.append(node)
         if blocks != nil { blocks?.append(.init(kind: .node, nodeID: node.id)) }
@@ -182,6 +184,8 @@ public struct ProjectEditDraft: Codable, Equatable {
     public var categoryIDs: [Int] = []
     public var product: ProjectEditProduct = .city
     public var chapters: [ProjectEditChapter] = []
+    /// Local only; missing in historical envelopes and omitted from all publish payloads.
+    public var pendingMaterials: [ProjectEditPendingMaterial]?
     public var tickets: [ProjectEditTicket] = []
     public var collaboratorIDs: [Int] = []
     public var clubID: Int?

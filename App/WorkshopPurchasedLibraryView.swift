@@ -139,6 +139,6 @@ private struct PurchasedTitle: ViewModifier {
     let key: String
     @Environment(\.locale) private var locale
     init(_ key: String) { self.key = key }
-    func body(content: Content) -> some View { content.navigationTitle(String(localized: LocalizedStringResource("workshopPurchased." + key, table: "WorkshopPurchased", locale: locale))) }
+    func body(content: Content) -> some View { content.navigationTitle(String(localized: LocalizedStringResource(String.LocalizationValue(stringLiteral: "workshopPurchased." + key), table: "WorkshopPurchased", locale: locale))) }
 }
 private func purchasedText(_ key: String) -> Text { Text(LocalizedStringKey("workshopPurchased." + key), tableName: "WorkshopPurchased") }

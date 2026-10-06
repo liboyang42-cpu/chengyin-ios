@@ -42,6 +42,48 @@ public enum MapMarkerDensity {
         public let coordinate: Coordinate
         public init(id: String, coordinate: Coordinate) { self.id = id; self.coordinate = coordinate }
     }
+    /// One-shot local selection intent. The owner invalidates on input changes,
+    /// Close and disappearance. No ID is inferred from labels or coordinates.
+    public struct SelectionGate {
+        public struct Request {
+            fileprivate let revision: UUID
+            fileprivate let id: String
+        }
+        private var revision = UUID()
+        public init() {}
+        public mutating func invalidate() { revision = UUID() }
+        public func request(id: String, suppliedIDs: [String]) -> Request? {
+            guard !id.isEmpty, suppliedIDs.filter({ $0 == id }).count == 1 else { return nil }
+            return Request(revision: revision, id: id)
+        }
+        public mutating func consume(_ request: Request) -> String? {
+            guard request.revision == revision else { return nil }
+            invalidate()
+            return request.id
+        }
+    }
+    /// Presentation controls require a currently visible lifetime. Disappearance
+    /// retires captured actions and prevents new requests until a fresh appearance.
+    public struct PresentationGate {
+        public struct Request {
+            fileprivate let revision: UUID
+        }
+        private var revision = UUID()
+        private var isVisible = false
+        public init() {}
+        public mutating func appear() { isVisible = true; invalidate() }
+        public mutating func disappear() { isVisible = false; invalidate() }
+        public mutating func invalidate() { revision = UUID() }
+        public func request() -> Request? {
+            guard isVisible else { return nil }
+            return Request(revision: revision)
+        }
+        public mutating func consume(_ request: Request) -> Bool {
+            guard isVisible, request.revision == revision else { return false }
+            invalidate()
+            return true
+        }
+    }
     /// A view-lifetime gate for explicit camera actions. Replacing the input,
     /// leaving the view or consuming a request invalidates older button actions.
     /// It contains no location source, business selection or persistent state.

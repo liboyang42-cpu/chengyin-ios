@@ -17,15 +17,19 @@ import SwiftUI
             }
             Section(session.projectEditorIsConfigured ? "projectEdit.title" : "projectEdit.createLocal") {
                 NavigationLink {
-                    ProjectEditView(coordinator: session.projectEditor(product: .city), sessionRevision: session.sessionRevision, publisherClient: session.publisherLifecycleContext?.client, publisherHost: { AnyView(SessionPublisherLifecycleView(session: session, resource: $0)) })
+                    ProjectEditView(coordinator: session.projectEditor(product: .city), sessionRevision: session.sessionRevision, publisherClient: session.publisherLifecycleContext?.client, publisherHost: { AnyView(SessionPublisherLifecycleView(session: session, resource: $0)) }).id(session.projectEditorContextID)
                 } label: { Label("projectEdit.city", systemImage: "map") }
                     .accessibilityIdentifier("projectEdit.openCity")
                 NavigationLink {
-                    ProjectEditView(coordinator: session.projectEditor(product: .freeExplore), sessionRevision: session.sessionRevision, publisherClient: session.publisherLifecycleContext?.client, publisherHost: { AnyView(SessionPublisherLifecycleView(session: session, resource: $0)) })
+                    ProjectEditView(coordinator: session.projectEditor(product: .freeExplore), sessionRevision: session.sessionRevision, publisherClient: session.publisherLifecycleContext?.client, publisherHost: { AnyView(SessionPublisherLifecycleView(session: session, resource: $0)) }).id(session.projectEditorContextID)
                 } label: { Label("projectEdit.freeExplore", systemImage: "location.magnifyingglass") }
                     .accessibilityIdentifier("projectEdit.openFreeExplore")
             }
-            Section { Text("projectEdit.remoteEditDeferred").foregroundStyle(.secondary) }
+            Section {
+                NavigationLink { SessionCreatorProjectsView(session: session) } label: { Text("creatorContent.projects") }
+                    .accessibilityIdentifier("projectRemote.myProjects")
+                Text("projectRemote.chooseOwned").foregroundStyle(.secondary)
+            }
         }.appNavigationTitle("projectEdit.title")
     }
 }

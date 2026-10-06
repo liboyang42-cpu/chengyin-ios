@@ -19,6 +19,7 @@ struct QuestifyDensityMap: View {
     @State private var expansionID = UUID()
     @State private var expandedSnapshot: [SearchMapPin] = []
     @State private var focusGate = MapMarkerDensity.FocusGate()
+    @State private var selectionGate = MapMarkerDensity.SelectionGate()
     @State private var currentFocusInput: FocusInput
     @ScaledMetric(relativeTo: .body) private var diameter = 44.0
     @ScaledMetric(relativeTo: .body) private var clusterExtra = 28.0
@@ -46,6 +47,10 @@ struct QuestifyDensityMap: View {
         let selectedID: String?
         let interactionID: AnyHashable?
     }
+    private struct ListScope: Hashable {
+        let area: RoamSearchArea
+        let interactionID: AnyHashable?
+    }
     private var focusInput: FocusInput { FocusInput(area: area, pins: pins, selectedID: selectedID, interactionID: interactionID) }
     private var currentPins: [SearchMapPin] {
         let grouped = Dictionary(grouping: pins, by: \.id)
@@ -54,15 +59,29 @@ struct QuestifyDensityMap: View {
     private var snapshot: [SearchMapPin] { pins }
     var body: some View {
         VStack(spacing: 8) {
+            // Reachable before the Map's accessibility subtree, including when
+            // tiles/projection are unavailable or every marker is clustered.
+            QuestifyMapAlternativeList(pins: pins, selectedID: selectedID,
+                interactionID: AnyHashable(ListScope(area: area, interactionID: interactionID)),
+                pinHint: pinHint, onSelect: onSelect.map { callback in
+                    { id in closeExpansion(); callback(id) }
+                })
             GeometryReader { geometry in
                 MapReader { proxy in
                     let groups = groups(proxy: proxy, size: geometry.size, revision: cameraRevision)
                     Map(position: $position) {
                         ForEach(groups) { group in
                             if let anchor = group.members.first(where: { $0.id == selectedID }) ?? group.members.first {
+                                let renderedInput = focusInput
+                                let request = selectionGate.request(id: anchor.id, suppliedIDs: pins.map(\.id))
                                 Annotation(group.members.count == 1 ? anchor.title : "", coordinate: coordinate(anchor.coordinate)) {
                                     Button {
-                                        if group.members.count == 1 { onSelect?(anchor.id) }
+                                        if group.members.count == 1 {
+                                            guard renderedInput == currentFocusInput, let request,
+                                                  let id = selectionGate.consume(request) else { return }
+                                            closeExpansion()
+                                            onSelect?(id)
+                                        }
                                         else { expand(group) }
                                     } label: {
                                         if group.members.count == 1 {
@@ -126,8 +145,9 @@ struct QuestifyDensityMap: View {
         .onChange(of: focusInput) { _, value in
             currentFocusInput = value
             focusGate.invalidate()
+            selectionGate.invalidate()
         }
-        .onDisappear { focusGate.invalidate() }
+        .onDisappear { focusGate.invalidate(); closeExpansion() }
     }
     private var focusControl: some View {
         let renderedInput = focusInput
@@ -164,6 +184,7 @@ struct QuestifyDensityMap: View {
         return membership.map { ids in Group(members: ids.compactMap { id in supplied.first { $0.id == id } }) }
     }
     private func closeExpansion() {
+        selectionGate.invalidate()
         expansionID = UUID()
         expanded = []
         expandedSnapshot = []
@@ -173,6 +194,7 @@ struct QuestifyDensityMap: View {
         // render must not move it to removed members after refresh/filter changes.
         guard focusInput == currentFocusInput,
               group.members.allSatisfy({ currentPins.contains($0) }) else { return }
+        selectionGate.invalidate()
         expansionID = UUID()
         expanded = group.id
         expandedSnapshot = snapshot
@@ -189,5 +211,110 @@ struct QuestifyDensityMap: View {
     }
     private func coordinate(_ value: RoamCoordinate) -> CLLocationCoordinate2D {
         CLLocationCoordinate2D(latitude: value.latitude, longitude: value.longitude)
+    }
+}
+
+/// An alternative to spatial/cluster navigation. This consumes the same supplied
+/// pins and parent-owned selection as the map, never a provider query or viewport
+/// cache. Ordering follows the caller, and ambiguous business identities fail closed.
+struct QuestifyMapAlternativeList: View {
+    let pins: [SearchMapPin]
+    let selectedID: String?
+    let interactionID: AnyHashable?
+    let pinHint: (String) -> Text
+    let onSelect: ((String) -> Void)?
+    @State private var isExpanded = false
+    @State private var gate = MapMarkerDensity.SelectionGate()
+    @State private var toggleGate = MapMarkerDensity.PresentationGate()
+    @State private var currentInput: Input
+
+    private struct Input: Equatable {
+        let pins: [SearchMapPin]
+        let selectedID: String?
+        let interactionID: AnyHashable?
+        let selectionEnabled: Bool
+    }
+    init(pins: [SearchMapPin], selectedID: String?, interactionID: AnyHashable? = nil,
+         pinHint: @escaping (String) -> Text = { _ in Text("") }, onSelect: ((String) -> Void)? = nil) {
+        self.pins = pins; self.selectedID = selectedID; self.interactionID = interactionID
+        self.pinHint = pinHint; self.onSelect = onSelect
+        _currentInput = State(initialValue: Input(pins: pins, selectedID: selectedID,
+            interactionID: interactionID, selectionEnabled: onSelect != nil))
+    }
+    private var input: Input {
+        Input(pins: pins, selectedID: selectedID, interactionID: interactionID, selectionEnabled: onSelect != nil)
+    }
+    private var currentPins: [SearchMapPin] {
+        let counts = Dictionary(grouping: pins, by: \.id)
+        return pins.filter { !$0.id.isEmpty && counts[$0.id]?.count == 1 }
+    }
+    var body: some View {
+        let renderedInput = input
+        let toggleRequest = renderedInput == currentInput ? toggleGate.request() : nil
+        VStack(alignment: .leading, spacing: 12) {
+            Button {
+                guard renderedInput == currentInput, let toggleRequest,
+                      toggleGate.consume(toggleRequest) else { return }
+                gate.invalidate()
+                isExpanded.toggle()
+            } label: {
+                Label(isExpanded ? LocalizedStringKey("mapList.hide") : LocalizedStringKey("mapList.show"), systemImage: "list.bullet")
+                    .fixedSize(horizontal: false, vertical: true)
+            }.buttonStyle(.bordered).frame(minHeight: 44)
+                .disabled(toggleRequest == nil)
+                .accessibilityValue(Text(isExpanded ? LocalizedStringKey("mapList.expanded") : LocalizedStringKey("mapList.collapsed")))
+                .accessibilityIdentifier("mapList.toggle")
+            if isExpanded {
+                Text("mapList.title").font(.headline).accessibilityAddTraits(.isHeader)
+                Text("mapList.scope").font(.footnote).fixedSize(horizontal: false, vertical: true)
+                if currentPins.isEmpty {
+                    Text("mapList.empty").fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("mapList.empty")
+                }
+                ForEach(currentPins) { pin in
+                    let request = renderedInput == currentInput
+                        ? gate.request(id: pin.id, suppliedIDs: pins.map(\.id)) : nil
+                    Button {
+                        guard isExpanded, renderedInput == currentInput, let request,
+                              let id = gate.consume(request) else { return }
+                        onSelect?(id)
+                    } label: {
+                        HStack(alignment: .top, spacing: 12) {
+                            QuestifyMapPinSymbol(symbol: pin.symbol, selected: pin.id == selectedID)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(verbatim: pin.title).fixedSize(horizontal: false, vertical: true)
+                                if pin.id == selectedID {
+                                    Text("mapList.selected").font(.footnote.bold())
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+                            }.frame(maxWidth: .infinity, alignment: .leading)
+                        }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                            .contentShape(Rectangle())
+                    }.buttonStyle(.plain)
+                        .disabled(onSelect == nil)
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel(Text(verbatim: pin.title))
+                        .accessibilityValue(pin.id == selectedID ? Text("mapList.selected") : Text(""))
+                        .accessibilityHint(onSelect == nil ? Text("mapList.readOnly") : pinHint(pin.id))
+                        .accessibilityAddTraits(pin.id == selectedID ? .isSelected : [])
+                        .accessibilityIdentifier("mapList.pin.\(pin.id)")
+                }
+            }
+        }.frame(maxWidth: .infinity, alignment: .leading)
+            .onAppear {
+                currentInput = input
+                gate.invalidate()
+                toggleGate.appear()
+            }
+            .onChange(of: input) { _, value in
+                currentInput = value
+                gate.invalidate()
+                toggleGate.invalidate()
+            }
+            .onDisappear {
+                toggleGate.disappear()
+                isExpanded = false
+                gate.invalidate()
+            }
     }
 }

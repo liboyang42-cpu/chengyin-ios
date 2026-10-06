@@ -127599,6 +127599,1590 @@
           }
         }
       }
+    },
+    "ownedCover.authorImageScope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only this account can read this selected asset. This image is not a player grant or a publication receipt."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅此账号可读取这项所选素材。此图片不代表玩家访问许可或发布回执。"
+          }
+        }
+      }
+    },
+    "ownedCover.authorImage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verified selected cover"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已核验的所选封面"
+          }
+        }
+      }
+    },
+    "ownedCover.imageUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This exact image is unavailable. No other version or image URL will be substituted."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这张精确版本的图片暂不可用。不会改用其他版本或图片网址。"
+          }
+        }
+      }
+    },
+    "ownedCover.retryImage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read this exact image again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新读取此精确图片"
+          }
+        }
+      }
+    },
+    "ownedCover.imageTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected cover image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所选封面图片"
+          }
+        }
+      }
+    },
+    "ownedCover.close": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭"
+          }
+        }
+      }
+    },
+    "ownedCover.selectedNotice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server selected this cover for the next review. Existing release images remain unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端已为下一次审核选用此封面，现有发布版本的图片保持原样。"
+          }
+        }
+      }
+    },
+    "ownedCover.open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a cover for review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择用于审核的封面"
+          }
+        }
+      }
+    },
+    "ownedCover.unconfigured": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Author cover selection is not configured for this account or saved submission."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此账号或已保存的提交尚未配置作者封面选择能力。"
+          }
+        }
+      }
+    },
+    "ownedCover.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a cover for a future reviewed release. Picking a photo stays local. Uploading and selecting are separate explicit actions; existing releases keep their original image."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "为后续经审核的发布版本选择封面。选图仅保留在本机，上传和应用选择均需分别确认；现有发布版本继续使用原图片。"
+          }
+        }
+      }
+    },
+    "ownedCover.topic": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved topic"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已保存的主题"
+          }
+        }
+      }
+    },
+    "ownedCover.config": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current content revision"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前内容版本"
+          }
+        }
+      }
+    },
+    "ownedCover.selectionRevision": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current cover revision"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前封面版本"
+          }
+        }
+      }
+    },
+    "ownedCover.stale": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The saved cover selection belongs to an earlier content or ownership revision. Review an explicit replacement before applying it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已保存的封面选择属于较早的内容或权属版本。请审阅明确的替换选择后再应用。"
+          }
+        }
+      }
+    },
+    "ownedCover.savedUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The current cover bytes are unavailable. The saved selection has not been cleared."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前封面图片暂不可用，已保存的选择没有被清除。"
+          }
+        }
+      }
+    },
+    "ownedCover.readSaved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read the saved cover image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取已保存的封面图片"
+          }
+        }
+      }
+    },
+    "ownedCover.reload": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read current cover details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取当前封面详情"
+          }
+        }
+      }
+    },
+    "ownedCover.editBeforeChange": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An unresolved review or release must be recovered first. After requesting review, continue editing and save a new server version before changing its cover."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先恢复结果未明的审核或发布请求。提交审核后，需要继续编辑并保存新的服务端版本，才能更改其封面。"
+          }
+        }
+      }
+    },
+    "ownedCover.choose": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose an image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择图片"
+          }
+        }
+      }
+    },
+    "ownedCover.localOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This preview uses only the selected, sanitized image on this device. It has not been uploaded."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此预览仅使用本机所选且已净化的图片，尚未上传。"
+          }
+        }
+      }
+    },
+    "ownedCover.upload": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upload this image for checks"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上传此图片以供检查"
+          }
+        }
+      }
+    },
+    "ownedCover.cancelLocal": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel this local image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消这张本地图片"
+          }
+        }
+      }
+    },
+    "ownedCover.uploadUnknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An upload has no saved asset receipt. It may have reached the server, and no upload-status API is available. Choosing and uploading another image creates a separate upload; no automatic retry will occur."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有一次上传没有已保存的素材回执，可能已经到达服务端，且目前没有上传状态查询接口。另选并上传图片会创建独立上传，不会自动重试原上传。"
+          }
+        }
+      }
+    },
+    "ownedCover.receiptUnstored": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server returned an asset receipt, but this device could not save it. Keep this screen open and retry saving the receipt before selecting the cover."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端已返回素材回执，但本机未能保存。请保持此页面打开，重试保存回执后再选择封面。"
+          }
+        }
+      }
+    },
+    "ownedCover.saveReceipt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save the received asset receipt"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存已收到的素材回执"
+          }
+        }
+      }
+    },
+    "ownedCover.readUploaded": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read the checked uploaded image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取已检查的上传图片"
+          }
+        }
+      }
+    },
+    "ownedCover.verifiedBytes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These bytes were read through this account's exact asset reference and matched its SHA-256. This does not approve or publish the topic."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此图片通过该账号的精确素材引用读取，字节与其 SHA-256 一致。此步骤不代表主题审核通过或已发布。"
+          }
+        }
+      }
+    },
+    "ownedCover.reviewSelection": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review this cover selection"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "审阅此封面选择"
+          }
+        }
+      }
+    },
+    "ownedCover.selectionReceiptUnstored": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server confirmed this selection, but its receipt could not be saved on this device. Save that exact receipt before continuing to review."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端已确认此次选择，但本机未能保存回执。请保存这份精确回执后再继续审核。"
+          }
+        }
+      }
+    },
+    "ownedCover.saveSelectionReceipt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save the received selection receipt"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存已收到的选择回执"
+          }
+        }
+      }
+    },
+    "ownedCover.selectionUnknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The cover selection is unconfirmed. Its original request is saved. A different current revision does not prove it failed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "封面选择的结果尚未确认，原始请求已保存。当前版本发生变化并不能证明原请求失败。"
+          }
+        }
+      }
+    },
+    "ownedCover.checkSelection": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check the original selection request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查询原封面选择请求"
+          }
+        }
+      }
+    },
+    "ownedCover.retrySelection": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry exactly the original selection"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按原请求重试封面选择"
+          }
+        }
+      }
+    },
+    "ownedCover.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The action could not be verified. Existing cover and submission records are retained."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法核实此次操作。现有封面和提交记录已保留。"
+          }
+        }
+      }
+    },
+    "ownedCover.unauthorized": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in again before reading or changing the cover."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请重新登录后再读取或更改封面。"
+          }
+        }
+      }
+    },
+    "ownedCover.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Author cover"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "作者封面"
+          }
+        }
+      }
+    },
+    "ownedCover.confirmScope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply exactly this asset to the captured topic, content revision and CONTENT ownership record. This changes the next review input, not existing releases."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将这项精确素材应用到已捕获的主题、内容版本和 CONTENT 权属记录。此操作变更下一次审核的输入，已发布版本保持原样。"
+          }
+        }
+      }
+    },
+    "ownedCover.contentSlot": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Captured CONTENT ownership record"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已捕获的 CONTENT 权属记录"
+          }
+        }
+      }
+    },
+    "ownedCover.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply this exact cover selection"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用此精确封面选择"
+          }
+        }
+      }
+    },
+    "ownedCover.confirmTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm cover selection"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认封面选择"
+          }
+        }
+      }
+    },
+    "ownedCover.cancel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消"
+          }
+        }
+      }
+    },
+    "ownedCover.openImage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read this selected cover image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取此所选封面图片"
+          }
+        }
+      }
+    },
+    "ownedCover.currentRequired": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read current cover details before reviewing this image. No content or ownership revision has been inferred."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先读取当前封面详情，再审阅这张图片。系统尚未推断任何内容版本或权属版本。"
+          }
+        }
+      }
+    },
+    "ownedCover.receiptBeforeCurrent": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save the received receipt on this device before reading current cover details."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先在本机保存已收到的回执，再读取当前封面详情。"
+          }
+        }
+      }
+    },
+    "projectStoryImage.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose and crop a local story image, then explicitly upload it. Apply the returned reference to this captured chapter and save the local draft. This does not publish or approve the story."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择并裁剪本地故事图片，再明确上传。将返回的引用应用到此次捕获的章节并保存本地草稿。此操作不会发布或批准故事。"
+          }
+        }
+      }
+    },
+    "projectStoryImage.changed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The draft has changed. Save any received receipt, then close and reopen this field before choosing another image."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿已变化。请先保存已收到的回执，再关闭并重新打开此字段后选择图片。"
+          }
+        }
+      }
+    },
+    "projectStoryImage.choose": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose an image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择图片"
+          }
+        }
+      }
+    },
+    "projectStoryImage.previewScope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preview of the selected, sanitized image on this device. The uploaded bytes are not fetched through this preview."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这是本机所选图片经清除元数据后的预览，此预览不会读取已上传的图片。"
+          }
+        }
+      }
+    },
+    "projectStoryImage.notUploaded": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This selection has not been uploaded."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此选择尚未上传。"
+          }
+        }
+      }
+    },
+    "projectStoryImage.upload": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upload this story image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上传此故事图片"
+          }
+        }
+      }
+    },
+    "projectStoryImage.cancelLocal": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel this local selection"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消此次本地选择"
+          }
+        }
+      }
+    },
+    "projectStoryImage.unstored": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server returned this reference, but this device could not save its receipt. Save the receipt locally before applying it. This recovery is held only while this app session remains open."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务器已返回此引用，但本机未能保存回执。请先在本地保存回执再应用。此恢复信息仅在本次应用会话保持打开期间保留。"
+          }
+        }
+      }
+    },
+    "projectStoryImage.saveReceipt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save the received reference receipt"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存已收到的引用回执"
+          }
+        }
+      }
+    },
+    "projectStoryImage.referenceScope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is the existing upload API's reference. It does not prove media ownership, a frozen asset version, or eligibility for an approved release."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这是现有上传接口返回的引用，不证明媒体权属、固定资产版本或已审核发布资格。"
+          }
+        }
+      }
+    },
+    "projectStoryImage.referenceTooLong": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The returned reference exceeds the story's existing 500-character limit. Its receipt is retained, but it cannot be applied."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回的引用超过故事现有的500字符限制。回执会保留，但无法应用。"
+          }
+        }
+      }
+    },
+    "projectStoryImage.apply": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply to this chapter and save locally"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用到此章节并保存到本地"
+          }
+        }
+      }
+    },
+    "projectStoryImage.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An upload has no saved response. It may have reached the server. This API has no upload-status check; a new explicit upload creates another attempt."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一次上传没有已保存的响应，它可能已到达服务器。此接口没有上传状态查询；再次明确上传会创建另一次尝试。"
+          }
+        }
+      }
+    },
+    "projectStoryImage.localFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local draft or application receipt saving did not complete. The original upload receipt is retained. Retry the local save; no upload will be sent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地草稿或应用回执尚未保存完成。原上传回执已保留。请重试本地保存，不会再次上传。"
+          }
+        }
+      }
+    },
+    "projectStoryImage.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The local record could not be verified. Existing story references remain available."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法核实本地记录。现有故事引用仍然保留。"
+          }
+        }
+      }
+    },
+    "projectStoryImage.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Story image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "故事图片"
+          }
+        }
+      }
+    },
+    "projectStoryImage.close": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭"
+          }
+        }
+      }
+    },
+    "projectStoryImage.replace": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a replacement image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择替换图片"
+          }
+        }
+      }
+    },
+    "projectStoryImage.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Image upload is not configured for this account or this chapter has not yet been saved in the editor. Existing references are preserved."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此账号未配置图片上传，或此章节尚未保存到编辑器。现有引用会保留。"
+          }
+        }
+      }
+    },
+    "projectStoryImage.unauthorized": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in again before uploading another story image. The unresolved attempt is retained."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请重新登录后再上传故事图片。尚未确认的尝试会保留。"
+          }
+        }
+      }
+    },
+    "projectStoryAudio.apply": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply to this audio block and save locally"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用到此音频块并保存到本机"
+          }
+        }
+      }
+    },
+    "projectStoryAudio.bytes": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected bytes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所选字节数"
+          }
+        }
+      }
+    },
+    "projectStoryAudio.cancelLocal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel this local selection"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消本次本地选择"
+          }
+        }
+      }
+    },
+    "projectStoryAudio.changed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The captured story has changed. Save any received receipt, then close and reopen this audio block before choosing another file."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前故事已发生变化。请先保存已收到的回执，再关闭并重新打开此音频块以选择新文件。"
+          }
+        }
+      }
+    },
+    "projectStoryAudio.choose": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose an audio file"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择音频文件"
+          }
+        }
+      }
+    },
+    "projectStoryAudio.close": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭"
+          }
+        }
+      }
+    },
+    "projectStoryAudio.emptyBlock": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This empty audio block stays in the local draft. It is omitted from the submitted story until an audio reference is applied."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此空音频块会保留在本地草稿中。在应用音频引用之前，提交的故事会省略此块。"
+          }
+        }
+      }
+    },
+    "projectStoryAudio.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The local receipt could not be verified. Existing audio references are retained."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法验证本地回执。现有音频引用已保留。"
+          }
+        }
+      }
+    },
+    "projectStoryAudio.inspection": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only the filename extension and measured byte count have been checked. Playback and duration have not been verified. This file has not been uploaded."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目前仅检查了文件扩展名和实际字节数，尚未验证播放或时长。此文件尚未上传。"
+          }
+        }
+      }
+    },
+    "projectStoryAudio.localFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local saving did not complete. The received reference is retained. Retry applying it locally; no upload will be sent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地保存未完成，收到的引用已保留。可重试本地应用，此操作不会重新上传。"
+          }
+        }
+      }
+    },
+    "projectStoryAudio.open": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose or replace an audio file"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择或替换音频文件"
+          }
+        }
+      }
+    },
+    "projectStoryAudio.referenceScope": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is the existing upload API's returned reference. It does not establish playback, media ownership, an immutable asset version, or release approval."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这是现有上传接口返回的引用，尚不能证明可播放、媒体权属、不可变资产版本或发布审核通过。"
+          }
+        }
+      }
+    },
+    "projectStoryAudio.referenceTooLong": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The returned reference exceeds the existing 500-character story limit. The receipt is retained and cannot be applied."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回的引用超过现有故事字段的 500 字符限制。回执已保留，无法应用。"
+          }
+        }
+      }
+    },
+    "projectStoryAudio.remove": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove this audio block"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移除此音频块"
+          }
+        }
+      }
+    },
+    "projectStoryAudio.saveReceipt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save the received audio receipt"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存已收到的音频回执"
+          }
+        }
+      }
+    },
+    "projectStoryAudio.scope": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose one mp3, m4a or aac file up to 10 MiB. Selection stays on this device until you explicitly upload it. Cancelling keeps the existing audio block and reference."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择一个不超过 10 MiB 的 mp3、m4a 或 aac 文件。明确上传前，所选文件只保留在本机。取消选择会保留原音频块和引用。"
+          }
+        }
+      }
+    },
+    "projectStoryAudio.selectionFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The selected document could not be read within the supported format and size limits. The original reference is unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法在支持的格式及大小限制内读取所选文件。原引用未改变。"
+          }
+        }
+      }
+    },
+    "projectStoryAudio.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Story audio"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "故事音频"
+          }
+        }
+      }
+    },
+    "projectStoryAudio.unauthorized": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in again before uploading another audio file. The unresolved attempt is retained."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请重新登录后再上传其他音频。结果未明的尝试已保留。"
+          }
+        }
+      }
+    },
+    "projectStoryAudio.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio upload is not configured for this account or this chapter has not yet been saved in the editor. The existing block and reference remain editable locally."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此账号尚未配置音频上传，或此章节尚未保存到编辑器。现有音频块和引用仍可在本地编辑。"
+          }
+        }
+      }
+    },
+    "projectStoryAudio.unknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An upload has no saved response and may have reached the server. This API has no upload-status check. A new explicitly selected upload creates another attempt; none is retried automatically."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一次上传没有已保存的响应，可能已到达服务器。此接口不支持查询上传状态。重新明确选择并上传会创建另一尝试，系统不会自动重试。"
+          }
+        }
+      }
+    },
+    "projectStoryAudio.unstored": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The upload returned a reference, but its receipt could not be saved on this device. Save that receipt before applying it. This recovery copy lasts only for the current app session."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上传已返回引用，但回执未能保存到本机。请先保存回执再应用。恢复副本仅在当前应用会话内保留。"
+          }
+        }
+      }
+    },
+    "projectStoryAudio.upload": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upload this audio file"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上传此音频文件"
+          }
+        }
+      }
+    },
+    "projectStoryMedia.insertBefore": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Insert before this block"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在此内容前插入"
+          }
+        }
+      }
+    },
+    "mapList.collapsed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collapsed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已收起"
+          }
+        }
+      }
+    },
+    "mapList.empty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No places are available in this list."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前列表暂无可选地点。"
+          }
+        }
+      }
+    },
+    "mapList.expanded": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expanded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已展开"
+          }
+        }
+      }
+    },
+    "mapList.hide": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide place list"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收起地点列表"
+          }
+        }
+      }
+    },
+    "mapList.scope": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only places supplied to this map are listed, including places outside the current view. Selecting a place does not move the map."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅列出此地图已提供的地点，包括当前画面外的地点。选择地点不会移动地图。"
+          }
+        }
+      }
+    },
+    "mapList.selected": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已选中"
+          }
+        }
+      }
+    },
+    "mapList.show": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show places as a list"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以列表查看地点"
+          }
+        }
+      }
+    },
+    "mapList.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Available places"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前可见地点"
+          }
+        }
+      }
+    },
+    "mapList.readOnly": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This map is a read-only preview."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此地图仅供预览。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

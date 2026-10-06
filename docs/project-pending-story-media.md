@@ -1,0 +1,13 @@
+# P034 pending-material story host
+
+This successor enables the already implemented image and audio actions inside the ordinary pending-material story sheet. It adds no media type, upload grant, server payload field or publication permission.
+
+The verified Mini flow creates a real chapter in the editable draft before opening its story editor. Pending city materials remain pending until an explicit story insertion. The native ordinary chapter starter already follows this sequence and its media path was available. The remaining gap was the pending-material host: its `storyChapter` binding points to the same `model.chapter`, but the chapter view previously rejected every override binding for media.
+
+Only the actual `ProjectEditPendingController` now mints a typed scope for its exact current story destination. The scope preserves the original destination, including its owner/session/draft lease and material revision, and resolves the actual controller-owned chapter binding. The view uses that binding for the displayed chapter. An arbitrary override without this scope remains unavailable; equal IDs or copied chapter values do not grant access. A pending scope cannot be borrowed by another editor or another chapter.
+
+Both existing media presentation controllers retain that typed host and recheck it at capture and execution. Their existing exact draft target, source identity, editor incarnation and monotonic topology checks remain in force. Closing the parent, reopening an equivalent destination, changing the material, completing explicit material insertion, deleting/reordering, restoring the draft or changing account invalidates the old action. A normal image append retains its previously reviewed one-apply topology transition. Audio still creates and locally saves its empty placeholder before file selection. Cancel, upload receipt persistence and local application use the same existing flows and journals.
+
+Back from the pending story sheet preserves successfully saved media and leaves the material pending. It does not silently create a formal node. Received references may be recovered through a newly captured valid presentation under the existing receipt rules. Unknown uploads remain unknown; there is no automatic resend.
+
+Eight AppUnit methods and two full synthetic UI journeys are authored for this host. Each new UI journey has a complete, unmeasured 900-second estimate in its own direct XCTestCase class. Existing complete method budgets and history must be retained once. Apple compilation, typechecking, XCTest, real provider behavior and live upload remain separate gates. The accepted image/audio predecessor packets are immutable; this is an independent successor.

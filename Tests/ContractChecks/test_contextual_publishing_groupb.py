@@ -24,7 +24,10 @@ class ContextPublishingChecks(unittest.TestCase):
         self.assertIn("isolatedOwner != session", coordinator)
         self.assertIn("coordinator.isolatedDraftIdentity = try ProjectEditDraftIdentity()", coordinator)
         view = (ROOT/"App/ProjectEditView.swift").read_text()
-        self.assertIn("PublishingModePickerSheet(current:", view)
+        self.assertIn("ProjectEditModeReviewSheet(controller: modeReview", view)
+        mode = (ROOT/"App/ProjectEditModeReviewController.swift").read_text()
+        self.assertIn("PublishingModePickerSheet(current: picker.product)", mode)
+        self.assertIn("copyForMode(original.draft, to: original.product)", mode)
         self.assertIn("PublishingSubmissionResultSheet(receipt:", view)
     def test_complete_bilingual_delta(self):
         fragment = json.loads((ROOT/'Resources/ContextPublishingLocalizations.fragment.json').read_text())

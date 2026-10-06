@@ -26,7 +26,7 @@ class TicketThemeSync(unittest.TestCase):
         self.assertIn('guard self.fullEdit, let index = self.draft.tickets.firstIndex', model)
         self.assertIn('loadedSession == coordinator.session', model)
         self.assertIn('!coordinator.isLocked', model)
-        self.assertIn('confirmation = nil; coordinator.cancelReview()', model)
+        self.assertIn('confirmation = nil; reviewLease = nil; reviewLocalSaveConfirmed = false; if ownsVisit { coordinator.cancelReview() }', model)
     def test_bilingual_catalog_agrees(self):
         catalog=json.loads((ROOT/'Resources/Localizable.xcstrings').read_text())['strings']
         source=json.loads((ROOT/'docs/project-edit-localizations.json').read_text())

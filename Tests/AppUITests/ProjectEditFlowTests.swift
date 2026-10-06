@@ -129,12 +129,14 @@ final class ProjectEditFlowTests: XCTestCase {
         let app = launch(["--project-edit-blank"])
         XCTAssertTrue(app.textFields["projectEdit.name"].waitForExistence(timeout: 5))
         let add = app.buttons["projectEdit.addChapter"]; find(add, in: app); add.tap()
-        let chapter = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "projectEdit.chapter.")).firstMatch
-        find(chapter, in: app); chapter.tap()
+        // Complete replacement estimate: 300s UNMEASURED; previous measured 21.31s is historical only.
+        XCTAssertTrue(app.buttons["projectStarter.close"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.textFields["projectEdit.nodeName"].exists)
+        let addText = app.buttons["projectStarter.addText"]; find(addText, in: app); addText.tap()
         let addNode = app.buttons["projectEdit.addNode"]
-        XCTAssertTrue(addNode.waitForExistence(timeout: 3)); XCTAssertFalse(addNode.isEnabled)
-        let story = app.textFields["projectEdit.story"]
-        XCTAssertTrue(story.waitForExistence(timeout: 3)); story.tap()
+        find(addNode, in: app); XCTAssertFalse(addNode.isEnabled)
+        let story = app.textFields.matching(NSPredicate(format: "identifier BEGINSWITH %@", "projectEdit.block.")).firstMatch
+        XCTAssertTrue(revealFixtureElement(story, in: app, towardTop: true, maximumSwipes: 40), app.debugDescription); story.tap()
         XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5), app.debugDescription)
         let expectedStory = "A real opening story"
         story.typeText(expectedStory)
@@ -143,6 +145,13 @@ final class ProjectEditFlowTests: XCTestCase {
         XCTAssertEqual(XCTWaiter.wait(for: [committed], timeout: 5), .completed, app.debugDescription)
         XCTAssertEqual(story.value as? String, expectedStory)
         XCTAssertTrue(addNode.isEnabled)
+        let close = app.buttons["projectStarter.close"]; XCTAssertTrue(close.isHittable); close.tap()
+        XCTAssertTrue(app.buttons["projectEdit.review"].waitForExistence(timeout: 5))
+        let chapter = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "projectEdit.chapter.")).firstMatch
+        XCTAssertTrue(revealFixtureElement(chapter, in: app, maximumSwipes: 40), app.debugDescription); chapter.tap()
+        let restoredStory = app.textFields.matching(NSPredicate(format: "identifier BEGINSWITH %@", "projectEdit.block.")).firstMatch
+        XCTAssertTrue(revealFixtureElement(restoredStory, in: app, maximumSwipes: 40), app.debugDescription)
+        XCTAssertEqual(restoredStory.value as? String, expectedStory)
     }
     func testWhitelistDisablesStructureAndScheduleButKeepsCopyEditable() {
         let app = launch(["--project-edit-whitelist"])

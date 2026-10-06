@@ -69,7 +69,9 @@ struct ModuleFixtureRootView: View {
             case .ticketWallet: TicketWalletFixtureHostView()
             case .square: SquareFixtureHostView()
             case .officialEvents: OfficialFixtureHostView()
-            case .projectEdit: ProjectEditFixtureHostView()
+            case .projectEdit:
+                if ProcessInfo.processInfo.arguments.contains("--project-owned-flow") { ProjectOwnedContentFixtureHost() }
+                else { ProjectEditFixtureHostView() }
             case .growthCenter: GrowthCenterFixtureHostView()
             case .creatorContent: CreatorContentFixtureHostView()
             case .accountCollections: AccountCollectionFixtureHostView()

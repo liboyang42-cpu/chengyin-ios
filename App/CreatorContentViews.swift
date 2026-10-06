@@ -40,6 +40,7 @@ private struct CreatorContentIssueView: View {
 /// Host must observe account/market revisions and reset this destination with .id(reader.scope).
 @MainActor struct CreatorContentProjectsView: View {
     let reader: any CreatorContentReading
+    var onOpenProject: ((CreatorContentProject, UUID) -> Void)? = nil
     let onOpen: (CreatorContentDestination) -> Void
     @StateObject private var model = CreatorContentScreenModel<CreatorContentProjectPage>()
     @State private var query = CreatorContentQuery()
@@ -61,9 +62,14 @@ private struct CreatorContentIssueView: View {
                 else if let page = model.state.visibleValue(scope: key.scope) {
                     if page.rows.isEmpty { ContentUnavailableView("creatorContent.empty", systemImage: "square.stack") }
                     if page.isTruncated { Text("creatorContent.truncated").accessibilityIdentifier("creatorContent.truncated") }
+                    let rowScope = key.scope
                     ForEach(page.rows) { project in
                         if let destination = project.destination {
-                            Button { onOpen(destination) } label: { card(project) }
+                            Button {
+                                guard model.state.loadedScope == rowScope, reader.scope == rowScope, reader.isAuthenticated,
+                                      model.state.visibleValue(scope: rowScope)?.rows.contains(project) == true else { return }
+                                if let onOpenProject { onOpenProject(project, rowScope) } else { onOpen(destination) }
+                            } label: { card(project) }
                                 .buttonStyle(QuestifyCardButtonStyle())
                                 .accessibilityIdentifier("creatorContent.project.\(project.id)")
                                 .questifyCardListRow()

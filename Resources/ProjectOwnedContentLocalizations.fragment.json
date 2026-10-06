@@ -1,0 +1,214 @@
+{
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "projectRemote.edit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit owned project"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑自己的项目"
+          }
+        }
+      }
+    },
+    "projectRemote.stale": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This owned-content selection has expired. Return to your content list."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自己的内容选择已失效，请返回内容列表。"
+          }
+        }
+      }
+    },
+    "projectRemote.chooseOwned": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose an owned topic from My content to load its current editing mode and version."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从自己的内容选择主题，读取当前可编辑模式与版本。"
+          }
+        }
+      }
+    },
+    "projectRemote.readback": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current editing source"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前编辑来源"
+          }
+        }
+      }
+    },
+    "projectRemote.topicID": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server topic ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务器主题 ID"
+          }
+        }
+      }
+    },
+    "projectRemote.version": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Editing version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑版本"
+          }
+        }
+      }
+    },
+    "projectRemote.freshSource": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mode, version and edit restrictions come from the current edit-detail response. This does not establish publication status."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模式、版本和编辑限制来自当前编辑详情响应，不代表已上线。"
+          }
+        }
+      }
+    },
+    "projectRemote.completedExplanation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The previous submission was acknowledged. Explicitly read and save the latest server version before starting another edit."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上次提交已获确认。开始下一次编辑前，请明确读取并保存服务器最新版本。"
+          }
+        }
+      }
+    },
+    "projectRemote.continue": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read latest version for a new edit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取最新版本开始下一次编辑"
+          }
+        }
+      }
+    },
+    "projectRemote.continued": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latest server version saved locally. You can now edit and review a new request."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务器最新版本已保存到本地，可以编辑并审核新请求。"
+          }
+        }
+      }
+    },
+    "projectRemote.continuationIncomplete": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuation is not confirmed. The latest baseline may have been saved locally, but completion cleanup did not finish. Read again explicitly; the previous request will not be resent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "续编尚未确认。最新基线可能已保存到本地，但完成记录清理未完成。请明确重新读取，上次请求不会重发。"
+          }
+        }
+      }
+    },
+    "projectRemote.readFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The latest version could not be read or saved. The completed request remains protected."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法读取或保存最新版本，已完成请求仍受保护。"
+          }
+        }
+      }
+    },
+    "projectRemote.unknownNoReceipt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The current service has no verified outcome lookup for this uncertain submission. It remains locked. Viewing My content does not confirm or retry the request."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前服务没有可验证的未知提交结果查询。请求将保持锁定，查看自己的内容不会确认结果或重试请求。"
+          }
+        }
+      }
+    }
+  }
+}

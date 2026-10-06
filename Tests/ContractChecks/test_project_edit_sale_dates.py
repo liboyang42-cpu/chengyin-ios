@@ -20,7 +20,7 @@ class SaleDateWiring(unittest.TestCase):
         model = (ROOT/'App/ProjectEditView.swift').read_text()
         self.assertIn('guard self.fullEdit, let i = self.draft.tickets.firstIndex', model)
         self.assertIn('loadedSession == coordinator.session', model)
-        self.assertIn('confirmation = nil; coordinator.cancelReview()', model)
+        self.assertIn('confirmation = nil; reviewLease = nil; reviewLocalSaveConfirmed = false; if ownsVisit { coordinator.cancelReview() }', model)
     def test_storage_only_copy_is_bilingual_and_matches_catalog_source(self):
         catalog = json.loads((ROOT/'Resources/Localizable.xcstrings').read_text())['strings']
         source = json.loads((ROOT/'docs/project-edit-localizations.json').read_text())

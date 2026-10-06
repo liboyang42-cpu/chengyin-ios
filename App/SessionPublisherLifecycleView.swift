@@ -11,6 +11,8 @@ import SwiftUI
     @Environment(\.scenePhase) private var scenePhase
     var body: some View {
         List {
+            NavigationLink { SessionCreatorProjectsView(session: session) } label: { Text("creatorContent.projects") }
+                .accessibilityIdentifier("projectRemote.myProjects")
             if resource.kind == .topic {
                 NavigationLink("contextPublish.result.preview") { SessionTopicDetailView(id: resource.value, session: session) }
                     .accessibilityIdentifier("contextPublish.result.preview")

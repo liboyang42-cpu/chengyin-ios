@@ -48,7 +48,7 @@ class TemplateImageCropContracts(unittest.TestCase):
                      "TemplateAuthoringMedia", "RetainedImageScope", "requestAuthorization", "fileURL", "https://"]:
             self.assertNotIn(text, source)
         for path in (ROOT / "App").glob("*.swift"):
-            if path.name not in APP_FILES + ["TemplateMediaReviewController.swift", "TemplateMediaReviewPanel.swift"]:
+            if path.name not in APP_FILES + ["TemplateMediaReviewController.swift", "TemplateMediaReviewPanel.swift", "ProjectStoryImageAuthorView.swift"]:
                 self.assertNotIn("TemplateImageCrop", path.read_text(), str(path))
         host = self.read("App/TemplateMediaReviewController.swift")
         for forbidden in ["upload(", "TemplateAuthoringAdapter", "URLSession", "ImageUploadJournal", "RetainedUploadedImage"]:
@@ -78,9 +78,9 @@ class TemplateImageCropContracts(unittest.TestCase):
             for language in ["en", "zh-Hans"]:
                 self.assertTrue(entry["localizations"][language]["stringUnit"]["value"])
         catalog = json.loads(self.read("Resources/Localizable.xcstrings"))["strings"]
-        mounted = set(fragment).intersection(catalog)
-        self.assertIn(mounted, [set(), set(fragment)], "Central integration must merge the complete reviewed fragment")
-        for key in mounted: self.assertEqual(catalog[key], fragment[key])
+        self.assertTrue(set(fragment).issubset(catalog), "The bounded story-image host requires the reviewed bilingual crop labels")
+        for key, value in fragment.items():
+            self.assertEqual(catalog[key], value)
         for key in ["image.crop.preview", "image.crop.horizontal", "image.crop.vertical", "image.crop.zoom",
                     "image.retained.failed", "image.retained.cancel"]:
             for language in ["en", "zh-Hans"]:

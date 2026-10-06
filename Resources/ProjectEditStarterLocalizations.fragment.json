@@ -1,0 +1,134 @@
+{
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "projectStarter.createChapter": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create chapter"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建章节"
+          }
+        }
+      }
+    },
+    "projectStarter.defaultChapter": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chapter %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第%lld章"
+          }
+        }
+      }
+    },
+    "projectStarter.firstNodeTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "First exploration node"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "首个探索节点"
+          }
+        }
+      }
+    },
+    "projectStarter.firstNodeScope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This node is temporary until you add it to the chapter. Enter a name and usable coordinates. Cancel keeps the chapter and discards this node. Incomplete-material storage is not connected yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加入章节前，此节点仅暂存在当前表单。请填写名称和有效坐标。取消会保留章节并放弃此节点；待编排素材保存尚未接入。"
+          }
+        }
+      }
+    },
+    "projectStarter.addToChapter": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add to chapter"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加入章节"
+          }
+        }
+      }
+    },
+    "projectStarter.backToChapters": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to chapters"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回章节"
+          }
+        }
+      }
+    },
+    "projectStarter.stale": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This editor destination is no longer current. Return to the chapter list."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此编辑页面已失效，请返回章节列表。"
+          }
+        }
+      }
+    },
+    "projectStarter.inspectFixture": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inspect synthetic saved draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查模拟保存草稿"
+          }
+        }
+      }
+    }
+  }
+}

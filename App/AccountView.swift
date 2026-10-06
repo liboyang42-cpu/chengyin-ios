@@ -11,8 +11,6 @@ struct AccountView: View {
         let scope: UUID
         var id: SquareContentRoute { route }
     }
-    private enum CreatorRoute: Hashable { case topic(Int), activity(Int), playTemplate(Int) }
-    @State private var creatorRoute: CreatorRoute?
     @State private var savedTopic: SavedTopicRoute?
     @State private var savedPost: SavedPostRoute?
     @State private var showsSettings=false
@@ -66,13 +64,7 @@ struct AccountView: View {
                     WorkshopPurchasedAccountLink(browser: session.workshopPurchasedBrowser, makeInstall: { session.makeWorkshopPaidInstallController(item: $0) }, makeText: { session.makeWorkshopPaidInstalledTextController(reference: $0) }, makeProfessional: { session.makeWorkshopPaidProfessionalController(reference: $0) })
                     OwnerDraftAccountLink(browser: session.ownerDraftBrowser)
                     NavigationLink {
-                        CreatorContentProjectsView(reader:session.creatorContentReader,onOpen:{ destination in
-                            switch destination {
-                            case .topic(let id): creatorRoute = .topic(id)
-                            case .activity(let id): creatorRoute = .activity(id)
-                            case .playTemplate(let id): creatorRoute = .playTemplate(id)
-                            }
-                        }).id(session.creatorContentReader.scope)
+                        SessionCreatorProjectsView(session: session)
                     } label: { Label("creatorContent.projects",systemImage:"square.stack") }
                     .accessibilityIdentifier("account.creatorProjects")
                     NavigationLink { ProjectEditLaunchView().id(session.sessionRevision) } label: {
@@ -135,14 +127,6 @@ struct AccountView: View {
             }
             .navigationDestination(isPresented:$showsMerchantApplication) {
                 MerchantOnboardingView(session:session,coordinator:session.merchantOnboardingCoordinator)
-            }
-            .navigationDestination(item:$creatorRoute) { route in
-                switch route {
-                case .topic(let id): SessionTopicDetailView(id: id, session: session).id(session.topicReader.scope)
-                case .activity(let id): ActivityDetailView(id:id,reader:session)
-                    .toolbar { if let resource = try? PublishedResource(kind: .activity, value: id) { PublisherLifecycleNavigationLink(session: session, resource: resource) } }
-                case .playTemplate(let id): DiscoveryTemplateDetailView(id: id, reader: session, authoringFactory: { session.templateAuthoringEditor(adopting: $0) }, authoringRevision: session.sessionRevision).id(session.templateAuthoringViewIdentity)
-                }
             }
             .navigationDestination(item:$savedTopic) { route in
                 SessionTopicDetailView(id: route.id, session: session).id(session.topicReader.scope)

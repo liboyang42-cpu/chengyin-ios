@@ -30,7 +30,7 @@ public enum ProjectEditSyntheticFixtures {
     }
 }
 @MainActor public final class ProjectEditSyntheticService: ProjectEditServing {
-    public enum Scenario { case accepted, rejected, notSent, unknown }
+    public enum Scenario { case accepted, rejected, notSent, unknown, bundlePending }
     public var authority: ProjectEditServiceAuthority { .synthetic }
     public var scenario: Scenario
     public var snapshot: ProjectEditSnapshot
@@ -50,6 +50,11 @@ public enum ProjectEditSyntheticFixtures {
         if let beforeSubmit { await beforeSubmit() }
         let result: ProjectEditWriteOutcome
         switch scenario {
+        case .bundlePending:
+            let topic = operation.identity.topicID ?? 7901
+            let raw: ProjectEditJSON = .object(["topicId": .number(Decimal(topic)), "auditTaskId": .number(3301), "reviewState": .string("PENDING"), "published": .bool(true), "bundledTemplateIds": .array([.number(41)])])
+            guard let value = try? ProjectEditBundleAcknowledgment.decode(raw, expectedTopicID: operation.identity.topicID) else { return .unknown }
+            result = .bundleAcknowledged(operationID: operation.operationID, acknowledgment: value)
         case .accepted: result = .simulatedReceipt(operationID: operation.operationID, topicID: operation.identity.topicID ?? 7901)
         case .rejected: result = .rejected
         case .notSent: result = .notSent

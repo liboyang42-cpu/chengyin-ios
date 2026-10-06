@@ -36,4 +36,51 @@ struct MapMarkerStyleFixtureView: View {
         }
     }
 }
+/// The production alternative-list component with an offline selection witness.
+/// This does not mount MapKit, fetch tiles, or claim provider/VoiceOver acceptance.
+struct MapAlternativeListFixtureView: View {
+    @State private var selectedID: String?
+    @State private var revision = 0
+    @State private var mode = "normal"
+    private let coordinate = RoamCoordinate(latitude: 1, longitude: 1)!
+    private var pins: [SearchMapPin] {
+        let first = SearchMapPin(id: "list-first", title: ReferenceMapCardFixtureView.longTitle,
+            coordinate: coordinate, symbol: "storefront")
+        let second = SearchMapPin(id: "list-second", title: "Same public entrance · 相同公开入口 1234567890",
+            coordinate: coordinate, symbol: "calendar")
+        if mode == "empty" { return [] }
+        if mode == "removed" { return [second] }
+        if mode == "duplicates" {
+            return [first, SearchMapPin(id: first.id, title: "Duplicate identity must not be selectable",
+                coordinate: coordinate, symbol: "flag"), second]
+        }
+        if mode == "refreshed" {
+            return [SearchMapPin(id: first.id, title: "Refreshed public entrance · 更新后的公开入口",
+                coordinate: coordinate, symbol: "storefront"), second]
+        }
+        return [first, second]
+    }
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                // Mirrors a parent receiving a point-selection event without
+                // depending on platform projection or an online provider.
+                Button("Synthetic point selects second") { selectedID = "list-second" }
+                    .frame(minHeight: 44).accessibilityIdentifier("mapList.fixture.pointSecond")
+                Button("Clear selection") { selectedID = nil }
+                    .frame(minHeight: 44).accessibilityIdentifier("mapList.fixture.clear")
+                Text(verbatim: selectedID ?? "none").accessibilityIdentifier("mapList.fixture.selection")
+                ForEach(["removed", "duplicates", "refreshed", "empty", "normal", "readOnly"], id: \.self) { value in
+                    Button(value) { mode = value; revision += 1 }
+                        .frame(minHeight: 44).accessibilityIdentifier("mapList.fixture.\(value)")
+                }
+                NavigationLink("Synthetic departure") {
+                    Text("Synthetic away screen").accessibilityIdentifier("mapList.fixture.away")
+                }.frame(minHeight: 44).accessibilityIdentifier("mapList.fixture.depart")
+                QuestifyMapAlternativeList(pins: pins, selectedID: selectedID, interactionID: revision,
+                    onSelect: mode == "readOnly" ? nil : { selectedID = $0 })
+            }.padding()
+        }
+    }
+}
 #endif

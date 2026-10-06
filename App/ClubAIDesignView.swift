@@ -86,7 +86,7 @@ import SwiftUI
             .navigationDestination(isPresented: $openEditor) {
                 if let seed {
                     ProjectEditView(coordinator: session.projectEditor(product: seed.product), sessionRevision: session.sessionRevision, seed: seed,
-                        publisherClient: session.publisherLifecycleContext?.client)
+                        publisherClient: session.publisherLifecycleContext?.client).id(session.projectEditorContextID)
                 }
             }
             .onChange(of: session.publishingSession) { _, _ in seed = nil; openEditor = false }

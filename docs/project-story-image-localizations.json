@@ -1,0 +1,82 @@
+{
+  "projectStoryImage.scope": {
+    "en": "Choose and crop a local story image, then explicitly upload it. Apply the returned reference to this captured chapter and save the local draft. This does not publish or approve the story.",
+    "zh-Hans": "选择并裁剪本地故事图片，再明确上传。将返回的引用应用到此次捕获的章节并保存本地草稿。此操作不会发布或批准故事。"
+  },
+  "projectStoryImage.changed": {
+    "en": "The draft has changed. Save any received receipt, then close and reopen this field before choosing another image.",
+    "zh-Hans": "草稿已变化。请先保存已收到的回执，再关闭并重新打开此字段后选择图片。"
+  },
+  "projectStoryImage.choose": {
+    "en": "Choose an image",
+    "zh-Hans": "选择图片"
+  },
+  "projectStoryImage.previewScope": {
+    "en": "Preview of the selected, sanitized image on this device. The uploaded bytes are not fetched through this preview.",
+    "zh-Hans": "这是本机所选图片经清除元数据后的预览，此预览不会读取已上传的图片。"
+  },
+  "projectStoryImage.notUploaded": {
+    "en": "This selection has not been uploaded.",
+    "zh-Hans": "此选择尚未上传。"
+  },
+  "projectStoryImage.upload": {
+    "en": "Upload this story image",
+    "zh-Hans": "上传此故事图片"
+  },
+  "projectStoryImage.cancelLocal": {
+    "en": "Cancel this local selection",
+    "zh-Hans": "取消此次本地选择"
+  },
+  "projectStoryImage.unstored": {
+    "en": "The server returned this reference, but this device could not save its receipt. Save the receipt locally before applying it. This recovery is held only while this app session remains open.",
+    "zh-Hans": "服务器已返回此引用，但本机未能保存回执。请先在本地保存回执再应用。此恢复信息仅在本次应用会话保持打开期间保留。"
+  },
+  "projectStoryImage.saveReceipt": {
+    "en": "Save the received reference receipt",
+    "zh-Hans": "保存已收到的引用回执"
+  },
+  "projectStoryImage.referenceScope": {
+    "en": "This is the existing upload API's reference. It does not prove media ownership, a frozen asset version, or eligibility for an approved release.",
+    "zh-Hans": "这是现有上传接口返回的引用，不证明媒体权属、固定资产版本或已审核发布资格。"
+  },
+  "projectStoryImage.referenceTooLong": {
+    "en": "The returned reference exceeds the story's existing 500-character limit. Its receipt is retained, but it cannot be applied.",
+    "zh-Hans": "返回的引用超过故事现有的500字符限制。回执会保留，但无法应用。"
+  },
+  "projectStoryImage.apply": {
+    "en": "Apply to this chapter and save locally",
+    "zh-Hans": "应用到此章节并保存到本地"
+  },
+  "projectStoryImage.unknown": {
+    "en": "An upload has no saved response. It may have reached the server. This API has no upload-status check; a new explicit upload creates another attempt.",
+    "zh-Hans": "一次上传没有已保存的响应，它可能已到达服务器。此接口没有上传状态查询；再次明确上传会创建另一次尝试。"
+  },
+  "projectStoryImage.localFailed": {
+    "en": "Local draft or application receipt saving did not complete. The original upload receipt is retained. Retry the local save; no upload will be sent.",
+    "zh-Hans": "本地草稿或应用回执尚未保存完成。原上传回执已保留。请重试本地保存，不会再次上传。"
+  },
+  "projectStoryImage.failed": {
+    "en": "The local record could not be verified. Existing story references remain available.",
+    "zh-Hans": "无法核实本地记录。现有故事引用仍然保留。"
+  },
+  "projectStoryImage.title": {
+    "en": "Story image",
+    "zh-Hans": "故事图片"
+  },
+  "projectStoryImage.close": {
+    "en": "Close",
+    "zh-Hans": "关闭"
+  },
+  "projectStoryImage.replace": {
+    "en": "Choose a replacement image",
+    "zh-Hans": "选择替换图片"
+  },
+  "projectStoryImage.unavailable": {
+    "en": "Image upload is not configured for this account or this chapter has not yet been saved in the editor. Existing references are preserved.",
+    "zh-Hans": "此账号未配置图片上传，或此章节尚未保存到编辑器。现有引用会保留。"
+  },
+  "projectStoryImage.unauthorized": {
+    "en": "Sign in again before uploading another story image. The unresolved attempt is retained.",
+    "zh-Hans": "请重新登录后再上传故事图片。尚未确认的尝试会保留。"
+  }
+}

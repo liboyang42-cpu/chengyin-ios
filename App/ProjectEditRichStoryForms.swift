@@ -6,7 +6,8 @@ import SwiftUI
     @ObservedObject var model: ProjectEditModel
     @Binding var block: ProjectEditBlock
     let chapterID: String
-    private var nodes: [ProjectEditNode] { model.chapter(chapterID).wrappedValue.nodes }
+    var chapterOverride: Binding<ProjectEditChapter>? = nil
+    private var nodes: [ProjectEditNode] { (chapterOverride ?? model.chapter(chapterID)).wrappedValue.nodes }
     private var beat: ProjectEditNarrativeBeat? { ProjectEditNarrativeBeat(rawValue: block.fieldText("beat")) }
     private func text(_ key: String, integer: Bool = false) -> Binding<String> {
         Binding(get: { block.fieldText(key) }, set: { if integer { block.setIntegerField(key, $0) } else { block.setField(key, $0.isEmpty ? nil : .string($0)) } })

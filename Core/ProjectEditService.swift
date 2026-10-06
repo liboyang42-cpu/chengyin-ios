@@ -21,6 +21,8 @@ public enum ProjectEditWriteOutcome: Equatable {
     case simulatedReceipt(operationID: UUID, topicID: Int)
     /// Immediate server acknowledgment; not a later terminal receipt.
     case acknowledged(operationID: UUID, topicID: Int)
+    /// Exact immediate V2 submission facts. PENDING + legacy published=true is not approval.
+    case bundleAcknowledged(operationID: UUID, acknowledgment: ProjectEditBundleAcknowledgment)
     case notSent, rejected, unknown
 }
 @MainActor public protocol ProjectEditServing: AnyObject {

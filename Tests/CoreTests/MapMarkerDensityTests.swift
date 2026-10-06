@@ -124,4 +124,88 @@ final class MapMarkerDensityTests: XCTestCase {
         XCTAssertNotNil(second.consume(own))
     }
 
+    func testListSelectionUsesExactBusinessIDDespiteCoincidentTitlesAndCoordinates() throws {
+        var gate = MapMarkerDensity.SelectionGate()
+        let request = try XCTUnwrap(gate.request(id: "route-7", suppliedIDs: ["place-7", "route-7"]))
+        XCTAssertEqual(gate.consume(request), "route-7")
+    }
+
+    func testListSelectionRejectsEmptyMissingAndEveryAmbiguousDuplicate() {
+        let gate = MapMarkerDensity.SelectionGate()
+        XCTAssertNil(gate.request(id: "", suppliedIDs: [""]))
+        XCTAssertNil(gate.request(id: "removed", suppliedIDs: []))
+        XCTAssertNil(gate.request(id: "a", suppliedIDs: ["a", "a", "b"]))
+        XCTAssertNotNil(gate.request(id: "b", suppliedIDs: ["a", "a", "b"]))
+    }
+
+    func testListSelectionConsumesOnceAndRejectsAnotherOldRowAction() throws {
+        var gate = MapMarkerDensity.SelectionGate()
+        let first = try XCTUnwrap(gate.request(id: "a", suppliedIDs: ["a", "b"]))
+        let second = try XCTUnwrap(gate.request(id: "b", suppliedIDs: ["a", "b"]))
+        XCTAssertEqual(gate.consume(first), "a")
+        XCTAssertNil(gate.consume(first))
+        XCTAssertNil(gate.consume(second))
+        let fresh = try XCTUnwrap(gate.request(id: "b", suppliedIDs: ["a", "b"]))
+        XCTAssertEqual(gate.consume(fresh), "b")
+    }
+
+    func testListCloseRefreshRemovalAndSameIDReplacementInvalidateOldActions() throws {
+        for _ in ["close", "refresh", "removal", "same-ID replacement", "scope", "disappear"] {
+            var gate = MapMarkerDensity.SelectionGate()
+            let old = try XCTUnwrap(gate.request(id: "a", suppliedIDs: ["a"]))
+            gate.invalidate()
+            XCTAssertNil(gate.consume(old))
+            let reopened = try XCTUnwrap(gate.request(id: "a", suppliedIDs: ["a"]))
+            XCTAssertNil(gate.consume(old))
+            XCTAssertEqual(gate.consume(reopened), "a")
+        }
+    }
+
+    func testListSelectionRequestCannotCrossViewInstances() throws {
+        let first = MapMarkerDensity.SelectionGate()
+        var second = MapMarkerDensity.SelectionGate()
+        let foreign = try XCTUnwrap(first.request(id: "a", suppliedIDs: ["a"]))
+        XCTAssertNil(second.consume(foreign))
+        let own = try XCTUnwrap(second.request(id: "a", suppliedIDs: ["a"]))
+        XCTAssertEqual(second.consume(own), "a")
+    }
+
+    func testPresentationToggleRequiresAppearanceAndCannotIssueOffscreenRequests() throws {
+        var gate = MapMarkerDensity.PresentationGate()
+        XCTAssertNil(gate.request())
+        gate.appear()
+        let active = try XCTUnwrap(gate.request())
+        gate.disappear()
+        XCTAssertNil(gate.request())
+        // Explicit negative control: the retained toggle must not reopen offscreen.
+        XCTAssertFalse(gate.consume(active))
+        gate.invalidate()
+        XCTAssertNil(gate.request())
+    }
+
+    func testPresentationToggleRejectsOldLifetimeAfterReturnButFreshToggleWorks() throws {
+        var gate = MapMarkerDensity.PresentationGate()
+        gate.appear()
+        let departed = try XCTUnwrap(gate.request())
+        gate.disappear()
+        gate.appear()
+        let returned = try XCTUnwrap(gate.request())
+        XCTAssertFalse(gate.consume(departed))
+        XCTAssertTrue(gate.consume(returned))
+        XCTAssertFalse(gate.consume(returned))
+        let freshClose = try XCTUnwrap(gate.request())
+        XCTAssertTrue(gate.consume(freshClose))
+    }
+
+    func testPresentationToggleRejectsChangedInputAndForeignInstanceRequests() throws {
+        var first = MapMarkerDensity.PresentationGate()
+        var second = MapMarkerDensity.PresentationGate()
+        first.appear(); second.appear()
+        let old = try XCTUnwrap(first.request())
+        first.invalidate()
+        XCTAssertFalse(first.consume(old))
+        let current = try XCTUnwrap(first.request())
+        XCTAssertFalse(second.consume(current))
+        XCTAssertTrue(first.consume(current))
+    }
 }

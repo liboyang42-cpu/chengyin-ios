@@ -1,0 +1,134 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "topicReview.coverSelection.blocked": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The selected cover is available only to its author. Its public-player binding is not configured, so this capture cannot be sent for review or published. The saved legacy cover reference remains unverified."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所选封面目前仅作者可读，尚未配置玩家读取绑定，因此此快照不能提交审核或发布。原保存的封面引用仍未验证。"
+          }
+        }
+      }
+    },
+    "topicReview.coverSelection.asset": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected asset ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所选资产 ID"
+          }
+        }
+      }
+    },
+    "topicReview.coverSelection.version": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Asset source version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "资产来源版本"
+          }
+        }
+      }
+    },
+    "topicReview.coverSelection.hash": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verified asset byte SHA-256"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已验证图片字节 SHA-256"
+          }
+        }
+      }
+    },
+    "topicReview.coverSelection.selection": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Captured selection revision"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "捕获的选择版本"
+          }
+        }
+      }
+    },
+    "topicReview.coverSelection.slot": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Captured CONTENT ownership record"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "捕获的 CONTENT 权属记录"
+          }
+        }
+      }
+    },
+    "topicReview.coverSelection.notLoaded": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Image bytes are not loaded by this record view. The author-only locator is not opened as an arbitrary URL."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此记录页没有加载图片字节，也不会把作者专用地址当作任意图片链接打开。"
+          }
+        }
+      }
+    },
+    "topicReview.coverSelection.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Captured selected cover"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "捕获的所选封面"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

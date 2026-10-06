@@ -214,12 +214,25 @@ public enum ProjectEditStoryContract {
 }
 
 /// An immediate review acknowledgment is distinct from approval, publication, or a later receipt.
-public struct ProjectEditBundleAcknowledgment: Equatable {
+public struct ProjectEditBundleAcknowledgment: Equatable, Codable {
     public let topicID: Int
     public let auditTaskID: Int?
     public let reviewState: String
     public let published: Bool
     public let bundledTemplateIDs: [Int]
+    public init(from decoder: Decoder) throws {
+        self = try Self.decode(try ProjectEditJSON(from: decoder), expectedTopicID: nil)
+    }
+    public func encode(to encoder: Encoder) throws {
+        var body: [String: ProjectEditJSON] = ["topicId": .number(Decimal(topicID)), "reviewState": .string(reviewState),
+            "published": .bool(published), "bundledTemplateIds": .array(bundledTemplateIDs.map { .number(Decimal($0)) })]
+        body["auditTaskId"] = auditTaskID.map { .number(Decimal($0)) } ?? .null
+        try ProjectEditJSON.object(body).encode(to: encoder)
+    }
+    private init(topicID: Int, auditTaskID: Int?, reviewState: String, published: Bool, bundledTemplateIDs: [Int]) {
+        self.topicID = topicID; self.auditTaskID = auditTaskID; self.reviewState = reviewState
+        self.published = published; self.bundledTemplateIDs = bundledTemplateIDs
+    }
     public static func decode(_ value: ProjectEditJSON?, expectedTopicID: Int?) throws -> Self {
         guard let body = value?.object, let topic = body["topicId"]?.integer, topic > 0,
               expectedTopicID == nil || expectedTopicID == topic,

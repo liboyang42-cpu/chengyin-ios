@@ -1,3 +1,4 @@
+from tools.tests.story_media_budget_history import before_story_media, historical_pre_media_ui_source
 """Immutable 5e2f9c12 planning/source projection for historical tests only."""
 from copy import deepcopy
 from pathlib import Path
@@ -20,6 +21,7 @@ def source_index():
     return json.loads(data)
 
 def before_reviewed_features(profile):
+    profile = before_story_media(profile)
     result = deepcopy(profile)
     if 'reviewed_native_features_replan' not in result['planning_budget']:
         assert not any(k.startswith('reviewed_features_previous_') for k in result)
@@ -33,7 +35,7 @@ def before_reviewed_features(profile):
     return result
 
 def historical_pre_feature_ui_source(path):
-    path = Path(path)
+    path = historical_pre_media_ui_source(Path(path))
     case = path.name.removesuffix('.swift.txt') if path.name.endswith('.swift.txt') else path.stem
     expected = source_index()['changed_source_sha256'].get(case)
     if expected is None:

@@ -1,0 +1,178 @@
+{
+  "ownedCover.authorImageScope": {
+    "en": "Only this account can read this selected asset. This image is not a player grant or a publication receipt.",
+    "zh-Hans": "仅此账号可读取这项所选素材。此图片不代表玩家访问许可或发布回执。"
+  },
+  "ownedCover.authorImage": {
+    "en": "Verified selected cover",
+    "zh-Hans": "已核验的所选封面"
+  },
+  "ownedCover.imageUnavailable": {
+    "en": "This exact image is unavailable. No other version or image URL will be substituted.",
+    "zh-Hans": "这张精确版本的图片暂不可用。不会改用其他版本或图片网址。"
+  },
+  "ownedCover.retryImage": {
+    "en": "Read this exact image again",
+    "zh-Hans": "重新读取此精确图片"
+  },
+  "ownedCover.imageTitle": {
+    "en": "Selected cover image",
+    "zh-Hans": "所选封面图片"
+  },
+  "ownedCover.close": {
+    "en": "Close",
+    "zh-Hans": "关闭"
+  },
+  "ownedCover.selectedNotice": {
+    "en": "The server selected this cover for the next review. Existing release images remain unchanged.",
+    "zh-Hans": "服务端已为下一次审核选用此封面，现有发布版本的图片保持原样。"
+  },
+  "ownedCover.open": {
+    "en": "Choose a cover for review",
+    "zh-Hans": "选择用于审核的封面"
+  },
+  "ownedCover.unconfigured": {
+    "en": "Author cover selection is not configured for this account or saved submission.",
+    "zh-Hans": "此账号或已保存的提交尚未配置作者封面选择能力。"
+  },
+  "ownedCover.scope": {
+    "en": "Choose a cover for a future reviewed release. Picking a photo stays local. Uploading and selecting are separate explicit actions; existing releases keep their original image.",
+    "zh-Hans": "为后续经审核的发布版本选择封面。选图仅保留在本机，上传和应用选择均需分别确认；现有发布版本继续使用原图片。"
+  },
+  "ownedCover.topic": {
+    "en": "Saved topic",
+    "zh-Hans": "已保存的主题"
+  },
+  "ownedCover.config": {
+    "en": "Current content revision",
+    "zh-Hans": "当前内容版本"
+  },
+  "ownedCover.selectionRevision": {
+    "en": "Current cover revision",
+    "zh-Hans": "当前封面版本"
+  },
+  "ownedCover.stale": {
+    "en": "The saved cover selection belongs to an earlier content or ownership revision. Review an explicit replacement before applying it.",
+    "zh-Hans": "已保存的封面选择属于较早的内容或权属版本。请审阅明确的替换选择后再应用。"
+  },
+  "ownedCover.savedUnavailable": {
+    "en": "The current cover bytes are unavailable. The saved selection has not been cleared.",
+    "zh-Hans": "当前封面图片暂不可用，已保存的选择没有被清除。"
+  },
+  "ownedCover.readSaved": {
+    "en": "Read the saved cover image",
+    "zh-Hans": "读取已保存的封面图片"
+  },
+  "ownedCover.reload": {
+    "en": "Read current cover details",
+    "zh-Hans": "读取当前封面详情"
+  },
+  "ownedCover.editBeforeChange": {
+    "en": "An unresolved review or release must be recovered first. After requesting review, continue editing and save a new server version before changing its cover.",
+    "zh-Hans": "请先恢复结果未明的审核或发布请求。提交审核后，需要继续编辑并保存新的服务端版本，才能更改其封面。"
+  },
+  "ownedCover.choose": {
+    "en": "Choose an image",
+    "zh-Hans": "选择图片"
+  },
+  "ownedCover.localOnly": {
+    "en": "This preview uses only the selected, sanitized image on this device. It has not been uploaded.",
+    "zh-Hans": "此预览仅使用本机所选且已净化的图片，尚未上传。"
+  },
+  "ownedCover.upload": {
+    "en": "Upload this image for checks",
+    "zh-Hans": "上传此图片以供检查"
+  },
+  "ownedCover.cancelLocal": {
+    "en": "Cancel this local image",
+    "zh-Hans": "取消这张本地图片"
+  },
+  "ownedCover.uploadUnknown": {
+    "en": "An upload has no saved asset receipt. It may have reached the server, and no upload-status API is available. Choosing and uploading another image creates a separate upload; no automatic retry will occur.",
+    "zh-Hans": "有一次上传没有已保存的素材回执，可能已经到达服务端，且目前没有上传状态查询接口。另选并上传图片会创建独立上传，不会自动重试原上传。"
+  },
+  "ownedCover.receiptUnstored": {
+    "en": "The server returned an asset receipt, but this device could not save it. Keep this screen open and retry saving the receipt before selecting the cover.",
+    "zh-Hans": "服务端已返回素材回执，但本机未能保存。请保持此页面打开，重试保存回执后再选择封面。"
+  },
+  "ownedCover.saveReceipt": {
+    "en": "Save the received asset receipt",
+    "zh-Hans": "保存已收到的素材回执"
+  },
+  "ownedCover.readUploaded": {
+    "en": "Read the checked uploaded image",
+    "zh-Hans": "读取已检查的上传图片"
+  },
+  "ownedCover.verifiedBytes": {
+    "en": "These bytes were read through this account's exact asset reference and matched its SHA-256. This does not approve or publish the topic.",
+    "zh-Hans": "此图片通过该账号的精确素材引用读取，字节与其 SHA-256 一致。此步骤不代表主题审核通过或已发布。"
+  },
+  "ownedCover.reviewSelection": {
+    "en": "Review this cover selection",
+    "zh-Hans": "审阅此封面选择"
+  },
+  "ownedCover.selectionReceiptUnstored": {
+    "en": "The server confirmed this selection, but its receipt could not be saved on this device. Save that exact receipt before continuing to review.",
+    "zh-Hans": "服务端已确认此次选择，但本机未能保存回执。请保存这份精确回执后再继续审核。"
+  },
+  "ownedCover.saveSelectionReceipt": {
+    "en": "Save the received selection receipt",
+    "zh-Hans": "保存已收到的选择回执"
+  },
+  "ownedCover.selectionUnknown": {
+    "en": "The cover selection is unconfirmed. Its original request is saved. A different current revision does not prove it failed.",
+    "zh-Hans": "封面选择的结果尚未确认，原始请求已保存。当前版本发生变化并不能证明原请求失败。"
+  },
+  "ownedCover.checkSelection": {
+    "en": "Check the original selection request",
+    "zh-Hans": "查询原封面选择请求"
+  },
+  "ownedCover.retrySelection": {
+    "en": "Retry exactly the original selection",
+    "zh-Hans": "按原请求重试封面选择"
+  },
+  "ownedCover.failed": {
+    "en": "The action could not be verified. Existing cover and submission records are retained.",
+    "zh-Hans": "无法核实此次操作。现有封面和提交记录已保留。"
+  },
+  "ownedCover.unauthorized": {
+    "en": "Sign in again before reading or changing the cover.",
+    "zh-Hans": "请重新登录后再读取或更改封面。"
+  },
+  "ownedCover.title": {
+    "en": "Author cover",
+    "zh-Hans": "作者封面"
+  },
+  "ownedCover.confirmScope": {
+    "en": "Apply exactly this asset to the captured topic, content revision and CONTENT ownership record. This changes the next review input, not existing releases.",
+    "zh-Hans": "将这项精确素材应用到已捕获的主题、内容版本和 CONTENT 权属记录。此操作变更下一次审核的输入，已发布版本保持原样。"
+  },
+  "ownedCover.contentSlot": {
+    "en": "Captured CONTENT ownership record",
+    "zh-Hans": "已捕获的 CONTENT 权属记录"
+  },
+  "ownedCover.confirm": {
+    "en": "Apply this exact cover selection",
+    "zh-Hans": "应用此精确封面选择"
+  },
+  "ownedCover.confirmTitle": {
+    "en": "Confirm cover selection",
+    "zh-Hans": "确认封面选择"
+  },
+  "ownedCover.cancel": {
+    "en": "Cancel",
+    "zh-Hans": "取消"
+  },
+  "ownedCover.openImage": {
+    "en": "Read this selected cover image",
+    "zh-Hans": "读取此所选封面图片"
+  },
+  "ownedCover.currentRequired": {
+    "en": "Read current cover details before reviewing this image. No content or ownership revision has been inferred.",
+    "zh-Hans": "请先读取当前封面详情，再审阅这张图片。系统尚未推断任何内容版本或权属版本。"
+  },
+  "ownedCover.receiptBeforeCurrent": {
+    "en": "Save the received receipt on this device before reading current cover details.",
+    "zh-Hans": "请先在本机保存已收到的回执，再读取当前封面详情。"
+  }
+}

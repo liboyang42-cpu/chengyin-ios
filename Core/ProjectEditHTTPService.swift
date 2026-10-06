@@ -104,7 +104,7 @@ public struct ProjectEditCredentials: Equatable {
         guard let path = try? ProjectEditStoryContract.path(payload: operation.payload, baseline: operation.baseline) else { return .unknown }
         if path == ProjectEditStoryContract.createPath || path == ProjectEditStoryContract.updatePath {
             guard let acknowledgment = try? ProjectEditBundleAcknowledgment.decode(envelope?["data"], expectedTopicID: operation.identity.topicID) else { return .unknown }
-            return .acknowledged(operationID: operation.operationID, topicID: acknowledgment.topicID)
+            return .bundleAcknowledged(operationID: operation.operationID, acknowledgment: acknowledgment)
         }
         let topicID: Int
         if let existing = operation.identity.topicID { topicID = existing }

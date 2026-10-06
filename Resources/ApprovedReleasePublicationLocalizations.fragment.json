@@ -1,0 +1,261 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "approvedRelease.allocated": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server returned an immutable release ID for this captured manifest."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端已为本次捕获的清单返回不可变发布版本 ID。"
+          }
+        }
+      }
+    },
+    "approvedRelease.checkFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No current approved snapshot could be verified. Review may be pending, changed, unsupported or unavailable. This check did not create or retry a release; any saved request is retained."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法核实当前已审核快照。审核可能仍在等待、已变更，或内容暂不支持、服务不可用。本次查询未创建或重试发布版本；已保存的请求继续保留。"
+          }
+        }
+      }
+    },
+    "approvedRelease.checkResult": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check this request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查询此请求"
+          }
+        }
+      }
+    },
+    "approvedRelease.confirmCancel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消"
+          }
+        }
+      }
+    },
+    "approvedRelease.confirmCreate": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create this immutable release"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建此不可变发布版本"
+          }
+        }
+      }
+    },
+    "approvedRelease.confirmScope": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm the exact server-approved snapshot below. The server will check this audit version, manifest hash and release-head revision again before allocating an immutable release."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请确认下方准确的服务端已审核快照。在分配不可变发布版本前，服务端会再次核对审核版本、清单哈希和当前发布头版本。"
+          }
+        }
+      }
+    },
+    "approvedRelease.confirmTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm release version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认发布版本"
+          }
+        }
+      }
+    },
+    "approvedRelease.headRevision": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Captured release-head revision"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "捕获的当前发布头版本"
+          }
+        }
+      }
+    },
+    "approvedRelease.journalUnavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The local publication record could not be safely read or saved. Existing bytes were not cleared. No new request is authorized by this error."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法安全读取或保存本地发布记录。现有字节没有被清除，此错误不授权发送新请求。"
+          }
+        }
+      }
+    },
+    "approvedRelease.publishScope": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Creating an immutable release records this exact approved version. It does not by itself prove public listing, player eligibility or successful play."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建不可变发布版本会记录这份已审核的准确内容。此回执本身不代表已公开展示、玩家具备参与资格或已成功游玩。"
+          }
+        }
+      }
+    },
+    "approvedRelease.receiptApproved": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approved at the last server check"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近一次服务端检查时已审核通过"
+          }
+        }
+      }
+    },
+    "approvedRelease.receiptChanged": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The last server check did not confirm current approval"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近一次服务端检查未确认当前审核仍有效"
+          }
+        }
+      }
+    },
+    "approvedRelease.retryExact": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry the exact saved request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试已保存的准确请求"
+          }
+        }
+      }
+    },
+    "approvedRelease.reviewPublication": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review immutable release"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "审核不可变发布版本"
+          }
+        }
+      }
+    },
+    "approvedRelease.unconfirmed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The publication result is unconfirmed. The exact request is retained; check its result before creating another request."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发布结果尚未确认。准确请求已保留；请先查询该请求结果，再创建其他请求。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}
