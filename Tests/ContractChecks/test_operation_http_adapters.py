@@ -42,4 +42,29 @@ class OperationHTTPAdapters(unittest.TestCase):
         self.assertGreaterEqual(len(re.findall(r'func test\w+',tests)),24)
         self.assertIn('OperationFakeTransport: HTTPTransport',tests)
         for forbidden in ['URLSession(', 'URLSession.shared','Task.sleep']: self.assertNotIn(forbidden,tests)
+    def test_project_v2_adapter_xctests_assert_complete_acknowledgments(self):
+        tests = self.text('Tests/CoreTests/OperationHTTPAdapterTests.swift')
+        cases = [
+            ('testProjectCreateExactJSONAndDurableDispatchMarker', '711', 'XCTAssertEqual(acknowledgment.auditTaskID, 91)', 'PENDING', '[41]'),
+            ('testProjectMerchantDetailMultipartAndUpdateAcknowledgment', '71', 'XCTAssertNil(acknowledgment.auditTaskID)', 'NOT_REQUIRED', '[]'),
+        ]
+        for name, topic, audit, state, ids in cases:
+            method = tests.split('func ' + name + '()', 1)[1].split('\n    func ', 1)[0]
+            self.assertIn('guard case .bundleAcknowledged(let operationID, let acknowledgment) = result else { return XCTFail(', method)
+            for assertion in ['XCTAssertEqual(operationID, op.operationID)',
+                              'XCTAssertEqual(acknowledgment.topicID, ' + topic + ')', audit,
+                              'XCTAssertEqual(acknowledgment.reviewState, "' + state + '")',
+                              'XCTAssertTrue(acknowledgment.published)',
+                              'XCTAssertEqual(acknowledgment.bundledTemplateIDs, ' + ids + ')']:
+                self.assertIn(assertion, method)
+            self.assertNotIn('XCTAssertEqual(result, .acknowledged(', method)
+    def test_project_legacy_scalar_acknowledgment_has_separate_xctest(self):
+        tests = self.text('Tests/CoreTests/OperationHTTPAdapterTests.swift')
+        method = tests.split('func testProjectLegacyCreateAndUpdateKeepScalarAcknowledgment()', 1)[1].split('\n    func ', 1)[0]
+        for token in ['ProjectEditSyntheticFixtures.draft(product: .freeExplore)',
+                      '"api/topic/create"', '"api/topic/update"',
+                      'XCTAssertEqual(created, .acknowledged(operationID: create.operationID, topicID: 711))',
+                      'XCTAssertEqual(updated, .acknowledged(operationID: update.operationID, topicID: 71))']:
+            self.assertIn(token, method)
+        self.assertEqual(method.count('ProjectEditHTTPService.decodeAcknowledgment('), 2)
 if __name__=='__main__': unittest.main()

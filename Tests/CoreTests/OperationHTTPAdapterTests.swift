@@ -56,7 +56,10 @@ private let accessJSON = #"{"code":200,"data":{"active":true,"merchant":{"id":31
         t.onSend = { r, _ in if r.url?.path == "/api/topic/v2/create" { XCTAssertEqual(try? store.pending(session: s, identity: op.identity)?.dispatchStarted, true) } }
         let service = try ProjectEditHTTPService(configuration: config(), transport: t, owner: .personal, approval: grant(["api/topic/v2/create"]), store: store, currentCredentials: { c })
         let result = await service.submit(op, session: s)
-        XCTAssertEqual(result, .acknowledged(operationID: op.operationID, topicID: 711))
+        guard case .bundleAcknowledged(let operationID, let acknowledgment) = result else { return XCTFail("V2 acknowledgment metadata was dropped") }
+        XCTAssertEqual(operationID, op.operationID); XCTAssertEqual(acknowledgment.topicID, 711)
+        XCTAssertEqual(acknowledgment.auditTaskID, 91); XCTAssertEqual(acknowledgment.reviewState, "PENDING")
+        XCTAssertTrue(acknowledgment.published); XCTAssertEqual(acknowledgment.bundledTemplateIDs, [41])
         XCTAssertEqual(t.requests.map { $0.url!.path }, ["/api/publish/home", "/api/topic/v2/create"])
         let r = try XCTUnwrap(t.requests.last); XCTAssertEqual(r.httpMethod, "POST"); XCTAssertEqual(r.value(forHTTPHeaderField: "Content-Type"), "application/json")
         XCTAssertEqual(r.value(forHTTPHeaderField: "Authorization"), "token"); XCTAssertNil(r.value(forHTTPHeaderField: "Idempotency-Key")); XCTAssertNil(try body(r)["id"])
@@ -67,11 +70,27 @@ private let accessJSON = #"{"code":200,"data":{"active":true,"merchant":{"id":31
         try store.savePending(op, session: s)
         let t = OperationFakeTransport([.json(editJSON), .json(#"{"code":200,"data":{"topicId":71,"auditTaskId":null,"reviewState":"NOT_REQUIRED","published":true,"bundledTemplateIds":[]}}"#)])
         let service = try ProjectEditHTTPService(configuration: config(), transport: t, owner: .merchant, approval: grant(["api/topic/v2/update"]), store: store, currentCredentials: { c })
-        let result = await service.submit(op, session: s); XCTAssertEqual(result, .acknowledged(operationID: op.operationID, topicID: 71))
+        let result = await service.submit(op, session: s); guard case .bundleAcknowledged(let operationID, let acknowledgment) = result else { return XCTFail("V2 acknowledgment metadata was dropped") }
+        XCTAssertEqual(operationID, op.operationID); XCTAssertEqual(acknowledgment.topicID, 71)
+        XCTAssertNil(acknowledgment.auditTaskID); XCTAssertEqual(acknowledgment.reviewState, "NOT_REQUIRED")
+        XCTAssertTrue(acknowledgment.published); XCTAssertEqual(acknowledgment.bundledTemplateIDs, [])
         XCTAssertTrue(t.requests[0].value(forHTTPHeaderField: "Content-Type")!.hasPrefix("multipart/form-data"))
         let text = String(data: t.requests[0].httpBody!, encoding: .utf8)!; XCTAssertTrue(text.contains("name=\"scope\"\r\n\r\nMERCHANT")); XCTAssertTrue(text.contains("name=\"id\"\r\n\r\n71"))
         XCTAssertEqual(t.requests[1].url?.path, "/api/topic/v2/update"); XCTAssertEqual(try body(t.requests[1])["id"] as? Int, 71)
         let receipt = try await service.terminalReceipt(operationID: op.operationID, session: s); XCTAssertNil(receipt); XCTAssertEqual(t.requests.count, 2)
+    }
+    func testProjectLegacyCreateAndUpdateKeepScalarAcknowledgment() throws {
+        let s = try projectSession(), draft = ProjectEditSyntheticFixtures.draft(product: .freeExplore)
+        let create = try ProjectEditPending(operationID: UUID(), ownerKey: s.ownerKey, identity: .init(),
+            payload: ProjectEditContract.payload(draft, topicID: nil, scope: .full))
+        XCTAssertEqual(try ProjectEditStoryContract.path(payload: create.payload, baseline: nil), "api/topic/create")
+        let created = ProjectEditHTTPService.decodeAcknowledgment(Data(#"{"code":200,"data":711}"#.utf8), status: 200, operation: create)
+        XCTAssertEqual(created, .acknowledged(operationID: create.operationID, topicID: 711))
+        let update = try ProjectEditPending(operationID: UUID(), ownerKey: s.ownerKey, identity: .init(topicID: 71),
+            payload: ProjectEditContract.payload(draft, topicID: 71, scope: .full))
+        XCTAssertEqual(try ProjectEditStoryContract.path(payload: update.payload, baseline: nil), "api/topic/update")
+        let updated = ProjectEditHTTPService.decodeAcknowledgment(Data(#"{"code":200}"#.utf8), status: 200, operation: update)
+        XCTAssertEqual(updated, .acknowledged(operationID: update.operationID, topicID: 71))
     }
     func testProjectQuotaAndRevisionConflictsPreventWrites() async throws {
         let s = try projectSession(), c = try ProjectEditCredentials(session: s, token: "token")
