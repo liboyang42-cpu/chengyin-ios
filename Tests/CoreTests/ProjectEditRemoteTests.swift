@@ -102,7 +102,13 @@ import FoundationNetworking
         for midWrite in [false, true] {
             let (co, owner, storage, store, _) = try await setup(completed: true), session = try XCTUnwrap(owner.session)
             let capture = try XCTUnwrap(co.acknowledgedContinuation)
-            var replacement = capture.completed; replacement.payload["description"] = .string("é")
+            let completed = capture.completed
+            var payload = completed.payload; payload["description"] = .string("é")
+            let replacement = ProjectEditPending(operationID: completed.operationID,
+                ownerKey: completed.ownerKey, identity: completed.identity, payload: payload,
+                dispatchStarted: completed.dispatchStarted, baseline: completed.baseline,
+                completedTopicID: completed.completedTopicID, serverAcknowledged: completed.serverAcknowledged,
+                bundleAcknowledgment: completed.bundleAcknowledgment)
             XCTAssertEqual(replacement.payload, capture.completed.payload) // Swift String equality is canonical.
             XCTAssertFalse(ProjectEditLocalStore.exactPending(replacement, capture.completed))
             if midWrite { storage.onWrite = { try? store.savePending(replacement, session: session) } }
