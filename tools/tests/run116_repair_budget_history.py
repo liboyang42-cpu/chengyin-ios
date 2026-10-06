@@ -1,3 +1,4 @@
+from tools.tests.run117_repair_budget_history import before_run117_repairs, historical_run117_ui_source
 """Exact pre-run116 planning/source reconstruction; never changes live XCTest."""
 from copy import deepcopy
 from pathlib import Path
@@ -10,6 +11,7 @@ SOURCE_SHA256 = {'ClubStoryFlowTests': '3ab00421d123e98eebb9661ab41bc67974bd586e
 WORKFLOW_SHA256 = 'dbd6843b651026fddf571f5e87ac64203570f47310b080c62752d20abfef39fa'
 
 def before_run116_repairs(profile):
+    profile=before_run117_repairs(profile)
     result=deepcopy(profile)
     plan=result['planning_budget'].get('run116_repair_replan')
     if plan is None:
@@ -29,7 +31,7 @@ def before_run116_repairs(profile):
     return result
 
 def historical_run116_ui_source(path):
-    path=Path(path)
+    path=historical_run117_ui_source(Path(path))
     case=path.name.removesuffix('.swift.txt') if path.name.endswith('.swift.txt') else path.stem
     if case not in SOURCE_SHA256:return path
     result=ROOT/'tools/tests/fixtures/run116_published_sources'/(case+'.swift.txt')

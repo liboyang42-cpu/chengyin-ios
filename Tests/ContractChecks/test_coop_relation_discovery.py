@@ -31,7 +31,7 @@ class CoopRelationDiscoveryChecks(unittest.TestCase):
         workbench = self.source('App/CooperationFlowWorkbench.swift')
         self.assertIn('if resource == .relations { CoopRelationDiscoveryEntry(reader: reader) }', workbench)
         self.assertIn('.environment(\\.cooperationRelationDiscovery, { AnyView(SessionCoopRelationDiscoveryView(session: session, reader: $0)) })', root)
-        for text in ['PublicMerchantHomeView(target: .ownerMemberID(owner)', 'ClubDetailView(id: id, reader: reader)', 'value.memberId == owner.rawValue', 'session.contentDetailRevision == scope.contentRevision', 'value.id == id', 'guard loadedKey == key', 'guard canOpen(choice) else { return }', 'profiles.isCurrent()', '.navigationDestination(item: $selection)']:
+        for text in ['PublicMerchantHomeView(target: .ownerMemberID(owner)', 'ClubDetailView(id: id, reader: reader)', 'value.memberId == owner.rawValue', 'session.contentDetailRevision == scope.contentRevision', 'value.id == id', 'guard loadedKey == key', 'guard canOpen(choice) else { return }', 'profiles.isCurrent()', '.navigationDestination(item: presentation.binding)']:
             self.assertIn(text, app)
         for text in ['AsyncImage(', 'URLSession', 'CoopFlowMutation', 'CoopFlowInvite', 'actionCoordinator:', 'management:', 'community:', 'ProductionApproval(']:
             self.assertNotIn(text, app)
@@ -45,7 +45,8 @@ class CoopRelationDiscoveryChecks(unittest.TestCase):
         self.assertIn('self.requestGeneration == request', app)
         self.assertIn('stamp == self.generation && isCurrent()', model)
         self.assertIn('key == captured && (profiles?.isCurrent() ?? true)', app)
-        self.assertIn('selection?.id == choice.id && canOpen(choice)', app)
+        self.assertIn('presentation.isCurrent(choice)', app)
+        self.assertIn('selection?.id == choice.id && selectionIsCurrent?() == true', self.source('App/CoopRelationPresentationOwner.swift'))
         self.assertIn('current() && selectionCurrent()', app)
         self.assertIn('clubReader.clubDetail(id: id, isCurrent: isCurrent)', app)
         self.assertIn('clubReader.clubMembers(id: id, isCurrent: isCurrent)', app)

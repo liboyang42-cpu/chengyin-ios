@@ -9,10 +9,13 @@ class CoopProfileEntryLifetimeChecks(unittest.TestCase):
     def test_actual_plain_button_has_a_complete_rectangular_label(self):
         s = (ROOT / 'App/CoopRelationDiscoveryView.swift').read_text()
         button = s.split('guard canOpen(choice) else { return }')[1].split('.accessibilityIdentifier("cooprelation.open.')[0]
-        for text in ['selection = choice', 'card(row)', '.frame(maxWidth: .infinity, alignment: .leading)',
+        for text in ['open(choice, profiles: profiles)', 'card(row)', '.frame(maxWidth: .infinity, alignment: .leading)',
                      '.contentShape(Rectangle())', '.buttonStyle(.plain)']:
             self.assertIn(text, button)
-        self.assertIn('selection?.id == choice.id && canOpen(choice)', s)
+        self.assertIn('presentation.isCurrent(choice)', s)
+        owner = (ROOT / 'App/CoopRelationPresentationOwner.swift').read_text()
+        self.assertIn('selection?.id == choice.id && selectionIsCurrent?() == true', owner)
+        self.assertIn('acceptedModel.isCurrent(choice, reader: acceptedReader, scope: profiles.scope, context: context)', s)
         self.assertIn('guard loadedKey == key', s)
 
     def test_read_counters_publish_only_through_the_dedicated_fixture_ledger(self):

@@ -2,6 +2,7 @@ import XCTest
 import Combine
 @testable import Questify
 
+#if DEBUG
 @MainActor final class CoopRelationFixtureReadLedgerTests: XCTestCase {
     func testRealReadAccountingDoesNotRepublishTheNavigationIdentityOwner() async throws {
         let reader = CoopRelationFixtureReader(scenario: "mixed")
@@ -57,6 +58,8 @@ import Combine
         XCTAssertEqual(reader.reads, 2); XCTAssertEqual(reader.ownerReads, 1); XCTAssertEqual(reader.clubReads, 0)
     }
 }
+
+#endif
 
 @MainActor final class CoopRelationProfileReadTests: XCTestCase {
     func testMerchantAdapterRejectsRowNamespaceBeforeAnyRead() async throws {

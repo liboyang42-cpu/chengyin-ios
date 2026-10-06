@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 private struct CoopRelationDiscoveryDestinationKey: EnvironmentKey {
     static let defaultValue: (@MainActor (any CoopFlowReading) -> AnyView)? = nil
@@ -23,6 +24,7 @@ extension EnvironmentValues {
     let canOpen: (CoopRelationProfileRoute) -> Bool
     let destination: (CoopRelationProfileRoute, @escaping () -> Bool) -> AnyView
     var image: ((String) -> AnyView)? = nil
+    var identityChanges: AnyPublisher<Void, Never>? = nil
 #if DEBUG
     var debugTrace: ((String) -> Void)? = nil
 #endif
@@ -33,7 +35,7 @@ extension EnvironmentValues {
     var displayContext = CoopRelationDisplayContext()
     @State private var model = CoopRelationDiscoveryModel()
     @State private var tab: CoopRelationDiscoveryKind = .merchants
-    @State private var selection: CoopRelationProfileSelection?
+    @StateObject private var presentation: CoopRelationPresentationOwner
     @State private var loadedKey: LoadKey?
     private struct LoadKey: Equatable {
         let reader: ObjectIdentifier
@@ -42,6 +44,13 @@ extension EnvironmentValues {
         let context: CoopRelationDisplayContext
     }
     private var key: LoadKey { .init(reader: ObjectIdentifier(reader), session: reader.session, scope: profiles?.scope, context: displayContext) }
+    init(reader: any CoopFlowReading, profiles: CoopRelationProfileContext? = nil,
+         displayContext: CoopRelationDisplayContext = .init(),
+         model: CoopRelationDiscoveryModel = .init(), presentation: CoopRelationPresentationOwner? = nil) {
+        self.reader = reader; self.profiles = profiles; self.displayContext = displayContext
+        _model = State(initialValue: model)
+        _presentation = StateObject(wrappedValue: presentation ?? .init(identityChanges: profiles?.identityChanges))
+    }
     var body: some View {
         List {
             CoopRelationContextLabel(context: displayContext)
@@ -64,7 +73,7 @@ extension EnvironmentValues {
                         if let profiles, let choice = model.selection(row: row, reader: reader, scope: profiles.scope, context: displayContext), canOpen(choice) {
                             Button {
                                 guard canOpen(choice) else { return }
-                                selection = choice
+                                open(choice, profiles: profiles)
 #if DEBUG
                                 trace("selection.open")
 #endif
@@ -98,7 +107,7 @@ extension EnvironmentValues {
 #if DEBUG
             trace("key.changed")
 #endif
-            selection = nil
+            presentation.reconcileIdentity()
         }
         .onDisappear {
 #if DEBUG
@@ -109,9 +118,9 @@ extension EnvironmentValues {
             trace("parent.disappear.after")
 #endif
         }
-        .navigationDestination(item: $selection) { choice in
+        .navigationDestination(item: presentation.binding) { choice in
             if canOpen(choice), let profiles {
-                profiles.destination(choice.route, { selection?.id == choice.id && canOpen(choice) })
+                profiles.destination(choice.route, { presentation.isCurrent(choice) })
                     .safeAreaInset(edge: .top) { CoopRelationContextLabel(context: choice.displayContext).padding(.horizontal) }
             } else { Text("cooprelation.unavailable") }
         }
@@ -121,7 +130,7 @@ extension EnvironmentValues {
     private func trace(_ event: String) {
         guard let sink = profiles?.debugTrace else { return }
         // Only booleans about this captured read/presentation; never IDs, names or tokens.
-        sink(event + " current=\(profiles?.isCurrent() ?? false) key=\(loadedKey == key) model=\(model.isCurrent(reader: reader)) selected=\(selection != nil) loading=\(model.isLoading)")
+        sink(event + " current=\(profiles?.isCurrent() ?? false) key=\(loadedKey == key) model=\(model.isCurrent(reader: reader)) selected=\(presentation.selection != nil) loading=\(model.isLoading)")
     }
 #endif
     private func reload() async {
@@ -130,7 +139,7 @@ extension EnvironmentValues {
         defer { trace("reload.end") }
 #endif
         let captured = key
-        selection = nil; loadedKey = nil
+        presentation.close(selectionID: presentation.selection?.id); loadedKey = nil
         await model.load(reader: reader, isCurrent: { key == captured && (profiles?.isCurrent() ?? true) })
         guard !Task.isCancelled, key == captured else { return }
         loadedKey = captured
@@ -138,6 +147,15 @@ extension EnvironmentValues {
     private func canOpen(_ choice: CoopRelationProfileSelection) -> Bool {
         guard loadedKey == key, let profiles, profiles.isCurrent(), profiles.canOpen(choice.route) else { return false }
         return model.isCurrent(choice, reader: reader, scope: profiles.scope, context: displayContext)
+    }
+    private func open(_ choice: CoopRelationProfileSelection, profiles: CoopRelationProfileContext) {
+        // Capture the accepted reader/model/scope, not a transient View value. The
+        // owner remains observable while the list is underneath the pushed profile.
+        let acceptedReader = reader, acceptedModel = model, context = displayContext
+        presentation.open(choice, isCurrent: {
+            profiles.isCurrent() && profiles.canOpen(choice.route) &&
+                acceptedModel.isCurrent(choice, reader: acceptedReader, scope: profiles.scope, context: context)
+        })
     }
     @ViewBuilder private func artwork(_ source: String) -> some View {
         if let image = profiles?.image { image(source).accessibilityLabel(Text("cooprelation.image")) }
@@ -194,7 +212,7 @@ private struct CoopRelationContextLabel: View {
             case .club(let id):
                 return AnyView(CoopRelationClubProfileHost(id: id, base: session, isCurrent: { current() && selectionCurrent() }))
             }
-        }, image: home.image)
+        }, image: home.image, identityChanges: session.objectWillChange.eraseToAnyPublisher())
         CoopRelationDiscoveryView(reader: reader, profiles: profiles)
     }
 }

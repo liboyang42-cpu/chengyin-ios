@@ -28,8 +28,6 @@ final class ClubStoryFlowTests: XCTestCase {
               revealFixtureElement(scroller, in: app, towardTop: true, requiresHittable: false) else {
             XCTFail("Expected one visible chapter selector. " + app.debugDescription); return
         }
-        var previousFrame: CGRect?
-        var previousDelta: CGFloat = 0
         for attempt in 0...8 {
             let matches = scroller.buttons.matching(identifier: id)
             guard matches.count == 1 else { XCTFail("Chapter selector must stay unique. " + app.debugDescription); return }
@@ -42,35 +40,14 @@ final class ClubStoryFlowTests: XCTestCase {
             if visible.contains(frame), button.isEnabled, button.isHittable {
                 button.tap(); return
             }
-            if let previousFrame {
-                let progress = (frame.midX - previousFrame.midX) * (previousDelta < 0 ? -1 : 1)
-                guard progress > 0.5 else {
-                    XCTFail("Chapter correction made no progress toward the visible selector. " + app.debugDescription); return
-                }
-            }
             guard attempt < 8 else { break }
             // A full swipe moves past the middle chapter to either end and oscillates.
             // Drag only the missing horizontal edge, within this exact selector's frame.
             var delta: CGFloat = 0
-            var oppositeEdgeSpace: CGFloat = 0
-            if frame.minX < visible.minX {
-                delta = visible.minX - frame.minX + 8
-                oppositeEdgeSpace = visible.maxX - frame.maxX
-            } else if frame.maxX > visible.maxX {
-                delta = visible.maxX - frame.maxX - 8
-                oppositeEdgeSpace = frame.minX - visible.minX
-            }
+            if frame.minX < visible.minX { delta = visible.minX - frame.minX + 8 }
+            else if frame.maxX > visible.maxX { delta = visible.maxX - frame.maxX - 8 }
             guard delta != 0 else { XCTFail("Fully visible chapter is not enabled/hittable. " + app.debugDescription); return }
-            let maximumDisplacement = min(visible.width * 0.35, oppositeEdgeSpace)
-            guard maximumDisplacement > 0 else {
-                XCTFail("Chapter has no safe space for a containment correction. " + app.debugDescription); return
-            }
-            // Real runs stalled on repeated 10-point drags with 2 points still clipped.
-            // Use a useful minimum only within the remaining opposite-edge space.
-            let displacement = min(maximumDisplacement, max(abs(delta), 32))
-            delta = delta < 0 ? -displacement : displacement
-            previousFrame = frame
-            previousDelta = delta
+            delta = min(visible.width * 0.35, max(-visible.width * 0.35, delta))
             let origin = scroller.coordinate(withNormalizedOffset: .zero)
             let start = origin.withOffset(CGVector(dx: visible.midX - scroller.frame.minX, dy: visible.midY - scroller.frame.minY))
             let end = origin.withOffset(CGVector(dx: visible.midX + delta - scroller.frame.minX, dy: visible.midY - scroller.frame.minY))

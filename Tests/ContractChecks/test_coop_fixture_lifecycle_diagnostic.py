@@ -17,12 +17,15 @@ class CoopFixtureLifecycleDiagnosticChecks(unittest.TestCase):
         self.assertIn('identity.replace.received', source)
         self.assertIn('identity.replace.completed', source)
 
-    def test_release_view_tokens_remain_unchanged(self):
+    def test_release_view_tokens_match_the_explicit_presentation_owner_increment(self):
         source = (ROOT / 'App/CoopRelationDiscoveryView.swift').read_text()
         stripped = re.sub(r'(?ms)^\s*#if DEBUG\s*\n.*?^\s*#endif\s*$', '', source)
         normalized = re.sub(r'\s+', '', stripped)
-        # Filled from the immutable published c2d2 source, independently recomputed in review.
-        self.assertEqual('6e8d14b020e33d30cebba4215a4d30463131554dc450f80400198987f2712602', hashlib.sha256(normalized.encode()).hexdigest())
+        # The earlier diagnostic-only c2d2/f128 source had hash
+        # 6e8d14b020e33d30cebba4215a4d30463131554dc450f80400198987f2712602.
+        # This explicit production identity-owner increment changes Release code;
+        # it must not be described as another Release-equivalent diagnostic patch.
+        self.assertEqual('5f3cd99f7af82970d7658fe31b9d65f69ce069928c395b5b77d4d2a5f9f4ff43', hashlib.sha256(normalized.encode()).hexdigest())
 
     def test_failure_projection_is_small_and_does_not_change_read_count_label(self):
         source = (ROOT / 'Tests/AppUITests/CoopRelationDiscoveryFlowTests.swift').read_text()

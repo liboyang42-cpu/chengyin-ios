@@ -23,6 +23,9 @@ final class MerchantOnboardingModel: ObservableObject {
     @Published private(set) var revision = 0
     private(set) var identity: ProfileReadIdentity?
     private var generation = 0
+#if DEBUG
+    private let fixtureDiagnostics = MerchantOnboardingFixtureDiagnostics.current
+#endif
     init(coordinator: MerchantOnboardingCoordinator) { self.coordinator = coordinator }
     func reset() {
         generation += 1; draft = .init(); step = 1; isEditing = false; selectedImage = nil
@@ -30,6 +33,9 @@ final class MerchantOnboardingModel: ObservableObject {
         coordinator.synchronizeSession()
         coordinator.leaveScreen() // Fresh presentation cancels any obsolete, unsubmitted confirmation.
         identity = coordinator.identity; revision += 1
+#if DEBUG
+        fixtureDiagnostics?.record(.reset, busy: isBusy, locked: coordinator.submission.isLocked, editing: isEditing, step: step)
+#endif
     }
     func load() async {
         guard !isBusy else { return }
@@ -48,9 +54,25 @@ final class MerchantOnboardingModel: ObservableObject {
         isBusy = false; revision += 1
     }
     func reapply(_ application: MerchantOnboardingApplication) {
+#if DEBUG
+        fixtureDiagnostics?.record(.reapplyEntered, busy: isBusy, locked: coordinator.submission.isLocked, editing: isEditing, step: step)
+#endif
+#if DEBUG
+        if isBusy { fixtureDiagnostics?.record(.reapplyBusy, busy: isBusy, locked: coordinator.submission.isLocked, editing: isEditing, step: step) }
+        else if coordinator.submission.isLocked { fixtureDiagnostics?.record(.reapplyLocked, busy: isBusy, locked: true, editing: isEditing, step: step) }
+#endif
         guard !isBusy, !coordinator.submission.isLocked else { return }
-        do { draft = try .init(reapplying: application); isEditing = true; step = 1; errorKey = nil }
-        catch { errorKey = "merchant.onboarding.stateChanged" }
+        do {
+            draft = try .init(reapplying: application); isEditing = true; step = 1; errorKey = nil
+#if DEBUG
+        fixtureDiagnostics?.record(.reapplyEdited, busy: isBusy, locked: coordinator.submission.isLocked, editing: isEditing, step: step)
+#endif
+        } catch {
+            errorKey = "merchant.onboarding.stateChanged"
+#if DEBUG
+        fixtureDiagnostics?.record(.reapplyInvalid, busy: isBusy, locked: coordinator.submission.isLocked, editing: isEditing, step: step)
+#endif
+        }
     }
     func next() {
         if step == 3, selectedImage != nil { errorKey = "merchant.onboarding.uploadSelectedFirst"; return }
@@ -115,7 +137,12 @@ final class MerchantOnboardingModel: ObservableObject {
             revision += 1
         }
     }
-    func leave() { reset() }
+    func leave() {
+#if DEBUG
+        fixtureDiagnostics?.record(.leave, busy: isBusy, locked: coordinator.submission.isLocked, editing: isEditing, step: step)
+#endif
+        reset()
+    }
 }
 
 /// System picker uses explicit selected-item access; no PHPhotoLibrary authorization request.

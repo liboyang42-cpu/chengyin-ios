@@ -1,3 +1,5 @@
+from tools.tests.run117_repair_budget_history import before_run117_repairs, historical_run117_ui_source, historical_run117_workflow
+import tempfile
 """Complete run116 evidence, conservative live planning, and immutable history."""
 from copy import deepcopy
 from decimal import Decimal
@@ -14,10 +16,11 @@ def canonical(value):
 
 class Run116RepairBudget(unittest.TestCase):
     def setUp(self):
-        self.profile=json.loads((ROOT/'tools/ui_duration_weights.json').read_text())
+        self.profile=before_run117_repairs(json.loads((ROOT/'tools/ui_duration_weights.json').read_text()))
         self.plan=self.profile['planning_budget']['run116_repair_replan']
         self.methods={};self.costs={}
         for path in sorted((ROOT/'Tests/AppUITests').glob('*.swift')):
+            path=historical_run117_ui_source(path)
             source=path.read_text();names=re.findall(r'\bfunc\s+(test\w+)\s*\(',source)
             if not names:continue
             cases=re.findall(r'\bclass\s+(\w+)\s*:\s*XCTestCase\b',source)
@@ -82,17 +85,19 @@ class Run116RepairBudget(unittest.TestCase):
         self.assertGreaterEqual(self.effective('CouponRuntimeFlowTests.testChineseNormalRootLabelsAndReadOnlyConfirmation'),232.858)
     def test_all_35_live_shards_and_the_full_completion_gate_fit_the_unchanged_hard_limit(self):
         count=self.plan['shard_count'];self.assertEqual(count,35)
-        self.assertEqual((shard.DEFAULT_SHARD_COUNT,ci_gates.SHARD_COUNT),(35,35))
+        self.assertEqual(count,35)  # Published f128. Current count is checked in test_run117_repair_budget.
         self.assertEqual((self.plan['deadline_seconds'],self.plan['startup_reserve_seconds']),(1800,300))
         groups=shard.partition(self.costs,count)
-        self.assertEqual(groups,shard.partition(shard.measured_weights(ROOT/'Tests/AppUITests',ROOT/'tools/ui_duration_weights.json'),count))
+        with tempfile.TemporaryDirectory() as directory:
+            profile=Path(directory)/'f128-profile.json';profile.write_text(json.dumps(self.profile))
+            self.assertEqual(groups,shard.partition(shard.measured_weights(ROOT/'Tests/AppUITests',profile),count))
         flat=sum(groups,[]);self.assertEqual(len(flat),len(set(flat)));self.assertEqual(set(flat),set(self.costs))
         maximum=max(sum(self.costs[c] for c in group)+300 for group in groups)
         self.assertEqual(maximum,Decimal(str(self.plan['maximum_projected_seconds_with_reserve'])))
         self.assertLessEqual(maximum,1800);self.assertLessEqual(max(self.costs.values()),1500)
         prior=max(sum(self.costs[c] for c in group)+300 for group in shard.partition(self.costs,34))
         self.assertEqual(prior,Decimal(str(self.plan['prior_count_forecast'])));self.assertGreater(prior,1800)
-        workflow=(ROOT/'.github/workflows/native-ios.yml').read_text()
+        workflow=historical_run117_workflow().read_text()
         outputs=re.findall(r'^      shard_(\d+): \$\{\{ steps.completion.outputs.shard_(\d+) \}\}',workflow,re.M)
         self.assertEqual(outputs,[(str(i),str(i)) for i in range(35)])
         self.assertIn('--count 35 ',workflow);self.assertIn('--deadline-seconds 1800',workflow)

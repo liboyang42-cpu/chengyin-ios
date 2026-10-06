@@ -20,8 +20,12 @@ struct MerchantOnboardingFixtureRoot: View {
             MerchantOnboardingView(session: fixture, coordinator: coordinator)
                 .safeAreaInset(edge: .bottom) {
                     HStack {
-                        Text("merchant.onboarding.fixture.notice").font(.caption)
-                            .accessibilityIdentifier("merchant.onboarding.fixture.notice")
+                        if let diagnostics = MerchantOnboardingFixtureDiagnostics.current {
+                            MerchantOnboardingDiagnosticNotice(diagnostics: diagnostics)
+                        } else {
+                            Text("merchant.onboarding.fixture.notice").font(.caption)
+                                .accessibilityIdentifier("merchant.onboarding.fixture.notice")
+                        }
                         Text(String(fixture.submissionCount)).accessibilityIdentifier("merchant.onboarding.fixture.writeCount")
                         Text(String(fixture.uploadCount)).accessibilityIdentifier("merchant.onboarding.fixture.uploadCount")
                     }.padding(8).background(.bar)
@@ -99,6 +103,49 @@ final class MerchantOnboardingFixture: MerchantOnboardingObserving, MerchantOnbo
             "disableReason": String(localized: "merchant.onboarding.fixture.disabled"), "createTime": "2026-01-01 10:00:00"
         ]
         return try JSONDecoder().decode(MerchantOnboardingApplication.self, from: JSONSerialization.data(withJSONObject: fields))
+    }
+}
+
+/// Bounded event evidence for the two explicitly selected synthetic UI scenarios.
+/// It records no draft fields, identities, URLs, credentials or service responses.
+@MainActor
+final class MerchantOnboardingFixtureDiagnostics: ObservableObject {
+    enum Event: String { case reset, leave, reapplyEntered, reapplyBusy, reapplyLocked, reapplyEdited, reapplyInvalid }
+    static let current = make(arguments: ProcessInfo.processInfo.arguments, emit: { print($0) })
+    private let emit: (String) -> Void
+    private var emitted = 0
+    private var events: [String] = []
+    @Published private(set) var evidence = ""
+    private init(emit: @escaping (String) -> Void) { self.emit = emit }
+    static func make(arguments: [String], emit: @escaping (String) -> Void) -> MerchantOnboardingFixtureDiagnostics? {
+        let marker = "--uitesting-merchant-onboarding-fixture"
+        let optIn = "--uitesting-merchant-onboarding-diagnostics"
+        let indices = arguments.indices.filter { arguments[$0] == marker }
+        guard indices.count == 1, let index = indices.first, index + 1 < arguments.count,
+              ["rejected", "submit-unknown"].contains(arguments[index + 1]),
+              arguments.filter({ $0 == optIn }).count == 1 else { return nil }
+        return MerchantOnboardingFixtureDiagnostics(emit: emit)
+    }
+    func record(_ event: Event, busy: Bool, locked: Bool, editing: Bool, step: Int) {
+        guard emitted < 16 else { return }
+        emitted += 1
+        let boundedStep = (1...4).contains(step) ? String(step) : "invalid"
+        let entry = "MERCHANT_ONBOARDING_FIXTURE_DIAGNOSTIC event=" + event.rawValue +
+             ";busy=" + (busy ? "1" : "0") + ";locked=" + (locked ? "1" : "0") +
+             ";editing=" + (editing ? "1" : "0") + ";step=" + boundedStep
+        events.append(entry); evidence = events.joined(separator: " | ")
+        emit(entry)
+    }
+}
+
+/// Only this existing notice leaf observes diagnostic changes; the Form does not.
+@MainActor
+private struct MerchantOnboardingDiagnosticNotice: View {
+    @ObservedObject var diagnostics: MerchantOnboardingFixtureDiagnostics
+    var body: some View {
+        Text("merchant.onboarding.fixture.notice").font(.caption)
+            .accessibilityIdentifier("merchant.onboarding.fixture.notice")
+            .accessibilityValue(diagnostics.evidence)
     }
 }
 #endif

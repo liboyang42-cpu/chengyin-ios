@@ -4,20 +4,10 @@ import XCTest
 final class MerchantOnboardingFlowTests: XCTestCase {
     private var app: XCUIApplication!
     override func setUpWithError() throws { continueAfterFailure = false; app = XCUIApplication() }
-    override func tearDownWithError() throws {
-        if (testRun?.totalFailureCount ?? 0) > 0,
-           app.launchArguments.contains("--uitesting-merchant-onboarding-diagnostics") {
-            let evidence = (app.staticTexts["merchant.onboarding.fixture.notice"].value as? String) ?? "unavailable"
-            print("MERCHANT_ONBOARDING_FAILURE_EVIDENCE " + String(evidence.prefix(3072)))
-        }
-        attachFailureScreenshot(self,app:app); app.terminate(); app = nil
-    }
+    override func tearDownWithError() throws { attachFailureScreenshot(self,app:app); app.terminate(); app = nil }
     private func launch(_ scenario: String) {
         app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", "(en)", "-AppleLocale", "en_US",
                                "--uitesting-merchant-onboarding-fixture", scenario]
-        if ["rejected", "submit-unknown"].contains(scenario) {
-            app.launchArguments += ["--uitesting-merchant-onboarding-diagnostics"]
-        }
         app.launch()
         XCTAssertTrue(element("merchant.onboarding.fixture.notice").waitForExistence(timeout: 10), app.debugDescription)
     }

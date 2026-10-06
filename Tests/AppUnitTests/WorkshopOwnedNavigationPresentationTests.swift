@@ -41,25 +41,130 @@ import UIKit
     /// direct browser calls. Button handlers use these exact navigation-state actions in production.
     func testHostedListDetailPackageBackAndReopenIssueFreshPermits() async throws {
         let f = try fixture()
+        // This one sealed-fixture method emits at most twelve fixed stages. No IDs,
+        // routes, credentials, response bodies or user-visible content are printed.
+        var stageCount = 0
+        func stage(_ name: String) {
+            guard stageCount < 12 else { return }; stageCount += 1
+            print("WORKSHOP_HOST_STAGE \(name) list=\(f.navigation.listPermit != nil) detail=\(f.navigation.detailPermit != nil) package=\(f.navigation.packagePermit != nil) selected=\(f.navigation.selection != nil) showsPackage=\(f.navigation.showsPackage)")
+        }
+        stage("before-window")
         let host = UIHostingController(rootView: NavigationStack { WorkshopOwnedLibraryView(browser:f.browser,navigation:f.navigation) })
         let window = UIWindow(frame:UIScreen.main.bounds); window.rootViewController = host; window.makeKeyAndVisible()
         defer { window.isHidden = true; window.rootViewController = nil }
+        stage("window-visible")
         try await wait("initial list ready") { f.browser.phase == .ready && f.navigation.listPermit != nil }
+        stage("list-ready")
         let listPermit = try XCTUnwrap(f.navigation.listPermit)
         f.navigation.select(claimId:"synthetic-claim",presentation:f.navigation.listPermit)
+        stage("detail-requested")
         try await wait("detail pushed and ready") { f.browser.detail?.item?.claimId == "synthetic-claim" && f.navigation.detailPermit != nil }
+        stage("detail-ready")
         XCTAssertNil(f.navigation.listPermit); XCTAssertEqual(f.browser.rows.count,1)
         let detailPermit = try XCTUnwrap(f.navigation.detailPermit)
         f.navigation.openPackage(presentation:f.navigation.detailPermit)
+        stage("package-requested")
         try await wait("package pushed and unavailable") { f.browser.packageBrowser?.phase == .unavailable && f.navigation.packagePermit != nil }
+        stage("package-ready")
         XCTAssertNil(f.navigation.detailPermit); XCTAssertNotNil(f.browser.detail)
         f.navigation.showsPackage = false
+        stage("back-detail-requested")
         try await wait("Back from package restores detail and retires package", diagnostics: { "detailPermit=\(f.navigation.detailPermit != nil), packagePermit=\(f.navigation.packagePermit != nil), detail=\(f.browser.detail != nil), showsPackage=\(f.navigation.showsPackage), selected=\(f.navigation.selection != nil)" }) { f.navigation.detailPermit != nil && f.browser.detail != nil && f.navigation.packagePermit == nil }
+        stage("detail-returned")
         XCTAssertFalse(f.navigation.detailPermit === detailPermit)
         f.navigation.selection = nil
+        stage("back-list-requested")
         try await wait("Back from detail restores list and retires detail") { f.navigation.listPermit != nil && f.browser.phase == .ready && f.navigation.detailPermit == nil }
+        stage("list-returned")
         XCTAssertFalse(f.navigation.listPermit === listPermit)
         XCTAssertTrue(f.recorder.paths.contains("/native/api/workshop/owned/package")); XCTAssertEqual(f.state.unauthorized,0)
+    }
+
+    func testHiddenParentDisappearanceDoesNotContinuouslyReplaceInactiveIdentities() async throws {
+        let f = try fixture(), listBox = f.navigation.listAppearance
+        let list = try XCTUnwrap(f.navigation.listViewAppeared(listBox))
+        await f.browser.load(action: list.offer()!)
+        f.navigation.select(claimId: "synthetic-claim", presentation: list)
+        let inactiveList = f.navigation.listAppearance
+        XCTAssertNil(inactiveList.permit)
+        for _ in 0..<3 {
+            XCTAssertNil(f.navigation.listViewAppeared(inactiveList))
+            f.navigation.listViewDisappeared(inactiveList)
+            XCTAssertTrue(f.navigation.listAppearance === inactiveList)
+        }
+        let detailBox = f.navigation.detailAppearance
+        let detail = try XCTUnwrap(f.navigation.detailViewAppeared(detailBox, claimId: "synthetic-claim"))
+        await f.browser.open(claimId: "synthetic-claim", action: detail.offer()!)
+        f.navigation.openPackage(presentation: detail)
+        let inactiveDetail = f.navigation.detailAppearance
+        XCTAssertNil(inactiveDetail.permit)
+        for _ in 0..<3 {
+            XCTAssertNil(f.navigation.detailViewAppeared(inactiveDetail, claimId: "synthetic-claim"))
+            f.navigation.detailViewDisappeared(inactiveDetail)
+            XCTAssertTrue(f.navigation.detailAppearance === inactiveDetail)
+        }
+        XCTAssertEqual(f.recorder.paths.count, 2)
+        XCTAssertTrue(f.navigation.showsPackage)
+        XCTAssertNotNil(f.browser.detail)
+        XCTAssertEqual(f.state.unauthorized, 0)
+    }
+
+    func testCurrentVisibleCloseCreatesOneFreshBoxAndOldCloseCannotRetireItsRead() async throws {
+        let f = try fixture(), oldBox = f.navigation.listAppearance
+        let old = try XCTUnwrap(f.navigation.listViewAppeared(oldBox))
+        // The current permit was installed synchronously, before any body redraw.
+        f.navigation.listViewDisappeared(oldBox)
+        let freshBox = f.navigation.listAppearance
+        XCTAssertFalse(freshBox === oldBox); XCTAssertFalse(old.isLive)
+        XCTAssertNil(f.navigation.listViewAppeared(oldBox))
+        let fresh = try XCTUnwrap(f.navigation.listViewAppeared(freshBox))
+        f.recorder.hold = true; f.navigation.scheduleList(fresh)
+        try await wait("current reopened list held") { f.recorder.waiting.count == 1 }
+        for _ in 0..<3 { f.navigation.listViewDisappeared(oldBox) }
+        XCTAssertTrue(f.navigation.listAppearance === freshBox)
+        XCTAssertTrue(f.navigation.listPermit === fresh); XCTAssertTrue(fresh.isLive)
+        f.recorder.releaseAll()
+        try await wait("current reopened list ready") { f.browser.phase == .ready }
+        XCTAssertEqual(f.recorder.paths.count, 1); XCTAssertEqual(f.state.unauthorized, 0)
+    }
+
+    func testAlreadyInvalidatedPresentationCannotProduceAnotherViewIdentity() async throws {
+        let f = try fixture(), box = f.navigation.listAppearance
+        let permit = try XCTUnwrap(f.navigation.listViewAppeared(box))
+        await f.browser.load(action: permit.offer()!)
+        f.browser.leaveList(permit, closing: false)
+        XCTAssertFalse(permit.isLive)
+        for _ in 0..<3 {
+            f.navigation.listViewDisappeared(box)
+            XCTAssertTrue(f.navigation.listAppearance === box)
+            XCTAssertNil(f.navigation.listViewAppeared(box))
+        }
+        XCTAssertNil(f.navigation.listPermit)
+        XCTAssertEqual(f.recorder.paths.count, 1); XCTAssertEqual(f.state.unauthorized, 0)
+    }
+
+    func testPackageBackInactiveCallbacksDoNotReplaceTheReturningDetail() async throws {
+        let f = try fixture(), list = try XCTUnwrap(f.navigation.listViewAppeared(f.navigation.listAppearance))
+        await f.browser.load(action: list.offer()!)
+        f.navigation.select(claimId: "synthetic-claim", presentation: list)
+        let detail = try XCTUnwrap(f.navigation.detailViewAppeared(f.navigation.detailAppearance, claimId: "synthetic-claim"))
+        await f.browser.open(claimId: "synthetic-claim", action: detail.offer()!)
+        f.navigation.openPackage(presentation: detail)
+        let package = try XCTUnwrap(f.navigation.packageViewAppeared(f.navigation.packageAppearance, claimId: "synthetic-claim"))
+        await f.browser.packageBrowser!.load(claimId: "synthetic-claim", action: package.offer()!)
+        f.navigation.showsPackage = false
+        let inactivePackage = f.navigation.packageAppearance, returningDetail = f.navigation.detailAppearance
+        for _ in 0..<3 {
+            XCTAssertNil(f.navigation.packageViewAppeared(inactivePackage, claimId: "synthetic-claim"))
+            f.navigation.packageViewDisappeared(inactivePackage)
+            XCTAssertTrue(f.navigation.packageAppearance === inactivePackage)
+            XCTAssertTrue(f.navigation.detailAppearance === returningDetail)
+        }
+        let fresh = try XCTUnwrap(f.navigation.detailViewAppeared(returningDetail, claimId: "synthetic-claim"))
+        await f.browser.open(claimId: "synthetic-claim", action: fresh.offer()!)
+        XCTAssertTrue(f.navigation.detailPermit === fresh)
+        XCTAssertFalse(f.navigation.showsPackage); XCTAssertFalse(package.isLive)
+        XCTAssertEqual(f.recorder.paths.count, 4); XCTAssertEqual(f.state.unauthorized, 0)
     }
     func testHostedDismissalRevokesQueuedToolbarActionBeforeEntry() async throws {
         let f = try fixture()

@@ -87,7 +87,7 @@ import SwiftUI
                 return AnyView(PublicMerchantHomeView(target: .ownerMemberID(owner), context: .init(reader: CoopRelationMerchantReader(base: reader, owner: owner, isCurrent: { current() && selectionCurrent() }))))
             case .club(let id): return AnyView(CoopRelationClubProfileHost(id: id, base: reader, isCurrent: { current() && selectionCurrent() }))
             }
-        }, debugTrace: { reader.ledger.record($0) })
+        }, identityChanges: reader.objectWillChange.eraseToAnyPublisher(), debugTrace: { reader.ledger.record($0) })
         VStack {
             VStack(spacing: 8) {
                 CoopRelationFixtureReadCounter(ledger: reader.ledger)

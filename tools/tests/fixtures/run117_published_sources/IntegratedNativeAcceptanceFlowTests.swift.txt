@@ -153,39 +153,20 @@ import XCTest
             }
         }
         // Ten full cards per actual page, at most three short gestures per card.
-        // One stagnant center gesture is not evidence that the page has ended.
-        var stagnantTraversals = 0
-        var useGutter = false
+        // Stop at a stationary viewport; never shrink the fixture page to fit.
         for _ in 0..<30 {
             let bounds = viewport()
             guard !bounds.isNull, bounds.height > 80 else { break }
             if target.exists && bounds.contains(target.frame) && target.isEnabled && target.isHittable {
                 target.tap(); return
             }
-            if stagnantTraversals >= 2 {
-                let nextCardIsBelowViewport = container.buttons.allElementsBoundByIndex.contains {
-                    $0.identifier.hasPrefix("memberTemplate.mine.") && !$0.frame.isEmpty && $0.frame.maxY > bounds.maxY
-                }
-                XCTFail((nextCardIsBelowViewport
-                    ? "Shelf traversal stalled while another template remained below the viewport. "
-                    : "Shelf traversal stalled twice without exposing an actionable Load more. ") + app.debugDescription)
-                return
-            }
             let before = visibleRows(bounds)
-            // Run117 stopped at card9 after a center drag. The native List gutter
-            // remains inside the viewport and clear of its inset card controls.
-            let dragX = useGutter ? bounds.minX + min(8, bounds.width * 0.1) : bounds.midX
             let start = container.coordinate(withNormalizedOffset: .zero).withOffset(
-                CGVector(dx: dragX - container.frame.minX, dy: bounds.minY + bounds.height * 0.8 - container.frame.minY))
+                CGVector(dx: bounds.midX - container.frame.minX, dy: bounds.minY + bounds.height * 0.8 - container.frame.minY))
             let end = container.coordinate(withNormalizedOffset: .zero).withOffset(
-                CGVector(dx: dragX - container.frame.minX, dy: bounds.minY + bounds.height * 0.25 - container.frame.minY))
+                CGVector(dx: bounds.midX - container.frame.minX, dy: bounds.minY + bounds.height * 0.25 - container.frame.minY))
             start.press(forDuration: 0.05, thenDragTo: end)
-            if !before.isEmpty && before == visibleRows(viewport()) {
-                stagnantTraversals += 1
-                useGutter = true
-            } else {
-                stagnantTraversals = 0
-            }
+            if !before.isEmpty && before == visibleRows(viewport()) { break }
         }
         XCTFail("Owned shelf Load more was not visible and enabled after bounded page traversal. " + app.debugDescription)
     }

@@ -101,16 +101,29 @@ import Observation
         return displayed.appear { packageAppeared(claimId: claimId) }
     }
     func listViewDisappeared(_ displayed: WorkshopOwnedViewAppearance) {
+        let wasPresented = displayed.permit.map { listPermit === $0 && $0.isLive } ?? false
         displayed.disappear { listDisappeared($0) }
-        if listAppearance === displayed { listAppearance = WorkshopOwnedViewAppearance() }
+        // A pushed parent may render its next, inactive box before disappearing.
+        // Retire that callback without changing the identity of hidden content again.
+        if wasPresented, listAppearance === displayed, selection == nil {
+            listAppearance = WorkshopOwnedViewAppearance()
+        }
     }
     func detailViewDisappeared(_ displayed: WorkshopOwnedViewAppearance) {
+        let presentedClaim = displayed.permit.flatMap { detailPermit === $0 && $0.isLive ? $0.claimID : nil }
         displayed.disappear { detailDisappeared($0) }
-        if detailAppearance === displayed { detailAppearance = WorkshopOwnedViewAppearance() }
+        if let presentedClaim, detailAppearance === displayed,
+           selection?.id == presentedClaim, !showsPackage {
+            detailAppearance = WorkshopOwnedViewAppearance()
+        }
     }
     func packageViewDisappeared(_ displayed: WorkshopOwnedViewAppearance) {
+        let presentedClaim = displayed.permit.flatMap { packagePermit === $0 && $0.isLive ? $0.claimID : nil }
         displayed.disappear { packageDisappeared($0) }
-        if packageAppearance === displayed { packageAppearance = WorkshopOwnedViewAppearance() }
+        if let presentedClaim, packageAppearance === displayed,
+           selection?.id == presentedClaim, showsPackage {
+            packageAppearance = WorkshopOwnedViewAppearance()
+        }
     }
     typealias ReadAction = @MainActor () async -> Void
     func offerList(_ permit: WorkshopOwnedPresentationPermit?) -> ReadAction? {

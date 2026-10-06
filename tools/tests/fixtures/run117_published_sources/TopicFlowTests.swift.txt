@@ -107,8 +107,6 @@ final class TopicFlowTests: XCTestCase {
         _ = query.firstMatch.waitForExistence(timeout: 3)
         guard app.collectionViews.count == 1 else { XCTFail("Expected one routes List. " + app.debugDescription); return }
         let list = app.collectionViews.element(boundBy: 0)
-        var previousFrame: CGRect?
-        var previousDelta: CGFloat = 0
         for attempt in 0...8 {
             let search = app.searchFields.matching(NSPredicate(format: "label == %@", "Search routes"))
             guard search.count == 1, navigation.exists else { XCTFail("Expected route browser chrome. " + app.debugDescription); return }
@@ -120,8 +118,6 @@ final class TopicFlowTests: XCTestCase {
             guard !visible.isEmpty, !visible.isNull, bottom > top else { XCTFail(app.debugDescription); return }
             let viewport = CGRect(x: visible.minX, y: top, width: visible.width, height: bottom - top)
             var delta = viewport.height * (id == 7 ? 0.3 : -0.3)
-            var maximumDisplacement = viewport.height * 0.3
-            var measuredFrame: CGRect?
             if query.count == 1 {
                 let button = query.element(boundBy: 0), frame = button.frame
                 guard !frame.isEmpty, frame.height <= viewport.height else { XCTFail("Review fixture card must fit. " + app.debugDescription); return }
@@ -131,32 +127,12 @@ final class TopicFlowTests: XCTestCase {
                     XCTAssertTrue(app.navigationBars["Route details"].waitForExistence(timeout: 5), app.debugDescription)
                     return
                 }
-                if let previousFrame {
-                    let progress = (frame.midY - previousFrame.midY) * (previousDelta < 0 ? -1 : 1)
-                    guard progress > 0.5 else {
-                        XCTFail("Route correction made no progress away from browser chrome. " + app.debugDescription); return
-                    }
-                }
-                if frame.minY < viewport.minY {
-                    delta = viewport.minY - frame.minY + 8
-                    maximumDisplacement = min(maximumDisplacement, viewport.maxY - frame.maxY)
-                } else if frame.maxY > viewport.maxY {
-                    delta = viewport.maxY - frame.maxY - 8
-                    maximumDisplacement = min(maximumDisplacement, frame.minY - viewport.minY)
-                }
+                if frame.minY < viewport.minY { delta = viewport.minY - frame.minY + 8 }
+                else if frame.maxY > viewport.maxY { delta = viewport.maxY - frame.maxY - 8 }
                 else { XCTFail("Fully visible review route must be enabled and hittable. " + app.debugDescription); return }
-                measuredFrame = frame
             } else if query.count > 1 { XCTFail("Review route identifier must be unique. " + app.debugDescription); return }
             guard attempt < 8 else { break }
-            guard maximumDisplacement > 0 else {
-                XCTFail("Review route has no safe space for a containment correction. " + app.debugDescription); return
-            }
-            // A near-edge 10-point drag stalled in the real run. Preserve full
-            // containment and move farther only when the opposite edge has room.
-            let displacement = min(maximumDisplacement, measuredFrame == nil ? abs(delta) : max(abs(delta), 32))
-            delta = delta < 0 ? -displacement : displacement
-            previousFrame = measuredFrame
-            previousDelta = delta
+            delta = min(viewport.height * 0.3, max(-viewport.height * 0.3, delta))
             let origin = list.coordinate(withNormalizedOffset: .zero)
             let x = viewport.minX + viewport.width * 0.06 - listFrame.minX
             let y = viewport.midY - listFrame.minY

@@ -87,5 +87,53 @@ import XCTest
             XCTAssertEqual(fixture.submissionCount, 1, "Counters remain monotonic even across account replacement")
         }
     }
+    func testDiagnosticGateRejectsOrdinaryMissingAmbiguousAndOtherFixtureArguments() {
+        let marker = "--uitesting-merchant-onboarding-fixture"
+        let optIn = "--uitesting-merchant-onboarding-diagnostics"
+        var emitted: [String] = []
+        for arguments in [[], [optIn], [marker], [marker, "rejected"],
+                          [marker, "identity-required", optIn], [marker, "unknown", optIn],
+                          [marker, "rejected", marker, "submit-unknown", optIn],
+                          [marker, "rejected", optIn, optIn]] {
+            XCTAssertNil(MerchantOnboardingFixtureDiagnostics.make(arguments: arguments, emit: { emitted.append($0) }))
+        }
+        XCTAssertTrue(emitted.isEmpty)
+        for scenario in ["rejected", "submit-unknown"] {
+            XCTAssertNotNil(MerchantOnboardingFixtureDiagnostics.make(arguments: [marker, scenario, optIn], emit: { emitted.append($0) }))
+        }
+        XCTAssertTrue(emitted.isEmpty, "Creating a diagnostic sink must not emit an event")
+    }
+    func testDiagnosticEventsAreCappedAndReplaceOutOfRangeStepsWithAConstant() throws {
+        var emitted: [String] = []
+        let sink = try XCTUnwrap(MerchantOnboardingFixtureDiagnostics.make(arguments: [
+            "--uitesting-merchant-onboarding-fixture", "rejected", "--uitesting-merchant-onboarding-diagnostics"
+        ], emit: { emitted.append($0) }))
+        sink.record(.reapplyEntered, busy: false, locked: false, editing: false, step: Int.max)
+        for _ in 0..<40 { sink.record(.reapplyEdited, busy: false, locked: false, editing: true, step: 1) }
+        XCTAssertEqual(emitted.count, 16)
+        XCTAssertEqual(sink.evidence, emitted.joined(separator: " | "))
+        XCTAssertLessThanOrEqual(sink.evidence.utf8.count, 3072)
+        XCTAssertEqual(emitted.first, "MERCHANT_ONBOARDING_FIXTURE_DIAGNOSTIC event=reapplyEntered;busy=0;locked=0;editing=0;step=invalid")
+        XCTAssertTrue(emitted.dropFirst().allSatisfy { $0 == "MERCHANT_ONBOARDING_FIXTURE_DIAGNOSTIC event=reapplyEdited;busy=0;locked=0;editing=1;step=1" })
+        XCTAssertFalse(emitted.joined().contains(String(Int.max)))
+    }
+    func testDiagnosticReadsDoNotChangeRealDraftSubmissionOrFixtureCounters() async throws {
+        let fixture = MerchantOnboardingFixture(name: "rejected")
+        let coordinator = MerchantOnboardingCoordinator(server: fixture)
+        let model = MerchantOnboardingModel(coordinator: coordinator)
+        model.reset(); await model.load()
+        guard case .loaded(.application(let application)) = coordinator.loadState else { return XCTFail("Expected original fixture application") }
+        model.reapply(application)
+        let originalDraft = model.draft, originalSubmission = coordinator.submission
+        var emitted: [String] = []
+        let sink = try XCTUnwrap(MerchantOnboardingFixtureDiagnostics.make(arguments: [
+            "--uitesting-merchant-onboarding-fixture", "rejected", "--uitesting-merchant-onboarding-diagnostics"
+        ], emit: { emitted.append($0) }))
+        sink.record(.reapplyEdited, busy: model.isBusy, locked: coordinator.submission.isLocked, editing: model.isEditing, step: model.step)
+        XCTAssertEqual(emitted.count, 1)
+        XCTAssertEqual(model.draft, originalDraft); XCTAssertEqual(model.step, 1); XCTAssertTrue(model.isEditing)
+        XCTAssertEqual(coordinator.submission, originalSubmission)
+        XCTAssertEqual(fixture.submissionCount, 0); XCTAssertEqual(fixture.uploadCount, 0)
+    }
 }
 #endif
