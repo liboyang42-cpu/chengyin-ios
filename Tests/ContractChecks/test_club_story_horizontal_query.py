@@ -5,7 +5,7 @@ class ClubStoryHorizontalQuery(unittest.TestCase):
     def test_exact_chapter_controls_use_their_single_real_scroller(self):
         s = (ROOT / "Tests/AppUITests/ClubStoryFlowTests.swift").read_text()
         block = s.split("private func tapChapter(", 1)[1].split("private func gameplay", 1)[0]
-        for required in ["app.scrollViews.allElementsBoundByIndex.filter", "scrollers.count == 1", "towardTop: true, requiresHittable: false", "0...8", "matches.count == 1", "visible.contains(frame)", "button.isEnabled", "button.isHittable", "visible.minX - frame.minX + 8", "visible.maxX - frame.maxX - 8", "start.press(forDuration: 0.05, thenDragTo: end)", "button.tap(); return", "XCTFail("]:
+        for required in ["app.scrollViews.allElementsBoundByIndex.filter", "scrollers.count == 1", "towardTop: true, requiresHittable: false", "0...8", "matches.count == 1", "visible.contains(frame)", "button.isEnabled", "button.isHittable", "visible.minX - frame.minX + 8", "visible.maxX - frame.maxX - 8", "start.press(forDuration: 0.05, thenDragTo: end, withVelocity: .slow, thenHoldForDuration: 0.2)", "button.tap(); return", "XCTFail("]:
             self.assertIn(required, block)
         self.assertNotIn("button.coordinate(", block)
         self.assertNotIn("app.coordinate(", block)

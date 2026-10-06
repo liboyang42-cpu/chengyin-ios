@@ -99,52 +99,9 @@ final class TopicFlowTests: XCTestCase {
         return element
     }
 
-    private func openReviewRoute(_ id: Int) {
-        guard id == 7 || id == 8 else { XCTFail("Unexpected review fixture route"); return }
-        let navigation = app.navigationBars["Routes"]
-        XCTAssertTrue(navigation.waitForExistence(timeout: 5), app.debugDescription)
-        let query = app.buttons.matching(identifier: "topic.row.\(id)")
-        _ = query.firstMatch.waitForExistence(timeout: 3)
-        guard app.collectionViews.count == 1 else { XCTFail("Expected one routes List. " + app.debugDescription); return }
-        let list = app.collectionViews.element(boundBy: 0)
-        for attempt in 0...8 {
-            let search = app.searchFields.matching(NSPredicate(format: "label == %@", "Search routes"))
-            guard search.count == 1, navigation.exists else { XCTFail("Expected route browser chrome. " + app.debugDescription); return }
-            let listFrame = list.frame, visible = listFrame.intersection(app.frame)
-            let top = max(visible.minY, navigation.frame.maxY + 4)
-            // The bottom search field is not an AX Toolbar. Keep the whole card
-            // clear of that field before using its normal activation point.
-            let bottom = min(visible.maxY, search.element(boundBy: 0).frame.minY - 12)
-            guard !visible.isEmpty, !visible.isNull, bottom > top else { XCTFail(app.debugDescription); return }
-            let viewport = CGRect(x: visible.minX, y: top, width: visible.width, height: bottom - top)
-            var delta = viewport.height * (id == 7 ? 0.3 : -0.3)
-            if query.count == 1 {
-                let button = query.element(boundBy: 0), frame = button.frame
-                guard !frame.isEmpty, frame.height <= viewport.height else { XCTFail("Review fixture card must fit. " + app.debugDescription); return }
-                if viewport.contains(frame), button.isEnabled, button.isHittable {
-                    if id == 8 { attachFixtureScreenshot(self, app: app, name: "Second review route before exact card activation") }
-                    button.tap()
-                    XCTAssertTrue(app.navigationBars["Route details"].waitForExistence(timeout: 5), app.debugDescription)
-                    return
-                }
-                if frame.minY < viewport.minY { delta = viewport.minY - frame.minY + 8 }
-                else if frame.maxY > viewport.maxY { delta = viewport.maxY - frame.maxY - 8 }
-                else { XCTFail("Fully visible review route must be enabled and hittable. " + app.debugDescription); return }
-            } else if query.count > 1 { XCTFail("Review route identifier must be unique. " + app.debugDescription); return }
-            guard attempt < 8 else { break }
-            delta = min(viewport.height * 0.3, max(-viewport.height * 0.3, delta))
-            let origin = list.coordinate(withNormalizedOffset: .zero)
-            let x = viewport.minX + viewport.width * 0.06 - listFrame.minX
-            let y = viewport.midY - listFrame.minY
-            origin.withOffset(CGVector(dx: x, dy: y)).press(forDuration: 0.05,
-                thenDragTo: origin.withOffset(CGVector(dx: x, dy: y + delta)), withVelocity: .slow, thenHoldForDuration: 0.2)
-        }
-        XCTFail("Exact route card was not clear of navigation and search chrome. " + app.debugDescription)
-    }
-
     func testReviewSummaryKeepsServerTotalAcrossDifferentRoutesAndReopen() {
         launch("reviews")
-        openReviewRoute(7)
+        revealAndTap(app.buttons["topic.row.7"])
         XCTAssertEqual(revealReview("topic.reviews.count").label, "Total reviews, 12")
         XCTAssertEqual(revealReview("topic.reviews.average").label, "Average rating, 4.2 / 5")
         XCTAssertEqual(revealReview("topic.reviews.text.0").label, "A useful route review.")
@@ -154,13 +111,13 @@ final class TopicFlowTests: XCTestCase {
         XCTAssertFalse(app.staticTexts["topic.reviews.empty"].exists)
         app.navigationBars["Route details"].buttons.firstMatch.tap()
 
-        openReviewRoute(8)
+        revealAndTap(app.buttons["topic.row.8"])
         XCTAssertEqual(revealReview("topic.reviews.count").label, "Total reviews, 3")
         XCTAssertEqual(revealReview("topic.reviews.text.0").label, "A different route review.")
         XCTAssertFalse(app.staticTexts["A useful route review."].exists)
         app.navigationBars["Route details"].buttons.firstMatch.tap()
 
-        openReviewRoute(7)
+        revealAndTap(app.buttons["topic.row.7"])
         XCTAssertEqual(revealReview("topic.reviews.count").label, "Total reviews, 12")
         XCTAssertEqual(revealReview("topic.reviews.text.0").label, "A useful route review.")
     }

@@ -48,7 +48,11 @@ struct LoginView: View {
                     WeChatAppAuthSection(coordinator: session.weChatAuth, context: session.authChannelSnapshot)
                 }
                 Section {
-                    Button(LocalizedStringKey(session.operationalMarket == .china ? "auth.channels.phoneTitle" : "auth.channels.title")) { session.weChatAuth.cancel(); password="";showsOtherSignIn=true }
+                    Button(LocalizedStringKey(session.operationalMarket == .china ? "auth.channels.phoneTitle" : "auth.channels.title")) { session.weChatAuth.cancel(); password="";showsOtherSignIn=true
+#if DEBUG
+                        recordIntegratedLoginPhase("other_action")
+#endif
+                    }
                         .disabled(session.isWorking)
                         .accessibilityIdentifier("auth.otherChannels")
                     Text("auth.registrationPending").foregroundStyle(.secondary)
@@ -64,12 +68,29 @@ struct LoginView: View {
             }
             .sheet(isPresented:$showsOtherSignIn) {
                 AuthChannelView(coordinator:session.authChannels,sessionSnapshot:session.authChannelSnapshot,domesticPhoneVisible:session.supportsDomesticPhoneInput)
+#if DEBUG
+                    .onAppear { recordIntegratedLoginPhase("channels_appear") }
+                    .onDisappear { recordIntegratedLoginPhase("channels_disappear") }
+#endif
             }
+#if DEBUG
+            .onChange(of: showsOtherSignIn) { _, value in recordIntegratedLoginPhase(value ? "presentation_true" : "presentation_false") }
+#endif
             .interactiveDismissDisabled(session.isWorking)
             .onChange(of:session.account?.id) { _,newID in if newID != nil { password="";dismiss() } }
             .onDisappear { password=""; session.weChatAuth.cancel() }
         }
     }
+#if DEBUG
+    private func recordIntegratedLoginPhase(_ phase: String) {
+        let args = ProcessInfo.processInfo.arguments
+        guard args.contains("--uitesting-integrated-login-diagnostics"),
+              let index = args.firstIndex(of: "--uitesting-integrated-native"),
+              args.indices.contains(index + 1), args[index + 1] == "denied",
+              ["other_action", "channels_appear", "channels_disappear", "presentation_true", "presentation_false"].contains(phase) else { return }
+        print("INTEGRATED_LOGIN_FIXTURE phase=" + phase)
+    }
+#endif
     private func submit() {
         guard session.canUsePassword, !session.isWorking,
               !username.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty, !password.isEmpty else { return }

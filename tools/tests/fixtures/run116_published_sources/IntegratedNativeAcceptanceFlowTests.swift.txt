@@ -38,7 +38,6 @@ import XCTest
     private func launch(_ mode: String = "ready") -> XCUIApplication {
         let app = XCUIApplication(); runningApp = app
         app.launchArguments = ["--uitesting-integrated-native", mode, "--uitesting-reset-language", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
-        if mode == "denied" { app.launchArguments.append("--uitesting-integrated-login-diagnostics") }
         app.launch(); return app
     }
     private func availableEvidence(_ app: XCUIApplication) -> Evidence? {
@@ -176,10 +175,7 @@ import XCTest
     }
     private func phoneSheet(_ app: XCUIApplication) {
         tap("welcome.player", app); tap("auth.otherChannels", app)
-        XCTAssertTrue(app.textFields["auth.channels.phone"].waitForExistence(timeout: 5),
-                      "Login presentation: first=" + String(app.navigationBars["Sign in"].exists) +
-                      ";channels=" + String(app.navigationBars["More ways to sign in"].exists) +
-                      ";otherButton=" + String(app.buttons["auth.otherChannels"].exists))
+        XCTAssertTrue(app.textFields["auth.channels.phone"].waitForExistence(timeout: 5))
     }
     private func signIn(_ app: XCUIApplication, owner: Int = 7, requestCode: Bool = true) {
         phoneSheet(app)

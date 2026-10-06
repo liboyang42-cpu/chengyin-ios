@@ -98,15 +98,6 @@ import XCTest
                     // opposite edge; move only the currently missing edge and settle.
                     if frame.minY < bounds.minY { delta = bounds.minY - frame.minY + 8 }
                     else if frame.maxY > bounds.maxY { delta = bounds.maxY - frame.maxY - 8 }
-                    // Actual run116 traces repeated9.7–10pt drags without moving the Form.
-                    // Use an effective minimum only when the source's opposite edge has room;
-                    // never trade the full-frame requirement for a clipped editing target.
-                    if delta != 0 && abs(delta) < 24 && frame.height <= bounds.height {
-                        let effective: CGFloat = delta > 0 ? 24 : -24
-                        let moved = frame.offsetBy(dx: 0, dy: effective)
-                        if (effective > 0 && moved.maxY <= bounds.maxY) ||
-                           (effective < 0 && moved.minY >= bounds.minY) { delta = effective }
-                    }
                     delta = min(bounds.height * 0.25, max(-bounds.height * 0.25, delta))
                     x = max(bounds.minX + 2, frame.minX - 12)
                     guard x < frame.minX else { break }

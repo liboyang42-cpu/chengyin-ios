@@ -120,9 +120,6 @@ final class TopicTemplateNameSearchFlowTests: XCTestCase {
         expect(app.staticTexts["discovery.topicNameSearch.applied"], "label == 'neighborhood'")
         XCTAssertNotNil(revealedTopicCard("discovery.topic.801"))
         XCTAssertFalse(app.buttons["discovery.topic.802"].exists)
-        // The oversized card can evict the search header from the lazy List.
-        // Clear belongs above the card, so search toward the top even while absent.
-        XCTAssertTrue(revealFixtureElement(app.buttons["discovery.topicNameSearch.clear"], in: app, towardTop: true), app.debugDescription)
         tap("discovery.topicNameSearch.clear")
         tap("discovery.topic.802")
         XCTAssertTrue(app.staticTexts["discovery.publicTotalStops"].waitForExistence(timeout: 10))

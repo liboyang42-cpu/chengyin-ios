@@ -53,7 +53,9 @@ import SwiftUI
         }
         .modifier(PackageNavigationTitle())
         .onAppear { navigation.schedulePackage(navigation.packageViewAppeared(displayed, claimId: claimId), claimId: claimId) }
+        .onDisappear { navigation.packageViewDisappeared(displayed) }
         .refreshable { [permit = presentation] in if let action = navigation.offerPackage(permit, claimId: claimId) { await action() } }
+        .id(ObjectIdentifier(displayed))
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button { navigation.schedulePackage(presentation, claimId: claimId) } label: {
@@ -61,7 +63,6 @@ import SwiftUI
                 }.disabled(browser.phase == .invalidated).accessibilityIdentifier("workshopOwned.package.refresh")
             }
         }
-        .onDisappear { navigation.packageViewDisappeared(displayed) }
     }
 }
 private struct PackageValueRow: View {

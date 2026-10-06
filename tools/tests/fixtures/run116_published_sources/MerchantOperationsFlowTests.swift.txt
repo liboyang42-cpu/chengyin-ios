@@ -60,13 +60,7 @@ final class MerchantOperationsFlowTests: XCTestCase {
         review(app)
         let confirm = app.buttons["merchant.operations.confirm"]
         for _ in 0..<5 where !confirm.isHittable { app.swipeUp() }
-        let confirmationBar = app.navigationBars["Review local draft"]
-        XCTAssertTrue(confirmationBar.exists, app.debugDescription)
         confirm.tap()
-        // Saving closes this sheet. Wait for that exact bar to leave before a
-        // content helper enumerates navigation bars on the underlying editor.
-        let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: confirmationBar)
-        XCTAssertEqual(XCTWaiter.wait(for: [dismissed], timeout: 4), .completed, app.debugDescription)
         let saved = app.staticTexts["merchant.operations.exampleSaved"]
         XCTAssertTrue(revealFixtureElement(saved, in: app, requiresHittable: false), app.debugDescription)
         XCTAssertTrue(saved.waitForExistence(timeout: 4))

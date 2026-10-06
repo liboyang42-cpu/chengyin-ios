@@ -24,6 +24,6 @@ class ClubStoryHelperHistory(unittest.TestCase):
             self.assertIn(old, previous)
             with self.assertRaises(AssertionError): before_horizontal_chapter_query(previous.replace(old,new))
         # New adaptive implementation must retain exact geometry and actual gesture.
-        for old,new in [('visible.contains(frame)','visible.intersects(frame)'),('matches.count == 1','matches.count >= 1'),('start.press(forDuration: 0.05, thenDragTo: end)','start.tap()'),('visible.minX - frame.minX + 8','0')]:
+        for old,new in [('visible.contains(frame)','visible.intersects(frame)'),('matches.count == 1','matches.count >= 1'),('start.press(forDuration: 0.05, thenDragTo: end, withVelocity: .slow, thenHoldForDuration: 0.2)','start.tap()'),('withVelocity: .slow','withVelocity: .fast'),('thenHoldForDuration: 0.2','thenHoldForDuration: 0'),('visible.minX - frame.minX + 8','0')]:
             self.assertIn(old, source)
             with self.assertRaises(AssertionError):before_horizontal_chapter_query(source.replace(old,new))

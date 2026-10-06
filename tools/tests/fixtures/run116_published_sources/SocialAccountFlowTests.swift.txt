@@ -41,16 +41,6 @@ final class SocialAccountFlowTests: XCTestCase {
         XCTAssertFalse(app.keyboards.firstMatch.exists)
         let button = app.buttons["social.editor.review"]; reveal(button); button.tap()
     }
-    private func syntheticReviewDiagnostic() -> String {
-        let phases = ["unavailable", "identity_changed", "review_missing", "idle", "preparing", "reviewing",
-                      "preflighting", "submitting", "not_sent", "rejected", "outcome_unknown",
-                      "acknowledged_synthetic", "acknowledged_server"]
-        guard let value = app.buttons["social.review.close"].value as? String,
-              phases.contains(where: { value == "phase=" + $0 + ";busy=0" || value == "phase=" + $0 + ";busy=1" }) else {
-            return "missing_or_unexpected"
-        }
-        return value
-    }
     func testGuestPublicProfileShowsUnknownRelationshipWithoutPostsRequest() {
         launch("profile", scenario: "guest")
         XCTAssertTrue(text("Example city explorer").waitForExistence(timeout: 5))
@@ -79,10 +69,9 @@ final class SocialAccountFlowTests: XCTestCase {
         XCTAssertFalse(app.staticTexts["social.state.acknowledged"].exists)
     }
     func testSyntheticAcknowledgementIsLabelledAndDoesNotInsertPost() {
-        launch("editor", extra: ["--uitesting-social-ack-diagnostics"]); enterReview()
+        launch("editor"); enterReview()
         let confirm = app.buttons["social.review.confirm"]; reveal(confirm); confirm.tap()
-        XCTAssertTrue(app.staticTexts["social.state.acknowledged"].waitForExistence(timeout: 5),
-                      "Synthetic review stage: " + syntheticReviewDiagnostic())
+        XCTAssertTrue(app.staticTexts["social.state.acknowledged"].waitForExistence(timeout: 5))
         XCTAssertTrue(text("Nothing was sent externally").exists); XCTAssertFalse(confirm.isEnabled)
     }
     func testUncertainOutcomeStaysLockedAfterDismissalAndReturn() {

@@ -65,7 +65,11 @@ private struct WorkshopOwnedUnavailableView: View {
         }
         .modifier(WorkshopOwnedNavigationTitle(key: "title"))
         .onAppear { navigation.scheduleList(navigation.listViewAppeared(displayed)) }
+        .onDisappear { navigation.listViewDisappeared(displayed) }
         .refreshable { [permit = presentation] in if let action = navigation.offerList(permit) { await action() } }
+        // Recreate only visible content callbacks for the new route-owned appearance.
+        // Keep the outer navigation destination host stable while its child is pushed.
+        .id(ObjectIdentifier(displayed))
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button { navigation.scheduleList(presentation) } label: {
@@ -75,7 +79,6 @@ private struct WorkshopOwnedUnavailableView: View {
             }
         }
         .navigationDestination(item: $navigation.selection) { selection in WorkshopOwnedDetailView(browser: browser, claimId: selection.id, navigation: navigation).id(selection.id) }
-        .onDisappear { navigation.listViewDisappeared(displayed) }
     }
 }
 @MainActor struct WorkshopOwnedDetailView: View {
@@ -122,11 +125,14 @@ private struct WorkshopOwnedUnavailableView: View {
         }
         .modifier(WorkshopOwnedNavigationTitle(key: "detail"))
         .onAppear { navigation.scheduleDetail(navigation.detailViewAppeared(displayed, claimId: claimId), claimId: claimId) }
+        .onDisappear { navigation.detailViewDisappeared(displayed) }
         .refreshable { [permit = presentation] in if let action = navigation.offerDetail(permit, claimId: claimId) { await action() } }
+        // Recreate only visible content callbacks for the new route-owned appearance.
+        // Keep the outer navigation destination host stable while its child is pushed.
+        .id(ObjectIdentifier(displayed))
         .navigationDestination(isPresented: $navigation.showsPackage) {
             if let packageBrowser = browser.packageBrowser { WorkshopOwnedPackageView(browser: packageBrowser, claimId: claimId, navigation: navigation) }
         }
-        .onDisappear { navigation.detailViewDisappeared(displayed) }
     }
 }
 private struct WorkshopOwnedScopeSection: View {

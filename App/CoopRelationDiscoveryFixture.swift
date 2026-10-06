@@ -7,12 +7,25 @@ import SwiftUI
     @Published var reads = 0
     @Published var ownerReads = 0
     @Published var clubReads = 0
+    @Published private(set) var diagnostic = ""
+    private var events: [String] = []
+    private var sequence = 0
+    func record(_ value: String) {
+        let args = ProcessInfo.processInfo.arguments
+        guard args.contains("--cooperation-flow-fixture"), args.contains("--relation-discovery-fixture"),
+              args.contains("--relation-scenario") else { return }
+        sequence += 1
+        events.append("\(sequence):" + String(value.prefix(160)))
+        events = Array(events.suffix(32))
+        diagnostic = events.joined(separator: " | ")
+    }
 }
 @MainActor private struct CoopRelationFixtureReadCounter: View {
     @ObservedObject var ledger: CoopRelationFixtureReadLedger
     var body: some View {
         Text(verbatim: "\(ledger.ownerReads):\(ledger.clubReads)")
             .accessibilityIdentifier("cooprelation.fixture.profileReads")
+            .accessibilityValue(ledger.diagnostic)
     }
 }
 
@@ -43,11 +56,13 @@ import SwiftUI
     func home(_ target: PublicMerchantHomeTarget) async throws -> PublicMerchantHome {
         guard target == .ownerMemberID(PublicMerchantOwnerID(41)!) else { throw PublicMerchantHomeFailure.invalid }
         ledger.ownerReads += 1
+        ledger.record("owner.read count=\(ledger.ownerReads)")
         return try JSONDecoder().decode(PublicMerchantHome.self, from: Data(#"{"id":8,"memberId":41,"name":"Public owner 41","description":"Synthetic public merchant profile"}"#.utf8))
     }
     func clubDetail(id: Int) async throws -> ClubRecord {
         guard id == 9 else { throw CoopFlowFailure.unavailable }
         ledger.clubReads += 1
+        ledger.record("club.read count=\(ledger.clubReads)")
         return try JSONDecoder().decode(ClubRecord.self, from: Data(#"{"id":9,"name":"Public club 9","description":"Synthetic public club profile","memberCount":0}"#.utf8))
     }
     func clubMembers(id: Int) async throws -> ClubMemberDirectory { throw CoopFlowFailure.unavailable }
@@ -72,13 +87,21 @@ import SwiftUI
                 return AnyView(PublicMerchantHomeView(target: .ownerMemberID(owner), context: .init(reader: CoopRelationMerchantReader(base: reader, owner: owner, isCurrent: { current() && selectionCurrent() }))))
             case .club(let id): return AnyView(CoopRelationClubProfileHost(id: id, base: reader, isCurrent: { current() && selectionCurrent() }))
             }
-        })
+        }, debugTrace: { reader.ledger.record($0) })
         VStack {
             VStack(spacing: 8) {
                 CoopRelationFixtureReadCounter(ledger: reader.ledger)
-                Button("Change synthetic identity") { reader.session = try! .init(accountID: 102, epoch: 2, token: "replacement"); reader.scope = UUID() }
+                Button("Change synthetic identity") {
+                    reader.ledger.record("identity.replace.received")
+                    reader.session = try! .init(accountID: 102, epoch: 2, token: "replacement"); reader.scope = UUID()
+                    reader.ledger.record("identity.replace.completed")
+                }
                     .accessibilityIdentifier("cooprelation.fixture.replace")
-                Button("Sign out synthetic identity") { reader.session = nil; reader.scope = UUID() }
+                Button("Sign out synthetic identity") {
+                    reader.ledger.record("identity.signout.received")
+                    reader.session = nil; reader.scope = UUID()
+                    reader.ledger.record("identity.signout.completed")
+                }
                     .accessibilityIdentifier("cooprelation.fixture.signOut")
             }
             // Keep harness chrome readable without consuming the product's accessibility5 viewport.

@@ -33,9 +33,9 @@ import UIKit
         let browser = try XCTUnwrap(WorkshopOwnedComposition.makeBrowser(context:c,api:try APIConfiguration(baseURL:c.baseURL),transport:recorder,approval:approval,currentApproval:{approval},current:{c},packageApproval:packageApproval,currentPackageApproval:{packageApproval},onUnauthorized:{_ in state.unauthorized += 1}))
         return .init(browser:browser,navigation:.init(browser:browser),recorder:recorder,state:state)
     }
-    private func wait(_ stage: String = "condition", file: StaticString = #filePath, line: UInt = #line, _ condition: @escaping () -> Bool) async throws {
+    private func wait(_ stage: String = "condition", file: StaticString = #filePath, line: UInt = #line, diagnostics: () -> String = { "" }, _ condition: @escaping () -> Bool) async throws {
         for _ in 0..<100 { if condition() { return }; try await Task.sleep(nanoseconds: 20_000_000) }
-        XCTAssertTrue(condition(), stage, file: file, line: line); if !condition() { throw WorkshopOwnedIssue.unavailable }
+        XCTAssertTrue(condition(), stage + " " + diagnostics(), file: file, line: line); if !condition() { throw WorkshopOwnedIssue.unavailable }
     }
     /// Actual SwiftUI NavigationStack appearance/disappearance and destination binding, not only
     /// direct browser calls. Button handlers use these exact navigation-state actions in production.
@@ -54,7 +54,7 @@ import UIKit
         try await wait("package pushed and unavailable") { f.browser.packageBrowser?.phase == .unavailable && f.navigation.packagePermit != nil }
         XCTAssertNil(f.navigation.detailPermit); XCTAssertNotNil(f.browser.detail)
         f.navigation.showsPackage = false
-        try await wait("Back from package restores detail and retires package") { f.navigation.detailPermit != nil && f.browser.detail != nil && f.navigation.packagePermit == nil }
+        try await wait("Back from package restores detail and retires package", diagnostics: { "detailPermit=\(f.navigation.detailPermit != nil), packagePermit=\(f.navigation.packagePermit != nil), detail=\(f.browser.detail != nil), showsPackage=\(f.navigation.showsPackage), selected=\(f.navigation.selection != nil)" }) { f.navigation.detailPermit != nil && f.browser.detail != nil && f.navigation.packagePermit == nil }
         XCTAssertFalse(f.navigation.detailPermit === detailPermit)
         f.navigation.selection = nil
         try await wait("Back from detail restores list and retires detail") { f.navigation.listPermit != nil && f.browser.phase == .ready && f.navigation.detailPermit == nil }

@@ -3,21 +3,7 @@ import XCTest
 final class CoopRelationDiscoveryFlowTests: XCTestCase {
     private var app: XCUIApplication?
     override func setUpWithError() throws { continueAfterFailure = false }
-    override func tearDownWithError() throws {
-        if (testRun?.totalFailureCount ?? 0) > 0, let app,
-           app.launchArguments.contains("--cooperation-flow-fixture"),
-           app.launchArguments.contains("--relation-discovery-fixture"),
-           app.launchArguments.contains("--relation-scenario") {
-            let counter = app.staticTexts["cooprelation.fixture.profileReads"]
-            if counter.exists, let value = counter.value as? String {
-                let bounded = String(value.prefix(6_144))
-                print("COOP_SYNTHETIC_LIFETIME " + bounded)
-                let evidence = XCTAttachment(string: bounded)
-                evidence.name = "Cooperation synthetic lifecycle"; evidence.lifetime = .keepAlways; add(evidence)
-            }
-        }
-        attachFailureScreenshot(self, app: app); app?.terminate(); app = nil
-    }
+    override func tearDownWithError() throws { attachFailureScreenshot(self, app: app); app?.terminate(); app = nil }
     private func launch(_ scenario: String = "mixed", language: String = "en", large: Bool = false) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--uitesting-reset-language", "--cooperation-flow-fixture", "--relation-discovery-fixture", "--relation-scenario", scenario, "-AppleLanguages", "(\(language))", "-AppleLocale", language == "en" ? "en_US" : "zh_CN"]

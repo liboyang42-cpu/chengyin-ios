@@ -53,7 +53,6 @@ final class PublicMerchantHomeFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Fixture shop"].waitForExistence(timeout: 5))
         let reviews = app.buttons["merchant.publicHome.reviews"]
         XCTAssertTrue(reviews.exists); reviews.tap()
-        XCTAssertTrue(revealFixtureElement(app.staticTexts["Fixture review"], in: app), app.debugDescription)
         XCTAssertTrue(app.staticTexts["Fixture review"].waitForExistence(timeout: 5))
     }
     func testMissingReturnedOwnerCannotOpenReviews() {

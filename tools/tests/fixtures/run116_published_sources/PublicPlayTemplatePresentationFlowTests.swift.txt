@@ -1,8 +1,8 @@
 import XCTest
 
 /// Offline flows through the ordinary template browser/detail/gallery. Apple execution is unrun here.
-/// Full-method UNMEASURED replacement estimates: publisher 180s, maximum-text 180s,
-/// duplicates 210s, denied 150s, context replacement 210s, retry/default-disabled 210s.
+/// Full-method UNMEASURED replacement estimates: publisher 150s, maximum-text 150s,
+/// duplicates 180s, denied 120s, context replacement 180s, retry/default-disabled 180s.
 final class PublicPlayTemplatePresentationFlowTests: XCTestCase {
     private var app: XCUIApplication!
     override func setUpWithError() throws { continueAfterFailure = false; app = XCUIApplication() }
@@ -44,18 +44,13 @@ final class PublicPlayTemplatePresentationFlowTests: XCTestCase {
         XCTAssertTrue(revealFixtureElement(element, in: app), app.debugDescription)
         XCTAssertTrue(element.isHittable, app.debugDescription); element.tap()
     }
-    /// Select the Featured fixture occurrence by its complete published caption, not
-    /// firstMatch: Recommended and Hot legitimately repeat701 without these metadata.
-    /// The maximum-text fixture may use a safe44pt visible region of this exact link;
-    /// ordinary fitting cards still require their full frame inside the viewport.
+    /// Only the known synthetic card uses geometry-directed scrolling. At accessibility5
+    /// the ordinary fixed gesture overshoots a fitting 477pt card by about 170pt and oscillates.
+    /// Keep its entire frame inside the viewport whenever it fits; taller cards need a real
+    /// enabled/hittable 44pt region of that exact native button, never a screen-only tap.
     private func revealedPlayCard() -> (XCUIElement, CGRect)? {
-        let chinese = app.launchArguments.contains("(zh-Hans)")
-        let caption = chinese ? "Notice the city、单节点玩法、建议人数、2–6、时长、45 分钟"
-            : "Notice the city, Single-location play, Players, 2–6, Duration, 45 min"
         let query = app.buttons.matching(identifier: "discovery.play.701")
-            .matching(NSPredicate(format: "label == %@", caption))
-        let maximumText = app.launchArguments.contains("--uitesting-max-text")
-        let title = chinese ? "浏览模板" : "Browse templates"
+        let title = app.launchArguments.contains("(zh-Hans)") ? "浏览模板" : "Browse templates"
         let bar = app.navigationBars[title]
         for attempt in 0...12 {
             guard bar.exists, !bar.frame.isEmpty else { XCTFail("Missing template browser navigation bar"); return nil }
@@ -71,7 +66,7 @@ final class PublicPlayTemplatePresentationFlowTests: XCTestCase {
                 if button.exists && button.isEnabled && button.isHittable && !frame.isEmpty &&
                     !visible.isNull && visible.width >= 44 && visible.height >= 44 &&
                     frame.minX >= bounds.minX && frame.maxX <= bounds.maxX &&
-                    (frame.height > bounds.height || bounds.contains(frame) || maximumText) {
+                    (frame.height > bounds.height || bounds.contains(frame)) {
                     return (button, visible)
                 }
                 // Match the missing edge, rather than always dragging 45% of the viewport.

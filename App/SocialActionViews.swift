@@ -196,7 +196,11 @@ public enum SocialEditorPurpose: String, Identifiable {
                 if coordinator.availability == .syntheticOnly {
                     Button("social.simulate") {
                         busy = true
-                        Task { await coordinator.confirm(review); busy = false; revision += 1 }
+                        Task { await coordinator.confirm(review);
+#if DEBUG
+                            SocialReviewFixtureDiagnostic.recordReturn(coordinator: coordinator, review: review)
+#endif
+                            busy = false; revision += 1 }
                     }.disabled(busy || state != .reviewing).accessibilityIdentifier("social.review.confirm")
                 } else if coordinator.availability(for: review.command, target: review.target) == .approved {
                     Button("social.submit") {
@@ -208,12 +212,45 @@ public enum SocialEditorPurpose: String, Identifiable {
                 }
             }
         }.appNavigationTitle("social.review")
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close", action: onClose).disabled(busy).accessibilityIdentifier("social.review.close") } }
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close", action: onClose).disabled(busy).accessibilityIdentifier("social.review.close")
+#if DEBUG
+                .modifier(SocialReviewFixtureDiagnostic(coordinator: coordinator, review: review, busy: busy))
+#endif
+            } }
             .interactiveDismissDisabled(busy)
             .onChange(of: coordinator.identity) { _, _ in coordinator.synchronizeSession(); revision += 1 }
             .privacySensitive().accessibilityIdentifier("social.review")
     }
 }
+#if DEBUG
+/// Adds no view, action or observer; only a bounded value on the existing Close control.
+@MainActor private struct SocialReviewFixtureDiagnostic: ViewModifier {
+    let coordinator: SocialActionCoordinator
+    let review: SocialActionReview
+    let busy: Bool
+    private static func argument(_ flag: String, in args: [String]) -> String? {
+        guard let index = args.firstIndex(of: flag), args.indices.contains(index + 1) else { return nil }
+        return args[index + 1]
+    }
+    private static func isEnabled(coordinator: SocialActionCoordinator, review: SocialActionReview) -> Bool {
+        let args = ProcessInfo.processInfo.arguments
+        return args.contains("--uitesting-social-ack-diagnostics") &&
+            argument("--uitesting-module", in: args) == "socialAccount" &&
+            argument("--uitesting-social-destination", in: args) == "editor" &&
+            argument("--uitesting-social-scenario", in: args) == "content" &&
+            coordinator.availability == .syntheticOnly && review.target == .newPost
+    }
+    static func recordReturn(coordinator: SocialActionCoordinator, review: SocialActionReview) {
+        guard isEnabled(coordinator: coordinator, review: review) else { return }
+        print("SOCIAL_ACK_FIXTURE confirm_returned phase=" + coordinator.syntheticFixturePhase(for: review))
+    }
+    func body(content: Content) -> some View {
+        if Self.isEnabled(coordinator: coordinator, review: review) {
+            content.accessibilityValue(Text(verbatim: "phase=" + coordinator.syntheticFixturePhase(for: review) + (busy ? ";busy=1" : ";busy=0")))
+        } else { content }
+    }
+}
+#endif
 private struct SocialActionStateView: View {
     let state: SocialActionState
     var body: some View {

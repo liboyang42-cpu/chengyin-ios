@@ -96,6 +96,27 @@ public enum SocialActionState: Equatable {
     public var availability: SocialActionAvailability { access.availability }
     public func availability(for command: SocialActionCommand, target: SocialActionTarget) -> SocialActionAvailability { access.availability(for: command, target: target) }
     public init(access: any SocialActionAccess) { self.access = access }
+#if DEBUG
+    /// Read-only phase names for the explicitly opted-in synthetic UI fixture.
+    /// Never synchronize, consult pending storage, or emit request/account fields.
+    public func syntheticFixturePhase(for review: SocialActionReview) -> String {
+        guard access.availability == .syntheticOnly else { return "unavailable" }
+        guard identity == review.identity else { return "identity_changed" }
+        guard let key = key(review.target, review.identity, generation: review.command.requiredGeneration),
+              let record = records[key], record.id == review.id else { return "review_missing" }
+        switch record.state {
+        case .idle: return "idle"
+        case .preparing: return "preparing"
+        case .reviewing: return "reviewing"
+        case .preflighting: return "preflighting"
+        case .submitting: return "submitting"
+        case .notSent: return "not_sent"
+        case .rejected: return "rejected"
+        case .outcomeUnknown: return "outcome_unknown"
+        case .acknowledged(let receipt): return receipt.synthetic ? "acknowledged_synthetic" : "acknowledged_server"
+        }
+    }
+#endif
     private func key(_ target: SocialActionTarget, _ identity: SocialAccountIdentity, generation: SquareContentGeneration? = nil) -> Key? {
         guard let accountID = identity.accountID, accountID > 0 else { return nil }
         return .init(accountID: accountID, target: target, generation: target.postID == nil ? nil : (generation ?? .legacySquare))

@@ -51,9 +51,7 @@ final class ClubStoryFlowTests: XCTestCase {
             let origin = scroller.coordinate(withNormalizedOffset: .zero)
             let start = origin.withOffset(CGVector(dx: visible.midX - scroller.frame.minX, dy: visible.midY - scroller.frame.minY))
             let end = origin.withOffset(CGVector(dx: visible.midX + delta - scroller.frame.minX, dy: visible.midY - scroller.frame.minY))
-            // Default-velocity short drags still coast past the measured edge.
-            // Hold at the endpoint before lifting, then remeasure the same button.
-            start.press(forDuration: 0.05, thenDragTo: end, withVelocity: .slow, thenHoldForDuration: 0.2)
+            start.press(forDuration: 0.05, thenDragTo: end)
         }
         XCTFail("Chapter must fit inside its horizontal selector before tapping. " + app.debugDescription)
     }

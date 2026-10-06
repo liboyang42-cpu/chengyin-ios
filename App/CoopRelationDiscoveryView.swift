@@ -23,6 +23,9 @@ extension EnvironmentValues {
     let canOpen: (CoopRelationProfileRoute) -> Bool
     let destination: (CoopRelationProfileRoute, @escaping () -> Bool) -> AnyView
     var image: ((String) -> AnyView)? = nil
+#if DEBUG
+    var debugTrace: ((String) -> Void)? = nil
+#endif
 }
 @MainActor struct CoopRelationDiscoveryView: View {
     let reader: any CoopFlowReading
@@ -62,6 +65,9 @@ extension EnvironmentValues {
                             Button {
                                 guard canOpen(choice) else { return }
                                 selection = choice
+#if DEBUG
+                                trace("selection.open")
+#endif
                             } label: {
                                 card(row)
                                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -88,8 +94,21 @@ extension EnvironmentValues {
         }
         .task(id: key) { await reload() }
         .refreshable { await reload() }
-        .onChange(of: key) { _, _ in selection = nil }
-        .onDisappear { model.leaveScreen() }
+        .onChange(of: key) { _, _ in
+#if DEBUG
+            trace("key.changed")
+#endif
+            selection = nil
+        }
+        .onDisappear {
+#if DEBUG
+            trace("parent.disappear.before")
+#endif
+            model.leaveScreen()
+#if DEBUG
+            trace("parent.disappear.after")
+#endif
+        }
         .navigationDestination(item: $selection) { choice in
             if canOpen(choice), let profiles {
                 profiles.destination(choice.route, { selection?.id == choice.id && canOpen(choice) })
@@ -98,7 +117,18 @@ extension EnvironmentValues {
         }
         .privacySensitive()
     }
+#if DEBUG
+    private func trace(_ event: String) {
+        guard let sink = profiles?.debugTrace else { return }
+        // Only booleans about this captured read/presentation; never IDs, names or tokens.
+        sink(event + " current=\(profiles?.isCurrent() ?? false) key=\(loadedKey == key) model=\(model.isCurrent(reader: reader)) selected=\(selection != nil) loading=\(model.isLoading)")
+    }
+#endif
     private func reload() async {
+#if DEBUG
+        trace("reload.begin")
+        defer { trace("reload.end") }
+#endif
         let captured = key
         selection = nil; loadedKey = nil
         await model.load(reader: reader, isCurrent: { key == captured && (profiles?.isCurrent() ?? true) })

@@ -24,53 +24,11 @@ final class ProjectEditFlowTests: XCTestCase {
         let current = (field.value as? String) ?? ""
         field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: current.count) + text)
     }
-    private func revealTicketAboveEditorActions(_ ticket: XCUIElement, in app: XCUIApplication) -> Bool {
-        guard revealFixtureElement(ticket, in: app) else { return false }
-        let ticketID = ticket.identifier
-        let forms = app.collectionViews.allElementsBoundByIndex.filter { $0.buttons[ticketID].exists }
-        guard forms.count == 1, let form = forms.first else { return false }
-        for attempt in 0...8 {
-            let tickets = form.buttons.matching(identifier: ticketID)
-            let save = app.buttons.matching(identifier: "projectEdit.saveLocal")
-            let review = app.buttons.matching(identifier: "projectEdit.review")
-            let navigation = app.navigationBars["Route editor"]
-            guard tickets.count == 1, save.count == 1, review.count == 1, navigation.exists else { return false }
-            let saveButton = save.element(boundBy: 0)
-            let reviewButton = review.element(boundBy: 0)
-            guard saveButton.isHittable, reviewButton.isHittable else { return false }
-            let formFrame = form.frame
-            let visible = formFrame.intersection(app.frame)
-            // The SwiftUI bottom inset is not exposed as a Toolbar. Its actual
-            // controls, plus padding, bound the ticket's usable content region.
-            let top = max(visible.minY, navigation.frame.maxY + 8)
-            let bottom = min(visible.maxY, min(saveButton.frame.minY, reviewButton.frame.minY) - 24)
-            guard !visible.isEmpty, !visible.isNull, bottom > top else { return false }
-            let viewport = CGRect(x: visible.minX, y: top, width: visible.width, height: bottom - top)
-            let button = tickets.element(boundBy: 0)
-            let frame = button.frame
-            guard !frame.isEmpty, frame.height <= viewport.height else { return false }
-            if viewport.contains(frame), button.isEnabled, button.isHittable { return true }
-            guard attempt < 8 else { return false }
-            var delta: CGFloat = 0
-            if frame.maxY > viewport.maxY { delta = viewport.maxY - frame.maxY - 8 }
-            else if frame.minY < viewport.minY { delta = viewport.minY - frame.minY + 8 }
-            guard delta != 0 else { return false }
-            delta = min(viewport.height * 0.3, max(-viewport.height * 0.3, delta))
-            // Drag the Form's gutter, away from the editable date fields.
-            let origin = form.coordinate(withNormalizedOffset: .zero)
-            let x = viewport.minX + viewport.width * 0.06 - formFrame.minX
-            let y = viewport.midY - formFrame.minY
-            let start = origin.withOffset(CGVector(dx: x, dy: y))
-            let end = origin.withOffset(CGVector(dx: x, dy: y + delta))
-            start.press(forDuration: 0.05, thenDragTo: end, withVelocity: .slow, thenHoldForDuration: 0.2)
-        }
-        return false
-    }
     func testFreeExploreTicketThemeDateSyncAndReturnToManualDates() {
         let app = launch(["--project-edit-free-explore"])
         let ticket = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "projectEdit.ticket.")).firstMatch
         // A clipped row can be hittable while its activation point is under the bar.
-        XCTAssertTrue(revealTicketAboveEditorActions(ticket, in: app), app.debugDescription)
+        XCTAssertTrue(revealFixtureElement(ticket, in: app), app.debugDescription)
         ticket.tap()
         XCTAssertTrue(app.navigationBars["Ticket details"].waitForExistence(timeout: 3), app.debugDescription)
         let sync = app.switches["projectEdit.syncThemeDates"]
