@@ -1,0 +1,15 @@
+{
+  "original_candidate_ui_sha256": "5e97402454558aae7ef48f57ae5516a4971db61da7dd1081e8d7d2e11bdb576e",
+  "remaining_ui_sha256": "7e9d6242fbe0cefa92ee1a89de8d978e6c9d8c4dd9687f4d24eed47c563ce7c1",
+  "new_ui_sha256": "8cae5d6cb5f38bc4c65ac213251a400056bf305614b9449530321809189bbd9a",
+  "all_non_test_source_sha256": "f6cdae5334a81fea27771281a4e8a9cf0c06403368d984b6011a8083f098a7bb",
+  "new_method_declaration_sha256": {
+    "testAdminDisplayOnlyReviewCancelsThenSavesOnce": "e01f990d2322d6e4a183e8b68901486ce2e74f50a0249d4a827abd3e6b65afd0",
+    "testOwnerProfileReviewRetainsOperatingFields": "e4fc80f12a3b45075072b7d5cbaf714389d46d2c2ad37986be9557f342afbd07"
+  },
+  "old_methods_unchanged_except": [
+    "testAdminProfileHasNoOwnerSettingsOrRoleActions"
+  ],
+  "unchanged_old_method_count": 10,
+  "all_original_helpers_setup_teardown_exact": true
+}

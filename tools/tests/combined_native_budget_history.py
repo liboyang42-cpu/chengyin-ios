@@ -1,4 +1,5 @@
 from tools.tests.creator_pending_budget_history import before_creator_pending
+from tools.tests.club_parity_budget_history import historical_pre_club_source
 """Exact independent media/map planning and source projections from the union."""
 from pathlib import Path
 from copy import deepcopy
@@ -31,7 +32,7 @@ def before_combined(profile,branch):
 def materialize_independent_ui(directory,branch):
  destination=Path(directory);destination.mkdir(parents=True,exist_ok=True)
  for row in source_index()[branch]['ui_sources']:
-  source=FIXTURES/row['historical_file'] if 'historical_file' in row else ROOT/row['path'];data=source.read_bytes();assert hashlib.sha256(data).hexdigest()==row['sha256'],row['path'];(destination/Path(row['path']).name).write_bytes(data)
+  source=FIXTURES/row['historical_file'] if 'historical_file' in row else historical_pre_club_source(ROOT/row['path']);data=source.read_bytes();assert hashlib.sha256(data).hexdigest()==row['sha256'],row['path'];(destination/Path(row['path']).name).write_bytes(data)
  return destination
 
 def independent_workflow(branch):

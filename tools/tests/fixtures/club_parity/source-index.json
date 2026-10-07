@@ -1,0 +1,627 @@
+{
+  "baseline_profile_canonical_sha256": "2c14c8379bec9b2a4a0c00127bc0467243140a1dac630422e45641d488d7fb7c",
+  "baseline_ui_method_count": 710,
+  "baseline_ui_class_count": 146,
+  "baseline_shard_count": 65,
+  "baseline_ui_sources": [
+    {
+      "path": "Tests/AppUITests/AccessibilityPresentationFlowTests.swift",
+      "sha256": "34b15121fb2f5eb93efcf0709c4f7d4c50b31db1b1e8765e424a4f24fbd201f0"
+    },
+    {
+      "path": "Tests/AppUITests/AccountCollectionFlowTests.swift",
+      "sha256": "a7e98b59a99954f21dd70d997b0deffbedaebc4335df52c4c25799e954f9e974"
+    },
+    {
+      "path": "Tests/AppUITests/AccountSavedPostCollectionFlowTests.swift",
+      "sha256": "da788dddda108d6f13970424e9d3b8b88a15dbce3ff911d713c25f38204abacf"
+    },
+    {
+      "path": "Tests/AppUITests/ActivityFlowTests.swift",
+      "sha256": "ec86e3283c73fb1e9589459231ff63a8999e76aba888f113fc1113773089ac80"
+    },
+    {
+      "path": "Tests/AppUITests/ApprovedReleasePreparationFlowTests.swift",
+      "sha256": "3dc0672fe08b6096db1c867bbe886f705904aaa471c94e12e59faa8fe5c58420"
+    },
+    {
+      "path": "Tests/AppUITests/ApprovedReleasePublicationFlowTests.swift",
+      "sha256": "bbdb912dfa89b70d43c8d309efdd045beed12856adad275e5aaef3189acfa096"
+    },
+    {
+      "path": "Tests/AppUITests/ApprovedReleaseReceiptRecoveryFlowTests.swift",
+      "sha256": "f08ed9be3856378fc8fb791ad6ff6c6ef00408e57da430c1dec5c85c245f2eee"
+    },
+    {
+      "path": "Tests/AppUITests/ApprovedReleaseRecoveryFlowTests.swift",
+      "sha256": "10a0cb6a922c8b0f26f1fb1ee10670f8409fa6c4d8f7bfa0132cf8359b7a897e"
+    },
+    {
+      "path": "Tests/AppUITests/ApprovedTopicFrozenCoverPublicationFlowTests.swift",
+      "sha256": "3b6b7ba72b77ceeb2ac8b9c40d972811bf9d905b59aec9ed8ba9dc4995fb52f8"
+    },
+    {
+      "path": "Tests/AppUITests/ApprovedTopicFrozenCoverReviewFlowTests.swift",
+      "sha256": "54ae7fd8e15feb46e4f3232a54a4fff785f8c8ac72b43f0792b239d90e29e3dc"
+    },
+    {
+      "path": "Tests/AppUITests/ApprovedTopicReviewCurrentChineseFlowTests.swift",
+      "sha256": "8e5a1a619dee6a544913b6ab071ca3ba0606103fa03aa21c0e73e059a302ac6a"
+    },
+    {
+      "path": "Tests/AppUITests/ApprovedTopicReviewCurrentFlowTests.swift",
+      "sha256": "94e515f76214e83e0eec852a87effcedb7763646efdd0d319fd9559468ffa61f"
+    },
+    {
+      "path": "Tests/AppUITests/ApprovedTopicReviewPersistenceFlowTests.swift",
+      "sha256": "40736d8de6d2eb0d9712fddbbde2f21a059bd0467b29ffe66ee331da0f3ec4d4"
+    },
+    {
+      "path": "Tests/AppUITests/ApprovedTopicReviewRequestFlowTests.swift",
+      "sha256": "ed28b78f1345ba0763c4bca801f272a62c19e907e9e0871bacdf29dbedc8b617"
+    },
+    {
+      "path": "Tests/AppUITests/ApprovedTopicReviewUnknownFlowTests.swift",
+      "sha256": "bfc82d94d65f8d4718b61f55be5858c6c3b2496f163ad1aecf44546bf1e82cd1"
+    },
+    {
+      "path": "Tests/AppUITests/ApprovedTopicSelectedCoverChineseFlowTests.swift",
+      "sha256": "d53df4ccf46de58fd77d7e7deea3850449ec53868ad13a27fdefd18388a46638"
+    },
+    {
+      "path": "Tests/AppUITests/ApprovedTopicSelectedCoverFlowTests.swift",
+      "sha256": "ad96f2e205e76bf4e0284f67dcc5c1d126c0b0379eff68e84206e546c4894947"
+    },
+    {
+      "path": "Tests/AppUITests/ClubActionFlowTests.swift",
+      "sha256": "ec872341ba84f2e3844a980e99a7134b6c86939d9f426c425ffc746f50506e5a"
+    },
+    {
+      "path": "Tests/AppUITests/ClubCommunityUITests.swift",
+      "sha256": "bd56adbfe7555d5ddb841c325956ac4b68b32fa77f8286017b8c01e877b3691c"
+    },
+    {
+      "path": "Tests/AppUITests/ClubEnrollmentFlowTests.swift",
+      "sha256": "fb6bf952ef69e09eb0aef75153752a5515d62e9d27f32048726849b3f9a8ea24"
+    },
+    {
+      "path": "Tests/AppUITests/ClubFeedReadFlowTests.swift",
+      "sha256": "11e6d9f2f0e886eb46d39cc32d0f4d2e55f30006d48f8d555bf76889e540172d"
+    },
+    {
+      "path": "Tests/AppUITests/ClubGovernanceFlowTests.swift",
+      "sha256": "4d41464ed772a0c371669e5dd55c8a06700b5980e2cb6f17e6ece58a7d1ce7ee"
+    },
+    {
+      "path": "Tests/AppUITests/ClubManagementFlowTests.swift",
+      "sha256": "22e581ab357d252769d40c71fc8222c87a8cea5a6d9b88573bfa36d0089c3a92"
+    },
+    {
+      "path": "Tests/AppUITests/ClubOperationsFlowTests.swift",
+      "sha256": "d494be1fd9c89665c98b3687a461ac26c0f3fb8d2e292e9ae6f77bd186a3d93c"
+    },
+    {
+      "path": "Tests/AppUITests/ClubOwnerRefundFlowTests.swift",
+      "sha256": "83112f2ee22cbac73e561c0f6e11247ed4481a171a52aaa0b11501d0db03ab98"
+    },
+    {
+      "path": "Tests/AppUITests/ClubStoryFlowTests.swift",
+      "sha256": "ed0766adf387f2813c91fad54b3716d901c1c4db256ec3597c952452d9f1b7a1"
+    },
+    {
+      "path": "Tests/AppUITests/ClubStoryNavigationFlowTests.swift",
+      "sha256": "28af5b75320b585e93edeb80ba5ce6493c666b05632f3e61e6698a4cd4c086d3"
+    },
+    {
+      "path": "Tests/AppUITests/CoopRelationDiscoveryFlowTests.swift",
+      "sha256": "fe71447339f4d8006cf1b668ecc80df501722e0153edf37a77c8a5ba2c869c42"
+    },
+    {
+      "path": "Tests/AppUITests/CooperationFlowTests.swift",
+      "sha256": "fd7f8883ac1d32d2db9aa7f5b912b078301ba94443411ed092f6d1118f82f706"
+    },
+    {
+      "path": "Tests/AppUITests/CooperationFlowUITests.swift",
+      "sha256": "914ac0900365b40e72de7a304b8c058cb6cd5a09b7bcfbb4b56f869337e068f2"
+    },
+    {
+      "path": "Tests/AppUITests/CouponCommandRecoveryFlowTests.swift",
+      "sha256": "17ea016fd49b9bc97a3eb39bb4070618154faf4ff08b45b0dc1540ca1d01a2d6"
+    },
+    {
+      "path": "Tests/AppUITests/CouponManagementFlowTests.swift",
+      "sha256": "ceed7f5b854426dbf598786b26d1c974f3cad4b7c1d58cb9bcf8745204f66363"
+    },
+    {
+      "path": "Tests/AppUITests/CouponRuntimeChineseFlowTests.swift",
+      "sha256": "cd4248ccbbd4543e515582fd8b4b5afdbe55d1d8bb756fdedc494fda46458bf4"
+    },
+    {
+      "path": "Tests/AppUITests/CouponRuntimeFlowTests.swift",
+      "sha256": "29d491e08624930b2943e4a59bdf605184de68c1bd6d99500637a28af1883225"
+    },
+    {
+      "path": "Tests/AppUITests/CouponRuntimeJourney.swift",
+      "sha256": "83906936ce979ab1cbd070794bacdf24044c508a9aa7be58c9f159195c3aae87"
+    },
+    {
+      "path": "Tests/AppUITests/CreatorContentFlowTests.swift",
+      "sha256": "41f2288cdbcff8e3474d89e7c834c615bec907792b7bc87bce5b1b280070dd01"
+    },
+    {
+      "path": "Tests/AppUITests/DoorReferralUITests.swift",
+      "sha256": "b21271c91fa6609e664233e394da06d7ec0277f9452affcdac6b02d7f806cb3e"
+    },
+    {
+      "path": "Tests/AppUITests/EntryFlowTests.swift",
+      "sha256": "3b37248790bc7f8b1ea372e9f194050492ba331c843f08c754d82d2ca7d33a40"
+    },
+    {
+      "path": "Tests/AppUITests/FailureScreenshot.swift",
+      "sha256": "705ba7fa14128cfd9e81f181fd2b5f5edd0cb464b2ececd26119510d98ed6e49"
+    },
+    {
+      "path": "Tests/AppUITests/FixtureEnvironmentAssertions.swift",
+      "sha256": "5c6980720d17cdbd6509d3819471f9b00183c1d909fa91e1d18dfd31f8453ef7"
+    },
+    {
+      "path": "Tests/AppUITests/GroupPollUITests.swift",
+      "sha256": "b5bafcac4f364f38178e8dd74dced246e7b1fb2390023952205ea78600683086"
+    },
+    {
+      "path": "Tests/AppUITests/GrowthCenterFlowTests.swift",
+      "sha256": "fc7d491130ce3388d188e48df31784e696bd41e33903c6ff99d545af07eeb025"
+    },
+    {
+      "path": "Tests/AppUITests/HomeFeedFlowTests.swift",
+      "sha256": "1ac5148b32f4727965c7e2298db6cb21aa1a3ccea6e7b61a83ceff68c80c6792"
+    },
+    {
+      "path": "Tests/AppUITests/IMExpandedUITests.swift",
+      "sha256": "b2ed06bf0be180fb5cadf2a72c2a59d182b1d79b757c21af0359a8334a5a033b"
+    },
+    {
+      "path": "Tests/AppUITests/IntegratedActivityPlayJourneyFlowTests.swift",
+      "sha256": "52242b06d592da9facdb20e2d7cf6c1331f558aaec1023923e6982e069d7ac69"
+    },
+    {
+      "path": "Tests/AppUITests/IntegratedDeniedAcceptanceFlowTests.swift",
+      "sha256": "24c0b29e21178acf569d1d6ed92d685934fe1ea32f39370a98819cc627edd921"
+    },
+    {
+      "path": "Tests/AppUITests/IntegratedNativeAcceptanceFlowTests.swift",
+      "sha256": "c9ba0d1df3d6dac1e331fb5770b3ea064a6fb97de381782d6b74f28cc7a616d3"
+    },
+    {
+      "path": "Tests/AppUITests/JourneyContentFlowTests.swift",
+      "sha256": "cd56d905e1d42c413d921f48106872ea27e334e9213d68fc384a786acaa9cebc"
+    },
+    {
+      "path": "Tests/AppUITests/JourneyRoleViewFlowTests.swift",
+      "sha256": "ac8cc4dc31662355fdf50cab238c815de5e31ab3e83d0eb07cb349c7d132c704"
+    },
+    {
+      "path": "Tests/AppUITests/MerchantBusinessFlowTests.swift",
+      "sha256": "6f7abf0f8348ef9c53137270d0fdb3150a5e1cefb625710a218aa4b5c4aa305c"
+    },
+    {
+      "path": "Tests/AppUITests/MerchantClubDiscoveryFlowTests.swift",
+      "sha256": "4ef4f6534ab84a98978711196f98ad0b41d822411fb08e342f494c422ef9f5eb"
+    },
+    {
+      "path": "Tests/AppUITests/MerchantContentFlowTests.swift",
+      "sha256": "e9795f3bdc3712c508a746ba36c5671aa8f1443d055ad15588819f0f86400089"
+    },
+    {
+      "path": "Tests/AppUITests/MerchantEngagementFlowTests.swift",
+      "sha256": "10d93de727d27a9b6567cb13e2a0c9462c96946e1c580dea9c7dc911c000fbd0"
+    },
+    {
+      "path": "Tests/AppUITests/MerchantMarketingUITests.swift",
+      "sha256": "b5786a91af64d4a1b3625345b95c59e9220b63a825de7aa000b0b37c70c35899"
+    },
+    {
+      "path": "Tests/AppUITests/MerchantNPCFlowTests.swift",
+      "sha256": "d64a77db83ad9228988fc6fd7b855e7d4f435d802fb8549ab00fabee674a87d2"
+    },
+    {
+      "path": "Tests/AppUITests/MerchantOnboardingFlowTests.swift",
+      "sha256": "efe66ffdf924eeaed5833c5bf482f84af643882afbc3d156646f6113e5234cac"
+    },
+    {
+      "path": "Tests/AppUITests/MerchantOperationsFlowTests.swift",
+      "sha256": "c67960f25bde6fb02b1b9c8f3cbf3c854c96abfa91b0a55a6769470923b6fa0b"
+    },
+    {
+      "path": "Tests/AppUITests/MerchantTemplateAssistFlowTests.swift",
+      "sha256": "0f3f046377c674ee281923ec2153ff08acce31248e8300c3b2784996a2793498"
+    },
+    {
+      "path": "Tests/AppUITests/ModuleFlowTests.swift",
+      "sha256": "611787cefedf99600a313281dbf8a5910b5b605a84eb3a6fc5b06a804d8260f4"
+    },
+    {
+      "path": "Tests/AppUITests/NativeEnrollmentFlowTests.swift",
+      "sha256": "73fff42b9d3eb694dc936f578d43e9f4d37a3110e60206a0ee94d24ce5605175"
+    },
+    {
+      "path": "Tests/AppUITests/NativeNavigationCompletionUITests.swift",
+      "sha256": "f8753a247d2412fbfb8647065a98e49e01b98ebb8d00aae8aae4536bc3f833bc"
+    },
+    {
+      "path": "Tests/AppUITests/NativePlatformFlowTests.swift",
+      "sha256": "b9e8711950fa3f3e13c2f7802aeb3365879a00c26ae2697689002521f3dbfaa4"
+    },
+    {
+      "path": "Tests/AppUITests/NativePresentationPatternFlowTests.swift",
+      "sha256": "8d6928510236f31608f35335e3a7e5f04eb6339e16220daf4a768c44b08109f8"
+    },
+    {
+      "path": "Tests/AppUITests/NativeSettingsReuseFlowTests.swift",
+      "sha256": "08f355f90f680f33af778ae60da46d7f635d801fccbc64f83deb4b456d757fae"
+    },
+    {
+      "path": "Tests/AppUITests/NativeVerificationFlowTests.swift",
+      "sha256": "33812ae6464baffd58bfcc5aed48b3713a4f62ca2bc8befaff03ae76347051cf"
+    },
+    {
+      "path": "Tests/AppUITests/NearbyTeamUITests.swift",
+      "sha256": "7c408b308478448e6a8176c89433cd431f480e112f7d2e120f227baa5714d3b9"
+    },
+    {
+      "path": "Tests/AppUITests/NonCashRewardFlowTests.swift",
+      "sha256": "c42f8eb9afa9dfde589995c894b3ff256dd83b9cbd3bec76dd54bc40295c22fa"
+    },
+    {
+      "path": "Tests/AppUITests/ObjectCardFlowTests.swift",
+      "sha256": "2a4223607dcdb62ea07c6909dba70a250358182f592f31fe8fcd493d1a75845c"
+    },
+    {
+      "path": "Tests/AppUITests/OfficialActionUITests.swift",
+      "sha256": "31f8642fedd6dd93907157e8a450866706fe0087a14182bb3b27756d1d74d98a"
+    },
+    {
+      "path": "Tests/AppUITests/OfficialEventFlowTests.swift",
+      "sha256": "1385657529c64512d7e3c8456336c9492ed8ee6967562431e2120ff44f359dea"
+    },
+    {
+      "path": "Tests/AppUITests/OrderLifecycleUITests.swift",
+      "sha256": "47277c352682645056bb751c67be3b0c9bce32a2298f191b87835c13870d19c0"
+    },
+    {
+      "path": "Tests/AppUITests/OwnedCouponCodeJourneyUITests.swift",
+      "sha256": "6a53cffeb265ff17d3564d6ec6c51b48f2ed0208a0cae7e0486cec9b9de69c97"
+    },
+    {
+      "path": "Tests/AppUITests/OwnedOrderFlowTests.swift",
+      "sha256": "6ceb1cf1aed9b14859f4bfec5866cdc6d4adf5118c3926aa4b11ffdd181f3aa6"
+    },
+    {
+      "path": "Tests/AppUITests/OwnedTopicCoverRecoveryFlowTests.swift",
+      "sha256": "d8bbdca29d6c88cccd404c8617669a313e2173627204675aed7340efcfcd4ce4"
+    },
+    {
+      "path": "Tests/AppUITests/OwnedTopicCoverSelectionFlowTests.swift",
+      "sha256": "0854fe725a3a6a8e241d886a4e46cfecc381f83ca51ac7e6507a0ce1ca7bac97"
+    },
+    {
+      "path": "Tests/AppUITests/OwnerDraftBrowserFlowTests.swift",
+      "sha256": "f7229b195dd3e47ee90ec6038ebd893ac9dd444182192c4a2de76bf861f90aa8"
+    },
+    {
+      "path": "Tests/AppUITests/OwnerDraftHistoryFlowTests.swift",
+      "sha256": "17384dc614940b687f31d1b5cc1f85c71ff1b50cd4ec496e4e08c52ee27c510c"
+    },
+    {
+      "path": "Tests/AppUITests/OwnerDraftReceiptFlowTests.swift",
+      "sha256": "f02e2cff62a7fdc0840e87815023c63bad054c6e150a39f0968a11118b194cf1"
+    },
+    {
+      "path": "Tests/AppUITests/PlayCompareFlowTests.swift",
+      "sha256": "77ab14431d332b6f30ede7c5425f8d97b9ebdce7f3aac413cd1659b67a5c8aa5"
+    },
+    {
+      "path": "Tests/AppUITests/PlayDirectorPrefabFlowTests.swift",
+      "sha256": "710afa5c51c3be25b3ea45abeedfa975c9703757aba24c00920bcf7a1fe094d6"
+    },
+    {
+      "path": "Tests/AppUITests/PlayExperienceFlowTests.swift",
+      "sha256": "9dc9ecdc777622bbf4f906c17749a83d9719ea0f46084cbdb4a5bad00248e8e9"
+    },
+    {
+      "path": "Tests/AppUITests/PlayPreferenceFlowTests.swift",
+      "sha256": "87b702b0966a3758454d115a658fa1cccc14a415ccbe8c28e65102fcd68f2a17"
+    },
+    {
+      "path": "Tests/AppUITests/PrivateHomeFlowTests.swift",
+      "sha256": "db437c5ac4d4c5f48e3f15f1e5bd65f1bfac66aa62cd363b7c0e4b15f97625ab"
+    },
+    {
+      "path": "Tests/AppUITests/PrivateHomeMapPickerFlowTests.swift",
+      "sha256": "d40b439eb9720ee8442939c6aeb74a49e79cc4bc276a2ab4552d19f7a9a03a2d"
+    },
+    {
+      "path": "Tests/AppUITests/ProfileEditFlowTests.swift",
+      "sha256": "b868fef77b7dd8235fe6fcc65518027d79db7e805c60636998bf47b408c168be"
+    },
+    {
+      "path": "Tests/AppUITests/ProjectEditFlowTests.swift",
+      "sha256": "9202dfcfd318b61152cb1163bab0bf9d032421f6a37c4566661f9db8cc96e27b"
+    },
+    {
+      "path": "Tests/AppUITests/ProjectEditPendingFlowTests.swift",
+      "sha256": "abea0305a979a0fddf8acc5cabb81c6c230afd9c33241e31dc15a4f2ec2d19ab"
+    },
+    {
+      "path": "Tests/AppUITests/ProjectEditPendingRestoreFlowTests.swift",
+      "sha256": "36e3ab9017004357c892f91620c0a133892b0750602323a18ad4a765fb9c654f"
+    },
+    {
+      "path": "Tests/AppUITests/ProjectEditPreparedNodesFlowTests.swift",
+      "sha256": "cd7d1b4770bb3e6cd904d180b5c96be428bc67debaa478346409c7a87b0c48fa"
+    },
+    {
+      "path": "Tests/AppUITests/ProjectEditRichStoryFlowTests.swift",
+      "sha256": "52742845580a9d0412570f156376193e0e517f97269013ac47ef58203650ee1e"
+    },
+    {
+      "path": "Tests/AppUITests/ProjectEditStarterFlowTests.swift",
+      "sha256": "cc1f2d6d1c9b457af206881bd3392d054ba4f705d9159bccc5f56edcddfd3483"
+    },
+    {
+      "path": "Tests/AppUITests/ProjectOwnedEditorFlowTests.swift",
+      "sha256": "a9091c6bfc7de716f5cbfe36b3154bfe397ee55f1fcd642a988850ad50c5534e"
+    },
+    {
+      "path": "Tests/AppUITests/ProjectOwnedModeCopyFlowTests.swift",
+      "sha256": "4f45e3e382bf3d9988b82d4667580f2d61d8264fa072918f0c6e5840a991cec7"
+    },
+    {
+      "path": "Tests/AppUITests/ProjectPendingNewChapterFlowTests.swift",
+      "sha256": "3b4f15e2979da607199117b73430f25cb6ec31fee1ada8a1e30666e7bdb11c24"
+    },
+    {
+      "path": "Tests/AppUITests/ProjectPendingStoryAudioFlowTests.swift",
+      "sha256": "48a4937a51d290aa3d5851eca59a259a17e570dd0ca5c24764f7c3a6286102c5"
+    },
+    {
+      "path": "Tests/AppUITests/ProjectPendingStoryImageFlowTests.swift",
+      "sha256": "55e7cced493afbbb70e9a5a632f0deb938df583b54cd70459d76e267fc19f59e"
+    },
+    {
+      "path": "Tests/AppUITests/ProjectStoryAudioEndGapFlowTests.swift",
+      "sha256": "f6e5c82ea86678312349f66d526c924ec43cdc654821f89925598aebde09583a"
+    },
+    {
+      "path": "Tests/AppUITests/ProjectStoryAudioFirstGapFlowTests.swift",
+      "sha256": "fc27e0d0fd10dc26c00d846c73b70fb93f0b0941d4760ab21f68f83b210e11a2"
+    },
+    {
+      "path": "Tests/AppUITests/ProjectStoryAudioFlowTests.swift",
+      "sha256": "09ed44f1047ce78327e94d78d7a96039a40ed1ad375a68f5858ef9e3eddd72c6"
+    },
+    {
+      "path": "Tests/AppUITests/ProjectStoryAudioMiddleGapFlowTests.swift",
+      "sha256": "65f6a0e23b24f20370e046b33fd827a0e580ab671adecae66de4293f22e29b46"
+    },
+    {
+      "path": "Tests/AppUITests/ProjectStoryAudioRecoveryFlowTests.swift",
+      "sha256": "61f831b8793553bbeeb779aeffa7470bfb51089291233c2dc7c97bc6a28ef282"
+    },
+    {
+      "path": "Tests/AppUITests/ProjectStoryImageCancellationFlowTests.swift",
+      "sha256": "12c1a1cddc3e7085414bfef5a1da32f8f77cbba31dd1212bc777ec41dc26db97"
+    },
+    {
+      "path": "Tests/AppUITests/ProjectStoryImageEndGapFlowTests.swift",
+      "sha256": "8a6b4aaec660277779498763b6949d1d1245bfc75936bf28c4e448fd5b44160e"
+    },
+    {
+      "path": "Tests/AppUITests/ProjectStoryImageFirstGapFlowTests.swift",
+      "sha256": "8e1a7dba152edf2108aef8d277208a0b1e27ba9d11089a0cfa998d2e6fa5754c"
+    },
+    {
+      "path": "Tests/AppUITests/ProjectStoryImageFlowTests.swift",
+      "sha256": "2a5e1dc1bb7162ea9c38129b12137459529623ff3d4eb22530d4239eeb12ba39"
+    },
+    {
+      "path": "Tests/AppUITests/ProjectStoryImageMiddleGapFlowTests.swift",
+      "sha256": "14ccbf3f0c0f1dbb2caacdfc44c3867069033931ad3a1d136809262dea2dece5"
+    },
+    {
+      "path": "Tests/AppUITests/ProjectStoryMediaGapFlowSupport.swift",
+      "sha256": "e2a1cb291b4f2e360dffba5fc837fdf900128e5ab5e7c44026900cb74ad118f6"
+    },
+    {
+      "path": "Tests/AppUITests/ProjectSubmissionAcknowledgmentFlowTests.swift",
+      "sha256": "ded7d4708cf5b6a3f4b9a84110b789f59a8ad3af5bbbd34859829dab89294f8c"
+    },
+    {
+      "path": "Tests/AppUITests/PublicMerchantHomeFlowTests.swift",
+      "sha256": "7ada18a8f87bd815359f10bb4ae7b3b3a20ced50158a7b49af8db60c12a75e08"
+    },
+    {
+      "path": "Tests/AppUITests/PublicMerchantReviewFilterFlowTests.swift",
+      "sha256": "981ae8379b43d7ac65ee79c9976d5e383ad85005ecab276955eed016b3382f02"
+    },
+    {
+      "path": "Tests/AppUITests/PublicPlayTemplatePresentationFlowTests.swift",
+      "sha256": "d2e29a26850319048b7a246ab7a9b69c1e256bf43a1b9548a415202dfab2d402"
+    },
+    {
+      "path": "Tests/AppUITests/PublicTemplateDetailFlowTests.swift",
+      "sha256": "97456797aabff5343ffac2d59567cf45366e6af3238dd99ee10a710de613422d"
+    },
+    {
+      "path": "Tests/AppUITests/PublisherLifecycleUITests.swift",
+      "sha256": "85d6d3c53b726ec4eded7a4581c77b3fe2dfbd20846da92bba0187813909a4c4"
+    },
+    {
+      "path": "Tests/AppUITests/PublishingModesFlowTests.swift",
+      "sha256": "e23f25375776a35553204977cb9ead02875c2cc38695f0ac20a13dfd99a5b642"
+    },
+    {
+      "path": "Tests/AppUITests/ReferenceChatTaskFlowTests.swift",
+      "sha256": "d96e7e68af7b0b36a4f33299b0fbd84d5abcf98b2abed7e7c202839a37fca602"
+    },
+    {
+      "path": "Tests/AppUITests/ReferenceMapCardFlowTests.swift",
+      "sha256": "d5891be32187229dc059e54c45770165550731b60a2dab62f969c7c2fba19e15"
+    },
+    {
+      "path": "Tests/AppUITests/RegionalEntryFlowTests.swift",
+      "sha256": "a5993099e207811a32c6ebf139d76d3ce97d9ee309ad7b82c5c2d4a6cb362642"
+    },
+    {
+      "path": "Tests/AppUITests/RegistrationWaitlistOrderUITests.swift",
+      "sha256": "41b1adbf4ea544490337879865000eb08d8b37ec14d0a1bbe26430eb4b8dc648"
+    },
+    {
+      "path": "Tests/AppUITests/RegistrationWaitlistUITests.swift",
+      "sha256": "6b798a02b14c8eca196441ece7fef851063788fa1e757ccb8d717e2dc5d4419a"
+    },
+    {
+      "path": "Tests/AppUITests/RetainedImageUITests.swift",
+      "sha256": "5639a62d4ce407907c0f3d40376bb7c336ace03bdd4c919246674b0d83c6d1e5"
+    },
+    {
+      "path": "Tests/AppUITests/RoamExperienceFlowTests.swift",
+      "sha256": "5c38eb0ba990fdb5dea75121444e882b6add575a34c4afb37a49dfbd74a0ff51"
+    },
+    {
+      "path": "Tests/AppUITests/SearchMapAlternativeListFlowTests.swift",
+      "sha256": "57f1c4b1e01ec0bed5313181ceaf8583c2cdbdf57f30d1c74973550d9ddaa9da"
+    },
+    {
+      "path": "Tests/AppUITests/SearchMapFlowTests.swift",
+      "sha256": "23ff72dd010bded72404168d4f3ecc9da2c3fb553a135585a9009f68486a4c74"
+    },
+    {
+      "path": "Tests/AppUITests/SettingsNativeFlowTests.swift",
+      "sha256": "8ee242078d4cc1e496309a2f1057aaec06b4c544c89ffcb4f1b30e004a5a5d44"
+    },
+    {
+      "path": "Tests/AppUITests/ShopNPCFlowTests.swift",
+      "sha256": "609f1e4bca562679d582789df265f7b6e340f02341b481609573eee3b97fa8d2"
+    },
+    {
+      "path": "Tests/AppUITests/SignedInContentDetailFlowTests.swift",
+      "sha256": "172f0db6c6a73badeab368f510e1793f54abb63cafbf31e01237e21c431889ff"
+    },
+    {
+      "path": "Tests/AppUITests/SocialAccountFlowTests.swift",
+      "sha256": "4be80eb36a96fb19420fde772a46661f56217afd20319333c84b0e6f79ba6e36"
+    },
+    {
+      "path": "Tests/AppUITests/SquareFlowTests.swift",
+      "sha256": "ad1287b0eb9a6a47f18145ec844e13679c0036fbcfe2af33b94b82077639b07f"
+    },
+    {
+      "path": "Tests/AppUITests/SquareGovernanceFlowTests.swift",
+      "sha256": "3b6f3e2ec02a3939e90047635824bfe681de43f5b9ba45d82d9022780914b2b8"
+    },
+    {
+      "path": "Tests/AppUITests/SquareReportFlowTests.swift",
+      "sha256": "7152af267e98cb8d9cf5a67c6e2686403c2e6353504aad6a4f1fc26ad40f65e9"
+    },
+    {
+      "path": "Tests/AppUITests/SquareWorkspaceFlowTests.swift",
+      "sha256": "022582bc90e5cc85a88b272eefe5af66e69c2bcf1caad4f4e244542c71e92831"
+    },
+    {
+      "path": "Tests/AppUITests/TeamFlowTests.swift",
+      "sha256": "94469129c7b605b748d1556fbf44458ba1662c312c7a5ed8f0c5f2768113cae3"
+    },
+    {
+      "path": "Tests/AppUITests/TemplateAuthoringFlowTests.swift",
+      "sha256": "dafe1f98f1ab54d3d2564a224ad27860e877fabb7a474c1a206192063153b948"
+    },
+    {
+      "path": "Tests/AppUITests/TemplateCompositionFlowTests.swift",
+      "sha256": "2786ec402ff09027d1bd96b1981fb92d287cffcb94c3c4add30de3b5d6530393"
+    },
+    {
+      "path": "Tests/AppUITests/TemplateEditorControlsFlowTests.swift",
+      "sha256": "e11dfa363adeb722fc64b93ca7572d74fde3c478a166686560722db242ad38b2"
+    },
+    {
+      "path": "Tests/AppUITests/TemplateHistoricalHintFlowTests.swift",
+      "sha256": "c6240505b4ab86c338ed8f34149992338ad37dc6c436a559c162b71ade624f19"
+    },
+    {
+      "path": "Tests/AppUITests/TemplateMediaReviewFlowTests.swift",
+      "sha256": "8e052ab35f47a07eaed5ee7332489254d1791e1faabb4b3c232650f1738de438"
+    },
+    {
+      "path": "Tests/AppUITests/TemplateMetadataSelectorsFlowTests.swift",
+      "sha256": "a56a732d72fa7d656ec32ebdd96d3523515f43efd3a05c659a2f870dba746102"
+    },
+    {
+      "path": "Tests/AppUITests/TemplateOwnShelfFlowTests.swift",
+      "sha256": "3ead06d83d63800015dd8255d73aae100ab8ae85fc0553787edc12d6951419ce"
+    },
+    {
+      "path": "Tests/AppUITests/TemplatePreferenceDraftEditorFlowTests.swift",
+      "sha256": "92a68fe87676f1a874445f679114fe072c441891d49356db003f0bf1d352b270"
+    },
+    {
+      "path": "Tests/AppUITests/TemplateSensorDraftFlowTests.swift",
+      "sha256": "c6953c1caa1123229985fa2d5fae7381166d3d3232cad8e6dd1e47f59dc44f9d"
+    },
+    {
+      "path": "Tests/AppUITests/TicketWalletFlowTests.swift",
+      "sha256": "59e425ea9cfb0a621640c9673f40db86f2ce94aa8a2fe65c5d3f20eb450eddc6"
+    },
+    {
+      "path": "Tests/AppUITests/TopicFlowTests.swift",
+      "sha256": "7f10c301530c999528b055414dc9e2a8f3cab099b556b5f950ee9a9e97271313"
+    },
+    {
+      "path": "Tests/AppUITests/TopicTemplateNameSearchFlowTests.swift",
+      "sha256": "c4e6bb1724ebac6bcefec3389f639b9a532dcc76f8d698f90ae5b1826433ce04"
+    },
+    {
+      "path": "Tests/AppUITests/WalkingNavigationFlowTests.swift",
+      "sha256": "06b8f3a8e2cbc92d47ef44058a5e4ad50b0d2025ab22526f264d435478355502"
+    },
+    {
+      "path": "Tests/AppUITests/WalletCommerceFlowTests.swift",
+      "sha256": "b10534587a9b4404222f0d3b87b0fd271f2905531ceb02ba780aeea76131d31a"
+    },
+    {
+      "path": "Tests/AppUITests/WeChatAppAuthFlowTests.swift",
+      "sha256": "d5c4b559ba35a52da62527695761a638bb8dfe512f45f73d0010cfa63a1b7942"
+    },
+    {
+      "path": "Tests/AppUITests/WorkshopCreatorPendingEntryFlowTests.swift",
+      "sha256": "f83f768726e0b11f63b7ebf013db5da842c12fb06196b19e77f37ba64f0eb9e1"
+    },
+    {
+      "path": "Tests/AppUITests/WorkshopCreatorPendingRecoveryFlowTests.swift",
+      "sha256": "a347e744e54c6e8b6673e9e6db0e3a99f954d037e1dabac98793caa8bfe52150"
+    },
+    {
+      "path": "Tests/AppUITests/WorkshopCreatorPendingReviewFlowTests.swift",
+      "sha256": "ae5e2dfa18f2225abc36507c7fea871dde1ae327567b56ff796aebac14bbe53c"
+    }
+  ],
+  "baseline_inventory_sha256": "6adc34d9675b891bc96e07ec0ad2aca5555dd6be78203b05070e569e30d91162",
+  "historical_sources": {
+    "Tests/AppUITests/ClubOperationsFlowTests.swift": {
+      "historical_file": "ClubOperationsFlowTests.swift.txt",
+      "sha256": "d494be1fd9c89665c98b3687a461ac26c0f3fb8d2e292e9ae6f77bd186a3d93c"
+    },
+    ".github/workflows/native-ios.yml": {
+      "historical_file": "native-ios.yml.txt",
+      "sha256": "d32333c13f4983b3455879addc1a5209571b3c7f9e456a68db3144a504540642"
+    },
+    "tools/run_ui_shard.py": {
+      "historical_file": "run_ui_shard.py.txt",
+      "sha256": "7d96ebd4b7d9ddeaae489094f2ee31ea9d2b7de31627b6e9a44f2db6f5ea0d06"
+    },
+    "tools/ci_gates.py": {
+      "historical_file": "ci_gates.py.txt",
+      "sha256": "0b4ca9f45c9265089c34253e0abd839580986ad0ff4347842701c99c452431bf"
+    }
+  }
+}

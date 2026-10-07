@@ -12,6 +12,7 @@ import SwiftUI
     var pendingMaterialName: String? = nil
     @StateObject private var storyImages: ProjectStoryImagePresentation
     @StateObject private var storyAudios: ProjectStoryAudioPresentation
+    @StateObject private var storyTemplates: ProjectStoryTemplatePresentation
     @Environment(\.locale) private var storyImageLocale
     init(model: ProjectEditModel, chapterID: String, starterLease: ProjectEditStarterController.Destination? = nil,
          chapterOverride: Binding<ProjectEditChapter>? = nil, chapterIsCurrent: (() -> Bool)? = nil,
@@ -23,6 +24,7 @@ import SwiftUI
         mediaHost = host
         _storyImages = StateObject(wrappedValue: .init(editor: model, host: host))
         _storyAudios = StateObject(wrappedValue: .init(editor: model, host: host))
+        _storyTemplates = StateObject(wrappedValue: .init(editor: model, host: host))
     }
     private func imageText(_ key: StaticString, _ fallback: String.LocalizationValue) -> String {
         String(localized: LocalizedStringResource(key, defaultValue: fallback, locale: storyImageLocale))
@@ -44,6 +46,8 @@ import SwiftUI
     var body: some View {
         let imagePresentation = storyImages.presentation
         let audioPresentation = storyAudios.presentation
+        let templateOpening = storyTemplates.opening
+        let templateInsertion = usesRealMediaChapter ? storyTemplates.capture(chapterID: chapterID, before: nil) : nil
         let audioInsertion = usesRealMediaChapter ? storyAudios.captureInsertion(chapterID: chapterID, before: nil) : nil
         let imageOpening = usesRealMediaChapter ? storyImages.capture(chapterID: chapterID) : nil
         Form {
@@ -97,11 +101,11 @@ import SwiftUI
                                             .font(.footnote).accessibilityIdentifier("projectStoryAudio.empty." + block.id)
                                     }
                                     Button(imageText("projectStoryAudio.open", "Choose or replace an audio file")) {
-                                        guard let opening, exists, storyImages.presentation == nil, storyAudios.presentation == nil else { return }
+                                        guard let opening, exists, storyImages.presentation == nil, storyAudios.presentation == nil, storyTemplates.opening == nil else { return }
                                         storyAudios.open(opening)
                                     }.buttonStyle(.borderless).disabled(opening == nil).accessibilityIdentifier("projectStoryAudio.open." + block.id)
                                     Button(imageText("projectStoryAudio.remove", "Remove this audio block"), role: .destructive) {
-                                        guard let local, exists, storyImages.presentation == nil, storyAudios.presentation == nil else { return }
+                                        guard let local, exists, storyImages.presentation == nil, storyAudios.presentation == nil, storyTemplates.opening == nil else { return }
                                         storyAudios.remove(local)
                                     }.buttonStyle(.borderless).disabled(local == nil).accessibilityIdentifier("projectStoryAudio.remove." + block.id)
                                     if opening == nil && audioPresentation == nil {
@@ -129,7 +133,7 @@ import SwiftUI
                                 guard let imageOpening, exists else { return }; openImage(imageOpening)
                             }.disabled(imageOpening == nil).accessibilityIdentifier("projectStoryImage.add")
                             Button("projectEdit.addAudio") {
-                                guard exists, storyImages.presentation == nil, storyAudios.presentation == nil else { return }
+                                guard exists, storyImages.presentation == nil, storyAudios.presentation == nil, storyTemplates.opening == nil else { return }
                                 if !usesRealMediaChapter { appendBlock(.audio) }
                                 else if let audioInsertion { _ = storyAudios.insertEmpty(chapterID: chapterID, captured: audioInsertion) }
                             }.disabled(blocks.count >= 200).accessibilityIdentifier("projectStoryAudio.add")
@@ -137,6 +141,18 @@ import SwiftUI
                         if imageOpening == nil && imagePresentation == nil {
                             Text(imageText("projectStoryImage.unavailable", "Image upload is not configured for this account or this chapter has not yet been saved in the editor. Existing references are preserved."))
                                 .font(.footnote).accessibilityIdentifier("projectStoryImage.unavailable")
+                        }
+                        Button("projectStoryTemplate.add") {
+                            guard let templateInsertion, exists, storyImages.presentation == nil, storyAudios.presentation == nil else { return }
+                            _ = storyTemplates.open(templateInsertion)
+                        }.disabled(templateInsertion == nil).accessibilityIdentifier("projectStoryTemplate.add")
+                        if storyTemplates.state == .saveRequired {
+                            Text("projectStoryTemplate.saveRequired").font(.footnote)
+                                .accessibilityIdentifier("projectStoryTemplate.saveRequired")
+                        }
+                        if templateInsertion == nil && templateOpening == nil {
+                            Text("projectStoryTemplate.unavailable").font(.footnote).foregroundStyle(.secondary)
+                                .accessibilityIdentifier("projectStoryTemplate.unavailable")
                         }
                         Menu("projectEdit.rich.addBlock") {
                             ForEach(ProjectEditRichStoryContract.richKinds, id: \.self) { kind in
@@ -182,7 +198,11 @@ import SwiftUI
             .sheet(item: storyAudios.binding(audioPresentation)) { original in
                 ProjectStoryAudioAuthorView(original: original, picker: model.storyAudioPicker?(), apply: { storyAudios.apply($0) }, close: { storyAudios.close(original) })
             }
+            .sheet(item: storyTemplates.binding(templateOpening)) { original in
+                ProjectStoryTemplateView(controller: storyTemplates, original: original)
+            }
             .onDisappear {
+                if let templateOpening { storyTemplates.close(templateOpening) }
                 if let imagePresentation { storyImages.close(imagePresentation) }
                 if let audioPresentation { storyAudios.close(audioPresentation) }
             }
@@ -190,19 +210,24 @@ import SwiftUI
     @ViewBuilder private func mediaGap(before blockID: String) -> some View {
         let image = storyImages.capture(chapterID: chapterID, insertingBefore: blockID)
         let audio = storyAudios.captureInsertion(chapterID: chapterID, before: blockID)
+        let template = storyTemplates.capture(chapterID: chapterID, before: blockID)
         Menu(imageText("projectStoryMedia.insertBefore", "Insert before this block")) {
             Button("projectEdit.addImage") {
                 guard let image, exists else { return }; openImage(image)
             }.disabled(image == nil).accessibilityIdentifier("projectStoryImage.insertBefore." + blockID)
             Button("projectEdit.addAudio") {
-                guard let audio, exists, storyImages.presentation == nil, storyAudios.presentation == nil else { return }
+                guard let audio, exists, storyImages.presentation == nil, storyAudios.presentation == nil, storyTemplates.opening == nil else { return }
                 _ = storyAudios.insertEmpty(chapterID: chapterID, captured: audio)
             }.disabled(audio == nil).accessibilityIdentifier("projectStoryAudio.insertBefore." + blockID)
-        }.disabled(!model.fullEdit || (image == nil && audio == nil))
+            Button("projectStoryTemplate.add") {
+                guard let template, exists, storyImages.presentation == nil, storyAudios.presentation == nil else { return }
+                _ = storyTemplates.open(template)
+            }.disabled(template == nil).accessibilityIdentifier("projectStoryTemplate.insertBefore." + blockID)
+        }.disabled(!model.fullEdit || (image == nil && audio == nil && template == nil))
             .accessibilityIdentifier("projectStoryMedia.gap." + blockID)
     }
     private func openImage(_ opening: ProjectStoryImagePresentation.Opening) {
-        guard exists, storyImages.presentation == nil, storyAudios.presentation == nil else { return }
+        guard exists, storyImages.presentation == nil, storyAudios.presentation == nil, storyTemplates.opening == nil else { return }
         storyImages.open(opening)
     }
     /// The actual button action rechecks current chapter state; disabled rendering is not a write guard.

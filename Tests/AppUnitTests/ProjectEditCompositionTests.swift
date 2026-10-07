@@ -54,7 +54,10 @@ import XCTest
         }
         return try? .init(market: context.market, baseURL: context.baseURL, namespace: context.session.namespace, accountID: context.session.accountID, routes: routes)
     }
-    private func root(_ wire: Wire, _ grant: Grant, _ vault: Vault = Vault()) throws -> AppCompositionRoot {
+    private func root(_ wire: Wire, _ grant: Grant) throws -> AppCompositionRoot {
+        try root(wire, grant, Vault())
+    }
+    private func root(_ wire: Wire, _ grant: Grant, _ vault: Vault) throws -> AppCompositionRoot {
         let suite = "project-composition-" + UUID().uuidString, defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
         addTeardownBlock { defaults.removePersistentDomain(forName: suite) }
         let deployment = try ReviewedAppDeployment(market: .china, baseURL: base.absoluteString, approvedBaseURLs: [.china: [base.absoluteString]], verifiedCapabilities: [.domesticChinaPhone], bundleIdentifier: "test.project."+UUID().uuidString.lowercased(), realm: "synthetic")

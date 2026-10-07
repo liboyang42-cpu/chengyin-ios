@@ -1,4 +1,4 @@
-"""Current 710-method coverage plus exact preservation of the reviewed 707-method union."""
+"""Historical 710-method coverage and exact preservation of the reviewed 707-method union."""
 from collections import defaultdict
 from copy import deepcopy
 from decimal import Decimal
@@ -9,24 +9,34 @@ import re
 import tempfile
 import unittest
 
-from tools import ci_gates, run_ui_shard as shard
+from tools.tests.club_parity_budget_history import (
+    before_club_parity, historical_pre_club_source, historical_pre_club_module,
+    materialize_pre_club_ui,
+)
 from tools.tests.creator_pending_budget_history import (
     BASELINE_PROFILE_SHA256, CURRENT_PROFILE_SHA256, before_creator_pending,
     canonical, materialize_pre_creator_ui, source_index,
 )
 
 ROOT = Path(__file__).resolve().parents[2]
+shard = historical_pre_club_module(ROOT / 'tools/run_ui_shard.py', 'creator_pre_club_shard')
+ci_gates = historical_pre_club_module(ROOT / 'tools/ci_gates.py', 'creator_pre_club_gates')
 
 
 class CreatorPendingBudgetTests(unittest.TestCase):
     def setUp(self):
-        self.profile = json.loads((ROOT / 'tools/ui_duration_weights.json').read_text())
+        self.history_directory = tempfile.TemporaryDirectory()
+        self.addCleanup(self.history_directory.cleanup)
+        self.ui_root = materialize_pre_club_ui(self.history_directory.name)
+        self.profile = before_club_parity(json.loads((ROOT / 'tools/ui_duration_weights.json').read_text()))
+        self.profile_path = Path(self.history_directory.name) / 'profile.json'
+        self.profile_path.write_text(json.dumps(self.profile))
         self.plan = self.profile['planning_budget']['reviewed_creator_pending_replan']
         self.previous = before_creator_pending(self.profile)
         self.index = source_index()
         self.methods = {}
         self.costs = defaultdict(Decimal)
-        for path in sorted((ROOT / 'Tests/AppUITests').glob('*.swift')):
+        for path in sorted(self.ui_root.glob('*.swift')):
             source = path.read_text()
             methods = re.findall(r'\bfunc\s+(test\w+)\s*\(', source)
             if not methods:
@@ -46,7 +56,7 @@ class CreatorPendingBudgetTests(unittest.TestCase):
 
     def test_all_710_complete_methods_in_146_direct_classes_execute_once(self):
         self.assertEqual((len(self.methods), len(self.costs)), (710, 146))
-        self.assertEqual(sum(shard.discover(ROOT / 'Tests/AppUITests').values()), 710)
+        self.assertEqual(sum(shard.discover(self.ui_root).values()), 710)
         self.assertEqual(set(self.methods), set(self.plan['current_inventory']))
         self.assertEqual(hashlib.sha256('\n'.join(sorted(self.methods)).encode()).hexdigest(),
                          self.plan['current_inventory_sha256'])
@@ -64,12 +74,12 @@ class CreatorPendingBudgetTests(unittest.TestCase):
 
     def test_all_original_ui_files_and_complete_helpers_are_byte_exact(self):
         for row in self.index['baseline_ui_sources']:
-            self.assertEqual(hashlib.sha256((ROOT / row['path']).read_bytes()).hexdigest(), row['sha256'])
+            self.assertEqual(hashlib.sha256(historical_pre_club_source(ROOT / row['path']).read_bytes()).hexdigest(), row['sha256'])
         with tempfile.TemporaryDirectory() as directory:
             found = shard.discover(materialize_pre_creator_ui(directory))
             self.assertEqual((sum(found.values()), len(found)), (707, 143))
         for row in self.index['helper_sources']:
-            self.assertEqual(hashlib.sha256((ROOT / row['path']).read_bytes()).hexdigest(), row['sha256'])
+            self.assertEqual(hashlib.sha256(historical_pre_club_source(ROOT / row['path']).read_bytes()).hexdigest(), row['sha256'])
 
     def test_new_methods_keep_reviewed_full_bytes_and_conservative_estimates(self):
         self.assertEqual(sorted(self.plan['whole_method_estimates'].values()), [360, 540, 900])
@@ -123,7 +133,7 @@ class CreatorPendingBudgetTests(unittest.TestCase):
                           self.plan['complete_method_limit_seconds']), (1800, 300, 900))
         self.assertEqual(sum(self.costs.values()), Decimal('91064.732'))
         self.assertEqual(max(self.costs.values()), 1470)
-        actual = shard.measured_weights(ROOT / 'Tests/AppUITests', ROOT / 'tools/ui_duration_weights.json')
+        actual = shard.measured_weights(self.ui_root, self.profile_path)
         self.assertEqual(set(actual), set(self.costs))
         for key, value in actual.items():
             self.assertAlmostEqual(value, float(self.costs[key]), places=9)
@@ -145,8 +155,8 @@ class CreatorPendingBudgetTests(unittest.TestCase):
     def test_workflow_runner_completion_gate_and_deadline_remain_byte_exact(self):
         for key, path in [('workflow_sha256', '.github/workflows/native-ios.yml'),
                           ('runner_sha256', 'tools/run_ui_shard.py'), ('gates_sha256', 'tools/ci_gates.py')]:
-            self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), self.index[key])
-        workflow = (ROOT / '.github/workflows/native-ios.yml').read_text()
+            self.assertEqual(hashlib.sha256(historical_pre_club_source(ROOT / path).read_bytes()).hexdigest(), self.index[key])
+        workflow = historical_pre_club_source(ROOT / '.github/workflows/native-ios.yml').read_text()
         outputs = re.findall(r'^      shard_(\d+): \$\{\{ steps.completion.outputs.shard_(\d+) \}\}', workflow, re.M)
         self.assertEqual(outputs, [(str(i), str(i)) for i in range(65)])
         self.assertIn('--count 65 ', workflow)

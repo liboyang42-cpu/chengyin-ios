@@ -59,6 +59,44 @@ final class ClubOperationsContractTests: XCTestCase {
         XCTAssertThrowsError(try ClubOperationsCommand.openSetting(.publicVisible, enabled: false, previous: true).validate(snapshot: snapshot, identity: opsIdentity))
         XCTAssertThrowsError(try ClubOperationsCommand.memberRole(memberID: 704, admin: true, previousRole: 0).validate(snapshot: snapshot, identity: opsIdentity))
     }
+    func testAdminOwnerOnlyDraftTamperingIsExplicitlyRejected() throws {
+        for supportsJoin in [false, true] {
+            let profile = try opsProfile(owner: false, admin: true, supportsJoin: supportsJoin)
+            let snapshot = ClubOperationsSnapshot(target: .club(81), profile: profile)
+            let changes: [(inout ClubOperationsDraft) -> Void] = [
+                { $0.prioritySignupEnabled.toggle() }, { $0.memberReservedQuota = "5" },
+                { $0.memberReservedQuota = "04" }, { $0.memberReservedQuota = "invalid" },
+                { $0.joinPolicy = 1 }, { $0.joinPolicy = 7 }]
+            for change in changes {
+                var draft = ClubOperationsDraft(profile: profile); draft.name = "Display edit"; change(&draft)
+                XCTAssertThrowsError(try draft.validate(original: profile)) { XCTAssertEqual($0 as? ClubOperationsBlock, .forbidden) }
+                XCTAssertThrowsError(try ClubOperationsCommand.update(draft, original: profile).fields(snapshot: snapshot, identity: opsIdentity)) {
+                    XCTAssertEqual($0 as? ClubOperationsBlock, .forbidden)
+                }
+            }
+        }
+    }
+    func testProfileRoleChangesInvalidateEvenUnchangedDisplayData() throws {
+        let owner = try opsProfile(), admin = try opsProfile(owner: false, admin: true)
+        let ordinary = try opsProfile(owner: false, admin: false)
+        for (original, fresh) in [(owner, admin), (admin, owner), (owner, ordinary), (admin, ordinary), (ordinary, admin)] {
+            var draft = ClubOperationsDraft(profile: original); draft.name = "Display edit"
+            let snapshot = ClubOperationsSnapshot(target: .club(81), profile: fresh)
+            XCTAssertThrowsError(try ClubOperationsCommand.update(draft, original: original).fields(snapshot: snapshot, identity: opsIdentity))
+        }
+    }
+    func testAdminProfileRequiresMatchingTargetAndSignedInIdentity() throws {
+        let profile = try opsProfile(owner: false, admin: true)
+        let command = ClubOperationsCommand.update(ClubOperationsDraft(profile: profile), original: profile)
+        for target in [ClubOperationsTarget.create, .club(82)] {
+            XCTAssertThrowsError(try command.fields(snapshot: .init(target: target, profile: profile), identity: opsIdentity))
+        }
+        XCTAssertThrowsError(try command.fields(snapshot: .init(target: .club(81), profile: profile), identity: .init(accountID: nil, epoch: 1)))
+        let ordinary = try opsProfile(owner: false, admin: false)
+        XCTAssertThrowsError(try ClubOperationsCommand.update(ClubOperationsDraft(profile: ordinary), original: ordinary).fields(snapshot: .init(target: .club(81), profile: ordinary), identity: opsIdentity)) {
+            XCTAssertEqual($0 as? ClubOperationsBlock, .forbidden)
+        }
+    }
     func testOwnerSelfDuplicateUnknownRoleAndAdminLimitAreBlocked() throws {
         let profile = try opsProfile()
         for rows in [#"[{"memberId":701,"role":0}]"#, #"[{"memberId":704,"role":0,"isOwner":true}]"#, #"[{"memberId":704,"role":7}]"#, #"[{"memberId":704,"role":0},{"memberId":704,"role":0}]"#, #"[{"memberId":704,"role":0},{"memberId":705,"role":1},{"memberId":706,"role":1}]"#] {
@@ -115,6 +153,33 @@ final class ClubOperationsServiceTests: XCTestCase {
             }
         }
         XCTAssertTrue(transport.requests.isEmpty, "Building contracts must never send a request")
+    }
+    func testAdminUpdateExactJSONHasOnlyDisplayFields() throws {
+        for supportsJoin in [false, true] {
+            let profile = try opsProfile(owner: false, admin: true, supportsJoin: supportsJoin)
+            var draft = ClubOperationsDraft(profile: profile); draft.name = " Updated "
+            let transport = OperationsTransport()
+            let request = try service(transport).makeReviewRequest(.update(draft, original: profile), snapshot: .init(target: .club(81), profile: profile), identity: opsIdentity, token: "synthetic-token")
+            let expected: [String: Any] = ["id": 81, "name": "Updated", "logo": "", "cover": "", "description": "", "clubType": "兴趣社群", "activityPrefs": "轻社交", "city": "Fixture city", "address": "Fixture city", "keywords": "", "style": ""]
+            XCTAssertEqual(request.httpBody, try JSONSerialization.data(withJSONObject: expected, options: [.sortedKeys]))
+            XCTAssertEqual(request.url?.path, "/api/club/update-mine")
+            XCTAssertEqual(request.httpMethod, "POST")
+            XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json")
+            XCTAssertTrue(transport.requests.isEmpty)
+        }
+    }
+    func testOwnerUpdateExactJSONPreservesAllExistingFields() throws {
+        for supportsJoin in [false, true] {
+            let profile = try opsProfile(supportsJoin: supportsJoin)
+            var draft = ClubOperationsDraft(profile: profile)
+            draft.name = " Updated "; draft.prioritySignupEnabled = false; draft.memberReservedQuota = "7"; draft.joinPolicy = 1
+            let transport = OperationsTransport()
+            let request = try service(transport).makeReviewRequest(.update(draft, original: profile), snapshot: .init(target: .club(81), profile: profile), identity: opsIdentity, token: "synthetic-token")
+            var expected: [String: Any] = ["id": 81, "name": "Updated", "logo": "", "cover": "", "description": "", "clubType": "兴趣社群", "activityPrefs": "轻社交", "city": "Fixture city", "address": "Fixture city", "keywords": "", "style": "", "operationConfigUpdated": true, "prioritySignupEnabled": 0, "memberReservedQuota": 7]
+            if supportsJoin { expected["joinPolicy"] = 1 }
+            XCTAssertEqual(request.httpBody, try JSONSerialization.data(withJSONObject: expected, options: [.sortedKeys]))
+            XCTAssertTrue(transport.requests.isEmpty)
+        }
     }
     func testUnsupportedJoinPolicyIsOmittedAndMediaPreserved() throws {
         let profile = try opsProfile(supportsJoin: false), transport = OperationsTransport()
@@ -261,4 +326,113 @@ final class ClubOperationsServiceTests: XCTestCase {
         XCTAssertEqual(access.writeCount, 0); XCTAssertEqual(coordinator.state(target: target), .idle)
     }
 
+}
+
+// Test-only journal and transport drive the unchanged approved adapter. No live I/O.
+@MainActor private final class ProfileScopeJournal: OperationPendingJournal {
+    var record: OperationPendingRecord?
+    var writeCount = 0
+    func pending(ownerKey: String, targetKey: String) throws -> OperationPendingRecord? { record }
+    func write(_ record: OperationPendingRecord) throws { self.record = record; writeCount += 1 }
+    func clear(_ record: OperationPendingRecord) throws { self.record = nil }
+}
+@MainActor final class ClubOperationsProfileScopeTests: XCTestCase {
+    private let target = ClubOperationsTarget.club(81)
+    private func response(owner: Bool, admin: Bool) -> String {
+        #"{"code":200,"data":{"id":81,"name":"Fixture club","city":"Fixture city","isOwner":OWNER,"viewerIsAdmin":ADMIN,"isJoined":true,"clubType":"兴趣社群","activityPrefs":"轻社交","joinPolicySupported":true,"prioritySignupEnabled":1,"memberReservedQuota":4,"publicVisible":1,"memberPostAllowed":0,"merchantUndertakeOpen":1}}"#
+            .replacingOccurrences(of: "OWNER", with: String(owner)).replacingOccurrences(of: "ADMIN", with: String(admin))
+    }
+    private var members: String { #"{"code":200,"data":[{"memberId":701,"isOwner":true,"role":1},{"memberId":704,"isOwner":false,"role":0}]}"# }
+    private func replies(owner: Bool, admin: Bool) -> [String] { [response(owner: owner, admin: admin)] + (owner ? [members] : []) }
+    private func access(_ transport: OperationsTransport, journal: ProfileScopeJournal, session: @escaping () -> ClubOperationsSession?, approved: Bool = true) throws -> ClubOperationsSessionAccess {
+        let configuration = try APIConfiguration(baseURL: URL(string: "https://example.com/")!)
+        let approval = approved ? try OperationEndpointApproval(baseURL: configuration.baseURL, namespace: "scope-test", accountID: 701, paths: ["api/club/update-mine"]) : nil
+        return .init(service: .init(configuration: configuration, transport: transport), currentSession: session, approval: approval, journal: journal)
+    }
+    private func session(_ epoch: UInt64 = 1, token: String = "synthetic-token") throws -> ClubOperationsSession {
+        try .init(accountID: 701, epoch: epoch, token: token, storageNamespace: "scope-test")
+    }
+    private func command(owner: Bool, admin: Bool) throws -> ClubOperationsCommand {
+        let profile = try opsProfile(owner: owner, admin: admin)
+        var draft = ClubOperationsDraft(profile: profile); draft.name = "Updated"
+        return .update(draft, original: profile)
+    }
+    func testApprovedAdminDispatchUsesDisplayOnlyJSONAndJournal() async throws {
+        let transport = OperationsTransport(), journal = ProfileScopeJournal(), current = try session()
+        transport.replies = replies(owner: false, admin: true) + [#"{"code":200,"msg":"saved"}"#]
+        let service = try access(transport, journal: journal, session: { current })
+        _ = try await service.perform(command(owner: false, admin: true), target: target, expectedIdentity: current.identity)
+        XCTAssertEqual(transport.requests.map { $0.url?.path }, ["/api/club/detail", "/api/club/update-mine"])
+        let expected: [String: Any] = ["id": 81, "name": "Updated", "logo": "", "cover": "", "description": "", "clubType": "兴趣社群", "activityPrefs": "轻社交", "city": "Fixture city", "address": "Fixture city", "keywords": "", "style": ""]
+        XCTAssertEqual(transport.requests.last?.httpBody, try JSONSerialization.data(withJSONObject: expected, options: [.sortedKeys]))
+        XCTAssertEqual(journal.writeCount, 2); XCTAssertNil(journal.record)
+    }
+    func testOwnerAdminAndMemberRoleChangesAfterReviewSendNoMutation() async throws {
+        for (wasOwner, wasAdmin, nowOwner, nowAdmin) in [(true, false, false, true), (false, true, true, false), (true, false, false, false), (false, true, false, false)] {
+            let transport = OperationsTransport(), journal = ProfileScopeJournal(), current = try session()
+            transport.replies = replies(owner: wasOwner, admin: wasAdmin) + replies(owner: nowOwner, admin: nowAdmin)
+            let service = try access(transport, journal: journal, session: { current })
+            let coordinator = ClubOperationsCoordinator(access: service)
+            let review = try await coordinator.prepare(command(owner: wasOwner, admin: wasAdmin), target: target, expectedIdentity: current.identity, ownerID: UUID())
+            await coordinator.confirm(review)
+            XCTAssertEqual(coordinator.state(target: target), .notSent)
+            XCTAssertFalse(transport.requests.contains { $0.url?.path == "/api/club/update-mine" })
+            XCTAssertEqual(journal.writeCount, 0); XCTAssertNil(journal.record)
+        }
+    }
+    func testRoleChangeInFinalAdapterPreflightSendsNoMutation() async throws {
+        for (wasOwner, wasAdmin, nowOwner, nowAdmin) in [(true, false, false, true), (false, true, true, false)] {
+            let transport = OperationsTransport(), journal = ProfileScopeJournal(), current = try session()
+            transport.replies = replies(owner: wasOwner, admin: wasAdmin) + replies(owner: wasOwner, admin: wasAdmin) + replies(owner: nowOwner, admin: nowAdmin)
+            let service = try access(transport, journal: journal, session: { current })
+            let coordinator = ClubOperationsCoordinator(access: service)
+            let review = try await coordinator.prepare(command(owner: wasOwner, admin: wasAdmin), target: target, expectedIdentity: current.identity, ownerID: UUID())
+            await coordinator.confirm(review)
+            XCTAssertEqual(coordinator.state(target: target), .notSent)
+            XCTAssertFalse(transport.requests.contains { $0.url?.path == "/api/club/update-mine" })
+            XCTAssertEqual(journal.writeCount, 0); XCTAssertNil(journal.record)
+        }
+    }
+    func testAdminTamperedDraftAndOrdinaryMemberSendNoMutation() async throws {
+        for original in [try opsProfile(owner: false, admin: true), try opsProfile(owner: false, admin: false)] {
+            let transport = OperationsTransport(), journal = ProfileScopeJournal(), current = try session()
+            transport.replies = replies(owner: false, admin: original.club.viewerIsAdmin)
+            var draft = ClubOperationsDraft(profile: original); draft.memberReservedQuota = "5"
+            let service = try access(transport, journal: journal, session: { current })
+            do { _ = try await service.perform(.update(draft, original: original), target: target, expectedIdentity: current.identity); XCTFail() }
+            catch { XCTAssertEqual(error as? ClubActionWriteError, .preflightFailed) }
+            XCTAssertEqual(transport.requests.map { $0.url?.path }, ["/api/club/detail"])
+            XCTAssertEqual(journal.writeCount, 0); XCTAssertNil(journal.record)
+        }
+    }
+    func testAdminUpdateWithoutGrantMakesZeroRequests() async throws {
+        let transport = OperationsTransport(), journal = ProfileScopeJournal(), current = try session()
+        let service = try access(transport, journal: journal, session: { current }, approved: false)
+        do { _ = try await service.perform(command(owner: false, admin: true), target: target, expectedIdentity: current.identity); XCTFail() }
+        catch { XCTAssertEqual(error as? ClubActionWriteError, .notSent(.notConfigured)) }
+        XCTAssertTrue(transport.requests.isEmpty); XCTAssertEqual(journal.writeCount, 0)
+    }
+    func testAdminUpdateTokenReplacementDuringFreshReadSendsNoMutation() async throws {
+        let transport = OperationsTransport(), journal = ProfileScopeJournal()
+        var current = try session()
+        transport.replies = replies(owner: false, admin: true)
+        let replacement = try session(token: "replacement")
+        transport.onSend = { current = replacement }
+        let service = try access(transport, journal: journal, session: { current })
+        do { _ = try await service.perform(command(owner: false, admin: true), target: target, expectedIdentity: current.identity); XCTFail() }
+        catch { XCTAssertEqual(error as? ClubActionWriteError, .preflightFailed) }
+        XCTAssertEqual(transport.requests.map { $0.url?.path }, ["/api/club/detail"])
+        XCTAssertEqual(journal.writeCount, 0)
+    }
+    func testAdminReviewSessionEpochChangeSendsNoMutation() async throws {
+        let transport = OperationsTransport(), journal = ProfileScopeJournal()
+        var current = try session()
+        transport.replies = replies(owner: false, admin: true)
+        let service = try access(transport, journal: journal, session: { current })
+        let coordinator = ClubOperationsCoordinator(access: service)
+        let review = try await coordinator.prepare(command(owner: false, admin: true), target: target, expectedIdentity: current.identity, ownerID: UUID())
+        current = try session(2); coordinator.synchronizeSession(); await coordinator.confirm(review)
+        XCTAssertEqual(transport.requests.map { $0.url?.path }, ["/api/club/detail"])
+        XCTAssertEqual(journal.writeCount, 0)
+    }
 }

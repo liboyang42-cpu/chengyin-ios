@@ -84,6 +84,10 @@ final class ClubOperationsFlowTests: XCTestCase {
         launch("admin"); tap("club.ops.openManage")
         XCTAssertTrue(element("club.ops.field.name").waitForExistence(timeout: 5))
         XCTAssertFalse(element("club.ops.setting.publicVisible").exists); XCTAssertFalse(element("club.ops.member.704").exists)
+        XCTAssertTrue(reveal("club.ops.reviewProfile").exists)
+        for id in ["club.ops.prioritySignup", "club.ops.field.quota", "club.ops.joinPolicy"] {
+            XCTAssertFalse(element(id).exists, app.debugDescription)
+        }
     }
     func testOrdinaryViewerIsDeniedAndCreateRoleGated() {
         launch("ordinary"); tap("club.ops.openManage"); XCTAssertTrue(reveal("club.ops.error").exists); count(0)

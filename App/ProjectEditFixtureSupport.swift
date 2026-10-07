@@ -45,6 +45,11 @@ import SwiftUI
     var storyImagePicker: (() -> any OwnedTopicCoverSelecting)? {
         guard let source = storyImageSource else { return nil }; return { ProjectStoryImageSynthetic.Picker(source.picked) }
     }
+    private let storyTemplateEnabled: Bool
+    private lazy var storyTemplateSource: ProjectStoryTemplateSynthetic? = {
+        guard storyTemplateEnabled, let session else { return nil }
+        return try? .init(session: session, currentSession: { [weak self] in self?.session })
+    }()
     private let ownedCoverEnabled: Bool, ownedCoverUnknown: Bool, ownedCoverUnknownUpload: Bool
     private lazy var ownedCoverJournal = OwnedTopicCoverJournal(storage: storage)
     private lazy var ownedCoverSource: OwnedTopicCoverSynthetic? = {
@@ -75,6 +80,7 @@ import SwiftUI
         storyAudioUnknown = arguments.contains("--project-story-audio-unknown")
         storyAudioCancelFirst = arguments.contains("--project-story-audio-cancel-first")
         storyImageEnabled = arguments.contains("--project-story-image")
+        storyTemplateEnabled = arguments.contains("--project-story-template")
         ownedCoverEnabled = arguments.contains("--project-owned-cover")
         ownedCoverUnknown = arguments.contains("--project-owned-cover-unknown")
         ownedCoverUnknownUpload = arguments.contains("--project-owned-cover-upload-unknown")
@@ -120,7 +126,7 @@ import SwiftUI
                 draft.chapters[0].nodes.append(second)
                 draft.chapters[0].blocks = [.init(kind: .text, content: draft.chapters[0].description), .init(kind: .node, nodeID: second.id), .init(kind: .node, nodeID: first.id)]
             }
-            if storyImageEnabled || storyAudioEnabled, !draft.chapters.isEmpty {
+            if storyImageEnabled || storyAudioEnabled || storyTemplateEnabled, !draft.chapters.isEmpty {
                 draft.preserved["publishMode"] = .string("pro")
                 let c = draft.chapters[0]
                 draft.chapters[0].blocks = [.init(kind: .text, content: c.description)] + c.nodes.map { .init(kind: .node, nodeID: $0.id) }
@@ -138,7 +144,7 @@ import SwiftUI
         let releaseSource = session.flatMap { session in releaseReadScenario.flatMap { scenario in
             try? ApprovedTopicReleaseSyntheticSource(session: session, topicID: initial.topicID ?? 7901, scenario: scenario, selectedCoverEnabled: selectedCoverReleaseBound, currentSession: { [weak self] in self?.session })
         } }
-        return .init(initial: initial, service: selected, store: store, releasePreparationSource: releaseSource, releasePublicationSource: releasePublicationSource, releasePublicationJournal: releasePublicationJournal, releaseReviewSource: reviewSource, releaseReviewJournal: reviewJournal, ownedCoverSource: ownedCoverSource, ownedCoverJournal: ownedCoverJournal, storyImageSource: storyImageSource, storyImageJournal: storyImageJournal, storyAudioSource: storyAudioSource, storyAudioJournal: storyAudioJournal, currentSession: { [weak self] in self?.session })
+        return .init(initial: initial, service: selected, store: store, releasePreparationSource: releaseSource, releasePublicationSource: releasePublicationSource, releasePublicationJournal: releasePublicationJournal, releaseReviewSource: reviewSource, releaseReviewJournal: reviewJournal, ownedCoverSource: ownedCoverSource, ownedCoverJournal: ownedCoverJournal, storyImageSource: storyImageSource, storyImageJournal: storyImageJournal, storyAudioSource: storyAudioSource, storyAudioJournal: storyAudioJournal, storyTemplateSource: storyTemplateSource, currentSession: { [weak self] in self?.session })
     }
     func inspect() {
         inspectionSequence += 1
@@ -149,6 +155,7 @@ import SwiftUI
         }
         if let source = storyAudioSource { payload["storyAudioUploadCount"] = source.uploadCount; payload["storyAudioReference"] = source.reference }
         if let source = storyImageSource { payload["storyImageUploadCount"] = source.uploadCount; payload["storyImageReference"] = source.reference }
+        if let source = storyTemplateSource { payload["storyTemplateListCount"] = source.listCount; payload["storyTemplateDetailCount"] = source.detailCount }
         if let source = ownedCoverSource {
             payload["coverUploadCount"] = source.uploadCount; payload["coverSelectCount"] = source.selectCount
             payload["coverStatusCount"] = source.statusCount; payload["coverImageCount"] = source.imageCount

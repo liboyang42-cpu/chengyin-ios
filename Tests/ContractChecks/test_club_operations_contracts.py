@@ -41,6 +41,42 @@ class ClubOperationsSourceChecks(unittest.TestCase):
             self.assertNotIn(prohibited,swift)
         self.assertIn('logo == (original?.club.logo ?? "")',swift)
         self.assertIn('if original.club.joinPolicySupported',swift)
+    def test_admin_profile_scope_is_explicit_and_owner_changes_invalidate_review(self):
+        swift = self.text('Core/ClubOperationsContracts.swift')
+        validation = swift.split('public func validate(original:', 1)[1].split('func fields(original:', 1)[0]
+        for guard in ['!original.club.isOwner', 'original.club.viewerIsAdmin',
+                      'prioritySignupEnabled == baseline.prioritySignupEnabled',
+                      'memberReservedQuota == baseline.memberReservedQuota',
+                      'joinPolicy == baseline.joinPolicy', 'throw ClubOperationsBlock.forbidden']:
+            self.assertIn(guard, validation)
+        fields = swift.split('func fields(original:', 1)[1].split('public struct ClubOperationsProfile', 1)[0]
+        self.assertLess(fields.index('if original.club.isOwner'), fields.index('value["operationConfigUpdated"]'))
+        command = swift.split('public enum ClubOperationsCommand', 1)[1]
+        for guard in ['fresh.club.isOwner == original.club.isOwner',
+                      'fresh.club.viewerIsAdmin == original.club.viewerIsAdmin',
+                      'ClubOperationsDraft(profile: fresh) == ClubOperationsDraft(profile: original)',
+                      'return try draft.fields(original: fresh)']:
+            self.assertIn(guard, command)
+        self.assertNotIn('return try draft.fields(original: original)', command)
+    def test_admin_form_and_review_do_not_present_owner_only_fields(self):
+        ui = self.text('App/ClubOperationsViews.swift')
+        review = self.text('App/ClubOperationsReviewView.swift')
+        self.assertIn('isOwner: value.profile?.club.isOwner == true', ui)
+        self.assertIn('if !isCreate && isOwner {', ui)
+        self.assertIn('case .update(let draft, _): profile(draft, original: review.snapshot.profile)', review)
+        self.assertIn('if let original, original.club.isOwner {', review)
+    def test_admin_profile_runtime_regressions_remain_authored(self):
+        # Inventory only. Swift/Apple execution must be reported separately.
+        tests = self.text('Tests/CoreTests/ClubOperationsTests.swift')
+        for name in ['testAdminUpdateExactJSONHasOnlyDisplayFields',
+                     'testOwnerUpdateExactJSONPreservesAllExistingFields',
+                     'testAdminOwnerOnlyDraftTamperingIsExplicitlyRejected',
+                     'testOwnerAdminAndMemberRoleChangesAfterReviewSendNoMutation',
+                     'testRoleChangeInFinalAdapterPreflightSendsNoMutation',
+                     'testAdminUpdateWithoutGrantMakesZeroRequests',
+                     'testAdminUpdateTokenReplacementDuringFreshReadSendsNoMutation',
+                     'testAdminReviewSessionEpochChangeSendsNoMutation']:
+            self.assertIn('func ' + name + '(', tests)
     def test_fixture_is_debug_and_offline(self):
         source = self.text('Core/ClubOperationsSyntheticFixtures.swift')
         self.assertTrue(source.startswith('#if DEBUG'))

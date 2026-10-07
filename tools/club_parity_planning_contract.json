@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "purpose": "Source-triggered, immutable full-method planning floors for the current club scope. Independent of any --duration-profile supplied records, plan keys, observations or estimates. Unmeasured planning assumptions; not runtime upper bounds.",
+  "historical_source": {
+    "class": "ClubOperationsFlowTests",
+    "method": "ClubOperationsFlowTests.testAdminProfileHasNoOwnerSettingsOrRoleActions",
+    "file_sha256": "d494be1fd9c89665c98b3687a461ac26c0f3fb8d2e292e9ae6f77bd186a3d93c",
+    "basis": "Exact frozen pre-club source; historical method/helper bytes are independently pinned by source projections. Absence of the new class alone never grants this exception."
+  },
+  "current_class": "ClubProfileScopeFlowTests",
+  "required_floors": {
+    "ClubProfileScopeFlowTests.testAdminDisplayOnlyReviewCancelsThenSavesOnce": {
+      "method": "ClubProfileScopeFlowTests.testAdminDisplayOnlyReviewCancelsThenSavesOnce",
+      "seconds": 720,
+      "measured": false,
+      "source": "parentApprovedClubParityWholeMethodPlanning20261006",
+      "timing_status": "UNMEASURED_ENGINEERING_PLANNING_ASSUMPTION",
+      "basis": "Entire setup/launch, explicit waits, bounded reveal loop source envelopes, input/queries/animations, failure evidence and teardown. Not a measured runtime or a hard execution upper bound. Three seconds per swipe/query iteration and ninety seconds other overhead are engineering assumptions authorized for local planning.",
+      "test_file_sha256": "8cae5d6cb5f38bc4c65ac213251a400056bf305614b9449530321809189bbd9a",
+      "declaration_sha256": "e01f990d2322d6e4a183e8b68901486ce2e74f50a0249d4a827abd3e6b65afd0",
+      "all_non_test_source_sha256": "f6cdae5334a81fea27771281a4e8a9cf0c06403368d984b6011a8083f098a7bb",
+      "explicit_wait_caps_seconds": 30,
+      "launches": 1,
+      "reveal_calls": 7,
+      "maximum_swipe_iterations_per_reveal": 28,
+      "swipe_query_iteration_seconds_assumption": 3,
+      "other_whole_method_overhead_seconds_assumption": 90,
+      "formula_seconds": 708,
+      "round_up_seconds": 12
+    },
+    "ClubProfileScopeFlowTests.testOwnerProfileReviewRetainsOperatingFields": {
+      "method": "ClubProfileScopeFlowTests.testOwnerProfileReviewRetainsOperatingFields",
+      "seconds": 630,
+      "measured": false,
+      "source": "parentApprovedClubParityWholeMethodPlanning20261006",
+      "timing_status": "UNMEASURED_ENGINEERING_PLANNING_ASSUMPTION",
+      "basis": "Entire setup/launch, explicit waits, bounded reveal loop source envelopes, input/queries/animations, failure evidence and teardown. Not a measured runtime or a hard execution upper bound. Three seconds per swipe/query iteration and ninety seconds other overhead are engineering assumptions authorized for local planning.",
+      "test_file_sha256": "8cae5d6cb5f38bc4c65ac213251a400056bf305614b9449530321809189bbd9a",
+      "declaration_sha256": "e4fc80f12a3b45075072b7d5cbaf714389d46d2c2ad37986be9557f342afbd07",
+      "all_non_test_source_sha256": "f6cdae5334a81fea27771281a4e8a9cf0c06403368d984b6011a8083f098a7bb",
+      "explicit_wait_caps_seconds": 25,
+      "launches": 1,
+      "reveal_calls": 6,
+      "maximum_swipe_iterations_per_reveal": 28,
+      "swipe_query_iteration_seconds_assumption": 3,
+      "other_whole_method_overhead_seconds_assumption": 90,
+      "formula_seconds": 619,
+      "round_up_seconds": 11
+    },
+    "ClubOperationsFlowTests.testAdminProfileHasNoOwnerSettingsOrRoleActions": {
+      "method": "ClubOperationsFlowTests.testAdminProfileHasNoOwnerSettingsOrRoleActions",
+      "seconds": 300,
+      "measured": false,
+      "source": "parentApprovedClubParityWholeMethodPlanning20261006",
+      "timing_status": "UNMEASURED_ENGINEERING_PLANNING_ASSUMPTION",
+      "basis": "Entire setup/launch, explicit waits, bounded reveal loop source envelopes, input/queries/animations, failure evidence and teardown. Not a measured runtime or a hard execution upper bound. Three seconds per swipe/query iteration and ninety seconds other overhead are engineering assumptions authorized for local planning.",
+      "test_file_sha256": "7e9d6242fbe0cefa92ee1a89de8d978e6c9d8c4dd9687f4d24eed47c563ce7c1",
+      "declaration_sha256": "3fd77d16b17caebcd723a177b319efd83f4a7b52b0336e448559f51aaf66d30d",
+      "all_non_test_source_sha256": "f6cdae5334a81fea27771281a4e8a9cf0c06403368d984b6011a8083f098a7bb",
+      "explicit_wait_caps_seconds": 15,
+      "launches": 1,
+      "reveal_calls": 2,
+      "maximum_swipe_iterations_per_reveal": 28,
+      "swipe_query_iteration_seconds_assumption": 3,
+      "other_whole_method_overhead_seconds_assumption": 90,
+      "formula_seconds": 273,
+      "round_up_seconds": 27
+    }
+  }
+}

@@ -129183,6 +129183,278 @@
           }
         }
       }
+    },
+    "projectStoryTemplate.add": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose an existing story gameplay draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择已有故事玩法草稿"
+          }
+        }
+      }
+    },
+    "projectStoryTemplate.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My story gameplay drafts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我的故事玩法草稿"
+          }
+        }
+      }
+    },
+    "projectStoryTemplate.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose one of your personal gameplay drafts and review it before saving it at this exact story position on this device. Up to 1,000 drafts can be listed. This local story feature cannot currently be submitted or published; it does not change the remote template."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择本人的玩法草稿，预览后保存到当前故事位置和本机草稿，最多读取1,000条。此故事功能目前只能本地创作，暂不可提交或发布，不会修改远端玩法。"
+          }
+        }
+      }
+    },
+    "projectStoryTemplate.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personal story-draft reading is not configured, or this story position is unavailable. Existing local content stays editable."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "个人故事玩法草稿读取尚未配置，或当前故事位置不可用。已有本机内容仍可编辑。"
+          }
+        }
+      }
+    },
+    "projectStoryTemplate.previewTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review local insertion"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预览本机插入内容"
+          }
+        }
+      }
+    },
+    "projectStoryTemplate.gameplay": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This adds a story gameplay node without a location. The existing template ID is preserved; publication is not enabled."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将加入无需地点坐标的故事玩法节点，保留已有玩法编号；不会启用发布。"
+          }
+        }
+      }
+    },
+    "projectStoryTemplate.album": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This copies the album title, image references and captions into a display block. No location node is created."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将相册标题、图片引用和配文复制为展示块，不创建地点节点。"
+          }
+        }
+      }
+    },
+    "projectStoryTemplate.apply": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Insert here and save locally"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "插入此处并保存本机"
+          }
+        }
+      }
+    },
+    "projectStoryTemplate.back": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to drafts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回草稿列表"
+          }
+        }
+      }
+    },
+    "projectStoryTemplate.close": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消"
+          }
+        }
+      }
+    },
+    "projectStoryTemplate.refresh": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh my drafts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新我的草稿"
+          }
+        }
+      }
+    },
+    "projectStoryTemplate.more": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Load more drafts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加载更多草稿"
+          }
+        }
+      }
+    },
+    "projectStoryTemplate.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No personal drafts were found."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无个人玩法草稿。"
+          }
+        }
+      }
+    },
+    "projectStoryTemplate.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This draft could not be read or cannot be used at this story position. Refresh or choose another draft. Nothing has been inserted."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法读取此草稿，或它不能用于当前故事位置。请刷新或选择其他草稿，尚未插入内容。"
+          }
+        }
+      }
+    },
+    "projectStoryTemplate.changed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The source draft or editor changed. Refresh and review again before inserting."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来源草稿或编辑内容已改变，请刷新并重新预览后插入。"
+          }
+        }
+      }
+    },
+    "projectStoryTemplate.saveFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local saving could not be confirmed. Your current story is unchanged. You can retry saving this reviewed insertion."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法确认本机保存，当前故事未改变。可重试保存此次已预览的插入内容。"
+          }
+        }
+      }
+    },
+    "projectStoryTemplate.saveRequired": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save this draft on this device first, then reopen the gameplay chooser. Nothing has been inserted."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先保存本机草稿，再重新打开玩法选择。尚未插入内容。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

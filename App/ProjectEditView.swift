@@ -147,6 +147,14 @@ import SwiftUI
         guard coordinator.saveLocal(value) else { revision += 1; return false }
         draft = value; revision += 1; return true
     }
+    func canReplaceExistingStoryDraft() -> Bool { fullEdit && coordinator.canReplaceExistingStoryDraft(draft) }
+    func persistExistingStoryChange(_ value: ProjectEditDraft, lease: ProjectEditStarterController.Lease) -> Bool {
+        guard isCurrentStarterLease(lease), canReplaceExistingStoryDraft(), value.product == draft.product, value.owner == draft.owner,
+              value.baseRevision.utf8.elementsEqual(draft.baseRevision.utf8) else { return false }
+        autosave?.cancel(); cancelReview()
+        guard coordinator.replaceExistingStoryDraft(value, replacing: draft) else { revision += 1; return false }
+        draft = value; revision += 1; return true
+    }
     func saveLocal() { guard canSaveLocal else { return }; coordinator.saveLocal(draft); revision += 1 }
     func restore() { guard ownsVisit else { return }; cancelReview(); editorIncarnation = UUID(); if let value = coordinator.restoredDraft() { draft = value }; revision += 1 }
     func discard() { guard ownsVisit else { return }; cancelReview(); editorIncarnation = UUID(); coordinator.discardLocalDraft(); revision += 1 }

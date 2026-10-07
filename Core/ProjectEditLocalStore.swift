@@ -61,6 +61,52 @@ public enum ProjectEditRestore {
             try storage.write(JSONEncoder().encode(identity), key: key(session, "active:\(draft.product.rawValue):\(draft.owner.rawValue)"))
         }
     }
+    /// Story-template adoption is deliberately narrower than ordinary save: it may
+    /// replace only an already committed, exact local preimage. No active pointer is
+    /// created, switched or rewritten. The existing general save semantics stay intact.
+    public func canReplaceExistingStoryDraft(_ expected: ProjectEditDraft, session: ProjectEditSession, identity: ProjectEditDraftIdentity) -> Bool {
+        (try? existingStoryPreimage(expected, session: session, identity: identity)) != nil
+    }
+    public func replaceExistingStoryDraft(_ draft: ProjectEditDraft, replacing expected: ProjectEditDraft,
+                                          session: ProjectEditSession, identity: ProjectEditDraftIdentity) throws {
+        guard draft.product == expected.product, draft.owner == expected.owner,
+              draft.baseRevision.utf8.elementsEqual(expected.baseRevision.utf8) else { throw ProjectEditError.invalidContract }
+        let envelopeKey = try existingStoryPreimage(expected, session: session, identity: identity)
+        let bytes = try JSONEncoder().encode(ProjectEditEnvelope(session: session, identity: identity, draft: draft))
+        // The secure storage provider atomically replaces this single item. A failed
+        // item write leaves its old bytes intact. There is no second write or fallback.
+        try storage.write(bytes, key: envelopeKey)
+    }
+    private func existingStoryPreimage(_ expected: ProjectEditDraft, session: ProjectEditSession,
+                                       identity: ProjectEditDraftIdentity) throws -> String {
+        guard expected.product == .city, expected.owner == .personal else { throw ProjectEditError.invalidContract }
+        if identity.topicID == nil {
+            let pointerKey = key(session, "active:\(expected.product.rawValue):\(expected.owner.rawValue)")
+            guard let pointerData = try storage.read(pointerKey),
+                  let rawPointer = try? ApprovedTopicReleaseWire.envelope(pointerData),
+                  Set(rawPointer.keys).isSubset(of: ["topicID", "draftUUID"]),
+                  let pointer = try? JSONDecoder().decode(ProjectEditDraftIdentity.self, from: pointerData),
+                  pointer.topicID == nil, pointer.draftUUID.flatMap(UUID.init(uuidString:)) != nil,
+                  pointer == identity else { throw ProjectEditError.persistenceUnavailable }
+        }
+        let envelopeKey = key(session, identity.bucket)
+        guard let data = try storage.read(envelopeKey),
+              let raw = try? ApprovedTopicReleaseWire.envelope(data),
+              let stored = try? JSONDecoder().decode(ProjectEditEnvelope.self, from: data),
+              let retained = try? JSONEncoder().encode(stored), let sourceText = String(data: data, encoding: .utf8),
+              try ContentDraftJSON.parse(sourceText) == ContentDraftJSON.parse(String(decoding: retained, as: UTF8.self)),
+              stored.version == (stored.draft.pendingMaterials == nil ? 1 : 2),
+              stored.accountID == session.accountID, stored.namespace == session.storageNamespace,
+              stored.identity == identity, stored.draft.product == expected.product, stored.draft.owner == expected.owner,
+              stored.baseRevision.utf8.elementsEqual(expected.baseRevision.utf8),
+              stored.draft.baseRevision.utf8.elementsEqual(expected.baseRevision.utf8),
+              identity.topicID == nil || !expected.baseRevision.isEmpty,
+              let originalDraft = raw["draft"],
+              let original = ProjectEditPendingMaterials.exactData(originalDraft),
+              let proposedPreimage = ProjectEditPendingMaterials.exactData(expected),
+              try ContentDraftJSON.parse(String(decoding: original, as: UTF8.self)) == ContentDraftJSON.parse(String(decoding: proposedPreimage, as: UTF8.self)) else { throw ProjectEditError.persistenceUnavailable }
+        return envelopeKey
+    }
     public func activeIdentity(session: ProjectEditSession, product: ProjectEditProduct, owner: ProjectEditOwner) throws -> ProjectEditDraftIdentity? {
         guard let data = try storage.read(key(session, "active:\(product.rawValue):\(owner.rawValue)")) else { return nil }
         let value = try JSONDecoder().decode(ProjectEditDraftIdentity.self, from: data)

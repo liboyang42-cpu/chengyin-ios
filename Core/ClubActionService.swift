@@ -21,16 +21,17 @@ public struct ClubActionService {
         var request: URLRequest
         do {
             guard clubID > 0, AuthRequestBuilder.isValidToken(token), ClubApplicationMessage.isValid(joinMessage, for: action) else { throw APIError.invalidRequest }
-            request = try AuthRequestBuilder.makeFormRequest(
-                url: configuration.baseURL.appendingPathComponent(action == .leave ? "api/club/quit" : "api/club/join"),
-                fields: ["id": String(clubID)], token: token)
-            if action != .leave {
-                // Current /join accepts @RequestBody Club, not a multipart form.
-                request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-                var fields: [String: Any] = ["id": clubID]
-                if action == .apply { fields["joinMessage"] = joinMessage }
-                request.httpBody = try JSONSerialization.data(withJSONObject: fields, options: [.sortedKeys])
-            }
+            request = URLRequest(url: configuration.baseURL.appendingPathComponent(action == .leave ? "api/club/quit" : "api/club/join"))
+            request.httpMethod = "POST"
+            request.timeoutInterval = 20
+            request.cachePolicy = .reloadIgnoringLocalCacheData
+            request.setValue("application/json", forHTTPHeaderField: "Accept")
+            request.setValue(token, forHTTPHeaderField: "Authorization")
+            // Current /join and /quit both accept @RequestBody Club.
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            var fields: [String: Any] = ["id": clubID]
+            if action == .apply { fields["joinMessage"] = joinMessage }
+            request.httpBody = try JSONSerialization.data(withJSONObject: fields, options: [.sortedKeys])
         } catch { throw ClubActionWriteError.notSent(.invalidRequest) }
         guard !Task.isCancelled else { throw ClubActionWriteError.cancelledBeforeDispatch }
         let data: Data, status: Int

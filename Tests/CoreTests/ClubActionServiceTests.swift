@@ -8,7 +8,7 @@ final class ClubActionServiceTests: XCTestCase {
     private func service(_ transport: ClubActionTestTransport) throws -> ClubActionService {
         ClubActionService(configuration: try APIConfiguration(baseURL: URL(string: "https://example.com/fixture/")!), transport: transport)
     }
-    func testJoinAndApplyUseCurrentJSONWhileLeaveKeepsItsContract() async throws {
+    func testJoinApplyAndLeaveUseCurrentJSONContract() async throws {
         for action in [ClubAction.join, .apply, .leave] {
             let t = ClubActionTestTransport()
             t.json = #"{"code":200,"data":{"state":"pending"},"msg":"  Source receipt  "}"#
@@ -19,20 +19,78 @@ final class ClubActionServiceTests: XCTestCase {
             XCTAssertEqual(request.httpMethod, "POST")
             XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "fixture-token")
             XCTAssertEqual(request.value(forHTTPHeaderField: "Accept"), "application/json")
-            if action == .leave {
-                XCTAssertTrue(request.value(forHTTPHeaderField: "Content-Type")?.hasPrefix("multipart/form-data; boundary=") == true)
-            } else { XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json") }
-            let body = String(data: try XCTUnwrap(request.httpBody), encoding: .utf8) ?? ""
-            if action == .leave {
-                XCTAssertTrue(body.contains("name=\"id\"\r\n\r\n7\r\n"))
-            } else {
-                let json = try XCTUnwrap(JSONSerialization.jsonObject(with: request.httpBody!) as? [String: Any])
-                XCTAssertEqual(json["id"] as? Int, 7)
-                XCTAssertEqual(Set(json.keys), action == .apply ? Set(["id", "joinMessage"]) : Set(["id"]))
+            XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json")
+            XCTAssertEqual(Set((request.allHTTPHeaderFields ?? [:]).keys.map { $0.lowercased() }), Set(["authorization", "accept", "content-type"]))
+            XCTAssertEqual(request.timeoutInterval, 20)
+            XCTAssertEqual(request.cachePolicy, .reloadIgnoringLocalCacheData)
+            XCTAssertNil(request.httpBodyStream)
+            let data = try XCTUnwrap(request.httpBody)
+            let expectedBody = action == .apply ? #"{"id":7,"joinMessage":""}"# : #"{"id":7}"#
+            XCTAssertEqual(data, Data(expectedBody.utf8))
+            let json = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+            XCTAssertEqual(json["id"] as? Int, 7)
+            XCTAssertEqual(Set(json.keys), action == .apply ? Set(["id", "joinMessage"]) : Set(["id"]))
+            let body = try XCTUnwrap(String(data: data, encoding: .utf8))
+            for prohibited in ["clubId", "approved", "payment", "transaction", "membershipAccessEnd", "boundary=", "Content-Disposition", "form-data"] {
+                XCTAssertFalse(body.contains(prohibited))
             }
-            XCTAssertFalse(body.contains("clubId")); XCTAssertFalse(body.contains("approved")); XCTAssertFalse(body.contains("payment"))
-            if action == .leave { XCTAssertEqual(body.components(separatedBy: "name=\"").count, 2) }
             XCTAssertEqual(t.requests.count, 1)
+        }
+    }
+    func testLeaveJSONContainsOnlyNumericIDWithoutPrecisionLoss() async throws {
+        for id in [1, 9_007_199_254_740_993, Int.max] {
+            let t = ClubActionTestTransport()
+            _ = try await service(t).perform(.leave, clubID: id, token: "fixture-token")
+            let request = try XCTUnwrap(t.requests.first)
+            XCTAssertEqual(request.url?.absoluteString, "https://example.com/fixture/api/club/quit")
+            XCTAssertEqual(request.httpMethod, "POST")
+            XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json")
+            let data = try XCTUnwrap(request.httpBody)
+            XCTAssertEqual(data, Data("{\"id\":\(id)}".utf8))
+            let json = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+            XCTAssertEqual(Set(json.keys), Set(["id"]))
+            XCTAssertEqual(json["id"] as? Int, id)
+            XCTAssertEqual(t.requests.count, 1)
+        }
+    }
+    func testLeaveFailuresNeverRetryOrFallBackToMultipart() async throws {
+        let responses: [(Int, String, ClubActionWriteError)] = [
+            (200, #"{"code":409,"msg":"Denied"}"#, .rejected(.init(code: 409, message: "Denied"))),
+            (401, "malformed", .rejected(.init(httpStatus: 401))),
+            (403, "malformed", .rejected(.init(httpStatus: 403))),
+            (200, "malformed", .outcomeUnknown(.malformedResponse)),
+            (200, "{}", .outcomeUnknown(.malformedResponse)),
+            (200, #"{"code":"200"}"#, .outcomeUnknown(.malformedResponse)),
+            (500, #"{"code":500}"#, .outcomeUnknown(.response(.init(httpStatus: 500, code: 500))))
+        ]
+        for (status, json, expected) in responses {
+            let t = ClubActionTestTransport(); t.status = status; t.json = json
+            do { _ = try await service(t).perform(.leave, clubID: 7, token: "fixture-token"); XCTFail() }
+            catch { XCTAssertEqual(error as? ClubActionWriteError, expected) }
+            XCTAssertEqual(t.requests.count, 1)
+            XCTAssertEqual(t.requests.first?.value(forHTTPHeaderField: "Content-Type"), "application/json")
+            XCTAssertEqual(t.requests.first?.httpBody, Data(#"{"id":7}"#.utf8))
+        }
+        let failures: [(Error, ClubActionWriteError)] = [
+            (URLError(.timedOut), .outcomeUnknown(.transport)),
+            (CancellationError(), .outcomeUnknown(.cancelled)),
+            (URLError(.cancelled), .outcomeUnknown(.cancelled))
+        ]
+        for (failure, expected) in failures {
+            let t = ClubActionTestTransport(); t.error = failure
+            do { _ = try await service(t).perform(.leave, clubID: 7, token: "fixture-token"); XCTFail() }
+            catch { XCTAssertEqual(error as? ClubActionWriteError, expected) }
+            XCTAssertEqual(t.requests.count, 1)
+            XCTAssertEqual(t.requests.first?.value(forHTTPHeaderField: "Content-Type"), "application/json")
+            XCTAssertEqual(t.requests.first?.httpBody, Data(#"{"id":7}"#.utf8))
+        }
+    }
+    func testInvalidLeaveIDNeverDispatches() async throws {
+        for id in [0, -1, Int.min] {
+            let t = ClubActionTestTransport()
+            do { _ = try await service(t).perform(.leave, clubID: id, token: "fixture-token"); XCTFail() }
+            catch { XCTAssertEqual(error as? ClubActionWriteError, .notSent(.invalidRequest)) }
+            XCTAssertTrue(t.requests.isEmpty)
         }
     }
     func testJoinedPendingMissingAndUnknownReceiptStatesAreNotConflated() async throws {

@@ -1,0 +1,68 @@
+[
+  {
+    "path": "Core/ClubActionService.swift",
+    "pre_sha256": "c8061b7e12619b538983de63ecd7df677e118ebf103fe596f52f888a73968f4b",
+    "post_sha256": "a418aceafda974debb57a8305095216459ba4d1ea5eb06a3d8c421e614106f21",
+    "source": "quit3"
+  },
+  {
+    "path": "Tests/ContractChecks/test_club_application_message.py",
+    "pre_sha256": "847f35d971e61f1af095b6786cb226eb1f4fa2b248898c99d4b11620d3001cf8",
+    "post_sha256": "5c2d7ca4194ea8f46c6495779f3fce79cd1ed586deddf210a910ff59b69e2a71",
+    "source": "quit3"
+  },
+  {
+    "path": "Tests/CoreTests/ClubActionServiceTests.swift",
+    "pre_sha256": "c63312887b8785ff2272a3d1e32c5f6289c7da191c454d31e7ed2d1fbf7a7ff6",
+    "post_sha256": "d4d1c9edaf6cb8522990ae8d41e5e6bbfe588d24b7be7a27b8a4e733f59b51e1",
+    "source": "quit3"
+  },
+  {
+    "path": "App/ClubOperationsReviewView.swift",
+    "pre_sha256": "9b950bbbf30203223510bd3bcf7625a583c047892c0fc23faefe9567feb0ca31",
+    "post_sha256": "8a40e168be71b266c3b09c2c321a9a31e2d55d4394c9470a94087d935d239cb0",
+    "pre_git_blob": "a35191525668a2c4e65004d0f36445d53ff08ef0",
+    "post_git_blob": "7a6f5d1f40efd53f84b9745d26eaf9c29816f472",
+    "source": "admin6"
+  },
+  {
+    "path": "App/ClubOperationsViews.swift",
+    "pre_sha256": "8e3b259fd393d40f6aca94959b15207afcf81750be9732d601ea82b19c653367",
+    "post_sha256": "eaa25d416d51ffb124a98a61f1a0d8596600598b5c62e667896b3d268261f925",
+    "pre_git_blob": "68a9713a86686af3a3c617909edfa58f7d38cfa1",
+    "post_git_blob": "c52ca6681666e95b19a59ba541386d2507b5789a",
+    "source": "admin6"
+  },
+  {
+    "path": "Core/ClubOperationsContracts.swift",
+    "pre_sha256": "82e55a8a6340c55cc3ae553884474209899665772988e8ace940bc031d4eaefa",
+    "post_sha256": "03c8786492be26fb641503e893c0821dafcf7b40d4305d82c0b46b894e4ce25e",
+    "pre_git_blob": "3496da31d0920e30ba71a9cd311dcc28f2143ef8",
+    "post_git_blob": "e691007c74b902acfc9a31662a0e2a1c222963fe",
+    "source": "admin6"
+  },
+  {
+    "path": "Tests/AppUITests/ClubOperationsFlowTests.swift",
+    "pre_sha256": "d494be1fd9c89665c98b3687a461ac26c0f3fb8d2e292e9ae6f77bd186a3d93c",
+    "post_sha256": "5e97402454558aae7ef48f57ae5516a4971db61da7dd1081e8d7d2e11bdb576e",
+    "pre_git_blob": "7aee06d92b73a3a17e0b9def859ad9b23cd65054",
+    "post_git_blob": "8ada44c4b726e29ce667ad362414d45ebe22ff80",
+    "source": "admin6"
+  },
+  {
+    "path": "Tests/ContractChecks/test_club_operations_contracts.py",
+    "pre_sha256": "ab00eb090de6534c1600d3d18f929c9b167411007073fe0d5b03fb8ae13e9827",
+    "post_sha256": "328ac626642874915a26010113c6cbaa69bc798580f2a1d184059bfe5e6a9f79",
+    "pre_git_blob": "ca6949b2bd3150255ee8be0bb8b46c80e2ced65c",
+    "post_git_blob": "9f6da265c7bcea54594881e1326e29633010eb58",
+    "source": "admin6"
+  },
+  {
+    "path": "Tests/CoreTests/ClubOperationsTests.swift",
+    "pre_sha256": "1b18ba51d8c71c6abcfc564930cb88367c9a5ca88a6eda4913315363d798a3eb",
+    "post_sha256": "379d733efce437c5250a25350c47cd7fb2b9cd935bfc69724b5c3aa72b178111",
+    "pre_git_blob": "fdba3e97ae7d1ef15c9c685d5f516d9337455144",
+    "post_git_blob": "a518dfa721c4e7a134fa1518522dc163dccd37b6",
+    "source": "admin6"
+  }
+]

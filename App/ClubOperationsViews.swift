@@ -96,7 +96,7 @@ struct ClubOperationsWorkspaceView: View {
                 Text(value.accountRole != "club" ? "club.ops.leaderRequired" : "club.ops.clubLimit")
             }
         } else {
-            ClubOperationsProfileForm(draft: $draft, isCreate: target == .create, joinPolicySupported: value.profile?.club.joinPolicySupported == true)
+            ClubOperationsProfileForm(draft: $draft, isCreate: target == .create, isOwner: value.profile?.club.isOwner == true, joinPolicySupported: value.profile?.club.joinPolicySupported == true)
                 .disabled(loading || state.locksForm)
             Section {
                 Button("club.ops.reviewProfile") {
@@ -241,6 +241,7 @@ struct ClubOperationsWorkspaceView: View {
 private struct ClubOperationsProfileForm: View {
     @Binding var draft: ClubOperationsDraft
     let isCreate: Bool
+    let isOwner: Bool
     let joinPolicySupported: Bool
     var body: some View {
         Section("club.ops.profile") {
@@ -268,7 +269,7 @@ private struct ClubOperationsProfileForm: View {
             }
             Text("club.ops.directionsHint").font(.footnote).foregroundStyle(.secondary)
         }
-        if !isCreate {
+        if !isCreate && isOwner {
             Section("club.ops.signupSettings") {
                 Toggle("club.ops.prioritySignup", isOn: $draft.prioritySignupEnabled).accessibilityIdentifier("club.ops.prioritySignup")
                 VStack(alignment: .leading, spacing: 6) {

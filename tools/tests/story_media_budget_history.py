@@ -1,4 +1,5 @@
 from tools.tests.combined_native_budget_history import before_combined
+from tools.tests.club_parity_budget_history import historical_pre_club_source
 """Exact pre-media profile and source projection; current media remains separately exhaustive."""
 from copy import deepcopy
 from pathlib import Path
@@ -25,7 +26,7 @@ def before_story_media(profile):
  assert canonical(result)==BASELINE_PROFILE_SHA256,'Current published feature profile not exactly restored'
  return result
 def historical_pre_media_ui_source(path):
- path=Path(path);name=path.name.removesuffix('.txt');expected=source_index()['changed_sources'].get(name)
+ path=historical_pre_club_source(Path(path));name=path.name.removesuffix('.txt');expected=source_index()['changed_sources'].get(name)
  if expected is None:return path
  result=FIXTURES/(name+'.txt');assert hashlib.sha256(result.read_bytes()).hexdigest()==expected;return result
 def materialize_historical_pre_media_ui(directory):

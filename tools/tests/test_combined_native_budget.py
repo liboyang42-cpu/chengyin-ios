@@ -5,11 +5,13 @@ from collections import defaultdict
 from decimal import Decimal
 from pathlib import Path
 import hashlib,json,re,tempfile,unittest
-from tools import run_ui_shard as shard,ci_gates
+from tools.tests.club_parity_budget_history import historical_pre_club_source, historical_pre_club_module
 from tools.tests.combined_native_budget_history import before_combined,canonical,materialize_independent_ui,source_index,CURRENT_PROFILE_SHA256
 from tools.tests.story_media_budget_history import before_story_media
 from tools.tests.reviewed_map_budget_history import before_reviewed_map
 ROOT=Path(__file__).resolve().parents[2]
+shard=historical_pre_club_module(ROOT/'tools/run_ui_shard.py','combined_pre_club_shard')
+ci_gates=historical_pre_club_module(ROOT/'tools/ci_gates.py','combined_pre_club_gates')
 class CombinedNativeBudgetTests(unittest.TestCase):
  def setUp(self):
   self.history_directory=tempfile.TemporaryDirectory();self.addCleanup(self.history_directory.cleanup)
@@ -54,7 +56,7 @@ class CombinedNativeBudgetTests(unittest.TestCase):
    with tempfile.TemporaryDirectory() as tmp:
     sources=materialize_independent_ui(tmp,branch);found=shard.discover(sources);self.assertEqual((sum(found.values()),len(found)),(count,classes))
    for row in source_index()[branch]['ui_sources']:
-    if 'historical_file' not in row:self.assertEqual(hashlib.sha256((ROOT/row['path']).read_bytes()).hexdigest(),row['sha256'])
+    if 'historical_file' not in row:self.assertEqual(hashlib.sha256(historical_pre_club_source(ROOT/row['path']).read_bytes()).hexdigest(),row['sha256'])
  def test_64_fits_and_65_is_chosen_for_30_seconds_additional_margin(self):
   self.assertEqual((shard.DEFAULT_SHARD_COUNT,ci_gates.SHARD_COUNT,self.plan['shard_count']),(65,65,65));self.assertEqual((self.plan['deadline_seconds'],self.plan['startup_reserve_seconds'],self.plan['complete_method_limit_seconds']),(1800,300,900));self.assertEqual(sum(self.costs.values()),Decimal('89264.732'));self.assertEqual(max(self.costs.values()),1470)
   counts=shard.discover(self.ui_root)
@@ -67,7 +69,7 @@ class CombinedNativeBudgetTests(unittest.TestCase):
    elif n==64:self.assertEqual(peak,Decimal('1797.226'));self.assertLess(peak,1800)
    else:self.assertEqual(peak,1770);self.assertEqual(groups,shard.partition(actual,n));self.assertEqual(1800-peak,30)
  def test_unchanged_workflow_runner_and_gate_preserve_65_shards(self):
-  workflow=(ROOT/'.github/workflows/native-ios.yml').read_text();outputs=re.findall(r'^      shard_(\d+): \$\{\{ steps.completion.outputs.shard_(\d+) \}\}',workflow,re.M)
+  workflow=historical_pre_club_source(ROOT/'.github/workflows/native-ios.yml').read_text();outputs=re.findall(r'^      shard_(\d+): \$\{\{ steps.completion.outputs.shard_(\d+) \}\}',workflow,re.M)
   self.assertEqual(outputs,[(str(i),str(i)) for i in range(65)]);self.assertIn('--count 65 ',workflow);self.assertIn('--deadline-seconds 1800',workflow)
  def test_each_inverse_rejects_corrupted_current_data_and_historical_identity(self):
   for mutation in ['inventory','new_cost','old_cost','source','observation','historical_run','migration','media_plan','map_plan']:

@@ -37,7 +37,7 @@ struct ClubOperationsReviewView: View {
     @ViewBuilder private var details: some View {
         switch review.command {
         case .create(let draft): profile(draft, original: nil)
-        case .update(let draft, let original): profile(draft, original: original)
+        case .update(let draft, _): profile(draft, original: review.snapshot.profile)
         case .openSetting(let setting, let enabled, let previous):
             Section(LocalizedStringKey("club.ops." + setting.rawValue)) {
                 LabeledContent("club.ops.current") { Text(previous ? "club.ops.enabled" : "club.ops.disabled") }
@@ -59,11 +59,14 @@ struct ClubOperationsReviewView: View {
             LabeledContent("club.ops.clubType") { canonical(draft.clubType) }
             row("description", draft.description); row("keywords", draft.keywords); row("style", draft.style)
             ForEach(draft.activityPrefs, id: \.self) { canonical($0) }
-            if let original {
+            if let original, original.club.isOwner {
                 LabeledContent("club.ops.prioritySignup") { Text(draft.prioritySignupEnabled ? "club.ops.enabled" : "club.ops.disabled") }
+                    .accessibilityIdentifier("club.ops.reviewSheet.prioritySignup")
                 row("quota", draft.memberReservedQuota.isEmpty ? "0" : draft.memberReservedQuota)
+                    .accessibilityIdentifier("club.ops.reviewSheet.quota")
                 if original.club.joinPolicySupported {
                     LabeledContent("club.ops.joinPolicy") { Text(draft.joinPolicy == 1 ? "club.ops.joinReview" : "club.ops.joinDirect") }
+                        .accessibilityIdentifier("club.ops.reviewSheet.joinPolicy")
                 }
             }
             Text("club.ops.mediaPreserved").font(.footnote)

@@ -37,6 +37,15 @@ public struct ClubOperationsDraft: Equatable {
         joinPolicy = club.joinPolicy
     }
     public func validate(original: ClubOperationsProfile?) throws {
+        if let original, !original.club.isOwner {
+            let baseline = ClubOperationsDraft(profile: original)
+            // Administrators may edit display fields only. Never silently discard
+            // an attempted owner-only edit and report it as a successful save.
+            guard original.club.viewerIsAdmin,
+                  prioritySignupEnabled == baseline.prioritySignupEnabled,
+                  memberReservedQuota == baseline.memberReservedQuota,
+                  joinPolicy == baseline.joinPolicy else { throw ClubOperationsBlock.forbidden }
+        }
         guard !name.trimmed.isEmpty, !city.trimmed.isEmpty else { throw ClubOperationsBlock.requiredFields }
         guard name.count <= 30, city.count <= 20, description.count <= 200, keywords.count <= 60, style.count <= 30 else {
             throw ClubOperationsBlock.textTooLong
@@ -61,10 +70,12 @@ public struct ClubOperationsDraft: Equatable {
             "city": city.trimmed, "address": city.trimmed, "keywords": keywords.trimmed, "style": style.trimmed]
         if let original {
             value["id"] = original.club.id
-            value["operationConfigUpdated"] = true
-            value["prioritySignupEnabled"] = prioritySignupEnabled ? 1 : 0
-            value["memberReservedQuota"] = Int(memberReservedQuota.trimmed) ?? 0
-            if original.club.joinPolicySupported { value["joinPolicy"] = joinPolicy }
+            if original.club.isOwner {
+                value["operationConfigUpdated"] = true
+                value["prioritySignupEnabled"] = prioritySignupEnabled ? 1 : 0
+                value["memberReservedQuota"] = Int(memberReservedQuota.trimmed) ?? 0
+                if original.club.joinPolicySupported { value["joinPolicy"] = joinPolicy }
+            }
         }
         // memberDiscountPrice is intentionally absent; source preserves its legacy value.
         return value
@@ -133,6 +144,10 @@ public enum ClubOperationsCommand: Equatable {
         case .update(let draft, let original):
             guard snapshot.target == .club(original.club.id), let fresh = snapshot.profile,
                   fresh.club.id == original.club.id, fresh.club.canGovern else { throw ClubOperationsBlock.forbidden }
+            // A role change invalidates the whole review, even when both roles
+            // can edit display fields. Never silently widen or narrow its scope.
+            guard fresh.club.isOwner == original.club.isOwner,
+                  fresh.club.viewerIsAdmin == original.club.viewerIsAdmin else { throw ClubOperationsBlock.changed }
             // A newer server edit must not be overwritten by a draft based on older data.
             guard ClubOperationsDraft(profile: fresh) == ClubOperationsDraft(profile: original),
                   fresh.club.joinPolicySupported == original.club.joinPolicySupported else { throw ClubOperationsBlock.changed }
@@ -153,7 +168,9 @@ public enum ClubOperationsCommand: Equatable {
         try validate(snapshot: snapshot, identity: identity)
         switch self {
         case .create(let draft): return try draft.fields(original: nil)
-        case .update(let draft, let original): return try draft.fields(original: original)
+        case .update(let draft, _):
+            guard let fresh = snapshot.profile else { throw ClubOperationsBlock.forbidden }
+            return try draft.fields(original: fresh)
         case .openSetting(let setting, let enabled, _):
             guard let id = snapshot.profile?.club.id else { throw APIError.invalidRequest }
             return ["id": id, setting.rawValue: enabled ? 1 : 0]

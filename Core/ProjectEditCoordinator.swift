@@ -38,6 +38,7 @@ public struct ProjectEditContinuation {
     public let storyImageJournal: ProjectStoryImageJournal?
     public let storyAudioSource: (any ProjectStoryAudioUploading)?
     public let storyAudioJournal: ProjectStoryAudioJournal?
+    public let storyTemplateSource: (any ProjectStoryTemplateReading)?
     public let merchantDraftSource: (any ProjectMerchantDraftReading)?
     public private(set) var pending: ProjectEditPending?
     public private(set) var restore: ProjectEditRestore = .missing
@@ -55,8 +56,8 @@ public struct ProjectEditContinuation {
         return false
         #endif
     }
-    public init(initial: ProjectEditSnapshot, service: any ProjectEditServing, store: ProjectEditLocalStore, releasePreparationSource: (any ApprovedTopicReleasePreparing)? = nil, releasePublicationSource: (any ApprovedTopicReleasePublishing)? = nil, releasePublicationJournal: ApprovedTopicReleasePublicationJournal? = nil, releaseReviewSource: (any ApprovedTopicReviewServing)? = nil, releaseReviewJournal: ApprovedTopicReviewJournal? = nil, ownedCoverSource: (any OwnedTopicCoverServing)? = nil, ownedCoverJournal: OwnedTopicCoverJournal? = nil, storyImageSource: (any ProjectStoryImageUploading)? = nil, storyImageJournal: ProjectStoryImageJournal? = nil, storyAudioSource: (any ProjectStoryAudioUploading)? = nil, storyAudioJournal: ProjectStoryAudioJournal? = nil, merchantDraftSource: (any ProjectMerchantDraftReading)? = nil, currentSession: @escaping () -> ProjectEditSession?) {
-        self.initial = initial; self.service = service; self.store = store; self.releasePreparationSource = releasePreparationSource; self.releasePublicationSource = releasePublicationSource; self.releasePublicationJournal = releasePublicationJournal; self.releaseReviewSource = releaseReviewSource; self.releaseReviewJournal = releaseReviewJournal; self.ownedCoverSource = ownedCoverSource; self.ownedCoverJournal = ownedCoverJournal; self.storyImageSource = storyImageSource; self.storyImageJournal = storyImageJournal; self.storyAudioSource = storyAudioSource; self.storyAudioJournal = storyAudioJournal; self.merchantDraftSource = merchantDraftSource; self.currentSession = currentSession
+    public init(initial: ProjectEditSnapshot, service: any ProjectEditServing, store: ProjectEditLocalStore, releasePreparationSource: (any ApprovedTopicReleasePreparing)? = nil, releasePublicationSource: (any ApprovedTopicReleasePublishing)? = nil, releasePublicationJournal: ApprovedTopicReleasePublicationJournal? = nil, releaseReviewSource: (any ApprovedTopicReviewServing)? = nil, releaseReviewJournal: ApprovedTopicReviewJournal? = nil, ownedCoverSource: (any OwnedTopicCoverServing)? = nil, ownedCoverJournal: OwnedTopicCoverJournal? = nil, storyImageSource: (any ProjectStoryImageUploading)? = nil, storyImageJournal: ProjectStoryImageJournal? = nil, storyAudioSource: (any ProjectStoryAudioUploading)? = nil, storyAudioJournal: ProjectStoryAudioJournal? = nil, merchantDraftSource: (any ProjectMerchantDraftReading)? = nil, storyTemplateSource: (any ProjectStoryTemplateReading)? = nil, currentSession: @escaping () -> ProjectEditSession?) {
+        self.initial = initial; self.service = service; self.store = store; self.releasePreparationSource = releasePreparationSource; self.releasePublicationSource = releasePublicationSource; self.releasePublicationJournal = releasePublicationJournal; self.releaseReviewSource = releaseReviewSource; self.releaseReviewJournal = releaseReviewJournal; self.ownedCoverSource = ownedCoverSource; self.ownedCoverJournal = ownedCoverJournal; self.storyImageSource = storyImageSource; self.storyImageJournal = storyImageJournal; self.storyAudioSource = storyAudioSource; self.storyAudioJournal = storyAudioJournal; self.merchantDraftSource = merchantDraftSource; self.storyTemplateSource = storyTemplateSource; self.currentSession = currentSession
     }
     /// Copies into a fresh coordinator/identity. The original remains saved and unchanged.
     public func copyForMode(_ draft: ProjectEditDraft, to product: ProjectEditProduct) throws -> ProjectEditCoordinator {
@@ -66,7 +67,7 @@ public struct ProjectEditContinuation {
               draft.product == snapshot.draft.product else { throw ProjectEditError.changedSession }
         let copy = try ProjectDraftModeCopy.copy(draft, to: product)
         try store.save(draft, session: session, identity: identity)
-        let coordinator = ProjectEditCoordinator(initial: .init(draft: copy), service: service, store: store, releasePreparationSource: releasePreparationSource, releasePublicationSource: releasePublicationSource, releasePublicationJournal: releasePublicationJournal, releaseReviewSource: releaseReviewSource, releaseReviewJournal: releaseReviewJournal, ownedCoverSource: ownedCoverSource, ownedCoverJournal: ownedCoverJournal, storyImageSource: storyImageSource, storyImageJournal: storyImageJournal, storyAudioSource: storyAudioSource, storyAudioJournal: storyAudioJournal, merchantDraftSource: merchantDraftSource, currentSession: currentSession)
+        let coordinator = ProjectEditCoordinator(initial: .init(draft: copy), service: service, store: store, releasePreparationSource: releasePreparationSource, releasePublicationSource: releasePublicationSource, releasePublicationJournal: releasePublicationJournal, releaseReviewSource: releaseReviewSource, releaseReviewJournal: releaseReviewJournal, ownedCoverSource: ownedCoverSource, ownedCoverJournal: ownedCoverJournal, storyImageSource: storyImageSource, storyImageJournal: storyImageJournal, storyAudioSource: storyAudioSource, storyAudioJournal: storyAudioJournal, merchantDraftSource: merchantDraftSource, storyTemplateSource: storyTemplateSource, currentSession: currentSession)
         coordinator.isolatedDraftIdentity = try ProjectEditDraftIdentity()
         coordinator.isolatedOwner = session
         return coordinator
@@ -142,6 +143,23 @@ public struct ProjectEditContinuation {
         guard case .missing = restore else { return false }
         do { try store.save(draft, session: session, identity: identity); messageKey = "projectEdit.localSaved"; return true }
         catch { messageKey = "projectEdit.localFailed"; return false }
+    }
+    /// Read-only eligibility for the chooser's single-item local replacement. This
+    /// does not initialize a missing draft or reuse the ordinary two-item save path.
+    public func canReplaceExistingStoryDraft(_ expected: ProjectEditDraft) -> Bool {
+        guard !isBusy, !isLocked, state != .blocked, state != .simulated, state != .acknowledged,
+              let session = capturedSession, session == currentSession(), let identity,
+              let baseline = snapshot, baseline.scope == .full,
+              baseline.draft.product == expected.product, baseline.draft.owner == expected.owner,
+              case .missing = restore else { return false }
+        return store.canReplaceExistingStoryDraft(expected, session: session, identity: identity)
+    }
+    @discardableResult public func replaceExistingStoryDraft(_ draft: ProjectEditDraft, replacing expected: ProjectEditDraft) -> Bool {
+        guard canReplaceExistingStoryDraft(expected), let session = capturedSession, let identity else { return false }
+        do {
+            try store.replaceExistingStoryDraft(draft, replacing: expected, session: session, identity: identity)
+            messageKey = "projectEdit.localSaved"; return true
+        } catch { messageKey = "projectEdit.localFailed"; return false }
     }
     public func prepare(_ draft: ProjectEditDraft) {
         synchronizeSession(); confirmation = nil

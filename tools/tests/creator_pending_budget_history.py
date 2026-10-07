@@ -1,4 +1,5 @@
 """Exact pre-creator profile and full-source projection for historical assertions."""
+from tools.tests.club_parity_budget_history import before_club_parity, historical_pre_club_source
 from copy import deepcopy
 from pathlib import Path
 import hashlib
@@ -21,6 +22,7 @@ def source_index():
 
 
 def before_creator_pending(profile):
+    profile = before_club_parity(profile)
     result = deepcopy(profile)
     plan = result['planning_budget'].get('reviewed_creator_pending_replan')
     if plan is None:
@@ -43,7 +45,7 @@ def materialize_pre_creator_ui(directory):
     destination = Path(directory)
     destination.mkdir(parents=True, exist_ok=True)
     for row in source_index()['baseline_ui_sources']:
-        data = (ROOT / row['path']).read_bytes()
+        data = historical_pre_club_source(ROOT / row['path']).read_bytes()
         assert hashlib.sha256(data).hexdigest() == row['sha256'], row['path']
         (destination / Path(row['path']).name).write_bytes(data)
     return destination
