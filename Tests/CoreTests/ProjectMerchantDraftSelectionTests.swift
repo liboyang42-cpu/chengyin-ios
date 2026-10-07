@@ -5,15 +5,15 @@ import FoundationNetworking
 #endif
 
 @MainActor final class ProjectMerchantDraftSelectionTests: XCTestCase {
-    private let hash = String(repeating: "a", count: 64)
+    private let fixtureContentHash = String(repeating: "a", count: 64)
     private func session(_ account: Int = 7, epoch: UInt64 = 1, viewer: UInt64 = 0, configuration: UInt64 = 0) throws -> ProjectEditSession {
         try .init(accountID: account, epoch: epoch, storageNamespace: "merchant-draft-tests", viewerRevision: viewer, configurationRevision: configuration)
     }
     private func row(_ id: Int = 50, template: Int = 61, title: String = "Original draft", available: Bool = true) -> ProjectEditJSON {
         var value: [String: ProjectEditJSON] = ["sourceId": .number(Decimal(id)), "memberTemplateId": .number(Decimal(template)), "state": .string(available ? "READY" : "UNAVAILABLE")]
         if available {
-            value["source"] = .object(["kind": .string("MERCHANT_AI_TEMPLATE_SOURCE_V1"), "sourceId": .number(Decimal(id)), "sourceVersion": .number(1), "contentHash": .string(hash)])
-            value["templateTitle"] = .string(title); value["templateContentHash"] = .string(hash)
+            value["source"] = .object(["kind": .string("MERCHANT_AI_TEMPLATE_SOURCE_V1"), "sourceId": .number(Decimal(id)), "sourceVersion": .number(1), "contentHash": .string(fixtureContentHash)])
+            value["templateTitle"] = .string(title); value["templateContentHash"] = .string(fixtureContentHash)
         }
         return .object(value)
     }
@@ -69,9 +69,9 @@ import FoundationNetworking
         XCTAssertThrowsError(try ProjectMerchantDraftRow.decode(.object(invalid)))
         invalid = try XCTUnwrap(row(available: false).object); invalid["templateTitle"] = .string("body must not leak")
         XCTAssertThrowsError(try ProjectMerchantDraftRow.decode(.object(invalid)))
-        invalid = try XCTUnwrap(row().object); invalid["source"] = .object(["kind": .string("W18"), "sourceId": .number(50), "sourceVersion": .number(1), "contentHash": .string(hash)])
+        invalid = try XCTUnwrap(row().object); invalid["source"] = .object(["kind": .string("W18"), "sourceId": .number(50), "sourceVersion": .number(1), "contentHash": .string(fixtureContentHash)])
         XCTAssertThrowsError(try ProjectMerchantDraftRow.decode(.object(invalid)))
-        invalid = try XCTUnwrap(row().object); invalid["templateContentHash"] = .string(hash.uppercased())
+        invalid = try XCTUnwrap(row().object); invalid["templateContentHash"] = .string(fixtureContentHash.uppercased())
         XCTAssertThrowsError(try ProjectMerchantDraftRow.decode(.object(invalid)))
     }
     func testFullUnavailablePageKeepsLastScannedCursor() throws {
