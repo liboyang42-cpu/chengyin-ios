@@ -6,7 +6,10 @@ import SwiftUI
     let sessionRevision: UInt64
     var memberDetail: ((MemberPlayTemplateID) -> AnyView)? = nil
     var ownerConfiguration: ((MemberPlayTemplateID) -> AnyView)? = nil
+    var creatorConsent: ((WorkshopCreatorConsentSelection) -> AnyView)? = nil
     var fixtureSignOut: (() -> Void)? = nil
+    @Environment(\.locale) private var creatorLocale
+    @State private var selectedCreatorConsent: WorkshopCreatorConsentSelection?
     @State private var selectedMember: MemberPlayTemplateID?
     @State private var selectedConfiguration: MemberPlayTemplateID?
     @State private var keyword = ""
@@ -40,6 +43,10 @@ import SwiftUI
                         Button("templateOwnerConfig.open") { selectedConfiguration = id }
                             .accessibilityIdentifier("templateOwnerConfig.open.\(row.id)")
                     }
+                    if let id = MemberPlayTemplateID(rawValue: row.id), creatorConsent != nil {
+                        Button(workshopCreatorLocalized("workshopCreator.open", locale: creatorLocale)) { selectedCreatorConsent = WorkshopCreatorConsentSelection(source: id) }
+                            .accessibilityIdentifier("workshopCreator.open.\(row.id)")
+                    }
                     LabeledContent("templateAuthor.shelf.identity", value: String(row.id))
                     if let text = row.description { Text(verbatim: text) }
                     Text(LocalizedStringKey(row.status == 1 ? "templateAuthor.published" : row.status == 2 ? "templateAuthor.underReview" : "templateAuthor.unpublished"))
@@ -66,6 +73,10 @@ import SwiftUI
             .navigationDestination(item: $selectedConfiguration) { id in
                 if let ownerConfiguration { ownerConfiguration(id) }
             }
+            .navigationDestination(item: $selectedCreatorConsent) { selection in
+                if let creatorConsent { creatorConsent(selection) }
+            }
+            .onChange(of: sessionRevision) { _, _ in selectedCreatorConsent = nil }
             .onChange(of: sessionRevision) { _, _ in selectedConfiguration = nil }
             .onChange(of: sessionRevision) { _, _ in selectedMember = nil }
             .task(id: sessionRevision) { rows = []; review = nil; await refresh() }

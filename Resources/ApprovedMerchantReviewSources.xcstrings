@@ -1,0 +1,142 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "topicReview.sources.capture": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check selected sources and prepare review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "核对选定来源并准备审核"
+          }
+        }
+      }
+    },
+    "topicReview.sources.captured": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These exact merchant confirmations are included in this review request. Approval is checked separately."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次审核请求包含以下确切的商家事实确认。是否批准将另行审核。"
+          }
+        }
+      }
+    },
+    "topicReview.sources.confirmation": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved confirmation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已保存的事实确认"
+          }
+        }
+      }
+    },
+    "topicReview.sources.explanation": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose the saved shop confirmation for each merchant draft. The server will check the current content, shop facts and ownership before preparing your review request."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "为每份商家草稿选择已保存的店内事实确认。准备审核请求前，服务端会重新核验当前内容、店内事实及权属。"
+          }
+        }
+      }
+    },
+    "topicReview.sources.missing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This draft has no verified saved shop confirmation. Confirm its facts before requesting a review."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这份草稿尚无核验通过的店内事实确认。请先确认事实，再申请审核。"
+          }
+        }
+      }
+    },
+    "topicReview.sources.older": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Showing the eight most recent saved confirmations for this draft. Older confirmations are not shown here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此处显示这份草稿最近保存的八条事实确认，不展示更早记录。"
+          }
+        }
+      }
+    },
+    "topicReview.sources.selected": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已选择"
+          }
+        }
+      }
+    },
+    "topicReview.sources.template": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merchant draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商家草稿"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

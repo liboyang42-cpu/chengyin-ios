@@ -14,7 +14,7 @@ class PurchasedReadContracts(unittest.TestCase):
   self.assertEqual(s.count('workshopPurchasedReadApproval: workshopPurchasedReadApproval'),2)
   self.assertIn('WorkshopPurchasedComposition.makeBrowser',self.read('App/AppSession.swift'))
  def test_all_workshop_bindings_revoke_at_existing_identity_boundaries(self):
-  s=self.read('App/AppSession.swift');self.assertIn('private func invalidateWorkshopReadBindings() { workshopPaidProfessionalBinding.invalidate(); workshopOwnedBinding.invalidate(); workshopPurchasedBinding.invalidate(); workshopPaidInstallBinding.invalidate(); workshopPaidInstalledTextBinding.invalidate() }',s)
+  s=self.read('App/AppSession.swift');self.assertIn('private func invalidateWorkshopReadBindings() { workshopCreatorPendingBinding.invalidate(); workshopCreatorConsentBinding.invalidate(); workshopPaidProfessionalBinding.invalidate(); workshopOwnedBinding.invalidate(); workshopPurchasedBinding.invalidate(); workshopPaidInstallBinding.invalidate(); workshopPaidInstalledTextBinding.invalidate() }',s)
   self.assertGreaterEqual(s.count('invalidateWorkshopReadBindings()'),10)
   self.assertIn('invalidateWorkshopReadBindings()\n        workshopReadConfigurationChanging = true',s)
  def test_permits_fence_queued_requests_and_unauthorized_side_effects(self):

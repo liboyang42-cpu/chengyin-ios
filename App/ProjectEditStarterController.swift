@@ -19,7 +19,10 @@ import SwiftUI
     }
     let model: ProjectEditModel
     @Published private(set) var destination: Destination?
-    @Published private(set) var candidate = ProjectEditNode()
+    @Published private(set) var candidate = ProjectEditNode() {
+        didSet { candidateRevision += 1 }
+    }
+    private(set) var candidateRevision = 0
     @Published private(set) var saveUnconfirmed = false
     init(model: ProjectEditModel) { self.model = model }
 

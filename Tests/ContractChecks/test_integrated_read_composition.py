@@ -31,7 +31,7 @@ class IntegratedReadCompositionContracts(unittest.TestCase):
 
     def test_predispatch_success_and_error_have_identity_and_approval_fences(self):
         source = self.read('App/AppCompositionRoot.swift')
-        self.assertEqual(source.count('guard current() == captured'), 4)
+        self.assertEqual(source.count('guard current() == captured'), 6)
         self.assertIn('current.playReadApprovalID == issued.playReadApprovalID', source)
         self.assertIn('currentApproval.revision == approval.revision', source)
         self.assertIn('manualMapSelection?.snapshot == selectedArea', source)

@@ -11,6 +11,7 @@ import SwiftUI
     }
 }
 @MainActor private final class TemplateAuthoringFixtureContext: ObservableObject {
+    lazy var creatorHarness = WorkshopCreatorPendingFixtureHarness()
     let metadataReader: DiscoveryFixtureReader
     let memberReader = TemplateAuthoringMemberDetailFixtureReader()
     let storage = TemplateAuthoringMemoryStorage()
@@ -128,7 +129,7 @@ import SwiftUI
             }
             NavigationStack {
                 if ProcessInfo.processInfo.arguments.contains("--template-author-shelf") {
-                    TemplateAuthoringMineView(coordinator: context.coordinator, sessionRevision: context.revision, memberDetail: { AnyView(MemberTemplateDetailView(id: $0, reader: context.memberReader)) }, fixtureSignOut: { context.signOut() })
+                    TemplateAuthoringMineView(coordinator: context.coordinator, sessionRevision: context.revision, memberDetail: { AnyView(MemberTemplateDetailView(id: $0, reader: context.memberReader)) }, creatorConsent: ProcessInfo.processInfo.arguments.contains("--template-author-creator") ? { AnyView(WorkshopCreatorPendingFixtureView(selection: $0, harness: context.creatorHarness)) } : nil, fixtureSignOut: { context.signOut() })
                 } else { TemplateAuthoringView(coordinator: context.coordinator, sessionRevision: context.revision, metadataReader: context.metadataReader,
                     mediaFixtureMode: ProcessInfo.processInfo.arguments.contains("--template-author-media-fixture") ? "generated" : nil) }
             }.id(context.mount)

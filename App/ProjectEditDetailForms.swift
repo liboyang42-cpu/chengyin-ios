@@ -243,7 +243,9 @@ import SwiftUI
         let lease = model.currentReviewLease()
         let exists = targetChapter.wrappedValue.nodes.contains { $0.id == nodeID }
         Form {
-            ProjectEditNodeFields(node: node)
+            ProjectEditNodeFields(node: node).merchantDraftSelection(.init(model: model, node: node,
+                sourceID: "saved:\(chapterID):\(nodeID)", nodeRevision: { model.draftMutationRevision },
+                isCurrent: { model.fullEdit && targetChapter.wrappedValue.nodes.contains { $0.id == nodeID } }))
             if let key = model.coordinator.messageKey { Section { Text(LocalizedStringKey(key)).accessibilityIdentifier("projectPrepared.nodeSaveStatus") } }
         }.disabled(!model.fullEdit).appNavigationTitle("projectEdit.nodeDetails")
             .navigationBarTitleDisplayMode(.inline).scrollDismissesKeyboard(.interactively)
@@ -260,6 +262,11 @@ import SwiftUI
 /// The existing node fields are shared by saved nodes and a temporary starter candidate.
 @MainActor struct ProjectEditNodeFields: View {
     @Binding var node: ProjectEditNode
+    var merchantDraftContext: ProjectMerchantDraftContext? = nil
+    @Environment(\.locale) private var merchantDraftLocale
+    func merchantDraftSelection(_ context: ProjectMerchantDraftContext) -> Self {
+        var result = self; result.merchantDraftContext = context; return result
+    }
     var body: some View {
         Group {
             Section("projectEdit.nodeDetails") {
@@ -279,7 +286,10 @@ import SwiftUI
                 if let id = node.templateID {
                     LabeledContent("projectEdit.templateID", value: String(id))
                 }
-                Text("projectEdit.gameplayDeferred").foregroundStyle(.secondary)
+                if let merchantDraftContext {
+                    ProjectMerchantDraftField(context: merchantDraftContext).id(merchantDraftContext.id)
+                    Text(ProjectMerchantDraftCopy.value(.otherGameplay, locale: merchantDraftLocale)).foregroundStyle(.secondary)
+                } else { Text("projectEdit.gameplayDeferred").foregroundStyle(.secondary) }
             }
         }
     }

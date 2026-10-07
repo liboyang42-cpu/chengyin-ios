@@ -9,8 +9,9 @@ public enum BusinessRuntimeFeature: Hashable {
     case imPollResult, imPollCreate, imPollVote, imPollClose, clubChat
     case publishingRead, publishingWrite, projectRead, projectWrite, directVerification
     case publishingAIQuota, publishingAITheme, publishingAIClub, publishingAITemplate
+    case merchantDraftSelectionList, merchantDraftSelectionResolve
     case approvedTopicReleasePrepare, approvedTopicReleasePublish, approvedTopicReleaseStatus
-    case approvedTopicReviewPrepare, approvedTopicReviewSubmit, approvedTopicReviewStatus, approvedTopicReviewCurrent
+    case approvedTopicReviewSources, approvedTopicReviewPrepare, approvedTopicReviewSubmit, approvedTopicReviewStatus, approvedTopicReviewCurrent
     case topicSelfPlayRead, topicSelfPlayCreate, topicSelfPlayPay, topicSelfPlayConsentRead, topicSelfPlayConsentWrite
 }
 public struct BusinessRuntimeRoute: Hashable {
@@ -149,6 +150,9 @@ public extension BusinessRuntimeFeature {
         case .publishingAIClub: paths = ["api/ai/club/design"]
         case .publishingAITemplate: paths = ["api/ai/template/fill"]
         case .publishingWrite: paths = ["api/activity/publish", "api/topic/create", "api/topic/delete", "api/topic/update_user_status", "api/activity/delete", "api/activity/update_publish_status", "api/template/delete", "api/template/updateLibraryStatus"]
+        case .approvedTopicReviewSources: paths = [ApprovedTopicReviewPath.sources]
+        case .merchantDraftSelectionList: paths = [ProjectMerchantDraftPath.list]
+        case .merchantDraftSelectionResolve: paths = [ProjectMerchantDraftPath.resolve]
         case .approvedTopicReviewPrepare: paths = [ApprovedTopicReviewPath.prepare]
         case .approvedTopicReviewSubmit: paths = [ApprovedTopicReviewPath.submit]
         case .approvedTopicReviewStatus: paths = [ApprovedTopicReviewPath.status]

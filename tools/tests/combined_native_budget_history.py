@@ -1,3 +1,4 @@
+from tools.tests.creator_pending_budget_history import before_creator_pending
 """Exact independent media/map planning and source projections from the union."""
 from pathlib import Path
 from copy import deepcopy
@@ -11,6 +12,7 @@ def canonical(value):return hashlib.sha256(json.dumps(value,sort_keys=True,separ
 def source_index():
  data=(FIXTURES/'source-index.json').read_bytes();assert hashlib.sha256(data).hexdigest()==SOURCE_INDEX_SHA256;return json.loads(data)
 def before_combined(profile,branch):
+ profile=before_creator_pending(profile)
  result=deepcopy(profile)
  if 'reviewed_combined_native_replan' not in result['planning_budget']:
   assert not {'reviewed_story_media_replan','reviewed_map_alternative_list_replan'}.issubset(result['planning_budget']), 'Missing union identity'

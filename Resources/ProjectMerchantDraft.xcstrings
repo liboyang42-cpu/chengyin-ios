@@ -1,0 +1,342 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "projectMerchantDraft.choose": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a merchant draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择本店草稿"
+          }
+        }
+      }
+    },
+    "projectMerchantDraft.localReferenceOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose one of your store’s saved AI drafts. This changes only this node’s local template reference."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择本人店铺已保存的 AI 草稿，仅修改本节点的本地模板引用。"
+          }
+        }
+      }
+    },
+    "projectMerchantDraft.unconfigured": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Owner draft reading is not configured for this account. Your existing template reference is retained."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前账户尚未配置本店草稿读取，已有模板引用会保留。"
+          }
+        }
+      }
+    },
+    "projectMerchantDraft.original": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current node"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前节点"
+          }
+        }
+      }
+    },
+    "projectMerchantDraft.list": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your store’s saved drafts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本店已保存草稿"
+          }
+        }
+      }
+    },
+    "projectMerchantDraft.pageCurrent": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pages are checked as they load. Refresh to see newly saved drafts. Source facts remain historical; choosing a draft does not confirm them."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每页加载时检查当前状态。新保存的草稿需刷新查看。来源事实仍是历史记录，选择草稿不表示确认事实。"
+          }
+        }
+      }
+    },
+    "projectMerchantDraft.refresh": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh drafts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新草稿"
+          }
+        }
+      }
+    },
+    "projectMerchantDraft.loading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading drafts…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在读取草稿…"
+          }
+        }
+      }
+    },
+    "projectMerchantDraft.resolving": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking the selected draft…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在重新检查所选草稿…"
+          }
+        }
+      }
+    },
+    "projectMerchantDraft.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No saved AI drafts were returned for this store."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本店没有返回已保存的 AI 草稿。"
+          }
+        }
+      }
+    },
+    "projectMerchantDraft.unavailableRow": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This source is no longer an unchanged, available draft. It cannot be selected."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此来源已不再是未修改的可用草稿，无法选择。"
+          }
+        }
+      }
+    },
+    "projectMerchantDraft.loadMore": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Load older drafts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取更早的草稿"
+          }
+        }
+      }
+    },
+    "projectMerchantDraft.review": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review template reference"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查模板引用"
+          }
+        }
+      }
+    },
+    "projectMerchantDraft.noPublicationAuthority": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reference grants no publication or usage rights. Existing save, facts confirmation, review and release checks still apply."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此引用不授予发布权或使用权，仍需经过已有保存、事实确认、审核与发布检查。"
+          }
+        }
+      }
+    },
+    "projectMerchantDraft.apply": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check and use this reference"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新检查并使用此引用"
+          }
+        }
+      }
+    },
+    "projectMerchantDraft.stale": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The node, draft or account has changed. Close this chooser and reopen it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "节点、草稿或账户已变化，请关闭后重新选择。"
+          }
+        }
+      }
+    },
+    "projectMerchantDraft.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drafts could not be read. Refresh to try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未能读取草稿，请刷新重试。"
+          }
+        }
+      }
+    },
+    "projectMerchantDraft.unauthorized": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in again before reading these drafts."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请重新登录后读取草稿。"
+          }
+        }
+      }
+    },
+    "projectMerchantDraft.forbidden": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This account is not the current owner of this store."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前账户不是此店铺的当前店主。"
+          }
+        }
+      }
+    },
+    "projectMerchantDraft.changed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The selected source has changed. Refresh and choose again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所选来源已变化，请刷新后重新选择。"
+          }
+        }
+      }
+    },
+    "projectMerchantDraft.otherGameplay": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other gameplay creation and editing are not connected in this field."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此处尚未接入其他玩法的创建与编辑。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

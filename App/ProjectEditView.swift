@@ -6,6 +6,7 @@ import SwiftUI
     let storyAudioPicker: (() -> any ProjectStoryAudioSelecting)?
     @Published var draft = ProjectEditDraft() {
         didSet {
+            draftMutationRevision += 1 // Every setter retires prior chooser captures, including same-byte replacement.
             if confirmation != nil {
                 let before = ProjectEditPendingMaterials.exactData(oldValue), after = ProjectEditPendingMaterials.exactData(draft)
                 if before == nil || after == nil || before != after { cancelReview() }
@@ -24,6 +25,8 @@ import SwiftUI
         }
     }
     @Published private(set) var editorIncarnation = UUID()
+    /// In-memory ABA fence for a node draft chooser; not saved or sent to the server.
+    private(set) var draftMutationRevision = 0
     private(set) var structureRevision = 0
     private(set) var materialRevision = 0
     private(set) var storyTopologyRevision = 0
@@ -365,19 +368,8 @@ import SwiftUI
                 copiedCoordinator = created; showingCopy = true; modeCopyFailed = false
             }, failed: { modeCopyFailed = true })
         }
-        .sheet(item: Binding(get: {
-            guard let original = presentedSubmission, model.submissionIsCurrent(original, incarnation: submissionIncarnation), submission?.id == original.id else { return nil }
-            return submission
-        }, set: { next in
-            guard model.editorIncarnation == submissionIncarnation, next == nil, let presentedSubmission, submission?.id == presentedSubmission.id else { return }; submission = nil
-        })) { receipt in
-            if model.submissionIsCurrent(receipt, incarnation: submissionIncarnation) {
-                PublishingSubmissionResultSheet(receipt: receipt, canNavigate: publisherHost != nil, canVerifyRelease: model.approvedReleaseReadIsConfigured) {
-                    guard model.submissionIsCurrent(receipt, incarnation: submissionIncarnation), submission?.id == receipt.id else { return }
-                    submission = nil
-                    if publisherHost != nil { submittedResource = receipt.resource }
-                }
-            }
+        .sheet(item: submissionBinding(presentedSubmission: presentedSubmission, submissionIncarnation: submissionIncarnation)) { receipt in
+            submissionResult(receipt: receipt, submissionIncarnation: submissionIncarnation)
         }
         .sheet(item: ownedCover.binding(coverPresentation)) { original in
             OwnedTopicCoverAuthorView(original: original, mayChange: { ownedCover.mayChange(original.opening) },
@@ -399,6 +391,23 @@ import SwiftUI
             Button("projectEdit.discardLocal", role: .destructive) { model.discard() }
             Button("action.cancel", role: .cancel) {}
         } message: { Text("projectEdit.discardHint") }
+    }
+    private func submissionBinding(presentedSubmission: PublishingSubmissionHandoff?, submissionIncarnation: UUID) -> Binding<PublishingSubmissionHandoff?> {
+        Binding<PublishingSubmissionHandoff?>(get: { () -> PublishingSubmissionHandoff? in
+            guard let original = presentedSubmission, model.submissionIsCurrent(original, incarnation: submissionIncarnation), submission?.id == original.id else { return nil }
+            return submission
+        }, set: { (next: PublishingSubmissionHandoff?) in
+            guard model.editorIncarnation == submissionIncarnation, next == nil, let presentedSubmission, submission?.id == presentedSubmission.id else { return }; submission = nil
+        })
+    }
+    @ViewBuilder private func submissionResult(receipt: PublishingSubmissionHandoff, submissionIncarnation: UUID) -> some View {
+        if model.submissionIsCurrent(receipt, incarnation: submissionIncarnation) {
+            PublishingSubmissionResultSheet(receipt: receipt, canNavigate: publisherHost != nil, canVerifyRelease: model.approvedReleaseReadIsConfigured) {
+                guard model.submissionIsCurrent(receipt, incarnation: submissionIncarnation), submission?.id == receipt.id else { return }
+                submission = nil
+                if publisherHost != nil { submittedResource = receipt.resource }
+            }
+        }
     }
     private func chapterStructure(opening: ProjectEditStarterController.Lease?) -> some View {
         Section("projectEdit.structure") {

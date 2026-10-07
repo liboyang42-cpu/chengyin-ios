@@ -1,0 +1,710 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "workshopPending.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Creator package proposal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创作者包提案"
+          }
+        }
+      }
+    },
+    "workshopPending.boundary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create an unreviewed proposal from your eligible original CMS source. Authoring does not consent, approve, list, charge or issue a buyer licence. Existing purchases keep their frozen rights."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从符合条件的自有原创模板创建未审核提案。填写提案不会表示授权、审核通过、上架、收费或签发买家许可。已有购买保留冻结权利。"
+          }
+        }
+      }
+    },
+    "workshopPending.back": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to proposals"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回提案"
+          }
+        }
+      }
+    },
+    "workshopPending.saved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved exact request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已保存的原始请求"
+          }
+        }
+      }
+    },
+    "workshopPending.recovery": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This complete command was securely retained before sending. If the result is unknown, retry only this identical request. There is no separate author-status endpoint."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完整指令已在发送前安全保存。结果不确定时仅可重试这一份完全相同的请求。没有独立的提案状态接口。"
+          }
+        }
+      }
+    },
+    "workshopPending.retry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry identical saved proposal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试已保存的相同提案"
+          }
+        }
+      }
+    },
+    "workshopPending.recorded": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Proposal receipt"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提案回执"
+          }
+        }
+      }
+    },
+    "workshopPending.historic": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This receipt may be historical. Current source eligibility and terms must be loaded again before a separate explicit declaration."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此回执可能属于历史请求。必须重新读取当前来源资格和条款后，才能单独明确声明授权。"
+          }
+        }
+      }
+    },
+    "workshopPending.another": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start another proposal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始另一份提案"
+          }
+        }
+      }
+    },
+    "workshopPending.proposals": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current owner proposals"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前自有提案"
+          }
+        }
+      }
+    },
+    "workshopPending.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No current eligible proposal. Complete the form to create one."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无符合当前条件的提案。请填写表单创建。"
+          }
+        }
+      }
+    },
+    "workshopPending.more": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Load more proposals"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加载更多提案"
+          }
+        }
+      }
+    },
+    "workshopPending.refresh": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload current source and proposals"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新读取当前来源与提案"
+          }
+        }
+      }
+    },
+    "workshopPending.terms": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complete intended licence text"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完整的拟定许可条款"
+          }
+        }
+      }
+    },
+    "workshopPending.termsHelp": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter the entire licence document exactly as intended (up to 65,536 UTF-8 bytes). No legal text, price or choices are supplied for you."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请原样填写完整许可文件（最多65,536个UTF-8字节）。系统不会代填法律条款、价格或可选条件。"
+          }
+        }
+      }
+    },
+    "workshopPending.choices": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explicit proposed offer and restrictions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "明确的拟定报价与限制"
+          }
+        }
+      }
+    },
+    "workshopPending.commercialUse": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Commercial use"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商业使用"
+          }
+        }
+      }
+    },
+    "workshopPending.adaptation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adaptation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "改编"
+          }
+        }
+      }
+    },
+    "workshopPending.translation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Translation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "翻译"
+          }
+        }
+      }
+    },
+    "workshopPending.allowedRegions": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allowed regions (comma-separated)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "允许地域（逗号分隔）"
+          }
+        }
+      }
+    },
+    "workshopPending.buyerKinds": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buyer kinds (comma-separated)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "购买主体类型（逗号分隔）"
+          }
+        }
+      }
+    },
+    "workshopPending.regionsHelp": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Region tokens: uppercase letters, digits, _ or -, up to 32 tokens. Buyer kinds: INDIVIDUAL, ORGANIZATION, MERCHANT. Enter only your intended choices, without duplicates."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地域标记仅可包含大写字母、数字、_或-，最多32项。购买主体类型：INDIVIDUAL、ORGANIZATION、MERCHANT。只填写拟定选项，不可重复。"
+          }
+        }
+      }
+    },
+    "workshopPending.themeLimit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Theme limit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题数量限制"
+          }
+        }
+      }
+    },
+    "workshopPending.merchantLimit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merchant limit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商家数量限制"
+          }
+        }
+      }
+    },
+    "workshopPending.runLimit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Run limit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "运行数量限制"
+          }
+        }
+      }
+    },
+    "workshopPending.limitsHelp": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Each limit is required: -1 explicitly means unlimited, 0 means zero, and positive integers are maxima."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每项均须填写：-1明确表示不限，0表示零，正整数表示上限。"
+          }
+        }
+      }
+    },
+    "workshopPending.priceMinor": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One-time price in minor units"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一次性价格（货币最小单位）"
+          }
+        }
+      }
+    },
+    "workshopPending.currency": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Currency (three uppercase letters)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "币种（三位大写字母）"
+          }
+        }
+      }
+    },
+    "workshopPending.priceHelp": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter an explicit positive integer price and currency. This unreviewed proposal supports a one-time PAID offer only; no payment occurs here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请明确填写正整数价格与币种。此未审核提案仅支持一次性付费报价；此处不会付款。"
+          }
+        }
+      }
+    },
+    "workshopPending.expiresAt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Proposal expiry (ISO-8601 UTC)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提案到期时间（ISO-8601 UTC）"
+          }
+        }
+      }
+    },
+    "workshopPending.expiryHelp": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a future ISO-8601 instant, at most 30 days from creation and up to six fractional-second digits. Expiry is not review approval."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请填写未来的ISO-8601时刻，距离创建时间不超过30天，小数秒最多6位。有效期不表示审核通过。"
+          }
+        }
+      }
+    },
+    "workshopPending.required": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Required restrictions for this proposal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本提案的固定限制"
+          }
+        }
+      }
+    },
+    "workshopPending.fixedRestrictions": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One-time PAID acquisition. Perpetual use of the purchased version only. Updates limited to that exact version. Package redistribution prohibited. Copyright retained by the creator."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一次性付费获取。仅永久使用已购买版本。更新权益限于该精确版本。禁止再分发原包。版权由创作者保留。"
+          }
+        }
+      }
+    },
+    "workshopPending.reviewRequired": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The complete text, ownership, seller suitability and offer still need legal/content review. Public use in a buyer’s own themes requires the separate three explicit acknowledgements on the next review screen."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完整条款、权属、卖家适格性与报价仍须法律及内容审核。买家在自己的主题中公开使用，须在下一审核页面单独完成三项明确确认。"
+          }
+        }
+      }
+    },
+    "workshopPending.author": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save unreviewed proposal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存未审核提案"
+          }
+        }
+      }
+    },
+    "workshopPending.choose": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose explicitly"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请明确选择"
+          }
+        }
+      }
+    },
+    "workshopPending.option.ALLOWED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allowed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "允许"
+          }
+        }
+      }
+    },
+    "workshopPending.option.PROHIBITED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prohibited"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "禁止"
+          }
+        }
+      }
+    },
+    "workshopPending.option.BIND_RESOURCES_ONLY": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bind resources only"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅绑定资源"
+          }
+        }
+      }
+    },
+    "workshopPending.option.LOCAL_ADAPTATION": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local adaptation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地改编"
+          }
+        }
+      }
+    },
+    "workshopPending.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The authoring result is uncertain. Keep this saved request and retry it unchanged; a receipt alone does not prove current eligibility."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提案结果尚不确定。请保留原请求并完全一致地重试；回执本身不能证明当前资格。"
+          }
+        }
+      }
+    },
+    "workshopPending.invalid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complete every required choice and check the text, limits, price, currency and expiry. Nothing was sent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请明确填写全部必填选项，并检查条款、数量、价格、币种与到期时间。尚未发送。"
+          }
+        }
+      }
+    },
+    "workshopPending.priorDeclaration": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Previous declaration receipt"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "既有授权声明回执"
+          }
+        }
+      }
+    },
+    "workshopPending.priorDeclarationScope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Historical receipt only. This does not prove current source eligibility, review approval, listing or buyer rights."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅显示历史回执。此回执不能证明当前来源资格、审核通过、已上架或买家权利。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

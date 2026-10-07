@@ -74,7 +74,9 @@ import SwiftUI
                     Form {
                         Section { Text("projectPending.localOnly") }
                         if controller.saveUnconfirmed { Section { Text("projectPending.saveUnconfirmed").accessibilityIdentifier("projectPending.saveUnconfirmed") } }
-                        ProjectEditNodeFields(node: controller.node(for: original))
+                        ProjectEditNodeFields(node: controller.node(for: original)).merchantDraftSelection(.init(
+                            model: model, node: controller.node(for: original), sourceID: "pending:\(original.id)",
+                            nodeRevision: { controller.candidateRevision }, isCurrent: { controller.isCurrent(original) }))
                     }.appNavigationTitle("projectPending.edit")
                         .scrollDismissesKeyboard(.interactively)
                         .toolbar { ToolbarItem(placement: .confirmationAction) {

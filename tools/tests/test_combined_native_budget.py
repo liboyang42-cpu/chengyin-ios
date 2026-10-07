@@ -1,3 +1,4 @@
+from tools.tests.creator_pending_budget_history import before_creator_pending, materialize_pre_creator_ui
 """Whole-union coverage and mechanically reversible independent planning history."""
 from copy import deepcopy
 from collections import defaultdict
@@ -11,16 +12,19 @@ from tools.tests.reviewed_map_budget_history import before_reviewed_map
 ROOT=Path(__file__).resolve().parents[2]
 class CombinedNativeBudgetTests(unittest.TestCase):
  def setUp(self):
-  self.profile=json.loads((ROOT/'tools/ui_duration_weights.json').read_text());self.plan=self.profile['planning_budget']['reviewed_combined_native_replan'];self.methods={};self.costs=defaultdict(Decimal)
-  for p in sorted((ROOT/'Tests/AppUITests').glob('*.swift')):
+  self.history_directory=tempfile.TemporaryDirectory();self.addCleanup(self.history_directory.cleanup)
+  self.ui_root=materialize_pre_creator_ui(self.history_directory.name)
+  self.profile=before_creator_pending(json.loads((ROOT/'tools/ui_duration_weights.json').read_text()));self.plan=self.profile['planning_budget']['reviewed_combined_native_replan'];self.methods={};self.costs=defaultdict(Decimal)
+  self.profile_path=Path(self.history_directory.name)/'profile.json';self.profile_path.write_text(json.dumps(self.profile))
+  for p in sorted(self.ui_root.glob('*.swift')):
    s=p.read_text();names=re.findall(r'\bfunc\s+(test\w+)\s*\(',s)
    if not names:continue
    classes=re.findall(r'\bclass\s+(\w+)\s*:\s*XCTestCase\b',s);self.assertEqual(len(classes),1)
    for name in names:
     k=classes[0]+'.'+name;self.assertNotIn(k,self.methods);self.methods[k]=p;self.costs[classes[0]]+=self.cost(self.profile,k)
  def cost(self,p,k):return Decimal(str(p['method_seconds'].get(k,p['estimated_method_seconds'].get(k,p['unobserved_method_seconds']))))
- def test_actual_inventory_contains_each_of_707_complete_methods_once(self):
-  self.assertEqual((len(self.methods),len(self.costs)),(707,143));self.assertEqual(sum(shard.discover(ROOT/'Tests/AppUITests').values()),707)
+ def test_historical_inventory_contains_each_of_707_complete_methods_once(self):
+  self.assertEqual((len(self.methods),len(self.costs)),(707,143));self.assertEqual(sum(shard.discover(self.ui_root).values()),707)
   self.assertEqual(set(self.methods),set(self.plan['current_inventory']));self.assertEqual(hashlib.sha256('\n'.join(sorted(self.methods)).encode()).hexdigest(),self.plan['current_inventory_sha256'])
   media=before_combined(self.profile,'media');mapping=before_combined(self.profile,'map');old=before_story_media(media)
   ai=set(media['planning_budget']['reviewed_story_media_replan']['current_inventory']);bi=set(mapping['planning_budget']['reviewed_map_alternative_list_replan']['current_inventory']);oi=set(old['planning_budget']['reviewed_native_features_replan']['current_inventory'])
@@ -53,8 +57,8 @@ class CombinedNativeBudgetTests(unittest.TestCase):
     if 'historical_file' not in row:self.assertEqual(hashlib.sha256((ROOT/row['path']).read_bytes()).hexdigest(),row['sha256'])
  def test_64_fits_and_65_is_chosen_for_30_seconds_additional_margin(self):
   self.assertEqual((shard.DEFAULT_SHARD_COUNT,ci_gates.SHARD_COUNT,self.plan['shard_count']),(65,65,65));self.assertEqual((self.plan['deadline_seconds'],self.plan['startup_reserve_seconds'],self.plan['complete_method_limit_seconds']),(1800,300,900));self.assertEqual(sum(self.costs.values()),Decimal('89264.732'));self.assertEqual(max(self.costs.values()),1470)
-  counts=shard.discover(ROOT/'Tests/AppUITests')
-  actual=shard.measured_weights(ROOT/'Tests/AppUITests',ROOT/'tools/ui_duration_weights.json');self.assertEqual(set(actual),set(self.costs))
+  counts=shard.discover(self.ui_root)
+  actual=shard.measured_weights(self.ui_root,self.profile_path);self.assertEqual(set(actual),set(self.costs))
   for k in actual:self.assertAlmostEqual(actual[k],float(self.costs[k]),places=9)
   for n in range(38,66):
    groups=shard.partition(self.costs,n);flat=sum(groups,[]);self.assertEqual(len(flat),len(set(flat)));self.assertEqual(set(flat),set(self.costs));self.assertEqual(sum(counts[k] for k in flat),707)
@@ -62,7 +66,7 @@ class CombinedNativeBudgetTests(unittest.TestCase):
    if n<64:self.assertGreater(peak,1800)
    elif n==64:self.assertEqual(peak,Decimal('1797.226'));self.assertLess(peak,1800)
    else:self.assertEqual(peak,1770);self.assertEqual(groups,shard.partition(actual,n));self.assertEqual(1800-peak,30)
- def test_live_workflow_runner_and_completion_gate_use_whole_union(self):
+ def test_unchanged_workflow_runner_and_gate_preserve_65_shards(self):
   workflow=(ROOT/'.github/workflows/native-ios.yml').read_text();outputs=re.findall(r'^      shard_(\d+): \$\{\{ steps.completion.outputs.shard_(\d+) \}\}',workflow,re.M)
   self.assertEqual(outputs,[(str(i),str(i)) for i in range(65)]);self.assertIn('--count 65 ',workflow);self.assertIn('--deadline-seconds 1800',workflow)
  def test_each_inverse_rejects_corrupted_current_data_and_historical_identity(self):

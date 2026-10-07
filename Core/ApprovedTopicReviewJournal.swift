@@ -68,13 +68,16 @@ import Foundation
     }
     /// One explicit review request per acknowledged edit operation. A later edit/resubmit has a new origin; unresolved old requests cannot be displaced.
     public func canBegin(_ capture: ApprovedTopicReviewCapture, origin: ApprovedTopicReleaseReadTarget, expected: Snapshot) -> Bool {
-        capture.coverBindingAllowsReview && expected.ownerKey == origin.ownerKey && expected.topicID == origin.topicID && capture.topicID == origin.topicID && capture.observedAuditTaskID == origin.auditTaskID
+        do { try ApprovedTopicReviewRequestBody.preflight(.init(capture: capture), capture: capture) } catch { return false }
+        return capture.coverBindingAllowsReview && expected.ownerKey == origin.ownerKey && expected.topicID == origin.topicID && capture.topicID == origin.topicID && capture.observedAuditTaskID == origin.auditTaskID
             && expected.records.count < 32 && !expected.records.contains(where: { $0.originOperationID == origin.operationID })
             && (expected.current == nil || expected.current?.receipt != nil)
     }
     public func begin(_ capture: ApprovedTopicReviewCapture, origin: ApprovedTopicReleaseReadTarget, expected: Snapshot, session: ProjectEditSession, requestID: UUID = UUID()) throws -> Snapshot {
         guard canBegin(capture, origin: origin, expected: expected) else { throw ApprovedTopicReleaseError.changedReview }
-        let record = Record(ownerKey: session.ownerKey, originOperationID: origin.operationID, command: .init(capture: capture, requestID: requestID), capture: capture, receipt: nil)
+        let command = ApprovedTopicReviewCommand(capture: capture, requestID: requestID)
+        try ApprovedTopicReviewRequestBody.preflight(command, capture: capture)
+        let record = Record(ownerKey: session.ownerKey, originOperationID: origin.operationID, command: command, capture: capture, receipt: nil)
         return try replace(expected, records: expected.records + [record], session: session)
     }
     public func record(_ receipt: ApprovedTopicReviewReceipt, expected: Snapshot, session: ProjectEditSession) throws -> Snapshot {

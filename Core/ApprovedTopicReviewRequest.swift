@@ -1,6 +1,7 @@
 import Foundation
 
 public enum ApprovedTopicReviewPath {
+    public static let sources = "api/approved-topic-release/v1/review/sources"
     public static let prepare = "api/approved-topic-release/v1/review/prepare"
     public static let submit = "api/approved-topic-release/v1/review/submit"
     public static let status = "api/approved-topic-release/v1/review/status"
@@ -27,6 +28,7 @@ public struct ApprovedTopicReviewCapture: Equatable, Sendable {
     public let name: String?, description: String?, categoryIDs: String?, coverReference: String?
     public let chapters: [Chapter]
     public let selectedCover: ApprovedTopicSelectedCover?
+    public let selectedMerchantSources: [ApprovedMerchantReviewSource]
     public var coverBindingAllowsReview: Bool { selectedCover?.permitsReviewRequest ?? true }
     /// Exact validated safe summary bytes as structured fields, retained for durable confirmation recovery.
     private let identityBytes: Data
@@ -44,7 +46,7 @@ public struct ApprovedTopicReviewCapture: Equatable, Sendable {
               let sourceVersion = root["sourceConfigVersion"]?.integer, sourceVersion >= 0,
               let hash = root["snapshotHash"]?.text, ApprovedTopicReleasePreparation.validHash(hash),
               let summary = root["summary"]?.object,
-              Set(summary.keys).isSubset(of: ["name", "description", "categoryIds", "coverReference", "productType", "publishMode", "secretValuesExcluded", "publicationEligibilityChecked", "chapters", "selectedCover"]),
+              Set(summary.keys).isSubset(of: ["name", "description", "categoryIds", "coverReference", "productType", "publishMode", "secretValuesExcluded", "publicationEligibilityChecked", "chapters", "selectedCover", "selectedMerchantSources"]),
               summary["productType"]?.integer == ProjectEditProduct.city.rawValue, summary["publishMode"]?.text == "pro",
               summary["secretValuesExcluded"] == .bool(true), summary["publicationEligibilityChecked"] == .bool(false),
               let rows = summary["chapters"]?.array, !rows.isEmpty, rows.count <= 200 else { throw ApprovedTopicReleaseError.invalidResponse }
@@ -82,11 +84,16 @@ public struct ApprovedTopicReviewCapture: Equatable, Sendable {
         if let value = summary["selectedCover"], value != .null {
             selectedCover = try .decode(value, topicID: topicID, sourceConfigVersion: sourceVersion, legacyReference: optionalText(summary, "coverReference"))
         } else { selectedCover = nil }
+        let selectedSources: [ApprovedMerchantReviewSource]
+        if let value = summary["selectedMerchantSources"], value != .null { selectedSources = try ApprovedMerchantReviewSource.decodeSelections(value) }
+        else { selectedSources = [] }
+        let templateIDs = Set(chapters.flatMap { $0.blocks.compactMap { $0.node?.templateID } })
+        guard selectedSources.allSatisfy({ templateIDs.contains($0.memberTemplateID) }) else { throw ApprovedTopicReleaseError.invalidResponse }
         let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]
         let identityBytes = try encoder.encode(value)
         guard identityBytes.count <= 4 * 1024 * 1024 else { throw ApprovedTopicReleaseError.invalidResponse }
         return try .init(topicID: topicID, observedAuditTaskID: observedAuditTaskID, observedAuditTaskVersion: version, sourceConfigVersion: sourceVersion,
-            snapshotHash: hash, name: optionalText(summary, "name"), description: optionalText(summary, "description"), categoryIDs: optionalText(summary, "categoryIds"), coverReference: optionalText(summary, "coverReference"), chapters: chapters, selectedCover: selectedCover, identityBytes: identityBytes)
+            snapshotHash: hash, name: optionalText(summary, "name"), description: optionalText(summary, "description"), categoryIDs: optionalText(summary, "categoryIds"), coverReference: optionalText(summary, "coverReference"), chapters: chapters, selectedCover: selectedCover, selectedMerchantSources: selectedSources, identityBytes: identityBytes)
     }
     private static func optionalText(_ row: [String: ProjectEditJSON], _ key: String) throws -> String? {
         guard let value = row[key], value != .null else { return nil }; guard let text = value.text else { throw ApprovedTopicReleaseError.invalidResponse }; return text
@@ -99,11 +106,19 @@ public struct ApprovedTopicReviewCapture: Equatable, Sendable {
 public struct ApprovedTopicReviewCommand: Equatable, Sendable {
     public let topicID: Int, observedAuditTaskID: Int, observedAuditTaskVersion: Int, sourceConfigVersion: Int
     public let snapshotHash: String, requestID: String
+    public let selectedMerchantSources: [ApprovedMerchantReviewSource]
     public init(capture: ApprovedTopicReviewCapture, requestID: UUID = UUID()) {
         topicID = capture.topicID; observedAuditTaskID = capture.observedAuditTaskID; observedAuditTaskVersion = capture.observedAuditTaskVersion
         sourceConfigVersion = capture.sourceConfigVersion; snapshotHash = capture.snapshotHash; self.requestID = requestID.uuidString
+        selectedMerchantSources = capture.selectedMerchantSources
     }
     public var fields: [String: ProjectEditJSON] {
+        var result = readSelectorFields
+        if !selectedMerchantSources.isEmpty { result["sourceSelections"] = .array(selectedMerchantSources.map(\.fields)) }
+        return result
+    }
+    /// Outcome reads retain the exact historical selector; source refs stay in the durable command.
+    public var readSelectorFields: [String: ProjectEditJSON] {
         ["topicId": .number(Decimal(topicID)), "observedAuditTaskId": .number(Decimal(observedAuditTaskID)), "observedAuditTaskVersion": .number(Decimal(observedAuditTaskVersion)),
          "sourceConfigVersion": .number(Decimal(sourceConfigVersion)), "snapshotHash": .string(snapshotHash), "requestId": .string(requestID)]
     }

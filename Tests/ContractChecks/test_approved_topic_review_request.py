@@ -24,6 +24,9 @@ class ApprovedTopicReviewRequestContracts(unittest.TestCase):
         model = self.read('App/ApprovedTopicReviewRequestView.swift')
         for item in ['confirmation == nil, !isWorking', 'confirmation?.id == original.id', 'flow.claim(original)', 'flow.submit(claim)', 'model.cancel(captured)', '.onDisappear { original.flow.close() }']:
             self.assertIn(item, model)
+        # A separate source-read capture task now precedes confirmation in the type.
+        # Keep the original ordering assertion on the exact confirmation method.
+        model = model.split('    func confirm(_ original:', 1)[1].split('    func check(_ original:', 1)[0]
         self.assertLess(model.index('flow.claim(original)'), model.index('Task { [weak self, flow]'))
     def test_actual_tasks_owned_and_canceled_before_late_result(self):
         source = self.read('Core/ApprovedTopicReviewFlow.swift')
@@ -62,7 +65,7 @@ class ApprovedTopicReviewRequestContracts(unittest.TestCase):
             self.assertIn('tap("topicReview.confirm.submit"',ui)
             self.assertIn('projectSubmission.auditTaskID',ui)
             self.assertIn('Array(target.label.utf8)',ui)
-        for path, count in [('Tests/CoreTests/ApprovedTopicReviewRequestTests.swift',12),('Tests/CoreTests/ApprovedTopicReviewClientTests.swift',7),('Tests/AppUnitTests/ApprovedTopicReviewPresentationTests.swift',7),('Tests/AppUnitTests/ApprovedTopicReviewCompositionTests.swift',10)]:
+        for path, count in [('Tests/CoreTests/ApprovedTopicReviewRequestTests.swift',12),('Tests/CoreTests/ApprovedTopicReviewClientTests.swift',7),('Tests/AppUnitTests/ApprovedTopicReviewPresentationTests.swift',7),('Tests/AppUnitTests/ApprovedTopicReviewCompositionTests.swift',16)]:
             self.assertEqual(self.read(path).count('func test'),count,path)
     def test_catalog_additive_bilingual_and_source_keys_registered(self):
         fragment=json.loads(self.read('Resources/ApprovedTopicReviewLocalizations.fragment.json'))

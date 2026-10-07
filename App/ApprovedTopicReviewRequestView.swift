@@ -10,6 +10,14 @@ import SwiftUI
         guard !isWorking else { return }; isWorking = true
         await flow.load(); isWorking = false; revision += 1
     }
+    func selectSource(_ choice: ApprovedMerchantReviewChoices.Choice, from original: ApprovedTopicReviewFlow.SourceSelectionPresentation) {
+        guard !isWorking, flow.selectSource(choice, from: original) else { return }; revision += 1
+    }
+    func captureSources(_ original: ApprovedTopicReviewFlow.SourceSelectionPresentation) {
+        guard !isWorking, let claim = flow.claimSourceCapture(original) else { return }
+        isWorking = true; revision += 1
+        Task { [weak self, flow] in await flow.captureSources(claim); self?.isWorking = false; self?.revision += 1 }
+    }
     func review(_ capture: ApprovedTopicReviewCapture) {
         guard confirmation == nil, !isWorking, let original = flow.review(capture) else { return }
         confirmation = original; revision += 1
@@ -83,6 +91,8 @@ import SwiftUI
     @ViewBuilder private var content: some View {
         let flow = original.flow
         switch flow.state {
+        case .selectingSources(let presentation):
+            ApprovedMerchantReviewSourceSection(model: model, presentation: presentation)
         case .ready(let capture):
             ApprovedTopicReviewSummarySection(coverSource: original.coverSource, coverSession: flow.session, coverContextCurrent: { flow.isCurrent && flow.state == .ready(capture) }, capture: capture)
             Section {

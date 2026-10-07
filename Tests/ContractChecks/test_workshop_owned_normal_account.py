@@ -16,7 +16,7 @@ class WorkshopOwnedNormalAccountContractTests(unittest.TestCase):
         self.assertIn('private let workshopOwnedBinding = WorkshopOwnedSessionBinding()', text)
         self.assertIn('workshopOwnedBinding.reconcile(context: context, configurationRevision: approval?.revision)', text)
         self.assertIn('invalidateWorkshopReadBindings()\n        workshopReadConfigurationChanging = true\n        change()\n        workshopReadConfigurationChanging = false\n        workshopReadConfigurationRevision &+= 1', text)
-        self.assertIn('private func invalidateWorkshopReadBindings() { workshopPaidProfessionalBinding.invalidate(); workshopOwnedBinding.invalidate(); workshopPurchasedBinding.invalidate(); workshopPaidInstallBinding.invalidate(); workshopPaidInstalledTextBinding.invalidate() }', text)
+        self.assertIn('private func invalidateWorkshopReadBindings() { workshopCreatorPendingBinding.invalidate(); workshopCreatorConsentBinding.invalidate(); workshopPaidProfessionalBinding.invalidate(); workshopOwnedBinding.invalidate(); workshopPurchasedBinding.invalidate(); workshopPaidInstallBinding.invalidate(); workshopPaidInstalledTextBinding.invalidate() }', text)
         self.assertIn('transport: compositionTransport', text)
         self.assertIn('self.workshopReadConfigurationRevision == configurationRevision', text)
     def test_every_gate_mutation_invalidates_before_it_changes(self):

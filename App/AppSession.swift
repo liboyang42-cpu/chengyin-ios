@@ -445,10 +445,12 @@ final class AppSession: ObservableObject {
     private lazy var prefabRuntimeStore = PlayPrefabRuntimeStore(storage: templateAuthoringSecureStorage)
     private let workshopOwnedBinding = WorkshopOwnedSessionBinding()
     private let workshopPurchasedBinding = WorkshopPurchasedSessionBinding()
+    private let workshopCreatorPendingBinding = WorkshopCreatorPendingSessionBinding()
+    private let workshopCreatorConsentBinding = WorkshopCreatorConsentSessionBinding()
     private let workshopPaidProfessionalBinding = WorkshopPaidProfessionalSessionBinding()
     private let workshopPaidInstalledTextBinding = WorkshopPaidInstalledTextSessionBinding()
     private let workshopPaidInstallBinding = WorkshopPaidInstallSessionBinding()
-    private func invalidateWorkshopReadBindings() { workshopPaidProfessionalBinding.invalidate(); workshopOwnedBinding.invalidate(); workshopPurchasedBinding.invalidate(); workshopPaidInstallBinding.invalidate(); workshopPaidInstalledTextBinding.invalidate() }
+    private func invalidateWorkshopReadBindings() { workshopCreatorPendingBinding.invalidate(); workshopCreatorConsentBinding.invalidate(); workshopPaidProfessionalBinding.invalidate(); workshopOwnedBinding.invalidate(); workshopPurchasedBinding.invalidate(); workshopPaidInstallBinding.invalidate(); workshopPaidInstalledTextBinding.invalidate() }
     @Published private var workshopOwnedPresentationActive = true
     private var workshopReadConfigurationChanging = false
     private var currentWorkshopOwnedContext: RuntimeDependencyContext? {
@@ -487,6 +489,104 @@ final class AppSession: ObservableObject {
         guard let context = currentWorkshopPaidInstalledTextContext,
               let approval = composition.workshopPaidInstalledTextApproval(context), approval.matches(context) else { return nil }
         return approval
+    }
+    @Published private var workshopCreatorConfigurationRevision: UInt64 = 0
+    private var workshopCreatorConfigurationChanging = false
+    private var currentWorkshopCreatorContext: RuntimeDependencyContext? {
+        guard !workshopCreatorConfigurationChanging else { return nil }
+        return currentWorkshopPaidInstalledTextContext
+    }
+    private var currentWorkshopCreatorRead: WorkshopCreatorConsentReadApproval? {
+        guard let context = currentWorkshopCreatorContext, let grant = composition.workshopCreatorConsentReadApproval(context), grant.matches(context) else { return nil }
+        return grant
+    }
+    private var currentWorkshopCreatorWrite: WorkshopCreatorConsentWriteApproval? {
+        guard let context = currentWorkshopCreatorContext, let grant = composition.workshopCreatorConsentWriteApproval(context), grant.matches(context) else { return nil }
+        return grant
+    }
+    /// Owners of injected grants/target descriptors must enter this boundary before replacement,
+    /// including A → nil → A. No selector can recreate a controller during the callback.
+    func withWorkshopCreatorConsentConfigurationChange(_ change: () -> Void) {
+        workshopCreatorPendingBinding.invalidate(); workshopCreatorConsentBinding.invalidate(); workshopCreatorConfigurationChanging = true
+        change(); workshopCreatorConfigurationChanging = false; workshopCreatorConfigurationRevision &+= 1
+    }
+    private var currentWorkshopCreatorPendingAuthor: WorkshopCreatorPendingAuthorApproval? {
+        guard let context = currentWorkshopCreatorContext, let grant = composition.workshopCreatorPendingAuthorApproval(context), grant.matches(context) else { return nil }; return grant
+    }
+    private var currentWorkshopCreatorPendingList: WorkshopCreatorPendingListApproval? {
+        guard let context = currentWorkshopCreatorContext, let grant = composition.workshopCreatorPendingListApproval(context), grant.matches(context) else { return nil }; return grant
+    }
+    private var currentWorkshopCreatorPendingDetail: WorkshopCreatorPendingDetailApproval? {
+        guard let context = currentWorkshopCreatorContext, let grant = composition.workshopCreatorPendingDetailApproval(context), grant.matches(context) else { return nil }; return grant
+    }
+    func makeWorkshopCreatorPendingController(sourceTemplateId: Int64) -> WorkshopCreatorPendingController? {
+        let context = currentWorkshopCreatorContext, read = currentWorkshopCreatorRead, write = currentWorkshopCreatorWrite
+        let author = currentWorkshopCreatorPendingAuthor, list = currentWorkshopCreatorPendingList, detail = currentWorkshopCreatorPendingDetail
+        let viewer = compositionViewerRevision, configuration = workshopCreatorConfigurationRevision, workshop = workshopReadConfigurationRevision
+        let revisions = [read?.revision, write?.revision, author?.revision, list?.revision, detail?.revision]
+        let current: () -> RuntimeDependencyContext? = { [weak self] in
+            guard let self, self.compositionViewerRevision == viewer, self.workshopCreatorConfigurationRevision == configuration,
+                  self.workshopReadConfigurationRevision == workshop,
+                  [self.currentWorkshopCreatorRead?.revision, self.currentWorkshopCreatorWrite?.revision, self.currentWorkshopCreatorPendingAuthor?.revision,
+                   self.currentWorkshopCreatorPendingList?.revision, self.currentWorkshopCreatorPendingDetail?.revision] == revisions else { return nil }
+            return self.currentWorkshopCreatorContext
+        }
+        // Saved declaration status is owner/source metadata and needs only consent-read.
+        // Author/list/detail grants remain independently necessary for their own operations.
+        let available = read != nil
+        return workshopCreatorPendingBinding.make(source: sourceTemplateId, context: available ? context : nil, revisions: revisions) { captured in
+            guard let api = regionalConfiguration?.apiConfiguration,
+                  let store = try? WorkshopCreatorPendingStore(storage: templateAuthoringSecureStorage, context: captured, sourceTemplateId: sourceTemplateId),
+                  let declarationStore = try? WorkshopCreatorConsentPendingStore(storage: templateAuthoringSecureStorage, context: captured, sourceTemplateId: sourceTemplateId) else { return nil }
+            let lease = ContentDraftSessionLease(context: captured, current: current)
+            let unauthorized: (RuntimeDependencyContext) -> Void = { [weak self] context in
+                guard let self, ContentDraftContextFence.matches(current(), context) else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            }
+            let previewService = WorkshopCreatorConsentService(api: api, transport: compositionTransport, lease: lease, read: read, write: write,
+                currentRead: { [weak self] in self?.currentWorkshopCreatorRead }, currentWrite: { [weak self] in self?.currentWorkshopCreatorWrite }, onUnauthorized: unauthorized)
+            let service = WorkshopCreatorPendingService(api: api, transport: compositionTransport, lease: lease, author: author, list: list, detail: detail,
+                currentAuthor: { [weak self] in self?.currentWorkshopCreatorPendingAuthor }, currentList: { [weak self] in self?.currentWorkshopCreatorPendingList },
+                currentDetail: { [weak self] in self?.currentWorkshopCreatorPendingDetail }, onUnauthorized: unauthorized)
+            return WorkshopCreatorPendingController(sourceTemplateId: sourceTemplateId, service: service, previewService: previewService, lease: lease, store: store, declarationStore: declarationStore,
+                canReadProposals: { [weak self] in current() != nil && self?.currentWorkshopCreatorPendingList != nil && self?.currentWorkshopCreatorPendingDetail != nil },
+                canAuthor: { [weak self] in current() != nil && self?.currentWorkshopCreatorPendingAuthor != nil }, makeConsent: { [weak self] target, matchesPreview in
+                    guard let self, current() != nil,
+                          let consentStore = try? WorkshopCreatorConsentPendingStore(storage: self.templateAuthoringSecureStorage, context: captured, sourceTemplateId: sourceTemplateId) else { return nil }
+                    let consentLease = ContentDraftSessionLease(context: captured, current: current)
+                    let consentService = WorkshopCreatorConsentService(api: api, transport: self.compositionTransport, lease: consentLease, read: read, write: write,
+                        currentRead: { [weak self] in self?.currentWorkshopCreatorRead }, currentWrite: { [weak self] in self?.currentWorkshopCreatorWrite }, onUnauthorized: unauthorized)
+                    return WorkshopCreatorConsentController(sourceTemplateId: sourceTemplateId, service: consentService, lease: consentLease, store: consentStore,
+                        targets: { current() == nil ? [] : [target] }, canWrite: { [weak self] in current() != nil && self?.currentWorkshopCreatorWrite != nil },
+                        reviewMatchesPreview: matchesPreview)
+                })
+        }
+    }
+    func makeWorkshopCreatorConsentController(sourceTemplateId: Int64) -> WorkshopCreatorConsentController? {
+        let context = currentWorkshopCreatorContext, read = currentWorkshopCreatorRead, write = currentWorkshopCreatorWrite
+        let viewer = compositionViewerRevision, configuration = workshopCreatorConfigurationRevision, workshop = workshopReadConfigurationRevision
+        let revisions = [read?.revision, write?.revision]
+        let current: () -> RuntimeDependencyContext? = { [weak self] in
+            guard let self, self.compositionViewerRevision == viewer, self.workshopCreatorConfigurationRevision == configuration,
+                  self.workshopReadConfigurationRevision == workshop, [self.currentWorkshopCreatorRead?.revision, self.currentWorkshopCreatorWrite?.revision] == revisions else { return nil }
+            return self.currentWorkshopCreatorContext
+        }
+        return workshopCreatorConsentBinding.make(source: sourceTemplateId, context: read == nil ? nil : context, revisions: revisions) { captured in
+            guard let api = regionalConfiguration?.apiConfiguration,
+                  let store = try? WorkshopCreatorConsentPendingStore(storage: templateAuthoringSecureStorage, context: captured, sourceTemplateId: sourceTemplateId) else { return nil }
+            let lease = ContentDraftSessionLease(context: captured, current: current)
+            let service = WorkshopCreatorConsentService(api: api, transport: compositionTransport, lease: lease, read: read, write: write,
+                currentRead: { [weak self] in self?.currentWorkshopCreatorRead }, currentWrite: { [weak self] in self?.currentWorkshopCreatorWrite },
+                onUnauthorized: { [weak self] context in
+                    guard let self, ContentDraftContextFence.matches(current(), context) else { return }
+                    self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+                })
+            return WorkshopCreatorConsentController(sourceTemplateId: sourceTemplateId, service: service, lease: lease, store: store,
+                targets: { [weak self] in
+                    guard let self, let context = current() else { return [] }
+                    return self.composition.workshopCreatorDeclarationTargets(context, sourceTemplateId)
+                }, canWrite: { [weak self] in current() != nil && self?.currentWorkshopCreatorWrite != nil })
+        }
     }
     private var currentWorkshopPaidProfessionalReadApproval: WorkshopPaidProfessionalReadApproval? {
         guard let context = currentWorkshopPaidInstalledTextContext,
@@ -993,7 +1093,7 @@ final class AppSession: ObservableObject {
     private var projectConfigurationChanging = false
     /// The owner of a reviewed project selector must use this synchronous boundary BEFORE
     /// changing any projectRead/projectWrite or approvedTopicReview*/approvedTopicRelease*
-    /// capability, ownedTopicCoverApproval, projectStoryImageUploadApproval or projectStoryAudioUploadApproval, including A → nil → identical A.
+    /// capability, merchantDraftSelectionList/Resolve, ownedTopicCoverApproval, projectStoryImageUploadApproval or projectStoryAudioUploadApproval, including A → nil → identical A.
     /// The counter only retires prior contexts. It neither grants routes nor changes stored ownership.
     func withProjectEditConfigurationChange(_ mutation: () -> Void) {
         let alreadyChanging = projectConfigurationChanging
@@ -1021,7 +1121,7 @@ final class AppSession: ObservableObject {
         if let retained = retainedProjectEditors[key] { return retained }
         let service = projectEditorService(owner: owner)
         var draft = ProjectEditDraft(product: product); draft.owner = owner
-        let coordinator = ProjectEditCoordinator(initial: .init(draft: draft), service: service, store: projectDraftStore, releasePreparationSource: makeApprovedReleasePreparationSource(owner: owner), releasePublicationSource: makeApprovedReleasePublicationSource(owner: owner), releasePublicationJournal: projectReleaseJournal, releaseReviewSource: makeApprovedTopicReviewSource(owner: owner), releaseReviewJournal: projectReviewJournal, ownedCoverSource: makeOwnedTopicCoverSource(owner: owner), ownedCoverJournal: ownedTopicCoverJournal, storyImageSource: makeProjectStoryImageSource(owner: owner), storyImageJournal: projectStoryImageJournal, storyAudioSource: makeProjectStoryAudioSource(owner: owner), storyAudioJournal: projectStoryAudioJournal,
+        let coordinator = ProjectEditCoordinator(initial: .init(draft: draft), service: service, store: projectDraftStore, releasePreparationSource: makeApprovedReleasePreparationSource(owner: owner), releasePublicationSource: makeApprovedReleasePublicationSource(owner: owner), releasePublicationJournal: projectReleaseJournal, releaseReviewSource: makeApprovedTopicReviewSource(owner: owner), releaseReviewJournal: projectReviewJournal, ownedCoverSource: makeOwnedTopicCoverSource(owner: owner), ownedCoverJournal: ownedTopicCoverJournal, storyImageSource: makeProjectStoryImageSource(owner: owner), storyImageJournal: projectStoryImageJournal, storyAudioSource: makeProjectStoryAudioSource(owner: owner), storyAudioJournal: projectStoryAudioJournal, merchantDraftSource: makeProjectMerchantDraftSource(),
             currentSession: { [weak self] in self?.currentProjectEditSession })
         retainedProjectEditors[key] = coordinator
         return coordinator
@@ -1036,9 +1136,30 @@ final class AppSession: ObservableObject {
         // the mandatory fresh productType/editScope/revision from edit-detail.
         var placeholder = ProjectEditDraft(); placeholder.owner = target.owner
         let coordinator = ProjectEditCoordinator(initial: .init(topicID: target.topicID, draft: placeholder),
-            service: projectEditorService(owner: target.owner), store: projectDraftStore, releasePreparationSource: makeApprovedReleasePreparationSource(owner: target.owner), releasePublicationSource: makeApprovedReleasePublicationSource(owner: target.owner), releasePublicationJournal: projectReleaseJournal, releaseReviewSource: makeApprovedTopicReviewSource(owner: target.owner), releaseReviewJournal: projectReviewJournal, ownedCoverSource: makeOwnedTopicCoverSource(owner: target.owner), ownedCoverJournal: ownedTopicCoverJournal, storyImageSource: makeProjectStoryImageSource(owner: target.owner), storyImageJournal: projectStoryImageJournal, storyAudioSource: makeProjectStoryAudioSource(owner: target.owner), storyAudioJournal: projectStoryAudioJournal,
+            service: projectEditorService(owner: target.owner), store: projectDraftStore, releasePreparationSource: makeApprovedReleasePreparationSource(owner: target.owner), releasePublicationSource: makeApprovedReleasePublicationSource(owner: target.owner), releasePublicationJournal: projectReleaseJournal, releaseReviewSource: makeApprovedTopicReviewSource(owner: target.owner), releaseReviewJournal: projectReviewJournal, ownedCoverSource: makeOwnedTopicCoverSource(owner: target.owner), ownedCoverJournal: ownedTopicCoverJournal, storyImageSource: makeProjectStoryImageSource(owner: target.owner), storyImageJournal: projectStoryImageJournal, storyAudioSource: makeProjectStoryAudioSource(owner: target.owner), storyAudioJournal: projectStoryAudioJournal, merchantDraftSource: makeProjectMerchantDraftSource(),
             currentSession: { [weak self] in self?.currentProjectEditSession })
         retainedProjectEditors[key] = coordinator; return coordinator
+    }
+    private func makeProjectMerchantDraftSource() -> (any ProjectMerchantDraftReading)? {
+        let features: Set<BusinessRuntimeFeature> = [.merchantDraftSelectionList, .merchantDraftSelectionResolve]
+        guard let factory = approvedReleaseRuntimeFactory, features.allSatisfy({ factory.permits($0) }),
+              let configuration = regionalConfiguration?.apiConfiguration else { return nil }
+        let captured = factory.captured, viewerRevision = compositionViewerRevision, configurationRevision = projectConfigurationRevision
+        return ProjectMerchantDraftClient(configuration: configuration, approval: factory.approval(features), transport: factory.client(features),
+            currentCredentials: { [weak self] in
+                guard let self, !self.projectConfigurationChanging, self.projectConfigurationRevision == configurationRevision,
+                      self.compositionViewerRevision == viewerRevision, self.currentRuntimeDependencyContext == captured,
+                      let current = self.approvedReleaseRuntimeFactory, features.allSatisfy({ current.permits($0) }),
+                      let session = self.currentProjectEditSession, let token = self.token else { return nil }
+                return try? .init(session: session, token: token)
+            }, currentCapability: { [weak self] path in
+                guard let self, !self.projectConfigurationChanging, self.projectConfigurationRevision == configurationRevision,
+                      self.compositionViewerRevision == viewerRevision, self.currentRuntimeDependencyContext == captured,
+                      let current = self.approvedReleaseRuntimeFactory else { return false }
+                if path == ProjectMerchantDraftPath.list { return current.permits(.merchantDraftSelectionList) }
+                if path == ProjectMerchantDraftPath.resolve { return current.permits(.merchantDraftSelectionResolve) }
+                return false
+            })
     }
     private var approvedReleaseRuntimeFactory: BusinessRuntimeFactory? {
         guard !projectConfigurationChanging, let api = regionalConfiguration?.apiConfiguration, storageScope != nil,
@@ -1102,7 +1223,7 @@ final class AppSession: ObservableObject {
             }, currentApproval: currentApproval)
     }
     private func makeApprovedTopicReviewSource(owner: ProjectEditOwner) -> (any ApprovedTopicReviewServing)? {
-        let features: Set<BusinessRuntimeFeature> = [.approvedTopicReviewPrepare, .approvedTopicReviewSubmit, .approvedTopicReviewStatus, .approvedTopicReviewCurrent]
+        let features: Set<BusinessRuntimeFeature> = [.approvedTopicReviewSources, .approvedTopicReviewPrepare, .approvedTopicReviewSubmit, .approvedTopicReviewStatus, .approvedTopicReviewCurrent]
         guard owner == .personal, let factory = approvedReleaseRuntimeFactory,
               features.contains(where: { factory.permits($0) }), let configuration = regionalConfiguration?.apiConfiguration else { return nil }
         let captured = factory.captured, viewerRevision = compositionViewerRevision, configurationRevision = projectConfigurationRevision
@@ -1114,6 +1235,7 @@ final class AppSession: ObservableObject {
                 return try? .init(session: session, token: token)
             }, currentCapability: { [weak self] path in
                 guard let self, !self.projectConfigurationChanging, self.projectConfigurationRevision == configurationRevision, self.compositionViewerRevision == viewerRevision, self.currentRuntimeDependencyContext == captured, let current = self.approvedReleaseRuntimeFactory else { return false }
+                if path == ApprovedTopicReviewPath.sources { return current.permits(.approvedTopicReviewSources) }
                 if path == ApprovedTopicReviewPath.prepare { return current.permits(.approvedTopicReviewPrepare) }
                 if path == ApprovedTopicReviewPath.submit { return current.permits(.approvedTopicReviewSubmit) }
                 if path == ApprovedTopicReviewPath.status { return current.permits(.approvedTopicReviewStatus) }

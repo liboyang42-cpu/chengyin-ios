@@ -3,7 +3,7 @@ import XCTest
 
 @MainActor final class ApprovedTopicReviewCompositionTests: XCTestCase {
     private let base = URL(string: "https://example.com/native")!
-    private final class Grant { var enabled = true; var allReview = false; var observation = false }
+    private final class Grant { var enabled = true; var allReview = false; var observation = false; var sources = false }
     private final class Vault: AppTokenStorage { var value: String?; func read() throws -> String? { value }; func write(_ token: String) throws { value = token }; func clear() throws { value = nil } }
     @MainActor private final class Wire: HTTPTransport {
         var role = "player", requests: [URLRequest] = [], hold = false
@@ -12,6 +12,10 @@ import XCTest
             requests.append(request)
             if request.url?.path.hasSuffix("/phone") == true { return (Data("{\"code\":200,\"token\":\"synthetic-7\",\"data\":{\"id\":7,\"role\":\"\(role)\"}}".utf8),200) }
             if request.url?.path.hasSuffix("/userInfo") == true { return (Data("{\"code\":200,\"appUser\":{\"userId\":7,\"role\":\"\(role)\"}}".utf8),200) }
+            if request.url?.path.hasSuffix("/review/sources") == true {
+                if hold { return try await withCheckedThrowingContinuation { continuation = $0; started?.fulfill() } }
+                return (try JSONEncoder().encode(["code": ProjectEditJSON.number(200), "data": ApprovedTopicReviewCompositionTests.sourceChoices()]), 200)
+            }
             if request.url?.path.hasSuffix("/review/current") == true {
                 if hold { return try await withCheckedThrowingContinuation { continuation = $0; started?.fulfill() } }
                 let body = try JSONDecoder().decode([String: ProjectEditJSON].self, from: XCTUnwrap(request.httpBody))
@@ -24,7 +28,10 @@ import XCTest
             }
             if request.url?.path.hasSuffix("/prepare") == true {
                 if hold { return try await withCheckedThrowingContinuation { continuation = $0; started?.fulfill() } }
-                return (try JSONEncoder().encode(["code": ProjectEditJSON.number(200), "data": ApprovedTopicReviewSynthetic.captureFields()]),200)
+                var capture = ApprovedTopicReviewSynthetic.captureFields().object!, summary = capture["summary"]!.object!
+                let body = try JSONDecoder().decode([String: ProjectEditJSON].self, from: XCTUnwrap(request.httpBody))
+                if let selected = body["sourceSelections"] { summary["selectedMerchantSources"] = selected; capture["summary"] = .object(summary) }
+                return (try JSONEncoder().encode(["code": ProjectEditJSON.number(200), "data": ProjectEditJSON.object(capture)]),200)
             }
             throw APIError.invalidRequest
         }
@@ -39,6 +46,7 @@ import XCTest
             guard grant.enabled else { return .dormant }
             var paths: [BusinessRuntimeFeature: String] = [.approvedTopicReviewPrepare: ApprovedTopicReviewPath.prepare]
             if grant.allReview { paths[.approvedTopicReviewSubmit] = ApprovedTopicReviewPath.submit; paths[.approvedTopicReviewStatus] = ApprovedTopicReviewPath.status }
+            if grant.sources { paths[.approvedTopicReviewSources] = ApprovedTopicReviewPath.sources }
             if grant.observation { paths[.approvedTopicReviewCurrent] = ApprovedTopicReviewPath.current }
             var routes: [BusinessRuntimeFeature: Set<BusinessRuntimeRoute>] = [:]
             for (feature,path) in paths { guard let route = try? BusinessRuntimeRoute.post(path) else { return .dormant }; routes[feature] = [route] }
@@ -179,6 +187,81 @@ import XCTest
         let task = Task { await flow.observeCurrent(saved) }; await fulfillment(of:[started],timeout:3)
         session.withProjectEditConfigurationChange { grant.observation = false; grant.observation = true }; wire.finish401(); await task.value
         XCTAssertEqual(flow.state,.closed); XCTAssertEqual(session.account?.id,7); XCTAssertEqual(vault.value,"synthetic-7"); XCTAssertEqual(try journal.read(session:owner,topicID:7901),saved)
+    }
+
+
+    private static func sourceChoices() -> ProjectEditJSON {
+        let selected: ProjectEditJSON = .object(["memberTemplateId": .number(73), "source": .object(["kind": .string("MERCHANT_AI_TEMPLATE_SOURCE_V1"), "sourceId": .number(91), "sourceVersion": .number(1), "contentHash": .string(String(repeating: "a", count: 64))]), "merchantConfirmation": .object(["kind": .string("MERCHANT_STORE_FACTS_CONFIRMATION_V1"), "sourceId": .number(92), "sourceVersion": .number(1), "contentHash": .string(String(repeating: "b", count: 64))])])
+        return .object(["contract": .string("questify.topic-release.merchant-source-choices.v1"), "templateIdNamespace": .string("CMS_MEMBER_TEMPLATE"), "currentness": .string("CONFIRMED_HISTORICAL_INPUTS"), "ownerMemberId": .number(7), "topicId": .number(7901), "observedAuditTaskId": .number(3301), "observedAuditTaskVersion": .number(0), "sourceConfigVersion": .number(1), "approvalProof": .bool(false), "publicationAuthority": .bool(false), "sources": .array([.object(["memberTemplateId": .number(73), "hasOlderConfirmations": .bool(false), "confirmations": .array([.object(["selection": selected, "templateTitle": .string("Synthetic shop draft"), "templateContentHash": .string(String(repeating: "c", count: 64)), "confirmedAtEpochMillis": .number(1700000000000)])])])])])
+    }
+    func testNormalSourceChoiceFactoryCarriesExactRefsThenReadsOnlySixFields() async throws {
+        let wire = Wire(), grant = Grant(); wire.role = "merchant"; grant.sources = true; grant.allReview = true; grant.observation = true
+        let session = try root(wire, grant, Vault()).makeSession(); await login(session)
+        let editor = session.projectEditor(product: .city); editor.synchronizeSession(); let owner = try XCTUnwrap(editor.session), source = try XCTUnwrap(editor.releaseReviewSource), chooser = try XCTUnwrap(source as? any ApprovedTopicReviewSourceChoosing), origin = try target(owner)
+        wire.requests = []; let choices = try await chooser.sources(origin, session: owner), selected = try XCTUnwrap(choices.groups.first?.confirmations.first?.selection)
+        let capture = try await chooser.prepare(origin, selections: [selected], session: owner), journal = ApprovedTopicReviewJournal(storage: ProjectEditMemoryStorage())
+        let pending = try journal.begin(capture, origin: origin, expected: journal.read(session: owner, topicID:7901), session: owner), record = try XCTUnwrap(pending.current)
+        let receipt = try await source.submit(record,session:owner); _ = try await source.status(record,session:owner)
+        let saved = try journal.record(receipt,expected:pending,session:owner), observer = try XCTUnwrap(source as? any ApprovedTopicReviewObserving); _ = try await observer.observe(XCTUnwrap(saved.current),session:owner)
+        XCTAssertEqual(wire.requests.map { $0.url!.lastPathComponent },["sources","prepare","submit","status","current"])
+        let bodies = try wire.requests.map { try JSONDecoder().decode([String:ProjectEditJSON].self,from:XCTUnwrap($0.httpBody)) }
+        XCTAssertEqual(bodies.map(\.count),[2,3,7,6,6]); XCTAssertEqual(bodies[1]["sourceSelections"],bodies[2]["sourceSelections"]); XCTAssertNil(bodies[3]["sourceSelections"]); XCTAssertNil(bodies[4]["sourceSelections"])
+        XCTAssertNil(editor.releasePublicationSource)
+    }
+    func testNormalSourcePickerDefaultOffCannotBorrowExistingPrepareGrant() async throws {
+        let wire = Wire(), grant = Grant(), session = try root(wire,grant,Vault()).makeSession(); await login(session)
+        let editor = session.projectEditor(product:.city), owner = try XCTUnwrap(editor.session), reader = try XCTUnwrap(editor.releaseReviewSource as? any ApprovedTopicReviewSourceChoosing), count = wire.requests.count
+        XCTAssertFalse(reader.canReadSources(session:owner)); do { _ = try await reader.sources(target(owner),session:owner); XCTFail() } catch {}
+        XCTAssertEqual(wire.requests.count,count)
+    }
+    func testRealSourceSelectionModelClaimsSynchronouslyAndOldControlsCannotQueueAfterBack() async throws {
+        let wire = Wire(), grant = Grant(); grant.sources = true
+        let session = try root(wire,grant,Vault()).makeSession(); await login(session)
+        let editor = session.projectEditor(product:.city), owner = try XCTUnwrap(editor.session), source = try XCTUnwrap(editor.releaseReviewSource), origin = try target(owner)
+        let flow = ApprovedTopicReviewFlow(origin:origin,session:owner,source:source,journal:.init(storage:ProjectEditMemoryStorage()),stillCurrent:{true}), model = ApprovedTopicReviewReadModel(flow:flow)
+        await model.load(); guard case .selectingSources(let shown) = flow.state else { return XCTFail() }
+        model.selectSource(shown.choices.groups[0].confirmations[0],from:shown); let count = wire.requests.count
+        model.captureSources(shown); flow.close(); await Task.yield(); await Task.yield()
+        XCTAssertEqual(wire.requests.count,count); XCTAssertEqual(flow.state,.closed)
+    }
+    func testSourceFactoryLate401AfterRoleABACannotExpireCurrentAccount() async throws {
+        let wire = Wire(), grant = Grant(), vault = Vault(); grant.sources = true
+        let session = try root(wire,grant,vault).makeSession(); await login(session)
+        let editor = session.projectEditor(product:.city), owner = try XCTUnwrap(editor.session), source = try XCTUnwrap(editor.releaseReviewSource as? any ApprovedTopicReviewSourceChoosing), origin = try target(owner)
+        wire.hold = true; wire.started = expectation(description:"normal source read held"); let task = Task { try await source.sources(origin,session:owner) }; await fulfillment(of:[try XCTUnwrap(wire.started)],timeout:3)
+        wire.role = "merchant"; await session.refreshOwnAccount(); wire.role = "player"; await session.refreshOwnAccount(); wire.finish401(); do { _ = try await task.value; XCTFail() } catch {}
+        XCTAssertEqual(session.account?.id,7); XCTAssertEqual(vault.value,"synthetic-7"); XCTAssertFalse(source.canReadSources(session:owner))
+        wire.hold = false; let fresh = session.projectEditor(product:.city), freshOwner = try XCTUnwrap(fresh.session), freshSource = try XCTUnwrap(fresh.releaseReviewSource as? any ApprovedTopicReviewSourceChoosing)
+        _ = try await freshSource.sources(target(freshOwner),session:freshOwner)
+    }
+    func testSourceConfigurationABARejectsQueuedCaptureAndFreshPickerRemainsAvailable() async throws {
+        let wire = Wire(), grant = Grant(); grant.sources = true
+        let session = try root(wire,grant,Vault()).makeSession(); await login(session)
+        let editor = session.projectEditor(product:.city), owner = try XCTUnwrap(editor.session), source = try XCTUnwrap(editor.releaseReviewSource), origin = try target(owner), flow = ApprovedTopicReviewFlow(origin:origin,session:owner,source:source,journal:.init(storage:ProjectEditMemoryStorage()),stillCurrent:{true})
+        await flow.load(); guard case .selectingSources(let shown) = flow.state else { return XCTFail() }; XCTAssertTrue(flow.selectSource(shown.choices.groups[0].confirmations[0],from:shown)); let claim = try XCTUnwrap(flow.claimSourceCapture(shown)), count = wire.requests.count
+        session.withProjectEditConfigurationChange { grant.sources = false; grant.sources = true }; await flow.captureSources(claim); XCTAssertEqual(wire.requests.count,count)
+        let fresh = session.projectEditor(product:.city), freshOwner = try XCTUnwrap(fresh.session), reader = try XCTUnwrap(fresh.releaseReviewSource as? any ApprovedTopicReviewSourceChoosing)
+        _ = try await reader.sources(target(freshOwner),session:freshOwner)
+    }
+
+
+    func testOuterSourcesRouteRejectsExtraReferencesQueriesAndBorrowedCapabilities() async throws {
+        let wire = Wire(), grant = Grant(), composition = try root(wire,grant,Vault()), fence = composition.transport(), api = try APIConfiguration(baseURL:base)
+        fence.current = { .init(epoch:1,accountID:7,role:"merchant",token:"synthetic-7",viewerRevision:1) }; fence.approvedReleaseConfigurationRevision = { 1 }
+        fence.approvedReleaseConfiguration = { context in try? .init(market:context.market,baseURL:context.baseURL,namespace:context.session.namespace,accountID:7,routes:[.approvedTopicReviewSources:[try .post(ApprovedTopicReviewPath.sources)],.approvedTopicReviewPrepare:[try .post(ApprovedTopicReviewPath.prepare)],.approvedTopicReviewStatus:[try .post(ApprovedTopicReviewPath.status)],.approvedTopicReviewCurrent:[try .post(ApprovedTopicReviewPath.current)]]) }
+        func request(_ path:String,_ fields:[String:ProjectEditJSON])throws->URLRequest { try OperationAdapterHTTP.json(configuration:api,path:path,body:JSONEncoder().encode(fields),token:"synthetic-7") }
+        let fields:[String:ProjectEditJSON] = ["topicId":.number(7901),"observedAuditTaskId":.number(3301)]
+        _ = try await fence.send(request(ApprovedTopicReviewPath.sources,fields)); XCTAssertEqual(wire.requests.count,1)
+        let selected = try XCTUnwrap(Self.sourceChoices().object?["sources"]?.array?.first?.object?["confirmations"]?.array?.first?.object?["selection"])
+        var withRefs=fields; withRefs["sourceSelections"] = .array([selected]); var duplicate=withRefs;duplicate["sourceSelections"] = .array([selected,selected])
+        var outcome=withRefs;outcome["observedAuditTaskVersion"] = .number(0);outcome["sourceConfigVersion"] = .number(1);outcome["snapshotHash"] = .string(String(repeating:"c",count:64));outcome["requestId"] = .string(UUID().uuidString)
+        var query=try request(ApprovedTopicReviewPath.sources,fields);query.url=URL(string:query.url!.absoluteString+"?owner=7")
+        var fragment=try request(ApprovedTopicReviewPath.sources,fields);fragment.url=URL(string:fragment.url!.absoluteString+"#ignored")
+        var get=try request(ApprovedTopicReviewPath.sources,fields);get.httpMethod="GET"
+        for invalid in [try request(ApprovedTopicReviewPath.sources,withRefs),try request(ApprovedTopicReviewPath.prepare,duplicate),try request(ApprovedTopicReviewPath.status,outcome),try request(ApprovedTopicReviewPath.current,outcome),try request(ApprovedTopicReviewPath.submit,outcome),query,fragment,get] {
+            do { _ = try await fence.send(invalid); XCTFail() } catch {}
+        }
+        XCTAssertEqual(wire.requests.count,1)
     }
 
 }

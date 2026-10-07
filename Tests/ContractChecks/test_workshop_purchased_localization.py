@@ -84,12 +84,19 @@ class PurchasedLocalizationChecks(unittest.TestCase):
             ('App/ProjectEditDetailForms.swift', 'key'),
             ('App/ProjectStoryAudioAuthorView.swift', 'key'),
             ('App/ProjectStoryImageAuthorView.swift', 'key'),
+            ('App/WorkshopCreatorLocalization.swift', 'String.LocalizationValue(stringLiteral:key)'),
             ('App/WorkshopOwnedLibraryView.swift', 'String.LocalizationValue(stringLiteral:"workshopOwned."+key)'),
             ('App/WorkshopPurchasedLibraryView.swift', 'String.LocalizationValue(stringLiteral:"workshopPurchased."+key)'),
         ]))
         shared = (ROOT / 'App/AppLocalizedString.swift').read_text()
         self.assertIn('func appLocalized(_ key:String.LocalizationValue,locale:Locale)->String', shared)
         self.assertIn('LocalizedStringResource(key,locale:locale)', shared)
+        creator = re.sub(r'\s+', '', (ROOT / 'App/WorkshopCreatorLocalization.swift').read_text())
+        self.assertIn('funcworkshopCreatorLocalized(_key:String,locale:Locale)->String', creator)
+        self.assertIn('LocalizedStringResource(String.LocalizationValue(stringLiteral:key),table:table,locale:locale)', creator)
+        self.assertIn('ifkey.hasPrefix("workshopPending."){table="WorkshopCreatorPending"}', creator)
+        self.assertIn('else{table="WorkshopCreatorConsent"}', creator)
+        self.assertNotIn('Locale.current', creator)
         # The reviewed media branch uses the StaticString/defaultValue overload.
         # Prove the parameter and fallback types; an arbitrary String key is not allowed.
         helpers = [

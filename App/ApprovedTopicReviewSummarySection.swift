@@ -25,6 +25,15 @@ import SwiftUI
         if let cover = capture.selectedCover {
             ApprovedTopicSelectedCoverSection(cover: cover, prefix: prefix, approved: false, source: coverSource, session: coverSession, parentCurrent: coverContextCurrent)
         }
+        if !capture.selectedMerchantSources.isEmpty {
+            Section {
+                Text(String(localized: LocalizedStringResource("topicReview.sources.captured", defaultValue: "These exact merchant confirmations are included in this review request. Approval is checked separately.", table: "ApprovedMerchantReviewSources", locale: locale)))
+                ForEach(capture.selectedMerchantSources) { source in
+                    field(String(localized: LocalizedStringResource("topicReview.sources.template", defaultValue: "Merchant draft", table: "ApprovedMerchantReviewSources", locale: locale)), "#\(source.memberTemplateID)", "source.template.\(source.memberTemplateID)")
+                    field(String(localized: LocalizedStringResource("topicReview.sources.confirmation", defaultValue: "Saved confirmation", table: "ApprovedMerchantReviewSources", locale: locale)), "#\(source.merchantConfirmation.sourceID)", "source.confirmation.\(source.memberTemplateID)")
+                }
+            }
+        }
         ForEach(Array(capture.chapters.enumerated()), id: \.element.id) { ci, chapter in
             Section {
                 field(String(localized: LocalizedStringResource("topicReview.chapter", defaultValue: "Chapter", locale: locale)), chapter.name, "chapter.\(ci).name")
