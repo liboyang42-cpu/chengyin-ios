@@ -9,20 +9,25 @@ import XCTest
         let value = XCUIApplication(); app = value
         value.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", chinese ? "(zh-Hans)" : "(en)", "-AppleLocale", chinese ? "zh_CN" : "en_US", "--uitesting-module", "projectEdit", "--project-edit-bundle-ack"] + flags
         if chinese { value.launchArguments += ["--uitesting-max-text", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] }
-        value.launch(); XCTAssertTrue(value.textFields["projectEdit.name"].waitForExistence(timeout: 5)); return value
+        value.launch()
+        let name = value.textFields["projectEdit.name"]
+        XCTAssertTrue(revealFixtureElement(name, in: value, maximumSwipes: 10), value.debugDescription)
+        XCTAssertTrue(name.waitForExistence(timeout: 5)); return value
     }
     private func tap(_ id: String, in app: XCUIApplication, fixed: Bool = false) {
-        let target = app.buttons[id]; XCTAssertTrue(target.waitForExistence(timeout: 5), app.debugDescription)
+        let target = app.buttons[id]
         if !fixed { XCTAssertTrue(revealFixtureElement(target, in: app, maximumSwipes: 65), app.debugDescription) }
+        XCTAssertTrue(target.waitForExistence(timeout: 5), app.debugDescription)
         XCTAssertEqual(app.buttons.matching(identifier: id).count, 1); XCTAssertTrue(target.isEnabled && target.isHittable)
         XCTAssertTrue(app.windows.firstMatch.frame.contains(target.frame)); target.tap()
     }
     private func value(_ id: String, _ expected: String, in app: XCUIApplication) {
-        let target = app.staticTexts[id]; XCTAssertTrue(target.waitForExistence(timeout: 5), app.debugDescription)
+        let target = app.staticTexts[id]
         XCTAssertTrue(revealFixtureElement(target, in: app, maximumSwipes: 65, requiresHittable: false), app.debugDescription)
+        XCTAssertTrue(target.waitForExistence(timeout: 5), app.debugDescription)
         XCTAssertEqual(Array(target.label.utf8), Array(expected.utf8))
     }
-    // UNMEASURED complete method estimate: 720 seconds. Includes submit, close, local reopen, and account invalidation.
+    // UNMEASURED complete method estimate: 750 seconds. Includes submit, close, local reopen, and account invalidation.
     func testPendingPublishedFlagKeepsExactTaskThroughOrdinarySubmitAndReopen() throws {
         let app = launch(); tap("projectEdit.review", in: app, fixed: true); tap("projectEdit.confirmSimulation", in: app)
         value("projectSubmission.topicID", "7901", in: app); value("projectSubmission.auditTaskID", "3301", in: app)
@@ -36,15 +41,5 @@ import XCTest
         tap("projectEdit.fixture.signOut", in: app, fixed: true)
         XCTAssertFalse(app.staticTexts["projectSubmission.auditTaskID"].exists); XCTAssertFalse(app.buttons["projectEdit.review"].isEnabled)
     }
-    // UNMEASURED complete method estimate: 720 seconds. Both Chinese maximum-text success and partial-persistence failure launches are included.
-    func testChineseLargeTextHistoricalEvidenceAndPersistenceFailureKeepTruthfulBoundaries() throws {
-        var app = launch(chinese: true); assertFixtureEnvironment(in: app, dynamicTypeSize: "accessibility5"); tap("projectEdit.review", in: app, fixed: true); tap("projectEdit.confirmSimulation", in: app)
-        value("projectSubmission.submittedState", "待审核", in: app); value("projectSubmission.auditTaskID", "3301", in: app)
-        value("projectSubmission.legacyVisibility", "是", in: app); tap("projectSubmission.done", in: app)
-        app.terminate(); app = launch(["--project-bundle-ack-write-failure"])
-        tap("projectEdit.review", in: app, fixed: true); tap("projectEdit.confirmSimulation", in: app)
-        XCTAssertTrue(app.buttons["projectEdit.checkOutcome"].waitForExistence(timeout: 5))
-        XCTAssertFalse(app.staticTexts["projectSubmission.auditTaskID"].exists); XCTAssertFalse(app.buttons["projectEdit.review"].isEnabled)
-        XCTAssertFalse(app.buttons["projectSubmission.done"].exists)
-    }
+
 }

@@ -58,18 +58,22 @@ import UIKit
     }
     func testHostedBackAndFreshSelectionCannotReviveOldAuthorAction() async throws {
         let h = Harness(); defer { h.clean() }; await h.login(); try h.approve(); let c = try controller(h), a = WorkshopCreatorPendingAppearance()
-        let root = UIViewController(), navigation = UINavigationController(rootViewController: root), window = UIWindow(frame: UIScreen.main.bounds); window.rootViewController = navigation; window.makeKeyAndVisible(); defer { window.isHidden = true }
-        let host = UIHostingController(rootView: WorkshopCreatorPendingView(controller: c, appearance: a)); navigation.pushViewController(host, animated: false)
-        try await waitUntil { c.phase == .editing }; h.fill(c); let old = try XCTUnwrap(c.offerAuthor(a)); navigation.popViewController(animated: false)
+        let root = WorkshopHostedLifecycleRoot(), navigation = UINavigationController(rootViewController: root), window = UIWindow(frame: UIScreen.main.bounds); window.rootViewController = navigation; window.makeKeyAndVisible(); defer { window.isHidden = true }
+        let host = WorkshopHostedLifecycleHost(rootView: WorkshopCreatorPendingView(controller: c, appearance: a)); navigation.pushViewController(host, animated: false)
+        try await waitUntil { c.phase == .editing };
+        WorkshopHostedLifecycleProbe.record(.pendingInitialBack, root: root, host: host, navigation: navigation, idle: c.phase == .idle, loading: c.phase == .loading, reviewing: c.phase == .reviewing, editing: c.phase == .editing)
+        h.fill(c); let old = try XCTUnwrap(c.offerAuthor(a)); navigation.popViewController(animated: false)
         try await waitUntil { c.phase == .idle }; let fresh = WorkshopCreatorPendingAppearance(); await (try XCTUnwrap(c.appear(fresh)))(); await old()
         XCTAssertTrue(h.wire.authorBodies.isEmpty); XCTAssertNotNil(c.pending); XCTAssertNil(c.appear(a))
     }
     func testHostedAuthorToReviewTransitionKeepsTheSameAppearanceLive() async throws {
         let h = Harness(); defer { h.clean() }; await h.login(); try h.approve(); let c = try controller(h), a = WorkshopCreatorPendingAppearance()
-        let root = UIViewController(), navigation = UINavigationController(rootViewController: root), window = UIWindow(frame: UIScreen.main.bounds)
+        let root = WorkshopHostedLifecycleRoot(), navigation = UINavigationController(rootViewController: root), window = UIWindow(frame: UIScreen.main.bounds)
         window.rootViewController = navigation; window.makeKeyAndVisible(); defer { window.isHidden = true }
-        let host = UIHostingController(rootView: WorkshopCreatorPendingView(controller: c, appearance: a)); navigation.pushViewController(host, animated: false)
-        try await waitUntil { c.phase == .editing }; h.fill(c); await (try XCTUnwrap(c.offerAuthor(a)))()
+        let host = WorkshopHostedLifecycleHost(rootView: WorkshopCreatorPendingView(controller: c, appearance: a)); navigation.pushViewController(host, animated: false)
+        try await waitUntil { c.phase == .editing };
+        WorkshopHostedLifecycleProbe.record(.pendingInitialReview, root: root, host: host, navigation: navigation, idle: c.phase == .idle, loading: c.phase == .loading, reviewing: c.phase == .reviewing, editing: c.phase == .editing)
+        h.fill(c); await (try XCTUnwrap(c.offerAuthor(a)))()
         await (try XCTUnwrap(c.offerReview(try XCTUnwrap(c.items.first), a)))()
         try await waitUntil { c.phase == .reviewing && c.declaration?.phase == .reviewing }
         let consent = try XCTUnwrap(c.declaration); XCTAssertNotNil(consent.preview); XCTAssertTrue(consent.acknowledgments.isEmpty)

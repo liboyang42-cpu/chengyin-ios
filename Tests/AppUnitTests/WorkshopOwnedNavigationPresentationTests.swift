@@ -41,6 +41,11 @@ import UIKit
     /// direct browser calls. Button handlers use these exact navigation-state actions in production.
     func testHostedListDetailPackageBackAndReopenIssueFreshPermits() async throws {
         let f = try fixture()
+#if DEBUG
+        f.navigation.syntheticTrace = { snapshot in
+            print("WORKSHOP_SYNTHETIC_LIST event=\(snapshot.event.rawValue) current=\(snapshot.currentAppearance) live=\(snapshot.displayedLive) list=\(snapshot.list) detail=\(snapshot.detail) package=\(snapshot.package) selected=\(snapshot.selected) showsPackage=\(snapshot.showsPackage)")
+        }
+#endif
         // This one sealed-fixture method emits at most twelve fixed stages. No IDs,
         // routes, credentials, response bodies or user-visible content are printed.
         var stageCount = 0

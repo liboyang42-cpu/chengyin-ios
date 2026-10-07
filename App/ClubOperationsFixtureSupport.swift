@@ -4,6 +4,13 @@ import SwiftUI
 @MainActor struct ClubOperationsFixtureHostView: View {
     @StateObject private var store: ClubOperationsFixtureStore
     @State private var destination: Destination?
+    @State private var manageTapCount = 0
+    @State private var sheetAppearCount = 0
+    @State private var sheetDisappearCount = 0
+    @State private var sheetVisible = false
+    private var presentationDiagnostic: String {
+        "scenario=\(store.access.scenario.rawValue);manageTaps=\(manageTapCount);destinationSet=\(destination != nil);sheetVisible=\(sheetVisible);appeared=\(sheetAppearCount);disappeared=\(sheetDisappearCount);reads=\(store.access.readCount);writes=\(store.writeCount)"
+    }
     private struct Destination: Identifiable { let id = UUID(); let target: ClubOperationsTarget }
     init(scenario: ClubOperationsFixtureScenario = .owner) { _store = StateObject(wrappedValue: ClubOperationsFixtureStore(scenario: scenario)) }
     static func selected(arguments: [String]) -> ClubOperationsFixtureScenario? {
@@ -14,8 +21,9 @@ import SwiftUI
         NavigationStack {
             List {
                 Text("club.ops.fixtureOnly").accessibilityIdentifier("club.ops.fixtureNotice")
+                    .accessibilityValue(presentationDiagnostic)
                 Button("club.ops.create") { destination = .init(target: .create) }.accessibilityIdentifier("club.ops.openCreate")
-                Button("club.ops.manage") { destination = .init(target: .club(81)) }.accessibilityIdentifier("club.ops.openManage")
+                Button("club.ops.manage") { manageTapCount += 1; destination = .init(target: .club(81)) }.accessibilityIdentifier("club.ops.openManage")
                 controls
             }.navigationTitle("club.ops.manage")
         }
@@ -24,6 +32,8 @@ import SwiftUI
                 ClubOperationsWorkspaceView(target: value.target, identity: store.identity, access: store.access, coordinator: store.coordinator)
                     .toolbar { ToolbarItemGroup(placement: .bottomBar) { controls } }
             }
+            .onAppear { sheetAppearCount += 1; sheetVisible = true }
+            .onDisappear { sheetDisappearCount += 1; sheetVisible = false }
         }
     }
     @ViewBuilder private var controls: some View {

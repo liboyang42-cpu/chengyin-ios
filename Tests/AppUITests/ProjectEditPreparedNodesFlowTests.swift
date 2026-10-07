@@ -42,7 +42,11 @@ import XCTest
     private func insert(_ text: String, into id: String, in app: XCUIApplication) throws -> String {
         let field = app.descendants(matching: .any)[id].firstMatch; reveal(field, in: app)
         let original = try XCTUnwrap(field.value as? String); field.tap(); field.typeText(text)
-        let changed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value != %@", original), object: field)
+        let changed = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            guard let current = field.value as? String, let inserted = current.range(of: text) else { return false }
+            var remaining = current; remaining.removeSubrange(inserted)
+            return Array(remaining.utf8) == Array(original.utf8)
+        }, object: field)
         XCTAssertEqual(XCTWaiter.wait(for: [changed], timeout: 5), .completed, app.debugDescription)
         let current = try XCTUnwrap(field.value as? String)
         XCTAssertEqual(Array(current.replacingOccurrences(of: text, with: "").utf8), Array(original.utf8))

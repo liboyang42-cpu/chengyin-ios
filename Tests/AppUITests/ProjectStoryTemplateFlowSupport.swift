@@ -80,7 +80,15 @@ import XCTest
     private func backToEditor(_ app: XCUIApplication) {
         let button = app.navigationBars.buttons.firstMatch
         XCTAssertTrue(button.isEnabled && button.isHittable, app.debugDescription); button.tap()
-        XCTAssertTrue(app.textFields["projectEdit.name"].waitForExistence(timeout: 5))
+        let arrived = app.textFields["projectEdit.name"].waitForExistence(timeout: 5)
+        var diagnostic = ""
+        if !arrived {
+            let lateNameExists = app.textFields["projectEdit.name"].exists
+            let lateChapterVisible = app.navigationBars["Chapter"].exists
+            let lateCloseVisible = app.buttons["projectStoryTemplate.close"].exists
+            diagnostic = "STORY_TEMPLATE_BACK AFTER_TIMEOUT_ONLY nameExists=\(lateNameExists) chapterVisible=\(lateChapterVisible) closeVisible=\(lateCloseVisible)"
+        }
+        XCTAssertTrue(arrived, diagnostic)
     }
     private func open(before anchor: String?, chapterID: String, _ app: XCUIApplication) {
         tap("projectEdit.chapter." + chapterID, app)

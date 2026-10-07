@@ -1,4 +1,6 @@
 """Exact source/profile projection of the frozen 712-method club R2 layer."""
+from tools.tests.player_map_history_budget_history import before_player_map_history
+from tools.run129_repair_planning import historical_source as pre_run129_source
 from copy import deepcopy
 import hashlib
 from importlib.machinery import SourceFileLoader
@@ -29,6 +31,7 @@ def source_index():
 
 def before_story_template(profile):
     """Remove only the exact reviewed additive layer, never unknown mutations."""
+    profile = before_player_map_history(profile)
     result = deepcopy(profile)
     plan = result.get('planning_budget', {}).get(PLAN)
     if plan is None:
@@ -61,7 +64,7 @@ def materialize_pre_story_ui(directory):
     allowed = {Path(row['path']).name for row in rows}
     assert not {p.name for p in destination.glob('*.swift')} - allowed, 'Foreign source in pre-story projection'
     for row in rows:
-        data = (ROOT / row['path']).read_bytes()
+        data = pre_run129_source(ROOT / row['path']).read_bytes()
         assert hashlib.sha256(data).hexdigest() == row['sha256'], row['path']
         (destination / Path(row['path']).name).write_bytes(data)
     return destination

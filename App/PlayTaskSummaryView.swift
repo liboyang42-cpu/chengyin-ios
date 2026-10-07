@@ -4,6 +4,7 @@ import SwiftUI
 struct PlayTaskSummaryView: View {
     let snapshot: PlaySnapshot
     let phase: String
+    @State private var branchHistorySelection: PlayBranchHistorySelection?
     @QuestifyReduceMotion private var reduceMotion
     @Environment(\.locale) private var locale
     private var summary: PlayTaskSummaryPresentation { .init(snapshot: snapshot) }
@@ -24,7 +25,23 @@ struct PlayTaskSummaryView: View {
                 Text("referenceTask.phaseOnly").font(.footnote).foregroundStyle(.secondary)
                     .accessibilityIdentifier("referenceTask.phaseOnly")
             }
+            if let selection = PlayBranchHistorySelection(snapshot: snapshot), phase == "ready" || phase == "unknown" {
+                Button { branchHistorySelection = selection } label: {
+                    Label(branchHistoryLocalized("branchHistory.open", locale: locale), systemImage: "list.bullet.rectangle")
+                        .fixedSize(horizontal: false, vertical: true)
+                }.accessibilityIdentifier("branchHistory.open")
+            }
         }.accessibilityElement(children: .contain)
+        .sheet(item: $branchHistorySelection) { selection in
+            PlayBranchHistoryView(history: selection.presentation(snapshot: snapshot))
+        }
+        .onChange(of: PlayBranchHistorySelection(snapshot: snapshot)) { _, current in
+            if current != branchHistorySelection { branchHistorySelection = nil }
+        }
+        .onDisappear { branchHistorySelection = nil }
+        .onChange(of: phase) { _, value in
+            if value != "ready" && value != "unknown" { branchHistorySelection = nil }
+        }
     }
 }
 

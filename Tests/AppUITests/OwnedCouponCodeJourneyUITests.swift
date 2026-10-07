@@ -19,7 +19,19 @@ final class OwnedCouponCodeJourneyUITests: XCTestCase {
         app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", "(en)", "-AppleLocale", "en_US", "--uitesting-module", "accountCollections", "--uitesting-account-collection-scenario", "codePresentation"]
         app.launch(); assertIssues(0)
         tap("accountCollection.openCoupons"); tap("accountCollection.coupon.701")
-        XCTAssertTrue(app.navigationBars["Coupon details"].waitForExistence(timeout: 5))
+        let detailArrived = app.navigationBars["Coupon details"].waitForExistence(timeout: 5)
+        var detailDiagnostic = ""
+        if !detailArrived {
+            let expectedExists = app.navigationBars["Coupon details"].exists
+            let allowedTitles: Set<String> = ["Collections", "My coupons", "Coupons", "Coupon details", "Ticket wallet", "Show code"]
+            let titles = app.navigationBars.allElementsBoundByIndex.prefix(4).map { bar in
+                let value = bar.identifier
+                return allowedTitles.contains(value) ? value : "other"
+            }
+            let sheets = app.sheets.count
+            detailDiagnostic = "OWNED_COUPON_NAV AFTER_TIMEOUT_ONLY expectedExists=\(expectedExists) titles=\(titles) sheets=\(sheets)"
+        }
+        XCTAssertTrue(detailArrived, detailDiagnostic)
         XCTAssertTrue(app.staticTexts["Sample weekend benefit"].waitForExistence(timeout: 5)); assertIssues(0)
         tap("couponCode.open")
         XCTAssertTrue(app.buttons["couponCode.review"].waitForExistence(timeout: 5)); assertIssues(0)

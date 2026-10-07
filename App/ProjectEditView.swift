@@ -258,7 +258,9 @@ import SwiftUI
                 if let id = model.coordinator.snapshot?.topicID {
                     Section("projectRemote.readback") {
                         LabeledContent("projectRemote.topicID", value: String(id))
-                        LabeledContent("projectRemote.version", value: model.draft.baseRevision)
+                        LabeledContent("projectRemote.version") {
+                            Text(verbatim: model.draft.baseRevision).accessibilityIdentifier("projectRemote.version.value")
+                        }.accessibilityElement(children: .contain)
                         Text(LocalizedStringKey(model.draft.product == .city ? "projectEdit.city" : "projectEdit.freeExplore"))
                             .accessibilityIdentifier("projectRemote.mode")
                         Text("projectRemote.freshSource").font(.caption)

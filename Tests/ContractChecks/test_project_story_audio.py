@@ -107,7 +107,8 @@ class ProjectStoryAudioSourceContract(unittest.TestCase):
         fixture = self.read("App/ProjectEditFixtureSupport.swift")
         self.assertIn('arguments.contains("--project-story-audio")', fixture)
         self.assertIn("Test-only generated audio bytes", fixture)
-        self.assertIn('payload["storyAudioUploadCount"]', fixture)
+        self.assertIn('"storyAudioUploadCount": audio?.uploadCount ?? 0', fixture)
+        self.assertIn('for (key, count) in ProjectStoryMediaFixtureCounters.snapshot(image: storyImageSource, audio: storyAudioSource) { payload[key] = count }', fixture)
         self.assertIn("storyAudioPicker: context.storyAudioPicker", fixture)
 
     def test_authored_regressions_cover_actual_cancel_recovery_topology_and_complete_journeys(self):

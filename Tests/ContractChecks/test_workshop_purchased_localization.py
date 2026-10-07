@@ -81,6 +81,7 @@ class PurchasedLocalizationChecks(unittest.TestCase):
         self.assertEqual(sorted(nonliteral), sorted([
             ('App/AppLocalizedString.swift', 'key'),
             ('App/OwnedTopicCoverAuthorView.swift', 'key'),
+            ('App/PlayBranchHistoryView.swift', 'String.LocalizationValue(stringLiteral:key)'),
             ('App/ProjectEditDetailForms.swift', 'key'),
             ('App/ProjectStoryAudioAuthorView.swift', 'key'),
             ('App/ProjectStoryImageAuthorView.swift', 'key'),
@@ -97,6 +98,10 @@ class PurchasedLocalizationChecks(unittest.TestCase):
         self.assertIn('ifkey.hasPrefix("workshopPending."){table="WorkshopCreatorPending"}', creator)
         self.assertIn('else{table="WorkshopCreatorConsent"}', creator)
         self.assertNotIn('Locale.current', creator)
+        history = re.sub(r'\s+', '', (ROOT / 'App/PlayBranchHistoryView.swift').read_text())
+        self.assertIn('funcbranchHistoryLocalized(_key:String,locale:Locale)->String', history)
+        self.assertIn('LocalizedStringResource(String.LocalizationValue(stringLiteral:key),table:"PlayBranchHistory",locale:locale)', history)
+        self.assertNotIn('Locale.current', history)
         # The reviewed media branch uses the StaticString/defaultValue overload.
         # Prove the parameter and fallback types; an arbitrary String key is not allowed.
         helpers = [

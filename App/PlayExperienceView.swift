@@ -25,6 +25,7 @@ import SwiftUI
     var makeSensorProvider: (@MainActor () -> any PlayKitSensorProviding)? = nil
     var spatialApproval = PlayKitSpatialApproval()
     @State private var selectedNode: Int?
+    @State private var showRouteMap = false
     @State private var confirmEnd = false
     @State private var presentedMode: PlayGameplayMode?
     @State private var presentationMount = PlayExperiencePresentationMount()
@@ -48,6 +49,9 @@ import SwiftUI
         .privacySensitive().appNavigationTitle(key: model.gameplayMode == .freeExploration ? "playFree.title" : "playx.title")
         .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(item: $selectedNode) { id in nodeDestination(id) }
+        .navigationDestination(isPresented: $showRouteMap) {
+            PlayRouteMapView(model: model, nodeDestination: { AnyView(nodeDestination($0)) })
+        }
         .confirmationDialog("playx.run.end", isPresented: $confirmEnd, titleVisibility: .visible) {
             Button("playx.run.end", role: .destructive) { Task { await model.endRun(now: ProcessInfo.processInfo.systemUptime, savedAt: Self.milliseconds) } }
         } message: { Text("playx.run.end.detail") }
@@ -65,6 +69,10 @@ import SwiftUI
             }
             if let mode, mode != .cityOrientation { selectedNode = nil; confirmEnd = false }
         }
+        .onChange(of: model.gameplayMode) { _, mode in
+            if let mode, mode != .cityOrientation { showRouteMap = false }
+        }
+        .onChange(of: PlayExperiencePresentationKey(model: model)) { _, _ in showRouteMap = false }
         .onChange(of: model.snapshot?.result) { _, _ in if model.gameplayMode == .cityOrientation { projectAmbient() } }
         .onChange(of: model.snapshot) { _, _ in invalidateShopNPC?() }
         .onChange(of: model.hasCurrentMediaSnapshot) { _, current in if !current { invalidateShopNPC?() } }
@@ -98,6 +106,14 @@ import SwiftUI
                     PlayTaskStatusBadge(node: node, snapshot: snapshot)
                     Button("referenceTask.open") { selectedNode = id }
                         .buttonStyle(.borderedProminent).accessibilityIdentifier("referenceTask.open")
+                }
+            }
+            if !model.unresolved, model.interactionContext != nil, let snapshot = model.snapshot,
+               PlayRouteMapPresentation(snapshot: snapshot) != nil {
+                Section {
+                    Button("playRoute.open", systemImage: "map") { showRouteMap = true }
+                        .accessibilityIdentifier("playRoute.open")
+                    Text("playRoute.entryHint").font(.footnote).foregroundStyle(.secondary)
                 }
             }
             if model.unresolved {

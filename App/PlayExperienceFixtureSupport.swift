@@ -127,6 +127,9 @@ private final class PlayExperienceFixtureTransport: HTTPTransport {
         _model = State(initialValue: PlayExperienceCoordinator(scope: .activity(41), service: normalService, recovery: PlayMemoryCompletionRecovery(), pausedStorage: PlayMemoryPausedStorage(), currentSession: { state.session }))
     }
     var body: some View {
+        if state.scenario.hasPrefix("routeMap") {
+            PlayRouteMapFixtureHostView(scenario: state.scenario)
+        } else {
         NavigationStack {
             PlayExperienceView(model: model,
                 advancedModel: { nodeID in
@@ -154,6 +157,7 @@ private final class PlayExperienceFixtureTransport: HTTPTransport {
                     }
                 }
         }.id(revision)
+        }
     }
 }
 #endif

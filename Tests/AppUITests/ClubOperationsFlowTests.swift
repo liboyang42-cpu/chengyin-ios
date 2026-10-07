@@ -82,7 +82,8 @@ final class ClubOperationsFlowTests: XCTestCase {
     }
     func testAdminProfileHasNoOwnerSettingsOrRoleActions() {
         launch("admin"); tap("club.ops.openManage")
-        XCTAssertTrue(element("club.ops.field.name").waitForExistence(timeout: 5))
+        XCTAssertTrue(element("club.ops.field.name").waitForExistence(timeout: 5),
+            "CLUB_OPS_SYNTHETIC_PRESENTATION " + String(describing: element("club.ops.fixtureNotice").value ?? "unavailable"))
         XCTAssertFalse(element("club.ops.setting.publicVisible").exists); XCTAssertFalse(element("club.ops.member.704").exists)
         XCTAssertTrue(reveal("club.ops.reviewProfile").exists)
         for id in ["club.ops.prioritySignup", "club.ops.field.quota", "club.ops.joinPolicy"] {

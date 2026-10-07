@@ -1,0 +1,13 @@
+{
+  "run_id": 37600203995,
+  "job_id": 112729139694,
+  "base_commit": "7dd74b54a9aff8260198e5c00bc2feaac68337fe",
+  "base_tree": "4145c2a180e313844efbc5491e81893ccbe60b93",
+  "source_log_sha256": "5ec19733ddeb636789f93fa53b5faa2c960084acc3234b1e4f96d0ced0591a21",
+  "excerpt_lines": [
+    15108,
+    15122
+  ],
+  "observed": "Single hosted four-condition wait failure; four other suite methods passed. Failure helper itself then throws CancellationError.",
+  "unknown": "Which of the four predicate conditions remained false; relationship to separately observed Core cleanup gap."
+}

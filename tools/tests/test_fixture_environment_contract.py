@@ -1,5 +1,6 @@
 """Source contracts only; actual SwiftUI environment assertions run in Apple UI tests."""
 from pathlib import Path
+import hashlib
 import re
 import unittest
 
@@ -10,6 +11,89 @@ CANONICAL = {'--uitesting-dark', '--uitesting-large-text', '--uitesting-max-text
 def display_flags(source):
     return {flag for flag in re.findall(r'"(--uitesting-[a-z-]+)"', source)
             if 'dark' in flag or flag.endswith('-text')}
+
+
+def reviewed_branch_history_display_family(sources=None):
+    """Only this exact reviewed wrapper split shares its original observation.
+
+    The lifetime wrapper copies the unmodified private helper but never selects
+    its Chinese branch. Full-file pins reject *any* new call, including indirect
+    expressions, extra methods and helper changes; this is not a flag exemption.
+    """
+    expected = {
+        'PlayBranchHistoryFlowTests': '66d9552a55f04d286ff267803786d434c08da35977338042c31c229cdc88729c',
+        'PlayBranchHistoryLifetimeFlowTests': '6428aeea73bb28e478fef600d4271a067a02335e6e8e256a1aa1d9d45a2a8306',
+    }
+    if sources is None:
+        sources = {name: (ROOT / 'Tests/AppUITests' / (name + '.swift')).read_text() for name in expected}
+    assert set(sources) == set(expected), 'Unknown or missing display-family wrapper'
+    for name, value in sources.items():
+        assert hashlib.sha256(value.encode()).hexdigest() == expected[name], 'Changed display-family source: ' + name
+    original = (ROOT / 'tools/tests/fixtures/player_map_history/authored-PlayBranchHistoryFlowTests.swift.txt').read_text()
+    assert hashlib.sha256(original.encode()).hexdigest() == '19a6dccc6226808b8d1ca5f51b7495249f4ff4286202cd94d0d4b16957bd17cf'
+
+    def methods(value):
+        result = {}
+        for match in re.finditer(r'    func (test\w+)\s*\(', value):
+            assert match[1] not in result, 'Duplicated complete method'
+            end = value.index('\n    }', match.start()) + len('\n    }')
+            result[match[1]] = value[match.start():end]
+        return result
+
+    old = methods(original)
+    actual = {}
+    for value in sources.values():
+        items = methods(value)
+        assert not set(items) & set(actual), 'Repeated complete method across wrappers'
+        actual.update(items)
+        helpers = value
+        for declaration in items.values():
+            helpers = helpers.replace(declaration, '', 1)
+        old_helpers = original
+        for declaration in old.values():
+            old_helpers = old_helpers.replace(declaration, '', 1)
+        normalize = lambda text: '\n'.join(line for line in re.sub(r'final class \w+: XCTestCase', 'final class Original: XCTestCase', text).splitlines() if line.strip())
+        assert normalize(helpers) == normalize(old_helpers), 'Changed original helper or lifecycle'
+    assert len(actual) == 5 and actual == old, 'Original five complete journeys must execute once'
+    chinese = 'testChineseMaximumTextUnknownNodeAndRefreshReplaceOldHistory'
+    assert chinese in methods(sources['PlayBranchHistoryFlowTests'])
+    assert 'assertFixtureEnvironment(in: app, dynamicTypeSize: "accessibility5")' in actual[chinese]
+    return '\n'.join(sources.values())
+
+
+def reviewed_run129_display_family(name, sources=None):
+    """Two exact reviewed two-method families; no blanket display-flag exemption."""
+    from tools.run129_repair_planning import source_index, FIXTURES
+    families = {
+        'ProjectSubmissionAcknowledgmentFlowTests': 'ProjectSubmissionAcknowledgmentChineseFlowTests',
+        'ApprovedReleasePreparationFlowTests': 'ApprovedReleasePreparationChineseFlowTests',
+    }
+    assert name in families, 'Unknown run129 display family'
+    pair = [name, families[name]]
+    index = source_index()
+    if sources is None:
+        sources = {key: (ROOT/'Tests/AppUITests'/(key+'.swift')).read_text() for key in pair}
+    assert set(sources) == set(pair), 'Missing or extra family member'
+    oldrow=index['historical_ui_sources']['Tests/AppUITests/'+name+'.swift']
+    original=(FIXTURES/oldrow['historical_file']).read_text()
+    assert hashlib.sha256(original.encode()).hexdigest()==oldrow['sha256']
+    pattern=r'(?m)^    (func (test\w+)\b[\s\S]*?^    })'
+    old={key:body for body,key in re.findall(pattern,original)}
+    actual={};helpers=[]
+    for key,text in sources.items():
+        assert hashlib.sha256(text.encode()).hexdigest()==index['current_ui_sources']['Tests/AppUITests/'+key+'.swift']['sha256'], 'Changed display-family complete source'
+        declarations={method:body for body,method in re.findall(pattern,text)}
+        assert len(declarations)==1 and not set(actual)&set(declarations)
+        actual.update(declarations)
+        helper=re.sub(pattern,'',text)
+        helper=re.sub(r'(?m)^    // UNMEASURED complete method estimate:.*\n','',helper)
+        helper=helper.replace('final class '+key+': XCTestCase','final class Original: XCTestCase')
+        helpers.append('\n'.join(line for line in helper.splitlines() if line.strip()))
+    assert len(actual)==2 and actual==old, 'Two original complete journeys must map once'
+    assert helpers[0]==helpers[1], 'Both wrappers must retain the same reviewed helpers'
+    chinese=next(body for method,body in actual.items() if 'Chinese' in method)
+    assert 'assertFixtureEnvironment(in: app, dynamicTypeSize: "accessibility5")' in chinese
+    return '\n'.join(sources.values())
 
 
 class FixtureEnvironmentContractTests(unittest.TestCase):
@@ -64,7 +148,10 @@ class FixtureEnvironmentContractTests(unittest.TestCase):
             source = path.read_text()
             if display_flags(source) and '"--uitesting-module"' in source:
                 with self.subTest(file=path.name):
-                    self.assertIn('assertFixtureEnvironment(in: app', source)
+                    checked = reviewed_branch_history_display_family() if path.name == 'PlayBranchHistoryLifetimeFlowTests.swift' else source
+                    if path.stem in {'ProjectSubmissionAcknowledgmentFlowTests', 'ApprovedReleasePreparationFlowTests'}:
+                        checked = reviewed_run129_display_family(path.stem)
+                    self.assertIn('assertFixtureEnvironment(in: app', checked)
         helper = self.read('Tests/AppUITests/FixtureEnvironmentAssertions.swift')
         self.assertIn('noticeIdentifier: String = "module.fixture.notice"', helper)
         self.assertIn('identifier: noticeIdentifier', helper)

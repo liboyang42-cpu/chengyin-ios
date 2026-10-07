@@ -1,13 +1,14 @@
 {
-  "scope": "Current authored inventory and unmeasured planning only; Apple compiler/XCTest/XCUITest NOT_RUN",
-  "total_tests": 718,
-  "total_classes": 153,
+  "scope": "Actual current inventory; new repair allowances UNMEASURED; prior run129 is a different source. Apple execution of this integrated source NOT_RUN",
+  "total_tests": 736,
+  "total_classes": 161,
   "classes": {
     "AccessibilityPresentationFlowTests": 3,
     "AccountCollectionFlowTests": 11,
     "AccountSavedPostCollectionFlowTests": 4,
     "ActivityFlowTests": 8,
-    "ApprovedReleasePreparationFlowTests": 2,
+    "ApprovedReleasePreparationChineseFlowTests": 1,
+    "ApprovedReleasePreparationFlowTests": 1,
     "ApprovedReleasePublicationFlowTests": 1,
     "ApprovedReleaseReceiptRecoveryFlowTests": 1,
     "ApprovedReleaseRecoveryFlowTests": 1,
@@ -79,10 +80,16 @@
     "OwnerDraftBrowserFlowTests": 12,
     "OwnerDraftHistoryFlowTests": 1,
     "OwnerDraftReceiptFlowTests": 6,
+    "PlayBranchHistoryFlowTests": 3,
+    "PlayBranchHistoryLifetimeFlowTests": 2,
     "PlayCompareFlowTests": 6,
     "PlayDirectorPrefabFlowTests": 5,
     "PlayExperienceFlowTests": 9,
     "PlayPreferenceFlowTests": 2,
+    "PlayRouteMapCameraFallbackFlowTests": 3,
+    "PlayRouteMapCameraFlowTests": 2,
+    "PlayRouteMapContinuationFlowTests": 4,
+    "PlayRouteMapFlowTests": 4,
     "PrivateHomeFlowTests": 4,
     "PrivateHomeMapPickerFlowTests": 10,
     "ProfileEditFlowTests": 4,
@@ -113,7 +120,8 @@
     "ProjectStoryTemplateGameEndFlowTests": 1,
     "ProjectStoryTemplateGameFirstFlowTests": 1,
     "ProjectStoryTemplateGameMiddleFlowTests": 1,
-    "ProjectSubmissionAcknowledgmentFlowTests": 2,
+    "ProjectSubmissionAcknowledgmentChineseFlowTests": 1,
+    "ProjectSubmissionAcknowledgmentFlowTests": 1,
     "PublicMerchantHomeFlowTests": 10,
     "PublicMerchantReviewFilterFlowTests": 5,
     "PublicPlayTemplatePresentationFlowTests": 6,
@@ -157,8 +165,8 @@
     "WorkshopCreatorPendingRecoveryFlowTests": 1,
     "WorkshopCreatorPendingReviewFlowTests": 1
   },
-  "inventory_sha256": "dc23d950ad6df1533df4b93f474f09ba1592c2f2cb3264159e4cdea61b470d58",
-  "shard_count": 73,
+  "inventory_sha256": "2827b70ec7c2ba3f92bc43076b93111d869ec80fc42aba52e1160c59ac659c96",
+  "shard_count": 78,
   "shards": [
     [
       "ProjectEditPreparedNodesFlowTests"
@@ -167,16 +175,10 @@
       "ClubOperationsFlowTests"
     ],
     [
-      "ApprovedReleasePreparationFlowTests"
-    ],
-    [
       "ProjectEditFlowTests"
     ],
     [
       "ProjectOwnedEditorFlowTests"
-    ],
-    [
-      "ProjectSubmissionAcknowledgmentFlowTests"
     ],
     [
       "CouponRuntimeFlowTests"
@@ -186,6 +188,9 @@
     ],
     [
       "ClubProfileScopeFlowTests"
+    ],
+    [
+      "PlayRouteMapCameraFallbackFlowTests"
     ],
     [
       "TemplateMetadataSelectorsFlowTests"
@@ -206,12 +211,15 @@
       "ClubManagementFlowTests"
     ],
     [
-      "ModuleFlowTests",
-      "ShopNPCFlowTests"
+      "ModuleFlowTests"
     ],
     [
       "OwnedOrderFlowTests",
-      "IMExpandedUITests"
+      "NearbyTeamUITests"
+    ],
+    [
+      "PlayRouteMapContinuationFlowTests",
+      "SquareWorkspaceFlowTests"
     ],
     [
       "PublicPlayTemplatePresentationFlowTests",
@@ -219,193 +227,203 @@
     ],
     [
       "ClubFeedReadFlowTests",
-      "OrderLifecycleUITests"
+      "RegionalEntryFlowTests"
     ],
     [
       "TemplateAuthoringFlowTests",
-      "NativeEnrollmentFlowTests"
+      "OwnerDraftHistoryFlowTests"
     ],
     [
       "IntegratedNativeAcceptanceFlowTests",
-      "NativePlatformFlowTests"
+      "OrderLifecycleUITests"
+    ],
+    [
+      "PlayRouteMapFlowTests",
+      "NativeEnrollmentFlowTests"
+    ],
+    [
+      "PlayRouteMapCameraFlowTests",
+      "PlayDirectorPrefabFlowTests",
+      "DoorReferralUITests"
     ],
     [
       "PublicMerchantReviewFilterFlowTests",
-      "PlayDirectorPrefabFlowTests",
-      "NearbyTeamUITests"
+      "NativePlatformFlowTests",
+      "PublishingModesFlowTests"
     ],
     [
       "ClubStoryFlowTests",
       "CouponManagementFlowTests",
-      "ClubEnrollmentFlowTests"
+      "WalletCommerceFlowTests"
     ],
     [
-      "SocialAccountFlowTests",
+      "PlayBranchHistoryFlowTests",
       "NativeNavigationCompletionUITests",
-      "SquareWorkspaceFlowTests"
-    ],
-    [
-      "MerchantClubDiscoveryFlowTests",
-      "PublisherLifecycleUITests",
       "AccessibilityPresentationFlowTests"
     ],
     [
-      "AccountCollectionFlowTests",
+      "SocialAccountFlowTests",
+      "PublisherLifecycleUITests",
+      "IMExpandedUITests"
+    ],
+    [
+      "MerchantClubDiscoveryFlowTests",
       "ClubCommunityUITests",
+      "NativeSettingsReuseFlowTests"
+    ],
+    [
+      "AccountCollectionFlowTests",
+      "GrowthCenterFlowTests",
       "JourneyRoleViewFlowTests"
     ],
     [
       "PlayExperienceFlowTests",
-      "GrowthCenterFlowTests",
-      "MerchantNPCFlowTests"
-    ],
-    [
-      "ActivityFlowTests",
       "ClubOwnerRefundFlowTests",
       "HomeFeedFlowTests"
     ],
     [
-      "ApprovedReleasePublicationFlowTests",
-      "WorkshopCreatorPendingRecoveryFlowTests"
-    ],
-    [
-      "ApprovedReleaseReceiptRecoveryFlowTests",
-      "SignedInContentDetailFlowTests"
-    ],
-    [
-      "ApprovedReleaseRecoveryFlowTests",
-      "ReferenceChatTaskFlowTests"
-    ],
-    [
-      "ApprovedTopicFrozenCoverPublicationFlowTests",
-      "MerchantBusinessFlowTests"
-    ],
-    [
-      "ApprovedTopicFrozenCoverReviewFlowTests",
-      "MerchantEngagementFlowTests"
-    ],
-    [
-      "ApprovedTopicReviewCurrentChineseFlowTests",
-      "IntegratedDeniedAcceptanceFlowTests"
-    ],
-    [
-      "ApprovedTopicReviewCurrentFlowTests",
-      "TemplateCompositionFlowTests"
-    ],
-    [
-      "ApprovedTopicReviewUnknownFlowTests",
-      "TopicTemplateNameSearchFlowTests"
-    ],
-    [
-      "ApprovedTopicSelectedCoverChineseFlowTests",
-      "ProjectOwnedModeCopyFlowTests"
-    ],
-    [
-      "ApprovedTopicSelectedCoverFlowTests",
-      "ProjectEditRichStoryFlowTests"
-    ],
-    [
-      "ClubStoryNavigationFlowTests",
-      "MerchantOnboardingFlowTests"
-    ],
-    [
-      "OwnedTopicCoverRecoveryFlowTests",
-      "MerchantMarketingUITests"
-    ],
-    [
-      "OwnedTopicCoverSelectionFlowTests",
-      "OwnedCouponCodeJourneyUITests"
-    ],
-    [
-      "ProjectPendingStoryAudioFlowTests",
-      "WorkshopCreatorPendingEntryFlowTests"
-    ],
-    [
-      "ProjectPendingStoryImageFlowTests",
-      "CooperationFlowUITests"
-    ],
-    [
-      "ProjectStoryAudioEndGapFlowTests",
-      "ClubActionFlowTests"
-    ],
-    [
-      "ProjectStoryAudioFirstGapFlowTests",
-      "CooperationFlowTests",
-      "WeChatAppAuthFlowTests"
-    ],
-    [
-      "ProjectStoryAudioFlowTests",
-      "RoamExperienceFlowTests",
-      "DoorReferralUITests"
-    ],
-    [
-      "ProjectStoryAudioMiddleGapFlowTests",
-      "RegistrationWaitlistUITests",
-      "PublishingModesFlowTests"
-    ],
-    [
-      "ProjectStoryAudioRecoveryFlowTests",
-      "MerchantContentFlowTests",
-      "ObjectCardFlowTests"
-    ],
-    [
-      "ProjectStoryImageEndGapFlowTests",
-      "CreatorContentFlowTests",
-      "PublicTemplateDetailFlowTests"
-    ],
-    [
-      "ProjectStoryImageFirstGapFlowTests",
-      "GroupPollUITests",
-      "SquareGovernanceFlowTests"
-    ],
-    [
-      "ProjectStoryImageFlowTests",
-      "EntryFlowTests",
-      "ProfileEditFlowTests"
-    ],
-    [
-      "ProjectStoryImageMiddleGapFlowTests",
-      "RetainedImageUITests",
-      "OfficialActionUITests"
-    ],
-    [
-      "ProjectStoryTemplateAlbumEndFlowTests",
-      "NativePresentationPatternFlowTests",
-      "NativeSettingsReuseFlowTests"
-    ],
-    [
-      "ProjectStoryTemplateAlbumFirstFlowTests",
-      "RegistrationWaitlistOrderUITests",
-      "WalletCommerceFlowTests"
-    ],
-    [
-      "ProjectStoryTemplateAlbumMiddleFlowTests",
-      "CouponRuntimeChineseFlowTests",
-      "PlayPreferenceFlowTests"
-    ],
-    [
-      "ProjectStoryTemplateGameEndFlowTests",
-      "JourneyContentFlowTests",
+      "ActivityFlowTests",
+      "TemplateOwnShelfFlowTests",
       "TicketWalletFlowTests"
     ],
     [
+      "ApprovedReleasePublicationFlowTests",
+      "TeamFlowTests"
+    ],
+    [
+      "ApprovedReleaseReceiptRecoveryFlowTests",
+      "WorkshopCreatorPendingRecoveryFlowTests"
+    ],
+    [
+      "ApprovedReleaseRecoveryFlowTests",
+      "SignedInContentDetailFlowTests"
+    ],
+    [
+      "ApprovedTopicFrozenCoverPublicationFlowTests",
+      "ReferenceChatTaskFlowTests"
+    ],
+    [
+      "ApprovedTopicFrozenCoverReviewFlowTests",
+      "MerchantBusinessFlowTests"
+    ],
+    [
+      "ApprovedTopicReviewCurrentChineseFlowTests",
+      "MerchantEngagementFlowTests"
+    ],
+    [
+      "ApprovedTopicReviewCurrentFlowTests",
+      "IntegratedDeniedAcceptanceFlowTests"
+    ],
+    [
+      "ApprovedTopicReviewUnknownFlowTests",
+      "TemplateCompositionFlowTests"
+    ],
+    [
+      "ApprovedTopicSelectedCoverChineseFlowTests",
+      "TopicTemplateNameSearchFlowTests"
+    ],
+    [
+      "ApprovedTopicSelectedCoverFlowTests",
+      "ProjectOwnedModeCopyFlowTests"
+    ],
+    [
+      "ClubStoryNavigationFlowTests",
+      "ProjectEditRichStoryFlowTests"
+    ],
+    [
+      "OwnedTopicCoverRecoveryFlowTests",
+      "MerchantOnboardingFlowTests"
+    ],
+    [
+      "OwnedTopicCoverSelectionFlowTests",
+      "MerchantMarketingUITests"
+    ],
+    [
+      "ProjectPendingStoryAudioFlowTests",
+      "OwnedCouponCodeJourneyUITests"
+    ],
+    [
+      "ProjectPendingStoryImageFlowTests",
+      "WorkshopCreatorPendingEntryFlowTests"
+    ],
+    [
+      "ProjectStoryAudioEndGapFlowTests",
+      "CooperationFlowUITests"
+    ],
+    [
+      "ProjectStoryAudioFirstGapFlowTests",
+      "ClubActionFlowTests"
+    ],
+    [
+      "ProjectStoryAudioFlowTests",
+      "CooperationFlowTests"
+    ],
+    [
+      "ProjectStoryAudioMiddleGapFlowTests",
+      "RoamExperienceFlowTests"
+    ],
+    [
+      "ProjectStoryAudioRecoveryFlowTests",
+      "RegistrationWaitlistUITests"
+    ],
+    [
+      "ProjectStoryImageEndGapFlowTests",
+      "MerchantContentFlowTests",
+      "WeChatAppAuthFlowTests"
+    ],
+    [
+      "ProjectStoryImageFirstGapFlowTests",
+      "CreatorContentFlowTests",
+      "ShopNPCFlowTests"
+    ],
+    [
+      "ProjectStoryImageFlowTests",
+      "GroupPollUITests",
+      "ObjectCardFlowTests"
+    ],
+    [
+      "ProjectStoryImageMiddleGapFlowTests",
+      "EntryFlowTests",
+      "PublicTemplateDetailFlowTests"
+    ],
+    [
+      "ProjectStoryTemplateAlbumEndFlowTests",
+      "RetainedImageUITests",
+      "SquareGovernanceFlowTests"
+    ],
+    [
+      "ProjectStoryTemplateAlbumFirstFlowTests",
+      "NativePresentationPatternFlowTests",
+      "ProfileEditFlowTests"
+    ],
+    [
+      "ProjectStoryTemplateAlbumMiddleFlowTests",
+      "RegistrationWaitlistOrderUITests",
+      "OfficialActionUITests"
+    ],
+    [
+      "ProjectStoryTemplateGameEndFlowTests",
+      "CouponRuntimeChineseFlowTests",
+      "ClubEnrollmentFlowTests"
+    ],
+    [
       "ProjectStoryTemplateGameFirstFlowTests",
+      "JourneyContentFlowTests",
+      "PlayPreferenceFlowTests"
+    ],
+    [
+      "ProjectStoryTemplateGameMiddleFlowTests",
       "PrivateHomeFlowTests",
       "NativeVerificationFlowTests"
     ],
     [
-      "ProjectStoryTemplateGameMiddleFlowTests",
-      "ReferenceMapCardFlowTests",
-      "OwnerDraftHistoryFlowTests"
-    ],
-    [
       "WorkshopCreatorPendingReviewFlowTests",
-      "TemplateOwnShelfFlowTests",
-      "RegionalEntryFlowTests"
+      "ReferenceMapCardFlowTests",
+      "MerchantNPCFlowTests"
     ],
     [
       "SquareFlowTests",
-      "TeamFlowTests"
+      "PlayBranchHistoryLifetimeFlowTests"
     ],
     [
       "TemplatePreferenceDraftEditorFlowTests",
@@ -440,55 +458,67 @@
       "OwnerDraftReceiptFlowTests"
     ],
     [
-      "PrivateHomeMapPickerFlowTests",
+      "ProjectSubmissionAcknowledgmentChineseFlowTests",
       "AccountSavedPostCollectionFlowTests"
     ],
     [
-      "ApprovedTopicReviewPersistenceFlowTests",
-      "TemplateHistoricalHintFlowTests"
-    ],
-    [
-      "ApprovedTopicReviewRequestFlowTests",
+      "ApprovedReleasePreparationChineseFlowTests",
       "SettingsNativeFlowTests"
     ],
     [
-      "ProjectEditPendingRestoreFlowTests",
+      "ApprovedReleasePreparationFlowTests",
       "CouponCommandRecoveryFlowTests"
     ],
     [
-      "ProjectStoryImageCancellationFlowTests",
+      "ProjectSubmissionAcknowledgmentFlowTests",
       "SearchMapFlowTests"
+    ],
+    [
+      "PrivateHomeMapPickerFlowTests",
+      "TemplateHistoricalHintFlowTests"
+    ],
+    [
+      "ApprovedTopicReviewPersistenceFlowTests",
+      "ProjectEditPendingRestoreFlowTests"
+    ],
+    [
+      "ApprovedTopicReviewRequestFlowTests",
+      "ProjectStoryImageCancellationFlowTests"
     ]
   ],
   "shard_test_counts": [
     2,
     11,
-    2,
     10,
     3,
-    2,
     5,
     2,
     2,
+    3,
     3,
     12,
     6,
     3,
     10,
     21,
-    25,
-    8,
+    21,
+    9,
+    7,
     12,
-    13,
-    16,
     10,
-    13,
-    13,
-    20,
     11,
-    22,
-    19,
+    11,
+    10,
+    9,
     15,
+    18,
+    10,
+    18,
+    13,
+    23,
+    16,
+    21,
+    16,
     2,
     14,
     17,
@@ -498,29 +528,28 @@
     4,
     4,
     2,
-    4,
     7,
+    4,
     11,
     2,
     2,
     8,
     8,
+    7,
+    15,
+    7,
+    9,
+    10,
+    9,
+    13,
+    10,
+    13,
+    6,
+    5,
     8,
-    17,
-    11,
-    11,
-    11,
-    11,
-    12,
     8,
-    11,
-    11,
-    4,
-    12,
-    8,
-    4,
-    12,
-    27,
+    6,
+    14,
     9,
     15,
     14,
@@ -529,11 +558,13 @@
     5,
     4,
     8,
-    14,
-    2,
+    5,
     17,
     2,
-    19
+    19,
+    11,
+    2,
+    2
   ],
   "historical_initial_inventory": {
     "scope": "Authored inventory only; Apple compiler/XCTest/XCUITest NOT_RUN",

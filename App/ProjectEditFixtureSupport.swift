@@ -1,6 +1,13 @@
 #if DEBUG
 import SwiftUI
 
+@MainActor enum ProjectStoryMediaFixtureCounters {
+    static func snapshot(image: ProjectStoryImageSynthetic?, audio: ProjectStoryAudioSynthetic?) -> [String: Int] {
+        ["storyImageUploadCount": image?.uploadCount ?? 0,
+         "storyAudioUploadCount": audio?.uploadCount ?? 0]
+    }
+}
+
 @MainActor private final class ProjectEditFixtureContext: ObservableObject {
     var session: ProjectEditSession? = try? .init(accountID: 901, epoch: 1, storageNamespace: "synthetic-project-editor")
     let storage = ProjectEditMemoryStorage()
@@ -153,8 +160,9 @@ import SwiftUI
             payload["releasePublishCount"] = source.publishCount; payload["releaseStatusCount"] = source.statusCount
             payload["releaseAllocatedCount"] = source.allocatedCount; payload["releaseRequestIDs"] = source.requestIDs
         }
-        if let source = storyAudioSource { payload["storyAudioUploadCount"] = source.uploadCount; payload["storyAudioReference"] = source.reference }
-        if let source = storyImageSource { payload["storyImageUploadCount"] = source.uploadCount; payload["storyImageReference"] = source.reference }
+        for (key, count) in ProjectStoryMediaFixtureCounters.snapshot(image: storyImageSource, audio: storyAudioSource) { payload[key] = count }
+        if let source = storyAudioSource { payload["storyAudioReference"] = source.reference }
+        if let source = storyImageSource { payload["storyImageReference"] = source.reference }
         if let source = storyTemplateSource { payload["storyTemplateListCount"] = source.listCount; payload["storyTemplateDetailCount"] = source.detailCount }
         if let source = ownedCoverSource {
             payload["coverUploadCount"] = source.uploadCount; payload["coverSelectCount"] = source.selectCount

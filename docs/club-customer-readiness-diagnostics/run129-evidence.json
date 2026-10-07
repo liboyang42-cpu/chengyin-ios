@@ -1,0 +1,17 @@
+{
+  "run_id": 37600203995,
+  "job_id": 112729141657,
+  "commit": "7dd74b54a9aff8260198e5c00bc2feaac68337fe",
+  "tree": "4145c2a180e313844efbc5491e81893ccbe60b93",
+  "artifact_id": 11477840079,
+  "artifact_zip_sha256": "bed00a58202b89c718668c5fddf57f7688ae96f21965fdac2c1e139992341551",
+  "source_log_sha256": "78e7476892ed5ff86bcb08fae76a0469a78cc885be017eb6fe0ddd98c041272d",
+  "excerpt_lines": [
+    476,
+    575
+  ],
+  "screenshot_filename": "036ACDF8-CF92-4ED0-A411-0C9AFDBDFEB8.png",
+  "screenshot_sha256": "fd218ec59fcc0aa24571d6076fe6100b16a67064bb68101123444f10c8942af0",
+  "observed": "First tuple customerDenied/member704 fails tap helper readiness before any tap/menu/private read. Late AX and screenshot show member704 fully visible.",
+  "unproved": "Whether initial polls saw missing element, nonhittable element, or delayed AX queries. Late snapshot is not evidence of readiness inside the original wait."
+}

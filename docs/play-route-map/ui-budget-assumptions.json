@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "status": "UNMEASURED_ASSUMPTIONS_NOT_XCTEST_EVIDENCE",
+  "suite": "PlayRouteMapFlowTests",
+  "measurements": [],
+  "tests": [
+    {
+      "test": "QuestifyUITests/PlayRouteMapFlowTests/testCurrentCompletedAndOldTaskEntrancesRemainReachable",
+      "estimated_seconds": 90,
+      "basis": "Conservative authored journey estimate; Apple execution NOT_RUN."
+    },
+    {
+      "test": "QuestifyUITests/PlayRouteMapFlowTests/testMissingCoordinatesKeepCompleteEquivalentList",
+      "estimated_seconds": 60,
+      "basis": "Conservative authored journey estimate; Apple execution NOT_RUN."
+    },
+    {
+      "test": "QuestifyUITests/PlayRouteMapFlowTests/testLockedAndHiddenStopsCannotLeakOrOpenFromMap",
+      "estimated_seconds": 60,
+      "basis": "Conservative authored journey estimate; Apple execution NOT_RUN."
+    },
+    {
+      "test": "QuestifyUITests/PlayRouteMapFlowTests/testSameNodeIDReadRefreshClearsPushedSelectionAndReopensCurrentRead",
+      "estimated_seconds": 75,
+      "basis": "Conservative authored journey estimate; Apple execution NOT_RUN."
+    },
+    {
+      "test": "QuestifyUITests/PlayRouteMapFlowTests/testAccountChangeBackReopenAndRelaunchDoNotRestoreOldSelection",
+      "estimated_seconds": 120,
+      "basis": "Conservative authored journey estimate; Apple execution NOT_RUN."
+    },
+    {
+      "test": "QuestifyUITests/PlayRouteMapFlowTests/testChineseMaximumTextUsesFullListAndExplicitRouteDisclaimer",
+      "estimated_seconds": 90,
+      "basis": "Conservative authored journey estimate; Apple execution NOT_RUN."
+    },
+    {
+      "test": "QuestifyUITests/PlayRouteMapFlowTests/testFreeExplorationDoesNotGainOrientationMapEntry",
+      "estimated_seconds": 60,
+      "basis": "Conservative authored journey estimate; Apple execution NOT_RUN."
+    },
+    {
+      "test": "QuestifyUITests/PlayRouteMapFlowTests/testExistingTaskReviewAndCancelStayOnTaskWhenOpenedFromMap",
+      "estimated_seconds": 90,
+      "basis": "Conservative authored journey estimate; Apple execution NOT_RUN."
+    }
+  ],
+  "integration": "Merge with other feature estimates, update central inventory and run full shard completeness/budget validation; do not treat these values as measured.",
+  "total_estimated_seconds": 645,
+  "current_central_default_seconds": 480
+}

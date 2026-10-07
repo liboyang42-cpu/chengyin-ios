@@ -14,14 +14,16 @@ import XCTest
         return app
     }
     private func tap(_ id: String, in app: XCUIApplication, fixed: Bool = false) {
-        let target = app.buttons[id]; XCTAssertTrue(target.waitForExistence(timeout: 5), app.debugDescription)
+        let target = app.buttons[id]
         if !fixed { XCTAssertTrue(revealFixtureElement(target, in: app, maximumSwipes: 65), app.debugDescription) }
+        XCTAssertTrue(target.waitForExistence(timeout: 5), app.debugDescription)
         XCTAssertEqual(app.buttons.matching(identifier: id).count, 1); XCTAssertTrue(target.isEnabled && target.isHittable)
         XCTAssertTrue(app.windows.firstMatch.frame.contains(target.frame)); target.tap()
     }
     @discardableResult private func value(_ id: String, _ expected: String? = nil, in app: XCUIApplication) -> String {
-        let target = app.staticTexts[id]; XCTAssertTrue(target.waitForExistence(timeout: 5), app.debugDescription)
+        let target = app.staticTexts[id]
         XCTAssertTrue(revealFixtureElement(target, in: app, maximumSwipes: 65, requiresHittable: false), app.debugDescription)
+        XCTAssertTrue(target.waitForExistence(timeout: 5), app.debugDescription)
         if let expected { XCTAssertEqual(Array(target.label.utf8), Array(expected.utf8)) }
         return target.label
     }

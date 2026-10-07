@@ -61,7 +61,7 @@ class ClubParityIntegrationBudgetTests(unittest.TestCase):
   for r in rows:self.assertFalse(r['measured']);self.assertEqual(sha(self.methods[r['method']].read_bytes()),r['test_file_sha256']);self.assertEqual(self.cost(r['method']),Decimal(str(r['seconds'])))
   for key,value in NEW.items():self.assertEqual(self.cost(key),value);self.assertNotIn(key,self.profile['method_seconds'])
  def test_new_methods_all_helpers_setup_teardown_preserved_byte_exact(self):
-  authored=(FIXTURE/'authored-ClubOperationsFlowTests.swift.txt').read_text();left=(ROOT/'Tests/AppUITests/ClubOperationsFlowTests.swift').read_text();right=(ROOT/'Tests/AppUITests/ClubProfileScopeFlowTests.swift').read_text();record=json.loads((FIXTURE/'whole-method-migration.json').read_text())
+  authored=(FIXTURE/'authored-ClubOperationsFlowTests.swift.txt').read_text();left=(self.ui/'ClubOperationsFlowTests.swift').read_text();right=(self.ui/'ClubProfileScopeFlowTests.swift').read_text();record=json.loads((FIXTURE/'whole-method-migration.json').read_text())
   a,l,r=map(declarations,(authored,left,right));self.assertEqual((len(a),len(l),len(r)),(13,11,2));self.assertEqual(set(l)|set(r),set(a));self.assertFalse(set(l)&set(r))
   for name,body in {**l,**r}.items():self.assertEqual(body,a[name])
   self.assertEqual(nontest(authored),nontest(left));self.assertEqual(nontest(authored),nontest(right));self.assertEqual(sha(nontest(authored).encode()),record['all_non_test_source_sha256'])

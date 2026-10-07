@@ -3,7 +3,11 @@ from pathlib import Path
 import unittest
 ROOT=Path(__file__).resolve().parents[2]
 class ProjectSubmissionAcknowledgmentContract(unittest.TestCase):
-    def read(self,path):return (ROOT/path).read_text()
+    def read(self,path):
+        result = (ROOT/path).read_text()
+        if path == 'Tests/AppUITests/ProjectSubmissionAcknowledgmentFlowTests.swift':
+            result += (ROOT/'Tests/AppUITests/ProjectSubmissionAcknowledgmentChineseFlowTests.swift').read_text()
+        return result
     def test_real_v2_transport_retains_whole_acknowledgment(self):
         s=self.read('Core/ProjectEditHTTPService.swift')
         branch=s.split('if path == ProjectEditStoryContract.createPath',1)[1].split('let topicID: Int',1)[0]
@@ -34,7 +38,7 @@ class ProjectSubmissionAcknowledgmentContract(unittest.TestCase):
         for path,count in [('Tests/CoreTests/ProjectSubmissionAcknowledgmentTests.swift',12),('Tests/AppUnitTests/ProjectSubmissionEvidenceTests.swift',4),('Tests/AppUITests/ProjectSubmissionAcknowledgmentFlowTests.swift',2)]:
             self.assertEqual(self.read(path).count('func test'),count)
         ui=self.read('Tests/AppUITests/ProjectSubmissionAcknowledgmentFlowTests.swift')
-        self.assertEqual(ui.count('UNMEASURED complete method estimate: 720 seconds.'),2)
+        self.assertEqual(ui.count('UNMEASURED complete method estimate: 750 seconds.'),1); self.assertEqual(ui.count('UNMEASURED complete method estimate: 770 seconds.'),1)
         self.assertIn('UICTContentSizeCategoryAccessibilityXXXL',ui)
         self.assertIn('Array(target.label.utf8)',ui)
 if __name__=='__main__':unittest.main()

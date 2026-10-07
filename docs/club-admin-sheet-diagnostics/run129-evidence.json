@@ -1,0 +1,15 @@
+{
+  "run_id": 37600203995,
+  "job_id": 112729141472,
+  "base_commit": "7dd74b54a9aff8260198e5c00bc2feaac68337fe",
+  "base_tree": "4145c2a180e313844efbc5491e81893ccbe60b93",
+  "log_sha256": "ada38d4603e11d978b1c56951c8e12ea0c19485736a25213df0aeb5b67abcdcd",
+  "excerpt_lines": [
+    705,
+    760
+  ],
+  "screenshot_filename": "73FAA1FE-AD0E-456C-977C-E8C44A108FBA.png",
+  "screenshot_sha256": "2f637e9b4f00d3d57ce5853ac0e0f79824721f0ab943808512cf40be4ecdeb81",
+  "observed": "Failure at original :85 waits for absent profile name; actual screenshot stays on fixture root with no management sheet.",
+  "unproved": "Whether the tap handler executed, destination remained selected, or sheet appeared/disappeared; no admin-authority root cause proven."
+}

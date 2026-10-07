@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "baseline_tree": "923e53cabfa6f881bc39b529871841f948512f58",
+  "status": "UNMEASURED_ASSUMPTIONS_NOT_XCTEST_EVIDENCE",
+  "suite": "PlayRouteMapCameraFlowTests",
+  "tests": [
+    {
+      "test": "QuestifyUITests/PlayRouteMapCameraFlowTests/testOverviewCurrentAndOtherStopPreviewFormCompleteInspectionJourney",
+      "estimated_seconds": 100,
+      "basis": "Unmeasured conservative journey assumption; Apple execution NOT_RUN."
+    },
+    {
+      "test": "QuestifyUITests/PlayRouteMapCameraFlowTests/testCurrentWithoutCoordinatesKeepsMapUnmovedAndTaskReachable",
+      "estimated_seconds": 75,
+      "basis": "Unmeasured conservative journey assumption; Apple execution NOT_RUN."
+    },
+    {
+      "test": "QuestifyUITests/PlayRouteMapCameraFlowTests/testPreviewChoicesExcludeLockedHiddenAndClearAfterReadChanges",
+      "estimated_seconds": 75,
+      "basis": "Unmeasured conservative journey assumption; Apple execution NOT_RUN."
+    },
+    {
+      "test": "QuestifyUITests/PlayRouteMapCameraFlowTests/testUnsupportedExtentLeavesExplicitManualListFallback",
+      "estimated_seconds": 60,
+      "basis": "Unmeasured conservative journey assumption; Apple execution NOT_RUN."
+    },
+    {
+      "test": "QuestifyUITests/PlayRouteMapCameraFlowTests/testChineseMaximumTextPreviewControlsRetainFullMeaningAndReturnToOverview",
+      "estimated_seconds": 90,
+      "basis": "Unmeasured conservative journey assumption; Apple execution NOT_RUN."
+    }
+  ],
+  "total_estimated_seconds": 400,
+  "central_default_increment_seconds": 300,
+  "integration": "Merge after frozen 923e dependency; central reviewer recomputes all inventories and shards. Existing method estimates and UI files are unchanged."
+}

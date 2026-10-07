@@ -5,6 +5,7 @@ cost. Historical callers first undo the reviewed club layer, then use pinned
 full source files; no new method can enter a pre-club inventory.
 """
 from tools.tests.story_template_budget_history import before_story_template
+from tools.run129_repair_planning import historical_source as pre_run129_source
 from copy import deepcopy
 import hashlib
 from importlib.machinery import SourceFileLoader
@@ -66,7 +67,7 @@ def historical_pre_club_source(path):
             source = FIXTURES / row['historical_file']
             assert hashlib.sha256(source.read_bytes()).hexdigest() == row['sha256'], original
             return source
-    return path
+    return pre_run129_source(path)
 
 
 def materialize_pre_club_ui(directory):

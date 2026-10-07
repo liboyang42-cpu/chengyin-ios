@@ -13,6 +13,43 @@ final class ModuleFlowTests: XCTestCase {
         XCTAssertEqual(XCTWaiter.wait(for:[ready],timeout:10),.completed,app.debugDescription,file:file,line:line)
         element.tap()
     }
+    /// Only the denied/wrong-member fixture case uses this diagnostic variant.
+    /// Its readiness condition, element, ten-second budget and successful single tap
+    /// match tap(_:). Late samples never turn a timed-out result into success.
+    private func tapClubCustomerEntry(_ element: XCUIElement,
+                                     file: StaticString = #filePath, line: UInt = #line) {
+        let origin = ProcessInfo.processInfo.systemUptime
+        var evaluations: [String] = []
+        let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            let began = ProcessInfo.processInfo.systemUptime - origin
+            let exists = element.exists
+            let hittable = exists && element.isHittable
+            let ended = ProcessInfo.processInfo.systemUptime - origin
+            evaluations.append("start=\(began);end=\(ended);exists=\(exists);hittable=\(hittable)")
+            evaluations = Array(evaluations.suffix(16))
+            return exists && hittable
+        }, object: element)
+        let result = XCTWaiter.wait(for: [ready], timeout: 10)
+        if result != .completed {
+            let lateStart = ProcessInfo.processInfo.systemUptime - origin
+            let exists = element.exists
+            let hittable = exists && element.isHittable
+            var enabled = "unavailable", frame = "unavailable"
+            if exists, let snapshot = try? element.snapshot() {
+                enabled = String(snapshot.isEnabled); frame = String(describing: snapshot.frame)
+            }
+            let sheets = app.sheets.count, alerts = app.alerts.count
+            let lateEnd = ProcessInfo.processInfo.systemUptime - origin
+            let diagnostic = "polls[" + evaluations.joined(separator: " | ") + "] AFTER_TIMEOUT_ONLY start=\(lateStart);end=\(lateEnd);exists=\(exists);hittable=\(hittable);enabled=\(enabled);frame=\(frame);sheets=\(sheets);alerts=\(alerts);appState=\(app.state.rawValue)"
+            print("CLUB_CUSTOMER_SYNTHETIC_READINESS " + diagnostic)
+            let attachment = XCTAttachment(string: diagnostic)
+            attachment.name = "Synthetic club customer entry readiness"; attachment.lifetime = .keepAlways
+            add(attachment)
+        }
+        XCTAssertEqual(result, .completed, app.debugDescription, file: file, line: line)
+        guard result == .completed else { return }
+        element.tap()
+    }
     private func openClubHistoryTopic(file: StaticString = #filePath, line: UInt = #line) {
         let row = app.buttons["club.gov.customer.topic.91"]
         XCTAssertTrue(revealFixtureElement(row, in: app), app.debugDescription, file: file, line: line)
@@ -153,7 +190,7 @@ final class ModuleFlowTests: XCTestCase {
     func testClubCustomerChoiceDeniedAndWrongMemberFailClosed() {
         for (scenario, member) in [("customerDenied", 704), ("customerOwner", 703)] {
             launch(["--uitesting-club-fixture", scenario])
-            tap(app.buttons["club.member.\(member)"])
+            tapClubCustomerEntry(app.buttons["club.member.\(member)"])
             chooseClubMemberAction("club.member.choice.customer", label: "Customer detail")
             XCTAssertTrue(app.staticTexts["club.gov.error"].waitForExistence(timeout: 5), app.debugDescription)
             XCTAssertFalse(app.staticTexts["Fixture customer"].exists)

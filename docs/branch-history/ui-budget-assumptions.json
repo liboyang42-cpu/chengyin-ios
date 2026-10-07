@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "scope": "Standalone feature-line proposal. No central CI, grouping or duration weights changed.",
+  "unit": "seconds",
+  "apple_execution": "NOT_RUN",
+  "basis": "Unmeasured conservative source-only planning assumptions; not observed Apple durations.",
+  "estimated_method_seconds": {
+    "PlayBranchHistoryFlowTests.testSummaryHistoryReturnReopenPreservesOrderWithoutActionControls": 75,
+    "PlayBranchHistoryFlowTests.testChineseMaximumTextUnknownNodeAndRefreshReplaceOldHistory": 90,
+    "PlayBranchHistoryFlowTests.testMissingMalformedAndEmptyReadNeverInventAPath": 120,
+    "PlayBranchHistoryFlowTests.testRefreshAndAccountSwitchWhilePresentedRemoveOldSheetAndRows": 120,
+    "PlayBranchHistoryFlowTests.testLinearSummaryHasNoHistoryEntryBeforeOrAfterRefresh": 60
+  },
+  "total_assumed_seconds": 465,
+  "integration_requirement": "Recompute combined shard grouping and budget after all feature lines merge. All five source-discovered methods must execute once."
+}

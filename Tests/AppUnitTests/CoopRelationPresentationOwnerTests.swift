@@ -84,8 +84,19 @@ import Combine
         let reads = reader.ownerReads
         do { _ = try await oldReader.home(.ownerMemberID(PublicMerchantOwnerID(41)!)); XCTFail("Retired selection dispatched") } catch {}
         XCTAssertEqual(reader.ownerReads, reads)
-        try await wait("identity publication pops old child and returns to the actual list") {
-            owner.selection == nil && !probe.childVisible && !probe.parentCovered && model.isCurrent(reader: reader)
+        do {
+            try await wait("identity publication pops old child and returns to the actual list") {
+                owner.selection == nil && !probe.childVisible && !probe.parentCovered && model.isCurrent(reader: reader)
+            }
+        } catch {
+            // Synthetic booleans/counts only; distinguish pop failure from stale/loading
+            // return state without changing the original predicate or wait budget.
+            let diagnostic = "selected=\(owner.selection != nil) child=\(probe.childVisible) covered=\(probe.parentCovered) current=\(model.isCurrent(reader: reader)) loading=\(model.isLoading) failed=\(model.failed) signedIn=\(reader.session != nil) reads=\(reader.reads) ownerReads=\(reader.ownerReads) clubReads=\(reader.clubReads)"
+            print("COOP_SYNTHETIC_OWNER " + diagnostic)
+            let attachment = XCTAttachment(string: diagnostic)
+            attachment.name = "Synthetic cooperation owner return state"; attachment.lifetime = .keepAlways
+            add(attachment)
+            throw error
         }
         let fresh = try choice(reader, model)
         XCTAssertNotEqual(fresh.id, old.id)

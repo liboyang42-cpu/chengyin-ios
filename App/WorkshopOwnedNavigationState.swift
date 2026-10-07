@@ -5,6 +5,30 @@ import Observation
 /// row/package actions revoke the departing screen synchronously, before pushing navigation.
 @MainActor @Observable final class WorkshopOwnedNavigationState {
     struct Selection: Hashable, Identifiable { let id: String }
+#if DEBUG
+    enum SyntheticEvent: String { case listAppear, listAppearReturned, listDisappear, listDisappearReturned }
+    struct SyntheticSnapshot {
+        let event: SyntheticEvent
+        let currentAppearance: Bool
+        let displayedLive: Bool
+        let list: Bool
+        let detail: Bool
+        let package: Bool
+        let selected: Bool
+        let showsPackage: Bool
+    }
+    @ObservationIgnored var syntheticTrace: ((SyntheticSnapshot) -> Void)? = nil
+    @ObservationIgnored private var syntheticTraceCount = 0
+    private func traceSynthetic(_ event: SyntheticEvent, displayed: WorkshopOwnedViewAppearance) {
+        // At most twelve new events plus the existing twelve fixed test stages.
+        guard let syntheticTrace, syntheticTraceCount < 12 else { return }
+        syntheticTraceCount += 1
+        syntheticTrace(.init(event: event, currentAppearance: listAppearance === displayed,
+            displayedLive: displayed.permit?.isLive == true, list: listPermit != nil,
+            detail: detailPermit != nil, package: packagePermit != nil,
+            selected: selection != nil, showsPackage: showsPackage))
+    }
+#endif
     var selection: Selection? {
         willSet {
             guard selection != newValue else { return }
@@ -89,6 +113,10 @@ import Observation
     // The navigation transition creates the next presentation BEFORE SwiftUI returns to it.
     // A cached View's previous box must never be reused if Back arrives before old onDisappear.
     func listViewAppeared(_ displayed: WorkshopOwnedViewAppearance) -> WorkshopOwnedPresentationPermit? {
+#if DEBUG
+        traceSynthetic(.listAppear, displayed: displayed)
+        defer { traceSynthetic(.listAppearReturned, displayed: displayed) }
+#endif
         guard listAppearance === displayed, selection == nil else { return nil }
         return displayed.appear { listAppeared() }
     }
@@ -101,6 +129,10 @@ import Observation
         return displayed.appear { packageAppeared(claimId: claimId) }
     }
     func listViewDisappeared(_ displayed: WorkshopOwnedViewAppearance) {
+#if DEBUG
+        traceSynthetic(.listDisappear, displayed: displayed)
+        defer { traceSynthetic(.listDisappearReturned, displayed: displayed) }
+#endif
         let wasPresented = displayed.permit.map { listPermit === $0 && $0.isLive } ?? false
         displayed.disappear { listDisappeared($0) }
         // A pushed parent may render its next, inactive box before disappearing.

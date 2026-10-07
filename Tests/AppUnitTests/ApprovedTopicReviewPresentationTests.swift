@@ -17,14 +17,16 @@ import XCTest
         guard case .ready(let value) = model.flow.state else { throw ApprovedTopicReleaseError.invalidResponse }; return value
     }
     func testActualViewModelDoubleReviewKeepsFirstConfirmationAndOriginalDraftEvidence() async throws {
-        let (editor, _, model, _, storage, source) = try await setup(), before = storage.data, draft = editor.draft
+        let (editor, controller, model, _, storage, source) = try await setup(), before = storage.data, draft = editor.draft
+        defer { withExtendedLifetime(controller) {} }
         let captured = try capture(model); model.review(captured); let first = try XCTUnwrap(model.confirmation); model.review(captured)
         XCTAssertEqual(model.confirmation?.id, first.id); XCTAssertEqual(model.flow.confirmation?.id, first.id)
         XCTAssertEqual(first.capture.name, "Test-only current review capture"); XCTAssertEqual(first.capture.chapters[0].blocks[1].node?.templateID, 73)
         XCTAssertEqual(editor.draft, draft); XCTAssertEqual(editor.coordinator.pending?.bundleAcknowledgment?.bundledTemplateIDs, [41]); XCTAssertEqual(storage.data, before); XCTAssertEqual(source.submitCount, 0)
     }
     func testOldCancelAndBindingCannotDismissAnotherConfirmation() async throws {
-        let (_, _, model, _, storage, source) = try await setup(), before = storage.data, captured = try capture(model)
+        let (_, controller, model, _, storage, source) = try await setup(), before = storage.data, captured = try capture(model)
+        defer { withExtendedLifetime(controller) {} }
         model.review(captured); let first = try XCTUnwrap(model.confirmation), binding = model.binding(model.confirmation); model.cancel(first)
         model.review(captured); let second = try XCTUnwrap(model.confirmation); binding.wrappedValue = nil; model.cancel(first); model.confirm(first)
         XCTAssertEqual(model.confirmation?.id, second.id); XCTAssertEqual(model.flow.confirmation?.id, second.id); XCTAssertEqual(storage.data, before); XCTAssertEqual(source.submitCount, 0)
@@ -38,12 +40,14 @@ import XCTest
         XCTAssertEqual(source.submitCount, 0); XCTAssertEqual(try journal.read(session: session, topicID: 7901), saved); XCTAssertEqual(model.flow.state, .closed)
     }
     func testLeaveRejectsOriginalConfirmBeforeViewRedraw() async throws {
-        let (editor, _, model, _, storage, source) = try await setup(), before = storage.data
+        let (editor, controller, model, _, storage, source) = try await setup(), before = storage.data
+        defer { withExtendedLifetime(controller) {} }
         model.review(try capture(model)); let original = try XCTUnwrap(model.confirmation); editor.leave(); model.confirm(original); await Task.yield()
         XCTAssertNil(model.confirmation); XCTAssertEqual(storage.data, before); XCTAssertEqual(source.submitCount, 0)
     }
     func testAccountChangeAloneRejectsAHealthyOriginalConfirmationBeforeViewRedraw() async throws {
-        let (editor, _, model, owner, storage, source) = try await setup(), before = storage.data
+        let (editor, controller, model, owner, storage, source) = try await setup(), before = storage.data
+        defer { withExtendedLifetime(controller) {} }
         model.review(try capture(model)); let original = try XCTUnwrap(model.confirmation); XCTAssertTrue(model.owns(original)); XCTAssertTrue(editor.ownsVisit)
         owner.session = try .init(accountID: 8, epoch: 2, storageNamespace: "review-presentation-tests"); model.confirm(original); await Task.yield()
         XCTAssertNil(model.confirmation); XCTAssertEqual(storage.data, before); XCTAssertEqual(source.submitCount, 0); XCTAssertEqual(owner.session?.accountID, 8)

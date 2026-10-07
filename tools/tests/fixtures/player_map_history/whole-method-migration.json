@@ -1,0 +1,582 @@
+{
+  "authored_sources": {
+    "PlayRouteMapFlowTests": {
+      "sha256": "3082fe0f151ba7a51942c3ef551ac029d8378b73fbba5f1a0a64d380eac64940",
+      "path": "Tests/AppUITests/PlayRouteMapFlowTests.swift",
+      "historical_file": "authored-PlayRouteMapFlowTests.swift.txt"
+    },
+    "PlayRouteMapCameraFlowTests": {
+      "sha256": "94dec5ea964025d5327fb9921538a9cc045d4d8d3b6150704fa48952960bbc13",
+      "path": "Tests/AppUITests/PlayRouteMapCameraFlowTests.swift",
+      "historical_file": "authored-PlayRouteMapCameraFlowTests.swift.txt"
+    },
+    "PlayBranchHistoryFlowTests": {
+      "sha256": "19a6dccc6226808b8d1ca5f51b7495249f4ff4286202cd94d0d4b16957bd17cf",
+      "path": "Tests/AppUITests/PlayBranchHistoryFlowTests.swift",
+      "historical_file": "authored-PlayBranchHistoryFlowTests.swift.txt"
+    }
+  },
+  "methods": [
+    {
+      "authored_method": "PlayRouteMapFlowTests.testCurrentCompletedAndOldTaskEntrancesRemainReachable",
+      "method": "PlayRouteMapFlowTests.testCurrentCompletedAndOldTaskEntrancesRemainReachable",
+      "test_path": "Tests/AppUITests/PlayRouteMapFlowTests.swift",
+      "declaration_sha256": "b61cede76e9c63a7e1f8531c8364889e23486bc90961c8539878bef4bd9ea5bf",
+      "test_file_sha256": "bfdd211e9113d87788f6555d4a4736c6e77e04175d84807981df0fb34d6ed4ca",
+      "seconds": 310,
+      "measured": false,
+      "source": "playerRouteHistoryWholeMethodReview20261007",
+      "derivation": {
+        "app_launch_count": 1,
+        "app_launch_seconds_assumption": 90,
+        "all_explicit_wait_caps_seconds": 20,
+        "reveal_call_count": 6,
+        "maximum_swipes_per_reveal": 10,
+        "iterations_per_reveal": 11,
+        "query_gesture_iteration_seconds_assumption": 2,
+        "other_whole_method_overhead_seconds_assumption": 60,
+        "subtotal_seconds": 302,
+        "round_up_seconds": 8,
+        "formula": "launches*90 + explicit_wait_caps + reveal_calls*(maximum_swipes+1)*2 + 60, rounded upward to 10 seconds",
+        "limitation": "Unmeasured engineering allowances, not observed durations or guaranteed upper bounds. Includes each complete method, all fixture launches, assertions, helpers, setup/teardown and conditional failure screenshot."
+      },
+      "all_non_test_source_sha256": "a752ded6f33710f1537bae5bf2c63b9e41d63674a42b18590303a9d8b1b224f2",
+      "shared_helper_source_sha256": {
+        "Tests/AppUITests/FailureScreenshot.swift": "705ba7fa14128cfd9e81f181fd2b5f5edd0cb464b2ececd26119510d98ed6e49",
+        "Tests/AppUITests/FixtureEnvironmentAssertions.swift": "5c6980720d17cdbd6509d3819471f9b00183c1d909fa91e1d18dfd31f8453ef7"
+      },
+      "basis": "Complete-method source/helper-bound planning assumption, audited across all launches and repeated helper calls; Apple execution NOT_RUN.",
+      "timing_status": "UNMEASURED_ENGINEERING_PLANNING_ASSUMPTION"
+    },
+    {
+      "authored_method": "PlayRouteMapFlowTests.testMissingCoordinatesKeepCompleteEquivalentList",
+      "method": "PlayRouteMapFlowTests.testMissingCoordinatesKeepCompleteEquivalentList",
+      "test_path": "Tests/AppUITests/PlayRouteMapFlowTests.swift",
+      "declaration_sha256": "fb06accb8bac8bd887c62df2ab526e6e4f185bf0e91e9f6e6e70baab9a33998d",
+      "test_file_sha256": "bfdd211e9113d87788f6555d4a4736c6e77e04175d84807981df0fb34d6ed4ca",
+      "seconds": 240,
+      "measured": false,
+      "source": "playerRouteHistoryWholeMethodReview20261007",
+      "derivation": {
+        "app_launch_count": 1,
+        "app_launch_seconds_assumption": 90,
+        "all_explicit_wait_caps_seconds": 15,
+        "reveal_call_count": 3,
+        "maximum_swipes_per_reveal": 10,
+        "iterations_per_reveal": 11,
+        "query_gesture_iteration_seconds_assumption": 2,
+        "other_whole_method_overhead_seconds_assumption": 60,
+        "subtotal_seconds": 231,
+        "round_up_seconds": 9,
+        "formula": "launches*90 + explicit_wait_caps + reveal_calls*(maximum_swipes+1)*2 + 60, rounded upward to 10 seconds",
+        "limitation": "Unmeasured engineering allowances, not observed durations or guaranteed upper bounds. Includes each complete method, all fixture launches, assertions, helpers, setup/teardown and conditional failure screenshot."
+      },
+      "all_non_test_source_sha256": "a752ded6f33710f1537bae5bf2c63b9e41d63674a42b18590303a9d8b1b224f2",
+      "shared_helper_source_sha256": {
+        "Tests/AppUITests/FailureScreenshot.swift": "705ba7fa14128cfd9e81f181fd2b5f5edd0cb464b2ececd26119510d98ed6e49",
+        "Tests/AppUITests/FixtureEnvironmentAssertions.swift": "5c6980720d17cdbd6509d3819471f9b00183c1d909fa91e1d18dfd31f8453ef7"
+      },
+      "basis": "Complete-method source/helper-bound planning assumption, audited across all launches and repeated helper calls; Apple execution NOT_RUN.",
+      "timing_status": "UNMEASURED_ENGINEERING_PLANNING_ASSUMPTION"
+    },
+    {
+      "authored_method": "PlayRouteMapFlowTests.testLockedAndHiddenStopsCannotLeakOrOpenFromMap",
+      "method": "PlayRouteMapFlowTests.testLockedAndHiddenStopsCannotLeakOrOpenFromMap",
+      "test_path": "Tests/AppUITests/PlayRouteMapFlowTests.swift",
+      "declaration_sha256": "a1a3f211374754629d6d9da0fcadae9a6a19f69b83f8c346e7246081e22755d4",
+      "test_file_sha256": "bfdd211e9113d87788f6555d4a4736c6e77e04175d84807981df0fb34d6ed4ca",
+      "seconds": 230,
+      "measured": false,
+      "source": "playerRouteHistoryWholeMethodReview20261007",
+      "derivation": {
+        "app_launch_count": 1,
+        "app_launch_seconds_assumption": 90,
+        "all_explicit_wait_caps_seconds": 5,
+        "reveal_call_count": 3,
+        "maximum_swipes_per_reveal": 10,
+        "iterations_per_reveal": 11,
+        "query_gesture_iteration_seconds_assumption": 2,
+        "other_whole_method_overhead_seconds_assumption": 60,
+        "subtotal_seconds": 221,
+        "round_up_seconds": 9,
+        "formula": "launches*90 + explicit_wait_caps + reveal_calls*(maximum_swipes+1)*2 + 60, rounded upward to 10 seconds",
+        "limitation": "Unmeasured engineering allowances, not observed durations or guaranteed upper bounds. Includes each complete method, all fixture launches, assertions, helpers, setup/teardown and conditional failure screenshot."
+      },
+      "all_non_test_source_sha256": "a752ded6f33710f1537bae5bf2c63b9e41d63674a42b18590303a9d8b1b224f2",
+      "shared_helper_source_sha256": {
+        "Tests/AppUITests/FailureScreenshot.swift": "705ba7fa14128cfd9e81f181fd2b5f5edd0cb464b2ececd26119510d98ed6e49",
+        "Tests/AppUITests/FixtureEnvironmentAssertions.swift": "5c6980720d17cdbd6509d3819471f9b00183c1d909fa91e1d18dfd31f8453ef7"
+      },
+      "basis": "Complete-method source/helper-bound planning assumption, audited across all launches and repeated helper calls; Apple execution NOT_RUN.",
+      "timing_status": "UNMEASURED_ENGINEERING_PLANNING_ASSUMPTION"
+    },
+    {
+      "authored_method": "PlayRouteMapFlowTests.testSameNodeIDReadRefreshClearsPushedSelectionAndReopensCurrentRead",
+      "method": "PlayRouteMapFlowTests.testSameNodeIDReadRefreshClearsPushedSelectionAndReopensCurrentRead",
+      "test_path": "Tests/AppUITests/PlayRouteMapFlowTests.swift",
+      "declaration_sha256": "2b7fcfded614a00e152787ee393dea2635021d31fbf2b4fe2816dbdc7028be99",
+      "test_file_sha256": "bfdd211e9113d87788f6555d4a4736c6e77e04175d84807981df0fb34d6ed4ca",
+      "seconds": 290,
+      "measured": false,
+      "source": "playerRouteHistoryWholeMethodReview20261007",
+      "derivation": {
+        "app_launch_count": 1,
+        "app_launch_seconds_assumption": 90,
+        "all_explicit_wait_caps_seconds": 25,
+        "reveal_call_count": 5,
+        "maximum_swipes_per_reveal": 10,
+        "iterations_per_reveal": 11,
+        "query_gesture_iteration_seconds_assumption": 2,
+        "other_whole_method_overhead_seconds_assumption": 60,
+        "subtotal_seconds": 285,
+        "round_up_seconds": 5,
+        "formula": "launches*90 + explicit_wait_caps + reveal_calls*(maximum_swipes+1)*2 + 60, rounded upward to 10 seconds",
+        "limitation": "Unmeasured engineering allowances, not observed durations or guaranteed upper bounds. Includes each complete method, all fixture launches, assertions, helpers, setup/teardown and conditional failure screenshot."
+      },
+      "all_non_test_source_sha256": "a752ded6f33710f1537bae5bf2c63b9e41d63674a42b18590303a9d8b1b224f2",
+      "shared_helper_source_sha256": {
+        "Tests/AppUITests/FailureScreenshot.swift": "705ba7fa14128cfd9e81f181fd2b5f5edd0cb464b2ececd26119510d98ed6e49",
+        "Tests/AppUITests/FixtureEnvironmentAssertions.swift": "5c6980720d17cdbd6509d3819471f9b00183c1d909fa91e1d18dfd31f8453ef7"
+      },
+      "basis": "Complete-method source/helper-bound planning assumption, audited across all launches and repeated helper calls; Apple execution NOT_RUN.",
+      "timing_status": "UNMEASURED_ENGINEERING_PLANNING_ASSUMPTION"
+    },
+    {
+      "authored_method": "PlayRouteMapFlowTests.testAccountChangeBackReopenAndRelaunchDoNotRestoreOldSelection",
+      "method": "PlayRouteMapContinuationFlowTests.testAccountChangeBackReopenAndRelaunchDoNotRestoreOldSelection",
+      "test_path": "Tests/AppUITests/PlayRouteMapContinuationFlowTests.swift",
+      "declaration_sha256": "84381cf717a0945c1ee682329460acd35ccbf86a7bad02f7ad3ad12f327d35d4",
+      "test_file_sha256": "a6024af16bb73e474e20cb6ee0821a6a39cf9557df25dca12396eba10273ba26",
+      "seconds": 460,
+      "measured": false,
+      "source": "playerRouteHistoryWholeMethodReview20261007",
+      "derivation": {
+        "app_launch_count": 2,
+        "app_launch_seconds_assumption": 90,
+        "all_explicit_wait_caps_seconds": 35,
+        "reveal_call_count": 8,
+        "maximum_swipes_per_reveal": 10,
+        "iterations_per_reveal": 11,
+        "query_gesture_iteration_seconds_assumption": 2,
+        "other_whole_method_overhead_seconds_assumption": 60,
+        "subtotal_seconds": 451,
+        "round_up_seconds": 9,
+        "formula": "launches*90 + explicit_wait_caps + reveal_calls*(maximum_swipes+1)*2 + 60, rounded upward to 10 seconds",
+        "limitation": "Unmeasured engineering allowances, not observed durations or guaranteed upper bounds. Includes each complete method, all fixture launches, assertions, helpers, setup/teardown and conditional failure screenshot."
+      },
+      "all_non_test_source_sha256": "a29df299a2a4e0c05baf52223e444c455fa4d40692842b011b3660cf78c270d6",
+      "shared_helper_source_sha256": {
+        "Tests/AppUITests/FailureScreenshot.swift": "705ba7fa14128cfd9e81f181fd2b5f5edd0cb464b2ececd26119510d98ed6e49",
+        "Tests/AppUITests/FixtureEnvironmentAssertions.swift": "5c6980720d17cdbd6509d3819471f9b00183c1d909fa91e1d18dfd31f8453ef7"
+      },
+      "basis": "Complete-method source/helper-bound planning assumption, audited across all launches and repeated helper calls; Apple execution NOT_RUN.",
+      "timing_status": "UNMEASURED_ENGINEERING_PLANNING_ASSUMPTION"
+    },
+    {
+      "authored_method": "PlayRouteMapFlowTests.testChineseMaximumTextUsesFullListAndExplicitRouteDisclaimer",
+      "method": "PlayRouteMapContinuationFlowTests.testChineseMaximumTextUsesFullListAndExplicitRouteDisclaimer",
+      "test_path": "Tests/AppUITests/PlayRouteMapContinuationFlowTests.swift",
+      "declaration_sha256": "9a11563da2352b2840c2b4f8617b72cca37b172a628a5d479075596a639b10c6",
+      "test_file_sha256": "a6024af16bb73e474e20cb6ee0821a6a39cf9557df25dca12396eba10273ba26",
+      "seconds": 280,
+      "measured": false,
+      "source": "playerRouteHistoryWholeMethodReview20261007",
+      "derivation": {
+        "app_launch_count": 1,
+        "app_launch_seconds_assumption": 90,
+        "all_explicit_wait_caps_seconds": 40,
+        "reveal_call_count": 4,
+        "maximum_swipes_per_reveal": 10,
+        "iterations_per_reveal": 11,
+        "query_gesture_iteration_seconds_assumption": 2,
+        "other_whole_method_overhead_seconds_assumption": 60,
+        "subtotal_seconds": 278,
+        "round_up_seconds": 2,
+        "formula": "launches*90 + explicit_wait_caps + reveal_calls*(maximum_swipes+1)*2 + 60, rounded upward to 10 seconds",
+        "limitation": "Unmeasured engineering allowances, not observed durations or guaranteed upper bounds. Includes each complete method, all fixture launches, assertions, helpers, setup/teardown and conditional failure screenshot."
+      },
+      "all_non_test_source_sha256": "a29df299a2a4e0c05baf52223e444c455fa4d40692842b011b3660cf78c270d6",
+      "shared_helper_source_sha256": {
+        "Tests/AppUITests/FailureScreenshot.swift": "705ba7fa14128cfd9e81f181fd2b5f5edd0cb464b2ececd26119510d98ed6e49",
+        "Tests/AppUITests/FixtureEnvironmentAssertions.swift": "5c6980720d17cdbd6509d3819471f9b00183c1d909fa91e1d18dfd31f8453ef7"
+      },
+      "basis": "Complete-method source/helper-bound planning assumption, audited across all launches and repeated helper calls; Apple execution NOT_RUN.",
+      "timing_status": "UNMEASURED_ENGINEERING_PLANNING_ASSUMPTION"
+    },
+    {
+      "authored_method": "PlayRouteMapFlowTests.testFreeExplorationDoesNotGainOrientationMapEntry",
+      "method": "PlayRouteMapContinuationFlowTests.testFreeExplorationDoesNotGainOrientationMapEntry",
+      "test_path": "Tests/AppUITests/PlayRouteMapContinuationFlowTests.swift",
+      "declaration_sha256": "cacd77e995914687ade397ca44e29204769de6cf26b1b25d03d8768356928a52",
+      "test_file_sha256": "a6024af16bb73e474e20cb6ee0821a6a39cf9557df25dca12396eba10273ba26",
+      "seconds": 160,
+      "measured": false,
+      "source": "playerRouteHistoryWholeMethodReview20261007",
+      "derivation": {
+        "app_launch_count": 1,
+        "app_launch_seconds_assumption": 90,
+        "all_explicit_wait_caps_seconds": 5,
+        "reveal_call_count": 0,
+        "maximum_swipes_per_reveal": 10,
+        "iterations_per_reveal": 11,
+        "query_gesture_iteration_seconds_assumption": 2,
+        "other_whole_method_overhead_seconds_assumption": 60,
+        "subtotal_seconds": 155,
+        "round_up_seconds": 5,
+        "formula": "launches*90 + explicit_wait_caps + reveal_calls*(maximum_swipes+1)*2 + 60, rounded upward to 10 seconds",
+        "limitation": "Unmeasured engineering allowances, not observed durations or guaranteed upper bounds. Includes each complete method, all fixture launches, assertions, helpers, setup/teardown and conditional failure screenshot."
+      },
+      "all_non_test_source_sha256": "a29df299a2a4e0c05baf52223e444c455fa4d40692842b011b3660cf78c270d6",
+      "shared_helper_source_sha256": {
+        "Tests/AppUITests/FailureScreenshot.swift": "705ba7fa14128cfd9e81f181fd2b5f5edd0cb464b2ececd26119510d98ed6e49",
+        "Tests/AppUITests/FixtureEnvironmentAssertions.swift": "5c6980720d17cdbd6509d3819471f9b00183c1d909fa91e1d18dfd31f8453ef7"
+      },
+      "basis": "Complete-method source/helper-bound planning assumption, audited across all launches and repeated helper calls; Apple execution NOT_RUN.",
+      "timing_status": "UNMEASURED_ENGINEERING_PLANNING_ASSUMPTION"
+    },
+    {
+      "authored_method": "PlayRouteMapFlowTests.testExistingTaskReviewAndCancelStayOnTaskWhenOpenedFromMap",
+      "method": "PlayRouteMapContinuationFlowTests.testExistingTaskReviewAndCancelStayOnTaskWhenOpenedFromMap",
+      "test_path": "Tests/AppUITests/PlayRouteMapContinuationFlowTests.swift",
+      "declaration_sha256": "94049a4f2f88d91917c2050fc249a3c1a35d149c44962f212c2f7d5b3a6d9833",
+      "test_file_sha256": "a6024af16bb73e474e20cb6ee0821a6a39cf9557df25dca12396eba10273ba26",
+      "seconds": 260,
+      "measured": false,
+      "source": "playerRouteHistoryWholeMethodReview20261007",
+      "derivation": {
+        "app_launch_count": 1,
+        "app_launch_seconds_assumption": 90,
+        "all_explicit_wait_caps_seconds": 20,
+        "reveal_call_count": 4,
+        "maximum_swipes_per_reveal": 10,
+        "iterations_per_reveal": 11,
+        "query_gesture_iteration_seconds_assumption": 2,
+        "other_whole_method_overhead_seconds_assumption": 60,
+        "subtotal_seconds": 258,
+        "round_up_seconds": 2,
+        "formula": "launches*90 + explicit_wait_caps + reveal_calls*(maximum_swipes+1)*2 + 60, rounded upward to 10 seconds",
+        "limitation": "Unmeasured engineering allowances, not observed durations or guaranteed upper bounds. Includes each complete method, all fixture launches, assertions, helpers, setup/teardown and conditional failure screenshot."
+      },
+      "all_non_test_source_sha256": "a29df299a2a4e0c05baf52223e444c455fa4d40692842b011b3660cf78c270d6",
+      "shared_helper_source_sha256": {
+        "Tests/AppUITests/FailureScreenshot.swift": "705ba7fa14128cfd9e81f181fd2b5f5edd0cb464b2ececd26119510d98ed6e49",
+        "Tests/AppUITests/FixtureEnvironmentAssertions.swift": "5c6980720d17cdbd6509d3819471f9b00183c1d909fa91e1d18dfd31f8453ef7"
+      },
+      "basis": "Complete-method source/helper-bound planning assumption, audited across all launches and repeated helper calls; Apple execution NOT_RUN.",
+      "timing_status": "UNMEASURED_ENGINEERING_PLANNING_ASSUMPTION"
+    },
+    {
+      "authored_method": "PlayRouteMapCameraFlowTests.testOverviewCurrentAndOtherStopPreviewFormCompleteInspectionJourney",
+      "method": "PlayRouteMapCameraFlowTests.testOverviewCurrentAndOtherStopPreviewFormCompleteInspectionJourney",
+      "test_path": "Tests/AppUITests/PlayRouteMapCameraFlowTests.swift",
+      "declaration_sha256": "0299d3703c3664e5b97225e39155e1a4282248bc267abfcfcba39d7066bfd385",
+      "test_file_sha256": "d329e8f87741c7a7bb78404e0bc4fea123051fe0355182c582bbf28a5034c872",
+      "seconds": 600,
+      "measured": false,
+      "source": "playerRouteHistoryWholeMethodReview20261007",
+      "derivation": {
+        "app_launch_count": 1,
+        "app_launch_seconds_assumption": 90,
+        "all_explicit_wait_caps_seconds": 25,
+        "reveal_call_count": 10,
+        "maximum_swipes_per_reveal": 20,
+        "iterations_per_reveal": 21,
+        "query_gesture_iteration_seconds_assumption": 2,
+        "other_whole_method_overhead_seconds_assumption": 60,
+        "subtotal_seconds": 595,
+        "round_up_seconds": 5,
+        "formula": "launches*90 + explicit_wait_caps + reveal_calls*(maximum_swipes+1)*2 + 60, rounded upward to 10 seconds",
+        "limitation": "Unmeasured engineering allowances, not observed durations or guaranteed upper bounds. Includes each complete method, all fixture launches, assertions, helpers, setup/teardown and conditional failure screenshot."
+      },
+      "all_non_test_source_sha256": "eef7036d5dffd555d9f33a330f11260e01cd76bdd90bb5999e4e0879b917af8f",
+      "shared_helper_source_sha256": {
+        "Tests/AppUITests/FailureScreenshot.swift": "705ba7fa14128cfd9e81f181fd2b5f5edd0cb464b2ececd26119510d98ed6e49",
+        "Tests/AppUITests/FixtureEnvironmentAssertions.swift": "5c6980720d17cdbd6509d3819471f9b00183c1d909fa91e1d18dfd31f8453ef7"
+      },
+      "basis": "Complete-method source/helper-bound planning assumption, audited across all launches and repeated helper calls; Apple execution NOT_RUN.",
+      "timing_status": "UNMEASURED_ENGINEERING_PLANNING_ASSUMPTION"
+    },
+    {
+      "authored_method": "PlayRouteMapCameraFlowTests.testCurrentWithoutCoordinatesKeepsMapUnmovedAndTaskReachable",
+      "method": "PlayRouteMapCameraFlowTests.testCurrentWithoutCoordinatesKeepsMapUnmovedAndTaskReachable",
+      "test_path": "Tests/AppUITests/PlayRouteMapCameraFlowTests.swift",
+      "declaration_sha256": "922cf38991e331526258ce973a12ce3bc3952c229fe908e4a67e75d58f22f2fc",
+      "test_file_sha256": "d329e8f87741c7a7bb78404e0bc4fea123051fe0355182c582bbf28a5034c872",
+      "seconds": 420,
+      "measured": false,
+      "source": "playerRouteHistoryWholeMethodReview20261007",
+      "derivation": {
+        "app_launch_count": 1,
+        "app_launch_seconds_assumption": 90,
+        "all_explicit_wait_caps_seconds": 15,
+        "reveal_call_count": 6,
+        "maximum_swipes_per_reveal": 20,
+        "iterations_per_reveal": 21,
+        "query_gesture_iteration_seconds_assumption": 2,
+        "other_whole_method_overhead_seconds_assumption": 60,
+        "subtotal_seconds": 417,
+        "round_up_seconds": 3,
+        "formula": "launches*90 + explicit_wait_caps + reveal_calls*(maximum_swipes+1)*2 + 60, rounded upward to 10 seconds",
+        "limitation": "Unmeasured engineering allowances, not observed durations or guaranteed upper bounds. Includes each complete method, all fixture launches, assertions, helpers, setup/teardown and conditional failure screenshot."
+      },
+      "all_non_test_source_sha256": "eef7036d5dffd555d9f33a330f11260e01cd76bdd90bb5999e4e0879b917af8f",
+      "shared_helper_source_sha256": {
+        "Tests/AppUITests/FailureScreenshot.swift": "705ba7fa14128cfd9e81f181fd2b5f5edd0cb464b2ececd26119510d98ed6e49",
+        "Tests/AppUITests/FixtureEnvironmentAssertions.swift": "5c6980720d17cdbd6509d3819471f9b00183c1d909fa91e1d18dfd31f8453ef7"
+      },
+      "basis": "Complete-method source/helper-bound planning assumption, audited across all launches and repeated helper calls; Apple execution NOT_RUN.",
+      "timing_status": "UNMEASURED_ENGINEERING_PLANNING_ASSUMPTION"
+    },
+    {
+      "authored_method": "PlayRouteMapCameraFlowTests.testPreviewChoicesExcludeLockedHiddenAndClearAfterReadChanges",
+      "method": "PlayRouteMapCameraFallbackFlowTests.testPreviewChoicesExcludeLockedHiddenAndClearAfterReadChanges",
+      "test_path": "Tests/AppUITests/PlayRouteMapCameraFallbackFlowTests.swift",
+      "declaration_sha256": "9abbeb68f620321830bcefff2bb36f2259c8be6f8815e8ae29957ff8ced0015c",
+      "test_file_sha256": "4f9bfb0535abbb3b61b40847d040b07ca476cef323016ab29925dac2ad2c156c",
+      "seconds": 500,
+      "measured": false,
+      "source": "playerRouteHistoryWholeMethodReview20261007",
+      "derivation": {
+        "app_launch_count": 1,
+        "app_launch_seconds_assumption": 90,
+        "all_explicit_wait_caps_seconds": 10,
+        "reveal_call_count": 8,
+        "maximum_swipes_per_reveal": 20,
+        "iterations_per_reveal": 21,
+        "query_gesture_iteration_seconds_assumption": 2,
+        "other_whole_method_overhead_seconds_assumption": 60,
+        "subtotal_seconds": 496,
+        "round_up_seconds": 4,
+        "formula": "launches*90 + explicit_wait_caps + reveal_calls*(maximum_swipes+1)*2 + 60, rounded upward to 10 seconds",
+        "limitation": "Unmeasured engineering allowances, not observed durations or guaranteed upper bounds. Includes each complete method, all fixture launches, assertions, helpers, setup/teardown and conditional failure screenshot."
+      },
+      "all_non_test_source_sha256": "8b3f7c5a6c3c608f46b20913926f963a6dc7b2542f683f1de285cf516b0e9b9f",
+      "shared_helper_source_sha256": {
+        "Tests/AppUITests/FailureScreenshot.swift": "705ba7fa14128cfd9e81f181fd2b5f5edd0cb464b2ececd26119510d98ed6e49",
+        "Tests/AppUITests/FixtureEnvironmentAssertions.swift": "5c6980720d17cdbd6509d3819471f9b00183c1d909fa91e1d18dfd31f8453ef7"
+      },
+      "basis": "Complete-method source/helper-bound planning assumption, audited across all launches and repeated helper calls; Apple execution NOT_RUN.",
+      "timing_status": "UNMEASURED_ENGINEERING_PLANNING_ASSUMPTION"
+    },
+    {
+      "authored_method": "PlayRouteMapCameraFlowTests.testUnsupportedExtentLeavesExplicitManualListFallback",
+      "method": "PlayRouteMapCameraFallbackFlowTests.testUnsupportedExtentLeavesExplicitManualListFallback",
+      "test_path": "Tests/AppUITests/PlayRouteMapCameraFallbackFlowTests.swift",
+      "declaration_sha256": "1c9e923a3522649d5ee104edc0b505645992beb43a9c0579df39fb3aa551aa35",
+      "test_file_sha256": "4f9bfb0535abbb3b61b40847d040b07ca476cef323016ab29925dac2ad2c156c",
+      "seconds": 370,
+      "measured": false,
+      "source": "playerRouteHistoryWholeMethodReview20261007",
+      "derivation": {
+        "app_launch_count": 1,
+        "app_launch_seconds_assumption": 90,
+        "all_explicit_wait_caps_seconds": 10,
+        "reveal_call_count": 5,
+        "maximum_swipes_per_reveal": 20,
+        "iterations_per_reveal": 21,
+        "query_gesture_iteration_seconds_assumption": 2,
+        "other_whole_method_overhead_seconds_assumption": 60,
+        "subtotal_seconds": 370,
+        "round_up_seconds": 0,
+        "formula": "launches*90 + explicit_wait_caps + reveal_calls*(maximum_swipes+1)*2 + 60, rounded upward to 10 seconds",
+        "limitation": "Unmeasured engineering allowances, not observed durations or guaranteed upper bounds. Includes each complete method, all fixture launches, assertions, helpers, setup/teardown and conditional failure screenshot."
+      },
+      "all_non_test_source_sha256": "8b3f7c5a6c3c608f46b20913926f963a6dc7b2542f683f1de285cf516b0e9b9f",
+      "shared_helper_source_sha256": {
+        "Tests/AppUITests/FailureScreenshot.swift": "705ba7fa14128cfd9e81f181fd2b5f5edd0cb464b2ececd26119510d98ed6e49",
+        "Tests/AppUITests/FixtureEnvironmentAssertions.swift": "5c6980720d17cdbd6509d3819471f9b00183c1d909fa91e1d18dfd31f8453ef7"
+      },
+      "basis": "Complete-method source/helper-bound planning assumption, audited across all launches and repeated helper calls; Apple execution NOT_RUN.",
+      "timing_status": "UNMEASURED_ENGINEERING_PLANNING_ASSUMPTION"
+    },
+    {
+      "authored_method": "PlayRouteMapCameraFlowTests.testChineseMaximumTextPreviewControlsRetainFullMeaningAndReturnToOverview",
+      "method": "PlayRouteMapCameraFallbackFlowTests.testChineseMaximumTextPreviewControlsRetainFullMeaningAndReturnToOverview",
+      "test_path": "Tests/AppUITests/PlayRouteMapCameraFallbackFlowTests.swift",
+      "declaration_sha256": "1967b59f633b4f25b05787d1382029343560cdf5ebdc8dabe3a055ed12ee71d0",
+      "test_file_sha256": "4f9bfb0535abbb3b61b40847d040b07ca476cef323016ab29925dac2ad2c156c",
+      "seconds": 480,
+      "measured": false,
+      "source": "playerRouteHistoryWholeMethodReview20261007",
+      "derivation": {
+        "app_launch_count": 1,
+        "app_launch_seconds_assumption": 90,
+        "all_explicit_wait_caps_seconds": 30,
+        "reveal_call_count": 7,
+        "maximum_swipes_per_reveal": 20,
+        "iterations_per_reveal": 21,
+        "query_gesture_iteration_seconds_assumption": 2,
+        "other_whole_method_overhead_seconds_assumption": 60,
+        "subtotal_seconds": 474,
+        "round_up_seconds": 6,
+        "formula": "launches*90 + explicit_wait_caps + reveal_calls*(maximum_swipes+1)*2 + 60, rounded upward to 10 seconds",
+        "limitation": "Unmeasured engineering allowances, not observed durations or guaranteed upper bounds. Includes each complete method, all fixture launches, assertions, helpers, setup/teardown and conditional failure screenshot."
+      },
+      "all_non_test_source_sha256": "8b3f7c5a6c3c608f46b20913926f963a6dc7b2542f683f1de285cf516b0e9b9f",
+      "shared_helper_source_sha256": {
+        "Tests/AppUITests/FailureScreenshot.swift": "705ba7fa14128cfd9e81f181fd2b5f5edd0cb464b2ececd26119510d98ed6e49",
+        "Tests/AppUITests/FixtureEnvironmentAssertions.swift": "5c6980720d17cdbd6509d3819471f9b00183c1d909fa91e1d18dfd31f8453ef7"
+      },
+      "basis": "Complete-method source/helper-bound planning assumption, audited across all launches and repeated helper calls; Apple execution NOT_RUN.",
+      "timing_status": "UNMEASURED_ENGINEERING_PLANNING_ASSUMPTION"
+    },
+    {
+      "authored_method": "PlayBranchHistoryFlowTests.testSummaryHistoryReturnReopenPreservesOrderWithoutActionControls",
+      "method": "PlayBranchHistoryFlowTests.testSummaryHistoryReturnReopenPreservesOrderWithoutActionControls",
+      "test_path": "Tests/AppUITests/PlayBranchHistoryFlowTests.swift",
+      "declaration_sha256": "9fc8325a1c9999f95d997d32d8ddecc39e9a7d8afa45899ebcbe168e33ab1923",
+      "test_file_sha256": "66d9552a55f04d286ff267803786d434c08da35977338042c31c229cdc88729c",
+      "seconds": 260,
+      "measured": false,
+      "source": "playerRouteHistoryWholeMethodReview20261007",
+      "derivation": {
+        "app_launch_count": 1,
+        "app_launch_seconds_assumption": 90,
+        "all_explicit_wait_caps_seconds": 35,
+        "reveal_call_count": 3,
+        "maximum_swipes_per_reveal": 10,
+        "iterations_per_reveal": 11,
+        "query_gesture_iteration_seconds_assumption": 2,
+        "other_whole_method_overhead_seconds_assumption": 60,
+        "subtotal_seconds": 251,
+        "round_up_seconds": 9,
+        "formula": "launches*90 + explicit_wait_caps + reveal_calls*(maximum_swipes+1)*2 + 60, rounded upward to 10 seconds",
+        "limitation": "Unmeasured engineering allowances, not observed durations or guaranteed upper bounds. Includes each complete method, all fixture launches, assertions, helpers, setup/teardown and conditional failure screenshot."
+      },
+      "all_non_test_source_sha256": "8d1cc20ca53a36f1f030f6720af037c84f5de078c389370f4f828d2121823149",
+      "shared_helper_source_sha256": {
+        "Tests/AppUITests/FailureScreenshot.swift": "705ba7fa14128cfd9e81f181fd2b5f5edd0cb464b2ececd26119510d98ed6e49",
+        "Tests/AppUITests/FixtureEnvironmentAssertions.swift": "5c6980720d17cdbd6509d3819471f9b00183c1d909fa91e1d18dfd31f8453ef7"
+      },
+      "basis": "Complete-method source/helper-bound planning assumption, audited across all launches and repeated helper calls; Apple execution NOT_RUN.",
+      "timing_status": "UNMEASURED_ENGINEERING_PLANNING_ASSUMPTION"
+    },
+    {
+      "authored_method": "PlayBranchHistoryFlowTests.testChineseMaximumTextUnknownNodeAndRefreshReplaceOldHistory",
+      "method": "PlayBranchHistoryFlowTests.testChineseMaximumTextUnknownNodeAndRefreshReplaceOldHistory",
+      "test_path": "Tests/AppUITests/PlayBranchHistoryFlowTests.swift",
+      "declaration_sha256": "f185f0388cdf7a538521e966e44aa08d21f9853aec87f23c140baac5731de018",
+      "test_file_sha256": "66d9552a55f04d286ff267803786d434c08da35977338042c31c229cdc88729c",
+      "seconds": 270,
+      "measured": false,
+      "source": "playerRouteHistoryWholeMethodReview20261007",
+      "derivation": {
+        "app_launch_count": 1,
+        "app_launch_seconds_assumption": 90,
+        "all_explicit_wait_caps_seconds": 45,
+        "reveal_call_count": 3,
+        "maximum_swipes_per_reveal": 10,
+        "iterations_per_reveal": 11,
+        "query_gesture_iteration_seconds_assumption": 2,
+        "other_whole_method_overhead_seconds_assumption": 60,
+        "subtotal_seconds": 261,
+        "round_up_seconds": 9,
+        "formula": "launches*90 + explicit_wait_caps + reveal_calls*(maximum_swipes+1)*2 + 60, rounded upward to 10 seconds",
+        "limitation": "Unmeasured engineering allowances, not observed durations or guaranteed upper bounds. Includes each complete method, all fixture launches, assertions, helpers, setup/teardown and conditional failure screenshot."
+      },
+      "all_non_test_source_sha256": "8d1cc20ca53a36f1f030f6720af037c84f5de078c389370f4f828d2121823149",
+      "shared_helper_source_sha256": {
+        "Tests/AppUITests/FailureScreenshot.swift": "705ba7fa14128cfd9e81f181fd2b5f5edd0cb464b2ececd26119510d98ed6e49",
+        "Tests/AppUITests/FixtureEnvironmentAssertions.swift": "5c6980720d17cdbd6509d3819471f9b00183c1d909fa91e1d18dfd31f8453ef7"
+      },
+      "basis": "Complete-method source/helper-bound planning assumption, audited across all launches and repeated helper calls; Apple execution NOT_RUN.",
+      "timing_status": "UNMEASURED_ENGINEERING_PLANNING_ASSUMPTION"
+    },
+    {
+      "authored_method": "PlayBranchHistoryFlowTests.testMissingMalformedAndEmptyReadNeverInventAPath",
+      "method": "PlayBranchHistoryFlowTests.testMissingMalformedAndEmptyReadNeverInventAPath",
+      "test_path": "Tests/AppUITests/PlayBranchHistoryFlowTests.swift",
+      "declaration_sha256": "8d8209ac21623cf69a36ef02e8e2e2fa0ca667d0fbae927bf6aebeca1ecb9bae",
+      "test_file_sha256": "66d9552a55f04d286ff267803786d434c08da35977338042c31c229cdc88729c",
+      "seconds": 450,
+      "measured": false,
+      "source": "playerRouteHistoryWholeMethodReview20261007",
+      "derivation": {
+        "app_launch_count": 3,
+        "app_launch_seconds_assumption": 90,
+        "all_explicit_wait_caps_seconds": 45,
+        "reveal_call_count": 3,
+        "maximum_swipes_per_reveal": 10,
+        "iterations_per_reveal": 11,
+        "query_gesture_iteration_seconds_assumption": 2,
+        "other_whole_method_overhead_seconds_assumption": 60,
+        "subtotal_seconds": 441,
+        "round_up_seconds": 9,
+        "formula": "launches*90 + explicit_wait_caps + reveal_calls*(maximum_swipes+1)*2 + 60, rounded upward to 10 seconds",
+        "limitation": "Unmeasured engineering allowances, not observed durations or guaranteed upper bounds. Includes each complete method, all fixture launches, assertions, helpers, setup/teardown and conditional failure screenshot."
+      },
+      "all_non_test_source_sha256": "8d1cc20ca53a36f1f030f6720af037c84f5de078c389370f4f828d2121823149",
+      "shared_helper_source_sha256": {
+        "Tests/AppUITests/FailureScreenshot.swift": "705ba7fa14128cfd9e81f181fd2b5f5edd0cb464b2ececd26119510d98ed6e49",
+        "Tests/AppUITests/FixtureEnvironmentAssertions.swift": "5c6980720d17cdbd6509d3819471f9b00183c1d909fa91e1d18dfd31f8453ef7"
+      },
+      "basis": "Complete-method source/helper-bound planning assumption, audited across all launches and repeated helper calls; Apple execution NOT_RUN.",
+      "timing_status": "UNMEASURED_ENGINEERING_PLANNING_ASSUMPTION"
+    },
+    {
+      "authored_method": "PlayBranchHistoryFlowTests.testRefreshAndAccountSwitchWhilePresentedRemoveOldSheetAndRows",
+      "method": "PlayBranchHistoryLifetimeFlowTests.testRefreshAndAccountSwitchWhilePresentedRemoveOldSheetAndRows",
+      "test_path": "Tests/AppUITests/PlayBranchHistoryLifetimeFlowTests.swift",
+      "declaration_sha256": "b9f9f8aa635002f8f689f75dce74aa940b876b230c7886846b3e1e6d478f6d8e",
+      "test_file_sha256": "6428aeea73bb28e478fef600d4271a067a02335e6e8e256a1aa1d9d45a2a8306",
+      "seconds": 410,
+      "measured": false,
+      "source": "playerRouteHistoryWholeMethodReview20261007",
+      "derivation": {
+        "app_launch_count": 2,
+        "app_launch_seconds_assumption": 90,
+        "all_explicit_wait_caps_seconds": 76,
+        "reveal_call_count": 4,
+        "maximum_swipes_per_reveal": 10,
+        "iterations_per_reveal": 11,
+        "query_gesture_iteration_seconds_assumption": 2,
+        "other_whole_method_overhead_seconds_assumption": 60,
+        "subtotal_seconds": 404,
+        "round_up_seconds": 6,
+        "formula": "launches*90 + explicit_wait_caps + reveal_calls*(maximum_swipes+1)*2 + 60, rounded upward to 10 seconds",
+        "limitation": "Unmeasured engineering allowances, not observed durations or guaranteed upper bounds. Includes each complete method, all fixture launches, assertions, helpers, setup/teardown and conditional failure screenshot."
+      },
+      "all_non_test_source_sha256": "bcdec9dfa957cc7199d09592667a2710c12797149aa1b87ffc1a37f3fc4daeff",
+      "shared_helper_source_sha256": {
+        "Tests/AppUITests/FailureScreenshot.swift": "705ba7fa14128cfd9e81f181fd2b5f5edd0cb464b2ececd26119510d98ed6e49",
+        "Tests/AppUITests/FixtureEnvironmentAssertions.swift": "5c6980720d17cdbd6509d3819471f9b00183c1d909fa91e1d18dfd31f8453ef7"
+      },
+      "basis": "Complete-method source/helper-bound planning assumption, audited across all launches and repeated helper calls; Apple execution NOT_RUN.",
+      "timing_status": "UNMEASURED_ENGINEERING_PLANNING_ASSUMPTION"
+    },
+    {
+      "authored_method": "PlayBranchHistoryFlowTests.testLinearSummaryHasNoHistoryEntryBeforeOrAfterRefresh",
+      "method": "PlayBranchHistoryLifetimeFlowTests.testLinearSummaryHasNoHistoryEntryBeforeOrAfterRefresh",
+      "test_path": "Tests/AppUITests/PlayBranchHistoryLifetimeFlowTests.swift",
+      "declaration_sha256": "a92df0fb31621828dc8bd35f56ebd00df2a7f23086bd45556877f30074f0f77b",
+      "test_file_sha256": "6428aeea73bb28e478fef600d4271a067a02335e6e8e256a1aa1d9d45a2a8306",
+      "seconds": 160,
+      "measured": false,
+      "source": "playerRouteHistoryWholeMethodReview20261007",
+      "derivation": {
+        "app_launch_count": 1,
+        "app_launch_seconds_assumption": 90,
+        "all_explicit_wait_caps_seconds": 10,
+        "reveal_call_count": 0,
+        "maximum_swipes_per_reveal": 10,
+        "iterations_per_reveal": 11,
+        "query_gesture_iteration_seconds_assumption": 2,
+        "other_whole_method_overhead_seconds_assumption": 60,
+        "subtotal_seconds": 160,
+        "round_up_seconds": 0,
+        "formula": "launches*90 + explicit_wait_caps + reveal_calls*(maximum_swipes+1)*2 + 60, rounded upward to 10 seconds",
+        "limitation": "Unmeasured engineering allowances, not observed durations or guaranteed upper bounds. Includes each complete method, all fixture launches, assertions, helpers, setup/teardown and conditional failure screenshot."
+      },
+      "all_non_test_source_sha256": "bcdec9dfa957cc7199d09592667a2710c12797149aa1b87ffc1a37f3fc4daeff",
+      "shared_helper_source_sha256": {
+        "Tests/AppUITests/FailureScreenshot.swift": "705ba7fa14128cfd9e81f181fd2b5f5edd0cb464b2ececd26119510d98ed6e49",
+        "Tests/AppUITests/FixtureEnvironmentAssertions.swift": "5c6980720d17cdbd6509d3819471f9b00183c1d909fa91e1d18dfd31f8453ef7"
+      },
+      "basis": "Complete-method source/helper-bound planning assumption, audited across all launches and repeated helper calls; Apple execution NOT_RUN.",
+      "timing_status": "UNMEASURED_ENGINEERING_PLANNING_ASSUMPTION"
+    }
+  ],
+  "total_seconds": 6150,
+  "all_18_declarations_byte_exact": true,
+  "all_helper_bodies_byte_exact_except_class_wrapper_name_and_blank_separators": true
+}

@@ -1,0 +1,43 @@
+{
+  "scope": "Three reviewed player packages plus evidence-backed run129 repairs and explicitly limited synthetic diagnostics",
+  "remote_base_commit": "7dd74b54a9aff8260198e5c00bc2feaac68337fe",
+  "remote_base_tree": "4145c2a180e313844efbc5491e81893ccbe60b93",
+  "reviewed_feature_tree": "bc071daf6c62714543c479dbde9b50af2b4d4f5e",
+  "new_apple_execution": "NOT_RUN",
+  "main_merge": "BLOCKED_BY_INCOMPLETE_FAILED_RUN129_AND_UNVERIFIED_NEW_SOURCE",
+  "proven_minimal_source_repairs": [
+    "201 pre-existing bilingual fragment entries shipped without changing prior catalog values/order",
+    "Project editor base-revision value exposed through stable contained AX identity",
+    "Observed lazy row helper order corrected without increasing prior tap/value reveal bounds or wait caps",
+    "Four complete acknowledgment/preparation methods moved once across two added scheduling wrappers; original bodies preserved; newly added launch reveal allowance raises total by140 seconds",
+    "Five AppUnit fixture-owner bindings retained to end of original test; production weak-session checks unchanged",
+    "DEBUG media inspection always emits actual image/audio counts, including zero for missing source; strict UI decoding retained",
+    "Coop canceled read cleanup checks entry cancellation and only clears loading for its own generation"
+  ],
+  "source_improvement_with_runtime_root_cause_open": [
+    "Prepared-node text helper requires the complete requested insertion and preserves final exact text assertion; actual input/cursor failure still requires Apple evidence"
+  ],
+  "diagnostic_only_unresolved": [
+    "Workshop secure storage: bounded fixed operation plus OSStatus, no observed code yet",
+    "Workshop Creator and Owned hosted lifecycle: fixed booleans/stages only; no lifecycle or authority changes",
+    "Coop hosted account-return compound predicate: original2s wait and all conditions unchanged",
+    "Club admin manage sheet and customer member704 readiness: original waits and permissions unchanged",
+    "StoryImage second-apply Back: original short-circuit property queries cached for failed assertion only",
+    "StoryTemplate cancel Back: original5s result retained; three AFTER_TIMEOUT_ONLY booleans cannot turn failure into success",
+    "OwnedCoupon initial detail navigation: original5s result retained; failure-only capped allowlisted titles and sheet count; actual navigation cause open"
+  ],
+  "unmodified_unresolved": [
+    "ClubGovernance toolbar disappears during shared viewport traversal; shared reveal helper unchanged"
+  ],
+  "unapplied_930_second_proposals": [
+    "ApprovedReleaseRecoveryFlowTests.testChineseMaximumTextUnknownRecoveryKeepsOnlyThePersistedRequest",
+    "ApprovedTopicReviewCurrentChineseFlowTests.testChineseMaximumTextCurrentTaskReadRemainsSeparateFromSavedSubmissionAndClearsOnReopen",
+    "ApprovedTopicReviewUnknownFlowTests.testChineseMaximumTextUnknownRequestRecoversSameIDWithoutAnotherSubmission",
+    "ApprovedTopicSelectedCoverChineseFlowTests.testChineseMaximumTextShowsAuthorOnlyBoundaryAndKeepsOriginalReceipt",
+    "ProjectStoryAudioRecoveryFlowTests.testChineseUnknownUploadReopensWithoutResendAndDefaultOffKeepsLocalAudioEditable"
+  ],
+  "diagnostic_workflow": "Separate offline five-method proposal, not installed or triggered; not a required complete-CI substitute",
+  "planning": "736 complete methods in161 direct classes; historical costs retained; +140 unmeasured allowance;78 shards,1770-second peak including300 startup and30 headroom; no runtime guarantee",
+  "failure_only_diagnostic_cost": "UI50 adds no property query or wait on success; template late diagnostics add3 boolean queries only after original failure; coupon late diagnostics add bounded4 nav-title reads plus fixed exists/sheet count only after failure. These are excluded from successful-method timing evidence and are not used to lower any floor.",
+  "authorization_and_privacy": "No new grants, origins, real requests, memory-storage bypass, automatic retry, main merge or remote write"
+}

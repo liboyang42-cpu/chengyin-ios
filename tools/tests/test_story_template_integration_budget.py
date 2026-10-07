@@ -18,7 +18,10 @@ from tools.tests.story_template_budget_history import (
 )
 from tools.tests.club_parity_budget_history import before_club_parity, materialize_pre_club_ui
 
-ROOT = Path(__file__).resolve().parents[2]
+from tools.tests.player_map_history_budget_history import frozen_story_context
+_FROZEN_STORY = frozen_story_context()
+ROOT = _FROZEN_STORY.root
+shard, ci_gates = _FROZEN_STORY.runner, _FROZEN_STORY.gates
 UI = ROOT / 'Tests/AppUITests'
 PROFILE = ROOT / 'tools/ui_duration_weights.json'
 

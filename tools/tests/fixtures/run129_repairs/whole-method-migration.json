@@ -1,0 +1,62 @@
+{
+  "methods": [
+    {
+      "historical_method": "ProjectSubmissionAcknowledgmentFlowTests.testPendingPublishedFlagKeepsExactTaskThroughOrdinarySubmitAndReopen",
+      "current_method": "ProjectSubmissionAcknowledgmentFlowTests.testPendingPublishedFlagKeepsExactTaskThroughOrdinarySubmitAndReopen",
+      "path": "Tests/AppUITests/ProjectSubmissionAcknowledgmentFlowTests.swift",
+      "seconds": 750,
+      "test_declaration_sha256": "d75f3fad13c0da4a5d334d360018f59c832fbc7999e79150a10933947e3a3bdd",
+      "test_file_sha256": "8daac9715c39daf12d5c50cc49d553b502e7609d5f3b98e120fabc36f6785bd1",
+      "new_launch_reveal_maximum_swipes": 10,
+      "launch_count": 1,
+      "original_seconds": 720,
+      "all_old_tap_value_reveal_limits_and_waits_unchanged": true,
+      "new_reveal_iteration_seconds_assumption": 2,
+      "measured": false
+    },
+    {
+      "historical_method": "ProjectSubmissionAcknowledgmentFlowTests.testChineseLargeTextHistoricalEvidenceAndPersistenceFailureKeepTruthfulBoundaries",
+      "current_method": "ProjectSubmissionAcknowledgmentChineseFlowTests.testChineseLargeTextHistoricalEvidenceAndPersistenceFailureKeepTruthfulBoundaries",
+      "path": "Tests/AppUITests/ProjectSubmissionAcknowledgmentChineseFlowTests.swift",
+      "seconds": 770,
+      "test_declaration_sha256": "974824017f45dd67f28f40900fa3af0066733326bff28a52018123744be9bd50",
+      "test_file_sha256": "2805b46d9d65832e9e6838e5175cdc668e06d5efb47554e409e14a20e67ae3be",
+      "new_launch_reveal_maximum_swipes": 10,
+      "launch_count": 2,
+      "original_seconds": 720,
+      "all_old_tap_value_reveal_limits_and_waits_unchanged": true,
+      "new_reveal_iteration_seconds_assumption": 2,
+      "measured": false
+    },
+    {
+      "historical_method": "ApprovedReleasePreparationFlowTests.testOrdinarySubmissionReadsCapturedServerOrderAndKeepsOriginalEvidenceAfterClose",
+      "current_method": "ApprovedReleasePreparationFlowTests.testOrdinarySubmissionReadsCapturedServerOrderAndKeepsOriginalEvidenceAfterClose",
+      "path": "Tests/AppUITests/ApprovedReleasePreparationFlowTests.swift",
+      "seconds": 750,
+      "test_declaration_sha256": "6b696db085d288378a027b6e39eadb5aaf2b2470ca92bbd07b007d089c5810f3",
+      "test_file_sha256": "3e6434fc0d20a1ee952e5d3e89ca5afe8c319387ce81253173a49668daf81ab4",
+      "new_launch_reveal_maximum_swipes": 10,
+      "launch_count": 1,
+      "original_seconds": 720,
+      "all_old_tap_value_reveal_limits_and_waits_unchanged": true,
+      "new_reveal_iteration_seconds_assumption": 2,
+      "measured": false
+    },
+    {
+      "historical_method": "ApprovedReleasePreparationFlowTests.testChineseMaximumTextCurrentReviewFailureCanRetryWithoutCallingItPublished",
+      "current_method": "ApprovedReleasePreparationChineseFlowTests.testChineseMaximumTextCurrentReviewFailureCanRetryWithoutCallingItPublished",
+      "path": "Tests/AppUITests/ApprovedReleasePreparationChineseFlowTests.swift",
+      "seconds": 750,
+      "test_declaration_sha256": "c658dcb8673329a003b44abbf0cbd358cf7017f6923972abd741c21b758778a9",
+      "test_file_sha256": "32e15fcd7550045f4622f832d3e16f2be71657cd5481dc310282297496b9d3d1",
+      "new_launch_reveal_maximum_swipes": 10,
+      "launch_count": 1,
+      "original_seconds": 720,
+      "all_old_tap_value_reveal_limits_and_waits_unchanged": true,
+      "new_reveal_iteration_seconds_assumption": 2,
+      "measured": false
+    }
+  ],
+  "method_bodies_preserved": true,
+  "original_718_identity_retained_in_mapping": true
+}

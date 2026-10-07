@@ -41,7 +41,11 @@ import XCTest
     }
     private func back(_ app: XCUIApplication) {
         let button = app.navigationBars.buttons.firstMatch
-        XCTAssertTrue(button.isEnabled && button.isHittable, app.debugDescription); button.tap()
+        let enabled = button.isEnabled
+        let hittable: Bool? = enabled ? button.isHittable : nil
+        XCTAssertTrue(enabled && hittable == true,
+            "STORY_IMAGE_BACK enabled=\(enabled) hittable=\(hittable.map { String($0) } ?? "not_queried") " + app.debugDescription)
+        button.tap()
     }
     // UNMEASURED complete-method estimate: 900 seconds. Add/cancel/upload/apply, restore, replace, exact prepared readback.
     func testChosenStoryImageAppliesOnlyAfterUploadAndRestoresIntoExactPreparedOrder() throws {

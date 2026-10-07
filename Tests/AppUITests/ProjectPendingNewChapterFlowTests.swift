@@ -24,8 +24,9 @@ import XCTest
         XCTAssertTrue(revealFixtureElement(value, in: app, towardTop: top, maximumSwipes: 60, requiresHittable: hittable), app.debugDescription)
     }
     private func tap(_ id: String, in app: XCUIApplication, fixed: Bool = false) {
-        let button = app.buttons[id]; XCTAssertTrue(button.waitForExistence(timeout: 5))
+        let button = app.buttons[id]
         if !fixed { reveal(button, in: app) }
+        XCTAssertTrue(button.waitForExistence(timeout: 5))
         XCTAssertEqual(app.buttons.matching(identifier: id).count, 1); XCTAssertTrue(button.isHittable && button.isEnabled)
         XCTAssertTrue(app.windows.firstMatch.frame.contains(button.frame)); button.tap()
     }

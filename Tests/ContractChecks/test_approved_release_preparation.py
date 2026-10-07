@@ -4,7 +4,11 @@ from pathlib import Path
 import unittest
 ROOT=Path(__file__).resolve().parents[2]
 class ApprovedReleasePreparationContracts(unittest.TestCase):
-    def read(self,path):return (ROOT/path).read_text()
+    def read(self,path):
+        result = (ROOT/path).read_text()
+        if path == 'Tests/AppUITests/ApprovedReleasePreparationFlowTests.swift':
+            result += (ROOT/'Tests/AppUITests/ApprovedReleasePreparationChineseFlowTests.swift').read_text()
+        return result
     def test_ordinary_host_and_exact_default_empty_capability(self):
         session=self.read('App/AppSession.swift')
         self.assertIn('makeApprovedReleasePreparationSource(owner:',session)
@@ -42,7 +46,7 @@ class ApprovedReleasePreparationContracts(unittest.TestCase):
         ui=self.read('Tests/AppUITests/ApprovedReleasePreparationFlowTests.swift')
         for token in ['tap("approvedRelease.read"','tap("approvedRelease.retry"','"73"','"41"','Array(target.label.utf8)','assertFixtureEnvironment','projectEdit.fixture.signOut']:
             self.assertIn(token,ui)
-        self.assertEqual(ui.count('func test'),2);self.assertEqual(ui.count('UNMEASURED complete method estimate: 720 seconds.'),2)
+        self.assertEqual(ui.count('func test'),2);self.assertEqual(ui.count('UNMEASURED complete method estimate: 750 seconds.'),2)
         self.assertEqual(self.read('Tests/CoreTests/ApprovedTopicReleasePreparationTests.swift').count('func test'),15)
         self.assertEqual(self.read('Tests/AppUnitTests/ApprovedReleaseAuthorPresentationTests.swift').count('func test'),4)
     def test_additive_catalog_is_bilingual(self):

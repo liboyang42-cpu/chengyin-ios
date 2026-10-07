@@ -129,7 +129,8 @@ import XCTest
         XCTAssertNil(try controller.perform(copy)); XCTAssertEqual(context.storage.data, before); XCTAssertTrue(current.canEdit)
     }
     func testCityStoryReadbackUsesServerNodeBindingsAndExactPreparedOrder() async throws {
-        let (_, _, model) = try await setup(["--project-owned-city"])
+        let (context, _, model) = try await setup(["--project-owned-city"])
+        defer { withExtendedLifetime(context) {} }
         XCTAssertEqual(model.draft.product, .city); XCTAssertTrue(model.draft.chapters[0].hasRealStory)
         XCTAssertEqual(model.draft.chapters[0].blocks?.last?.nodeID, model.draft.chapters[0].nodes[0].id)
         model.review(); let review = try XCTUnwrap(model.confirmation)

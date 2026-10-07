@@ -15,7 +15,9 @@ except ModuleNotFoundError:
     from tools.ui_failure_evidence import EvidenceStream
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-DEFAULT_SHARD_COUNT = 73
+DEFAULT_SHARD_COUNT = 78
+PLAYER_MAP_HISTORY_CONTRACT_PATH = ROOT / 'tools/player_map_history_planning_contract.json'
+PLAYER_MAP_HISTORY_CONTRACT_SHA256 = '233f2dad8e06d49e10fcb9af868221979c3ead3b7a2bf987d9a567bdfe7faa67'
 STORY_TEMPLATE_CONTRACT_PATH = ROOT / 'tools/story_template_planning_contract.json'
 STORY_TEMPLATE_CONTRACT_SHA256 = '2c41a3053421739836bf545888444741146f4f2f91e589b6a8469e6d46311d74'
 CLUB_PARITY_CONTRACT_PATH = ROOT / 'tools/club_parity_planning_contract.json'
@@ -41,6 +43,13 @@ def discover(directory):
 
 def measured_weights(directory, profile):
     """Observed/declared estimated costs affect grouping only; source defines every case."""
+    try:
+        from run129_repair_planning import repair_weights
+    except ModuleNotFoundError:
+        from tools.run129_repair_planning import repair_weights
+    repair = repair_weights(directory, profile)
+    if repair is not None:
+        return repair
     counts = discover(directory)
     data = json.loads(pathlib.Path(profile).read_text())
     if data.get('version') != 1 or not isinstance(data.get('method_seconds'), dict):
@@ -71,7 +80,8 @@ def measured_weights(directory, profile):
         result[name] = sum(timings.get(name + '.' + method, estimates.get(name + '.' + method, default)) for method in methods)
     club_floors = _source_required_club_floors(directory, counts, current_sources)
     story_floors = _source_required_story_floors(directory, counts, current_sources)
-    trusted_floors = {**club_floors, **story_floors}
+    player_floors = _source_required_player_map_history_floors(directory, counts, current_sources)
+    trusted_floors = {**club_floors, **story_floors, **player_floors}
     for key, row in floors.items():
         if (key not in current_sources or not isinstance(row, dict)
                 or row.get('measured') is not False or not valid(row.get('seconds'))):
@@ -97,7 +107,7 @@ def measured_weights(directory, profile):
         if any(plan.get('whole_method_estimates', {}).get(key) != row['seconds']
                for key, row in club_floors.items()):
             raise ValueError('Current plan omits or changes a source-required floor')
-        if set(plan['current_inventory']) != set(current_sources) - set(story_floors):
+        if set(plan['current_inventory']) != set(current_sources) - set(story_floors) - set(player_floors):
             raise ValueError('Current club plan does not cover exact live inventory')
         records = {row['method']: row for row in provenance}
         for key, seconds in plan['whole_method_estimates'].items():
@@ -118,12 +128,13 @@ def measured_weights(directory, profile):
         raise ValueError('Missing current story-template whole-method plan')
     if story_plan is not None:
         inventory = story_plan.get('current_inventory')
-        if not story_floors or inventory != sorted(current_sources):
+        story_inventory = sorted(set(current_sources) - set(player_floors))
+        if not story_floors or inventory != story_inventory:
             raise ValueError('Current story-template plan does not cover exact live inventory')
         expected_inventory_hash = hashlib.sha256('\n'.join(inventory).encode()).hexdigest()
         if (story_plan.get('current_inventory_sha256') != expected_inventory_hash
-                or story_plan.get('method_count') != len(current_sources)
-                or story_plan.get('class_count') != len(counts)
+                or story_plan.get('method_count') != len(story_inventory)
+                or story_plan.get('class_count') != len({key.split('.')[0] for key in story_inventory})
                 or story_plan.get('new_methods') != sorted(story_floors)):
             raise ValueError('Current story-template inventory identity is inconsistent')
         if story_plan.get('whole_method_estimates') != {key: row['seconds'] for key, row in story_floors.items()}:
@@ -137,10 +148,63 @@ def measured_weights(directory, profile):
             _validate_current_method_source(key, row, current_sources)
             if estimates.get(key) != floor['seconds']:
                 raise ValueError('Claimed current story-template plan lacks exact method estimate')
+    player_plan = data.get('planning_budget', {}).get('reviewed_player_map_history_replan')
+    marker = 'playerRouteHistoryWholeMethodReview20261007'
+    if player_plan is None and any(row.get('source') == marker for row in provenance):
+        raise ValueError('Missing current player map/history whole-method plan')
+    if player_plan is not None:
+        inventory = sorted(current_sources)
+        if (not player_floors or player_plan.get('current_inventory') != inventory
+                or player_plan.get('current_inventory_sha256') != hashlib.sha256('\n'.join(inventory).encode()).hexdigest()
+                or player_plan.get('method_count') != len(inventory)
+                or player_plan.get('class_count') != len(counts)
+                or player_plan.get('new_methods') != sorted(player_floors)
+                or player_plan.get('whole_method_estimates') != {key: row['seconds'] for key, row in player_floors.items()}
+                or player_plan.get('complete_method_derivations') != list(player_floors.values())
+                or player_plan.get('source') != marker
+                or player_plan.get('deadline_seconds') != 1800
+                or player_plan.get('startup_reserve_seconds') != 300
+                or player_plan.get('complete_method_limit_seconds') != 900):
+            raise ValueError('Current player map/history inventory or costs are inconsistent')
+        records = {row['method']: row for row in provenance}
+        for key, required in player_floors.items():
+            row = records.get(key)
+            if (row != required or row.get('seconds') != required['seconds'] or row.get('measured') is not False
+                    or row.get('shared_helper_source_sha256') != required['shared_helper_source_sha256']
+                    or estimates.get(key) != required['seconds']):
+                raise ValueError('Missing complete player map/history provenance or estimate')
+            _validate_current_method_source(key, row, current_sources)
     assert set(result) == set(counts)
     return result
 
 
+
+
+def _source_required_player_map_history_floors(directory, counts, sources):
+    directory = pathlib.Path(directory)
+    relevant = (directory.resolve() == (ROOT / 'Tests/AppUITests').resolve()
+                or any(name.startswith(('PlayRouteMap', 'PlayBranchHistory')) for name in counts)
+                or any(directory.glob('PlayRouteMap*.swift')) or any(directory.glob('PlayBranchHistory*.swift')))
+    relevant = relevant or any(any(marker in path.read_text() for marker in ('playRoute.', 'playRouteCamera.', 'branchHistory.', '--branch-history-scenario')) for path in directory.glob('*.swift'))
+    try:
+        encoded = PLAYER_MAP_HISTORY_CONTRACT_PATH.read_bytes()
+    except OSError as error:
+        raise ValueError('Required player map/history planning contract is missing') from error
+    if hashlib.sha256(encoded).hexdigest() != PLAYER_MAP_HISTORY_CONTRACT_SHA256:
+        raise ValueError('Player map/history planning contract hash mismatch')
+    contract = json.loads(encoded)
+    historical = set(contract['historical_inventory'])
+    relevant = relevant or historical < set(sources)
+    if not relevant:
+        if set(sources) == historical:
+            for row in contract['historical_ui_sources']:
+                path = directory / pathlib.Path(row['path']).name
+                if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != row['sha256']:
+                    raise ValueError('Claimed historical player-map absence does not match exact old UI bytes')
+        return {}
+    for key, row in contract['required_floors'].items():
+        _validate_current_method_source(key, row, sources)
+    return contract['required_floors']
 
 
 def _source_required_story_floors(directory, counts, sources):

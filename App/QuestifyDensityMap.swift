@@ -296,6 +296,7 @@ struct QuestifyMapAlternativeList: View {
                         .accessibilityLabel(Text(verbatim: pin.title))
                         .accessibilityValue(pin.id == selectedID ? Text("mapList.selected") : Text(""))
                         .accessibilityHint(onSelect == nil ? Text("mapList.readOnly") : pinHint(pin.id))
+                        .accessibilityAddTraits(.isButton)
                         .accessibilityAddTraits(pin.id == selectedID ? .isSelected : [])
                         .accessibilityIdentifier("mapList.pin.\(pin.id)")
                 }

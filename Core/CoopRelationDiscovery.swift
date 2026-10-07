@@ -127,10 +127,14 @@ public struct CoopRelationProfileSelection: Identifiable, Hashable {
         if isLoading { invalidate() }
     }
     public func load(reader: any CoopFlowReading, isCurrent: @escaping () -> Bool = { true }) async {
+        // A canceled caller can outlive a newer read; it must not clear that state.
+        guard !Task.isCancelled else { return }
         invalidate()
         guard isCurrent(), let session = reader.session else { return }
         let stamp = generation, identity = ObjectIdentifier(reader)
         isLoading = true
+        // Only this generation owns its loading flag, including rejected/canceled replies.
+        defer { if stamp == generation { isLoading = false } }
         do {
             let result = try CoopRelationDiscovery(await reader.read(.relations, isCurrent: { stamp == self.generation && isCurrent() }))
             guard !Task.isCancelled, isCurrent(), stamp == generation, reader.session == session else { return }

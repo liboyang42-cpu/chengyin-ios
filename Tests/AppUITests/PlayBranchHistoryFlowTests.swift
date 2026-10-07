@@ -1,0 +1,56 @@
+import XCTest
+
+/// Full normal-summary journeys against the DEBUG offline read-only transport.
+/// Runtime results and screenshots require an Apple simulator; source presence is not a pass.
+final class PlayBranchHistoryFlowTests: XCTestCase {
+    private var runningApp: XCUIApplication?
+    override func setUp() { super.setUp(); continueAfterFailure = false }
+    override func tearDown() { attachFailureScreenshot(self, app: runningApp); runningApp?.terminate(); runningApp = nil; super.tearDown() }
+    private func launch(_ scenario: String = "recorded", chinese: Bool = false) -> XCUIApplication {
+        let app = XCUIApplication()
+        app.launchArguments = ["--uitesting-reset-language", "--uitesting-module", "playBranchHistory", "--branch-history-scenario", scenario,
+            "-AppleLanguages", chinese ? "(zh-Hans)" : "(en)", "-AppleLocale", chinese ? "zh_CN" : "en_US", "--uitesting-reduce-motion"]
+        if chinese { app.launchArguments += ["--uitesting-max-text", "--uitesting-dark"] }
+        runningApp = app; app.launch(); return app
+    }
+    private func element(_ id: String, in app: XCUIApplication) -> XCUIElement { app.descendants(matching: .any).matching(identifier: id).firstMatch }
+    private func open(_ app: XCUIApplication) {
+        let button = app.buttons["branchHistory.open"]
+        XCTAssertTrue(button.waitForExistence(timeout: 5)); XCTAssertTrue(revealFixtureElement(button, in: app)); button.tap()
+        XCTAssertTrue(app.buttons["branchHistory.close"].waitForExistence(timeout: 5))
+    }
+    func testSummaryHistoryReturnReopenPreservesOrderWithoutActionControls() {
+        let app = launch(); open(app)
+        let first = element("branchHistory.row.0", in: app), second = element("branchHistory.row.1", in: app)
+        XCTAssertTrue(first.waitForExistence(timeout: 5)); XCTAssertTrue(first.label.contains("Synthetic courtyard"))
+        XCTAssertTrue(revealFixtureElement(second, in: app)); XCTAssertTrue(second.label.contains("Synthetic garden"))
+        XCTAssertTrue(element("branchHistory.partial", in: app).exists)
+        XCTAssertFalse(app.staticTexts["SECRET HIDDEN NAME"].exists)
+        XCTAssertFalse(app.buttons["playx.submit"].exists); XCTAssertFalse(app.buttons["referenceTask.open"].isHittable)
+        attachFixtureScreenshot(self, app: app, name: "Branch history English server sequence")
+        app.buttons["branchHistory.close"].tap(); XCTAssertTrue(app.buttons["branchHistory.open"].waitForExistence(timeout: 5))
+        open(app); XCTAssertTrue(first.waitForExistence(timeout: 5)); app.buttons["branchHistory.close"].tap()
+    }
+    func testChineseMaximumTextUnknownNodeAndRefreshReplaceOldHistory() {
+        let app = launch(chinese: true); assertFixtureEnvironment(in: app, dynamicTypeSize: "accessibility5"); open(app)
+        let last = element("branchHistory.row.2", in: app)
+        XCTAssertTrue(revealFixtureElement(last, in: app)); XCTAssertTrue(last.label.contains("节点名称暂不可用")); XCTAssertTrue(last.label.contains("时间暂不可用"))
+        XCTAssertFalse(last.label.contains("703")); XCTAssertFalse(last.label.contains("SECRET"))
+        attachFixtureScreenshot(self, app: app, name: "Branch history Chinese maximum text neutral unknowns")
+        app.buttons["branchHistory.close"].tap()
+        app.buttons["branchHistory.fixture.menu"].tap(); app.buttons["branchHistory.fixture.empty"].tap()
+        open(app); XCTAssertTrue(element("branchHistory.empty", in: app).waitForExistence(timeout: 5))
+        XCTAssertFalse(element("branchHistory.row.0", in: app).exists)
+        app.buttons["branchHistory.close"].tap()
+    }
+    func testMissingMalformedAndEmptyReadNeverInventAPath() {
+        for scenario in ["missing", "malformed", "empty"] {
+            let app = launch(scenario); open(app)
+            let id = scenario == "empty" ? "branchHistory.empty" : "branchHistory.unavailable"
+            XCTAssertTrue(element(id, in: app).waitForExistence(timeout: 5)); XCTAssertFalse(element("branchHistory.row.0", in: app).exists)
+            app.buttons["branchHistory.close"].tap(); app.terminate()
+        }
+    }
+
+
+}

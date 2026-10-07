@@ -105,10 +105,12 @@ import UIKit
     }
     func testHostedNavigationBackAndFreshRowSelectionRetiresOldPresentation()async throws{
         let h=try Harness();defer{h.clean()};await h.login();try h.approve();let c=try h.controller(),selection=WorkshopCreatorConsentSelection(source:MemberPlayTemplateID(rawValue:91)!)
-        let root=UIViewController(),navigation=UINavigationController(rootViewController:root),window=UIWindow(frame:UIScreen.main.bounds)
+        let root=WorkshopHostedLifecycleRoot(),navigation=UINavigationController(rootViewController:root),window=UIWindow(frame:UIScreen.main.bounds)
         window.rootViewController=navigation;window.makeKeyAndVisible();defer{window.isHidden=true}
-        let host=UIHostingController(rootView:WorkshopCreatorConsentView(controller:c,appearance:selection.appearance));navigation.pushViewController(host,animated:false)
-        try await waitUntil{c.phase == .reviewing};XCTAssertEqual(c.phase,.reviewing)
+        let host=WorkshopHostedLifecycleHost(rootView:WorkshopCreatorConsentView(controller:c,appearance:selection.appearance));navigation.pushViewController(host,animated:false)
+        try await waitUntil{c.phase == .reviewing};
+        WorkshopHostedLifecycleProbe.record(.consentInitial, root: root, host: host, navigation: navigation, idle: c.phase == .idle, loading: c.phase == .loading, reviewing: c.phase == .reviewing, editing: false)
+        XCTAssertEqual(c.phase,.reviewing)
         navigation.popViewController(animated:false);try await waitUntil{c.phase == .idle};XCTAssertEqual(c.phase,.idle)
         let fresh=WorkshopCreatorConsentSelection(source:selection.source);XCTAssertNotEqual(fresh,selection)
         await (try XCTUnwrap(c.appear(fresh.appearance)))();c.close(selection.appearance);XCTAssertNil(c.appear(selection.appearance));XCTAssertEqual(c.phase,.reviewing)
@@ -119,3 +121,34 @@ import UIKit
         XCTAssertTrue(condition(),"Bounded hosted navigation condition did not arrive")
     }
 }
+
+#if DEBUG
+import SwiftUI
+import UIKit
+
+@MainActor final class WorkshopHostedLifecycleRoot: UIViewController {
+    private(set) var observedAppearance = false
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        observedAppearance = true
+    }
+}
+
+@MainActor final class WorkshopHostedLifecycleHost<Content: View>: UIHostingController<Content> {
+    private(set) var observedAppearance = false
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        observedAppearance = true
+    }
+}
+
+@MainActor enum WorkshopHostedLifecycleProbe {
+    enum Stage: String { case consentInitial, pendingInitialBack, pendingInitialReview }
+    static func record<Content: View>(_ stage: Stage, root: WorkshopHostedLifecycleRoot,
+                                      host: WorkshopHostedLifecycleHost<Content>, navigation: UINavigationController,
+                                      idle: Bool, loading: Bool, reviewing: Bool, editing: Bool) {
+        // One fixed checkpoint per sealed test. No controller IDs, content or errors.
+        print("WORKSHOP_CREATOR_HOST stage=\(stage.rawValue) rootWindow=\(root.viewIfLoaded?.window != nil) hostWindow=\(host.viewIfLoaded?.window != nil) rootAppeared=\(root.observedAppearance) hostAppeared=\(host.observedAppearance) topMatches=\(navigation.topViewController === host) idle=\(idle) loading=\(loading) reviewing=\(reviewing) editing=\(editing)")
+    }
+}
+#endif

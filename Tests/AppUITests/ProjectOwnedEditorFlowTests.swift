@@ -30,7 +30,9 @@ import XCTest
     private func assertMode(_ mode: String, in app: XCUIApplication) {
         let value = app.staticTexts["projectRemote.mode"]
         XCTAssertTrue(value.waitForExistence(timeout: 5)); XCTAssertEqual(value.label, mode)
-        XCTAssertTrue(app.staticTexts["fixture-r2"].exists)
+        let version = app.staticTexts["projectRemote.version.value"]
+        XCTAssertTrue(version.exists, app.debugDescription)
+        XCTAssertEqual(Array(version.label.utf8), Array("fixture-r2".utf8))
     }
     // UNMEASURED complete method estimate: 480 seconds.
     func testCityOwnedDetailReadsStoryAndPreparedNodeWithoutInferringPublication() throws {
