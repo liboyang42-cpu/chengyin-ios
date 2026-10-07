@@ -71,7 +71,8 @@ import Observation
     private let service: any WorkshopCreatorConsentServing, lease: ContentDraftSessionLease, store: WorkshopCreatorConsentPendingStore
     private let currentTargets: () -> [WorkshopCreatorDeclarationTarget], canWrite: () -> Bool, now: () -> Date
     private let reviewMatchesPreview: (WorkshopCreatorPreview) -> Bool
-    private var appearance: WorkshopCreatorConsentAppearance?, lifetime: WorkshopCreatorConsentLifetime?
+    private var appearance: WorkshopCreatorConsentAppearance?
+    private var lifetime: WorkshopCreatorConsentLifetime?
     public init(sourceTemplateId: Int64, service: any WorkshopCreatorConsentServing, lease: ContentDraftSessionLease, store: WorkshopCreatorConsentPendingStore,
                 targets: @escaping () -> [WorkshopCreatorDeclarationTarget] = { [] }, canWrite: @escaping () -> Bool = { false }, now: @escaping () -> Date = Date.init,
                 reviewMatchesPreview: @escaping (WorkshopCreatorPreview) -> Bool = { _ in true }) {

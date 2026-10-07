@@ -91,7 +91,8 @@ public struct WorkshopCreatorPendingForm: Equatable {
     private let declarationStore: WorkshopCreatorConsentPendingStore?
     private let canReadProposals: () -> Bool
     private let makeConsent: MakeConsent
-    private var appearance: WorkshopCreatorPendingAppearance?, lifetime: WorkshopCreatorConsentLifetime?
+    private var appearance: WorkshopCreatorPendingAppearance?
+    private var lifetime: WorkshopCreatorConsentLifetime?
     public init(sourceTemplateId: Int64, service: any WorkshopCreatorPendingServing, previewService: any WorkshopCreatorConsentServing,
                 lease: ContentDraftSessionLease, store: WorkshopCreatorPendingStore, declarationStore: WorkshopCreatorConsentPendingStore? = nil,
                 canReadProposals: @escaping () -> Bool = { true }, canAuthor: @escaping () -> Bool = { false },
