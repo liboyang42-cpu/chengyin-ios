@@ -125,8 +125,12 @@ import XCTest
             switch mutation {
             case 0: value.chapters.append(value.chapters[0])
             case 1: value.chapters[0].nodes.append(value.chapters[0].nodes[0])
-            case 2: value.chapters[0].blocks?.append(try XCTUnwrap(value.chapters[0].blocks?.first))
-            case 3: value.chapters[0].blocks?.append(.init(kind: .node, nodeID: value.chapters[0].nodes[0].id))
+            case 2:
+                let duplicate = try XCTUnwrap(value.chapters[0].blocks?.first)
+                value.chapters[0].blocks?.append(duplicate)
+            case 3:
+                let nodeID = value.chapters[0].nodes[0].id
+                value.chapters[0].blocks?.append(.init(kind: .node, nodeID: nodeID))
             case 4: value.chapters[0].blocks?[1].nodeID = "missing"
             case 5: value.chapters[0].nodes[0].id = ""
             default:
