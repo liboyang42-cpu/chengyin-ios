@@ -12,6 +12,7 @@ MAIN_MERGE_RECORDS = json.loads((ROOT / "tools/tests/fixtures/gitleaks-main-merg
 MAIN_MERGE_FINDINGS = {f"{r['commit']}:{r['path']}:{r['rule']}:{r['line']}" for r in MAIN_MERGE_RECORDS}
 IMPORT_COMMIT = "e39c367a35e1f15f9553701cbad56d0d10796c80"
 COVERAGE_PROSE_FINDING = "bcd754bd41dd41b3dad22a436211cd89ee47b657:docs/public-template/composition-read-grant.md:generic-api-key:75"
+CI132_PROSE_FINDING = "c95737b4c54881a7492ca72bd31f68749304d1d1:docs/square-post-local-media.md:generic-api-key:31"
 
 COUPON_FIXTURE_FINDINGS = {
     f"abe535809517ceb327223679f85c14b5f5b8b6d7:App/CouponRuntimeFixture.swift:generic-api-key:{line}"
@@ -23,10 +24,11 @@ class GitleaksConfigurationTests(unittest.TestCase):
     def test_reviewed_ignores_are_commit_bound(self):
         entries = [line.strip() for line in (ROOT / ".gitleaksignore").read_text().splitlines()
                    if line.strip() and not line.lstrip().startswith("#")]
-        self.assertEqual(len(entries), 88)
-        self.assertEqual(len(set(entries)), 88)
+        self.assertEqual(len(entries), 89)
+        self.assertEqual(len(set(entries)), 89)
         self.assertEqual(entries.count(COVERAGE_PROSE_FINDING), 1)
-        legacy = [entry for entry in entries if entry != COVERAGE_PROSE_FINDING and entry not in COUPON_FIXTURE_FINDINGS and entry not in MAIN_MERGE_FINDINGS]
+        self.assertEqual(entries.count(CI132_PROSE_FINDING), 1)
+        legacy = [entry for entry in entries if entry not in (COVERAGE_PROSE_FINDING, CI132_PROSE_FINDING) and entry not in COUPON_FIXTURE_FINDINGS and entry not in MAIN_MERGE_FINDINGS]
         self.assertEqual(len(legacy), 42)
         for entry in legacy:
             with self.subTest(entry=entry):
@@ -65,6 +67,29 @@ class GitleaksConfigurationTests(unittest.TestCase):
         self.assertNotIn(f"{path}:{rule}:{line}", entries)
         self.assertNotIn(f"{'0' * 40}:{path}:{rule}:{line}", entries)
         self.assertIn("viewers, absent grants", (ROOT / path).read_text())
+
+    def test_ci132_prose_exception_cannot_ignore_other_commits_paths_rules_or_lines(self):
+        entries = [line.strip() for line in (ROOT / ".gitleaksignore").read_text().splitlines()
+                   if line.strip() and not line.lstrip().startswith("#")]
+        commit, path, rule, line = CI132_PROSE_FINDING.split(":")
+        self.assertEqual(commit, "c95737b4c54881a7492ca72bd31f68749304d1d1")
+        self.assertEqual(path, "docs/square-post-local-media.md")
+        self.assertEqual((rule, line), ("generic-api-key", "31"))
+        self.assertEqual([entry for entry in entries if path in entry], [CI132_PROSE_FINDING])
+        for other in (f"{path}:{rule}:{line}",
+                      f"{'0' * 40}:{path}:{rule}:{line}",
+                      f"{commit}:docs/other.md:{rule}:{line}",
+                      f"{commit}:{path}:other-rule:{line}",
+                      f"{commit}:{path}:{rule}:30",
+                      f"{commit}:{path}:{rule}:32"):
+            with self.subTest(other=other):
+                self.assertNotIn(other, entries)
+        for entry in entries:
+            self.assertRegex(entry, r"^[0-9a-f]{40}:[^:*?\[\]]+:generic-api-key:[1-9][0-9]*$")
+        current_line = (ROOT / path).read_text().splitlines()[int(line) - 1]
+        self.assertIn("Backend ownership checks and moderation remain prerequisites.", current_line)
+        self.assertIn("Readback must remain authenticated.", current_line)
+        self.assertIn("Expired or revoked approvals and interrupted uploads require explicit recovery handling.", current_line)
 
     def test_coupon_fixture_exceptions_are_exact_historical_findings_only(self):
         entries = [line.strip() for line in (ROOT / ".gitleaksignore").read_text().splitlines()

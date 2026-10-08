@@ -125,3 +125,7 @@ abe535809517ceb327223679f85c14b5f5b8b6d7:App/CouponRuntimeFixture.swift:generic-
 4e7349186d21448354d3bf4c6b4ab6adfc25fc1f:docs/square-journey-chat/packets/native-square-governance-new/docs/static-evidence.json:generic-api-key:65
 4e7349186d21448354d3bf4c6b4ab6adfc25fc1f:docs/template-authoring-validation.json:generic-api-key:9
 4e7349186d21448354d3bf4c6b4ab6adfc25fc1f:docs/template-authoring-validation.json:generic-api-key:10
+
+# CI132 reviewed narrative-prose false positive; no credential value is present.
+# Exact historical finding only. Other commits, paths, rules and lines remain scanned.
+c95737b4c54881a7492ca72bd31f68749304d1d1:docs/square-post-local-media.md:generic-api-key:31

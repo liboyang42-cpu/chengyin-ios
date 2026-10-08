@@ -98,7 +98,7 @@ public final class ProjectTopicMediaSelection {
             try ticket.policy.validate(items)
             if let restoredRecord, items != restoredRecord.items { throw ProjectTopicMediaFailure.changedSource }
             let preview = Preview(id: UUID(), ticket: ticket, items: items)
-            state = .preview(preview); requests = []; budget = nil; return preview
+            state = .preview(preview); requests = []; self.budget = nil; return preview
         } catch {
             let failure = error as? ProjectTopicMediaFailure ?? .invalidInspection
             budget?.invalidate(failure); budget = nil; requests = []; state = .failed(failure); return nil

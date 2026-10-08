@@ -28,7 +28,7 @@ All aliases of a stream-check wrapper share one locked lifecycle for hash, byte 
 
 The R2 picker/dispatcher gives a movie representation priority over a JPEG poster. A selected movie returns `videoUnavailable` before its bytes are read, rather than silently uploading its poster as the requested video. No video container/track inspector, video upload/registration contract, video player, inferred video MIME/size/duration rules, or new video grant is delivered by this integration. The original user requirement for a complete video workflow remains open; the image preview and local typed foundation do not satisfy it.
 
-Existing image upload and `IMAGE` registration must not be widened into video behavior without the destination's verified contract. Backend ownership, moderation, authenticated readback, expiry/revocation and interrupted-upload recovery requirements remain separate prerequisites.
+Existing image upload and `IMAGE` registration must not be widened into video behavior without the destination's verified contract. Backend ownership checks and moderation remain prerequisites. Readback must remain authenticated. Expired or revoked approvals and interrupted uploads require explicit recovery handling.
 
 ## Policy and lifecycle
 
