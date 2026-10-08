@@ -1,4 +1,5 @@
 import Foundation
+import Observation
 
 public enum SearchRouteMode: String, CaseIterable, Hashable { case walking, driving, transit }
 public struct SearchRouteRequest: Hashable {
@@ -10,6 +11,82 @@ public struct SearchRouteRequest: Hashable {
     public init(origin: RoamCoordinate, destination: RoamCoordinate, mode: SearchRouteMode, datum: WalkingCoordinateDatum = .gcj02, region: String? = nil) {
         self.origin = origin; self.destination = destination; self.mode = mode
         self.datum = datum; self.region = region
+    }
+    /// A preview search center is not a device fix. The host must supply its reviewed
+    /// coordinate context explicitly; a target's region cannot establish the origin's.
+    /// This binds that context to the exact displayed origin without converting or
+    /// relabeling it. Target authority is still re-read by AuthorizedWalkingPreviewPlanner.
+    public static func walkingPreview(origin: RoamCoordinate, originContext: WalkingCoordinate?,
+                                      destination: RoamCoordinate) -> Self? {
+        guard let originContext, originContext.point == origin else { return nil }
+        return Self(origin: origin, destination: destination, mode: .walking,
+                    datum: originContext.datum, region: originContext.region)
+    }
+}
+/// Shared reference state is the authority for both appearance and current inputs.
+/// Only synchronous lifecycle/input callbacks can replace the owner. Async work may
+/// consume a captured owner, but can never make an old view value current again.
+@MainActor @Observable public final class SearchRoutePreviewLoader {
+    public struct Input: Hashable {
+        public let request: SearchRouteRequest?
+        public let scope: UUID
+        public let reference: WalkingTargetReference?
+        public init(request: SearchRouteRequest?, scope: UUID, reference: WalkingTargetReference?) {
+            self.request = request; self.scope = scope; self.reference = reference
+        }
+    }
+    public struct Owner: Hashable {
+        public let input: Input
+        fileprivate let generation: UUID
+    }
+    public private(set) var owner: Owner?
+    public private(set) var route: SearchRoutePreview?
+    public private(set) var failed = false
+    private var attempt = UUID()
+    private var activePlanner: (any SearchRoutePlanning)?
+    public init() {}
+    public func appear(_ input: Input) { replaceOwner(.init(input: input, generation: UUID())) }
+    public func update(_ input: Input) {
+        guard let owner, owner.input != input else { return }
+        replaceOwner(.init(input: input, generation: UUID()))
+    }
+    public func disappear() { replaceOwner(nil) }
+    public func capture(for input: Input) -> Owner? {
+        guard let owner, owner.input == input else { return nil }
+        return owner
+    }
+    private func replaceOwner(_ next: Owner?) {
+        owner = next; attempt = UUID()
+        let previous = activePlanner; activePlanner = nil
+        route = nil; failed = false
+        previous?.cancel()
+    }
+    private func accepts(_ captured: Owner, attempt candidate: UUID? = nil) -> Bool {
+        owner == captured && (candidate == nil || candidate == attempt) && !Task.isCancelled
+    }
+    public func load(_ captured: Owner, makePlanner: @MainActor () -> (any SearchRoutePlanning)?) async {
+        // This reads shared current state, never a captured SwiftUI value's properties.
+        // A stale retry cannot cancel the new planner, mint a ticket, or alter UI state.
+        guard accepts(captured) else { return }
+        let ticket = UUID(); attempt = ticket
+        let previous = activePlanner; activePlanner = nil
+        previous?.cancel()
+        route = nil; failed = false
+        defer { if owner == captured, attempt == ticket { activePlanner = nil } }
+        do {
+            try Task.checkCancellation()
+            guard let requested = captured.input.request else { throw WalkingNavigationFailure.coordinateUnsupported }
+            guard let planner = makePlanner() else { throw WalkingNavigationFailure.unavailable }
+            activePlanner = planner
+            let value = try await planner.preview(requested)
+            try Task.checkCancellation()
+            guard !value.isStraightLine else { throw WalkingNavigationFailure.noRoute }
+            guard accepts(captured, attempt: ticket) else { return }
+            route = value
+        } catch {
+            guard accepts(captured, attempt: ticket) else { return }
+            failed = true
+        }
     }
 }
 public struct SearchRouteStep: Equatable {

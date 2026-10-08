@@ -1,0 +1,102 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "shopNPC.paused": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conversation paused"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对话已暂停"
+          }
+        }
+      }
+    },
+    "shopNPC.pauseNotice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your conversation is hidden while paused. Restore it after the current account and node access are checked. Restoring never sends a message."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂停时对话内容已隐藏。恢复前将重新核验当前账号和节点权限，恢复不会发送消息。"
+          }
+        }
+      }
+    },
+    "shopNPC.resume": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore conversation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复对话"
+          }
+        }
+      }
+    },
+    "shopNPC.stopWaiting": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop waiting"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止等待"
+          }
+        }
+      }
+    },
+    "shopNPC.retry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm retry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认重试"
+          }
+        }
+      }
+    },
+    "shopNPC.retryNotice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stopping only ends local waiting. The server may have received the request. A confirmed retry uses the same request ID; it does not prove that the earlier request was cancelled."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止等待仅作用于本机，服务器可能已收到请求。确认重试将使用原请求编号，并不代表先前请求已撤销。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

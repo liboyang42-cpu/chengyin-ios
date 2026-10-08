@@ -133413,6 +133413,774 @@
           }
         }
       }
+    },
+    "merchant.aftercareProgress.actor.MERCHANT_CHECKIN": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "核销员"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check-in staff"
+          }
+        }
+      }
+    },
+    "merchant.aftercareProgress.actor.MERCHANT_FINANCE": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "财务"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finance staff"
+          }
+        }
+      }
+    },
+    "merchant.aftercareProgress.actor.MERCHANT_MANAGER": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "店长"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manager"
+          }
+        }
+      }
+    },
+    "merchant.aftercareProgress.actor.MERCHANT_MARKETING": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "运营"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marketing staff"
+          }
+        }
+      }
+    },
+    "merchant.aftercareProgress.actor.MERCHANT_OWNER": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "店主"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Owner"
+          }
+        }
+      }
+    },
+    "merchant.aftercareProgress.actor.unknown": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商户成员"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merchant staff"
+          }
+        }
+      }
+    },
+    "merchant.aftercareProgress.amountUnknown": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退款金额待确认"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refund amount not provided"
+          }
+        }
+      }
+    },
+    "merchant.aftercareProgress.current": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前处理情况"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current handling status"
+          }
+        }
+      }
+    },
+    "merchant.aftercareProgress.deadlineBeijing": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退款截止（北京时间）"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refund deadline (Beijing time)"
+          }
+        }
+      }
+    },
+    "merchant.aftercareProgress.decision.AGREE": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商户提交同意意见"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merchant submitted agreement"
+          }
+        }
+      }
+    },
+    "merchant.aftercareProgress.decision.EVIDENCE": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商户补充凭证"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merchant added evidence"
+          }
+        }
+      }
+    },
+    "merchant.aftercareProgress.decision.REJECT": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商户提交不同意意见"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merchant submitted disagreement"
+          }
+        }
+      }
+    },
+    "merchant.aftercareProgress.evidence.recorded": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端已记录凭证；此页面暂不支持图片预览。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Evidence recorded by the server. Image preview is unavailable on this screen."
+          }
+        }
+      }
+    },
+    "merchant.aftercareProgress.evidence.unavailable": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已有凭证暂不可查看，请刷新后确认；不要据此判断凭证丢失。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recorded evidence is currently unavailable. Refresh to check; this does not mean the evidence was lost."
+          }
+        }
+      }
+    },
+    "merchant.aftercareProgress.funds": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "款项结果"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Funds outcome"
+          }
+        }
+      }
+    },
+    "merchant.aftercareProgress.funds.confirmed": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "平台已确认退款"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refund confirmed by platform"
+          }
+        }
+      }
+    },
+    "merchant.aftercareProgress.funds.unconfirmed": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未确认退款"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refund not yet confirmed"
+          }
+        }
+      }
+    },
+    "merchant.aftercareProgress.history": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "处理记录"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Handling records"
+          }
+        }
+      }
+    },
+    "merchant.aftercareProgress.historyHint": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅显示服务端记录的申请、商户回应与转平台事实。记录时间按手机时区显示，包含完整日期与UTC偏移；不推算到账时间。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recorded requests, merchant responses and platform handovers only. Record times follow your phone’s time zone, with full dates and UTC offsets. No arrival time is estimated."
+          }
+        }
+      }
+    },
+    "merchant.aftercareProgress.opinion": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商户意见"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merchant opinion"
+          }
+        }
+      }
+    },
+    "merchant.aftercareProgress.opinion.AGREE": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商户已同意申请"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merchant agreed to the request"
+          }
+        }
+      }
+    },
+    "merchant.aftercareProgress.opinion.PENDING": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等待商户意见"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Awaiting merchant opinion"
+          }
+        }
+      }
+    },
+    "merchant.aftercareProgress.opinion.REJECT": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商户不同意申请"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merchant disagreed with the request"
+          }
+        }
+      }
+    },
+    "merchant.aftercareProgress.platform": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "平台处理"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Platform handling"
+          }
+        }
+      }
+    },
+    "merchant.aftercareProgress.policy": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "订单退款政策快照"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Order refund policy snapshot"
+          }
+        }
+      }
+    },
+    "merchant.aftercareProgress.policyHint": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "政策编号、版本和截止时间来自订单快照；不据此推断已核准退款、退款金额或到账时间。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Policy code, version and deadline come from the order snapshot. They do not establish an approved refund, refund amount or arrival time."
+          }
+        }
+      }
+    },
+    "merchant.aftercareProgress.requested": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已提交退款申请"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refund request submitted"
+          }
+        }
+      }
+    },
+    "merchant.aftercareProgress.summary": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退款申请"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refund request"
+          }
+        }
+      }
+    },
+    "merchant.aftercareProgress.takeover": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已转平台客服"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Handed over to platform support"
+          }
+        }
+      }
+    },
+    "merchant.aftercareProgress.timeUnknown": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录时间未提供"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recorded time not provided"
+          }
+        }
+      }
+    },
+    "projectNodeNarrative.cancel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消"
+          }
+        }
+      }
+    },
+    "projectNodeNarrative.field.cardHookLong": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Legacy place-card hook"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原地点大卡钩子"
+          }
+        }
+      }
+    },
+    "projectNodeNarrative.field.fragmentText": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Legacy story fragment"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原故事碎片"
+          }
+        }
+      }
+    },
+    "projectNodeNarrative.field.hookText": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Legacy card hook"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原卡堆钩子"
+          }
+        }
+      }
+    },
+    "projectNodeNarrative.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Existing description, hooks and story fragment are combined here. Only completing this editor replaces them with one description and clears the three legacy fields. Cancel keeps the original fields."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "现有说明、钩子与故事碎片会合并显示。只有点击完成才保存为一段文字说明，并清空原来的三个字段；取消保留原内容。"
+          }
+        }
+      }
+    },
+    "projectNodeNarrative.open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit text description"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑文字说明"
+          }
+        }
+      }
+    },
+    "projectNodeNarrative.save": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done and save locally"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成并保存本机"
+          }
+        }
+      }
+    },
+    "projectNodeNarrative.saveUnconfirmed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local saving was not confirmed. Your edited text is still here; retry saving."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机保存尚未确认。编辑内容仍保留在此，可重试保存。"
+          }
+        }
+      }
+    },
+    "projectNodeNarrative.stale": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This draft or node has changed. Close this editor and reopen the node."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿或节点已改变，请关闭后重新打开此节点。"
+          }
+        }
+      }
+    },
+    "projectNodeNarrative.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text description"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文字说明"
+          }
+        }
+      }
+    },
+    "projectNodeNarrative.tooLong": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The current editor allows 2,000 text units. Shorten the text before saving; no text has been truncated."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前编辑器最多支持 2,000 个文本单位。请缩短后保存；现有文字未被截断。"
+          }
+        }
+      }
+    },
+    "projectNodeNarrative.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This node cannot be edited here because its current draft is unavailable or a legacy narrative value has an unsupported format. Existing values are kept."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前草稿不可编辑，或旧叙事字段的格式暂不支持。现有内容会保留。"
+          }
+        }
+      }
+    },
+    "shopNPC.pauseNotice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your conversation is hidden while paused. Restore it after the current account and node access are checked. Restoring never sends a message."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂停时对话内容已隐藏。恢复前将重新核验当前账号和节点权限，恢复不会发送消息。"
+          }
+        }
+      }
+    },
+    "shopNPC.paused": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conversation paused"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对话已暂停"
+          }
+        }
+      }
+    },
+    "shopNPC.resume": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore conversation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复对话"
+          }
+        }
+      }
+    },
+    "shopNPC.retry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm retry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认重试"
+          }
+        }
+      }
+    },
+    "shopNPC.retryNotice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stopping only ends local waiting. The server may have received the request. A confirmed retry uses the same request ID; it does not prove that the earlier request was cancelled."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止等待仅作用于本机，服务器可能已收到请求。确认重试将使用原请求编号，并不代表先前请求已撤销。"
+          }
+        }
+      }
+    },
+    "shopNPC.stopWaiting": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop waiting"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止等待"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

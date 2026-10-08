@@ -15,10 +15,19 @@ public struct ShopNPCHTTPResponse {
 /// Inject the app's authenticated, production-write-gated transport. Never a bare upload client.
 @MainActor public protocol ShopNPCHTTPTransport {
     func perform(_ request: ShopNPCHTTPRequest) async throws -> ShopNPCHTTPResponse
+    /// Local authority read only. Restoring a view must never transmit a request.
+    func validateResume(scope: ShopNPCScope, grants: ShopNPCGrants) throws
+}
+public extension ShopNPCHTTPTransport {
+    /// A transport without an authoritative session source cannot restore private content.
+    func validateResume(scope: ShopNPCScope, grants: ShopNPCGrants) throws { throw ShopNPCFailure.disabled }
 }
 @MainActor public struct ShopNPCHTTPClient {
     private let transport: any ShopNPCHTTPTransport
     public init(transport: any ShopNPCHTTPTransport) { self.transport = transport }
+    public func validateResume(scope: ShopNPCScope, grants: ShopNPCGrants) throws {
+        try transport.validateResume(scope: scope, grants: grants)
+    }
     public func text(_ message: String, requestID: UUID, scope: ShopNPCScope) async throws -> ShopNPCReply {
         struct Body: Encodable { let requestId: String; let nodeId: Int; let message: String }
         let bytes = try JSONEncoder().encode(Body(requestId: requestID.uuidString, nodeId: scope.nodeID.rawValue, message: message))

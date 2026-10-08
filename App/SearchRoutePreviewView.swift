@@ -10,17 +10,20 @@ import SwiftUI
     var offline = false
     var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
     var planner: (any SearchRoutePlanning)? = nil
-    @State private var activePlanner: (any SearchRoutePlanning)?
-    @State private var route: SearchRoutePreview?
-    @State private var failed = false
-    @State private var gate = SearchMapQueryGate()
-    private var request: SearchRouteRequest { SearchRouteRequest(origin: origin, destination: destination, mode: .walking) }
-    private struct LoadIdentity: Hashable {
-        let request: SearchRouteRequest
-        let scope: UUID
-        let reference: WalkingTargetReference?
+    // Only an approved host may provide the origin's coordinate context. Untyped
+    // search centers retain the unavailable preview; never infer datum from a target.
+    var previewOriginContext: WalkingCoordinate? = nil
+    @State private var loader = SearchRoutePreviewLoader()
+    var request: SearchRouteRequest? {
+        SearchRouteRequest.walkingPreview(origin: origin, originContext: previewOriginContext,
+                                          destination: destination)
+    }
+    private var input: SearchRoutePreviewLoader.Input {
+        .init(request: request, scope: scope, reference: navigationReference)
     }
     var body: some View {
+        let input = self.input
+        let owner = loader.capture(for: input)
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 Text(verbatim: name).font(.title2.bold()).fixedSize(horizontal: false, vertical: true)
@@ -33,7 +36,7 @@ import SwiftUI
                     } label: { Label("walking.title", systemImage: "figure.walk") }
                         .accessibilityIdentifier("walking.open")
                 }
-                if let route {
+                if owner != nil, let route = loader.route {
                     SearchMapCanvas(area: RoamSearchArea(coordinate: origin, label: ""),
                         pins: [SearchMapPin(id: "destination", title: name, coordinate: destination, symbol: "mappin")],
                         polyline: route.coordinates, offline: offline)
@@ -49,29 +52,28 @@ import SwiftUI
                             Text(Measurement(value: step.distanceMeters, unit: UnitLength.meters), format: .measurement(width: .abbreviated))
                         }
                     }
-                } else if failed { SearchMapIssue(key: "walking.previewUnavailable") { Task { await load() } } }
+                } else if owner != nil, loader.failed {
+                    SearchMapIssue(key: "walking.previewUnavailable") {
+                        // Capture the current owner at the click, before this Task can queue.
+                        guard let retryOwner = loader.capture(for: input) else { return }
+                        Task { await load(retryOwner) }
+                    }
+                }
                 else { ProgressView("searchMap.loading") }
                 Text("searchMap.routeBoundary").font(.footnote).foregroundStyle(.secondary)
             }.padding()
         }.appNavigationTitle("searchMap.routePreview")
-            .task(id: LoadIdentity(request: request, scope: scope, reference: navigationReference)) { await load() }
-            .onDisappear { gate.invalidate(); activePlanner?.cancel(); activePlanner = nil; route = nil }
+            .onAppear { loader.appear(input) }
+            .onChange(of: input) { _, current in loader.update(current) }
+            .task(id: owner) {
+                guard let owner else { return }
+                await load(owner)
+            }
+            .onDisappear { loader.disappear() }
     }
-    private func load() async {
-        activePlanner?.cancel()
-        activePlanner = planner ?? navigationReference.flatMap { walkingFactory?.makePreviewPlanner(reference: $0) }
-        let requested = request, reference = navigationReference, ticket = gate.begin(scope: scope)
-        route = nil; failed = false
-        do {
-            let value: SearchRoutePreview
-            if let activePlanner { value = try await activePlanner.preview(requested) }
-            else { throw WalkingNavigationFailure.unavailable }
-            guard !value.isStraightLine else { throw WalkingNavigationFailure.noRoute }
-            guard gate.accepts(ticket, scope: scope), request == requested, navigationReference == reference else { return }
-            route = value
-        } catch {
-            guard gate.accepts(ticket, scope: scope), request == requested, navigationReference == reference else { return }
-            failed = true
+    private func load(_ owner: SearchRoutePreviewLoader.Owner) async {
+        await loader.load(owner) {
+            planner ?? owner.input.reference.flatMap { walkingFactory?.makePreviewPlanner(reference: $0) }
         }
     }
 }

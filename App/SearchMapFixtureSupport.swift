@@ -149,9 +149,10 @@ import SwiftUI
                     SearchMapExplorerView(reader: reader, mode: .city, initialArea: syntheticArea, destination: detail)
                 } else if entry == "nearby" {
                     SearchMapExplorerView(reader: reader, mode: .nearby, initialArea: syntheticArea, destination: detail)
-                } else if entry == "walking" {
+                } else if entry == "walking" || entry == "walkingPreview" {
                     SearchRoutePreviewView(origin: syntheticArea.coordinate, destination: RoamCoordinate(latitude: 1.004, longitude: 1.006)!, name: "Synthetic stop", scope: reader.scope,
-                        navigationReference: try? WalkingTargetReference(kind: .cityNode, id: 71), offline: true)
+                        navigationReference: try? WalkingTargetReference(kind: .cityNode, id: 71), offline: true,
+                        previewOriginContext: previewOriginContext)
                 } else if entry == "route" {
                     SearchRoutePreviewView(origin: syntheticArea.coordinate, destination: RoamCoordinate(latitude: 1.004, longitude: 1.006)!, name: "Synthetic stop", scope: reader.scope, offline: true)
                 } else {
@@ -166,6 +167,11 @@ import SwiftUI
     @ViewBuilder private func fixtureLabel(_ key: LocalizedStringKey, symbol: String) -> some View {
         if typeSize.isAccessibilitySize { Label(key, systemImage: symbol).labelStyle(.iconOnly) }
         else { Text(key) }
+    }
+    private var previewOriginContext: WalkingCoordinate? {
+        // Keep navigation-only fixtures from consuming their one-shot suspended route.
+        guard entry == "walkingPreview" else { return nil }
+        return try? WalkingCoordinate(point: syntheticArea.coordinate, datum: .wgs84, region: "US")
     }
     private var syntheticArea: RoamSearchArea { RoamSearchArea(coordinate: RoamCoordinate(latitude: 1, longitude: 1)!, label: "Synthetic area") }
     @ViewBuilder private func detail(_ destination: SearchMapDestination) -> some View {

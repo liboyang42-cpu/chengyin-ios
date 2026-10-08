@@ -31,6 +31,11 @@ public struct ShopNPCHostSession: Equatable {
         self.productionWritesEnabled = productionWritesEnabled; self.currentSession = currentSession
         self.currentGrants = currentGrants; self.onUnauthorized = onUnauthorized
     }
+    public func validateResume(scope: ShopNPCScope, grants: ShopNPCGrants) throws {
+        guard productionWritesEnabled, grants.textAllowed else { throw ShopNPCFailure.disabled }
+        guard let captured = currentSession(), captured.scope == scope, scope.valid else { throw ShopNPCFailure.stale }
+        guard currentGrants() == grants, currentSession() == captured else { throw ShopNPCFailure.stale }
+    }
     public func perform(_ input: ShopNPCHTTPRequest) async throws -> ShopNPCHTTPResponse {
         guard productionWritesEnabled else { throw ShopNPCFailure.disabled }
         guard let captured = currentSession(), captured.scope == input.scope else { throw ShopNPCFailure.stale }

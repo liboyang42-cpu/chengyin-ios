@@ -204,6 +204,10 @@ public struct MerchantBusinessDocument: Equatable {
     public let hasMore: Bool
     public let payload: MerchantBusinessValue
     public var rows: [MerchantBusinessRecord] { sections.flatMap(\.rows) }
+    public var aftercareProgress: MerchantAftercareProgress? {
+        guard case .refund(let id) = query, let fields = payload.object else { return nil }
+        return try? MerchantAftercareProgress(refundID: id.rawValue, fields: fields)
+    }
     public init(query: MerchantBusinessQuery, payload: MerchantBusinessValue) throws {
         _ = try query.request()
         self.query = query; self.payload = payload
@@ -263,6 +267,7 @@ public struct MerchantBusinessDocument: Equatable {
             }
         case .refund(let id):
             guard try object.mbInt("refundId", minimum: 1) == id.rawValue else { throw MerchantBusinessFailure.malformed }
+            _ = try MerchantAftercareProgress(refundID: id.rawValue, fields: object)
             sections = [try section("refund", [object], .refund), try section("responses", object.mbObjects("responses"), .response)]
         case .overview:
             guard payload.object != nil else { throw MerchantBusinessFailure.malformed }

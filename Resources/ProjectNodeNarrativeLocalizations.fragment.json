@@ -1,0 +1,198 @@
+{
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "projectNodeNarrative.open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit text description"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑文字说明"
+          }
+        }
+      }
+    },
+    "projectNodeNarrative.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Existing description, hooks and story fragment are combined here. Only completing this editor replaces them with one description and clears the three legacy fields. Cancel keeps the original fields."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "现有说明、钩子与故事碎片会合并显示。只有点击完成才保存为一段文字说明，并清空原来的三个字段；取消保留原内容。"
+          }
+        }
+      }
+    },
+    "projectNodeNarrative.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This node cannot be edited here because its current draft is unavailable or a legacy narrative value has an unsupported format. Existing values are kept."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前草稿不可编辑，或旧叙事字段的格式暂不支持。现有内容会保留。"
+          }
+        }
+      }
+    },
+    "projectNodeNarrative.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text description"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文字说明"
+          }
+        }
+      }
+    },
+    "projectNodeNarrative.tooLong": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The current editor allows 2,000 text units. Shorten the text before saving; no text has been truncated."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前编辑器最多支持 2,000 个文本单位。请缩短后保存；现有文字未被截断。"
+          }
+        }
+      }
+    },
+    "projectNodeNarrative.saveUnconfirmed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local saving was not confirmed. Your edited text is still here; retry saving."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机保存尚未确认。编辑内容仍保留在此，可重试保存。"
+          }
+        }
+      }
+    },
+    "projectNodeNarrative.stale": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This draft or node has changed. Close this editor and reopen the node."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿或节点已改变，请关闭后重新打开此节点。"
+          }
+        }
+      }
+    },
+    "projectNodeNarrative.cancel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消"
+          }
+        }
+      }
+    },
+    "projectNodeNarrative.save": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done and save locally"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成并保存本机"
+          }
+        }
+      }
+    },
+    "projectNodeNarrative.field.hookText": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Legacy card hook"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原卡堆钩子"
+          }
+        }
+      }
+    },
+    "projectNodeNarrative.field.cardHookLong": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Legacy place-card hook"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原地点大卡钩子"
+          }
+        }
+      }
+    },
+    "projectNodeNarrative.field.fragmentText": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Legacy story fragment"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原故事碎片"
+          }
+        }
+      }
+    }
+  }
+}

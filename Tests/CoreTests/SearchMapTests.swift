@@ -256,6 +256,57 @@ final class SearchMapTests: XCTestCase {
         XCTAssertEqual(value.first, "3"); XCTAssertEqual(value.count, 10); XCTAssertEqual(value.filter { $0 == "3" }.count, 1)
         XCTAssertEqual(SearchHistoryPolicy.adding("   ", to: value), value)
     }
+    @MainActor func testPreviewLoaderRejectsAbsentDisappearedAndSupersededOwners() throws {
+        let loader = SearchRoutePreviewLoader()
+        let firstInput = SearchRoutePreviewLoader.Input(request: nil, scope: UUID(), reference: nil)
+        XCTAssertNil(loader.capture(for: firstInput))
+        loader.update(firstInput)
+        XCTAssertNil(loader.owner)
+        loader.appear(firstInput)
+        let first = try XCTUnwrap(loader.capture(for: firstInput))
+        loader.disappear()
+        XCTAssertNil(loader.owner); XCTAssertNil(loader.capture(for: firstInput))
+        loader.appear(firstInput)
+        let reopened = try XCTUnwrap(loader.capture(for: firstInput))
+        XCTAssertNotEqual(first, reopened)
+        let changedInput = SearchRoutePreviewLoader.Input(request: nil, scope: UUID(), reference: nil)
+        loader.update(changedInput)
+        XCTAssertNil(loader.capture(for: firstInput))
+        XCTAssertNotNil(loader.capture(for: changedInput))
+        XCTAssertNotEqual(loader.owner, reopened)
+    }
+    func testWalkingPreviewRequiresOriginContextBoundToExactSearchCenter() throws {
+        let origin = try XCTUnwrap(RoamCoordinate(latitude: 1, longitude: 1))
+        let destination = try XCTUnwrap(RoamCoordinate(latitude: 1.004, longitude: 1.006))
+        XCTAssertNil(SearchRouteRequest.walkingPreview(origin: origin, originContext: nil, destination: destination))
+        let wrongOrigin = try WalkingCoordinate(point: destination, datum: .wgs84, region: "US")
+        XCTAssertNil(SearchRouteRequest.walkingPreview(origin: origin, originContext: wrongOrigin, destination: destination))
+    }
+    func testWalkingPreviewPreservesExplicitDatumAndRegionWithoutConversion() throws {
+        let origin = try XCTUnwrap(RoamCoordinate(latitude: 31.23, longitude: 121.47))
+        let destination = try XCTUnwrap(RoamCoordinate(latitude: 31.24, longitude: 121.48))
+        for (datum, region) in [(WalkingCoordinateDatum.wgs84, "US"), (.gcj02, "CN")] {
+            let context = try WalkingCoordinate(point: origin, datum: datum, region: region)
+            let request = try XCTUnwrap(SearchRouteRequest.walkingPreview(origin: origin, originContext: context, destination: destination))
+            XCTAssertEqual(request.origin, origin); XCTAssertEqual(request.destination, destination)
+            XCTAssertEqual(request.mode, .walking); XCTAssertEqual(request.datum, datum)
+            XCTAssertEqual(request.region, region)
+        }
+    }
+    func testWalkingPreviewIdentityChangesWhenCoordinateContextChanges() throws {
+        let origin = try XCTUnwrap(RoamCoordinate(latitude: 1, longitude: 1))
+        let destination = try XCTUnwrap(RoamCoordinate(latitude: 1.004, longitude: 1.006))
+        let contexts = try [(WalkingCoordinateDatum.wgs84, "US"), (.wgs84, "CA"), (.gcj02, "US")].map {
+            try WalkingCoordinate(point: origin, datum: $0.0, region: $0.1)
+        }
+        let requests = try contexts.map { context in
+            try XCTUnwrap(SearchRouteRequest.walkingPreview(origin: origin, originContext: context, destination: destination))
+        }
+        XCTAssertEqual(Set(requests).count, 3)
+        let legacy = SearchRouteRequest(origin: origin, destination: destination, mode: .walking)
+        XCTAssertEqual(legacy.datum, .gcj02); XCTAssertNil(legacy.region)
+        XCTAssertFalse(requests.contains(legacy))
+    }
     func testStraightLineDistanceFiniteNoInventedETAOrInstructions() throws {
         let a = RoamCoordinate(latitude: 0, longitude: 0)!, b = RoamCoordinate(latitude: 0, longitude: 1)!
         let result = SearchRoutePreview.straightLine(.init(origin: a, destination: b, mode: .walking))

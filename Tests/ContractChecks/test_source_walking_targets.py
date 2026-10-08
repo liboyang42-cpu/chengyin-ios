@@ -41,10 +41,16 @@ class SourceWalkingTargetContracts(unittest.TestCase):
         self.assertIn('CheckedContinuation<SearchRoutePreview, Error>', tests)
     def test_preview_identity_fences_same_coordinate_target_changes(self):
         view = self.read('App/SearchRoutePreviewView.swift')
-        self.assertIn('let reference: WalkingTargetReference?', view)
-        self.assertIn('LoadIdentity(request: request, scope: scope, reference: navigationReference)', view)
-        self.assertIn('reference = navigationReference, ticket = gate.begin(scope: scope)', view)
-        self.assertEqual(view.count('navigationReference == reference else { return }'), 2)
+        loader = self.read('Core/SearchRoutePreview.swift')
+        self.assertIn('public let reference: WalkingTargetReference?', loader)
+        self.assertIn('.init(request: request, scope: scope, reference: navigationReference)', view)
+        self.assertIn('.onChange(of: input) { _, current in loader.update(current) }', view)
+        self.assertIn('guard let owner, owner.input == input else { return nil }', loader)
+        self.assertIn('guard let owner, owner.input != input else { return }', loader)
+        self.assertIn('owner == captured', loader)
+        self.assertEqual(loader.count('guard accepts(captured, attempt: ticket) else { return }'), 2)
+        self.assertIn('testShippingLoaderSameAppearanceInputChangeRejectsQueuedOldRetryBeforeCancellingNewRoute',
+                      self.read('Tests/AppUnitTests/WalkingNavigationAppTests.swift'))
     def test_preview_factory_never_constructs_location_provider(self):
         factory = self.read('App/NativeWalkingNavigationFactory.swift')
         preview = factory.split('func makePreviewPlanner(', 1)[1].split('func restore(', 1)[0]

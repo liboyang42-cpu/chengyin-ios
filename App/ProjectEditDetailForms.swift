@@ -271,6 +271,7 @@ import SwiftUI
             ProjectEditNodeFields(node: node).merchantDraftSelection(.init(model: model, node: node,
                 sourceID: "saved:\(chapterID):\(nodeID)", nodeRevision: { model.draftMutationRevision },
                 isCurrent: { model.fullEdit && targetChapter.wrappedValue.nodes.contains { $0.id == nodeID } }))
+            ProjectNodeNarrativeEntry(model: model, chapterID: chapterID, nodeID: nodeID)
             if let key = model.coordinator.messageKey { Section { Text(LocalizedStringKey(key)).accessibilityIdentifier("projectPrepared.nodeSaveStatus") } }
         }.disabled(!model.fullEdit).appNavigationTitle("projectEdit.nodeDetails")
             .navigationBarTitleDisplayMode(.inline).scrollDismissesKeyboard(.interactively)

@@ -39,7 +39,10 @@ class WalkingNavigationContracts(unittest.TestCase):
     def test_no_legacy_straightline_used_in_navigable_preview(self):
         value = self.read('App/SearchRoutePreviewView.swift')
         self.assertNotIn('value = .straightLine', value)
-        self.assertIn('guard !value.isStraightLine', value)
+        loader = self.read('Core/SearchRoutePreview.swift')
+        self.assertIn('guard !value.isStraightLine else { throw WalkingNavigationFailure.noRoute }', loader)
+        self.assertIn('await loader.load(owner)', value)
+        self.assertIn('testShippingPreviewLoaderRejectsStraightLineResult', self.read('Tests/AppUnitTests/WalkingNavigationAppTests.swift'))
         self.assertIn('WalkingNavigationView(reference: navigationReference, factory: walkingFactory', value)
         self.assertNotIn('SearchRouteMode.allCases', value)
     def test_bilingual_keys_are_complete_and_match_catalog(self):

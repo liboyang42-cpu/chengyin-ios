@@ -16,7 +16,26 @@ def digest(source):
     return hashlib.sha256(source.encode()).hexdigest()
 
 
+# Independently approved aftercare read presentation. Undo exactly this one hunk
+# before applying the original Home R1 whole-source and inverse checks unchanged.
+AFTERCARE_VIEW_SHA256 = '3fe571bd94ccc4813c7a89c6f7c1a8363343fbcfa623a4a3837fd0ec3f7bc1c1'
+AFTERCARE_OLD_BLOCK = '                ForEach(snapshot.document.sections) { section in\n                    let rows = visibleRows(section, in: snapshot.document)\n                    if !rows.isEmpty {\n                        Section(LocalizedStringKey("merchant.business.section." + String(section.id))) {\n                            ForEach(rows) { row in\n                                rowView(row, access: snapshot.access)\n                            }\n                        }\n                    }\n                }\n'
+AFTERCARE_CURRENT_BLOCK = '                if let progress = snapshot.document.aftercareProgress {\n                    MerchantAftercareProgressView(progress: progress)\n                    if let refund = snapshot.document.rows.first(where: { $0.kind == .refund }) {\n                        Section { rowActions(refund, access: snapshot.access) }\n                    }\n                } else {\n                    ForEach(snapshot.document.sections) { section in\n                        let rows = visibleRows(section, in: snapshot.document)\n                        if !rows.isEmpty {\n                            Section(LocalizedStringKey("merchant.business.section." + String(section.id))) {\n                                ForEach(rows) { row in\n                                    rowView(row, access: snapshot.access)\n                                }\n                            }\n                        }\n                    }\n                }\n'
+
+
+def before_aftercare_source(source):
+    if digest(source) == CURRENT_VIEW_SHA256:
+        return source
+    if digest(source) != AFTERCARE_VIEW_SHA256 or source.count(AFTERCARE_CURRENT_BLOCK) != 1:
+        raise ValueError('Unknown aftercare source or changed Home boundary')
+    restored = source.replace(AFTERCARE_CURRENT_BLOCK, AFTERCARE_OLD_BLOCK, 1)
+    if digest(restored) != CURRENT_VIEW_SHA256:
+        raise ValueError('Changed source outside the aftercare boundary')
+    return restored
+
+
 def original_home_source(source):
+    source = before_aftercare_source(source)
     if digest(source) != CURRENT_VIEW_SHA256 or source.count(CURRENT_HOME) != 1:
         raise ValueError('Unknown current merchant Home source')
     restored = source.replace(CURRENT_HOME, OLD_HOME, 1)
@@ -61,7 +80,26 @@ def validate_model(source):
 class MerchantBusinessAccessLifetimeChecks(unittest.TestCase):
     def setUp(self):
         self.model = (ROOT / MODEL).read_text()
-        self.view = (ROOT / VIEW).read_text()
+        self.aftercare_view = (ROOT / VIEW).read_text()
+        self.view = before_aftercare_source(self.aftercare_view)
+
+    def test_aftercare_exact_inverse_leaves_home_and_all_other_code_unchanged(self):
+        self.assertEqual(digest(self.aftercare_view), AFTERCARE_VIEW_SHA256)
+        self.assertEqual(digest(before_aftercare_source(self.aftercare_view)), CURRENT_VIEW_SHA256)
+        self.assertEqual(self.aftercare_view.count(AFTERCARE_CURRENT_BLOCK), 1)
+        self.assertEqual(original_home_source(self.aftercare_view), original_home_source(self.view))
+
+    def test_aftercare_adapter_rejects_mutation_duplication_missing_block_and_home_edits(self):
+        sources = [
+            self.aftercare_view.replace('MerchantAftercareProgressView(progress: progress)', 'Text("altered")', 1),
+            self.aftercare_view.replace(AFTERCARE_CURRENT_BLOCK, AFTERCARE_CURRENT_BLOCK * 2, 1),
+            self.aftercare_view.replace(AFTERCARE_CURRENT_BLOCK, '', 1),
+            self.aftercare_view.replace('guard appearance === visibleAppearance else { return }', 'if false { return }', 1),
+            self.aftercare_view.replace('private var loadGeneration = 0', 'private var loadGeneration = 1', 1),
+        ]
+        for source in sources:
+            with self.assertRaises(ValueError):
+                original_home_source(source)
 
     def test_exact_inverse_preserves_all_business_source_outside_home(self):
         original = original_home_source(self.view)

@@ -78,6 +78,12 @@ struct ProjectEditPreparedNodesView: View {
                                                     .accessibilityIdentifier("projectPrepared.chapter.\(chapter.id).node.\(node.id)." + field.rawValue)
                                             } label: { Text(LocalizedStringKey("projectPrepared.field." + field.rawValue)) }
                                         }
+                                        ForEach(ProjectNodeNarrative.Field.allCases) { field in
+                                            LabeledContent {
+                                                ProjectEditPreparedValue(value: .init(node.raw.object?[field.rawValue]))
+                                                    .accessibilityIdentifier("projectPrepared.chapter.\(chapter.id).node.\(node.id)." + field.rawValue)
+                                            } label: { Text(LocalizedStringKey("projectNodeNarrative.field." + field.rawValue)) }
+                                        }
                                     } else { Text("projectPrepared.unsupported") }
                                 }.padding(.vertical, 4)
                             }

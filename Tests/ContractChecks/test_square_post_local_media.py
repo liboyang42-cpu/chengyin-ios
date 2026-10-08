@@ -94,6 +94,32 @@ class SquarePostLocalMediaSourceTests(unittest.TestCase):
             self.assertIn(token, selection)
         self.assertNotRegex(contracts + selection, r'\.complete\([^\n]*\.beginInspection\(')
 
+    def test_stale_evidence_replay_does_not_consume_an_inspection_twice(self):
+        source = self.read('Tests/CoreTests/SquarePostLocalMediaSelectionTests.swift')
+        for name, attempt, receiver in [
+            ('testBackgroundOrReturnInvalidationNeedsNewScopeLeaseAndNewInspection', 'old', 'value'),
+            ('testRetainedOwnerReferenceCannotRestoreAnEarlierSelectionState', 'pending', 'retainedOwner'),
+        ]:
+            with self.subTest(name=name):
+                match = re.search(rf'    func {name}\(\) throws \{{\n(.*?)\n    \}}', source, re.S)
+                self.assertIsNotNone(match)
+                body = match.group(1)
+                self.assertEqual(body.count(f'let staleEvidence = try evidence({attempt})'), 1)
+                self.assertNotIn(f'.complete(try evidence({attempt}))', body)
+                self.assertGreaterEqual(body.count(f'XCTAssertFalse({receiver}.complete(staleEvidence))'), 3)
+                self.assertIn(
+                    f'XCTAssertThrowsError(try evidence({attempt})) {{ XCTAssertEqual($0 as? SquarePostLocalMediaIssue, .finished) }}',
+                    body,
+                )
+                for required in [
+                    'XCTAssertEqual(value.snapshot, closed)',
+                    'XCTAssertEqual(value.snapshot, inspecting)',
+                    f'XCTAssertNotEqual(fresh.token.lease, {attempt}.token.lease)',
+                    'XCTAssertTrue(value.complete(try evidence(fresh)))',
+                    '.metadataWithinPolicyAwaitingAppDecode',
+                ]:
+                    self.assertIn(required, body)
+
 
 if __name__ == '__main__':
     unittest.main()

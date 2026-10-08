@@ -29,7 +29,7 @@ class ReferenceChatTaskContracts(unittest.TestCase):
     def test_npc_requires_review_and_preserves_cancelled_draft(self):
         text = read('App/ShopNPCView.swift')
         self.assertIn('coordinator.reviewText(draft)', text)
-        self.assertIn('await coordinator.transmit(reviewID: review.id)', text)
+        self.assertIn('await coordinator.transmit(reviewID: review.id, intent: intent)', text)
         self.assertIn('coordinator.pending == nil, coordinator.failure == nil', text)
         self.assertIn('Button(role: .cancel) { coordinator.cancelReview(); revision += 1 }', text)
         self.assertIn('.safeAreaInset(edge: .bottom) { composer }', text)

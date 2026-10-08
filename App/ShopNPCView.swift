@@ -7,47 +7,57 @@ import SwiftUI
     var capture: (any ShopNPCVoiceCapturing)? = nil
     @State private var draft = ""
     @State private var revision = 0
-    @State private var sending = false
     @State private var recording = false
     @State private var localFailure: ShopNPCFailure?
     @FocusState private var typing: Bool
     @Environment(\.scenePhase) private var scenePhase
+    private var sending: Bool { coordinator.busy }
+    private var showsConversation: Bool { coordinator.active && !coordinator.isSuspended }
     private var canCompose: Bool {
-        coordinator.active && coordinator.grants.textAllowed && !sending && !recording && coordinator.pending == nil
+        showsConversation && coordinator.grants.textAllowed && !sending && !recording && coordinator.pending == nil
     }
     var body: some View {
         let _ = revision
         VStack(spacing: 0) {
             // The identity/disclosure stays visible when the transcript scrolls.
             VStack(alignment: .leading, spacing: 4) {
-                if coordinator.active { Label(name, systemImage: "person.crop.circle").font(.headline) }
+                if showsConversation { Label(name, systemImage: "person.crop.circle").font(.headline) }
+                else if coordinator.isSuspended { Text("shopNPC.paused") }
                 else { Text("shopNPC.stale") }
                 Text("shopNPC.disclosure").font(.footnote).foregroundStyle(.secondary)
             }.frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal).padding(.vertical, 8)
             ScrollViewReader { proxy in
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 16) {
-                        if coordinator.active, let greeting, !greeting.isEmpty { Text(verbatim: greeting) }
-                        if !coordinator.grants.textAllowed { Text("shopNPC.disabled").accessibilityIdentifier("shopNPC.disabled") }
-                        ForEach(coordinator.messages) { message in
-                            VStack(alignment: .leading, spacing: 4) {
-                                ChatMessageBubble(isOwn: message.mine) {
-                                    Text(message.mine ? "shopNPC.you" : "shopNPC.assistant")
-                                } content: {
-                                    Text(verbatim: message.text).textSelection(.enabled)
-                                }
-                                if !message.mine {
-                                    Button { typing = false; attempt { try coordinator.reviewRegeneration(answerID: message.id) } } label: {
-                                        Text("shopNPC.regenerate").frame(minHeight: 44).contentShape(Rectangle())
+                        if coordinator.isSuspended { interruptionPanel }
+                        if showsConversation {
+                            if let greeting, !greeting.isEmpty { Text(verbatim: greeting) }
+                            if !coordinator.grants.textAllowed { Text("shopNPC.disabled").accessibilityIdentifier("shopNPC.disabled") }
+                            ForEach(coordinator.messages) { message in
+                                VStack(alignment: .leading, spacing: 4) {
+                                    ChatMessageBubble(isOwn: message.mine) {
+                                        Text(message.mine ? "shopNPC.you" : "shopNPC.assistant")
+                                    } content: {
+                                        Text(verbatim: message.text).textSelection(.enabled)
                                     }
-                                        .disabled(sending || recording || coordinator.pending != nil || !coordinator.active || !coordinator.grants.textAllowed)
-                                        .accessibilityIdentifier("shopNPC.regenerate")
-                                }
-                            }.accessibilityElement(children: .contain)
+                                    if !message.mine {
+                                        Button { typing = false; attempt { try coordinator.reviewRegeneration(answerID: message.id) } } label: {
+                                            Text("shopNPC.regenerate").frame(minHeight: 44).contentShape(Rectangle())
+                                        }
+                                            .disabled(sending || recording || coordinator.pending != nil || !coordinator.active || !coordinator.grants.textAllowed)
+                                            .accessibilityIdentifier("shopNPC.regenerate")
+                                    }
+                                }.accessibilityElement(children: .contain)
+                            }
+                            if sending {
+                                ProgressView("shopNPC.busy").accessibilityIdentifier("shopNPC.busy")
+                                Button("shopNPC.stopWaiting") { coordinator.stopWaiting(); localFailure = nil }
+                                    .controlSize(.large).frame(minHeight: 44)
+                                    .accessibilityIdentifier("shopNPC.stopWaiting")
+                            }
+                            if let review = coordinator.pending { reviewPanel(review).id("shopNPC.review") }
                         }
-                        if sending { ProgressView("shopNPC.busy").accessibilityIdentifier("shopNPC.busy") }
-                        if let review = coordinator.pending { reviewPanel(review).id("shopNPC.review") }
-                        if let error = localFailure ?? coordinator.failure {
+                        if !coordinator.isSuspended, let error = localFailure ?? coordinator.failure {
                             Group {
                                 if case .server(_, let message) = error, let message, !message.isEmpty { Text(verbatim: message) }
                                 else { Text(LocalizedStringKey(error.key)) }
@@ -76,11 +86,22 @@ import SwiftUI
         .onChange(of: coordinator.active) { _, active in if !active { clearTransient() } }
         .onChange(of: coordinator.scope) { _, _ in clearTransient() }
         .onChange(of: coordinator.grants) { _, _ in clearTransient() }
-        .onChange(of: scenePhase) { _, phase in if phase != .active { invalidate() } }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active { suspend() }
+            else { coordinator.revalidateSuspension() }
+        }
+    }
+    private var interruptionPanel: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("shopNPC.pauseNotice")
+            Button("shopNPC.resume") { coordinator.resumeAfterInterruption(); localFailure = nil }
+                .buttonStyle(.borderedProminent).controlSize(.large)
+                .disabled(scenePhase != .active).accessibilityIdentifier("shopNPC.resume")
+        }.frame(maxWidth: .infinity, alignment: .leading)
     }
     private var composer: some View {
         VStack(alignment: .leading, spacing: 8) {
-            TextField("shopNPC.question", text: $draft, axis: .vertical)
+            TextField("shopNPC.question", text: Binding(get: { showsConversation ? draft : "" }, set: { draft = $0 }), axis: .vertical)
                 .lineLimit(1...3).textFieldStyle(.roundedBorder).focused($typing)
                 .disabled(!canCompose).accessibilityIdentifier("shopNPC.input")
             ViewThatFits(in: .horizontal) {
@@ -112,7 +133,7 @@ import SwiftUI
         } label: {
             Text(recording ? "shopNPC.stopReview" : "shopNPC.record").frame(minHeight: 44).contentShape(Rectangle())
         }
-            .disabled(sending || coordinator.pending != nil || !coordinator.active || capture == nil || !coordinator.grants.voiceAllowed || !coordinator.grants.microphone)
+            .disabled(sending || coordinator.pending != nil || !showsConversation || capture == nil || !coordinator.grants.voiceAllowed || !coordinator.grants.microphone)
             .accessibilityIdentifier("shopNPC.record")
     }
     private func reviewPanel(_ review: ShopNPCReview) -> some View {
@@ -123,18 +144,24 @@ import SwiftUI
             case .voice(let clip): Text("shopNPC.voiceReview"); Text(verbatim: "\(clip.bytes.count) bytes · \(Int(clip.duration)) s")
             }
             Text("shopNPC.transmissionDisclosure").font(.footnote)
-            Button("shopNPC.confirmSend") {
-                typing = false; sending = true; localFailure = nil
-                Task {
-                    await coordinator.transmit(reviewID: review.id)
-                    guard coordinator.active, coordinator.scope == review.scope else { return }
-                    sending = false
-                    // Clear only this accepted draft, never on cancel, failure or an uncertain result.
-                    if coordinator.pending == nil, coordinator.failure == nil, review.replacing == nil,
-                       case .text(let text) = review.content, draft.trimmingCharacters(in: .whitespacesAndNewlines) == text { draft = "" }
-                    revision += 1
+            if coordinator.failure == .unknownOutcome { Text("shopNPC.retryNotice").font(.footnote) }
+            Button {
+                typing = false; localFailure = nil
+                attempt {
+                    let intent = try coordinator.prepareTransmission(reviewID: review.id)
+                    Task {
+                        guard scenePhase == .active, showsConversation, coordinator.scope == review.scope else { return }
+                        await coordinator.transmit(reviewID: review.id, intent: intent)
+                        guard showsConversation, coordinator.scope == review.scope else { return }
+                        // Clear only this accepted draft, never on cancel, failure or an uncertain result.
+                        if coordinator.pending == nil, coordinator.failure == nil, review.replacing == nil,
+                           case .text(let text) = review.content, draft.trimmingCharacters(in: .whitespacesAndNewlines) == text { draft = "" }
+                        revision += 1
+                    }
                 }
-            }.buttonStyle(.borderedProminent).controlSize(.large).disabled(sending || recording || !coordinator.active)
+            } label: {
+                Text(coordinator.failure == nil ? LocalizedStringKey("shopNPC.confirmSend") : LocalizedStringKey("shopNPC.retry"))
+            }.buttonStyle(.borderedProminent).controlSize(.large).disabled(sending || recording || !showsConversation)
                 .accessibilityIdentifier("shopNPC.confirmSend")
             Button(role: .cancel) { coordinator.cancelReview(); revision += 1 } label: {
                 Text("shopNPC.cancel").frame(minHeight: 44).contentShape(Rectangle())
@@ -147,7 +174,11 @@ import SwiftUI
         do { try action(); localFailure = nil } catch { localFailure = error as? ShopNPCFailure ?? .invalid }
         revision += 1
     }
-    private func clearTransient() { capture?.cancel(); typing = false; recording = false; sending = false; draft = ""; localFailure = nil; revision += 1 }
+    private func suspend() {
+        capture?.cancel(); typing = false; recording = false; localFailure = nil
+        coordinator.suspend()
+    }
+    private func clearTransient() { capture?.cancel(); typing = false; recording = false; draft = ""; localFailure = nil; revision += 1 }
     private func invalidate() { coordinator.invalidate(); clearTransient() }
 }
 

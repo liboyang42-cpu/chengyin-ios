@@ -218,12 +218,19 @@ import SwiftUI
                 } else if model.listFilters.isActive(for: snapshot.document.query), snapshot.document.sections.allSatisfy({ visibleRows($0, in: snapshot.document).isEmpty }) {
                     Text(LocalizedStringKey(isAftercare ? "merchant.business.aftercare.noMatches" : "merchant.business.list.noMatches")).foregroundStyle(.secondary).accessibilityIdentifier("merchant.business.list.noMatches")
                 }
-                ForEach(snapshot.document.sections) { section in
-                    let rows = visibleRows(section, in: snapshot.document)
-                    if !rows.isEmpty {
-                        Section(LocalizedStringKey("merchant.business.section." + String(section.id))) {
-                            ForEach(rows) { row in
-                                rowView(row, access: snapshot.access)
+                if let progress = snapshot.document.aftercareProgress {
+                    MerchantAftercareProgressView(progress: progress)
+                    if let refund = snapshot.document.rows.first(where: { $0.kind == .refund }) {
+                        Section { rowActions(refund, access: snapshot.access) }
+                    }
+                } else {
+                    ForEach(snapshot.document.sections) { section in
+                        let rows = visibleRows(section, in: snapshot.document)
+                        if !rows.isEmpty {
+                            Section(LocalizedStringKey("merchant.business.section." + String(section.id))) {
+                                ForEach(rows) { row in
+                                    rowView(row, access: snapshot.access)
+                                }
                             }
                         }
                     }

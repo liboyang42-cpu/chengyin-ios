@@ -1,0 +1,482 @@
+{
+  "merchant.aftercareProgress.summary": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "退款申请"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Refund request"
+        }
+      }
+    }
+  },
+  "merchant.aftercareProgress.amountUnknown": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "退款金额待确认"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Refund amount not provided"
+        }
+      }
+    }
+  },
+  "merchant.aftercareProgress.current": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前处理情况"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Current handling status"
+        }
+      }
+    }
+  },
+  "merchant.aftercareProgress.platform": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "平台处理"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Platform handling"
+        }
+      }
+    }
+  },
+  "merchant.aftercareProgress.opinion": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "商户意见"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Merchant opinion"
+        }
+      }
+    }
+  },
+  "merchant.aftercareProgress.funds": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "款项结果"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Funds outcome"
+        }
+      }
+    }
+  },
+  "merchant.aftercareProgress.opinion.PENDING": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "等待商户意见"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Awaiting merchant opinion"
+        }
+      }
+    }
+  },
+  "merchant.aftercareProgress.opinion.AGREE": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "商户已同意申请"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Merchant agreed to the request"
+        }
+      }
+    }
+  },
+  "merchant.aftercareProgress.opinion.REJECT": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "商户不同意申请"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Merchant disagreed with the request"
+        }
+      }
+    }
+  },
+  "merchant.aftercareProgress.funds.confirmed": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "平台已确认退款"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Refund confirmed by platform"
+        }
+      }
+    }
+  },
+  "merchant.aftercareProgress.funds.unconfirmed": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "尚未确认退款"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Refund not yet confirmed"
+        }
+      }
+    }
+  },
+  "merchant.aftercareProgress.history": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "处理记录"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Handling records"
+        }
+      }
+    }
+  },
+  "merchant.aftercareProgress.historyHint": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "仅显示服务端记录的申请、商户回应与转平台事实。记录时间按手机时区显示，包含完整日期与UTC偏移；不推算到账时间。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Recorded requests, merchant responses and platform handovers only. Record times follow your phone’s time zone, with full dates and UTC offsets. No arrival time is estimated."
+        }
+      }
+    }
+  },
+  "merchant.aftercareProgress.requested": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已提交退款申请"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Refund request submitted"
+        }
+      }
+    }
+  },
+  "merchant.aftercareProgress.takeover": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已转平台客服"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Handed over to platform support"
+        }
+      }
+    }
+  },
+  "merchant.aftercareProgress.decision.AGREE": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "商户提交同意意见"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Merchant submitted agreement"
+        }
+      }
+    }
+  },
+  "merchant.aftercareProgress.decision.REJECT": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "商户提交不同意意见"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Merchant submitted disagreement"
+        }
+      }
+    }
+  },
+  "merchant.aftercareProgress.decision.EVIDENCE": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "商户补充凭证"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Merchant added evidence"
+        }
+      }
+    }
+  },
+  "merchant.aftercareProgress.timeUnknown": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "记录时间未提供"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Recorded time not provided"
+        }
+      }
+    }
+  },
+  "merchant.aftercareProgress.policy": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "订单退款政策快照"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Order refund policy snapshot"
+        }
+      }
+    }
+  },
+  "merchant.aftercareProgress.policyHint": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "政策编号、版本和截止时间来自订单快照；不据此推断已核准退款、退款金额或到账时间。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Policy code, version and deadline come from the order snapshot. They do not establish an approved refund, refund amount or arrival time."
+        }
+      }
+    }
+  },
+  "merchant.aftercareProgress.evidence.recorded": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务端已记录凭证；此页面暂不支持图片预览。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Evidence recorded by the server. Image preview is unavailable on this screen."
+        }
+      }
+    }
+  },
+  "merchant.aftercareProgress.evidence.unavailable": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已有凭证暂不可查看，请刷新后确认；不要据此判断凭证丢失。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Recorded evidence is currently unavailable. Refresh to check; this does not mean the evidence was lost."
+        }
+      }
+    }
+  },
+  "merchant.aftercareProgress.actor.MERCHANT_OWNER": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "店主"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Owner"
+        }
+      }
+    }
+  },
+  "merchant.aftercareProgress.actor.MERCHANT_MANAGER": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "店长"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Manager"
+        }
+      }
+    }
+  },
+  "merchant.aftercareProgress.actor.MERCHANT_CHECKIN": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "核销员"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Check-in staff"
+        }
+      }
+    }
+  },
+  "merchant.aftercareProgress.actor.MERCHANT_MARKETING": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "运营"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Marketing staff"
+        }
+      }
+    }
+  },
+  "merchant.aftercareProgress.actor.MERCHANT_FINANCE": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "财务"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Finance staff"
+        }
+      }
+    }
+  },
+  "merchant.aftercareProgress.actor.unknown": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "商户成员"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Merchant staff"
+        }
+      }
+    }
+  },
+  "merchant.aftercareProgress.deadlineBeijing": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "退款截止（北京时间）"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Refund deadline (Beijing time)"
+        }
+      }
+    }
+  }
+}

@@ -101,11 +101,24 @@ import XCTest
         XCTAssertEqual(value.clear(), [source]); XCTAssertTrue(value.clear().isEmpty)
     }
     func testBackgroundOrReturnInvalidationNeedsNewScopeLeaseAndNewInspection() throws {
-        var value = try model(); let id = try value.append(reference: .init(), kind: .video), old = try value.beginInspection(id), before = value.snapshot
+        let value = try model(), source = SquarePostLocalMediaReference()
+        let id = try value.append(reference: source, kind: .video), old = try value.beginInspection(id), before = value.snapshot
         value.invalidate(); XCTAssertFalse(value.isCurrent(before)); XCTAssertEqual(value.snapshot.assessment, .closed)
-        XCTAssertThrowsError(try value.append(reference: .init(), kind: .image)); XCTAssertFalse(value.complete(try evidence(old)))
-        value.replaceScope(try scope(), policy: try policy()); XCTAssertFalse(value.complete(try evidence(old)))
+        XCTAssertThrowsError(try value.append(reference: .init(), kind: .image))
+        // Finish the late attempt once; replay its proof to exercise each selection fence.
+        let staleEvidence = try evidence(old), closed = value.snapshot
+        XCTAssertFalse(value.complete(staleEvidence)); XCTAssertEqual(value.snapshot, closed)
+        XCTAssertThrowsError(try evidence(old)) { XCTAssertEqual($0 as? SquarePostLocalMediaIssue, .finished) }
+        XCTAssertEqual(value.snapshot, closed)
+        value.replaceScope(try scope(), policy: try policy()); let reopened = value.snapshot
+        XCTAssertFalse(value.complete(staleEvidence)); XCTAssertEqual(value.snapshot, reopened)
         XCTAssertEqual(value.snapshot.assessment, .empty)
+        let newID = try value.append(reference: source, kind: .video), fresh = try value.beginInspection(newID)
+        XCTAssertEqual(fresh.token.scope, old.token.scope); XCTAssertNotEqual(fresh.token.lease, old.token.lease)
+        let inspecting = value.snapshot
+        XCTAssertFalse(value.complete(staleEvidence)); XCTAssertEqual(value.snapshot, inspecting)
+        XCTAssertTrue(value.complete(try evidence(fresh)))
+        XCTAssertEqual(value.snapshot.assessment, .metadataWithinPolicyAwaitingAppDecode)
     }
     func testInvalidReorderIsAtomicAndOldSnapshotNeverBecomesCurrentAgain() throws {
         var value = try model(); let a = try value.append(reference: .init(), kind: .image), b = try value.append(reference: .init(), kind: .image), before = value.snapshot
@@ -135,11 +148,24 @@ import XCTest
         XCTAssertEqual(value.snapshot.assessment, .metadataWithinPolicyAwaitingAppDecode)
     }
     func testRetainedOwnerReferenceCannotRestoreAnEarlierSelectionState() throws {
-        let value = try model(), retainedOwner = value
-        let id = try value.append(reference: .init(), kind: .image), pending = try value.beginInspection(id)
+        let value = try model(), retainedOwner = value, source = SquarePostLocalMediaReference()
+        let id = try value.append(reference: source, kind: .image), pending = try value.beginInspection(id)
         let captured = value.snapshot; value.remove(id)
         XCTAssertTrue(value === retainedOwner); XCTAssertTrue(retainedOwner.items.isEmpty)
-        XCTAssertFalse(retainedOwner.isCurrent(captured)); XCTAssertFalse(retainedOwner.complete(try evidence(pending)))
-        value.invalidate(); XCTAssertFalse(retainedOwner.complete(try evidence(pending)))
+        // The retained wrapper shares one consumed stream, while evidence can be replayed.
+        let staleEvidence = try evidence(pending), removed = value.snapshot
+        XCTAssertFalse(retainedOwner.isCurrent(captured)); XCTAssertFalse(retainedOwner.complete(staleEvidence))
+        XCTAssertEqual(value.snapshot, removed)
+        value.invalidate(); let closed = value.snapshot
+        XCTAssertFalse(retainedOwner.complete(staleEvidence)); XCTAssertEqual(value.snapshot, closed)
+        XCTAssertThrowsError(try evidence(pending)) { XCTAssertEqual($0 as? SquarePostLocalMediaIssue, .finished) }
+        XCTAssertEqual(value.snapshot, closed)
+        retainedOwner.replaceScope(try scope(), policy: try policy())
+        let newID = try retainedOwner.append(reference: source, kind: .image), fresh = try retainedOwner.beginInspection(newID)
+        XCTAssertEqual(fresh.token.scope, pending.token.scope); XCTAssertNotEqual(fresh.token.lease, pending.token.lease)
+        let inspecting = value.snapshot
+        XCTAssertFalse(retainedOwner.complete(staleEvidence)); XCTAssertEqual(value.snapshot, inspecting)
+        XCTAssertTrue(value.complete(try evidence(fresh)))
+        XCTAssertEqual(retainedOwner.snapshot.assessment, .metadataWithinPolicyAwaitingAppDecode)
     }
 }
