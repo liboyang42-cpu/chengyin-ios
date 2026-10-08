@@ -1121,7 +1121,7 @@ final class AppSession: ObservableObject {
         if let retained = retainedProjectEditors[key] { return retained }
         let service = projectEditorService(owner: owner)
         var draft = ProjectEditDraft(product: product); draft.owner = owner
-        let coordinator = ProjectEditCoordinator(initial: .init(draft: draft), service: service, store: projectDraftStore, releasePreparationSource: makeApprovedReleasePreparationSource(owner: owner), releasePublicationSource: makeApprovedReleasePublicationSource(owner: owner), releasePublicationJournal: projectReleaseJournal, releaseReviewSource: makeApprovedTopicReviewSource(owner: owner), releaseReviewJournal: projectReviewJournal, ownedCoverSource: makeOwnedTopicCoverSource(owner: owner), ownedCoverJournal: ownedTopicCoverJournal, storyImageSource: makeProjectStoryImageSource(owner: owner), storyImageJournal: projectStoryImageJournal, storyAudioSource: makeProjectStoryAudioSource(owner: owner), storyAudioJournal: projectStoryAudioJournal, merchantDraftSource: makeProjectMerchantDraftSource(),
+        let coordinator = ProjectEditCoordinator(initial: .init(draft: draft), service: service, store: projectDraftStore, releasePreparationSource: makeApprovedReleasePreparationSource(owner: owner), releasePublicationSource: makeApprovedReleasePublicationSource(owner: owner), releasePublicationJournal: projectReleaseJournal, releaseReviewSource: makeApprovedTopicReviewSource(owner: owner), releaseReviewJournal: projectReviewJournal, ownedCoverSource: makeOwnedTopicCoverSource(owner: owner), ownedCoverJournal: ownedTopicCoverJournal, topicImageSource: makeProjectTopicImageSource(owner: owner), storyImageSource: makeProjectStoryImageSource(owner: owner), storyImageJournal: projectStoryImageJournal, storyAudioSource: makeProjectStoryAudioSource(owner: owner), storyAudioJournal: projectStoryAudioJournal, merchantDraftSource: makeProjectMerchantDraftSource(),
             currentSession: { [weak self] in self?.currentProjectEditSession })
         retainedProjectEditors[key] = coordinator
         return coordinator
@@ -1136,7 +1136,7 @@ final class AppSession: ObservableObject {
         // the mandatory fresh productType/editScope/revision from edit-detail.
         var placeholder = ProjectEditDraft(); placeholder.owner = target.owner
         let coordinator = ProjectEditCoordinator(initial: .init(topicID: target.topicID, draft: placeholder),
-            service: projectEditorService(owner: target.owner), store: projectDraftStore, releasePreparationSource: makeApprovedReleasePreparationSource(owner: target.owner), releasePublicationSource: makeApprovedReleasePublicationSource(owner: target.owner), releasePublicationJournal: projectReleaseJournal, releaseReviewSource: makeApprovedTopicReviewSource(owner: target.owner), releaseReviewJournal: projectReviewJournal, ownedCoverSource: makeOwnedTopicCoverSource(owner: target.owner), ownedCoverJournal: ownedTopicCoverJournal, storyImageSource: makeProjectStoryImageSource(owner: target.owner), storyImageJournal: projectStoryImageJournal, storyAudioSource: makeProjectStoryAudioSource(owner: target.owner), storyAudioJournal: projectStoryAudioJournal, merchantDraftSource: makeProjectMerchantDraftSource(),
+            service: projectEditorService(owner: target.owner), store: projectDraftStore, releasePreparationSource: makeApprovedReleasePreparationSource(owner: target.owner), releasePublicationSource: makeApprovedReleasePublicationSource(owner: target.owner), releasePublicationJournal: projectReleaseJournal, releaseReviewSource: makeApprovedTopicReviewSource(owner: target.owner), releaseReviewJournal: projectReviewJournal, ownedCoverSource: makeOwnedTopicCoverSource(owner: target.owner), ownedCoverJournal: ownedTopicCoverJournal, topicImageSource: makeProjectTopicImageSource(owner: target.owner), storyImageSource: makeProjectStoryImageSource(owner: target.owner), storyImageJournal: projectStoryImageJournal, storyAudioSource: makeProjectStoryAudioSource(owner: target.owner), storyAudioJournal: projectStoryAudioJournal, merchantDraftSource: makeProjectMerchantDraftSource(),
             currentSession: { [weak self] in self?.currentProjectEditSession })
         retainedProjectEditors[key] = coordinator; return coordinator
     }
@@ -1181,6 +1181,23 @@ final class AppSession: ObservableObject {
         }
         return ProjectStoryAudioUploadClient(configuration: configuration, approval: approval,
             transport: compositionTransport.replacingUnderlying(composition.makeProjectStoryAudioUploadTransport()),
+            credentials: { [weak self] in
+                guard let self, currentApproval() == approval, self.currentProjectEditSession == session, let token = self.token else { return nil }
+                return try? .init(session: session, token: token)
+            }, currentApproval: currentApproval)
+    }
+    private func makeProjectTopicImageSource(owner: ProjectEditOwner) -> (any ProjectTopicImageUploading)? {
+        guard owner == .personal, !projectConfigurationChanging, let context = currentRuntimeDependencyContext, context.market == .china,
+              let configuration = regionalConfiguration?.apiConfiguration, let session = currentProjectEditSession,
+              let approval = composition.projectTopicImageUploadApproval(context), approval.matches(configuration: configuration, session: session) else { return nil }
+        let revision = projectConfigurationRevision, viewer = compositionViewerRevision
+        let currentApproval: () -> ProjectTopicImageUploadApproval? = { [weak self] in
+            guard let self, !self.projectConfigurationChanging, self.projectConfigurationRevision == revision,
+                  self.compositionViewerRevision == viewer, self.currentRuntimeDependencyContext == context else { return nil }
+            return self.composition.projectTopicImageUploadApproval(context)
+        }
+        return ProjectTopicImageUploadClient(configuration: configuration, approval: approval,
+            transport: compositionTransport.replacingUnderlying(composition.makeProjectTopicImageUploadTransport()),
             credentials: { [weak self] in
                 guard let self, currentApproval() == approval, self.currentProjectEditSession == session, let token = self.token else { return nil }
                 return try? .init(session: session, token: token)
@@ -2793,6 +2810,10 @@ final class AppSession: ObservableObject {
         compositionTransport.projectStoryAudioUploadApproval = { [weak self] context in
             guard let self, !self.projectConfigurationChanging, self.currentRuntimeDependencyContext == context else { return nil }
             return self.composition.projectStoryAudioUploadApproval(context)
+        }
+        compositionTransport.projectTopicImageUploadApproval = { [weak self] context in
+            guard let self, !self.projectConfigurationChanging, self.currentRuntimeDependencyContext == context else { return nil }
+            return self.composition.projectTopicImageUploadApproval(context)
         }
         compositionTransport.projectStoryImageUploadApproval = { [weak self] context in
             guard let self, !self.projectConfigurationChanging, self.currentRuntimeDependencyContext == context else { return nil }

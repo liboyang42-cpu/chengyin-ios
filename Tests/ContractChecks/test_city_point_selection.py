@@ -30,7 +30,7 @@ class CityPointSelectionContracts(unittest.TestCase):
         for marker in ['guard case .available(let snapshot) = state else { return nil }',
                        'CityPointMapContext(readID: generation, snapshot: snapshot)',
                        'isConfigured ? stored : .unavailable', 'generation = stamp',
-                       'public func cancel() { generation = UUID(); stored = .unavailable }']:
+                       'generation = UUID(); pendingLoad?.cancel(); pendingLoad = nil; stored = .unavailable']:
             self.assertIn(marker, self.reader)
         self.assertIn('init?(readID: UUID, snapshot: CityReadSnapshot)', self.core)
         self.assertNotIn('public init?(readID:', self.core)
@@ -54,8 +54,8 @@ class CityPointSelectionContracts(unittest.TestCase):
         for marker in ['selection?.id == renderedSelection.id',
                        'renderedSelection.point(in: reader.pointMapContext) != nil',
                        '.onChange(of: reader.pointMapContext) { _, _ in selection = nil }',
-                       '.onDisappear { selection = nil; reader.cancel() }',
-                       'Button("action.retry") { selection = nil; Task { await reader.load() } }']:
+                       '.onDisappear { visible = false; selection = nil; reader.cancel() }',
+                       'Button("action.retry") { selection = nil; reader.cancel(); readRequest = UUID() }']:
             self.assertIn(marker, self.view)
 
     def test_card_and_list_use_exact_title_own_flag_and_accessible_selected_shape(self):

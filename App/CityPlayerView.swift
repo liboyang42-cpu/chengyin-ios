@@ -8,8 +8,11 @@ struct SessionCityPlayerView: View {
     }
 }
 struct CityPlayerView: View {
+    @Environment(\.scenePhase) private var scenePhase
     @State var reader: CityPlayerReader
     @State private var selection: CityPointSelection?
+    @State private var visible = false
+    @State private var readRequest = UUID()
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
@@ -28,14 +31,26 @@ struct CityPlayerView: View {
                         else { pointContent(context) }
                     } else { Text("city.read.points.unavailable") }
                 }
-                if reader.isConfigured { Button("action.retry") { selection = nil; Task { await reader.load() } } }
+                if reader.isConfigured {
+                    Button("action.retry") { selection = nil; reader.cancel(); readRequest = UUID() }
+                        .disabled(reader.state == .loading || !visible || scenePhase != .active)
+                }
             }.padding()
         }
         .appNavigationTitle("city.read.title")
         .accessibilityIdentifier("city.read.screen")
-        .task { await reader.load() }
+        .task(id: readRequest) {
+            guard visible, scenePhase == .active, !Task.isCancelled else { return }
+            await reader.load()
+        }
+        .onAppear { visible = true; readRequest = UUID() }
+        .onChange(of: scenePhase) { _, _ in
+            // Clear old state before foreground recovery; only this visible page
+            // may re-read, and the reader independently rechecks its lease.
+            selection = nil; reader.cancel(); readRequest = UUID()
+        }
         .onChange(of: reader.pointMapContext) { _, _ in selection = nil }
-        .onDisappear { selection = nil; reader.cancel() }
+        .onDisappear { visible = false; selection = nil; reader.cancel() }
     }
     @ViewBuilder private func pointContent(_ context: CityPointMapContext) -> some View {
         let selected = selection?.point(in: reader.pointMapContext)

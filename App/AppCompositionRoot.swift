@@ -82,6 +82,8 @@ extension KeychainTokenStore: AppTokenStorage {}
     /// turn authentication, roles, or remote booleans into OperationEndpointApproval values.
     let projectStoryAudioUploadApproval: @MainActor (RuntimeDependencyContext) -> ProjectStoryAudioUploadApproval?
     let makeProjectStoryAudioUploadTransport: @MainActor () -> any HTTPTransport
+    let projectTopicImageUploadApproval: @MainActor (RuntimeDependencyContext) -> ProjectTopicImageUploadApproval?
+    let makeProjectTopicImageUploadTransport: @MainActor () -> any HTTPTransport
     let projectStoryImageUploadApproval: @MainActor (RuntimeDependencyContext) -> ProjectStoryImageUploadApproval?
     let makeProjectStoryImageUploadTransport: @MainActor () -> any HTTPTransport
     let ownedTopicCoverApproval: @MainActor (RuntimeDependencyContext) -> OwnedTopicCoverApproval?
@@ -114,6 +116,8 @@ extension KeychainTokenStore: AppTokenStorage {}
          makeTransport: @escaping () -> any HTTPTransport = { URLSessionTransport() },
          projectStoryAudioUploadApproval: @escaping @MainActor (RuntimeDependencyContext) -> ProjectStoryAudioUploadApproval? = { _ in nil },
          makeProjectStoryAudioUploadTransport: @escaping @MainActor () -> any HTTPTransport = { ResponseLimitedHTTPTransport(enabled: true, maximumResponseBytes: 64 * 1024) },
+         projectTopicImageUploadApproval: @escaping @MainActor (RuntimeDependencyContext) -> ProjectTopicImageUploadApproval? = { _ in nil },
+         makeProjectTopicImageUploadTransport: @escaping @MainActor () -> any HTTPTransport = { ResponseLimitedHTTPTransport(enabled: true, maximumResponseBytes: 64 * 1024) },
          projectStoryImageUploadApproval: @escaping @MainActor (RuntimeDependencyContext) -> ProjectStoryImageUploadApproval? = { _ in nil },
          makeProjectStoryImageUploadTransport: @escaping @MainActor () -> any HTTPTransport = { ResponseLimitedHTTPTransport(enabled: true, maximumResponseBytes: 64 * 1024) },
          ownedTopicCoverApproval: @escaping @MainActor (RuntimeDependencyContext) -> OwnedTopicCoverApproval? = { _ in nil },
@@ -144,6 +148,7 @@ extension KeychainTokenStore: AppTokenStorage {}
          ownedOrderReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> OwnedOrderReadApproval? = { _ in nil }) {
         self.deployment = deployment; self.storage = storage ?? .init(); self.makeTransport = makeTransport
         self.projectStoryAudioUploadApproval = projectStoryAudioUploadApproval; self.makeProjectStoryAudioUploadTransport = makeProjectStoryAudioUploadTransport
+        self.projectTopicImageUploadApproval = projectTopicImageUploadApproval; self.makeProjectTopicImageUploadTransport = makeProjectTopicImageUploadTransport
         self.projectStoryImageUploadApproval = projectStoryImageUploadApproval; self.makeProjectStoryImageUploadTransport = makeProjectStoryImageUploadTransport
         self.ownedTopicCoverApproval = ownedTopicCoverApproval; self.makeOwnedTopicCoverTransport = makeOwnedTopicCoverTransport
         self.sessionDependencies = sessionDependencies ?? { _ in .dormant }
@@ -242,6 +247,7 @@ extension KeychainTokenStore: AppTokenStorage {}
     var approvedReleaseConfigurationRevision: @MainActor () -> UInt64? = { nil }
     var approvedReleaseConfiguration: @MainActor (RuntimeDependencyContext) -> BusinessRuntimeConfiguration? = { _ in nil }
     var projectStoryAudioUploadApproval: @MainActor (RuntimeDependencyContext) -> ProjectStoryAudioUploadApproval? = { _ in nil }
+    var projectTopicImageUploadApproval: @MainActor (RuntimeDependencyContext) -> ProjectTopicImageUploadApproval? = { _ in nil }
     var projectStoryImageUploadApproval: @MainActor (RuntimeDependencyContext) -> ProjectStoryImageUploadApproval? = { _ in nil }
     var ownedTopicCoverConfigurationRevision: @MainActor () -> UInt64? = { nil }
     var ownedTopicCoverApproval: @MainActor (RuntimeDependencyContext) -> OwnedTopicCoverApproval? = { _ in nil }
@@ -339,6 +345,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         transport.approvedReleaseConfigurationRevision = { self.approvedReleaseConfigurationRevision() }
         transport.approvedReleaseConfiguration = { self.approvedReleaseConfiguration($0) }
         transport.projectStoryAudioUploadApproval = { self.projectStoryAudioUploadApproval($0) }
+        transport.projectTopicImageUploadApproval = { self.projectTopicImageUploadApproval($0) }
         transport.projectStoryImageUploadApproval = { self.projectStoryImageUploadApproval($0) }
         transport.ownedTopicCoverConfigurationRevision = { self.ownedTopicCoverConfigurationRevision() }
         transport.ownedTopicCoverApproval = { self.ownedTopicCoverApproval($0) }
@@ -488,6 +495,19 @@ extension KeychainTokenStore: AppTokenStorage {}
             func permitted() -> Bool {
                 projectEditConfigurationRevision() == revision && projectStoryAudioUploadApproval(context) == issued &&
                     issued.matches(configuration: api, session: editor)
+            }
+            guard permitted() else { throw APIError.notConfigured }; readApprovalStillValid = permitted
+        } else if let field = ProjectTopicImageCompositionRoute.field(request, baseURL: api.baseURL) {
+            guard deployment.regional.market == .china, captured.isSignedInContentViewer,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token),
+                  let revision = projectEditConfigurationRevision(),
+                  let editor = try? ProjectEditSession(accountID: account, epoch: captured.epoch, storageNamespace: deployment.storageScope.service, viewerRevision: captured.viewerRevision, configurationRevision: revision) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let issued = projectTopicImageUploadApproval(context) else { throw APIError.notConfigured }
+            func permitted() -> Bool {
+                projectEditConfigurationRevision() == revision && projectTopicImageUploadApproval(context) == issued &&
+                    issued.fields.contains(field) && issued.matches(configuration: api, session: editor)
             }
             guard permitted() else { throw APIError.notConfigured }; readApprovalStillValid = permitted
         } else if ProjectStoryImageCompositionRoute.accepts(request, baseURL: api.baseURL) {

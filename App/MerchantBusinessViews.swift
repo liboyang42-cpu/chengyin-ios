@@ -82,16 +82,19 @@ import SwiftUI
     @Environment(\.nativeVerificationDestination) private var nativeVerificationDestination
     let reader: any MerchantBusinessReading
     let journal: any MerchantBusinessIntentStore
-    @State private var access: MerchantBusinessAccess?
-    @State private var issue: String?
-    @State private var loading = false
+    @StateObject private var accessModel = MerchantBusinessAccessModel()
+    @State private var appearance = MerchantBusinessAccessAppearance()
+    private var accessKey: MerchantBusinessAccessLoadKey { .init(reader: reader) }
     private let destinations: [MerchantBusinessQuery] = [.customers(.init()), .aftercare(.pending, page: 1), .reviews(page: 1), .overview,
         .redemptions(filter: "all", page: 1), .entries(source: "all", page: 1), .batches(page: 1), .verificationRecords, .operators]
     var body: some View {
+        let visibleAppearance = appearance
+        let renderedKey = accessKey
+        let queuedRequest = accessModel.request
         List {
             if reader.isOfflineExample { Text("merchant.business.synthetic").foregroundStyle(.secondary).accessibilityIdentifier("merchant.business.synthetic") }
             Text("merchant.business.boundary").font(.footnote).foregroundStyle(.secondary)
-            if let access {
+            if let access = accessModel.access(for: reader) {
                 Section {
                     Text(access.name ?? "#\(access.merchantID)").font(.title3.bold())
                     Text(LocalizedStringKey("merchant.business.role." + String(access.role)))
@@ -99,47 +102,69 @@ import SwiftUI
                 Section("merchant.business.workspace") {
                     ForEach(destinations, id: \.self) { query in
                         if (try? access.require(query.permissions)) != nil {
-                            NavigationLink {
-                                MerchantBusinessPage(reader: reader, journal: journal, query: query)
-                            } label: { Label(LocalizedStringKey(query.titleKey), systemImage: symbol(query)) }
+                            NavigationLink(value: MerchantBusinessHomeRoute(target: .query(query), reader: reader, journal: journal)) { Label(LocalizedStringKey(query.titleKey), systemImage: symbol(query)) }
                             .accessibilityIdentifier("merchant.business.open.\(query.titleKey.split(separator: ".").last ?? "page")")
                         }
                     }
                     if access.allows("merchant:verify") {
-                        NavigationLink {
-                            if let nativeVerificationDestination { nativeVerificationDestination() }
-                            else { MerchantScanPreviewView() }
-                        } label: { Label("merchant.business.scan", systemImage: "qrcode.viewfinder") }
+                        NavigationLink(value: MerchantBusinessHomeRoute(target: .scan, reader: reader, journal: journal)) {
+                            Label("merchant.business.scan", systemImage: "qrcode.viewfinder")
+                        }
                             .accessibilityIdentifier("merchant.business.open.scan")
-                        NavigationLink { CityNodeRedeemView(reader: reader, journal: journal) } label: {
+                        NavigationLink(value: MerchantBusinessHomeRoute(target: .cityNode, reader: reader, journal: journal)) {
                             Label("merchant.cityRedeem.title", systemImage: "qrcode")
                         }.accessibilityIdentifier("merchant.cityRedeem.entry")
                     }
                 }
-            } else if loading { ProgressView("merchant.checkingAccess") }
-            if let issue { Text(LocalizedStringKey(issue)).foregroundStyle(.secondary) }
-            Button("merchant.refreshAccess") { Task { await load() } }.disabled(loading)
+            } else if accessModel.isLoading(for: reader) { ProgressView("merchant.checkingAccess") }
+            if let issue = accessModel.issue(for: reader) { Text(LocalizedStringKey(issue)).foregroundStyle(.secondary) }
+            Button("merchant.refreshAccess") {
+                accessModel.refresh(reader: reader, appearance: visibleAppearance, context: renderedKey)
+            }.disabled(accessModel.isLoading(for: reader))
         }
         .appNavigationTitle("merchant.business.title")
-        .task(id: reader.scope) { await load() }
-        .refreshable { await load() }
+        // The destination host remains outside the access-dependent rows. Clearing
+        // Home on push does not remove a destination already on the navigation stack.
+        .navigationDestination(for: MerchantBusinessHomeRoute.self) { route in
+            if route.isCurrent(reader: reader, journal: journal) {
+                switch route.target {
+                case .query(let query): MerchantBusinessPage(reader: route.reader, journal: route.journal, query: query)
+                case .scan:
+                    if let nativeVerificationDestination { nativeVerificationDestination() }
+                    else { MerchantScanPreviewView() }
+                case .cityNode: CityNodeRedeemView(reader: route.reader, journal: route.journal)
+                }
+            } else { Text("merchant.business.stale") }
+        }
+        .task(id: queuedRequest?.id) {
+            if let queuedRequest { await accessModel.load(reader: reader, request: queuedRequest) }
+        }
+        .onAppear {
+            guard appearance === visibleAppearance else { return }
+            accessModel.begin(reader: reader, appearance: visibleAppearance)
+        }
+        .onChange(of: accessKey) { _, newKey in
+            guard appearance === visibleAppearance, newKey == renderedKey,
+                  newKey == MerchantBusinessAccessLoadKey(reader: reader),
+                  accessModel.isActive(appearance: visibleAppearance) else { return }
+            accessModel.end(appearance: visibleAppearance)
+            let replacement = MerchantBusinessAccessAppearance()
+            appearance = replacement
+            accessModel.begin(reader: reader, appearance: replacement)
+        }
+        .onDisappear {
+            accessModel.end(appearance: visibleAppearance)
+            if appearance === visibleAppearance { appearance = MerchantBusinessAccessAppearance() }
+        }
+        .refreshable {
+            accessModel.refresh(reader: reader, appearance: visibleAppearance, context: renderedKey)
+        }
     }
     private func symbol(_ query: MerchantBusinessQuery) -> String {
         switch query {
         case .customers: return "person.2"; case .aftercare: return "arrow.uturn.backward.circle"
         case .reviews: return "star.bubble"; case .overview, .entries, .batches: return "chart.bar.doc.horizontal"
         case .operators: return "person.badge.key"; default: return "list.bullet.rectangle"
-        }
-    }
-    private func load() async {
-        let scope = reader.scope; access = nil; issue = nil; loading = true
-        defer { if reader.scope == scope { loading = false } }
-        do {
-            let value = try await reader.access()
-            guard reader.scope == scope, !Task.isCancelled else { return }; access = value
-        } catch {
-            guard reader.scope == scope, !Task.isCancelled else { return }
-            issue = (error as? MerchantBusinessFailure)?.key ?? (reader.isConfigured ? "merchant.business.loadFailed" : "auth.notConfigured")
         }
     }
 }

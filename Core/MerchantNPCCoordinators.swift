@@ -14,11 +14,33 @@ import Foundation
     public private(set) var retryAt: Date?
     private var attempts = 0
     private var generation = 0
-    private var active = true
+    private enum Lifecycle { case active, interrupted, invalidated }
+    private var lifecycle: Lifecycle = .active
     public init(scope: MerchantNPCScope, client: MerchantNPCHTTPClient, currentScope: @escaping () -> MerchantNPCScope?, grants: @escaping () -> MerchantNPCGrants) {
         self.scope = scope; self.client = client; self.currentScope = currentScope; self.grants = grants
     }
-    public var isCurrent: Bool { active && currentScope() == scope }
+    public var isCurrent: Bool { lifecycle == .active && currentScope() == scope }
+    public var isInterrupted: Bool { lifecycle == .interrupted }
+    public var canResumeAfterInterruption: Bool {
+        isInterrupted && scope.accountID > 0 && !scope.namespace.isEmpty && currentScope() == scope && grants().chatAllowed
+    }
+    /// Backgrounding clears local content immediately. It never retries a dispatched request.
+    /// A permanently invalidated owner must never become resumable through another scene event.
+    public func interrupt() {
+        guard lifecycle == .active else { return }
+        guard isCurrent, grants().chatAllowed else { invalidate(); return }
+        lifecycle = .interrupted; generation += 1; clearConversation(); onChange?()
+    }
+    /// Foregrounding only rechecks eligibility. The user must explicitly open an empty conversation.
+    public func revalidateInterruption() {
+        guard isInterrupted else { return }
+        guard canResumeAfterInterruption else { invalidate(); return }
+    }
+    public func resumeAfterInterruption() {
+        revalidateInterruption()
+        guard canResumeAfterInterruption else { return }
+        lifecycle = .active; onChange?()
+    }
     public var canSend: Bool { isCurrent && grants().chatAllowed && !sending && requestID == nil }
     public func send(_ text: String) async {
         guard canSend, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
@@ -28,20 +50,34 @@ import Foundation
     public var canRetry: Bool {
         isCurrent && grants().chatAllowed && !sending && requestID != nil && attempts < 3 && (retryAt ?? .distantPast) <= Date() && (reply?.canRetry == true || failure == .unknownOutcome)
     }
-    public func retry() async { guard canRetry else { return }; await run() }
+    public func retry() async {
+        guard let capturedRequestID = requestID else { return }
+        await retry(requestID: capturedRequestID)
+    }
+    /// Deferred retry intents belong to the request that was visible when the user chose retry.
+    public func retry(requestID expectedRequestID: UUID) async {
+        guard requestID == expectedRequestID, canRetry else { return }
+        await run()
+    }
     public func abandon() { guard !sending else { return }; requestID = nil; retryAt = nil; reply = nil; message = nil; failure = nil; onChange?() }
-    public func invalidate() { active = false; generation += 1; reply = nil; message = nil; requestID = nil; retryAt = nil; failure = nil; sending = false; onChange?() }
+    public func invalidate() { lifecycle = .invalidated; generation += 1; clearConversation(); onChange?() }
+    private func clearConversation() {
+        reply = nil; message = nil; requestID = nil; retryAt = nil; failure = nil; sending = false; attempts = 0
+    }
     private func run() async {
         guard isCurrent, grants().chatAllowed, let message, let requestID else { return }
         sending = true; attempts += 1; failure = nil; let stamp = generation; onChange?()
         do {
             let result = try await client.chat(message: message, requestID: requestID, scope: scope)
-            guard isCurrent, generation == stamp, grants().chatAllowed, !Task.isCancelled else { invalidate(); return }
+            // An older request must not invalidate or mutate an explicitly restarted conversation.
+            guard generation == stamp else { return }
+            guard isCurrent, grants().chatAllowed, !Task.isCancelled else { invalidate(); return }
             reply = result
             retryAt = Date().addingTimeInterval(TimeInterval(max(0, result.retryAfterSeconds ?? 0)))
             if !result.canRetry { self.requestID = nil }
         } catch {
-            guard isCurrent, generation == stamp, !Task.isCancelled else { invalidate(); return }
+            guard generation == stamp else { return }
+            guard isCurrent, grants().chatAllowed, !Task.isCancelled else { invalidate(); return }
             failure = error as? MerchantNPCFailure ?? .unknownOutcome
             if failure == .malformed { failure = .unknownOutcome }
             if failure != .unknownOutcome { self.requestID = nil }

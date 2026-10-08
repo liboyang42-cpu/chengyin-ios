@@ -129,6 +129,7 @@ private struct CityPayload: Decodable {
     private let isCurrent: () -> Bool
     private let onUnauthorized: () -> Void
     private var generation = UUID()
+    @ObservationIgnored private var pendingLoad: Task<Void, Never>?
     public var isConfigured: Bool { approval.map { $0.matches($0.context) } == true && isCurrent() }
     public var state: CityReadState { isConfigured ? stored : .unavailable }
     /// Rechecks the existing lease/session fence on every render and tap. This is
@@ -138,40 +139,72 @@ private struct CityPayload: Decodable {
         return CityPointMapContext(readID: generation, snapshot: snapshot)
     }
     public init(approval: CityPlayerReadApproval?, transport: any HTTPTransport, isCurrent: @escaping () -> Bool, onUnauthorized: @escaping () -> Void = {}) { self.approval = approval; self.transport = transport; self.isCurrent = isCurrent; self.onUnauthorized = onUnauthorized }
-    public func cancel() { generation = UUID(); stored = .unavailable }
+    deinit { pendingLoad?.cancel() }
+    public func cancel() {
+        generation = UUID(); pendingLoad?.cancel(); pendingLoad = nil; stored = .unavailable
+    }
     public func load() async {
-        let stamp = UUID(); generation = stamp; stored = .unavailable
-        guard isConfigured, let approval else { return }; stored = .loading
+        // A superseded SwiftUI task must not start a new read after dismissal.
+        guard !Task.isCancelled else { return }
+        let stamp = UUID(); generation = stamp
+        pendingLoad?.cancel(); pendingLoad = nil; stored = .unavailable
+        guard isConfigured else { return }
+        stored = .loading
+        let task = Task { @MainActor in await self.performLoad(stamp: stamp) }
+        pendingLoad = task
+        await withTaskCancellationHandler(operation: { await task.value }, onCancel: { task.cancel() })
+        if generation == stamp { pendingLoad = nil }
+    }
+    private func performLoad(stamp: UUID) async {
         do {
-            let current = try await read(.current, board: nil, stamp: stamp)
-            if current.status == "NO_CURRENT_BOARD" {
-                guard current.regionId == approval.regionID, current.board == nil, current.points == nil, current.participation == nil, current.participationStatus == nil, current.pointsStatus == nil, current.complete == nil else { throw CityReadError.invalidResponse }
-                stored = .notPublished; return
-            }
-            guard current.status == "AVAILABLE", let board = current.board, board.valid, board.regionId == approval.regionID,
-                  let advertisedMembership = current.participationStatus, ["AVAILABLE", "UNAVAILABLE"].contains(current.pointsStatus ?? ""),
-                  advertisedMembership != .unavailable || current.pointsStatus == "UNAVAILABLE" else { throw CityReadError.invalidResponse }
-            var membership = advertisedMembership, participation: CityParticipation?
-            if advertisedMembership != .unavailable {
-                do {
-                    let payload = try await read(.participation, board: board, stamp: stamp)
-                    guard let status = payload.participationStatus, status == advertisedMembership,
-                          (status == .joined && payload.participation?.valid == true) || (status == .notJoined && payload.participation == nil) else { throw CityReadError.invalidResponse }
-                    membership = status; participation = payload.participation
-                } catch CityReadError.participationUnavailable { membership = .unavailable }
-            }
-            var points: [CityReadPoint]?
-            if current.pointsStatus == "AVAILABLE", membership != .unavailable {
-                do {
-                    let payload = try await read(.points, board: board, stamp: stamp)
-                    guard payload.complete == true, let values = payload.points, values.count <= 200,
-                          Set(values.map(\.pointId)).count == values.count, values.allSatisfy({ $0.valid && (!$0.mine || membership == .joined) }) else { throw CityReadError.invalidResponse }
-                    points = values
-                } catch CityReadError.pointsUnavailable { points = nil }
-            }
+            let value = try await readRecoveringSnapshot(stamp: stamp)
             guard isConfigured, generation == stamp, !Task.isCancelled else { throw CancellationError() }
-            stored = .available(.init(board: board, membership: membership, participation: participation, points: points))
-        } catch { if generation == stamp { stored = .unavailable; if Self.isUnauthorized(error), isConfigured, !Task.isCancelled { onUnauthorized() } } }
+            stored = value
+        } catch {
+            if generation == stamp {
+                stored = .unavailable
+                if Self.isUnauthorized(error), isConfigured, !Task.isCancelled { onUnauthorized() }
+            }
+        }
+    }
+    private func readRecoveringSnapshot(stamp: UUID) async throws -> CityReadState {
+        do { return try await readSnapshot(stamp: stamp) }
+        catch CityReadError.snapshotChanged {
+            // One recovery only: reacquire current, then read all projections from
+            // that board/version. Never combine old membership with newer points.
+            guard isConfigured, generation == stamp, !Task.isCancelled else { throw CancellationError() }
+            return try await readSnapshot(stamp: stamp)
+        }
+    }
+    private func readSnapshot(stamp: UUID) async throws -> CityReadState {
+        guard let approval else { throw CancellationError() }
+        let current = try await read(.current, board: nil, stamp: stamp)
+        if current.status == "NO_CURRENT_BOARD" {
+            guard current.regionId == approval.regionID, current.board == nil, current.points == nil, current.participation == nil, current.participationStatus == nil, current.pointsStatus == nil, current.complete == nil else { throw CityReadError.invalidResponse }
+            return .notPublished
+        }
+        guard current.status == "AVAILABLE", let board = current.board, board.valid, board.regionId == approval.regionID,
+              let advertisedMembership = current.participationStatus, ["AVAILABLE", "UNAVAILABLE"].contains(current.pointsStatus ?? ""),
+              advertisedMembership != .unavailable || current.pointsStatus == "UNAVAILABLE" else { throw CityReadError.invalidResponse }
+        var membership = advertisedMembership, participation: CityParticipation?
+        if advertisedMembership != .unavailable {
+            do {
+                let payload = try await read(.participation, board: board, stamp: stamp)
+                guard let status = payload.participationStatus, status == advertisedMembership,
+                      (status == .joined && payload.participation?.valid == true) || (status == .notJoined && payload.participation == nil) else { throw CityReadError.invalidResponse }
+                membership = status; participation = payload.participation
+            } catch CityReadError.participationUnavailable { membership = .unavailable }
+        }
+        var points: [CityReadPoint]?
+        if current.pointsStatus == "AVAILABLE", membership != .unavailable {
+            do {
+                let payload = try await read(.points, board: board, stamp: stamp)
+                guard payload.complete == true, let values = payload.points, values.count <= 200,
+                      Set(values.map(\.pointId)).count == values.count, values.allSatisfy({ $0.valid && (!$0.mine || membership == .joined) }) else { throw CityReadError.invalidResponse }
+                points = values
+            } catch CityReadError.pointsUnavailable { points = nil }
+        }
+        return .available(.init(board: board, membership: membership, participation: participation, points: points))
     }
     private static func isUnauthorized(_ error: Error) -> Bool {
         error as? CityReadError == .unauthorized || error as? APIError == .unauthorized || error as? APIError == .httpStatus(401)

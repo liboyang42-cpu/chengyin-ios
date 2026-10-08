@@ -12,9 +12,8 @@ import UniformTypeIdentifiers
     @State private var issue = false
     @State private var showsReview = false
     @State private var acceptsGuideline = false
-    @State private var photo: PhotosPickerItem?
-    @State private var selectedBytes: Data?
-    @State private var selectedMIME = "image/jpeg"
+    @State private var localMedia = SquarePostLocalMediaPresentation()
+    @Environment(\.scenePhase) private var scenePhase
     @State private var referenceType = "ACTIVITY"
     @State private var options: [SquareWorkspaceOption] = []
     @State private var revisionsText = ""
@@ -41,15 +40,32 @@ import UniformTypeIdentifiers
                     }
                 }
                 Section("squareWorkspace.media") {
-                    PhotosPicker(selection: $photo, matching: .images) { Label("squareWorkspace.selectPhoto", systemImage: "photo") }
+                    SquarePostLocalMediaPreview(model: localMedia)
+                    Button {
+                        do {
+                            try coordinator.refreshLocal()
+                            localMedia.beginPicker(scope: try localMediaScope())
+                        } catch { localMedia.invalidate(); issue = true }
+                    } label: { SquarePostLocalMediaPickerLabel() }
                         .accessibilityIdentifier("squareWorkspace.selectPhoto")
-                    if selectedBytes != nil {
-                        Text("squareWorkspace.selectedLocal")
+                    if let selected = localMedia.imageUpload {
                         Button("squareWorkspace.upload") {
-                            guard let bytes = selectedBytes else { return }
-                            run { let result = try await coordinator.upload(bytes: bytes, mimeType: selectedMIME, lane: lane, workflowID: draft.workflowID, explicitIntent: true); draft.media.append(result); selectedBytes = nil; photo = nil }
+                            run {
+                                guard localMediaScopeIsCurrent(selected.scope),
+                                      localMedia.isCurrentUpload(selected) else { throw SquareWorkspaceFailure.sessionChanged }
+                                let result = try await coordinator.upload(bytes: selected.bytes, mimeType: selected.mimeType,
+                                    lane: selected.scope.lane, workflowID: selected.scope.draftID, explicitIntent: true)
+                                // Never attach a late acknowledgment to another draft/account/lane.
+                                guard localMediaScopeIsCurrent(selected.scope) else { throw SquareWorkspaceFailure.sessionChanged }
+                                guard localMedia.applyUploadAcknowledgment(selected, apply: { draft.media.append(result) }) else {
+                                    throw SquareWorkspaceFailure.staleReview
+                                }
+                            }
                         }.disabled(!coordinator.grants.live || !coordinator.grants.media || coordinator.busy || draft.media.count >= 6).accessibilityIdentifier("squareWorkspace.upload")
-                        Button("squareWorkspace.removeSelected", role: .destructive) { selectedBytes = nil; photo = nil }
+                    }
+                    if localMedia.hasSelection {
+                        Button("squareWorkspace.removeSelected", role: .destructive) { localMedia.remove() }
+                            .accessibilityIdentifier("squarePostLocalMedia.remove")
                     }
                     ForEach(draft.media) { item in
                         VStack(alignment: .leading) {
@@ -90,10 +106,10 @@ import UniformTypeIdentifiers
                 if lane == .communityV1 { policyControls }
                 Section("squareWorkspace.actions") {
                     Button("squareWorkspace.saveLocal") { run { try coordinator.saveLocal(draft, lane: lane) } }.accessibilityIdentifier("squareWorkspace.saveLocal")
-                    Button("squareWorkspace.saveServer") { run { try await coordinator.saveServer(draft); if let resumed = coordinator.local.last(where: { $0.draft.postID == coordinator.lastPost?.id && !$0.pending && $0.receipt == nil }) { draft = resumed.draft } } }.disabled(!coordinator.grants.live || coordinator.busy).accessibilityIdentifier("squareWorkspace.saveServer")
+                    Button("squareWorkspace.saveServer") { run { try await coordinator.saveServer(draft); if let resumed = coordinator.local.last(where: { $0.draft.postID == coordinator.lastPost?.id && !$0.pending && $0.receipt == nil }) { draft = resumed.draft } } }.disabled(!coordinator.grants.live || coordinator.busy || localMedia.hasSelection).accessibilityIdentifier("squareWorkspace.saveServer")
                     Button("squareWorkspace.review") { run { _ = try await coordinator.prepare(draft, lane: lane); acceptsGuideline = false; showsReview = true } }
-                        .disabled(!coordinator.grants.live || coordinator.busy).accessibilityIdentifier("squareWorkspace.review")
-                    Button("squareWorkspace.newDraft") { draft = .init(); coordinator.cancelReview(); selectedBytes = nil; photo = nil }
+                        .disabled(!coordinator.grants.live || coordinator.busy || localMedia.hasSelection).accessibilityIdentifier("squareWorkspace.review")
+                    Button("squareWorkspace.newDraft") { draft = .init(); coordinator.cancelReview(); localMedia.invalidate() }
                         .accessibilityIdentifier("squareWorkspace.newDraft")
                 }
                 Section("squareWorkspace.localDrafts") {
@@ -135,17 +151,22 @@ import UniformTypeIdentifiers
                 if let initialPostID { lane = initialLane; draft = try await coordinator.editableDraft(postID: initialPostID, lane: initialLane); editReady = true }
             } catch { issue = true }
         }
-        .onChange(of: photo) { _, item in
-            selectedBytes = nil
-            guard let item else { return }
-            run {
-                guard let type = item.supportedContentTypes.first(where: { [UTType.jpeg, .png, .webP].contains($0) }),
-                      let data = try await item.loadTransferable(type: Data.self), data.count <= 12 * 1024 * 1024 else { throw SquareWorkspaceFailure.invalid }
-                guard photo == item else { return }; selectedMIME = type.preferredMIMEType ?? "image/jpeg"; selectedBytes = data
+        .sheet(item: Binding(get: { localMedia.pickerRequest }, set: { if $0 == nil { localMedia.cancelPicker() } })) { request in
+            SquarePostLocalMediaPicker(request: request) { provider, captured in
+                // Reuse the existing image-only byte bound; it is not a video rule.
+                _ = localMedia.accept(provider: provider, request: captured, maximumImageBytes: SquareWorkspaceService.maximumUploadImageBytes,
+                    scopeIsCurrent: { localMediaScopeIsCurrent(captured.scope) })
             }
         }
+        .onDisappear { localMedia.invalidate() }
+        .onChange(of: scenePhase) { _, phase in if phase != .active { localMedia.invalidate() } }
+        .onChange(of: draft.workflowID) { _, _ in localMedia.invalidate() }
+        .onChange(of: coordinator.session) { _, _ in localMedia.invalidate() }
+        .onChange(of: coordinator.status) { _, status in
+            if status == "squareWorkspace.sessionChanged" { localMedia.invalidate() }
+        }
         .onChange(of: draft) { _, _ in coordinator.cancelReview() }
-        .onChange(of: lane) { _, _ in coordinator.cancelReview(); options = [] }
+        .onChange(of: lane) { _, _ in coordinator.cancelReview(); options = []; localMedia.invalidate() }
         .alert("squareWorkspace.issue", isPresented: $issue) { Button("squareWorkspace.close", role: .cancel) {} } message: { Text("squareWorkspace.issueDetail") }
         .confirmationDialog("squareWorkspace.withdrawConfirm", isPresented: Binding(get: { locationReview != nil }, set: { if !$0 { locationReview = nil } })) {
             Button("squareWorkspace.withdrawLocation", role: .destructive) {
@@ -172,6 +193,13 @@ import UniformTypeIdentifiers
                 }
             } else { Text("squareWorkspace.staleReview") }
         }
+    }
+    private func localMediaScope() throws -> SquarePostLocalMediaScope {
+        try .init(session: coordinator.session, draftID: draft.workflowID, lane: lane)
+    }
+    private func localMediaScopeIsCurrent(_ scope: SquarePostLocalMediaScope) -> Bool {
+        guard scope.session == coordinator.session, scope.draftID == draft.workflowID, scope.lane == lane else { return false }
+        do { try coordinator.refreshLocal(); return true } catch { return false }
     }
     private var policyControls: some View {
         Section("squareWorkspace.policy") {

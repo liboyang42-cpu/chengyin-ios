@@ -78,6 +78,144 @@ import XCTest
         current = nil; h.continuation?.resume(); await task.value
         XCTAssertNil(c.reply); XCTAssertNil(c.message); XCTAssertFalse(c.isCurrent)
     }
+    func testInterruptionClearsUnknownRequestAndResumesOnlyAnEmptyConversation() async throws {
+        let h = HTTP(); h.unknown = true
+        let c = MerchantNPCChatCoordinator(scope: scope, client: .init(transport: h), currentScope: { self.scope }, grants: { self.grants() })
+        await c.send("Private old request"); let first = try body(h)
+        XCTAssertEqual(c.failure, .unknownOutcome); XCTAssertTrue(c.canRetry)
+        c.interrupt(); c.interrupt() // Inactive followed by background remains a single resumable interruption.
+        XCTAssertTrue(c.isInterrupted); XCTAssertFalse(c.isCurrent); XCTAssertFalse(c.canSend); XCTAssertFalse(c.canRetry)
+        XCTAssertNil(c.message); XCTAssertNil(c.reply); XCTAssertNil(c.requestID); XCTAssertNil(c.retryAt); XCTAssertNil(c.failure)
+        XCTAssertFalse(c.sending); XCTAssertTrue(c.canResumeAfterInterruption)
+        c.revalidateInterruption()
+        XCTAssertFalse(c.isCurrent); XCTAssertEqual(h.requests.count, 1) // Foregrounding does not resume or dispatch.
+        c.resumeAfterInterruption(); c.resumeAfterInterruption()
+        XCTAssertTrue(c.isCurrent); XCTAssertTrue(c.canSend); XCTAssertFalse(c.isInterrupted)
+        XCTAssertNil(c.message); XCTAssertNil(c.reply); XCTAssertEqual(h.requests.count, 1)
+        h.unknown = false; await c.send("New explicit question")
+        let second = try body(h)
+        XCTAssertEqual(h.requests.count, 2)
+        XCTAssertNotEqual(first["requestId"] as? String, second["requestId"] as? String)
+        XCTAssertEqual(second["message"] as? String, "New explicit question")
+        XCTAssertEqual(second["bizId"] as? Int, scope.merchantRowID.rawValue)
+        XCTAssertNotNil(c.reply)
+        c.interrupt()
+        XCTAssertNil(c.reply); XCTAssertNil(c.message); XCTAssertNil(c.retryAt)
+        c.revalidateInterruption(); XCTAssertEqual(h.requests.count, 2)
+    }
+    func testQueuedRetryCannotTargetRequestCreatedAfterInterruption() async throws {
+        let h = HTTP(); h.unknown = true
+        let c = MerchantNPCChatCoordinator(scope: scope, client: .init(transport: h), currentScope: { self.scope }, grants: { self.grants() })
+        await c.send("Old question")
+        let capturedRequestID = try XCTUnwrap(c.requestID)
+        var releaseQueuedRetry: CheckedContinuation<Void, Never>?
+        let queuedRetry = Task {
+            await withCheckedContinuation { releaseQueuedRetry = $0 }
+            await c.retry(requestID: capturedRequestID)
+        }
+        while releaseQueuedRetry == nil { await Task.yield() }
+        c.interrupt(); c.resumeAfterInterruption()
+        await c.send("New question")
+        let currentRequestID = try XCTUnwrap(c.requestID)
+        XCTAssertNotEqual(capturedRequestID, currentRequestID); XCTAssertTrue(c.canRetry)
+        releaseQueuedRetry?.resume(); await queuedRetry.value
+        XCTAssertEqual(h.requests.count, 2) // The old queued intent cannot retry the new request.
+        XCTAssertEqual(c.requestID, currentRequestID); XCTAssertEqual(c.message, "New question")
+        XCTAssertTrue(c.canRetry); XCTAssertEqual(c.failure, .unknownOutcome)
+        await c.retry(requestID: currentRequestID) // A new explicit retry still uses the current idempotency key.
+        XCTAssertEqual(h.requests.count, 3)
+        XCTAssertEqual(try body(h)["requestId"] as? String, currentRequestID.uuidString)
+        XCTAssertEqual(try body(h)["message"] as? String, "New question")
+    }
+    func testInterruptedOwnerCannotResumeAfterAnyScopeChange() async {
+        let changed: [MerchantNPCScope?] = [
+            nil,
+            .init(accountID: 902, namespace: scope.namespace, epoch: scope.epoch, merchantRowID: scope.merchantRowID, accessRevision: scope.accessRevision),
+            .init(accountID: scope.accountID, namespace: "other.invalid", epoch: scope.epoch, merchantRowID: scope.merchantRowID, accessRevision: scope.accessRevision),
+            .init(accountID: scope.accountID, namespace: scope.namespace, epoch: UUID(), merchantRowID: scope.merchantRowID, accessRevision: scope.accessRevision),
+            .init(accountID: scope.accountID, namespace: scope.namespace, epoch: scope.epoch, merchantRowID: PublicMerchantRowID(32)!, accessRevision: scope.accessRevision),
+            .init(accountID: scope.accountID, namespace: scope.namespace, epoch: scope.epoch, merchantRowID: scope.merchantRowID, accessRevision: UUID())
+        ]
+        for replacement in changed {
+            let h = HTTP(); var current: MerchantNPCScope? = scope
+            let c = MerchantNPCChatCoordinator(scope: scope, client: .init(transport: h), currentScope: { current }, grants: { self.grants() })
+            c.interrupt(); current = replacement
+            XCTAssertFalse(c.canResumeAfterInterruption)
+            c.resumeAfterInterruption()
+            XCTAssertFalse(c.isInterrupted); XCTAssertFalse(c.isCurrent)
+            current = scope; c.interrupt(); c.resumeAfterInterruption()
+            await c.send("Must not revive a stale owner")
+            XCTAssertFalse(c.isCurrent); XCTAssertTrue(h.requests.isEmpty)
+        }
+    }
+    func testRevokedGrantOrExplicitInvalidationPermanentlyBlocksRestart() async {
+        for boundary in 0..<4 {
+            let h = HTTP(); var policy = grants()
+            let c = MerchantNPCChatCoordinator(scope: scope, client: .init(transport: h), currentScope: { self.scope }, grants: { policy })
+            c.interrupt()
+            switch boundary {
+            case 0: policy.server = false
+            case 1: policy.provider = false
+            case 2: policy.legal = false
+            default: c.invalidate() // Session owner, logout or destination dismissal.
+            }
+            c.revalidateInterruption(); c.resumeAfterInterruption()
+            XCTAssertFalse(c.isCurrent); XCTAssertFalse(c.isInterrupted)
+            policy = grants(); c.interrupt(); c.resumeAfterInterruption()
+            await c.send("Blocked after revoked authority")
+            XCTAssertFalse(c.isCurrent); XCTAssertTrue(h.requests.isEmpty)
+        }
+    }
+    func testDefaultGrantsCannotCreateResumableConversation() async {
+        let h = HTTP()
+        let c = MerchantNPCChatCoordinator(scope: scope, client: .init(transport: h), currentScope: { self.scope }, grants: { .init() })
+        c.interrupt(); c.resumeAfterInterruption(); await c.send("Blocked")
+        XCTAssertFalse(c.isInterrupted); XCTAssertFalse(c.canSend); XCTAssertTrue(h.requests.isEmpty)
+    }
+    func testNewRequestRechecksGrantsAfterExplicitRestart() async {
+        let h = HTTP(); var policy = grants()
+        let c = MerchantNPCChatCoordinator(scope: scope, client: .init(transport: h), currentScope: { self.scope }, grants: { policy })
+        c.interrupt(); c.resumeAfterInterruption(); XCTAssertTrue(c.canSend)
+        policy.legal = false
+        await c.send("Not authorized now")
+        XCTAssertFalse(c.canSend); XCTAssertTrue(h.requests.isEmpty)
+        for transportFails in [false, true] {
+            let pendingHTTP = HTTP(); pendingHTTP.held = true
+            var currentPolicy = grants()
+            let pending = MerchantNPCChatCoordinator(scope: scope, client: .init(transport: pendingHTTP), currentScope: { self.scope }, grants: { currentPolicy })
+            pending.interrupt(); pending.resumeAfterInterruption()
+            let task = Task { await pending.send("Authority changes while waiting") }
+            while pendingHTTP.continuation == nil { await Task.yield() }
+            currentPolicy.legal = false; pendingHTTP.unknown = transportFails
+            pendingHTTP.continuation?.resume(); await task.value
+            XCTAssertFalse(pending.isCurrent); XCTAssertFalse(pending.sending)
+            XCTAssertNil(pending.reply); XCTAssertNil(pending.message); XCTAssertNil(pending.failure)
+            currentPolicy = grants(); pending.interrupt(); pending.resumeAfterInterruption()
+            XCTAssertFalse(pending.isCurrent); XCTAssertEqual(pendingHTTP.requests.count, 1)
+        }
+    }
+    func testLateInterruptedCompletionCannotInvalidateNewRequest() async {
+        for oldOutcome in ["success", "failure", "cancelled"] {
+            let h = HTTP(); h.held = true
+            let c = MerchantNPCChatCoordinator(scope: scope, client: .init(transport: h), currentScope: { self.scope }, grants: { self.grants() })
+            let oldTask = Task { await c.send("Old private question") }
+            while h.continuation == nil { await Task.yield() }
+            let old = h.continuation; h.continuation = nil
+            c.interrupt(); c.resumeAfterInterruption()
+            let newTask = Task { await c.send("New question") }
+            while h.continuation == nil { await Task.yield() }
+            let new = h.continuation
+            h.unknown = oldOutcome == "failure"
+            if oldOutcome == "cancelled" { oldTask.cancel() }
+            old?.resume(); await oldTask.value
+            XCTAssertTrue(c.isCurrent, oldOutcome); XCTAssertTrue(c.sending, oldOutcome)
+            XCTAssertEqual(c.message, "New question", oldOutcome); XCTAssertNil(c.reply); XCTAssertNil(c.failure)
+            h.unknown = false; new?.resume(); await newTask.value
+            XCTAssertTrue(c.isCurrent); XCTAssertFalse(c.sending)
+            XCTAssertEqual(c.message, "New question"); XCTAssertEqual(c.reply?.safeText, "Moderated answer")
+            XCTAssertEqual(h.requests.count, 2)
+        }
+    }
     func testRejectedReplyDoesNotExposeAudio() throws {
         let reply = try JSONDecoder().decode(MerchantNPCReply.self, from: Data(#"{"outcomeStatus":"REJECTED","audioUrl":"https://synthetic.invalid/audio"}"#.utf8))
         XCTAssertNil(reply.successAudioURL); XCTAssertFalse(reply.canRetry)

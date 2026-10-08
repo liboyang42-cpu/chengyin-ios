@@ -55,6 +55,11 @@ import SwiftUI
             VStack(alignment: .leading, spacing: 20) {
                 TeamNotice(coordinator: model.coordinator)
                 if model.running { ProgressView("team.loading") }
+                if model.coordinator.retiredMembershipTeamID != nil {
+                    Label("team.changed", systemImage: "person.crop.circle.badge.xmark")
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("teamMembershipRetired")
+                }
                 if let detail = model.coordinator.detail {
                     TeamCard(team: detail.team).accessibilityIdentifier("team.detail.card")
                     LabeledContent("team.sessionStart") { Text(verbatim: detail.team.expireTime?.isEmpty == false ? detail.team.expireTime! : "—") }
@@ -103,7 +108,7 @@ import SwiftUI
                     Button("team.checkOutcome") { Task { await model.run { await model.coordinator.checkOutcome() } } }
                         .frame(minHeight: 44).disabled(model.running || !model.coordinator.canSimulate).accessibilityIdentifier("team.checkOutcome")
                 }
-                if lookup.isValid && model.coordinator.authenticated {
+                if lookup.isValid && model.coordinator.authenticated && model.coordinator.retiredMembershipTeamID == nil {
                     Button("team.refresh") { Task { await reload() } }.frame(minHeight: 44).disabled(model.running).accessibilityIdentifier("team.refresh")
                 }
             }.padding()

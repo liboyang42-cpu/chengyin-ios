@@ -301,4 +301,156 @@ import XCTest
         defaults.set("corrupt record", forKey: "questify.team.pending.v1.CN-901.team-4101")
         XCTAssertThrowsError(try restored.pending(ownerKey: "CN-901", targetKey: "team-4101"))
     }
+    func testLeaveAndDisbandRetireOnlyAfterMatchingTerminalResult() async throws {
+        for action in [TeamAction.leave(teamID: 4101), .disband(teamID: 4101)] {
+            for acknowledged in [false, true] {
+                let (c, service, journal, _) = try setup()
+                await c.loadTeams(); await c.loadDetail(.id(4101))
+                XCTAssertEqual(c.teams.count, 1); XCTAssertEqual(c.detail?.members.count, 2)
+                c.prepare(action); let review = try XCTUnwrap(c.review)
+                if acknowledged { service.outcomes[review.id] = .acknowledged(operationID: review.id, teamID: 4101) }
+                await c.confirm(review)
+                XCTAssertEqual(c.writeState, acknowledged ? .acknowledged : .simulated)
+                XCTAssertEqual(c.retiredMembershipTeamID, 4101)
+                XCTAssertNil(c.detail); XCTAssertNil(c.review); XCTAssertNil(c.postJoinDetailID)
+                XCTAssertTrue(c.teams.isEmpty); XCTAssertTrue(journal.records.isEmpty)
+                // A server acknowledgment is not a new client-synthesized membership status.
+                XCTAssertEqual(c.completedTeamID, 4101)
+            }
+        }
+    }
+    func testRetiredMembershipRejectsOldProjectionAndEveryTeamAction() async throws {
+        let (c, service, _, _) = try setup()
+        let oldDetail = service.currentDetail
+        let review = try await reviewLeave(c); await c.confirm(review)
+        service.currentDetail = oldDetail // A stale read replica still claims membership.
+        c.leaveScreen(); await c.loadDetail(.id(4101))
+        XCTAssertNil(c.detail); XCTAssertEqual(c.messageKey, "team.changed")
+        await c.loadDetail(.invitation("SYNTHETIC-TEAM"))
+        XCTAssertNil(c.detail); XCTAssertEqual(c.retiredMembershipTeamID, 4101)
+        await c.loadTeams(); XCTAssertTrue(c.teams.isEmpty)
+        for action in [TeamAction.leave(teamID: 4101), .disband(teamID: 4101),
+                       .remove(teamID: 4101, memberID: 902), .join(teamID: 4101, inviteCode: "SYNTHETIC-TEAM")] {
+            c.prepare(action); XCTAssertNil(c.review)
+        }
+        await c.confirm(review)
+        XCTAssertEqual(service.submissions.count, 1); XCTAssertNil(c.postJoinDetailID)
+    }
+    func testFailedRefreshCannotReviveRetiredRosterOrReview() async throws {
+        let (c, service, _, _) = try setup()
+        let review = try await reviewLeave(c); await c.confirm(review)
+        // The invitation no longer resolves. Failure must not restore cached private data.
+        await c.loadDetail(.invitation("NO-LONGER-AVAILABLE"))
+        XCTAssertNil(c.detail); XCTAssertEqual(c.messageKey, "team.loadFailed")
+        service.currentDetail = try TeamSyntheticFixtures.detail()
+        await c.loadDetail(.id(4101), requireMembership: true)
+        XCTAssertNil(c.detail); XCTAssertEqual(c.retiredMembershipTeamID, 4101)
+        c.prepare(review.action); await c.confirm(review)
+        XCTAssertNil(c.review); XCTAssertEqual(service.submissions.count, 1)
+    }
+    func testUnknownWrongAndUnclearedResultsDoNotRetireMembership() async throws {
+        for outcome in ["unknown", "wrongOperation", "wrongTeam", "clearFailure"] {
+            let (c, service, journal, _) = try setup()
+            let review = try await reviewLeave(c)
+            switch outcome {
+            case "unknown": service.outcomes[review.id] = .unknown
+            case "wrongOperation": service.outcomes[review.id] = .acknowledged(operationID: UUID(), teamID: 4101)
+            case "wrongTeam": service.outcomes[review.id] = .acknowledged(operationID: review.id, teamID: 999)
+            default: service.beforeSubmit = { journal.failWrites = true }
+            }
+            await c.confirm(review)
+            XCTAssertEqual(c.writeState, .unknown); XCTAssertNotNil(c.pending)
+            XCTAssertNil(c.retiredMembershipTeamID); XCTAssertNotNil(c.detail)
+            XCTAssertNil(c.completedTeamID)
+            c.prepare(review.action); XCTAssertNil(c.review)
+        }
+    }
+    func testRejectedAndNotSentLeaveKeepMembershipAvailableForNewReview() async throws {
+        for scenario in [TeamSyntheticService.Scenario.rejected, .notSent] {
+            let (c, _, journal, _) = try setup(scenario)
+            let first = try await reviewLeave(c); await c.confirm(first)
+            XCTAssertNil(c.retiredMembershipTeamID); XCTAssertNotNil(c.detail)
+            XCTAssertTrue(journal.records.isEmpty)
+            c.prepare(first.action)
+            XCTAssertNotEqual(c.review?.id, first.id); XCTAssertNotNil(c.review)
+        }
+    }
+    func testCorrelatedDepartureReceiptRetiresSameWorkflowWithoutResubmitting() async throws {
+        let (c, service, journal, _) = try setup(.unknownOutcome)
+        let review = try await reviewLeave(c); await c.confirm(review)
+        XCTAssertNil(c.retiredMembershipTeamID); XCTAssertNotNil(c.detail)
+        service.outcomes[review.id] = .simulated(operationID: review.id, teamID: 4101)
+        await c.checkOutcome()
+        XCTAssertEqual(c.retiredMembershipTeamID, 4101); XCTAssertNil(c.detail)
+        XCTAssertTrue(journal.records.isEmpty); XCTAssertEqual(service.submissions.count, 1)
+        await c.loadDetail(.id(4101)); await c.confirm(review)
+        XCTAssertNil(c.detail); XCTAssertEqual(service.submissions.count, 1)
+    }
+    func testLateDetailAfterAcknowledgedDepartureCannotRestoreMembership() async throws {
+        let (c, service, _, _) = try setup()
+        await c.loadDetail(.id(4101))
+        var continuation: CheckedContinuation<Void, Never>?
+        service.beforeRead = { await withCheckedContinuation { continuation = $0 } }
+        let oldRead = Task { await c.loadDetail(.id(4101)) }
+        while continuation == nil { await Task.yield() }
+        c.leaveScreen(); service.beforeRead = nil
+        c.prepare(.leave(teamID: 4101)); let review = try XCTUnwrap(c.review)
+        await c.confirm(review)
+        service.currentDetail = try TeamSyntheticFixtures.detail()
+        continuation?.resume(); await oldRead.value
+        XCTAssertNil(c.detail); XCTAssertNil(c.review)
+        XCTAssertEqual(c.retiredMembershipTeamID, 4101); XCTAssertFalse(c.busy)
+        XCTAssertEqual(service.submissions.count, 1)
+    }
+    func testInterruptedDepartureNeverRetiresUntilCorrelatedReceipt() async throws {
+        let (c, service, journal, _) = try setup()
+        let review = try await reviewLeave(c)
+        service.beforeSubmit = { c.leaveScreen() }
+        await c.confirm(review)
+        XCTAssertEqual(c.writeState, .unknown); XCTAssertNotNil(c.detail)
+        XCTAssertNil(c.retiredMembershipTeamID); XCTAssertEqual(journal.records.count, 1)
+        await c.checkOutcome()
+        XCTAssertEqual(c.retiredMembershipTeamID, 4101); XCTAssertNil(c.detail)
+        XCTAssertTrue(journal.records.isEmpty); XCTAssertEqual(service.submissions.count, 1)
+    }
+    func testRetirementSurvivesSameWorkflowReauthenticationWithoutCrossAccountLeak() async throws {
+        let (c, service, _, box) = try setup()
+        let review = try await reviewLeave(c); await c.confirm(review)
+        service.currentDetail = try TeamSyntheticFixtures.detail()
+        box.value = try TeamSyntheticFixtures.session(epoch: 2)
+        await c.loadDetail(.id(4101)); XCTAssertNil(c.detail)
+        XCTAssertEqual(c.retiredMembershipTeamID, 4101)
+        for other in [try TeamSyntheticFixtures.session(epoch: 3, accountID: 903),
+                      try TeamSyntheticFixtures.session(epoch: 4, region: "US")] {
+            box.value = other; await c.loadDetail(.id(4101))
+            XCTAssertEqual(c.detail?.team.id, 4101); XCTAssertNil(c.retiredMembershipTeamID)
+        }
+        box.value = try TeamSyntheticFixtures.session(epoch: 5)
+        await c.loadDetail(.id(4101)); XCTAssertNil(c.detail)
+        await c.confirm(review); XCTAssertEqual(service.submissions.count, 1)
+    }
+    func testRetirementDoesNotBlockAnotherTeamOrBecomeGlobalMembershipAuthority() async throws {
+        let (c, service, journal, box) = try setup()
+        let review = try await reviewLeave(c); await c.confirm(review)
+        service.currentDetail = try JSONDecoder().decode(TeamDetail.self, from: Data(
+            TeamSyntheticFixtures.detailJSON.replacingOccurrences(of: "4101", with: "4102").utf8))
+        await c.loadDetail(.id(4102)); c.prepare(.leave(teamID: 4102))
+        XCTAssertEqual(c.detail?.team.id, 4102); XCTAssertNotNil(c.review)
+        XCTAssertNil(c.retiredMembershipTeamID)
+        // Retirement closes the old workflow, not all future independently refreshed workflows.
+        service.currentDetail = try TeamSyntheticFixtures.detail()
+        let reopened = TeamCoordinator(service: service, journal: journal, currentSession: { box.value })
+        await reopened.loadDetail(.id(4101), requireMembership: true)
+        XCTAssertEqual(reopened.detail?.joined, true); XCTAssertNil(reopened.retiredMembershipTeamID)
+    }
+    func testMemberRemovalAndJoinDoNotRetireOwnersMembership() async throws {
+        let (c, _, _, _) = try setup()
+        await c.loadDetail(.id(4101)); c.prepare(.remove(teamID: 4101, memberID: 902))
+        await c.confirm(try XCTUnwrap(c.review))
+        XCTAssertNil(c.retiredMembershipTeamID); XCTAssertNotNil(c.detail)
+        let (join, _, _, _) = try setup(.invitation)
+        let review = try await reviewJoin(join); await join.confirm(review)
+        XCTAssertNil(join.retiredMembershipTeamID); XCTAssertEqual(join.postJoinDetailID, 4101)
+    }
+
 }

@@ -5,6 +5,8 @@ import FoundationNetworking
 
 /// Injected transport only. No factory, credentials, provider, or network is created here.
 @MainActor public struct SquareWorkspaceService {
+    /// Repository ce61 multipart file-part limit; deployment settings may be stricter.
+    public static let maximumUploadImageBytes = 10 * 1024 * 1024
     private let configuration: APIConfiguration
     private let transport: any HTTPTransport
     private var authorize: () throws -> Void = {}
@@ -89,10 +91,10 @@ import FoundationNetworking
         // Legacy acknowledgment contains no guaranteed post ID or publication state.
     }
     public func uploadRequest(bytes: Data, mimeType: String, communityProof: Bool, token: String) throws -> URLRequest {
-        guard !bytes.isEmpty, bytes.count <= 12 * 1024 * 1024, ["image/jpeg", "image/png", "image/webp"].contains(mimeType) else { throw SquareWorkspaceFailure.invalid }
+        guard !bytes.isEmpty, bytes.count <= Self.maximumUploadImageBytes, ["image/jpeg", "image/png"].contains(mimeType) else { throw SquareWorkspaceFailure.invalid }
         var r = try request("POST", "api/common/uploadOSS", token: token)
         let boundary = "Square-" + UUID().uuidString
-        let ext = mimeType == "image/png" ? "png" : mimeType == "image/webp" ? "webp" : "jpg"
+        let ext = mimeType == "image/png" ? "png" : "jpg"
         var body = Data("--\(boundary)\r\nContent-Disposition: form-data; name=\"file\"; filename=\"image.\(ext)\"\r\nContent-Type: \(mimeType)\r\n\r\n".utf8)
         body.append(bytes); body.append(Data("\r\n".utf8))
         if communityProof { body.append(Data("--\(boundary)\r\nContent-Disposition: form-data; name=\"bizType\"\r\n\r\nCOMMUNITY_POST\r\n".utf8)) }

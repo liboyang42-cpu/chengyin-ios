@@ -133381,6 +133381,38 @@
           }
         }
       }
+    },
+    "merchantNPC.interrupted": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This conversation was cleared when the app left the foreground. An earlier request may still finish on the server. Start a new conversation to continue; nothing will be resent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用离开前台后，已清除本机对话。此前请求仍可能在服务器完成。重新开始会打开空白对话，不会重发此前内容。"
+          }
+        }
+      }
+    },
+    "merchantNPC.startNewConversation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start a new conversation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新开始对话"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

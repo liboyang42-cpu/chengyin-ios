@@ -8,6 +8,7 @@ import SwiftUI
 @MainActor struct MerchantNPCChatView: View {
     @StateObject private var model: MerchantNPCChatModel
     @State private var text = ""
+    @State private var compositionGeneration = 0
     @FocusState private var typing: Bool
     @Environment(\.scenePhase) private var scenePhase
     init(coordinator: MerchantNPCChatCoordinator) { _model = StateObject(wrappedValue: .init(coordinator)) }
@@ -37,12 +38,28 @@ import SwiftUI
                         }
                         if model.coordinator.requestID != nil {
                             TimelineView(.periodic(from: .now, by: 1)) { _ in
-                                Button("merchantNPC.retry") { Task { await model.coordinator.retry() } }.disabled(!model.coordinator.canRetry)
+                                Button("merchantNPC.retry") {
+                                    let capturedGeneration = compositionGeneration
+                                    guard let capturedRequestID = model.coordinator.requestID else { return }
+                                    Task {
+                                        guard compositionGeneration == capturedGeneration, scenePhase == .active,
+                                              model.coordinator.requestID == capturedRequestID else { return }
+                                        await model.coordinator.retry(requestID: capturedRequestID)
+                                    }
+                                }.disabled(!model.coordinator.canRetry)
                             }
                             Button("merchantNPC.abandon") { model.coordinator.abandon() }.disabled(model.coordinator.sending)
                         }
                         if model.coordinator.sending { ProgressView("merchantNPC.pending") }
                         MerchantNPCIssue(failure: model.coordinator.failure)
+                    } else if model.coordinator.isInterrupted {
+                        Text("merchantNPC.interrupted").accessibilityIdentifier("merchantNPC.interrupted")
+                        Button("merchantNPC.startNewConversation") {
+                            clearComposer()
+                            model.coordinator.resumeAfterInterruption()
+                        }.frame(minHeight: 44)
+                            .disabled(scenePhase != .active || !model.coordinator.canResumeAfterInterruption)
+                            .accessibilityIdentifier("merchantNPC.startNewConversation")
                     } else { Text("merchantNPC.sessionChanged") }
                 }.padding().frame(maxWidth: .infinity, alignment: .leading)
             }.scrollDismissesKeyboard(.interactively)
@@ -55,7 +72,13 @@ import SwiftUI
                         .disabled(!model.coordinator.canSend).accessibilityIdentifier("merchantNPC.input")
                     Button("merchantNPC.send") {
                         typing = false
-                        Task { await model.coordinator.send(text); text = "" }
+                        let submitted = text; let capturedGeneration = compositionGeneration
+                        Task {
+                            guard compositionGeneration == capturedGeneration, scenePhase == .active else { return }
+                            await model.coordinator.send(submitted)
+                            guard model.coordinator.isCurrent, compositionGeneration == capturedGeneration, text == submitted else { return }
+                            text = ""
+                        }
                     }.frame(minWidth: 44, minHeight: 44)
                         .disabled(!model.coordinator.canSend || text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                         .accessibilityIdentifier("merchantNPC.send")
@@ -69,9 +92,13 @@ import SwiftUI
             }
         }
         .navigationTitle("merchantNPC.chatTitle").navigationBarTitleDisplayMode(.inline).privacySensitive()
-        .onDisappear { typing = false; text = ""; model.coordinator.invalidate() }
-        .onChange(of: scenePhase) { _, phase in if phase != .active { typing = false; text = ""; model.coordinator.invalidate() } }
+        .onDisappear { clearComposer(); model.coordinator.invalidate() }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active { clearComposer(); model.coordinator.interrupt() }
+            else { model.coordinator.revalidateInterruption() }
+        }
     }
+    private func clearComposer() { typing = false; text = ""; compositionGeneration += 1 }
 }
 @MainActor final class MerchantNPCResourceModel: ObservableObject {
     let coordinator: MerchantNPCResourcesCoordinator

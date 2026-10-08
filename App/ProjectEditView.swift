@@ -303,6 +303,7 @@ import SwiftUI
                     }
                 }
                 basicFields
+                ProjectTopicMediaHost(editor: model)
                 ProjectEditPendingSection(model: model, controller: pending)
                 chapterStructure(opening: opening)
                 Section("projectEdit.tickets") {

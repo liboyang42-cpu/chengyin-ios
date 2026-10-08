@@ -54,6 +54,14 @@ public struct TeamReview: Identifiable, Equatable {
     private var activeLookup: TeamLookup?
     private var completedJoinID: Int?
     private var readOnlyDetail = false
+    // Workflow-local invalidation, not a server membership fact or a durable ban.
+    // Keep the owner namespace across session epochs so reauthentication cannot revive
+    // this workflow's acknowledged departure. A new workflow must obtain fresh authority.
+    private var retiredMembershipsByOwner: [String: Set<Int>] = [:]
+    // The journal has no action kind. Reconstructed coordinators must not guess it;
+    // this association only supports correlated receipt checks within this workflow.
+    private var retirementOperations: [UUID: (ownerKey: String, teamID: Int)] = [:]
+    public private(set) var retiredMembershipTeamID: Int?
     public private(set) var scope = UUID()
     public private(set) var teams: [OwnedTeam] = []
     public private(set) var detail: TeamDetail?
@@ -91,7 +99,7 @@ public struct TeamReview: Identifiable, Equatable {
         guard currentSession() != capturedSession else { return }
         generation &+= 1; scope = UUID(); capturedSession = currentSession()
         teams = []; detail = nil; creation = nil; review = nil; pending = nil; activeLookup = nil; messageKey = nil; completedTeamID = nil; completedJoinID = nil
-        loading = false; writeState = .idle
+        loading = false; writeState = .idle; retiredMembershipTeamID = nil
     }
     private func active(_ session: TeamSession, _ stamp: UInt64) -> Bool {
         currentSession() == session && capturedSession == session && generation == stamp && !Task.isCancelled
@@ -108,7 +116,11 @@ public struct TeamReview: Identifiable, Equatable {
         guard configured else { messageKey = "team.unconfigured"; return }
         generation &+= 1; let stamp = generation; loading = true; review = nil; messageKey = nil
         defer { if generation == stamp { loading = false } }
-        do { let rows = try await service.myTeams(session: session); guard active(session, stamp) else { return }; teams = rows }
+        do {
+            let rows = try await service.myTeams(session: session)
+            guard active(session, stamp) else { return }
+            teams = rows.filter { !membershipRetired(teamID: $0.id, session: session) }
+        }
         catch { guard active(session, stamp) else { return }; readError(error, session: session) }
     }
     public func loadDetail(_ lookup: TeamLookup, requireMembership: Bool = false) async {
@@ -117,8 +129,11 @@ public struct TeamReview: Identifiable, Equatable {
         guard let session = capturedSession else { messageKey = "team.signIn"; return }
         generation &+= 1; let stamp = generation; loading = true; review = nil; messageKey = nil
         // The host uses a separate coordinator for each detail route. Never retain another target.
-        if activeLookup != lookup { detail = nil; pending = nil; writeState = .idle; completedJoinID = nil }; activeLookup = lookup
+        if activeLookup != lookup { detail = nil; pending = nil; writeState = .idle; completedJoinID = nil; retiredMembershipTeamID = nil }; activeLookup = lookup
         defer { if generation == stamp { loading = false } }
+        if case .id(let id) = lookup, membershipRetired(teamID: id, session: session) {
+            detail = nil; retiredMembershipTeamID = id; messageKey = "team.changed"; return
+        }
         if requireMembership {
             detail = nil
             guard case .id = lookup else { messageKey = "team.invalidLink"; return }
@@ -127,6 +142,11 @@ public struct TeamReview: Identifiable, Equatable {
             let result = try await service.detail(lookup, session: session)
             guard active(session, stamp) else { return }
             if case .id(let id) = lookup, result.team.id != id { throw TeamFailure.invalidContract }
+            // Invitation reads resolve the team only after the response. Never let an old
+            // joined projection reopen a team already retired by this workflow.
+            guard !membershipRetired(teamID: result.team.id, session: session) else {
+                detail = nil; retiredMembershipTeamID = result.team.id; messageKey = "team.changed"; return
+            }
             // A joined-invitation continuation must earn membership again on the exact ID read.
             // Never retain its previous roster when membership is revoked or omitted.
             if requireMembership, result.joined != true { detail = nil; throw TeamFailure.invalidContract }
@@ -158,6 +178,9 @@ public struct TeamReview: Identifiable, Equatable {
     public func prepare(_ proposedAction: TeamAction) {
         synchronizeSession(); review = nil
         guard !readOnlyDetail, !busy, writeState != .blocked, let session = capturedSession else { return }
+        if let teamID = proposedAction.teamID, membershipRetired(teamID: teamID, session: session) {
+            messageKey = "team.changed"; return
+        }
         var action = proposedAction
         if case .join(let teamID, let code) = action {
             guard let lookup = TeamLookup.invitation(code).normalized,
@@ -180,9 +203,33 @@ public struct TeamReview: Identifiable, Equatable {
         if pending != nil { writeState = .unknown; messageKey = "team.unknown" }
         else if writeState == .checking { writeState = .idle }
     }
+    private func membershipRetired(teamID: Int, session: TeamSession) -> Bool {
+        retiredMembershipsByOwner[session.ownerKey]?.contains(teamID) == true
+    }
+    private func rememberRetirement(_ action: TeamAction, record: TeamPendingRecord) {
+        switch action {
+        case .leave(let teamID), .disband(let teamID):
+            retirementOperations[record.operationID] = (record.ownerKey, teamID)
+        case .create, .join, .remove: break
+        }
+    }
+    /// Called only after a correlated success and successful pending-journal clear.
+    /// Dropping cached authority does not synthesize a new roster or server status.
+    private func retireMembership(record: TeamPendingRecord, teamID: Int) {
+        guard let operation = retirementOperations[record.operationID],
+              operation.ownerKey == record.ownerKey, operation.teamID == teamID else { return }
+        retirementOperations[record.operationID] = nil
+        retiredMembershipsByOwner[record.ownerKey, default: []].insert(teamID)
+        generation &+= 1
+        teams.removeAll { $0.id == teamID }
+        if detail?.team.id == teamID { detail = nil }
+        review = nil; completedJoinID = nil; loading = false
+        retiredMembershipTeamID = teamID
+    }
     public func confirm(_ value: TeamReview) async {
         synchronizeSession()
         guard !readOnlyDetail, !busy, pending == nil, review == value, currentSession() == value.session else { return }
+        if let teamID = value.action.teamID, membershipRetired(teamID: teamID, session: value.session) { return }
         review = nil
         guard canSubmit else { writeState = .notSent; messageKey = "team.writesDisabled"; return }
         completedJoinID = nil
@@ -203,6 +250,7 @@ public struct TeamReview: Identifiable, Equatable {
             let record = TeamPendingRecord(operationID: value.id, ownerKey: session.ownerKey, targetKey: value.action.targetKey)
             // This must succeed before any submission. Do not clear it on cancellation or sign-out.
             try journal.write(record); pending = record; writeState = .submitting
+            rememberRetirement(value.action, record: record)
             let result = await service.submit(value.action, operationID: value.id, session: session)
             guard active(session, stamp) else { return }
             let persisted = try journal.pending(ownerKey: record.ownerKey, targetKey: record.targetKey)
@@ -225,14 +273,25 @@ public struct TeamReview: Identifiable, Equatable {
         case .unknown: writeState = .unknown; messageKey = "team.unknown"
         case .simulated(let id, let teamID):
             guard id == record.operationID, teamID > 0, expectedTeamID == nil || expectedTeamID == teamID else { writeState = .unknown; messageKey = "team.unknown"; return }
-            do { try journal.clear(record); pending = nil; completedTeamID = teamID; writeState = .simulated; messageKey = "team.simulated" }
+            do {
+                try journal.clear(record); pending = nil; completedTeamID = teamID
+                retireMembership(record: record, teamID: teamID)
+                writeState = .simulated; messageKey = "team.simulated"
+            }
             catch { writeState = .unknown; messageKey = "team.unknown" }
         case .acknowledged(let id, let teamID):
             guard id == record.operationID, teamID > 0, expectedTeamID == nil || expectedTeamID == teamID else { writeState = .unknown; messageKey = "team.unknown"; return }
-            do { try journal.clear(record); pending = nil; completedTeamID = teamID; writeState = .acknowledged; messageKey = "team.acknowledged" }
+            do {
+                try journal.clear(record); pending = nil; completedTeamID = teamID
+                retireMembership(record: record, teamID: teamID)
+                writeState = .acknowledged; messageKey = "team.acknowledged"
+            }
             catch { writeState = .unknown; messageKey = "team.unknown" }
         case .rejected, .notSent:
-            do { try journal.clear(record); pending = nil; writeState = result == .rejected ? .rejected : .notSent; messageKey = result == .rejected ? "team.rejected" : "team.notSent" }
+            do {
+                try journal.clear(record); pending = nil; retirementOperations[record.operationID] = nil
+                writeState = result == .rejected ? .rejected : .notSent; messageKey = result == .rejected ? "team.rejected" : "team.notSent"
+            }
             catch { writeState = .unknown; messageKey = "team.unknown" }
         }
     }

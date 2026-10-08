@@ -185,6 +185,29 @@ import XCTest
         XCTAssertEqual(first.snapshot, next.snapshot); XCTAssertNotEqual(first.readID, next.readID)
         XCTAssertNil(CityPointSelection(pointID: "point-1", rendered: first, current: next))
     }
+    func testOneSnapshotRecoveryKeepsNormalRootScopeAndRereadsEveryProjection() async throws {
+        let wire = Wire(), session = try root(wire, Grants()).makeSession(); await login(session)
+        wire.requests = []; wire.mode = "snapshotChangedOnce"
+        let reader = session.makeCityPlayerReader(); await reader.load()
+        guard case .available(let value) = reader.state else { return XCTFail("recovery unavailable") }
+        XCTAssertEqual(value.board.revision, 2)
+        XCTAssertEqual(wire.requests.compactMap { CityReadRoute(request: $0, baseURL: base)?.view },
+                       [.current, .participation, .current, .participation, .points])
+        XCTAssertTrue(wire.requests.allSatisfy { $0.httpMethod == "GET" && $0.httpBody == nil })
+        for request in wire.requests.suffix(2) {
+            let items = try XCTUnwrap(URLComponents(url: request.url!, resolvingAgainstBaseURL: false)?.queryItems)
+            XCTAssertEqual(items.first { $0.name == "revision" }?.value, "2")
+            XCTAssertEqual(items.first { $0.name == "regionId" }?.value, "city-1")
+        }
+    }
+    func testRepeatedSnapshotChangeStopsAfterOneRecoveryThroughNormalRoot() async throws {
+        let wire = Wire(), session = try root(wire, Grants()).makeSession(); await login(session)
+        wire.requests = []; wire.mode = "snapshotChanged"
+        let reader = session.makeCityPlayerReader(); await reader.load()
+        XCTAssertEqual(reader.state, .unavailable)
+        XCTAssertEqual(wire.requests.compactMap { CityReadRoute(request: $0, baseURL: base)?.view },
+                       [.current, .participation, .current, .participation])
+    }
     @MainActor private final class Grants {
         var enabled = true; var retained: CityPlayerReadApproval?
         func select(_ context: RuntimeDependencyContext) -> CityPlayerReadApproval? {
@@ -199,6 +222,7 @@ import XCTest
     private final class Wire: HTTPTransport {
         var requests: [URLRequest] = [], account = 7, role = "player", mode = "available", pause = false, onPaused: (() -> Void)?
         var pending: CheckedContinuation<(Data, Int), Error>?, pendingData = Data()
+        var changedOnce = false
         func finish(code: Int) {
             let saved = pending; pending = nil
             if code == -1 { saved?.resume(throwing: APIError.httpStatus(503)); return }
@@ -222,10 +246,14 @@ import XCTest
             if mode == "thrownUnauthorized" { throw APIError.unauthorized }
             if mode == "thrownHTTP401" { throw APIError.httpStatus(401) }
             if mode == "business401" { return (Data(#"{"code":401,"msg":"Unauthorized"}"#.utf8), 200) }
+            if mode == "snapshotChangedOnce", !changedOnce, !path.hasSuffix("/current") {
+                changedOnce = true; return try error(409, "CITY_SNAPSHOT_CHANGED")
+            }
             if mode == "snapshotChanged", !path.hasSuffix("/current") { return try error(409, "CITY_SNAPSHOT_CHANGED") }
             if mode == "participationUnavailable", path.hasSuffix("/participation") { return try error(503, "CITY_PARTICIPATION_UNAVAILABLE") }
             if mode == "pointsUnavailable", path.hasSuffix("/points") { return try error(503, "CITY_POINTS_UNAVAILABLE") }
             var board: [String: Any] = ["gameId":"game-1", "boardId":"board-1", "regionId":"city-1", "seasonId":"season-1", "rulesReleaseId":"release-1", "rulesHash":String(repeating:"a",count:64), "lifecycle":"OPEN", "title":"Synthetic official city", "revision":1]
+            if changedOnce { board["revision"] = 2 }
             if mode == "wrongRegion" { board["regionId"] = "city-2" }
             if mode == "wrongBoard", !path.hasSuffix("/current") { board["boardId"] = "board-2" }
             if mode == "idNewline" { board["boardId"] = "board-1\n" }

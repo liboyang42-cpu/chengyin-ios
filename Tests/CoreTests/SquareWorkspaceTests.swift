@@ -52,6 +52,56 @@ private final class SquareWorkspaceFakeHTTP: HTTPTransport {
         catch { XCTAssertEqual(error as? SquareWorkspaceFailure, .missingMediaProof) }
         XCTAssertEqual(t.requests.count, 1)
     }
+    func testUploadFilePartLimitMatchesTenMiBWithoutSubtractingMultipartOverhead() throws {
+        let service = try api(.init())
+        let limit = 10 * 1024 * 1024
+        XCTAssertEqual(SquareWorkspaceService.maximumUploadImageBytes, limit)
+        let bytes = Data(repeating: 0, count: limit)
+        for proof in [false, true] {
+            for mime in ["image/jpeg", "image/png"] {
+                let request = try service.uploadRequest(bytes: bytes, mimeType: mime, communityProof: proof, token: token)
+                let body = try XCTUnwrap(request.httpBody)
+                XCTAssertGreaterThan(body.count, limit)
+                XCTAssertLessThan(body.count, 20 * 1024 * 1024)
+                XCTAssertThrowsError(try service.uploadRequest(bytes: Data(repeating: 0, count: limit + 1), mimeType: mime, communityProof: proof, token: token))
+            }
+        }
+        // Synthetic bytes only exercise request construction, never real image validity.
+    }
+    func testUnsupportedTypesAndInvalidSizesAreRejectedBeforeTransport() async throws {
+        let transport = SquareWorkspaceFakeHTTP()
+        let service = try api(transport)
+        for proof in [false, true] {
+            for mime in ["image/webp", "video/mp4", "audio/mp4", "image/gif", "image/jpeg; charset=utf-8"] {
+                do {
+                    _ = try await service.upload(bytes: Data([1]), mimeType: mime, communityProof: proof, token: token)
+                    XCTFail("Unsupported representation must not reach transport")
+                } catch {
+                    XCTAssertEqual(error as? SquareWorkspaceFailure, .invalid)
+                }
+            }
+            for mime in ["image/jpeg", "image/png"] {
+                for bytes in [Data(), Data(repeating: 0, count: SquareWorkspaceService.maximumUploadImageBytes + 1)] {
+                    do {
+                        _ = try await service.upload(bytes: bytes, mimeType: mime, communityProof: proof, token: token)
+                        XCTFail("Invalid size must not reach transport")
+                    } catch {
+                        XCTAssertEqual(error as? SquareWorkspaceFailure, .invalid)
+                    }
+                }
+            }
+        }
+        XCTAssertTrue(transport.requests.isEmpty)
+    }
+    func testSupportedImageExtensionsAndEmptyPayloadGuard() throws {
+        let service = try api(.init())
+        for (mime, ext) in [("image/jpeg", "jpg"), ("image/png", "png")] {
+            let request = try service.uploadRequest(bytes: Data([1]), mimeType: mime, communityProof: false, token: token)
+            XCTAssertTrue(text(request).contains("filename=\"image.\(ext)\""))
+            XCTAssertTrue(text(request).contains("Content-Type: \(mime)"))
+            XCTAssertThrowsError(try service.uploadRequest(bytes: Data(), mimeType: mime, communityProof: false, token: token))
+        }
+    }
     func testV1MediaRegistrationAndUpsertExactKeys() async throws {
         let t = SquareWorkspaceFakeHTTP(); t.responses = [#"{"code":200,"data":{"id":12}}"#, #"{"code":200,"data":{"id":701,"authorId":81,"version":3,"lifecycle":"DRAFT"}}"#]
         var d = SquareWorkspaceFixtures.draft(); d.media = [.init(objectKey: "image.jpg", byteSize: 33, mimeType: "image/jpeg", uploadReceipt: "synthetic-proof")]

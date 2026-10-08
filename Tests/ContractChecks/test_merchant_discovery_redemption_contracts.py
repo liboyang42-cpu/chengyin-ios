@@ -1,5 +1,6 @@
 """Source-backed offline checks. These do not compile or run Swift/iOS."""
 import json
+import importlib.util
 import os
 from pathlib import Path
 import re
@@ -7,6 +8,23 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = os.environ.get("CHENGYIN_FLUTTER_SOURCE_ROOT")
+
+def verify_redemption_home_source(home):
+    # The reviewed lifecycle change relocates the destination, not its grant.
+    # Validate the entire current Home before restoring the old entry assertion.
+    path = ROOT / 'Tests/ContractChecks/test_merchant_business_access_lifetime.py'
+    spec = importlib.util.spec_from_file_location('_merchant_home_entry_boundary', path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    original = module.original_home_source(home)
+    body = home.split('@MainActor struct MerchantBusinessHomeView: View {', 1)[1].split('@MainActor struct MerchantBusinessPage: View {', 1)[0]
+    verify = body.split('if access.allows("merchant:verify")', 1)[1].split('} else if accessModel.isLoading', 1)[0]
+    assert 'NavigationLink(value: MerchantBusinessHomeRoute(target: .cityNode, reader: reader, journal: journal))' in verify
+    host = body.split('.navigationDestination(for: MerchantBusinessHomeRoute.self)', 1)[1].split('.task(id:', 1)[0]
+    assert 'if route.isCurrent(reader: reader, journal: journal)' in host
+    assert 'case .cityNode: CityNodeRedeemView(reader: route.reader, journal: route.journal)' in host
+    assert 'else { Text("merchant.business.stale") }' in host
+    return original
 
 class MerchantDiscoveryRedemptionContracts(unittest.TestCase):
     def read(self, name): return (ROOT / name).read_text()
@@ -33,9 +51,20 @@ class MerchantDiscoveryRedemptionContracts(unittest.TestCase):
     def test_normal_search_and_permission_checked_workbench_entries(self):
         self.assertIn('MerchantDiscoverView(reader: reader, publicMerchant: publicMerchant)', self.read('App/GlobalSearchView.swift'))
         self.assertIn('publicMerchant: session.publicMerchantHomeContext', self.read('App/SessionGlobalSearchView.swift'))
-        home = self.read('App/MerchantBusinessViews.swift')
+        home = verify_redemption_home_source(self.read('App/MerchantBusinessViews.swift'))
         verify = home.split('if access.allows("merchant:verify")')[1].split('} else if loading')[0]
         self.assertIn('CityNodeRedeemView(reader: reader, journal: journal)', verify)
+    def test_relocated_entry_cannot_drop_grant_route_identity_or_destination(self):
+        home = self.read('App/MerchantBusinessViews.swift')
+        for before, after in [
+            ('if access.allows("merchant:verify")', 'if true'),
+            ('target: .cityNode, reader: reader, journal: journal', 'target: .scan, reader: reader, journal: journal'),
+            ('if route.isCurrent(reader: reader, journal: journal)', 'if true'),
+            ('CityNodeRedeemView(reader: route.reader, journal: route.journal)', 'MerchantScanPreviewView()'),
+        ]:
+            self.assertIn(before, home)
+            with self.subTest(before=before), self.assertRaises((ValueError, AssertionError)):
+                verify_redemption_home_source(home.replace(before, after, 1))
     def test_redemption_request_exactness_and_message_preservation(self):
         text = self.read('Core/CityNodeRedemption.swift')
         self.assertIn('.form("api/verify/citynode/redeem", ["code": value])', text)
