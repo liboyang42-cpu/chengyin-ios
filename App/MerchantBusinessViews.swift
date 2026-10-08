@@ -210,15 +210,16 @@ import SwiftUI
             }
             if let snapshot = state.snapshot, state.isCurrent {
                 summary(snapshot.document)
-                if case .customer = query, let tags = try? snapshot.document.payload.object?.mbObjects("systemTags") {
-                    Section("merchant.business.systemTags") { ForEach(Array(tags.enumerated()), id: \.offset) { _, tag in Text(tag.mbText("label") ?? "") } }
-                }
                 if snapshot.document.sections.allSatisfy({ model.unfilteredRows(in: $0, query: snapshot.document.query).isEmpty }) && (snapshot.document.summary.isEmpty || isLocalList) {
                     Text("merchant.business.empty").foregroundStyle(.secondary).accessibilityIdentifier("merchant.business.empty")
                 } else if model.listFilters.isActive(for: snapshot.document.query), snapshot.document.sections.allSatisfy({ visibleRows($0, in: snapshot.document).isEmpty }) {
                     Text(LocalizedStringKey(isAftercare ? "merchant.business.aftercare.noMatches" : "merchant.business.list.noMatches")).foregroundStyle(.secondary).accessibilityIdentifier("merchant.business.list.noMatches")
                 }
-                if let progress = snapshot.document.aftercareProgress {
+                if case .customer = query, let detail = snapshot.document.customerDetail {
+                    MerchantCustomerDetailSections(detail: detail, access: snapshot.access) { row in
+                        rowActions(row, access: snapshot.access)
+                    }
+                } else if let progress = snapshot.document.aftercareProgress {
                     MerchantAftercareProgressView(progress: progress)
                     if let refund = snapshot.document.rows.first(where: { $0.kind == .refund }) {
                         Section { rowActions(refund, access: snapshot.access) }

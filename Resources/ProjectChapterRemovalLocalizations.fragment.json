@@ -1,0 +1,230 @@
+{
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "projectChapterRemoval.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete chapter"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除章节"
+          }
+        }
+      }
+    },
+    "projectChapterRemoval.warning": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete the selected chapters and all of their nodes and story blocks? This action has no undo."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认删除所选章节，以及其中的全部节点和故事块？此操作无法撤销。"
+          }
+        }
+      }
+    },
+    "projectChapterRemoval.localOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This changes this local draft only. Existing publishing checks still apply when you submit it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此操作只修改当前本地草稿。提交时仍需通过已有的发布检查。"
+          }
+        }
+      }
+    },
+    "projectChapterRemoval.selected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected chapters"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所选章节"
+          }
+        }
+      }
+    },
+    "projectChapterRemoval.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete selected chapters"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除所选章节"
+          }
+        }
+      }
+    },
+    "projectChapterRemoval.saveUnconfirmed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The local save result is unconfirmed. The chapters shown on this page have been kept, but the stored draft may already have changed. Local changes to this draft are paused. Check the stored content before recovery."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地保存结果未确认。当前页面仍保留原章节，但已保存的草稿可能已改变。此草稿的本地修改已暂停，请先核对保存内容，再处理恢复。"
+          }
+        }
+      }
+    },
+    "projectChapterRemoval.closeUnconfirmed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close without retrying"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭，不重试"
+          }
+        }
+      }
+    },
+    "projectChapterRemoval.inspect": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check the original saved draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "核对原草稿的保存内容"
+          }
+        }
+      }
+    },
+    "projectChapterRemoval.readback.original": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original draft’s saved content still contains these chapters. No deletion was retried. The consumed confirmation stays locked."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读回的原草稿仍包含这些章节。未重试删除，已使用的确认保持锁定。"
+          }
+        }
+      }
+    },
+    "projectChapterRemoval.readback.removed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original draft’s saved content matches this deletion. The draft entry’s save is still unconfirmed. This check has not changed the page or repaired the entry."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读回的原草稿内容与本次删除后一致，但草稿入口的保存仍未确认。此次核对未改变页面或修复入口。"
+          }
+        }
+      }
+    },
+    "projectChapterRemoval.readback.other": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original saved draft has different or unsupported content. Deletion stays locked; nothing was replaced."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原草稿的保存内容已不同或无法识别。删除保持锁定，未替换任何内容。"
+          }
+        }
+      }
+    },
+    "projectChapterRemoval.readback.missing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No saved content was found for the original draft identity. The save result remains unconfirmed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未找到原草稿身份对应的保存内容。保存结果仍未确认。"
+          }
+        }
+      }
+    },
+    "projectChapterRemoval.readback.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original saved draft could not be read. The save result remains unconfirmed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法读取原草稿的保存内容。保存结果仍未确认。"
+          }
+        }
+      }
+    },
+    "projectChapterRemoval.readback.stale": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The editor or account changed. This check cannot access the earlier draft."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑状态或账号已改变，此次核对不能访问先前草稿。"
+          }
+        }
+      }
+    }
+  }
+}

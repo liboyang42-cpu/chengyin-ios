@@ -173,7 +173,7 @@ public struct MerchantOperationsConfirmation: Identifiable, Equatable {
             guard !Task.isCancelled, operation == generation, reader.scope == value.scope, reader.isAuthenticated else { return }
             draftIdentity = UUID(); templateAssistEdits = .init()
             isLocked = false
-            if destination == .profile || destination == .businessStatus {
+            if destination == .profile || destination == .businessStatus || destination == .npcMapPoint {
                 // The write was acknowledged. Only a new owner-scoped read supplies current
                 // profile state; failure here must never fall into the write/replay catch.
                 document = nil; baseline = nil; draft = nil; exampleSaved = false
@@ -185,13 +185,17 @@ public struct MerchantOperationsConfirmation: Identifiable, Equatable {
                         guard case .businessStatus(let original) = value.baseline,
                               returnedStatus.merchantID == original.merchantID else { throw APIError.malformedResponse }
                     }
+                    if case .npcMapPoint(let returnedPoint) = returned {
+                        guard case .npcMapPoint(let original) = value.baseline,
+                              returnedPoint.merchantID == original.merchantID else { throw APIError.malformedResponse }
+                    }
                     document = current
                     if case .draft(let profile) = current { baseline = profile; draft = profile }
                     exampleSaved = reader.isOfflineExample
-                    issue = reader.isOfflineExample ? nil : .key(destination == .businessStatus ? "merchant.operations.statusReadback" : "merchant.operations.profileReadback")
+                    issue = reader.isOfflineExample ? nil : .key(destination == .npcMapPoint ? "merchantMapPoint.readback" : destination == .businessStatus ? "merchant.operations.statusReadback" : "merchant.operations.profileReadback")
                 } catch {
                     guard !Task.isCancelled, operation == generation, reader.scope == value.scope, reader.isAuthenticated else { return }
-                    issue = .key(destination == .businessStatus ? "merchant.operations.statusReadbackFailed" : "merchant.operations.profileReadbackFailed")
+                    issue = .key(destination == .npcMapPoint ? "merchantMapPoint.readbackFailed" : destination == .businessStatus ? "merchant.operations.statusReadbackFailed" : "merchant.operations.profileReadbackFailed")
                 }
             } else {
                 baseline = value.draft; draft = value.draft; document = .draft(value.draft)

@@ -175,9 +175,13 @@ import SwiftUI
     }
     @ViewBuilder private func pinDetail(_ id: String, area: RoamSearchArea) -> some View {
         if let row = (visibleCityResults == nil ? [] : pagination.rows).first(where: { "activity-\($0.id)" == id }) {
-            if let address = row.addressName ?? row.address { Text(verbatim: address).font(.subheadline).fixedSize(horizontal: false, vertical: true) }
-            NavigationLink { destination(.activity(row.id)) } label: { Label(row.name, systemImage: "calendar") }.frame(minHeight: 44)
-            if let topic = row.topicID, topic > 0 { NavigationLink { destination(.topic(topic)) } label: { Text("searchMap.relatedTopic") }.frame(minHeight: 44) }
+            NavigationLink { destination(.activity(row.id)) } label: {
+                SearchMapActivityCard(item: row, offline: reader.isOfflineExample)
+            }.buttonStyle(QuestifyCardButtonStyle()).accessibilityIdentifier("searchMap.selected.activity.\(row.id)")
+            if let topic = row.linkedTopicID {
+                NavigationLink { destination(.topic(topic)) } label: { Text("searchMap.relatedTopic") }.frame(minHeight: 44)
+                    .accessibilityIdentifier("searchMap.selected.topic.\(topic)")
+            }
         } else if let node = visibleCityResults?.nodes.first(where: { "city-\($0.id)" == id }) {
             if let subtitle = node.templateTitle ?? node.merchantName { Text(verbatim: subtitle).font(.subheadline).fixedSize(horizontal: false, vertical: true) }
             NavigationLink { SearchMapCityDetailView(id: node.id, reader: reader, origin: area.coordinate, destination: destination) } label: { Label(node.name, systemImage: "storefront") }.frame(minHeight: 44)
@@ -205,7 +209,7 @@ import SwiftUI
         }
         ForEach(pagination.rows) { row in
             NavigationLink { destination(.activity(row.id)) } label: {
-                SearchMapCard(row: GlobalSearchRow(kind: .activity, sourceID: row.id, title: row.name, detail: row.addressName ?? row.address, imageURL: row.imageURL), offline: reader.isOfflineExample)
+                SearchMapActivityCard(item: row, offline: reader.isOfflineExample)
             }.buttonStyle(QuestifyCardButtonStyle()).accessibilityIdentifier("searchMap.city.activity.\(row.id)")
             if pins.contains(where: { $0.id == "activity-\(row.id)" }) { selectPlace("activity-\(row.id)", title: row.name) }
         }

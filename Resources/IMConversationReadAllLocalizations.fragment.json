@@ -1,0 +1,310 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "im.readAll.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mark all as read"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部已读"
+          }
+        }
+      }
+    },
+    "im.readAll.scopeHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review this frozen set of unread conversations from the currently loaded list, across categories and search results. Includes direct, system, and official conversations; excludes groups and unknown types. This does not cover unloaded server conversations."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请确认当前已加载列表中的这组未读会话。范围跨分类、不受搜索结果影响，包含私信、系统及官方会话，不含群聊或未知类型，也不包含服务端尚未加载的会话。"
+          }
+        }
+      }
+    },
+    "im.readAll.frozenCount": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conversations in this review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次审核的会话数"
+          }
+        }
+      }
+    },
+    "im.readAll.cancelHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Requests run one at a time. Stop or Close prevents the remaining requests. A request already sent may still take effect. New messages in a selected conversation may also be marked read by the server."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认后将逐个处理。停止或关闭会取消尚未发出的请求；已经发出的请求仍可能生效。同一会话中新到的消息也可能被服务端一并标为已读。"
+          }
+        }
+      }
+    },
+    "im.readAll.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm these conversations"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认处理这些会话"
+          }
+        }
+      }
+    },
+    "im.readAll.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This conversation is currently unavailable for this action."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此会话当前无法执行此操作。"
+          }
+        }
+      }
+    },
+    "im.readAll.running": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marking conversations as read…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在逐个标记已读…"
+          }
+        }
+      }
+    },
+    "im.readAll.stop": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop remaining requests"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止后续请求"
+          }
+        }
+      }
+    },
+    "im.readAll.stopping": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stopping after the current request settles."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已停止后续请求，等待当前请求返回。"
+          }
+        }
+      }
+    },
+    "im.readAll.finished": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Processing finished. Check each result below."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次处理已结束，请核对以下结果。"
+          }
+        }
+      }
+    },
+    "im.readAll.readbackHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Counts describe request outcomes. Badges update only from a successful server list refresh. Close to check the list; if refresh fails, retry the list refresh."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以上计数反映请求结果。角标只在服务端会话列表回读成功后更新。关闭后请查看列表；若回读失败，请重试刷新列表。"
+          }
+        }
+      }
+    },
+    "im.readAll.unknownHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown outcomes keep the original pending action. They are not retried automatically. Check the refreshed list and use the individual conversation action to review an explicit retry if needed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果未知的会话会保留原待确认操作，不会自动重试。请核对刷新后的列表；必要时到该会话的操作页审核并明确重试原操作。"
+          }
+        }
+      }
+    },
+    "im.readAll.cancelled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This review was cancelled."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次审核已取消。"
+          }
+        }
+      }
+    },
+    "im.readAll.conversations": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reviewed conversations"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次会话"
+          }
+        }
+      }
+    },
+    "im.readAll.acknowledged": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accepted by server"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端已受理"
+          }
+        }
+      }
+    },
+    "im.readAll.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outcome unknown"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果未知"
+          }
+        }
+      }
+    },
+    "im.readAll.rejected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rejected or closed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "被拒绝或已关闭"
+          }
+        }
+      }
+    },
+    "im.readAll.remaining": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not sent"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未发送"
+          }
+        }
+      }
+    },
+    "im.readAll.protected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not sent: an existing pending action is protected."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未发送：已有待处理操作，已保留原意图。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

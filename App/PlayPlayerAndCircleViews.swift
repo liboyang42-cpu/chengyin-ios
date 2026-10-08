@@ -9,11 +9,15 @@ import SwiftUI
     @State private var showReview = false
     @State private var consequence = ""
     @State private var issue: PlayExperienceError?
+    @State private var submissionReadback: PlayPlayerSubmissionReadback?
     var body: some View {
         List {
             Section {
                 LabeledContent("playx.state") { PlayRuntimePhaseText(phase: model.phase) }
-                Button("playx.refresh") { Task { await model.load() } }.disabled(model.phase == "submitting")
+                Button("playx.refresh") {
+                    if let readback = submissionReadback { Task { await readback.refresh() } }
+                }
+                    .disabled(submissionReadback?.canRefresh != true)
                 if let issue = model.issue ?? issue { PlayExperienceIssueView(issue: issue) }
                 if model.phase == "unknown" {
                     Text("playx.unknown.body")
@@ -21,7 +25,7 @@ import SwiftUI
                     Button("playx.retryExact") { Task { await model.retryExact() } }
                 }
             }
-            if let projection = model.projection {
+            if model.hasCurrentProjection, let projection = model.projection {
                 Section("playx.player.role") {
                     if let name = projection.role["name"].text { Text(verbatim: name).font(.headline) }
                     if let brief = projection.role["publicBrief"].text { Text(verbatim: brief) }
@@ -39,6 +43,9 @@ import SwiftUI
                             if let fallback = node.fallback["playerMessage"].text { Text(verbatim: fallback) }
                         }
                         if let prompt = node.task["prompt"].text { Text(verbatim: prompt) }
+                        if node.task.object != nil {
+                            PlayPlayerSubmissionStatusView(state: submissionReadback?.state(nodeID: node.id) ?? .unconfirmed)
+                        }
                         if node.task["inputType"].text == "TEXT" {
                             TextField("playx.answer.placeholder", text: Binding(get: { evidence[node.id] ?? "" }, set: { evidence[node.id] = $0 }), axis: .vertical)
                                 .accessibilityIdentifier("playx.player.text.\(node.id)")
@@ -89,7 +96,14 @@ import SwiftUI
                 }
             }
         }.privacySensitive().navigationTitle("playx.player.title").accessibilityIdentifier("playx.player.view")
-            .task { await model.load() }
+            .task {
+                guard !Task.isCancelled else { return }
+                submissionReadback?.dismiss()
+                let readback = PlayPlayerSubmissionReadback(model: model)
+                submissionReadback = readback
+                await readback.open()
+            }
+            .onDisappear { submissionReadback?.dismiss() }
             .navigationDestination(item: $evidenceTarget) { target in
                 PlayerTaskEvidenceView(target: target, player: model, device: deviceModel?(target.nodeID))
             }

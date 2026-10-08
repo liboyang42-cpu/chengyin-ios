@@ -46,6 +46,15 @@ public struct ProjectEditContinuation {
     public private(set) var state: State = .idle
     public private(set) var messageKey: String?
     public private(set) var issues: [ProjectEditIssue] = []
+    private struct ChapterRemovalOwner: Hashable {
+        let ownerKey: String
+        let bucket: String
+    }
+    private var unconfirmedChapterRemovalDrafts = Set<ChapterRemovalOwner>()
+    public var hasUnconfirmedChapterRemoval: Bool {
+        guard let session = currentSession(), let identity else { return false }
+        return unconfirmedChapterRemovalDrafts.contains(.init(ownerKey: session.ownerKey, bucket: identity.bucket))
+    }
     public var session: ProjectEditSession? { currentSession() }
     public var isBusy: Bool { [.loading, .reviewing, .submitting].contains(state) }
     public var isLocked: Bool { (pending != nil && pending?.completedTopicID == nil) || state == .unknown }
@@ -62,7 +71,7 @@ public struct ProjectEditContinuation {
     }
     /// Copies into a fresh coordinator/identity. The original remains saved and unchanged.
     public func copyForMode(_ draft: ProjectEditDraft, to product: ProjectEditProduct) throws -> ProjectEditCoordinator {
-        guard !isBusy, !isLocked, state != .blocked, state != .acknowledged, state != .simulated,
+        guard !hasUnconfirmedChapterRemoval, !isBusy, !isLocked, state != .blocked, state != .acknowledged, state != .simulated,
               let session = capturedSession, session == currentSession(), let identity,
               let snapshot, snapshot.scope == .full, draft.owner == snapshot.draft.owner,
               draft.product == snapshot.draft.product else { throw ProjectEditError.changedSession }
@@ -132,12 +141,12 @@ public struct ProjectEditContinuation {
         return draft
     }
     public func discardLocalDraft() {
-        guard !isBusy, !isLocked, let session = capturedSession, session == currentSession(), let identity else { return }
+        guard !hasUnconfirmedChapterRemoval, !isBusy, !isLocked, let session = capturedSession, session == currentSession(), let identity else { return }
         do { try store.remove(session: session, identity: identity); restore = .missing; messageKey = "projectEdit.localRemoved" }
         catch { messageKey = "projectEdit.localFailed" }
     }
     @discardableResult public func saveLocal(_ draft: ProjectEditDraft) -> Bool {
-        guard !isBusy, !isLocked, state != .blocked, state != .simulated, state != .acknowledged, let session = capturedSession, session == currentSession(), let identity,
+        guard !hasUnconfirmedChapterRemoval, !isBusy, !isLocked, state != .blocked, state != .simulated, state != .acknowledged, let session = capturedSession, session == currentSession(), let identity,
               let baseline = snapshot, baseline.draft.product == draft.product, baseline.draft.owner == draft.owner,
               baseline.scope != .whitelist || draft.whitelistLockedFieldsEqual(to: baseline.draft) else { return false }
         // Never overwrite an unreviewed saved draft/conflict with the blank baseline.
@@ -145,10 +154,67 @@ public struct ProjectEditContinuation {
         do { try store.save(draft, session: session, identity: identity); messageKey = "projectEdit.localSaved"; return true }
         catch { messageKey = "projectEdit.localFailed"; return false }
     }
+    /// An opaque, coordinator-issued read capability for one chapter-removal review.
+    /// Callers cannot supply a different identity, account or expected replacement.
+    public struct ChapterRemovalReadback {
+        fileprivate let coordinator: ProjectEditCoordinator
+        fileprivate let session: ProjectEditSession
+        fileprivate let identity: ProjectEditDraftIdentity
+        fileprivate let visit: UUID
+        fileprivate let generation: Int
+        fileprivate let baselineBytes: Data
+        fileprivate let originalBytes: Data
+        fileprivate let removedBytes: Data
+    }
+    public enum ChapterRemovalReadbackResult: Equatable {
+        case original, removed, other, missing, unavailable, stale
+    }
+    public func captureChapterRemovalReadback(for draft: ProjectEditDraft, removing ids: [String]) -> ChapterRemovalReadback? {
+        guard !hasUnconfirmedChapterRemoval, !isBusy, !isLocked, state != .blocked, state != .simulated, state != .acknowledged,
+              let session = capturedSession, session == currentSession(), let identity, let visit = editorVisit,
+              let baseline = snapshot, baseline.scope == .full, case .missing = restore,
+              baseline.draft.product == draft.product, baseline.draft.owner == draft.owner,
+              baseline.draft.baseRevision.utf8.elementsEqual(draft.baseRevision.utf8),
+              let removed = try? ProjectChapterRemoval.removing(ids, from: draft),
+              let baselineBytes = ProjectEditPendingMaterials.exactData(baseline),
+              let originalBytes = ProjectEditPendingMaterials.exactData(draft),
+              let removedBytes = ProjectEditPendingMaterials.exactData(removed) else { return nil }
+        return .init(coordinator: self, session: session, identity: identity, visit: visit, generation: generation,
+                     baselineBytes: baselineBytes, originalBytes: originalBytes, removedBytes: removedBytes)
+    }
+    /// Conservatively freeze only the original owner/draft after a failed local
+    /// attempt, even if that attempt's UI was retired. Other identities stay usable.
+    public func suspendLocalWritesAfterChapterRemoval(_ value: ChapterRemovalReadback) {
+        guard value.coordinator === self else { return }
+        unconfirmedChapterRemovalDrafts.insert(.init(ownerKey: value.session.ownerKey, bucket: value.identity.bucket))
+    }
+    private func chapterRemovalReadbackIsCurrent(_ value: ChapterRemovalReadback) -> Bool {
+        value.coordinator === self && !isBusy && !isLocked && state != .blocked && state != .simulated && state != .acknowledged &&
+        capturedSession == value.session && currentSession() == value.session && identity == value.identity &&
+        editorVisit == value.visit && generation == value.generation && snapshot?.scope == .full &&
+        snapshot.flatMap { ProjectEditPendingMaterials.exactData($0) } == value.baselineBytes
+    }
+    /// Read the captured envelope directly. Never follow/rewrite the active pointer,
+    /// mutate restore state, acknowledge a save, or retry the deletion from this path.
+    public func inspectChapterRemoval(_ value: ChapterRemovalReadback) -> ChapterRemovalReadbackResult {
+        guard chapterRemovalReadbackIsCurrent(value), let baseline = snapshot else { return .stale }
+        let result = store.load(session: value.session, identity: value.identity, baseline: baseline.draft)
+        guard chapterRemovalReadbackIsCurrent(value) else { return .stale }
+        switch result {
+        case .ready(let envelope):
+            guard let bytes = ProjectEditPendingMaterials.exactData(envelope.draft) else { return .unavailable }
+            if bytes == value.originalBytes { return .original }
+            if bytes == value.removedBytes { return .removed }
+            return .other
+        case .missing: return .missing
+        case .unavailable: return .unavailable
+        case .memberMismatch, .revisionConflict, .incompatible: return .other
+        }
+    }
     /// Read-only eligibility for the chooser's single-item local replacement. This
     /// does not initialize a missing draft or reuse the ordinary two-item save path.
     public func canReplaceExistingStoryDraft(_ expected: ProjectEditDraft) -> Bool {
-        guard !isBusy, !isLocked, state != .blocked, state != .simulated, state != .acknowledged,
+        guard !hasUnconfirmedChapterRemoval, !isBusy, !isLocked, state != .blocked, state != .simulated, state != .acknowledged,
               let session = capturedSession, session == currentSession(), let identity,
               let baseline = snapshot, baseline.scope == .full,
               baseline.draft.product == expected.product, baseline.draft.owner == expected.owner,
@@ -164,7 +230,7 @@ public struct ProjectEditContinuation {
     }
     public func prepare(_ draft: ProjectEditDraft) {
         synchronizeSession(); confirmation = nil
-        guard !isBusy, !isLocked, state != .blocked, state != .simulated, state != .acknowledged, capturedSession == currentSession(), let baseline = snapshot else { return }
+        guard !hasUnconfirmedChapterRemoval, !isBusy, !isLocked, state != .blocked, state != .simulated, state != .acknowledged, capturedSession == currentSession(), let baseline = snapshot else { return }
         let session = capturedSession
         issues = ProjectEditValidation.issues(draft, scope: baseline.scope)
         guard issues.isEmpty else { messageKey = "projectEdit.invalid"; return }
@@ -183,7 +249,7 @@ public struct ProjectEditContinuation {
     public func leaveScreen() { generation += 1; confirmation = nil; if state != .simulated && state != .acknowledged { state = isLocked ? .unknown : .idle } }
     public func confirm(_ value: ProjectEditConfirmation) async {
         synchronizeSession()
-        guard !isBusy, !isLocked, confirmation == value, currentSession() == value.session else { return }
+        guard !hasUnconfirmedChapterRemoval, !isBusy, !isLocked, confirmation == value, currentSession() == value.session else { return }
         guard let session = value.session, let identity else { messageKey = "projectEdit.signIn"; confirmation = nil; return }
         guard canSubmit else { messageKey = "projectEdit.unconfigured"; confirmation = nil; return }
         generation += 1; let stamp = generation

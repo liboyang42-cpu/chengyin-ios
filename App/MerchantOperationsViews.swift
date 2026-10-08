@@ -41,6 +41,7 @@ struct MerchantOperationsHomeView: View {
     private func symbol(_ destination: MerchantOperationsDestination) -> String {
         switch destination { case .profile, .decor, .businessStatus: return "storefront"; case .gallery: return "photo.on.rectangle"
         case .story: return "book.closed"; case .cooperation: return "person.2"; case .character: return "person.crop.circle"
+        case .npcMapPoint: return "mappin.and.ellipse"
         case .assets: return "waveform"; case .cityNodes: return "mappin.and.ellipse"; case .templates, .template: return "rectangle.grid.2x2" }
     }
     private func load() async {

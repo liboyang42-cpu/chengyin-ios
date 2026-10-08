@@ -33,7 +33,7 @@ class IMConversationRowActionsContracts(unittest.TestCase):
         self.assertIn('value = nil; loadedInput = nil; issue = nil', screen)
         self.assertIn('value = result; loadedInput = token.input', screen)
         self.assertNotIn('await reload()', screen)
-        for source in [home, self.read('App/IMConversationRowActions.swift'), self.read('Core/IMConversationRowActions.swift')]:
+        for source in [home, self.read('App/IMConversationRowActionsView.swift'), self.read('Core/IMConversationRowActions.swift')]:
             self.assertNotRegex(source, r'\.unread\s*=(?!=)|\.muted\s*=(?!=)')
 
     def test_row_adapts_existing_owner_without_new_service_or_dispatch(self):
@@ -47,7 +47,7 @@ class IMConversationRowActionsContracts(unittest.TestCase):
             self.assertNotIn(forbidden, source)
 
     def test_shipping_models_consume_appearance_tokens_without_rebinding_tasks(self):
-        sheet = self.read('App/IMConversationRowActions.swift')
+        sheet = self.read('App/IMConversationRowActionsView.swift')
         screen = self.read('App/MessagingComponents.swift')
         self.assertIn('guard queued == token, appearance == token.appearance', sheet)
         self.assertIn('guard appearance == token.appearance, executing == token', sheet)
@@ -76,7 +76,7 @@ class IMConversationRowActionsContracts(unittest.TestCase):
             self.assertIn(marker, app)
 
     def test_confirmed_receipt_invalidates_cache_independently_of_sheet_lifetime(self):
-        sheet = self.read('App/IMConversationRowActions.swift')
+        sheet = self.read('App/IMConversationRowActionsView.swift')
         screen = self.read('App/MessagingComponents.swift')
         invalidate = sheet.index('if matchingReceipt { invalidateList() }')
         retire = sheet.index('guard appearance == token.appearance, executing == token')
@@ -98,7 +98,7 @@ class IMConversationRowActionsContracts(unittest.TestCase):
 
     def test_localization_fragment_covers_new_user_text(self):
         fragment = json.loads(self.read('Resources/IMConversationRowActionsLocalizations.fragment.json'))['strings']
-        source = self.read('App/IMConversationRowActions.swift') + self.read('App/MessagingHomeView.swift')
+        source = self.read('App/IMConversationRowActionsView.swift') + self.read('App/MessagingHomeView.swift')
         ids = {'im.row.confirm', 'im.row.submitting', 'im.row.retrySame', 'im.row.close', 'im.row.review'}
         for key in set(re.findall(r'"(im\.row\.[A-Za-z]+)"', source)) - ids:
             self.assertIn(key, fragment)

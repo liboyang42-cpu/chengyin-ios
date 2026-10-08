@@ -36,13 +36,29 @@ class ProjectEditChapterCompilerBoundaries(unittest.TestCase):
         for token in ['Section("projectEdit.structure")', 'ForEach(model.draft.chapters)',
                       'ProjectEditChapterView(model: model, chapterID: chapter.id)',
                       '.accessibilityIdentifier("projectEdit.chapter." + chapter.id)',
-                      '.onDelete { if model.fullEdit { model.draft.chapters.remove(atOffsets: $0) } }',
+                      '.onDelete { chapterRemoval.open(offsets: $0, captured: removalCapture) }',
+                      'let removalCapture = chapterRemoval.capture()', '.deleteDisabled(removalCapture == nil)',
                       '.onMove { if model.fullEdit { model.draft.chapters.move(fromOffsets: $0, toOffset: $1) } }',
                       'model.draft.chapters.filter { $0.preserved["opening"] != .bool(true) }.count + 1',
                       r'LocalizedStringResource("projectStarter.defaultChapter", defaultValue: "Chapter \(ordinal)", locale: locale)',
                       'starter.createChapter(lease: opening, name: name)',
                       '.disabled(!model.fullEdit).accessibilityIdentifier("projectEdit.addChapter")']:
             self.assertIn(token, self.structure)
+        host = (ROOT / 'App/ProjectChapterRemovalPresentation.swift').read_text()
+        model = (ROOT / 'App/ProjectEditStarterController.swift').read_text()
+        self.assertIn('guard fullEdit, let session = coordinator.session', model)
+        for guard in ['model.isCurrentStarterLease(value.lease)',
+                      'model.draftMutationRevision == value.revision',
+                      'ProjectEditPendingMaterials.exactData(model.draft) == value.draftBytes',
+                      'guard !saving, !saveUnconfirmed, isCurrent(value)',
+                      'model.coordinator.suspendLocalWritesAfterChapterRemoval(value.readback)']:
+            self.assertIn(guard, host)
+        self.assertIn('ownsVisit && !coordinator.hasUnconfirmedChapterRemoval', self.source)
+        # These negative checks deliberately reject a regression to direct removal,
+        # a new unconfirmed deletion path, or a raw store/remote-submit bypass.
+        for forbidden in ['chapters.remove(', 'chapters.removeAll', 'persistLocalChange(',
+                          'coordinator.confirm(', 'store.save(']:
+            self.assertNotIn(forbidden, self.structure)
         for forbidden in ['StateObject', '@State ', '.onAppear', '.task', 'AnyView']:
             self.assertNotIn(forbidden, self.structure + self.label)
 

@@ -65,7 +65,7 @@ import SwiftUI
             guard self.fullEdit else { return }; self.draft = value.updatingDraft(self.draft)
         })
     }
-    var canEdit: Bool { ownsVisit && loadedSnapshot && loadedSession == coordinator.session && coordinator.snapshot != nil && !busy && !coordinator.isLocked && coordinator.state != .simulated && coordinator.state != .acknowledged && coordinator.state != .blocked && !hasRestore }
+    var canEdit: Bool { ownsVisit && !coordinator.hasUnconfirmedChapterRemoval && loadedSnapshot && loadedSession == coordinator.session && coordinator.snapshot != nil && !busy && !coordinator.isLocked && coordinator.state != .simulated && coordinator.state != .acknowledged && coordinator.state != .blocked && !hasRestore }
     var canSaveLocal: Bool { canEdit && coordinator.session != nil }
     var fullEdit: Bool { canEdit && coordinator.snapshot?.scope == .full }
     var hasRestore: Bool { switch coordinator.restore { case .missing: return false; default: return true } }
@@ -211,6 +211,7 @@ import SwiftUI
     @StateObject private var model: ProjectEditModel
     @StateObject private var starter: ProjectEditStarterController
     @StateObject private var pending: ProjectEditPendingController
+    @StateObject private var chapterRemoval: ProjectChapterRemovalController
     @StateObject private var modeReview: ProjectEditModeReviewController
     private let ownedCoverPicker: (() -> any OwnedTopicCoverSelecting)?
     @StateObject private var ownedCover: OwnedTopicCoverAuthorPresentation
@@ -231,7 +232,7 @@ import SwiftUI
     init(coordinator: ProjectEditCoordinator, sessionRevision: UInt64, seed: ProjectEditDraft? = nil, publisherClient: PublisherLifecycleHTTP? = nil, publisherHost: ((PublishedResource) -> AnyView)? = nil, ownedCoverPicker: (() -> any OwnedTopicCoverSelecting)? = nil, storyImagePicker: (() -> any OwnedTopicCoverSelecting)? = nil, storyAudioPicker: (() -> any ProjectStoryAudioSelecting)? = nil) {
         self.publisherClient = publisherClient; self.publisherHost = publisherHost; self.ownedCoverPicker = ownedCoverPicker
         let value = ProjectEditModel(coordinator: coordinator, seed: seed, storyImagePicker: storyImagePicker, storyAudioPicker: storyAudioPicker)
-        _model = StateObject(wrappedValue: value); _starter = StateObject(wrappedValue: .init(model: value)); _pending = StateObject(wrappedValue: .init(model: value)); _modeReview = StateObject(wrappedValue: .init(model: value)); _ownedCover = StateObject(wrappedValue: .init(model: value)); _approvedRelease = StateObject(wrappedValue: .init(model: value)); _reviewRequest = StateObject(wrappedValue: .init(model: value)); self.sessionRevision = sessionRevision
+        _model = StateObject(wrappedValue: value); _starter = StateObject(wrappedValue: .init(model: value)); _pending = StateObject(wrappedValue: .init(model: value)); _chapterRemoval = StateObject(wrappedValue: .init(model: value)); _modeReview = StateObject(wrappedValue: .init(model: value)); _ownedCover = StateObject(wrappedValue: .init(model: value)); _approvedRelease = StateObject(wrappedValue: .init(model: value)); _reviewRequest = StateObject(wrappedValue: .init(model: value)); self.sessionRevision = sessionRevision
     }
     var body: some View {
         let opening = model.captureStarterLease()
@@ -366,7 +367,7 @@ import SwiftUI
                 handledSubmission = next.id; submission = next
             }
         }
-        .onChange(of: sessionRevision) { _, _ in if let modePresentation { modeReview.dismiss(modePresentation) }; showingCopy = false; copiedCoordinator = nil; submission = nil; submittedResource = nil; handledSubmission = nil }
+        .onChange(of: sessionRevision) { _, _ in chapterRemoval.retire(); if let modePresentation { modeReview.dismiss(modePresentation) }; showingCopy = false; copiedCoordinator = nil; submission = nil; submittedResource = nil; handledSubmission = nil }
         .navigationDestination(isPresented: Binding(get: { showingCopy && copiedCoordinator === copiedTarget }, set: { showing in
             guard let copiedTarget, copiedCoordinator === copiedTarget else { return }; showingCopy = showing
         })) {
@@ -397,7 +398,8 @@ import SwiftUI
         }
         .modifier(ProjectEditStarterPresentation(model: model, controller: starter))
         .modifier(ProjectEditPendingPresentation(model: model, controller: pending))
-        .onDisappear { if let coverPresentation { ownedCover.close(coverPresentation) }; reviewRequest.retire(); approvedRelease.retire(); starter.retire(); pending.retire(); model.leave() }
+        .modifier(ProjectChapterRemovalPresentation(model: model, controller: chapterRemoval))
+        .onDisappear { if let coverPresentation { ownedCover.close(coverPresentation) }; reviewRequest.retire(); approvedRelease.retire(); chapterRemoval.retire(); starter.retire(); pending.retire(); model.leave() }
         .modifier(ProjectEditPreparedReviewPresentation(model: model))
         .alert("projectEdit.discardTitle", isPresented: $discardConfirmation) {
             Button("projectEdit.discardLocal", role: .destructive) { model.discard() }
@@ -422,15 +424,20 @@ import SwiftUI
         }
     }
     private func chapterStructure(opening: ProjectEditStarterController.Lease?) -> some View {
-        Section("projectEdit.structure") {
+        let removalCapture = chapterRemoval.capture()
+        return Section("projectEdit.structure") {
+            if chapterRemoval.saveUnconfirmed {
+                ProjectChapterRemovalStatus(controller: chapterRemoval)
+            }
             ForEach(model.draft.chapters) { chapter in
                 NavigationLink {
                     ProjectEditChapterView(model: model, chapterID: chapter.id)
                 } label: {
                     chapterLabel(chapter)
                 }.accessibilityIdentifier("projectEdit.chapter." + chapter.id)
+                    .deleteDisabled(removalCapture == nil)
             }
-            .onDelete { if model.fullEdit { model.draft.chapters.remove(atOffsets: $0) } }
+            .onDelete { chapterRemoval.open(offsets: $0, captured: removalCapture) }
             .onMove { if model.fullEdit { model.draft.chapters.move(fromOffsets: $0, toOffset: $1) } }
             Button("projectStarter.createChapter", systemImage: "plus") {
                 let ordinal = model.draft.chapters.filter { $0.preserved["opening"] != .bool(true) }.count + 1

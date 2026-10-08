@@ -18,10 +18,12 @@ public struct ActivitySummary: Decodable, Equatable, Identifiable {
     public let longitude: Double?
     public let productType: Int?
     public let topicID: Int?
+    /// PublicActivityListVO.sysCategoryList categoryName values, not category IDs or inferred tags.
+    public let categoryNames: [String]
     public let likeState: ActivityLikeState
     enum CodingKeys: String, CodingKey {
         case id, name, description, imgUrl, addressName, address, minAmout
-        case startDate, endDate, latitude, longitude, productType, topicId, isLiked
+        case startDate, endDate, latitude, longitude, productType, topicId, isLiked, sysCategoryList
     }
     public init(from decoder: Decoder) throws {
         let c=try decoder.container(keyedBy:CodingKeys.self)
@@ -48,6 +50,10 @@ public struct ActivitySummary: Decodable, Equatable, Identifiable {
         }
         latitude=number(.latitude);longitude=number(.longitude)
         productType=integer(.productType);topicID=integer(.topicId)
+        // Optional decorative metadata must not invalidate an otherwise valid activity.
+        // Business names are preserved verbatim; only absent/blank names are omitted.
+        categoryNames = ((try? c.decode([ActivitySummaryCategory].self, forKey: .sysCategoryList)) ?? [])
+            .compactMap(\.name)
         likeState=ActivityLikeState(rawValue:integer(.isLiked) ?? 0) ?? .none
     }
     /// The mini detail action accepts positive JavaScript-safe integer topic IDs only.
@@ -62,6 +68,17 @@ public struct ActivitySummary: Decodable, Equatable, Identifiable {
     }
     /// A zero minimum is only a listed starting price, not proof that all tickets are free.
     public var hasZeroStartingPrice: Bool { minimumAmount == Decimal.zero }
+}
+
+private struct ActivitySummaryCategory: Decodable {
+    let name: String?
+    private enum CodingKeys: String, CodingKey { case categoryName }
+    init(from decoder: Decoder) throws {
+        guard let c = try? decoder.container(keyedBy: CodingKeys.self),
+              let raw = try? c.decode(String.self, forKey: .categoryName),
+              !raw.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { name = nil; return }
+        name = raw
+    }
 }
 
 /// Decode supported server list envelopes, without turning failure into a successful empty list.

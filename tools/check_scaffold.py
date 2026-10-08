@@ -47,6 +47,20 @@ for key,obj in objects.items():
         else: assert (ROOT/obj['path']).is_file(),obj['path']
 source_paths={o['path'] for o in objects.values() if o['isa']=='PBXFileReference' and o.get('lastKnownFileType')=='sourcecode.swift'}
 assert source_paths=={str(p.relative_to(ROOT)) for folder in ['App','Core','Tests/AppUITests','Tests/AppUnitTests'] for p in (ROOT/folder).rglob('*.swift')}
+# Inspect actual target membership independently of the generator. Swift files
+# sharing a basename collide in per-target localization extraction outputs.
+for target_id in project_obj['targets']:
+    target=objects[target_id]
+    by_stem={}
+    for phase_id in target['buildPhases']:
+        phase=objects[phase_id]
+        if phase['isa']!='PBXSourcesBuildPhase': continue
+        for build_id in phase['files']:
+            ref=objects[objects[build_id]['fileRef']]
+            if ref.get('lastKnownFileType')!='sourcecode.swift': continue
+            by_stem.setdefault(pathlib.Path(ref['path']).stem.casefold(),[]).append(ref['path'])
+    duplicates=[paths for paths in by_stem.values() if len(paths)>1]
+    assert not duplicates, ('Duplicate Swift basenames in target',target['name'],duplicates)
 catalog=json.loads((ROOT/'Resources/Localizable.xcstrings').read_text())
 assert catalog['sourceLanguage']=='en'
 for key,entry in catalog['strings'].items():

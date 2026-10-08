@@ -16,6 +16,7 @@ public struct MerchantOperationsAccess: Decodable, Equatable {
     public func allows(_ destination: MerchantOperationsDestination) -> Bool {
         guard identity.active else { return false }
         switch destination {
+        case .npcMapPoint: return profileWrite && cooperationManage
         case .businessStatus: return profileWrite && identity.allows(.basicRead)
         case .profile, .decor, .gallery, .story: return profileWrite
         case .cooperation: return cooperationManage
@@ -26,7 +27,7 @@ public struct MerchantOperationsAccess: Decodable, Equatable {
     }
 }
 public enum MerchantOperationsDestination: Hashable, Identifiable {
-    case businessStatus, profile, decor, gallery, story, cooperation, character, assets, cityNodes, templates, template(Int?)
+    case businessStatus, profile, decor, gallery, story, cooperation, character, npcMapPoint, assets, cityNodes, templates, template(Int?)
     public var id: String {
         switch self {
         case .template(let id): return "template:\(id.map(String.init) ?? "new")"
@@ -35,6 +36,7 @@ public enum MerchantOperationsDestination: Hashable, Identifiable {
     }
     public var titleKey: String {
         switch self {
+        case .npcMapPoint: return "merchantMapPoint.title"
         case .businessStatus: return "merchant.operations.businessStatus"
         case .profile: return "merchant.operations.profile"
         case .decor: return "merchant.operations.decor"

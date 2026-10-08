@@ -54,7 +54,7 @@ was inspected read-only; implementation lives in a separate copy.
 ## Integration ownership
 
 Changed existing files: `App/MessagingHomeView.swift`, `App/MessagingComponents.swift`.
-New implementation: `App/IMConversationRowActions.swift`, `Core/IMConversationRowActions.swift`.
+New implementation: `App/IMConversationRowActionsView.swift`, `Core/IMConversationRowActions.swift`.
 New tests: matching Core/AppUnit Swift files and
 `Tests/ContractChecks/test_im_conversation_row_actions.py`.
 New bilingual catalog fragment:

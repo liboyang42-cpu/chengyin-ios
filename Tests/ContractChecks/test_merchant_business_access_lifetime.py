@@ -30,6 +30,24 @@ SETTLEMENT_OLD_BLOCK = '                MerchantBusinessRecordFields(row: row, a
 SETTLEMENT_CURRENT_BLOCK = '                MerchantBusinessRecordFields(row: row, access: access, compact: false,\n                    settlementReader: reader, settlementSnapshot: {\n                        guard state.isCurrent, !state.isBusy, state.failureKey == nil else { return nil }\n                        return state.snapshot\n                    })'
 
 
+# Independently approved customer detail presentation. Exactly invert this hunk
+# before the unchanged settlement, aftercare and Home source fences.
+CUSTOMER_VIEW_SHA256 = 'f046c2d5705e65575c1c014f43e688e09a790dab51f2e84d32a441e5b4c7d5a6'
+CUSTOMER_OLD_BLOCK = '                summary(snapshot.document)\n                if case .customer = query, let tags = try? snapshot.document.payload.object?.mbObjects("systemTags") {\n                    Section("merchant.business.systemTags") { ForEach(Array(tags.enumerated()), id: \\.offset) { _, tag in Text(tag.mbText("label") ?? "") } }\n                }\n                if snapshot.document.sections.allSatisfy({ model.unfilteredRows(in: $0, query: snapshot.document.query).isEmpty }) && (snapshot.document.summary.isEmpty || isLocalList) {\n                    Text("merchant.business.empty").foregroundStyle(.secondary).accessibilityIdentifier("merchant.business.empty")\n                } else if model.listFilters.isActive(for: snapshot.document.query), snapshot.document.sections.allSatisfy({ visibleRows($0, in: snapshot.document).isEmpty }) {\n                    Text(LocalizedStringKey(isAftercare ? "merchant.business.aftercare.noMatches" : "merchant.business.list.noMatches")).foregroundStyle(.secondary).accessibilityIdentifier("merchant.business.list.noMatches")\n                }\n                if let progress = snapshot.document.aftercareProgress {\n                    MerchantAftercareProgressView(progress: progress)\n'
+CUSTOMER_CURRENT_BLOCK = '                summary(snapshot.document)\n                if snapshot.document.sections.allSatisfy({ model.unfilteredRows(in: $0, query: snapshot.document.query).isEmpty }) && (snapshot.document.summary.isEmpty || isLocalList) {\n                    Text("merchant.business.empty").foregroundStyle(.secondary).accessibilityIdentifier("merchant.business.empty")\n                } else if model.listFilters.isActive(for: snapshot.document.query), snapshot.document.sections.allSatisfy({ visibleRows($0, in: snapshot.document).isEmpty }) {\n                    Text(LocalizedStringKey(isAftercare ? "merchant.business.aftercare.noMatches" : "merchant.business.list.noMatches")).foregroundStyle(.secondary).accessibilityIdentifier("merchant.business.list.noMatches")\n                }\n                if case .customer = query, let detail = snapshot.document.customerDetail {\n                    MerchantCustomerDetailSections(detail: detail, access: snapshot.access) { row in\n                        rowActions(row, access: snapshot.access)\n                    }\n                } else if let progress = snapshot.document.aftercareProgress {\n                    MerchantAftercareProgressView(progress: progress)\n'
+
+
+def before_customer_detail_source(source):
+    if digest(source) in (SETTLEMENT_VIEW_SHA256, AFTERCARE_VIEW_SHA256, CURRENT_VIEW_SHA256):
+        return source
+    if digest(source) != CUSTOMER_VIEW_SHA256 or source.count(CUSTOMER_CURRENT_BLOCK) != 1:
+        raise ValueError('Unknown customer source or changed existing boundary')
+    restored = source.replace(CUSTOMER_CURRENT_BLOCK, CUSTOMER_OLD_BLOCK, 1)
+    if digest(restored) != SETTLEMENT_VIEW_SHA256:
+        raise ValueError('Changed source outside the customer boundary')
+    return restored
+
+
 def before_settlement_source(source):
     if digest(source) in (AFTERCARE_VIEW_SHA256, CURRENT_VIEW_SHA256):
         return source
@@ -53,6 +71,7 @@ def before_aftercare_source(source):
 
 
 def original_home_source(source):
+    source = before_customer_detail_source(source)
     source = before_settlement_source(source)
     source = before_aftercare_source(source)
     if digest(source) != CURRENT_VIEW_SHA256 or source.count(CURRENT_HOME) != 1:
@@ -99,9 +118,25 @@ def validate_model(source):
 class MerchantBusinessAccessLifetimeChecks(unittest.TestCase):
     def setUp(self):
         self.model = (ROOT / MODEL).read_text()
-        self.settlement_view = (ROOT / VIEW).read_text()
+        self.customer_view = (ROOT / VIEW).read_text()
+        self.settlement_view = before_customer_detail_source(self.customer_view)
         self.aftercare_view = before_settlement_source(self.settlement_view)
         self.view = before_aftercare_source(self.aftercare_view)
+
+    def test_customer_exact_inverse_preserves_all_existing_layers(self):
+        self.assertEqual(digest(self.customer_view), CUSTOMER_VIEW_SHA256)
+        self.assertEqual(digest(before_customer_detail_source(self.customer_view)), SETTLEMENT_VIEW_SHA256)
+        self.assertEqual(digest(original_home_source(self.customer_view)), BASE_VIEW_SHA256)
+
+    def test_customer_inverse_rejects_missing_duplicate_and_unrelated_edits(self):
+        for source in [self.customer_view + '\n',
+                       self.customer_view.replace(CUSTOMER_CURRENT_BLOCK, '', 1),
+                       self.customer_view.replace(CUSTOMER_CURRENT_BLOCK, CUSTOMER_CURRENT_BLOCK * 2, 1),
+                       self.customer_view.replace('rowActions(row, access: snapshot.access)', 'Text("changed")', 1),
+                       self.customer_view.replace('guard state.isCurrent, !state.isBusy', 'guard true', 1),
+                       self.customer_view.replace('guard appearance === visibleAppearance else { return }', 'if false { return }', 1)]:
+            with self.assertRaises(ValueError):
+                before_customer_detail_source(source)
 
     def test_settlement_exact_inverse_preserves_both_existing_layers(self):
         self.assertEqual(digest(self.settlement_view), SETTLEMENT_VIEW_SHA256)

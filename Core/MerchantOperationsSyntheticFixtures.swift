@@ -16,6 +16,7 @@ import Foundation
     public init() {
         do {
             let store = try JSONDecoder().decode(MerchantStorefront.self, from: Data(MerchantOperationsFixtureData.storeJSON.utf8))
+            documents[.npcMapPoint] = .draft(.npcMapPoint(try JSONDecoder().decode(MerchantNPCMapPoint.self, from: Data(MerchantOperationsFixtureData.storeJSON.utf8))))
             let character = try JSONDecoder().decode(MerchantStoreCharacter.self, from: Data(MerchantOperationsFixtureData.characterJSON.utf8))
             let template = try JSONDecoder().decode(MerchantNodeTemplate.self, from: Data(MerchantOperationsFixtureData.templateJSON.utf8))
             documents[.businessStatus] = .draft(.businessStatus(try .init(merchantID: 31, status: .open)))

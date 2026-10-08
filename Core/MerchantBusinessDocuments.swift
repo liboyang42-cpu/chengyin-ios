@@ -204,6 +204,10 @@ public struct MerchantBusinessDocument: Equatable {
     public let hasMore: Bool
     public let payload: MerchantBusinessValue
     public var rows: [MerchantBusinessRecord] { sections.flatMap(\.rows) }
+    public var customerDetail: MerchantCustomerDetailPresentation? {
+        guard case .customer(let id) = query else { return nil }
+        return try? .init(customerID: id, payload: payload)
+    }
     public var aftercareProgress: MerchantAftercareProgress? {
         guard case .refund(let id) = query, let fields = payload.object else { return nil }
         return try? MerchantAftercareProgress(refundID: id.rawValue, fields: fields)
@@ -224,13 +228,12 @@ public struct MerchantBusinessDocument: Equatable {
             more = query.page * 20 < total!
             if more && rows.isEmpty { throw MerchantBusinessFailure.malformed }
         case .customer(let id):
-            let customer = try object.mbObject("summary")
-            guard try customer.mbInt("customerMemberId", minimum: 1) == id.rawValue else { throw MerchantBusinessFailure.malformed }
-            for tag in try object.mbObjects("systemTags") {
-                guard ["ARRIVED", "REPEAT", "PENDING", "REFUNDED"].contains(try tag.mbRequiredText("code")) else { throw MerchantBusinessFailure.malformed }
-                _ = try tag.mbRequiredText("label")
-            }
-            sections = [try section("customer", [customer], .customer), try section("tags", object.mbObjects("merchantTags"), .tag), try section("timeline", object.mbObjects("timeline"), .timeline)]
+            let detail = try MerchantCustomerDetailPresentation(customerID: id, payload: payload)
+            // Participation is a dedicated grouped projection. Only note and
+            // campaign records remain in the generic action-bearing section;
+            // the exact raw timeline stays in payload above for confirmations.
+            sections = [try .init("customer", rows: [detail.customer]), try .init("tags", rows: detail.merchantTags),
+                        try .init("timeline", rows: detail.history.map(\.record))]
         case .aftercare, .reviews:
             let isAftercare: Bool
             if case .aftercare = query { isAftercare = true } else { isAftercare = false }

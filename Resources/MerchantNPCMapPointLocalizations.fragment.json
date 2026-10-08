@@ -1,0 +1,422 @@
+{
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "merchantMapPoint.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Roaming map point"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "漫游落点"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.unset": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No valid map point selected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未选择有效地图位置"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.selected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Map point selected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已选择地图位置"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.invalidCoordinate": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter both finite coordinates within their allowed ranges."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请填写完整、有效且未越界的经纬度。"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.addressLimit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The address must be no more than 255 UTF-16 units."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地址不能超过255个UTF-16字符单位。"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.readback": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The save was acknowledged. This is the current point returned by the service."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存请求已确认，当前显示服务端回读的落点。"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.readbackFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The save was acknowledged, but the current point could not be read. Reload to check it; do not submit the same change again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存请求已确认，但当前落点未能回读。请重新读取核对，不要重复提交相同修改。"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.lastRead": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last read from the service"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上次从服务端读取"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.displayOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is a store display point. It does not certify that anyone has arrived or that an NPC is published."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这是门店展示落点，不代表到场认证，也不代表NPC已发布。"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.mapUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visual map selection is not available until its coordinate format and regional rendering are verified. You can enter GCJ-02 coordinates manually."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可视地图选点仍待坐标格式和地区地图核验；当前可手动输入GCJ-02坐标。"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.unsaved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unsaved point draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未保存的落点草稿"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.enter": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a map point manually"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手动填写落点"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.manualHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use GCJ-02 latitude and longitude from your chosen source. This form does not request device location, convert GPS coordinates, or verify the source."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请使用你所选来源的GCJ-02经纬度。此表单不请求设备定位、不转换GPS坐标，也不认证坐标来源。"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.latitude": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latitude"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "纬度"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.longitude": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Longitude"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "经度"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.address": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store address"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "门店地址"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.datum": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coordinate format"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "坐标格式"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.confirmDatum": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I am entering GCJ-02 coordinates"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我填写的是GCJ-02坐标"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.invalidInput": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check latitude (−90 to 90), longitude (−180 to 180), and address length (255 UTF-16 units)."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请检查纬度（−90至90）、经度（−180至180）及地址长度（255个UTF-16字符单位）。"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.exactDraft": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exact draft coordinates"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿的确切坐标"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.apply": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use this point in the draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将落点放入草稿"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.reviewNext": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This only changes the draft. Review and confirm separately to save it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此处只修改草稿，保存前还需另行审阅并确认。"
+          }
+        }
+      }
+    },
+    "merchant.operations.mapPointLatitude": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latitude"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "纬度"
+          }
+        }
+      }
+    },
+    "merchant.operations.mapPointLongitude": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Longitude"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "经度"
+          }
+        }
+      }
+    },
+    "merchant.operations.mapPointAddress": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store address"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "门店地址"
+          }
+        }
+      }
+    },
+    "merchant.operations.mapPointDatum": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coordinate format"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "坐标格式"
+          }
+        }
+      }
+    }
+  }
+}

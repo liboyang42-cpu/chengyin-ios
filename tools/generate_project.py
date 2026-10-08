@@ -7,6 +7,29 @@ objects = {}
 def obj(object_key, **fields):
     key = ident(object_key); objects[key] = fields; return key
 sources = sorted([*ROOT.glob('App/*.swift'), *ROOT.glob('App/*.m'), *ROOT.glob('Core/*.swift')])
+ui_source_paths = sorted(ROOT.glob('Tests/AppUITests/*.swift'))
+unit_source_paths = sorted(ROOT.glob('Tests/AppUnitTests/**/*.swift'))
+
+def validate_swift_basenames(target_name, paths):
+    # Swift localization extraction emits <basename>.stringsdata within each
+    # target/architecture. Different directories do not make those outputs unique.
+    # Reject case-only variants too, for default case-insensitive macOS volumes.
+    by_stem = {}
+    for path in paths:
+        if path.suffix == '.swift':
+            by_stem.setdefault(path.stem.casefold(), []).append(path)
+    duplicates = [paths for paths in by_stem.values() if len(paths) > 1]
+    if duplicates:
+        details = '\n'.join('  ' + ', '.join(str(path.relative_to(ROOT)) for path in paths)
+                            for paths in duplicates)
+        raise SystemExit(f'Duplicate Swift basenames in target {target_name}:\n{details}\n'
+                         'Rename a source file; keep Swift localization extraction enabled.')
+
+# Check every target before writing any generated project or scheme. Identical
+# basenames in separate targets (for example Core and AppUnit tests) are valid.
+for target_name, paths in [('Questify', sources), ('QuestifyUITests', ui_source_paths),
+                           ('QuestifyAppUnitTests', unit_source_paths)]:
+    validate_swift_basenames(target_name, paths)
 headers = sorted(ROOT.glob('App/*.h'))
 resources = sorted([*ROOT.glob('Resources/*.xcstrings'), *ROOT.glob('Resources/*Notices.txt')])
 refs, source_builds, resource_builds = [], [], []
@@ -52,7 +75,7 @@ def configurations(scope):
     return obj(scope+'configs',isa='XCConfigurationList',buildConfigurations=configs,defaultConfigurationIsVisible=0,defaultConfigurationName='Release')
 target=obj('target',isa='PBXNativeTarget',buildConfigurationList=configurations('target'),buildPhases=[src_phase,framework_phase,res_phase,embed_phase],buildRules=[],dependencies=[gltf_dependency],name='Questify',productName='Questify',productReference=product,productType='com.apple.product-type.application')
 ui_files=[]
-for path in sorted(ROOT.glob('Tests/AppUITests/*.swift')):
+for path in ui_source_paths:
     relative=str(path.relative_to(ROOT))
     ref=obj(relative,isa='PBXFileReference',lastKnownFileType='sourcecode.swift',path=relative,sourceTree='<group>')
     objects[group]['children'].append(ref)
@@ -71,7 +94,7 @@ ui_target=obj('ui-target',isa='PBXNativeTarget',buildConfigurationList=ui_config
 unit_config_ref=obj('unit-base',isa='PBXFileReference',lastKnownFileType='text.xcconfig',path='Config/AppUnitTests.xcconfig',sourceTree='<group>')
 objects[group]['children'].append(unit_config_ref)
 unit_files=[]
-for path in sorted(ROOT.glob('Tests/AppUnitTests/**/*.swift')):
+for path in unit_source_paths:
     relative=str(path.relative_to(ROOT))
     ref=obj(relative,isa='PBXFileReference',lastKnownFileType='sourcecode.swift',path=relative,sourceTree='<group>')
     objects[group]['children'].append(ref)

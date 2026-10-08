@@ -24,6 +24,7 @@ private struct MessagingConversationListView: View {
     var expanded: IMExpandedNavigationContext? = nil
     @State private var newConversation: Int?
     @State private var rowAction: IMConversationRowActionPresentation?
+    @State private var readAll: IMConversationReadAllPresentation?
     @StateObject private var listModel = MessagingReadScreenModel<[MessagingConversation]>()
     @Environment(\.locale) private var locale
     @State private var query = ""
@@ -70,6 +71,17 @@ private struct MessagingConversationListView: View {
                     .listStyle(.plain)
                 }
             }
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    if expanded != nil {
+                        Button("im.readAll.title", systemImage: "envelope.open") {
+                            presentReadAll(conversations)
+                        }
+                        .disabled(rowAction != nil || readAll != nil || !canPresentReadAll(conversations))
+                        .accessibilityIdentifier("im.readAll.entryButton")
+                    }
+                }
+            }
         }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -92,7 +104,15 @@ private struct MessagingConversationListView: View {
                 owner?.invalidate(reader: reader, identity: presentation.actions.identity)
             }
         }
+        .sheet(item: $readAll) { presentation in
+            let owner = listModel
+            IMConversationReadAllView(batch: presentation.batch) { [weak owner] in
+                owner?.invalidate(reader: reader, identity: presentation.batch.identity)
+            }
+        }
         .onChange(of: reader.identity) { _, _ in rowAction = nil }
+        .onChange(of: MessagingReadScreenInput(reader: reader, refreshRevision: 0)) { _, _ in retireReviews() }
+        .onDisappear { readAll?.batch.stop() }
         .searchable(text: $query, prompt: "messaging.search")
         .onChange(of: query) { _, _ in displayLimit = 30 }
         .onChange(of: scope) { _, _ in displayLimit = 30 }
@@ -103,6 +123,7 @@ private struct MessagingConversationListView: View {
                 coordinator: coordinator, reader: reader)
             ForEach(Array(IMConversationRowAction.available(for: conversation).enumerated()), id: \.offset) { _, action in
                 Button {
+                    guard readAll == nil else { return }
                     if actions.prepare(action) { rowAction = .init(actions: actions) }
                 } label: {
                     Label(LocalizedStringKey(action.titleKey), systemImage: action.symbolName)
@@ -112,6 +133,29 @@ private struct MessagingConversationListView: View {
                 .accessibilityIdentifier("im.row.\(conversation.id).\(action == .markRead ? "read" : "mute")")
             }
         }
+    }
+    private func canPresentReadAll(_ conversations: [MessagingConversation]) -> Bool {
+        guard reader.isConfigured, let identity = reader.identity, let expanded else { return false }
+        return IMConversationReadAll.eligible(conversations).contains { conversation in
+            guard let owner = expanded.coordinator(conversation.id) else { return false }
+            return owner.isCurrent && owner.writer.isConfigured && owner.scope.identity == identity
+                && owner.scope.conversationID == conversation.id
+        }
+    }
+    private func presentReadAll(_ conversations: [MessagingConversation]) {
+        // A toolbar closure may be queued while a newer list is loading. Require
+        // the exact currently published source snapshot before freezing this batch.
+        guard rowAction == nil, readAll == nil, let identity = reader.identity,
+              listModel.value == conversations,
+              listModel.loadedInput == MessagingReadScreenInput(reader: reader, refreshRevision: 0),
+              listModel.appearance != nil, let expanded else { return }
+        let batch = IMConversationReadAll(conversations: conversations, identity: identity,
+            reader: reader, coordinator: expanded.coordinator)
+        guard !batch.items.isEmpty else { return }
+        readAll = .init(batch: batch)
+    }
+    private func retireReviews() {
+        readAll?.batch.stop(); readAll = nil; rowAction = nil
     }
     private func filtered(_ conversations: [MessagingConversation]) -> [MessagingConversation] {
         let keyword = query.trimmingCharacters(in: .whitespacesAndNewlines)

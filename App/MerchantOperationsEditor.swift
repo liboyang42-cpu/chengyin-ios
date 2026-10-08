@@ -31,6 +31,8 @@ struct MerchantOperationsEditor: View {
     }
     @ViewBuilder private func fields(_ draft: MerchantOperationsDraft) -> some View {
         switch draft {
+        case .npcMapPoint:
+            MerchantNPCMapPointFields(document: model)
         case .businessStatus:
             Section("merchant.operations.businessStatus") {
                 Picker("merchant.operations.businessStatus", selection: Binding<MerchantBusinessStatus>(get: {
@@ -152,6 +154,7 @@ struct MerchantOperationsEditor: View {
                 Text("merchant.operations.characterReviewHint").font(.footnote).foregroundStyle(.secondary)
             }
             mediaSection("merchant.operations.avatar", field: .avatar)
+            MerchantNPCMapPointEntry(document: model)
         case .template(let value):
             Section {
                 Button("merchant.assist.title", systemImage: "sparkles") {

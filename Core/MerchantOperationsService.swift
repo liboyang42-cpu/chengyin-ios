@@ -62,6 +62,10 @@ public struct MerchantOperationsService {
     public func document(_ destination: MerchantOperationsDestination, access: MerchantOperationsAccess, token: String) async throws -> MerchantOperationsDocument {
         guard access.allows(destination) else { throw MerchantOperationsFailure.accessDenied }
         switch destination {
+        case .npcMapPoint:
+            let value: MerchantNPCMapPoint = try await read("api/merchant/coop-profile", body: .json, token: token)
+            guard value.merchantID == access.identity.merchantID else { throw APIError.malformedResponse }
+            return .draft(.npcMapPoint(value))
         case .businessStatus:
             let value: MerchantBusinessStatusDocument = try await read("api/merchant/business-status", body: .none, token: token)
             guard let owner = access.identity.merchantID, owner > 0 else { throw APIError.malformedResponse }
@@ -109,6 +113,9 @@ public struct MerchantOperationsService {
         guard let approval, let baseline, let journal, let checkSession, draft.destination == baseline.destination else { throw MerchantOperationsFailure.liveWritesDisabled }
         if case .businessStatus(let proposed) = draft {
             guard case .businessStatus(let original) = baseline, proposed.merchantID == original.merchantID else { throw MerchantOperationsFailure.notSent }
+        }
+        if case .npcMapPoint(let proposed) = draft {
+            guard case .npcMapPoint(let original) = baseline, proposed.merchantID == original.merchantID else { throw MerchantOperationsFailure.notSent }
         }
         let previews = try draft.previews()
         guard !previews.isEmpty, previews.allSatisfy({ approval.allows(configuration: configuration, namespace: namespace, accountID: accountID, path: $0.path) }) else { throw MerchantOperationsFailure.liveWritesDisabled }

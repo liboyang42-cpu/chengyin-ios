@@ -135731,6 +135731,1582 @@
           }
         }
       }
+    },
+    "im.readAll.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mark all as read"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部已读"
+          }
+        }
+      }
+    },
+    "im.readAll.scopeHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review this frozen set of unread conversations from the currently loaded list, across categories and search results. Includes direct, system, and official conversations; excludes groups and unknown types. This does not cover unloaded server conversations."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请确认当前已加载列表中的这组未读会话。范围跨分类、不受搜索结果影响，包含私信、系统及官方会话，不含群聊或未知类型，也不包含服务端尚未加载的会话。"
+          }
+        }
+      }
+    },
+    "im.readAll.frozenCount": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conversations in this review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次审核的会话数"
+          }
+        }
+      }
+    },
+    "im.readAll.cancelHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Requests run one at a time. Stop or Close prevents the remaining requests. A request already sent may still take effect. New messages in a selected conversation may also be marked read by the server."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认后将逐个处理。停止或关闭会取消尚未发出的请求；已经发出的请求仍可能生效。同一会话中新到的消息也可能被服务端一并标为已读。"
+          }
+        }
+      }
+    },
+    "im.readAll.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm these conversations"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认处理这些会话"
+          }
+        }
+      }
+    },
+    "im.readAll.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This conversation is currently unavailable for this action."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此会话当前无法执行此操作。"
+          }
+        }
+      }
+    },
+    "im.readAll.running": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marking conversations as read…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在逐个标记已读…"
+          }
+        }
+      }
+    },
+    "im.readAll.stop": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop remaining requests"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止后续请求"
+          }
+        }
+      }
+    },
+    "im.readAll.stopping": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stopping after the current request settles."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已停止后续请求，等待当前请求返回。"
+          }
+        }
+      }
+    },
+    "im.readAll.finished": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Processing finished. Check each result below."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次处理已结束，请核对以下结果。"
+          }
+        }
+      }
+    },
+    "im.readAll.readbackHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Counts describe request outcomes. Badges update only from a successful server list refresh. Close to check the list; if refresh fails, retry the list refresh."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以上计数反映请求结果。角标只在服务端会话列表回读成功后更新。关闭后请查看列表；若回读失败，请重试刷新列表。"
+          }
+        }
+      }
+    },
+    "im.readAll.unknownHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown outcomes keep the original pending action. They are not retried automatically. Check the refreshed list and use the individual conversation action to review an explicit retry if needed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果未知的会话会保留原待确认操作，不会自动重试。请核对刷新后的列表；必要时到该会话的操作页审核并明确重试原操作。"
+          }
+        }
+      }
+    },
+    "im.readAll.cancelled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This review was cancelled."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次审核已取消。"
+          }
+        }
+      }
+    },
+    "im.readAll.conversations": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reviewed conversations"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次会话"
+          }
+        }
+      }
+    },
+    "im.readAll.acknowledged": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accepted by server"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端已受理"
+          }
+        }
+      }
+    },
+    "im.readAll.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outcome unknown"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果未知"
+          }
+        }
+      }
+    },
+    "im.readAll.rejected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rejected or closed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "被拒绝或已关闭"
+          }
+        }
+      }
+    },
+    "im.readAll.remaining": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not sent"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未发送"
+          }
+        }
+      }
+    },
+    "im.readAll.protected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not sent: an existing pending action is protected."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未发送：已有待处理操作，已保留原意图。"
+          }
+        }
+      }
+    },
+    "projectChapterRemoval.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete chapter"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除章节"
+          }
+        }
+      }
+    },
+    "projectChapterRemoval.warning": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete the selected chapters and all of their nodes and story blocks? This action has no undo."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认删除所选章节，以及其中的全部节点和故事块？此操作无法撤销。"
+          }
+        }
+      }
+    },
+    "projectChapterRemoval.localOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This changes this local draft only. Existing publishing checks still apply when you submit it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此操作只修改当前本地草稿。提交时仍需通过已有的发布检查。"
+          }
+        }
+      }
+    },
+    "projectChapterRemoval.selected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected chapters"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所选章节"
+          }
+        }
+      }
+    },
+    "projectChapterRemoval.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete selected chapters"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除所选章节"
+          }
+        }
+      }
+    },
+    "projectChapterRemoval.saveUnconfirmed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The local save result is unconfirmed. The chapters shown on this page have been kept, but the stored draft may already have changed. Local changes to this draft are paused. Check the stored content before recovery."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地保存结果未确认。当前页面仍保留原章节，但已保存的草稿可能已改变。此草稿的本地修改已暂停，请先核对保存内容，再处理恢复。"
+          }
+        }
+      }
+    },
+    "projectChapterRemoval.closeUnconfirmed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close without retrying"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭，不重试"
+          }
+        }
+      }
+    },
+    "projectChapterRemoval.inspect": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check the original saved draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "核对原草稿的保存内容"
+          }
+        }
+      }
+    },
+    "projectChapterRemoval.readback.original": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original draft’s saved content still contains these chapters. No deletion was retried. The consumed confirmation stays locked."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读回的原草稿仍包含这些章节。未重试删除，已使用的确认保持锁定。"
+          }
+        }
+      }
+    },
+    "projectChapterRemoval.readback.removed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original draft’s saved content matches this deletion. The draft entry’s save is still unconfirmed. This check has not changed the page or repaired the entry."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读回的原草稿内容与本次删除后一致，但草稿入口的保存仍未确认。此次核对未改变页面或修复入口。"
+          }
+        }
+      }
+    },
+    "projectChapterRemoval.readback.other": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original saved draft has different or unsupported content. Deletion stays locked; nothing was replaced."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原草稿的保存内容已不同或无法识别。删除保持锁定，未替换任何内容。"
+          }
+        }
+      }
+    },
+    "projectChapterRemoval.readback.missing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No saved content was found for the original draft identity. The save result remains unconfirmed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未找到原草稿身份对应的保存内容。保存结果仍未确认。"
+          }
+        }
+      }
+    },
+    "projectChapterRemoval.readback.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original saved draft could not be read. The save result remains unconfirmed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法读取原草稿的保存内容。保存结果仍未确认。"
+          }
+        }
+      }
+    },
+    "projectChapterRemoval.readback.stale": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The editor or account changed. This check cannot access the earlier draft."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑状态或账号已改变，此次核对不能访问先前草稿。"
+          }
+        }
+      }
+    },
+    "mapActivity.point.activity": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activity point"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动点位"
+          }
+        }
+      }
+    },
+    "mapActivity.point.topic": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Theme point"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题点位"
+          }
+        }
+      }
+    },
+    "mapActivity.categories": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Categories"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "品类"
+          }
+        }
+      }
+    },
+    "mapActivity.relatedRoute": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Linked theme route"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关联主题路线"
+          }
+        }
+      }
+    },
+    "mapActivity.addressUnknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Location not provided"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "位置暂未提供"
+          }
+        }
+      }
+    },
+    "mapActivity.starts": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始时间"
+          }
+        }
+      }
+    },
+    "mapActivity.ends": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ends"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结束时间"
+          }
+        }
+      }
+    },
+    "mapActivity.timeUnknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Time unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "时间暂不可用"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Roaming map point"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "漫游落点"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.unset": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No valid map point selected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未选择有效地图位置"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.selected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Map point selected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已选择地图位置"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.invalidCoordinate": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter both finite coordinates within their allowed ranges."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请填写完整、有效且未越界的经纬度。"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.addressLimit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The address must be no more than 255 UTF-16 units."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地址不能超过255个UTF-16字符单位。"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.readback": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The save was acknowledged. This is the current point returned by the service."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存请求已确认，当前显示服务端回读的落点。"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.readbackFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The save was acknowledged, but the current point could not be read. Reload to check it; do not submit the same change again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存请求已确认，但当前落点未能回读。请重新读取核对，不要重复提交相同修改。"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.lastRead": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last read from the service"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上次从服务端读取"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.displayOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is a store display point. It does not certify that anyone has arrived or that an NPC is published."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这是门店展示落点，不代表到场认证，也不代表NPC已发布。"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.mapUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visual map selection is not available until its coordinate format and regional rendering are verified. You can enter GCJ-02 coordinates manually."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可视地图选点仍待坐标格式和地区地图核验；当前可手动输入GCJ-02坐标。"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.unsaved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unsaved point draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未保存的落点草稿"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.enter": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a map point manually"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手动填写落点"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.manualHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use GCJ-02 latitude and longitude from your chosen source. This form does not request device location, convert GPS coordinates, or verify the source."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请使用你所选来源的GCJ-02经纬度。此表单不请求设备定位、不转换GPS坐标，也不认证坐标来源。"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.latitude": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latitude"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "纬度"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.longitude": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Longitude"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "经度"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.address": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store address"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "门店地址"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.datum": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coordinate format"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "坐标格式"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.confirmDatum": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I am entering GCJ-02 coordinates"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我填写的是GCJ-02坐标"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.invalidInput": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check latitude (−90 to 90), longitude (−180 to 180), and address length (255 UTF-16 units)."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请检查纬度（−90至90）、经度（−180至180）及地址长度（255个UTF-16字符单位）。"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.exactDraft": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exact draft coordinates"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿的确切坐标"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.apply": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use this point in the draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将落点放入草稿"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.reviewNext": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This only changes the draft. Review and confirm separately to save it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此处只修改草稿，保存前还需另行审阅并确认。"
+          }
+        }
+      }
+    },
+    "merchant.operations.mapPointLatitude": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latitude"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "纬度"
+          }
+        }
+      }
+    },
+    "merchant.operations.mapPointLongitude": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Longitude"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "经度"
+          }
+        }
+      }
+    },
+    "merchant.operations.mapPointAddress": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store address"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "门店地址"
+          }
+        }
+      }
+    },
+    "merchant.operations.mapPointDatum": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coordinate format"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "坐标格式"
+          }
+        }
+      }
+    },
+    "playerSubmission.status.pending": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting for merchant verification"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待商家核验"
+          }
+        }
+      }
+    },
+    "playerSubmission.status.approved": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This task passed verification"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本站已通过"
+          }
+        }
+      }
+    },
+    "playerSubmission.status.rejected": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rejected; you can submit again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商家已驳回，可重新提交"
+          }
+        }
+      }
+    },
+    "playerSubmission.status.recorded": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Evidence recorded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "证据已记录"
+          }
+        }
+      }
+    },
+    "playerSubmission.number": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verification number"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "核验编号"
+          }
+        }
+      }
+    },
+    "playerSubmission.reason": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rejection reason"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "驳回原因"
+          }
+        }
+      }
+    },
+    "playerSubmission.recordedNotice": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording evidence does not confirm that the task passed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "证据已保存不代表任务已通过。"
+          }
+        }
+      }
+    },
+    "playerSubmission.unconfirmed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submission status is not confirmed. Refresh to check again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前提交状态无法确认，请刷新后核对。"
+          }
+        }
+      }
+    },
+    "merchant.customerDetail.identity": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "客户概览"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Customer overview"
+          }
+        }
+      }
+    },
+    "merchant.customerDetail.lastInteraction": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近互动"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last interaction"
+          }
+        }
+      }
+    },
+    "merchant.customerDetail.participation": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参与记录"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Participation"
+          }
+        }
+      }
+    },
+    "merchant.customerDetail.recentScope": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅展示本次详情返回的近期记录，不代表全部历史。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recent records returned in this detail; this is not the complete history."
+          }
+        }
+      }
+    },
+    "merchant.customerDetail.participationEmpty": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无参与记录"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No participation records"
+          }
+        }
+      }
+    },
+    "merchant.customerDetail.untitledActivity": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "线下活动"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offline activity"
+          }
+        }
+      }
+    },
+    "merchant.customerDetail.orderUncertain": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录时间不完整或相同，无法确定最新状态。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record times are missing or tied; the latest status cannot be determined."
+          }
+        }
+      }
+    },
+    "merchant.customerDetail.sourceEvents": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看来源记录"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View source records"
+          }
+        }
+      }
+    },
+    "merchant.customerDetail.tagsAndNotes": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "标签与备注"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tags and notes"
+          }
+        }
+      }
+    },
+    "merchant.customerDetail.latestNote": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近跟进备注"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Most recent follow-up"
+          }
+        }
+      }
+    },
+    "merchant.customerDetail.latestNoteUnknown": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法确定最新备注，请查看下方完整返回记录。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The latest note cannot be determined. Review the returned records below."
+          }
+        }
+      }
+    },
+    "merchant.customerDetail.tagsAndNotesEmpty": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无标签与备注"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No tags or notes"
+          }
+        }
+      }
+    },
+    "merchant.customerDetail.history": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跟进与触达"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Follow-up and outreach"
+          }
+        }
+      }
+    },
+    "merchant.customerDetail.historyEmpty": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无跟进或触达记录"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No follow-up or outreach records"
+          }
+        }
+      }
+    },
+    "merchant.customerDetail.timeUnknown": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "时间未提供或不可识别"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Time unavailable or unrecognized"
+          }
+        }
+      }
+    },
+    "merchant.customerDetail.recordTime": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录时间"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record time"
+          }
+        }
+      }
+    },
+    "merchant.customerDetail.refundTimeBoundary": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已退款来自服务端报名状态；记录时间不是退款完成或到账时间。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refunded is the returned registration status. Record time is not the refund completion or bank receipt time."
+          }
+        }
+      }
+    },
+    "merchant.customerDetail.event.REGISTERED": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已报名 · 待核销"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Registered · awaiting check-in"
+          }
+        }
+      }
+    },
+    "merchant.customerDetail.event.ARRIVED": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已核销 · 报名记录"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checked in · registration record"
+          }
+        }
+      }
+    },
+    "merchant.customerDetail.event.REFUNDED": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已退款 · 报名记录"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refunded · registration record"
+          }
+        }
+      }
+    },
+    "merchant.customerDetail.event.NOTE": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跟进备注"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Follow-up note"
+          }
+        }
+      }
+    },
+    "merchant.customerDetail.event.NOTE_CORRECTION": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "备注更正"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Note correction"
+          }
+        }
+      }
+    },
+    "merchant.customerDetail.event.CAMPAIGN": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "触达记录"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outreach record"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

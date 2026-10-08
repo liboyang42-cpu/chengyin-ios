@@ -1,0 +1,370 @@
+{
+  "merchant.customerDetail.identity": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "客户概览"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Customer overview"
+        }
+      }
+    }
+  },
+  "merchant.customerDetail.lastInteraction": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "最近互动"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Last interaction"
+        }
+      }
+    }
+  },
+  "merchant.customerDetail.participation": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "参与记录"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Participation"
+        }
+      }
+    }
+  },
+  "merchant.customerDetail.recentScope": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "仅展示本次详情返回的近期记录，不代表全部历史。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Recent records returned in this detail; this is not the complete history."
+        }
+      }
+    }
+  },
+  "merchant.customerDetail.participationEmpty": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂无参与记录"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No participation records"
+        }
+      }
+    }
+  },
+  "merchant.customerDetail.untitledActivity": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "线下活动"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Offline activity"
+        }
+      }
+    }
+  },
+  "merchant.customerDetail.orderUncertain": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "记录时间不完整或相同，无法确定最新状态。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Record times are missing or tied; the latest status cannot be determined."
+        }
+      }
+    }
+  },
+  "merchant.customerDetail.sourceEvents": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "查看来源记录"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "View source records"
+        }
+      }
+    }
+  },
+  "merchant.customerDetail.tagsAndNotes": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "标签与备注"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Tags and notes"
+        }
+      }
+    }
+  },
+  "merchant.customerDetail.latestNote": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "最近跟进备注"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Most recent follow-up"
+        }
+      }
+    }
+  },
+  "merchant.customerDetail.latestNoteUnknown": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "无法确定最新备注，请查看下方完整返回记录。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The latest note cannot be determined. Review the returned records below."
+        }
+      }
+    }
+  },
+  "merchant.customerDetail.tagsAndNotesEmpty": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂无标签与备注"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No tags or notes"
+        }
+      }
+    }
+  },
+  "merchant.customerDetail.history": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "跟进与触达"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Follow-up and outreach"
+        }
+      }
+    }
+  },
+  "merchant.customerDetail.historyEmpty": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂无跟进或触达记录"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No follow-up or outreach records"
+        }
+      }
+    }
+  },
+  "merchant.customerDetail.timeUnknown": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "时间未提供或不可识别"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Time unavailable or unrecognized"
+        }
+      }
+    }
+  },
+  "merchant.customerDetail.recordTime": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "记录时间"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Record time"
+        }
+      }
+    }
+  },
+  "merchant.customerDetail.refundTimeBoundary": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已退款来自服务端报名状态；记录时间不是退款完成或到账时间。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Refunded is the returned registration status. Record time is not the refund completion or bank receipt time."
+        }
+      }
+    }
+  },
+  "merchant.customerDetail.event.REGISTERED": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已报名 · 待核销"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Registered · awaiting check-in"
+        }
+      }
+    }
+  },
+  "merchant.customerDetail.event.ARRIVED": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已核销 · 报名记录"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Checked in · registration record"
+        }
+      }
+    }
+  },
+  "merchant.customerDetail.event.REFUNDED": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已退款 · 报名记录"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Refunded · registration record"
+        }
+      }
+    }
+  },
+  "merchant.customerDetail.event.NOTE": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "跟进备注"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Follow-up note"
+        }
+      }
+    }
+  },
+  "merchant.customerDetail.event.NOTE_CORRECTION": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "备注更正"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Note correction"
+        }
+      }
+    }
+  },
+  "merchant.customerDetail.event.CAMPAIGN": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "触达记录"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Outreach record"
+        }
+      }
+    }
+  }
+}

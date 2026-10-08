@@ -11,8 +11,10 @@ public enum MerchantOperationsDraft: Equatable {
     case story(MerchantStorefront), cooperation(MerchantCoopSettings), character(MerchantStoreCharacter)
     case template(MerchantNodeTemplate)
     case businessStatus(MerchantStoreBusinessStatus)
+    case npcMapPoint(MerchantNPCMapPoint)
     public var destination: MerchantOperationsDestination {
         switch self {
+        case .npcMapPoint: return .npcMapPoint
         case .businessStatus: return .businessStatus
         case .profile: return .profile; case .decor: return .decor; case .gallery: return .gallery
         case .story: return .story; case .cooperation: return .cooperation; case .character: return .character
@@ -21,6 +23,7 @@ public enum MerchantOperationsDraft: Equatable {
     }
     public var blocker: String? {
         switch self {
+        case .npcMapPoint(let value): return value.blocker
         case .businessStatus: return nil
         case .profile(let value): return value.benefitsBlocker ?? value.hoursBlocker
         case .decor(let value): return value.blocker
@@ -36,6 +39,7 @@ public enum MerchantOperationsDraft: Equatable {
     public func previews() throws -> [MerchantOperationsRequestPreview] {
         if blocker != nil { throw APIError.invalidRequest }
         switch self {
+        case .npcMapPoint(let value): return [try .init(path: "api/merchant/decor/save", fields: value.fields)]
         case .businessStatus(let value): return [try .init(path: "api/merchant/business-status/update", form: ["business_status": String(value.status.rawValue)])]
         case .profile(let value): return [try .init(path: "api/merchant/update", fields: value.fields)]
         case .decor(let value): return [try .init(path: "api/merchant/decor/save", fields: value.fields())]
@@ -85,6 +89,7 @@ extension MerchantOperationsDraft {
     /// Human-readable frozen content. This does not turn a local draft into approval or publication.
     public var reviewLines: [MerchantOperationsReviewLine] {
         switch self {
+        case .npcMapPoint(let v): return [.init("mapPointLatitude", v.latitude), .init("mapPointLongitude", v.longitude), .init("mapPointAddress", v.address), .init("mapPointDatum", "GCJ-02")]
         case .businessStatus(let v): return [.init("businessStatus", String(v.status.rawValue))]
         case .profile(let v): return [.init("name", v.name), .init("description", v.description), .init("derivatives", v.derivatives), .init("derivativeBenefits", v.derivativeBenefits ?? ""), .init("website", v.website), .init("preference", v.preference)] + (v.businessTimeReplacement.map { [.init("businessTime", $0)] } ?? [])
         case .decor(let v): return [.init("slogan", v.slogan), .init("cityRole", v.cityRole), .init("tags", v.tags.joined(separator: "; "))]
@@ -111,6 +116,7 @@ public extension MerchantOperationsDestination {
     /// through another editor after a partial write, without persisting any document content.
     var pendingTarget: String {
         switch self {
+        case .npcMapPoint: return "merchant:storefront"
         case .profile, .decor, .gallery, .story, .businessStatus: return "merchant:storefront"
         default: return "merchant:" + id
         }
