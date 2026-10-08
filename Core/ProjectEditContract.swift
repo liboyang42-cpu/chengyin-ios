@@ -47,9 +47,8 @@ public enum ProjectEditContract {
                 "startTime": .string(ProjectEditValidation.dateTime(schedule.start)!),
                 "endTime": .string(ProjectEditValidation.dateTime(schedule.end, endOfDay: true)!)
             ]
-            let optional = ["description": ticket.description, "meetingPoint": ticket.meetingPoint, "gatherLng": ticket.gatherLng,
-                            "gatherLat": ticket.gatherLat]
-            for (key, value) in optional where !value.isEmpty { p[key] = .string(value) }
+            if !ticket.description.isEmpty { p["description"] = .string(ticket.description) }
+            p.merge(try ProjectTicketMeetingPoint.wireFields(ticket)) { _, edited in edited }
             p.merge(try ticket.saleTimePayloads()) { _, edited in edited }
             // Exact stored preference, including an untouched legacy value. The
             // server does not resolve date sync; start/end above already do so.
@@ -176,7 +175,8 @@ public enum ProjectEditContract {
             if let rawPrice = source["price"], case .number(let price) = rawPrice { t.price = NSDecimalNumber(decimal: price).stringValue }
             t.totalStock = String(source["totalInventory"]?.integer ?? 100); t.teamSize = String(source["teamSize"]?.integer ?? 0)
             t.startTime = s(source, "startTime"); t.endTime = s(source, "endTime"); t.meetingPoint = s(source, "meetingPoint")
-            t.gatherLng = s(source, "gatherLng"); t.gatherLat = s(source, "gatherLat"); t.description = s(source, "description")
+            t.gatherLng = ProjectTicketMeetingPoint.coordinateText("", original: source["gatherLng"])
+            t.gatherLat = ProjectTicketMeetingPoint.coordinateText("", original: source["gatherLat"]); t.description = s(source, "description")
             t.saleStartTime = s(source, "saleStartTime"); t.saleEndTime = s(source, "saleEndTime"); t.localMetadata = source
             return t
         }

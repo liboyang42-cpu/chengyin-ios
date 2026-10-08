@@ -99,7 +99,9 @@ import SwiftUI
     let field: ProjectTopicImageField
     let confirm: (ProjectTopicImageCropRect) -> Void
     let cancel: () -> Void
-    @State private var horizontal = 0.5, vertical = 0.5, zoom = 1.0
+    @State private var horizontal = 0.5
+    @State private var vertical = 0.5
+    @State private var zoom = 1.0
     private var rect: ProjectTopicImageCropRect? {
         try? .init(image: crop.image, field: field, horizontal: horizontal, vertical: vertical, zoom: zoom)
     }

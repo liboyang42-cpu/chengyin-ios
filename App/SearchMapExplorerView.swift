@@ -18,6 +18,8 @@ import SwiftUI
     @State private var categoryFailed = false
     @State private var cityResults: CityNodeSearchResults?
     @State private var pagination = SearchMapPagination()
+    @State private var refresh = SearchMapRefresh()
+    @State private var refreshOwnerActive = true
     @State private var nearbyResults: SearchMapNearbyResults?
     @State private var readOwner = ManualMapReadTaskOwner()
     @State private var loading = false
@@ -64,6 +66,7 @@ import SwiftUI
                     .buttonStyle(.borderedProminent).frame(minHeight: 44)
                     .disabled(area == nil || !reader.isConfigured || loading)
                     .accessibilityIdentifier("searchMap.searchArea")
+                if visibleCityResults != nil { refreshControls }
                 if let area {
                     if mapEnabled {
                         SearchMapCanvas(area: area, pins: pins, selectedID: selectedPin, offline: reader.isOfflineExample) { selectedPin = $0 }
@@ -124,8 +127,8 @@ import SwiftUI
         .onChange(of: tag) { _, _ in invalidate() }
         .onChange(of: cityRole) { _, _ in invalidate() }
         .onChange(of: sortType) { _, _ in invalidate() }
-        .onAppear { readOwner.activate() }
-            .onDisappear { readOwner.deactivate(); pagination.cancelPending(); gate.invalidate(); categoryGate.invalidate(); loading = false }
+        .onAppear { refreshOwnerActive = true; readOwner.activate() }
+            .onDisappear { readOwner.deactivate(); refresh.cancelPending(); pagination.cancelPending(); gate.invalidate(); categoryGate.invalidate(); loading = false; refreshOwnerActive = false }
     }
     @ViewBuilder private var filterControls: some View {
         Button { showsArea = true } label: { Label("searchMap.chooseArea", systemImage: "mappin.and.ellipse") }
@@ -223,6 +226,29 @@ import SwiftUI
             if row.coordinate != nil { selectPlace("city-\(row.id)", title: row.name) }
         }
     }
+    @ViewBuilder private var refreshControls: some View {
+        if refresh.isLoading {
+            ProgressView("mapRefresh.loading").accessibilityIdentifier("mapRefresh.loading")
+            Text("mapRefresh.previousWhileLoading").font(.footnote).foregroundStyle(.secondary)
+        } else {
+            Button { startRefresh() } label: {
+                Text(LocalizedStringKey(refresh.hasRetainedResults ? "mapRefresh.retry" : "mapRefresh.refresh"))
+            }
+                .buttonStyle(.bordered).frame(minHeight: 44)
+                .disabled(loading || pagination.isLoading || !reader.isConfigured)
+                .accessibilityIdentifier("mapRefresh.refresh")
+        }
+        if refresh.retainedActivities {
+            Label("mapRefresh.retainedActivities", systemImage: "exclamationmark.circle")
+                .font(.footnote).fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("mapRefresh.retainedActivities")
+        }
+        if refresh.retainedNodes {
+            Label("mapRefresh.retainedNodes", systemImage: "exclamationmark.circle")
+                .font(.footnote).fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("mapRefresh.retainedNodes")
+        }
+    }
     @ViewBuilder private var activityPaginationControls: some View {
         if pagination.isLoading {
             ProgressView("mapPagination.loading").accessibilityIdentifier("mapPagination.loading")
@@ -234,6 +260,7 @@ import SwiftUI
                     Button("searchMap.signIn", action: onSignIn).frame(minHeight: 44)
                 } else {
                     Button("mapPagination.retry") { startLoadMore() }.frame(minHeight: 44)
+                        .disabled(refresh.isLoading)
                         .accessibilityIdentifier("mapPagination.retry")
                 }
             }.accessibilityIdentifier("mapPagination.failure")
@@ -243,7 +270,7 @@ import SwiftUI
             }
             Button("mapPagination.more") { startLoadMore() }
                 .buttonStyle(.bordered).frame(minHeight: 44)
-                .disabled(loading || !reader.isConfigured)
+                .disabled(loading || refresh.isLoading || !reader.isConfigured)
                 .accessibilityIdentifier("mapPagination.more")
         }
     }
@@ -281,7 +308,7 @@ import SwiftUI
         }.appNavigationTitle("searchMap.nodeDetail")
     }
     private func invalidate() {
-        readOwner.cancel(); gate.invalidate(); pagination.invalidate(); cityResults = nil; nearbyResults = nil; selectedPin = nil; issue = nil; loading = false
+        readOwner.cancel(); refresh.invalidate(); gate.invalidate(); pagination.invalidate(); cityResults = nil; nearbyResults = nil; selectedPin = nil; issue = nil; loading = false
     }
     private func startLoad() {
         // This button explicitly searches the shown manual area, including after another view changed it.
@@ -289,8 +316,48 @@ import SwiftUI
         invalidate()
         readOwner.start { await performLoad() }
     }
+    private func startRefresh() {
+        // Refresh must not reselect the area: re-selection changes its revision and
+        // would authorize a different read. A changed area requires Search this area.
+        guard refreshOwnerActive, mode == .city, reader.isConfigured, !loading, let query = cityQuery,
+              let result = visibleCityResults,
+              let ticket = refresh.begin(query: query, scope: reader.scope,
+                  manualAreaRevision: reader.manualAreaRevision, result: result, pagination: pagination) else { return }
+        readOwner.start { await performRefresh(ticket) }
+    }
+    private func acceptsRefresh(_ ticket: SearchMapRefresh.Ticket) -> Bool {
+        !Task.isCancelled && reader.isConfigured && refresh.accepts(ticket, query: cityQuery,
+            scope: reader.scope, manualAreaRevision: reader.manualAreaRevision)
+    }
+    private func performRefresh(_ ticket: SearchMapRefresh.Ticket) async {
+        defer { refresh.cancel(ticket) }
+        guard acceptsRefresh(ticket) else { return }
+        do {
+            let result = try await reader.citySearch(ticket.query)
+            guard acceptsRefresh(ticket) else { return }
+            applyRefresh(ticket, result: result)
+        } catch is CancellationError { }
+        catch {
+            guard acceptsRefresh(ticket) else { return }
+            switch error as? APIError {
+            case .unauthorized, .notConfigured, .invalidConfiguration, .invalidRequest:
+                invalidate(); issue = SearchMapIssue.key(error)
+            default:
+                applyRefresh(ticket, result: .init(activities: [], nodes: [],
+                    activityFailure: .unavailable, nodeFailure: .unavailable))
+            }
+        }
+    }
+    private func applyRefresh(_ ticket: SearchMapRefresh.Ticket, result: CityNodeSearchResults) {
+        guard let update = refresh.finish(ticket, result: result, query: cityQuery,
+            scope: reader.scope, manualAreaRevision: reader.manualAreaRevision) else { return }
+        cityResults = update.result; pagination = update.pagination
+        // A removed object must not leave a stale selected card. Kept IDs render
+        // the current shared list projection, preserving activity/topic separation.
+        if let selectedPin, !pins.contains(where: { $0.id == selectedPin }) { self.selectedPin = nil }
+    }
     private func startLoadMore() {
-        guard mode == .city, reader.isConfigured, !loading, visibleCityResults != nil,
+        guard mode == .city, reader.isConfigured, !loading, !refresh.isLoading, visibleCityResults != nil,
               let query = cityQuery,
               let ticket = pagination.begin(query: query, scope: reader.scope,
                   manualAreaRevision: reader.manualAreaRevision) else { return }

@@ -1,0 +1,38 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "im.reply.systemNotice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System notifications are one-way. You can read them and manage notifications here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "系统通知不支持回复。你可以查看消息并设置免打扰。"
+          }
+        }
+      }
+    },
+    "im.reply.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replying is unavailable for this conversation. A pending message is kept without being retried."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此会话暂不可回复。待确认的消息会保留，不会自动重试。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

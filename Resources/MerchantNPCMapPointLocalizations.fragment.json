@@ -417,6 +417,38 @@
           }
         }
       }
+    },
+    "merchantMapPoint.edit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit map point"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑地图位置"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.readOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can view this saved point. Editing requires profile write permission."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你可以查看已保存的位置。编辑需要商家资料写入权限。"
+          }
+        }
+      }
     }
   }
 }

@@ -369,7 +369,7 @@ import SwiftUI
                     ProjectEditDateField(title: "projectEdit.ticketEnd", value: ticket.endTime, identifier: "projectEdit.ticketEnd")
                 }
                 if model.draft.product == .city {
-                    TextField("projectEdit.meetingPoint", text: ticket.meetingPoint).accessibilityIdentifier("projectEdit.meetingPoint")
+                    ProjectTicketMeetingPointFields(model: model, ticketID: ticketID)
                 }
                 Text("projectEdit.ticketScopeHint").foregroundStyle(.secondary)
             }
@@ -440,7 +440,7 @@ struct ProjectEditReviewView: View {
                             LabeledContent { Text(LocalizedStringKey(ticket.syncsWithThemeDates ? "projectEdit.yes" : "projectEdit.no")) } label: { Text("projectEdit.syncThemeDates") }
                             if !ticket.canEditThemeDateSync { Text("projectEdit.syncThemeDatesLegacy") }
                         }
-                        row("projectEdit.meetingPoint", ticket.meetingPoint)
+                        ProjectTicketMeetingPointSummary(ticket: ticket)
                         let sale = (try? ticket.saleTimePayloads()) ?? [:]
                         row("projectEdit.saleStart", sale["saleStartTime"]?.text ?? ticket.saleStartTime)
                         row("projectEdit.saleEnd", sale["saleEndTime"]?.text ?? ticket.saleEndTime)

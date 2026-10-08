@@ -281,6 +281,9 @@ public enum ProjectEditValidation {
             }
         }
         for ticket in draft.tickets {
+            if (try? ProjectTicketMeetingPoint.wireFields(ticket)) == nil {
+                issues.append(.init("ticketMeetingPoint\(ticket.id)", "projectTicketMeetingPoint.invalidStored"))
+            }
             need((try? ticket.saleTimePayloads()) != nil, "ticketSaleDates\(ticket.id)", "dates")
             need(!ticket.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, "ticketName\(ticket.id)", "ticketName")
             need(decimal(ticket.price).map { $0 >= 0 } ?? false, "price\(ticket.id)", "price")

@@ -27,8 +27,9 @@ class MerchantNPCMapPointContracts(unittest.TestCase):
         self.assertEqual(set(re.findall(r'"([A-Za-z]+)":', fields)), {'locationLat','locationLng','address'})
         self.assertNotIn('locationVerified', APP+CORE)
         self.assertIn('case .npcMapPoint(let value): return [try .init(path: "api/merchant/decor/save", fields: value.fields)]', DRAFT)
-    def test_read_requires_owner_and_both_actual_permissions(self):
+    def test_read_requires_owner_and_coop_while_writer_still_requires_both(self):
         self.assertIn('case .npcMapPoint: return profileWrite && cooperationManage', read('Core/MerchantOperationsContracts.swift'))
+        self.assertIn('destination == .npcMapPoint ? access.cooperationManage : access.allows(destination)', SERVICE)
         branch=SERVICE.split('case .npcMapPoint:')[1].split('case .businessStatus:')[0]
         self.assertIn('"api/merchant/coop-profile", body: .json',branch)
         self.assertIn('value.merchantID == access.identity.merchantID',branch)

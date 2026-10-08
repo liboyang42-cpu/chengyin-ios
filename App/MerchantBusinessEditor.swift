@@ -50,8 +50,8 @@ struct MerchantBusinessEditorContext: Identifiable {
                         Text("merchant.business.chooseRole").tag("")
                         ForEach(snapshot?.roles?.rows ?? []) { item in Text(item.fields.mbText("name") ?? item.id).tag(item.id) }
                     }
-                    if let selected = snapshot?.roles?.rows.first(where: { $0.id == role }), let permissions = try? selected.fields.mbStrings("permissions") {
-                        Section("merchant.business.permissions") { ForEach(permissions, id: \.self) { Text($0).font(.caption) } }
+                    if let selected = snapshot?.roles?.rows.first(where: { $0.id == role }) {
+                        MerchantOperatorRolePermissionSection(role: selected)
                     }
                     Text("merchant.business.rolesBoundary").font(.footnote).foregroundStyle(.secondary)
                 case .removeOperator, .revokeInvite:

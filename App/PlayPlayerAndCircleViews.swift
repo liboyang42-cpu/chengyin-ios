@@ -10,6 +10,7 @@ import SwiftUI
     @State private var consequence = ""
     @State private var issue: PlayExperienceError?
     @State private var submissionReadback: PlayPlayerSubmissionReadback?
+    @State private var teamReadback: PlayPlayerTeamReadback?
     var body: some View {
         List {
             Section {
@@ -32,6 +33,7 @@ import SwiftUI
                     if projection.roleConfirmed { Label("playx.player.role.confirmed", systemImage: "checkmark.seal") }
                     else { Button("playx.player.role.confirm") { prepare(.confirmRole, projection: projection) }.disabled(model.phase != "ready") }
                 }
+                PlayPlayerTeamStatusView(state: teamReadback?.state ?? .unconfirmed)
                 ForEach(projection.nodes) { node in
                     Section {
                         Text(verbatim: node.name ?? "#\(node.id)").font(.headline)
@@ -99,11 +101,22 @@ import SwiftUI
             .task {
                 guard !Task.isCancelled else { return }
                 submissionReadback?.dismiss()
+                teamReadback?.dismiss()
+                let team = PlayPlayerTeamReadback(model: model)
+                teamReadback = team
                 let readback = PlayPlayerSubmissionReadback(model: model)
                 submissionReadback = readback
                 await readback.open()
+                team.acceptFreshRead()
             }
             .onDisappear { submissionReadback?.dismiss() }
+            .onDisappear { teamReadback?.dismiss() }
+            .onChange(of: model.phase) { _, phase in
+                if phase == "ready" { teamReadback?.acceptFreshRead() }
+            }
+            .onChange(of: model.projection) { _, _ in
+                teamReadback?.acceptFreshRead()
+            }
             .navigationDestination(item: $evidenceTarget) { target in
                 PlayerTaskEvidenceView(target: target, player: model, device: deviceModel?(target.nodeID))
             }

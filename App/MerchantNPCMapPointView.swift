@@ -1,32 +1,146 @@
 import SwiftUI
 
+@MainActor final class MerchantNPCMapPointReadOnlyModel: ObservableObject {
+    struct RefreshIntent: Equatable {
+        fileprivate let appearanceID: UUID
+        fileprivate let scope: UUID
+    }
+    let coordinator: MerchantNPCMapPointReadOnlyCoordinator
+    @Published private(set) var revision = 0
+    private var isVisible = false
+    private var activeIntent: RefreshIntent?
+    init(reader: any MerchantOperationsReading) { coordinator = .init(reader: reader) }
+    var refreshIntent: RefreshIntent? {
+        guard isVisible, let activeIntent, activeIntent.scope == coordinator.reader.scope else { return nil }
+        return activeIntent
+    }
+    // Activation is a synchronous appearance event, never something a queued task can do.
+    func appear(isActive: Bool = true) {
+        isVisible = true
+        suspend()
+        if isActive { activeIntent = .init(appearanceID: UUID(), scope: coordinator.reader.scope) }
+    }
+    func disappear() { isVisible = false; suspend() }
+    func suspend() { activeIntent = nil; coordinator.invalidate(); revision += 1 }
+    func resume() -> RefreshIntent? {
+        guard isVisible else { return nil }
+        appear(); return refreshIntent
+    }
+    func scopeChanged() -> RefreshIntent? {
+        let wasActive = activeIntent != nil
+        suspend()
+        guard isVisible, wasActive else { return nil }
+        activeIntent = .init(appearanceID: UUID(), scope: coordinator.reader.scope)
+        return refreshIntent
+    }
+    func load(_ intent: RefreshIntent?) async {
+        // Check before entering the coordinator: a closed, replaced or cancelled task
+        // must not even dispatch access/me under a newer visible appearance.
+        guard !Task.isCancelled, let intent, intent == refreshIntent else { return }
+        revision += 1
+        await coordinator.load()
+        guard intent == refreshIntent else { return }
+        revision += 1
+    }
+}
+
 /// Source-like row in the NPC settings page. A failed read is never shown as a saved point.
 @MainActor struct MerchantNPCMapPointEntry: View {
     @ObservedObject var document: MerchantOperationsViewModel
-    @StateObject private var point: MerchantOperationsViewModel
+    @StateObject private var point: MerchantNPCMapPointReadOnlyModel
+    @Environment(\.scenePhase) private var scenePhase
     init(document: MerchantOperationsViewModel) {
         self.document = document
-        _point = StateObject(wrappedValue: .init(reader: document.coordinator.reader, destination: .npcMapPoint))
+        _point = StateObject(wrappedValue: .init(reader: document.coordinator.reader))
     }
     var body: some View {
         Section {
             NavigationLink {
-                MerchantOperationsDocumentView(reader: document.coordinator.reader, destination: .npcMapPoint)
+                MerchantNPCMapPointReadOnlyView(reader: document.coordinator.reader)
             } label: {
                 VStack(alignment: .leading, spacing: 4) {
                     Label("merchantMapPoint.title", systemImage: "mappin.and.ellipse")
-                    if point.coordinator.isCurrent, case .npcMapPoint(let saved) = point.coordinator.baseline {
+                    if let saved = point.coordinator.point {
                         Text(LocalizedStringKey(saved.statusKey)).font(.subheadline).foregroundStyle(.secondary)
                         if saved.coordinate != nil, !saved.address.isEmpty { Text(verbatim: saved.address).font(.footnote) }
-                    } else if let issue = point.coordinator.issue {
+                    } else if let issue = point.coordinator.issue, point.coordinator.loadedScope == document.coordinator.reader.scope {
                         MerchantOperationsIssueView(issue: issue)
                     } else { Text("merchant.loading").font(.footnote) }
                 }
-            }.disabled(!document.coordinator.isCurrent || document.coordinator.isBusy || document.coordinator.isLocked)
+            }.disabled(!document.coordinator.isCurrent || document.coordinator.isBusy)
                 .accessibilityIdentifier("merchantMapPoint.open")
         }
-        .task(id: document.coordinator.reader.scope) { await point.load() }
-        .onChange(of: document.coordinator.reader.scope) { _, _ in point.invalidate() }
+        .onAppear { point.appear(isActive: scenePhase == .active) }
+        .task(id: point.refreshIntent) { [intent = point.refreshIntent] in await point.load(intent) }
+        .onChange(of: document.coordinator.reader.scope) { _, _ in _ = point.scopeChanged() }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active { point.suspend() }
+            else { _ = point.resume() }
+        }
+        .onDisappear { point.disappear() }
+    }
+}
+
+/// Every authorized role can inspect the saved point. Only a fresh dual-permission
+/// snapshot exposes the existing editor, whose service independently rechecks writes.
+@MainActor struct MerchantNPCMapPointReadOnlyView: View {
+    let reader: any MerchantOperationsReading
+    @StateObject private var model: MerchantNPCMapPointReadOnlyModel
+    @State private var showEditor = false
+    @Environment(\.scenePhase) private var scenePhase
+    init(reader: any MerchantOperationsReading) {
+        self.reader = reader
+        _model = StateObject(wrappedValue: .init(reader: reader))
+    }
+    private var coordinator: MerchantNPCMapPointReadOnlyCoordinator { model.coordinator }
+    var body: some View {
+        Form {
+            Section { MerchantOperationsBoundary(isExample: reader.isOfflineExample) }
+            if let saved = coordinator.point {
+                Section("merchantMapPoint.title") {
+                    Text("merchantMapPoint.lastRead").font(.caption).foregroundStyle(.secondary)
+                    Text(LocalizedStringKey(saved.statusKey)).accessibilityIdentifier("merchantMapPoint.status")
+                    if saved.coordinate != nil { MerchantNPCMapPointSummary(value: saved) }
+                    Text("merchantMapPoint.displayOnly").font(.footnote).foregroundStyle(.secondary)
+                }
+                if coordinator.hasPendingWrite {
+                    Section { Text("merchant.operations.unknownOutcome") }
+                } else if coordinator.canOpenEditor {
+                    Section {
+                        Button("merchantMapPoint.edit") {
+                            guard coordinator.canOpenEditor else { return }
+                            showEditor = true
+                        }.accessibilityIdentifier("merchantMapPoint.edit")
+                    }
+                } else {
+                    Section { Text("merchantMapPoint.readOnly").accessibilityIdentifier("merchantMapPoint.readOnly") }
+                }
+            } else if let issue = coordinator.issue, coordinator.loadedScope == reader.scope {
+                Section { MerchantOperationsIssueView(issue: issue) }
+            } else { ProgressView("merchant.loading") }
+        }
+        .appNavigationTitle(key: MerchantOperationsDestination.npcMapPoint.titleKey)
+        .accessibilityIdentifier("merchantMapPoint.details")
+        // Keep the pushed editor independent of the read snapshot cleared on disappear.
+        .navigationDestination(isPresented: $showEditor) {
+            MerchantOperationsDocumentView(reader: reader, destination: .npcMapPoint)
+        }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("merchant.operations.reloadSource", systemImage: "arrow.clockwise") {
+                    let intent = model.refreshIntent
+                    Task { await model.load(intent) }
+                }.disabled(coordinator.isBusy).accessibilityIdentifier("merchantMapPoint.reload")
+            }
+        }
+        .onAppear { model.appear(isActive: scenePhase == .active) }
+        .task(id: model.refreshIntent) { [intent = model.refreshIntent] in await model.load(intent) }
+        .onChange(of: reader.scope) { _, _ in _ = model.scopeChanged(); showEditor = false }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active { model.suspend() }
+            else { _ = model.resume() }
+        }
+        .onDisappear { model.disappear() }
     }
 }
 

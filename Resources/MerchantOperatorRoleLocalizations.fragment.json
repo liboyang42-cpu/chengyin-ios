@@ -1,0 +1,754 @@
+{
+  "merchant.operatorRole.empty": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The server lists no permissions for this role."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务端未列出此岗位的权限。"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.codes": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "View exact permission codes"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "查看原始权限代码"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.scope": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Only permissions returned for the selected role are listed. The server still checks store ownership and current access for each action."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这里只显示服务端为所选岗位返回的权限。每次操作仍由服务端校验门店归属和当前权限。"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.unavailable": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Permission details are unavailable. Reload the role list before deciding."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "权限说明暂不可用，请重新加载岗位列表后再决定。"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.emptyCode": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Empty permission code returned by the server"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务端返回了空权限代码"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.unknown.title": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Unrecognized permission"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "未识别的权限"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.unknown.detail": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This app cannot explain this code. Check its meaning before choosing the role; it is not treated as a known permission."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前版本无法解释此代码。选择岗位前请先确认其含义；不会将其视为已知权限。"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.permission.basic.read.title": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "View store basics"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "查看门店基本信息"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.permission.basic.read.detail": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Read the store’s basic business information."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "读取门店基本经营信息。"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.permission.profile.write.title": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Edit store profile"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "编辑门店资料"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.permission.profile.write.detail": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Update the store’s profile information."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "更新门店资料信息。"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.permission.project.manage.title": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Manage projects"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "管理项目"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.permission.project.manage.detail": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Manage projects within the store’s authorized scope."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "管理门店授权范围内的项目。"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.permission.verify.title": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Verify redemptions"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "执行核销"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.permission.verify.detail": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Perform authorized store redemption checks. Viewing records is a separate permission."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "执行获授权的门店核销。查看核销记录属于另一项权限。"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.permission.verify.record.read.title": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "View verification records"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "查看核销记录"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.permission.verify.record.read.detail": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Read verification history. This permission alone does not allow redemption or finance access."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "读取核销历史。仅此权限不代表可以执行核销或查看财务。"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.permission.order.read.title": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "View orders"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "查看订单"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.permission.order.read.detail": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Read orders within the store’s authorized scope."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "读取门店授权范围内的订单。"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.permission.crm.read.title": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "View customer records"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "查看客户记录"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.permission.crm.read.detail": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Read customer records available to the store. Sensitive fields have a separate permission."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "读取门店可查看的客户记录。敏感字段需要单独的权限。"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.permission.crm.sensitive.read.title": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "View sensitive customer fields"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "查看客户敏感字段"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.permission.crm.sensitive.read.detail": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Read sensitive customer fields allowed by the server. Contact access may require separate consent and checks."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "读取服务端允许查看的客户敏感字段。获取联系方式可能还需单独同意和校验。"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.permission.crm.segment.title": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Manage customer notes and tags"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "管理客户备注和标签"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.permission.crm.segment.detail": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Manage customer notes, tags and segments within the store’s scope."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "管理本店范围内的客户备注、标签和分群。"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.permission.crm.export.title": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Export customer records"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "导出客户记录"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.permission.crm.export.detail": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Request customer exports under the server’s access and audit rules."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "按照服务端权限和审计规则申请导出客户记录。"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.permission.finance.read.title": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "View finance records"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "查看财务记录"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.permission.finance.read.detail": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Read financial and settlement records. This permission does not authorize payments, transfers or refunds."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "读取财务和结算记录。此权限不授权付款、转账或执行退款。"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.permission.aftercare.read.title": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "View aftercare cases"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "查看售后"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.permission.aftercare.read.detail": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Read aftercare requests and their recorded progress."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "读取售后申请及其已记录的处理进度。"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.permission.aftercare.respond.title": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Respond to aftercare"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "回复售后"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.permission.aftercare.respond.detail": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Submit permitted merchant responses. Decisions and evidence have separate permission codes."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "提交获允许的商家回复。处理意见和补充凭证各有单独的权限代码。"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.permission.aftercare.decide.title": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Submit an aftercare opinion"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "提交售后处理意见"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.permission.aftercare.decide.detail": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Submit an agree or reject opinion when allowed. This does not execute a refund."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "在获允许时提交同意或拒绝意见。此操作不执行退款。"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.permission.aftercare.evidence.title": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Provide aftercare evidence"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "补充售后凭证"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.permission.aftercare.evidence.detail": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Add permitted evidence to an aftercare case."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "为售后申请补充获允许的凭证。"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.permission.marketing.read.title": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "View marketing records"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "查看营销记录"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.permission.marketing.read.detail": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Read marketing information available to the store."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "读取本店可查看的营销信息。"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.permission.marketing.write.title": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Manage marketing"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "管理营销"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.permission.marketing.write.detail": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Manage authorized marketing activities. Audience, consent and delivery checks still apply."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "管理获授权的营销活动。仍需遵守受众范围、同意和发送校验。"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.permission.coupon.manage.title": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Manage coupons"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "管理优惠券"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.permission.coupon.manage.detail": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Manage coupons within the store’s authorized scope."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "管理门店授权范围内的优惠券。"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.permission.coop.manage.title": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Manage cooperation"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "管理合作"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.permission.coop.manage.detail": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Manage cooperation within the store’s authorized scope."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "管理门店授权范围内的合作。"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.permission.operator.manage.title": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Manage the operator team"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "管理员工团队"
+        }
+      }
+    }
+  },
+  "merchant.operatorRole.permission.operator.manage.detail": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Manage staff invitations and roles when the server also confirms team-management access."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "在服务端同时确认团队管理资格时，管理员工邀请和岗位。"
+        }
+      }
+    }
+  }
+}

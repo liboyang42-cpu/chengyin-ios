@@ -1,0 +1,98 @@
+{
+  "mapRefresh.loading": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Refreshing map results…"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "正在刷新地图结果…"
+        }
+      }
+    }
+  },
+  "mapRefresh.previousWhileLoading": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Previously loaded results remain visible while this refresh runs."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "刷新期间仍显示之前加载的结果。"
+        }
+      }
+    }
+  },
+  "mapRefresh.refresh": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Refresh these results"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "刷新当前结果"
+        }
+      }
+    }
+  },
+  "mapRefresh.retry": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Retry refresh"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "重试刷新"
+        }
+      }
+    }
+  },
+  "mapRefresh.retainedActivities": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Activity refresh failed. Previously loaded activity results are still shown."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "活动刷新失败，仍显示之前加载的活动结果。"
+        }
+      }
+    }
+  },
+  "mapRefresh.retainedNodes": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "City point refresh failed. Previously loaded city points are still shown."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "城市点位刷新失败，仍显示之前加载的城市点位。"
+        }
+      }
+    }
+  }
+}

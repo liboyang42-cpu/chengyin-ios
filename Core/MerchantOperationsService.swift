@@ -60,7 +60,10 @@ public struct MerchantOperationsService {
         try await read("api/merchant/access/me", body: .none, token: token)
     }
     public func document(_ destination: MerchantOperationsDestination, access: MerchantOperationsAccess, token: String) async throws -> MerchantOperationsDocument {
-        guard access.allows(destination) else { throw MerchantOperationsFailure.accessDenied }
+        // coop-profile already authorizes COOP_MANAGE reads. Editing/saving still uses
+        // access.allows(.npcMapPoint), which requires both COOP_MANAGE and PROFILE_WRITE.
+        let canRead = destination == .npcMapPoint ? access.cooperationManage : access.allows(destination)
+        guard canRead else { throw MerchantOperationsFailure.accessDenied }
         switch destination {
         case .npcMapPoint:
             let value: MerchantNPCMapPoint = try await read("api/merchant/coop-profile", body: .json, token: token)

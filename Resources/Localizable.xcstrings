@@ -137307,6 +137307,1282 @@
           }
         }
       }
+    },
+    "merchantMapPoint.edit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit map point"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑地图位置"
+          }
+        }
+      }
+    },
+    "merchantMapPoint.readOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can view this saved point. Editing requires profile write permission."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你可以查看已保存的位置。编辑需要商家资料写入权限。"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server lists no permissions for this role."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端未列出此岗位的权限。"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.codes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View exact permission codes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看原始权限代码"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only permissions returned for the selected role are listed. The server still checks store ownership and current access for each action."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这里只显示服务端为所选岗位返回的权限。每次操作仍由服务端校验门店归属和当前权限。"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permission details are unavailable. Reload the role list before deciding."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "权限说明暂不可用，请重新加载岗位列表后再决定。"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.emptyCode": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empty permission code returned by the server"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端返回了空权限代码"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.unknown.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unrecognized permission"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未识别的权限"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.unknown.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This app cannot explain this code. Check its meaning before choosing the role; it is not treated as a known permission."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前版本无法解释此代码。选择岗位前请先确认其含义；不会将其视为已知权限。"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.permission.basic.read.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View store basics"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看门店基本信息"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.permission.basic.read.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read the store’s basic business information."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取门店基本经营信息。"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.permission.profile.write.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit store profile"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑门店资料"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.permission.profile.write.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Update the store’s profile information."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更新门店资料信息。"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.permission.project.manage.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage projects"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "管理项目"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.permission.project.manage.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage projects within the store’s authorized scope."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "管理门店授权范围内的项目。"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.permission.verify.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verify redemptions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "执行核销"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.permission.verify.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Perform authorized store redemption checks. Viewing records is a separate permission."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "执行获授权的门店核销。查看核销记录属于另一项权限。"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.permission.verify.record.read.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View verification records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看核销记录"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.permission.verify.record.read.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read verification history. This permission alone does not allow redemption or finance access."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取核销历史。仅此权限不代表可以执行核销或查看财务。"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.permission.order.read.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View orders"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看订单"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.permission.order.read.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read orders within the store’s authorized scope."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取门店授权范围内的订单。"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.permission.crm.read.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View customer records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看客户记录"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.permission.crm.read.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read customer records available to the store. Sensitive fields have a separate permission."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取门店可查看的客户记录。敏感字段需要单独的权限。"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.permission.crm.sensitive.read.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View sensitive customer fields"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看客户敏感字段"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.permission.crm.sensitive.read.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read sensitive customer fields allowed by the server. Contact access may require separate consent and checks."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取服务端允许查看的客户敏感字段。获取联系方式可能还需单独同意和校验。"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.permission.crm.segment.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage customer notes and tags"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "管理客户备注和标签"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.permission.crm.segment.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage customer notes, tags and segments within the store’s scope."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "管理本店范围内的客户备注、标签和分群。"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.permission.crm.export.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export customer records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导出客户记录"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.permission.crm.export.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request customer exports under the server’s access and audit rules."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按照服务端权限和审计规则申请导出客户记录。"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.permission.finance.read.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View finance records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看财务记录"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.permission.finance.read.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read financial and settlement records. This permission does not authorize payments, transfers or refunds."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取财务和结算记录。此权限不授权付款、转账或执行退款。"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.permission.aftercare.read.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View aftercare cases"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看售后"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.permission.aftercare.read.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read aftercare requests and their recorded progress."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取售后申请及其已记录的处理进度。"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.permission.aftercare.respond.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Respond to aftercare"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回复售后"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.permission.aftercare.respond.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submit permitted merchant responses. Decisions and evidence have separate permission codes."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提交获允许的商家回复。处理意见和补充凭证各有单独的权限代码。"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.permission.aftercare.decide.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submit an aftercare opinion"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提交售后处理意见"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.permission.aftercare.decide.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submit an agree or reject opinion when allowed. This does not execute a refund."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在获允许时提交同意或拒绝意见。此操作不执行退款。"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.permission.aftercare.evidence.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Provide aftercare evidence"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "补充售后凭证"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.permission.aftercare.evidence.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add permitted evidence to an aftercare case."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "为售后申请补充获允许的凭证。"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.permission.marketing.read.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View marketing records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看营销记录"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.permission.marketing.read.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read marketing information available to the store."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取本店可查看的营销信息。"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.permission.marketing.write.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage marketing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "管理营销"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.permission.marketing.write.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage authorized marketing activities. Audience, consent and delivery checks still apply."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "管理获授权的营销活动。仍需遵守受众范围、同意和发送校验。"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.permission.coupon.manage.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage coupons"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "管理优惠券"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.permission.coupon.manage.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage coupons within the store’s authorized scope."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "管理门店授权范围内的优惠券。"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.permission.coop.manage.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage cooperation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "管理合作"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.permission.coop.manage.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage cooperation within the store’s authorized scope."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "管理门店授权范围内的合作。"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.permission.operator.manage.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage the operator team"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "管理员工团队"
+          }
+        }
+      }
+    },
+    "merchant.operatorRole.permission.operator.manage.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage staff invitations and roles when the server also confirms team-management access."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在服务端同时确认团队管理资格时，管理员工邀请和岗位。"
+          }
+        }
+      }
+    },
+    "mapRefresh.loading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refreshing map results…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在刷新地图结果…"
+          }
+        }
+      }
+    },
+    "mapRefresh.previousWhileLoading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Previously loaded results remain visible while this refresh runs."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新期间仍显示之前加载的结果。"
+          }
+        }
+      }
+    },
+    "mapRefresh.refresh": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh these results"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新当前结果"
+          }
+        }
+      }
+    },
+    "mapRefresh.retry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry refresh"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试刷新"
+          }
+        }
+      }
+    },
+    "mapRefresh.retainedActivities": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activity refresh failed. Previously loaded activity results are still shown."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动刷新失败，仍显示之前加载的活动结果。"
+          }
+        }
+      }
+    },
+    "mapRefresh.retainedNodes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "City point refresh failed. Previously loaded city points are still shown."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "城市点位刷新失败，仍显示之前加载的城市点位。"
+          }
+        }
+      }
+    },
+    "playerTeam.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Team collaboration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队伍协作"
+          }
+        }
+      }
+    },
+    "playerTeam.teammate": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teammate"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队友"
+          }
+        }
+      }
+    },
+    "playerTeam.role": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Role"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "角色"
+          }
+        }
+      }
+    },
+    "playerTeam.privacy": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only public collaboration status is shown. Teammates’ precise locations are not shared."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这里只显示协作状态，不公开队友精确位置。"
+          }
+        }
+      }
+    },
+    "playerTeam.unconfirmed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Team collaboration status is not confirmed. Refresh to check again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前队伍协作状态无法确认，请刷新后核对。"
+          }
+        }
+      }
+    },
+    "playerTeam.status.joined": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Awaiting role assignment"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待分配"
+          }
+        }
+      }
+    },
+    "playerTeam.status.assigned": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Awaiting role confirmation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待确认身份"
+          }
+        }
+      }
+    },
+    "playerTeam.status.confirmed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Role confirmed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "身份已确认"
+          }
+        }
+      }
+    },
+    "playerTeam.status.in_progress": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In progress"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "行动中"
+          }
+        }
+      }
+    },
+    "playerTeam.status.submitted": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting for verification"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等待核验"
+          }
+        }
+      }
+    },
+    "playerTeam.status.completed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已完成"
+          }
+        }
+      }
+    },
+    "playerTeam.status.fallback_completed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completed through fallback"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已通过兜底完成"
+          }
+        }
+      }
+    },
+    "projectTicketMeetingPoint.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ticket meeting point"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "票种集合地点"
+          }
+        }
+      }
+    },
+    "projectTicketMeetingPoint.edit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit meeting point"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑集合地点"
+          }
+        }
+      }
+    },
+    "projectTicketMeetingPoint.address": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meeting-point address"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "集合点地址"
+          }
+        }
+      }
+    },
+    "projectTicketMeetingPoint.coordinates": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GCJ-02 coordinates (optional)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GCJ-02 坐标（选填）"
+          }
+        }
+      }
+    },
+    "projectTicketMeetingPoint.datum": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use GCJ-02 coordinates, the same datum as the existing mini-program map picker. Enter both coordinates or leave both blank. Coordinates are not converted."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请使用与现有小程序地图选点一致的 GCJ-02 坐标。经纬度需同时填写或同时留空；这里不会转换坐标。"
+          }
+        }
+      }
+    },
+    "projectTicketMeetingPoint.invalidCoordinates": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter both coordinates: longitude −180 to 180 and latitude −90 to 90. Zero is valid."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请同时填写经纬度：经度 −180 到 180，纬度 −90 到 90。零是有效值。"
+          }
+        }
+      }
+    },
+    "projectTicketMeetingPoint.workingDraft": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply changes the working draft. Use the existing local save and review flow afterward. This does not publish or verify a physical meeting place."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用只修改当前草稿，随后沿用现有本地保存与确认流程。这不会发布内容，也不会验证实际集合地点。"
+          }
+        }
+      }
+    },
+    "projectTicketMeetingPoint.apply": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply to draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用到草稿"
+          }
+        }
+      }
+    },
+    "projectTicketMeetingPoint.unsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This ticket contains an unsupported meeting-point value. It is kept unchanged and is read-only; full submission is blocked."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此票种含不支持的集合点数据，已原样保留并设为只读；完整提交被阻止。"
+          }
+        }
+      }
+    },
+    "projectTicketMeetingPoint.invalidStored": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A ticket meeting point contains unsupported data or an invalid coordinate pair. Check the ticket before full submission."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "票种集合点含不支持的数据或无效经纬度组合，请检查后再完整提交。"
+          }
+        }
+      }
+    },
+    "im.reply.systemNotice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System notifications are one-way. You can read them and manage notifications here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "系统通知不支持回复。你可以查看消息并设置免打扰。"
+          }
+        }
+      }
+    },
+    "im.reply.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replying is unavailable for this conversation. A pending message is kept without being retried."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此会话暂不可回复。待确认的消息会保留，不会自动重试。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

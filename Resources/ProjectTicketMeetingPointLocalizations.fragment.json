@@ -1,0 +1,166 @@
+{
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "projectTicketMeetingPoint.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ticket meeting point"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "票种集合地点"
+          }
+        }
+      }
+    },
+    "projectTicketMeetingPoint.edit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit meeting point"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑集合地点"
+          }
+        }
+      }
+    },
+    "projectTicketMeetingPoint.address": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meeting-point address"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "集合点地址"
+          }
+        }
+      }
+    },
+    "projectTicketMeetingPoint.coordinates": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GCJ-02 coordinates (optional)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GCJ-02 坐标（选填）"
+          }
+        }
+      }
+    },
+    "projectTicketMeetingPoint.datum": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use GCJ-02 coordinates, the same datum as the existing mini-program map picker. Enter both coordinates or leave both blank. Coordinates are not converted."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请使用与现有小程序地图选点一致的 GCJ-02 坐标。经纬度需同时填写或同时留空；这里不会转换坐标。"
+          }
+        }
+      }
+    },
+    "projectTicketMeetingPoint.invalidCoordinates": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter both coordinates: longitude −180 to 180 and latitude −90 to 90. Zero is valid."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请同时填写经纬度：经度 −180 到 180，纬度 −90 到 90。零是有效值。"
+          }
+        }
+      }
+    },
+    "projectTicketMeetingPoint.workingDraft": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply changes the working draft. Use the existing local save and review flow afterward. This does not publish or verify a physical meeting place."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用只修改当前草稿，随后沿用现有本地保存与确认流程。这不会发布内容，也不会验证实际集合地点。"
+          }
+        }
+      }
+    },
+    "projectTicketMeetingPoint.apply": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply to draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用到草稿"
+          }
+        }
+      }
+    },
+    "projectTicketMeetingPoint.unsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This ticket contains an unsupported meeting-point value. It is kept unchanged and is read-only; full submission is blocked."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此票种含不支持的集合点数据，已原样保留并设为只读；完整提交被阻止。"
+          }
+        }
+      }
+    },
+    "projectTicketMeetingPoint.invalidStored": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A ticket meeting point contains unsupported data or an invalid coordinate pair. Check the ticket before full submission."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "票种集合点含不支持的数据或无效经纬度组合，请检查后再完整提交。"
+          }
+        }
+      }
+    }
+  }
+}
