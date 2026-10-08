@@ -6,7 +6,9 @@ import hashlib,json,re,shutil,tempfile,unittest
 from pathlib import Path
 from unittest.mock import patch
 from tools import run129_repair_planning as layer,run_ui_shard as shard
-ROOT=Path(__file__).resolve().parents[2]
+from tools.run129_late_readiness import frozen_repair_context
+_FROZEN_30CD = frozen_repair_context()
+ROOT=_FROZEN_30CD.root
 UI=ROOT/'Tests/AppUITests'
 class Run129RepairBudgetTests(unittest.TestCase):
     @classmethod

@@ -1,5 +1,6 @@
 """Verify an existing two-launch test was reorganized, not weakened or counted as new coverage."""
 from pathlib import Path
+from tools.run130_submission_evidence import previous_source as pre_receipt_source
 from tools.run129_repair_planning import historical_source as pre_run129_source
 import hashlib,importlib.util,json,re,unittest
 ROOT=Path(__file__).resolve().parents[2]
@@ -16,7 +17,7 @@ class ReleaseRecoveryMigrationContracts(unittest.TestCase):
   self.assertEqual(hashlib.sha256((first+second).encode()).hexdigest(),self.meta['old_body_sha256'])
  def test_helpers_and_new_method_bodies_match_recorded_exact_hashes(self):
   for row in self.meta['new_methods']:
-   source=pre_run129_source(ROOT/row['file']).read_text();helper=source[source.index('    private var app:'):source.index('    // Historical combined')]
+   source=pre_run129_source(pre_receipt_source(ROOT/row['file'])).read_text();helper=source[source.index('    private var app:'):source.index('    // Historical combined')]
    self.assertEqual(hashlib.sha256(helper.encode()).hexdigest(),self.meta['helper_bytes_sha256'])
    self.assertEqual(hashlib.sha256(self.body(row).encode()).hexdigest(),row['body_sha256'])
    self.assertEqual(hashlib.sha256(source.encode()).hexdigest(),row['file_sha256'])

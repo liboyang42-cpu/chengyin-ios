@@ -31,12 +31,12 @@ import XCTest
     // UNMEASURED complete method estimate: 770 seconds. Both Chinese maximum-text success and partial-persistence failure launches are included.
     func testChineseLargeTextHistoricalEvidenceAndPersistenceFailureKeepTruthfulBoundaries() throws {
         var app = launch(chinese: true); assertFixtureEnvironment(in: app, dynamicTypeSize: "accessibility5"); tap("projectEdit.review", in: app, fixed: true); tap("projectEdit.confirmSimulation", in: app)
-        value("projectSubmission.submittedState", "待审核", in: app); value("projectSubmission.auditTaskID", "3301", in: app)
-        value("projectSubmission.legacyVisibility", "是", in: app); tap("projectSubmission.done", in: app)
+        assertProjectSubmissionEvidenceValue("projectSubmission.submittedState", "待审核", in: app, phase: .receipt, maximumSwipes: 65, revealFirst: true); assertProjectSubmissionEvidenceValue("projectSubmission.auditTaskID", "3301", in: app, phase: .receipt, maximumSwipes: 65, revealFirst: true)
+        assertProjectSubmissionEvidenceValue("projectSubmission.legacyVisibility", "是", in: app, phase: .receipt, maximumSwipes: 65, revealFirst: true); tap("projectSubmission.done", in: app)
         app.terminate(); app = launch(["--project-bundle-ack-write-failure"])
         tap("projectEdit.review", in: app, fixed: true); tap("projectEdit.confirmSimulation", in: app)
         XCTAssertTrue(app.buttons["projectEdit.checkOutcome"].waitForExistence(timeout: 5))
-        XCTAssertFalse(app.staticTexts["projectSubmission.auditTaskID"].exists); XCTAssertFalse(app.buttons["projectEdit.review"].isEnabled)
+        XCTAssertEqual(app.descendants(matching: .any).matching(identifier: "projectSubmission.auditTaskID").count, 0); XCTAssertFalse(app.buttons["projectEdit.review"].isEnabled)
         XCTAssertFalse(app.buttons["projectSubmission.done"].exists)
     }
 }

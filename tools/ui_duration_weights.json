@@ -25967,6 +25967,88 @@
       "headroom_seconds": 30,
       "complete_method_limit_seconds": 900,
       "source_contract_sha256": "e25a074752564213dc99b553ad26029a126c62466ba857fd22b87851fb08834a"
+    },
+    "reviewed_run129_late_readiness": {
+      "source": "reviewedRun129LateReadiness20261007",
+      "base_tree": "30cd0ace4249489a6ab22cc60f86a49edfb00bcf",
+      "measured": false,
+      "method_limit_seconds": 900,
+      "changes": {
+        "ApprovedTopicReviewCurrentFlowTests.testExplicitCurrentTaskReadUpdatesObservationWithoutChangingEitherHistoricalReceipt": 900,
+        "ApprovedTopicReviewRequestFlowTests.testCapturedReviewRequestKeepsOriginalReceiptAndCancelCannotSubmit": 720,
+        "ProjectStoryImageCancellationFlowTests.testChineseLargeTextCropCancelKeepsStoryAndUnavailableUploadIsTruthful": 770
+      }
+    },
+    "reviewed_run130_prepared_readiness": {
+      "source": "reviewedRun130PreparedReadiness20261007",
+      "base_tree": "5a7fd763981cfcb756f588803ea659ae6d8127e3",
+      "measured": false,
+      "method_limit_seconds": 900,
+      "method_count": 736,
+      "class_count": 162,
+      "aliases": {
+        "ProjectEditPreparedNodesFlowTests.testPlacedMaterialReeditSavesRestoresAndReadsExactPreparedNodeFields": "ProjectEditPreparedNodesFlowTests.testPlacedMaterialReeditSavesRestoresAndReadsExactPreparedNodeFields",
+        "ProjectEditPreparedStoryOrderFlowTests.testPreparedStoryOrderAndMissingFieldsStayDistinctFromWhitelistOmission": "ProjectEditPreparedNodesFlowTests.testPreparedStoryOrderAndMissingFieldsStayDistinctFromWhitelistOmission"
+      },
+      "whole_method_seconds": {
+        "ProjectEditPreparedNodesFlowTests.testPlacedMaterialReeditSavesRestoresAndReadsExactPreparedNodeFields": 870,
+        "ProjectEditPreparedStoryOrderFlowTests.testPreparedStoryOrderAndMissingFieldsStayDistinctFromWhitelistOmission": 680
+      }
+    },
+    "reviewed_run130_receipt_semantics": {
+      "method_count": 736,
+      "class_count": 162,
+      "additional_seconds": 118,
+      "whole_method_seconds": {
+        "ApprovedReleasePreparationChineseFlowTests.testChineseMaximumTextCurrentReviewFailureCanRetryWithoutCallingItPublished": 756,
+        "ApprovedReleasePreparationFlowTests.testOrdinarySubmissionReadsCapturedServerOrderAndKeepsOriginalEvidenceAfterClose": 760,
+        "ApprovedReleasePublicationFlowTests.testCapturedConfirmationCreatesOneImmutableReceiptAndReopensWithoutAnotherPublish": 906,
+        "ApprovedReleaseReceiptRecoveryFlowTests.testLocalReceiptWriteFailureRecoversOnlyThePersistedRequest": 904,
+        "ApprovedReleaseRecoveryFlowTests.testChineseMaximumTextUnknownRecoveryKeepsOnlyThePersistedRequest": 904,
+        "ApprovedTopicFrozenCoverPublicationFlowTests.testApprovedCoverConfirmationAndUnknownPublicationRestoreOriginalManifest": 908,
+        "ApprovedTopicFrozenCoverReviewFlowTests.testBoundCoverReviewConfirmCancelAndUnknownRecoveryKeepOneExactRequest": 904,
+        "ApprovedTopicReviewCurrentChineseFlowTests.testChineseMaximumTextCurrentTaskReadRemainsSeparateFromSavedSubmissionAndClearsOnReopen": 906,
+        "ApprovedTopicReviewCurrentFlowTests.testExplicitCurrentTaskReadUpdatesObservationWithoutChangingEitherHistoricalReceipt": 908,
+        "ApprovedTopicReviewPersistenceFlowTests.testLocalReceiptFailureRestoresOnlyThePersistedReviewRequest": 726,
+        "ApprovedTopicReviewRequestFlowTests.testCapturedReviewRequestKeepsOriginalReceiptAndCancelCannotSubmit": 728,
+        "ApprovedTopicReviewUnknownFlowTests.testChineseMaximumTextUnknownRequestRecoversSameIDWithoutAnotherSubmission": 908,
+        "ApprovedTopicSelectedCoverChineseFlowTests.testChineseMaximumTextShowsAuthorOnlyBoundaryAndKeepsOriginalReceipt": 908,
+        "ApprovedTopicSelectedCoverFlowTests.testCapturedAuthorCoverRemainsExactAndNeverCreatesAReviewRequest": 904,
+        "OwnedTopicCoverRecoveryFlowTests.testChineseMaximumTextUnknownSelectionReopensAndChecksOriginalRequestWithoutReupload": 902,
+        "OwnedTopicCoverSelectionFlowTests.testExplicitLocalPickUploadSelectionAndCapturedReviewImageUseOneExactAsset": 902,
+        "ProjectSubmissionAcknowledgmentChineseFlowTests.testChineseLargeTextHistoricalEvidenceAndPersistenceFailureKeepTruthfulBoundaries": 778,
+        "ProjectSubmissionAcknowledgmentFlowTests.testPendingPublishedFlagKeepsExactTaskThroughOrdinarySubmitAndReopen": 766
+      },
+      "source_bound_over900_exceptions": {
+        "ApprovedReleasePublicationFlowTests.testCapturedConfirmationCreatesOneImmutableReceiptAndReopensWithoutAnotherPublish": 906,
+        "ApprovedReleaseReceiptRecoveryFlowTests.testLocalReceiptWriteFailureRecoversOnlyThePersistedRequest": 904,
+        "ApprovedReleaseRecoveryFlowTests.testChineseMaximumTextUnknownRecoveryKeepsOnlyThePersistedRequest": 904,
+        "ApprovedTopicFrozenCoverPublicationFlowTests.testApprovedCoverConfirmationAndUnknownPublicationRestoreOriginalManifest": 908,
+        "ApprovedTopicFrozenCoverReviewFlowTests.testBoundCoverReviewConfirmCancelAndUnknownRecoveryKeepOneExactRequest": 904,
+        "ApprovedTopicReviewCurrentChineseFlowTests.testChineseMaximumTextCurrentTaskReadRemainsSeparateFromSavedSubmissionAndClearsOnReopen": 906,
+        "ApprovedTopicReviewCurrentFlowTests.testExplicitCurrentTaskReadUpdatesObservationWithoutChangingEitherHistoricalReceipt": 908,
+        "ApprovedTopicReviewUnknownFlowTests.testChineseMaximumTextUnknownRequestRecoversSameIDWithoutAnotherSubmission": 908,
+        "ApprovedTopicSelectedCoverChineseFlowTests.testChineseMaximumTextShowsAuthorOnlyBoundaryAndKeepsOriginalReceipt": 908,
+        "ApprovedTopicSelectedCoverFlowTests.testCapturedAuthorCoverRemainsExactAndNeverCreatesAReviewRequest": 904,
+        "OwnedTopicCoverRecoveryFlowTests.testChineseMaximumTextUnknownSelectionReopensAndChecksOriginalRequestWithoutReupload": 902,
+        "OwnedTopicCoverSelectionFlowTests.testExplicitLocalPickUploadSelectionAndCapturedReviewImageUseOneExactAsset": 902
+      },
+      "measured": false,
+      "other900_cap_and_six930_holds_unchanged": true
+    },
+    "reviewed_branch_history_presentation_handshake": {
+      "status": "SOURCE_BOUND_UNMEASURED_LOCAL_PLAN_APPLE_NOT_RUN",
+      "method_count": 736,
+      "class_count": 162,
+      "shard_count": 79,
+      "whole_method_seconds": {
+        "PlayBranchHistoryLifetimeFlowTests.testRefreshAndAccountSwitchWhilePresentedRemoveOldSheetAndRows": 490,
+        "PlayBranchHistoryLifetimeFlowTests.testLinearSummaryHasNoHistoryEntryBeforeOrAfterRefresh": 160
+      },
+      "additional_seconds": 80,
+      "measured": false,
+      "source_file_sha256": "d2baa99029f6706f2e24f4b8389aa0d10c4dc071cd0ca61b1a489c0f9b2fa05d",
+      "existing_receipt_exceptions_and_all_prior_floors_unchanged": true
     }
   },
   "superseded_method_observations": [
@@ -26499,7 +26581,7 @@
         "seconds": 180,
         "source": "queuedRuntimeReadBridges",
         "measured": false,
-        "basis": "Synthetic login, normal account navigation, two shelf pages and owned detail; rounded above measured same-class132.433\u2013162.555 second journeys."
+        "basis": "Synthetic login, normal account navigation, two shelf pages and owned detail; rounded above measured same-class132.433–162.555 second journeys."
       }
     },
     {
@@ -26509,7 +26591,7 @@
         "seconds": 180,
         "source": "queuedRuntimeReadBridges",
         "measured": false,
-        "basis": "Synthetic login, normal account navigation, conversation and two history pages; rounded above measured same-class132.433\u2013162.555 second journeys."
+        "basis": "Synthetic login, normal account navigation, conversation and two history pages; rounded above measured same-class132.433–162.555 second journeys."
       }
     },
     {
@@ -26529,7 +26611,7 @@
         "seconds": 180,
         "source": "couponRuntimeIndependentReview",
         "measured": false,
-        "basis": "Normal-root login/navigation and confirmed coupon journey;180s per launch based on existing normal-root observed132.433\u2013162.555s, restart case has two launches."
+        "basis": "Normal-root login/navigation and confirmed coupon journey;180s per launch based on existing normal-root observed132.433–162.555s, restart case has two launches."
       }
     },
     {
@@ -26539,7 +26621,7 @@
         "seconds": 180,
         "source": "couponRuntimeIndependentReview",
         "measured": false,
-        "basis": "Normal-root login/navigation and confirmed coupon journey;180s per launch based on existing normal-root observed132.433\u2013162.555s, restart case has two launches."
+        "basis": "Normal-root login/navigation and confirmed coupon journey;180s per launch based on existing normal-root observed132.433–162.555s, restart case has two launches."
       }
     },
     {
@@ -26549,7 +26631,7 @@
         "seconds": 180,
         "source": "couponRuntimeIndependentReview",
         "measured": false,
-        "basis": "Normal-root login/navigation and confirmed coupon journey;180s per launch based on existing normal-root observed132.433\u2013162.555s, restart case has two launches."
+        "basis": "Normal-root login/navigation and confirmed coupon journey;180s per launch based on existing normal-root observed132.433–162.555s, restart case has two launches."
       }
     },
     {
@@ -26559,7 +26641,7 @@
         "seconds": 180,
         "source": "couponRuntimeIndependentReview",
         "measured": false,
-        "basis": "Normal-root login/navigation and confirmed coupon journey;180s per launch based on existing normal-root observed132.433\u2013162.555s, restart case has two launches."
+        "basis": "Normal-root login/navigation and confirmed coupon journey;180s per launch based on existing normal-root observed132.433–162.555s, restart case has two launches."
       }
     },
     {
@@ -26569,7 +26651,7 @@
         "seconds": 360,
         "source": "couponRuntimeIndependentReview",
         "measured": false,
-        "basis": "Normal-root login/navigation and confirmed coupon journey;180s per launch based on existing normal-root observed132.433\u2013162.555s, restart case has two launches."
+        "basis": "Normal-root login/navigation and confirmed coupon journey;180s per launch based on existing normal-root observed132.433–162.555s, restart case has two launches."
       }
     },
     {
@@ -26579,7 +26661,7 @@
         "seconds": 180,
         "source": "couponRuntimeIndependentReview",
         "measured": false,
-        "basis": "Normal-root login/navigation and confirmed coupon journey;180s per launch based on existing normal-root observed132.433\u2013162.555s, restart case has two launches."
+        "basis": "Normal-root login/navigation and confirmed coupon journey;180s per launch based on existing normal-root observed132.433–162.555s, restart case has two launches."
       }
     },
     {
@@ -26669,7 +26751,7 @@
         "seconds": 120,
         "source": "detailFavoritesAcceptance",
         "measured": false,
-        "basis": "One synthetic launch, detail navigation, review-section scrolling and confirmed-zero absence checks. 120s unmeasured allowance above existing same-class 24\u2013116s observed methods; no Apple timing observation."
+        "basis": "One synthetic launch, detail navigation, review-section scrolling and confirmed-zero absence checks. 120s unmeasured allowance above existing same-class 24–116s observed methods; no Apple timing observation."
       }
     },
     {
@@ -27036,7 +27118,7 @@
       "method": "CooperationFlowUITests.testInvitationReviewRetainsReadableBoundIdentityAndTermsInBothLanguages",
       "seconds": 120,
       "source": "pending9",
-      "basis": "60 seconds per known source launch \u00d7 2",
+      "basis": "60 seconds per known source launch × 2",
       "measured": false
     },
     {
@@ -27064,21 +27146,21 @@
       "method": "RegistrationWaitlistUITests.testEssentialQuoteAmountCaptureInLightAndDarkBothLanguages",
       "seconds": 240,
       "source": "pending9",
-      "basis": "60 seconds per known source launch \u00d7 4",
+      "basis": "60 seconds per known source launch × 4",
       "measured": false
     },
     {
       "method": "RegistrationWaitlistUITests.testSoldOutGuidanceMatchesCapabilityAndStateInBothLanguages",
       "seconds": 360,
       "source": "pending9",
-      "basis": "60 seconds per known source launch \u00d7 6",
+      "basis": "60 seconds per known source launch × 6",
       "measured": false
     },
     {
       "method": "RegistrationWaitlistUITests.testUnreviewedOfferGuidanceExpiresWhileFormRemainsOpen",
       "seconds": 60,
       "source": "pending9",
-      "basis": "60 seconds per known source launch \u00d7 1",
+      "basis": "60 seconds per known source launch × 1",
       "measured": false
     },
     {
@@ -27183,77 +27265,77 @@
       "method": "ReferenceMapCardFlowTests.testFullBilingualCardTextAndMissingArtworkAtBothAppearancesAndSizes",
       "seconds": 240,
       "source": "reference11",
-      "basis": "60 seconds per known source launch \u00d7 4; unmeasured reference-layout UI",
+      "basis": "60 seconds per known source launch × 4; unmeasured reference-layout UI",
       "measured": false
     },
     {
       "method": "ReferenceMapCardFlowTests.testCardAccessibilityAuditForNormalSyntheticFixture",
       "seconds": 60,
       "source": "reference11",
-      "basis": "60 seconds per known source launch \u00d7 1; unmeasured reference-layout UI",
+      "basis": "60 seconds per known source launch × 1; unmeasured reference-layout UI",
       "measured": false
     },
     {
       "method": "WalkingNavigationFlowTests.testRoutingCanBeCancelledWithoutLateRouteAndReopened",
       "seconds": 60,
       "source": "reference11",
-      "basis": "60 seconds per known source launch \u00d7 1; unmeasured reference-layout UI",
+      "basis": "60 seconds per known source launch × 1; unmeasured reference-layout UI",
       "measured": false
     },
     {
       "method": "WalkingNavigationFlowTests.testExpiredScopeDismissesStepsAndClearsDestination",
       "seconds": 60,
       "source": "reference11",
-      "basis": "60 seconds per known source launch \u00d7 1; unmeasured reference-layout UI",
+      "basis": "60 seconds per known source launch × 1; unmeasured reference-layout UI",
       "measured": false
     },
     {
       "method": "WalkingNavigationFlowTests.testNearDestinationKeepsVerificationBoundary",
       "seconds": 60,
       "source": "reference11",
-      "basis": "60 seconds per known source launch \u00d7 1; unmeasured reference-layout UI",
+      "basis": "60 seconds per known source launch × 1; unmeasured reference-layout UI",
       "measured": false
     },
     {
       "method": "WalkingNavigationFlowTests.testMaximumBilingualSummaryAndNativeStepsCanCloseAndReopen",
       "seconds": 120,
       "source": "reference11",
-      "basis": "60 seconds per known source launch \u00d7 2; unmeasured reference-layout UI",
+      "basis": "60 seconds per known source launch × 2; unmeasured reference-layout UI",
       "measured": false
     },
     {
       "method": "SearchMapFlowTests.testCityListSelectionUsesSamePinAndPreservesExplicitMapGate",
       "seconds": 60,
       "source": "reference11",
-      "basis": "60 seconds per known source launch \u00d7 1; unmeasured reference-layout UI",
+      "basis": "60 seconds per known source launch × 1; unmeasured reference-layout UI",
       "measured": false
     },
     {
       "method": "SearchMapFlowTests.testCityFilterCancelPreservesSelectionButApplyClearsIt",
       "seconds": 60,
       "source": "reference11",
-      "basis": "60 seconds per known source launch \u00d7 1; unmeasured reference-layout UI",
+      "basis": "60 seconds per known source launch × 1; unmeasured reference-layout UI",
       "measured": false
     },
     {
       "method": "SearchMapFlowTests.testCityLoadingRetryAndScopeChangeNeverKeepSelectedPlace",
       "seconds": 120,
       "source": "reference11",
-      "basis": "60 seconds per known source launch \u00d7 2; unmeasured reference-layout UI",
+      "basis": "60 seconds per known source launch × 2; unmeasured reference-layout UI",
       "measured": false
     },
     {
       "method": "SearchMapFlowTests.testCityEmptyStateRemainsExplicit",
       "seconds": 60,
       "source": "reference11",
-      "basis": "60 seconds per known source launch \u00d7 1; unmeasured reference-layout UI",
+      "basis": "60 seconds per known source launch × 1; unmeasured reference-layout UI",
       "measured": false
     },
     {
       "method": "SearchMapFlowTests.testManualAreaChangeClearsSelectionAndRequiresMapOptInAgain",
       "seconds": 60,
       "source": "reference11",
-      "basis": "60 seconds per known source launch \u00d7 1; unmeasured reference-layout UI",
+      "basis": "60 seconds per known source launch × 1; unmeasured reference-layout UI",
       "measured": false
     },
     {
@@ -27660,7 +27742,7 @@
       "seconds": 180,
       "source": "queuedRun96",
       "measured": false,
-      "basis": "Normal-root sign-in, Account/team navigation, disabled write review and ledger validation. Existing same-class run96 successful methods132.433\u2013162.555s; use180s rounded above observed maximum. This new method is unmeasured."
+      "basis": "Normal-root sign-in, Account/team navigation, disabled write review and ledger validation. Existing same-class run96 successful methods132.433–162.555s; use180s rounded above observed maximum. This new method is unmeasured."
     },
     {
       "method": "TemplateSensorDraftFlowTests.testHistoricalUnknownAndAmbiguousConfigurationsRemainReadOnly",
@@ -27674,7 +27756,7 @@
       "seconds": 120,
       "source": "cumulativeClubMerchantAcceptance",
       "measured": false,
-      "basis": "One synthetic launch, real customer-history topic route with two open/back cycles;120s unmeasured allowance above existing same-class12\u201335s observations. Owner confirmed scope."
+      "basis": "One synthetic launch, real customer-history topic route with two open/back cycles;120s unmeasured allowance above existing same-class12–35s observations. Owner confirmed scope."
     },
     {
       "method": "ModuleFlowTests.testClubCustomerHistoryMissingAndForeignIDsRemainReadOnly",
@@ -27695,14 +27777,14 @@
       "seconds": 120,
       "source": "cumulativeClubMerchantAcceptance",
       "measured": false,
-      "basis": "One synthetic launch, workspace/customer/topic navigation and back;120s unmeasured allowance above existing same-class15\u201348s observations."
+      "basis": "One synthetic launch, workspace/customer/topic navigation and back;120s unmeasured allowance above existing same-class15–48s observations."
     },
     {
       "method": "MerchantBusinessFlowTests.testReviewFiltersUseCurrentPageAndKeepServerMetrics",
       "seconds": 120,
       "source": "cumulativeClubMerchantAcceptance",
       "measured": false,
-      "basis": "One synthetic launch with all/pending/low/photos filters, empty/reset and unchanged server metrics;120s unmeasured allowance above same-class7\u201336s observations."
+      "basis": "One synthetic launch with all/pending/low/photos filters, empty/reset and unchanged server metrics;120s unmeasured allowance above same-class7–36s observations."
     },
     {
       "method": "MerchantBusinessFlowTests.testChineseAftercareSearchSpansLoadedPages",

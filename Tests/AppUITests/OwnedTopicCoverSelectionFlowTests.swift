@@ -32,7 +32,7 @@ import XCTest
         let app=XCUIApplication();self.app=app
         app.launchArguments=["--uitesting-reset-language","-AppleLanguages","(en)","-AppleLocale","en_US","--uitesting-module","projectEdit","--project-edit-bundle-ack","--project-edit-starter-probe","--project-owned-cover","--project-review-request"]
         app.launch();XCTAssertTrue(app.textFields["projectEdit.name"].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["ownedCover.fixture.scope"].exists)
-        tap("projectEdit.review",in:app,fixed:true);tap("projectEdit.confirmSimulation",in:app);value("projectSubmission.auditTaskID","3301",in:app);tap("projectSubmission.done",in:app)
+        tap("projectEdit.review",in:app,fixed:true);tap("projectEdit.confirmSimulation",in:app);assertProjectSubmissionEvidenceValue("projectSubmission.auditTaskID", "3301", in: app, phase: .receipt, maximumSwipes: 70, revealFirst: true);tap("projectSubmission.done",in:app)
         tap("ownedCover.open",in:app);tap("ownedCover.choose",in:app)
         XCTAssertTrue(app.images["ownedCover.localPreview"].waitForExistence(timeout:5));value("ownedCover.localOnly",in:app)
         tap("ownedCover.cancelLocal",in:app);XCTAssertFalse(app.images["ownedCover.localPreview"].exists)

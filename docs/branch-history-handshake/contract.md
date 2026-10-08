@@ -1,0 +1,15 @@
+# Branch history fixture presentation handshake
+
+Base commit 11800193a5f5057e6598b4e46e8ecb4a98e4572a, exact tree 30cd0ace4249489a6ab22cc60f86a49edfb00bcf. This repair concerns a DEBUG fixture scheduling race. It is not evidence of a production withdrawal defect.
+
+Run 130 / job 112840750881 synthesized the delayed-refresh menu action at 16:02:22.909895 UTC and the normal history open action at 16:02:28.376005 UTC. That 5.466110-second gap exceeds the fixture's fixed three-second delay. The eight-second dismissal assertion then failed. The account-switch loop iteration did not execute. No screenshot artifact was downloaded for this repair.
+
+The fixture menu now arms one named action without performing a read. The ordinary summary opens its ordinary history sheet. XCTest waits for and reveals the old first row, checks its original courtyard text and hittability, then explicitly presses a DEBUG-only bottom toolbar control on that sheet. Only an injected, armed fixture with a nonempty recorded history can expose/consume the action. The default environment value is nil, including nonfixture DEBUG screens. Removing DEBUG-only spans reconstructs the original release view bytes exactly.
+
+Consumption is synchronous and once-only before the async normal load. Sheet disappearance clears unconsumed intent but does not cancel the normal refresh already causing dismissal. Leaving the fixture cancels queued work. Existing account invalidation, nodes/route reads, selection ownership and sheet withdrawal logic are unchanged. There is no timer, blind sleep, forced dismiss, new network grant, game answer or reward action.
+
+The original UI method, both loop iterations, the eight-second withdrawal assertion, old-row absence and subsequent empty-history reopen remain. All helpers/setup/teardown and the other lifetime method retain their original bytes. Eight new AppUnit methods cover no automatic action, unavailable/empty/unarmed rejection, exactly-once action identity, close/reopen, in-flight dismissal, queued cancellation, and both actions through the normal read service/coordinator. They are authored and not executed on Apple here.
+
+Independent planning ledger: changed whole method 490 seconds, unchanged linear 160, class 650, startup 300, headroom 30, total 980. The old 410-second floor is preserved. Added cost is two 5-second row waits, two 5-second control waits, two full reveal-helper calls, and 20 seconds of extra control/query allowance. Failed run130 duration is not a successful full-method measurement. The display-family assertion pins this exact new lifetime file, removes only its five added lines, then retains the original full-file/method/helper proof and all original negative controls. Release button counting excludes only the exact three reviewed DEBUG spans. Central duration/history planning pins remain unchanged for the integration owner’s precise source migration.
+
+Apple simulator/typecheck/runtime remains NOT_RUN. Python source checks and Tree-sitter only prove their stated static properties.

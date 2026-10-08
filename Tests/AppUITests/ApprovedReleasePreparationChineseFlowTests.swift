@@ -29,8 +29,8 @@ import XCTest
     }
     private func submitAndRead(in app: XCUIApplication) {
         tap("projectEdit.review", in: app, fixed: true); tap("projectEdit.confirmSimulation", in: app)
-        value("projectSubmission.auditTaskID", "3301", in: app); value("projectSubmission.submittedState", "Pending", in: app)
-        value("projectSubmission.templateIDs", "41", in: app); tap("projectSubmission.done", in: app)
+        assertProjectSubmissionEvidenceValue("projectSubmission.auditTaskID", "3301", in: app, phase: .receipt, maximumSwipes: 65, revealFirst: true); assertProjectSubmissionEvidenceValue("projectSubmission.submittedState", "Pending", in: app, phase: .receipt, maximumSwipes: 65, revealFirst: true)
+        assertProjectSubmissionEvidenceValue("projectSubmission.templateIDs", "41", in: app, phase: .receipt, maximumSwipes: 65, revealFirst: true); tap("projectSubmission.done", in: app)
         XCTAssertFalse(app.buttons["projectEdit.review"].isEnabled)
         tap("approvedRelease.read", in: app)
     }
@@ -40,7 +40,7 @@ import XCTest
         let app = launch(["--project-release-changed-once"], chinese: true)
         assertFixtureEnvironment(in: app, dynamicTypeSize: "accessibility5")
         tap("projectEdit.review", in: app, fixed: true); tap("projectEdit.confirmSimulation", in: app)
-        value("projectSubmission.submittedState", "待审核", in: app); tap("projectSubmission.done", in: app)
+        assertProjectSubmissionEvidenceValue("projectSubmission.submittedState", "待审核", in: app, phase: .receipt, maximumSwipes: 65, revealFirst: true); tap("projectSubmission.done", in: app)
         tap("approvedRelease.read", in: app)
         XCTAssertTrue(app.staticTexts["approvedRelease.failed"].waitForExistence(timeout: 5), app.debugDescription)
         XCTAssertFalse(app.staticTexts["approvedRelease.name"].exists); XCTAssertFalse(app.buttons["approvedRelease.publish"].exists)
@@ -53,8 +53,8 @@ import XCTest
         value("approvedRelease.chapter.0.block.1.templateCategory", "4", in: app)
         value("approvedRelease.chapter.0.block.1.templateCategories", "7,999", in: app)
         tap("approvedRelease.close", in: app, fixed: true)
-        value("projectSubmission.submittedState", "待审核", in: app)
-        value("projectSubmission.legacyVisibility", "是", in: app)
+        assertProjectSubmissionEvidenceValue("projectSubmission.submittedState", "待审核", in: app, phase: .history, maximumSwipes: 65, revealFirst: true)
+        assertProjectSubmissionEvidenceValue("projectSubmission.legacyVisibility", "是", in: app, phase: .history, maximumSwipes: 65, revealFirst: true)
         XCTAssertFalse(app.buttons["projectEdit.review"].isEnabled); XCTAssertFalse(app.buttons["projectEdit.confirmLive"].exists)
     }
 }

@@ -1,0 +1,30 @@
+{
+  "base_tree": "30cd0ace4249489a6ab22cc60f86a49edfb00bcf",
+  "helper": "#if DEBUG\n/// Test-only window ownership. Framework lifecycle callbacks remain UIKit-driven.\n@MainActor final class WorkshopHostedSceneWindow {\n    let window: UIWindow\n    private weak var scene: UIWindowScene?\n    private weak var previousKeyWindow: UIWindow?\n\n    init() throws {\n        let activeScenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }\n            .filter { $0.activationState == .foregroundActive }\n        let selected = try XCTUnwrap(activeScenes.count == 1 ? activeScenes.first : nil,\n                                    \"Hosted Creator test requires exactly one foreground-active UIWindowScene\")\n        scene = selected\n        previousKeyWindow = selected.windows.first { $0.isKeyWindow }\n        window = UIWindow(windowScene: selected)\n        window.frame = selected.coordinateSpace.bounds\n    }\n\n    func retire() {\n        let ownedKeyWindow = window.isKeyWindow\n        window.isHidden = true\n        window.rootViewController = nil\n        window.windowScene = nil\n        guard ownedKeyWindow, let scene, scene.activationState == .foregroundActive,\n              UIApplication.shared.connectedScenes.contains(where: { $0 === scene }),\n              let previousKeyWindow, previousKeyWindow !== window,\n              previousKeyWindow.windowScene === scene, !previousKeyWindow.isHidden,\n              previousKeyWindow.windowLevel == .normal, previousKeyWindow.rootViewController != nil,\n              scene.windows.contains(where: { $0 === previousKeyWindow }) else { return }\n        previousKeyWindow.makeKey()\n    }\n}\n#endif\n\n",
+  "files": {
+    "WorkshopCreatorConsentNormalFlowTests.swift": {
+      "before_sha256": "2a66316e3494c3a61fba3c1f449710b1d799eadbaa603b8d071c80196363f17d",
+      "after_sha256": "d9b3c7d789ff279e43749fd603836224d44e8995f4388780d20481723f8bdf1b",
+      "hunks": [
+        {
+          "before": "        let root=WorkshopHostedLifecycleRoot(),navigation=UINavigationController(rootViewController:root),window=UIWindow(frame:UIScreen.main.bounds)\n        window.rootViewController=navigation;window.makeKeyAndVisible();defer{window.isHidden=true}",
+          "after": "        let sceneWindow = try WorkshopHostedSceneWindow()\n        let root=WorkshopHostedLifecycleRoot(),navigation=UINavigationController(rootViewController:root),window=sceneWindow.window\n        window.rootViewController=navigation;window.makeKeyAndVisible();defer{sceneWindow.retire()}"
+        }
+      ]
+    },
+    "WorkshopCreatorPendingNormalFlowTests.swift": {
+      "before_sha256": "b8d107b7aff8d549e8af159f8e41f068776f2e27f7d253a8ed5195ef9e2b8619",
+      "after_sha256": "904ca2c421aa0ab9cfb339fe8ffc29827bba59512f2660ec87e6be5ec3df8c4e",
+      "hunks": [
+        {
+          "before": "        let root = WorkshopHostedLifecycleRoot(), navigation = UINavigationController(rootViewController: root), window = UIWindow(frame: UIScreen.main.bounds); window.rootViewController = navigation; window.makeKeyAndVisible(); defer { window.isHidden = true }",
+          "after": "        let sceneWindow = try WorkshopHostedSceneWindow()\n        let root = WorkshopHostedLifecycleRoot(), navigation = UINavigationController(rootViewController: root), window = sceneWindow.window; window.rootViewController = navigation; window.makeKeyAndVisible(); defer { sceneWindow.retire() }"
+        },
+        {
+          "before": "        let root = WorkshopHostedLifecycleRoot(), navigation = UINavigationController(rootViewController: root), window = UIWindow(frame: UIScreen.main.bounds)\n        window.rootViewController = navigation; window.makeKeyAndVisible(); defer { window.isHidden = true }",
+          "after": "        let sceneWindow = try WorkshopHostedSceneWindow()\n        let root = WorkshopHostedLifecycleRoot(), navigation = UINavigationController(rootViewController: root), window = sceneWindow.window\n        window.rootViewController = navigation; window.makeKeyAndVisible(); defer { sceneWindow.retire() }"
+        }
+      ]
+    }
+  }
+}

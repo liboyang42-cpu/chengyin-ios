@@ -35,7 +35,7 @@ import XCTest
     }
     private func submitAndOpen(in app: XCUIApplication) {
         tap("projectEdit.review", in: app, fixed: true); tap("projectEdit.confirmSimulation", in: app)
-        value("projectSubmission.auditTaskID", "3301", in: app); value("projectSubmission.templateIDs", "41", in: app)
+        assertProjectSubmissionEvidenceValue("projectSubmission.auditTaskID", "3301", in: app, phase: .receipt, maximumSwipes: 70, revealFirst: false); assertProjectSubmissionEvidenceValue("projectSubmission.templateIDs", "41", in: app, phase: .receipt, maximumSwipes: 70, revealFirst: false)
         tap("projectSubmission.done", in: app); tap("topicReview.open", in: app)
     }
     // UNMEASURED complete method estimate: 900 seconds. One Chinese accessibility5 journey includes original acknowledgment, explicit captured request, current-task read, exact hashes, historical readback, reopen and sign-out.
@@ -47,7 +47,7 @@ import XCTest
         value("topicReview.current.state","待审核",in:app); value("topicReview.current.hash",String(repeating:"c",count:64),in:app)
         value("topicReview.current.captureMatch","该任务仍对应你提交时捕获的内容。",in:app)
         XCTAssertTrue(app.staticTexts["topicReview.current.notice"].exists); XCTAssertFalse(app.buttons["approvedRelease.publish"].exists)
-        tap("topicReview.close",in:app,fixed:true); value("projectSubmission.submittedState","待审核",in:app)
+        tap("topicReview.close",in:app,fixed:true); assertProjectSubmissionEvidenceValue("projectSubmission.submittedState", "待审核", in: app, phase: .history, maximumSwipes: 70, revealFirst: false)
         let checked = try inspect(app); XCTAssertEqual(checked.reviewObservationCount,1); XCTAssertEqual(checked.reviewSubmitCount,1); XCTAssertEqual(checked.reviewTaskCount,1); XCTAssertEqual(Set(checked.reviewRequestIDs),Set([request]))
         tap("projectEdit.fixture.reopen",in:app,fixed:true); tap("topicReview.open",in:app)
         value("topicReview.requestID",request,in:app); XCTAssertFalse(app.staticTexts["topicReview.current.state"].exists)

@@ -53,5 +53,27 @@ class PlayerHistoryDisplayFamilyTests(unittest.TestCase):
         self.rejects(MAIN, original, 'XCTAssertTrue(true)')
         self.rejects(MAIN, original, 'assertFixtureEnvironment(in: app, dynamicTypeSize: "large")')
 
+    def test_missing_duplicate_or_changed_handshake_is_rejected(self):
+        token = '            let oldRow = element("branchHistory.row.0", in: app)'
+        for replacement in ['', token + '\n' + token, token.replace('row.0', 'row.1')]:
+            with self.subTest(replacement=replacement): self.rejects(LIFETIME, token, replacement)
+
+    def test_weakened_presentation_proof_or_wrong_apply_target_is_rejected(self):
+        for before, after in [
+            ('oldRow.waitForExistence(timeout: 5)', 'oldRow.waitForExistence(timeout: 0)'),
+            ('XCTAssertTrue(oldRow.isHittable)', 'XCTAssertTrue(true)'),
+            ('oldRow.label.contains("Synthetic courtyard")', 'oldRow.label.isEmpty'),
+            ('branchHistory.fixture.applyPresented', 'branchHistory.fixture.empty'),
+            ('apply.tap()', 'app.buttons["branchHistory.close"].tap()')]:
+            with self.subTest(before=before): self.rejects(LIFETIME, before, after)
+
+    def test_apply_before_observing_old_row_is_rejected(self):
+        self.rejects(LIFETIME, '            let oldRow = element', '            app.buttons["branchHistory.fixture.applyPresented"].tap()\n            let oldRow = element')
+
+    def test_original_withdrawal_and_empty_reopen_cannot_change(self):
+        self.rejects(LIFETIME, 'waitForExpectations(timeout: 8)', 'waitForExpectations(timeout: 80)')
+        self.rejects(LIFETIME, 'XCTAssertFalse(element("branchHistory.row.0", in: app).exists)', 'XCTAssertTrue(true)')
+        self.rejects(LIFETIME, 'open(app); XCTAssertTrue(element("branchHistory.empty", in: app).waitForExistence(timeout: 5))', 'XCTAssertTrue(true)')
+
 
 if __name__ == '__main__': unittest.main()

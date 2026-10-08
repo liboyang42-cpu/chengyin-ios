@@ -94,7 +94,7 @@ class ProjectStoryImageContracts(unittest.TestCase):
         self.assertIn('storyTopologyRevision: editor.storyTopologyRevision', host)
         self.assertIn('editor.storyTopologyRevision == (expected ?? original.storyTopologyRevision)', host)
         self.assertIn('ProjectEditPendingMaterials.exactData(editor.draft) == expected', host)
-        for name, seconds in [('ProjectStoryImageFlowTests', 900), ('ProjectStoryImageCancellationFlowTests', 720)]:
+        for name, seconds in [('ProjectStoryImageFlowTests', 900), ('ProjectStoryImageCancellationFlowTests', 770)]:
             ui = self.read('Tests/AppUITests/' + name + '.swift')
             self.assertEqual(len(re.findall(r'func test\w+\(', ui)), 1)
             self.assertIn(str(seconds) + ' seconds', ui)

@@ -58,7 +58,8 @@ import UIKit
     }
     func testHostedBackAndFreshSelectionCannotReviveOldAuthorAction() async throws {
         let h = Harness(); defer { h.clean() }; await h.login(); try h.approve(); let c = try controller(h), a = WorkshopCreatorPendingAppearance()
-        let root = WorkshopHostedLifecycleRoot(), navigation = UINavigationController(rootViewController: root), window = UIWindow(frame: UIScreen.main.bounds); window.rootViewController = navigation; window.makeKeyAndVisible(); defer { window.isHidden = true }
+        let sceneWindow = try WorkshopHostedSceneWindow()
+        let root = WorkshopHostedLifecycleRoot(), navigation = UINavigationController(rootViewController: root), window = sceneWindow.window; window.rootViewController = navigation; window.makeKeyAndVisible(); defer { sceneWindow.retire() }
         let host = WorkshopHostedLifecycleHost(rootView: WorkshopCreatorPendingView(controller: c, appearance: a)); navigation.pushViewController(host, animated: false)
         try await waitUntil { c.phase == .editing };
         WorkshopHostedLifecycleProbe.record(.pendingInitialBack, root: root, host: host, navigation: navigation, idle: c.phase == .idle, loading: c.phase == .loading, reviewing: c.phase == .reviewing, editing: c.phase == .editing)
@@ -68,8 +69,9 @@ import UIKit
     }
     func testHostedAuthorToReviewTransitionKeepsTheSameAppearanceLive() async throws {
         let h = Harness(); defer { h.clean() }; await h.login(); try h.approve(); let c = try controller(h), a = WorkshopCreatorPendingAppearance()
-        let root = WorkshopHostedLifecycleRoot(), navigation = UINavigationController(rootViewController: root), window = UIWindow(frame: UIScreen.main.bounds)
-        window.rootViewController = navigation; window.makeKeyAndVisible(); defer { window.isHidden = true }
+        let sceneWindow = try WorkshopHostedSceneWindow()
+        let root = WorkshopHostedLifecycleRoot(), navigation = UINavigationController(rootViewController: root), window = sceneWindow.window
+        window.rootViewController = navigation; window.makeKeyAndVisible(); defer { sceneWindow.retire() }
         let host = WorkshopHostedLifecycleHost(rootView: WorkshopCreatorPendingView(controller: c, appearance: a)); navigation.pushViewController(host, animated: false)
         try await waitUntil { c.phase == .editing };
         WorkshopHostedLifecycleProbe.record(.pendingInitialReview, root: root, host: host, navigation: navigation, idle: c.phase == .idle, loading: c.phase == .loading, reviewing: c.phase == .reviewing, editing: c.phase == .editing)

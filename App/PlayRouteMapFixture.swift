@@ -36,6 +36,7 @@ import SwiftUI
             } label: { Label("Synthetic route controls", systemImage: "ellipsis.circle").frame(minHeight: 44) }
                 .font(.caption).dynamicTypeSize(.large)
                 .accessibilityIdentifier("playRoute.fixture.controls")
+                .padding(.bottom, 8)
         }
     }
     private func reload(switchOwner: Bool) {

@@ -37,7 +37,7 @@ import XCTest
     }
     private func submitAndRead(in app: XCUIApplication) {
         tap("projectEdit.review", in: app, fixed: true); tap("projectEdit.confirmSimulation", in: app)
-        value("projectSubmission.auditTaskID", "3301", in: app); value("projectSubmission.templateIDs", "41", in: app)
+        assertProjectSubmissionEvidenceValue("projectSubmission.auditTaskID", "3301", in: app, phase: .receipt, maximumSwipes: 65, revealFirst: true); assertProjectSubmissionEvidenceValue("projectSubmission.templateIDs", "41", in: app, phase: .receipt, maximumSwipes: 65, revealFirst: true)
         tap("projectSubmission.done", in: app); tap("approvedRelease.read", in: app)
     }
     // Historical combined UNMEASURED complete method estimate: 1200 seconds. See ApprovedReleaseRecoveryMigration.json.

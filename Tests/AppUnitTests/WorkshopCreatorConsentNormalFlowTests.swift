@@ -3,6 +3,40 @@ import SwiftUI
 import UIKit
 @testable import Questify
 
+#if DEBUG
+/// Test-only window ownership. Framework lifecycle callbacks remain UIKit-driven.
+@MainActor final class WorkshopHostedSceneWindow {
+    let window: UIWindow
+    private weak var scene: UIWindowScene?
+    private weak var previousKeyWindow: UIWindow?
+
+    init() throws {
+        let activeScenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+            .filter { $0.activationState == .foregroundActive }
+        let selected = try XCTUnwrap(activeScenes.count == 1 ? activeScenes.first : nil,
+                                    "Hosted Creator test requires exactly one foreground-active UIWindowScene")
+        scene = selected
+        previousKeyWindow = selected.windows.first { $0.isKeyWindow }
+        window = UIWindow(windowScene: selected)
+        window.frame = selected.coordinateSpace.bounds
+    }
+
+    func retire() {
+        let ownedKeyWindow = window.isKeyWindow
+        window.isHidden = true
+        window.rootViewController = nil
+        window.windowScene = nil
+        guard ownedKeyWindow, let scene, scene.activationState == .foregroundActive,
+              UIApplication.shared.connectedScenes.contains(where: { $0 === scene }),
+              let previousKeyWindow, previousKeyWindow !== window,
+              previousKeyWindow.windowScene === scene, !previousKeyWindow.isHidden,
+              previousKeyWindow.windowLevel == .normal, previousKeyWindow.rootViewController != nil,
+              scene.windows.contains(where: { $0 === previousKeyWindow }) else { return }
+        previousKeyWindow.makeKey()
+    }
+}
+#endif
+
 @MainActor final class WorkshopCreatorConsentNormalFlowTests: XCTestCase {
     private static func envelope(_ value:[String:Any])throws->Data{try JSONSerialization.data(withJSONObject:["code":200,"data":value],options:.sortedKeys)}
     private static func preview()throws->[String:Any]{
@@ -105,8 +139,9 @@ import UIKit
     }
     func testHostedNavigationBackAndFreshRowSelectionRetiresOldPresentation()async throws{
         let h=try Harness();defer{h.clean()};await h.login();try h.approve();let c=try h.controller(),selection=WorkshopCreatorConsentSelection(source:MemberPlayTemplateID(rawValue:91)!)
-        let root=WorkshopHostedLifecycleRoot(),navigation=UINavigationController(rootViewController:root),window=UIWindow(frame:UIScreen.main.bounds)
-        window.rootViewController=navigation;window.makeKeyAndVisible();defer{window.isHidden=true}
+        let sceneWindow = try WorkshopHostedSceneWindow()
+        let root=WorkshopHostedLifecycleRoot(),navigation=UINavigationController(rootViewController:root),window=sceneWindow.window
+        window.rootViewController=navigation;window.makeKeyAndVisible();defer{sceneWindow.retire()}
         let host=WorkshopHostedLifecycleHost(rootView:WorkshopCreatorConsentView(controller:c,appearance:selection.appearance));navigation.pushViewController(host,animated:false)
         try await waitUntil{c.phase == .reviewing};
         WorkshopHostedLifecycleProbe.record(.consentInitial, root: root, host: host, navigation: navigation, idle: c.phase == .idle, loading: c.phase == .loading, reviewing: c.phase == .reviewing, editing: false)

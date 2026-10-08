@@ -14,14 +14,16 @@ import XCTest
         return app
     }
     private func tap(_ id: String, in app: XCUIApplication, fixed: Bool = false) {
-        let target = app.buttons[id]; XCTAssertTrue(target.waitForExistence(timeout: 5), app.debugDescription)
+        let target = app.buttons[id]
         if !fixed { XCTAssertTrue(revealFixtureElement(target, in: app, maximumSwipes: 70), app.debugDescription) }
+        XCTAssertTrue(target.waitForExistence(timeout: 5), app.debugDescription)
         XCTAssertEqual(app.buttons.matching(identifier: id).count, 1); XCTAssertTrue(target.isEnabled && target.isHittable)
         XCTAssertTrue(app.windows.firstMatch.frame.contains(target.frame)); target.tap()
     }
     @discardableResult private func value(_ id: String, _ expected: String? = nil, in app: XCUIApplication) -> String {
-        let target = app.staticTexts[id]; XCTAssertTrue(target.waitForExistence(timeout: 5), app.debugDescription)
+        let target = app.staticTexts[id]
         XCTAssertTrue(revealFixtureElement(target, in: app, maximumSwipes: 70, requiresHittable: false), app.debugDescription)
+        XCTAssertTrue(target.waitForExistence(timeout: 5), app.debugDescription)
         if let expected { XCTAssertEqual(Array(target.label.utf8), Array(expected.utf8)) }
         return target.label
     }
@@ -35,7 +37,7 @@ import XCTest
     }
     private func submitAndOpen(in app: XCUIApplication) {
         tap("projectEdit.review", in: app, fixed: true); tap("projectEdit.confirmSimulation", in: app)
-        value("projectSubmission.auditTaskID", "3301", in: app); value("projectSubmission.templateIDs", "41", in: app)
+        assertProjectSubmissionEvidenceValue("projectSubmission.auditTaskID", "3301", in: app, phase: .receipt, maximumSwipes: 70, revealFirst: true); assertProjectSubmissionEvidenceValue("projectSubmission.templateIDs", "41", in: app, phase: .receipt, maximumSwipes: 70, revealFirst: true)
         tap("projectSubmission.done", in: app); tap("topicReview.open", in: app)
     }
     // UNMEASURED complete method estimate: 900 seconds. Full ordinary fixture submission, captured request, two explicit current reads, close/reopen, changed server task state and original receipts are included.
@@ -53,7 +55,7 @@ import XCTest
         value("topicReview.current.state","Review task approved",in:app); value("topicReview.current.version","1",in:app)
         value("topicReview.submittedState","Pending review",in:app); value("topicReview.requestID",request,in:app)
         XCTAssertFalse(app.buttons["approvedRelease.publish"].exists); tap("topicReview.close",in:app,fixed:true)
-        value("projectSubmission.auditTaskID","3301",in:app); value("projectSubmission.submittedState","Pending",in:app)
+        assertProjectSubmissionEvidenceValue("projectSubmission.auditTaskID", "3301", in: app, phase: .history, maximumSwipes: 70, revealFirst: true); assertProjectSubmissionEvidenceValue("projectSubmission.submittedState", "Pending", in: app, phase: .history, maximumSwipes: 70, revealFirst: true)
         let checked = try inspect(app); XCTAssertEqual(checked.reviewPrepareCount,1); XCTAssertEqual(checked.reviewSubmitCount,1); XCTAssertEqual(checked.reviewStatusCount,0); XCTAssertEqual(checked.reviewObservationCount,2); XCTAssertEqual(checked.reviewTaskCount,1); XCTAssertEqual(Set(checked.reviewRequestIDs),Set([request]))
     }
 }

@@ -6,6 +6,9 @@ struct PlayBranchHistoryView: View {
     let history: PlayBranchHistoryPresentation?
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
+    #if DEBUG
+    @Environment(\.branchHistoryFixtureHandshake) private var fixtureHandshake
+    #endif
     var body: some View {
         NavigationStack {
             List {
@@ -34,12 +37,23 @@ struct PlayBranchHistoryView: View {
             .navigationTitle(branchHistoryLocalized("branchHistory.title", locale: locale))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                #if DEBUG
+                if let fixtureHandshake, fixtureHandshake.canApply(history) {
+                    ToolbarItem(placement: .bottomBar) {
+                        Button("Apply armed fixture change") { fixtureHandshake.apply(history) }
+                            .accessibilityIdentifier("branchHistory.fixture.applyPresented")
+                    }
+                }
+                #endif
                 ToolbarItem(placement: .confirmationAction) {
                     Button(branchHistoryLocalized("branchHistory.close", locale: locale)) { dismiss() }
                         .accessibilityIdentifier("branchHistory.close")
                 }
             }
         }.privacySensitive()
+        #if DEBUG
+        .onDisappear { fixtureHandshake?.disarm() }
+        #endif
     }
     private func message(_ key: String, id: String) -> some View {
         Text(branchHistoryLocalized(key, locale: locale)).foregroundStyle(.secondary)

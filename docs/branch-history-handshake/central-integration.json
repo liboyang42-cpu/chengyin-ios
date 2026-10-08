@@ -1,0 +1,32 @@
+{
+  "status": "APPLIED_LOCAL_SOURCE_BOUND_JOINT_CANDIDATE_APPLE_NOT_RUN",
+  "baseTree": "30cd0ace4249489a6ab22cc60f86a49edfb00bcf",
+  "sourcePath": "Tests/AppUITests/PlayBranchHistoryLifetimeFlowTests.swift",
+  "oldFileSHA256": "6428aeea73bb28e478fef600d4271a067a02335e6e8e256a1aa1d9d45a2a8306",
+  "newFileSHA256": "d2baa99029f6706f2e24f4b8389aa0d10c4dc071cd0ca61b1a489c0f9b2fa05d",
+  "method": "PlayBranchHistoryLifetimeFlowTests.testRefreshAndAccountSwitchWhilePresentedRemoveOldSheetAndRows",
+  "oldDeclarationSHA256": "b9f9f8aa635002f8f689f75dce74aa940b876b230c7886846b3e1e6d478f6d8e",
+  "newDeclarationSHA256": "29c350406893f2a307dadab5ffb37ff849e2b698e897b86ea8b26fd0351eec8f",
+  "oldFloorSeconds": 410,
+  "newUnmeasuredFloorSeconds": 490,
+  "unchangedLinearFloorSeconds": 160,
+  "classSeconds": 650,
+  "inverseRule": "Validate exact new file hash first; remove the exact five added lines once; validate old file hash; retain all old method/helper/alias assertions. Never accept arbitrary newer sources.",
+  "currentBlocker": "Central local source registration complete. Independent joint review and Apple acceptance remain required; publication paused.",
+  "protectedCentralFiles": [
+    "tools/run_ui_shard.py",
+    "tools/run129_repair_planning.py",
+    "tools/run129_repair_planning_contract.json",
+    "tools/player_map_history_planning_contract.json",
+    "tools/ui_duration_weights.json",
+    "tools/tests/fixtures/run129_repairs/source-index.json"
+  ],
+  "central_registration": {
+    "contract": "tools/branch_history_handshake_planning_contract.json",
+    "inverse": "Exact five added lines, current file hash first and original hash after removal",
+    "class_seconds": 650,
+    "shards": 79,
+    "peak_with300_seconds": "1765.141",
+    "headroom_seconds": "34.859"
+  }
+}

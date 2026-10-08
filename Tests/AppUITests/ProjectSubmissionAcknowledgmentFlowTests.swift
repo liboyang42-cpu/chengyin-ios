@@ -30,16 +30,16 @@ import XCTest
     // UNMEASURED complete method estimate: 750 seconds. Includes submit, close, local reopen, and account invalidation.
     func testPendingPublishedFlagKeepsExactTaskThroughOrdinarySubmitAndReopen() throws {
         let app = launch(); tap("projectEdit.review", in: app, fixed: true); tap("projectEdit.confirmSimulation", in: app)
-        value("projectSubmission.topicID", "7901", in: app); value("projectSubmission.auditTaskID", "3301", in: app)
-        value("projectSubmission.submittedState", "Pending", in: app); value("projectSubmission.legacyVisibility", "Yes", in: app)
-        value("projectSubmission.templateIDs", "41", in: app)
+        assertProjectSubmissionEvidenceValue("projectSubmission.topicID", "7901", in: app, phase: .receipt, maximumSwipes: 65, revealFirst: true); assertProjectSubmissionEvidenceValue("projectSubmission.auditTaskID", "3301", in: app, phase: .receipt, maximumSwipes: 65, revealFirst: true)
+        assertProjectSubmissionEvidenceValue("projectSubmission.submittedState", "Pending", in: app, phase: .receipt, maximumSwipes: 65, revealFirst: true); assertProjectSubmissionEvidenceValue("projectSubmission.legacyVisibility", "Yes", in: app, phase: .receipt, maximumSwipes: 65, revealFirst: true)
+        assertProjectSubmissionEvidenceValue("projectSubmission.templateIDs", "41", in: app, phase: .receipt, maximumSwipes: 65, revealFirst: true)
         XCTAssertTrue(app.staticTexts["projectSubmission.historyNotice"].exists); XCTAssertTrue(app.staticTexts["projectSubmission.releaseUnavailable"].exists)
         tap("projectSubmission.done", in: app); XCTAssertFalse(app.buttons["projectEdit.review"].isEnabled)
         tap("projectEdit.fixture.reopen", in: app, fixed: true)
-        value("projectSubmission.auditTaskID", "3301", in: app); value("projectSubmission.submittedState", "Pending", in: app)
+        assertProjectSubmissionEvidenceValue("projectSubmission.auditTaskID", "3301", in: app, phase: .history, maximumSwipes: 65, revealFirst: true); assertProjectSubmissionEvidenceValue("projectSubmission.submittedState", "Pending", in: app, phase: .history, maximumSwipes: 65, revealFirst: true)
         XCTAssertFalse(app.buttons["projectEdit.review"].isEnabled); XCTAssertFalse(app.buttons["projectEdit.confirmLive"].exists)
         tap("projectEdit.fixture.signOut", in: app, fixed: true)
-        XCTAssertFalse(app.staticTexts["projectSubmission.auditTaskID"].exists); XCTAssertFalse(app.buttons["projectEdit.review"].isEnabled)
+        XCTAssertEqual(app.descendants(matching: .any).matching(identifier: "projectSubmission.auditTaskID").count, 0); XCTAssertFalse(app.buttons["projectEdit.review"].isEnabled)
     }
 
 }

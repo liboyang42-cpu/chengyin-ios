@@ -35,7 +35,7 @@ import XCTest
     }
     private func submitAndOpen(in app: XCUIApplication) {
         tap("projectEdit.review", in: app, fixed: true); tap("projectEdit.confirmSimulation", in: app)
-        value("projectSubmission.auditTaskID", "3301", in: app); value("projectSubmission.templateIDs", "41", in: app)
+        assertProjectSubmissionEvidenceValue("projectSubmission.auditTaskID", "3301", in: app, phase: .receipt, maximumSwipes: 70, revealFirst: false); assertProjectSubmissionEvidenceValue("projectSubmission.templateIDs", "41", in: app, phase: .receipt, maximumSwipes: 70, revealFirst: false)
         tap("projectSubmission.done", in: app); tap("topicReview.open", in: app)
     }
     // UNMEASURED complete method estimate: 900 seconds. Full Chinese maximum-text editor acknowledgment, selected-cover readback, disabled write and original receipt readback are included.
@@ -47,7 +47,7 @@ import XCTest
         value("topicReview.selectedCover.notLoaded","此记录页没有加载图片字节，也不会把作者专用地址当作任意图片链接打开。",in:app)
         XCTAssertTrue(app.buttons["topicReview.review"].exists); XCTAssertFalse(app.buttons["topicReview.review"].isEnabled)
         XCTAssertFalse(app.buttons["topicReview.confirm.submit"].exists); XCTAssertFalse(app.buttons["approvedRelease.publish"].exists)
-        tap("topicReview.close",in:app,fixed:true); value("projectSubmission.auditTaskID","3301",in:app); value("projectSubmission.templateIDs","41",in:app)
+        tap("topicReview.close",in:app,fixed:true); assertProjectSubmissionEvidenceValue("projectSubmission.auditTaskID", "3301", in: app, phase: .history, maximumSwipes: 70, revealFirst: false); assertProjectSubmissionEvidenceValue("projectSubmission.templateIDs", "41", in: app, phase: .history, maximumSwipes: 70, revealFirst: false)
         let checked = try inspect(app); XCTAssertEqual(checked.reviewPrepareCount,1); XCTAssertEqual(checked.reviewSubmitCount,0); XCTAssertEqual(checked.reviewStatusCount,0); XCTAssertEqual(checked.reviewTaskCount,0); XCTAssertTrue(checked.reviewRequestIDs.isEmpty)
     }
 }

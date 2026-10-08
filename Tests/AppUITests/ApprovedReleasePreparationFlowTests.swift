@@ -29,8 +29,8 @@ import XCTest
     }
     private func submitAndRead(in app: XCUIApplication) {
         tap("projectEdit.review", in: app, fixed: true); tap("projectEdit.confirmSimulation", in: app)
-        value("projectSubmission.auditTaskID", "3301", in: app); value("projectSubmission.submittedState", "Pending", in: app)
-        value("projectSubmission.templateIDs", "41", in: app); tap("projectSubmission.done", in: app)
+        assertProjectSubmissionEvidenceValue("projectSubmission.auditTaskID", "3301", in: app, phase: .receipt, maximumSwipes: 65, revealFirst: true); assertProjectSubmissionEvidenceValue("projectSubmission.submittedState", "Pending", in: app, phase: .receipt, maximumSwipes: 65, revealFirst: true)
+        assertProjectSubmissionEvidenceValue("projectSubmission.templateIDs", "41", in: app, phase: .receipt, maximumSwipes: 65, revealFirst: true); tap("projectSubmission.done", in: app)
         XCTAssertFalse(app.buttons["projectEdit.review"].isEnabled)
         tap("approvedRelease.read", in: app)
     }
@@ -53,7 +53,7 @@ import XCTest
         value("approvedRelease.chapter.0.block.1.question", "Server-captured question?", in: app)
         XCTAssertFalse(app.buttons["approvedRelease.publish"].exists); XCTAssertFalse(app.buttons["projectEdit.confirmLive"].exists)
         tap("approvedRelease.close", in: app, fixed: true)
-        value("projectSubmission.templateIDs", "41", in: app); value("projectSubmission.submittedState", "Pending", in: app)
+        assertProjectSubmissionEvidenceValue("projectSubmission.templateIDs", "41", in: app, phase: .history, maximumSwipes: 65, revealFirst: true); assertProjectSubmissionEvidenceValue("projectSubmission.submittedState", "Pending", in: app, phase: .history, maximumSwipes: 65, revealFirst: true)
         tap("projectEdit.fixture.reopen", in: app, fixed: true); tap("approvedRelease.read", in: app)
         value("approvedRelease.name", "Synthetic server-approved title", in: app); tap("approvedRelease.close", in: app, fixed: true)
         tap("projectEdit.fixture.signOut", in: app, fixed: true)

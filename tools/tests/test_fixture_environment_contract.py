@@ -22,13 +22,28 @@ def reviewed_branch_history_display_family(sources=None):
     """
     expected = {
         'PlayBranchHistoryFlowTests': '66d9552a55f04d286ff267803786d434c08da35977338042c31c229cdc88729c',
-        'PlayBranchHistoryLifetimeFlowTests': '6428aeea73bb28e478fef600d4271a067a02335e6e8e256a1aa1d9d45a2a8306',
+        'PlayBranchHistoryLifetimeFlowTests': 'd2baa99029f6706f2e24f4b8389aa0d10c4dc071cd0ca61b1a489c0f9b2fa05d',
     }
     if sources is None:
         sources = {name: (ROOT / 'Tests/AppUITests' / (name + '.swift')).read_text() for name in expected}
     assert set(sources) == set(expected), 'Unknown or missing display-family wrapper'
     for name, value in sources.items():
         assert hashlib.sha256(value.encode()).hexdigest() == expected[name], 'Changed display-family source: ' + name
+    # This one reviewed handshake adds five lines before the original withdrawal assertion.
+    # Invert only that exact hunk to retain the original five-method/helper proof below.
+    current_sources = sources
+    sources = dict(sources)
+    handshake = '''            let oldRow = element("branchHistory.row.0", in: app)
+            XCTAssertTrue(oldRow.waitForExistence(timeout: 5)); XCTAssertTrue(revealFixtureElement(oldRow, in: app))
+            XCTAssertTrue(oldRow.isHittable); XCTAssertTrue(oldRow.label.contains("Synthetic courtyard"))
+            let apply = app.buttons["branchHistory.fixture.applyPresented"]
+            XCTAssertTrue(apply.waitForExistence(timeout: 5)); XCTAssertTrue(apply.isHittable); apply.tap()
+'''
+    lifetime = sources['PlayBranchHistoryLifetimeFlowTests']
+    assert lifetime.count(handshake) == 1, 'Missing or repeated presentation handshake'
+    lifetime = lifetime.replace(handshake, '', 1)
+    assert hashlib.sha256(lifetime.encode()).hexdigest() == '6428aeea73bb28e478fef600d4271a067a02335e6e8e256a1aa1d9d45a2a8306', 'Changed historical lifetime source'
+    sources['PlayBranchHistoryLifetimeFlowTests'] = lifetime
     original = (ROOT / 'tools/tests/fixtures/player_map_history/authored-PlayBranchHistoryFlowTests.swift.txt').read_text()
     assert hashlib.sha256(original.encode()).hexdigest() == '19a6dccc6226808b8d1ca5f51b7495249f4ff4286202cd94d0d4b16957bd17cf'
 
@@ -58,7 +73,7 @@ def reviewed_branch_history_display_family(sources=None):
     chinese = 'testChineseMaximumTextUnknownNodeAndRefreshReplaceOldHistory'
     assert chinese in methods(sources['PlayBranchHistoryFlowTests'])
     assert 'assertFixtureEnvironment(in: app, dynamicTypeSize: "accessibility5")' in actual[chinese]
-    return '\n'.join(sources.values())
+    return '\n'.join(current_sources.values())
 
 
 def reviewed_run129_display_family(name, sources=None):
@@ -74,6 +89,8 @@ def reviewed_run129_display_family(name, sources=None):
     if sources is None:
         sources = {key: (ROOT/'Tests/AppUITests'/(key+'.swift')).read_text() for key in pair}
     assert set(sources) == set(pair), 'Missing or extra family member'
+    from tools.run130_submission_evidence import retained_display_family_source
+    sources = {key: retained_display_family_source(key, text) for key, text in sources.items()}
     oldrow=index['historical_ui_sources']['Tests/AppUITests/'+name+'.swift']
     original=(FIXTURES/oldrow['historical_file']).read_text()
     assert hashlib.sha256(original.encode()).hexdigest()==oldrow['sha256']

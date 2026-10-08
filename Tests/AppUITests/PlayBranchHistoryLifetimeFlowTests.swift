@@ -27,6 +27,11 @@ final class PlayBranchHistoryLifetimeFlowTests: XCTestCase {
             let app = launch()
             XCTAssertTrue(app.buttons["branchHistory.open"].waitForExistence(timeout: 5))
             app.buttons["branchHistory.fixture.menu"].tap(); app.buttons[action].tap(); open(app)
+            let oldRow = element("branchHistory.row.0", in: app)
+            XCTAssertTrue(oldRow.waitForExistence(timeout: 5)); XCTAssertTrue(revealFixtureElement(oldRow, in: app))
+            XCTAssertTrue(oldRow.isHittable); XCTAssertTrue(oldRow.label.contains("Synthetic courtyard"))
+            let apply = app.buttons["branchHistory.fixture.applyPresented"]
+            XCTAssertTrue(apply.waitForExistence(timeout: 5)); XCTAssertTrue(apply.isHittable); apply.tap()
             let close = app.buttons["branchHistory.close"]
             let gone = NSPredicate(format: "exists == false")
             expectation(for: gone, evaluatedWith: close); waitForExpectations(timeout: 8)

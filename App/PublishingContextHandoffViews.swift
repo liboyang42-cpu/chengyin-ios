@@ -40,7 +40,8 @@ import SwiftUI
                     Button("action.done") { finish() }.buttonStyle(.borderedProminent)
                         .accessibilityIdentifier("projectSubmission.done")
                 }.padding()
-            }.interactiveDismissDisabled()
+            }.accessibilityIdentifier("projectSubmission.receipt")
+                .interactiveDismissDisabled()
         } else { legacyResult }
     }
     private var legacyResult: some View {

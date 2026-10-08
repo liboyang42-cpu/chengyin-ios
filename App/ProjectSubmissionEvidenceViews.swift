@@ -9,18 +9,17 @@ import SwiftUI
         VStack(alignment: .leading, spacing: 12) {
             Text(String(localized: LocalizedStringResource("projectSubmission.historyNotice", defaultValue: "These facts were returned when you submitted. They are not a current approval or immutable release.", locale: locale)))
                 .font(.footnote).accessibilityIdentifier("projectSubmission.historyNotice")
-            LabeledContent(String(localized: LocalizedStringResource("projectSubmission.topicID", defaultValue: "Topic ID", locale: locale))) { Text(verbatim: String(acknowledgment.topicID)).accessibilityIdentifier("projectSubmission.topicID") }.accessibilityElement(children: .contain)
+            field(String(localized: LocalizedStringResource("projectSubmission.topicID", defaultValue: "Topic ID", locale: locale)), value: String(acknowledgment.topicID), id: "projectSubmission.topicID")
             if let task = acknowledgment.auditTaskID {
-                LabeledContent(String(localized: LocalizedStringResource("projectSubmission.auditTaskID", defaultValue: "Review task ID", locale: locale))) { Text(verbatim: String(task)).accessibilityIdentifier("projectSubmission.auditTaskID") }.accessibilityElement(children: .contain)
+                field(String(localized: LocalizedStringResource("projectSubmission.auditTaskID", defaultValue: "Review task ID", locale: locale)), value: String(task), id: "projectSubmission.auditTaskID")
             }
-            LabeledContent(String(localized: LocalizedStringResource("projectSubmission.submittedState", defaultValue: "Review state at submission", locale: locale))) { Text(verbatim: stateText).accessibilityIdentifier("projectSubmission.submittedState") }.accessibilityElement(children: .contain)
-            LabeledContent(String(localized: LocalizedStringResource("projectSubmission.legacyVisibility", defaultValue: "Legacy service reported published", locale: locale))) {
-                Text(acknowledgment.published ? String(localized: LocalizedStringResource("projectSubmission.yes", defaultValue: "Yes", locale: locale)) : String(localized: LocalizedStringResource("projectSubmission.no", defaultValue: "No", locale: locale)))
-                    .accessibilityIdentifier("projectSubmission.legacyVisibility")
-            }.accessibilityElement(children: .contain)
+            field(String(localized: LocalizedStringResource("projectSubmission.submittedState", defaultValue: "Review state at submission", locale: locale)), value: stateText, id: "projectSubmission.submittedState")
+            field(String(localized: LocalizedStringResource("projectSubmission.legacyVisibility", defaultValue: "Legacy service reported published", locale: locale)),
+                  value: acknowledgment.published ? String(localized: LocalizedStringResource("projectSubmission.yes", defaultValue: "Yes", locale: locale)) : String(localized: LocalizedStringResource("projectSubmission.no", defaultValue: "No", locale: locale)),
+                  id: "projectSubmission.legacyVisibility")
             Text(String(localized: LocalizedStringResource("projectSubmission.legacyNotice", defaultValue: "The older service can make content visible while review is pending. This flag does not approve a release.", locale: locale)))
                 .font(.footnote).foregroundStyle(.secondary)
-            LabeledContent(String(localized: LocalizedStringResource("projectSubmission.templateIDs", defaultValue: "Bundled play template IDs", locale: locale))) { Text(verbatim: acknowledgment.bundledTemplateIDs.map(String.init).joined(separator: ", ")).accessibilityIdentifier("projectSubmission.templateIDs") }.accessibilityElement(children: .contain)
+            field(String(localized: LocalizedStringResource("projectSubmission.templateIDs", defaultValue: "Bundled play template IDs", locale: locale)), value: acknowledgment.bundledTemplateIDs.map(String.init).joined(separator: ", "), id: "projectSubmission.templateIDs")
             if currentVerificationConfigured {
                 Text(String(localized: LocalizedStringResource("approvedRelease.separateCheck", defaultValue: "Use the editor's approved-snapshot check for the current server decision. These submission-time facts remain unchanged.", locale: locale)))
                     .font(.footnote)
@@ -29,6 +28,13 @@ import SwiftUI
                 .font(.footnote).accessibilityIdentifier("projectSubmission.releaseUnavailable")
             }
         }
+    }
+    private func field(_ label: String, value: String, id: String) -> some View {
+        LabeledContent(label) { Text(verbatim: value) }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text(verbatim: label))
+            .accessibilityValue(Text(verbatim: value))
+            .accessibilityIdentifier(id)
     }
     private var stateText: String {
         switch acknowledgment.reviewState {
@@ -47,6 +53,8 @@ import SwiftUI
         if let acknowledgment = model.submissionEvidence?.bundleAcknowledgment {
             Section(String(localized: LocalizedStringResource("projectSubmission.title", defaultValue: "Submission acknowledgment", locale: locale))) {
                 ProjectSubmissionEvidenceView(acknowledgment: acknowledgment, currentVerificationConfigured: model.approvedReleaseReadIsConfigured)
+                    .accessibilityElement(children: .contain)
+                    .accessibilityIdentifier("projectSubmission.history")
             }
         }
     }

@@ -1,0 +1,23 @@
+{
+  "baseCommit": "11800193a5f5057e6598b4e46e8ecb4a98e4572a",
+  "baseTree": "30cd0ace4249489a6ab22cc60f86a49edfb00bcf",
+  "protected": {
+    "App/PlayTaskSummaryView.swift": "24577b93d3ed8c158a32f2dae0a020b7354676c4fd7fa7ed74ac52e18ae34c89",
+    "Core/PlayBranchHistoryPresentation.swift": "f2c8ec28dfd8cfc8a4a1d3701d930815d742d0e902f4032e789a70ef232cd585",
+    "Core/PlayExperienceCoordinator.swift": "e7f72f3a9f214c3d3ab3a56aa9fdedca8728966550b2190d2afbe045f197b658",
+    "Core/PlayExperienceService.swift": "764c1b1dcf9292382b2cefdc7ce95e21625ad1dd218bad31978a2b2a8f83568a",
+    "Core/PlayBranchHistorySyntheticFixtures.swift": "08453dd81301193ed0f48a9b755cbdd6b56bc9ae898c652bd601bf3e99e06a23",
+    "Tests/AppUITests/PlayBranchHistoryFlowTests.swift": "66d9552a55f04d286ff267803786d434c08da35977338042c31c229cdc88729c",
+    "tools/ui_duration_weights.json": "60696c12c8d33e4cc776506de7dfea05eab621d8ac33ac6bd32d5679a38fe535",
+    "tools/player_map_history_planning_contract.json": "233f2dad8e06d49e10fcb9af868221979c3ead3b7a2bf987d9a567bdfe7faa67",
+    "tools/run_ui_shard.py": "2612e6a12135f18d9bc86d73470a597a2c544b37705c9c1f95d6ed6d2219150d",
+    "tools/run129_repair_planning.py": "9e05b98ab0c5e9b80560a06709e8bdeec1b664a566ab4238873d93c31a85868c",
+    "tools/run129_repair_planning_contract.json": "e25a074752564213dc99b553ad26029a126c62466ba857fd22b87851fb08834a",
+    "tools/tests/fixtures/run129_repairs/source-index.json": "1dbb5d5f38189ca6d05caa726e9f543b6991a72e39b6b023641fa5a0ee25cce5"
+  },
+  "releaseViewSHA256": "21e4bc0628ac180c6f679a7ca5893d3e4ddbec869feff4414218136829fff23e",
+  "oldLifetimeSHA256": "6428aeea73bb28e478fef600d4271a067a02335e6e8e256a1aa1d9d45a2a8306",
+  "modifiedSharedBaseline": {
+    "tools/tests/test_fixture_environment_contract.py": "e32fba2b39088cc740f156662e1f56884805e22006ca05cd5d25bd0399c0ebfd"
+  }
+}

@@ -47,13 +47,17 @@ def source_index():
 
 
 def before_run129_repairs(profile):
-    result = deepcopy(profile)
+    try:
+        from run129_late_readiness import previous_profile
+    except ModuleNotFoundError:
+        from tools.run129_late_readiness import previous_profile
+    result = previous_profile(profile)
     plan = result.get('planning_budget', {}).get(PLAN)
     if plan is None:
         if any(key.startswith(tuple(name+'.' for name in NEW_CLASSES)) for key in result.get('estimated_method_seconds', {})):
             raise ValueError('Missing run129 repair planning identity')
         return result
-    if canonical(profile) != CURRENT_PROFILE_SHA256:
+    if canonical(result) != CURRENT_PROFILE_SHA256:
         raise ValueError('Unreviewed current repair profile')
     result['planning_budget'].pop(PLAN)
     if canonical(result) != BASELINE_PROFILE_SHA256:
@@ -63,7 +67,11 @@ def before_run129_repairs(profile):
 
 def historical_source(path):
     """Only exact reviewed current bytes may project to pinned old source bytes."""
-    path = Path(path)
+    try:
+        from run129_late_readiness import previous_source
+    except ModuleNotFoundError:
+        from tools.run129_late_readiness import previous_source
+    path = previous_source(path)
     index = source_index()
     if path.parent.name == 'AppUITests':
         relative = 'Tests/AppUITests/' + path.name

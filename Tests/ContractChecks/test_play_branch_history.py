@@ -7,6 +7,34 @@ import unittest
 ROOT = Path(__file__).resolve().parents[2]
 def read(path): return (ROOT / path).read_text()
 
+
+def branch_history_release_source(source):
+    """Only the three reviewed DEBUG handshake spans may be excluded from counting."""
+    spans = (
+        r'''    #if DEBUG
+    @Environment(\.branchHistoryFixtureHandshake) private var fixtureHandshake
+    #endif
+''',
+        '''                #if DEBUG
+                if let fixtureHandshake, fixtureHandshake.canApply(history) {
+                    ToolbarItem(placement: .bottomBar) {
+                        Button("Apply armed fixture change") { fixtureHandshake.apply(history) }
+                            .accessibilityIdentifier("branchHistory.fixture.applyPresented")
+                    }
+                }
+                #endif
+''',
+        '''        #if DEBUG
+        .onDisappear { fixtureHandshake?.disarm() }
+        #endif
+''',
+    )
+    for span in spans:
+        assert source.count(span) == 1, "Changed or unguarded fixture span"
+        source = source.replace(span, "", 1)
+    assert "#if" not in source and "#endif" not in source, "Unexpected conditional content"
+    return source
+
 class PlayBranchHistoryContracts(unittest.TestCase):
     def test_only_optional_route_field_changes_existing_wire_contract(self):
         current = read('Core/PlayContracts.swift')
@@ -49,7 +77,7 @@ class PlayBranchHistoryContracts(unittest.TestCase):
             for forbidden in ['URLSession','HTTPRequest','makeInteractionLifetime','submit(', 'review(', 'requestAuthorization', 'MapKit', 'AVFoundation', 'WKWebView', 'UserDefaults']:
                 self.assertNotIn(forbidden,text)
         view=read('App/PlayBranchHistoryView.swift')
-        self.assertEqual(view.count('Button('),1)
+        self.assertEqual(branch_history_release_source(view).count('Button('),1)
         self.assertIn('Text(verbatim: name ??',view)
         self.assertIn('.privacySensitive()',view)
     def test_dedicated_localization_table_is_complete_and_bilingual(self):

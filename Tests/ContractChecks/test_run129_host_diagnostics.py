@@ -3,6 +3,7 @@ from pathlib import Path
 import re
 import hashlib
 import unittest
+from test_run130_creator_scene import original_creator_source
 ROOT = Path(__file__).resolve().parents[2]
 OLD = ROOT / 'tools/tests/fixtures/run129_published_sources'
 
@@ -51,7 +52,7 @@ class Run129HostDiagnostics(unittest.TestCase):
         self.assertEqual(source.count('WORKSHOP_SYNTHETIC_LIST'), 1)
 
     def test_creator_probe_records_only_framework_appearance_and_boolean_state(self):
-        source = (ROOT / 'Tests/AppUnitTests/WorkshopCreatorConsentNormalFlowTests.swift').read_text()
+        source = original_creator_source('WorkshopCreatorConsentNormalFlowTests.swift', (ROOT / 'Tests/AppUnitTests/WorkshopCreatorConsentNormalFlowTests.swift').read_text())
         marker = '#if DEBUG\nimport SwiftUI\nimport UIKit\n'
         probe = marker + source.split(marker, 1)[1]
         self.assertFalse((ROOT / 'Tests/AppUnitTests/WorkshopHostedLifecycleProbe.swift').exists())
@@ -72,7 +73,7 @@ class Run129HostDiagnostics(unittest.TestCase):
         expected = {'WorkshopCreatorConsentNormalFlowTests.swift': 1,
                     'WorkshopCreatorPendingNormalFlowTests.swift': 2}
         for name, count in expected.items():
-            source = (ROOT / 'Tests/AppUnitTests' / name).read_text()
+            source = original_creator_source(name, (ROOT / 'Tests/AppUnitTests' / name).read_text())
             if name == 'WorkshopCreatorConsentNormalFlowTests.swift':
                 source = source.split('\n#if DEBUG\nimport SwiftUI\nimport UIKit\n', 1)[0]
             self.assertEqual(source.count('WorkshopHostedLifecycleProbe.record('), count)

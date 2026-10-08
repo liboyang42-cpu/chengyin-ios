@@ -35,7 +35,7 @@ import XCTest
     }
     private func submitAndOpen(in app: XCUIApplication) {
         tap("projectEdit.review", in: app, fixed: true); tap("projectEdit.confirmSimulation", in: app)
-        value("projectSubmission.auditTaskID", "3301", in: app); value("projectSubmission.templateIDs", "41", in: app)
+        assertProjectSubmissionEvidenceValue("projectSubmission.auditTaskID", "3301", in: app, phase: .receipt, maximumSwipes: 70, revealFirst: false); assertProjectSubmissionEvidenceValue("projectSubmission.templateIDs", "41", in: app, phase: .receipt, maximumSwipes: 70, revealFirst: false)
         tap("projectSubmission.done", in: app); tap("topicReview.open", in: app)
     }
     // UNMEASURED complete method estimate: 900 seconds. One Chinese accessibility5 journey includes current capture, explicit request, unknown response, close/reopen and exact status recovery.
@@ -49,7 +49,7 @@ import XCTest
         value("topicReview.requestID", id, in: app); XCTAssertFalse(app.buttons["topicReview.review"].exists)
         tap("topicReview.check", in: app); value("topicReview.submittedTask", "4402", in: app); value("topicReview.submittedState", "待审核", in: app)
         value("topicReview.requestID", id, in: app); tap("topicReview.close", in: app, fixed: true)
-        value("projectSubmission.auditTaskID", "3301", in: app); value("projectSubmission.submittedState", "待审核", in: app)
+        assertProjectSubmissionEvidenceValue("projectSubmission.auditTaskID", "3301", in: app, phase: .history, maximumSwipes: 70, revealFirst: false); assertProjectSubmissionEvidenceValue("projectSubmission.submittedState", "待审核", in: app, phase: .history, maximumSwipes: 70, revealFirst: false)
         let checked = try inspect(app); XCTAssertEqual(checked.reviewPrepareCount, 1); XCTAssertEqual(checked.reviewSubmitCount, 1); XCTAssertEqual(checked.reviewStatusCount, 1); XCTAssertEqual(checked.reviewTaskCount, 1); XCTAssertEqual(Set(checked.reviewRequestIDs), Set([id]))
         XCTAssertFalse(app.buttons["projectEdit.review"].isEnabled); XCTAssertFalse(app.buttons["projectEdit.confirmLive"].exists)
     }

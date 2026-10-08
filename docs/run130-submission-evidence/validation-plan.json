@@ -1,0 +1,144 @@
+{
+  "status": "READ_ONLY_PROPOSAL_NOT_AUTHORIZED_TO_TRIGGER",
+  "source_candidate": "exact candidate tree in outer manifest; no diagnostic commit created",
+  "allowlist": [
+    "ApprovedReleasePublicationFlowTests.testCapturedConfirmationCreatesOneImmutableReceiptAndReopensWithoutAnotherPublish",
+    "ApprovedReleaseReceiptRecoveryFlowTests.testLocalReceiptWriteFailureRecoversOnlyThePersistedRequest",
+    "ApprovedReleaseRecoveryFlowTests.testChineseMaximumTextUnknownRecoveryKeepsOnlyThePersistedRequest",
+    "ApprovedTopicFrozenCoverPublicationFlowTests.testApprovedCoverConfirmationAndUnknownPublicationRestoreOriginalManifest",
+    "ApprovedTopicFrozenCoverReviewFlowTests.testBoundCoverReviewConfirmCancelAndUnknownRecoveryKeepOneExactRequest",
+    "ApprovedTopicReviewCurrentChineseFlowTests.testChineseMaximumTextCurrentTaskReadRemainsSeparateFromSavedSubmissionAndClearsOnReopen",
+    "ApprovedTopicReviewCurrentFlowTests.testExplicitCurrentTaskReadUpdatesObservationWithoutChangingEitherHistoricalReceipt",
+    "ApprovedTopicReviewUnknownFlowTests.testChineseMaximumTextUnknownRequestRecoversSameIDWithoutAnotherSubmission",
+    "ApprovedTopicSelectedCoverChineseFlowTests.testChineseMaximumTextShowsAuthorOnlyBoundaryAndKeepsOriginalReceipt",
+    "ApprovedTopicSelectedCoverFlowTests.testCapturedAuthorCoverRemainsExactAndNeverCreatesAReviewRequest",
+    "OwnedTopicCoverRecoveryFlowTests.testChineseMaximumTextUnknownSelectionReopensAndChecksOriginalRequestWithoutReupload",
+    "OwnedTopicCoverSelectionFlowTests.testExplicitLocalPickUploadSelectionAndCapturedReviewImageUseOneExactAsset"
+  ],
+  "recommended_initial_method_execution_cap_seconds": 900,
+  "alternative_method_cap_requires_explicit_approval_seconds": 1000,
+  "retained_process_deadline_seconds": 1800,
+  "existing_job_timeout_minutes": 37,
+  "suggested_max_parallel": 2,
+  "reuse_run130_artifact": false,
+  "reason_new_build_required": "Changed App AX semantics and18 UI files/helper require test products compiled from the exact diagnostic source SHA",
+  "required_success_evidence": [
+    "xcodebuild success",
+    "xcresult exact selected identifier",
+    "executed=1",
+    "skipped=0",
+    "one successful terminal method",
+    "actual completed duration",
+    "no retry or duplicate execution",
+    "full source/helper hashes",
+    "source commit and test-products fingerprint",
+    "actual Xcode Swift simulator runtime/device"
+  ],
+  "source_bindings": {
+    "App/ProjectSubmissionEvidenceViews.swift": {
+      "sha256": "50553cf5fa45ddfaf30c5660bfb2fb5942ff6016798153303ece4115b88ab858"
+    },
+    "App/PublishingContextHandoffViews.swift": {
+      "sha256": "87cf34be895fdda347d4b61aed35e7a6f25dc85e41cf3a4ecd5d2372c0edc7b4"
+    },
+    "Tests/AppUITests/ProjectSubmissionEvidenceUITestSupport.swift": {
+      "sha256": "49a420e87068cbc4b28e8b570ec7faceec09d3b9b7521cd2c3e75f53803db3c6"
+    },
+    "Tests/AppUITests/ApprovedReleasePreparationChineseFlowTests.swift": {
+      "sha256": "720f17dbc1a0d613c29d426e8d5405e24def9143b2669cc22cfba2c5ea15065c"
+    },
+    "Tests/AppUITests/ApprovedReleasePreparationFlowTests.swift": {
+      "sha256": "310a2d069c69a0141e358d4e0a313a0db5886757989df8efafba27ff98b9a9ce"
+    },
+    "Tests/AppUITests/ApprovedReleasePublicationFlowTests.swift": {
+      "sha256": "c2e72f5a8476541c4298ad934685fc36cb7fe02916741e61391e605702ae354e"
+    },
+    "Tests/AppUITests/ApprovedReleaseReceiptRecoveryFlowTests.swift": {
+      "sha256": "8e497b471cb9d2ef46c62c051d9711068a438f2999cbe3bbc8368df71d19f6a0"
+    },
+    "Tests/AppUITests/ApprovedReleaseRecoveryFlowTests.swift": {
+      "sha256": "0fd4373e3b8b43d8654dd33daf714328d462da4abf05447ed994971ac36cde62"
+    },
+    "Tests/AppUITests/ApprovedTopicFrozenCoverPublicationFlowTests.swift": {
+      "sha256": "c74a91119d172357ba131398982c0c890d3e00cd8b56ac99ba3cea12aa496e4b"
+    },
+    "Tests/AppUITests/ApprovedTopicFrozenCoverReviewFlowTests.swift": {
+      "sha256": "2366899354a57fc696522bac39bab8196897f5c18566ce8de9151673189c5968"
+    },
+    "Tests/AppUITests/ApprovedTopicReviewCurrentChineseFlowTests.swift": {
+      "sha256": "2b33bee9d01be39abca81ded142cc1d0dda1682f15e52aafe68382598b675840"
+    },
+    "Tests/AppUITests/ApprovedTopicReviewCurrentFlowTests.swift": {
+      "sha256": "69bb9f6c9780bfa70d8d0fa9737a35b255a5f97bb530fad009653eba046d87e6"
+    },
+    "Tests/AppUITests/ApprovedTopicReviewPersistenceFlowTests.swift": {
+      "sha256": "25c4d6109ace2c90833ddeeb1d5ee01a373649ae384cd8bd89cf4a7c831745f8"
+    },
+    "Tests/AppUITests/ApprovedTopicReviewRequestFlowTests.swift": {
+      "sha256": "1f1e787a1beb9d46675f2662fd61890b0f2d90926bf6bc3d228bf2af3efe8a6b"
+    },
+    "Tests/AppUITests/ApprovedTopicReviewUnknownFlowTests.swift": {
+      "sha256": "12d3b39f6819ae294c37399f303cb08dfcc0ac49122460a6683c1df9cadda098"
+    },
+    "Tests/AppUITests/ApprovedTopicSelectedCoverChineseFlowTests.swift": {
+      "sha256": "7bbce30489c43ed4da3f8336ece4a18e2b4fc1921432d4ecb98985dce22bf6b9"
+    },
+    "Tests/AppUITests/ApprovedTopicSelectedCoverFlowTests.swift": {
+      "sha256": "292d83ab1e6f818622d3249d37e73c12cd1da6aac92c68bab81cc98bf4082d68"
+    },
+    "Tests/AppUITests/OwnedTopicCoverRecoveryFlowTests.swift": {
+      "sha256": "58b07e5ac1d6a0bd3489c48f13d86f392c4a0b78a4b933e7084e7ec9701f2462"
+    },
+    "Tests/AppUITests/OwnedTopicCoverSelectionFlowTests.swift": {
+      "sha256": "eccef38b0bca7d50aa67b299b0252089c292bc6d96f539a3477e3997d237f30b"
+    },
+    "Tests/AppUITests/ProjectSubmissionAcknowledgmentChineseFlowTests.swift": {
+      "sha256": "71adad3b7f246a732a01aa579c07fba4b7bb7e57986d2c1b53c16f53cd08a617"
+    },
+    "Tests/AppUITests/ProjectSubmissionAcknowledgmentFlowTests.swift": {
+      "sha256": "cc4d7d4e495e5bd9352b48bbeedb6cdde531cad94d64374c8698c5703e1343ab"
+    }
+  },
+  "current_plan_cost_minutes": {
+    "engineering_900_methods_plus_300_start_and_30_margin_each_plus_33_shared_build": 279,
+    "engineering_1000_methods_plus_300_start_and_30_margin_each_plus_33_shared_build": 299,
+    "outer_timeout_bounding_minutes_12_times37_plus_45_build": 489
+  },
+  "spend_or_runner_minutes_incurred": 0,
+  "limit_origin": {
+    "planning": "tools/run_ui_shard.py measured_weights valid() rejects method duration >900; exact planning contracts retain historical floors",
+    "full_current_execution": "run_ui_shard.py has1800 process deadline; does not pass a900 per-method xcodebuild cap",
+    "previous_isolated_proposal": "run_held_ui_diagnostic.py explicitly passes900 default/maximum execution allowance with timeouts enabled; proposal was never triggered",
+    "authority": "900 is the existing reviewed planning/diagnostic constraint carried by root; no direct user quote establishing it as a permanent product limit is claimed"
+  },
+  "prerequisites": [
+    "final diagnostic commit and exact tree frozen",
+    "resolve known unapplied launch-readiness proposal dependencies for each selected method without shortening journeys",
+    "builder verifies all source/helper hashes before compilation",
+    "xcresult completion gate implemented and tested",
+    "all cleanup waits bounded; old unbounded final wait fixed in new diagnostic-only runner",
+    "root approves fixed branch and execution budget",
+    "confirm fixed push-trigger branch availability; do not depend on unregistered workflow_dispatch"
+  ],
+  "fixed_command_template": [
+    "xcodebuild",
+    "-xctestrun",
+    "${EXACT_SHA_UI_XCTESTRUN}",
+    "-destination",
+    "platform=iOS Simulator,id=${VERIFIED_SIMULATOR_ID}",
+    "-resultBundlePath",
+    "${UNIQUE_RESULT_BUNDLE}",
+    "-parallel-testing-enabled",
+    "NO",
+    "-only-testing:QuestifyUITests/${FIXED_ALLOWLIST_CLASS}/${FIXED_ALLOWLIST_METHOD}",
+    "-test-timeouts-enabled",
+    "YES",
+    "-default-test-execution-time-allowance",
+    "900",
+    "-maximum-test-execution-time-allowance",
+    "900",
+    "CODE_SIGNING_ALLOWED=NO",
+    "test-without-building"
+  ],
+  "command_template_status": "Executable parameter template only; no runner implemented or invoked; substitute only the fixed allowlist and verified build/device/result paths after authorization"
+}

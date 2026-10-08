@@ -35,7 +35,7 @@ import XCTest
     }
     private func submitAndOpen(in app: XCUIApplication) {
         tap("projectEdit.review", in: app, fixed: true); tap("projectEdit.confirmSimulation", in: app)
-        value("projectSubmission.auditTaskID", "3301", in: app); value("projectSubmission.templateIDs", "41", in: app)
+        assertProjectSubmissionEvidenceValue("projectSubmission.auditTaskID", "3301", in: app, phase: .receipt, maximumSwipes: 70, revealFirst: false); assertProjectSubmissionEvidenceValue("projectSubmission.templateIDs", "41", in: app, phase: .receipt, maximumSwipes: 70, revealFirst: false)
         tap("projectSubmission.done", in: app); tap("topicReview.open", in: app)
     }
     // UNMEASURED complete method estimate: 720 seconds. One complete journey covers actual confirmation, local receipt-write failure, explicit storage recovery, reopen and exact status read.
@@ -48,7 +48,7 @@ import XCTest
         tap("projectEdit.fixture.reopen", in: app, fixed: true); tap("topicReview.open", in: app)
         value("topicReview.requestID", id, in: app); tap("topicReview.check", in: app)
         value("topicReview.submittedTask", "4402", in: app); value("topicReview.submittedVersion", "0", in: app)
-        tap("topicReview.close", in: app, fixed: true); value("projectSubmission.auditTaskID", "3301", in: app)
+        tap("topicReview.close", in: app, fixed: true); assertProjectSubmissionEvidenceValue("projectSubmission.auditTaskID", "3301", in: app, phase: .history, maximumSwipes: 70, revealFirst: false)
         let checked = try inspect(app); XCTAssertEqual(checked.reviewPrepareCount, 1); XCTAssertEqual(checked.reviewSubmitCount, 1); XCTAssertEqual(checked.reviewStatusCount, 1); XCTAssertEqual(checked.reviewTaskCount, 1); XCTAssertEqual(Set(checked.reviewRequestIDs), Set([id]))
         XCTAssertFalse(app.buttons["projectEdit.review"].isEnabled); XCTAssertFalse(app.buttons["approvedRelease.publish"].exists)
     }

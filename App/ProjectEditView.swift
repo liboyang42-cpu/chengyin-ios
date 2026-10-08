@@ -260,6 +260,7 @@ import SwiftUI
                         LabeledContent("projectRemote.topicID", value: String(id))
                         LabeledContent("projectRemote.version") {
                             Text(verbatim: model.draft.baseRevision).accessibilityIdentifier("projectRemote.version.value")
+                                .accessibilityLabel(Text(verbatim: model.draft.baseRevision))
                         }.accessibilityElement(children: .contain)
                         Text(LocalizedStringKey(model.draft.product == .city ? "projectEdit.city" : "projectEdit.freeExplore"))
                             .accessibilityIdentifier("projectRemote.mode")

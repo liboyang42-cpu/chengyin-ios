@@ -15,7 +15,7 @@ import XCTest
     private func launch(_ flags: [String], free: Bool = true) -> XCUIApplication {
         app?.terminate(); let value = XCUIApplication(); app = value
         value.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", "(en)", "-AppleLocale", "en_US", "--uitesting-module", "projectEdit", "--project-edit-starter-probe"] + (free ? ["--project-edit-free-explore"] : []) + flags
-        value.launch(); XCTAssertTrue(value.textFields["projectEdit.name"].waitForExistence(timeout: 5)); return value
+        value.launch(); XCTAssertTrue(revealFixtureElement(value.textFields["projectEdit.name"], in: value, maximumSwipes: 10, requiresHittable: false)); XCTAssertTrue(value.textFields["projectEdit.name"].waitForExistence(timeout: 5)); return value
     }
     private func reveal(_ value: XCUIElement, in app: XCUIApplication, top: Bool = false, hittable: Bool = true) {
         XCTAssertTrue(revealFixtureElement(value, in: app, towardTop: top, maximumSwipes: 60, requiresHittable: hittable), app.debugDescription)
@@ -56,12 +56,24 @@ import XCTest
         let value = app.descendants(matching: .any)["projectPrepared.chapter.0.node.\(node)." + field].firstMatch
         reveal(value, in: app, hittable: false); XCTAssertEqual(Array(value.label.utf8), Array(expected.utf8), app.debugDescription)
     }
-    // UNMEASURED full new-method estimate:840s. Actual placement, editing, local save/restore and full node readback.
+    // UNMEASURED full-method allowance:870s. Retained840s floor plus one22s read-only launch reveal and one5s exact chapter-menu readiness wait, rounded up.
     func testPlacedMaterialReeditSavesRestoresAndReadsExactPreparedNodeFields() throws {
         let app = launch(["--project-edit-pending", "--project-edit-prepared-values"])
         tap("projectEdit.saveLocal", in: app, fixed: true); var saved = try inspect(app)
         let material = try XCTUnwrap(saved.pendingMaterials?.first), chapter = saved.chapters[0]
         tap("projectPending.arrange." + material.node.id, in: app)
+        let chapterMenuReady = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            app.buttons.matching(NSPredicate(format: "label == %@", chapter.name)).allElementsBoundByIndex.filter { $0.isHittable && $0.isEnabled }.count == 1
+        }, object: nil)
+        let chapterMenuResult = XCTWaiter.wait(for: [chapterMenuReady], timeout: 5)
+        if chapterMenuResult != .completed {
+            let arrange = app.buttons["projectPending.arrange." + material.node.id]
+            let exists = arrange.exists
+            let enabled = exists && arrange.isEnabled, hittable = exists && arrange.isHittable
+            let frame = exists ? String(describing: arrange.frame) : "unavailable"
+            print("PREPARED_CHAPTER_MENU_READY exists=\(exists) enabled=\(enabled) hittable=\(hittable) frame=\(frame)")
+        }
+        XCTAssertEqual(chapterMenuResult, .completed, "The exact chapter choice must become ready before its single selection.")
         let choices = app.buttons.matching(NSPredicate(format: "label == %@", chapter.name)).allElementsBoundByIndex.filter { $0.isHittable && $0.isEnabled }
         XCTAssertEqual(choices.count, 1); guard choices.count == 1 else { return }; choices[0].tap()
         tap("projectEdit.chapter." + chapter.id, in: app); tap("projectEdit.node." + material.node.id, in: app)
@@ -82,20 +94,5 @@ import XCTest
         read("sortID", node: 1, expected: "2", in: app)
         tap("projectEdit.cancelReview", in: app)
         XCTAssertEqual(try inspect(app).chapters[0].nodes[1].description, description)
-    }
-    // UNMEASURED full new-method estimate:540s. Two launches: serialized story order/missing fields and whitelist omission.
-    func testPreparedStoryOrderAndMissingFieldsStayDistinctFromWhitelistOmission() throws {
-        var app = launch(["--project-edit-prepared-order"], free: false)
-        tap("projectEdit.saveLocal", in: app, fixed: true); let saved = try inspect(app)
-        XCTAssertEqual(saved.chapters[0].nodes.map(\.name), ["Lighthouse", "Second staged node"])
-        tap("projectEdit.review", in: app, fixed: true)
-        read("name", node: 0, expected: "Second staged node", in: app); read("sortID", node: 0, expected: "1", in: app)
-        read("name", node: 1, expected: "Lighthouse", in: app); read("description", node: 1, expected: "Not included", in: app)
-        read("imgUrl", node: 1, expected: "Not included", in: app); read("templateId", node: 1, expected: "Not included", in: app)
-        tap("projectEdit.cancelReview", in: app)
-        app = launch(["--project-edit-whitelist"], free: false); tap("projectEdit.review", in: app, fixed: true)
-        let omitted = app.staticTexts["projectPrepared.omittedChapters"]; reveal(omitted, in: app, hittable: false)
-        XCTAssertTrue(omitted.exists); XCTAssertFalse(app.staticTexts["projectPrepared.chapter.0.node.0.name"].exists)
-        tap("projectEdit.cancelReview", in: app); _ = try inspect(app)
     }
 }

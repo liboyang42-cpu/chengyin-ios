@@ -37,7 +37,7 @@ import XCTest
     }
     private func submitAndRead(in app: XCUIApplication) {
         tap("projectEdit.review", in: app, fixed: true); tap("projectEdit.confirmSimulation", in: app)
-        value("projectSubmission.auditTaskID", "3301", in: app); value("projectSubmission.templateIDs", "41", in: app)
+        assertProjectSubmissionEvidenceValue("projectSubmission.auditTaskID", "3301", in: app, phase: .receipt, maximumSwipes: 65, revealFirst: true); assertProjectSubmissionEvidenceValue("projectSubmission.templateIDs", "41", in: app, phase: .receipt, maximumSwipes: 65, revealFirst: true)
         tap("projectSubmission.done", in: app); tap("approvedRelease.read", in: app)
     }
     // UNMEASURED complete method estimate: 900 seconds. Includes normal submit/read, cancel, captured confirmation, local reopen and account invalidation.
@@ -61,7 +61,7 @@ import XCTest
         let requestID = value("approvedRelease.publication.requestID", in: app); XCTAssertNotNil(UUID(uuidString: requestID))
         XCTAssertFalse(app.buttons["approvedRelease.publish"].exists)
         tap("approvedRelease.close", in: app, fixed: true)
-        value("projectSubmission.submittedState", "Pending", in: app); XCTAssertFalse(app.buttons["projectEdit.review"].isEnabled)
+        assertProjectSubmissionEvidenceValue("projectSubmission.submittedState", "Pending", in: app, phase: .history, maximumSwipes: 65, revealFirst: true); XCTAssertFalse(app.buttons["projectEdit.review"].isEnabled)
         let published = try inspect(app); XCTAssertEqual(published.releasePublishCount, 1); XCTAssertEqual(published.releaseAllocatedCount, 1); XCTAssertEqual(published.releaseRequestIDs, [requestID])
         tap("projectEdit.fixture.reopen", in: app, fixed: true); tap("approvedRelease.read", in: app)
         value("approvedRelease.publication.releaseID", "501", in: app)

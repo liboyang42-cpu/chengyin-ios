@@ -15,7 +15,7 @@ except ModuleNotFoundError:
     from tools.ui_failure_evidence import EvidenceStream
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-DEFAULT_SHARD_COUNT = 78
+DEFAULT_SHARD_COUNT = 79
 PLAYER_MAP_HISTORY_CONTRACT_PATH = ROOT / 'tools/player_map_history_planning_contract.json'
 PLAYER_MAP_HISTORY_CONTRACT_SHA256 = '233f2dad8e06d49e10fcb9af868221979c3ead3b7a2bf987d9a567bdfe7faa67'
 STORY_TEMPLATE_CONTRACT_PATH = ROOT / 'tools/story_template_planning_contract.json'
@@ -43,6 +43,34 @@ def discover(directory):
 
 def measured_weights(directory, profile):
     """Observed/declared estimated costs affect grouping only; source defines every case."""
+    try:
+        from branch_history_handshake_planning import weights as handshake_weights
+    except ModuleNotFoundError:
+        from tools.branch_history_handshake_planning import weights as handshake_weights
+    handshake = handshake_weights(directory, profile)
+    if handshake is not None:
+        return handshake
+    try:
+        from run130_receipt_planning import weights as receipt_weights
+    except ModuleNotFoundError:
+        from tools.run130_receipt_planning import weights as receipt_weights
+    receipt = receipt_weights(directory, profile)
+    if receipt is not None:
+        return receipt
+    try:
+        from run130_prepared_readiness import weights as prepared_readiness_weights
+    except ModuleNotFoundError:
+        from tools.run130_prepared_readiness import weights as prepared_readiness_weights
+    prepared = prepared_readiness_weights(directory, profile)
+    if prepared is not None:
+        return prepared
+    try:
+        from run129_late_readiness import weights as late_readiness_weights
+    except ModuleNotFoundError:
+        from tools.run129_late_readiness import weights as late_readiness_weights
+    late = late_readiness_weights(directory, profile)
+    if late is not None:
+        return late
     try:
         from run129_repair_planning import repair_weights
     except ModuleNotFoundError:

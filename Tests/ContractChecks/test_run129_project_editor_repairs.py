@@ -4,6 +4,7 @@ Source checks do not substitute for new Apple execution.
 import hashlib
 import json
 from pathlib import Path
+from tools.run130_submission_evidence import previous_source as pre_receipt_source, previous_directory as pre_receipt_directory
 import re
 import unittest
 
@@ -25,12 +26,12 @@ def declarations(source):
 
 class Run129ProjectEditorRepairs(unittest.TestCase):
     def source(self, path):
-        result = (ROOT / path).read_text()
+        result = pre_receipt_source(ROOT / path).read_text()
         pairs = {'ProjectSubmissionAcknowledgmentFlowTests': 'ProjectSubmissionAcknowledgmentChineseFlowTests',
                  'ApprovedReleasePreparationFlowTests': 'ApprovedReleasePreparationChineseFlowTests'}
         for original, continuation in pairs.items():
             if path == 'Tests/AppUITests/' + original + '.swift':
-                result += (ROOT / 'Tests/AppUITests' / (continuation + '.swift')).read_text()
+                result += pre_receipt_source(ROOT / 'Tests/AppUITests' / (continuation + '.swift')).read_text()
         return result
 
     def test_original_201_bilingual_entries_are_shipped_and_referenced(self):
@@ -75,6 +76,7 @@ class Run129ProjectEditorRepairs(unittest.TestCase):
         source = self.source('App/ProjectEditView.swift')
         self.assertIn('LabeledContent("projectRemote.version") {\n'
                       '                            Text(verbatim: model.draft.baseRevision).accessibilityIdentifier("projectRemote.version.value")\n'
+                      '                                .accessibilityLabel(Text(verbatim: model.draft.baseRevision))\n'
                       '                        }.accessibilityElement(children: .contain)', source)
         ui = self.source('Tests/AppUITests/ProjectOwnedEditorFlowTests.swift')
         self.assertIn('let version = app.staticTexts["projectRemote.version.value"]', ui)
@@ -87,6 +89,9 @@ class Run129ProjectEditorRepairs(unittest.TestCase):
         for name in UI_CLASSES:
             before = declarations((ORIGINALS / (name + '.swift.txt')).read_text())
             after = declarations(self.source('Tests/AppUITests/' + name + '.swift'))
+            if name == 'ProjectEditPreparedNodesFlowTests':
+                from tools.run130_prepared_readiness import retained_family_source
+                after = declarations(retained_family_source(pre_receipt_directory(ROOT / 'Tests/AppUITests')))
             self.assertEqual(before, after)
             count += len(after)
         self.assertEqual(count, 14)
@@ -94,7 +99,7 @@ class Run129ProjectEditorRepairs(unittest.TestCase):
     def test_later_selected_and_frozen_cover_methods_only_reorder_existing_helpers(self):
         from tools.run129_repair_planning import historical_source
         for name in ['ApprovedTopicSelectedCoverFlowTests', 'ApprovedTopicFrozenCoverReviewFlowTests']:
-            path=ROOT/'Tests/AppUITests'/(name+'.swift')
+            path=pre_receipt_source(ROOT/'Tests/AppUITests'/(name+'.swift'))
             old=historical_source(path).read_text();new=path.read_text()
             self.assertEqual(declarations(old),declarations(new))
             self.assertEqual(old.count('maximumSwipes: 70'),new.count('maximumSwipes: 70'))

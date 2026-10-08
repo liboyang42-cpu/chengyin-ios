@@ -28,8 +28,8 @@ import XCTest
     }
     private func submitAndRead(in app: XCUIApplication) {
         tap("projectEdit.review", in: app, fixed: true); tap("projectEdit.confirmSimulation", in: app)
-        value("projectSubmission.auditTaskID", "3301", in: app); value("projectSubmission.submittedState", "Pending", in: app)
-        value("projectSubmission.templateIDs", "41", in: app); tap("projectSubmission.done", in: app)
+        assertProjectSubmissionEvidenceValue("projectSubmission.auditTaskID", "3301", in: app, phase: .receipt, maximumSwipes: 65, revealFirst: true); assertProjectSubmissionEvidenceValue("projectSubmission.submittedState", "Pending", in: app, phase: .receipt, maximumSwipes: 65, revealFirst: true)
+        assertProjectSubmissionEvidenceValue("projectSubmission.templateIDs", "41", in: app, phase: .receipt, maximumSwipes: 65, revealFirst: true); tap("projectSubmission.done", in: app)
         XCTAssertFalse(app.buttons["projectEdit.review"].isEnabled)
         tap("approvedRelease.read", in: app)
     }
@@ -57,7 +57,7 @@ import XCTest
         value("approvedRelease.publication.manifestHash", String(repeating: "a", count: 64), in: app)
         XCTAssertFalse(app.buttons["approvedRelease.publication.retry"].exists)
         tap("approvedRelease.close", in: app, fixed: true)
-        value("projectSubmission.auditTaskID", "3301", in: app)
+        assertProjectSubmissionEvidenceValue("projectSubmission.auditTaskID", "3301", in: app, phase: .history, maximumSwipes: 65, revealFirst: true)
         tap("projectEdit.fixture.signOut", in: app, fixed: true)
         XCTAssertFalse(app.buttons["approvedRelease.read"].exists)
         XCTAssertFalse(app.staticTexts["approvedRelease.selectedCover.asset"].exists)

@@ -28,6 +28,8 @@ Initial spacing targets are 16pt page/card padding, 8/12pt internal gaps and 24p
 
 Suggested values require device tuning; they are not Apple-prescribed durations.
 
+See the [general motion construction appendix](native-motion-construction-appendix.md) for the 2026-10-07 documentation-only reference decisions, shared interaction rules and future acceptance checklist. It does not authorize implementation or replace existing business contracts.
+
 | Interaction | Initial implementation direction |
 |---|---|
 | Custom card press | ~120ms to 0.98 scale; ~240ms restrained release. Do not add a second animation to native buttons |

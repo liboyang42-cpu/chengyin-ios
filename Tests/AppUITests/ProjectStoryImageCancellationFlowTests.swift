@@ -16,11 +16,11 @@ import XCTest
         XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "value != %@ AND value BEGINSWITH %@", old, "{"), object: probe)], timeout: 5), .completed)
         return try XCTUnwrap(JSONSerialization.jsonObject(with: Data(try XCTUnwrap(probe.value as? String).utf8)) as? [String: Any])
     }
-    // UNMEASURED complete-method estimate: 720 seconds. Chinese maximum text, crop cancel, close, zero writes and default-off second launch.
+    // UNMEASURED complete-method estimate: 770 seconds. Chinese maximum text, crop cancel, close, zero writes and default-off second launch.
     func testChineseLargeTextCropCancelKeepsStoryAndUnavailableUploadIsTruthful() throws {
         let app = XCUIApplication(); self.app = app
         app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN", "--uitesting-max-text", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL", "--uitesting-module", "projectEdit", "--project-edit-starter-probe", "--project-story-image"]
-        app.launch(); XCTAssertTrue(app.textFields["projectEdit.name"].waitForExistence(timeout: 5)); assertFixtureEnvironment(in: app, dynamicTypeSize: "accessibility5")
+        app.launch(); XCTAssertTrue(revealFixtureElement(app.textFields["projectEdit.name"], in: app, maximumSwipes: 10)); XCTAssertTrue(app.textFields["projectEdit.name"].waitForExistence(timeout: 5)); assertFixtureEnvironment(in: app, dynamicTypeSize: "accessibility5")
         tap("projectEdit.saveLocal", app, fixed: true); let before = try snapshot(app)
         let draft = try XCTUnwrap(before["savedDraft"] as? [String: Any]), chapters = try XCTUnwrap(draft["chapters"] as? [[String: Any]]), chapter = try XCTUnwrap(chapters.first), id = try XCTUnwrap(chapter["id"] as? String)
         tap("projectEdit.chapter." + id, app); tap("projectStoryImage.add", app)
@@ -34,7 +34,7 @@ import XCTest
         XCTAssertFalse(XCUIApplication(bundleIdentifier: "com.apple.springboard").alerts.firstMatch.exists)
         app.terminate(); app.launchArguments.removeAll { $0 == "--project-story-image" }
         app.launchArguments.append("--project-edit-opening"); app.launch()
-        XCTAssertTrue(app.textFields["projectEdit.name"].waitForExistence(timeout: 5)); assertFixtureEnvironment(in: app, dynamicTypeSize: "accessibility5")
+        XCTAssertTrue(revealFixtureElement(app.textFields["projectEdit.name"], in: app, maximumSwipes: 10)); XCTAssertTrue(app.textFields["projectEdit.name"].waitForExistence(timeout: 5)); assertFixtureEnvironment(in: app, dynamicTypeSize: "accessibility5")
         let open = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "projectEdit.chapter.")).firstMatch
         XCTAssertTrue(revealFixtureElement(open, in: app, maximumSwipes: 45)); open.tap()
         let add = app.buttons["projectStoryImage.add"]
