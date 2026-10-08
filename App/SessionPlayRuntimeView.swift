@@ -30,7 +30,11 @@ import UIKit
                         mediaScope: session.platformConsumers.scope,
                         makeAudio: session.platformConsumers.audioFactory, makeExternalMaps: session.platformConsumers.mapsFactory,
                         approvedArtworkHosts: session.playKitArtworkHosts, makeSensorProvider: session.playKitSensorFactory,
-                        spatialApproval: session.playKitSpatialApproval)
+                        spatialApproval: session.playKitSpatialApproval,
+                        rewardCollectionDestination: { target in
+                            AnyView(PlayRewardBadgeCollectionView(target: target, reader: session.profileReader,
+                                growthReader: session.growthCenterReader, isCurrent: { model.identity != nil }).id(session.profileReader.identity))
+                        })
                 } else { Text("playx.disabled") }
             case .director(let activityID):
                 if let model = session.playDirector(activityID: activityID) { PlayDirectorView(model: model) }

@@ -217,8 +217,9 @@ public struct MerchantStoreCharacter: Decodable, Equatable {
     public var knowledge = ""
     public let auditStatus: Int?
     public let enabled: Int?
-    public init() { auditStatus = nil; enabled = nil }
-    private enum CodingKeys: String, CodingKey { case name, avatar, greeting, persona, knowledge, auditStatus, enabled }
+    public let auditReason: String?
+    public init() { auditStatus = nil; enabled = nil; auditReason = nil }
+    private enum CodingKeys: String, CodingKey { case name, avatar, greeting, persona, knowledge, auditStatus, enabled, auditReason }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         name = try c.decodeIfPresent(String.self, forKey: .name) ?? ""
@@ -227,19 +228,29 @@ public struct MerchantStoreCharacter: Decodable, Equatable {
         persona = try c.decodeIfPresent(String.self, forKey: .persona) ?? ""
         knowledge = try c.decodeIfPresent(String.self, forKey: .knowledge) ?? ""
         auditStatus = c.merchantInteger(.auditStatus); enabled = c.merchantInteger(.enabled)
+        auditReason = try c.decodeIfPresent(String.self, forKey: .auditReason)
     }
     public var reviewKey: String { MerchantOperationsReview.key(auditStatus) }
     public var blocker: String? {
         if name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return "merchant.operations.characterNameRequired" }
-        if name.trimmingCharacters(in: .whitespacesAndNewlines).utf16.count > 20 { return "merchant.operations.characterNameLimit" }
+        if name.trimmingCharacters(in: .whitespacesAndNewlines).utf16.count > 32 { return "merchantPreset.nameLimit" }
         if avatar.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return "merchant.operations.characterAvatarRequired" }
         if greeting.trimmingCharacters(in: .whitespacesAndNewlines).utf16.count > 60 { return "merchant.operations.greetingLimit" }
-        if persona.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return "merchant.operations.personaRequired" }
-        if persona.trimmingCharacters(in: .whitespacesAndNewlines).utf16.count > 1000 { return "merchant.operations.personaLimit" }
+        if persona.trimmingCharacters(in: .whitespacesAndNewlines).utf16.count > 500 { return "merchantPreset.personaLimit" }
         if knowledge.trimmingCharacters(in: .whitespacesAndNewlines).utf16.count > 2000 { return "merchant.operations.knowledgeLimit" }
         return nil
     }
-    public var fields: [String: Any] { ["name": name, "avatar": avatar, "greeting": greeting, "persona": persona, "knowledge": knowledge] }
+    /// These five fields are the complete legacy self-service write contract. Explicit
+    /// empty persona/knowledge strings clear the field; null would mean leave unchanged.
+    /// Audit fields are read-only and never accompany npc/save.
+    public var fields: [String: Any] {
+        ["name": name, "avatar": avatar, "greeting": greeting, "persona": persona, "knowledge": knowledge]
+            .mapValues { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+    }
+    public var rejectionReason: String? {
+        guard auditStatus == 2, let reason = auditReason?.trimmingCharacters(in: .whitespacesAndNewlines), !reason.isEmpty else { return nil }
+        return reason
+    }
 }
 public enum MerchantOperationsReview {
     public static func key(_ raw: Int?) -> String {

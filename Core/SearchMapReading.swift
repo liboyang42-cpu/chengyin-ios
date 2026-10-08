@@ -27,6 +27,7 @@ public struct SearchMapContext: Equatable {
     func merchantDiscovery(tag: MerchantDiscoveryTag) async throws -> [MerchantDiscoveryRow]
     func search(_ query: GlobalSearchQuery) async throws -> GlobalSearchResults
     func citySearch(_ query: CityNodeSearchQuery) async throws -> CityNodeSearchResults
+    func cityActivityPage(_ query: CityNodeSearchQuery, page: Int) async throws -> SearchMapActivityPage
     func nearby(area: RoamSearchArea) async throws -> SearchMapNearbyResults
     func cityNode(id: Int) async throws -> SearchMapCityNode
     func merchant(id: Int) async throws -> RoamMerchantDetail
@@ -36,6 +37,7 @@ public extension SearchMapReading {
     var manualAreaRevision: UInt64 { 0 }
     func selectManualArea(_ area: RoamSearchArea?) {}
     func merchantDiscovery(tag: MerchantDiscoveryTag) async throws -> [MerchantDiscoveryRow] { throw APIError.notConfigured }
+    func cityActivityPage(_ query: CityNodeSearchQuery, page: Int) async throws -> SearchMapActivityPage { throw APIError.notConfigured }
 }
 @MainActor public final class SearchMapSessionReader: SearchMapReading {
     private let service: SearchMapService?
@@ -79,6 +81,10 @@ public extension SearchMapReading {
             if token != nil, result.hasUnauthorized { throw APIError.unauthorized }
             return result
         }
+    }
+    public func cityActivityPage(_ query: CityNodeSearchQuery, page: Int) async throws -> SearchMapActivityPage {
+        manualAreaSelection?.ensureSelected(query.area)
+        return try await read { try await $0.cityActivityPage(query, page: page, token: $1) }
     }
     public func nearby(area: RoamSearchArea) async throws -> SearchMapNearbyResults {
         manualAreaSelection?.ensureSelected(area)

@@ -20,10 +20,12 @@ struct MerchantBusinessField: View {
     static let stateKeys = ["processing", "merchantOpinion", "status", "decision", "roleCode", "displayState", "settlementState", "refundState", "paymentState", "invoiceState", "holdState", "netDirection", "tier", "sourceType"]
     static let knownStates: Set<String> = ["WAITING_PLATFORM_REVIEW", "PLATFORM_REJECTED", "REFUND_PROCESSING", "MANUAL_REFUND_PENDING", "MANUAL_REFUND_REVIEW", "REFUNDED", "UNKNOWN", "PENDING", "AGREE", "REJECT", "EVIDENCE", "VISIBLE", "PENDING_REVIEW", "HIDDEN", "ACTIVE", "REVOKED", "ACCEPTED", "EXPIRED", "MERCHANT_MANAGER", "MERCHANT_CHECKIN", "MERCHANT_MARKETING", "MERCHANT_FINANCE", "NO_CASH_SETTLEMENT", "PENDING_SETTLEMENT", "SETTLED", "REVIEWING", "REJECTED", "REFUNDING", "PAID", "PLATFORM_PAYS_MERCHANT", "MERCHANT_PAYS_PLATFORM", "pending", "abnormal", "dormant", "repeat", "new", "TOPIC", "ACTIVITY", "MIXED"]
 }
-struct MerchantBusinessRecordFields: View {
+@MainActor struct MerchantBusinessRecordFields: View {
     let row: MerchantBusinessRecord
     let access: MerchantBusinessAccess
     var compact: Bool
+    var settlementReader: (any MerchantBusinessReading)? = nil
+    var settlementSnapshot: (() -> MerchantBusinessSnapshot?)? = nil
     private var keys: [String] {
         switch row.kind {
         case .customer: return compact ? ["tier", "lastAction", "lastTime"] : ["phone", "contactHint", "arrivedCount", "pendingCount", "refundedCount", "paidAmount", "lastInteractionTime", "lastTime", "latestNote", "teamName", "roleName"]
@@ -46,8 +48,20 @@ struct MerchantBusinessRecordFields: View {
     var body: some View {
         ForEach(keys, id: \.self) { key in
             if visible(key), let value = row.fields[key] {
-                MerchantBusinessField(key: key, value: value, money: moneyKeys.contains(key))
+                if row.kind == .batch, key == "paidAt" {
+                    LabeledContent("merchant.business.field.paidAt") {
+                        MerchantSettlementTimestampText(raw: value.string)
+                    }.font(.subheadline)
+                } else {
+                    MerchantBusinessField(key: key, value: value, money: moneyKeys.contains(key))
+                }
             }
+        }
+        if row.kind == .batch, !compact, access.allows("merchant:finance:read"),
+           let reader = settlementReader, let currentSnapshot = settlementSnapshot,
+           let progress = try? MerchantSettlementProgress(record: row) {
+            MerchantSettlementProgressView(progress: progress, reader: reader, currentSnapshot: currentSnapshot)
+                .id(row.id)
         }
         if row.kind == .redemption, access.allows("merchant:finance:read"), row.fields["settlementAmount"] == nil || row.fields["settlementAmount"] == .null {
             Text(row.fields.mbText("displayState") == "NO_CASH_SETTLEMENT" ? "merchant.business.noCash" : "merchant.business.amountPending").font(.footnote).foregroundStyle(.secondary)

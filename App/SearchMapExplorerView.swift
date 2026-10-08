@@ -17,6 +17,7 @@ import SwiftUI
     @State private var categories: [DiscoveryCategory] = []
     @State private var categoryFailed = false
     @State private var cityResults: CityNodeSearchResults?
+    @State private var pagination = SearchMapPagination()
     @State private var nearbyResults: SearchMapNearbyResults?
     @State private var readOwner = ManualMapReadTaskOwner()
     @State private var loading = false
@@ -35,6 +36,14 @@ import SwiftUI
     private struct MapPresentationIdentity: Hashable {
         let area: RoamSearchArea
         let scope: UUID
+    }
+    private var cityQuery: CityNodeSearchQuery? {
+        area.map { CityNodeSearchQuery(filter: filter, area: $0, tag: tag, cityRole: cityRole, sortType: sortType) }
+    }
+    private var visibleCityResults: CityNodeSearchResults? {
+        guard let query = cityQuery, pagination.matches(query: query, scope: reader.scope,
+            manualAreaRevision: reader.manualAreaRevision) else { return nil }
+        return cityResults
     }
     var body: some View {
         ScrollViewReader { scroll in
@@ -72,7 +81,7 @@ import SwiftUI
                 else if area == nil { ContentUnavailableView("searchMap.areaRequired", systemImage: "mappin.and.ellipse") }
                 else if loading { ProgressView("searchMap.loading").accessibilityIdentifier("searchMap.loading") }
                 else if let issue { SearchMapIssue(key: issue) { startLoad() } }
-                if let result = cityResults { cityContent(result) }
+                if let result = visibleCityResults { cityContent(result) }
                 if let result = nearbyResults { nearbyContent(result) }
             }.padding()
         }
@@ -97,8 +106,8 @@ import SwiftUI
         .task(id: reader.scope) {
             guard !Task.isCancelled else { return }
             readOwner.activate()
-            if let area { reader.selectManualArea(area) }
             if preparedScope != reader.scope {
+                if let area { reader.selectManualArea(area) }
                 preparedScope = reader.scope; invalidate(); categories = []; categoryFailed = false
                 mapEnabled = false; showsArea = false; showsFilters = false
             }
@@ -116,7 +125,7 @@ import SwiftUI
         .onChange(of: cityRole) { _, _ in invalidate() }
         .onChange(of: sortType) { _, _ in invalidate() }
         .onAppear { readOwner.activate() }
-            .onDisappear { readOwner.deactivate(); gate.invalidate(); categoryGate.invalidate(); loading = false }
+            .onDisappear { readOwner.deactivate(); pagination.cancelPending(); gate.invalidate(); categoryGate.invalidate(); loading = false }
     }
     @ViewBuilder private var filterControls: some View {
         Button { showsArea = true } label: { Label("searchMap.chooseArea", systemImage: "mappin.and.ellipse") }
@@ -151,12 +160,12 @@ import SwiftUI
     }
     private var pins: [SearchMapPin] {
         var result: [SearchMapPin] = []
-        for activity in cityResults?.activities ?? [] {
+        for activity in visibleCityResults == nil ? [] : pagination.rows {
             if let lat = activity.latitude, let lng = activity.longitude, let coordinate = RoamCoordinate(latitude: lat, longitude: lng) {
                 result.append(SearchMapPin(id: "activity-\(activity.id)", title: activity.name, coordinate: coordinate, symbol: "calendar"))
             }
         }
-        for node in cityResults?.nodes ?? [] {
+        for node in visibleCityResults?.nodes ?? [] {
             if let coordinate = node.coordinate { result.append(SearchMapPin(id: "city-\(node.id)", title: node.name, coordinate: coordinate, symbol: "storefront")) }
         }
         for node in nearbyResults?.nodes ?? [] {
@@ -165,11 +174,11 @@ import SwiftUI
         return result
     }
     @ViewBuilder private func pinDetail(_ id: String, area: RoamSearchArea) -> some View {
-        if let row = cityResults?.activities.first(where: { "activity-\($0.id)" == id }) {
+        if let row = (visibleCityResults == nil ? [] : pagination.rows).first(where: { "activity-\($0.id)" == id }) {
             if let address = row.addressName ?? row.address { Text(verbatim: address).font(.subheadline).fixedSize(horizontal: false, vertical: true) }
             NavigationLink { destination(.activity(row.id)) } label: { Label(row.name, systemImage: "calendar") }.frame(minHeight: 44)
             if let topic = row.topicID, topic > 0 { NavigationLink { destination(.topic(topic)) } label: { Text("searchMap.relatedTopic") }.frame(minHeight: 44) }
-        } else if let node = cityResults?.nodes.first(where: { "city-\($0.id)" == id }) {
+        } else if let node = visibleCityResults?.nodes.first(where: { "city-\($0.id)" == id }) {
             if let subtitle = node.templateTitle ?? node.merchantName { Text(verbatim: subtitle).font(.subheadline).fixedSize(horizontal: false, vertical: true) }
             NavigationLink { SearchMapCityDetailView(id: node.id, reader: reader, origin: area.coordinate, destination: destination) } label: { Label(node.name, systemImage: "storefront") }.frame(minHeight: 44)
         } else if let node = nearbyResults?.nodes.first(where: { "nearby-\($0.id)" == id }) {
@@ -187,18 +196,20 @@ import SwiftUI
     @ViewBuilder private func cityContent(_ value: CityNodeSearchResults) -> some View {
         failure(value.activityFailure, layer: "searchMap.kind.activity")
         failure(value.nodeFailure, layer: "searchMap.cityNodes")
-        if value.missingCoordinateCount > 0 {
-            LabeledContent("searchMap.listOnly") { Text(value.missingCoordinateCount, format: .number) }.font(.footnote)
+        let missingCoordinateCount = pagination.rows.filter { !$0.hasValidCoordinates }.count
+        if missingCoordinateCount > 0 {
+            LabeledContent("searchMap.listOnly") { Text(missingCoordinateCount, format: .number) }.font(.footnote)
         }
-        if value.activities.isEmpty && value.nodes.isEmpty && value.activityFailure == nil && value.nodeFailure == nil {
-            ContentUnavailableView("searchMap.empty", systemImage: "mappin.slash")
+        if pagination.rows.isEmpty && value.nodes.isEmpty && value.activityFailure == nil && value.nodeFailure == nil {
+            ContentUnavailableView(LocalizedStringKey(pagination.nextPage == nil ? "searchMap.empty" : "mapPagination.noMatchesYet"), systemImage: "mappin.slash")
         }
-        ForEach(value.activities) { row in
+        ForEach(pagination.rows) { row in
             NavigationLink { destination(.activity(row.id)) } label: {
                 SearchMapCard(row: GlobalSearchRow(kind: .activity, sourceID: row.id, title: row.name, detail: row.addressName ?? row.address, imageURL: row.imageURL), offline: reader.isOfflineExample)
             }.buttonStyle(QuestifyCardButtonStyle()).accessibilityIdentifier("searchMap.city.activity.\(row.id)")
             if pins.contains(where: { $0.id == "activity-\(row.id)" }) { selectPlace("activity-\(row.id)", title: row.name) }
         }
+        activityPaginationControls
         ForEach(value.nodes) { row in
             NavigationLink { SearchMapCityDetailView(id: row.id, reader: reader, origin: area?.coordinate, destination: destination) } label: {
                 QuestifyImageEntityCard(imageSource: reader.isOfflineExample ? nil : row.imageURL, title: row.name, subtitle: row.templateTitle ?? row.merchantName, fallbackTitle: "searchMap.untitled", fallbackSymbol: "mappin", minimumHeight: 230) {
@@ -206,6 +217,30 @@ import SwiftUI
                 }
             }.buttonStyle(QuestifyCardButtonStyle()).accessibilityIdentifier("searchMap.city.node.\(row.id)")
             if row.coordinate != nil { selectPlace("city-\(row.id)", title: row.name) }
+        }
+    }
+    @ViewBuilder private var activityPaginationControls: some View {
+        if pagination.isLoading {
+            ProgressView("mapPagination.loading").accessibilityIdentifier("mapPagination.loading")
+        } else if let failure = pagination.failure {
+            VStack(alignment: .leading, spacing: 8) {
+                Label(LocalizedStringKey(failure == .unauthorized ? "searchMap.partialSignIn" : "mapPagination.failed"), systemImage: "exclamationmark.circle")
+                Text("mapPagination.retained").font(.footnote).foregroundStyle(.secondary)
+                if failure == .unauthorized, let onSignIn {
+                    Button("searchMap.signIn", action: onSignIn).frame(minHeight: 44)
+                } else {
+                    Button("mapPagination.retry") { startLoadMore() }.frame(minHeight: 44)
+                        .accessibilityIdentifier("mapPagination.retry")
+                }
+            }.accessibilityIdentifier("mapPagination.failure")
+        } else if pagination.nextPage != nil {
+            if pagination.rows.isEmpty {
+                Text("mapPagination.filteredPage").font(.footnote).foregroundStyle(.secondary)
+            }
+            Button("mapPagination.more") { startLoadMore() }
+                .buttonStyle(.bordered).frame(minHeight: 44)
+                .disabled(loading || !reader.isConfigured)
+                .accessibilityIdentifier("mapPagination.more")
         }
     }
     @ViewBuilder private func nearbyContent(_ value: SearchMapNearbyResults) -> some View {
@@ -242,10 +277,37 @@ import SwiftUI
         }.appNavigationTitle("searchMap.nodeDetail")
     }
     private func invalidate() {
-        readOwner.cancel(); gate.invalidate(); cityResults = nil; nearbyResults = nil; selectedPin = nil; issue = nil; loading = false
+        readOwner.cancel(); gate.invalidate(); pagination.invalidate(); cityResults = nil; nearbyResults = nil; selectedPin = nil; issue = nil; loading = false
     }
     private func startLoad() {
+        // This button explicitly searches the shown manual area, including after another view changed it.
+        if let area { reader.selectManualArea(area) }
+        invalidate()
         readOwner.start { await performLoad() }
+    }
+    private func startLoadMore() {
+        guard mode == .city, reader.isConfigured, !loading, visibleCityResults != nil,
+              let query = cityQuery,
+              let ticket = pagination.begin(query: query, scope: reader.scope,
+                  manualAreaRevision: reader.manualAreaRevision) else { return }
+        readOwner.start { await performLoadMore(ticket) }
+    }
+    private func performLoadMore(_ ticket: SearchMapPagination.Ticket) async {
+        defer { pagination.cancel(ticket) }
+        guard acceptsPage(ticket) else { return }
+        do {
+            let page = try await reader.cityActivityPage(ticket.query, page: ticket.page)
+            guard acceptsPage(ticket) else { return }
+            pagination.finish(ticket, page: page)
+        } catch is CancellationError { }
+        catch {
+            guard acceptsPage(ticket) else { return }
+            pagination.fail(ticket, error: error as? APIError == .unauthorized ? .unauthorized : .unavailable)
+        }
+    }
+    private func acceptsPage(_ ticket: SearchMapPagination.Ticket) -> Bool {
+        !Task.isCancelled && reader.isConfigured && reader.scope == ticket.scope &&
+            reader.manualAreaRevision == ticket.manualAreaRevision && cityQuery == ticket.query
     }
     private func load() async {
         await readOwner.run { await performLoad() }
@@ -253,13 +315,18 @@ import SwiftUI
     private func performLoad() async {
         guard let area, reader.isConfigured else { return }
         let query = CityNodeSearchQuery(filter: filter, area: area, tag: tag, cityRole: cityRole, sortType: sortType)
-        let ticket = gate.begin(scope: reader.scope)
+        let capturedScope = reader.scope, areaRevision = reader.manualAreaRevision
+        let ticket = gate.begin(scope: capturedScope)
+        pagination.invalidate()
         loading = true; issue = nil; cityResults = nil; nearbyResults = nil; selectedPin = nil
         defer { if gate.accepts(ticket, scope: reader.scope) { loading = false } }
         do {
             if mode == .city {
                 let value = try await reader.citySearch(query)
-                guard gate.accepts(ticket, scope: reader.scope), self.area == area, filter == query.filter, tag == query.tag, cityRole == query.cityRole, sortType == query.sortType else { return }; cityResults = value
+                guard gate.accepts(ticket, scope: reader.scope), reader.manualAreaRevision == areaRevision,
+                      self.area == area, filter == query.filter, tag == query.tag, cityRole == query.cityRole, sortType == query.sortType else { return }
+                pagination.reset(query: query, scope: capturedScope, manualAreaRevision: areaRevision, result: value)
+                cityResults = value
             } else {
                 let value = try await reader.nearby(area: area)
                 guard gate.accepts(ticket, scope: reader.scope), self.area == area else { return }; nearbyResults = value

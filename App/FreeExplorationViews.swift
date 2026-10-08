@@ -63,6 +63,7 @@ struct FreeExplorationStoreName: View {
 @MainActor struct FreeExplorationExperienceView: View {
     @Bindable var model: PlayExperienceCoordinator
     let storeDestination: (Int) -> AnyView
+    var rewardCollectionDestination: ((PlayRewardBadgeTarget) -> AnyView)? = nil
     @State private var selectedStore: Int?
     @State private var packOpen = false
     var body: some View {
@@ -75,6 +76,10 @@ struct FreeExplorationStoreName: View {
                     FreeExplorationCardBrowser(snapshot: snapshot, packOpen: $packOpen) { id in
                         guard model.hasCurrentMediaSnapshot, model.snapshot == snapshot, model.gameplayMode == .freeExploration else { return }
                         selectedStore = id
+                    }
+                    if let reward = model.reward {
+                        PlayRewardBadgeRows(targets: PlayRewardBadgeTarget.targets(in: reward), destination: rewardCollectionDestination)
+                            .id(PlayRewardBadgeTarget.targets(in: reward))
                     }
                     if model.unresolved { Text(LocalizedStringKey(model.hasModeRecoveryBlock ? "playMode.recoveryBlocked" : "playFree.proof.pending")).font(.footnote) }
                     if FreeExplorationPresentation(snapshot: snapshot)?.isFullyRedeemed == true {

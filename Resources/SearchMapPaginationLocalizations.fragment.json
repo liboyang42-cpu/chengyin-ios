@@ -1,0 +1,114 @@
+{
+  "mapPagination.more": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Load more activities"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "加载更多活动"
+        }
+      }
+    }
+  },
+  "mapPagination.loading": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Loading more activities…"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "正在加载更多活动…"
+        }
+      }
+    }
+  },
+  "mapPagination.failed": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "More activities could not be loaded"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "更多活动没加载出来"
+        }
+      }
+    }
+  },
+  "mapPagination.retained": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Your loaded results and map pins are still available."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已加载的结果和地图点位仍可查看。"
+        }
+      }
+    }
+  },
+  "mapPagination.retry": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Retry this page"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "重试这一页"
+        }
+      }
+    }
+  },
+  "mapPagination.filteredPage": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No activities on these pages match your filters. You can keep loading."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已读取的活动暂未匹配当前筛选，可以继续加载。"
+        }
+      }
+    }
+  },
+  "mapPagination.noMatchesYet": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No matching activities yet"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂未找到匹配活动"
+        }
+      }
+    }
+  }
+}

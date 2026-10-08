@@ -2,13 +2,26 @@
 import SwiftUI
 
 @MainActor final class SearchMapFixtureReader: SearchMapReading {
-    enum Scenario: String { case content, empty, partial, guest, failure, retry, unauthorized, unconfigured, delayed, categoryDelayed, cityFallback }
+    enum Scenario: String { case content, empty, partial, guest, failure, retry, unauthorized, unconfigured, delayed, categoryDelayed, cityFallback, pagination, pageFailure, pageDelayed, filteredPage }
     let scenario: Scenario
     var scope = UUID()
     var isAuthenticated: Bool
     var isConfigured: Bool { scenario != .unconfigured }
     var isOfflineExample: Bool { true }
     private var searches = 0
+    private(set) var activityPageRequests: [Int] = []
+    private var pendingActivityPages: [UUID: CheckedContinuation<Void, Error>] = [:]
+    var pendingActivityPageCount: Int { pendingActivityPages.count }
+    func releaseActivityPage() {
+        let pending = pendingActivityPages.values; pendingActivityPages = [:]
+        for continuation in pending { continuation.resume() }
+    }
+    private func cancelActivityPage(_ id: UUID) {
+        pendingActivityPages.removeValue(forKey: id)?.resume(throwing: CancellationError())
+    }
+    private var hasActivityPagination: Bool {
+        [.pagination, .pageFailure, .pageDelayed, .filteredPage].contains(scenario)
+    }
     private var pendingGlobalSearches: [(id: UUID, continuation: CheckedContinuation<Void, Error>)] = []
     func releaseGlobalSearch(latest: Bool) {
         guard !pendingGlobalSearches.isEmpty else { return }
@@ -83,9 +96,33 @@ import SwiftUI
         let activities = try decode([ActivitySummary].self, SearchMapSyntheticFixtures.activities).filter {
             query.filter.matches(kind: .activity, date: $0.startDate, price: $0.minimumAmount.map { NSDecimalNumber(decimal: $0).doubleValue })
         }
-        return CityNodeSearchResults(activities: activities,
+        let visible = scenario == .filteredPage ? [] : activities
+        // A synthetic already-filtered first-page projection, never a real backend read.
+        let page = hasActivityPagination ? try SearchMapActivityPage(rows: visible, pageNumber: 1, rawCount: 50, serverTotal: 52) : nil
+        return CityNodeSearchResults(activities: visible,
             nodes: isAuthenticated && scenario != .partial ? try decode([SearchMapCityNode].self, SearchMapSyntheticFixtures.cityNodes) : [],
-            nodeFailure: !isAuthenticated ? .unauthorized : (scenario == .partial ? .unavailable : nil))
+            nodeFailure: !isAuthenticated ? .unauthorized : (scenario == .partial ? .unavailable : nil), activityPage: page)
+    }
+    func cityActivityPage(_ query: CityNodeSearchQuery, page: Int) async throws -> SearchMapActivityPage {
+        try check(); try query.filter.validate()
+        guard hasActivityPagination, page == 2 else { throw APIError.invalidRequest }
+        activityPageRequests.append(page)
+        if scenario == .pageFailure && activityPageRequests.count == 1 { throw APIError.httpStatus(503) }
+        if scenario == .pageDelayed {
+            let id = UUID()
+            try await withTaskCancellationHandler(operation: {
+                try Task.checkCancellation()
+                try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                    if Task.isCancelled { continuation.resume(throwing: CancellationError()) }
+                    else { pendingActivityPages[id] = continuation }
+                }
+            }, onCancel: { Task { @MainActor [weak self] in self?.cancelActivityPage(id) } })
+            try Task.checkCancellation()
+        }
+        let raw = try decode([ActivitySummary].self, #"[{"id":71,"name":"Synthetic older duplicate","latitude":9,"longitude":9},{"id":74,"name":"Synthetic next-page walk","latitude":1.008,"longitude":1.009,"startDate":"2030-05-05","minAmout":30}]"#)
+        let rows = raw.filter { query.filter.matches(kind: .activity, date: $0.startDate,
+            price: $0.minimumAmount.map { NSDecimalNumber(decimal: $0).doubleValue }) }
+        return try SearchMapActivityPage(rows: rows, pageNumber: page, rawCount: raw.count, serverTotal: 52)
     }
     func nearby(area: RoamSearchArea) async throws -> SearchMapNearbyResults {
         try check()
@@ -132,6 +169,10 @@ import SwiftUI
                         .accessibilityIdentifier("searchMap.fixture.releaseFirstSearch")
                     Button("Release latest synthetic search") { reader.releaseGlobalSearch(latest: true) }
                         .accessibilityIdentifier("searchMap.fixture.releaseLastSearch")
+                }
+                if entry == "city", reader.scenario == .pageDelayed {
+                    Button("Release synthetic activity page") { reader.releaseActivityPage() }
+                        .accessibilityIdentifier("mapPagination.fixture.release")
                 }
                 if entry == "city", reader.scenario == .delayed {
                     Button("Release synthetic search") { reader.releaseCitySearch() }

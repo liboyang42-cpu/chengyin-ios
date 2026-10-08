@@ -130,13 +130,25 @@ struct MerchantOperationsEditor: View {
                 Text("merchant.operations.coopPreserved").font(.footnote).foregroundStyle(.secondary)
             }
         case .character(let value):
-            MerchantOperationsMediaPreview(source: value.avatar, title: "merchant.operations.avatar", isExample: isExample)
+            if !value.avatar.hasPrefix("px1:") {
+                MerchantOperationsMediaPreview(source: value.avatar, title: "merchant.operations.avatar", isExample: isExample)
+            }
+            MerchantNPCPresetSection(document: model)
             Section("merchant.operations.character") {
-                Text(LocalizedStringKey(value.reviewKey)).accessibilityIdentifier("merchant.operations.character.review")
+                LabeledContent("merchantPreset.lastReview") {
+                    Text(LocalizedStringKey(value.reviewKey)).accessibilityIdentifier("merchant.operations.character.review")
+                }
+                if let reason = value.rejectionReason {
+                    Text(verbatim: reason).textSelection(.enabled).accessibilityIdentifier("merchantPreset.rejectionReason")
+                }
                 characterField("merchant.operations.name", \.name, "characterName")
                 characterField("merchant.operations.greeting", \.greeting, "greeting")
                 characterField("merchant.operations.persona", \.persona, "persona")
                 characterField("merchant.operations.knowledge", \.knowledge, "knowledge")
+                Text("merchantPreset.fieldLimits").font(.footnote).foregroundStyle(.secondary)
+                if value.persona.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    Text("merchantPreset.emptyPersona").font(.footnote).foregroundStyle(.secondary)
+                }
                 Text("merchant.operations.characterReviewHint").font(.footnote).foregroundStyle(.secondary)
             }
             mediaSection("merchant.operations.avatar", field: .avatar)
@@ -250,6 +262,21 @@ struct MerchantOperationsConfirmationView: View {
                     Text(LocalizedStringKey(isExample ? "merchant.operations.confirmExampleBody" : (model.coordinator.reader.canSave ? "merchant.operations.confirmLiveHint" : "merchant.operations.liveDisabled")))
                     Text("merchant.operations.reviewNoApproval").font(.footnote).foregroundStyle(.secondary)
                     Text(LocalizedStringKey(confirmation.draft.destination.titleKey)).font(.headline)
+                }
+                if let avatar = MerchantNPCCharacterAvatarSnapshot(draft: confirmation.draft) {
+                    if let preset = avatar.preset {
+                        Section("merchant.operations.avatar") {
+                            MerchantNPCPresetArtwork(avatar: preset).frame(width: 192, height: 192)
+                                .clipShape(RoundedRectangle(cornerRadius: 20)).frame(maxWidth: .infinity)
+                            Text(LocalizedStringKey(preset.titleKey)).accessibilityIdentifier("merchantPreset.review." + preset.id)
+                        }
+                    } else {
+                        MerchantOperationsMediaPreview(source: avatar.rawValue, title: "merchant.operations.avatar", isExample: isExample)
+                    }
+                    Section {
+                        Text(verbatim: avatar.rawValue).textSelection(.enabled)
+                            .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("merchantPreset.review.rawValue")
+                    }
                 }
                 Section("merchant.operations.frozenDraft") {
                     ForEach(confirmation.draft.reviewLines) { line in

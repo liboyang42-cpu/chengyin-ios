@@ -1,0 +1,358 @@
+{
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "merchantPreset.choose": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a preset"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选现成的"
+          }
+        }
+      }
+    },
+    "merchantPreset.use": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use this avatar"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用这个形象"
+          }
+        }
+      }
+    },
+    "merchantPreset.localSelection": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choosing a preset updates this draft only. Review and save the character to submit it. No image upload or AI generation is needed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择预设只会修改本页草稿，复核并保存角色后才会提交，无需上传图片或生成 AI 形象。"
+          }
+        }
+      }
+    },
+    "merchantPreset.unsupportedCode": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This saved preset is not supported by this app version. It is kept unchanged until you choose another avatar."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此版本无法显示已保存的预设形象。选择其他形象前，原值会保留。"
+          }
+        }
+      }
+    },
+    "merchantPreset.stale": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The character or session changed. Close this picker and open it again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "角色资料或登录状态已变化，请关闭后重新选择。"
+          }
+        }
+      }
+    },
+    "merchantPreset.lastReview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last loaded review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近读取的审核结果"
+          }
+        }
+      }
+    },
+    "merchantPreset.fieldLimits": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name: 32 · Greeting: 60 · Personality: 500 · Store knowledge: 2,000 UTF-16 units. Emoji may count as two."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "名字 32、招呼语 60、性格设定 500、店铺知识 2000 个字符；部分表情按 2 个字符计算。"
+          }
+        }
+      }
+    },
+    "merchantPreset.emptyPersona": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saving an empty personality explicitly clears it. Player chat may be unavailable without a personality."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存空白性格设定会明确清空人设，玩家对话可能因此不可用。"
+          }
+        }
+      }
+    },
+    "merchantPreset.nameLimit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep the name within 32 UTF-16 units."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "角色名字最多 32 个字符。"
+          }
+        }
+      }
+    },
+    "merchantPreset.personaLimit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep the personality within 500 UTF-16 units."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "性格设定最多 500 个字符。"
+          }
+        }
+      }
+    },
+    "merchantPreset.name.p01": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Military cap"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "军帽"
+          }
+        }
+      }
+    },
+    "merchantPreset.name.p04": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flame"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "火焰"
+          }
+        }
+      }
+    },
+    "merchantPreset.name.p07": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Red beard"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "红胡子"
+          }
+        }
+      }
+    },
+    "merchantPreset.name.p10": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glasses"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "眼镜"
+          }
+        }
+      }
+    },
+    "merchantPreset.name.p13": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Red face"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "红脸"
+          }
+        }
+      }
+    },
+    "merchantPreset.name.p17": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skeleton"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "骷髅"
+          }
+        }
+      }
+    },
+    "merchantPreset.name.p18": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frog"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "青蛙"
+          }
+        }
+      }
+    },
+    "merchantPreset.name.p23": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mecha"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "机甲"
+          }
+        }
+      }
+    },
+    "merchantPreset.name.p25": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fox"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "狐狸"
+          }
+        }
+      }
+    },
+    "merchantPreset.name.p27": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lizard"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "蜥蜴"
+          }
+        }
+      }
+    },
+    "merchantPreset.name.p31": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Orange bear"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "橙熊"
+          }
+        }
+      }
+    },
+    "merchantPreset.name.p36": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pink hair"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "粉发"
+          }
+        }
+      }
+    }
+  }
+}

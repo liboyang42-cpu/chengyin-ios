@@ -53,7 +53,7 @@ public struct SearchMapService {
     public func citySearch(_ query: CityNodeSearchQuery, token: String? = nil) async throws -> CityNodeSearchResults {
         try query.filter.validate(); try validate(token)
         guard query.sortType == 1 || query.sortType == 2 else { throw APIError.invalidRequest }
-        async let activities = attempt { try await self.activityRows(query.filter, area: query.area, sortType: query.sortType, pageSize: 50, token: token) }
+        async let activities = attemptActivityPage { try await self.cityActivityPage(query, page: 1, token: token) }
         async let nodes = attempt { () async throws -> [SearchMapCityNode] in
             // This source endpoint is private; guests retain public activity results and a sign-in gate.
             guard token != nil else { throw APIError.unauthorized }
@@ -65,9 +65,29 @@ public struct SearchMapService {
             return try decode(SearchMapCityRows.self, data).rows.filter { $0.coordinate != nil }
         }
         let (activityResult, nodeResult) = try await (activities, nodes)
-        return CityNodeSearchResults(activities: unique(activityResult.rows.filter {
-            query.filter.matches(kind: .activity, date: $0.startDate, price: $0.minimumAmount.map { NSDecimalNumber(decimal: $0).doubleValue })
-        }, by: { $0.id }), nodes: unique(nodeResult.rows, by: { $0.id }), activityFailure: activityResult.failure, nodeFailure: nodeResult.failure)
+        return CityNodeSearchResults(activities: activityResult.page?.rows ?? [],
+            nodes: unique(nodeResult.rows, by: { $0.id }), activityFailure: activityResult.failure,
+            nodeFailure: nodeResult.failure, activityPage: activityResult.page)
+    }
+    /// Only the activity layer is paged. Existing city POIs remain a separate first-read layer.
+    public func cityActivityPage(_ query: CityNodeSearchQuery, page: Int, token: String? = nil) async throws -> SearchMapActivityPage {
+        try query.filter.validate(); try validate(token)
+        guard query.sortType == 1 || query.sortType == 2,
+              SearchMapActivityPage.validPageNumber(page) else { throw APIError.invalidRequest }
+        // Preserve the native first-read size; no hidden automatic requests.
+        var fields = listFields(query.filter, pageSize: 50)
+        fields["pageNum"] = String(page)
+        fields["longitude"] = String(query.area.coordinate.longitude)
+        fields["latitude"] = String(query.area.coordinate.latitude)
+        fields["sort_type"] = String(query.sortType)
+        let data = try await form("api/activity/list", fields: fields, token: token)
+        let response = try decode(SearchMapActivityPageEnvelope.self, data)
+        let rows = unique(response.rows.filter {
+            query.filter.matches(kind: .activity, date: $0.startDate,
+                price: $0.minimumAmount.map { NSDecimalNumber(decimal: $0).doubleValue })
+        }, by: { $0.id })
+        return try SearchMapActivityPage(rows: rows, pageNumber: page,
+            rawCount: response.rows.count, serverTotal: response.total)
     }
     public func nearby(area: RoamSearchArea, token: String? = nil) async throws -> SearchMapNearbyResults {
         let fields = ["longitude":String(area.coordinate.longitude), "latitude":String(area.coordinate.latitude)]
@@ -180,6 +200,11 @@ public struct SearchMapService {
         do { return try JSONDecoder().decode(type, from: data) }
         catch let error as APIError { throw error }
         catch { throw APIError.malformedResponse }
+    }
+    private func attemptActivityPage(_ operation: () async throws -> SearchMapActivityPage) async throws -> (page: SearchMapActivityPage?, failure: SearchMapFailure?) {
+        do { return (try await operation(), nil) }
+        catch is CancellationError { throw CancellationError() }
+        catch { return (nil, error as? APIError == .unauthorized ? .unauthorized : .unavailable) }
     }
     private func attempt<T>(_ operation: () async throws -> [T]) async throws -> (rows: [T], failure: SearchMapFailure?) {
         do { return (try await operation(), nil) }

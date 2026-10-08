@@ -1,0 +1,118 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "im.row.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conversation actions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "会话操作"
+          }
+        }
+      }
+    },
+    "im.row.conversation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conversation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "会话"
+          }
+        }
+      }
+    },
+    "im.row.reviewHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm this action for this conversation. Unread and notification indicators will refresh from the server after it is accepted."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认对这个会话执行此操作。服务端受理后会重新读取未读和免打扰状态。"
+          }
+        }
+      }
+    },
+    "im.row.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The result is unknown. The original action is kept when you close this sheet. Retry only the same action; this does not resend a message."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "操作结果尚未确认。关闭后仍会保留原操作；只能重试原操作，不会重发聊天消息。"
+          }
+        }
+      }
+    },
+    "im.row.acknowledged": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server accepted the action. Badges change only after a successful list refresh. Close this sheet to check the list and retry its refresh if needed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端已受理操作。只有会话列表刷新成功后才会更新角标；请关闭此页查看列表，必要时重试刷新。"
+          }
+        }
+      }
+    },
+    "im.row.listHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Swipe or touch and hold a conversation for actions. Actions are available only when messaging permissions are enabled."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "左滑或长按会话可查看操作。相关消息权限启用后才可使用。"
+          }
+        }
+      }
+    },
+    "im.row.receiptMismatch": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The response did not confirm this action. Close this sheet and refresh the conversation list to check its current state."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回结果未能确认此操作。请关闭此页并刷新会话列表，查看当前状态。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

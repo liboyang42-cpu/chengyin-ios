@@ -1,0 +1,434 @@
+{
+  "merchant.settlementProgress.title": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "打款进度"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Payment progress"
+        }
+      }
+    }
+  },
+  "merchant.settlementProgress.amountUnknown": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "批次金额待确认"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Batch amount not yet available"
+        }
+      }
+    }
+  },
+  "merchant.settlementProgress.copyVoucher": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "复制打款凭证"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Copy payment reference"
+        }
+      }
+    }
+  },
+  "merchant.settlementProgress.checking": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "正在核对当前权限和凭证"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Checking current access and reference"
+        }
+      }
+    }
+  },
+  "merchant.settlementProgress.copied": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "打款凭证已复制"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Payment reference copied"
+        }
+      }
+    }
+  },
+  "merchant.settlementProgress.copyUnavailable": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前凭证无法复制，请刷新详情后重试"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Cannot copy this reference. Refresh the details and try again."
+        }
+      }
+    }
+  },
+  "merchant.settlementProgress.status.ledgerError": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "结算数据对不上，请联系客服"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Settlement records do not match. Contact support."
+        }
+      }
+    }
+  },
+  "merchant.settlementProgress.status.zero": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "本期无需打款"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No payment required for this period"
+        }
+      }
+    }
+  },
+  "merchant.settlementProgress.status.owes": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "调整待处理"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Adjustment pending"
+        }
+      }
+    }
+  },
+  "merchant.settlementProgress.status.frozen": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "结算处理中"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Settlement on hold"
+        }
+      }
+    }
+  },
+  "merchant.settlementProgress.status.paid": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "平台已打款"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Platform payment recorded"
+        }
+      }
+    }
+  },
+  "merchant.settlementProgress.status.incomplete": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "打款记录不完整，请刷新详情核对"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Payment record incomplete. Refresh to check the details."
+        }
+      }
+    }
+  },
+  "merchant.settlementProgress.status.confirmed": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已确认"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reconciliation confirmed"
+        }
+      }
+    }
+  },
+  "merchant.settlementProgress.status.pending": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "待对账"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Awaiting reconciliation"
+        }
+      }
+    }
+  },
+  "merchant.settlementProgress.status.unknown": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "付款状态待确认"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Payment status unknown"
+        }
+      }
+    }
+  },
+  "merchant.settlementProgress.invoice.none": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "未开票"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Invoice not issued"
+        }
+      }
+    }
+  },
+  "merchant.settlementProgress.invoice.issued": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已开票"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Invoice issued"
+        }
+      }
+    }
+  },
+  "merchant.settlementProgress.invoice.red": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已红冲"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Invoice reversed"
+        }
+      }
+    }
+  },
+  "merchant.settlementProgress.invoice.unknown": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "发票状态待确认"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Invoice status unknown"
+        }
+      }
+    }
+  },
+  "merchant.settlementProgress.step.created": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "批次生成"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Batch created"
+        }
+      }
+    }
+  },
+  "merchant.settlementProgress.step.confirmed": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "对账确认"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reconciliation confirmed"
+        }
+      }
+    }
+  },
+  "merchant.settlementProgress.step.paid": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "平台打款"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Platform payment"
+        }
+      }
+    }
+  },
+  "merchant.settlementProgress.stepState.done": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已完成"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Completed"
+        }
+      }
+    }
+  },
+  "merchant.settlementProgress.stepState.current": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "进行中"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "In progress"
+        }
+      }
+    }
+  },
+  "merchant.settlementProgress.stepState.pending": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "待处理"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Pending"
+        }
+      }
+    }
+  },
+  "merchant.settlementProgress.stepState.paused": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂停处理中"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "On hold"
+        }
+      }
+    }
+  },
+  "merchant.settlementProgress.timeUnknown": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Payment time unavailable"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "打款时间待确认"
+        }
+      }
+    }
+  }
+}

@@ -368,7 +368,11 @@ import SwiftUI
         } else {
             VStack(alignment: .leading, spacing: 10) {
                 Text(row.title).font(.headline)
-                MerchantBusinessRecordFields(row: row, access: access, compact: false)
+                MerchantBusinessRecordFields(row: row, access: access, compact: false,
+                    settlementReader: reader, settlementSnapshot: {
+                        guard state.isCurrent, !state.isBusy, state.failureKey == nil else { return nil }
+                        return state.snapshot
+                    })
                 rowActions(row, access: access)
             }.accessibilityElement(children: .contain)
                 .accessibilityIdentifier("merchant.business.row.\(row.kind.rawValue).\(row.id)")

@@ -23,12 +23,14 @@ private struct MessagingConversationListView: View {
     var senderForConversation: ((Int)->MessageActionCoordinator?)? = nil
     var expanded: IMExpandedNavigationContext? = nil
     @State private var newConversation: Int?
+    @State private var rowAction: IMConversationRowActionPresentation?
+    @StateObject private var listModel = MessagingReadScreenModel<[MessagingConversation]>()
     @Environment(\.locale) private var locale
     @State private var query = ""
     @State private var scope = MessagingConversationScope.all
     @State private var displayLimit = 30
     var body: some View {
-        MessagingReadScreen(reader: reader, accessibilityPrefix: "messaging.list", load: {
+        MessagingReadScreen(reader: reader, accessibilityPrefix: "messaging.list", model: listModel, load: {
             try await reader.messagingConversations()
         }) { conversations in
             VStack(spacing: 0) {
@@ -52,12 +54,18 @@ private struct MessagingConversationListView: View {
                                     MessagingHistoryView(conversationID:conversation.id,conversation:conversation,reader:reader,sender:senderForConversation?(conversation.id),mediaReader:mediaReader,expanded:expanded)
                                 } label: { MessagingConversationRow(conversation: conversation) }
                                 .accessibilityIdentifier("messaging.conversation.\(conversation.id)")
+                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                    rowActions(for: conversation)
+                                }
+                                .contextMenu { rowActions(for: conversation) }
                             }
                             if displayLimit < rows.count {
                                 Button("messaging.moreConversations") { displayLimit += 30 }
                                     .accessibilityIdentifier("messaging.list.more")
                             }
-                        } footer: { Text("messaging.readOnly") }
+                        } footer: {
+                            Text(LocalizedStringKey(expanded == nil ? "messaging.readOnly" : "im.row.listHint"))
+                        }
                     }
                     .listStyle(.plain)
                 }
@@ -76,9 +84,34 @@ private struct MessagingConversationListView: View {
         .navigationDestination(item: $newConversation) { id in
             MessagingHistoryView(conversationID: id, reader: reader, sender: senderForConversation?(id), mediaReader: mediaReader, expanded: expanded)
         }
+        .sheet(item: $rowAction) { presentation in
+            let owner = listModel
+            IMConversationRowActionsView(actions: presentation.actions) { [weak owner] in
+                // The retained list owner validates exact source/account even if
+                // this sheet is closed. Invalidation itself never starts a read.
+                owner?.invalidate(reader: reader, identity: presentation.actions.identity)
+            }
+        }
+        .onChange(of: reader.identity) { _, _ in rowAction = nil }
         .searchable(text: $query, prompt: "messaging.search")
         .onChange(of: query) { _, _ in displayLimit = 30 }
         .onChange(of: scope) { _, _ in displayLimit = 30 }
+    }
+    @ViewBuilder private func rowActions(for conversation: MessagingConversation) -> some View {
+        if let identity = reader.identity, let coordinator = expanded?.coordinator(conversation.id) {
+            let actions = IMConversationRowActions(conversation: conversation, identity: identity,
+                coordinator: coordinator, reader: reader)
+            ForEach(Array(IMConversationRowAction.available(for: conversation).enumerated()), id: \.offset) { _, action in
+                Button {
+                    if actions.prepare(action) { rowAction = .init(actions: actions) }
+                } label: {
+                    Label(LocalizedStringKey(action.titleKey), systemImage: action.symbolName)
+                }
+                .tint(action == .markRead ? .blue : .orange)
+                .disabled(!actions.canPrepare)
+                .accessibilityIdentifier("im.row.\(conversation.id).\(action == .markRead ? "read" : "mute")")
+            }
+        }
     }
     private func filtered(_ conversations: [MessagingConversation]) -> [MessagingConversation] {
         let keyword = query.trimmingCharacters(in: .whitespacesAndNewlines)

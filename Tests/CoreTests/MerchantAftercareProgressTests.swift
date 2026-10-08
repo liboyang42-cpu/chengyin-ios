@@ -133,7 +133,7 @@ final class MerchantAftercareProgressTests: XCTestCase {
         var fields = try fields(); fields["platformTakeoverAt"] = .string("2026-10-02 08:00:00")
         fields["responses"] = .array([response(1, time: "2026-10-02 09:00:00", decision: "AGREE")])
         let transport = AftercareProgressTransport(data: try JSONEncoder().encode(MerchantBusinessValue.object(["code": .int(200), "data": .object(fields)])))
-        let service = try MerchantBusinessService(configuration: .init(baseURL: URL(string: "https://example.invalid")!), readTransport: transport)
+        let service = try MerchantBusinessService(configuration: .init(baseURL: URL(string: "https://example.test")!), readTransport: transport)
         let access = try MerchantBusinessAccess(MerchantBusinessSyntheticFixtures.decode(MerchantBusinessSyntheticFixtures.access).object!)
         let result = try await service.document(.refund(.init(62001)), access: access, token: "synthetic-token")
         XCTAssertEqual(result.aftercareProgress?.events.map(\.id), ["request", "takeover", "response:1"])

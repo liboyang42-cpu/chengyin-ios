@@ -60,6 +60,7 @@ public enum ProjectEditContract {
         return payload
     }
     private static func chapterPayload(_ chapter: ProjectEditChapter, product: ProjectEditProduct, storyFlow: Bool, editing: Bool) throws -> [String: ProjectEditJSON] {
+        guard ProjectChapterAtmosphere.canSubmit(chapter) else { throw ProjectEditError.invalidDraft }
         var ordered = chapter.nodes
         if storyFlow, let blocks = chapter.blocks {
             // Nodes absent from blocks retain their relative position at the end, matching source.
@@ -117,9 +118,11 @@ public enum ProjectEditContract {
             c.schemaVersion = source["schemaVersion"]?.integer ?? 1; c.required = source["required"]?.integer ?? 1
             for key in chapterCarryOver { if let value = source[key] { c.preserved[key] = value } }
             // Source aliases, rather than cosmetic UI colors, define the stored preset.
-            let rawPreset = s(source, "atmospherePreset").uppercased()
-            let aliases = ["NIGHT": "BLUE", "ARCHIVE": "YELLOW", "NEON": "RED", "MOSS": "DEFAULT"]
-            c.preserved["atmospherePreset"] = .string(["DEFAULT", "BLUE", "RED", "YELLOW", "WHITE"].contains(rawPreset) ? rawPreset : aliases[rawPreset] ?? "DEFAULT")
+            // Preserve unknown values/types so a normal edit cannot silently turn
+            // future data into DEFAULT. Only known values use the existing mapping.
+            if ProjectChapterAtmosphere.canSubmit(c), let preset = ProjectChapterAtmosphere.selected(in: c) {
+                c.preserved["atmospherePreset"] = .string(preset.rawValue)
+            }
             var byServerID: [Int: String] = [:]
             c.nodes = try nodes.enumerated().map { ni, rawNode in
                 guard let node = rawNode.object else { throw ProjectEditError.invalidContract }

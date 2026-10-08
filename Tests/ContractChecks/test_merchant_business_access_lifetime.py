@@ -23,6 +23,24 @@ AFTERCARE_OLD_BLOCK = '                ForEach(snapshot.document.sections) { sec
 AFTERCARE_CURRENT_BLOCK = '                if let progress = snapshot.document.aftercareProgress {\n                    MerchantAftercareProgressView(progress: progress)\n                    if let refund = snapshot.document.rows.first(where: { $0.kind == .refund }) {\n                        Section { rowActions(refund, access: snapshot.access) }\n                    }\n                } else {\n                    ForEach(snapshot.document.sections) { section in\n                        let rows = visibleRows(section, in: snapshot.document)\n                        if !rows.isEmpty {\n                            Section(LocalizedStringKey("merchant.business.section." + String(section.id))) {\n                                ForEach(rows) { row in\n                                    rowView(row, access: snapshot.access)\n                                }\n                            }\n                        }\n                    }\n                }\n'
 
 
+# Independently approved settlement detail adapter. Its exact inverse runs before
+# the existing aftercare and Home layers; those original assertions stay intact.
+SETTLEMENT_VIEW_SHA256 = '2a4f0c0ba5164317d66542ae8d7da9baec4ba632fcb316f8344973c135c17cdd'
+SETTLEMENT_OLD_BLOCK = '                MerchantBusinessRecordFields(row: row, access: access, compact: false)'
+SETTLEMENT_CURRENT_BLOCK = '                MerchantBusinessRecordFields(row: row, access: access, compact: false,\n                    settlementReader: reader, settlementSnapshot: {\n                        guard state.isCurrent, !state.isBusy, state.failureKey == nil else { return nil }\n                        return state.snapshot\n                    })'
+
+
+def before_settlement_source(source):
+    if digest(source) in (AFTERCARE_VIEW_SHA256, CURRENT_VIEW_SHA256):
+        return source
+    if digest(source) != SETTLEMENT_VIEW_SHA256 or source.count(SETTLEMENT_CURRENT_BLOCK) != 1:
+        raise ValueError('Unknown settlement source or changed existing boundary')
+    restored = source.replace(SETTLEMENT_CURRENT_BLOCK, SETTLEMENT_OLD_BLOCK, 1)
+    if digest(restored) != AFTERCARE_VIEW_SHA256:
+        raise ValueError('Changed source outside the settlement boundary')
+    return restored
+
+
 def before_aftercare_source(source):
     if digest(source) == CURRENT_VIEW_SHA256:
         return source
@@ -35,6 +53,7 @@ def before_aftercare_source(source):
 
 
 def original_home_source(source):
+    source = before_settlement_source(source)
     source = before_aftercare_source(source)
     if digest(source) != CURRENT_VIEW_SHA256 or source.count(CURRENT_HOME) != 1:
         raise ValueError('Unknown current merchant Home source')
@@ -80,8 +99,28 @@ def validate_model(source):
 class MerchantBusinessAccessLifetimeChecks(unittest.TestCase):
     def setUp(self):
         self.model = (ROOT / MODEL).read_text()
-        self.aftercare_view = (ROOT / VIEW).read_text()
+        self.settlement_view = (ROOT / VIEW).read_text()
+        self.aftercare_view = before_settlement_source(self.settlement_view)
         self.view = before_aftercare_source(self.aftercare_view)
+
+    def test_settlement_exact_inverse_preserves_both_existing_layers(self):
+        self.assertEqual(digest(self.settlement_view), SETTLEMENT_VIEW_SHA256)
+        self.assertEqual(digest(before_settlement_source(self.settlement_view)), AFTERCARE_VIEW_SHA256)
+        self.assertEqual(self.settlement_view.count(SETTLEMENT_CURRENT_BLOCK), 1)
+        self.assertEqual(digest(original_home_source(before_settlement_source(self.settlement_view))), BASE_VIEW_SHA256)
+
+    def test_settlement_inverse_rejects_missing_duplicate_changed_gate_and_unrelated_edits(self):
+        sources = [
+            self.settlement_view.replace(SETTLEMENT_CURRENT_BLOCK, '', 1),
+            self.settlement_view.replace(SETTLEMENT_CURRENT_BLOCK, SETTLEMENT_CURRENT_BLOCK * 2, 1),
+            self.settlement_view.replace('guard state.isCurrent, !state.isBusy, state.failureKey == nil', 'guard true', 1),
+            self.settlement_view.replace('MerchantAftercareProgressView(progress: progress)', 'Text("altered")', 1),
+            self.settlement_view.replace('guard appearance === visibleAppearance else { return }', 'if false { return }', 1),
+            self.settlement_view.replace('private var loadGeneration = 0', 'private var loadGeneration = 1', 1),
+        ]
+        for source in sources:
+            with self.assertRaises(ValueError):
+                before_settlement_source(source)
 
     def test_aftercare_exact_inverse_leaves_home_and_all_other_code_unchanged(self):
         self.assertEqual(digest(self.aftercare_view), AFTERCARE_VIEW_SHA256)

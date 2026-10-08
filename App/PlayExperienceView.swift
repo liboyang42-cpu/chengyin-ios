@@ -24,6 +24,7 @@ import SwiftUI
     var approvedArtworkHosts: Set<String> = []
     var makeSensorProvider: (@MainActor () -> any PlayKitSensorProviding)? = nil
     var spatialApproval = PlayKitSpatialApproval()
+    var rewardCollectionDestination: ((PlayRewardBadgeTarget) -> AnyView)? = nil
     @State private var selectedNode: Int?
     @State private var showRouteMap = false
     @State private var confirmEnd = false
@@ -33,7 +34,7 @@ import SwiftUI
     var body: some View {
         Group {
             if model.gameplayMode == .freeExploration || (model.snapshot == nil && presentedMode == .freeExploration) {
-                FreeExplorationExperienceView(model: model, storeDestination: { AnyView(freeStoreDestination($0)) })
+                FreeExplorationExperienceView(model: model, storeDestination: { AnyView(freeStoreDestination($0)) }, rewardCollectionDestination: rewardCollectionDestination)
             } else if model.gameplayMode == .cityOrientation {
                 orientationContent
             } else if model.snapshot == nil {
@@ -194,7 +195,7 @@ import SwiftUI
                     if let playerModel { NavigationLink("playx.player.title") { PlayPlayerSessionView(model: playerModel, deviceModel: deviceModel) } }
                     if let circleModel { NavigationLink("playx.circle.title") { PlayCircleView(model: circleModel) } }
                 }
-                if let reward = model.reward { PlayRewardSection(reward: reward) }
+                if let reward = model.reward { PlayRewardSection(reward: reward, collectionDestination: rewardCollectionDestination) }
                 if let ending = model.ending {
                     Section("playx.ending") {
                         if ending.hasStory {
@@ -424,8 +425,9 @@ struct PlayExperienceIssueView: View {
         }.foregroundStyle(.secondary).accessibilityIdentifier("playx.issue")
     }
 }
-struct PlayRewardSection: View {
+@MainActor struct PlayRewardSection: View {
     let reward: PlayWireValue
+    var collectionDestination: ((PlayRewardBadgeTarget) -> AnyView)? = nil
     var body: some View {
         Section("playx.reward") {
             Text("playx.reward.authority").font(.footnote)
@@ -433,6 +435,8 @@ struct PlayRewardSection: View {
             if let score = reward["puzzleScore"].tolerantInteger { LabeledContent("playx.reward.puzzle") { Text(verbatim: String(score)) } }
             if let mode = reward["completionMode"].text { LabeledContent("playx.reward.mode") { Text(verbatim: mode) } }
             if let medal = reward["medalName"].text { Text(verbatim: medal) }
+            PlayRewardBadgeRows(targets: PlayRewardBadgeTarget.targets(in: reward), destination: collectionDestination)
+                .id(PlayRewardBadgeTarget.targets(in: reward))
         }.accessibilityIdentifier("playx.reward")
     }
 }

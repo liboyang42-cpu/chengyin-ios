@@ -172,8 +172,10 @@ public struct CityNodeSearchResults: Equatable {
     public let nodes: [SearchMapCityNode]
     public let activityFailure: SearchMapFailure?
     public let nodeFailure: SearchMapFailure?
-    public init(activities: [ActivitySummary], nodes: [SearchMapCityNode], activityFailure: SearchMapFailure? = nil, nodeFailure: SearchMapFailure? = nil) {
+    public let activityPage: SearchMapActivityPage?
+    public init(activities: [ActivitySummary], nodes: [SearchMapCityNode], activityFailure: SearchMapFailure? = nil, nodeFailure: SearchMapFailure? = nil, activityPage: SearchMapActivityPage? = nil) {
         self.activities = activities; self.nodes = nodes; self.activityFailure = activityFailure; self.nodeFailure = nodeFailure
+        self.activityPage = activityPage
     }
     public var missingCoordinateCount: Int { activities.filter { !$0.hasValidCoordinates }.count }
     public var hasUnauthorized: Bool { activityFailure == .unauthorized || nodeFailure == .unauthorized }

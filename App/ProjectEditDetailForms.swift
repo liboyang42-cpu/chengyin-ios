@@ -68,6 +68,13 @@ import SwiftUI
                     }
                 }
                 ProjectEditChapterStorySettings(chapter: chapter, isFirst: model.draft.chapters.first?.id == chapterID)
+                // The mini chapter palette is city-only. Pending new chapters keep
+                // their temporary binding until the existing placement flow commits.
+                if model.draft.product == .city && chapterOverride == nil {
+                    ProjectChapterAtmosphereFields(model: model, chapterID: chapterID)
+                } else if chapterOverride == nil && !ProjectChapterAtmosphere.canSubmit(chapter.wrappedValue) {
+                    Section { ProjectChapterAtmosphereUnsupportedNotice(chapter: chapter.wrappedValue, supportsSelection: false) }
+                }
                 if let blocks = chapter.wrappedValue.blocks {
                     Section("projectEdit.storyFlow") {
                         ForEach(blocks) { block in
