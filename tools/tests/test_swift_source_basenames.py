@@ -113,13 +113,24 @@ class SwiftSourceBasenameTests(unittest.TestCase):
         # target guard on both case-sensitive and case-insensitive filesystems.
         original_glob = Path.glob
         def glob(root, pattern):
-            if root == self.root and pattern == 'Tests/AppUITests/*.swift':
+            if root.resolve() == self.root.resolve() and pattern == 'Tests/AppUITests/*.swift':
                 return iter([root / 'Tests/AppUITests/SharedTests.swift',
                              root / 'Tests/AppUITests/sharedtests.swift'])
             return original_glob(root, pattern)
         with patch.object(Path, 'glob', glob):
             with self.assertRaisesRegex(SystemExit, 'Duplicate Swift basenames in target QuestifyUITests:'):
                 self.generate()
+
+    def test_ui_collision_mock_supports_resolved_temporary_root_alias(self):
+        # macOS exposes temporary paths through /var -> /private/var. The
+        # generator resolves __file__; the synthetic enumerator must match it.
+        original = self.root
+        alias = original.parent / (original.name + '-alias')
+        alias.symlink_to(original, target_is_directory=True)
+        self.addCleanup(alias.unlink)
+        self.root = alias
+        self.assertNotEqual(self.root, self.root.resolve())
+        self.test_ui_target_case_only_duplicate_is_rejected()
 
     def test_scaffold_independently_rejects_duplicate_build_membership(self):
         generated = self.generate()
