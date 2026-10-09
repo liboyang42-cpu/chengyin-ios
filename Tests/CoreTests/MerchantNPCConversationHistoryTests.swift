@@ -126,7 +126,10 @@ import XCTest
             requests.append(request)
             if hold { await withCheckedContinuation { pending = $0; onRequest?() } }
             if unknown { throw MerchantNPCFailure.unknownOutcome }
-            let body: [String: Any] = ["code": 200, "data": ["outcomeStatus": status, "safeText": "Safe reply"]]
+            let sent = try XCTUnwrap(JSONSerialization.jsonObject(with: request.body) as? [String: Any])
+            let id = try XCTUnwrap(sent["requestId"] as? String)
+            let body: [String: Any] = ["code": 200, "data": ["requestId": id, "outcomeStatus": status,
+                "safetyDecision": status == "SUCCEEDED" ? "PASS" : "NOT_RUN", "retryable": status == "PROCESSING", "safeText": "Safe reply"]]
             return .init(status: 200, body: try JSONSerialization.data(withJSONObject: body))
         }
         func resume() { let value = pending; pending = nil; value?.resume() }

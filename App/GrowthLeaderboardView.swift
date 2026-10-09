@@ -2,7 +2,13 @@ import SwiftUI
 
 @MainActor struct GrowthLeaderboardView: View {
     let reader: any GrowthCenterReading
+    @Environment(\.growthExploreHomeAction) private var onExploreHome
+    @Environment(\.scenePhase) private var scenePhase
     @State private var query = GrowthBoardQuery()
+    @State private var explorePresentationID = UUID()
+    @State private var exploreVisible = false
+    @State private var exploreConsumed = false
+    @State private var latestReaderID: ObjectIdentifier?
     @StateObject private var model = GrowthCenterScreenModel<GrowthLeaderboard>()
     private var key: GrowthCenterLoadKey { GrowthCenterLoadKey(scope: reader.scope, query: query) }
     var body: some View {
@@ -25,7 +31,27 @@ import SwiftUI
                     Section("growth.myRank") { GrowthLeaderboardRow(entry: board.me, fallback: "growth.me", metric: board.metric).accessibilityIdentifier("growth.board.me.\(rank)") }
                 }
                 if board.list.isEmpty {
-                    ContentUnavailableView("growth.board.empty", systemImage: "list.number", description: Text("growth.board.emptyHint"))
+                    ContentUnavailableView {
+                        Label("growth.board.empty", systemImage: "list.number")
+                    } description: {
+                        Text("growth.board.emptyHint")
+                    } actions: {
+                        if let onExploreHome {
+                            let selection = GrowthLeaderboardExploreSelection(readerID: ObjectIdentifier(reader), key: key,
+                                board: board, presentationID: explorePresentationID)
+                            Button("growthExplore.openHome") {
+                                guard !exploreConsumed, scenePhase == .active,
+                                      selection.accepts(readerID: latestReaderID, key: key, board: model.value(key: key),
+                                          presentationID: explorePresentationID, visible: exploreVisible,
+                                          authenticated: reader.isAuthenticated, configured: reader.isConfigured,
+                                          loading: model.isLoading, hasIssue: model.issue(key: key) != nil) else { return }
+                                exploreConsumed = true; explorePresentationID = UUID()
+                                onExploreHome()
+                            }.buttonStyle(.bordered).frame(minHeight: 44)
+                                .disabled(exploreConsumed || !exploreVisible || scenePhase != .active)
+                                .accessibilityIdentifier("growthExplore.openHome")
+                        }
+                    }
                         .accessibilityIdentifier("growth.board.empty")
                 } else {
                     Section("growth.board.leaders") {
@@ -47,11 +73,32 @@ import SwiftUI
             }
         }
         .modifier(GrowthCenterReadLifecycle(key: key, refresh: load, cancel: model.cancelPending))
+        .onAppear { exploreVisible = true; exploreConsumed = false; explorePresentationID = UUID(); latestReaderID = ObjectIdentifier(reader) }
+        .onDisappear { exploreVisible = false; explorePresentationID = UUID() }
+        .onChange(of: scenePhase) { _, _ in explorePresentationID = UUID() }
+        .onChange(of: ObjectIdentifier(reader)) { _, value in latestReaderID = value; explorePresentationID = UUID() }
     }
     private func load() async {
+        explorePresentationID = UUID(); exploreConsumed = false; latestReaderID = ObjectIdentifier(reader)
         guard reader.isAuthenticated, reader.isConfigured else { model.invalidate(); return }
         let captured = key, requested = query
         await model.load(key: captured, currentKey: { key }) { try await reader.leaderboard(query: requested) }
+    }
+}
+
+/// A current successful empty-board presentation only. It carries no outbound
+/// player/rank data; the action is the host's existing zero-argument home route.
+struct GrowthLeaderboardExploreSelection {
+    let readerID: ObjectIdentifier
+    let key: GrowthCenterLoadKey
+    let board: GrowthLeaderboard
+    let presentationID: UUID
+    func accepts(readerID: ObjectIdentifier?, key: GrowthCenterLoadKey, board: GrowthLeaderboard?,
+                 presentationID: UUID, visible: Bool, authenticated: Bool, configured: Bool,
+                 loading: Bool, hasIssue: Bool) -> Bool {
+        visible && authenticated && configured && !loading && !hasIssue &&
+            self.readerID == readerID && self.key == key && self.presentationID == presentationID &&
+            self.board.list.isEmpty && self.board == board
     }
 }
 private struct GrowthLeaderboardRow: View {

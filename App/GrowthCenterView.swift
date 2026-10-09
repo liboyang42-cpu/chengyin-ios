@@ -1,5 +1,17 @@
 import SwiftUI
 
+/// Optional ordinary-home navigation supplied by the account host. Nil leaves
+/// the read surface usable without pretending to navigate or acquire location.
+private struct GrowthExploreHomeActionKey: EnvironmentKey {
+    static let defaultValue: (() -> Void)? = nil
+}
+extension EnvironmentValues {
+    var growthExploreHomeAction: (() -> Void)? {
+        get { self[GrowthExploreHomeActionKey.self] }
+        set { self[GrowthExploreHomeActionKey.self] = newValue }
+    }
+}
+
 @MainActor struct GrowthCenterView: View {
     let reader: any GrowthCenterReading
     @StateObject private var model = GrowthCenterScreenModel<GrowthCenterOverview>()

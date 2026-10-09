@@ -26,15 +26,34 @@ public enum MerchantNPCFailure: Error, Equatable {
     case rejected(code: Int, message: String?)
 }
 public struct MerchantNPCReply: Decodable, Equatable {
+    public let requestID: UUID?
     public let outcomeStatus: String
+    public let safetyDecision: String?
     public let safeText: String?
     public let errorCode: String?
     public let retryable: Bool?
     public let retryAfterSeconds: Int?
     public let audioUrl: String?
-    public var succeeded: Bool { outcomeStatus == "SUCCEEDED" }
+    public var succeeded: Bool {
+        requestID != nil && outcomeStatus == "SUCCEEDED" && retryable == false && safetyDecision == "PASS" &&
+        safeText?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
+    }
     public var canRetry: Bool { retryable == true || outcomeStatus == "PROCESSING" }
     public var successAudioURL: String? { succeeded ? audioUrl : nil }
+    private enum CodingKeys: String, CodingKey {
+        case requestID = "requestId"
+        case outcomeStatus, safetyDecision, safeText, errorCode, retryable, retryAfterSeconds, audioUrl
+    }
+    /// Validate at the existing chat boundary before any coordinator/history/UI can
+    /// treat the reply as belonging to the submitted request. No authority is minted.
+    func validate(requestID expected: UUID) throws {
+        guard requestID == expected, ["SUCCEEDED", "REJECTED", "FAILED", "PROCESSING"].contains(outcomeStatus),
+              let retryable, let safetyDecision, ["PASS", "BLOCKED", "NOT_RUN"].contains(safetyDecision),
+              (safeText?.utf8.count ?? 0) <= 32_768 else { throw MerchantNPCFailure.malformed }
+        // Current 9b emits one second for processing, or secondsUntilTomorrow (<= 86400).
+        if let seconds = retryAfterSeconds, !(0...86_400).contains(seconds) { throw MerchantNPCFailure.malformed }
+        if outcomeStatus == "SUCCEEDED", !retryable, !succeeded { throw MerchantNPCFailure.malformed }
+    }
 }
 public struct MerchantNPCVoiceScript: Decodable, Equatable {
     public let available: Bool

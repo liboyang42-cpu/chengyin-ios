@@ -78,7 +78,9 @@ struct AccountView: View {
                     }.accessibilityIdentifier("account.creatorCenter")
                 }
                 Section {
-                    NavigationLink { GrowthCenterView(reader:session.growthCenterReader).id(session.growthCenterReader.scope) } label: {
+                    NavigationLink { GrowthCenterView(reader:session.growthCenterReader).id(session.growthCenterReader.scope)
+                            .environment(\.growthExploreHomeAction, onOpenGuideDestination.map { open in { open(.home) } })
+                    } label: {
                         Label("growth.title",systemImage:"chart.bar.xaxis")
                     }.accessibilityIdentifier("account.growthCenter")
                 }

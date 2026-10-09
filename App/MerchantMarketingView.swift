@@ -110,13 +110,24 @@ import SwiftUI
     }
     @ViewBuilder private func insightSections(_ insight: MerchantMarketingInsight) -> some View {
         insightProfile(insight)
+        MerchantInsightRecentVisitorsSection(visitors: .init(insight.metadata["recentVisitors"]),
+            isCurrent: !model.busy && model.service.scope != nil && loadedRecommendationOrigin != nil
+                && loadedRecommendationOrigin == recommendationOrigin && model.insight == insight)
+        MerchantInsightAttributionSummary(summary: .init(insight.facts),
+            isCurrent: !model.busy && model.service.scope != nil && loadedRecommendationOrigin != nil
+                && loadedRecommendationOrigin == recommendationOrigin && model.insight == insight)
         Section("merchantMarketing.facts") {
-            LabeledContent("merchantMarketing.window", value: insight.facts["window"].text ?? "—")
+            LabeledContent("merchantMarketing.window", value: MerchantInsightAttribution(insight.facts).window ?? "—")
             LabeledContent("merchantMarketing.sample", value: value(insight.facts["sampleMembers"].integer))
             if insight.facts["lowSample"].isTrue { Text("merchantMarketing.lowSample") }
             LabeledContent("merchantMarketing.checkins", value: value(insight.facts["checkin"]["total"].integer))
             LabeledContent("merchantMarketing.redemptionRate", value: percent(insight.facts["checkin"]["redeemRate"].decimal))
+            Text("merchant.insightAttribution.redemptionScope").font(.footnote).foregroundStyle(.secondary)
             LabeledContent("merchantMarketing.repeatRate", value: percent(insight.facts["checkin"]["repeatRate"].decimal))
+            Text("merchant.insightAttribution.repeatScope").font(.footnote).foregroundStyle(.secondary)
+            if MerchantInsightAttribution(insight.facts).window == nil {
+                Text("merchant.insightAttribution.windowUnknown").font(.footnote).foregroundStyle(.secondary)
+            }
             LabeledContent("merchantMarketing.wait", value: value(insight.facts["checkin"]["avgWaitMinutes"].integer))
             LabeledContent("merchantMarketing.members", value: value(insight.facts["crowd"]["members"].integer))
             LabeledContent("merchantMarketing.offers", value: value(insight.facts["supply"]["activeOffers"].integer))
@@ -137,6 +148,24 @@ import SwiftUI
             Text("merchantMarketing.suggestionNotice").font(.footnote)
             if let ai = insight.ai {
                 Text(ai["summary"].text ?? "—")
+                if !model.busy, model.service.scope != nil, loadedRecommendationOrigin != nil,
+                   loadedRecommendationOrigin == recommendationOrigin, model.insight == insight {
+                    if insight.facts["lowSample"].isTrue { Text("merchantMarketing.lowSample").font(.footnote) }
+                    if let opportunity = insight.opportunity {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("merchant.insightInterpretation.opportunity").font(.headline)
+                            Text(verbatim: opportunity)
+                        }.accessibilityElement(children: .combine)
+                            .accessibilityIdentifier("merchant.insightInterpretation.opportunity")
+                    }
+                    if let problem = insight.problem {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("merchant.insightInterpretation.problem").font(.headline)
+                            Text(verbatim: problem)
+                        }.accessibilityElement(children: .combine)
+                            .accessibilityIdentifier("merchant.insightInterpretation.problem")
+                    }
+                }
                 ForEach(Array((ai["audiences"].array ?? []).enumerated()), id: \.offset) { _, audience in
                     VStack(alignment: .leading) { Text(audience["label"].text ?? "—"); if let reason = audience["reason"].text { Text(reason) } }
                 }

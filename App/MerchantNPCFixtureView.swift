@@ -11,7 +11,11 @@ import SwiftUI
         if request.path.hasSuffix("/script") {
             body = #"{"code":200,"data":{"available":true,"script":["SYNTHETIC authorization statement — never record","Synthetic line 2","Synthetic line 3","Synthetic line 4","Synthetic line 5"],"consentIndex":0}}"#
         } else if request.path.hasSuffix("merchant-chat") {
-            body = #"{"code":200,"data":{"outcomeStatus":"SUCCEEDED","safeText":"Synthetic merchant-row reply","retryable":false}}"#
+            let sent = try JSONSerialization.jsonObject(with: request.body) as? [String: Any]
+            guard let id = sent?["requestId"] as? String else { throw MerchantNPCFailure.invalid }
+            let data = try JSONSerialization.data(withJSONObject: ["code": 200, "data": ["requestId": id,
+                "outcomeStatus": "SUCCEEDED", "safetyDecision": "PASS", "safeText": "Synthetic merchant-row reply", "retryable": false]])
+            body = String(decoding: data, as: UTF8.self)
         } else if request.path.hasSuffix("generate") {
             body = #"{"code":200,"data":{"jobId":41,"status":"PENDING","style":"realistic"}}"#
         } else { body = #"{"code":200,"msg":"Synthetic acceptance only","data":null}"# }

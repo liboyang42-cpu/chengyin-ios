@@ -131,6 +131,13 @@ public struct MerchantMarketingInsight: Equatable {
         public let title: String, reason: String?, timeSlot: String?, audience: String?, destination: MerchantInsightDestination?
     }
     public let suggestions: [Suggestion]
+    public var opportunity: String? { interpretationText("opportunity") }
+    public var problem: String? { interpretationText("problem") }
+    private func interpretationText(_ key: String) -> String? {
+        guard let ai, case .string(let text) = ai[key],
+              !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
+        return text
+    }
     public init(_ raw: MerchantMarketingValue) throws {
         guard raw["facts"].object != nil else { throw MerchantMarketingFailure.malformed }
         facts = raw["facts"]; ai = raw["ai"].object == nil ? nil : raw["ai"]; metadata = raw

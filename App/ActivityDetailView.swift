@@ -210,6 +210,11 @@ struct ActivityDetailView: View {
                 }
             }
             ActivityPeopleSection(people: detail.people, onOpenProfile: profileAction(detail))
+            // Only this successful, current allowed response supplies these rows.
+            // A scope/reader/activity/reread invalidation immediately removes them.
+            if gateScope != nil, detail.summary.id == id {
+                ActivityAssociatedPlaysSection(plays: detail.associatedPlays)
+            }
             if detail.summary.hasValidCoordinates,
                let latitude=detail.summary.latitude, let longitude=detail.summary.longitude {
                 Section("activity.location") {

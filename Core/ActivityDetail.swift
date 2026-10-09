@@ -43,6 +43,30 @@ public struct ActivityTicket: Decodable, Equatable, Identifiable {
     public var isConfirmedFree: Bool { price == Decimal.zero }
 }
 
+/// Three display fields already included in the allowed activity response.
+/// No template ID, private rules, answer, media URL or myinfo authority is retained.
+public struct ActivityAssociatedPlay: Decodable, Equatable {
+    public let title: String?
+    public let players: String?
+    public let durationMinutes: Double?
+    private enum Keys: String, CodingKey { case title, players, duration }
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: Keys.self)
+        func text(_ key: Keys) -> String? {
+            guard let raw = try? values.decode(String.self, forKey: key) else { return nil }
+            let value = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            return value.isEmpty ? nil : value
+        }
+        title = text(.title)
+        if let text = text(.players) { players = text }
+        else if let count = try? values.decode(Int.self, forKey: .players), count >= 0 { players = String(count) }
+        else { players = nil }
+        if let duration = try? values.decode(Double.self, forKey: .duration), duration.isFinite, duration >= 0 {
+            durationMinutes = duration
+        } else { durationMinutes = nil }
+    }
+}
+
 public struct ActivityDetail: Decodable, Equatable {
     /// Fresh source evidence stays separate from display defaults; unavailable proof stays nil.
     public let publisherAuthoritySource: PublisherActivityAuthoritySource?
@@ -50,8 +74,9 @@ public struct ActivityDetail: Decodable, Equatable {
     public let tickets: [ActivityTicket]
     public let people: ActivityPeople
     public let reviews: ActivityReviews
+    public let associatedPlays: [ActivityAssociatedPlay]
     public let hostMemberID: Int?
-    enum CodingKeys: String, CodingKey { case omsTicketList, memberId }
+    enum CodingKeys: String, CodingKey { case omsTicketList, memberId, memberTemplateList }
     public init(from decoder:Decoder) throws {
         publisherAuthoritySource = try? PublisherActivityAuthoritySource(from: decoder)
         summary=try ActivitySummary(from:decoder)
@@ -59,6 +84,7 @@ public struct ActivityDetail: Decodable, Equatable {
         reviews=try ActivityReviews(from:decoder)
         let c=try decoder.container(keyedBy:CodingKeys.self)
         tickets=try c.decodeIfPresent([ActivityTicket].self,forKey:.omsTicketList) ?? []
+        associatedPlays=try c.decodeIfPresent([ActivityAssociatedPlay].self,forKey:.memberTemplateList) ?? []
         hostMemberID=try c.decodeIfPresent(Int.self,forKey:.memberId)
     }
 }

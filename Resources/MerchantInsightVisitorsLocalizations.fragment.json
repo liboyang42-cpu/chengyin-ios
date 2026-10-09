@@ -1,0 +1,138 @@
+{
+  "merchant.insightVisitors.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "最近到店玩家"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Recent visitors"
+        }
+      }
+    }
+  },
+  "merchant.insightVisitors.scope": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "仅展示本次返回的最多5位到店玩家，不代表全部客户。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Shows up to five visitors returned in this response, not all customers."
+        }
+      }
+    }
+  },
+  "merchant.insightVisitors.unavailable": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "最近到店摘要暂未取回。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The recent visitor summary is unavailable."
+        }
+      }
+    }
+  },
+  "merchant.insightVisitors.empty": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "本次没有返回最近到店记录。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No recent visits were returned in this response."
+        }
+      }
+    }
+  },
+  "merchant.insightVisitors.nameUnavailable": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "名称未提供"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Name unavailable"
+        }
+      }
+    }
+  },
+  "merchant.insightVisitors.count": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "到店次数"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Recorded visits"
+        }
+      }
+    }
+  },
+  "merchant.insightVisitors.topic": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "来自主题"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Source topic"
+        }
+      }
+    }
+  },
+  "merchant.insightVisitors.time": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "最近到店时间"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Last visit"
+        }
+      }
+    }
+  }
+}

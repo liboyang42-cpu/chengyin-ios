@@ -44,7 +44,9 @@ public struct MerchantNPCHTTPResponse {
     }
     public func chat(message: String, requestID: UUID, scope: MerchantNPCScope) async throws -> MerchantNPCReply {
         let result = try await post("/api/ai/npc/merchant-chat", fields: ["requestId": requestID.uuidString, "bizId": scope.merchantRowID.rawValue, "message": message], scope: scope, as: MerchantNPCReply.self)
-        guard let reply = result.0 else { throw MerchantNPCFailure.malformed }; return reply
+        guard let reply = result.0 else { throw MerchantNPCFailure.malformed }
+        try reply.validate(requestID: requestID)
+        return reply
     }
     public func voiceScript(scope: MerchantNPCScope) async throws -> MerchantNPCVoiceScript {
         let result = try await post("/api/merchant/npc/voice/script", fields: [:], scope: scope, as: MerchantNPCVoiceScript.self)

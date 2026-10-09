@@ -70,7 +70,12 @@ final class NPCQuickQuestionTests: XCTestCase {
                 await withCheckedContinuation { waiting = $0 }
             }
             // Deliberately ignore task cancellation to exercise a late provider reply.
-            return .init(status: 200, body: Data(response.utf8))
+            let sent = try XCTUnwrap(JSONSerialization.jsonObject(with: request.body) as? [String: Any])
+            var envelope = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(response.utf8)) as? [String: Any])
+            var payload = try XCTUnwrap(envelope["data"] as? [String: Any])
+            payload["requestId"] = try XCTUnwrap(sent["requestId"] as? String); payload["safetyDecision"] = "PASS"; payload["retryable"] = false
+            envelope["data"] = payload
+            return .init(status: 200, body: try JSONSerialization.data(withJSONObject: envelope))
         }
         func release() { let pending = waiting; waiting = nil; pending?.resume() }
         func waitUntilHeld() async {

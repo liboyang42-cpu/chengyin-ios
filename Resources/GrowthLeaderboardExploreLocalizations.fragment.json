@@ -1,0 +1,19 @@
+{
+  "growthExplore.openHome": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Explore from home"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "去首页探索"
+        }
+      }
+    }
+  }
+}

@@ -15,6 +15,18 @@ import XCTest
             if held { await withCheckedContinuation { continuation = $0 } }
             if unknown || (mutationUnknown && !request.path.hasSuffix("script")) { throw MerchantNPCFailure.unknownOutcome }
             if request.path.hasSuffix("script") { return .init(status: 200, body: Data(#"{"code":200,"data":{"available":true,"script":["Synthetic authorization","2","3","4","5"],"consentIndex":0}}"#.utf8)) }
+            if request.path == "/api/ai/npc/merchant-chat" {
+                let sent = try XCTUnwrap(JSONSerialization.jsonObject(with: request.body) as? [String: Any])
+                var envelope = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(json.utf8)) as? [String: Any])
+                if var payload = envelope["data"] as? [String: Any] {
+                    let outcome = payload["outcomeStatus"] as? String
+                    payload["requestId"] = try XCTUnwrap(sent["requestId"] as? String)
+                    payload["safetyDecision"] = outcome == "SUCCEEDED" ? "PASS" : "NOT_RUN"
+                    if payload["retryable"] == nil { payload["retryable"] = outcome == "PROCESSING" }
+                    envelope["data"] = payload
+                }
+                return .init(status: status, body: try JSONSerialization.data(withJSONObject: envelope))
+            }
             return .init(status: status, body: Data(json.utf8))
         }
     }

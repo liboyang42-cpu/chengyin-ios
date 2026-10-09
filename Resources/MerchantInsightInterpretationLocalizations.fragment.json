@@ -1,0 +1,36 @@
+{
+  "merchant.insightInterpretation.opportunity": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "经营机会"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Business opportunity"
+        }
+      }
+    }
+  },
+  "merchant.insightInterpretation.problem": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "经营问题"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Business concern"
+        }
+      }
+    }
+  }
+}

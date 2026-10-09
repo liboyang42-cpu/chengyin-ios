@@ -1,0 +1,223 @@
+{
+  "merchant.insightAttribution.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "平台带来的到店"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Platform-attributed visits"
+        }
+      }
+    }
+  },
+  "merchant.insightAttribution.windowUnknown": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "本次未返回具体统计时间范围。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The specific reporting window was not returned."
+        }
+      }
+    }
+  },
+  "merchant.insightAttribution.visitors": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "到店玩家数"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Visitors"
+        }
+      }
+    }
+  },
+  "merchant.insightAttribution.checkins": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "打卡次数"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Check-ins"
+        }
+      }
+    }
+  },
+  "merchant.insightAttribution.redeems": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "核销次数"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Redemptions"
+        }
+      }
+    }
+  },
+  "merchant.insightAttribution.empty": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务器明确返回本期到店、打卡和核销均为0。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The response reports zero visitors, check-ins and redemptions in its reporting window."
+        }
+      }
+    }
+  },
+  "merchant.insightAttribution.unavailable": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "归因三项数据未完整返回，暂不显示为0。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The three attribution counts are incomplete; unavailable values are not shown as zero."
+        }
+      }
+    }
+  },
+  "merchant.insightAttribution.newVisitors": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "新客"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "New visitors"
+        }
+      }
+    }
+  },
+  "merchant.insightAttribution.returningVisitors": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "回头客"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Returning visitors"
+        }
+      }
+    }
+  },
+  "merchant.insightAttribution.splitScope": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "口径：服务器统计期内到店的玩家中，在该统计期之前的历史记录里也到过店的算回头客。此口径与复购率不同。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Among visitors in the server reporting window, returning visitors also visited before that window. This differs from the repeat redemption rate."
+        }
+      }
+    }
+  },
+  "merchant.insightAttribution.splitUnavailable": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "新客与回头客人数暂未完整返回。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The new and returning visitor counts are incomplete."
+        }
+      }
+    }
+  },
+  "merchant.insightAttribution.redemptionScope": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "核销率口径：已核销报名数 ÷ 服务器统计期内报名数。统计期见本节时间窗口。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Redemption rate: redeemed registrations divided by registrations in the server reporting window shown in this section."
+        }
+      }
+    }
+  },
+  "merchant.insightAttribution.repeatScope": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "复购率口径：核销至少2次的会员数 ÷ 服务器统计期内核销会员数。统计期见本节时间窗口。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Repeat redemption rate: members with at least two redemptions divided by members with a redemption in the server reporting window shown in this section."
+        }
+      }
+    }
+  }
+}
