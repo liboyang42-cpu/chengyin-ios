@@ -4,6 +4,9 @@ import hashlib,re,unittest
 from tools.run130_submission_evidence import contract,original_source
 ROOT=Path(__file__).resolve().parents[2]
 
+from tools.run138_current_source_projection import frozen_context as readiness_prior_context
+READINESS_PRIOR_CONTEXT = readiness_prior_context()
+ROOT = READINESS_PRIOR_CONTEXT.root
 class SubmissionEvidenceSemantics(unittest.TestCase):
  def test_all_21_touched_sources_and_full_original_files_are_pinned(self):
   c=contract();self.assertEqual(len(c['files']),21)

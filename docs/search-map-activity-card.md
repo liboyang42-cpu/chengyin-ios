@@ -1,5 +1,13 @@
 # P101 shared map activity card
 
+## CI 138 intrinsic-height fixture correction
+
+CI 138 at `4bf6667f8c5d9d2d59a8063d7d54eaef7a338865` reported both normal and maximum Dynamic Type card heights as exactly 20,000 points. The test passed that finite height straight to `UIHostingController.sizeThatFits(in:)`; the shared image card's `Spacer(minLength: 120)` expands to fill it. Both shipping card placements are inside `SearchMapExplorerView`'s vertical `ScrollView`, which instead measures content with an unspecified vertical proposal. This is a test-host proposal mismatch, not evidence of a 20,000-point shipping card.
+
+The tests now use `.fixedSize(horizontal: false, vertical: true)` to request ideal height while keeping the 300-point width constraint, matching the existing `ReferenceMapCardAppTests` measurement. That reference test passed in the same CI 138 AppUnit job. The strict maximum-type height increase remains, now in English and Simplified Chinese; all measured sizes must be finite, no wider than 301 points, and below 10,000 points. A new case verifies the same content has the same intrinsic size under 10,000- and 20,000-point hosting proposals. Bilingual missing-metadata rendering uses the same bounded measurement, so filling the host can no longer falsely pass that case.
+
+Production layout, source metadata, artwork, navigation, filters and permissions are unchanged. This correction adds one app-hosted regression case and one Python source contract. The updated Apple tests require CI/Xcode execution; cloud Python contracts and syntax parsing do not establish their runtime result.
+
 ## Source evidence
 
 Read-only comparison against `liboyang42-cpu/chengyin` at `ce61c0bbace743ff835cb297ef41c89b52181636`:

@@ -1,0 +1,130 @@
+{
+  "mapDatePicker.start": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Choose start date"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "选择开始日期"
+        }
+      }
+    }
+  },
+  "mapDatePicker.end": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Choose end date"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "选择结束日期"
+        }
+      }
+    }
+  },
+  "mapDatePicker.year": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Year"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "年"
+        }
+      }
+    }
+  },
+  "mapDatePicker.month": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Month"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "月"
+        }
+      }
+    }
+  },
+  "mapDatePicker.day": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Day"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "日"
+        }
+      }
+    }
+  },
+  "mapDatePicker.confirm": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Confirm"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "确认"
+        }
+      }
+    }
+  },
+  "mapDatePicker.disclosure": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Gregorian dates, 1970–2050. Confirm updates this filter draft; Apply saves the filters."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "公历日期，1970–2050 年。确认后仅更新当前筛选草稿，点击“应用”后才生效。"
+        }
+      }
+    }
+  },
+  "mapDatePicker.invalidOrder": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The start date must be on or before the end date."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "开始日期不能晚于结束日期。"
+        }
+      }
+    }
+  }
+}

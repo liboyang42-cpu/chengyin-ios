@@ -37,6 +37,50 @@ CUSTOMER_OLD_BLOCK = '                summary(snapshot.document)\n              
 CUSTOMER_CURRENT_BLOCK = '                summary(snapshot.document)\n                if snapshot.document.sections.allSatisfy({ model.unfilteredRows(in: $0, query: snapshot.document.query).isEmpty }) && (snapshot.document.summary.isEmpty || isLocalList) {\n                    Text("merchant.business.empty").foregroundStyle(.secondary).accessibilityIdentifier("merchant.business.empty")\n                } else if model.listFilters.isActive(for: snapshot.document.query), snapshot.document.sections.allSatisfy({ visibleRows($0, in: snapshot.document).isEmpty }) {\n                    Text(LocalizedStringKey(isAftercare ? "merchant.business.aftercare.noMatches" : "merchant.business.list.noMatches")).foregroundStyle(.secondary).accessibilityIdentifier("merchant.business.list.noMatches")\n                }\n                if case .customer = query, let detail = snapshot.document.customerDetail {\n                    MerchantCustomerDetailSections(detail: detail, access: snapshot.access) { row in\n                        rowActions(row, access: snapshot.access)\n                    }\n                } else if let progress = snapshot.document.aftercareProgress {\n                    MerchantAftercareProgressView(progress: progress)\n'
 
 
+# Approved read-only roster presentation. Undo both exact hunks before the
+# unchanged customer, settlement, aftercare and Home boundary checks.
+ROSTER_VIEW_SHA256 = '9591a8fd9cebf903e7bf4b10c914e6fa3aa907b3823d48c737c89521a94e3b05'
+ROSTER_OLD_EMPTY = '                if snapshot.document.sections.allSatisfy({ model.unfilteredRows(in: $0, query: snapshot.document.query).isEmpty }) && (snapshot.document.summary.isEmpty || isLocalList) {'
+ROSTER_CURRENT_EMPTY = '                if query != .operators, snapshot.document.sections.allSatisfy({ model.unfilteredRows(in: $0, query: snapshot.document.query).isEmpty }) && (snapshot.document.summary.isEmpty || isLocalList) {'
+ROSTER_OLD_BLOCK = '                if case .customer = query, let detail = snapshot.document.customerDetail {\n'
+ROSTER_CURRENT_BLOCK = '                if query == .operators {\n                    if let roster = try? MerchantOperatorRoster(document: snapshot.document) {\n                        MerchantOperatorRosterSections(roster: roster, access: snapshot.access) { row in\n                            rowView(row, access: snapshot.access)\n                        }\n                    } else { Text("merchant.operatorRoster.unavailable").foregroundStyle(.secondary) }\n                } else if case .customer = query, let detail = snapshot.document.customerDetail {\n'
+
+
+# Approved review presentation extension. Byte-exact inversion preserves every
+# older Home/aftercare/settlement/customer/roster guard. This proves preservation,
+# not acceptance of new behavior; separate negative/race tests cover the extension.
+REVIEW_PAGES_VIEW_SHA256 = 'a5f8c2e225acada297e818142fb300a36d2a5e89c640be7b977ff82f2bcd3cd9'
+REVIEW_PAGES_PREIMAGE_SHA256 = '9591a8fd9cebf903e7bf4b10c914e6fa3aa907b3823d48c737c89521a94e3b05'
+REVIEW_PAGES_BYTE_HUNKS = [(369, b'    private(set) var reviewLoadedPages: MerchantReviewLoadedPages?\n', b''), (1485, b'    func loadMoreReviews() async {\n        guard !coordinator.isBusy, let snapshot = coordinator.snapshot, let pages = reviewLoadedPages else { return }\n        guard coordinator.isCurrent,\n              pages.matches(scope: coordinator.reader.scope, authorizationGeneration: coordinator.reader.authorizationGeneration, access: snapshot.access) else {\n            invalidate(); aftercareLoadFailureKey = "merchant.business.stale"; revision += 1; return\n        }\n        guard pages.hasMore, snapshot.document.query == .reviews(page: pages.page) else { return }\n        await load(.reviews(page: pages.page + 1), appendAftercare: false, appendReviews: true)\n    }\n    func reviewSourcePage(for row: MerchantBusinessRecord) -> MerchantReviewSourcePage? {\n        guard coordinator.isCurrent, let snapshot = coordinator.snapshot, let pages = reviewLoadedPages,\n              pages.matches(scope: coordinator.reader.scope, authorizationGeneration: coordinator.reader.authorizationGeneration, access: snapshot.access) else { return nil }\n        return pages.sourcePage(for: row)\n    }\n    private func load(_ requested: MerchantBusinessQuery, appendAftercare: Bool, appendReviews: Bool = false) async {\n', b'    private func load(_ requested: MerchantBusinessQuery, appendAftercare: Bool) async {\n'), (3218, b'        if !appendReviews { reviewLoadedPages = nil }\n', b''), (3751, b'            aftercareLoadedPages = nil; reviewLoadedPages = nil; coordinator.invalidate(); return\n', b'            aftercareLoadedPages = nil; coordinator.invalidate(); return\n'), (4004, b'            aftercareLoadedPages = nil; reviewLoadedPages = nil; return\n', b'            aftercareLoadedPages = nil; return\n'), (4281, b'        if case .reviews(let page) = query, let scope {\n            do {\n                if appendReviews {\n                    guard var pages = reviewLoadedPages else { throw MerchantBusinessFailure.stale }\n                    try pages.append(snapshot, scope: scope, authorizationGeneration: authorization)\n                    reviewLoadedPages = pages\n                } else if page == 1 {\n                    reviewLoadedPages = try .init(snapshot: snapshot, scope: scope, authorizationGeneration: authorization)\n                }\n            } catch {\n                reviewLoadedPages = nil; coordinator.invalidate(); aftercareLoadFailureKey = "merchant.business.stale"\n            }\n        }\n', b''), (5803, b'        if case .reviews = query, let pages = reviewLoadedPages {\n            guard coordinator.isCurrent, let snapshot = coordinator.snapshot,\n                  pages.matches(scope: coordinator.reader.scope, authorizationGeneration: coordinator.reader.authorizationGeneration, access: snapshot.access) else { return [] }\n            return pages.rows\n        }\n', b''), (7258, b'        loadGeneration += 1; aftercareLoadedPages = nil; reviewLoadedPages = nil; aftercareLoadFailureKey = nil\n', b'        loadGeneration += 1; aftercareLoadedPages = nil; aftercareLoadFailureKey = nil\n'), (13881, b'    @State private var reviewSourceDestination: MerchantReviewSourcePage?\n    private let reviewSource: MerchantReviewSourcePage?\n    init(reader: any MerchantBusinessReading, journal: any MerchantBusinessIntentStore, query: MerchantBusinessQuery, reviewSource: MerchantReviewSourcePage? = nil) {\n        self.reader = reader; self.journal = journal; self.reviewSource = reviewSource\n', b'    init(reader: any MerchantBusinessReading, journal: any MerchantBusinessIntentStore, query: MerchantBusinessQuery) {\n        self.reader = reader; self.journal = journal\n'), (15860, b'                if sourcePageMatches(snapshot) {\n                if reviewSource != nil {\n                    Text("merchant.business.reviews.sourcePageNotice").font(.footnote).foregroundStyle(.secondary)\n                    if !snapshot.document.rows.contains(where: { $0.id == reviewSource?.reviewID }) {\n                        Text("merchant.business.reviews.sourcePageMissing").accessibilityIdentifier("merchant.business.reviews.sourcePageMissing")\n                    }\n                }\n', b''), (18848, b'                if reviewSource == nil, case .reviews = query, let pages = model.reviewLoadedPages, pages.hasMore {\n                    Button("merchant.business.reviews.loadMore") { Task { await model.loadMoreReviews() } }\n                        .disabled(state.isBusy).accessibilityIdentifier("merchant.business.reviews.loadMore")\n                }\n', b''), (19538, b'                } else if reviewSource == nil, (model.reviewLoadedPages?.page ?? 1) == 1, snapshot.document.hasMore || query.page > 1 {\n', b'                } else if snapshot.document.hasMore || query.page > 1 {\n'), (20427, b'            }\n            if reviewSource != nil, let snapshot = state.snapshot, !sourcePageMatches(snapshot) {\n                Text("merchant.business.stale").accessibilityIdentifier("merchant.business.reviews.sourcePageStale")\n            }\n', b''), (20970, b'        .sheet(item: $editor, onDismiss: { if let mutation = pendingMutation { pendingMutation = nil; if sourcePageCanPrepare(mutation) { model.prepare(mutation) } } }) { context in\n', b'        .sheet(item: $editor, onDismiss: { if let mutation = pendingMutation { pendingMutation = nil; model.prepare(mutation) } }) { context in\n'), (21255, b'                guard sourcePageCanPrepare(mutation) else { pendingMutation = nil; editor = nil; return }\n', b''), (21889, b'        .sheet(item: $reviewSourceDestination) { destination in\n            NavigationStack {\n                MerchantBusinessPage(reader: reader, journal: journal, query: destination.query, reviewSource: destination)\n                    .toolbar { ToolbarItem(placement: .cancellationAction) {\n                        Button("action.close") { reviewSourceDestination = nil }\n                    } }\n            }\n        }\n        .onChange(of: reader.scope) { _, _ in editor = nil; pendingMutation = nil; reviewSourceDestination = nil; selection = []; model.invalidate() }\n        .onChange(of: reader.authorizationGeneration) { _, _ in editor = nil; pendingMutation = nil; reviewSourceDestination = nil; selection = []; model.invalidate() }\n', b'        .onChange(of: reader.scope) { _, _ in editor = nil; pendingMutation = nil; selection = []; model.invalidate() }\n        .onChange(of: reader.authorizationGeneration) { _, _ in editor = nil; pendingMutation = nil; selection = []; model.invalidate() }\n'), (25677, b'        if reviewSource == nil, case .reviews = query {\n', b'        if case .reviews = query {\n'), (30288, b'            if let snapshot = state.snapshot, sourcePageMatches(snapshot), snapshot.document.rows.contains(row) {\n                ForEach(MerchantReviewReplyAction.allCases, id: \\.self) { action in\n                    let key = action == .reply ? "canReply" : action == .report ? "canReport" : "canEditReply"\n                    if row.fields[key]?.bool == true {\n                        Button(LocalizedStringKey("merchant.business.review." + String(action.rawValue))) { editor = .init(kind: .review(row, action)) }\n                    }\n', b'            ForEach(MerchantReviewReplyAction.allCases, id: \\.self) { action in\n                let key = action == .reply ? "canReply" : action == .report ? "canReport" : "canEditReply"\n                if row.fields[key]?.bool == true {\n                    Button(LocalizedStringKey("merchant.business.review." + String(action.rawValue))) { editor = .init(kind: .review(row, action)) }\n'), (30845, b'            } else if reviewSource == nil, let destination = model.reviewSourcePage(for: row) {\n                Button("merchant.business.reviews.reloadSourcePage") { reviewSourceDestination = destination }\n                    .accessibilityIdentifier("merchant.business.reviews.reloadSourcePage.\\(row.id)")\n', b''), (34152, b'        let rows = reviewSource == nil ? model.visibleRows(in: section, query: document.query) : section.rows\n        return rows.filter { reviewSource == nil || $0.id == reviewSource?.reviewID }\n    }\n    private func sourcePageMatches(_ snapshot: MerchantBusinessSnapshot) -> Bool {\n        reviewSource?.matches(scope: reader.scope, authorizationGeneration: reader.authorizationGeneration, snapshot: snapshot) ?? true\n    }\n    private func sourcePageCanPrepare(_ mutation: MerchantBusinessMutation) -> Bool {\n        guard let reviewSource else { return true }\n        guard let snapshot = state.snapshot, state.isCurrent, sourcePageMatches(snapshot),\n              case .review(let id, _, _, _) = mutation else { return false }\n        return String(id.rawValue) == reviewSource.reviewID\n', b'        model.visibleRows(in: section, query: document.query)\n')]
+
+
+def before_review_pages_source(source):
+    raw = source.encode('utf-8')
+    current = hashlib.sha256(raw).hexdigest()
+    if current in (REVIEW_PAGES_PREIMAGE_SHA256, CUSTOMER_VIEW_SHA256, SETTLEMENT_VIEW_SHA256, AFTERCARE_VIEW_SHA256, CURRENT_VIEW_SHA256):
+        return source
+    if current != REVIEW_PAGES_VIEW_SHA256:
+        raise ValueError('Unknown review-page source or changed existing boundary')
+    for offset, postimage, preimage in reversed(REVIEW_PAGES_BYTE_HUNKS):
+        if raw[offset:offset + len(postimage)] != postimage:
+            raise ValueError('Missing, moved or changed review-page hunk')
+        raw = raw[:offset] + preimage + raw[offset + len(postimage):]
+    if hashlib.sha256(raw).hexdigest() != REVIEW_PAGES_PREIMAGE_SHA256:
+        raise ValueError('Changed source outside the review-page boundary')
+    return raw.decode('utf-8')
+
+
+def before_roster_source(source):
+    if digest(source) in (CUSTOMER_VIEW_SHA256, SETTLEMENT_VIEW_SHA256, AFTERCARE_VIEW_SHA256, CURRENT_VIEW_SHA256):
+        return source
+    if digest(source) != ROSTER_VIEW_SHA256 or source.count(ROSTER_CURRENT_EMPTY) != 1 or source.count(ROSTER_CURRENT_BLOCK) != 1:
+        raise ValueError('Unknown roster source or changed existing boundary')
+    restored = source.replace(ROSTER_CURRENT_EMPTY, ROSTER_OLD_EMPTY, 1).replace(ROSTER_CURRENT_BLOCK, ROSTER_OLD_BLOCK, 1)
+    if digest(restored) != CUSTOMER_VIEW_SHA256:
+        raise ValueError('Changed source outside the roster boundary')
+    return restored
+
+
 def before_customer_detail_source(source):
     if digest(source) in (SETTLEMENT_VIEW_SHA256, AFTERCARE_VIEW_SHA256, CURRENT_VIEW_SHA256):
         return source
@@ -71,6 +115,8 @@ def before_aftercare_source(source):
 
 
 def original_home_source(source):
+    source = before_review_pages_source(source)
+    source = before_roster_source(source)
     source = before_customer_detail_source(source)
     source = before_settlement_source(source)
     source = before_aftercare_source(source)
@@ -118,10 +164,51 @@ def validate_model(source):
 class MerchantBusinessAccessLifetimeChecks(unittest.TestCase):
     def setUp(self):
         self.model = (ROOT / MODEL).read_text()
-        self.customer_view = (ROOT / VIEW).read_text()
+        self.review_pages_view = (ROOT / VIEW).read_bytes().decode('utf-8')
+        self.roster_view = before_review_pages_source(self.review_pages_view)
+        self.customer_view = before_roster_source(self.roster_view)
         self.settlement_view = before_customer_detail_source(self.customer_view)
         self.aftercare_view = before_settlement_source(self.settlement_view)
         self.view = before_aftercare_source(self.aftercare_view)
+
+    def test_review_pages_exact_inverse_preserves_all_previous_layers(self):
+        self.assertEqual(digest(self.review_pages_view), REVIEW_PAGES_VIEW_SHA256)
+        self.assertEqual(digest(self.roster_view), REVIEW_PAGES_PREIMAGE_SHA256)
+        self.assertEqual(digest(original_home_source(self.review_pages_view)), BASE_VIEW_SHA256)
+
+    def test_review_pages_inverse_rejects_missing_duplicate_moved_or_unrelated_bytes(self):
+        raw = self.review_pages_view.encode('utf-8')
+        offset, postimage, _ = next(h for h in REVIEW_PAGES_BYTE_HUNKS if h[1])
+        variants = [raw + b'\n', raw.replace(b'\n', b'\r\n'),
+                    raw[:offset] + raw[offset + len(postimage):],
+                    raw[:offset] + postimage + raw[offset:],
+                    raw[:offset] + raw[offset + len(postimage):] + postimage,
+                    raw.replace(b'snapshot.document.rows.contains(row)', b'true', 1),
+                    raw.replace(b'guard sourcePageCanPrepare(mutation)', b'guard true', 1),
+                    raw.replace(b'guard appearance === visibleAppearance else { return }', b'if false { return }', 1)]
+        for changed in variants:
+            with self.assertRaises(ValueError):
+                before_review_pages_source(changed.decode('utf-8'))
+
+    def test_roster_exact_inverse_preserves_all_four_existing_layers(self):
+        self.assertEqual(digest(self.roster_view), ROSTER_VIEW_SHA256)
+        self.assertEqual(digest(before_roster_source(self.roster_view)), CUSTOMER_VIEW_SHA256)
+        self.assertEqual(digest(original_home_source(self.roster_view)), BASE_VIEW_SHA256)
+        self.assertEqual(self.roster_view.count(ROSTER_CURRENT_EMPTY), 1)
+        self.assertEqual(self.roster_view.count(ROSTER_CURRENT_BLOCK), 1)
+
+    def test_roster_inverse_rejects_missing_duplicate_and_unrelated_edits(self):
+        variants = [self.roster_view + '\n',
+                    self.roster_view.replace(ROSTER_CURRENT_EMPTY, ROSTER_OLD_EMPTY, 1),
+                    self.roster_view.replace(ROSTER_CURRENT_BLOCK, ROSTER_OLD_BLOCK, 1),
+                    self.roster_view.replace(ROSTER_CURRENT_BLOCK, '', 1),
+                    self.roster_view.replace(ROSTER_CURRENT_BLOCK, ROSTER_CURRENT_BLOCK * 2, 1),
+                    self.roster_view.replace('rowView(row, access: snapshot.access)', 'Text("changed")', 1),
+                    self.roster_view.replace('guard state.isCurrent, !state.isBusy', 'guard true', 1),
+                    self.roster_view.replace('guard appearance === visibleAppearance else { return }', 'if false { return }', 1)]
+        for source in variants:
+            with self.assertRaises(ValueError):
+                before_roster_source(source)
 
     def test_customer_exact_inverse_preserves_all_existing_layers(self):
         self.assertEqual(digest(self.customer_view), CUSTOMER_VIEW_SHA256)

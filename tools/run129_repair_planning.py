@@ -96,6 +96,11 @@ def historical_source(path):
 def materialize_baseline_ui(directory, current_directory=None):
     destination = Path(directory); destination.mkdir(parents=True, exist_ok=True)
     current = Path(current_directory or ROOT / 'Tests/AppUITests')
+    try:
+        from run138_current_source_projection import previous_directory as before_current
+    except ModuleNotFoundError:
+        from tools.run138_current_source_projection import previous_directory as before_current
+    current = before_current(current)
     for relative, row in source_index()['historical_ui_sources'].items():
         raw = historical_source(current / Path(relative).name).read_bytes()
         if digest(raw) != row['sha256']:

@@ -1,4 +1,5 @@
 from tools.tests.combined_native_budget_history import before_combined
+from tools.tests.player_map_history_budget_history import validated_pre_run129_directory
 from tools.tests.club_parity_budget_history import historical_pre_club_source
 """Exact pre-media profile and source projection; current media remains separately exhaustive."""
 from copy import deepcopy
@@ -31,7 +32,8 @@ def historical_pre_media_ui_source(path):
  result=FIXTURES/(name+'.txt');assert hashlib.sha256(result.read_bytes()).hexdigest()==expected;return result
 def materialize_historical_pre_media_ui(directory):
  destination=Path(directory);destination.mkdir(parents=True,exist_ok=True)
- for name in source_index()['baseline_ui_filenames']:(destination/name).write_bytes(historical_pre_media_ui_source(ROOT/'Tests/AppUITests'/name).read_bytes())
+ with validated_pre_run129_directory(ROOT) as current:
+  for name in source_index()['baseline_ui_filenames']:(destination/name).write_bytes(historical_pre_media_ui_source(current/name).read_bytes())
  return destination
 def historical_pre_media_workflow():
  p=FIXTURES/'native-ios.yml.txt';assert hashlib.sha256(p.read_bytes()).hexdigest()==source_index()['workflow_sha256'];return p

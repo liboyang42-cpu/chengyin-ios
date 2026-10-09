@@ -74,6 +74,9 @@ class Run129ProjectEditorRepairs(unittest.TestCase):
 
     def test_version_reads_the_existing_verbatim_value_with_contained_ax_identity(self):
         source = self.source('App/ProjectEditView.swift')
+        if (ROOT / "App/ProjectRemoteVersionRow.swift").exists():
+            from test_ci138_version_row_source import restore_version_row
+            source = restore_version_row(source)
         self.assertIn('LabeledContent("projectRemote.version") {\n'
                       '                            Text(verbatim: model.draft.baseRevision).accessibilityIdentifier("projectRemote.version.value")\n'
                       '                                .accessibilityLabel(Text(verbatim: model.draft.baseRevision))\n'

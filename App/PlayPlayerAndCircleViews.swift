@@ -11,6 +11,7 @@ import SwiftUI
     @State private var issue: PlayExperienceError?
     @State private var submissionReadback: PlayPlayerSubmissionReadback?
     @State private var teamReadback: PlayPlayerTeamReadback?
+    @State private var leaderboardReadback: PlayPlayerLeaderboardReadback?
     var body: some View {
         List {
             Section {
@@ -34,6 +35,7 @@ import SwiftUI
                     else { Button("playx.player.role.confirm") { prepare(.confirmRole, projection: projection) }.disabled(model.phase != "ready") }
                 }
                 PlayPlayerTeamStatusView(state: teamReadback?.state ?? .unconfirmed)
+                PlayPlayerLeaderboardView(state: leaderboardReadback?.state ?? .hidden)
                 ForEach(projection.nodes) { node in
                     Section {
                         Text(verbatim: node.name ?? "#\(node.id)").font(.headline)
@@ -102,20 +104,27 @@ import SwiftUI
                 guard !Task.isCancelled else { return }
                 submissionReadback?.dismiss()
                 teamReadback?.dismiss()
+                leaderboardReadback?.dismiss()
+                let leaderboard = PlayPlayerLeaderboardReadback(model: model)
+                leaderboardReadback = leaderboard
                 let team = PlayPlayerTeamReadback(model: model)
                 teamReadback = team
                 let readback = PlayPlayerSubmissionReadback(model: model)
                 submissionReadback = readback
                 await readback.open()
                 team.acceptFreshRead()
+                leaderboard.acceptFreshRead()
             }
             .onDisappear { submissionReadback?.dismiss() }
             .onDisappear { teamReadback?.dismiss() }
+            .onDisappear { leaderboardReadback?.dismiss() }
             .onChange(of: model.phase) { _, phase in
                 if phase == "ready" { teamReadback?.acceptFreshRead() }
+                if phase == "ready" { leaderboardReadback?.acceptFreshRead() }
             }
             .onChange(of: model.projection) { _, _ in
                 teamReadback?.acceptFreshRead()
+                leaderboardReadback?.acceptFreshRead()
             }
             .navigationDestination(item: $evidenceTarget) { target in
                 PlayerTaskEvidenceView(target: target, player: model, device: deviceModel?(target.nodeID))

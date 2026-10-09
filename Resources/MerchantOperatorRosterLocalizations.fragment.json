@@ -1,0 +1,206 @@
+{
+  "merchant.operatorRoster.loadedScope": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Counts reflect the latest loaded team list. Refresh to check for changes."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "人数与邀请数仅反映最近加载的团队名单，可刷新查看变化。"
+        }
+      }
+    }
+  },
+  "merchant.operatorRoster.members": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Current employees"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前员工"
+        }
+      }
+    }
+  },
+  "merchant.operatorRoster.loadedMembers": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Active employees in this list"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此名单中的在职员工"
+        }
+      }
+    }
+  },
+  "merchant.operatorRoster.membersEmpty": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No active employees in this list. Use Prepare operator invitation to choose a role."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此名单中暂无在职员工。可通过“准备团队邀请”选择岗位。"
+        }
+      }
+    }
+  },
+  "merchant.operatorRoster.invites": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Pending invitations"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "待接受邀请"
+        }
+      }
+    }
+  },
+  "merchant.operatorRoster.loadedInvites": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Pending invitations in this list"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此名单中的待接受邀请"
+        }
+      }
+    }
+  },
+  "merchant.operatorRoster.invitesEmpty": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No pending invitations in this list."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此名单中暂无待接受邀请。"
+        }
+      }
+    }
+  },
+  "merchant.operatorRoster.history": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Previous team records"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "历史团队记录"
+        }
+      }
+    }
+  },
+  "merchant.operatorRoster.historyScope": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "These loaded records are outside the current employee and pending invitation counts. Their statuses come from the server."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "以下已加载记录不计入当前员工和待接受邀请数量，状态以服务端返回为准。"
+        }
+      }
+    }
+  },
+  "merchant.operatorRoster.previousMembers": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Removed employees"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已移除员工"
+        }
+      }
+    }
+  },
+  "merchant.operatorRoster.previousInvites": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Accepted, expired or revoked invitations"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已接受、已过期或已撤销的邀请"
+        }
+      }
+    }
+  },
+  "merchant.operatorRoster.unavailable": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The team list could not be displayed. Refresh to try again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂时无法显示团队名单，请刷新重试。"
+        }
+      }
+    }
+  }
+}

@@ -41,7 +41,33 @@ def verify_chapter_sources(sources):
         assert hashlib.sha256(sources[path].encode('utf-8')).hexdigest() == sha
 
 
+
+CLUB_VIEW_SHA = 'e545ca2551d36cd3f745e0505f80f6bb7203e75575bac2af2f0a050bcac6861f'
+CLUB_MOUNT = '                ProjectClubLeadFields(model: model)\n'
+CLUB_SOURCE_SHAS = {'App/ProjectClubLeadFields.swift': 'd30db038f00f3253b9d52245d7794820c143ba6dcc859c16f70eb2286dd4ceb9', 'Core/ProjectClubLead.swift': '8fe39f9acea7191c7e43c3fb17bd80e495d3677faaa700c6407844167bcb2be1', 'Core/ProjectEditDraft.swift': '168ccabb57d686287a803f4d82aaec8bb0b09ca65d89a083c30c3cf13cb936f1', 'Core/ProjectEditContract.swift': '218b5964d8d4137f34805c11d8543c480b3773d0195ac65e65d2b1dcfe7cd3d4', 'App/ProjectEditDetailForms.swift': '34a74acb440c215d88a41fd9909684d566b139c71f3d72c7e671a6b910e86d85'}
+
+def verify_club_sources(sources):
+    assert set(sources) == set(CLUB_SOURCE_SHAS)
+    for path, sha in CLUB_SOURCE_SHAS.items():
+        assert hashlib.sha256(sources[path].encode('utf-8')).hexdigest() == sha
+
+
+def restore_club_lead_source(source):
+    if (ROOT / "App/ProjectRemoteVersionRow.swift").exists():
+        from test_ci138_version_row_source import restore_version_row
+        source = restore_version_row(source)
+    assert hashlib.sha256(source.encode('utf-8')).hexdigest() == CLUB_VIEW_SHA
+    verify_club_sources({path: (ROOT / path).read_bytes().decode('utf-8')
+                         for path in CLUB_SOURCE_SHAS})
+    assert source.count(CLUB_MOUNT) == 1
+    restored = source.replace(CLUB_MOUNT, '', 1)
+    assert hashlib.sha256(restored.encode('utf-8')).hexdigest() == CHAPTER_VIEW_SHA
+    return restored
+
+
 def restore_chapter_removal_source(source):
+    if (ROOT / 'App/ProjectClubLeadFields.swift').exists():
+        source = restore_club_lead_source(source)
     assert hashlib.sha256(source.encode('utf-8')).hexdigest() == CHAPTER_VIEW_SHA
     verify_chapter_sources({path: (ROOT / path).read_bytes().decode('utf-8')
                             for path in CHAPTER_SOURCE_SHAS})
@@ -106,7 +132,9 @@ class Run130TopicMediaSourceAdapterTests(unittest.TestCase):
 
     def test_original_accessibility_and_unrelated_bytes_remain_exact(self):
         source = self.current_source()
-        line = '                                .accessibilityLabel(Text(verbatim: model.draft.baseRevision))\n'
+        line = ('                        ProjectRemoteVersionRow(revision: model.draft.baseRevision)\n'
+                if (ROOT / 'App/ProjectRemoteVersionRow.swift').exists() else
+                '                                .accessibilityLabel(Text(verbatim: model.draft.baseRevision))\n')
         self.assertEqual(source.count(line), 1)
         for candidate in [source.replace(line, '', 1), source.replace(line, line.replace('model.draft.baseRevision', '"fixture-r2"'), 1),
                           source.replace('import SwiftUI', 'import Foundation', 1), source + '\n', source.replace('\n', '\r\n')]:
@@ -133,6 +161,23 @@ class Run130TopicMediaSourceAdapterTests(unittest.TestCase):
         original = restore_chapter_removal_source(source)
         with self.assertRaises(AssertionError):
             restore_topic_host_source(original)
+
+    def test_club_lead_feature_cannot_hide_behind_historical_reversal(self):
+        source = self.current_source()
+        restored = restore_club_lead_source(source)
+        self.assertEqual(hashlib.sha256(restored.encode()).hexdigest(), CHAPTER_VIEW_SHA)
+        for altered in [source.replace(CLUB_MOUNT, '', 1),
+                        source.replace(CLUB_MOUNT, CLUB_MOUNT + CLUB_MOUNT, 1),
+                        source.replace(CLUB_MOUNT, CLUB_MOUNT.replace('model: model', 'model: other'), 1),
+                        source.replace(CLUB_MOUNT, '', 1) + CLUB_MOUNT]:
+            with self.subTest(digest=hashlib.sha256(altered.encode()).hexdigest()), self.assertRaises(AssertionError):
+                restore_topic_host_source(altered)
+        sources = {path: (ROOT / path).read_bytes().decode('utf-8') for path in CLUB_SOURCE_SHAS}
+        verify_club_sources(sources)
+        for path in sources:
+            changed = dict(sources); changed[path] += '\n'
+            with self.subTest(path=path), self.assertRaises(AssertionError):
+                verify_club_sources(changed)
 
     def test_current_feature_mutation_cannot_hide_behind_historical_reversal(self):
         current = self.feature_sources()

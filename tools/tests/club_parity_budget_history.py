@@ -5,6 +5,7 @@ cost. Historical callers first undo the reviewed club layer, then use pinned
 full source files; no new method can enter a pre-club inventory.
 """
 from tools.tests.story_template_budget_history import before_story_template
+from tools.tests.player_map_history_budget_history import validated_pre_run129_directory
 from tools.run129_repair_planning import historical_source as pre_run129_source
 from copy import deepcopy
 import hashlib
@@ -77,10 +78,11 @@ def materialize_pre_club_ui(directory):
     rows = source_index()['baseline_ui_sources']
     allowed = {Path(row['path']).name for row in rows}
     assert not {path.name for path in destination.glob('*.swift')} - allowed, 'Foreign UI source in pre-club destination'
-    for row in rows:
-        data = historical_pre_club_source(ROOT / row['path']).read_bytes()
-        assert hashlib.sha256(data).hexdigest() == row['sha256'], row['path']
-        (destination / Path(row['path']).name).write_bytes(data)
+    with validated_pre_run129_directory(ROOT) as current:
+        for row in rows:
+            data = historical_pre_club_source(current / Path(row['path']).name).read_bytes()
+            assert hashlib.sha256(data).hexdigest() == row['sha256'], row['path']
+            (destination / Path(row['path']).name).write_bytes(data)
     return destination
 
 

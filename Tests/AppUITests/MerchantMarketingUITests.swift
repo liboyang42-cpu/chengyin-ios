@@ -142,6 +142,16 @@ final class MerchantMarketingUITests: XCTestCase {
                     XCTFail("Expected marketing section option: \(section)"); return
                 }
                 options.element(boundBy: options.count - 1).tap()
+                // The unavailable error is shared by all dormant sections. Require the
+                // actual selection and unobstructed picker before starting another one.
+                let expectedPickerLabel = "\(language == "en" ? "Section" : "栏目"), \(section)"
+                let selectionSettled = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+                    guard picker.exists else { return false }
+                    let selected = picker.label == expectedPickerLabel || (picker.value as? String) == section
+                    return selected && picker.isHittable && app.navigationBars[section].exists && !app.menus.firstMatch.exists
+                }, object: app)
+                XCTAssertEqual(XCTWaiter.wait(for: [selectionSettled], timeout: 5), .completed,
+                    "MARKETING_SECTION_TRANSITION expected=\(section) " + app.debugDescription)
                 XCTAssertTrue(app.staticTexts["merchantMarketing.error"].waitForExistence(timeout: 5))
                 XCTAssertFalse(app.buttons["merchantMarketing.confirmSettlement"].exists)
             }

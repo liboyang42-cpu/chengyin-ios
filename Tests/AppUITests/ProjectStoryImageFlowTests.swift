@@ -71,7 +71,17 @@ import XCTest
         tap("projectEdit.chapter." + chapter.id, app); tap("projectStoryImage.replace." + image.id, app)
         choose(app); tap("projectStoryImage.upload", app); XCTAssertTrue(reference.waitForExistence(timeout: 5))
         XCTAssertEqual(Array(reference.label.utf8), Array("https://example.com/synthetic/story/e%CC%81.jpg?version=2".utf8))
-        tap("projectStoryImage.apply", app); back(app); saved = try inspect(app)
+        tap("projectStoryImage.apply", app)
+        // Replacement Apply dismisses a sheet. Observe that transition before the
+        // unchanged Back helper samples the chapter's hit-testing state once.
+        let replacementDismissed = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            guard !app.buttons["projectStoryImage.close"].exists else { return false }
+            let chapterBack = app.navigationBars["Chapter"].buttons["BackButton"]
+            return chapterBack.exists && chapterBack.isEnabled && chapterBack.isHittable
+        }, object: app)
+        XCTAssertEqual(XCTWaiter.wait(for: [replacementDismissed], timeout: 5), .completed,
+            "STORY_IMAGE_REPLACEMENT_DISMISSAL " + app.debugDescription)
+        back(app); saved = try inspect(app)
         XCTAssertEqual(saved.storyImageUploadCount, 2); XCTAssertEqual(saved.savedDraft.chapters[0].blocks?.count, 3)
         XCTAssertEqual(saved.savedDraft.chapters[0].blocks?.last?.id, image.id)
         XCTAssertEqual(Array(try XCTUnwrap(saved.savedDraft.chapters[0].blocks?.last?.url).utf8), Array(saved.storyImageReference.utf8))

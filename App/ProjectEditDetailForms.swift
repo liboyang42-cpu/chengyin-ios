@@ -412,6 +412,9 @@ struct ProjectEditReviewView: View {
                 }
                 if !(confirmation.draft.pendingMaterials ?? []).isEmpty { Section { Text("projectPending.reviewOmission") } }
                 ProjectEditCompletionRulesSummary(draft: confirmation.draft)
+                if confirmation.payload["openClubPool"] != nil {
+                    Section("projectClubLead.title") { ProjectClubLeadSummary(draft: confirmation.draft) }
+                }
                 ForEach(confirmation.draft.chapters) { chapter in
                     Section {
                         row("projectEdit.chapterName", chapter.name); row("projectEdit.story", chapter.story)

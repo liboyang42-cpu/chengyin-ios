@@ -3,6 +3,9 @@ from pathlib import Path
 import re,unittest
 from tools.run129_repair_planning import historical_source
 ROOT=Path(__file__).resolve().parents[2]
+from tools.run138_current_source_projection import frozen_context as readiness_prior_context
+READINESS_PRIOR_CONTEXT = readiness_prior_context()
+ROOT = READINESS_PRIOR_CONTEXT.root
 class Run129NavigationDiagnostics(unittest.TestCase):
     def source(self,name):return (ROOT/'Tests/AppUITests'/name).read_text()
     def original(self,name):return historical_source(ROOT/'Tests/AppUITests'/name).read_text()

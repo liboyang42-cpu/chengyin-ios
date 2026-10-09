@@ -1,6 +1,7 @@
 """Exact 73-shard profile/source projection, never a live inventory filter."""
 from tools.run129_repair_planning import before_run129_repairs, historical_source as pre_run129_source
 from copy import deepcopy
+from contextlib import contextmanager
 from importlib.machinery import SourceFileLoader
 import importlib.util
 import hashlib
@@ -53,16 +54,38 @@ def historical_player_source(path):
             return file
     return path
 
+@contextmanager
+def validated_pre_run129_directory(root):
+    """Admit current bytes once; keep current and prior inputs stable for the batch."""
+    from tools import run138_current_source_projection as current
+    root = Path(root)
+    # The entry adapter admits dependencies against its own loaded source root.
+    # A separately supplied checkout must not borrow that admission.
+    if root.resolve() != current.ROOT.resolve():
+        raise ValueError('Historical batch root differs from current admission root')
+    before = current.tree_sha256(root)
+    directory = current.previous_directory(root / 'Tests/AppUITests')
+    historical_before = current.tree_sha256(directory)
+    yield directory
+    # Hash original bytes and directory membership again, including dependencies
+    # outside the UI inventory. Never trust mtimes or a previously admitted path.
+    if current.tree_sha256(root) != before:
+        raise ValueError('Current inputs changed during historical UI materialization')
+    if current.tree_sha256(directory) != historical_before:
+        raise ValueError('Historical inputs changed during UI materialization')
+
+
 def materialize_pre_player_ui(directory):
     target = Path(directory)
     target.mkdir(parents=True, exist_ok=True)
     rows = source_index()['baseline_ui_sources']
     allowed = {Path(row['path']).name for row in rows}
     assert not {p.name for p in target.glob('*.swift')} - allowed, 'Foreign UI in pre-player projection'
-    for row in rows:
-        data = pre_run129_source(ROOT / row['path']).read_bytes()
-        assert hashlib.sha256(data).hexdigest() == row['sha256'], row['path']
-        (target / Path(row['path']).name).write_bytes(data)
+    with validated_pre_run129_directory(ROOT) as current:
+        for row in rows:
+            data = pre_run129_source(current / Path(row['path']).name).read_bytes()
+            assert hashlib.sha256(data).hexdigest() == row['sha256'], row['path']
+            (target / Path(row['path']).name).write_bytes(data)
     return target
 
 def frozen_story_context():

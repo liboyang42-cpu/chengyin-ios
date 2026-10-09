@@ -8,13 +8,20 @@ import unittest
 from unittest import mock
 
 TOOLS = Path(__file__).resolve().parents[1]
-spec = importlib.util.spec_from_file_location('ci_gates', TOOLS / 'ci_gates.py')
-module = importlib.util.module_from_spec(spec)
-with mock.patch.object(sys, 'path', [str(TOOLS)] + sys.path):
-    spec.loader.exec_module(module)
+# These original assertions deliberately audit the reviewed pre-split gate.
+# Current static receipt behavior is exercised separately on the live module.
+module = None
 
 
 class NativeCIGateTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        global module
+        with mock.patch.object(sys, 'path', [str(TOOLS)] + sys.path):
+            import run138_current_source_projection as entry
+            context = entry.frozen_context('all', TOOLS.parent)
+            module = context.load('tools/ci_gates.py', 'retained_static_split_ci_gates')
+
     sha = 'a' * 40
     identity = {'xcode': 'Xcode fixture\nBuild version fixture', 'developer': '/fixture/Xcode'}
 

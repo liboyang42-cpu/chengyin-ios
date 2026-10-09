@@ -5,6 +5,11 @@ import unittest
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 
+def controls_have_independent_list_button_style(source):
+    """Require the style on the controls container, not an unrelated child."""
+    body = source.split('    var body: some View {', 1)[1].split('    private func focusButton(', 1)[0]
+    return re.search(r'}\s*\.buttonStyle\(\s*\.borderless\s*\)\s*}\s*$', body) is not None
+
 class PlayRouteMapCameraContracts(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -35,6 +40,22 @@ class PlayRouteMapCameraContracts(unittest.TestCase):
             self.assertIn(text, self.core)
         for text in ['let renderedGate = cameraGate', 'cameraGate.consume(request, current: cameraRead)', '.onChange(of: cameraRead)', 'cameraGate.disappear()', 'cameraPreview?.resolve(current: cameraRead)']:
             self.assertIn(text, self.host)
+
+    def test_camera_controls_do_not_inherit_list_row_wide_button_activation(self):
+        self.assertTrue(controls_have_independent_list_button_style(self.controls))
+        self.assertIn('let choice = request(action)', self.controls)
+        self.assertIn('Button { if let choice { onFocus(choice) } }', self.controls)
+        self.assertIn('.buttonStyle(.bordered).frame(minHeight: 44)', self.controls)
+
+    def test_camera_container_style_guard_rejects_missing_automatic_and_misplaced_styles(self):
+        missing = self.controls.replace('}.buttonStyle(.borderless)', '}')
+        automatic = self.controls.replace('.buttonStyle(.borderless)', '.buttonStyle(.automatic)')
+        misplaced = missing.replace('}.disabled(choice == nil).accessibilityIdentifier(key)',
+            '}.buttonStyle(.borderless).disabled(choice == nil).accessibilityIdentifier(key)')
+        for name, source in [('missing', missing), ('automatic', automatic), ('child-only', misplaced)]:
+            with self.subTest(name=name):
+                self.assertNotEqual(source, self.controls)
+                self.assertFalse(controls_have_independent_list_button_style(source))
 
     def test_inspection_does_not_add_providers_writes_or_authority(self):
         for text in ['URLSession', 'CLLocationManager', 'MKDirections', 'CLGeocoder', 'NetworkGrant', 'WalkingNavigationCoordinator', 'model.submit(', 'model.review(', 'model.startRun(']:

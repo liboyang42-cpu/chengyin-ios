@@ -39,7 +39,14 @@ final class OwnedCouponCodeJourneyUITests: XCTestCase {
         tap("couponCode.review")
         let confirm = app.sheets.buttons["Show code"]
         XCTAssertTrue(confirm.waitForExistence(timeout: 5)); assertIssues(0)
-        app.sheets.buttons["Cancel"].tap()
+        let sheet = app.sheets.firstMatch
+        if app.popovers.firstMatch.exists {
+            dismissFixtureConfirmationPopover(in: app)
+        } else {
+            app.sheets.buttons["Cancel"].tap()
+        }
+        let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: sheet)
+        XCTAssertEqual(XCTWaiter.wait(for: [dismissed], timeout: 5), .completed, app.debugDescription)
         XCTAssertFalse(app.images["couponCode.qr"].exists); assertIssues(0)
         tap("couponCode.review"); XCTAssertTrue(confirm.waitForExistence(timeout: 5)); confirm.tap()
         XCTAssertTrue(app.images["couponCode.qr"].waitForExistence(timeout: 5)); assertIssues(1)

@@ -117,6 +117,27 @@ class SquarePostLocalMediaAppSourceTests(unittest.TestCase):
                      'testProviderWithNoUsableRepresentationRemainsAnUnresolvedSelection',
                      'testUnsupportedReselectionCannotFallBackToPublishingWithoutTheFailedMedia']:
             self.assertIn(name, tests)
+    def test_unknown_raw_fixture_is_distinct_from_known_video_policy_fixture(self):
+        tests = self.read('Tests/AppUnitTests/SquarePostLocalMediaPresentationTests.swift')
+        unknown = tests.split('func testUnknownVideoRepresentationBlocksSaveUntilExplicitRemoval()', 1)[1].split('\n    func ', 1)[0]
+        for value in ['"com.questify.tests.unknown-video"', 'unsupportedProvider(typeIdentifier: typeIdentifier)',
+                      'XCTAssertEqual(provider.registeredTypeIdentifiers, [typeIdentifier])',
+                      'XCTAssertFalse(provider.hasItemConformingToTypeIdentifier(UTType.movie.identifier))',
+                      'XCTAssertFalse(provider.hasItemConformingToTypeIdentifier(UTType.image.identifier))',
+                      'XCTAssertNil(SquarePostLocalMediaInspector.imageType(in: provider))',
+                      'XCTAssertFalse(model.accept(', 'XCTAssertEqual(model.state, .failed)',
+                      'XCTAssertTrue(model.unresolvedSelection)', 'XCTAssertTrue(model.hasSelection)',
+                      'XCTAssertNil(model.loadTask)', 'XCTAssertNil(model.imageUpload)', 'XCTAssertNil(model.thumbnail)',
+                      'model.cancelPicker()', 'model.remove(); XCTAssertFalse(model.hasSelection); XCTAssertFalse(model.unresolvedSelection)']:
+            self.assertIn(value, unknown)
+        self.assertNotIn('unsupportedProvider(.video)', unknown)
+        known = tests.split('func testMissingVideoPolicyNeverReadsProviderAndCannotMakeImageUpload()', 1)[1].split('\n    func ', 1)[0]
+        for value in ['[UTType.movie, .video, .mpeg4Movie]',
+                      'XCTAssertTrue(provider.hasItemConformingToTypeIdentifier(UTType.movie.identifier))',
+                      'unexpected.isInverted = true', 'unexpected.fulfill()',
+                      'XCTAssertEqual(model.state, .videoUnavailable)', 'XCTAssertNil(model.loadTask)',
+                      'XCTAssertNil(model.imageUpload)', 'XCTAssertTrue(model.hasSelection)']:
+            self.assertIn(value, known)
     def test_actual_upload_callback_requires_current_selection_and_consumes_once(self):
         h = self.host(); s = self.model()
         self.assertIn('localMedia.isCurrentUpload(selected)', h)

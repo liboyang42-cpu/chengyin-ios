@@ -31,7 +31,7 @@ class MerchantListToolsTests(unittest.TestCase):
         core = self.read('Core/MerchantBusinessDocuments.swift')
         query = self.read('Core/MerchantBusinessQuery.swift')
         self.assertIn('model.visibleRows(in: section, query: document.query)', app)
-        self.assertIn('if snapshot.document.hasMore || query.page > 1', app)
+        self.assertIn('snapshot.document.hasMore || query.page > 1', app)
         self.assertIn('.disabled(!snapshot.document.hasMore)', app)
         for binding in ['$model.listFilters.review', '$model.listFilters.aftercareKeyword']:
             self.assertIn(binding, app)
@@ -48,7 +48,7 @@ class MerchantListToolsTests(unittest.TestCase):
         self.assertIn('authorization == coordinator.reader.authorizationGeneration', app)
         self.assertIn('if !appendAftercare { aftercareLoadedPages = nil }', app)
         self.assertIn('query = requested.paged(1)', app)
-        self.assertIn('aftercareLoadedPages = nil; coordinator.invalidate()', app)
+        self.assertIn('aftercareLoadedPages = nil; reviewLoadedPages = nil; coordinator.invalidate()', app)
         self.assertIn('pages.matches(scope:', app)
         self.assertIn('try pages.append(snapshot, scope:', app)
         self.assertIn('self.bucket == bucket, hasMore, page == self.page + 1', core)

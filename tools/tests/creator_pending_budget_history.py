@@ -1,5 +1,6 @@
 """Exact pre-creator profile and full-source projection for historical assertions."""
 from tools.tests.club_parity_budget_history import before_club_parity, historical_pre_club_source
+from tools.tests.player_map_history_budget_history import validated_pre_run129_directory
 from copy import deepcopy
 from pathlib import Path
 import hashlib
@@ -44,8 +45,9 @@ def materialize_pre_creator_ui(directory):
     """Use unchanged real discovery on every pinned complete historical UI file."""
     destination = Path(directory)
     destination.mkdir(parents=True, exist_ok=True)
-    for row in source_index()['baseline_ui_sources']:
-        data = historical_pre_club_source(ROOT / row['path']).read_bytes()
-        assert hashlib.sha256(data).hexdigest() == row['sha256'], row['path']
-        (destination / Path(row['path']).name).write_bytes(data)
+    with validated_pre_run129_directory(ROOT) as current:
+        for row in source_index()['baseline_ui_sources']:
+            data = historical_pre_club_source(current / Path(row['path']).name).read_bytes()
+            assert hashlib.sha256(data).hexdigest() == row['sha256'], row['path']
+            (destination / Path(row['path']).name).write_bytes(data)
     return destination

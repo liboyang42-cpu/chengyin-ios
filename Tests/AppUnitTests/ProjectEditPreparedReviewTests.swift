@@ -15,6 +15,64 @@ import XCTest
         let model = ProjectEditModel(coordinator: .init(initial: initial, service: service, store: store, currentSession: { owner.session }))
         await model.load(); return (model, owner, store, storage, service)
     }
+    func testReviewAvailabilityReusesTheSignedInLeaseWithoutWriting() async throws {
+        let (model, _, _, storage, service) = try await setup()
+        let lease = try XCTUnwrap(model.currentReviewLease()), bytes = storage.data, writes = storage.writes
+        for _ in 0..<3 {
+            XCTAssertTrue(model.canEdit); XCTAssertTrue(model.canReview)
+            XCTAssertEqual(model.currentReviewLease(), lease)
+        }
+        XCTAssertEqual(storage.data, bytes); XCTAssertEqual(storage.writes, writes)
+        XCTAssertNil(model.confirmation); XCTAssertTrue(service.submissions.isEmpty)
+        model.review(); let prepared = try XCTUnwrap(model.confirmation)
+        XCTAssertTrue(model.reviewIsCurrent(prepared)); XCTAssertTrue(model.reviewLocalSaveConfirmed)
+        XCTAssertEqual(model.currentReviewLease(), lease)
+    }
+    func testSignOutAndRemountDisableReviewWhileGuestDraftStaysEditable() async throws {
+        let (model, owner, _, storage, service) = try await setup()
+        model.review(); let prepared = try XCTUnwrap(model.confirmation)
+        let bytes = storage.data, writes = storage.writes
+        owner.session = nil; model.coordinator.synchronizeSession()
+        XCTAssertFalse(model.canReview); XCTAssertNil(model.currentReviewLease())
+        XCTAssertFalse(model.reviewIsCurrent(prepared))
+        await model.submit(prepared); model.leave()
+
+        // The DEBUG host remounts the same coordinator after signing out.
+        let remounted = ProjectEditModel(coordinator: model.coordinator)
+        await remounted.load()
+        XCTAssertTrue(remounted.canEdit); XCTAssertTrue(remounted.fullEdit)
+        XCTAssertFalse(remounted.canSaveLocal); XCTAssertFalse(remounted.canReview)
+        XCTAssertNil(remounted.coordinator.session); XCTAssertNil(remounted.coordinator.identity)
+        XCTAssertNil(remounted.currentReviewLease())
+        remounted.draft.name = "Unsaved guest draft"
+        remounted.review(); remounted.saveLocal(); await remounted.submit(prepared)
+        XCTAssertEqual(remounted.draft.name, "Unsaved guest draft")
+        XCTAssertNil(remounted.confirmation); XCTAssertNil(remounted.coordinator.confirmation)
+        XCTAssertFalse(remounted.reviewIsCurrent(prepared)); XCTAssertFalse(model.canReview)
+        XCTAssertEqual(storage.data, bytes); XCTAssertEqual(storage.writes, writes)
+        XCTAssertTrue(service.submissions.isEmpty)
+    }
+    func testAccountOrEpochChangeCannotReuseTheOldReviewLease() async throws {
+        for replacement in [(902, UInt64(1)), (901, UInt64(2))] {
+            let (model, owner, _, storage, service) = try await setup()
+            let oldLease = try XCTUnwrap(model.currentReviewLease())
+            model.review(); let prepared = try XCTUnwrap(model.confirmation)
+            let bytes = storage.data, writes = storage.writes
+            owner.session = try .init(accountID: replacement.0, epoch: replacement.1, storageNamespace: "prepared-nodes")
+            XCTAssertFalse(model.canReview); XCTAssertNil(model.currentReviewLease())
+            XCTAssertFalse(model.reviewIsCurrent(prepared))
+            model.review(); await model.submit(prepared)
+            XCTAssertEqual(storage.data, bytes); XCTAssertEqual(storage.writes, writes)
+            XCTAssertTrue(service.submissions.isEmpty)
+            await model.load(force: true)
+            if model.canRestore { model.restore() }
+            XCTAssertTrue(model.canReview)
+            let currentLease = try XCTUnwrap(model.currentReviewLease())
+            XCTAssertNotEqual(currentLease, oldLease); XCTAssertEqual(currentLease.session, try XCTUnwrap(owner.session))
+            XCTAssertFalse(model.reviewIsCurrent(prepared)); await model.submit(prepared)
+            XCTAssertTrue(service.submissions.isEmpty)
+        }
+    }
     func testRawNodeEditAndRestoreInvalidateOldPreparedReviewBeforeAnyCallback() async throws {
         let (model, _, _, _, service) = try await setup()
         model.draft.chapters[0].nodes[0].description = "e\u{301}"; model.review(); let original = try XCTUnwrap(model.confirmation)

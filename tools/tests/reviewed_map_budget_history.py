@@ -1,4 +1,5 @@
 from tools.tests.story_media_budget_history import historical_pre_media_ui_source
+from tools.tests.player_map_history_budget_history import validated_pre_run129_directory
 from tools.tests.combined_native_budget_history import before_combined
 """Exact 9581 planning/source projection for tests of earlier reviewed batches."""
 from copy import deepcopy
@@ -47,11 +48,12 @@ def materialize_historical_pre_map_ui(directory):
     """Keep actual complete published source files and unmodified test discovery."""
     destination = Path(directory)
     destination.mkdir(parents=True, exist_ok=True)
-    for row in source_index()['baseline_ui_sources']:
-        name, expected = row['path'], row['sha256']
-        data = historical_pre_media_ui_source(ROOT / 'Tests/AppUITests' / name).read_bytes()
-        assert hashlib.sha256(data).hexdigest() == expected, 'Published UI source changed: ' + name
-        (destination / name).write_bytes(data)
+    with validated_pre_run129_directory(ROOT) as current:
+        for row in source_index()['baseline_ui_sources']:
+            name, expected = row['path'], row['sha256']
+            data = historical_pre_media_ui_source(current / name).read_bytes()
+            assert hashlib.sha256(data).hexdigest() == expected, 'Published UI source changed: ' + name
+            (destination / name).write_bytes(data)
     return destination
 
 

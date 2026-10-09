@@ -46,7 +46,10 @@ import XCTest
         value("approvedRelease.confirm.manifestHash", String(repeating: "a", count: 64), in: app)
         tap("approvedRelease.confirm.create", in: app)
         XCTAssertTrue(app.staticTexts["approvedRelease.publication.unconfirmed"].waitForExistence(timeout: 5))
-        let request = app.staticTexts["approvedRelease.publication.requestID"].label
+        let requestValue = app.staticTexts["approvedRelease.publication.requestID"]
+        XCTAssertTrue(revealFixtureElement(requestValue, in: app, maximumSwipes: 10, requiresHittable: false), app.debugDescription)
+        XCTAssertTrue(requestValue.waitForExistence(timeout: 5), app.debugDescription)
+        let request = requestValue.label
         XCTAssertFalse(request.isEmpty)
         tap("approvedRelease.close", in: app, fixed: true); tap("projectEdit.fixture.reopen", in: app, fixed: true)
         tap("approvedRelease.read", in: app)

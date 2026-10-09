@@ -98,6 +98,20 @@ class SearchMapActivityCardContractTests(unittest.TestCase):
                               'startUpdatingLocation', '/reveal', '/arrive', '/favorite', 'grant =', 'Task {']:
                 self.assertNotIn(forbidden, source)
 
+    def test_hosted_measurements_keep_strict_growth_and_content_bounds(self):
+        self.assertIn('ScrollView {', self.explorer)
+        self.assertIn('.fixedSize(horizontal: false, vertical: true)', self.app_tests)
+        self.assertIn('CGSize(width: 300, height: proposedHeight)', self.app_tests)
+        self.assertIn('XCTAssertGreaterThan(largest.height, normal.height', self.app_tests)
+        self.assertNotIn('XCTAssertGreaterThanOrEqual(largest.height, normal.height', self.app_tests)
+        for assertion in ['size.width.isFinite && size.height.isFinite',
+                          'XCTAssertLessThanOrEqual(size.width, 301',
+                          'XCTAssertLessThan(size.height, 10_000',
+                          'testIntrinsicCardHeightDoesNotFollowHostingProposal',
+                          'proposedHeight: 10_000', 'proposedHeight: 20_000',
+                          'XCTAssertEqual(first.height, second.height, accuracy: 0.5']:
+            self.assertIn(assertion, self.app_tests)
+
 
 if __name__ == '__main__':
     unittest.main()

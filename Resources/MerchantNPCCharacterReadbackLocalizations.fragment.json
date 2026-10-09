@@ -1,0 +1,40 @@
+{
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "merchantNPCCharacter.readback": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save acknowledged. The latest NPC profile and review result have been loaded from the server."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存已确认。已从服务器重新读取最新角色资料与审核结果。"
+          }
+        }
+      }
+    },
+    "merchantNPCCharacter.readbackFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save acknowledged, but the latest NPC profile could not be loaded. Refresh to check its review result. This does not resend your changes."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存已确认，但未能读取最新角色资料。请刷新查看审核结果；刷新不会重新提交修改。"
+          }
+        }
+      }
+    }
+  }
+}

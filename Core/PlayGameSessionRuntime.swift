@@ -13,6 +13,7 @@ public struct PlayPlayerGameProjection: Equatable {
     public let nodes: [Node]; public let story: PlayWireValue; public let submissions: [PlayWireValue]
     public let submissionContainerShape: PlayPlayerSubmissionContainerShape
     public let teamActions: PlayWireValue
+    public let playerLeaderboard: PlayWireValue
     public init(_ raw: PlayWireValue) throws {
         guard raw["perspective"].text == "PLAYER", let session = raw["sessionId"].integer, session > 0,
               let activity = raw["activityId"].integer, activity > 0, let revision = raw["revision"].integer, revision >= 0,
@@ -21,6 +22,7 @@ public struct PlayPlayerGameProjection: Equatable {
               let nodes = raw["player"]["nodes"].array else { throw PlayExperienceError.malformed }
         sessionID = session; activityID = activity; self.revision = revision; teamID = team; self.status = status
         teamActions = raw["player"]["teamActions"]
+        playerLeaderboard = raw["player"]["leaderboard"]
         role = raw["player"]["role"]; story = raw["player"]["story"]; submissions = raw["player"]["mySubmissions"].array ?? []
         if let value = raw["player"].object?["mySubmissions"] {
             submissionContainerShape = value.array != nil ? .array : .malformed

@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "baseline": "root6/current275 ProjectEditView 5ef7bb14672e5de38347a5190e82c88752cf2e17e7a5becaca37391b96571003",
+  "scope": {
+    "App/ProjectEditView.swift": {
+      "before_sha256": "5ef7bb14672e5de38347a5190e82c88752cf2e17e7a5becaca37391b96571003",
+      "after_sha256": "34891e8b33e8e09225854cb37ccd979668aeec264fdb64138c5163782cf3f725",
+      "hunks": [
+        {
+          "before": "",
+          "after": "    var canReview: Bool { currentReviewLease() != nil }\n",
+          "before_line": 68,
+          "after_line": 68
+        },
+        {
+          "before": "                    .buttonStyle(.borderedProminent).disabled(!model.canEdit).accessibilityIdentifier(\"projectEdit.review\")\n",
+          "after": "                    .buttonStyle(.borderedProminent).disabled(!model.canReview).accessibilityIdentifier(\"projectEdit.review\")\n",
+          "before_line": 357,
+          "after_line": 358
+        }
+      ]
+    },
+    "Tests/AppUnitTests/ProjectEditPreparedReviewTests.swift": {
+      "before_sha256": "63531b2b6686f86288ab16039f44d08a16fd98113ba996508aed4dacb49f27cc",
+      "after_sha256": "c17ec92c683386fdc7a1b6a9ddf989fde10d3d16a26f9c67f671ba1fd78e5d0f",
+      "hunks": [
+        {
+          "before": "",
+          "after": "    }\n    func testReviewAvailabilityReusesTheSignedInLeaseWithoutWriting() async throws {\n        let (model, _, _, storage, service) = try await setup()\n        let lease = try XCTUnwrap(model.currentReviewLease()), bytes = storage.data, writes = storage.writes\n        for _ in 0..<3 {\n            XCTAssertTrue(model.canEdit); XCTAssertTrue(model.canReview)\n            XCTAssertEqual(model.currentReviewLease(), lease)\n        }\n        XCTAssertEqual(storage.data, bytes); XCTAssertEqual(storage.writes, writes)\n        XCTAssertNil(model.confirmation); XCTAssertTrue(service.submissions.isEmpty)\n        model.review(); let prepared = try XCTUnwrap(model.confirmation)\n        XCTAssertTrue(model.reviewIsCurrent(prepared)); XCTAssertTrue(model.reviewLocalSaveConfirmed)\n        XCTAssertEqual(model.currentReviewLease(), lease)\n    }\n    func testSignOutAndRemountDisableReviewWhileGuestDraftStaysEditable() async throws {\n        let (model, owner, _, storage, service) = try await setup()\n        model.review(); let prepared = try XCTUnwrap(model.confirmation)\n        let bytes = storage.data, writes = storage.writes\n        owner.session = nil; model.coordinator.synchronizeSession()\n        XCTAssertFalse(model.canReview); XCTAssertNil(model.currentReviewLease())\n        XCTAssertFalse(model.reviewIsCurrent(prepared))\n        await model.submit(prepared); model.leave()\n\n        // The DEBUG host remounts the same coordinator after signing out.\n        let remounted = ProjectEditModel(coordinator: model.coordinator)\n        await remounted.load()\n        XCTAssertTrue(remounted.canEdit); XCTAssertTrue(remounted.fullEdit)\n        XCTAssertFalse(remounted.canSaveLocal); XCTAssertFalse(remounted.canReview)\n        XCTAssertNil(remounted.coordinator.session); XCTAssertNil(remounted.coordinator.identity)\n        XCTAssertNil(remounted.currentReviewLease())\n        remounted.draft.name = \"Unsaved guest draft\"\n        remounted.review(); remounted.saveLocal(); await remounted.submit(prepared)\n        XCTAssertEqual(remounted.draft.name, \"Unsaved guest draft\")\n        XCTAssertNil(remounted.confirmation); XCTAssertNil(remounted.coordinator.confirmation)\n        XCTAssertFalse(remounted.reviewIsCurrent(prepared)); XCTAssertFalse(model.canReview)\n        XCTAssertEqual(storage.data, bytes); XCTAssertEqual(storage.writes, writes)\n        XCTAssertTrue(service.submissions.isEmpty)\n    }\n    func testAccountOrEpochChangeCannotReuseTheOldReviewLease() async throws {\n        for replacement in [(902, UInt64(1)), (901, UInt64(2))] {\n            let (model, owner, _, storage, service) = try await setup()\n            let oldLease = try XCTUnwrap(model.currentReviewLease())\n            model.review(); let prepared = try XCTUnwrap(model.confirmation)\n            let bytes = storage.data, writes = storage.writes\n            owner.session = try .init(accountID: replacement.0, epoch: replacement.1, storageNamespace: \"prepared-nodes\")\n            XCTAssertFalse(model.canReview); XCTAssertNil(model.currentReviewLease())\n            XCTAssertFalse(model.reviewIsCurrent(prepared))\n            model.review(); await model.submit(prepared)\n            XCTAssertEqual(storage.data, bytes); XCTAssertEqual(storage.writes, writes)\n            XCTAssertTrue(service.submissions.isEmpty)\n            await model.load(force: true)\n            if model.canRestore { model.restore() }\n            XCTAssertTrue(model.canReview)\n            let currentLease = try XCTUnwrap(model.currentReviewLease())\n            XCTAssertNotEqual(currentLease, oldLease); XCTAssertEqual(currentLease.session, try XCTUnwrap(owner.session))\n            XCTAssertFalse(model.reviewIsCurrent(prepared)); await model.submit(prepared)\n            XCTAssertTrue(service.submissions.isEmpty)\n        }\n",
+          "before_line": 16,
+          "after_line": 16
+        }
+      ]
+    },
+    "Tests/ContractChecks/test_project_edit_prepared_nodes.py": {
+      "before_sha256": "239ed67daf54f49d6337438f9053baa4a3ce935875f98f47644c00beb541d675",
+      "after_sha256": "8d18d27c70008cc1163ca988c68d5c1fe47f4727ba4c0c5018583bcd7cca98eb",
+      "hunks": [
+        {
+          "before": "        for path,count in [('Tests/CoreTests/ProjectEditPreparedNodesTests.swift',6),('Tests/AppUnitTests/ProjectEditPreparedReviewTests.swift',7),('Tests/AppUITests/ProjectEditPreparedNodesFlowTests.swift',1),('Tests/AppUITests/ProjectEditPreparedStoryOrderFlowTests.swift',1)]:self.assertEqual(read(path).count('func test'),count)\n",
+          "after": "        for path,count in [('Tests/CoreTests/ProjectEditPreparedNodesTests.swift',6),('Tests/AppUnitTests/ProjectEditPreparedReviewTests.swift',10),('Tests/AppUITests/ProjectEditPreparedNodesFlowTests.swift',1),('Tests/AppUITests/ProjectEditPreparedStoryOrderFlowTests.swift',1)]:self.assertEqual(read(path).count('func test'),count)\n",
+          "before_line": 61,
+          "after_line": 61
+        }
+      ]
+    },
+    "Tests/ContractChecks/test_project_edit_review_availability.py": {
+      "before_sha256": null,
+      "after_sha256": "7156ed04fc1aa3bdf1e5c881abc922b1a4f4f5d7caa5bbf577f7b11a92240c70",
+      "hunks": [
+        {
+          "before": "",
+          "after": "\"\"\"CI138 UI74: Review uses its existing signed-in lease, not guest editability.\n\nSource checks only; the authored AppUnit and unchanged UI74 require Apple execution.\n\"\"\"\nfrom pathlib import Path\nimport unittest\n\nROOT = Path(__file__).resolve().parents[2]\nCAN_EDIT = '    var canEdit: Bool { ownsVisit && !coordinator.hasUnconfirmedChapterRemoval && loadedSnapshot && loadedSession == coordinator.session && coordinator.snapshot != nil && !busy && !coordinator.isLocked && coordinator.state != .simulated && coordinator.state != .acknowledged && coordinator.state != .blocked && !hasRestore }'\nCAN_REVIEW = '    var canReview: Bool { currentReviewLease() != nil }'\nBUTTON = '                Button(\"projectEdit.review\") { focusedField = nil; model.review() }\\n                    .buttonStyle(.borderedProminent).disabled(!model.canReview).accessibilityIdentifier(\"projectEdit.review\")'\n\n\ndef verify(view, prepared):\n    if view.count(CAN_EDIT) != 1 or view.count(CAN_REVIEW) != 1 or view.count(BUTTON) != 1:\n        raise ValueError('Review availability must reuse the existing lease without changing guest editability')\n    for required in (\n        'guard canEdit, let session = coordinator.session, let identity = coordinator.identity else { return nil }',\n        'return .init(session: session, identity: identity, incarnation: editorIncarnation)',\n        'reviewLease.session == coordinator.session && reviewLease.identity == coordinator.identity &&',\n        'reviewLease.incarnation == editorIncarnation',\n    ):\n        if prepared.count(required) != 1:\n            raise ValueError('The existing session, identity and incarnation fences must remain intact')\n    if 'guard let lease = currentReviewLease() else { return }' not in view:\n        raise ValueError('The action must retain its independent lease guard')\n\n\nclass ProjectEditReviewAvailabilityContracts(unittest.TestCase):\n    def sources(self):\n        return ((ROOT / 'App/ProjectEditView.swift').read_text(),\n                (ROOT / 'App/ProjectEditPreparedReview.swift').read_text())\n\n    def test_button_uses_same_side_effect_free_lease_as_action(self):\n        verify(*self.sources())\n\n    def test_guest_editing_and_save_rules_are_preserved(self):\n        view, _ = self.sources()\n        self.assertIn(CAN_EDIT, view)\n        self.assertIn('var canSaveLocal: Bool { canEdit && coordinator.session != nil }', view)\n        self.assertIn('var fullEdit: Bool { canEdit && coordinator.snapshot?.scope == .full }', view)\n\n    def test_guest_signed_in_remount_and_session_change_regressions_are_authored(self):\n        source = (ROOT / 'Tests/AppUnitTests/ProjectEditPreparedReviewTests.swift').read_text()\n        self.assertEqual(source.count('func test'), 10)\n        for required in (\n            'func testReviewAvailabilityReusesTheSignedInLeaseWithoutWriting()',\n            'func testSignOutAndRemountDisableReviewWhileGuestDraftStaysEditable()',\n            'func testAccountOrEpochChangeCannotReuseTheOldReviewLease()',\n            'owner.session = nil; model.coordinator.synchronizeSession()',\n            'let remounted = ProjectEditModel(coordinator: model.coordinator)',\n            'XCTAssertTrue(remounted.canEdit); XCTAssertTrue(remounted.fullEdit)',\n            'XCTAssertFalse(remounted.canSaveLocal); XCTAssertFalse(remounted.canReview)',\n            'XCTAssertEqual(storage.data, bytes); XCTAssertEqual(storage.writes, writes)',\n            'XCTAssertTrue(service.submissions.isEmpty)',\n            'XCTAssertNotEqual(currentLease, oldLease)',\n        ):\n            self.assertIn(required, source)\n\n    def test_weaker_availability_or_changed_lease_fences_are_rejected(self):\n        view, prepared = self.sources()\n        mutations = (\n            (view.replace(CAN_REVIEW, '    var canReview: Bool { canEdit }'), prepared),\n            (view.replace(CAN_REVIEW, '    var canReview: Bool { coordinator.session != nil }'), prepared),\n            (view.replace(CAN_REVIEW, CAN_REVIEW + '\\n' + CAN_REVIEW), prepared),\n            (view.replace('.disabled(!model.canReview)', '.disabled(!model.canEdit)'), prepared),\n            (view.replace(CAN_EDIT, CAN_EDIT.replace('ownsVisit && ', '')), prepared),\n            (view, prepared.replace('let session = coordinator.session, ', '')),\n            (view, prepared.replace('reviewLease.session == coordinator.session && ', '')),\n            (view, prepared.replace('reviewLease.incarnation == editorIncarnation', 'true')),\n        )\n        for changed_view, changed_prepared in mutations:\n            with self.subTest(view=changed_view == view, prepared=changed_prepared == prepared):\n                with self.assertRaises(ValueError):\n                    verify(changed_view, changed_prepared)\n\n\nif __name__ == '__main__':\n    unittest.main()\n",
+          "before_line": 0,
+          "after_line": 0
+        }
+      ]
+    }
+  },
+  "unchanged_dependencies": {
+    "App/ProjectEditPreparedReview.swift": "dd0487f8c74b1ed44b47064c7a08e5b98d43940c37dcef7fb6730170b4c4e410",
+    "Core/ProjectEditCoordinator.swift": "b55f6e40e632b19a6af21351a72130d9b14fcfb6fe9ad99075811ae835e18f57"
+  },
+  "ui_runtime_budget_changed": false,
+  "ui_test_methods_changed": false,
+  "appunit_original_methods": 7,
+  "appunit_current_methods": 10,
+  "apple_execution": "NOT_RUN"
+}

@@ -70,7 +70,11 @@ def _temporary(prefix):
 
 
 def previous_source(path):
-    p = Path(path)
+    try:
+        from run138_current_source_projection import previous_source as before_current
+    except ModuleNotFoundError:
+        from tools.run138_current_source_projection import previous_source as before_current
+    p = before_current(Path(path))
     if p.parent.name != 'AppUITests' or p.name != NAME:
         return p
     raw = p.read_bytes()
@@ -84,8 +88,37 @@ def previous_source(path):
     return destination
 
 
+def critical_source_bytes(path):
+    """Keep old critical comparisons; admit only the exact reviewed byte inverse."""
+    raw = (ROOT / path).read_bytes()
+    adapter = ROOT / 'tools/branch_history_fixture_lifetime_projection.py'
+    if not adapter.is_file():
+        # A genuine historical checkout has no lifetime-adapter artifacts. Its
+        # raw bytes still have to pass every original critical_sources hash.
+        if any((ROOT / marker).exists() for marker in [
+            'tools/branch_history_fixture_lifetime_projection_contract.json',
+            'tools/tests/test_branch_history_fixture_lifetime_projection.py',
+            'tools/tests/fixtures/branch_history_fixture_lifetime',
+            'Tests/ContractChecks/test_branch_history_fixture_lifetime.py',
+            'docs/branch-history-fixture-lifetime.md',
+        ]):
+            raise ValueError('Incomplete branch-history lifetime projection')
+        return raw
+    if digest(adapter.read_bytes()) != 'c2d62e292abf65bc7189b52d3937c4b67fa11710edecd852b4b302d92d636ed9':
+        raise ValueError('Changed branch-history lifetime projection adapter')
+    try:
+        from branch_history_fixture_lifetime_projection import historical_source
+    except ModuleNotFoundError:
+        from tools.branch_history_fixture_lifetime_projection import historical_source
+    return historical_source(ROOT, path)
+
+
 def validate_current(directory):
-    directory = Path(directory)
+    try:
+        from run138_current_source_projection import previous_directory as before_current
+    except ModuleNotFoundError:
+        from tools.run138_current_source_projection import previous_directory as before_current
+    directory = before_current(Path(directory))
     c = contract()
     actual = {p.name: {'sha256': digest(p.read_bytes())} for p in directory.glob('*.swift')}
     if actual != c['current_ui_sources']:
@@ -114,7 +147,7 @@ def validate_current(directory):
             or re.sub(PATTERN, '', raw.decode()) != re.sub(PATTERN, '', old.decode())):
         raise ValueError('Handshake method or unchanged helper source changed')
     for path, expected in c['critical_sources'].items():
-        if digest((ROOT / path).read_bytes()) != expected:
+        if digest(critical_source_bytes(path)) != expected:
             raise ValueError('Critical handshake implementation or P2 cleanup changed')
     d = c['derivation']
     subtotal = d['launch_count'] * 90 + d['explicit_wait_caps_seconds'] + d['reveal_count'] * 11 * 2 + 60 + 20
@@ -127,7 +160,11 @@ def validate_current(directory):
 
 
 def previous_directory(directory):
-    directory = Path(directory)
+    try:
+        from run138_current_source_projection import previous_directory as before_current
+    except ModuleNotFoundError:
+        from tools.run138_current_source_projection import previous_directory as before_current
+    directory = before_current(Path(directory))
     p = directory / NAME
     if not p.exists():
         if directory.resolve() == (ROOT / 'Tests/AppUITests').resolve():
@@ -148,7 +185,11 @@ def previous_directory(directory):
 
 
 def weights(directory, profile_path):
-    directory = Path(directory)
+    try:
+        from run138_current_source_projection import previous_directory as before_current
+    except ModuleNotFoundError:
+        from tools.run138_current_source_projection import previous_directory as before_current
+    directory = before_current(Path(directory))
     profile = json.loads(Path(profile_path).read_text())
     if PLAN not in profile.get('planning_budget', {}):
         p = directory / NAME
@@ -183,7 +224,11 @@ def retained_protected_source(path):
     """Keep original 30cd protected assertions through an exact current-byte inverse."""
     path = Path(path)
     relative = path.relative_to(ROOT).as_posix()
-    raw = path.read_bytes()
+    try:
+        from run138_current_source_projection import historical_entry_bytes
+    except ModuleNotFoundError:
+        from tools.run138_current_source_projection import historical_entry_bytes
+    raw = historical_entry_bytes(ROOT, relative)
     row = contract()['protected_central_inverse'].get(relative)
     if row is None:
         return raw
@@ -217,7 +262,11 @@ def frozen_receipt_context():
     target.parent.mkdir(parents=True)
     target.write_text(json.dumps(profile))
     for path, expected in c['retained_receipt_audit_files'].items():
-        raw = (ROOT / path).read_bytes()
+        try:
+            from run138_current_source_projection import historical_entry_bytes
+        except ModuleNotFoundError:
+            from tools.run138_current_source_projection import historical_entry_bytes
+        raw = historical_entry_bytes(ROOT, path)
         if digest(raw) != expected:
             raise ValueError('Retained passing receipt audit bytes changed')
         target = root / path

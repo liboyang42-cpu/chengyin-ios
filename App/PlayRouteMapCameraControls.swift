@@ -10,6 +10,8 @@ struct PlayRouteMapCameraControls: View {
     let onFocus: (PlayRouteMapCamera.Gate.Request) -> Void
     let onOpen: (Int) -> Void
     var body: some View {
+        // These controls share one List row. Keep each tap independent so a
+        // sibling action cannot consume the selected action's one-shot ticket.
         VStack(alignment: .leading, spacing: 12) {
             Text("playRouteCamera.title").font(.headline).accessibilityAddTraits(.isHeader)
             Text("playRouteCamera.notice").font(.footnote).fixedSize(horizontal: false, vertical: true)
@@ -44,7 +46,7 @@ struct PlayRouteMapCameraControls: View {
                 Text(LocalizedStringKey(issue.labelKey)).font(.footnote).fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("playRouteCamera.issue")
             }
-        }
+        }.buttonStyle(.borderless)
     }
     private func focusButton(_ action: PlayRouteMapCamera.Action, key: String, symbol: String) -> some View {
         let choice = request(action)

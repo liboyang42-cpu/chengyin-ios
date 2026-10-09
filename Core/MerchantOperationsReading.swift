@@ -173,7 +173,26 @@ public struct MerchantOperationsConfirmation: Identifiable, Equatable {
             guard !Task.isCancelled, operation == generation, reader.scope == value.scope, reader.isAuthenticated else { return }
             draftIdentity = UUID(); templateAssistEdits = .init()
             isLocked = false
-            if destination == .profile || destination == .businessStatus || destination == .npcMapPoint {
+            if destination == .character {
+                // npc/save acknowledges the write, not its review result. The source
+                // resets review status on edit, so never promote the submitted copy's
+                // old audit fields or unnormalized text into the saved baseline.
+                document = nil; baseline = nil; draft = nil; exampleSaved = false
+                do {
+                    let current = try await reader.document(.character)
+                    guard !Task.isCancelled, operation == generation, reader.scope == value.scope, reader.isAuthenticated else { return }
+                    guard case .draft(.character(let character)) = current else { throw APIError.malformedResponse }
+                    document = current; baseline = .character(character); draft = .character(character)
+                    exampleSaved = reader.isOfflineExample
+                    issue = reader.isOfflineExample ? nil : .key("merchantNPCCharacter.readback")
+                } catch {
+                    guard !Task.isCancelled, operation == generation, reader.scope == value.scope, reader.isAuthenticated else { return }
+                    // The save already succeeded. Keep fields cleared and allow only
+                    // a fresh read; a read error must not become an uncertain write or
+                    // cause the reviewed payload to be sent again.
+                    issue = .key("merchantNPCCharacter.readbackFailed")
+                }
+            } else if destination == .profile || destination == .businessStatus || destination == .npcMapPoint {
                 // The write was acknowledged. Only a new owner-scoped read supplies current
                 // profile state; failure here must never fall into the write/replay catch.
                 document = nil; baseline = nil; draft = nil; exampleSaved = false

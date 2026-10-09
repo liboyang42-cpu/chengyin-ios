@@ -1,0 +1,50 @@
+{
+  "mapDatePreset.today": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Today"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "今天"
+        }
+      }
+    }
+  },
+  "mapDatePreset.tomorrow": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Tomorrow"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "明天"
+        }
+      }
+    }
+  },
+  "mapDatePreset.disclosure": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Uses your phone’s date when selected. The date range stays fixed until you change it. Filters use the activity’s supplied start day; activities without a date remain visible."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "按选择时手机上的日期填写；日期范围保持不变，直到再次修改。筛选依据活动提供的开始日期；未提供日期的活动仍会显示。"
+        }
+      }
+    }
+  }
+}

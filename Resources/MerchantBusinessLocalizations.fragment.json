@@ -3092,13 +3092,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Filter the current loaded page only. The same filter is applied when you change pages."
+          "value": "Filters apply to shown reviews. Load more keeps earlier pages; Next and Previous replace the page."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "仅筛选当前已加载页。切换页码时保留筛选条件并重新筛选。"
+          "value": "筛选适用于当前展示的评价。加载更多会保留先前页；上一页和下一页会替换当前页。"
         }
       }
     }
@@ -4779,6 +4779,70 @@
         "stringUnit": {
           "state": "translated",
           "value": "是"
+        }
+      }
+    }
+  },
+  "merchant.business.reviews.loadMore": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Load more reviews"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "加载更多评价"
+        }
+      }
+    }
+  },
+  "merchant.business.reviews.reloadSourcePage": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reload original page to manage"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "重新读取原页以管理"
+        }
+      }
+    }
+  },
+  "merchant.business.reviews.sourcePageNotice": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This review was read again from its original page. Actions use this fresh page only."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已重新读取此评价所在原页。操作仅以本次新读取的页面为依据。"
+        }
+      }
+    }
+  },
+  "merchant.business.reviews.sourcePageMissing": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This review is no longer on its original page. Close this view and refresh the review list."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此评价已不在原页。请关闭此页并刷新评价列表。"
         }
       }
     }

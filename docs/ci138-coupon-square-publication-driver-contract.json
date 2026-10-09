@@ -1,0 +1,113 @@
+{
+  "version": 1,
+  "base_commit": "4bf6667f8c5d9d2d59a8063d7d54eaef7a338865",
+  "base_tree": "82e9abd1afa6180815ef7ea5ea314d6eb692e036",
+  "scope": "Three test-driver repairs only; standalone candidate, not an active scheduling layer.",
+  "apple_execution": "NOT_RUN",
+  "files": {
+    "Tests/AppUITests/ApprovedTopicFrozenCoverPublicationFlowTests.swift": {
+      "before_sha256": "c74a91119d172357ba131398982c0c890d3e00cd8b56ac99ba3cea12aa496e4b",
+      "after_sha256": "7a746e2711cf2b6a0de6f90c0c96c6762113cc0212b16eaca4331786ba3b1d90",
+      "inverse_spans": [
+        {
+          "before": "        let request = app.staticTexts[\"approvedRelease.publication.requestID\"].label\n",
+          "after": "        let requestValue = app.staticTexts[\"approvedRelease.publication.requestID\"]\n        XCTAssertTrue(revealFixtureElement(requestValue, in: app, maximumSwipes: 10, requiresHittable: false), app.debugDescription)\n        XCTAssertTrue(requestValue.waitForExistence(timeout: 5), app.debugDescription)\n        let request = requestValue.label\n"
+        }
+      ]
+    },
+    "Tests/AppUITests/OwnedCouponCodeJourneyUITests.swift": {
+      "before_sha256": "727debb304461978b061caeaca01384f14838179bba9fc954c976bc0aa6a0ff1",
+      "after_sha256": "e90cdc1ecbac62b8d258767a54e82848d0118fc562e3a4bbe79cbde395926414",
+      "inverse_spans": [
+        {
+          "before": "        app.sheets.buttons[\"Cancel\"].tap()\n",
+          "after": "        let sheet = app.sheets.firstMatch\n        if app.popovers.firstMatch.exists {\n            dismissFixtureConfirmationPopover(in: app)\n        } else {\n            app.sheets.buttons[\"Cancel\"].tap()\n        }\n        let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate(format: \"exists == false\"), object: sheet)\n        XCTAssertEqual(XCTWaiter.wait(for: [dismissed], timeout: 5), .completed, app.debugDescription)\n"
+        }
+      ]
+    },
+    "Tests/AppUITests/SquareWorkspaceFlowTests.swift": {
+      "before_sha256": "022582bc90e5cc85a88b272eefe5af66e69c2bcf1caad4f4e244542c71e92831",
+      "after_sha256": "b7e7f7e894b1789c75ef3005284e7597319ad6e6f6df8a45cb7072f5ee70bf2c",
+      "inverse_spans": [
+        {
+          "before": "        for _ in 0..<10 {\n            if element.exists && element.isHittable { break }\n            if upwards { app.swipeUp() } else { app.swipeDown() }\n        }\n        XCTAssertTrue(element.exists, \"Expected control \\(element.identifier): \" + app.debugDescription)\n        XCTAssertTrue(element.isHittable, \"Expected hittable control \\(element.identifier): \" + app.debugDescription)\n",
+          "after": "        XCTAssertTrue(revealFixtureElement(element, in: app, towardTop: !upwards, maximumSwipes: 10), app.debugDescription)\n        XCTAssertTrue(element.exists, \"Expected control: \" + app.debugDescription)\n        XCTAssertTrue(element.isHittable, \"Expected hittable control: \" + app.debugDescription)\n"
+        }
+      ]
+    }
+  },
+  "protected_source_sha256": {
+    "Tests/AppUITests/FailureScreenshot.swift": "705ba7fa14128cfd9e81f181fd2b5f5edd0cb464b2ececd26119510d98ed6e49",
+    "Tests/AppUITests/ProjectSubmissionEvidenceUITestSupport.swift": "49a420e87068cbc4b28e8b570ec7faceec09d3b9b7521cd2c3e75f53803db3c6",
+    "App/CouponCodeView.swift": "8da25c9872f08b1fa47a9fb6356112595bc353b6a77386a243ab968d879f2292",
+    "App/SquareWorkspaceView.swift": "6421234ae743f06f655319d3a87f1a22384167263e83630ad2e2244a29fe03f9",
+    "App/ApprovedReleasePreparationView.swift": "d12bf7cca63e0c44ab17a7dff9a20a1afbdaee5ee58f8dce8e9f80c7099fed3d",
+    "Core/ApprovedTopicReleasePublicationClient.swift": "bfe80f68c377fa91b11fd19f1e74f91ce614ad1e0ffcd45983ecb8a2c97cae4f",
+    "tools/ui_duration_weights.json": "29702b1924f79fd62fed74b71de626e7e68545747990b0e55be21415accaced7",
+    "tools/branch_history_handshake_planning.py": "ae81fc1b5d9a5e4558931d5b31bd083593ac45b215a03923da47f9df991fd592",
+    "tools/branch_history_handshake_planning_contract.json": "5f3e5d8bcddb6c84ec64dd7d4b3e8d1ed2fa1946c60906eb7c5e74aed355b586",
+    "tools/run130_receipt_planning.py": "ddf7dd3b4f957d71a39af89e9a7e343c3d792a2cdc1045e7d19fff7415353a8e",
+    "tools/run130_receipt_planning_contract.json": "de0cd006285c64088ad5ad82124f8667072feccc1769fb03df12ca8d9d26d171"
+  },
+  "cost_assumptions": {
+    "reveal_iteration_seconds": 2,
+    "maximum_swipes": 10,
+    "reveal_iterations": 11,
+    "coupon_native_cancel_resolution_allowance_seconds": 5,
+    "coupon_dismissed_wait_seconds": 5,
+    "coupon_geometry_query_allowance_seconds": 10,
+    "publication_existence_wait_seconds": 5,
+    "round_up_seconds": 10
+  },
+  "complete_method_costs": {
+    "OwnedCouponCodeJourneyUITests.testOwnedListDetailCancelConfirmBackAndReopenRequireFreshConsent": {
+      "historical_seconds": 360,
+      "reveal_calls": 0,
+      "additional_seconds": 20,
+      "candidate_seconds": 380,
+      "measured": false
+    },
+    "SquareWorkspaceFlowTests.testChineseComposerAndLocalDraftEntry": {
+      "historical_seconds": 41.034,
+      "reveal_calls": 3,
+      "additional_seconds": 66,
+      "candidate_seconds": 110,
+      "measured": false
+    },
+    "SquareWorkspaceFlowTests.testSuspendedRecoveryDisablesNewDraftTypingAndCompetingResume": {
+      "historical_seconds": 72.018,
+      "reveal_calls": 2,
+      "additional_seconds": 44,
+      "candidate_seconds": 120,
+      "measured": false
+    },
+    "ApprovedTopicFrozenCoverPublicationFlowTests.testApprovedCoverConfirmationAndUnknownPublicationRestoreOriginalManifest": {
+      "historical_seconds": 908,
+      "reveal_calls": 1,
+      "additional_seconds": 27,
+      "candidate_seconds": 940,
+      "measured": false,
+      "exception_status": "REQUIRES_EXPLICIT_NEW_SOURCE_BOUND_940_SECOND_EXCEPTION; original 908-second exception remains unchanged"
+    }
+  },
+  "unchanged_method_costs": {
+    "SquareWorkspaceFlowTests.testDefaultWorkspaceHasNoEnabledNetworkActions": 19.197
+  },
+  "standalone_shards": {
+    "16": {
+      "before_seconds": 1272.249,
+      "after_seconds": 1389.197
+    },
+    "30": {
+      "before_seconds": 1255.912,
+      "after_seconds": 1287.912
+    },
+    "53": {
+      "before_seconds": 1260,
+      "after_seconds": 1280
+    }
+  },
+  "startup_reserve_seconds": 300,
+  "deadline_seconds": 1800,
+  "integration_status": "Planning editor must add a reviewed exact-inverse layer and aggregate all candidates. No old profile, hash, workflow, or historical exception is edited."
+}

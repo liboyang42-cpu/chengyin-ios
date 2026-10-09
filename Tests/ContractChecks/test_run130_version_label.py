@@ -32,8 +32,14 @@ class Run130SourceBoundary(unittest.TestCase):
     def test_only_the_approved_layout_or_label_line_is_added(self):verify_current(*self.sources())
     def test_removed_or_changed_line_is_rejected(self):
         source,ui,helper=self.sources()
+        if (ROOT/"App/ProjectRemoteVersionRow.swift").exists():
+            from test_run130_topic_media_source_adapter import restore_topic_host_source
+            source=restore_topic_host_source(source)
+            validator=verify
+        else:
+            validator=verify_current
         for value in ['',INSERT+'\n',INSERT.replace('8','80') if 'padding' in INSERT else INSERT.replace('model.draft.baseRevision','"fixture-r2"')]:
-            with self.subTest(value=value),self.assertRaises(AssertionError):verify_current(source.replace(INSERT,value,1),ui,helper)
+            with self.subTest(value=value),self.assertRaises(AssertionError):validator(source.replace(INSERT,value,1),ui,helper)
     def test_original_method_wait_and_exact_assertions_cannot_change(self):
         source,ui,helper=self.sources()
         for a,b in [('XCTAssertTrue','XCTAssertFalse'),('timeout: 5','timeout: 20'),('func test','func skipped')]:

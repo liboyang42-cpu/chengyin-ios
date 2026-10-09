@@ -1,4 +1,5 @@
 from tools.tests.story_media_budget_history import before_story_media, historical_pre_media_ui_source
+from tools.tests.player_map_history_budget_history import validated_pre_run129_directory
 """Immutable 5e2f9c12 planning/source projection for historical tests only."""
 from copy import deepcopy
 from pathlib import Path
@@ -53,9 +54,10 @@ def materialize_historical_pre_feature_ui(directory):
     """Use actual unmodified discovery against pinned full historical source files."""
     destination = Path(directory)
     destination.mkdir(parents=True, exist_ok=True)
-    for name in source_index()['baseline_ui_filenames']:
-        source = historical_pre_feature_ui_source(ROOT / 'Tests/AppUITests' / name)
-        (destination / name).write_bytes(source.read_bytes())
+    with validated_pre_run129_directory(ROOT) as current:
+        for name in source_index()['baseline_ui_filenames']:
+            source = historical_pre_feature_ui_source(current / name)
+            (destination / name).write_bytes(source.read_bytes())
     return destination
 
 def historical_pre_feature_workflow():

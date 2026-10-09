@@ -1,5 +1,6 @@
 #if DEBUG
 import SwiftUI
+import UIKit
 
 @MainActor final class MerchantBusinessFixtureReader: MerchantBusinessReading {
     enum Scenario: String { case ready, denied, malformed, unknown, changedSession, disabled, listTools }
@@ -41,24 +42,51 @@ import SwiftUI
         return try .init(mutation: mutation, message: nil, data: data)
     }
 }
+/// One mounted DEBUG host owns the original route dependencies. Reconstructing
+/// its SwiftUI value must not replace either object or forget unknown intents.
+@MainActor final class MerchantBusinessFixtureOwner {
+    let reader: MerchantBusinessFixtureReader
+    let journal = MerchantBusinessMemoryIntentStore()
+    init(scenario: MerchantBusinessFixtureReader.Scenario) {
+        reader = .init(scenario: scenario)
+    }
+}
 @MainActor struct MerchantBusinessFixtureHostView: View {
-    private let reader: MerchantBusinessFixtureReader
-    private let journal: MerchantBusinessMemoryIntentStore
+    @State private var owner: MerchantBusinessFixtureOwner
     @State private var revision = 0
-    init() {
+    private let ownerObserver: ((MerchantBusinessFixtureOwner, Int) -> Void)?
+    private let probeRevision: Int
+    init(ownerObserver: ((MerchantBusinessFixtureOwner, Int) -> Void)? = nil, probeRevision: Int = 0) {
         let arguments = ProcessInfo.processInfo.arguments
         let index = arguments.firstIndex(of: "--uitesting-merchant-business-scenario")
         let name = index.flatMap { arguments.indices.contains($0 + 1) ? arguments[$0 + 1] : nil }
-        reader = .init(scenario: name.flatMap(MerchantBusinessFixtureReader.Scenario.init(rawValue:)) ?? .ready)
-        journal = .init()
+        let scenario = name.flatMap(MerchantBusinessFixtureReader.Scenario.init(rawValue:)) ?? .ready
+        _owner = State(initialValue: MerchantBusinessFixtureOwner(scenario: scenario))
+        self.ownerObserver = ownerObserver; self.probeRevision = probeRevision
     }
     var body: some View {
+        let reader = owner.reader, journal = owner.journal
         VStack {
             if reader.scenario == .changedSession {
                 Button("merchant.business.fixtureSignOut") { reader.scope = nil; revision += 1 }.accessibilityIdentifier("merchant.business.fixtureSignOut")
             }
             NavigationStack { MerchantBusinessHomeView(reader: reader, journal: journal) }.id(revision)
         }
+        .background {
+            if let ownerObserver {
+                MerchantBusinessFixtureOwnerProbe(owner: owner, revision: probeRevision, observe: ownerObserver)
+                    .frame(width: 0, height: 0).allowsHitTesting(false).accessibilityHidden(true)
+            }
+        }
     }
+}
+/// Opt-in observation of real SwiftUI ownership for AppUnit tests only. It adds
+/// no controls, requests, dispatch capability or scheduled work.
+@MainActor private struct MerchantBusinessFixtureOwnerProbe: UIViewRepresentable {
+    let owner: MerchantBusinessFixtureOwner
+    let revision: Int
+    let observe: (MerchantBusinessFixtureOwner, Int) -> Void
+    func makeUIView(context: Context) -> UIView { UIView(frame: .zero) }
+    func updateUIView(_ uiView: UIView, context: Context) { observe(owner, revision) }
 }
 #endif

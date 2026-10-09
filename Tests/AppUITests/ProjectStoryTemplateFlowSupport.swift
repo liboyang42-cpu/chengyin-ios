@@ -80,7 +80,9 @@ import XCTest
     private func backToEditor(_ app: XCUIApplication) {
         let button = app.navigationBars.buttons.firstMatch
         XCTAssertTrue(button.isEnabled && button.isHittable, app.debugDescription); button.tap()
-        let arrived = app.textFields["projectEdit.name"].waitForExistence(timeout: 5)
+        let editorAction = app.navigationBars["Route editor"].buttons["Edit"]
+        let arrived = XCTWaiter.wait(for: [XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == true AND hittable == true"), object: editorAction)], timeout: 5) == .completed
         var diagnostic = ""
         if !arrived {
             let lateNameExists = app.textFields["projectEdit.name"].exists
@@ -93,7 +95,7 @@ import XCTest
     private func open(before anchor: String?, chapterID: String, _ app: XCUIApplication) {
         tap("projectEdit.chapter." + chapterID, app)
         if let anchor {
-            tap("projectStoryMedia.gap." + anchor, app, top: true)
+            tap("projectStoryMedia.gap." + anchor, app)
             tap("projectStoryTemplate.insertBefore." + anchor, app, fixed: true)
         } else { tap("projectStoryTemplate.add", app) }
         XCTAssertTrue(app.buttons["projectStoryTemplate.refresh"].waitForExistence(timeout: 5))

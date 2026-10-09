@@ -14,8 +14,9 @@ import re
 import subprocess
 
 from test_products import toolchain
+import run_static_checks as static_checks
 
-REQUIRED_JOBS = {'native', 'device-build', 'us-build', 'secrets', 'app-unit-tests', 'ui-tests'}
+REQUIRED_JOBS = {'static-checks', 'native', 'device-build', 'us-build', 'secrets', 'app-unit-tests', 'ui-tests'}
 SHARD_COUNT = 79
 
 
@@ -75,7 +76,7 @@ def ui_completion(shard, value, commit):
     return f'shard_{shard}', completion_digest(value, commit)
 
 
-def aggregate(needs, commit):
+def aggregate(needs, commit, static_receipt, run_id, run_attempt):
     validate_commit(commit)
     if not isinstance(needs, dict) or set(needs) != REQUIRED_JOBS:
         raise ValueError('Missing or unexpected required CI jobs')
@@ -84,6 +85,11 @@ def aggregate(needs, commit):
             raise ValueError(f'Required CI job did not succeed: {name}')
         if not isinstance(job.get('outputs'), dict):
             raise ValueError(f'Missing outputs map for required CI job: {name}')
+    static_receipt = static_checks.validated_receipt(static_receipt, commit, run_id, run_attempt)
+    for name in ['static-checks', 'native']:
+        actual = static_checks.validated_receipt(needs[name]['outputs'].get('static_receipt'), commit, run_id, run_attempt)
+        if actual != static_receipt:
+            raise ValueError('Required CI job used a different static receipt: ' + name)
     expected = validated_fingerprint(needs['native']['outputs'].get('build_fingerprint'), commit)
     for name in ['device-build', 'us-build', 'app-unit-tests']:
         actual = validated_fingerprint(needs[name]['outputs'].get('build_fingerprint'), commit)
@@ -113,13 +119,23 @@ def main():
         action.add_argument('--github-output', required=True)
         if name == 'complete-ui':
             action.add_argument('--shard', type=int, required=True)
-    sub.add_parser('aggregate')
+    static = sub.add_parser('verify-static')
+    static.add_argument('--static-artifact', type=Path, required=True)
+    static.add_argument('--github-output', required=True)
+    combined = sub.add_parser('aggregate')
+    combined.add_argument('--static-artifact', type=Path, required=True)
     args = parser.parse_args()
     commit = os.environ['GITHUB_SHA']
     if args.action == 'aggregate':
         checked_out_commit(commit)
-        aggregate(json.loads(os.environ['NEEDS_JSON']), commit)
+        needs = json.loads(os.environ['NEEDS_JSON'])
+        receipt = static_checks.verify_bundle(args.static_artifact, Path(__file__).resolve().parents[1])
+        aggregate(needs, commit, receipt, os.environ['GITHUB_RUN_ID'], os.environ['GITHUB_RUN_ATTEMPT'])
         print('All required native gates and', SHARD_COUNT, 'UI shards succeeded for', commit)
+    elif args.action == 'verify-static':
+        value = static_checks.verify_bundle(args.static_artifact, Path(__file__).resolve().parents[1],
+                                            os.environ['EXPECTED_STATIC_RECEIPT'])
+        write_output(args.github_output, 'static_receipt', value)
     elif args.action == 'complete-ui':
         # This step uses the default success() condition and runs after results
         # export, so a failed runtime or failed export cannot emit completion.

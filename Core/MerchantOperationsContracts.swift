@@ -19,10 +19,12 @@ public struct MerchantOperationsAccess: Decodable, Equatable {
         case .npcMapPoint: return profileWrite && cooperationManage
         case .businessStatus: return profileWrite && identity.allows(.basicRead)
         case .profile, .decor, .gallery, .story: return profileWrite
+        case .character: return profileWrite
         case .cooperation: return cooperationManage
         case .templates, .template: return identity.allows(.projects)
-        // Source home deliberately adds no invented per-role gate to these reads.
-        case .character, .assets, .cityNodes: return true
+        // Legacy resource and city-node reads retain their existing policy.
+        // The current NPC editor instead requires the explicit PROFILE_WRITE grant.
+        case .assets, .cityNodes: return true
         }
     }
 }

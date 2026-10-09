@@ -4,6 +4,7 @@ import re
 import hashlib
 import unittest
 from test_run130_creator_scene import original_creator_source
+from test_ci138_hosted_navigation_scene import original_owned_scene_source
 ROOT = Path(__file__).resolve().parents[2]
 OLD = ROOT / 'tools/tests/fixtures/run129_published_sources'
 
@@ -48,7 +49,7 @@ class Run129HostDiagnostics(unittest.TestCase):
         source = paths[0].read_text()
         self.assertEqual(source.count('.syntheticTrace ='), 1)
         self.assertIn('guard stageCount < 12 else { return }', source)
-        self.assertEqual(without_debug(source), (OLD / (paths[0].name + '.txt')).read_text())
+        self.assertEqual(without_debug(original_owned_scene_source(source)), (OLD / (paths[0].name + '.txt')).read_text())
         self.assertEqual(source.count('WORKSHOP_SYNTHETIC_LIST'), 1)
 
     def test_creator_probe_records_only_framework_appearance_and_boolean_state(self):

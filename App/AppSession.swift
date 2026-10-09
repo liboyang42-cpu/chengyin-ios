@@ -519,6 +519,12 @@ final class AppSession: ObservableObject {
     private var currentWorkshopCreatorPendingDetail: WorkshopCreatorPendingDetailApproval? {
         guard let context = currentWorkshopCreatorContext, let grant = composition.workshopCreatorPendingDetailApproval(context), grant.matches(context) else { return nil }; return grant
     }
+    private var workshopCreatorPendingRecoveryStorage: any TemplateAuthoringStorage {
+#if DEBUG
+        if let storage = composition.storage.syntheticWorkshopCreatorPendingRecoveryStorage { return storage }
+#endif
+        return templateAuthoringSecureStorage
+    }
     func makeWorkshopCreatorPendingController(sourceTemplateId: Int64) -> WorkshopCreatorPendingController? {
         let context = currentWorkshopCreatorContext, read = currentWorkshopCreatorRead, write = currentWorkshopCreatorWrite
         let author = currentWorkshopCreatorPendingAuthor, list = currentWorkshopCreatorPendingList, detail = currentWorkshopCreatorPendingDetail
@@ -536,8 +542,8 @@ final class AppSession: ObservableObject {
         let available = read != nil
         return workshopCreatorPendingBinding.make(source: sourceTemplateId, context: available ? context : nil, revisions: revisions) { captured in
             guard let api = regionalConfiguration?.apiConfiguration,
-                  let store = try? WorkshopCreatorPendingStore(storage: templateAuthoringSecureStorage, context: captured, sourceTemplateId: sourceTemplateId),
-                  let declarationStore = try? WorkshopCreatorConsentPendingStore(storage: templateAuthoringSecureStorage, context: captured, sourceTemplateId: sourceTemplateId) else { return nil }
+                  let store = try? WorkshopCreatorPendingStore(storage: workshopCreatorPendingRecoveryStorage, context: captured, sourceTemplateId: sourceTemplateId),
+                  let declarationStore = try? WorkshopCreatorConsentPendingStore(storage: workshopCreatorPendingRecoveryStorage, context: captured, sourceTemplateId: sourceTemplateId) else { return nil }
             let lease = ContentDraftSessionLease(context: captured, current: current)
             let unauthorized: (RuntimeDependencyContext) -> Void = { [weak self] context in
                 guard let self, ContentDraftContextFence.matches(current(), context) else { return }
@@ -552,7 +558,7 @@ final class AppSession: ObservableObject {
                 canReadProposals: { [weak self] in current() != nil && self?.currentWorkshopCreatorPendingList != nil && self?.currentWorkshopCreatorPendingDetail != nil },
                 canAuthor: { [weak self] in current() != nil && self?.currentWorkshopCreatorPendingAuthor != nil }, makeConsent: { [weak self] target, matchesPreview in
                     guard let self, current() != nil,
-                          let consentStore = try? WorkshopCreatorConsentPendingStore(storage: self.templateAuthoringSecureStorage, context: captured, sourceTemplateId: sourceTemplateId) else { return nil }
+                          let consentStore = try? WorkshopCreatorConsentPendingStore(storage: self.workshopCreatorPendingRecoveryStorage, context: captured, sourceTemplateId: sourceTemplateId) else { return nil }
                     let consentLease = ContentDraftSessionLease(context: captured, current: current)
                     let consentService = WorkshopCreatorConsentService(api: api, transport: self.compositionTransport, lease: consentLease, read: read, write: write,
                         currentRead: { [weak self] in self?.currentWorkshopCreatorRead }, currentWrite: { [weak self] in self?.currentWorkshopCreatorWrite }, onUnauthorized: unauthorized)

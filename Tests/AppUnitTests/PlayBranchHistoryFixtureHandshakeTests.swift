@@ -1,5 +1,6 @@
 import XCTest
 import SwiftUI
+import UIKit
 @testable import Questify
 
 @MainActor final class PlayBranchHistoryFixtureHandshakeTests: XCTestCase {
@@ -82,6 +83,7 @@ import SwiftUI
         XCTAssertEqual(calls, 0); XCTAssertNil(handshake.armed); XCTAssertFalse(handshake.applying)
         await assertReadinessTimeoutReleasesLateContinuation()
         try await assertCancellationReleasesRegisteredContinuation()
+        try await assertLeavingAndReenteringFixtureResetsItsDependencyGraph()
     }
     // Match the existing expectation-based transport tests, with a latched release
     // so cleanup also covers a read that registers after the readiness deadline.
@@ -171,5 +173,117 @@ import SwiftUI
             XCTAssertTrue(wire.requests.allSatisfy { $0.httpMethod == "GET" })
             XCTAssertFalse(model.canWrite); XCTAssertNil(model.reward); XCTAssertNil(model.ending)
         }
+        try await assertHostReconstructionRefreshesTheRetainedRecorder()
+    }
+
+    @MainActor private final class RebuildSignal: ObservableObject {
+        @Published var revision = 0
+        @Published var mounted = true
+    }
+    @MainActor private struct RebuildingHost: View {
+        @ObservedObject var signal: RebuildSignal
+        let observe: (PlayBranchHistoryFixtureState, PlayBranchHistoryFixtureEvent) -> Void
+        var body: some View {
+            if signal.mounted {
+                PlayBranchHistoryFixtureHost(scenario: "recorded", fixtureObserver: observe,
+                    probeRevision: signal.revision)
+            } else { Color.clear }
+        }
+    }
+    @MainActor private final class FixtureMount {
+        let signal = RebuildSignal()
+        let window = UIWindow(frame: UIScreen.main.bounds)
+        var observe: ((PlayBranchHistoryFixtureState, PlayBranchHistoryFixtureEvent) -> Void)?
+        private var host: UIHostingController<RebuildingHost>?
+        func show() {
+            let host = UIHostingController(rootView: RebuildingHost(signal: signal, observe: { [weak self] fixture, event in
+                self?.observe?(fixture, event)
+            }))
+            self.host = host; window.rootViewController = host; window.makeKeyAndVisible()
+        }
+        func close() { observe = nil; window.isHidden = true; window.rootViewController = nil; host = nil }
+    }
+    private func awaitMountedFixture(_ mount: FixtureMount, revision: Int,
+                                     trigger: () -> Void) async throws -> PlayBranchHistoryFixtureState {
+        let ready = expectation(description: "Actual branch-history host ready at revision \(revision)")
+        var result: PlayBranchHistoryFixtureState?
+        mount.observe = { fixture, event in
+            guard event == .rendered(revision), fixture.model.phase == .ready, result == nil else { return }
+            result = fixture; ready.fulfill()
+        }
+        defer { mount.observe = nil }
+        trigger()
+        await fulfillment(of: [ready], timeout: 2)
+        return try XCTUnwrap(result, "The actual SwiftUI host must mount or reconstruct before the action")
+    }
+    private func assertHostReconstructionRefreshesTheRetainedRecorder() async throws {
+        let mount = FixtureMount()
+        defer { mount.close() }
+        let original = try await awaitMountedFixture(mount, revision: 0) { mount.show() }
+        let before = try XCTUnwrap(original.model.snapshot)
+        XCTAssertEqual(PlayBranchHistoryPresentation(snapshot: before).state, .recorded)
+        let selection = try XCTUnwrap(PlayBranchHistorySelection(snapshot: before))
+        for revision in [1, 2] {
+            let current = try await awaitMountedFixture(mount, revision: revision) { mount.signal.revision = revision }
+            XCTAssertTrue(current === original)
+            XCTAssertTrue(current.recorder === original.recorder)
+            XCTAssertTrue(current.model === original.model)
+            XCTAssertTrue(current.handshake === original.handshake)
+            XCTAssertEqual(current.session, original.session)
+            let oldCount = original.recorder.requests.count
+            // Same method invoked by the immediate toolbar action, after actual Host reconstruction.
+            await current.replaceHistory()
+            let snapshot = try XCTUnwrap(original.model.snapshot)
+            XCTAssertEqual(PlayBranchHistoryPresentation(snapshot: snapshot).state, .empty)
+            XCTAssertEqual(snapshot.route?.sessionID, 502); XCTAssertEqual(snapshot.route?.version, 0)
+            XCTAssertNil(selection.presentation(snapshot: original.model.snapshot))
+            XCTAssertEqual(original.recorder.requests.count, oldCount + 2)
+            XCTAssertEqual(Array(original.recorder.requests.suffix(2)).compactMap { $0.url?.path },
+                           ["/fixture/api/play/nodes", "/fixture/api/play/route-state"])
+            XCTAssertTrue(original.recorder.requests.allSatisfy { $0.httpMethod == "GET" })
+            XCTAssertFalse(original.model.canWrite); XCTAssertNil(original.model.reward); XCTAssertNil(original.model.ending)
+        }
+    }
+    private func assertLeavingAndReenteringFixtureResetsItsDependencyGraph() async throws {
+        let mount = FixtureMount()
+        defer { mount.close() }
+        let original = try await awaitMountedFixture(mount, revision: 0) { mount.show() }
+        let history = PlayBranchHistoryPresentation(snapshot: try XCTUnwrap(original.model.snapshot))
+        let oldCount = original.recorder.requests.count
+        original.handshake.arm(.switchOwner); XCTAssertTrue(original.handshake.apply(history))
+        original.handshake.cancel(); await original.handshake.waitForChange()
+        XCTAssertEqual(original.recorder.requests.count, oldCount)
+        XCTAssertEqual(original.session.accountID, 9001)
+        await original.replaceHistory()
+        original.handshake.arm(.switchOwner)
+        let disappeared = expectation(description: "Leaving the actual fixture cancels unconsumed intent")
+        var observedExit = false
+        mount.observe = { fixture, event in
+            guard event == .disappeared, !observedExit else { return }
+            observedExit = true
+            XCTAssertTrue(fixture === original)
+            XCTAssertNil(fixture.handshake.armed); XCTAssertFalse(fixture.handshake.applying)
+            disappeared.fulfill()
+        }
+        mount.signal.mounted = false
+        await fulfillment(of: [disappeared], timeout: 2)
+        XCTAssertTrue(observedExit)
+        let current = try await awaitMountedFixture(mount, revision: 1) {
+            mount.signal.revision = 1; mount.signal.mounted = true
+        }
+        XCTAssertFalse(current === original)
+        XCTAssertFalse(current.recorder === original.recorder)
+        XCTAssertFalse(current.model === original.model)
+        XCTAssertFalse(current.handshake === original.handshake)
+        XCTAssertEqual(current.session.accountID, 9001); XCTAssertEqual(current.session.epoch, 1)
+        XCTAssertNil(current.handshake.armed); XCTAssertEqual(current.handshake.consumedCount, 0)
+        let freshSnapshot = try XCTUnwrap(current.model.snapshot)
+        XCTAssertEqual(PlayBranchHistoryPresentation(snapshot: freshSnapshot).state, .recorded)
+        XCTAssertEqual(freshSnapshot.route?.sessionID, 501); XCTAssertEqual(freshSnapshot.route?.version, 2)
+        let retiredCount = original.recorder.requests.count
+        await current.replaceHistory()
+        XCTAssertEqual(PlayBranchHistoryPresentation(snapshot: try XCTUnwrap(current.model.snapshot)).state, .empty)
+        XCTAssertEqual(original.recorder.requests.count, retiredCount)
+        XCTAssertFalse(current.model.canWrite); XCTAssertNil(current.model.reward); XCTAssertNil(current.model.ending)
     }
 }

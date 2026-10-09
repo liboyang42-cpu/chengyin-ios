@@ -66,6 +66,7 @@ import SwiftUI
         })
     }
     var canEdit: Bool { ownsVisit && !coordinator.hasUnconfirmedChapterRemoval && loadedSnapshot && loadedSession == coordinator.session && coordinator.snapshot != nil && !busy && !coordinator.isLocked && coordinator.state != .simulated && coordinator.state != .acknowledged && coordinator.state != .blocked && !hasRestore }
+    var canReview: Bool { currentReviewLease() != nil }
     var canSaveLocal: Bool { canEdit && coordinator.session != nil }
     var fullEdit: Bool { canEdit && coordinator.snapshot?.scope == .full }
     var hasRestore: Bool { switch coordinator.restore { case .missing: return false; default: return true } }
@@ -259,10 +260,7 @@ import SwiftUI
                 if let id = model.coordinator.snapshot?.topicID {
                     Section("projectRemote.readback") {
                         LabeledContent("projectRemote.topicID", value: String(id))
-                        LabeledContent("projectRemote.version") {
-                            Text(verbatim: model.draft.baseRevision).accessibilityIdentifier("projectRemote.version.value")
-                                .accessibilityLabel(Text(verbatim: model.draft.baseRevision))
-                        }.accessibilityElement(children: .contain)
+                        ProjectRemoteVersionRow(revision: model.draft.baseRevision)
                         Text(LocalizedStringKey(model.draft.product == .city ? "projectEdit.city" : "projectEdit.freeExplore"))
                             .accessibilityIdentifier("projectRemote.mode")
                         Text("projectRemote.freshSource").font(.caption)
@@ -307,6 +305,7 @@ import SwiftUI
                 ProjectTopicMediaHost(editor: model)
                 ProjectEditPendingSection(model: model, controller: pending)
                 chapterStructure(opening: opening)
+                ProjectClubLeadFields(model: model)
                 Section("projectEdit.tickets") {
                     ForEach(model.draft.tickets) { ticket in
                         NavigationLink { ProjectEditTicketView(model: model, ticketID: ticket.id) } label: {
@@ -357,7 +356,7 @@ import SwiftUI
                 Button("projectEdit.saveLocal") { focusedField = nil; model.saveLocal() }
                     .buttonStyle(.bordered).disabled(!model.canSaveLocal).accessibilityIdentifier("projectEdit.saveLocal")
                 Button("projectEdit.review") { focusedField = nil; model.review() }
-                    .buttonStyle(.borderedProminent).disabled(!model.canEdit).accessibilityIdentifier("projectEdit.review")
+                    .buttonStyle(.borderedProminent).disabled(!model.canReview).accessibilityIdentifier("projectEdit.review")
             }.frame(maxWidth: .infinity, minHeight: 44).padding().background(.regularMaterial)
         }
         .task(id: sessionRevision) { await model.load() }

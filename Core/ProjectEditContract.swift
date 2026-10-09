@@ -24,7 +24,7 @@ public enum ProjectEditContract {
         payload["productType"] = .number(Decimal(draft.product.rawValue))
         payload["collaboratorIds"] = .array(draft.collaboratorIDs.map { .number(Decimal($0)) })
         payload["openMerchantPool"] = .number(draft.openMerchantPool ? 1 : 0)
-        payload["openClubPool"] = .number(0)
+        payload["openClubPool"] = try ProjectClubLead.wireValue(draft)
         // Editing never republishes to Creative Square, even after local restore.
         payload["publishToCreative"] = .number(topicID == nil && draft.publishToCreative ? 1 : 0)
         if let clubID = draft.clubID { payload["clubId"] = .number(Decimal(clubID)) }
@@ -100,6 +100,9 @@ public enum ProjectEditContract {
         d.startDate = s(topic, "startDate"); d.endDate = s(topic, "endDate"); d.recruitDeadline = s(topic, "recruitDeadline")
         d.imgUrl = s(topic, "imgUrl"); d.imgArr = s(topic, "imgArr"); d.publishToCreative = false
         d.openMerchantPool = topic["merchantStatus"]?.integer == 1; d.clubID = topic["clubId"]?.integer
+        // Authoritative readback replaces the new-draft default. Missing/null,
+        // explicit zero and future wire types must not be silently opted in.
+        d.preserved["openClubPool"] = topic["openClubPool"]
         d.baseRevision = topic["updateTime"]?.text ?? topic["createTime"]?.text ?? ""
         guard !d.baseRevision.isEmpty else { throw ProjectEditError.invalidContract }
         d.categoryIDs = try s(topic, "categoryIds").split(separator: ",").map {

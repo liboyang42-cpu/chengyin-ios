@@ -1,0 +1,14 @@
+{
+  "before_sha256": "ae81fc1b5d9a5e4558931d5b31bd083593ac45b215a03923da47f9df991fd592",
+  "after_sha256": "bd68eb5ee193b0fee283a86139adf965a591878fcba556865dd187db893c79bc",
+  "hunks": [
+    {
+      "before": "    return destination\n\n\ndef validate_current(directory):\n    directory = Path(directory)\n    c = contract()\n",
+      "after": "    return destination\n\n\ndef critical_source_bytes(path):\n    \"\"\"Keep old critical comparisons; admit only the exact reviewed byte inverse.\"\"\"\n    raw = (ROOT / path).read_bytes()\n    adapter = ROOT / 'tools/branch_history_fixture_lifetime_projection.py'\n    if not adapter.is_file():\n        # A genuine historical checkout has no lifetime-adapter artifacts. Its\n        # raw bytes still have to pass every original critical_sources hash.\n        if any((ROOT / marker).exists() for marker in [\n            'tools/branch_history_fixture_lifetime_projection_contract.json',\n            'tools/tests/test_branch_history_fixture_lifetime_projection.py',\n            'tools/tests/fixtures/branch_history_fixture_lifetime',\n            'Tests/ContractChecks/test_branch_history_fixture_lifetime.py',\n            'docs/branch-history-fixture-lifetime.md',\n        ]):\n            raise ValueError('Incomplete branch-history lifetime projection')\n        return raw\n    if digest(adapter.read_bytes()) != 'c2d62e292abf65bc7189b52d3937c4b67fa11710edecd852b4b302d92d636ed9':\n        raise ValueError('Changed branch-history lifetime projection adapter')\n    try:\n        from branch_history_fixture_lifetime_projection import historical_source\n    except ModuleNotFoundError:\n        from tools.branch_history_fixture_lifetime_projection import historical_source\n    return historical_source(ROOT, path)\n\n\ndef validate_current(directory):\n    directory = Path(directory)\n    c = contract()\n"
+    },
+    {
+      "before": "            or re.sub(PATTERN, '', raw.decode()) != re.sub(PATTERN, '', old.decode())):\n        raise ValueError('Handshake method or unchanged helper source changed')\n    for path, expected in c['critical_sources'].items():\n        if digest((ROOT / path).read_bytes()) != expected:\n            raise ValueError('Critical handshake implementation or P2 cleanup changed')\n    d = c['derivation']\n    subtotal = d['launch_count'] * 90 + d['explicit_wait_caps_seconds'] + d['reveal_count'] * 11 * 2 + 60 + 20\n",
+      "after": "            or re.sub(PATTERN, '', raw.decode()) != re.sub(PATTERN, '', old.decode())):\n        raise ValueError('Handshake method or unchanged helper source changed')\n    for path, expected in c['critical_sources'].items():\n        if digest(critical_source_bytes(path)) != expected:\n            raise ValueError('Critical handshake implementation or P2 cleanup changed')\n    d = c['derivation']\n    subtotal = d['launch_count'] * 90 + d['explicit_wait_caps_seconds'] + d['reveal_count'] * 11 * 2 + 60 + 20\n"
+    }
+  ]
+}

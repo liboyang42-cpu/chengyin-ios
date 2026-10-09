@@ -9,7 +9,9 @@ import XCTest
         let app = XCUIApplication(); self.app = app
         app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", chinese ? "(zh-Hans)" : "(en)", "-AppleLocale", chinese ? "zh_CN" : "en_US", "--uitesting-module", "projectEdit", "--project-edit-bundle-ack", "--project-review-request", "--project-review-selected-cover", "--project-edit-starter-probe"] + flags
         if chinese { app.launchArguments += ["--uitesting-max-text", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] }
-        app.launch(); XCTAssertTrue(app.textFields["projectEdit.name"].waitForExistence(timeout: 5))
+        app.launch()
+        XCTAssertTrue(revealProjectEditorNameInForm(in: app), app.debugDescription)
+        XCTAssertTrue(app.textFields["projectEdit.name"].waitForExistence(timeout: 5))
         if chinese { assertFixtureEnvironment(in: app, dynamicTypeSize: "accessibility5") }
         return app
     }

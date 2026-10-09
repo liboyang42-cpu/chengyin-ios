@@ -1,0 +1,86 @@
+{
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "projectClubLead.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Club-led participation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "俱乐部承接"
+          }
+        }
+      }
+    },
+    "projectClubLead.enabled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invite clubs to lead"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀请俱乐部带队"
+          }
+        }
+      }
+    },
+    "projectClubLead.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow clubs to apply to lead this city topic. This edits the working draft; clubs are not contacted here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "允许俱乐部申请承接本城市定向主题。这里仅修改当前草稿，不会联系俱乐部。"
+          }
+        }
+      }
+    },
+    "projectClubLead.unsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This saved club-lead setting is not supported by this editor. It is preserved read-only and blocks a full submission."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此已存俱乐部承接设置暂不受本编辑器支持。原值只读保留，完整提交已阻止。"
+          }
+        }
+      }
+    },
+    "projectClubLead.ineligible": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only city topics without an owning club can open club-led applications. This topic submits the setting as off; its stored preference is retained locally."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅未归属俱乐部的城市定向主题可开放俱乐部承接。此主题提交为关闭，原偏好仍保留在本地草稿。"
+          }
+        }
+      }
+    }
+  }
+}

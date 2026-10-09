@@ -5,6 +5,9 @@ import re
 import unittest
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
+from tools.run138_current_source_projection import frozen_context as readiness_prior_context
+READINESS_PRIOR_CONTEXT = readiness_prior_context()
+ROOT = READINESS_PRIOR_CONTEXT.root
 SOURCE = Path(os.environ.get('FLUTTER_AUDIT_ROOT', str(ROOT.parent / 'app-audit')))
 
 class ProjectEditContracts(unittest.TestCase):
@@ -85,7 +88,10 @@ class ProjectEditContracts(unittest.TestCase):
         self.assertIn('No UI test was run',ui)
     def test_full_edit_locks_and_source_normalizations(self):
         self.assertIn('whitelistLockedFieldsEqual',self.coordinator)
-        self.assertIn('"openClubPool"] = .number(0)',self.contract)
+        self.assertIn('"openClubPool"] = try ProjectClubLead.wireValue(draft)',self.contract)
+        policy=(ROOT/'Core/ProjectClubLead.swift').read_text()
+        self.assertIn('draft.product == .city && draft.clubID == nil',policy)
+        self.assertLess(policy.index('guard supportsEditing(draft)'),policy.index('return .number(isEligible(draft)'))
         self.assertIn('topicID == nil && draft.publishToCreative',self.contract)
         self.assertIn('draft.product.rawValue',self.contract)
     def test_review_confirmation_never_reports_published_success(self):

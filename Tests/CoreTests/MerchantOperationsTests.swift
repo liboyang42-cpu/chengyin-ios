@@ -26,7 +26,7 @@ final class MerchantOperationsContractTests: XCTestCase {
     func testOwnerRoleAloneDoesNotGrantProfileOrCooperation() throws {
         let access = try decode(MerchantOperationsAccess.self, #"{"active":true,"merchant":{"id":31},"roleCode":"MERCHANT_OWNER","permissions":[]}"#)
         XCTAssertFalse(access.allows(.profile)); XCTAssertFalse(access.allows(.cooperation)); XCTAssertFalse(access.allows(.template(nil)))
-        XCTAssertTrue(access.allows(.character)); XCTAssertTrue(access.allows(.cityNodes))
+        XCTAssertFalse(access.allows(.character)); XCTAssertTrue(access.allows(.cityNodes))
     }
     func testProfileOnlyEncodesSixWhitelistedFields() throws {
         let profile = try decode(MerchantStoreProfile.self, MerchantOperationsFixtureData.storeJSON)

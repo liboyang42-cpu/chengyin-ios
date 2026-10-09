@@ -42,6 +42,10 @@ extension KeychainTokenStore: AppTokenStorage {}
     let tokenStore: (RegionalSessionStorageScope?) -> any AppTokenStorage
     let privateHomeKeychain: (any PrivateHomeKeychainPrimitive)?
     let playRecovery: PlayRecoveryConstruction
+#if DEBUG
+    /// Explicit fixture-only override. Ordinary and Release composition keep system storage.
+    var syntheticWorkshopCreatorPendingRecoveryStorage: (any TemplateAuthoringStorage)? = nil
+#endif
     init(defaults: UserDefaults = .standard,
          tokenStore: @escaping (RegionalSessionStorageScope?) -> any AppTokenStorage = { KeychainTokenStore(scope: $0) },
          privateHomeKeychain: (any PrivateHomeKeychainPrimitive)? = nil,

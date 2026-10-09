@@ -11,6 +11,10 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from tools import branch_history_handshake_planning as layer,run130_receipt_planning as receipt,run_ui_shard as runner,ci_gates
 ROOT=Path(__file__).resolve().parents[2]
+from tools.run138_current_source_projection import frozen_context as readiness_prior_context
+READINESS_PRIOR_CONTEXT = readiness_prior_context()
+ROOT = READINESS_PRIOR_CONTEXT.root
+layer = READINESS_PRIOR_CONTEXT.load('tools/branch_history_handshake_planning.py', 'run138_retained_handshake')
 UI=ROOT/'Tests/AppUITests'
 PROFILE=ROOT/'tools/ui_duration_weights.json'
 

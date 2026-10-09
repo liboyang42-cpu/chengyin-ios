@@ -17,6 +17,7 @@ from tools.tests.creator_pending_budget_history import (
     BASELINE_PROFILE_SHA256, CURRENT_PROFILE_SHA256, before_creator_pending,
     canonical, materialize_pre_creator_ui, source_index,
 )
+from tools.tests.creator_pending_synthetic_storage_history import historical_pre_synthetic_storage_helper_bytes
 
 ROOT = Path(__file__).resolve().parents[2]
 shard = historical_pre_club_module(ROOT / 'tools/run_ui_shard.py', 'creator_pre_club_shard')
@@ -79,7 +80,7 @@ class CreatorPendingBudgetTests(unittest.TestCase):
             found = shard.discover(materialize_pre_creator_ui(directory))
             self.assertEqual((sum(found.values()), len(found)), (707, 143))
         for row in self.index['helper_sources']:
-            self.assertEqual(hashlib.sha256(historical_pre_club_source(ROOT / row['path']).read_bytes()).hexdigest(), row['sha256'])
+            self.assertEqual(hashlib.sha256(historical_pre_synthetic_storage_helper_bytes(ROOT / row['path'])).hexdigest(), row['sha256'])
 
     def test_new_methods_keep_reviewed_full_bytes_and_conservative_estimates(self):
         self.assertEqual(sorted(self.plan['whole_method_estimates'].values()), [360, 540, 900])

@@ -179,7 +179,7 @@ final class ProjectEditTests: XCTestCase {
         var d = ProjectEditSyntheticFixtures.draft(); d.owner = .merchant; d.openMerchantPool = true; d.categoryIDs = [7, 9]
         let p = try ProjectEditContract.payload(d, topicID: nil, scope: .full)
         XCTAssertEqual(p["categoryIds"], .string("7,9")); XCTAssertEqual(p["scope"], .string("MERCHANT"))
-        XCTAssertEqual(p["openClubPool"], .number(0)); XCTAssertEqual(p["publishToCreative"], .number(1))
+        XCTAssertEqual(p["openClubPool"], .number(1)); XCTAssertEqual(p["publishToCreative"], .number(1))
         XCTAssertNil(p["recruitDeadline"])
         XCTAssertEqual(p["tickets"]?.array?.first?.object?["mode"], .number(1))
         XCTAssertEqual(try ProjectEditContract.payload(d, topicID: 1, scope: .full)["publishToCreative"], .number(0))

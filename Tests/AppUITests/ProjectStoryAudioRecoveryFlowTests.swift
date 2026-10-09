@@ -38,7 +38,8 @@ import XCTest
     func testChineseUnknownUploadReopensWithoutResendAndDefaultOffKeepsLocalAudioEditable() throws {
         let app = XCUIApplication(); self.app = app
         app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN", "--uitesting-max-text", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL", "--uitesting-module", "projectEdit", "--project-edit-starter-probe", "--project-story-audio", "--project-story-audio-unknown"]
-        app.launch(); XCTAssertTrue(app.textFields["projectEdit.name"].waitForExistence(timeout: 5)); assertFixtureEnvironment(in: app, dynamicTypeSize: "accessibility5")
+        app.launch(); XCTAssertTrue(revealProjectEditorNameInForm(in: app), app.debugDescription)
+        XCTAssertTrue(app.textFields["projectEdit.name"].waitForExistence(timeout: 5)); assertFixtureEnvironment(in: app, dynamicTypeSize: "accessibility5")
         tap("projectEdit.saveLocal", app, fixed: true); var saved = try snapshot(app)
         let chapterID = try XCTUnwrap(chapter(saved)["id"] as? String)
         tap("projectEdit.chapter." + chapterID, app); tap("projectStoryAudio.add", app); back(app)
@@ -57,6 +58,7 @@ import XCTest
         XCTAssertEqual(try snapshot(app)["storyAudioUploadCount"] as? Int, 1)
         app.terminate(); app.launchArguments.removeAll { $0 == "--project-story-audio" || $0 == "--project-story-audio-unknown" }
         app.launchArguments.append("--project-edit-opening"); app.launch()
+        XCTAssertTrue(revealProjectEditorNameInForm(in: app), app.debugDescription)
         XCTAssertTrue(app.textFields["projectEdit.name"].waitForExistence(timeout: 5)); assertFixtureEnvironment(in: app, dynamicTypeSize: "accessibility5")
         tap("projectEdit.saveLocal", app, fixed: true); saved = try snapshot(app)
         let opening = try XCTUnwrap(chapter(saved)["id"] as? String)

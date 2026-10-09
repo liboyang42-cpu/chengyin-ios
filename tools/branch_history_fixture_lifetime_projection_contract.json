@@ -1,0 +1,158 @@
+{
+  "schema_version": 1,
+  "purpose": "Exact DEBUG branch-history fixture-lifetime inverse; no UI timing or historical hash changes.",
+  "base_commit": "4bf6667f8c5d9d2d59a8063d7d54eaef7a338865",
+  "base_tree": "82e9abd1afa6180815ef7ea5ea314d6eb692e036",
+  "sources": {
+    "App/PlayBranchHistoryFixtureSupport.swift": {
+      "current_sha256": "60e6d26239482cf5f525b458f3b99108a46ed9d5dcc03a2e8f7d609c323b02c3",
+      "original_sha256": "56b35ee882ee9095d6c1364356d991c5ddbad552110fbfc3990187da068be0d5",
+      "preimage": "tools/tests/fixtures/branch_history_fixture_lifetime/App__PlayBranchHistoryFixtureSupport.swift.txt",
+      "inverse_spans": [
+        {
+          "current_byte_start": 43,
+          "current_byte_end": 56,
+          "current_text": "\nimport UIKit",
+          "original_text": ""
+        },
+        {
+          "current_byte_start": 287,
+          "current_byte_end": 2965,
+          "current_text": "// The transport, session owner, model and handshake have one mounted lifetime.\n    // A new SwiftUI value must not pair a new recorder with the retained model.\n    @State private var fixture: PlayBranchHistoryFixtureState\n    private let fixtureObserver: ((PlayBranchHistoryFixtureState, PlayBranchHistoryFixtureEvent) -> Void)?\n    private let probeRevision: Int\n    init(scenario: String? = nil,\n         fixtureObserver: ((PlayBranchHistoryFixtureState, PlayBranchHistoryFixtureEvent) -> Void)? = nil,\n         probeRevision: Int = 0) {\n        let args = ProcessInfo.processInfo.arguments\n        let index = args.firstIndex(of: \"--branch-history-scenario\")\n        let selected = scenario ?? index.flatMap { args.indices.contains($0 + 1) ? args[$0 + 1] : nil } ?? \"recorded\"\n        _fixture = State(initialValue: PlayBranchHistoryFixtureState(scenario: selected))\n        self.fixtureObserver = fixtureObserver; self.probeRevision = probeRevision\n    }\n    var body: some View {\n        let model = fixture.model\n        NavigationStack {\n            PlayExperienceView(model: model)\n                .environment(\\.branchHistoryFixtureHandshake, fixture.handshake)\n                .toolbar {\n                    ToolbarItem(placement: .topBarTrailing) {\n                        Menu(\"Fixture changes\") {\n                            Button(\"Refresh with empty history\") { Task { await fixture.replaceHistory() } }\n                                .accessibilityIdentifier(\"branchHistory.fixture.empty\")\n                            Button(\"Arm refresh after presentation\") { fixture.handshake.arm(.refresh) }\n                                .accessibilityIdentifier(\"branchHistory.fixture.delayedRefresh\")\n                            Button(\"Arm account switch after presentation\") { fixture.handshake.arm(.switchOwner) }\n                                .accessibilityIdentifier(\"branchHistory.fixture.delayedSwitch\")\n                        }.accessibilityIdentifier(\"branchHistory.fixture.menu\")\n                    }\n                }\n        }\n        .onDisappear {\n            fixture.handshake.cancel()\n            fixtureObserver?(fixture, .disappeared)\n        }\n        .background {\n            if let fixtureObserver {\n                PlayBranchHistoryFixtureProbe(fixture: fixture, revision: probeRevision,\n                    phase: fixture.model.phase, observe: fixtureObserver)\n                    .frame(width: 0, height: 0).allowsHitTesting(false).accessibilityHidden(true)\n            }\n        }\n    }\n}\n/// One retained dependency graph for one mounted synthetic host. New mounts start afresh.\n@MainActor final class PlayBranchHistoryFixtureState {\n    ",
+          "original_text": ""
+        },
+        {
+          "current_byte_start": 3160,
+          "current_byte_end": 3160,
+          "current_text": "",
+          "original_text": "private "
+        },
+        {
+          "current_byte_start": 3209,
+          "current_byte_end": 3211,
+          "current_text": "le",
+          "original_text": "@S"
+        },
+        {
+          "current_byte_start": 3212,
+          "current_byte_end": 3212,
+          "current_text": "",
+          "original_text": "ate private var"
+        },
+        {
+          "current_byte_start": 3250,
+          "current_byte_end": 3252,
+          "current_text": "le",
+          "original_text": "@S"
+        },
+        {
+          "current_byte_start": 3253,
+          "current_byte_end": 3253,
+          "current_text": "",
+          "original_text": "ate private var"
+        },
+        {
+          "current_byte_start": 3303,
+          "current_byte_end": 3360,
+          "current_text": "var session: PlayExperienceSession { owner.session }\n    ",
+          "original_text": ""
+        },
+        {
+          "current_byte_start": 3365,
+          "current_byte_end": 3381,
+          "current_text": "scenario: String",
+          "original_text": ""
+        },
+        {
+          "current_byte_start": 3457,
+          "current_byte_end": 3457,
+          "current_text": "",
+          "original_text": "\n        let args = ProcessInfo.processInfo.arguments\n        let index = args.firstIndex(of: \"--branch-history-scenario\")\n        let scenario = index.flatMap { args.indices.contains($0 + 1) ? args[$0 + 1] : nil } ?? \"recorded\""
+        },
+        {
+          "current_byte_start": 3886,
+          "current_byte_end": 3886,
+          "current_text": "",
+          "original_text": "self.owner = owner; self.recorder = recorder\n        "
+        },
+        {
+          "current_byte_start": 4091,
+          "current_byte_end": 4142,
+          "current_text": "self.owner = owner; self.recorder = recorder; self.",
+          "original_text": "_"
+        },
+        {
+          "current_byte_start": 4150,
+          "current_byte_end": 4150,
+          "current_text": "",
+          "original_text": "State(initialValue: "
+        },
+        {
+          "current_byte_start": 4155,
+          "current_byte_end": 4155,
+          "current_text": "",
+          "original_text": ")"
+        },
+        {
+          "current_byte_start": 4164,
+          "current_byte_end": 4164,
+          "current_text": "",
+          "original_text": "_"
+        },
+        {
+          "current_byte_start": 4175,
+          "current_byte_end": 4175,
+          "current_text": "",
+          "original_text": " State(initialValue:"
+        },
+        {
+          "current_byte_start": 4555,
+          "current_byte_end": 4555,
+          "current_text": "",
+          "original_text": ")"
+        },
+        {
+          "current_byte_start": 4565,
+          "current_byte_end": 4565,
+          "current_text": "",
+          "original_text": " var body: some View {\n        NavigationStack {\n            PlayExperienceView(model: model)\n                .environment(\\.branchHistoryFixtureHandshake, handshake)\n                .toolbar {\n                    ToolbarItem(placement: .topBarTrailing) {\n                        Menu(\"Fixture changes\") {\n                            Button(\"Refresh with empty history\") { Task { await replaceHistory() } }\n                                .accessibilityIdentifier(\"branchHistory.fixture.empty\")\n                            Button(\"Arm refresh after presentation\") { handshake.arm(.refresh) }\n                                .accessibilityIdentifier(\"branchHistory.fixture.delayedRefresh\")\n                            Button(\"Arm account switch after presentation\") { handshake.arm(.switchOwner) }\n                                .accessibilityIdentifier(\"branchHistory.fixture.delayedSwitch\")\n                        }.accessibilityIdentifier(\"branchHistory.fixture.menu\")\n                    }\n                }\n        }\n        .onDisappear { handshake.cancel() }\n    }\n    private"
+        },
+        {
+          "current_byte_start": 5302,
+          "current_byte_end": 6013,
+          "current_text": " }\n}\n/// Opt-in AppUnit observation, following the other hosted fixture ownership tests.\n/// No new visible control, network capability, elapsed-time action or release symbol.\nenum PlayBranchHistoryFixtureEvent: Equatable { case rendered(Int), disappeared }\n@MainActor private struct PlayBranchHistoryFixtureProbe: UIViewRepresentable {\n    let fixture: PlayBranchHistoryFixtureState\n    let revision: Int\n    let phase: PlayExperienceCoordinator.Phase\n    let observe: (PlayBranchHistoryFixtureState, PlayBranchHistoryFixtureEvent) -> Void\n    func makeUIView(context: Context) -> UIView { UIView(frame: .zero) }\n    func updateUIView(_ uiView: UIView, context: Context) { observe(fixture, .rendered(revision))",
+          "original_text": ""
+        }
+      ]
+    },
+    "Tests/AppUnitTests/PlayBranchHistoryFixtureHandshakeTests.swift": {
+      "current_sha256": "1694604fb92867941ff39c66c235522bf77145e25fa61c4a15ac99c62e1ec3b9",
+      "original_sha256": "e377ce367af0afef0a960fc2437ccc1ea14f3a81e5611d7885339192a55512a8",
+      "preimage": "tools/tests/fixtures/branch_history_fixture_lifetime/Tests__AppUnitTests__PlayBranchHistoryFixtureHandshakeTests.swift.txt",
+      "inverse_spans": [
+        {
+          "current_byte_start": 28,
+          "current_byte_end": 41,
+          "current_text": "\nimport UIKit",
+          "original_text": ""
+        },
+        {
+          "current_byte_start": 4617,
+          "current_byte_end": 4695,
+          "current_text": "()\n        try await assertLeavingAndReenteringFixtureResetsItsDependencyGraph",
+          "original_text": ""
+        },
+        {
+          "current_byte_start": 10239,
+          "current_byte_end": 17045,
+          "current_text": "    try await assertHostReconstructionRefreshesTheRetainedRecorder()\n    }\n\n    @MainActor private final class RebuildSignal: ObservableObject {\n        @Published var revision = 0\n        @Published var mounted = true\n    }\n    @MainActor private struct RebuildingHost: View {\n        @ObservedObject var signal: RebuildSignal\n        let observe: (PlayBranchHistoryFixtureState, PlayBranchHistoryFixtureEvent) -> Void\n        var body: some View {\n            if signal.mounted {\n                PlayBranchHistoryFixtureHost(scenario: \"recorded\", fixtureObserver: observe,\n                    probeRevision: signal.revision)\n            } else { Color.clear }\n        }\n    }\n    @MainActor private final class FixtureMount {\n        let signal = RebuildSignal()\n        let window = UIWindow(frame: UIScreen.main.bounds)\n        var observe: ((PlayBranchHistoryFixtureState, PlayBranchHistoryFixtureEvent) -> Void)?\n        private var host: UIHostingController<RebuildingHost>?\n        func show() {\n            let host = UIHostingController(rootView: RebuildingHost(signal: signal, observe: { [weak self] fixture, event in\n                self?.observe?(fixture, event)\n            }))\n            self.host = host; window.rootViewController = host; window.makeKeyAndVisible()\n        }\n        func close() { observe = nil; window.isHidden = true; window.rootViewController = nil; host = nil }\n    }\n    private func awaitMountedFixture(_ mount: FixtureMount, revision: Int,\n                                     trigger: () -> Void) async throws -> PlayBranchHistoryFixtureState {\n        let ready = expectation(description: \"Actual branch-history host ready at revision \\(revision)\")\n        var result: PlayBranchHistoryFixtureState?\n        mount.observe = { fixture, event in\n            guard event == .rendered(revision), fixture.model.phase == .ready, result == nil else { return }\n            result = fixture; ready.fulfill()\n        }\n        defer { mount.observe = nil }\n        trigger()\n        await fulfillment(of: [ready], timeout: 2)\n        return try XCTUnwrap(result, \"The actual SwiftUI host must mount or reconstruct before the action\")\n    }\n    private func assertHostReconstructionRefreshesTheRetainedRecorder() async throws {\n        let mount = FixtureMount()\n        defer { mount.close() }\n        let original = try await awaitMountedFixture(mount, revision: 0) { mount.show() }\n        let before = try XCTUnwrap(original.model.snapshot)\n        XCTAssertEqual(PlayBranchHistoryPresentation(snapshot: before).state, .recorded)\n        let selection = try XCTUnwrap(PlayBranchHistorySelection(snapshot: before))\n        for revision in [1, 2] {\n            let current = try await awaitMountedFixture(mount, revision: revision) { mount.signal.revision = revision }\n            XCTAssertTrue(current === original)\n            XCTAssertTrue(current.recorder === original.recorder)\n            XCTAssertTrue(current.model === original.model)\n            XCTAssertTrue(current.handshake === original.handshake)\n            XCTAssertEqual(current.session, original.session)\n            let oldCount = original.recorder.requests.count\n            // Same method invoked by the immediate toolbar action, after actual Host reconstruction.\n            await current.replaceHistory()\n            let snapshot = try XCTUnwrap(original.model.snapshot)\n            XCTAssertEqual(PlayBranchHistoryPresentation(snapshot: snapshot).state, .empty)\n            XCTAssertEqual(snapshot.route?.sessionID, 502); XCTAssertEqual(snapshot.route?.version, 0)\n            XCTAssertNil(selection.presentation(snapshot: original.model.snapshot))\n            XCTAssertEqual(original.recorder.requests.count, oldCount + 2)\n            XCTAssertEqual(Array(original.recorder.requests.suffix(2)).compactMap { $0.url?.path },\n                           [\"/fixture/api/play/nodes\", \"/fixture/api/play/route-state\"])\n            XCTAssertTrue(original.recorder.requests.allSatisfy { $0.httpMethod == \"GET\" })\n            XCTAssertFalse(original.model.canWrite); XCTAssertNil(original.model.reward); XCTAssertNil(original.model.ending)\n        }\n    }\n    private func assertLeavingAndReenteringFixtureResetsItsDependencyGraph() async throws {\n        let mount = FixtureMount()\n        defer { mount.close() }\n        let original = try await awaitMountedFixture(mount, revision: 0) { mount.show() }\n        let history = PlayBranchHistoryPresentation(snapshot: try XCTUnwrap(original.model.snapshot))\n        let oldCount = original.recorder.requests.count\n        original.handshake.arm(.switchOwner); XCTAssertTrue(original.handshake.apply(history))\n        original.handshake.cancel(); await original.handshake.waitForChange()\n        XCTAssertEqual(original.recorder.requests.count, oldCount)\n        XCTAssertEqual(original.session.accountID, 9001)\n        await original.replaceHistory()\n        original.handshake.arm(.switchOwner)\n        let disappeared = expectation(description: \"Leaving the actual fixture cancels unconsumed intent\")\n        var observedExit = false\n        mount.observe = { fixture, event in\n            guard event == .disappeared, !observedExit else { return }\n            observedExit = true\n            XCTAssertTrue(fixture === original)\n            XCTAssertNil(fixture.handshake.armed); XCTAssertFalse(fixture.handshake.applying)\n            disappeared.fulfill()\n        }\n        mount.signal.mounted = false\n        await fulfillment(of: [disappeared], timeout: 2)\n        XCTAssertTrue(observedExit)\n        let current = try await awaitMountedFixture(mount, revision: 1) {\n            mount.signal.revision = 1; mount.signal.mounted = true\n        }\n        XCTAssertFalse(current === original)\n        XCTAssertFalse(current.recorder === original.recorder)\n        XCTAssertFalse(current.model === original.model)\n        XCTAssertFalse(current.handshake === original.handshake)\n        XCTAssertEqual(current.session.accountID, 9001); XCTAssertEqual(current.session.epoch, 1)\n        XCTAssertNil(current.handshake.armed); XCTAssertEqual(current.handshake.consumedCount, 0)\n        let freshSnapshot = try XCTUnwrap(current.model.snapshot)\n        XCTAssertEqual(PlayBranchHistoryPresentation(snapshot: freshSnapshot).state, .recorded)\n        XCTAssertEqual(freshSnapshot.route?.sessionID, 501); XCTAssertEqual(freshSnapshot.route?.version, 2)\n        let retiredCount = original.recorder.requests.count\n        await current.replaceHistory()\n        XCTAssertEqual(PlayBranchHistoryPresentation(snapshot: try XCTUnwrap(current.model.snapshot)).state, .empty)\n        XCTAssertEqual(original.recorder.requests.count, retiredCount)\n        XCTAssertFalse(current.model.canWrite); XCTAssertNil(current.model.reward); XCTAssertNil(current.model.ending)\n    ",
+          "original_text": ""
+        }
+      ]
+    }
+  },
+  "support_sources": {
+    "Tests/ContractChecks/test_branch_history_fixture_lifetime.py": "81535d2fee61c03c83bc412571ef833bd644095aadfb0d9ce283259eb0a93ab9",
+    "tools/tests/test_branch_history_fixture_lifetime_projection.py": "f004c9a2c6b2d0ba47fb512925949466bb2464659d363987e13e7f98b3bf6d29"
+  }
+}

@@ -1,6 +1,6 @@
 # City-orientation route map
 
-Status: implemented candidate; Apple execution and live coordinate acceptance remain NOT_RUN.
+Status: implemented candidate with a CI138 route-map retirement repair. CI138 ran the four primary map UI journeys and found one failure; Apple execution of this repair and live coordinate acceptance remain NOT_RUN.
 
 ## Scope and source behavior
 
@@ -23,9 +23,17 @@ The retained mini-app's on-demand story-map entrance and return-to-story behavio
 ## Authored acceptance
 
 - 12 Core tests: mode/availability, hidden and branch filtering, locked redaction, current disambiguation, completed replay, unknown state, coordinate boundaries/strings/gaps, and preserved input order.
-- 8 app-unit tests: current/completed versus locked/hidden admission, identical refresh, account/epoch/guest return, scope/coordinator replacement, route session/version membership changes, failure/mode invalidation, and review/cancel presentation continuity.
+- 12 app-unit tests: current/completed versus locked/hidden admission, identical refresh, account/epoch/guest return, scope/coordinator replacement, route session/version membership changes, failure/mode invalidation, review/cancel presentation continuity, item-binding retirement, current-read reopening and stale retirement callback rejection.
 - 8 UI tests: current/completed/original entrance, all-missing coordinates, spoiler suppression, refresh while pushed, account/back/reopen/relaunch, Chinese maximum-text dark environment, free-mode exclusion, and existing task review/cancel. These use the production view and scripted synthetic transport; their existence does not prove execution.
-- 7 focused Python source contracts. Whole-source contract and project structural evidence are stored in the candidate package logs.
+- 8 focused Python source contracts. Whole-source contract and project structural evidence are stored in the candidate package logs.
+
+## CI138 pushed-destination retirement repair
+
+- Source run: [Native iOS checks run 37792301124, UI20](https://github.com/liboyang42-cpu/chengyin-ios/actions/runs/37792301124/job/113373676265), commit `4bf6667f8c5d9d2d59a8063d7d54eaef7a338865`, tree `82e9abd1afa6180815ef7ea5ea314d6eb692e036`.
+- The current/completed/original entrance, missing-coordinate list and locked/hidden-stop tests passed. `testSameNodeIDReadRefreshClearsPushedSelectionAndReopensCurrentRead` failed at line 68 after 29.506 seconds. Its synthetic refresh control was found and tapped. The accessibility tree and actual failure screenshot show `playRoute.selectionUnavailable` on a still-pushed destination with a Back button.
+- The exact-read guard correctly revoked the old task. Navigation cleanup depended on observers attached to the covered map view, so the foreground revoked-content page could remain pushed. The production destination now observes its resolved node with initial evaluation and clears its item binding when retired. Its callback rechecks both the exact destination UUID and current validity before clearing, so an old callback cannot pop a replacement selection for the same node ID.
+- All existing snapshot, interaction-context, coordinator, session and review/submission checks remain intact, as do the map-level observers. Cleanup does not load, regain command authority, request location, enable a provider or grant, or submit a task.
+- The original UI methods and synthetic route fixture remain byte-identical. No timeout, UI inventory, duration budget or planner change is part of this repair. The existing failing UI method remains the runtime acceptance test; Linux source checks and authored app-unit cases do not establish that the pop now succeeds on Apple.
 
 ## Explicit remaining acceptance
 

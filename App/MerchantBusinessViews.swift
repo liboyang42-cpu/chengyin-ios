@@ -6,6 +6,7 @@ import SwiftUI
     @Published var listFilters = MerchantBusinessListFilters()
     private(set) var aftercareLoadedPages: MerchantAftercareLoadedPages?
     private(set) var aftercareLoadFailureKey: String?
+    private(set) var reviewLoadedPages: MerchantReviewLoadedPages?
     private var loadGeneration = 0
     private var filterScope: MerchantBusinessScope?
     private var filterMerchantID: Int?
@@ -20,7 +21,21 @@ import SwiftUI
         guard pages.hasMore, snapshot.document.query == .aftercare(pages.bucket, page: pages.page) else { return }
         await load(.aftercare(pages.bucket, page: pages.page + 1), appendAftercare: true)
     }
-    private func load(_ requested: MerchantBusinessQuery, appendAftercare: Bool) async {
+    func loadMoreReviews() async {
+        guard !coordinator.isBusy, let snapshot = coordinator.snapshot, let pages = reviewLoadedPages else { return }
+        guard coordinator.isCurrent,
+              pages.matches(scope: coordinator.reader.scope, authorizationGeneration: coordinator.reader.authorizationGeneration, access: snapshot.access) else {
+            invalidate(); aftercareLoadFailureKey = "merchant.business.stale"; revision += 1; return
+        }
+        guard pages.hasMore, snapshot.document.query == .reviews(page: pages.page) else { return }
+        await load(.reviews(page: pages.page + 1), appendAftercare: false, appendReviews: true)
+    }
+    func reviewSourcePage(for row: MerchantBusinessRecord) -> MerchantReviewSourcePage? {
+        guard coordinator.isCurrent, let snapshot = coordinator.snapshot, let pages = reviewLoadedPages,
+              pages.matches(scope: coordinator.reader.scope, authorizationGeneration: coordinator.reader.authorizationGeneration, access: snapshot.access) else { return nil }
+        return pages.sourcePage(for: row)
+    }
+    private func load(_ requested: MerchantBusinessQuery, appendAftercare: Bool, appendReviews: Bool = false) async {
         // A refresh always starts a fresh page-one generation. No old rows survive
         // a refresh, failed replacement, bucket/context change or dismissal.
         let query: MerchantBusinessQuery
@@ -29,6 +44,7 @@ import SwiftUI
         if filterScope != coordinator.reader.scope { listFilters = .init(); filterMerchantID = nil }
         filterScope = coordinator.reader.scope
         if !appendAftercare { aftercareLoadedPages = nil }
+        if !appendReviews { reviewLoadedPages = nil }
         aftercareLoadFailureKey = nil
         loadGeneration += 1
         let generation = loadGeneration, scope = coordinator.reader.scope, authorization = coordinator.reader.authorizationGeneration
@@ -36,14 +52,27 @@ import SwiftUI
         guard generation == loadGeneration else { return }
         defer { revision += 1 }
         guard !Task.isCancelled, scope == coordinator.reader.scope, authorization == coordinator.reader.authorizationGeneration else {
-            aftercareLoadedPages = nil; coordinator.invalidate(); return
+            aftercareLoadedPages = nil; reviewLoadedPages = nil; coordinator.invalidate(); return
         }
         guard coordinator.isCurrent, let snapshot = coordinator.snapshot, snapshot.document.query == query, coordinator.failureKey == nil else {
-            aftercareLoadedPages = nil; return
+            aftercareLoadedPages = nil; reviewLoadedPages = nil; return
         }
         let currentMerchant = snapshot.access.merchantID
         if let filterMerchantID, filterMerchantID != currentMerchant { listFilters = .init() }
         filterMerchantID = currentMerchant
+        if case .reviews(let page) = query, let scope {
+            do {
+                if appendReviews {
+                    guard var pages = reviewLoadedPages else { throw MerchantBusinessFailure.stale }
+                    try pages.append(snapshot, scope: scope, authorizationGeneration: authorization)
+                    reviewLoadedPages = pages
+                } else if page == 1 {
+                    reviewLoadedPages = try .init(snapshot: snapshot, scope: scope, authorizationGeneration: authorization)
+                }
+            } catch {
+                reviewLoadedPages = nil; coordinator.invalidate(); aftercareLoadFailureKey = "merchant.business.stale"
+            }
+        }
         if case .aftercare = query, let scope {
             do {
                 if appendAftercare {
@@ -59,6 +88,11 @@ import SwiftUI
         }
     }
     func unfilteredRows(in section: MerchantBusinessSection, query: MerchantBusinessQuery) -> [MerchantBusinessRecord] {
+        if case .reviews = query, let pages = reviewLoadedPages {
+            guard coordinator.isCurrent, let snapshot = coordinator.snapshot,
+                  pages.matches(scope: coordinator.reader.scope, authorizationGeneration: coordinator.reader.authorizationGeneration, access: snapshot.access) else { return [] }
+            return pages.rows
+        }
         guard case .aftercare(let bucket, _) = query else { return section.rows }
         guard coordinator.isCurrent, let snapshot = coordinator.snapshot, let pages = aftercareLoadedPages,
               pages.bucket == bucket,
@@ -73,7 +107,7 @@ import SwiftUI
     func cancel() { coordinator.cancelConfirmation(); revision += 1 }
     func confirm(_ review: MerchantBusinessConfirmation) async { revision += 1; await coordinator.confirm(review); revision += 1 }
     func invalidate() {
-        loadGeneration += 1; aftercareLoadedPages = nil; aftercareLoadFailureKey = nil
+        loadGeneration += 1; aftercareLoadedPages = nil; reviewLoadedPages = nil; aftercareLoadFailureKey = nil
         coordinator.invalidate(); listFilters = .init(); filterScope = nil; filterMerchantID = nil; revision += 1
     }
 }
@@ -184,8 +218,10 @@ import SwiftUI
     @State private var editor: MerchantBusinessEditorContext?
     @State private var selection: Set<Int> = []
     @State private var pendingMutation: MerchantBusinessMutation?
-    init(reader: any MerchantBusinessReading, journal: any MerchantBusinessIntentStore, query: MerchantBusinessQuery) {
-        self.reader = reader; self.journal = journal
+    @State private var reviewSourceDestination: MerchantReviewSourcePage?
+    private let reviewSource: MerchantReviewSourcePage?
+    init(reader: any MerchantBusinessReading, journal: any MerchantBusinessIntentStore, query: MerchantBusinessQuery, reviewSource: MerchantReviewSourcePage? = nil) {
+        self.reader = reader; self.journal = journal; self.reviewSource = reviewSource
         _query = State(initialValue: query); _model = StateObject(wrappedValue: .init(reader: reader, journal: journal))
     }
     private var state: MerchantBusinessCoordinator { model.coordinator }
@@ -209,13 +245,26 @@ import SwiftUI
                 }
             }
             if let snapshot = state.snapshot, state.isCurrent {
+                if sourcePageMatches(snapshot) {
+                if reviewSource != nil {
+                    Text("merchant.business.reviews.sourcePageNotice").font(.footnote).foregroundStyle(.secondary)
+                    if !snapshot.document.rows.contains(where: { $0.id == reviewSource?.reviewID }) {
+                        Text("merchant.business.reviews.sourcePageMissing").accessibilityIdentifier("merchant.business.reviews.sourcePageMissing")
+                    }
+                }
                 summary(snapshot.document)
-                if snapshot.document.sections.allSatisfy({ model.unfilteredRows(in: $0, query: snapshot.document.query).isEmpty }) && (snapshot.document.summary.isEmpty || isLocalList) {
+                if query != .operators, snapshot.document.sections.allSatisfy({ model.unfilteredRows(in: $0, query: snapshot.document.query).isEmpty }) && (snapshot.document.summary.isEmpty || isLocalList) {
                     Text("merchant.business.empty").foregroundStyle(.secondary).accessibilityIdentifier("merchant.business.empty")
                 } else if model.listFilters.isActive(for: snapshot.document.query), snapshot.document.sections.allSatisfy({ visibleRows($0, in: snapshot.document).isEmpty }) {
                     Text(LocalizedStringKey(isAftercare ? "merchant.business.aftercare.noMatches" : "merchant.business.list.noMatches")).foregroundStyle(.secondary).accessibilityIdentifier("merchant.business.list.noMatches")
                 }
-                if case .customer = query, let detail = snapshot.document.customerDetail {
+                if query == .operators {
+                    if let roster = try? MerchantOperatorRoster(document: snapshot.document) {
+                        MerchantOperatorRosterSections(roster: roster, access: snapshot.access) { row in
+                            rowView(row, access: snapshot.access)
+                        }
+                    } else { Text("merchant.operatorRoster.unavailable").foregroundStyle(.secondary) }
+                } else if case .customer = query, let detail = snapshot.document.customerDetail {
                     MerchantCustomerDetailSections(detail: detail, access: snapshot.access) { row in
                         rowActions(row, access: snapshot.access)
                     }
@@ -237,12 +286,16 @@ import SwiftUI
                     }
                 }
                 pageActions(snapshot)
+                if reviewSource == nil, case .reviews = query, let pages = model.reviewLoadedPages, pages.hasMore {
+                    Button("merchant.business.reviews.loadMore") { Task { await model.loadMoreReviews() } }
+                        .disabled(state.isBusy).accessibilityIdentifier("merchant.business.reviews.loadMore")
+                }
                 if isAftercare {
                     if snapshot.document.hasMore {
                         Button("merchant.business.aftercare.loadMore") { Task { await model.loadMoreAftercare() } }
                             .disabled(state.isBusy).accessibilityIdentifier("merchant.business.aftercare.loadMore")
                     }
-                } else if snapshot.document.hasMore || query.page > 1 {
+                } else if reviewSource == nil, (model.reviewLoadedPages?.page ?? 1) == 1, snapshot.document.hasMore || query.page > 1 {
                     Section {
                         HStack {
                             Button("merchant.business.previous") { movePage(query.page - 1) }.disabled(query.page <= 1)
@@ -256,13 +309,18 @@ import SwiftUI
                     }
                 }
             }
+            }
+            if reviewSource != nil, let snapshot = state.snapshot, !sourcePageMatches(snapshot) {
+                Text("merchant.business.stale").accessibilityIdentifier("merchant.business.reviews.sourcePageStale")
+            }
             if !state.isBusy { Button("merchant.business.refresh") { Task { await reload() } }.accessibilityIdentifier("merchant.business.refresh") }
         }
         .appNavigationTitle(key: query.titleKey)
         .task(id: reader.scope) { await reload() }
         .refreshable { await reload() }
-        .sheet(item: $editor, onDismiss: { if let mutation = pendingMutation { pendingMutation = nil; model.prepare(mutation) } }) { context in
+        .sheet(item: $editor, onDismiss: { if let mutation = pendingMutation { pendingMutation = nil; if sourcePageCanPrepare(mutation) { model.prepare(mutation) } } }) { context in
             MerchantBusinessEditor(context: context, snapshot: state.snapshot, onReview: { mutation in
+                guard sourcePageCanPrepare(mutation) else { pendingMutation = nil; editor = nil; return }
                 pendingMutation = mutation; editor = nil
             })
         }
@@ -270,8 +328,16 @@ import SwiftUI
             MerchantBusinessReviewSheet(review: review, canExecute: reader.canExecute(review.mutation, merchantID: review.baseline.access.merchantID), isSynthetic: reader.isOfflineExample, busy: state.isBusy,
                 issue: state.failureKey, cancel: model.cancel, confirm: { Task { await model.confirm(review) } })
         }
-        .onChange(of: reader.scope) { _, _ in editor = nil; pendingMutation = nil; selection = []; model.invalidate() }
-        .onChange(of: reader.authorizationGeneration) { _, _ in editor = nil; pendingMutation = nil; selection = []; model.invalidate() }
+        .sheet(item: $reviewSourceDestination) { destination in
+            NavigationStack {
+                MerchantBusinessPage(reader: reader, journal: journal, query: destination.query, reviewSource: destination)
+                    .toolbar { ToolbarItem(placement: .cancellationAction) {
+                        Button("action.close") { reviewSourceDestination = nil }
+                    } }
+            }
+        }
+        .onChange(of: reader.scope) { _, _ in editor = nil; pendingMutation = nil; reviewSourceDestination = nil; selection = []; model.invalidate() }
+        .onChange(of: reader.authorizationGeneration) { _, _ in editor = nil; pendingMutation = nil; reviewSourceDestination = nil; selection = []; model.invalidate() }
         .onDisappear { editor = nil; pendingMutation = nil; model.invalidate() }
     }
     @ViewBuilder private var filters: some View {
@@ -314,7 +380,7 @@ import SwiftUI
                 }
             }
         }
-        if case .reviews = query {
+        if reviewSource == nil, case .reviews = query {
             Section {
                 Picker("merchant.business.reviews.filter", selection: $model.listFilters.review) {
                     ForEach(MerchantReviewFilter.allCases, id: \.self) { filter in
@@ -381,11 +447,16 @@ import SwiftUI
     }
     @ViewBuilder private func rowActions(_ row: MerchantBusinessRecord, access: MerchantBusinessAccess) -> some View {
         if row.kind == .review {
-            ForEach(MerchantReviewReplyAction.allCases, id: \.self) { action in
-                let key = action == .reply ? "canReply" : action == .report ? "canReport" : "canEditReply"
-                if row.fields[key]?.bool == true {
-                    Button(LocalizedStringKey("merchant.business.review." + String(action.rawValue))) { editor = .init(kind: .review(row, action)) }
+            if let snapshot = state.snapshot, sourcePageMatches(snapshot), snapshot.document.rows.contains(row) {
+                ForEach(MerchantReviewReplyAction.allCases, id: \.self) { action in
+                    let key = action == .reply ? "canReply" : action == .report ? "canReport" : "canEditReply"
+                    if row.fields[key]?.bool == true {
+                        Button(LocalizedStringKey("merchant.business.review." + String(action.rawValue))) { editor = .init(kind: .review(row, action)) }
+                    }
                 }
+            } else if reviewSource == nil, let destination = model.reviewSourcePage(for: row) {
+                Button("merchant.business.reviews.reloadSourcePage") { reviewSourceDestination = destination }
+                    .accessibilityIdentifier("merchant.business.reviews.reloadSourcePage.\(row.id)")
             }
         }
         if row.kind == .refund, row.fields["canRespond"]?.bool == true, access.allows("merchant:aftercare:respond") {
@@ -431,7 +502,17 @@ import SwiftUI
         switch query { case .aftercare, .reviews: return true; default: return false }
     }
     private func visibleRows(_ section: MerchantBusinessSection, in document: MerchantBusinessDocument) -> [MerchantBusinessRecord] {
-        model.visibleRows(in: section, query: document.query)
+        let rows = reviewSource == nil ? model.visibleRows(in: section, query: document.query) : section.rows
+        return rows.filter { reviewSource == nil || $0.id == reviewSource?.reviewID }
+    }
+    private func sourcePageMatches(_ snapshot: MerchantBusinessSnapshot) -> Bool {
+        reviewSource?.matches(scope: reader.scope, authorizationGeneration: reader.authorizationGeneration, snapshot: snapshot) ?? true
+    }
+    private func sourcePageCanPrepare(_ mutation: MerchantBusinessMutation) -> Bool {
+        guard let reviewSource else { return true }
+        guard let snapshot = state.snapshot, state.isCurrent, sourcePageMatches(snapshot),
+              case .review(let id, _, _, _) = mutation else { return false }
+        return String(id.rawValue) == reviewSource.reviewID
     }
     private var availableTags: [Int] {
         state.snapshot?.document.payload.object?["availableTags"]?.array?.compactMap { $0.object?["id"]?.integer }.filter { $0 > 0 } ?? []

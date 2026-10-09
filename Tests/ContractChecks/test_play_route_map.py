@@ -53,6 +53,27 @@ class PlayRouteMapContracts(unittest.TestCase):
         self.assertNotIn('model.submit(', self.app)
         self.assertNotIn('model.review(', self.app)
 
+    def test_visible_destination_retires_only_its_exact_selection(self):
+        destination = self.app.split('.navigationDestination(item: $selected) { choice in', 1)[1].split('\n        }\n', 1)[0]
+        for value in ['let nodeID = choice.nodeID(in: model)', 'Group {',
+                      '.onChange(of: nodeID, initial: true)',
+                      'choice.retireSelectionIfNeeded(&selected, in: model)']:
+            self.assertIn(value, destination)
+        retirement = self.app.split('@MainActor func retireSelectionIfNeeded(', 1)[1].split('static func ==', 1)[0]
+        self.assertIn('guard selected?.id == id, nodeID(in: model) == nil else { return }', retirement)
+        self.assertIn('selected = nil', retirement)
+        for unsafe in ['model.load(', 'Task {', 'nodeDestination(', 'openedNodeID ==']:
+            self.assertNotIn(unsafe, retirement)
+        resolution = self.app.split('@MainActor func nodeID(in model:', 1)[1].split('@MainActor func retireSelectionIfNeeded(', 1)[0]
+        self.assertIn('guard coordinator === model, owner == PlayExperiencePresentationKey(model: model), model.snapshot == snapshot else { return nil }', resolution)
+        self.assertIn('if model.phase == .reviewing || model.phase == .submitting { return openedNodeID }', resolution)
+        self.assertIn('guard !model.unresolved else { return nil }', resolution)
+        self.assertIn('return choice.resolve(snapshot: model.snapshot, context: model.interactionContext)', resolution)
+        # The original UI regression remains the Apple acceptance oracle.
+        self.assertIn('func testSameNodeIDReadRefreshClearsPushedSelectionAndReopensCurrentRead()', self.ui)
+        self.assertIn('XCTAssertTrue(app.navigationBars["Route map"].waitForExistence(timeout: 5), app.debugDescription)', self.ui)
+        self.assertIn('XCTAssertFalse(app.navigationBars["Journey task"].exists)', self.ui)
+
     def test_accessibility_and_bilingual_disclaimer(self):
         self.assertIn('.fixedSize(horizontal: false, vertical: true)', self.app)
         self.assertIn('minHeight: 44', self.app)

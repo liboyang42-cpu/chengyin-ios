@@ -41,7 +41,7 @@ import XCTest
     }
     private func insert(_ kind: String, before anchor: String?, _ app: XCUIApplication) {
         if let anchor {
-            tap("projectStoryMedia.gap." + anchor, app, top: true)
+            tap("projectStoryMedia.gap." + anchor, app)
             tap("projectStory" + kind + ".insertBefore." + anchor, app, fixed: true)
         } else { tap("projectStory" + kind + ".add", app) }
     }

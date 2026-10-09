@@ -20,13 +20,24 @@ import SwiftUI
     }
     func testCardGrowsForAccessibilityTextWithoutHorizontalOverflow() throws {
         let row = try activity(long: true)
-        func measure(_ size: DynamicTypeSize) -> CGSize {
-            UIHostingController(rootView: SearchMapActivityCard(item: row, offline: true).dynamicTypeSize(size))
-                .sizeThatFits(in: CGSize(width: 300, height: 20_000))
+        for language in ["en", "zh-Hans"] {
+            let normal = intrinsicSize(row, dynamicType: .large, language: language)
+            let largest = intrinsicSize(row, dynamicType: .accessibility5, language: language)
+            XCTAssertGreaterThan(largest.height, normal.height, language)
+            assertBoundedIntrinsicSize(normal)
+            assertBoundedIntrinsicSize(largest)
         }
-        let normal = measure(.large), largest = measure(.accessibility5)
-        XCTAssertGreaterThan(largest.height, normal.height)
-        XCTAssertLessThanOrEqual(largest.width, 301)
+    }
+    func testIntrinsicCardHeightDoesNotFollowHostingProposal() throws {
+        let row = try activity(long: true)
+        for language in ["en", "zh-Hans"] {
+            let first = intrinsicSize(row, dynamicType: .accessibility5, language: language, proposedHeight: 10_000)
+            let second = intrinsicSize(row, dynamicType: .accessibility5, language: language, proposedHeight: 20_000)
+            assertBoundedIntrinsicSize(first)
+            assertBoundedIntrinsicSize(second)
+            XCTAssertEqual(first.height, second.height, accuracy: 0.5, language)
+            XCTAssertEqual(first.width, second.width, accuracy: 0.5, language)
+        }
     }
     func testMissingAddressAndTimeStatesConstructInBothLanguages() throws {
         let row = try JSONDecoder().decode(ActivitySummary.self, from: Data(#"{"id":73,"name":"Synthetic indoor activity"}"#.utf8))
@@ -34,9 +45,9 @@ import SwiftUI
             let card = SearchMapActivityCard(item: row, offline: true)
             XCTAssertNil(card.presentation.address); XCTAssertEqual(card.presentation.starts, .unknown)
             XCTAssertEqual(card.presentation.ends, .unknown); XCTAssertEqual(card.presentation.pointKind, .activity)
-            let size = UIHostingController(rootView: card.environment(\.locale, Locale(identifier: language))
-                .dynamicTypeSize(.accessibility5)).sizeThatFits(in: CGSize(width: 300, height: 20_000))
-            XCTAssertGreaterThan(size.height, 230); XCTAssertLessThanOrEqual(size.width, 301)
+            let size = intrinsicSize(row, dynamicType: .accessibility5, language: language)
+            XCTAssertGreaterThan(size.height, 230)
+            assertBoundedIntrinsicSize(size)
         }
     }
     func testOfflineRenderingDoesNotRemoveRealCategoryOrThemeMetadata() throws {
@@ -46,5 +57,27 @@ import SwiftUI
         XCTAssertEqual(live, offline)
         XCTAssertEqual(offline.categoryNames, ["文化", "A source category"])
         XCTAssertEqual(offline.pointKind, .topic)
+    }
+
+    private func intrinsicSize(_ row: ActivitySummary, dynamicType: DynamicTypeSize,
+                               language: String, proposedHeight: CGFloat = 20_000) -> CGSize {
+        let card = SearchMapActivityCard(item: row, offline: true)
+            .environment(\.locale, Locale(identifier: language))
+            .dynamicTypeSize(dynamicType)
+            // Both shipping map-card surfaces are children of a vertical ScrollView.
+            // Ask for ideal height while retaining the 300pt width proposal, as in
+            // ReferenceMapCardAppTests. A large finite height alone lets the shared
+            // image card's flexible Spacer consume the entire hosting proposal.
+            .fixedSize(horizontal: false, vertical: true)
+        return UIHostingController(rootView: card)
+            .sizeThatFits(in: CGSize(width: 300, height: proposedHeight))
+    }
+
+    private func assertBoundedIntrinsicSize(_ size: CGSize, file: StaticString = #filePath, line: UInt = #line) {
+        XCTAssertTrue(size.width.isFinite && size.height.isFinite, file: file, line: line)
+        XCTAssertGreaterThan(size.width, 0, file: file, line: line)
+        XCTAssertLessThanOrEqual(size.width, 301, file: file, line: line)
+        XCTAssertGreaterThanOrEqual(size.height, 230, file: file, line: line)
+        XCTAssertLessThan(size.height, 10_000, "Intrinsic content must not fill the measurement proposal", file: file, line: line)
     }
 }

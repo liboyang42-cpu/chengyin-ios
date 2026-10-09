@@ -83,9 +83,17 @@ import MapKit
         .privacySensitive().appNavigationTitle(key: "playRoute.title")
         .navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("playRoute.screen")
         .navigationDestination(item: $selected) { choice in
-            if let id = choice.nodeID(in: model) {
-                nodeDestination(id)
-            } else { Text("playRoute.unavailable").accessibilityIdentifier("playRoute.selectionUnavailable") }
+            let nodeID = choice.nodeID(in: model)
+            Group {
+                if let nodeID {
+                    nodeDestination(nodeID)
+                } else { Text("playRoute.unavailable").accessibilityIdentifier("playRoute.selectionUnavailable") }
+            }
+            // The map is covered while its task is pushed. Observe retirement on
+            // the visible destination too, including a read retired before mount.
+            .onChange(of: nodeID, initial: true) { _, _ in
+                choice.retireSelectionIfNeeded(&selected, in: model)
+            }
         }
         .onChange(of: context) { _, _ in clearRetiredSelection() }
         .onChange(of: model.snapshot) { _, _ in clearRetiredSelection() }
@@ -216,6 +224,12 @@ struct PlayRouteMapDestination: Hashable, Identifiable {
         if model.phase == .reviewing || model.phase == .submitting { return openedNodeID }
         guard !model.unresolved else { return nil }
         return choice.resolve(snapshot: model.snapshot, context: model.interactionContext)
+    }
+    @MainActor func retireSelectionIfNeeded(_ selected: inout Self?, in model: PlayExperienceCoordinator) {
+        // A queued callback from a disappearing destination cannot pop a newer
+        // selection, even when both destinations open the same node ID.
+        guard selected?.id == id, nodeID(in: model) == nil else { return }
+        selected = nil
     }
     static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
     func hash(into hasher: inout Hasher) { hasher.combine(id) }

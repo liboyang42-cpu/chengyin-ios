@@ -15,6 +15,9 @@ def contract():
  return json.loads(raw)
 
 def original_source(relative,source):
+ try:from run138_current_source_projection import previous_text
+ except ModuleNotFoundError:from tools.run138_current_source_projection import previous_text
+ source=previous_text(relative,source)
  row=contract()['files'][relative]
  if hashlib.sha256(source.encode()).hexdigest()!=row['after_sha256']:raise ValueError('Unknown current receipt source')
  if row['before_sha256'] is None:raise ValueError('New receipt helper has no original source')
@@ -26,7 +29,11 @@ def original_source(relative,source):
 
 def previous_source(path):
  global _lifetime
- p=Path(path)
+ try:
+     from run138_current_source_projection import previous_source as before_current
+ except ModuleNotFoundError:
+     from tools.run138_current_source_projection import previous_source as before_current
+ p=before_current(Path(path))
  if p.parent.name!='AppUITests':return p
  relative='Tests/AppUITests/'+p.name
  row=contract()['files'].get(relative)

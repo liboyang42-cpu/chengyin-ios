@@ -4,6 +4,40 @@ import SwiftUI
 import UIKit
 @testable import Questify
 
+/// Own a real foreground scene for hosted SwiftUI navigation so the fixture takes
+/// part in the app's scene lifecycle, rather than mounting isolated frame-only content.
+/// This helper never calls appearance callbacks or changes animation behavior.
+@MainActor final class HostedNavigationSceneWindow {
+    let window: UIWindow
+    private weak var scene: UIWindowScene?
+    private weak var previousKeyWindow: UIWindow?
+
+    init() throws {
+        let activeScenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+            .filter { $0.activationState == .foregroundActive }
+        let selected = try XCTUnwrap(activeScenes.count == 1 ? activeScenes.first : nil,
+                                    "Hosted navigation requires exactly one foreground-active UIWindowScene")
+        scene = selected
+        previousKeyWindow = selected.windows.first { $0.isKeyWindow }
+        window = UIWindow(windowScene: selected)
+        window.frame = selected.coordinateSpace.bounds
+    }
+
+    func retire() {
+        let ownedKeyWindow = window.isKeyWindow
+        window.isHidden = true
+        window.rootViewController = nil
+        window.windowScene = nil
+        guard ownedKeyWindow, let scene, scene.activationState == .foregroundActive,
+              UIApplication.shared.connectedScenes.contains(where: { $0 === scene }),
+              let previousKeyWindow, previousKeyWindow !== window,
+              previousKeyWindow.windowScene === scene, !previousKeyWindow.isHidden,
+              previousKeyWindow.windowLevel == .normal, previousKeyWindow.rootViewController != nil,
+              scene.windows.contains(where: { $0 === previousKeyWindow }) else { return }
+        previousKeyWindow.makeKey()
+    }
+}
+
 @MainActor enum WorkshopPurchasedAppFixture {
     static let item: [String: Any] = ["licenseId":"w18-paid-11","moduleId":"synthetic-module","purchasedVersionId":"synthetic-version","contentHash":String(repeating:"a",count:64),"status":"ACTIVE","acquiredAt":"2026-10-05T00:00:00Z","termsVersion":"terms-1","termsHash":String(repeating:"b",count:64),"commercialUse":"PROHIBITED","adaptation":"LOCAL_ADAPTATION","translation":"PROHIBITED","updates":"EXACT_PURCHASED_VERSION","redistribution":"PROHIBITED","allowedRegions":["synthetic-region"],"themeLimit":["unlimited":false,"maximum":1],"merchantLimit":["unlimited":false,"maximum":0],"runLimit":["unlimited":false,"maximum":10],"acquisition":"PAID","buyerKind":"INDIVIDUAL","useDuration":"PERPETUAL_PURCHASED_VERSION","contentUseStatus":"PAID_INSTALL_AUTHORITY_UNAVAILABLE","purchaseActionStatus":"CHANNEL_APPROVAL_REQUIRED"]
     static let header: [String: Any] = ["schema":"workshop-purchased-owned-v1","scope":"PAID_INDIVIDUAL_PURCHASED_VERSION_METADATA_ONLY","checkedAt":"2026-10-05T00:00:00Z"]
@@ -267,9 +301,11 @@ import UIKit
         XCTAssertEqual(browser.phase, .ready); XCTAssertEqual(h.wire.owned.count, 2)
     }
 
-    private func wait(_ condition: @escaping () -> Bool) async throws {
+    private func wait(_ stage: String = "condition", file: StaticString = #filePath, line: UInt = #line,
+                      diagnostics: () -> String = { "" }, _ condition: @escaping () -> Bool) async throws {
         for _ in 0..<100 { if condition() { return }; try await Task.sleep(nanoseconds:20_000_000) }
-        XCTAssertTrue(condition()); if !condition() { throw WorkshopPurchasedIssue.unavailable }
+        XCTAssertTrue(condition(), stage + " " + diagnostics(), file: file, line: line)
+        if !condition() { throw WorkshopPurchasedIssue.unavailable }
     }
     func testNormalHostedPurchasedEntryPreservesCanonicalContextForMerchantAndClubAndBackReopen() async throws {
         for role in ["merchant","club"] {
@@ -277,11 +313,18 @@ import UIKit
             let browser=try XCTUnwrap(h.session.workshopPurchasedBrowser),navigation=WorkshopPurchasedNavigationState(browser:browser)
             XCTAssertNil(h.session.workshopOwnedBrowser,"Paid approval cannot enable FREE library")
             let host=UIHostingController(rootView:NavigationStack{WorkshopPurchasedLibraryView(browser:browser,navigation:navigation)})
-            let window=UIWindow(frame:UIScreen.main.bounds);window.rootViewController=host;window.makeKeyAndVisible();defer{window.isHidden=true;window.rootViewController=nil}
-            try await wait{browser.phase == .ready && navigation.listPermit != nil}
-            navigation.select(licenseId:"w18-paid-11",presentation:navigation.listPermit);try await wait{browser.detail != nil && navigation.detailPermit != nil}
+            let sceneWindow = try HostedNavigationSceneWindow(), window = sceneWindow.window
+            window.rootViewController=host;window.makeKeyAndVisible();defer{sceneWindow.retire()}
+            // Synthetic state/counts only. Keep the exact readiness predicates and wait budget.
+            let diagnostic = { "phase=\(browser.phase) list=\(navigation.listPermit != nil) detail=\(navigation.detailPermit != nil) selected=\(navigation.selection != nil) detailValue=\(browser.detail != nil) reads=\(h.wire.owned.count) contexts=\(h.selectorContexts.count) sceneActive=\(window.windowScene?.activationState == .foregroundActive)" }
+            try await wait("\(role) initial purchased list ready", diagnostics: diagnostic){browser.phase == .ready && navigation.listPermit != nil}
+            XCTAssertTrue(host.view.window === window)
+            XCTAssertEqual(window.windowScene?.activationState, .foregroundActive)
+            navigation.select(licenseId:"w18-paid-11",presentation:navigation.listPermit)
+            try await wait("\(role) purchased detail ready", diagnostics: diagnostic){browser.detail != nil && navigation.detailPermit != nil}
             XCTAssertEqual(browser.detail?.item.purchasedVersionId,"synthetic-version");XCTAssertFalse(browser.detail?.item.permitsPurchase ?? true)
-            navigation.selection=nil;try await wait{navigation.listPermit != nil && browser.phase == .ready}
+            navigation.selection=nil
+            try await wait("\(role) Back restores purchased list", diagnostics: diagnostic){navigation.listPermit != nil && browser.phase == .ready}
             XCTAssertNil(browser.detail);XCTAssertTrue(browser === h.session.workshopPurchasedBrowser)
             XCTAssertGreaterThanOrEqual(h.selectorContexts.count,5);for context in h.selectorContexts.suffix(5){XCTAssertEqual(context,h.strictExpectedContext);XCTAssertEqual(context.session.role,"player")}
         }

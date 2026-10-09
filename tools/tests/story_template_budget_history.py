@@ -1,5 +1,5 @@
 """Exact source/profile projection of the frozen 712-method club R2 layer."""
-from tools.tests.player_map_history_budget_history import before_player_map_history
+from tools.tests.player_map_history_budget_history import before_player_map_history, validated_pre_run129_directory
 from tools.run129_repair_planning import historical_source as pre_run129_source
 from copy import deepcopy
 import hashlib
@@ -63,10 +63,11 @@ def materialize_pre_story_ui(directory):
     rows = source_index()['baseline_ui_sources']
     allowed = {Path(row['path']).name for row in rows}
     assert not {p.name for p in destination.glob('*.swift')} - allowed, 'Foreign source in pre-story projection'
-    for row in rows:
-        data = pre_run129_source(ROOT / row['path']).read_bytes()
-        assert hashlib.sha256(data).hexdigest() == row['sha256'], row['path']
-        (destination / Path(row['path']).name).write_bytes(data)
+    with validated_pre_run129_directory(ROOT) as current:
+        for row in rows:
+            data = pre_run129_source(current / Path(row['path']).name).read_bytes()
+            assert hashlib.sha256(data).hexdigest() == row['sha256'], row['path']
+            (destination / Path(row['path']).name).write_bytes(data)
     return destination
 
 

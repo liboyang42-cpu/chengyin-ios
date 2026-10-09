@@ -194,6 +194,9 @@ import SwiftUI
                 Button("projectEdit.fixture.signOut") { context.signOut() }.accessibilityIdentifier("projectEdit.fixture.signOut")
                 Button("projectEdit.fixture.reopen") { context.reopen() }.accessibilityIdentifier("projectEdit.fixture.reopen")
             }.buttonStyle(.bordered).padding(.horizontal)
+                // DEBUG fixture controls must not consume the maximum-text editor viewport.
+                // This modifier is local to this HStack, not the production NavigationStack.
+                .dynamicTypeSize(.large)
             if ProcessInfo.processInfo.arguments.contains("--project-edit-starter-probe") {
                 Button("projectStarter.inspectFixture") { context.inspect() }
                     .accessibilityIdentifier("projectStarter.fixtureSnapshot").accessibilityValue(context.inspection)

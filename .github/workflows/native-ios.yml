@@ -10,18 +10,57 @@ concurrency:
   group: native-ios-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
+  static-checks:
+    runs-on: ubuntu-24.04
+    # Full tools and contract discoveries run in independent Python processes.
+    timeout-minutes: 30
+    outputs:
+      static_receipt: ${{ steps.static.outputs.static_receipt }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Run complete native-local Python checks and attest exact source
+        id: static
+        run: python3 -B tools/run_static_checks.py run --output "$RUNNER_TEMP/native-static-checks" --github-output "$GITHUB_OUTPUT"
+      - name: Share successful same-run static receipt and full reports
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: static-checks-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/native-static-checks/
+          if-no-files-found: error
+          retention-days: 1
+      - name: Retain actual static logs and incomplete reports on failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: static-checks-failure-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/native-static-checks/
+          if-no-files-found: warn
+          retention-days: 1
   native:
     name: native-products
+    needs: static-checks
+    env:
+      EXPECTED_STATIC_RECEIPT: ${{ needs.static-checks.outputs.static_receipt }}
     runs-on: macos-26
     # Cold Core/App/test-bundle compilation plus bounded packaging headroom.
     # Runtime test jobs keep their independent deadlines below.
     timeout-minutes: 25
     outputs:
       build_fingerprint: ${{ steps.identity.outputs.build_fingerprint }}
+      static_receipt: ${{ steps.static.outputs.static_receipt }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: static-checks-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/native-static-checks
+      - name: Verify complete static receipt before any Apple work
+        id: static
+        run: python3 -B tools/ci_gates.py verify-static --static-artifact "$RUNNER_TEMP/native-static-checks" --github-output "$GITHUB_OUTPUT"
       - name: Bind builder to exact checked-out SHA and Apple toolchain
         id: identity
         run: python3 tools/ci_gates.py fingerprint --github-output "$GITHUB_OUTPUT"
@@ -32,9 +71,6 @@ jobs:
           xcodebuild -showsdks
       - name: Check project and localization structure
         run: |
-          echo 'Native-local contracts run in this checkout. External Flutter parity assertions require a separate app-audit checkout; unavailable comparisons are explicitly SKIPPED / NOT_RUN, never passed.'
-          python3 -m unittest discover -s tools/tests -v
-          python3 -m unittest discover -s Tests/ContractChecks -p 'test_*.py' -v
           python3 tools/check_scaffold.py
           plutil -lint Questify.xcodeproj/project.pbxproj
           git diff --exit-code -- Questify.xcodeproj
@@ -444,14 +480,18 @@ jobs:
     # Keep the pre-split required check name on the complete aggregate.
     name: native
     if: ${{ always() }}
-    needs: [native, device-build, us-build, secrets, app-unit-tests, ui-tests]
+    needs: [static-checks, native, device-build, us-build, secrets, app-unit-tests, ui-tests]
     runs-on: ubuntu-24.04
     timeout-minutes: 2
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: static-checks-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/native-static-checks
       - name: Require every same-SHA native gate and UI shard to succeed
         env:
           NEEDS_JSON: ${{ toJSON(needs) }}
-        run: python3 tools/ci_gates.py aggregate
+        run: python3 -B tools/ci_gates.py aggregate --static-artifact "$RUNNER_TEMP/native-static-checks"

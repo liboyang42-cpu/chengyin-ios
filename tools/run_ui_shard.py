@@ -44,6 +44,13 @@ def discover(directory):
 def measured_weights(directory, profile):
     """Observed/declared estimated costs affect grouping only; source defines every case."""
     try:
+        from run138_current_source_projection import current_weights
+    except ModuleNotFoundError:
+        from tools.run138_current_source_projection import current_weights
+    current = current_weights(directory, profile)
+    if current is not None:
+        return current
+    try:
         from branch_history_handshake_planning import weights as handshake_weights
     except ModuleNotFoundError:
         from tools.branch_history_handshake_planning import weights as handshake_weights

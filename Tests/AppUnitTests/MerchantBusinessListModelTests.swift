@@ -302,4 +302,157 @@ import XCTest
         XCTAssertNil(model.aftercareLoadedPages); XCTAssertEqual(try journal.intents(), [intent])
     }
 
+    func testReviewCancelledAppendCannotRestoreAccumulation() async throws {
+        let reader = Reader(), journal = MerchantBusinessMemoryIntentStore()
+        let model = MerchantBusinessViewModel(reader: reader, journal: journal)
+        await model.load(.reviews(page: 1))
+        reader.suspendQuery = .reviews(page: 2)
+        let pending = Task { await model.loadMoreReviews() }
+        for _ in 0..<100 where reader.suspended == nil { await Task.yield() }
+        guard let continuation = reader.suspended else { pending.cancel(); return XCTFail("Synthetic append did not suspend") }
+        pending.cancel(); continuation.resume(); await pending.value
+        XCTAssertNil(model.reviewLoadedPages); XCTAssertNil(model.coordinator.snapshot)
+    }
+
+    func testReviewAuthorizationChangeBeforeLoadMoreClearsWithoutReading() async {
+        let reader = Reader(), journal = MerchantBusinessMemoryIntentStore()
+        let model = MerchantBusinessViewModel(reader: reader, journal: journal)
+        await model.load(.reviews(page: 1)); model.listFilters.review = .photos
+        reader.authorizationGeneration = UUID()
+        await model.loadMoreReviews()
+        XCTAssertNil(model.reviewLoadedPages); XCTAssertNil(model.coordinator.snapshot)
+        XCTAssertEqual(model.listFilters, .init())
+        XCTAssertEqual(reader.calls, [.reviews(page: 1)])
+    }
+
+    func testReviewAuthorizationChangeDuringAppendDiscardsAllRows() async throws {
+        let reader = Reader(), journal = MerchantBusinessMemoryIntentStore()
+        let model = MerchantBusinessViewModel(reader: reader, journal: journal)
+        await model.load(.reviews(page: 1))
+        reader.suspendQuery = .reviews(page: 2)
+        let pending = Task { await model.loadMoreReviews() }
+        for _ in 0..<100 where reader.suspended == nil { await Task.yield() }
+        guard let continuation = reader.suspended else { pending.cancel(); return XCTFail("Synthetic append did not suspend") }
+        reader.authorizationGeneration = UUID()
+        continuation.resume(); await pending.value
+        XCTAssertNil(model.reviewLoadedPages); XCTAssertNil(model.coordinator.snapshot)
+    }
+
+    func testReviewRepeatedLoadMoreWhileBusyDoesNotReadOrAppendTwice() async throws {
+        let reader = Reader(), journal = MerchantBusinessMemoryIntentStore()
+        let model = MerchantBusinessViewModel(reader: reader, journal: journal)
+        await model.load(.reviews(page: 1))
+        reader.suspendQuery = .reviews(page: 2)
+        let pending = Task { await model.loadMoreReviews() }
+        for _ in 0..<100 where reader.suspended == nil { await Task.yield() }
+        guard let continuation = reader.suspended else { pending.cancel(); return XCTFail("Synthetic append did not suspend") }
+        await model.loadMoreReviews()
+        XCTAssertEqual(reader.calls, [.reviews(page: 1), .reviews(page: 2)])
+        continuation.resume(); await pending.value
+        XCTAssertEqual(model.reviewLoadedPages?.rows.count, 21)
+    }
+
+    func testReviewScopeChangeDuringAppendClearsOldAccountRows() async throws {
+        let reader = Reader(), journal = MerchantBusinessMemoryIntentStore()
+        let model = MerchantBusinessViewModel(reader: reader, journal: journal)
+        await model.load(.reviews(page: 1))
+        reader.suspendQuery = .reviews(page: 2)
+        let older = Task { await model.loadMoreReviews() }
+        for _ in 0..<100 where reader.suspended == nil { await Task.yield() }
+        guard let continuation = reader.suspended else { older.cancel(); return XCTFail("Synthetic append did not suspend") }
+        reader.scope = .init(realm: "synthetic://list-tools", accountID: 99002, epoch: 2)
+        await model.load(.reviews(page: 1))
+        continuation.resume(); await older.value
+        XCTAssertEqual(model.reviewLoadedPages?.scope.accountID, 99002)
+        XCTAssertEqual(model.reviewLoadedPages?.page, 1)
+        XCTAssertEqual(model.reviewLoadedPages?.rows.count, 20)
+    }
+
+    func testReviewDismissalDuringAppendCannotRepopulateClosedList() async throws {
+        let reader = Reader(), journal = MerchantBusinessMemoryIntentStore()
+        let model = MerchantBusinessViewModel(reader: reader, journal: journal)
+        await model.load(.reviews(page: 1))
+        reader.suspendQuery = .reviews(page: 2)
+        let older = Task { await model.loadMoreReviews() }
+        for _ in 0..<100 where reader.suspended == nil { await Task.yield() }
+        guard let continuation = reader.suspended else { older.cancel(); return XCTFail("Synthetic append did not suspend") }
+        model.invalidate()
+        continuation.resume(); await older.value
+        XCTAssertNil(model.reviewLoadedPages); XCTAssertNil(model.coordinator.snapshot)
+        XCTAssertEqual(model.listFilters, .init())
+    }
+
+    func testReviewRefreshDuringSuspendedAppendFencesOlderGeneration() async throws {
+        let reader = Reader()
+        let tracked = MerchantBusinessViewModel(reader: reader, journal: MerchantBusinessMemoryIntentStore())
+        await tracked.load(.reviews(page: 1))
+        reader.suspendQuery = .reviews(page: 2)
+        let older = Task { await tracked.loadMoreReviews() }
+        for _ in 0..<100 where reader.suspended == nil { await Task.yield() }
+        guard let continuation = reader.suspended else { older.cancel(); return XCTFail("Synthetic append did not suspend") }
+        await tracked.load(.reviews(page: 1))
+        tracked.listFilters.review = .photos
+        continuation.resume(); await older.value
+        XCTAssertEqual(tracked.reviewLoadedPages?.rows.count, 20)
+        XCTAssertEqual(tracked.reviewLoadedPages?.page, 1)
+        XCTAssertEqual(tracked.coordinator.snapshot?.document.query, .reviews(page: 1))
+        XCTAssertEqual(tracked.listFilters.review, .photos)
+    }
+
+    func testReviewFailedLoadMoreClearsAccumulationAndRefreshCanRecover() async {
+        let reader = Reader()
+        let tracked = MerchantBusinessViewModel(reader: reader, journal: MerchantBusinessMemoryIntentStore())
+        await tracked.load(.reviews(page: 1)); tracked.listFilters.review = .photos
+        reader.failure = .denied; await tracked.loadMoreReviews()
+        XCTAssertNil(tracked.reviewLoadedPages); XCTAssertNil(tracked.coordinator.snapshot)
+        XCTAssertEqual(tracked.listFilters.review, .photos)
+        reader.failure = nil; await tracked.load(.reviews(page: 1))
+        XCTAssertEqual(tracked.reviewLoadedPages?.rows.count, 20)
+    }
+
+    func testReviewLoadMoreRetainsFilteredRowsWithoutChangingMutationAuthority() async throws {
+        let reader = Reader(), journal = MerchantBusinessMemoryIntentStore()
+        let model = MerchantBusinessViewModel(reader: reader, journal: journal)
+        await model.load(.reviews(page: 1)); model.listFilters.review = .photos
+        await model.loadMoreReviews()
+        let snapshot = try XCTUnwrap(model.coordinator.snapshot)
+        XCTAssertEqual(model.visibleRows(in: snapshot.document.sections[0], query: snapshot.document.query).map(\.id), ["63003"])
+        XCTAssertEqual(snapshot.document.rows.map(\.id), ["63021"])
+        let row = try XCTUnwrap(model.reviewLoadedPages?.rows.first)
+        XCTAssertEqual(model.reviewSourcePage(for: row)?.query, .reviews(page: 1))
+        model.prepare(.review(id: try .init(63001), version: try row.fields.mbInt("version"), action: .reply, content: "Synthetic reply"))
+        XCTAssertNil(model.coordinator.confirmation)
+        XCTAssertTrue(try journal.intents().isEmpty)
+        await model.load(.reviews(page: 1))
+        XCTAssertEqual(model.reviewLoadedPages?.rows.count, 20)
+        XCTAssertEqual(model.listFilters.review, .photos)
+    }
+    func testReviewMerchantAndPermissionChangesRejectAppend() async {
+        let reader = Reader()
+        let tracked = MerchantBusinessViewModel(reader: reader, journal: MerchantBusinessMemoryIntentStore())
+        await tracked.load(.reviews(page: 1)); reader.merchantID = 611
+        await tracked.loadMoreReviews()
+        XCTAssertNil(tracked.reviewLoadedPages); XCTAssertNil(tracked.coordinator.snapshot)
+        XCTAssertEqual(tracked.aftercareLoadFailureKey, "merchant.business.stale")
+        await tracked.load(.reviews(page: 1)); reader.includeCRM = false
+        await tracked.loadMoreReviews()
+        XCTAssertNil(tracked.reviewLoadedPages); XCTAssertNil(tracked.coordinator.snapshot)
+    }
+    func testReviewOriginalPageUsesSeparateFreshCoordinatorAndKeepsUnknownJournal() async throws {
+        let reader = Reader(), journal = MerchantBusinessMemoryIntentStore()
+        let intent = MerchantBusinessIntent(scope: try XCTUnwrap(reader.scope), merchantID: 610, target: "review:63001", requestID: "synthetic-unknown")
+        try journal.reserve(intent)
+        let list = MerchantBusinessViewModel(reader: reader, journal: journal)
+        await list.load(.reviews(page: 1)); await list.loadMoreReviews()
+        let destination = try XCTUnwrap(list.reviewSourcePage(for: try XCTUnwrap(list.reviewLoadedPages?.rows.first)))
+        let original = MerchantBusinessViewModel(reader: reader, journal: journal)
+        await original.load(destination.query)
+        let snapshot = try XCTUnwrap(original.coordinator.snapshot)
+        XCTAssertTrue(destination.matches(scope: reader.scope, authorizationGeneration: reader.authorizationGeneration, snapshot: snapshot))
+        XCTAssertEqual(list.coordinator.snapshot?.document.query, .reviews(page: 2))
+        original.prepare(.review(id: try .init(63001), version: try snapshot.document.rows[0].fields.mbInt("version"), action: .reply, content: "Synthetic reply"))
+        XCTAssertNil(original.coordinator.confirmation)
+        list.invalidate(); original.invalidate()
+        XCTAssertEqual(try journal.intents(), [intent])
+    }
 }

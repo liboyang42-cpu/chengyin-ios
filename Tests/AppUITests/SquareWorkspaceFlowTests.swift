@@ -14,12 +14,9 @@ final class SquareWorkspaceFlowTests: XCTestCase {
         activeApp = nil
     }
     private func reveal(_ element: XCUIElement, in app: XCUIApplication, upwards: Bool = true) {
-        for _ in 0..<10 {
-            if element.exists && element.isHittable { break }
-            if upwards { app.swipeUp() } else { app.swipeDown() }
-        }
-        XCTAssertTrue(element.exists, "Expected control \(element.identifier): " + app.debugDescription)
-        XCTAssertTrue(element.isHittable, "Expected hittable control \(element.identifier): " + app.debugDescription)
+        XCTAssertTrue(revealFixtureElement(element, in: app, towardTop: !upwards, maximumSwipes: 10), app.debugDescription)
+        XCTAssertTrue(element.exists, "Expected control: " + app.debugDescription)
+        XCTAssertTrue(element.isHittable, "Expected hittable control: " + app.debugDescription)
     }
     private func launch(chinese: Bool = false, extra: [String] = []) -> XCUIApplication {
         let app = XCUIApplication()

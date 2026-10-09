@@ -1,0 +1,116 @@
+{
+  "base_commit": "4bf6667f",
+  "base_tree": "82e9abd1afa6180815ef7ea5ea314d6eb692e036",
+  "purpose": "Strict current-byte source inverse for a standalone reviewed-cost candidate; old profile, planning/runner entry points and workflows are unchanged. Apple not run.",
+  "files": {
+    "Tests/AppUITests/ProjectEditFlowTests.swift": {
+      "before_sha256": "9202dfcfd318b61152cb1163bab0bf9d032421f6a37c4566661f9db8cc96e27b",
+      "after_sha256": "f900b7c8d78924d765a37d391e49503467a4a371d172288518c937d321ed6b5b",
+      "hunks": [
+        {
+          "before": "import XCTest\n\n/// Authored for Xcode/simulator only. No UI test was run in the Linux workspace.\nfinal class ProjectEditFlowTests: XCTestCase {\n",
+          "after": "import XCTest\n\n/// Root editor readiness only: SwiftUI's safeAreaInset is not a Toolbar.\n/// Keep the existing ten-swipe bound, but drag inside the actual Form viewport.\nfunc revealProjectEditorNameInForm(in app: XCUIApplication) -> Bool {\n    let forms = app.collectionViews\n    guard forms.firstMatch.exists, forms.count == 1 else { return false }\n    let form = forms.firstMatch\n    let navigation = app.navigationBars.firstMatch\n    let save = app.buttons[\"projectEdit.saveLocal\"]\n    let review = app.buttons[\"projectEdit.review\"]\n    let name = app.textFields[\"projectEdit.name\"]\n    for attempt in 0...10 {\n        guard navigation.exists, save.exists, review.exists,\n              app.navigationBars.count == 1, save.isHittable, review.isHittable else { return false }\n        let formFrame = form.frame\n        let visible = formFrame.intersection(app.frame)\n        let top = max(visible.minY, navigation.frame.maxY + 8)\n        var bottom = min(visible.maxY, min(save.frame.minY, review.frame.minY) - 24)\n        let keyboard = app.keyboards.firstMatch\n        if keyboard.exists { bottom = min(bottom, keyboard.frame.minY - 4) }\n        guard !visible.isEmpty, !visible.isNull, bottom - top > 80 else { return false }\n        let viewport = CGRect(x: visible.minX, y: top, width: visible.width, height: bottom - top)\n        var towardTop = false\n        if name.exists {\n            let frame = name.frame\n            if !frame.isEmpty, viewport.contains(frame), name.isHittable { return true }\n            if !frame.isEmpty { towardTop = frame.midY < viewport.midY }\n        }\n        guard attempt < 10 else { return false }\n        // Form gutter avoids editable controls; both endpoints exclude fixed chrome.\n        let origin = form.coordinate(withNormalizedOffset: .zero)\n        let x = viewport.minX + viewport.width * 0.06 - formFrame.minX\n        let startY = viewport.minY + viewport.height * (towardTop ? 0.3 : 0.75) - formFrame.minY\n        let endY = viewport.minY + viewport.height * (towardTop ? 0.75 : 0.3) - formFrame.minY\n        origin.withOffset(CGVector(dx: x, dy: startY)).press(forDuration: 0.05,\n            thenDragTo: origin.withOffset(CGVector(dx: x, dy: endY)))\n    }\n    return false\n}\n\n/// Authored for Xcode/simulator only. No UI test was run in the Linux workspace.\nfinal class ProjectEditFlowTests: XCTestCase {\n"
+        },
+        {
+          "before": "        let cancel = app.buttons[\"projectEdit.cancelReview\"]; find(cancel, in: app); cancel.tap()\n        XCTAssertTrue(app.buttons[\"projectEdit.review\"].exists)\n    }\n    func testLocalEditReviewAndCancelledConfirmation() {\n        let app = launch(); let name = app.textFields[\"projectEdit.name\"]\n        XCTAssertTrue(name.waitForExistence(timeout: 5)); replace(name, with: \"Reviewed fixture name\")\n        app.buttons[\"projectEdit.review\"].tap()\n        XCTAssertTrue(app.staticTexts[\"Reviewed fixture name\"].waitForExistence(timeout: 3))\n        let cancel = app.buttons[\"projectEdit.cancelReview\"]; find(cancel, in: app); cancel.tap()\n        XCTAssertTrue(app.buttons[\"projectEdit.review\"].exists)\n        XCTAssertFalse(app.staticTexts[\"Simulation completed. No project was published.\"].exists)\n    }\n    func testUnconfiguredReviewHasNoPublishOrSimulationAction() {\n        let app = launch([\"--project-edit-disabled\"])\n        XCTAssertTrue(app.buttons[\"projectEdit.review\"].waitForExistence(timeout: 5)); app.buttons[\"projectEdit.review\"].tap()\n",
+          "after": "        let cancel = app.buttons[\"projectEdit.cancelReview\"]; find(cancel, in: app); cancel.tap()\n        XCTAssertTrue(app.buttons[\"projectEdit.review\"].exists)\n    }\n    func testUnconfiguredReviewHasNoPublishOrSimulationAction() {\n        let app = launch([\"--project-edit-disabled\"])\n        XCTAssertTrue(app.buttons[\"projectEdit.review\"].waitForExistence(timeout: 5)); app.buttons[\"projectEdit.review\"].tap()\n"
+        },
+        {
+          "before": "    }\n    func testWhitelistDisablesStructureAndScheduleButKeepsCopyEditable() {\n        let app = launch([\"--project-edit-whitelist\"])\n        XCTAssertTrue(app.textFields[\"projectEdit.name\"].waitForExistence(timeout: 5))\n        XCTAssertTrue(app.textFields[\"projectEdit.name\"].isEnabled)\n        let date = app.textFields[\"projectEdit.startDate\"]; find(date, in: app); XCTAssertFalse(date.isEnabled)\n",
+          "after": "    }\n    func testWhitelistDisablesStructureAndScheduleButKeepsCopyEditable() {\n        let app = launch([\"--project-edit-whitelist\"])\n        XCTAssertTrue(revealProjectEditorNameInForm(in: app), app.debugDescription)\n        XCTAssertTrue(app.textFields[\"projectEdit.name\"].waitForExistence(timeout: 5))\n        XCTAssertTrue(app.textFields[\"projectEdit.name\"].isEnabled)\n        let date = app.textFields[\"projectEdit.startDate\"]; find(date, in: app); XCTAssertFalse(date.isEnabled)\n"
+        }
+      ]
+    },
+    "Tests/AppUITests/ApprovedTopicSelectedCoverChineseFlowTests.swift": {
+      "before_sha256": "7bbce30489c43ed4da3f8336ece4a18e2b4fc1921432d4ecb98985dce22bf6b9",
+      "after_sha256": "f56a803a8581e9ba340fff97f76bce3929c63ba6c9baf74de8ed522ccd688d81",
+      "hunks": [
+        {
+          "before": "        let app = XCUIApplication(); self.app = app\n        app.launchArguments = [\"--uitesting-reset-language\", \"-AppleLanguages\", chinese ? \"(zh-Hans)\" : \"(en)\", \"-AppleLocale\", chinese ? \"zh_CN\" : \"en_US\", \"--uitesting-module\", \"projectEdit\", \"--project-edit-bundle-ack\", \"--project-review-request\", \"--project-review-selected-cover\", \"--project-edit-starter-probe\"] + flags\n        if chinese { app.launchArguments += [\"--uitesting-max-text\", \"-UIPreferredContentSizeCategoryName\", \"UICTContentSizeCategoryAccessibilityXXXL\"] }\n        app.launch(); XCTAssertTrue(app.textFields[\"projectEdit.name\"].waitForExistence(timeout: 5))\n        if chinese { assertFixtureEnvironment(in: app, dynamicTypeSize: \"accessibility5\") }\n        return app\n    }\n",
+          "after": "        let app = XCUIApplication(); self.app = app\n        app.launchArguments = [\"--uitesting-reset-language\", \"-AppleLanguages\", chinese ? \"(zh-Hans)\" : \"(en)\", \"-AppleLocale\", chinese ? \"zh_CN\" : \"en_US\", \"--uitesting-module\", \"projectEdit\", \"--project-edit-bundle-ack\", \"--project-review-request\", \"--project-review-selected-cover\", \"--project-edit-starter-probe\"] + flags\n        if chinese { app.launchArguments += [\"--uitesting-max-text\", \"-UIPreferredContentSizeCategoryName\", \"UICTContentSizeCategoryAccessibilityXXXL\"] }\n        app.launch()\n        XCTAssertTrue(revealProjectEditorNameInForm(in: app), app.debugDescription)\n        XCTAssertTrue(app.textFields[\"projectEdit.name\"].waitForExistence(timeout: 5))\n        if chinese { assertFixtureEnvironment(in: app, dynamicTypeSize: \"accessibility5\") }\n        return app\n    }\n"
+        }
+      ]
+    },
+    "App/ProjectEditFixtureSupport.swift": {
+      "before_sha256": "671513e110d2ffd6de7c716ff9d243022c2a7c42c5f6991e50b8b6cb67b07565",
+      "after_sha256": "ec91bb9851338ac6f69ec04f96728a557ffde2718f159c1e7942cf1dc54a7e6b",
+      "hunks": [
+        {
+          "before": "                Button(\"projectEdit.fixture.signOut\") { context.signOut() }.accessibilityIdentifier(\"projectEdit.fixture.signOut\")\n                Button(\"projectEdit.fixture.reopen\") { context.reopen() }.accessibilityIdentifier(\"projectEdit.fixture.reopen\")\n            }.buttonStyle(.bordered).padding(.horizontal)\n            if ProcessInfo.processInfo.arguments.contains(\"--project-edit-starter-probe\") {\n                Button(\"projectStarter.inspectFixture\") { context.inspect() }\n                    .accessibilityIdentifier(\"projectStarter.fixtureSnapshot\").accessibilityValue(context.inspection)\n",
+          "after": "                Button(\"projectEdit.fixture.signOut\") { context.signOut() }.accessibilityIdentifier(\"projectEdit.fixture.signOut\")\n                Button(\"projectEdit.fixture.reopen\") { context.reopen() }.accessibilityIdentifier(\"projectEdit.fixture.reopen\")\n            }.buttonStyle(.bordered).padding(.horizontal)\n                // DEBUG fixture controls must not consume the maximum-text editor viewport.\n                // This modifier is local to this HStack, not the production NavigationStack.\n                .dynamicTypeSize(.large)\n            if ProcessInfo.processInfo.arguments.contains(\"--project-edit-starter-probe\") {\n                Button(\"projectStarter.inspectFixture\") { context.inspect() }\n                    .accessibilityIdentifier(\"projectStarter.fixtureSnapshot\").accessibilityValue(context.inspection)\n"
+        }
+      ]
+    },
+    "Tests/AppUITests/ProjectEditReviewReadinessFlowTests.swift": {
+      "before_sha256": null,
+      "after_sha256": "f0faaac7f2c9483ea61c38a66a22ddd381502c3435b28ffb478ef637238a5396",
+      "hunks": []
+    },
+    "Questify.xcodeproj/project.pbxproj": {
+      "before_sha256": "bcc808981070c70da6088afe5522ba77f4d16ca14b265c94f7880ea631bbff86",
+      "after_sha256": "e9e0541455b4dc14477c0d5163d27c19ec98347caa88637ee34b467960429957",
+      "hunks": [
+        {
+          "before": "\t\t\t\t\"DA7D0D7F6054C349ED55B984\",\n\t\t\t\t\"71F907E01DC2407A105F34E4\",\n\t\t\t\t\"79AA88750D9567BF20685F7D\",\n\t\t\t\t\"FB82D2CCC931290CAE68F865\",\n\t\t\t\t\"4462CA9748EED72A5738BE16\",\n\t\t\t\t\"D06B6DEA17D725DAC64C45F2\",\n",
+          "after": "\t\t\t\t\"DA7D0D7F6054C349ED55B984\",\n\t\t\t\t\"71F907E01DC2407A105F34E4\",\n\t\t\t\t\"79AA88750D9567BF20685F7D\",\n\t\t\t\t\"F3398BE5CFBCC10955F10A91\",\n\t\t\t\t\"FB82D2CCC931290CAE68F865\",\n\t\t\t\t\"4462CA9748EED72A5738BE16\",\n\t\t\t\t\"D06B6DEA17D725DAC64C45F2\",\n"
+        },
+        {
+          "before": "\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"79AA88750D9567BF20685F7D\";\n\t\t};\n\t\t\"FB82D2CCC931290CAE68F865\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n",
+          "after": "\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"79AA88750D9567BF20685F7D\";\n\t\t};\n\t\t\"F3398BE5CFBCC10955F10A91\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUITests/ProjectEditReviewReadinessFlowTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"A2651A915A29792B2FB9F8B5\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"F3398BE5CFBCC10955F10A91\";\n\t\t};\n\t\t\"FB82D2CCC931290CAE68F865\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n"
+        },
+        {
+          "before": "\t\t\t\t\"AA90F20645FDDBE4D15675CF\",\n\t\t\t\t\"96DE5419E3D6C115B8CDF26C\",\n\t\t\t\t\"41A783137B7FCA5C9E58D071\",\n\t\t\t\t\"AF760D09392481FD4C529B43\",\n\t\t\t\t\"9E930BB70F3BFEC50ECFC8AD\",\n\t\t\t\t\"A55F09BAEC85F417CA853384\",\n",
+          "after": "\t\t\t\t\"AA90F20645FDDBE4D15675CF\",\n\t\t\t\t\"96DE5419E3D6C115B8CDF26C\",\n\t\t\t\t\"41A783137B7FCA5C9E58D071\",\n\t\t\t\t\"A2651A915A29792B2FB9F8B5\",\n\t\t\t\t\"AF760D09392481FD4C529B43\",\n\t\t\t\t\"9E930BB70F3BFEC50ECFC8AD\",\n\t\t\t\t\"A55F09BAEC85F417CA853384\",\n"
+        }
+      ]
+    },
+    "Tests/AppUITests/ApprovedTopicReviewCurrentChineseFlowTests.swift": {
+      "before_sha256": "2b33bee9d01be39abca81ded142cc1d0dda1682f15e52aafe68382598b675840",
+      "after_sha256": "e1bf02652ddb0e9a61d771a1199ea9834927e97ae04407b16576f78850c81db5",
+      "hunks": [
+        {
+          "before": "        let app = XCUIApplication(); self.app = app\n        app.launchArguments = [\"--uitesting-reset-language\", \"-AppleLanguages\", chinese ? \"(zh-Hans)\" : \"(en)\", \"-AppleLocale\", chinese ? \"zh_CN\" : \"en_US\", \"--uitesting-module\", \"projectEdit\", \"--project-edit-bundle-ack\", \"--project-review-request\", \"--project-review-current\", \"--project-edit-starter-probe\"] + flags\n        if chinese { app.launchArguments += [\"--uitesting-max-text\", \"-UIPreferredContentSizeCategoryName\", \"UICTContentSizeCategoryAccessibilityXXXL\"] }\n        app.launch(); XCTAssertTrue(app.textFields[\"projectEdit.name\"].waitForExistence(timeout: 5))\n        if chinese { assertFixtureEnvironment(in: app, dynamicTypeSize: \"accessibility5\") }\n        return app\n    }\n",
+          "after": "        let app = XCUIApplication(); self.app = app\n        app.launchArguments = [\"--uitesting-reset-language\", \"-AppleLanguages\", chinese ? \"(zh-Hans)\" : \"(en)\", \"-AppleLocale\", chinese ? \"zh_CN\" : \"en_US\", \"--uitesting-module\", \"projectEdit\", \"--project-edit-bundle-ack\", \"--project-review-request\", \"--project-review-current\", \"--project-edit-starter-probe\"] + flags\n        if chinese { app.launchArguments += [\"--uitesting-max-text\", \"-UIPreferredContentSizeCategoryName\", \"UICTContentSizeCategoryAccessibilityXXXL\"] }\n        app.launch()\n        XCTAssertTrue(revealProjectEditorNameInForm(in: app), app.debugDescription)\n        XCTAssertTrue(app.textFields[\"projectEdit.name\"].waitForExistence(timeout: 5))\n        if chinese { assertFixtureEnvironment(in: app, dynamicTypeSize: \"accessibility5\") }\n        return app\n    }\n"
+        }
+      ]
+    },
+    "Tests/AppUITests/ProjectStoryTemplateFlowSupport.swift": {
+      "before_sha256": "13d1f72711fe6341af73f049c180cfaa036c8b7084ae7ec20d8a168d1c821171",
+      "after_sha256": "064ab31b2caa2823c40c695a57a44c89668abc1cc2e44a2ddc1a9616725353ed",
+      "hunks": [
+        {
+          "before": "    private func open(before anchor: String?, chapterID: String, _ app: XCUIApplication) {\n        tap(\"projectEdit.chapter.\" + chapterID, app)\n        if let anchor {\n            tap(\"projectStoryMedia.gap.\" + anchor, app, top: true)\n            tap(\"projectStoryTemplate.insertBefore.\" + anchor, app, fixed: true)\n        } else { tap(\"projectStoryTemplate.add\", app) }\n        XCTAssertTrue(app.buttons[\"projectStoryTemplate.refresh\"].waitForExistence(timeout: 5))\n",
+          "after": "    private func open(before anchor: String?, chapterID: String, _ app: XCUIApplication) {\n        tap(\"projectEdit.chapter.\" + chapterID, app)\n        if let anchor {\n            tap(\"projectStoryMedia.gap.\" + anchor, app)\n            tap(\"projectStoryTemplate.insertBefore.\" + anchor, app, fixed: true)\n        } else { tap(\"projectStoryTemplate.add\", app) }\n        XCTAssertTrue(app.buttons[\"projectStoryTemplate.refresh\"].waitForExistence(timeout: 5))\n"
+        }
+      ]
+    },
+    "Tests/AppUITests/ApprovedReleaseRecoveryFlowTests.swift": {
+      "before_sha256": "0fd4373e3b8b43d8654dd33daf714328d462da4abf05447ed994971ac36cde62",
+      "after_sha256": "a6f47484264a2b9c5ee72567665fae6ef1c7fd30dff12b6d0faf7ee140ccf06f",
+      "hunks": [
+        {
+          "before": "        let app = XCUIApplication(); self.app = app\n        app.launchArguments = [\"--uitesting-reset-language\", \"-AppleLanguages\", chinese ? \"(zh-Hans)\" : \"(en)\", \"-AppleLocale\", chinese ? \"zh_CN\" : \"en_US\", \"--uitesting-module\", \"projectEdit\", \"--project-edit-bundle-ack\", \"--project-release-read\", \"--project-release-publish\", \"--project-edit-starter-probe\"] + flags\n        if chinese { app.launchArguments += [\"--uitesting-max-text\", \"-UIPreferredContentSizeCategoryName\", \"UICTContentSizeCategoryAccessibilityXXXL\"] }\n        app.launch(); XCTAssertTrue(app.textFields[\"projectEdit.name\"].waitForExistence(timeout: 5))\n        if chinese { assertFixtureEnvironment(in: app, dynamicTypeSize: \"accessibility5\") }\n        return app\n    }\n",
+          "after": "        let app = XCUIApplication(); self.app = app\n        app.launchArguments = [\"--uitesting-reset-language\", \"-AppleLanguages\", chinese ? \"(zh-Hans)\" : \"(en)\", \"-AppleLocale\", chinese ? \"zh_CN\" : \"en_US\", \"--uitesting-module\", \"projectEdit\", \"--project-edit-bundle-ack\", \"--project-release-read\", \"--project-release-publish\", \"--project-edit-starter-probe\"] + flags\n        if chinese { app.launchArguments += [\"--uitesting-max-text\", \"-UIPreferredContentSizeCategoryName\", \"UICTContentSizeCategoryAccessibilityXXXL\"] }\n        app.launch()\n        XCTAssertTrue(revealProjectEditorNameInForm(in: app), app.debugDescription)\n        XCTAssertTrue(app.textFields[\"projectEdit.name\"].waitForExistence(timeout: 5))\n        if chinese { assertFixtureEnvironment(in: app, dynamicTypeSize: \"accessibility5\") }\n        return app\n    }\n"
+        }
+      ]
+    },
+    "Tests/AppUITests/OwnedTopicCoverRecoveryFlowTests.swift": {
+      "before_sha256": "58b07e5ac1d6a0bd3489c48f13d86f392c4a0b78a4b933e7084e7ec9701f2462",
+      "after_sha256": "98aae087e9048ce0eab91987fe5b14d66b7bb8505565ccee4e87b636b6802503",
+      "hunks": [
+        {
+          "before": "    func testChineseMaximumTextUnknownSelectionReopensAndChecksOriginalRequestWithoutReupload()throws{\n        let app=XCUIApplication();self.app=app\n        app.launchArguments=[\"--uitesting-reset-language\",\"-AppleLanguages\",\"(zh-Hans)\",\"-AppleLocale\",\"zh_CN\",\"--uitesting-max-text\",\"-UIPreferredContentSizeCategoryName\",\"UICTContentSizeCategoryAccessibilityXXXL\",\"--uitesting-module\",\"projectEdit\",\"--project-edit-bundle-ack\",\"--project-edit-starter-probe\",\"--project-owned-cover\",\"--project-owned-cover-unknown\",\"--project-review-request\"]\n        app.launch();XCTAssertTrue(app.textFields[\"projectEdit.name\"].waitForExistence(timeout:5));assertFixtureEnvironment(in: app, dynamicTypeSize:\"accessibility5\")\n        tap(\"projectEdit.review\",in:app,fixed:true);tap(\"projectEdit.confirmSimulation\",in:app);assertProjectSubmissionEvidenceValue(\"projectSubmission.auditTaskID\", \"3301\", in: app, phase: .receipt, maximumSwipes: 70, revealFirst: false);tap(\"projectSubmission.done\",in:app)\n        tap(\"ownedCover.open\",in:app);XCTAssertTrue(app.navigationBars[\"作者封面\"].exists)\n        tap(\"ownedCover.choose\",in:app);value(\"ownedCover.localOnly\",in:app);tap(\"ownedCover.upload\",in:app)\n",
+          "after": "    func testChineseMaximumTextUnknownSelectionReopensAndChecksOriginalRequestWithoutReupload()throws{\n        let app=XCUIApplication();self.app=app\n        app.launchArguments=[\"--uitesting-reset-language\",\"-AppleLanguages\",\"(zh-Hans)\",\"-AppleLocale\",\"zh_CN\",\"--uitesting-max-text\",\"-UIPreferredContentSizeCategoryName\",\"UICTContentSizeCategoryAccessibilityXXXL\",\"--uitesting-module\",\"projectEdit\",\"--project-edit-bundle-ack\",\"--project-edit-starter-probe\",\"--project-owned-cover\",\"--project-owned-cover-unknown\",\"--project-review-request\"]\n        app.launch();XCTAssertTrue(revealProjectEditorNameInForm(in: app),app.debugDescription);XCTAssertTrue(app.textFields[\"projectEdit.name\"].waitForExistence(timeout:5));assertFixtureEnvironment(in: app, dynamicTypeSize:\"accessibility5\")\n        tap(\"projectEdit.review\",in:app,fixed:true);tap(\"projectEdit.confirmSimulation\",in:app);assertProjectSubmissionEvidenceValue(\"projectSubmission.auditTaskID\", \"3301\", in: app, phase: .receipt, maximumSwipes: 70, revealFirst: false);tap(\"projectSubmission.done\",in:app)\n        tap(\"ownedCover.open\",in:app);XCTAssertTrue(app.navigationBars[\"作者封面\"].exists)\n        tap(\"ownedCover.choose\",in:app);value(\"ownedCover.localOnly\",in:app);tap(\"ownedCover.upload\",in:app)\n"
+        }
+      ]
+    }
+  },
+  "protected_sha256": {
+    "Tests/AppUITests/FailureScreenshot.swift": "705ba7fa14128cfd9e81f181fd2b5f5edd0cb464b2ececd26119510d98ed6e49",
+    "Tests/AppUITests/FixtureEnvironmentAssertions.swift": "5c6980720d17cdbd6509d3819471f9b00183c1d909fa91e1d18dfd31f8453ef7",
+    "tools/ui_duration_weights.json": "29702b1924f79fd62fed74b71de626e7e68545747990b0e55be21415accaced7",
+    "tools/run_ui_shard.py": "ac27afad682873a4221e6f091909ee5e5f51091d5e5321db284cef0f993f68dc",
+    ".github/workflows/native-ios.yml": "b1d0d24df1158b225efa4ca952333fb25d71ba1f929fbde246bc9c479a1654b6",
+    "App/AccessibilityFixtureOptions.swift": "49716b6d94f4534ec2b9065712dbd27663a292f5d472e957610fc049831b7aee"
+  }
+}

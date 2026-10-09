@@ -28,7 +28,7 @@ import XCTest
     func testChineseMaximumTextUnknownSelectionReopensAndChecksOriginalRequestWithoutReupload()throws{
         let app=XCUIApplication();self.app=app
         app.launchArguments=["--uitesting-reset-language","-AppleLanguages","(zh-Hans)","-AppleLocale","zh_CN","--uitesting-max-text","-UIPreferredContentSizeCategoryName","UICTContentSizeCategoryAccessibilityXXXL","--uitesting-module","projectEdit","--project-edit-bundle-ack","--project-edit-starter-probe","--project-owned-cover","--project-owned-cover-unknown","--project-review-request"]
-        app.launch();XCTAssertTrue(app.textFields["projectEdit.name"].waitForExistence(timeout:5));assertFixtureEnvironment(in: app, dynamicTypeSize:"accessibility5")
+        app.launch();XCTAssertTrue(revealProjectEditorNameInForm(in: app),app.debugDescription);XCTAssertTrue(app.textFields["projectEdit.name"].waitForExistence(timeout:5));assertFixtureEnvironment(in: app, dynamicTypeSize:"accessibility5")
         tap("projectEdit.review",in:app,fixed:true);tap("projectEdit.confirmSimulation",in:app);assertProjectSubmissionEvidenceValue("projectSubmission.auditTaskID", "3301", in: app, phase: .receipt, maximumSwipes: 70, revealFirst: false);tap("projectSubmission.done",in:app)
         tap("ownedCover.open",in:app);XCTAssertTrue(app.navigationBars["作者封面"].exists)
         tap("ownedCover.choose",in:app);value("ownedCover.localOnly",in:app);tap("ownedCover.upload",in:app)

@@ -77,6 +77,8 @@ import SwiftUI
     }
     let wire = WorkshopCreatorPendingFixtureWire(), base = URL(string: "https://example.com/native")!, suite = "creator-pending-" + UUID().uuidString
     private let vault = Vault()
+    /// One recovery lifetime per harness, retained through Back and fresh controller selection.
+    let recoveryStorage = TemplateAuthoringMemoryStorage()
     let deployment: ReviewedAppDeployment
     var session: AppSession!
     var read: WorkshopCreatorConsentReadApproval?, write: WorkshopCreatorConsentWriteApproval?
@@ -84,7 +86,9 @@ import SwiftUI
     @Published var ready = false
     init() {
         deployment = try! .init(market: .china, baseURL: base.absoluteString, approvedBaseURLs: [.china: [base.absoluteString]], verifiedCapabilities: [.domesticChinaPhone], bundleIdentifier: "test.creator.pending", realm: "synthetic-" + UUID().uuidString.lowercased())
-        session = AppCompositionRoot(deployment: .reviewed(deployment), storage: .init(defaults: UserDefaults(suiteName: suite)!, tokenStore: { [vault] _ in vault }), makeTransport: { [wire] in wire },
+        var storage = AppScopedStorageFactory(defaults: UserDefaults(suiteName: suite)!, tokenStore: { [vault] _ in vault })
+        storage.syntheticWorkshopCreatorPendingRecoveryStorage = recoveryStorage
+        session = AppCompositionRoot(deployment: .reviewed(deployment), storage: storage, makeTransport: { [wire] in wire },
             workshopCreatorPendingAuthorApproval: { [weak self] _ in self?.author }, workshopCreatorPendingListApproval: { [weak self] _ in self?.list }, workshopCreatorPendingDetailApproval: { [weak self] _ in self?.detail },
             workshopCreatorConsentReadApproval: { [weak self] _ in self?.read }, workshopCreatorConsentWriteApproval: { [weak self] _ in self?.write }).makeSession()
     }
@@ -104,7 +108,10 @@ import SwiftUI
         controller.form.allowedRegions = "CN"; controller.form.buyerKinds = "INDIVIDUAL"; controller.form.themeLimit = "1"; controller.form.merchantLimit = "0"; controller.form.runLimit = "-1"
         controller.form.priceMinor = "1499"; controller.form.currency = "CNY"; controller.form.expiresAt = WorkshopCreatorPendingFixtureData.timestamp(Date().addingTimeInterval(86_400))
     }
-    func clean() { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
+    func clean() {
+        recoveryStorage.values.removeAll()
+        UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite)
+    }
 }
 @MainActor struct WorkshopCreatorPendingFixtureView: View {
     let selection: WorkshopCreatorConsentSelection

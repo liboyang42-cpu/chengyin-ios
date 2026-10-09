@@ -195,7 +195,7 @@ public struct ProjectEditDraft: Codable, Equatable {
     public var completionRules: ProjectEditCompletionRules?
     public var baseRevision = ""
     public var preserved: [String: ProjectEditJSON] = [
-        "publishMode": .string("pro"), "audioUrl": .string(""), "audioDuration": .number(0),
+        "publishMode": .string("pro"), "audioUrl": .string(""), "audioDuration": .number(0), "openClubPool": .number(1),
         "selfPlay": .number(0), "selfPlayPrice": .number(0), "selfPlayQuota": .number(0), "completeRewardCouponId": .number(0)
     ]
     public init(product: ProjectEditProduct = .city) { self.product = product }
@@ -244,6 +244,7 @@ public enum ProjectEditValidation {
         need(!draft.imgUrl.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, "cover", "cover")
         need(!draft.categoryIDs.isEmpty && draft.categoryIDs.allSatisfy { $0 > 0 }, "categories", "categories")
         guard scope == .full else { return issues }
+        if !ProjectClubLead.supportsEditing(draft) { issues.append(.init("clubLead", "projectClubLead.unsupported")) }
         need((try? PublishingTopicRewards(draft: draft).applying(to: draft)) != nil, "topicRewards", "rewards")
         let rules = (draft.completionRules ?? .init(raw: draft.preserved["completeRuleJson"])).forProduct(draft.product)
         if let key = rules.validationIssue(totalNodes: draft.chapters.reduce(0) { $0 + $1.nodes.count }) { issues.append(.init("completionRules", key)) }

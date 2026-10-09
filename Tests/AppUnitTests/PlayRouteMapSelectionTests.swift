@@ -77,13 +77,20 @@ import XCTest
     func testPresentedDestinationSurvivesReviewAndCancelWithoutAuthorizingNewTaps() async throws {
         let owner = try owner(), recorder = recorder(), model = try make(owner, recorder, capabilities: [.reads, .classicCompletion])
         await model.load(); let destination = try XCTUnwrap(PlayRouteMapDestination(nodeID: 701, model: model))
+        var selected: PlayRouteMapDestination? = destination
         let context = model.interactionContext
         _ = try model.review(nodeID: 701, evidence: .answer("Synthetic answer"), context: context)
         XCTAssertEqual(model.phase, .reviewing); XCTAssertNil(model.interactionContext)
         XCTAssertEqual(destination.nodeID(in: model), 701)
+        destination.retireSelectionIfNeeded(&selected, in: model)
+        XCTAssertEqual(selected, destination)
         XCTAssertNil(PlayRouteMapDestination(nodeID: 701, model: model), "Busy task presentation must not issue a new selection")
         model.cancelReview(); XCTAssertEqual(destination.nodeID(in: model), 701)
+        destination.retireSelectionIfNeeded(&selected, in: model)
+        XCTAssertEqual(selected, destination)
         await model.load(); XCTAssertNil(destination.nodeID(in: model))
+        destination.retireSelectionIfNeeded(&selected, in: model)
+        XCTAssertNil(selected)
         XCTAssertTrue(recorder.requests.allSatisfy { $0.httpMethod == "GET" })
     }
     func testPresentedDestinationCannotBorrowSameSessionReplacementOrAccountRead() async throws {
@@ -93,6 +100,81 @@ import XCTest
         _ = try replacement.review(nodeID: 701, evidence: .answer("Synthetic answer"), context: replacement.interactionContext)
         XCTAssertNil(destination.nodeID(in: replacement))
         owner.session = nil; XCTAssertNil(destination.nodeID(in: first))
+    }
+
+    func testPresentedSelectionClearsOnIdenticalReadAndReopensSameNodeWithCurrentRead() async throws {
+        let owner = try owner(), recorder = recorder(), model = try make(owner, recorder)
+        await model.load()
+        let before = try XCTUnwrap(model.snapshot)
+        let old = try XCTUnwrap(PlayRouteMapDestination(nodeID: 701, model: model))
+        var selected: PlayRouteMapDestination? = old
+        await model.load()
+        XCTAssertEqual(model.snapshot, before, "Byte-identical content must still retire the old read")
+        XCTAssertNil(old.nodeID(in: model))
+        old.retireSelectionIfNeeded(&selected, in: model)
+        XCTAssertNil(selected, "Clearing the item binding returns the pushed task to its route map")
+        let current = try XCTUnwrap(PlayRouteMapDestination(nodeID: 701, model: model))
+        selected = current
+        XCTAssertNotEqual(old.id, current.id)
+        current.retireSelectionIfNeeded(&selected, in: model)
+        XCTAssertEqual(selected, current); XCTAssertEqual(current.nodeID(in: model), 701)
+        XCTAssertEqual(recorder.requests.map(\.httpMethod), ["GET", "GET"])
+    }
+
+    func testPresentedSelectionClearsOnAccountEpochGuestAndContextRevocation() async throws {
+        for revoke in 0..<4 {
+            let owner = try owner(), recorder = recorder(), model = try make(owner, recorder)
+            await model.load()
+            let destination = try XCTUnwrap(PlayRouteMapDestination(nodeID: 701, model: model))
+            var selected: PlayRouteMapDestination? = destination
+            switch revoke {
+            case 0: owner.session = try .init(accountID: 2, epoch: 1, namespace: "synthetic", token: "second")
+            case 1: owner.session = try .init(accountID: 1, epoch: 2, namespace: "synthetic", token: "synthetic")
+            case 2: owner.session = nil
+            default: model.invalidate()
+            }
+            XCTAssertNil(destination.nodeID(in: model))
+            destination.retireSelectionIfNeeded(&selected, in: model)
+            XCTAssertNil(selected, "Revoked presentation must clear its own selection: \(revoke)")
+            XCTAssertNil(PlayRouteMapDestination(nodeID: 701, model: model))
+            XCTAssertEqual(recorder.requests.count, 1, "Retirement must not load or regain authority")
+        }
+    }
+
+    func testOldRetirementCallbackCannotClearNewReadOrBackReopenedSelection() async throws {
+        let owner = try owner(), recorder = recorder(), model = try make(owner, recorder)
+        await model.load()
+        let old = try XCTUnwrap(PlayRouteMapDestination(nodeID: 701, model: model))
+        await model.load()
+        let current = try XCTUnwrap(PlayRouteMapDestination(nodeID: 701, model: model))
+        var selected: PlayRouteMapDestination? = current
+        XCTAssertNil(old.nodeID(in: model))
+        old.retireSelectionIfNeeded(&selected, in: model)
+        XCTAssertEqual(selected, current, "A late callback must match the selected destination UUID")
+
+        selected = nil // The user navigated Back before selecting the same current node again.
+        old.retireSelectionIfNeeded(&selected, in: model)
+        XCTAssertNil(selected)
+        let reopened = try XCTUnwrap(PlayRouteMapDestination(nodeID: 701, model: model))
+        selected = reopened
+        old.retireSelectionIfNeeded(&selected, in: model)
+        current.retireSelectionIfNeeded(&selected, in: model)
+        XCTAssertEqual(selected, reopened); XCTAssertNotEqual(current.id, reopened.id)
+        XCTAssertEqual(reopened.nodeID(in: model), 701)
+        XCTAssertEqual(recorder.requests.map(\.httpMethod), ["GET", "GET"])
+    }
+
+    func testPresentedSelectionClearsAfterFailedRefreshWithoutRevivingOldTask() async throws {
+        let owner = try owner(), recorder = recorder(), model = try make(owner, recorder)
+        await model.load()
+        let destination = try XCTUnwrap(PlayRouteMapDestination(nodeID: 701, model: model))
+        var selected: PlayRouteMapDestination? = destination
+        recorder.responses["/route-map/api/play/nodes"] = .failure(.malformed)
+        await model.load()
+        destination.retireSelectionIfNeeded(&selected, in: model)
+        XCTAssertNil(selected); XCTAssertNil(PlayRouteMapDestination(nodeID: 701, model: model))
+        XCTAssertEqual(model.phase, .failed)
+        XCTAssertEqual(recorder.requests.map(\.httpMethod), ["GET", "GET"])
     }
 
 }

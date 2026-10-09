@@ -59,7 +59,7 @@ class ProjectEditPreparedNodeChecks(unittest.TestCase):
         core=read('Core/ProjectEditContract.swift')
         for field in ['"description": node.description','"imgUrl": node.imgUrl','"nodeTime": .number(Decimal(node.nodeTime))','row["templateId"] = .number(Decimal(id))']:
             self.assertIn(field,core)
-        for path,count in [('Tests/CoreTests/ProjectEditPreparedNodesTests.swift',6),('Tests/AppUnitTests/ProjectEditPreparedReviewTests.swift',7),('Tests/AppUITests/ProjectEditPreparedNodesFlowTests.swift',1),('Tests/AppUITests/ProjectEditPreparedStoryOrderFlowTests.swift',1)]:self.assertEqual(read(path).count('func test'),count)
+        for path,count in [('Tests/CoreTests/ProjectEditPreparedNodesTests.swift',6),('Tests/AppUnitTests/ProjectEditPreparedReviewTests.swift',10),('Tests/AppUITests/ProjectEditPreparedNodesFlowTests.swift',1),('Tests/AppUITests/ProjectEditPreparedStoryOrderFlowTests.swift',1)]:self.assertEqual(read(path).count('func test'),count)
         tests=read('Tests/AppUnitTests/ProjectEditPreparedReviewTests.swift')
         for token in ['storage.failAt = storage.writes + 2','model.draft.chapters[0].blocks?.swapAt(1, 2)',
                       'await model.submit(old); model.cancelReview(old)','XCTAssertFalse(model.reviewLocalSaveConfirmed)',

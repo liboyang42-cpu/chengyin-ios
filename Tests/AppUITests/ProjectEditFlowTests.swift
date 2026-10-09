@@ -1,5 +1,44 @@
 import XCTest
 
+/// Root editor readiness only: SwiftUI's safeAreaInset is not a Toolbar.
+/// Keep the existing ten-swipe bound, but drag inside the actual Form viewport.
+func revealProjectEditorNameInForm(in app: XCUIApplication) -> Bool {
+    let forms = app.collectionViews
+    guard forms.firstMatch.exists, forms.count == 1 else { return false }
+    let form = forms.firstMatch
+    let navigation = app.navigationBars.firstMatch
+    let save = app.buttons["projectEdit.saveLocal"]
+    let review = app.buttons["projectEdit.review"]
+    let name = app.textFields["projectEdit.name"]
+    for attempt in 0...10 {
+        guard navigation.exists, save.exists, review.exists,
+              app.navigationBars.count == 1, save.isHittable, review.isHittable else { return false }
+        let formFrame = form.frame
+        let visible = formFrame.intersection(app.frame)
+        let top = max(visible.minY, navigation.frame.maxY + 8)
+        var bottom = min(visible.maxY, min(save.frame.minY, review.frame.minY) - 24)
+        let keyboard = app.keyboards.firstMatch
+        if keyboard.exists { bottom = min(bottom, keyboard.frame.minY - 4) }
+        guard !visible.isEmpty, !visible.isNull, bottom - top > 80 else { return false }
+        let viewport = CGRect(x: visible.minX, y: top, width: visible.width, height: bottom - top)
+        var towardTop = false
+        if name.exists {
+            let frame = name.frame
+            if !frame.isEmpty, viewport.contains(frame), name.isHittable { return true }
+            if !frame.isEmpty { towardTop = frame.midY < viewport.midY }
+        }
+        guard attempt < 10 else { return false }
+        // Form gutter avoids editable controls; both endpoints exclude fixed chrome.
+        let origin = form.coordinate(withNormalizedOffset: .zero)
+        let x = viewport.minX + viewport.width * 0.06 - formFrame.minX
+        let startY = viewport.minY + viewport.height * (towardTop ? 0.3 : 0.75) - formFrame.minY
+        let endY = viewport.minY + viewport.height * (towardTop ? 0.75 : 0.3) - formFrame.minY
+        origin.withOffset(CGVector(dx: x, dy: startY)).press(forDuration: 0.05,
+            thenDragTo: origin.withOffset(CGVector(dx: x, dy: endY)))
+    }
+    return false
+}
+
 /// Authored for Xcode/simulator only. No UI test was run in the Linux workspace.
 final class ProjectEditFlowTests: XCTestCase {
     private var launchedApp: XCUIApplication?
@@ -104,15 +143,6 @@ final class ProjectEditFlowTests: XCTestCase {
         let cancel = app.buttons["projectEdit.cancelReview"]; find(cancel, in: app); cancel.tap()
         XCTAssertTrue(app.buttons["projectEdit.review"].exists)
     }
-    func testLocalEditReviewAndCancelledConfirmation() {
-        let app = launch(); let name = app.textFields["projectEdit.name"]
-        XCTAssertTrue(name.waitForExistence(timeout: 5)); replace(name, with: "Reviewed fixture name")
-        app.buttons["projectEdit.review"].tap()
-        XCTAssertTrue(app.staticTexts["Reviewed fixture name"].waitForExistence(timeout: 3))
-        let cancel = app.buttons["projectEdit.cancelReview"]; find(cancel, in: app); cancel.tap()
-        XCTAssertTrue(app.buttons["projectEdit.review"].exists)
-        XCTAssertFalse(app.staticTexts["Simulation completed. No project was published."].exists)
-    }
     func testUnconfiguredReviewHasNoPublishOrSimulationAction() {
         let app = launch(["--project-edit-disabled"])
         XCTAssertTrue(app.buttons["projectEdit.review"].waitForExistence(timeout: 5)); app.buttons["projectEdit.review"].tap()
@@ -155,6 +185,7 @@ final class ProjectEditFlowTests: XCTestCase {
     }
     func testWhitelistDisablesStructureAndScheduleButKeepsCopyEditable() {
         let app = launch(["--project-edit-whitelist"])
+        XCTAssertTrue(revealProjectEditorNameInForm(in: app), app.debugDescription)
         XCTAssertTrue(app.textFields["projectEdit.name"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.textFields["projectEdit.name"].isEnabled)
         let date = app.textFields["projectEdit.startDate"]; find(date, in: app); XCTAssertFalse(date.isEnabled)

@@ -55,10 +55,13 @@ import UIKit
         }
         stage("before-window")
         let host = UIHostingController(rootView: NavigationStack { WorkshopOwnedLibraryView(browser:f.browser,navigation:f.navigation) })
-        let window = UIWindow(frame:UIScreen.main.bounds); window.rootViewController = host; window.makeKeyAndVisible()
-        defer { window.isHidden = true; window.rootViewController = nil }
+        let sceneWindow = try HostedNavigationSceneWindow(), window = sceneWindow.window
+        window.rootViewController = host; window.makeKeyAndVisible()
+        defer { sceneWindow.retire() }
         stage("window-visible")
         try await wait("initial list ready") { f.browser.phase == .ready && f.navigation.listPermit != nil }
+        XCTAssertTrue(host.view.window === window)
+        XCTAssertEqual(window.windowScene?.activationState, .foregroundActive)
         stage("list-ready")
         let listPermit = try XCTUnwrap(f.navigation.listPermit)
         f.navigation.select(claimId:"synthetic-claim",presentation:f.navigation.listPermit)

@@ -87,18 +87,23 @@ import UniformTypeIdentifiers
         XCTAssertEqual(model.state, .cancelled); XCTAssertNil(model.imageUpload); XCTAssertFalse(model.hasSelection)
     }
     func testMissingVideoPolicyNeverReadsProviderAndCannotMakeImageUpload() throws {
-        let model = SquarePostLocalMediaPresentation(), provider = NSItemProvider()
         let unexpected = expectation(description: "No video byte read"); unexpected.isInverted = true
-        provider.registerDataRepresentation(forTypeIdentifier: UTType.movie.identifier, visibility: .all) { completion in
-            unexpected.fulfill(); completion(Data("video fixture".utf8), nil); return nil
+        // public.video is a known movie subtype, not an unknown representation.
+        for type in [UTType.movie, .video, .mpeg4Movie] {
+            let model = SquarePostLocalMediaPresentation(), provider = NSItemProvider()
+            provider.registerDataRepresentation(forTypeIdentifier: type.identifier, visibility: .all) { completion in
+                unexpected.fulfill(); completion(Data("video fixture".utf8), nil); return nil
+            }
+            XCTAssertTrue(provider.hasItemConformingToTypeIdentifier(UTType.movie.identifier))
+            model.beginPicker(scope: try scope()); let request = try XCTUnwrap(model.pickerRequest)
+            XCTAssertTrue(model.accept(provider: provider, request: request, maximumImageBytes: 100, scopeIsCurrent: { true }))
+            XCTAssertEqual(model.state, .videoUnavailable); XCTAssertEqual(model.selectedKind, .video)
+            XCTAssertNil(model.imageUpload); XCTAssertNil(model.thumbnail); XCTAssertNil(model.loadTask)
+            XCTAssertEqual(model.snapshot?.items.first?.phase, .selected)
+            XCTAssertTrue(model.hasSelection); XCTAssertFalse(model.unresolvedSelection)
+            model.remove(); XCTAssertFalse(model.hasSelection)
         }
-        model.beginPicker(scope: try scope()); let request = try XCTUnwrap(model.pickerRequest)
-        XCTAssertTrue(model.accept(provider: provider, request: request, maximumImageBytes: 100, scopeIsCurrent: { true }))
-        XCTAssertEqual(model.state, .videoUnavailable); XCTAssertEqual(model.selectedKind, .video)
-        XCTAssertNil(model.imageUpload); XCTAssertNil(model.thumbnail)
-        XCTAssertEqual(model.snapshot?.items.first?.phase, .selected)
         wait(for: [unexpected], timeout: 0.01)
-        model.remove(); XCTAssertFalse(model.hasSelection)
     }
     func testStalePickerCannotReplaceAReadyNewSelection() throws {
         let model = SquarePostLocalMediaPresentation(); model.beginPicker(scope: try scope())
@@ -298,8 +303,11 @@ import UniformTypeIdentifiers
 
 
     private func unsupportedProvider(_ type: UTType) -> NSItemProvider {
+        unsupportedProvider(typeIdentifier: type.identifier)
+    }
+    private func unsupportedProvider(typeIdentifier: String) -> NSItemProvider {
         let provider = NSItemProvider()
-        provider.registerDataRepresentation(forTypeIdentifier: type.identifier, visibility: .all) { completion in
+        provider.registerDataRepresentation(forTypeIdentifier: typeIdentifier, visibility: .all) { completion in
             XCTFail("Unsupported formats must not start a byte read")
             completion(nil, SquarePostLocalMediaIssue.inspectionFailed); return nil
         }
@@ -346,11 +354,25 @@ import UniformTypeIdentifiers
         model.remove(); XCTAssertFalse(model.hasSelection)
     }
     func testUnknownVideoRepresentationBlocksSaveUntilExplicitRemoval() throws {
-        let model = SquarePostLocalMediaPresentation(); model.beginPicker(scope: try scope())
-        XCTAssertFalse(model.accept(provider: unsupportedProvider(.video), request: try XCTUnwrap(model.pickerRequest),
-            maximumImageBytes: 1000, scopeIsCurrent: { true }))
-        XCTAssertEqual(model.state, .failed); XCTAssertTrue(model.hasSelection); XCTAssertNil(model.loadTask)
-        XCTAssertNil(model.imageUpload); model.remove(); XCTAssertFalse(model.hasSelection)
+        // Deliberately undeclared raw identifier: the name alone grants no media conformance.
+        let typeIdentifier = "com.questify.tests.unknown-video"
+        for replacesReadyImage in [false, true] {
+            let provider = unsupportedProvider(typeIdentifier: typeIdentifier)
+            XCTAssertEqual(provider.registeredTypeIdentifiers, [typeIdentifier])
+            XCTAssertFalse(provider.hasItemConformingToTypeIdentifier(UTType.movie.identifier))
+            XCTAssertFalse(provider.hasItemConformingToTypeIdentifier(UTType.image.identifier))
+            XCTAssertNil(SquarePostLocalMediaInspector.imageType(in: provider))
+            let model = SquarePostLocalMediaPresentation()
+            if replacesReadyImage { XCTAssertTrue(model.complete(try preview(begin(model)))) }
+            model.beginPicker(scope: try scope())
+            XCTAssertFalse(model.accept(provider: provider, request: try XCTUnwrap(model.pickerRequest),
+                maximumImageBytes: 1000, scopeIsCurrent: { true }))
+            XCTAssertEqual(model.state, .failed); XCTAssertTrue(model.unresolvedSelection); XCTAssertTrue(model.hasSelection)
+            XCTAssertNil(model.selectedKind); XCTAssertNil(model.loadTask); XCTAssertNil(model.imageUpload); XCTAssertNil(model.thumbnail)
+            model.beginPicker(scope: try scope()); model.cancelPicker()
+            XCTAssertEqual(model.state, .failed); XCTAssertTrue(model.unresolvedSelection); XCTAssertTrue(model.hasSelection)
+            model.remove(); XCTAssertFalse(model.hasSelection); XCTAssertFalse(model.unresolvedSelection)
+        }
     }
     func testProviderWithNoUsableRepresentationRemainsAnUnresolvedSelection() throws {
         let model = SquarePostLocalMediaPresentation(); model.beginPicker(scope: try scope())

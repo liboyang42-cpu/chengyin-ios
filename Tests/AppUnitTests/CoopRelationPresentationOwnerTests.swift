@@ -69,14 +69,16 @@ import Combine
         let host = UIHostingController(rootView: NavigationStack {
             HostedDiscovery(reader: reader, model: model, owner: owner, probe: probe)
         })
-        let window = UIWindow(frame: UIScreen.main.bounds)
+        let sceneWindow = try HostedNavigationSceneWindow(), window = sceneWindow.window
         window.rootViewController = host; window.makeKeyAndVisible()
-        defer { window.isHidden = true; window.rootViewController = nil }
+        defer { sceneWindow.retire() }
         try await wait("real list accepted") { model.isCurrent(reader: reader) }
         let old = try choice(reader, model)
         open(old, reader: reader, model: model, owner: owner)
         try await wait("real child visible while parent covered") { probe.childVisible && probe.parentCovered }
         XCTAssertNotNil(host.view.window)
+        XCTAssertTrue(host.view.window === window)
+        XCTAssertEqual(window.windowScene?.activationState, .foregroundActive)
         let oldReader = CoopRelationMerchantReader(base: reader, owner: PublicMerchantOwnerID(41)!, isCurrent: { owner.isCurrent(old) })
         reader.session = try .init(accountID: 102, epoch: 2, token: "synthetic-replacement")
         reader.scope = UUID()
