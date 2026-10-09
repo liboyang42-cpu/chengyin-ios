@@ -27,6 +27,7 @@ public struct ShopNPCTransmissionIntent: Equatable {
     public private(set) var grants: ShopNPCGrants
     private let client: ShopNPCHTTPClient
     private var epoch: UInt64 = 0
+    var questionReuseGeneration: UInt64 { epoch }
     private var transmission: Task<ShopNPCReply, Error>?
     private var transmissionIntent: ShopNPCTransmissionIntent?
     private var lastSend: Date?
@@ -81,11 +82,18 @@ public struct ShopNPCTransmissionIntent: Equatable {
         pending = .init(id: UUID(), scope: scope, content: .text(text), replacing: nil); failure = nil
     }
     /// Explicit regeneration is a new model request; failures retain original answer and ID.
+    public func canRegenerate(answerID: UUID) -> Bool {
+        active && !isSuspended && scope.valid && !busy && pending == nil && grants.textAllowed && regenerationQuestion(answerID: answerID) != nil
+    }
+    private func regenerationQuestion(answerID: UUID) -> ShopNPCMessage? {
+        guard let index = messages.firstIndex(where: { $0.id == answerID && !$0.mine }),
+              let question = messages[..<index].last(where: { $0.mine }), question.hasReusableQuestion else { return nil }
+        return question
+    }
     public func reviewRegeneration(answerID: UUID) throws {
         try check(voice: false)
         guard pending == nil else { throw ShopNPCFailure.busy }
-        guard let index = messages.firstIndex(where: { $0.id == answerID && !$0.mine }),
-              let question = messages[..<index].last(where: { $0.mine }) else { throw ShopNPCFailure.invalid }
+        guard let question = regenerationQuestion(answerID: answerID) else { throw ShopNPCFailure.invalid }
         pending = .init(id: UUID(), scope: scope, content: .text(question.text), replacing: answerID); failure = nil
     }
     public func reviewVoice(_ clip: ShopNPCVoiceClip) throws {
@@ -141,7 +149,11 @@ public struct ShopNPCTransmissionIntent: Equatable {
             } else {
                 switch review.content {
                 case .text(let text): messages.append(.init(mine: true, text: text))
-                case .voice: messages.append(.init(mine: true, text: reply.asr.flatMap { $0.isEmpty ? nil : $0 } ?? "（语音）"))
+                case .voice:
+                    // Missing transcription is a local display state, never a
+                    // fabricated question that can be sent back for regeneration.
+                    let transcript = reply.asr.flatMap { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : $0 }
+                    messages.append(.init(mine: true, text: transcript ?? "", source: .voice))
                 }
                 // Empty success is not fabricated AI speech or completion evidence.
                 if reply.text.isEmpty { failure = .malformed }

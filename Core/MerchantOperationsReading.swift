@@ -22,6 +22,7 @@ public struct MerchantOperationsSession: Equatable {
     func saveReviewed(_ draft: MerchantOperationsDraft, baseline: MerchantOperationsDraft) async throws
     func access() async throws -> MerchantOperationsAccess
     func document(_ destination: MerchantOperationsDestination) async throws -> MerchantOperationsDocument
+    func featuredActivities(page: Int) async throws -> MerchantFeaturedActivityPage
     /// Only the DEBUG synthetic reader implements this. Live readers always reject it.
     func saveExample(_ draft: MerchantOperationsDraft) async throws
 }
@@ -46,6 +47,15 @@ public struct MerchantOperationsSession: Equatable {
         self.service = service; self.currentSession = currentSession; self.onUnauthorized = onUnauthorized; snapshot = currentSession(); self.approval = approval; self.journal = journal
     }
     public func access() async throws -> MerchantOperationsAccess { try await read { try await $0.access(token: $1) } }
+    public func featuredActivities(page: Int) async throws -> MerchantFeaturedActivityPage {
+        guard page > 0 else { throw APIError.invalidRequest }
+        let expected = currentSession()
+        return try await read { service, token in
+            let access = try await service.access(token: token)
+            guard !Task.isCancelled, expected == currentSession() else { throw CancellationError() }
+            return try await service.featuredActivities(page: page, access: access, token: token)
+        }
+    }
     public func document(_ destination: MerchantOperationsDestination) async throws -> MerchantOperationsDocument {
         let expected = currentSession()
         return try await read { service, token in
@@ -231,6 +241,7 @@ public struct MerchantOperationsConfirmation: Identifiable, Equatable {
 }
 
 public extension MerchantOperationsReading {
+    func featuredActivities(page: Int) async throws -> MerchantFeaturedActivityPage { throw APIError.notConfigured }
     var canSave: Bool { isOfflineExample }
     func hasPending(_ destination: MerchantOperationsDestination) -> Bool { false }
     func saveReviewed(_ draft: MerchantOperationsDraft, baseline: MerchantOperationsDraft) async throws { try await saveExample(draft) }

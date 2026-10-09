@@ -1,0 +1,87 @@
+{
+  "merchant.featuredClear.clear": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "清空主推到当前草稿"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Clear featured content in this draft"
+        }
+      }
+    }
+  },
+  "merchant.featuredClear.restore": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "恢复本次读取的主推设置"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Restore the featured setting read for this draft"
+        }
+      }
+    }
+  },
+  "merchant.featuredClear.inDraft": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前草稿不展示主推内容。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This draft has no featured content."
+        }
+      }
+    }
+  },
+  "merchant.featuredClear.draftHint": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "清空只修改当前草稿；审阅并保存后才会更新店铺展示。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Clearing changes this draft only. Review and save it to update the store display."
+        }
+      }
+    }
+  },
+  "merchant.featuredClear.review": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "本次保存后将关闭店铺主推展示。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Saving this draft will turn off the store’s featured content."
+        }
+      }
+    }
+  }
+}

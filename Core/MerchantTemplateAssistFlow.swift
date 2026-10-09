@@ -61,6 +61,26 @@ import Foundation
     }
     public var canGenerate: Bool { isCurrent && isConfigured && !busy && result == nil && (failure == nil || failure?.retryable == true) }
     public var visibleReview: MerchantTemplateSuggestionReview? { isCurrent ? review : nil }
+    public func canEditSuggestion(_ action: MerchantTemplateSuggestionReview.Action) -> Bool {
+        guard !busy, isCurrent, isConfigured, let review, case .template(let current) = coordinator.draft else { return false }
+        return review.canEditCopy(action, current: current, edits: coordinator.templateAssistEdits)
+    }
+    public func prepareSuggestionEdit(_ action: MerchantTemplateSuggestionReview.Action) -> MerchantTemplateSuggestionEdit? {
+        guard canEditSuggestion(action), let review, case .template(let current) = coordinator.draft else { return nil }
+        return review.prepareCopyEdit(action, current: current, edits: coordinator.templateAssistEdits)
+    }
+    public func canSaveSuggestionEdit(_ edit: MerchantTemplateSuggestionEdit) -> Bool {
+        guard canEditSuggestion(edit.action), edit.issue == nil, edit.isChanged,
+              let value = review?.suggestion(for: edit.action) else { return false }
+        return value.proposed.utf8.elementsEqual(edit.capturedProposal.utf8)
+    }
+    @discardableResult public func saveSuggestionEdit(_ edit: MerchantTemplateSuggestionEdit) -> Bool {
+        guard canSaveSuggestionEdit(edit), case .template(let current) = coordinator.draft,
+              review?.saveCopyEdit(edit, current: current, edits: coordinator.templateAssistEdits) == true else { return false }
+        // The later, separate Accept action still rereads merchant permission and
+        // validates the original draft/field revisions through change(_:_:).
+        onChange?(); return true
+    }
     public func canChange(_ action: MerchantTemplateSuggestionReview.Action, change: MerchantTemplateSuggestionReview.Change) -> Bool {
         guard !busy, isCurrent, isConfigured, let review, case .template(let current) = coordinator.draft else { return false }
         return review.proposedDraft(action, change: change, current: current, edits: coordinator.templateAssistEdits) != nil

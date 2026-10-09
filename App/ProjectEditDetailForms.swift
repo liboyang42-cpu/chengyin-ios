@@ -15,7 +15,9 @@ import SwiftUI
     @StateObject private var storyAudios: ProjectStoryAudioPresentation
     @StateObject private var storyTemplates: ProjectStoryTemplatePresentation
     @StateObject private var pendingNodeRemoval: ProjectPendingNodeRemovalController
+    @StateObject private var audioPreview: ProjectEditorAudioPreviewController
     @Environment(\.locale) private var storyImageLocale
+    @Environment(\.scenePhase) private var audioPreviewScenePhase
     init(model: ProjectEditModel, chapterID: String, starterLease: ProjectEditStarterController.Destination? = nil,
          chapterOverride: Binding<ProjectEditChapter>? = nil, chapterIsCurrent: (() -> Bool)? = nil,
          mediaScope: ProjectStoryMediaChapterScope? = nil,
@@ -29,6 +31,7 @@ import SwiftUI
         _storyAudios = StateObject(wrappedValue: .init(editor: model, host: host))
         _storyTemplates = StateObject(wrappedValue: .init(editor: model, host: host))
         _pendingNodeRemoval = StateObject(wrappedValue: .init(model: model, chapterID: chapterID))
+        _audioPreview = StateObject(wrappedValue: .init(editor: model, chapterID: chapterID))
     }
     private func imageText(_ key: StaticString, _ fallback: String.LocalizationValue) -> String {
         String(localized: LocalizedStringResource(key, defaultValue: fallback, locale: storyImageLocale))
@@ -78,6 +81,13 @@ import SwiftUI
                     }
                 }
                 ProjectEditChapterStorySettings(chapter: chapter, isFirst: model.draft.chapters.first?.id == chapterID).id("project-issue-anchor-chapterSettings")
+                if model.draft.product == .city && chapterOverride == nil && mediaScope == nil && starterLease == nil &&
+                    model.draft.chapters.first?.id.utf8.elementsEqual(chapterID.utf8) == true {
+                    ProjectInitialStateEntry(model: model, chapterID: chapterID).id(Data(chapterID.utf8))
+                }
+                if chapterOverride == nil && mediaScope == nil && starterLease == nil {
+                    ProjectChapterAudioField(model: model, chapterID: chapterID, preview: audioPreview).id(Data(chapterID.utf8))
+                }
                 // The mini chapter palette is city-only. Pending new chapters keep
                 // their temporary binding until the existing placement flow commits.
                 if model.draft.product == .city && chapterOverride == nil {
@@ -108,6 +118,9 @@ import SwiftUI
                                     }.buttonStyle(.borderless).disabled(replacement == nil).accessibilityIdentifier("projectStoryImage.replace." + block.id)
                                 }
                                 if block.kind == .audio {
+                                    if chapterOverride == nil && mediaScope == nil && starterLease == nil && !block.url.isEmpty {
+                                        ProjectEditorAudioPreviewEntry(controller: audioPreview, destination: .storyBlock(Data(block.id.utf8)))
+                                    }
                                     let opening = usesRealMediaChapter ? storyAudios.capture(chapterID: chapterID, blockID: block.id) : nil
                                     let local = usesRealMediaChapter ? storyAudios.captureBlock(chapterID: chapterID, blockID: block.id) : nil
                                     if let name = block.localAudio, name.reference.utf8.elementsEqual(block.url.utf8) {
@@ -119,11 +132,11 @@ import SwiftUI
                                     }
                                     Button(imageText("projectStoryAudio.open", "Choose or replace an audio file")) {
                                         guard let opening, exists, storyImages.presentation == nil, storyAudios.presentation == nil, storyTemplates.opening == nil else { return }
-                                        storyAudios.open(opening)
+                                        audioPreview.retire(); storyAudios.open(opening)
                                     }.buttonStyle(.borderless).disabled(opening == nil).accessibilityIdentifier("projectStoryAudio.open." + block.id)
                                     Button(imageText("projectStoryAudio.remove", "Remove this audio block"), role: .destructive) {
                                         guard let local, exists, storyImages.presentation == nil, storyAudios.presentation == nil, storyTemplates.opening == nil else { return }
-                                        storyAudios.remove(local)
+                                        audioPreview.retire(); storyAudios.remove(local)
                                     }.buttonStyle(.borderless).disabled(local == nil).accessibilityIdentifier("projectStoryAudio.remove." + block.id)
                                     if opening == nil && audioPresentation == nil {
                                         Text(imageText("projectStoryAudio.unavailable", "Audio upload is not configured for this account or this chapter has not yet been saved in the editor. The existing block and reference remain editable locally."))
@@ -227,10 +240,13 @@ import SwiftUI
                 ProjectStoryTemplateView(controller: storyTemplates, original: original)
             }
             .modifier(ProjectPendingNodeRemovalPresentation(controller: pendingNodeRemoval))
-            .onChange(of: model.draftMutationRevision) { _, _ in pendingNodeRemoval.synchronize() }
-            .onChange(of: model.editorIncarnation) { _, _ in pendingNodeRemoval.retire() }
+            .onChange(of: model.draftMutationRevision) { _, _ in pendingNodeRemoval.synchronize(); audioPreview.synchronize() }
+            .onChange(of: model.editorIncarnation) { _, _ in pendingNodeRemoval.retire(); audioPreview.retire() }
+            .onChange(of: model.coordinator.session) { _, _ in audioPreview.retire() }
+            .onChange(of: model.canEdit) { _, allowed in if !allowed { audioPreview.retire() } }
+            .onChange(of: audioPreviewScenePhase) { _, next in if next != .active { audioPreview.retire() } }
             .onDisappear {
-                pendingNodeRemoval.retire()
+                pendingNodeRemoval.retire(); audioPreview.retire()
                 if let templateOpening { storyTemplates.close(templateOpening) }
                 if let imagePresentation { storyImages.close(imagePresentation) }
                 if let audioPresentation { storyAudios.close(audioPresentation) }

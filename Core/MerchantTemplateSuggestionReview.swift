@@ -18,7 +18,9 @@ public struct MerchantTemplateSuggestionReview {
         public let id: UUID
         public let field: MerchantTemplateAssistField
         public let original: String
+        public let generated: String
         public let proposed: String
+        public var isEdited: Bool { !proposed.utf8.elementsEqual(generated.utf8) }
         fileprivate var revision = UUID()
         public fileprivate(set) var state: State = .pending
         fileprivate var expectedEdits: MerchantTemplateAssistEdits
@@ -32,8 +34,9 @@ public struct MerchantTemplateSuggestionReview {
         self.result = result; self.captured = captured
         suggestions = MerchantTemplateAssistField.allCases.compactMap { field in
             guard let value = result.suggestion(field) else { return nil }
+            let proposed = field == .correctAnswer ? value.uppercased() : value
             return .init(id: UUID(), field: field, original: field.value(in: captured),
-                         proposed: field == .correctAnswer ? value.uppercased() : value, expectedEdits: edits)
+                         generated: proposed, proposed: proposed, expectedEdits: edits)
         }
     }
     public func action(for suggestion: Suggestion) -> Action {
@@ -47,6 +50,25 @@ public struct MerchantTemplateSuggestionReview {
     public func canReject(_ action: Action) -> Bool {
         guard let value = suggestion(for: action) else { return false }
         return value.state == .pending || value.state == .undone
+    }
+    public func canEditCopy(_ action: Action, current: MerchantNodeTemplate, edits: MerchantTemplateAssistEdits) -> Bool {
+        MerchantTemplateSuggestionEdit.supports(action.field) && proposedDraft(action, change: .accept, current: current, edits: edits) != nil
+    }
+    public func prepareCopyEdit(_ action: Action, current: MerchantNodeTemplate, edits: MerchantTemplateAssistEdits) -> MerchantTemplateSuggestionEdit? {
+        guard canEditCopy(action, current: current, edits: edits), let suggestion = suggestion(for: action) else { return nil }
+        return .init(action: action, suggestion: suggestion)
+    }
+    @discardableResult public mutating func saveCopyEdit(_ edit: MerchantTemplateSuggestionEdit, current: MerchantNodeTemplate,
+                                                        edits: MerchantTemplateAssistEdits) -> Bool {
+        guard edit.issue == nil, edit.isChanged, canEditCopy(edit.action, current: current, edits: edits),
+              let index = index(edit.action), exact(suggestions[index].proposed, edit.capturedProposal) else { return false }
+        // Only the reviewed candidate changes. Old rendered accept/undo/reject
+        // actions are retired; the raw generated response and actual draft remain intact.
+        let prior = suggestions[index]
+        suggestions[index] = .init(id: prior.id, field: prior.field, original: prior.original,
+                                  generated: prior.generated, proposed: edit.normalizedText,
+                                  state: prior.state, expectedEdits: prior.expectedEdits)
+        return true
     }
     @discardableResult public mutating func reject(_ action: Action) -> Bool {
         guard canReject(action), let index = index(action) else { return false }

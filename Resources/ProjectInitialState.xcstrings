@@ -1,0 +1,262 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "projectInitialState.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Initial state"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "初始状态"
+          }
+        }
+      }
+    },
+    "projectInitialState.hp": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Energy"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "精力"
+          }
+        }
+      }
+    },
+    "projectInitialState.luck": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Luck"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "幸运"
+          }
+        }
+      }
+    },
+    "projectInitialState.initial": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starting amount"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开局数值"
+          }
+        }
+      }
+    },
+    "projectInitialState.maximum": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maximum"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上限"
+          }
+        }
+      }
+    },
+    "projectInitialState.hpRange": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Energy maximum: 1–20. Starting amount: 1 to the maximum."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "精力上限为 1–20，开局数值为 1 至上限。"
+          }
+        }
+      }
+    },
+    "projectInitialState.luckRange": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Luck maximum: 0–5. Starting amount: 0 to the maximum."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "幸运上限为 0–5，开局数值为 0 至上限。"
+          }
+        }
+      }
+    },
+    "projectInitialState.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Theme-level settings, opened from the first chapter. Changes stay here until confirmation. Other attributes and thought definitions are preserved."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从首章配置主题级初始状态，确认前不改草稿。其它属性和伏笔定义会保留。"
+          }
+        }
+      }
+    },
+    "projectInitialState.unsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This saved configuration has an unsupported version or value. It is kept unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "现存配置版本或值暂不支持，已原样保留。"
+          }
+        }
+      }
+    },
+    "projectInitialState.recoveryNotice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirming these limits also adjusts the following recovery amounts."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认这些上限时，也会同步调整以下恢复数值。"
+          }
+        }
+      }
+    },
+    "projectInitialState.recovery.stationEndIfHurt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recovery after an injured station"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "受伤后完成站点恢复量"
+          }
+        }
+      }
+    },
+    "projectInitialState.recovery.stageRestHpFloor": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Energy after stage rest"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "阶段休息后精力下限"
+          }
+        }
+      }
+    },
+    "projectInitialState.recovery.stageRestLuckFloor": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Luck after stage rest"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "阶段休息后幸运下限"
+          }
+        }
+      }
+    },
+    "projectInitialState.recovery.exhaustRestHp": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Energy after exhaustion rest"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "力竭休息后精力"
+          }
+        }
+      }
+    },
+    "projectInitialState.invalid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use whole numbers within the shown ranges. The saved configuration must remain within 16 KiB. No change was applied."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请填写范围内的整数，配置须不超过 16 KiB；当前更改尚未应用。"
+          }
+        }
+      }
+    },
+    "projectInitialState.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm initial state"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认初始状态"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

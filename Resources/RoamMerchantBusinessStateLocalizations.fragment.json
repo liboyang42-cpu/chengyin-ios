@@ -1,0 +1,19 @@
+{
+  "roam.merchantBusinessUnknown": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Business status unknown"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "营业状态待确认"
+        }
+      }
+    }
+  }
+}

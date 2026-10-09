@@ -59,7 +59,7 @@ import SwiftUI
             media(value.coverImage, label: "merchant.publicHome.cover")
             media(value.logo, label: "merchant.publicHome.logo")
             Text(value.name?.isEmpty == false ? value.name! : String(localized: LocalizedStringResource("merchant.publicHome.merchant", locale: locale))).font(.title2.bold()).accessibilityAddTraits(.isHeader)
-            if let status = value.businessStatus { Text(status == 1 ? "merchant.publicHome.open" : "merchant.publicHome.closed") }
+            PublicMerchantHomeBusinessStatusLabel(state: value.businessState)
             field(value.slogan); field(value.cityRole)
             if let categories = value.sysCategoryList {
                 ForEach(Array(categories.enumerated()), id: \.offset) { _, category in field(category.categoryName) }
@@ -148,5 +148,28 @@ import SwiftUI
         }
         guard ticket == generation, snapshot == key, !Task.isCancelled else { return }
         loadedKey = snapshot; loading = false
+    }
+}
+
+struct PublicMerchantHomeBusinessStatusLabel: View {
+    let state: PublicMerchantBusinessState
+    var localizationKey: String {
+        switch state {
+        case .open: "merchant.publicHome.open"
+        case .closed: "merchant.publicHome.closed"
+        case .unknown: "merchant.publicHome.businessUnknown"
+        }
+    }
+    var symbol: String {
+        switch state {
+        case .open: "storefront"
+        case .closed: "moon.zzz"
+        case .unknown: "questionmark.circle"
+        }
+    }
+    var body: some View {
+        Label(LocalizedStringKey(localizationKey), systemImage: symbol)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityIdentifier("merchant.publicHome.businessStatus")
     }
 }

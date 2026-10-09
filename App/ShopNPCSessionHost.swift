@@ -37,12 +37,19 @@ import Observation
     let name: String
     let greeting: String?
     @State private var coordinator: ShopNPCCoordinator?
+    var makeScriptedGuide: ((ShopNPCScope) -> ShopNPCScriptedGuideSource?)? = nil
+    @State private var scriptedGuide: ShopNPCScriptedGuideSource?
     var body: some View {
         Group {
-            if let coordinator { ShopNPCView(coordinator: coordinator, name: name, greeting: greeting) }
+            if let coordinator { ShopNPCView(coordinator: coordinator, name: name, greeting: greeting, scriptedGuide: scriptedGuide) }
             else { ProgressView() }
         }
-        .task { if coordinator == nil { coordinator = makeCoordinator() } }
-        .onDisappear { coordinator?.invalidate() }
+        .task {
+            if coordinator == nil {
+                let value = makeCoordinator(); coordinator = value
+                if value.active { scriptedGuide = makeScriptedGuide?(value.scope) }
+            }
+        }
+        .onDisappear { scriptedGuide?.retire(); scriptedGuide = nil; coordinator?.invalidate() }
     }
 }

@@ -154,7 +154,7 @@ public struct MerchantStoreDecor: Decodable, Equatable {
     public var blocker: String? {
         if gallery.count > 9 { return "merchant.operations.galleryLimit" }
         if ((featuredType ?? 0) > 0) != ((featuredID ?? 0) > 0) { return "merchant.operations.featuredIncomplete" }
-        if (coverImage ?? "").isEmpty && slogan.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && cityRole.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && storyTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && gallery.isEmpty && tags.isEmpty { return "merchant.operations.decorEmpty" }
+        if (coverImage ?? "").isEmpty && slogan.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && cityRole.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && storyTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && gallery.isEmpty && tags.isEmpty && !(featuredType == 0 && featuredID == nil) { return "merchant.operations.decorEmpty" }
         return nil
     }
     /// This full payload is a contract preview only; no production send exists.

@@ -1,0 +1,70 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "projectEditorAudio.chapter": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prelisten to chapter narration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预听章节旁白"
+          }
+        }
+      }
+    },
+    "projectEditorAudio.block": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prelisten to this story audio"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预听这段故事音频"
+          }
+        }
+      }
+    },
+    "projectEditorAudio.close": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop and close prelisten"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止并关闭预听"
+          }
+        }
+      }
+    },
+    "projectEditorAudio.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prelisten is unavailable for this saved reference or the current media configuration. The reference is unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此现存引用或当前媒体配置暂不支持预听，引用保持不变。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

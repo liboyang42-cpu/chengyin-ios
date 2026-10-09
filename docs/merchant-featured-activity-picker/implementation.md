@@ -1,0 +1,27 @@
+# P079 owned-activity featured selector
+
+The decoration screen now loads the current account's activity candidates and lets the user explicitly apply one to the existing local featured pair. The existing current selection is preserved when it is missing from the loaded page, belongs to another featured type, the read fails or the user cancels. An unchanged selected activity closes without dirtying the draft. Apply changes only `featuredType = 1` and the selected `featuredID`; review and save remain separate. The frozen review shows that activity ID and explains the final store-ownership/public-visibility validation. No activity/coupon publishing, payment or featured save is dispatched by this picker.
+
+The exact existing query is `api/activity/list`, multipart `is_my=1`, `pageNum`, `pageSize=20`. Every page rechecks existing PROFILE_WRITE access through `MerchantOperationsSessionReader` and its unchanged session/cancellation/late-401 wrapper. No merchant ID, owner member ID, other-account selector, coordinates or new permission is sent. This account-owned list is not represented as all of the store owner's content or proof of feature eligibility; the existing save endpoint remains authoritative for the store owner and public state.
+
+The controller returns `TableDataInfo.rows` and `total`, so the picker supports explicit next-page loading while the known total exceeds the number loaded. The legacy plain-array response is also understood, but has unknown total and no guessed continuation. UI labels show the loaded scope and count. Duplicate IDs within/across pages, unsafe identities, impossible totals, non-progressing pages and responses exceeding the requested page size fail closed. A failed page retains previous display rows and original draft but disables selection/application until a successful reload. Reload preserves the original/current local choice while re-reading candidates; it does not silently choose the first row.
+
+The picker captures reader scope, draft identity and the whole original decoration draft. It owns each request task and a generation counter. Close, interactive dismissal, background, navigation departure and owner-draft changes cancel/invalidate pending work; late responses cannot repopulate a closed picker. Apply rechecks current editing state, no read error, unique loaded candidate and exact original draft. Existing coordinator review, fresh-baseline save validation and unknown-write journal are untouched.
+
+## Source evidence
+
+The same saved construction plan SHA-256 `eb23c8aefc22954bcd6f73ef800c32b763e7f8c4e3d4c68b0a0956756fd50133`, P079 paragraphs 1787–1790, lists open/retry/select featured actions. The caller calls this file v9; its cover still says edition 8. No plan edit is included.
+
+Private source repository `liboyang42-cpu/chengyin`, commit `ce61c0bbace743ff835cb297ef41c89b52181636`, was read only; private source is not copied into this candidate.
+
+- `chengyinhub-xcx/pages/merchant/decor/index.js`, blob `36f0d912f63369d8d110b56757387c66ae81d307`, lines 849–907: account-owned candidate request, array/table decoding, request generation, cancellation and featured type 1 selection.
+- `chengyinhub-admin/src/main/java/com/chengyinhub/web/controller/api/ApiActivityController.java`, blob `93d209b58f131693c06c5ea09f7e1231b5cba65c`, lines 158–244: existing owned query and pagination; 246–343: batched read-only decoration and paginated table response. The owned branch is scoped to the current principal's member ID, not a substituted merchant owner.
+- `chengyinhub-system/src/main/java/com/chengyinhub/business/service/impl/CmsActivityServiceImpl.java`, blob `54adcfadb560c0745455f82fb74181b76341ebc9`, lines 627–630: owned list delegates directly to the mapper.
+- `chengyinhub-system/src/main/resources/mapper/business/CmsActivityMapper.xml`, blob `607d689897e01a7d0c630b197c8bced0f6fc99fa`, lines 52–80: SELECT with current member/deleted/club filters. No mutation is introduced by this read path.
+- `chengyinhub-admin/src/main/java/com/chengyinhub/web/controller/api/ApiMerchantController.java`, blob `ac739a411d2de90de83bebecf482508e1d363a2a`, lines 1008–1030: actual save requires an owned public activity. This picker never bypasses that check.
+
+## Integration and verification
+
+Base tree `67dcde2db18e2d4429e82e4b4f97cab8e3c501ca`, after onboarding-hours recovery. Approved product paths are `Core/MerchantOperationsReading.swift`, `Core/MerchantOperationsService.swift`, `App/MerchantOperationsEditor.swift`, and the new `Core/MerchantFeaturedActivityOptions.swift` and `App/MerchantFeaturedActivityPicker.swift`. Apply only the additive method/editor hunks to aggregate files; preserve independent category and NPC code. The default protocol method is unavailable for readers that do not implement this read; the real session reader implements it. No AppSession or production grant changes.
+
+Merge thirteen unique bilingual keys and register new files centrally. No UI method, timing budget or CI timeout changes. Six focused Python source checks and seven affected-file Tree-sitter parses passed, plus exact-base replay/whitespace checks. Ten Core and eight AppUnit tests are authored but unrun, including pagination, scope replacement, cancelled late 401, unknown selection, failed reads, cancelled pending read and local-only apply. Apple compile/runtime/UI/accessibility, aggregate and live acceptance remain deferred. No live list request or save was made.

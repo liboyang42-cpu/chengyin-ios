@@ -106,13 +106,18 @@ public struct MerchantOnboardingHours: Equatable {
     public var startMinutes = 600
     public var endMinutes = 1320
     public init() {}
+    public init?(wireValue: String) {
+        guard let value = MerchantStoreHours(wireValue: wireValue) else { return nil }
+        days = value.days; startMinutes = value.startMinutes; endMinutes = value.endMinutes
+    }
+    private var storeHours: MerchantStoreHours {
+        var value = MerchantStoreHours(); value.days = days
+        value.startMinutes = startMinutes; value.endMinutes = endMinutes; return value
+    }
+    public var overnight: Bool { storeHours.overnight }
+    public var blocker: String? { storeHours.blocker }
     public func wireValue() throws -> String {
-        guard !days.isEmpty, days.isSubset(of: Set(0...6)),
-              (0..<1440).contains(startMinutes), (0..<1440).contains(endMinutes) else { throw APIError.invalidRequest }
-        let labels = ["一", "二", "三", "四", "五", "六", "日"]
-        let dayText = days.count == 7 ? "周一至周日" : "周" + days.sorted().map { labels[$0] }.joined(separator: "、")
-        func time(_ minute: Int) -> String { String(format: "%02d:%02d", minute / 60, minute % 60) }
-        return "\(dayText) \(time(startMinutes))-\(time(endMinutes))"
+        try storeHours.wireValue()
     }
 }
 

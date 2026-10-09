@@ -75,8 +75,14 @@ public struct ShopNPCVoiceClip: Equatable {
     }
 }
 public struct ShopNPCMessage: Identifiable, Equatable {
+    public enum Source: Equatable { case text, voice }
     public let id: UUID
     public let mine: Bool
     public var text: String
-    public init(id: UUID = UUID(), mine: Bool, text: String) { self.id = id; self.mine = mine; self.text = text }
+    public let source: Source
+    public var hasReusableQuestion: Bool { mine && !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+    public var voiceTranscriptMissing: Bool { mine && source == .voice && !hasReusableQuestion }
+    public init(id: UUID = UUID(), mine: Bool, text: String, source: Source = .text) {
+        self.id = id; self.mine = mine; self.text = text; self.source = mine ? source : .text
+    }
 }

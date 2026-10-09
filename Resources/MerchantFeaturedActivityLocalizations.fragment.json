@@ -1,0 +1,223 @@
+{
+  "merchant.featuredPicker.choose": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "选择主推活动"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Choose a featured activity"
+        }
+      }
+    }
+  },
+  "merchant.featuredPicker.scope": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "仅列出当前账号发布的活动，每次加载20条；不是门店全部内容。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Lists activities published by the current account, 20 per page. This is not the store’s complete content."
+        }
+      }
+    }
+  },
+  "merchant.featuredPicker.localDraft": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "选择只修改当前草稿，仍需单独审阅并保存。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Selection changes this draft only. Review and save it separately."
+        }
+      }
+    }
+  },
+  "merchant.featuredPicker.originalRetained": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "原主推未出现在已加载活动中，仍会保留，直到你明确应用新选择。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The original featured item is not in the loaded activities. It stays unchanged until you apply another choice."
+        }
+      }
+    }
+  },
+  "merchant.featuredPicker.loaded": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已加载活动"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Loaded activities"
+        }
+      }
+    }
+  },
+  "merchant.featuredPicker.unknownTotal": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "本次响应未提供总数，目前只显示已读取的候选。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This response did not include a total. Only the loaded candidates are shown."
+        }
+      }
+    }
+  },
+  "merchant.featuredPicker.empty": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前账号没有返回可选活动，原主推保持不变。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No activity candidates were returned for this account. The original featured item is unchanged."
+        }
+      }
+    }
+  },
+  "merchant.featuredPicker.selected": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已选择"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Selected"
+        }
+      }
+    }
+  },
+  "merchant.featuredPicker.notSelected": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "未选择"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Not selected"
+        }
+      }
+    }
+  },
+  "merchant.featuredPicker.more": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "加载更多活动"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Load more activities"
+        }
+      }
+    }
+  },
+  "merchant.featuredPicker.apply": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "应用到当前草稿"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Apply to this draft"
+        }
+      }
+    }
+  },
+  "merchant.featuredPicker.reviewActivity": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "主推活动编号"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Featured activity ID"
+        }
+      }
+    }
+  },
+  "merchant.featuredPicker.finalValidation": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "保存时仍会核实活动是否属于该门店并已公开；选择候选不代表已经上架。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Saving still checks that the activity belongs to this store and is public. Choosing a candidate does not publish it."
+        }
+      }
+    }
+  }
+}

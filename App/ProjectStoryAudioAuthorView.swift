@@ -1,23 +1,29 @@
 import SwiftUI
 
 @MainActor final class ProjectStoryAudioAuthorModel: ObservableObject {
-    let original: ProjectStoryAudioPresentation.Presentation
+    let flow: ProjectStoryAudioFlow
     let pickerHost = RetainedImagePickerHost()
     @Published private(set) var revision = 0
     @Published private(set) var selectionFailed = false
     private let injectedPicker: (any ProjectStoryAudioSelecting)?
-    private let applyDraft: (ProjectStoryAudioPresentation.Presentation) -> Void
+    private let applyDraft: () -> Void
+    private let permitsPicker: () -> Bool
     private lazy var nativePicker = pickerHost.makeStoryAudioPicker(selectionAllowed: { [weak self] in
         guard let self else { return false }
-        return self.flow.isCurrent && self.flow.matchesCapturedDraft && self.original.opening.source.permitsPicker(session: self.original.opening.block.lease.session)
+        return self.flow.isCurrent && self.flow.matchesCapturedDraft && self.permitsPicker()
     })
     private var picker: any ProjectStoryAudioSelecting { injectedPicker ?? nativePicker }
     private var pickerTask: Task<Void, Never>?
     private var pickerID: UUID?
-    var flow: ProjectStoryAudioFlow { original.flow }
-    init(original: ProjectStoryAudioPresentation.Presentation, picker: (any ProjectStoryAudioSelecting)? = nil,
+    convenience init(original: ProjectStoryAudioPresentation.Presentation, picker: (any ProjectStoryAudioSelecting)? = nil,
          apply: @escaping (ProjectStoryAudioPresentation.Presentation) -> Void) {
-        self.original = original; injectedPicker = picker; applyDraft = apply
+        self.init(flow: original.flow, picker: picker, permitsPicker: {
+            original.opening.source.permitsPicker(session: original.opening.block.lease.session)
+        }, apply: { apply(original) })
+    }
+    init(flow: ProjectStoryAudioFlow, picker: (any ProjectStoryAudioSelecting)? = nil,
+         permitsPicker: @escaping () -> Bool, apply: @escaping () -> Void) {
+        self.flow = flow; injectedPicker = picker; self.permitsPicker = permitsPicker; applyDraft = apply
     }
     func load() { flow.load(); revision += 1 }
     func choose() async {
@@ -45,7 +51,7 @@ import SwiftUI
         Task { [weak self, flow] in await flow.upload(claim); self?.revision += 1 }
     }
     func persistReceipt() { flow.persistReceipt(); revision += 1 }
-    func apply() { guard flow.canApply else { return }; applyDraft(original); revision += 1 }
+    func apply() { guard flow.canApply else { return }; applyDraft(); revision += 1 }
     func close() { pickerTask?.cancel(); pickerTask = nil; pickerID = nil; picker.cancel(); flow.close(); revision += 1 }
 }
 

@@ -76,7 +76,7 @@ final class MerchantOnboardingContractTests: XCTestCase {
         var hours = MerchantOnboardingHours()
         XCTAssertEqual(try hours.wireValue(), "周一至周日 10:00-22:00")
         hours.days = [0, 2, 6]; hours.startMinutes = 9 * 60 + 5; hours.endMinutes = 2 * 60
-        XCTAssertEqual(try hours.wireValue(), "周一、三、日 09:05-02:00") // Source allows overnight hours.
+        XCTAssertEqual(try hours.wireValue(), "周一、三、日 09:05-次日02:00") // Source requires an explicit next-day marker.
         hours.days = []; XCTAssertThrowsError(try hours.wireValue())
         hours.days = [8]; XCTAssertThrowsError(try hours.wireValue())
         hours.days = [0]; hours.startMinutes = 1440; XCTAssertThrowsError(try hours.wireValue())

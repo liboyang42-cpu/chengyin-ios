@@ -16,6 +16,7 @@ struct MerchantTemplateAssistPresentation: Identifiable {
     @ObservedObject var document: MerchantOperationsViewModel
     @StateObject private var model: MerchantTemplateAssistModel
     @State private var task: Task<Void, Never>?
+    @State private var suggestionEdit: MerchantTemplateSuggestionEdit?
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     @FocusState private var focused: Bool
@@ -61,7 +62,8 @@ struct MerchantTemplateAssistPresentation: Identifiable {
                                 _ = await flow.change(action, change)
                                 document.templateAssistChanged()
                             }
-                        }, reject: flow.reject)
+                        }, reject: flow.reject, canEdit: flow.canEditSuggestion,
+                        edit: { action in suggestionEdit = flow.prepareSuggestionEdit(action) })
                     if !result.unsupportedKeys.isEmpty {
                         Section("merchant.assist.unsupported") {
                             Text("merchant.assist.unsupportedHint").font(.footnote)
@@ -90,12 +92,13 @@ struct MerchantTemplateAssistPresentation: Identifiable {
                 ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("action.done") { focused = false } }
             }
         }
+        .sheet(item: $suggestionEdit) { edit in MerchantTemplateSuggestionEditSheet(document: document, flow: flow, edit: edit) }
         .onChange(of: document.coordinator.reader.scope) { _, _ in close() }
         .onChange(of: document.coordinator.draftIdentity) { _, _ in close() }
         .onChange(of: scenePhase) { _, phase in if phase != .active { close() } }
-        .onDisappear { task?.cancel(); flow.close() }
+        .onDisappear { suggestionEdit = nil; task?.cancel(); flow.close() }
     }
-    private func close() { task?.cancel(); task = nil; flow.close(); dismiss() }
+    private func close() { suggestionEdit = nil; task?.cancel(); task = nil; flow.close(); dismiss() }
     private func decodedResult(_ result: MerchantTemplateAssistResult) -> String {
         let encoder = JSONEncoder(); encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         guard let data = try? encoder.encode(result.response) else { return "" }

@@ -1,5 +1,17 @@
 import Foundation
 
+/// Public source display only. Unknown is not closed or permission to enter.
+public enum PublicMerchantBusinessState: Equatable {
+    case open, closed, unknown
+    public init(sourceStatus: Int?) {
+        switch sourceStatus {
+        case 1: self = .open
+        case 0: self = .closed
+        default: self = .unknown
+        }
+    }
+}
+
 public struct PublicMerchantOwnerID: Hashable {
     public let rawValue: Int
     public init?(_ rawValue: Int) { guard rawValue > 0 else { return nil }; self.rawValue = rawValue }
@@ -37,6 +49,7 @@ public struct PublicMerchantHome: Decodable, Equatable {
     public let address: String?
     public let businessTime: String?
     public let businessStatus: Int?
+    public var businessState: PublicMerchantBusinessState { .init(sourceStatus: businessStatus) }
     public let storyTitle: String?
     public let description: String?
     public let gallery: String?

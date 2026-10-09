@@ -31,9 +31,21 @@ import Foundation
     // Received-but-unstored facts survive a presentation closing within this AppSession.
     // This cache is explicitly not durable process-restart recovery.
     private var received: [String: [UUID: ProjectStoryUploadedAudio]] = [:]
-    public init(storage: any ProjectEditDataStorage) { self.storage = storage }
+    public let targetKind: ProjectStoryAudioTarget.Kind
+    private var chapterJournal: ProjectStoryAudioJournal?
+    public init(storage: any ProjectEditDataStorage, targetKind: ProjectStoryAudioTarget.Kind = .storyBlock) {
+        self.storage = storage; self.targetKind = targetKind
+    }
+    /// Same storage/receipt machinery, separate envelope key and lifetime cache. Old block bytes are never rewritten.
+    public func chapterNarrationJournal() -> ProjectStoryAudioJournal {
+        if targetKind == .chapterNarration { return self }
+        if let chapterJournal { return chapterJournal }
+        let value = ProjectStoryAudioJournal(storage: storage, targetKind: .chapterNarration)
+        chapterJournal = value; return value
+    }
     private func key(owner: String, draft: String) -> String {
-        "project-story-audio.v1." + Data((owner + ":" + draft).utf8).base64EncodedString()
+        let prefix = targetKind == .storyBlock ? "project-story-audio.v1." : "project-chapter-audio.v1."
+        return prefix + Data((owner + ":" + draft).utf8).base64EncodedString()
     }
     public func read(session: ProjectEditSession, identity: ProjectEditDraftIdentity) throws -> Snapshot {
         let bytes = try storage.read(key(owner: session.ownerKey, draft: identity.bucket))
@@ -48,7 +60,7 @@ import Foundation
             guard ids.insert(saved.attemptID).inserted, saved.target.ownerKey == value.ownerKey,
                   saved.target.draftBucket == value.draftBucket, ApprovedTopicReleasePreparation.validHash(saved.selectedDigest),
                   ApprovedTopicReleasePreparation.validHash(saved.target.originalDraftHash), !saved.target.chapterID.isEmpty,
-                  !saved.target.blockID.isEmpty, saved.reference != nil || !saved.applied else { throw ProjectStoryAudioFailure.persistenceUnavailable }
+                  saved.target.kind == targetKind, saved.target.hasValidDestination, saved.reference != nil || !saved.applied else { throw ProjectStoryAudioFailure.persistenceUnavailable }
             let receipt = try saved.reference.map { reference -> ProjectStoryUploadedAudio in
                 guard let filename = saved.filename, let rawFormat = saved.format,
                       let format = TemplateAudioDocumentMetadata.Format(rawValue: rawFormat) else { throw ProjectStoryAudioFailure.persistenceUnavailable }
@@ -73,7 +85,8 @@ import Foundation
     }
     public func begin(target: ProjectStoryAudioTarget, digest: String, expected: Snapshot,
                       session: ProjectEditSession, identity: ProjectEditDraftIdentity, id: UUID = UUID()) throws -> Snapshot {
-        guard target.ownerKey == expected.ownerKey, target.draftBucket == expected.draftBucket,
+        guard target.kind == targetKind, target.hasValidDestination,
+              target.ownerKey == expected.ownerKey, target.draftBucket == expected.draftBucket,
               expected.entries.count < 256, !expected.entries.contains(where: { $0.attemptID == id }),
               ApprovedTopicReleasePreparation.validHash(digest) else { throw ProjectStoryAudioFailure.persistenceUnavailable }
         let entry = Entry(attemptID: id, target: target, selectedDigest: digest, receipt: nil, applied: false)

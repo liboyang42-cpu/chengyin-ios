@@ -7,6 +7,8 @@ import SwiftUI
     let canReject: (MerchantTemplateSuggestionReview.Action) -> Bool
     let change: (MerchantTemplateSuggestionReview.Action, MerchantTemplateSuggestionReview.Change) -> Void
     let reject: (MerchantTemplateSuggestionReview.Action) -> Void
+    let canEdit: (MerchantTemplateSuggestionReview.Action) -> Bool
+    let edit: (MerchantTemplateSuggestionReview.Action) -> Void
     var body: some View {
         Section("merchant.assist.diff.title") {
             Text("merchant.assist.diff.boundary").font(.footnote)
@@ -17,8 +19,12 @@ import SwiftUI
                     Text("merchant.assist.diff.original").font(.caption)
                     if suggestion.original.isEmpty { Text("merchant.assist.diff.empty").foregroundStyle(.secondary) }
                     else { Text(verbatim: suggestion.original).textSelection(.enabled) }
-                    Text("merchant.assist.diff.proposed").font(.caption)
+                    Text(suggestion.isEdited ? "merchantSuggestionEdit.yourVersion" : "merchant.assist.diff.proposed").font(.caption)
                     Text(verbatim: suggestion.proposed).textSelection(.enabled)
+                    if suggestion.isEdited {
+                        Label("merchantSuggestionEdit.edited", systemImage: "pencil").font(.caption)
+                        DisclosureGroup("merchantSuggestionEdit.generated") { Text(verbatim: suggestion.generated).textSelection(.enabled) }
+                    }
                     Text(LocalizedStringKey("merchant.assist.diff.state." + suggestion.state.rawValue))
                         .accessibilityIdentifier("merchant.assist.diff.state." + suggestion.field.rawValue)
                     HStack {
@@ -34,6 +40,11 @@ import SwiftUI
                         Button("merchant.assist.diff.reject") { reject(action) }
                             .buttonStyle(.borderless).disabled(!canReject(action))
                             .accessibilityIdentifier("merchant.assist.diff.reject." + suggestion.field.rawValue)
+                    }
+                    if MerchantTemplateSuggestionEdit.supports(suggestion.field), suggestion.state == .pending || suggestion.state == .undone {
+                        Button("merchantSuggestionEdit.open") { edit(action) }
+                            .buttonStyle(.bordered).disabled(!canEdit(action))
+                            .accessibilityIdentifier("merchantSuggestionEdit.open." + suggestion.field.rawValue)
                     }
                     if suggestion.state != .rejected && !canChange(action, suggestion.state == .applied ? .undo : .accept) {
                         Text("merchant.assist.diff.blocked").font(.caption).foregroundStyle(.secondary)

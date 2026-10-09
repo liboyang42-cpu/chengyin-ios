@@ -5,12 +5,14 @@ import SwiftUI
     let name: String
     let greeting: String?
     var capture: (any ShopNPCVoiceCapturing)? = nil
+    var scriptedGuide: ShopNPCScriptedGuideSource? = nil
     @State private var draft = ""
     @State private var revision = 0
     @State private var recording = false
     @State private var localFailure: ShopNPCFailure?
     @FocusState private var typing: Bool
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.dismiss) private var dismiss
     private var sending: Bool { coordinator.busy }
     private var showsConversation: Bool { coordinator.active && !coordinator.isSuspended }
     private var canCompose: Bool {
@@ -31,6 +33,9 @@ import SwiftUI
                     LazyVStack(alignment: .leading, spacing: 16) {
                         if coordinator.isSuspended { interruptionPanel }
                         if showsConversation {
+                            if let scriptedGuide {
+                                ShopNPCScriptedGuideView(source: scriptedGuide, coordinator: coordinator, returnToNode: { dismiss() })
+                            }
                             if let greeting, !greeting.isEmpty { Text(verbatim: greeting) }
                             if !coordinator.grants.textAllowed { Text("shopNPC.disabled").accessibilityIdentifier("shopNPC.disabled") }
                             ForEach(coordinator.messages) { message in
@@ -38,13 +43,24 @@ import SwiftUI
                                     ChatMessageBubble(isOwn: message.mine) {
                                         Text(message.mine ? "shopNPC.you" : "shopNPC.assistant")
                                     } content: {
-                                        Text(verbatim: message.text).textSelection(.enabled)
+                                        if message.voiceTranscriptMissing {
+                                            Text("shopNPCQuestionReuse.noTranscript")
+                                        } else {
+                                            Text(verbatim: message.text).textSelection(.enabled)
+                                        }
+                                    }
+                                    if message.mine, message.source == .voice {
+                                        if message.voiceTranscriptMissing { Text("shopNPCQuestionReuse.transcriptUnavailable").font(.footnote).foregroundStyle(.secondary) }
+                                        else { Text("shopNPCQuestionReuse.voiceSource").font(.caption).foregroundStyle(.secondary) }
+                                    }
+                                    if message.hasReusableQuestion {
+                                        ShopNPCQuestionReuseButton(coordinator: coordinator, messageID: message.id, draft: $draft, enabled: canCompose)
                                     }
                                     if !message.mine {
                                         Button { typing = false; attempt { try coordinator.reviewRegeneration(answerID: message.id) } } label: {
                                             Text("shopNPC.regenerate").frame(minHeight: 44).contentShape(Rectangle())
                                         }
-                                            .disabled(sending || recording || coordinator.pending != nil || !coordinator.active || !coordinator.grants.textAllowed)
+                                            .disabled(recording || !coordinator.canRegenerate(answerID: message.id))
                                             .accessibilityIdentifier("shopNPC.regenerate")
                                     }
                                 }.accessibilityElement(children: .contain)
@@ -189,9 +205,10 @@ import SwiftUI
     let name: String?
     let makeCoordinator: (() -> ShopNPCCoordinator)?
     var greeting: String? = nil
+    var makeScriptedGuide: ((ShopNPCScope) -> ShopNPCScriptedGuideSource?)? = nil
     var body: some View {
         if let name, !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, let makeCoordinator {
-            NavigationLink("shopNPC.open") { ShopNPCOwnedDestination(makeCoordinator: makeCoordinator, name: name, greeting: greeting) }
+            NavigationLink("shopNPC.open") { ShopNPCOwnedDestination(makeCoordinator: makeCoordinator, name: name, greeting: greeting, makeScriptedGuide: makeScriptedGuide) }
                 .accessibilityIdentifier("shopNPC.open")
         }
     }

@@ -23,7 +23,7 @@ class ShopNPCInterruptionContracts(unittest.TestCase):
         host = read('App/ShopNPCSessionHost.swift')
         session = read('App/AppSession.swift')
         self.assertIn('ShopNPCNodeEntrance(name: shopNPC.name', play)
-        self.assertIn('ShopNPCView(coordinator: coordinator, name: name, greeting: greeting)', host)
+        self.assertIn('ShopNPCView(coordinator: coordinator, name: name, greeting: greeting, scriptedGuide: scriptedGuide)', host)
         self.assertIn('ShopNPCAuthenticatedHTTPTransport(configuration: configuration', session)
         for token in ['snapshot.availability == .active', '!snapshot.isLocked(node)', 'node.npc == npc', 'shopNPCSessionOwner.register(coordinator)']:
             self.assertIn(token, session)
@@ -83,7 +83,10 @@ class ShopNPCInterruptionContracts(unittest.TestCase):
         for token in ['transmission?.cancel()', 'active = false', 'isSuspended = false', 'pending = nil', 'messages = []']:
             self.assertIn(token, body)
         self.assertIn('.onDisappear { invalidate() }', read('App/ShopNPCView.swift'))
-        self.assertIn('.onDisappear { coordinator?.invalidate() }', read('App/ShopNPCSessionHost.swift'))
+        host = read('App/ShopNPCSessionHost.swift')
+        self.assertIn('.onDisappear { scriptedGuide?.retire(); scriptedGuide = nil; coordinator?.invalidate() }', host)
+        self.assertIn('coordinator?.invalidate()', host)
+        self.assertIn('scriptedGuide?.retire(); scriptedGuide = nil', host)
         self.assertIn('conversations.forEach { $0.value?.invalidate() }', read('App/ShopNPCSessionHost.swift'))
 
     def test_suspension_hides_transcript_review_and_draft_and_cancels_recording(self):

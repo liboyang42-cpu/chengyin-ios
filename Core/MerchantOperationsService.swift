@@ -59,6 +59,11 @@ public struct MerchantOperationsService {
     public func access(token: String) async throws -> MerchantOperationsAccess {
         try await read("api/merchant/access/me", body: .none, token: token)
     }
+    public func featuredActivities(page: Int, access: MerchantOperationsAccess, token: String) async throws -> MerchantFeaturedActivityPage {
+        guard access.allows(.decor) else { throw MerchantOperationsFailure.accessDenied }
+        guard page > 0 else { throw APIError.invalidRequest }
+        return try await read("api/activity/list", body: .form(["is_my": "1", "pageNum": String(page), "pageSize": String(MerchantFeaturedActivityPage.pageSize)]), token: token)
+    }
     public func document(_ destination: MerchantOperationsDestination, access: MerchantOperationsAccess, token: String) async throws -> MerchantOperationsDocument {
         // coop-profile already authorizes COOP_MANAGE reads. Editing/saving still uses
         // access.allows(.npcMapPoint), which requires both COOP_MANAGE and PROFILE_WRITE.

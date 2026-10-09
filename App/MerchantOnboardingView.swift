@@ -13,6 +13,7 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
     @State private var photo: PhotosPickerItem?
     @State private var showPhotos = false
     @State private var showHours = false
+    @State private var hoursEditor: MerchantOnboardingHoursSession?
     @State private var showUploadConfirmation = false
     @State private var showSubmitConfirmation = false
     init(session: Session, coordinator: MerchantOnboardingCoordinator, openMerchant: (() -> Void)? = nil) {
@@ -53,8 +54,11 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
             Task { await model.select(value); photo = nil }
         }
         .sheet(isPresented: $showHours) {
-            MerchantOnboardingHoursView { value in model.draft.businessTime = value }
+            if let hoursEditor {
+                MerchantOnboardingHoursEditor(editor: hoursEditor) { hoursEditor.cancel(); showHours = false }
+            }
         }
+        .onChange(of: showHours) { _, shown in if !shown { hoursEditor?.cancel(); hoursEditor = nil } }
         .confirmationDialog("merchant.onboarding.uploadConfirm.title", isPresented: $showUploadConfirmation, titleVisibility: .visible) {
             Button("merchant.onboarding.uploadConfirm.action") { Task { await model.uploadSelected() } }
             Button("action.cancel", role: .cancel) { }
@@ -151,7 +155,10 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
             TextField("merchant.onboarding.address", text: $model.draft.address, axis: .vertical)
                 .accessibilityIdentifier("merchant.onboarding.address")
             LabeledContent("merchant.onboarding.hours", value: model.draft.businessTime.isEmpty ? appLocalized("merchant.onboarding.notSet",locale:locale) : displayHours(model.draft.businessTime))
-            Button("merchant.onboarding.chooseHours") { showHours = true }
+            Button("merchant.onboarding.chooseHours") {
+                hoursEditor = MerchantOnboardingHoursSession(model: model)
+                showHours = hoursEditor != nil
+            }
                 .accessibilityIdentifier("merchant.onboarding.hours")
             TextField("merchant.onboarding.description", text: $model.draft.description, axis: .vertical).lineLimit(3...8)
         }
@@ -259,42 +266,5 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
     private var refreshButton: some View {
         Button("merchant.onboarding.checkAgain") { Task { await model.load() } }
             .disabled(model.isBusy).accessibilityIdentifier("merchant.onboarding.refresh")
-    }
-}
-
-@MainActor
-private struct MerchantOnboardingHoursView: View {
-    @Environment(\.dismiss) private var dismiss
-    @State private var hours = MerchantOnboardingHours()
-    @State private var start = Calendar.current.date(from: DateComponents(year: 2000, month: 1, day: 1, hour: 10)) ?? Date()
-    @State private var end = Calendar.current.date(from: DateComponents(year: 2000, month: 1, day: 1, hour: 22)) ?? Date()
-    let onSave: (String) -> Void
-    var body: some View {
-        NavigationStack {
-            Form {
-                Section("merchant.onboarding.days") {
-                    ForEach(0..<7, id: \.self) { day in
-                        Toggle(LocalizedStringKey("merchant.onboarding.day." + String(day)), isOn: Binding(
-                            get: { hours.days.contains(day) },
-                            set: { selected in if selected { hours.days.insert(day) } else { hours.days.remove(day) } }))
-                    }
-                }
-                DatePicker("merchant.onboarding.opens", selection: $start, displayedComponents: .hourAndMinute)
-                DatePicker("merchant.onboarding.closes", selection: $end, displayedComponents: .hourAndMinute)
-                if hours.days.isEmpty { Text("merchant.onboarding.dayRequired").foregroundStyle(.red) }
-            }
-            .appNavigationTitle("merchant.onboarding.hours")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { dismiss() } }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("merchant.onboarding.saveHours") {
-                        let calendar = Calendar.current
-                        hours.startMinutes = calendar.component(.hour, from: start) * 60 + calendar.component(.minute, from: start)
-                        hours.endMinutes = calendar.component(.hour, from: end) * 60 + calendar.component(.minute, from: end)
-                        if let value = try? hours.wireValue() { onSave(value); dismiss() }
-                    }.disabled(hours.days.isEmpty)
-                }
-            }
-        }
     }
 }

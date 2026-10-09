@@ -139,7 +139,10 @@ struct FreeExplorationStoreName: View {
                     if let description = node.description { Section { Text(verbatim: description) } }
                     if let hours = node.businessTime { LabeledContent("play.businessTime") { Text(verbatim: hours) } }
                     if model.hasCurrentMediaSnapshot, node.npc != nil, let shopNPC {
-                        Section { ShopNPCNodeEntrance(name: shopNPC.name, makeCoordinator: shopNPC.makeCoordinator, greeting: shopNPC.greeting).id(shopNPC.identity) }
+                        Section {
+                            ShopNPCNodeEntrance(name: shopNPC.name, makeCoordinator: shopNPC.makeCoordinator, greeting: shopNPC.greeting,
+                                makeScriptedGuide: { scope in ShopNPCScriptedGuideSource(runtime: model, nodeID: nodeID, conversation: scope) }).id(shopNPC.identity)
+                        }
                     }
                     if let story = storyDestination(node) { NavigationLink("playFree.story") { story } }
                     PlatformExternalMapHost(destination: .init(name: node.name ?? "", address: node.address,

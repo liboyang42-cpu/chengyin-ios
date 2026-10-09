@@ -1,0 +1,230 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "projectChapterAudio.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chapter narration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "章节旁白"
+          }
+        }
+      }
+    },
+    "projectChapterAudio.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No chapter narration is set."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未设置章节旁白。"
+          }
+        }
+      }
+    },
+    "projectChapterAudio.unsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This saved audio value has an unsupported format. It has been kept unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "现存音频值格式暂不支持，已原样保留。"
+          }
+        }
+      }
+    },
+    "projectChapterAudio.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is the saved chapter-level reference. Viewing it does not load or play audio."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这里显示章节级现存引用；查看不会加载或播放音频。"
+          }
+        }
+      }
+    },
+    "projectChapterAudio.tooLong": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This saved reference exceeds the chapter limit of 512 UTF-16 units. It is kept unchanged until you explicitly clear it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此现存引用超出章节的 512 个 UTF-16 单元上限；明确清除前会原样保留。"
+          }
+        }
+      }
+    },
+    "projectChapterAudio.clear": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear chapter narration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除章节旁白"
+          }
+        }
+      }
+    },
+    "projectChapterAudio.clearTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear this chapter’s narration?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除本章旁白？"
+          }
+        }
+      }
+    },
+    "projectChapterAudio.clearMessage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This removes the narration reference from the working draft. It does not delete the uploaded file or change story audio blocks."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这会清除当前草稿中的旁白引用，不会删除已上传文件或更改故事音频块。"
+          }
+        }
+      }
+    },
+    "projectChapterAudio.replace": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose or replace chapter narration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择或替换章节旁白"
+          }
+        }
+      }
+    },
+    "projectChapterAudio.uploadUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chapter audio upload is not configured for this account or current draft. Existing references remain unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前账号或草稿尚未配置章节音频上传，现存引用保持不变。"
+          }
+        }
+      }
+    },
+    "projectChapterAudio.selectionScope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose one mp3, m4a or aac file up to 10 MiB. Selection stays on this device until explicit upload. Only explicit Apply replaces this chapter’s narration and saves locally."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择一个不超过 10 MiB 的 mp3、m4a 或 aac 文件。明确上传前只在本机暂存；明确应用后才替换本章旁白并保存到本机。"
+          }
+        }
+      }
+    },
+    "projectChapterAudio.changed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This chapter or draft has changed. Close and reopen before selecting another file. Existing narration has not been replaced."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本章或草稿已变化，请关闭后重新打开再选择文件。现存旁白尚未被替换。"
+          }
+        }
+      }
+    },
+    "projectChapterAudio.receiptTooLong": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The returned reference exceeds the chapter limit of 512 UTF-16 units. Its receipt is retained and cannot be applied."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回引用超过章节的 512 个 UTF-16 单元上限，回执已保留，无法应用。"
+          }
+        }
+      }
+    },
+    "projectChapterAudio.apply": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply to this chapter and save locally"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用到本章并保存到本机"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

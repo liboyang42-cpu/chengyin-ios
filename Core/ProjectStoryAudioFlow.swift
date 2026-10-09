@@ -30,6 +30,7 @@ import Foundation
     public var receipt:ProjectStoryUploadedAudio?{unstoredReceipt ?? snapshot?.entries.first(where:{$0.attemptID==activeAttempt})?.receipt}
     public var hasUnstoredReceipt:Bool{unstoredReceipt != nil}
     public var referenceFitsStory:Bool{receipt.map { $0.reference.utf16.count <= 500 } ?? false}
+    public var referenceFitsTarget:Bool{receipt.map { $0.reference.utf16.count <= target.maximumReferenceUTF16Count } ?? false}
     public var matchesCapturedDraft:Bool{
         guard let draft=currentDraft()else{return false}
         return target.matches(draft,identity:identity,session:session)
@@ -41,12 +42,12 @@ import Foundation
     public var canPick:Bool{snapshot != nil && isCurrent && state != .unauthorized && !busy && !hasUnstoredReceipt && matchesCapturedDraft && source.permitsPicker(session:session)}
     public var canPersistReceipt:Bool{isCurrent && !busy && hasUnstoredReceipt}
     public var canApply:Bool{
-        guard isCurrent,!busy,review == nil,!hasUnstoredReceipt,referenceFitsStory,let receipt,source.permitsReference(receipt.reference,session:session)else{return false}
+        guard isCurrent,!busy,review == nil,!hasUnstoredReceipt,referenceFitsTarget,let receipt,source.permitsReference(receipt.reference,session:session)else{return false}
         return matchesCapturedDraft || alreadyApplied
     }
     public var unresolvedUploadCount:Int{snapshot?.entries.filter{$0.receipt==nil}.count ?? 0}
     private func sameField(_ saved:ProjectStoryAudioTarget)->Bool{
-        saved.ownerKey==initialTarget.ownerKey && saved.draftBucket==initialTarget.draftBucket &&
+        saved.kind==initialTarget.kind && saved.ownerKey==initialTarget.ownerKey && saved.draftBucket==initialTarget.draftBucket &&
             saved.chapterID==initialTarget.chapterID && saved.blockID==initialTarget.blockID
     }
     public func load(){

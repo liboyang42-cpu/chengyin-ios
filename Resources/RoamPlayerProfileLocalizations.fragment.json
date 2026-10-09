@@ -1,0 +1,36 @@
+{
+  "roamPlayerProfile.open": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "View public profile"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "查看公开主页"
+        }
+      }
+    }
+  },
+  "roamPlayerProfile.unavailable": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Public profile is unavailable in this view."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前视图的公开主页入口暂不可用。"
+        }
+      }
+    }
+  }
+}

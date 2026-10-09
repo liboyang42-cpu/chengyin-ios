@@ -10,9 +10,16 @@ struct RoamItemDetailView: View {
     private let stampDestination: (() -> AnyView)?
     private let posterDestination: ((RoamNodeDetail) -> AnyView)?
     private let eventDestination: ((RoamEventDestination) -> AnyView)?
+    private let playerProfileDestination: ((Int) -> AnyView)?
     @State private var eventNavigation: RoamEventNavigationSelection?
+    @State private var routeTopicNavigation: RoamRouteTopicNavigationSelection?
+    @State private var playerProfileNavigation: RoamPlayerProfileSelection?
+    @State private var featuredActivityNavigation: RoamFeaturedActivitySelection?
+    @State private var merchantReadSnapshot = UUID()
     @State private var eventPresentationID = UUID()
     @State private var eventIsVisible = false
+    @State private var latestReaderID: ObjectIdentifier
+    @State private var latestItem: RoamMapItem
     @State private var originatingReaderID: ObjectIdentifier
     @State private var originatingArea: RoamSearchArea?
     @Environment(\.dismiss) private var dismiss
@@ -23,20 +30,33 @@ struct RoamItemDetailView: View {
     @State private var loading = false
     @State private var issue: RoamScreenIssue?
     @State private var generation = 0
-    init(item: RoamMapItem, reader: any RoamReading, mediaScope: UUID = UUID(), makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil, stampDestination: (() -> AnyView)? = nil, posterDestination: ((RoamNodeDetail) -> AnyView)? = nil, eventDestination: ((RoamEventDestination) -> AnyView)? = nil) {
-        self.stampDestination = stampDestination; self.posterDestination = posterDestination; self.eventDestination = eventDestination
+    init(item: RoamMapItem, reader: any RoamReading, mediaScope: UUID = UUID(), makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil, stampDestination: (() -> AnyView)? = nil, posterDestination: ((RoamNodeDetail) -> AnyView)? = nil, eventDestination: ((RoamEventDestination) -> AnyView)? = nil, playerProfileDestination: ((Int) -> AnyView)? = nil) {
+        self.stampDestination = stampDestination; self.posterDestination = posterDestination; self.eventDestination = eventDestination; self.playerProfileDestination = playerProfileDestination
         _originatingReaderID = State(initialValue: ObjectIdentifier(reader)); _originatingArea = State(initialValue: reader.searchArea)
+        _latestReaderID = State(initialValue: ObjectIdentifier(reader)); _latestItem = State(initialValue: item)
         self.mediaScope = mediaScope; self.makeExternalMaps = makeExternalMaps
         self.item = item; self.reader = reader; _originatingIdentity = State(initialValue: reader.identity)
     }
     private var isCurrent: Bool { originatingIdentity != nil && reader.identity == originatingIdentity }
     private var eventScope: RoamEventNavigationScope? {
-        guard isCurrent, ObjectIdentifier(reader) == originatingReaderID, reader.searchArea == originatingArea else { return nil }
+        guard isCurrent, ObjectIdentifier(reader) == originatingReaderID, ObjectIdentifier(reader) == latestReaderID, reader.searchArea == originatingArea else { return nil }
         return .init(readerID: ObjectIdentifier(reader), identity: reader.identity, area: reader.searchArea,
                      presentationID: eventPresentationID, isConfigured: reader.isConfigured)
     }
+    private var currentPlace: RoamPlace? {
+        if case .place(let value) = latestItem { return value }
+        return nil
+    }
     private var currentEvent: RoamEvent? {
-        if case .event(let value) = item { return value }
+        if case .event(let value) = latestItem { return value }
+        return nil
+    }
+    private var currentRoute: RoamRouteNode? {
+        if case .route(let value) = latestItem { return value }
+        return nil
+    }
+    private var currentPlayer: RoamPlayer? {
+        if case .player(let value) = latestItem { return value }
         return nil
     }
     var body: some View {
@@ -58,14 +78,47 @@ struct RoamItemDetailView: View {
                         .accessibilityIdentifier("roamEvent.stale")
                 }
             }
+            .navigationDestination(item: $routeTopicNavigation) { selection in
+                if selection.mayRemainOpen(in: eventScope), let eventDestination {
+                    // Reuse the existing full-topic factory, not the map-node ID.
+                    eventDestination(.topic(selection.destination.topicID))
+                } else {
+                    ContentUnavailableView("roamEvent.changed", systemImage: "arrow.clockwise")
+                        .accessibilityIdentifier("roamRouteTopic.stale")
+                }
+            }
+            .navigationDestination(item: $playerProfileNavigation) { selection in
+                if selection.mayRemainOpen(in: eventScope), let playerProfileDestination {
+                    playerProfileDestination(selection.memberID)
+                } else {
+                    ContentUnavailableView("roamEvent.changed", systemImage: "person.crop.circle.badge.exclamationmark")
+                        .accessibilityIdentifier("roamPlayerProfile.stale")
+                }
+            }
+            .navigationDestination(item: $featuredActivityNavigation) { selection in
+                if selection.mayRemainOpen(in: eventScope, snapshotID: merchantReadSnapshot), let eventDestination {
+                    eventDestination(.activity(selection.target.activityID))
+                } else {
+                    ContentUnavailableView("roamEvent.changed", systemImage: "arrow.clockwise")
+                        .accessibilityIdentifier("roamFeaturedActivity.stale")
+                }
+            }
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("roam.close") { dismiss() } } }
             .task(id: reader.identity) {
                 guard !Task.isCancelled else { return }
                 readOwner.activate(); await load()
             }
             .onAppear { eventPresentationID = UUID(); eventIsVisible = true; readOwner.activate() }
-            .onChange(of: reader.identity) { _, _ in eventNavigation = nil }
-            .onChange(of: reader.searchArea) { _, _ in eventNavigation = nil }
+            .onChange(of: ObjectIdentifier(reader)) { _, value in
+                latestReaderID = value; eventPresentationID = UUID()
+                eventNavigation = nil; routeTopicNavigation = nil; playerProfileNavigation = nil; featuredActivityNavigation = nil
+            }
+            .onChange(of: item) { _, value in
+                latestItem = value; eventPresentationID = UUID()
+                eventNavigation = nil; routeTopicNavigation = nil; playerProfileNavigation = nil; featuredActivityNavigation = nil
+            }
+            .onChange(of: reader.identity) { _, _ in eventNavigation = nil; routeTopicNavigation = nil; playerProfileNavigation = nil; featuredActivityNavigation = nil }
+            .onChange(of: reader.searchArea) { _, _ in eventNavigation = nil; routeTopicNavigation = nil; playerProfileNavigation = nil; featuredActivityNavigation = nil }
             .onDisappear { eventIsVisible = false; eventPresentationID = UUID(); readOwner.deactivate(); generation += 1; loading = false }
         }
         .accessibilityIdentifier("roam.detail")
@@ -123,7 +176,7 @@ struct RoamItemDetailView: View {
             if let title = merchant.storyTitle { Text(verbatim: title) }
             if let description = merchant.description { Text(verbatim: description) }
             if let address = merchant.address { LabeledContent("roam.address", value: address) }
-            if let status = merchant.businessStatus { Text(LocalizedStringKey(status == 0 ? "roam.closed" : "roam.open")) }
+            RoamMerchantBusinessStatusLabel(state: merchant.businessState)
             if let time = merchant.businessTime { LabeledContent("roam.hours", value: time) }
             if !merchant.categories.isEmpty { Text(verbatim: merchant.categories.joined(separator: " · ")) }
             if !merchant.tags.isEmpty { Text(verbatim: merchant.tags.joined(separator: " · ")) }
@@ -135,15 +188,60 @@ struct RoamItemDetailView: View {
             Section("roam.featured") {
                 Text(verbatim: featured.name)
                 Text("roam.featuredReadOnly").font(.caption).foregroundStyle(.secondary)
+                if let renderedNode = node, let renderedPlace = currentPlace,
+                   RoamFeaturedActivityTarget(node: renderedNode, detail: detail) != nil {
+                    featuredActivityButton(place: renderedPlace, node: renderedNode, detail: detail)
+                }
+            }
+        }
+    }
+    private func featuredActivityButton(place: RoamPlace, node: RoamNodeDetail, detail: RoamMerchantDetail) -> some View {
+        let renderedScope = eventScope
+        let renderedSnapshot = merchantReadSnapshot
+        return VStack(alignment: .leading, spacing: 4) {
+            Button {
+                guard eventIsVisible, !loading, issue == nil, !merchantFailed, eventDestination != nil,
+                      eventNavigation == nil, routeTopicNavigation == nil, playerProfileNavigation == nil, featuredActivityNavigation == nil,
+                      let selection = RoamFeaturedActivitySelection(place: place, currentPlace: currentPlace,
+                          node: node, currentNode: self.node, detail: detail, currentDetail: self.merchant,
+                          rendered: renderedScope, current: eventScope,
+                          snapshotID: renderedSnapshot, currentSnapshotID: merchantReadSnapshot) else { return }
+                featuredActivityNavigation = selection
+            } label: { Label("roamEvent.openActivity", systemImage: "calendar") }
+                .frame(minHeight: 44)
+                .disabled(eventDestination == nil || renderedScope == nil || !eventIsVisible || loading || issue != nil || merchantFailed ||
+                          eventNavigation != nil || routeTopicNavigation != nil || playerProfileNavigation != nil || featuredActivityNavigation != nil)
+                .accessibilityIdentifier("roamFeaturedActivity.open")
+            if eventDestination == nil || renderedScope == nil {
+                Text("roamEvent.unavailable").font(.footnote).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
     }
     @ViewBuilder private func routeContent(_ route: RoamRouteNode) -> some View {
+        let renderedScope = eventScope
         Section("roam.about") {
             if let address = route.address { LabeledContent("roam.address", value: address) }
             if let distance = route.distance, distance >= 0 { RoamDistanceLabel(meters: distance) }
             if route.coordinate == nil { Label("roam.noCoordinates", systemImage: "mappin.slash") }
             Text("roam.routeReadOnly").font(.caption).foregroundStyle(.secondary)
+        }
+        if RoamRouteTopicDestination(route: route) != nil {
+            Section {
+                Button {
+                    guard eventIsVisible, eventNavigation == nil, routeTopicNavigation == nil, playerProfileNavigation == nil, featuredActivityNavigation == nil, eventDestination != nil,
+                          let selection = RoamRouteTopicNavigationSelection(route: route, currentRoute: currentRoute,
+                              rendered: renderedScope, current: eventScope) else { return }
+                    routeTopicNavigation = selection
+                } label: { Label("searchMap.relatedTopic", systemImage: "map") }
+                    .frame(minHeight: 44)
+                    .disabled(eventDestination == nil || renderedScope == nil || !eventIsVisible || eventNavigation != nil || routeTopicNavigation != nil || playerProfileNavigation != nil || featuredActivityNavigation != nil)
+                    .accessibilityIdentifier("roamRouteTopic.open.\(route.id)")
+                if eventDestination == nil || renderedScope == nil {
+                    Text("roamEvent.unavailable").font(.footnote).foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
         }
     }
     @ViewBuilder private func eventContent(_ event: RoamEvent) -> some View {
@@ -162,7 +260,7 @@ struct RoamItemDetailView: View {
         Section {
             if let target = RoamEventDestination(event: event) {
                 Button {
-                    guard eventIsVisible, eventNavigation == nil, eventDestination != nil,
+                    guard eventIsVisible, eventNavigation == nil, routeTopicNavigation == nil, playerProfileNavigation == nil, featuredActivityNavigation == nil, eventDestination != nil,
                           let selection = RoamEventNavigationSelection(event: event, currentEvent: currentEvent,
                               rendered: renderedScope, current: eventScope) else { return }
                     eventNavigation = selection
@@ -172,7 +270,7 @@ struct RoamItemDetailView: View {
                     case .topic: Label("roamEvent.openTopic", systemImage: "map")
                     }
                 }.frame(minHeight: 44)
-                    .disabled(eventDestination == nil || renderedScope == nil || !eventIsVisible || eventNavigation != nil)
+                    .disabled(eventDestination == nil || renderedScope == nil || !eventIsVisible || eventNavigation != nil || routeTopicNavigation != nil || playerProfileNavigation != nil || featuredActivityNavigation != nil)
                     .accessibilityIdentifier("roamEvent.open.\(event.id)")
             }
             if eventDestination == nil || renderedScope == nil {
@@ -182,12 +280,30 @@ struct RoamItemDetailView: View {
         }
     }
     @ViewBuilder private func playerContent(_ player: RoamPlayer) -> some View {
+        let renderedScope = eventScope
         Section {
             Text("roam.playerPrivacy")
             LabeledContent("roam.exploration") { Text(verbatim: "\(player.explorePct)%") }
             LabeledContent("roam.shopsVisited") { Text(player.shops, format: .number) }
             LabeledContent("roam.walkingMinutes") { Text(player.elapsedSec / 60, format: .number) }
             Text("roam.playerSnapshot").font(.caption).foregroundStyle(.secondary)
+        }
+        Section {
+            Button {
+                guard eventIsVisible, eventNavigation == nil, routeTopicNavigation == nil, playerProfileNavigation == nil, featuredActivityNavigation == nil,
+                      playerProfileDestination != nil,
+                      let selection = RoamPlayerProfileSelection(player: player, currentPlayer: currentPlayer,
+                          rendered: renderedScope, current: eventScope) else { return }
+                playerProfileNavigation = selection
+            } label: { Label("roamPlayerProfile.open", systemImage: "person.crop.circle") }
+                .frame(minHeight: 44)
+                .disabled(player.id <= 0 || playerProfileDestination == nil || renderedScope == nil || !eventIsVisible ||
+                          eventNavigation != nil || routeTopicNavigation != nil || playerProfileNavigation != nil || featuredActivityNavigation != nil)
+                .accessibilityIdentifier("roamPlayerProfile.open.\(player.id)")
+            if playerProfileDestination == nil || renderedScope == nil {
+                Text("roamPlayerProfile.unavailable").font(.footnote).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
     }
     private func startLoad() {
@@ -199,6 +315,7 @@ struct RoamItemDetailView: View {
     private func performLoad() async {
         generation += 1
         let operation = generation
+        merchantReadSnapshot = UUID(); featuredActivityNavigation = nil
         node = nil; merchant = nil; merchantFailed = false; issue = nil
         guard reader.isConfigured, isCurrent else { loading = false; return }
         guard case .place(let place) = item else { loading = false; return }
@@ -227,5 +344,29 @@ struct RoamItemDetailView: View {
             guard operation == generation, isCurrent else { return }
             node = nil; merchant = nil; issue = RoamScreenIssue(error: error)
         }
+    }
+}
+
+/// Text and shape both identify the public source status, including unknown.
+struct RoamMerchantBusinessStatusLabel: View {
+    let state: RoamMerchantBusinessState
+    var localizationKey: String {
+        switch state {
+        case .open: "roam.open"
+        case .closed: "roam.closed"
+        case .unknown: "roam.merchantBusinessUnknown"
+        }
+    }
+    var symbol: String {
+        switch state {
+        case .open: "storefront"
+        case .closed: "moon.zzz"
+        case .unknown: "questionmark.circle"
+        }
+    }
+    var body: some View {
+        Label(LocalizedStringKey(localizationKey), systemImage: symbol)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityIdentifier("roam.merchantBusinessStatus")
     }
 }

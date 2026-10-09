@@ -70,15 +70,18 @@ struct MerchantOperationsEditor: View {
             Section("merchant.operations.decor") {
                 decorField("merchant.operations.slogan", \.slogan, "slogan")
                 decorField("merchant.operations.cityRole", \.cityRole, "cityRole")
-                Text("merchant.operations.decorPreserved").font(.footnote).foregroundStyle(.secondary)
+                Text("merchant.featuredClear.draftHint").font(.footnote).foregroundStyle(.secondary)
                 if let category = value.categoryID { LabeledContent("merchant.operations.category", value: String(category)) }
                 if let type = value.featuredType, let id = value.featuredID { LabeledContent("merchant.operations.featured", value: "\(type) / \(id)") }
+                MerchantFeaturedClearControl(model: model, source: value)
+                MerchantFeaturedActivityPicker(document: model)
             }
             Section("merchant.operations.tags") {
                 TextField("merchant.operations.tags", text: Binding(get: { currentDecor?.tags.joined(separator: ";") ?? "" }, set: { raw in
                     guard var value = currentDecor else { return }; value.tags = raw.components(separatedBy: ";").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }; model.edit(.decor(value))
                 }), axis: .vertical).accessibilityIdentifier("merchant.operations.field.tags")
                 Text("merchant.operations.tagsHint").font(.footnote).foregroundStyle(.secondary)
+                MerchantDecorTagEditor(model: model)
             }
             mediaSection("merchant.operations.cover", field: .coverImage)
         case .gallery(let value):
@@ -283,6 +286,14 @@ struct MerchantOperationsConfirmationView: View {
                     }
                 }
                 Section("merchant.operations.frozenDraft") {
+                    if case .decor(let value) = confirmation.draft, value.featuredType == 1, let id = value.featuredID, id > 0 {
+                        LabeledContent("merchant.featuredPicker.reviewActivity", value: String(id))
+                        Text("merchant.featuredPicker.finalValidation").font(.footnote)
+                    }
+                    if case .decor(let value) = confirmation.draft, value.featuredType == 0, value.featuredID == nil {
+                        Text("merchant.featuredClear.review").fixedSize(horizontal: false, vertical: true)
+                            .accessibilityIdentifier("merchant.featuredClear.review")
+                    }
                     ForEach(confirmation.draft.reviewLines) { line in
                         VStack(alignment: .leading, spacing: 6) {
                             Text(LocalizedStringKey(line.key)).font(.caption).foregroundStyle(.secondary)

@@ -1,5 +1,18 @@
 import Foundation
 
+/// A public source status, not permission to enter or arrival evidence.
+/// Missing/future codes are unknown; hours text and device time cannot fill them.
+public enum RoamMerchantBusinessState: Equatable {
+    case open, closed, unknown
+    public init(sourceStatus: Int?) {
+        switch sourceStatus {
+        case 1: self = .open
+        case 0: self = .closed
+        default: self = .unknown
+        }
+    }
+}
+
 /// Public-detail whitelist. No member ID, contact details, financial or merchant-internal fields.
 public struct RoamPublicMerchant: Decodable, Equatable, Identifiable {
     public let id: Int
@@ -11,6 +24,7 @@ public struct RoamPublicMerchant: Decodable, Equatable, Identifiable {
     public let gallery: [String]
     public let categories: [String]
     public let businessStatus: Int?
+    public var businessState: RoamMerchantBusinessState { .init(sourceStatus: businessStatus) }
     public let address: String?
     public let businessTime: String?
     public let capacity: Int?
