@@ -16,6 +16,7 @@ struct SearchMapCanvas: View {
     var selectedID: String? = nil
     var polyline: [RoamCoordinate] = []
     var offline = false
+    var onViewportChange: ((SearchMapViewport?) -> Void)? = nil
     var onSelect: ((String) -> Void)? = nil
     var body: some View {
         Group {
@@ -37,7 +38,7 @@ struct SearchMapCanvas: View {
                 }.padding().frame(maxWidth: .infinity).background(.secondary.opacity(0.08))
             } else {
                 QuestifyDensityMap(area: area, pins: pins, selectedID: selectedID,
-                    polyline: polyline, onSelect: onSelect)
+                    polyline: polyline, onViewportChange: onViewportChange, onSelect: onSelect)
                     .accessibilityIdentifier("searchMap.map")
             }
         }.frame(minHeight: 240).clipShape(RoundedRectangle(cornerRadius: 20))

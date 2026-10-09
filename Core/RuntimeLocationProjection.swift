@@ -3,10 +3,28 @@ import Foundation
 /// Source: Flutter core/util/coord.dart at a63e9e9. Backend CN coordinates are GCJ-02.
 /// A conversion is explicit and pure; it never turns a manual map center into GPS evidence.
 public enum RuntimeLocationProjection {
+    /// A manually selected map center has no accuracy, measurement time, or device evidence.
+    public struct MapCenter: Equatable {
+        public let coordinate: RoamCoordinate
+        public let datum: WalkingCoordinateDatum
+        public init(coordinate: RoamCoordinate, datum: WalkingCoordinateDatum) {
+            self.coordinate = coordinate; self.datum = datum
+        }
+    }
     public static func gcj02(_ fix: RoamDeviceFix, now: Date = Date()) throws -> RoamDeviceFix {
         guard fix.accuracyMeters <= 100, abs(now.timeIntervalSince(fix.measuredAt)) <= 30 else { throw APIError.invalidRequest }
         if fix.datum == .gcj02 { return fix }
-        let lng = fix.coordinate.longitude, lat = fix.coordinate.latitude
+        let coordinate = try projectWGS84(fix.coordinate)
+        return try RoamDeviceFix(coordinate: coordinate, accuracyMeters: fix.accuracyMeters, measuredAt: fix.measuredAt, datum: .gcj02)
+    }
+    /// MapKit documents CLLocationCoordinate2D as WGS84. Convert exactly once with
+    /// the existing source algorithm; already-GCJ02 input is not a new WGS84 center.
+    public static func gcj02MapCenter(_ center: MapCenter) throws -> MapCenter {
+        guard center.datum == .wgs84 else { throw APIError.invalidRequest }
+        return MapCenter(coordinate: try projectWGS84(center.coordinate), datum: .gcj02)
+    }
+    private static func projectWGS84(_ input: RoamCoordinate) throws -> RoamCoordinate {
+        let lng = input.longitude, lat = input.latitude
         var longitude = lng, latitude = lat
         if lng >= 72.004, lng <= 137.8347, lat >= 0.8293, lat <= 55.8271 {
             let x = lng - 105, y = lat - 35, pi = Double.pi
@@ -24,6 +42,6 @@ public enum RuntimeLocationProjection {
             longitude += dlng*180 / (a/root*cos(rad)*pi)
         }
         guard let coordinate = RoamCoordinate(latitude: latitude, longitude: longitude) else { throw APIError.invalidRequest }
-        return try RoamDeviceFix(coordinate: coordinate, accuracyMeters: fix.accuracyMeters, measuredAt: fix.measuredAt, datum: .gcj02)
+        return coordinate
     }
 }

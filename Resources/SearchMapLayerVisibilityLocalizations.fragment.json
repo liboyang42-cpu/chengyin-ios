@@ -1,0 +1,87 @@
+{
+  "mapLayers.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Display layers"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "显示图层"
+        }
+      }
+    }
+  },
+  "mapLayers.none": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "All result layers are hidden"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "所有结果图层均已隐藏"
+        }
+      }
+    }
+  },
+  "mapLayers.none.hint": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Turn a layer back on to view its loaded points and result cards."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "重新打开图层即可查看已读取的点位和结果卡片。"
+        }
+      }
+    }
+  },
+  "mapLayers.showAll": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Show both layers"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "显示全部图层"
+        }
+      }
+    }
+  },
+  "mapLayers.changed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Results changed. Choose a visible result again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "结果已变化，请重新选择可见结果。"
+        }
+      }
+    }
+  }
+}

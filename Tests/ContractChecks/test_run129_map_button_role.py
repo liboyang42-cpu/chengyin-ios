@@ -18,7 +18,15 @@ def verify(view,tests):
     assert '.accessibilityLabel(Text(verbatim: pin.title))' in view
     assert '.accessibilityIdentifier("mapList.pin.\\(pin.id)")' in view
 class Run129MapButtonRole(unittest.TestCase):
-    def sources(self):return (ROOT/'App/QuestifyDensityMap.swift').read_text(),(ROOT/'Tests/AppUITests/SearchMapAlternativeListFlowTests.swift').read_text()
+    def sources(self):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location('map_readonly_inverse', ROOT / 'tools/map_readonly_inverse.py')
+        inverse = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(inverse)
+        relative = 'App/QuestifyDensityMap.swift'
+        view = inverse.original_source(relative, (ROOT / relative).read_bytes(), ROOT).decode('utf-8')
+        tests = (ROOT / 'Tests/AppUITests/SearchMapAlternativeListFlowTests.swift').read_bytes().decode('utf-8')
+        return view, tests
     def test_only_explicit_button_role_added_to_the_original_control(self):verify(*self.sources())
     def test_button_selected_disabled_and_label_cannot_be_dropped_or_replaced(self):
         view,tests=self.sources()

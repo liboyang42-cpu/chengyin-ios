@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "baseline": "root6, exact published QuestifyDensityMap source retained",
+  "scope": {
+    "App/QuestifyDensityMap.swift": {
+      "before_sha256": "2fca852999967960bd6a5a7b53ed8eb3c4c453227ec3c1e5be51c78bcf517af6",
+      "after_sha256": "cd0c1f30ec9c42278335f79fe0786e379c15f4b1cb26cc7db2b9fa20bdc25283",
+      "hunks": [
+        {
+          "before": "                        .disabled(onSelect == nil)\n",
+          "after": "",
+          "before_line": 293,
+          "after_line": 293
+        },
+        {
+          "before": "",
+          "after": "                        .disabled(onSelect == nil)\n",
+          "before_line": 301,
+          "after_line": 300
+        }
+      ]
+    },
+    "Tests/ContractChecks/test_ci138_map_readonly_enabled.py": {
+      "before_sha256": null,
+      "after_sha256": "d4620e22794f8a365f614dd7922025b54b8e3583408772761cebf27552d67078",
+      "hunks": [
+        {
+          "before": "",
+          "after": "\"\"\"CI138 UI68 candidate: preserve native disabled state on the complete AX row.\n\nThese exact source checks do not establish native AX behavior. Run the original\nUI68 journey on Apple; never substitute a weaker enabled-state assertion.\n\"\"\"\nfrom pathlib import Path\nimport hashlib\nimport unittest\nimport tempfile\n\nROOT = Path(__file__).resolve().parents[2]\nBEFORE = '2fca852999967960bd6a5a7b53ed8eb3c4c453227ec3c1e5be51c78bcf517af6'\nAFTER = 'cd0c1f30ec9c42278335f79fe0786e379c15f4b1cb26cc7db2b9fa20bdc25283'\nUI_SHA = '57f1c4b1e01ec0bed5313181ceaf8583c2cdbdf57f30d1c74973550d9ddaa9da'\nDISABLED = '                        .disabled(onSelect == nil)\\n'\nROLE = '                        .accessibilityAddTraits(.isButton)\\n'\nHEAD = '                    }.buttonStyle(.plain)\\n                        .accessibilityElement(children: .ignore)\\n'\nTAIL = '                        .accessibilityIdentifier(\"mapList.pin.\\\\(pin.id)\")\\n'\n\n\ndef digest(value):\n    return hashlib.sha256(value.encode('utf-8')).hexdigest()\n\n\ndef original_source(source):\n    if digest(source) != AFTER or source.count(DISABLED) != 1:\n        raise ValueError('Unreviewed alternative-list source')\n    if source.count(TAIL + DISABLED) != 1 or source.count(HEAD) != 1:\n        raise ValueError('Disabled must wrap the entire custom accessibility row')\n    previous = source.replace(TAIL + DISABLED, TAIL, 1).replace(\n        HEAD, HEAD.replace('                        .accessibilityElement', DISABLED + '                        .accessibilityElement'), 1)\n    if digest(previous) != BEFORE:\n        raise ValueError('The complete original map source was not restored')\n    return previous\n\n\ndef verify(source, tests):\n    original_source(source)\n    if digest(tests) != UI_SHA:\n        raise ValueError('Original UI68 journeys, assertions and waits must remain exact')\n    for required in (\n        'guard isExpanded, renderedInput == currentInput, let request,',\n        'let id = gate.consume(request) else { return }',\n        'onSelect?(id)',\n        '.accessibilityElement(children: .ignore)',\n        '.accessibilityLabel(Text(verbatim: pin.title))',\n        '.accessibilityValue(pin.id == selectedID ? Text(\"mapList.selected\") : Text(\"\"))',\n        '.accessibilityHint(onSelect == nil ? Text(\"mapList.readOnly\") : pinHint(pin.id))',\n        ROLE,\n        '.accessibilityAddTraits(pin.id == selectedID ? .isSelected : [])',\n        'selectionEnabled: onSelect != nil',\n    ):\n        if required not in source:\n            raise ValueError('Existing selection, lifecycle or accessibility semantics changed')\n\n\ndef read_sources(root):\n    root = Path(root)\n    return ((root / 'App/QuestifyDensityMap.swift').read_bytes().decode('utf-8'),\n            (root / 'Tests/AppUITests/SearchMapAlternativeListFlowTests.swift').read_bytes().decode('utf-8'))\n\n\nclass MapReadOnlyEnabledContracts(unittest.TestCase):\n    def sources(self):\n        return read_sources(ROOT)\n\n    def test_on_disk_crlf_is_not_normalized_before_admission(self):\n        paths = ('App/QuestifyDensityMap.swift', 'Tests/AppUITests/SearchMapAlternativeListFlowTests.swift')\n        originals = [(ROOT / path).read_bytes() for path in paths]\n        for changed_index in range(2):\n            with self.subTest(path=paths[changed_index]), tempfile.TemporaryDirectory(prefix='map-byte-admission-') as directory:\n                target = Path(directory)\n                for index, path in enumerate(paths):\n                    file = target / path\n                    file.parent.mkdir(parents=True, exist_ok=True)\n                    raw = originals[index]\n                    file.write_bytes(raw.replace(b'\\n', b'\\r\\n') if index == changed_index else raw)\n                with self.assertRaises(ValueError):\n                    verify(*read_sources(target))\n\n    def test_only_disabled_modifier_order_changes(self):\n        source, tests = self.sources()\n        verify(source, tests)\n        self.assertEqual(digest(original_source(source)), BEFORE)\n\n    def test_original_complete_readonly_and_return_journey_is_unchanged(self):\n        source, tests = self.sources()\n        verify(source, tests)\n        self.assertEqual(tests.count('    func test'), 3)\n        self.assertIn('XCTAssertFalse(app.buttons[\"mapList.pin.list-first\"].isEnabled)', tests)\n        self.assertIn('XCTAssertFalse(app.buttons[\"mapList.pin.list-second\"].isEnabled)', tests)\n        self.assertIn('maximumSwipes: 20', tests)\n\n    def test_mutations_to_disabled_role_selection_label_or_gates_fail_closed(self):\n        source, tests = self.sources()\n        for before, after in (\n            (DISABLED, ''), (DISABLED, DISABLED + DISABLED),\n            ('.disabled(onSelect == nil)', '.disabled(false)'),\n            (ROLE, ''), (ROLE, ROLE.replace('.isButton', '.isStaticText')),\n            ('.isSelected : []', '[] : []'),\n            ('Text(verbatim: pin.title)', 'Text(\"Short title\")'),\n            ('onSelect?(id)', 'onSelect!(id)'),\n            ('let id = gate.consume(request)', 'let id = Optional(request.id)'),\n            ('renderedInput == currentInput', 'true'),\n        ):\n            self.assertIn(before, source)\n            with self.subTest(before=before), self.assertRaises(ValueError):\n                verify(source.replace(before, after, 1), tests)\n        for changed in [source + '\\n', source.replace('\\n', '\\r\\n'), original_source(source)]:\n            with self.assertRaises(ValueError):\n                verify(changed, tests)\n\n    def test_test_locator_assertions_and_wait_caps_cannot_be_relaxed(self):\n        source, tests = self.sources()\n        for before, after in [('app.buttons[id]', 'app.otherElements[id]'),\n                              ('timeout: 5', 'timeout: 20'),\n                              ('XCTAssertFalse(app.buttons[\"mapList.pin.list-first\"].isEnabled)', 'XCTAssertTrue(true)')]:\n            self.assertIn(before, tests)\n            with self.subTest(before=before), self.assertRaises(ValueError):\n                verify(source, tests.replace(before, after, 1))\n\n\nif __name__ == '__main__':\n    unittest.main()\n",
+          "before_line": 0,
+          "after_line": 0
+        }
+      ]
+    }
+  },
+  "unchanged_dependencies": {
+    "Tests/AppUITests/SearchMapAlternativeListFlowTests.swift": "57f1c4b1e01ec0bed5313181ceaf8583c2cdbdf57f30d1c74973550d9ddaa9da",
+    "App/ReferenceMapCardFixtureView.swift": "8d1de345b015df9f0b5c0fc2733ca395bbc6988c5379ab40754a728624c74c97",
+    "Core/MapMarkerDensity.swift": "a093668c2e0e3094adca93a535d029ea332ce8b8c0e4b1b4279d2a8ad519ac3f"
+  },
+  "apple_ax_fixed": "NOT_VERIFIED",
+  "ui_tests_and_waits_changed": false,
+  "default_integration_batch": "next"
+}

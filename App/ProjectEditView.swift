@@ -7,6 +7,8 @@ import SwiftUI
     @Published var draft = ProjectEditDraft() {
         didSet {
             draftMutationRevision += 1 // Every setter retires prior chooser captures, including same-byte replacement.
+            if oldValue.chapters.map({ [Data($0.id.utf8)] + $0.nodes.map { Data($0.id.utf8) } }) != draft.chapters.map({ [Data($0.id.utf8)] + $0.nodes.map { Data($0.id.utf8) } }) { issueNodeIdentityRevision += 1 }
+            if oldValue.tickets.map({ Data($0.id.utf8) }) != draft.tickets.map({ Data($0.id.utf8) }) { issueTicketIdentityRevision += 1 }
             if confirmation != nil {
                 let before = ProjectEditPendingMaterials.exactData(oldValue), after = ProjectEditPendingMaterials.exactData(draft)
                 if before == nil || after == nil || before != after { cancelReview() }
@@ -27,6 +29,8 @@ import SwiftUI
     @Published private(set) var editorIncarnation = UUID()
     /// In-memory ABA fence for a node draft chooser; not saved or sent to the server.
     private(set) var draftMutationRevision = 0
+    private(set) var issueNodeIdentityRevision = 0
+    private(set) var issueTicketIdentityRevision = 0
     private(set) var structureRevision = 0
     private(set) var materialRevision = 0
     private(set) var storyTopologyRevision = 0
@@ -44,6 +48,8 @@ import SwiftUI
     private var loadedSession: ProjectEditSession?
     private var generation = 0
     private var autosave: Task<Void, Never>?
+    private var observedDraftRevision = -1
+    private var observedDraftBytes: Data?
     @Published private(set) var incomingSeed: ProjectEditDraft?
     private let seedSession: ProjectEditSession?
     init(coordinator: ProjectEditCoordinator, seed: ProjectEditDraft? = nil, storyImagePicker: (() -> any OwnedTopicCoverSelecting)? = nil, storyAudioPicker: (() -> any ProjectStoryAudioSelecting)? = nil) {
@@ -91,7 +97,7 @@ import SwiftUI
         coordinator.synchronizeSession(); await coordinator.load()
         guard generation == stamp, ownsVisit else { return }
         if let snapshot = coordinator.snapshot { draft = snapshot.draft; loadedSession = coordinator.session; loadedSnapshot = true }
-        busy = false; applyIncomingSeed(); revision += 1
+        busy = false; applyIncomingSeed(); acknowledgeDraftObservation(); revision += 1
     }
     var submissionEvidence: PublishingSubmissionHandoff? {
         guard ownsVisit, loadedSession == coordinator.session, let session = coordinator.session,
@@ -133,8 +139,21 @@ import SwiftUI
         editorIncarnation == incarnation && submissionEvidence == receipt && submittedHandoff?.id == receipt.id
     }
     func invalidateStarterLease() { editorIncarnation = UUID() }
+    private func acknowledgeDraftObservation() {
+        observedDraftRevision = draftMutationRevision
+        observedDraftBytes = ProjectEditPendingMaterials.exactData(draft)
+    }
+    func observeDraftMutation() {
+        guard observedDraftRevision != draftMutationRevision else { return }
+        let previous = observedDraftBytes, current = ProjectEditPendingMaterials.exactData(draft)
+        observedDraftRevision = draftMutationRevision; observedDraftBytes = current
+        // String/Equatable collapses NFC/NFD. Revision wakes us; exact bytes decide.
+        // Encoding failure is unknown, never evidence of a same-content no-op.
+        guard canEdit, previous == nil || current == nil || previous != current else { return }
+        changed()
+    }
     func changed() {
-        cancelReview(); autosave?.cancel()
+        acknowledgeDraftObservation(); cancelReview(); autosave?.cancel()
         guard canEdit else { return }
         autosave = Task { [weak self] in
             do { try await Task.sleep(nanoseconds: 400_000_000) } catch { return }
@@ -146,7 +165,7 @@ import SwiftUI
               value.baseRevision.utf8.elementsEqual(draft.baseRevision.utf8) else { return false }
         autosave?.cancel(); cancelReview()
         guard coordinator.saveLocal(value) else { revision += 1; return false }
-        draft = value; revision += 1; return true
+        draft = value; acknowledgeDraftObservation(); revision += 1; return true
     }
     func canReplaceExistingStoryDraft() -> Bool { fullEdit && coordinator.canReplaceExistingStoryDraft(draft) }
     func persistExistingStoryChange(_ value: ProjectEditDraft, lease: ProjectEditStarterController.Lease) -> Bool {
@@ -154,16 +173,16 @@ import SwiftUI
               value.baseRevision.utf8.elementsEqual(draft.baseRevision.utf8) else { return false }
         autosave?.cancel(); cancelReview()
         guard coordinator.replaceExistingStoryDraft(value, replacing: draft) else { revision += 1; return false }
-        draft = value; revision += 1; return true
+        draft = value; acknowledgeDraftObservation(); revision += 1; return true
     }
-    func saveLocal() { guard canSaveLocal else { return }; coordinator.saveLocal(draft); revision += 1 }
-    func restore() { guard ownsVisit else { return }; cancelReview(); editorIncarnation = UUID(); if let value = coordinator.restoredDraft() { draft = value }; revision += 1 }
-    func discard() { guard ownsVisit else { return }; cancelReview(); editorIncarnation = UUID(); coordinator.discardLocalDraft(); revision += 1 }
+    func saveLocal() { guard canSaveLocal else { return }; if coordinator.saveLocal(draft) { acknowledgeDraftObservation() }; revision += 1 }
+    func restore() { guard ownsVisit else { return }; cancelReview(); editorIncarnation = UUID(); autosave?.cancel(); if let value = coordinator.restoredDraft() { draft = value }; acknowledgeDraftObservation(); revision += 1 }
+    func discard() { guard ownsVisit else { return }; cancelReview(); editorIncarnation = UUID(); autosave?.cancel(); coordinator.discardLocalDraft(); acknowledgeDraftObservation(); revision += 1 }
     func review() {
         guard let lease = currentReviewLease() else { return }
         autosave?.cancel(); let saved = coordinator.saveLocal(draft); coordinator.prepare(draft)
         guard currentReviewLease() == lease else { cancelReview(); return }
-        reviewLease = lease; reviewLocalSaveConfirmed = saved; confirmation = coordinator.confirmation; revision += 1
+        acknowledgeDraftObservation(); reviewLease = lease; reviewLocalSaveConfirmed = saved; confirmation = coordinator.confirmation; revision += 1
     }
     func cancelReview() { confirmation = nil; reviewLease = nil; reviewLocalSaveConfirmed = false; if ownsVisit { coordinator.cancelReview() } }
     func submit(_ value: ProjectEditConfirmation) async {
@@ -180,7 +199,7 @@ import SwiftUI
         guard generation == stamp, ownsVisit else { return }; busy = false
         if success, let snapshot = coordinator.snapshot {
             editorIncarnation = UUID(); draft = snapshot.draft; loadedSnapshot = true
-            loadedSession = coordinator.session; submittedHandoff = nil
+            loadedSession = coordinator.session; submittedHandoff = nil; acknowledgeDraftObservation()
         }
         revision += 1
     }
@@ -206,6 +225,14 @@ import SwiftUI
     }
 }
 
+/// The same mounted observer is exercised by the focused app-hosted regression.
+@MainActor struct ProjectEditAutosaveObservation: ViewModifier {
+    @ObservedObject var model: ProjectEditModel
+    func body(content: Content) -> some View {
+        content.onChange(of: model.draftMutationRevision) { _, _ in model.observeDraftMutation() }
+    }
+}
+
 /// Present in a NavigationStack. The parent owns/retains the coordinator and supplies a
 /// live account+credential epoch. Sessions changing dismiss all child editor destinations.
 @MainActor struct ProjectEditView: View {
@@ -213,6 +240,7 @@ import SwiftUI
     @StateObject private var starter: ProjectEditStarterController
     @StateObject private var pending: ProjectEditPendingController
     @StateObject private var chapterRemoval: ProjectChapterRemovalController
+    @StateObject private var issueNavigation: ProjectEditIssueNavigation
     @StateObject private var modeReview: ProjectEditModeReviewController
     private let ownedCoverPicker: (() -> any OwnedTopicCoverSelecting)?
     @StateObject private var ownedCover: OwnedTopicCoverAuthorPresentation
@@ -233,10 +261,11 @@ import SwiftUI
     init(coordinator: ProjectEditCoordinator, sessionRevision: UInt64, seed: ProjectEditDraft? = nil, publisherClient: PublisherLifecycleHTTP? = nil, publisherHost: ((PublishedResource) -> AnyView)? = nil, ownedCoverPicker: (() -> any OwnedTopicCoverSelecting)? = nil, storyImagePicker: (() -> any OwnedTopicCoverSelecting)? = nil, storyAudioPicker: (() -> any ProjectStoryAudioSelecting)? = nil) {
         self.publisherClient = publisherClient; self.publisherHost = publisherHost; self.ownedCoverPicker = ownedCoverPicker
         let value = ProjectEditModel(coordinator: coordinator, seed: seed, storyImagePicker: storyImagePicker, storyAudioPicker: storyAudioPicker)
-        _model = StateObject(wrappedValue: value); _starter = StateObject(wrappedValue: .init(model: value)); _pending = StateObject(wrappedValue: .init(model: value)); _chapterRemoval = StateObject(wrappedValue: .init(model: value)); _modeReview = StateObject(wrappedValue: .init(model: value)); _ownedCover = StateObject(wrappedValue: .init(model: value)); _approvedRelease = StateObject(wrappedValue: .init(model: value)); _reviewRequest = StateObject(wrappedValue: .init(model: value)); self.sessionRevision = sessionRevision
+        _model = StateObject(wrappedValue: value); _starter = StateObject(wrappedValue: .init(model: value)); _pending = StateObject(wrappedValue: .init(model: value)); _chapterRemoval = StateObject(wrappedValue: .init(model: value)); _issueNavigation = StateObject(wrappedValue: .init(model: value)); _modeReview = StateObject(wrappedValue: .init(model: value)); _ownedCover = StateObject(wrappedValue: .init(model: value)); _approvedRelease = StateObject(wrappedValue: .init(model: value)); _reviewRequest = StateObject(wrappedValue: .init(model: value)); self.sessionRevision = sessionRevision
     }
     var body: some View {
         let opening = model.captureStarterLease()
+        let issueRows = issueNavigation.rows(model.coordinator.issues)
         let modePresentation = modeReview.presentation
         let coverPresentation = ownedCover.presentation
         let releasePresentation = approvedRelease.presentation
@@ -304,8 +333,8 @@ import SwiftUI
                 basicFields
                 ProjectTopicMediaHost(editor: model)
                 ProjectEditPendingSection(model: model, controller: pending)
-                chapterStructure(opening: opening)
-                ProjectClubLeadFields(model: model)
+                chapterStructure(opening: opening).id("project-issue-anchor-chapters")
+                ProjectClubLeadFields(model: model).id("project-issue-anchor-clubLead")
                 Section("projectEdit.tickets") {
                     ForEach(model.draft.tickets) { ticket in
                         NavigationLink { ProjectEditTicketView(model: model, ticketID: ticket.id) } label: {
@@ -315,8 +344,8 @@ import SwiftUI
                     Button("projectEdit.addTicket", systemImage: "plus") { model.draft.tickets.append(.init()) }
                         .disabled(!model.fullEdit).accessibilityIdentifier("projectEdit.addTicket")
                 }
-                ProjectEditCompletionRulesForm(rules: model.completionRules, city: model.draft.product == .city, fullEdit: model.fullEdit, totalNodes: model.draft.chapters.reduce(0) { $0 + $1.nodes.count })
-                PublishingTopicRewardsForm(rewards: model.rewards, fullEdit: model.fullEdit)
+                ProjectEditCompletionRulesForm(rules: model.completionRules, city: model.draft.product == .city, fullEdit: model.fullEdit, totalNodes: model.draft.chapters.reduce(0) { $0 + $1.nodes.count }).id("project-issue-anchor-completionRules")
+                PublishingTopicRewardsForm(rewards: model.rewards, fullEdit: model.fullEdit).id("project-issue-anchor-topicRewards")
                 Section("projectEdit.visibility") {
                     Toggle("projectEdit.publishToCreative", isOn: $model.draft.publishToCreative)
                         .disabled(!model.fullEdit || model.coordinator.snapshot?.topicID != nil)
@@ -324,10 +353,17 @@ import SwiftUI
                 }
                 if !model.coordinator.issues.isEmpty {
                     Section("projectEdit.fixBeforeReview") {
-                        ForEach(model.coordinator.issues) { issue in
-                            Label(LocalizedStringKey(issue.key), systemImage: "exclamationmark.circle")
-                                .accessibilityIdentifier("projectEdit.issue." + issue.id)
+                        ForEach(issueRows) { row in
+                            if let capture = row.capture {
+                                Button { focusedField = nil; issueNavigation.open(capture) } label: {
+                                    Label(LocalizedStringKey(row.issue.key), systemImage: "exclamationmark.circle")
+                                }.accessibilityIdentifier("projectEdit.issue." + row.issue.id)
+                            } else {
+                                Label(LocalizedStringKey(row.issue.key), systemImage: "exclamationmark.circle")
+                                    .accessibilityIdentifier("projectEdit.issue." + row.issue.id)
+                            }
                         }
+                        if issueNavigation.stale { Text("projectStarter.stale").accessibilityIdentifier("projectEdit.issueLocation.stale") }
                     }
                 }
                 if model.coordinator.isLocked {
@@ -360,13 +396,14 @@ import SwiftUI
             }.frame(maxWidth: .infinity, minHeight: 44).padding().background(.regularMaterial)
         }
         .task(id: sessionRevision) { await model.load() }
-        .onChange(of: model.draft) { _, _ in model.changed() }
+        .modifier(ProjectEditAutosaveObservation(model: model))
+        .modifier(ProjectEditIssueNavigationPresentation(controller: issueNavigation))
         .onChange(of: model.revision) { _, _ in
             if model.coordinator.state == .acknowledged, let next = model.submittedHandoff, next.id != handledSubmission {
                 handledSubmission = next.id; submission = next
             }
         }
-        .onChange(of: sessionRevision) { _, _ in chapterRemoval.retire(); if let modePresentation { modeReview.dismiss(modePresentation) }; showingCopy = false; copiedCoordinator = nil; submission = nil; submittedResource = nil; handledSubmission = nil }
+        .onChange(of: sessionRevision) { _, _ in issueNavigation.retire(); chapterRemoval.retire(); if let modePresentation { modeReview.dismiss(modePresentation) }; showingCopy = false; copiedCoordinator = nil; submission = nil; submittedResource = nil; handledSubmission = nil }
         .navigationDestination(isPresented: Binding(get: { showingCopy && copiedCoordinator === copiedTarget }, set: { showing in
             guard let copiedTarget, copiedCoordinator === copiedTarget else { return }; showingCopy = showing
         })) {
@@ -459,20 +496,20 @@ import SwiftUI
         Group {
             Section("projectEdit.basics") {
                 TextField("projectEdit.name", text: $model.draft.name).focused($focusedField, equals: "name")
-                    .accessibilityIdentifier("projectEdit.name")
+                    .accessibilityIdentifier("projectEdit.name").id("project-issue-anchor-name")
                 TextField("projectEdit.subtitle", text: $model.draft.subtitle).accessibilityIdentifier("projectEdit.subtitle")
                 TextField("projectEdit.description", text: $model.draft.description, axis: .vertical).lineLimit(3...8)
-                    .accessibilityIdentifier("projectEdit.description")
-                ProjectEditReferenceField(title: "projectEdit.cover", value: $model.draft.imgUrl, identifier: "projectEdit.cover")
+                    .accessibilityIdentifier("projectEdit.description").id("project-issue-anchor-description")
+                ProjectEditReferenceField(title: "projectEdit.cover", value: $model.draft.imgUrl, identifier: "projectEdit.cover").id("project-issue-anchor-cover")
                 ProjectEditReferenceField(title: "projectEdit.gallery", value: $model.draft.imgArr, identifier: "projectEdit.gallery")
-                ProjectEditCategoryField(selection: $model.draft.categoryIDs)
+                ProjectEditCategoryField(selection: $model.draft.categoryIDs).categoryEditing(model).id("project-issue-anchor-categories")
             }.disabled(!model.canEdit)
             Section("projectEdit.schedule") {
                 Text(LocalizedStringKey(model.draft.product == .city ? "projectEdit.city" : "projectEdit.freeExplore"))
-                ProjectEditDateField(title: "projectEdit.startDate", value: $model.draft.startDate, identifier: "projectEdit.startDate")
-                ProjectEditDateField(title: "projectEdit.endDate", value: $model.draft.endDate, identifier: "projectEdit.endDate")
+                ProjectEditDateField(title: "projectEdit.startDate", value: $model.draft.startDate, identifier: "projectEdit.startDate").dateEditing(.init(model: model, field: .start)).id("project-issue-anchor-start")
+                ProjectEditDateField(title: "projectEdit.endDate", value: $model.draft.endDate, identifier: "projectEdit.endDate").dateEditing(.init(model: model, field: .end)).id("project-issue-anchor-end")
                 if model.draft.product == .freeExplore {
-                    ProjectEditDateField(title: "projectEdit.deadline", value: $model.draft.recruitDeadline, identifier: "projectEdit.deadline")
+                    ProjectEditDateField(title: "projectEdit.deadline", value: $model.draft.recruitDeadline, identifier: "projectEdit.deadline").dateEditing(.init(model: model, field: .deadline)).id("project-issue-anchor-deadline")
                 }
             }.disabled(!model.fullEdit)
         }
@@ -492,9 +529,11 @@ struct ProjectEditReferenceField: View {
         }
     }
 }
-/// Placeholder manual IDs are explicitly called out; a live category picker awaits contract integration.
-struct ProjectEditCategoryField: View {
+/// Manual IDs remain available when the scoped category reader is unavailable.
+@MainActor struct ProjectEditCategoryField: View {
     @Binding var selection: [Int]
+    var categoryModel: ProjectEditModel? = nil
+    func categoryEditing(_ model: ProjectEditModel) -> Self { var result = self; result.categoryModel = model; return result }
     @State private var text = ""
     @State private var invalid = false
     @FocusState private var focused: Bool
@@ -510,19 +549,25 @@ struct ProjectEditCategoryField: View {
                     selection = invalid ? [] : ids
                 }
             Text(LocalizedStringKey(invalid ? "projectEdit.validation.categories" : "projectEdit.categoriesHint")).font(.caption).foregroundStyle(.secondary)
+            if let categoryModel { ProjectCategoryPickerEntry(model: categoryModel) }
         }.onAppear { text = selection.map(String.init).joined(separator: ",") }
             .onChange(of: selection) { _, value in if !focused { text = value.map(String.init).joined(separator: ",") } }
     }
 }
-struct ProjectEditDateField: View {
+@MainActor struct ProjectEditDateField: View {
     let title: LocalizedStringKey
     @Binding var value: String
     let identifier: String
+    var dateContext: ProjectEditDatePickerContext? = nil
+    func dateEditing(_ context: ProjectEditDatePickerContext) -> Self {
+        var result = self; result.dateContext = context; return result
+    }
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             TextField(title, text: $value).textInputAutocapitalization(.never).autocorrectionDisabled()
                 .accessibilityIdentifier(identifier)
             Text("projectEdit.dateFormat").font(.caption).foregroundStyle(.secondary)
+            if let dateContext { ProjectEditDatePickerEntry(context: dateContext).id(dateContext.id) }
         }
     }
 }

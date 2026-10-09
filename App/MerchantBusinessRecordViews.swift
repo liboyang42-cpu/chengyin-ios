@@ -57,6 +57,9 @@ struct MerchantBusinessField: View {
                 }
             }
         }
+        if row.kind == .customer, compact {
+            MerchantCustomerContactSummary(record: row, access: access)
+        }
         if row.kind == .batch, !compact, access.allows("merchant:finance:read"),
            let reader = settlementReader, let currentSnapshot = settlementSnapshot,
            let progress = try? MerchantSettlementProgress(record: row) {

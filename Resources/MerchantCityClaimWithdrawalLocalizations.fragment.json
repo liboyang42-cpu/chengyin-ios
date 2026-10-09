@@ -1,0 +1,36 @@
+{
+  "merchant.cityClaim.unavailable": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这条认领申请的据点编号或状态无法核实，请重新读取后再试。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This claim’s node identity or status could not be verified. Reload before trying again."
+        }
+      }
+    }
+  },
+  "merchant.cityClaim.withdrawConsequence": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "撤回成功后，这条待审认领申请会被取消，据点将重新开放认领。平台已接手审核的申请可能无法撤回。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "After successful withdrawal, this pending claim is cancelled and the node becomes available for claiming again. A claim already under platform review may no longer be withdrawn."
+        }
+      }
+    }
+  }
+}

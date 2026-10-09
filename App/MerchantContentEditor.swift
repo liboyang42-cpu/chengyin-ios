@@ -12,7 +12,7 @@ import SwiftUI
     @State private var text: [String: String] = [:]
     @State private var checked: [String: Bool] = [:]
     @State private var templateID = 0
-    @State private var fallbackIndex = 0
+    @State private var pauseFallback: MerchantStationPauseChoice?
     @State private var approve = true
     @State private var confirmedAddress = false
     @State private var dirty = false
@@ -29,7 +29,9 @@ import SwiftUI
             if c.isCurrent, let source = c.snapshot {
                 fields(source)
                 Section {
-                    if let command = try? command(source) {
+                    if case .placement = kind, !MerchantCityQuota(catalog: source.value["catalog"]).canPlace {
+                        Text("merchant.cityQuota.reviewBlocked").foregroundStyle(.secondary)
+                    } else if let command = try? command(source) {
                         Button("merchant.content.review") { model.prepare(command) }
                             .disabled(c.busy || c.locked || c.receipt != nil)
                             .accessibilityIdentifier("merchant.content.review")
@@ -40,7 +42,7 @@ import SwiftUI
         }
         .accessibilityIdentifier("merchant.content.editor")
         .appNavigationTitle(key: "merchant.content." + query.key)
-        .task(id: service.scope) { text = [:]; dirty = false; await model.load(); if c.isCurrent, let s = c.snapshot { seed(s) } }
+        .task(id: service.scope) { text = [:]; pauseFallback = nil; dirty = false; await model.load(); if c.isCurrent, let s = c.snapshot { seed(s) } }
         .navigationBarBackButtonHidden(dirty)
         .toolbar { if dirty { ToolbarItem(placement: .topBarLeading) { Button("action.cancel") { discard = true }.accessibilityIdentifier("merchant.content.close") } } }
         .interactiveDismissDisabled(dirty || c.busy)
@@ -50,7 +52,7 @@ import SwiftUI
         }
         .sheet(item: Binding(get: { c.isCurrent ? c.review : nil }, set: { if $0 == nil { model.cancel() } })) { MerchantContentReviewView(model: model, review: $0) }
         .onChange(of: c.snapshot?.observedAt) { _, _ in if !dirty, let s = c.snapshot { seed(s) } }
-        .onChange(of: service.scope) { _, _ in model.invalidate(); text = [:]; checked = [:]; dirty = false }
+        .onChange(of: service.scope) { _, _ in model.invalidate(); text = [:]; checked = [:]; pauseFallback = nil; dirty = false }
     }
     private func binding(_ name: String) -> Binding<String> { Binding(get: { text[name] ?? "" }, set: { text[name] = $0; dirty = true; model.cancel() }) }
     private func field(_ name: String) -> some View {
@@ -71,6 +73,7 @@ import SwiftUI
         case .chapterNode:
             Section { templates(s); ForEach(["name", "description", "address", "longitude", "latitude", "imgUrl", "businessTime"], id: \.self) { field($0) }; Text("merchant.content.nodeReviewWarning").font(.footnote); Text("merchant.content.xpUnavailable").font(.footnote) }
         case .placement:
+            Section { MerchantCityQuotaSummary(quota: .init(catalog: s.value["catalog"])) }
             Section { templates(s); ForEach(["name", "address", "latitude", "longitude", "tags", "coverImg", "cityCode"], id: \.self) { field($0) }
                 Toggle("merchant.content.confirmAddress", isOn: Binding(get: { confirmedAddress }, set: { confirmedAddress = $0; dirty = true; model.cancel() }))
                     .accessibilityIdentifier("merchant.content.confirmAddress")
@@ -85,7 +88,7 @@ import SwiftUI
         case .auditApplication(let id), .auditNode(let id):
             Section { MerchantContentFields(value: s.rows.first { $0["id"].integer == id } ?? .null, names: ["merchantName", "chapterName", "name", "message", "description", "address", "status"]); Toggle("merchant.content.approve", isOn: Binding(get: { approve }, set: { approve = $0; dirty = true; model.cancel() })); field("reason"); Text("merchant.content.auditWarning").font(.footnote) }
         case .station(let node, let action):
-            if let p = try? MerchantStationProjection(s.value), let station = p.station(nodeID: node) { stationFields(p, station: station, action: action) }
+            if let p = try? MerchantStationProjection(s.value), let station = p.station(nodeID: node) { stationFields(p, station: station, action: action, snapshot: s) }
         }
     }
     private func templates(_ s: MerchantContentSnapshot) -> some View {
@@ -96,7 +99,7 @@ import SwiftUI
             }
         }.accessibilityIdentifier("merchant.content.template")
     }
-    @ViewBuilder private func stationFields(_ p: MerchantStationProjection, station: MerchantContentValue, action: MerchantStationAction) -> some View {
+    @ViewBuilder private func stationFields(_ p: MerchantStationProjection, station: MerchantContentValue, action: MerchantStationAction, snapshot: MerchantContentSnapshot) -> some View {
         Section { Text(LocalizedStringKey("merchant.content." + action.rawValue)); Text(verbatim: station["nodeName"].text ?? "—") }
         switch action {
         case .accept, .resume: Section { Text("merchant.content.stationReviewWarning") }
@@ -105,6 +108,18 @@ import SwiftUI
         case .ready:
             Section {
                 field("capacity"); field("serviceStartAt"); field("serviceEndAt"); field("note")
+                MerchantStationServiceTimeFields(context: .init(scope: snapshot.scope, activityID: p.activityID,
+                    nodeID: station["nodeId"].safeInteger ?? 0, revision: p.revision, observedAt: snapshot.observedAt),
+                    start: text["serviceStartAt"] ?? "", end: text["serviceEndAt"] ?? "",
+                    canEdit: c.isCurrent && !c.busy && !c.locked && c.review == nil) { window, originalStart, originalEnd in
+                    guard c.isCurrent, !c.busy, !c.locked, c.review == nil,
+                          c.snapshot == snapshot, c.snapshot?.observedAt == snapshot.observedAt,
+                          (text["serviceStartAt"] ?? "") == originalStart, (text["serviceEndAt"] ?? "") == originalEnd,
+                          let pair = try? window.wireValues() else { return false }
+                    if pair.start == originalStart && pair.end == originalEnd { return true }
+                    text["serviceStartAt"] = pair.start; text["serviceEndAt"] = pair.end
+                    dirty = true; model.cancel(); return true
+                }.id(snapshot.observedAt)
                 Text("merchant.content.civilTime").font(.footnote)
                 ForEach(Array((station["preparationChecklist"].array ?? []).enumerated()), id: \.offset) { _, item in
                     if let code = item["code"].text, let label = item["label"].text {
@@ -116,11 +131,25 @@ import SwiftUI
         case .pause:
             Section {
                 reasonPicker(["CAPACITY", "STAFF", "EQUIPMENT", "EMERGENCY"]); field("reason"); field("resumeEta")
-                let options = p.fallbackOptions.filter { $0["sourceNodeId"].integer == station["nodeId"].integer }
-                Picker("merchant.content.fallback", selection: Binding(get: { fallbackIndex }, set: { fallbackIndex = $0; dirty = true; model.cancel() })) {
-                    ForEach(Array(options.enumerated()), id: \.offset) { index, option in Text(verbatim: option["nodeName"].text ?? "—").tag(index) }
+                let options = MerchantStationPauseChoice.available(in: p, nodeID: station["nodeId"].safeInteger ?? 0)
+                Picker("merchant.content.fallback", selection: Binding<MerchantStationPauseChoice?>(get: { pauseFallback }, set: {
+                    guard c.isCurrent, !c.busy, !c.locked, c.review == nil else { return }
+                    pauseFallback = $0; dirty = true; model.cancel()
+                })) {
+                    Text("merchant.stationPause.noFallback").tag(nil as MerchantStationPauseChoice?)
+                    ForEach(Array(options.enumerated()), id: \.offset) { _, option in Text(verbatim: option.nodeName).tag(Optional(option)) }
+                    if let pauseFallback, !options.contains(pauseFallback) {
+                        Text("merchant.stationPause.selectionChanged").tag(Optional(pauseFallback))
+                    }
+                }.accessibilityIdentifier("merchant.stationPause.fallback")
+                if let pauseFallback {
+                    if options.contains(pauseFallback) { Text(verbatim: pauseFallback.playerMessage) }
+                    else { Text("merchant.stationPause.selectionChanged").foregroundStyle(.secondary) }
+                } else {
+                    Text("merchant.stationPause.noFallbackConsequence").font(.footnote).foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("merchant.stationPause.noFallbackNotice")
                 }
-                if options.indices.contains(fallbackIndex), let message = options[fallbackIndex]["playerMessage"].text { Text(verbatim: message) }
                 Text("merchant.content.civilTime").font(.footnote)
             }
         case .verify:
@@ -187,10 +216,8 @@ import SwiftUI
                 f = ["capacity": .integer(Int(value("capacity")) ?? 0), "serviceStartAt": .string(value("serviceStartAt")), "serviceEndAt": .string(value("serviceEndAt")), "note": .string(value("note")),
                      "checklist": .array((station["preparationChecklist"].array ?? []).map { .object(["code": $0["code"], "checked": .bool(checked[$0["code"].text ?? ""] == true)]) })]
             case .pause:
-                let options = p.fallbackOptions.filter { $0["sourceNodeId"].integer == node }
-                guard options.indices.contains(fallbackIndex) else { throw MerchantContentFailure.invalid }
-                let fallback = options[fallbackIndex]
-                f = ["reasonCode": .string(value("reasonCode")), "reason": .string(value("reason")), "resumeEta": .string(value("resumeEta")), "fallbackPlanCode": fallback["planCode"], "fallbackPlanVersion": fallback["planVersion"]]
+                f = try MerchantStationPauseChoice.pausePayload(reasonCode: value("reasonCode"), reason: value("reason"),
+                    resumeEta: value("resumeEta"), selection: pauseFallback, projection: p, nodeID: node)
             case .verify:
                 f = ["submissionId": .string(value("submissionId")), "decision": .string(approve ? "APPROVE" : "REJECT")]
                 if !approve { f["reasonCode"] = .string(value("reasonCode")) }

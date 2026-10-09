@@ -14,6 +14,8 @@ import Foundation
     public private(set) var retryAt: Date?
     private var attempts = 0
     private var generation = 0
+    private var transmission: Task<MerchantNPCReply, Error>?
+    private var transmissionID: UUID?
     private enum Lifecycle { case active, interrupted, invalidated }
     private var lifecycle: Lifecycle = .active
     public init(scope: MerchantNPCScope, client: MerchantNPCHTTPClient, currentScope: @escaping () -> MerchantNPCScope?, grants: @escaping () -> MerchantNPCGrants) {
@@ -41,14 +43,25 @@ import Foundation
         guard canResumeAfterInterruption else { return }
         lifecycle = .active; onChange?()
     }
-    public var canSend: Bool { isCurrent && grants().chatAllowed && !sending && requestID == nil }
+    public var canSend: Bool { isCurrent && grants().chatAllowed && !sending && requestID == nil && transmission == nil }
     public func send(_ text: String) async {
         guard canSend, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         message = text.trimmingCharacters(in: .whitespacesAndNewlines); requestID = UUID(); attempts = 0
+        reply = nil; retryAt = nil
         await run()
     }
+    /// Stops local waiting, not server processing or billing. Preserve the exact
+    /// unknown request/payload. A second transport cannot start until the cancelled
+    /// local task settles, and a subsequent explicit retry reuses that request ID.
+    public func stopWaiting() {
+        guard isCurrent, sending, requestID != nil else { return }
+        generation += 1; transmission?.cancel(); sending = false
+        reply = nil; failure = .unknownOutcome; onChange?()
+    }
+    public var isStoppingLocalWait: Bool { isCurrent && !sending && transmission != nil }
+    public var canAbandon: Bool { isCurrent && !sending && transmission == nil }
     public var canRetry: Bool {
-        isCurrent && grants().chatAllowed && !sending && requestID != nil && attempts < 3 && (retryAt ?? .distantPast) <= Date() && (reply?.canRetry == true || failure == .unknownOutcome)
+        isCurrent && grants().chatAllowed && !sending && transmission == nil && requestID != nil && attempts < 3 && (retryAt ?? .distantPast) <= Date() && (reply?.canRetry == true || failure == .unknownOutcome)
     }
     public func retry() async {
         guard let capturedRequestID = requestID else { return }
@@ -59,16 +72,30 @@ import Foundation
         guard requestID == expectedRequestID, canRetry else { return }
         await run()
     }
-    public func abandon() { guard !sending else { return }; requestID = nil; retryAt = nil; reply = nil; message = nil; failure = nil; onChange?() }
+    public func abandon() { guard canAbandon else { return }; requestID = nil; retryAt = nil; reply = nil; message = nil; failure = nil; onChange?() }
     public func invalidate() { lifecycle = .invalidated; generation += 1; clearConversation(); onChange?() }
     private func clearConversation() {
+        transmission?.cancel(); transmission = nil; transmissionID = nil
         reply = nil; message = nil; requestID = nil; retryAt = nil; failure = nil; sending = false; attempts = 0
     }
     private func run() async {
-        guard isCurrent, grants().chatAllowed, let message, let requestID else { return }
-        sending = true; attempts += 1; failure = nil; let stamp = generation; onChange?()
+        guard isCurrent, grants().chatAllowed, transmission == nil, let message, let requestID else { return }
+        sending = true; attempts += 1; failure = nil; let stamp = generation
+        let operation = UUID(), client = self.client, scope = self.scope
+        let task = Task<MerchantNPCReply, Error> {
+            try Task.checkCancellation()
+            return try await client.chat(message: message, requestID: requestID, scope: scope)
+        }
+        transmission = task; transmissionID = operation; onChange?()
+        defer {
+            if transmissionID == operation {
+                transmission = nil; transmissionID = nil
+                if !isCurrent || !grants().chatAllowed { invalidate() }
+                else { onChange?() }
+            }
+        }
         do {
-            let result = try await client.chat(message: message, requestID: requestID, scope: scope)
+            let result = try await withTaskCancellationHandler(operation: { try await task.value }, onCancel: { task.cancel() })
             // An older request must not invalidate or mutate an explicitly restarted conversation.
             guard generation == stamp else { return }
             guard isCurrent, grants().chatAllowed, !Task.isCancelled else { invalidate(); return }

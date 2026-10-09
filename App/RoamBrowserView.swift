@@ -12,6 +12,7 @@ struct RoamBrowserView: View {
     var stampDestination: (() -> AnyView)? = nil
     var liveDestination: (() -> AnyView)? = nil
     var posterDestination: ((RoamNodeDetail) -> AnyView)? = nil
+    var eventDestination: ((RoamEventDestination) -> AnyView)? = nil
     var mediaScope: UUID = UUID()
     var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
     @State private var layer: RoamLayer = .places
@@ -27,6 +28,7 @@ struct RoamBrowserView: View {
     @State private var loading = false
     @State private var issue: RoamScreenIssue?
     @State private var generation = 0
+    @State private var retainedRead = RoamRetainedRead()
 
     private struct RequestKey: Hashable {
         let readerID: ObjectIdentifier
@@ -65,6 +67,23 @@ struct RoamBrowserView: View {
             return query.isEmpty || item.title.localizedCaseInsensitiveContains(query)
         }
     }
+    private var retentionScope: RoamRetainedRead.Scope? {
+        .init(readerID: ObjectIdentifier(reader), identity: reader.identity, area: reader.searchArea,
+              layer: layer, radius: radiusM, query: query, placeFilter: placeFilter,
+              eventFilter: eventFilter, isConfigured: reader.isConfigured)
+    }
+    private var readSnapshot: RoamRetainedRead.Snapshot? { retainedRead.snapshot(in: retentionScope) }
+    private var retainedRows: [RoamMapItem] {
+        guard let snapshot = readSnapshot, snapshot.isRetained else { return [] }
+        return snapshot.items.filter { item in
+            switch item {
+            case .place(let place): if !placeFilter.includes(place) { return false }
+            case .event(let event): if eventFilter != .all && event.kind != eventFilter.rawValue { return false }
+            default: break
+            }
+            return query.isEmpty || item.title.localizedCaseInsensitiveContains(query)
+        }
+    }
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
@@ -89,13 +108,14 @@ struct RoamBrowserView: View {
                 readOwner.activate(); await load()
             }
             .onAppear { readOwner.activate() }
-            .onDisappear { readOwner.deactivate(); generation += 1; loading = false }
+            .onDisappear { retainedRead.clear(); selected = nil; readOwner.deactivate(); generation += 1; loading = false }
             .onChange(of: requestKey) { _, _ in selected = nil }
             .onChange(of: query) { _, _ in selected = nil }
             .onChange(of: placeFilter) { _, _ in selected = nil }
             .onChange(of: eventFilter) { _, _ in selected = nil }
+            .onChange(of: retentionScope) { _, scope in retainedRead.retainOnly(scope: scope) }
             .sheet(item: $selected) { item in
-                RoamItemDetailView(item: item, reader: reader, mediaScope: mediaScope, makeExternalMaps: makeExternalMaps, stampDestination: stampDestination, posterDestination: posterDestination)
+                RoamItemDetailView(item: item, reader: reader, mediaScope: mediaScope, makeExternalMaps: makeExternalMaps, stampDestination: stampDestination, posterDestination: posterDestination, eventDestination: eventDestination)
             }
             .toolbar {
                 if let cityDestination { ToolbarItem(placement: .topBarTrailing) { NavigationLink("city.read.title", destination: cityDestination) } }
@@ -203,6 +223,28 @@ struct RoamBrowserView: View {
                 Label("roam.noCoordinates", systemImage: "mappin.slash")
                     .foregroundStyle(.secondary)
             }
+            if let snapshot = readSnapshot {
+                Section {
+                    LabeledContent("roamRetained.readAt") {
+                        Text(snapshot.readAt, format: .dateTime.year().month().day().hour().minute())
+                            .fixedSize(horizontal: false, vertical: true)
+                    }.accessibilityIdentifier("roamRetained.readAt")
+                    if snapshot.isRetained {
+                        Label("roamRetained.previous", systemImage: "clock.arrow.circlepath")
+                            .fixedSize(horizontal: false, vertical: true)
+                        Text("roamRetained.readOnly").font(.footnote).foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityIdentifier("roamRetained.notice")
+                        ForEach(retainedRows) { item in
+                            // Static rows have no gesture, detail link, map action or selection.
+                            RoamItemRow(item: item, navigable: false)
+                                .accessibilityHint(Text("roamRetained.readOnly"))
+                                .accessibilityElement(children: .combine)
+                                .accessibilityIdentifier("roamRetained.row.\(item.id)")
+                        }
+                    }
+                }
+            }
             ForEach(visibleItems) { item in
                 Button {
                     select(item, key: renderedKey, snapshot: renderedItems)
@@ -238,6 +280,7 @@ struct RoamBrowserView: View {
         generation += 1
         let operation = generation
         let key = requestKey
+        let retainedTicket = retainedRead.begin(scope: retentionScope)
         selected = nil; items = []; issue = nil; loadedKey = nil
         guard reader.isConfigured, reader.identity != nil, reader.searchArea != nil else { loading = false; return }
         loading = true
@@ -253,9 +296,13 @@ struct RoamBrowserView: View {
             try Task.checkCancellation()
             guard operation == generation, key == requestKey else { return }
             items = RoamMapItem.unique(result); loadedKey = key
-        } catch is CancellationError { }
+            if let retainedTicket { retainedRead.finish(retainedTicket, items: items, readAt: Date()) }
+        } catch is CancellationError {
+            if let retainedTicket { retainedRead.cancel(retainedTicket) }
+        }
         catch {
             guard operation == generation, key == requestKey else { return }
+            if let retainedTicket { retainedRead.fail(retainedTicket, error: error) }
             issue = RoamScreenIssue(error: error); loadedKey = key
         }
     }
@@ -263,6 +310,7 @@ struct RoamBrowserView: View {
 
 struct RoamItemRow: View {
     let item: RoamMapItem
+    var navigable = true
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             Image(systemName: item.symbol).foregroundStyle(.tint).frame(width: 26)
@@ -276,7 +324,7 @@ struct RoamItemRow: View {
                 if item.coordinate == nil { Label("roam.noCoordinates", systemImage: "mappin.slash").font(.caption) }
             }
             Spacer(minLength: 0)
-            Image(systemName: "chevron.right").foregroundStyle(.secondary).font(.caption)
+            if navigable { Image(systemName: "chevron.right").foregroundStyle(.secondary).font(.caption) }
         }
         .padding(.vertical, 8).contentShape(Rectangle())
         .accessibilityElement(children: .combine)

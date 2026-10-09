@@ -48,9 +48,20 @@ import SwiftUI
                                     }
                                 }.disabled(!model.coordinator.canRetry)
                             }
-                            Button("merchantNPC.abandon") { model.coordinator.abandon() }.disabled(model.coordinator.sending)
+                            Button("merchantNPC.abandon") { model.coordinator.abandon() }.disabled(!model.coordinator.canAbandon)
                         }
-                        if model.coordinator.sending { ProgressView("merchantNPC.pending") }
+                        if model.coordinator.sending {
+                            ProgressView("merchantNPC.pending")
+                            Button("npcQuick.stopWaiting") { model.coordinator.stopWaiting() }
+                                .frame(minHeight: 44).accessibilityIdentifier("npcQuick.merchantStopWaiting")
+                        }
+                        if model.coordinator.isStoppingLocalWait {
+                            ProgressView("npcQuick.stoppingLocalWait").accessibilityIdentifier("npcQuick.merchantStoppingLocalWait")
+                        }
+                        if model.coordinator.failure == .unknownOutcome {
+                            Text("npcQuick.unknownRequestNotice").font(.footnote)
+                                .accessibilityIdentifier("npcQuick.merchantUnknownRequestNotice")
+                        }
                         MerchantNPCIssue(failure: model.coordinator.failure)
                     } else if model.coordinator.isInterrupted {
                         Text("merchantNPC.interrupted").accessibilityIdentifier("merchantNPC.interrupted")
@@ -66,22 +77,25 @@ import SwiftUI
         }
         .safeAreaInset(edge: .bottom) {
             if model.coordinator.isCurrent {
-                HStack(alignment: .bottom) {
-                    TextField("merchantNPC.message", text: $text, axis: .vertical)
-                        .lineLimit(1...3).textFieldStyle(.roundedBorder).focused($typing)
-                        .disabled(!model.coordinator.canSend).accessibilityIdentifier("merchantNPC.input")
-                    Button("merchantNPC.send") {
-                        typing = false
-                        let submitted = text; let capturedGeneration = compositionGeneration
-                        Task {
-                            guard compositionGeneration == capturedGeneration, scenePhase == .active else { return }
-                            await model.coordinator.send(submitted)
-                            guard model.coordinator.isCurrent, compositionGeneration == capturedGeneration, text == submitted else { return }
-                            text = ""
-                        }
-                    }.frame(minWidth: 44, minHeight: 44)
-                        .disabled(!model.coordinator.canSend || text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                        .accessibilityIdentifier("merchantNPC.send")
+                VStack(alignment: .leading, spacing: 8) {
+                    NPCQuickQuestionBar(draft: $text, context: .merchant(model.coordinator.scope), enabled: model.coordinator.canSend)
+                    HStack(alignment: .bottom) {
+                        TextField("merchantNPC.message", text: $text, axis: .vertical)
+                            .lineLimit(1...3).textFieldStyle(.roundedBorder).focused($typing)
+                            .disabled(!model.coordinator.canSend).accessibilityIdentifier("merchantNPC.input")
+                        Button("merchantNPC.send") {
+                            typing = false
+                            let submitted = text; let capturedGeneration = compositionGeneration
+                            Task {
+                                guard compositionGeneration == capturedGeneration, scenePhase == .active else { return }
+                                await model.coordinator.send(submitted)
+                                guard model.coordinator.isCurrent, compositionGeneration == capturedGeneration, text == submitted else { return }
+                                text = ""
+                            }
+                        }.frame(minWidth: 44, minHeight: 44)
+                            .disabled(!model.coordinator.canSend || text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                            .accessibilityIdentifier("merchantNPC.send")
+                    }
                 }.padding().background(.regularMaterial)
             }
         }

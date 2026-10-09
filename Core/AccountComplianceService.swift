@@ -15,15 +15,44 @@ import FoundationNetworking
     private let writesEnabled: Bool
     private let legalApproved: (ComplianceSubject, ComplianceSession) -> Bool
     private let authoritativeMerchantID: () -> Int?
+    private let npcChatDataReadApproval: () -> OperationEndpointApproval?
     private var busy = false
     public init(configuration: APIConfiguration, transport: any HTTPTransport,
                 journal: any ComplianceJournaling, current: @escaping () -> ComplianceSession?,
                 token: @escaping () -> String?, readsEnabled: Bool = false, writesEnabled: Bool = false,
                 legalApproved: @escaping (ComplianceSubject, ComplianceSession) -> Bool = { _, _ in false },
-                authoritativeMerchantID: @escaping () -> Int? = { nil }) {
+                authoritativeMerchantID: @escaping () -> Int? = { nil },
+                npcChatDataReadApproval: @escaping () -> OperationEndpointApproval? = { nil }) {
         self.configuration = configuration; self.transport = transport; self.journal = journal
         self.current = current; self.token = token; self.readsEnabled = readsEnabled
         self.writesEnabled = writesEnabled; self.legalApproved = legalApproved; self.authoritativeMerchantID = authoritativeMerchantID
+        self.npcChatDataReadApproval = npcChatDataReadApproval
+    }
+    /// Separate, exact read acceptance. Chat/model grants and the existing generic
+    /// compliance read/write booleans cannot authorize this private-text endpoint.
+    public func canReadNPCChatData(session: ComplianceSession) -> Bool {
+        guard session.valid, current() == session, let credential = token(), AuthRequestBuilder.isValidToken(credential),
+              let approval = npcChatDataReadApproval() else { return false }
+        return approval.allows(configuration: configuration, namespace: session.namespace, accountID: session.accountID, path: NPCChatData.path)
+    }
+    public func readNPCChatData(session: ComplianceSession) async throws -> NPCChatData {
+        guard canReadNPCChatData(session: session), let credential = token(), let approval = npcChatDataReadApproval() else {
+            throw NPCChatDataFailure.unavailable
+        }
+        // Identity comes only from the existing Authorization header. No body,
+        // user ID, merchant ID, query filter, model context or new token is sent.
+        var outgoing = try request("/" + NPCChatData.path, method: "GET", session: session)
+        outgoing.setValue("no-store", forHTTPHeaderField: "Cache-Control")
+        outgoing.setValue("no-cache", forHTTPHeaderField: "Pragma")
+        guard outgoing.value(forHTTPHeaderField: "Authorization") == credential, current() == session,
+              npcChatDataReadApproval() == approval, canReadNPCChatData(session: session) else { throw NPCChatDataFailure.staleSession }
+        let (bytes, status) = try await transport.send(outgoing)
+        try Task.checkCancellation()
+        guard current() == session, token() == credential, npcChatDataReadApproval() == approval,
+              canReadNPCChatData(session: session) else { throw NPCChatDataFailure.staleSession }
+        guard status != 401 else { throw NPCChatDataFailure.signedOut }
+        guard (200..<300).contains(status) else { throw NPCChatDataFailure.failed }
+        return try NPCChatData.decode(bytes, expectedAccountID: session.accountID)
     }
     public func check(_ session: ComplianceSession) throws {
         guard session.valid, current() == session else { throw ComplianceFailure.staleSession }

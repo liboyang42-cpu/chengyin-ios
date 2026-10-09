@@ -29,13 +29,13 @@ final class MerchantContentFlowTests: XCTestCase {
         XCTAssertFalse(app.textFields["merchant.content.field.startDate"].exists)
         XCTAssertFalse(app.textFields["merchant.content.field.topicId"].exists)
     }
-    func testCityClaimDoesNotTreatApplicationIDAsPOIID() {
+    func testCityClaimWithdrawalReviewUsesSourcePOIAndCanCancel() {
         let app = launch(); tap("merchant.content.entry.city", in: app)
-        let missingID = app.staticTexts["merchant.content.claimIDMissing"]
-        XCTAssertTrue(revealFixtureElement(missingID, in: app, requiresHittable: false), app.debugDescription)
-        XCTAssertTrue(missingID.exists)
-        XCTAssertTrue(app.staticTexts["Claim awaiting review"].exists)
-        XCTAssertFalse(app.buttons["merchant.content.cancelClaim"].exists)
+        tap("merchant.cityClaim.withdraw.91", in: app)
+        XCTAssertTrue(app.staticTexts["merchant.cityClaim.reviewNotice"].waitForExistence(timeout: 4))
+        tap("merchant.content.review.cancel", in: app)
+        XCTAssertTrue(app.buttons["merchant.cityClaim.withdraw.91"].waitForExistence(timeout: 4))
+        XCTAssertFalse(app.staticTexts["Synthetic acknowledgement"].exists)
     }
     func testDeniedAccessDoesNotShowBusinessRows() {
         let app = launch(["--merchant-content-denied"]); tap("merchant.content.entry.applications", in: app)

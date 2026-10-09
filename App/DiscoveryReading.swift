@@ -21,6 +21,7 @@ protocol DiscoveryReading: AnyObject {
     func templateMetadataDictionary(kind: TemplateMetadataKind) async throws -> [TemplateMetadataOption]
     func templateMetadataDictionaryRequest(kind: TemplateMetadataKind) -> DiscoveryReadRequest<[TemplateMetadataOption]>
     func templateMetadataCategoriesRequest() -> DiscoveryReadRequest<[DiscoveryCategory]>
+    func projectMetadataCategoriesRequest() -> DiscoveryReadRequest<[DiscoveryCategory]>
     func discoveryTemplateHome() async throws -> DiscoveryTemplateHome
     func discoveryPlayTemplates(keyword: String, packType: DiscoveryPackType?) async throws -> [DiscoveryPlayTemplate]
     func discoveryTopicTemplates() async throws -> [DiscoveryTopicTemplate]
@@ -44,6 +45,12 @@ extension DiscoveryReading {
         DiscoveryReadRequest(read: { [weak self] in
             guard let self else { throw CancellationError() }
             return try await self.discoveryCategories(type: 4)
+        }, onUnauthorized: {})
+    }
+    func projectMetadataCategoriesRequest() -> DiscoveryReadRequest<[DiscoveryCategory]> {
+        DiscoveryReadRequest(read: { [weak self] in
+            guard let self else { throw CancellationError() }
+            return try await self.discoveryCategories(type: 1)
         }, onUnauthorized: {})
     }
     func publicTopicTemplateCatalogRequest() -> DiscoveryReadRequest<[DiscoveryTopicTemplate]> {

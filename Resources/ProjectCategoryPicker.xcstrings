@@ -1,0 +1,150 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "projectCategoryPicker.choose": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose categories"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择分类"
+          }
+        }
+      }
+    },
+    "projectCategoryPicker.loading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading categories…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载分类…"
+          }
+        }
+      }
+    },
+    "projectCategoryPicker.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No categories are configured for this type. Your existing selection is kept."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此类型当前没有可选分类，已有选择仍被保留。"
+          }
+        }
+      }
+    },
+    "projectCategoryPicker.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Categories could not be loaded. Retry before saving; your draft is unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分类加载失败，请重试后再保存；草稿没有改变。"
+          }
+        }
+      }
+    },
+    "projectCategoryPicker.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Category reading is not configured for this context. The existing manual ID field remains available."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前上下文未配置分类读取，仍可使用原有手工ID输入。"
+          }
+        }
+      }
+    },
+    "projectCategoryPicker.unsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The existing category IDs are unsupported or repeated. They are unchanged; correct the manual IDs before selecting."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已有分类ID不受支持或重复，原值保持不变；请先修正手工ID再选择。"
+          }
+        }
+      }
+    },
+    "projectCategoryPicker.retained": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved or selected IDs not shown in the current list are kept unless you explicitly deselect them."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前列表未展示的已保存或已选ID会继续保留，只有明确取消勾选才会移除。"
+          }
+        }
+      }
+    },
+    "projectCategoryPicker.save": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use selected categories"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认使用所选分类"
+          }
+        }
+      }
+    },
+    "projectCategoryPicker.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Project categories"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题分类"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

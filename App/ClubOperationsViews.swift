@@ -37,6 +37,7 @@ struct ClubOperationsWorkspaceView: View {
     @State private var showDiscard = false
     @State private var readbackUnavailable = false
     @State private var ownerID = UUID()
+    @State private var artworkRevision = UUID()
     private var dirty: Bool { draft != baseline }
     private var title: LocalizedStringKey { target == .create ? "club.ops.create" : "club.ops.manage" }
     var body: some View {
@@ -86,7 +87,9 @@ struct ClubOperationsWorkspaceView: View {
     @ViewBuilder private func content(_ value: ClubOperationsSnapshot) -> some View {
         if let profile = value.profile {
             Section {
-                QuestifyImageEntityCard(imageSource: profile.club.cover, title: profile.club.name, subtitle: profile.club.city, fallbackSymbol: "person.3.fill", minimumHeight: 230) {
+                QuestifyImageEntityCard(imageSource: profile.club.cover, title: profile.club.name, subtitle: profile.club.city, fallbackSymbol: "person.3.fill", minimumHeight: 230,
+                    progressiveBlur: .cover, artworkIdentity: identity != nil && screenIdentity == identity && access.identity == identity && access.isConfigured && !loading
+                        ? .init(owner: ownerID.uuidString + ":" + String(identity?.accountID ?? 0) + ":" + String(identity?.epoch ?? 0), content: "club:\(profile.club.id)", version: artworkRevision.uuidString) : nil) {
                     Text(profile.club.isOwner ? "club.ops.owner" : "club.ops.administrator")
                 }.questifyCardListRow()
             }
@@ -181,7 +184,7 @@ struct ClubOperationsWorkspaceView: View {
             let result = try await access.snapshot(target: target)
             guard generation == run, access.identity == identity, !Task.isCancelled else { return }
             guard result.target == target else { throw ClubOperationsBlock.changed }
-            snapshot = result; draft = result.profile.map(ClubOperationsDraft.init(profile:)) ?? .init(); baseline = draft
+            artworkRevision = UUID(); snapshot = result; draft = result.profile.map(ClubOperationsDraft.init(profile:)) ?? .init(); baseline = draft
             loading = false; state = coordinator.state(target: target)
         } catch {
             guard generation == run, access.identity == identity, !Task.isCancelled else { return }
@@ -222,7 +225,7 @@ struct ClubOperationsWorkspaceView: View {
     private func acceptReadback() {
         switch coordinator.readback(target: target) {
         case .received(let value):
-            snapshot = value; readbackUnavailable = false
+            artworkRevision = UUID(); snapshot = value; readbackUnavailable = false
             if case .acknowledged = coordinator.state(target: target) {
                 draft = value.profile.map(ClubOperationsDraft.init(profile:)) ?? .init(); baseline = draft
             }

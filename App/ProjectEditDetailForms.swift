@@ -10,14 +10,17 @@ import SwiftUI
     private let mediaHost: ProjectStoryMediaChapterHost
     var pendingGap: ((String?) -> AnyView)? = nil
     var pendingMaterialName: String? = nil
+    let initialIssueAnchor: String?
     @StateObject private var storyImages: ProjectStoryImagePresentation
     @StateObject private var storyAudios: ProjectStoryAudioPresentation
     @StateObject private var storyTemplates: ProjectStoryTemplatePresentation
+    @StateObject private var pendingNodeRemoval: ProjectPendingNodeRemovalController
     @Environment(\.locale) private var storyImageLocale
     init(model: ProjectEditModel, chapterID: String, starterLease: ProjectEditStarterController.Destination? = nil,
          chapterOverride: Binding<ProjectEditChapter>? = nil, chapterIsCurrent: (() -> Bool)? = nil,
          mediaScope: ProjectStoryMediaChapterScope? = nil,
-         pendingGap: ((String?) -> AnyView)? = nil, pendingMaterialName: String? = nil) {
+         pendingGap: ((String?) -> AnyView)? = nil, pendingMaterialName: String? = nil, initialIssueAnchor: String? = nil) {
+        self.initialIssueAnchor = initialIssueAnchor
         self.model = model; self.chapterID = chapterID; self.starterLease = starterLease; self.chapterOverride = chapterOverride
         self.chapterIsCurrent = chapterIsCurrent; self.mediaScope = mediaScope; self.pendingGap = pendingGap; self.pendingMaterialName = pendingMaterialName
         let host: ProjectStoryMediaChapterHost = mediaScope.map(ProjectStoryMediaChapterHost.pending) ?? (chapterOverride == nil ? .ordinary : .unavailable)
@@ -25,6 +28,7 @@ import SwiftUI
         _storyImages = StateObject(wrappedValue: .init(editor: model, host: host))
         _storyAudios = StateObject(wrappedValue: .init(editor: model, host: host))
         _storyTemplates = StateObject(wrappedValue: .init(editor: model, host: host))
+        _pendingNodeRemoval = StateObject(wrappedValue: .init(model: model, chapterID: chapterID))
     }
     private func imageText(_ key: StaticString, _ fallback: String.LocalizationValue) -> String {
         String(localized: LocalizedStringResource(key, defaultValue: fallback, locale: storyImageLocale))
@@ -43,7 +47,13 @@ import SwiftUI
         if let starterLease { return model.isCurrentStarterChapter(starterLease) }
         return model.draft.chapters.contains { $0.id == chapterID }
     }
+    private var usesPendingNodeRemoval: Bool {
+        model.draft.product == .freeExplore && chapterOverride == nil && mediaScope == nil &&
+        starterLease == nil && chapter.wrappedValue.blocks == nil
+    }
     var body: some View {
+        let handlesPendingRemoval = usesPendingNodeRemoval
+        let removalCapture = handlesPendingRemoval ? pendingNodeRemoval.capture() : nil
         let imagePresentation = storyImages.presentation
         let audioPresentation = storyAudios.presentation
         let templateOpening = storyTemplates.opening
@@ -57,7 +67,7 @@ import SwiftUI
                     TextField("projectEdit.chapterName", text: chapter.name).accessibilityIdentifier("projectEdit.chapterName")
                     if chapter.wrappedValue.blocks == nil {
                         TextField("projectEdit.story", text: chapter.description, axis: .vertical).lineLimit(4...12)
-                            .accessibilityIdentifier("projectEdit.story")
+                            .accessibilityIdentifier("projectEdit.story").id("project-issue-anchor-story")
                         if ProjectEditStarterPolicy.usesStoryEditor(product: model.draft.product, chapter: chapter.wrappedValue) || ProjectEditStoryContract.usesV2(model.draft) {
                             Button("projectEdit.enableStoryFlow") {
                                 var c = chapter.wrappedValue
@@ -67,7 +77,7 @@ import SwiftUI
                         }
                     }
                 }
-                ProjectEditChapterStorySettings(chapter: chapter, isFirst: model.draft.chapters.first?.id == chapterID)
+                ProjectEditChapterStorySettings(chapter: chapter, isFirst: model.draft.chapters.first?.id == chapterID).id("project-issue-anchor-chapterSettings")
                 // The mini chapter palette is city-only. Pending new chapters keep
                 // their temporary binding until the existing placement flow commits.
                 if model.draft.product == .city && chapterOverride == nil {
@@ -172,14 +182,22 @@ import SwiftUI
                             var c = chapter.wrappedValue; c.blocks?.append(block); chapter.wrappedValue = c
                         }.disabled(blocks.count >= 200 || chapter.wrappedValue.nodes.isEmpty)
                         Text("projectEdit.storyFlowHint").font(.caption).foregroundStyle(.secondary)
-                    }
+                    }.id("project-issue-anchor-storyFlow")
+                }
+                if handlesPendingRemoval {
+                    Section { ProjectPendingNodeRemovalStatus(controller: pendingNodeRemoval) }
                 }
                 Section("projectEdit.nodes") {
                     ForEach(chapter.wrappedValue.nodes) { node in
                         NavigationLink { ProjectEditNodeView(model: model, chapterID: chapterID, nodeID: node.id, starterLease: starterLease, chapterOverride: chapter) } label: {
                             Label { ProjectEditName(value: node.name, fallback: "projectEdit.untitledNode") } icon: { Image(systemName: "mappin.circle") }
                         }.accessibilityIdentifier("projectEdit.node." + node.id)
+                            .deleteDisabled(handlesPendingRemoval && removalCapture == nil)
                     }.onDelete { offsets in
+                        if handlesPendingRemoval {
+                            pendingNodeRemoval.open(offsets: offsets, captured: removalCapture)
+                            return
+                        }
                         var c = chapter.wrappedValue; let ids = offsets.map { c.nodes[$0].id }
                         for id in ids { c.removeNode(id: id) }; chapter.wrappedValue = c
                     }.onMove { from, to in
@@ -189,13 +207,13 @@ import SwiftUI
                     Button("projectEdit.addNode", systemImage: "plus", action: addNode).disabled(pendingGap != nil || chapter.wrappedValue.preserved["opening"] == .bool(true) || chapter.wrappedValue.preserved["ending"]?.object != nil || (model.draft.product == .city && !chapter.wrappedValue.hasRealStory) || (chapter.wrappedValue.blocks?.count ?? 0) >= 200)
                         .accessibilityIdentifier("projectEdit.addNode")
                     if model.draft.product == .city && !chapter.wrappedValue.hasRealStory { Text("projectEdit.validation.story").foregroundStyle(.secondary) }
-                }
+                }.id("project-issue-anchor-nodes")
                 if let key = model.coordinator.messageKey {
                     Section { Text(LocalizedStringKey(key)).accessibilityIdentifier("projectStoryAudio.localStatus") }
                 }
                 Section { Text("projectEdit.chapterCarryOver").foregroundStyle(.secondary) }
             } else { Text("projectEdit.signIn") }
-        }.disabled(!model.fullEdit)
+        }.modifier(ProjectEditIssueInitialScroll(anchor: initialIssueAnchor)).disabled(!model.fullEdit)
             .appNavigationTitle(key: starterLease == nil && chapterOverride == nil ? "projectEdit.chapterDetails" : "projectEdit.storyFlow").navigationBarTitleDisplayMode(.inline)
             .toolbar { EditButton().disabled(!model.fullEdit) }
             .scrollDismissesKeyboard(.interactively)
@@ -208,7 +226,11 @@ import SwiftUI
             .sheet(item: storyTemplates.binding(templateOpening)) { original in
                 ProjectStoryTemplateView(controller: storyTemplates, original: original)
             }
+            .modifier(ProjectPendingNodeRemovalPresentation(controller: pendingNodeRemoval))
+            .onChange(of: model.draftMutationRevision) { _, _ in pendingNodeRemoval.synchronize() }
+            .onChange(of: model.editorIncarnation) { _, _ in pendingNodeRemoval.retire() }
             .onDisappear {
+                pendingNodeRemoval.retire()
                 if let templateOpening { storyTemplates.close(templateOpening) }
                 if let imagePresentation { storyImages.close(imagePresentation) }
                 if let audioPresentation { storyAudios.close(audioPresentation) }
@@ -263,6 +285,7 @@ import SwiftUI
     let nodeID: String
     var starterLease: ProjectEditStarterController.Destination? = nil
     var chapterOverride: Binding<ProjectEditChapter>? = nil
+    var initialIssueAnchor: String? = nil
     private var targetChapter: Binding<ProjectEditChapter> { chapterOverride ?? starterLease.map { model.starterChapter($0) } ?? model.chapter(chapterID) }
     private var node: Binding<ProjectEditNode> {
         Binding(get: { targetChapter.wrappedValue.nodes.first { $0.id == nodeID } ?? .init() }, set: { value in
@@ -275,12 +298,15 @@ import SwiftUI
         let lease = model.currentReviewLease()
         let exists = targetChapter.wrappedValue.nodes.contains { $0.id == nodeID }
         Form {
-            ProjectEditNodeFields(node: node).merchantDraftSelection(.init(model: model, node: node,
+            ProjectEditNodeFields(node: node)
+                .descriptionEditing(.init(model: model, sourceID: "saved:\(chapterID):\(nodeID)",
+                    isCurrent: { model.fullEdit && targetChapter.wrappedValue.nodes.contains { $0.id == nodeID } }))
+                .merchantDraftSelection(.init(model: model, node: node,
                 sourceID: "saved:\(chapterID):\(nodeID)", nodeRevision: { model.draftMutationRevision },
                 isCurrent: { model.fullEdit && targetChapter.wrappedValue.nodes.contains { $0.id == nodeID } }))
             ProjectNodeNarrativeEntry(model: model, chapterID: chapterID, nodeID: nodeID)
             if let key = model.coordinator.messageKey { Section { Text(LocalizedStringKey(key)).accessibilityIdentifier("projectPrepared.nodeSaveStatus") } }
-        }.disabled(!model.fullEdit).appNavigationTitle("projectEdit.nodeDetails")
+        }.modifier(ProjectEditIssueInitialScroll(anchor: initialIssueAnchor)).disabled(!model.fullEdit).appNavigationTitle("projectEdit.nodeDetails")
             .navigationBarTitleDisplayMode(.inline).scrollDismissesKeyboard(.interactively)
             .toolbar { ToolbarItem(placement: .confirmationAction) {
                 Button("projectEdit.saveLocal") {
@@ -296,23 +322,33 @@ import SwiftUI
 @MainActor struct ProjectEditNodeFields: View {
     @Binding var node: ProjectEditNode
     var merchantDraftContext: ProjectMerchantDraftContext? = nil
+    var descriptionContext: ProjectEditNodeDescriptionContext? = nil
     @Environment(\.locale) private var merchantDraftLocale
+    func descriptionEditing(_ context: ProjectEditNodeDescriptionContext) -> Self {
+        var result = self; result.descriptionContext = context; return result
+    }
     func merchantDraftSelection(_ context: ProjectMerchantDraftContext) -> Self {
         var result = self; result.merchantDraftContext = context; return result
     }
     var body: some View {
         Group {
             Section("projectEdit.nodeDetails") {
-                TextField("projectEdit.nodeName", text: $node.name).accessibilityIdentifier("projectEdit.nodeName")
-                TextField("projectEdit.description", text: $node.description, axis: .vertical).lineLimit(3...8)
-                    .accessibilityIdentifier("projectEdit.nodeDescription")
+                TextField("projectEdit.nodeName", text: $node.name).accessibilityIdentifier("projectEdit.nodeName").id("project-issue-anchor-nodeName")
+                if let descriptionContext {
+                    let descriptionSource = ProjectEditNodeDescriptionSource(node: $node, context: descriptionContext)
+                    ProjectEditNodeDescriptionField(source: descriptionSource).id(descriptionSource.target)
+                } else {
+                    // Unscoped standalone forms keep their original Binding lifetime/semantics.
+                    TextField("projectEdit.description", text: $node.description, axis: .vertical).lineLimit(3...8)
+                        .accessibilityIdentifier("projectEdit.nodeDescription")
+                }
                 TextField("projectEdit.address", text: $node.address).accessibilityIdentifier("projectEdit.address")
-                TextField("projectEdit.longitude", text: $node.longitude).keyboardType(.numbersAndPunctuation).accessibilityIdentifier("projectEdit.longitude")
+                TextField("projectEdit.longitude", text: $node.longitude).keyboardType(.numbersAndPunctuation).accessibilityIdentifier("projectEdit.longitude").id("project-issue-anchor-coordinates")
                 TextField("projectEdit.latitude", text: $node.latitude).keyboardType(.numbersAndPunctuation).accessibilityIdentifier("projectEdit.latitude")
                 Text("projectEdit.coordinatesHint").font(.caption).foregroundStyle(.secondary)
                 Stepper(value: $node.nodeTime, in: 0...Int.max) {
                     LabeledContent("projectEdit.nodeMinutes", value: String(node.nodeTime))
-                }
+                }.id("project-issue-anchor-nodeTime")
                 ProjectEditReferenceField(title: "projectEdit.nodeImages", value: $node.imgUrl, identifier: "projectEdit.nodeImages")
             }
             Section("projectEdit.gameplay") {
@@ -323,7 +359,7 @@ import SwiftUI
                     ProjectMerchantDraftField(context: merchantDraftContext).id(merchantDraftContext.id)
                     Text(ProjectMerchantDraftCopy.value(.otherGameplay, locale: merchantDraftLocale)).foregroundStyle(.secondary)
                 } else { Text("projectEdit.gameplayDeferred").foregroundStyle(.secondary) }
-            }
+            }.id("project-issue-anchor-gameplay")
         }
     }
 }
@@ -331,27 +367,28 @@ import SwiftUI
 @MainActor struct ProjectEditTicketView: View {
     @ObservedObject var model: ProjectEditModel
     let ticketID: String
+    var initialIssueAnchor: String? = nil
     private var ticket: Binding<ProjectEditTicket> { model.ticket(ticketID) }
     var body: some View {
         Form {
             Section("projectEdit.ticketDetails") {
-                TextField("projectEdit.ticketName", text: ticket.name).accessibilityIdentifier("projectEdit.ticketName")
-                TextField("projectEdit.ticketPrice", text: ticket.price).keyboardType(.decimalPad).accessibilityIdentifier("projectEdit.ticketPrice")
+                TextField("projectEdit.ticketName", text: ticket.name).accessibilityIdentifier("projectEdit.ticketName").id("project-issue-anchor-ticketName")
+                TextField("projectEdit.ticketPrice", text: ticket.price).keyboardType(.decimalPad).accessibilityIdentifier("projectEdit.ticketPrice").id("project-issue-anchor-price")
                 Text("projectEdit.priceHint").font(.caption).foregroundStyle(.secondary)
-                TextField("projectEdit.totalStock", text: ticket.totalStock).keyboardType(.numberPad).accessibilityIdentifier("projectEdit.totalStock")
-                TextField("projectEdit.teamSize", text: ticket.teamSize).keyboardType(.numberPad)
+                TextField("projectEdit.totalStock", text: ticket.totalStock).keyboardType(.numberPad).accessibilityIdentifier("projectEdit.totalStock").id("project-issue-anchor-stock")
+                TextField("projectEdit.teamSize", text: ticket.teamSize).keyboardType(.numberPad).id("project-issue-anchor-team")
                 TextField("projectEdit.description", text: ticket.description, axis: .vertical).lineLimit(3...8)
             }
             Section("projectEdit.saleSchedule") {
-                ProjectEditDateField(title: "projectEdit.saleStart", value: ticket.saleStartTime, identifier: "projectEdit.saleStart")
+                ProjectEditDateField(title: "projectEdit.saleStart", value: ticket.saleStartTime, identifier: "projectEdit.saleStart").dateEditing(.init(model: model, field: .saleStart(ticketID)))
                     .disabled(!ticket.wrappedValue.canEditSaleTime(end: false))
-                ProjectEditDateField(title: "projectEdit.saleEnd", value: ticket.saleEndTime, identifier: "projectEdit.saleEnd")
+                ProjectEditDateField(title: "projectEdit.saleEnd", value: ticket.saleEndTime, identifier: "projectEdit.saleEnd").dateEditing(.init(model: model, field: .saleEnd(ticketID)))
                     .disabled(!ticket.wrappedValue.canEditSaleTime(end: true))
                 Text("projectEdit.saleStoredOnly").font(.caption).foregroundStyle(.secondary)
                 if !ticket.wrappedValue.canEditSaleTime(end: false) || !ticket.wrappedValue.canEditSaleTime(end: true) {
                     Text("projectEdit.saleLegacy").font(.caption).foregroundStyle(.secondary)
                 }
-            }
+            }.id("project-issue-anchor-ticketSale")
             Section("projectEdit.ticketSchedule") {
                 if model.draft.product == .freeExplore {
                     Toggle("projectEdit.syncThemeDates", isOn: model.ticketDateSync(ticketID))
@@ -365,15 +402,15 @@ import SwiftUI
                     LabeledContent("projectEdit.ticketStart", value: schedule.start).accessibilityIdentifier("projectEdit.ticketStart")
                     LabeledContent("projectEdit.ticketEnd", value: schedule.end).accessibilityIdentifier("projectEdit.ticketEnd")
                 } else {
-                    ProjectEditDateField(title: "projectEdit.ticketStart", value: ticket.startTime, identifier: "projectEdit.ticketStart")
-                    ProjectEditDateField(title: "projectEdit.ticketEnd", value: ticket.endTime, identifier: "projectEdit.ticketEnd")
+                    ProjectEditDateField(title: "projectEdit.ticketStart", value: ticket.startTime, identifier: "projectEdit.ticketStart").dateEditing(.init(model: model, field: .ticketStart(ticketID)))
+                    ProjectEditDateField(title: "projectEdit.ticketEnd", value: ticket.endTime, identifier: "projectEdit.ticketEnd").dateEditing(.init(model: model, field: .ticketEnd(ticketID)))
                 }
                 if model.draft.product == .city {
                     ProjectTicketMeetingPointFields(model: model, ticketID: ticketID)
                 }
                 Text("projectEdit.ticketScopeHint").foregroundStyle(.secondary)
-            }
-        }.disabled(!model.fullEdit).appNavigationTitle("projectEdit.ticketDetails")
+            }.id("project-issue-anchor-ticketSchedule")
+        }.modifier(ProjectEditIssueInitialScroll(anchor: initialIssueAnchor)).disabled(!model.fullEdit).appNavigationTitle("projectEdit.ticketDetails")
             .navigationBarTitleDisplayMode(.inline).scrollDismissesKeyboard(.interactively)
     }
 }

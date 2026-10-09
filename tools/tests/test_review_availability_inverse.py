@@ -10,6 +10,20 @@ CURRENT = Path(__file__).resolve().parents[2]
 
 
 class ReviewAvailabilityInverseTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        global CURRENT, inverse
+        from tools.run138_current_source_projection import frozen_context
+        cls.original_globals = CURRENT, inverse
+        cls.context = frozen_context('review', CURRENT)
+        CURRENT = cls.context.root
+        inverse = cls.context.load('tools/review_availability_inverse.py', 'review_availability_historical_leaf')
+
+    @classmethod
+    def tearDownClass(cls):
+        global CURRENT, inverse
+        CURRENT, inverse = cls.original_globals
+
     def test_exact_forward_inverse_and_original_inventory(self):
         inverse.verify_current(CURRENT)
         for relative, item in inverse.contract()['scope'].items():
@@ -72,7 +86,9 @@ class ReviewAvailabilityInverseTests(unittest.TestCase):
         spec.loader.exec_module(module)
         relative = 'App/ProjectEditView.swift'
         current = (CURRENT / relative).read_text()
-        self.assertEqual(module.digest(module.restore_version_row(current)), module.PREVIOUS_SHA)
+        # Feed the unchanged version-row guard the exact output of this historical
+        # Review layer. Its separate live tests still exercise the current adapter.
+        self.assertEqual(module.digest(module.restore_version_row(inverse.original_source(relative, current, CURRENT))), module.PREVIOUS_SHA)
         with self.assertRaises(AssertionError):
             module.restore_version_row(current + '\n')
         previous = inverse.original_source(relative, current, CURRENT)

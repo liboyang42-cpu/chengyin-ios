@@ -9,12 +9,14 @@ struct QuestifyDensityMap: View {
     var selectedID: String? = nil
     var interactionID: AnyHashable? = nil
     var polyline: [RoamCoordinate] = []
+    var onViewportChange: ((SearchMapViewport?) -> Void)? = nil
     var onSelect: ((String) -> Void)? = nil
     var mapHeight: CGFloat = 300
     var pinIdentifierPrefix = "searchMap.pin."
     var pinHint: (String) -> Text = { _ in Text("") }
     @State private var position: MapCameraPosition
     @State private var cameraRevision = 0
+    @State private var viewportMoving = false
     @State private var expanded: [String] = []
     @State private var expansionID = UUID()
     @State private var expandedSnapshot: [SearchMapPin] = []
@@ -27,9 +29,10 @@ struct QuestifyDensityMap: View {
          polyline: [RoamCoordinate] = [], mapHeight: CGFloat = 300, initialSpan: Double = 0.04,
          interactionID: AnyHashable? = nil,
          pinIdentifierPrefix: String = "searchMap.pin.", pinHint: @escaping (String) -> Text = { _ in Text("") },
+         onViewportChange: ((SearchMapViewport?) -> Void)? = nil,
          onSelect: ((String) -> Void)? = nil) {
         self.area = area; self.pins = pins; self.selectedID = selectedID
-        self.polyline = polyline; self.onSelect = onSelect
+        self.polyline = polyline; self.onSelect = onSelect; self.onViewportChange = onViewportChange
         self.mapHeight = mapHeight; self.interactionID = interactionID
         self.pinIdentifierPrefix = pinIdentifierPrefix; self.pinHint = pinHint
         _currentFocusInput = State(initialValue: FocusInput(area: area, pins: pins, selectedID: selectedID, interactionID: interactionID))
@@ -110,7 +113,20 @@ struct QuestifyDensityMap: View {
                         MapCompass().mapControlVisibility(.visible)
                         MapScaleView()
                     }
-                    .onMapCameraChange(frequency: .continuous) { _ in cameraRevision &+= 1 }
+                    .onMapCameraChange(frequency: .continuous) { _ in
+                        cameraRevision &+= 1
+                        if onViewportChange != nil && !viewportMoving {
+                            viewportMoving = true; onViewportChange?(nil)
+                        }
+                    }
+                    .onMapCameraChange(frequency: .onEnd) { update in
+                        viewportMoving = false
+                        guard position.positionedByUser else { onViewportChange?(nil); return }
+                        onViewportChange?(SearchMapViewport(latitude: update.region.center.latitude,
+                            longitude: update.region.center.longitude,
+                            latitudeSpan: update.region.span.latitudeDelta,
+                            longitudeSpan: update.region.span.longitudeDelta, datum: .wgs84))
+                    }
                 }
             }.frame(height: mapHeight)
             if selectedID != nil { focusControl }
@@ -206,6 +222,7 @@ struct QuestifyDensityMap: View {
         applyCameraFit(fit)
     }
     private func applyCameraFit(_ fit: MapMarkerDensity.Fit) {
+        onViewportChange?(nil)
         position = .region(MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: fit.latitude, longitude: fit.longitude),
             span: MKCoordinateSpan(latitudeDelta: fit.latitudeSpan, longitudeDelta: fit.longitudeSpan)))
     }
@@ -291,7 +308,6 @@ struct QuestifyMapAlternativeList: View {
                         }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
                             .contentShape(Rectangle())
                     }.buttonStyle(.plain)
-                        .disabled(onSelect == nil)
                         .accessibilityElement(children: .ignore)
                         .accessibilityLabel(Text(verbatim: pin.title))
                         .accessibilityValue(pin.id == selectedID ? Text("mapList.selected") : Text(""))
@@ -299,6 +315,7 @@ struct QuestifyMapAlternativeList: View {
                         .accessibilityAddTraits(.isButton)
                         .accessibilityAddTraits(pin.id == selectedID ? .isSelected : [])
                         .accessibilityIdentifier("mapList.pin.\(pin.id)")
+                        .disabled(onSelect == nil)
                 }
             }
         }.frame(maxWidth: .infinity, alignment: .leading)

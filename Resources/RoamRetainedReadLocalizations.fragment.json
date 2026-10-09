@@ -1,0 +1,53 @@
+{
+  "roamRetained.readAt": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Successfully read on this device"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "本设备成功读取时间"
+        }
+      }
+    }
+  },
+  "roamRetained.previous": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Previously read results"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此前读取的结果"
+        }
+      }
+    }
+  },
+  "roamRetained.readOnly": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "These earlier results may be out of date. They are shown for reference only; map selection and details are unavailable until a successful refresh."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这些旧结果可能已过时，仅供查看；成功刷新前，不能选择地图点位或打开详情。"
+        }
+      }
+    }
+  }
+}

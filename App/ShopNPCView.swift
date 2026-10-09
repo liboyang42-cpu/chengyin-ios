@@ -101,6 +101,7 @@ import SwiftUI
     }
     private var composer: some View {
         VStack(alignment: .leading, spacing: 8) {
+            NPCQuickQuestionBar(draft: $draft, context: .gameNode(coordinator.scope), enabled: canCompose)
             TextField("shopNPC.question", text: Binding(get: { showsConversation ? draft : "" }, set: { draft = $0 }), axis: .vertical)
                 .lineLimit(1...3).textFieldStyle(.roundedBorder).focused($typing)
                 .disabled(!canCompose).accessibilityIdentifier("shopNPC.input")

@@ -1,0 +1,325 @@
+{
+  "merchant.customerEmpty.search.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No matching customer"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "没搜到这个客户"
+        }
+      }
+    }
+  },
+  "merchant.customerEmpty.search.hint": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Try another name or clear the search."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "换个姓名再试试，或清除搜索。"
+        }
+      }
+    }
+  },
+  "merchant.customerEmpty.searchInGroup.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No match in this group"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这个分组没有匹配客户"
+        }
+      }
+    }
+  },
+  "merchant.customerEmpty.searchInGroup.hint": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "View all groups while keeping your search and other filters."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "保留关键词和其他条件，查看全部分组。"
+        }
+      }
+    }
+  },
+  "merchant.customerEmpty.advanced.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No customers match these filters"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这个筛选条件下没有客户"
+        }
+      }
+    }
+  },
+  "merchant.customerEmpty.advanced.hint": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Clear the tag, source and source-date filters while keeping the selected group."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "可清除标签、来源和来源时间筛选，保留当前分组。"
+        }
+      }
+    }
+  },
+  "merchant.customerEmpty.group.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No customers in this group yet"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这个分组还没有客户"
+        }
+      }
+    }
+  },
+  "merchant.customerEmpty.group.hint": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Try viewing all customer groups."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "可以查看全部客户分组。"
+        }
+      }
+    }
+  },
+  "merchant.customerEmpty.statisticsUnavailable.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Customer statistics are unavailable"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "客户统计暂未取到"
+        }
+      }
+    }
+  },
+  "merchant.customerEmpty.statisticsUnavailable.hint": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Missing counts are not zero. Reload to check the current list."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "缺失的统计不代表零位客户，请重新加载。"
+        }
+      }
+    }
+  },
+  "merchant.customerEmpty.listUnavailable.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The customer list did not load completely"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "客户名单这次没取回来"
+        }
+      }
+    }
+  },
+  "merchant.customerEmpty.listUnavailable.hint": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The statistics report customers, but this response contains no rows. Reload to try again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "统计中有客户，但本次返回的名单为空。请重新加载。"
+        }
+      }
+    }
+  },
+  "merchant.customerEmpty.noCustomers.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No customers yet"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "还没有客户"
+        }
+      }
+    }
+  },
+  "merchant.customerEmpty.noCustomers.hint": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Customers appear here after participation in projects your store supports."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "门店承接项目有客户参与后，会显示在这里。"
+        }
+      }
+    }
+  },
+  "merchant.customerEmpty.action.clearSearch": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Clear search"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "清除搜索"
+        }
+      }
+    }
+  },
+  "merchant.customerEmpty.action.allGroups": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "View all customers"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "查看全部客户"
+        }
+      }
+    }
+  },
+  "merchant.customerEmpty.action.clearAdvanced": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Clear advanced filters"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "清除高级筛选"
+        }
+      }
+    }
+  },
+  "merchant.customerEmpty.action.retry": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reload"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "重新加载"
+        }
+      }
+    }
+  },
+  "merchant.customerEmpty.applyDraftFirst": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Apply your edited filters before using this action."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请先应用刚修改的筛选条件，再使用此操作。"
+        }
+      }
+    }
+  }
+}

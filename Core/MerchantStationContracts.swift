@@ -96,10 +96,21 @@ public struct MerchantStationCommand: Codable, Equatable {
                   payload["note"]?.text != nil, let items = payload["checklist"]?.array, !items.isEmpty,
                   items.allSatisfy({ Set($0.object?.keys.map { $0 } ?? []) == Set(["code", "checked"]) && $0["checked"].flag == true && !($0["code"].text ?? "").isEmpty }) else { throw MerchantContentFailure.invalid }
         case .pause:
-            try required(["reasonCode", "reason", "resumeEta", "fallbackPlanCode", "fallbackPlanVersion"])
+            try required(["reasonCode", "resumeEta"], optional: ["reason", "fallbackPlanCode", "fallbackPlanVersion"])
             guard ["CAPACITY", "STAFF", "EQUIPMENT", "EMERGENCY"].contains(payload["reasonCode"]?.text ?? ""),
-                  !(payload["reason"]?.text ?? "").isEmpty, Self.validTime(payload["resumeEta"]?.text ?? ""),
-                  !(payload["fallbackPlanCode"]?.text ?? "").isEmpty, (payload["fallbackPlanVersion"]?.safeInteger ?? 0) > 0 else { throw MerchantContentFailure.invalid }
+                  Self.validTime(payload["resumeEta"]?.text ?? "") else { throw MerchantContentFailure.invalid }
+            if let reason = payload["reason"] {
+                guard let text = reason.text, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                      text.utf16.count <= 200 else { throw MerchantContentFailure.invalid }
+            }
+            let hasFallbackCode = payload["fallbackPlanCode"] != nil
+            let hasFallbackVersion = payload["fallbackPlanVersion"] != nil
+            guard hasFallbackCode == hasFallbackVersion else { throw MerchantContentFailure.invalid }
+            if hasFallbackCode {
+                guard let code = payload["fallbackPlanCode"]?.text,
+                      code.range(of: #"^[A-Z][A-Z0-9_]{1,63}$"#, options: .regularExpression) != nil,
+                      (payload["fallbackPlanVersion"]?.safeInteger ?? 0) > 0 else { throw MerchantContentFailure.invalid }
+            }
         case .verify:
             try required(["submissionId", "decision"], optional: ["reasonCode"])
             guard (payload["submissionId"]?.text ?? "").range(of: #"^[1-9]\d{0,18}$"#, options: .regularExpression) != nil else { throw MerchantContentFailure.invalid }
@@ -118,7 +129,7 @@ public struct MerchantStationCommand: Codable, Equatable {
             let submitted = (payload["checklist"]?.array ?? []).compactMap { $0["code"].text }
             guard !expected.isEmpty, expected == submitted else { throw MerchantContentFailure.invalid }
         }
-        if action == .pause {
+        if action == .pause, payload["fallbackPlanCode"] != nil {
             guard projection.fallbackOptions.contains(where: { $0["sourceNodeId"].safeInteger == nodeID && $0["planCode"].text == payload["fallbackPlanCode"]?.text && $0["planVersion"].safeInteger == payload["fallbackPlanVersion"]?.safeInteger }) else { throw MerchantContentFailure.invalid }
         }
     }

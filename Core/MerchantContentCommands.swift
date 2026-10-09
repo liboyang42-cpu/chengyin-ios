@@ -133,15 +133,12 @@ public enum MerchantContentCommand: Codable, Equatable {
             let catalog = snapshot.value["catalog"]
             if let max = catalog["max"].integer, max > 0, let used = catalog["used"].integer { try need(used < max) }
         case .cancelClaim(let id):
-            try need(snapshot.query == .city)
-            // Source application model exposes application id, not guaranteed poiId. Do not alias them.
-            try need((snapshot.value["applications"].array ?? []).contains { $0["poiId"].integer == id && $0["applicationType"].integer == 2 && ($0["auditStatus"].integer ?? $0["status"].integer) == 0 })
+            try need(MerchantCityClaimWithdrawal(poiID: id, snapshot: snapshot) != nil)
         case .cityStatus(let id, _):
             try need(snapshot.query == .city && (snapshot.value["nodes"].array ?? []).contains { ($0["poiId"].integer ?? $0["id"].integer) == id })
         case .place(let draft):
             try need(snapshot.query == .cityPlacement)
-            let catalog = snapshot.value["catalog"], cap = catalog["max"].integer, used = catalog["used"].integer
-            if let cap, cap > 0, let used { try need(used < cap) }
+            try need(MerchantCityQuota(catalog: snapshot.value["catalog"]).canPlace)
             try need((snapshot.value["templates"].array ?? []).contains { $0["id"].integer == draft.templateID })
         case .saveNPC(let id, _, _, _), .enrollVoice(let id, _), .resetVoice(let id): try need(snapshot.query == .npc(nodeID: id))
         case .station(let command):

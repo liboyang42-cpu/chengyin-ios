@@ -1,0 +1,26 @@
+# P077 pending city-node claim withdrawal
+
+The merchant city's existing application row can now open the existing withdrawal review using the actual response identity. Its `applications` array contains `RoamPoi` records; each row's `id` is the POI ID accepted by the existing claim-cancel endpoint. The former native requirement for a separate `poiId` field made this ordinary source interaction unavailable on real response rows. The old Core and UI assertions encoded that incorrect assumption and are corrected here.
+
+`MerchantCityClaimWithdrawal` restricts the mapping to the authorized `.city` snapshot's exact application row. It requires project-management access, a positive merchant identity, a positive safe numeric POI ID, claim type 2, audit status 0, no assigned merchant, matching applicant merchant when supplied, and a unique identity. Missing or malformed ID, conflicting `id`/`poiId`, duplicate rows, foreign applicant, non-claim and non-pending records are rejected. Visibility `status` cannot substitute for `auditStatus`; unrelated application APIs do not inherit this mapping. Optional numeric strings cannot grant an action and are considered when detecting ambiguous duplicate identity.
+
+The row callback rechecks the current snapshot and observation time. The review displays the frozen row name when present and explains that successful withdrawal releases the node for claiming again, while a claim under platform review may no longer be withdrawable. Cancel still clears the review without dispatch. The existing coordinator/service enforce review identity, cancellation, current access, fresh complete baseline equality, persistent unknown-write locks and default-disabled production writes. No service, coordinator, endpoint, request body, session composition or permission is expanded. In particular, quota exhaustion does not block the withdrawal exit.
+
+## Exact source evidence
+
+The same local construction plan SHA-256 `eb23c8aefc22954bcd6f73ef800c32b763e7f8c4e3d4c68b0a0956756fd50133`, P077 paragraphs 1779–1782, lists `cancelClaim`/`retryCancel`. The caller calls this saved file v9; its cover still says edition 8. The document is unchanged.
+
+Private source repository `liboyang42-cpu/chengyin`, commit `ce61c0bbace743ff835cb297ef41c89b52181636` was read only. No private source file is copied into this native candidate.
+
+- `chengyinhub-xcx/pages/merchant/citynode/index.wxml`, blob `39f76dcdfb45d80fe420b85616b83702ef91da63`, lines 44–56: pending claim row sends `item.id` as the cancellation POI ID.
+- `chengyinhub-xcx/pages/merchant/citynode/index.js`, blob `7c3620e2f31500c6ecf1bc7a9566619b5ae0eabb`, lines 307–325: known pending-claim selection, existing cancel endpoint and list reload.
+- `chengyinhub-admin/src/main/java/com/chengyinhub/web/controller/api/ApiMerchantNodeController.java`, blob `e682d66ce410ef06d01301160386af8e0bd2b46d`, lines 296–313 and 349–365: authorized city list and cancel form with `poiId`.
+- `chengyinhub-system/src/main/java/com/chengyinhub/business/service/impl/RoamPoiApplicationServiceImpl.java`, blob `f3ff57c2af3fb41ea06feac63d111538e11ae80c`, lines 91–104: scoped pending cancellation and list returning `List<RoamPoi>`.
+- `chengyinhub-system/src/main/resources/mapper/business/RoamMapper.xml`, blob `fe16544b3a1fc433a4365626e6ca3a2bbe6b821b`, lines 22–36, 574–598 and 673: result ID maps from the POI table; scoped pending-claim cancellation uses that same POI ID; application listing selects `p.id`.
+- `chengyinhub-system/src/main/java/com/chengyinhub/business/domain/RoamPoi.java`, blob `ca075b070ef1357db689d90e0d8c05f5aadf3672`, lines 8, 20–21: POI identity and independent audit/application fields.
+
+## Small checks and integration
+
+Five focused Python source checks and six-file pinned Swift Tree-sitter parse passed. The new eleven Core tests include conflicting/duplicate/malformed ID, type/audit/authority boundaries, cancellation without dispatch, changed-audit confirmation and reload invalidation. Those XCTest cases, the corrected existing Core case and the corrected existing UI case are authored but not executed; Swift/Apple tooling is absent here. Source checks are not Swift behavior execution. No live withdrawal occurred.
+
+Apply after quota result tree `5c6054d67236f98114fe8e3606fd01e9a91acbaa`. Merge two unique bilingual keys, then regenerate project centrally. The existing UI method is renamed from `MerchantContentFlowTests.testCityClaimDoesNotTreatApplicationIDAsPOIID` to `MerchantContentFlowTests.testCityClaimWithdrawalReviewUsesSourcePOIAndCanCancel`; method count remains seven in that class. Its former 31.05-second timing describes the old scenario only. The integration fragment records an independent, unmeasured 90-second estimate for the changed launch/open-review/cancel/return scenario. This is not approval to raise CI timeouts or central budgets: only the current method identifier should be synchronized; existing runtime budgets stay unchanged unless separately authorized. The old measurement must not be described as a measurement of the new scenario. Published timing/source fixtures and historical budgets are unchanged in this increment. Apple runtime, aggregate validation and actual timing remain deferred.

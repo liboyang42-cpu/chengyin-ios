@@ -1,6 +1,7 @@
 """Exact merchant Home R1 source boundary; these are not runtime/XCTest results."""
 from pathlib import Path
 import hashlib
+from merchant_customer_empty_inverse import before_customer_empty_source
 import json
 import unittest
 ROOT = Path(__file__).resolve().parents[2]
@@ -55,6 +56,7 @@ REVIEW_PAGES_BYTE_HUNKS = [(369, b'    private(set) var reviewLoadedPages: Merch
 
 
 def before_review_pages_source(source):
+    source = before_customer_empty_source(source)
     raw = source.encode('utf-8')
     current = hashlib.sha256(raw).hexdigest()
     if current in (REVIEW_PAGES_PREIMAGE_SHA256, CUSTOMER_VIEW_SHA256, SETTLEMENT_VIEW_SHA256, AFTERCARE_VIEW_SHA256, CURRENT_VIEW_SHA256):
@@ -164,7 +166,7 @@ def validate_model(source):
 class MerchantBusinessAccessLifetimeChecks(unittest.TestCase):
     def setUp(self):
         self.model = (ROOT / MODEL).read_text()
-        self.review_pages_view = (ROOT / VIEW).read_bytes().decode('utf-8')
+        self.review_pages_view = before_customer_empty_source((ROOT / VIEW).read_bytes().decode('utf-8'))
         self.roster_view = before_review_pages_source(self.review_pages_view)
         self.customer_view = before_roster_source(self.roster_view)
         self.settlement_view = before_customer_detail_source(self.customer_view)

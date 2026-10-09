@@ -19,6 +19,7 @@ struct TopicBrowserView: View {
     @State private var loading = false
     @State private var issue: TopicScreenIssue?
     @State private var generation = 0
+    @State private var artworkRevision = UUID()
     private struct Key: Hashable { let scope: UUID; let query: TopicQuery; let configured: Bool }
     private var key: Key {
         Key(scope: reader.scope, query: TopicQuery(keyword: keyword.isEmpty ? nil : keyword, categoryID: categoryID, recommend: recommend, pageSize: pageSize), configured: reader.isConfigured)
@@ -40,7 +41,8 @@ struct TopicBrowserView: View {
                             TopicDetailView(id: item.id, reader: reader, publicMerchant: publicMerchant, makeAudio: makeAudio, makeExternalMaps: makeExternalMaps, selfPlayDestination: selfPlayDestination)
                         } label: {
                             QuestifyImageEntityCard(imageSource:item.imageURL,title:item.name,
-                                                    subtitle:item.introduction,fallbackSymbol:"map") {
+                                                    subtitle:item.introduction,fallbackSymbol:"map",progressiveBlur:.cover,
+                                                    artworkIdentity:.init(owner:reader.scope.uuidString,content:"topic:\(item.id)",version:artworkRevision.uuidString)) {
                                 TopicTotalStops(count: item.locationCount, identifier: "topic.totalStops.\(item.id)")
                                 if item.betaFlag == 1 { Text("topic.beta").font(.caption.weight(.semibold)) }
                                 if let address=item.addressName,!address.isEmpty {
@@ -80,7 +82,7 @@ struct TopicBrowserView: View {
         if !reset && loading { return }
         generation += 1
         let operation = generation, captured = key
-        if reset { pagination.reset(); loadedKey = nil }
+        if reset { artworkRevision = UUID(); pagination.reset(); loadedKey = nil }
         issue = nil
         guard reader.isConfigured else { loading = false; return }
         loading = true

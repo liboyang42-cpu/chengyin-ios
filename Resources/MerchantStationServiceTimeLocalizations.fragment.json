@@ -1,0 +1,172 @@
+{
+  "merchant.stationTime.choose": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Choose service date and times"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "选择服务日期与时段"
+        }
+      }
+    }
+  },
+  "merchant.stationTime.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Service date and times"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务日期与时段"
+        }
+      }
+    }
+  },
+  "merchant.stationTime.date": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Service date"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务日期"
+        }
+      }
+    }
+  },
+  "merchant.stationTime.start": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Starts"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "开始时间"
+        }
+      }
+    }
+  },
+  "merchant.stationTime.end": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Ends"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "结束时间"
+        }
+      }
+    }
+  },
+  "merchant.stationTime.apply": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Apply to draft"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "应用到草稿"
+        }
+      }
+    }
+  },
+  "merchant.stationTime.draftOnly": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Nothing is saved until you apply these values and complete the existing review."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "先应用到本地草稿，再按原流程审阅提交。此处不会直接保存。"
+        }
+      }
+    }
+  },
+  "merchant.stationTime.originalPreserved": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The existing values are kept unchanged. Applying a new single-day window will explicitly replace them."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "现有值保持原样。应用新的同日服务时段后，才会明确替换它们。"
+        }
+      }
+    }
+  },
+  "merchant.stationTime.invalidOrder": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Choose a valid date and an end time later than the start on the same day."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请选择有效日期，并确保同一天的结束时间晚于开始时间。"
+        }
+      }
+    }
+  },
+  "merchant.stationTime.changed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The source or draft changed. Cancel and reopen the time selector."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "来源或草稿已变化，请取消后重新打开时间选择。"
+        }
+      }
+    }
+  }
+}

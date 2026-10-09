@@ -1,0 +1,166 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "projectDatePicker.choose": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose date and time"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择日期与时间"
+          }
+        }
+      }
+    },
+    "projectDatePicker.manualBeijing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manual text above uses Beijing time (GMT+8). The formatted time and picker use your phone’s time zone."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上方手工输入按北京时间（GMT+8）解释；格式化时间和选择器使用手机时区。"
+          }
+        }
+      }
+    },
+    "projectDatePicker.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This stored value is not a recognized date. It is unchanged; correct the manual text before opening the picker."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法识别这个已有日期值，原文保持不变。请先修正手工输入，再打开选择器。"
+          }
+        }
+      }
+    },
+    "projectDatePicker.phoneTime": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Time in your phone’s time zone"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手机时区时间"
+          }
+        }
+      }
+    },
+    "projectDatePicker.beijingTime": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Corresponding Beijing time (GMT+8)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对应北京时间（GMT+8）"
+          }
+        }
+      }
+    },
+    "projectDatePicker.serverAuthority": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm only after checking the Beijing time. Server validation remains authoritative for deadlines and availability."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请核对对应北京时间后再确认。截止规则和可用性仍以服务端校验为准。"
+          }
+        }
+      }
+    },
+    "projectDatePicker.useShownTime": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use this shown time"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选用当前显示的时间"
+          }
+        }
+      }
+    },
+    "projectDatePicker.invalidRange": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The selected time cannot be applied. Check the start/end order and the current field."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法应用所选时间，请检查起止顺序及当前字段。"
+          }
+        }
+      }
+    },
+    "projectDatePicker.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm time"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认时间"
+          }
+        }
+      }
+    },
+    "projectDatePicker.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose time"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择时间"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

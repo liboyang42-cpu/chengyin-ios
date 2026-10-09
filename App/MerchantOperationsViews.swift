@@ -131,7 +131,7 @@ struct MerchantOperationsDocumentView: View {
                 case .draft:
                     MerchantOperationsEditor(model: model, templateAssistFactory: templateAssistFactory, imageContext: model.imageContext)
                 case .cityNodes(let catalog): MerchantOperationsCityView(catalog: catalog)
-                case .templates(let rows): MerchantOperationsTemplatesView(reader: reader, rows: rows, imageHost: imageHost, templateAssistFactory: templateAssistFactory)
+                case .templates(let rows): MerchantOperationsTemplatesView(reader: reader, rows: rows, imageHost: imageHost, artworkVersion: String(model.revision), templateAssistFactory: templateAssistFactory)
                 case .assets(let resources): MerchantOperationsAssetsView(resources: resources)
                 }
             } else if let issue = coordinator.issue, coordinator.loadedScope == reader.scope {
@@ -201,6 +201,7 @@ private struct MerchantOperationsTemplatesView: View {
     let reader: any MerchantOperationsReading
     let rows: [MerchantTemplateRecord]
     let imageHost: MerchantRetainedImageHost?
+    let artworkVersion: String
     var templateAssistFactory: ((MerchantOperationsCoordinator) -> MerchantTemplateAssistFlow)? = nil
     var body: some View {
         ScrollView {
@@ -212,7 +213,8 @@ private struct MerchantOperationsTemplatesView: View {
                 if rows.isEmpty { ContentUnavailableView("merchant.operations.empty", systemImage: "square.grid.2x2") }
                 ForEach(rows) { row in
                     NavigationLink { MerchantOperationsDocumentView(reader: reader, destination: .template(row.id), imageHost: imageHost, templateAssistFactory: templateAssistFactory) } label: {
-                        QuestifyImageEntityCard(imageSource: reader.isOfflineExample ? nil : row.imgUrl, title: row.title, subtitle: row.description, fallbackTitle: "merchant.operations.untitled", minimumHeight: 230) {
+                        QuestifyImageEntityCard(imageSource: reader.isOfflineExample ? nil : row.imgUrl, title: row.title, subtitle: row.description, fallbackTitle: "merchant.operations.untitled", minimumHeight: 230,
+                            progressiveBlur: .cover, artworkIdentity: .init(owner: reader.scope.uuidString, content: "merchant-template:\(row.id)", version: artworkVersion)) {
                             Text(LocalizedStringKey(templateStatus(row.status)))
                             if let method = row.validationMethod.flatMap(MerchantTemplateMethod.init(rawValue:)) { Text(LocalizedStringKey(method.titleKey)) }
                         }

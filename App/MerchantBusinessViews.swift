@@ -223,6 +223,11 @@ import SwiftUI
     init(reader: any MerchantBusinessReading, journal: any MerchantBusinessIntentStore, query: MerchantBusinessQuery, reviewSource: MerchantReviewSourcePage? = nil) {
         self.reader = reader; self.journal = journal; self.reviewSource = reviewSource
         _query = State(initialValue: query); _model = StateObject(wrappedValue: .init(reader: reader, journal: journal))
+        if case .customers(let filter) = query {
+            _keyword = State(initialValue: filter.keyword); _segment = State(initialValue: filter.segment)
+            _sourceType = State(initialValue: filter.sourceType ?? 0); _tagID = State(initialValue: filter.tagID ?? 0)
+            _sourceStart = State(initialValue: filter.sourceStart ?? ""); _sourceEnd = State(initialValue: filter.sourceEnd ?? "")
+        }
     }
     private var state: MerchantBusinessCoordinator { model.coordinator }
     var body: some View {
@@ -253,7 +258,23 @@ import SwiftUI
                     }
                 }
                 summary(snapshot.document)
-                if query != .operators, snapshot.document.sections.allSatisfy({ model.unfilteredRows(in: $0, query: snapshot.document.query).isEmpty }) && (snapshot.document.summary.isEmpty || isLocalList) {
+                if let recovery = MerchantCustomerEmptyRecovery(document: snapshot.document) {
+                    let draftMatches = recovery.matchesDraft(keyword: keyword, segment: segment, sourceType: sourceType,
+                                                             tagID: tagID, sourceStart: sourceStart, sourceEnd: sourceEnd)
+                    MerchantCustomerEmptyRecoverySection(recovery: recovery, canApply: !state.isBusy && state.failureKey == nil && query == snapshot.document.query && draftMatches,
+                                                         hasUnsubmittedFilters: !draftMatches) {
+                        guard state.isCurrent, !state.isBusy, state.failureKey == nil, state.snapshot == snapshot,
+                              query == snapshot.document.query,
+                              recovery.matchesDraft(keyword: keyword, segment: segment, sourceType: sourceType,
+                                                    tagID: tagID, sourceStart: sourceStart, sourceEnd: sourceEnd),
+                              let next = recovery.recoveredQuery else { return }
+                        keyword = next.keyword; segment = next.segment
+                        sourceType = next.sourceType ?? 0; tagID = next.tagID ?? 0
+                        sourceStart = next.sourceStart ?? ""; sourceEnd = next.sourceEnd ?? ""
+                        query = .customers(next); selection = []
+                        Task { await reload() }
+                    }
+                } else if query != .operators, snapshot.document.sections.allSatisfy({ model.unfilteredRows(in: $0, query: snapshot.document.query).isEmpty }) && (snapshot.document.summary.isEmpty || isLocalList) {
                     Text("merchant.business.empty").foregroundStyle(.secondary).accessibilityIdentifier("merchant.business.empty")
                 } else if model.listFilters.isActive(for: snapshot.document.query), snapshot.document.sections.allSatisfy({ visibleRows($0, in: snapshot.document).isEmpty }) {
                     Text(LocalizedStringKey(isAftercare ? "merchant.business.aftercare.noMatches" : "merchant.business.list.noMatches")).foregroundStyle(.secondary).accessibilityIdentifier("merchant.business.list.noMatches")

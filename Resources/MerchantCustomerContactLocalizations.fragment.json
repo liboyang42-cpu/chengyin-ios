@@ -1,0 +1,36 @@
+{
+  "merchant.customerContact.maskedPhone": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Phone (masked)"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "电话（已脱敏）"
+        }
+      }
+    }
+  },
+  "merchant.customerContact.unavailable": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Contact details are unavailable for this record."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这条客户记录的联系方式暂不可用。"
+        }
+      }
+    }
+  }
+}

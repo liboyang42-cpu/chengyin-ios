@@ -154,6 +154,7 @@ struct MerchantOperationsEditor: View {
                 Text("merchant.operations.characterReviewHint").font(.footnote).foregroundStyle(.secondary)
             }
             mediaSection("merchant.operations.avatar", field: .avatar)
+            MerchantNPCKnowledgeDraftEntry(document: model).id(coordinator.draftIdentity)
             MerchantNPCMapPointEntry(document: model)
         case .template(let value):
             Section {

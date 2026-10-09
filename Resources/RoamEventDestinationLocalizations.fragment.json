@@ -1,0 +1,70 @@
+{
+  "roamEvent.openActivity": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Open activity details"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "查看活动详情"
+        }
+      }
+    }
+  },
+  "roamEvent.openTopic": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Open topic details"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "查看主题详情"
+        }
+      }
+    }
+  },
+  "roamEvent.unavailable": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Full details are unavailable in this view."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前视图的完整详情入口暂不可用。"
+        }
+      }
+    }
+  },
+  "roamEvent.changed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This selection changed. Return to the map and choose again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此选择已变化，请返回地图重新选择。"
+        }
+      }
+    }
+  }
+}

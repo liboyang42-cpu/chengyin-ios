@@ -30,11 +30,22 @@ public struct ComplianceState {
     private var noticeAccepted = false
     private var requestID = UUID().uuidString
     private var reviewCode: String? // In memory only; cleared on apply, invalidation and failed SMS.
+    private var retainedNPCChatData: NPCChatDataCoordinator?
     public init(service: AccountComplianceService, auth: any AuthChannelServing, effects: any ComplianceRoamEffects,
                 current: @escaping () -> ComplianceSession?, invalidateSession: @escaping (ComplianceSession) async -> Void) {
         self.service = service; self.auth = auth; self.effects = effects; self.current = current; self.invalidateSession = invalidateSession
     }
-    public func invalidate() { generation &+= 1; state = .init(); noticeAccepted = false; reviewCode = nil; requestID = UUID().uuidString; onChange?(state) }
+    public func invalidate() { retainedNPCChatData?.invalidate(); retainedNPCChatData = nil; generation &+= 1; state = .init(); noticeAccepted = false; reviewCode = nil; requestID = UUID().uuidString; onChange?(state) }
+    public func makeNPCChatDataCoordinator() -> NPCChatDataCoordinator {
+        retainedNPCChatData?.invalidate()
+        let value = NPCChatDataCoordinator(current: current, available: { [weak self] session in
+            self?.service.canReadNPCChatData(session: session) == true
+        }, read: { [weak self] session in
+            guard let self else { throw NPCChatDataFailure.staleSession }
+            return try await self.service.readNPCChatData(session: session)
+        })
+        retainedNPCChatData = value; return value
+    }
     private func changed() { onChange?(state) }
     private func run(_ action: (ComplianceSession, UInt64) async throws -> Void) async {
         guard !state.busy, let session = current(), session.valid else { return }

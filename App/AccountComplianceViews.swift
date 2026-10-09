@@ -14,18 +14,22 @@ import SwiftUI
     let market: RegionalMarket?
     let legalReader: any SettingsLegalReading
     @State private var selected: ComplianceDestination?
+    @State private var npcChatData: NPCChatDataPresentation?
     var body: some View {
         Section("compliance.title") {
             ForEach(ComplianceDestination.allCases) { destination in
                 Button(LocalizedStringKey(destination.title)) { selected = destination }
                     .accessibilityIdentifier("compliance.open.\(destination.rawValue)")
             }
+            Button("npcData.title") { npcChatData = .init(coordinator: makeCoordinator().makeNPCChatDataCoordinator()) }
+                .accessibilityIdentifier("npcData.open")
         }
         .sheet(item: $selected) { destination in
             NavigationStack {
                 AccountComplianceSheet(coordinator: makeCoordinator(), destination: destination, market: market, legalReader: legalReader)
             }
         }
+        .sheet(item: $npcChatData) { presentation in NPCChatDataView(coordinator: presentation.coordinator) }
     }
 }
 enum ComplianceDestination: String, CaseIterable, Identifiable {

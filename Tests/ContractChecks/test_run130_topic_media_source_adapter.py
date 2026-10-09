@@ -47,6 +47,11 @@ CLUB_MOUNT = '                ProjectClubLeadFields(model: model)\n'
 CLUB_SOURCE_SHAS = {'App/ProjectClubLeadFields.swift': 'd30db038f00f3253b9d52245d7794820c143ba6dcc859c16f70eb2286dd4ceb9', 'Core/ProjectClubLead.swift': '8fe39f9acea7191c7e43c3fb17bd80e495d3677faaa700c6407844167bcb2be1', 'Core/ProjectEditDraft.swift': '168ccabb57d686287a803f4d82aaec8bb0b09ca65d89a083c30c3cf13cb936f1', 'Core/ProjectEditContract.swift': '218b5964d8d4137f34805c11d8543c480b3773d0195ac65e65d2b1dcfe7cd3d4', 'App/ProjectEditDetailForms.swift': '34a74acb440c215d88a41fd9909684d566b139c71f3d72c7e671a6b910e86d85'}
 
 def verify_club_sources(sources):
+    from tools.run138_current_source_projection import description_sources_before_buffer
+    try:
+        sources = description_sources_before_buffer(sources, ROOT)
+    except ValueError as error:
+        raise AssertionError("Unreviewed current node-description bytes") from error
     assert set(sources) == set(CLUB_SOURCE_SHAS)
     for path, sha in CLUB_SOURCE_SHAS.items():
         assert hashlib.sha256(sources[path].encode('utf-8')).hexdigest() == sha
@@ -166,10 +171,17 @@ class Run130TopicMediaSourceAdapterTests(unittest.TestCase):
         source = self.current_source()
         restored = restore_club_lead_source(source)
         self.assertEqual(hashlib.sha256(restored.encode()).hexdigest(), CHAPTER_VIEW_SHA)
-        for altered in [source.replace(CLUB_MOUNT, '', 1),
-                        source.replace(CLUB_MOUNT, CLUB_MOUNT + CLUB_MOUNT, 1),
-                        source.replace(CLUB_MOUNT, CLUB_MOUNT.replace('model: model', 'model: other'), 1),
-                        source.replace(CLUB_MOUNT, '', 1) + CLUB_MOUNT]:
+        # Issue navigation adds this exact approved anchor to the same mount.
+        # Each negative must alter real bytes before the unchanged strict guard.
+        forms = {CLUB_MOUNT.strip(), CLUB_MOUNT.strip() + '.id("project-issue-anchor-clubLead")'}
+        mounts = [line for line in source.splitlines(keepends=True) if line.strip() in forms]
+        self.assertEqual(len(mounts), 1)
+        mount = mounts[0]
+        for altered in [source.replace(mount, '', 1),
+                        source.replace(mount, mount + mount, 1),
+                        source.replace(mount, mount.replace('model: model', 'model: other'), 1),
+                        source.replace(mount, '', 1) + mount]:
+            self.assertNotEqual(altered, source)
             with self.subTest(digest=hashlib.sha256(altered.encode()).hexdigest()), self.assertRaises(AssertionError):
                 restore_topic_host_source(altered)
         sources = {path: (ROOT / path).read_bytes().decode('utf-8') for path in CLUB_SOURCE_SHAS}

@@ -32,7 +32,10 @@ import SwiftUI
                             Text(verbatim: model.starterChapter(original).wrappedValue.name)
                         }
                         if controller.saveUnconfirmed { Section { Text("projectPending.saveUnconfirmed").accessibilityIdentifier("projectPending.saveUnconfirmed") } }
-                        ProjectEditNodeFields(node: controller.node(for: original)).merchantDraftSelection(.init(
+                        ProjectEditNodeFields(node: controller.node(for: original))
+                            .descriptionEditing(.init(model: model, sourceID: "starter:\(original.id)",
+                                isCurrent: { controller.isCurrent(original) }))
+                            .merchantDraftSelection(.init(
                             model: model, node: controller.node(for: original), sourceID: "starter:\(original.id)",
                             nodeRevision: { controller.candidateRevision }, isCurrent: { controller.isCurrent(original) }))
                     }.appNavigationTitle("projectStarter.firstNodeTitle").navigationBarTitleDisplayMode(.inline)

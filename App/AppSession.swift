@@ -3050,6 +3050,9 @@ extension AppSession: DiscoveryReading, MerchantReading {
     func templateMetadataCategoriesRequest() -> DiscoveryReadRequest<[DiscoveryCategory]> {
         templateMetadataRequest { try await $0.categories(type: 4, token: $1) }
     }
+    func projectMetadataCategoriesRequest() -> DiscoveryReadRequest<[DiscoveryCategory]> {
+        templateMetadataRequest { try await $0.categories(type: 1, token: $1) }
+    }
     // Only an accepted, still-present selector can expire its captured identity.
     private func templateMetadataRequest<Value>(
         _ operation: @escaping (DiscoveryService, String?) async throws -> Value

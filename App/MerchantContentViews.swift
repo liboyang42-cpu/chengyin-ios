@@ -78,12 +78,21 @@ struct MerchantContentBoundary: View {
         case .chapters(let topic): MerchantContentRecruitView(service: service, snapshot: s, topicID: topic)
         case .project(let topic): MerchantContentProjectView(service: service, model: model, value: s.value, topicID: topic)
         case .city:
+            let quota = MerchantCityQuota(catalog: s.value)
+            MerchantCityQuotaSummary(quota: quota, canRetry: !c.busy && !c.locked && c.review == nil) {
+                Task {
+                    guard c.isCurrent, !c.busy, !c.locked, c.review == nil,
+                          c.snapshot == s, c.snapshot?.observedAt == s.observedAt else { return }
+                    await model.load()
+                }
+            }
             NavigationLink("merchant.content.placement") { MerchantContentEditView(service: service, query: .cityPlacement, kind: .placement) }
+                .disabled(!quota.canPlace || c.busy || c.locked)
+                .accessibilityIdentifier("merchant.cityQuota.placement")
             NavigationLink("merchant.content.claimable") { MerchantContentClaimSearch(service: service) }
             MerchantContentRows(service: service, model: model, rows: s.value["nodes"].array ?? [], kind: .city)
             Text("merchant.content.cityApplications").font(.headline)
             MerchantContentRows(service: service, model: model, rows: s.value["applications"].array ?? [], kind: .cityApplication)
-            if let used = s.value["used"].display, let max = s.value["max"].integer, max > 0 { LabeledContent("merchant.content.quota", value: used + " / " + String(max)) }
         case .registration(let id):
             MerchantContentFields(value: s.value, names: ["topicName", "nodeName", "chapterName", "status", "auditStatus", "reason", "addressName", "address", "activityDesc", "limitNum", "startDate", "endDate"])
             if [0, 2].contains(s.value["status"].integer ?? -1), s.value["auditStatus"].integer != 1 {
@@ -215,9 +224,17 @@ struct MerchantContentFields: View {
                 if let status = row["status"].integer, [0, 1].contains(status) { Button { model.prepare(.cityStatus(poiID: id, online: status != 1)) } label: { Text(LocalizedStringKey(status == 1 ? "merchant.content.offline" : "merchant.content.online")) } }
             }
         case .cityApplication:
-            if let poi = row["poiId"].integer, row["applicationType"].integer == 2, (row["auditStatus"].integer ?? row["status"].integer) == 0 {
-                Button("merchant.content.cancelClaim") { model.prepare(.cancelClaim(poiID: poi)) }
-            } else if row["applicationType"].integer == 2, (row["auditStatus"].integer ?? row["status"].integer) == 0 { Text("merchant.content.claimIDMissing").font(.footnote).accessibilityIdentifier("merchant.content.claimIDMissing") }
+            if let snapshot = model.coordinator.snapshot,
+               let target = MerchantCityClaimWithdrawal(row: row, snapshot: snapshot) {
+                Button("merchant.content.cancelClaim") {
+                    guard model.coordinator.isCurrent, model.coordinator.snapshot == snapshot,
+                          model.coordinator.snapshot?.observedAt == snapshot.observedAt else { return }
+                    model.prepare(.cancelClaim(poiID: target.poiID))
+                }.disabled(model.coordinator.busy || model.coordinator.locked || model.coordinator.review != nil)
+                    .accessibilityIdentifier("merchant.cityClaim.withdraw." + String(target.poiID))
+            } else if row["applicationType"].integer == 2, row["auditStatus"].integer == 0 {
+                Text("merchant.cityClaim.unavailable").font(.footnote).accessibilityIdentifier("merchant.content.claimIDMissing")
+            }
         case .query(let query): queryActions(row, query: query)
         }
     }
@@ -392,6 +409,20 @@ struct MerchantContentCodeView: View {
                     LabeledContent("merchant.content.field.merchantID", value: String(review.baseline.access.merchantID ?? 0))
                     Text(verbatim: review.command.scopeKey).font(.caption)
                     Text(verbatim: bodyText).font(.system(.body, design: .monospaced)).textSelection(.enabled)
+                    if case .cancelClaim(let poiID) = review.command,
+                       let target = MerchantCityClaimWithdrawal(poiID: poiID, snapshot: review.baseline) {
+                        if let name = target.name, !name.isEmpty { Text(verbatim: name).font(.headline) }
+                        Text("merchant.cityClaim.withdrawConsequence")
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityIdentifier("merchant.cityClaim.reviewNotice")
+                    }
+                    if case .station(let command) = review.command, command.pausesWithoutFallback {
+                        Label("merchant.stationPause.reviewTitle", systemImage: "exclamationmark.triangle")
+                            .font(.headline)
+                        Text("merchant.stationPause.noFallbackConsequence")
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityIdentifier("merchant.stationPause.reviewNotice")
+                    }
                     Text("merchant.content.reviewWarning").font(.footnote)
                     Button("merchant.content.confirm") { Task { await model.confirm(review); dismiss() } }
                         .buttonStyle(.borderedProminent).disabled(model.coordinator.busy || !model.coordinator.service.permitsWrites)

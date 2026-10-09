@@ -16,7 +16,7 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[1]
 # Bind the validator bytes loaded for this process, including its contract pin.
 IMPLEMENTATION_SHA256 = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
-CONTRACT_SHA256 = 'b1c9624ab9e9d9e654c38e7a7e54c2a4128a5843b9c95bb2e978bbc90a2a3486'
+CONTRACT_SHA256 = '71a5f106a13799693b813a071fd780e6489d03e06e3079120fe774a81a756a64'
 SOURCE_CONTRACT = 'Tests/ContractChecks/fixtures/project_editor_readiness.json'
 REVIEW = 'ProjectEditReviewReadinessFlowTests.testLocalEditReviewAndCancelledConfirmation'
 WHITELIST = 'ProjectEditFlowTests.testWhitelistDisablesStructureAndScheduleButKeepsCopyEditable'
@@ -78,7 +78,7 @@ def followons():
 
 def required_followon_files(root=ROOT):
     c = contract(root)
-    return {'tools/run138_editor_readiness.py'} | set(c['followon_support_sha256']) | set(followons().availability().contract()['scope']) | set(followons().availability().contract()['unchanged_dependencies'])
+    return {'tools/run138_editor_readiness.py', 'Tests/ContractChecks/test_run130_topic_media_source_adapter.py'} | set(c['node_description_sources']) | set(c['feature_batch_sources']) | set(c['feature_batch_support_sha256']) | set(c['followon_support_sha256']) | set(followons().availability().contract()['scope']) | set(followons().availability().contract()['unchanged_dependencies'])
 
 
 def ui52_layer():
@@ -211,6 +211,8 @@ def previous_directory(directory, profile_path, root=ROOT):
     for name, expected in c['previous_ui_sources'].items():
         raw = (Path(directory) / name).read_bytes()
         relative = 'Tests/AppUITests/' + name
+        if relative in c['feature_batch_sources']:
+            raw = entry_projection().original_feature_batch_bytes(relative, raw, root)
         if relative in changed:
             raw = original_source(relative, raw, root)
         elif relative in ui52_layer().contract(root)['files']:

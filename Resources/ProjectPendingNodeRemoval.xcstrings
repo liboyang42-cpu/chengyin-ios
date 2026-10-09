@@ -1,0 +1,118 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "projectPendingNodeRemoval.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move nodes to pending"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移入待编排区"
+          }
+        }
+      }
+    },
+    "projectPendingNodeRemoval.warning": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These nodes and all their details will move to this draft’s pending list. You can undo for 5 seconds. Nothing is deleted from the server."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这些节点及全部内容会移入当前草稿的待编排区，5 秒内可以撤销。不会删除服务器上的内容。"
+          }
+        }
+      }
+    },
+    "projectPendingNodeRemoval.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move to pending"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认移入待编排区"
+          }
+        }
+      }
+    },
+    "projectPendingNodeRemoval.moved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Moved to pending. Undo is available for 5 seconds."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已移入待编排区，5 秒内可撤销。"
+          }
+        }
+      }
+    },
+    "projectPendingNodeRemoval.undo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Undo move"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤销移动"
+          }
+        }
+      }
+    },
+    "projectPendingNodeRemoval.guest": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This guest draft stays in memory and is not saved to your account."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "访客草稿仅保留在内存中，不会保存到账户。"
+          }
+        }
+      }
+    },
+    "projectPendingNodeRemoval.saveUnconfirmed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local save was not confirmed. All node content remains in the current draft. Reopen the draft to inspect its saved state before trying again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地保存结果未确认，节点内容仍保留在当前草稿中。请重新打开草稿，核对保存状态后再操作。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

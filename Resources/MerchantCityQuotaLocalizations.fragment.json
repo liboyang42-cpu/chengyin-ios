@@ -1,0 +1,87 @@
+{
+  "merchant.cityQuota.none": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前没有据点配额，暂不能投放新据点。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No city-node quota is currently available. You cannot place a new node."
+        }
+      }
+    }
+  },
+  "merchant.cityQuota.full": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "在架据点已满，请先下线一个再投放。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Your online-node quota is full. Take a node offline before placing another."
+        }
+      }
+    }
+  },
+  "merchant.cityQuota.unknown": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "据点配额暂未取回，请重新读取后再投放。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "City-node quota is unavailable. Reload it before placing a node."
+        }
+      }
+    }
+  },
+  "merchant.cityQuota.retry": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "重新读取配额"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reload quota"
+        }
+      }
+    }
+  },
+  "merchant.cityQuota.reviewBlocked": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "配额可用后才能审阅投放申请。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Placement review is available once quota is available."
+        }
+      }
+    }
+  }
+}

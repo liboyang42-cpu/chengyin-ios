@@ -57,6 +57,12 @@ def owned_ui_paths():
 
 
 def source_before_followons(relative, raw):
+    if relative == 'Questify.xcodeproj/project.pbxproj':
+        try:
+            from .run138_current_source_projection import original_description_bytes
+        except ImportError:
+            from run138_current_source_projection import original_description_bytes
+        return original_description_bytes(relative, raw)
     if relative in story_paths():
         return story().inverse(relative, raw)
     if relative in remaining_paths():

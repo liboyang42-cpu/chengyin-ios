@@ -1,0 +1,138 @@
+{
+  "mapViewport.search": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Search this map area"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "搜索当前地图区域"
+        }
+      }
+    }
+  },
+  "mapViewport.areaLabel": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Selected map area"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "选定地图区域"
+        }
+      }
+    }
+  },
+  "mapViewport.failed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This map selection changed or could not be converted. Move the map to choose again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "地图选择已变化或无法转换。请移动地图重新选择。"
+        }
+      }
+    }
+  },
+  "mapViewport.unavailable": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Map-area search is unavailable for this connection. Your existing results are unchanged."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前连接暂不支持地图区域搜索，已有结果保持不变。"
+        }
+      }
+    }
+  },
+  "mapViewport.move": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Move the map and stop to choose a new search center. Moving alone does not search."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "移动地图后停下，选择新的搜索中心；移动本身不会发起搜索。"
+        }
+      }
+    }
+  },
+  "mapViewport.confirm": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Search around this map center using the current filters. This does not use your device location."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "按当前筛选条件搜索此地图中心附近，不使用设备定位。"
+        }
+      }
+    }
+  },
+  "mapViewport.draft": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Map center draft · WGS84"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "地图中心草案 · WGS84"
+        }
+      }
+    }
+  },
+  "mapViewport.clear": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Discard map selection"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "取消地图选择"
+        }
+      }
+    }
+  }
+}

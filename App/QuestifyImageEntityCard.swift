@@ -9,6 +9,8 @@ struct QuestifyImageEntityCard<Details:View>:View {
     var fallbackTitle:LocalizedStringKey="homeFeed.untitled"
     var fallbackSymbol:String="photo"
     var minimumHeight:CGFloat=340
+    var progressiveBlur:ProgressiveBlurParameters?=nil
+    var artworkIdentity:QuestifyProgressiveBlurIdentity?=nil
     private let details:()->Details
     @QuestifyReduceMotion private var reduceMotion
     @Environment(\.colorSchemeContrast) private var contrast
@@ -16,10 +18,12 @@ struct QuestifyImageEntityCard<Details:View>:View {
 
     init(imageSource:String?,title:String,subtitle:String?=nil,
          fallbackTitle:LocalizedStringKey="homeFeed.untitled",fallbackSymbol:String="photo",
-         minimumHeight:CGFloat=340,@ViewBuilder details:@escaping ()->Details) {
+         minimumHeight:CGFloat=340,progressiveBlur:ProgressiveBlurParameters?=nil,
+         artworkIdentity:QuestifyProgressiveBlurIdentity?=nil,@ViewBuilder details:@escaping ()->Details) {
         self.imageSource=imageSource;self.title=title;self.subtitle=subtitle
         self.fallbackTitle=fallbackTitle;self.fallbackSymbol=fallbackSymbol
         self.minimumHeight=minimumHeight;self.details=details
+        self.progressiveBlur=progressiveBlur;self.artworkIdentity=artworkIdentity
     }
 
     var body:some View {
@@ -49,12 +53,23 @@ struct QuestifyImageEntityCard<Details:View>:View {
                 ZStack(alignment:.topTrailing) {
                     Color(red:0.16,green:0.17,blue:0.20)
                     if let url=QuestifyCardArtwork.safeURL(imageSource) {
-                        AsyncImage(url:url,transaction:Transaction(animation:reduceMotion ? nil : QuestifyMotion.content)) { phase in
-                            if let image=phase.image {
-                                image.resizable().scaledToFill().transition(.opacity)
+                        if let progressiveBlur {
+                            if let artworkIdentity, let origin=ObjectCardMediaPolicy.origin(url.absoluteString) {
+                                // One load replaces this card's AsyncImage load. The existing safe source
+                                // is the sole approved origin; the bounded loader does not follow redirects.
+                                QuestifyProgressiveBlurArtwork(url:url,identity:artworkIdentity,
+                                    reader:ObjectCardBoundedImageLoader(policy:.init(approvedOrigins:[origin])),
+                                    parameters:progressiveBlur,placeholder:{ placeholder })
+                                    .frame(width:geometry.size.width,height:geometry.size.height)
                             } else { placeholder }
+                        } else {
+                            AsyncImage(url:url,transaction:Transaction(animation:reduceMotion ? nil : QuestifyMotion.content)) { phase in
+                                if let image=phase.image {
+                                    image.resizable().scaledToFill().transition(.opacity)
+                                } else { placeholder }
+                            }
+                            .frame(width:geometry.size.width,height:geometry.size.height).clipped()
                         }
-                        .frame(width:geometry.size.width,height:geometry.size.height).clipped()
                     } else { placeholder }
                 }
                 .frame(width:geometry.size.width,height:geometry.size.height)

@@ -1,0 +1,70 @@
+{
+  "merchant.stationPause.noFallback": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No alternate station"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "不设置备用方案"
+        }
+      }
+    }
+  },
+  "merchant.stationPause.selectionChanged": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The selected plan changed. Select a current plan or explicitly choose no alternate station."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "所选方案已变化，请重新选择当前方案，或明确选择不设置备用方案。"
+        }
+      }
+    }
+  },
+  "merchant.stationPause.noFallbackConsequence": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Players will see this station is paused, the reason and expected resumption time. They will not be directed to another station. Refund requests use the existing platform-support process."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "玩家会看到本站暂停、原因和预计恢复时间，不会被引导到其他站点。如需退款，请通过现有平台客服流程处理。"
+        }
+      }
+    }
+  },
+  "merchant.stationPause.reviewTitle": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Pause without an alternate station"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "不设置备用方案，暂停本站"
+        }
+      }
+    }
+  }
+}

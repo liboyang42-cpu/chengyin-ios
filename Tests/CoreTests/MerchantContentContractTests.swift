@@ -104,9 +104,13 @@ final class MerchantContentContractTests: XCTestCase {
         XCTAssertEqual(try d.fields(), ["templateId": "4", "radius": "80"])
         d.latitude = "40"; XCTAssertThrowsError(try d.fields()); d.longitude = "-70"; XCTAssertNotNil(try d.fields()["lat"])
     }
-    func testClaimCancellationNeverAliasesApplicationIDToPOIID() throws {
+    func testClaimCancellationUsesRoamPOIIDOnlyFromScopedCityApplications() throws {
         let s = try snapshot(.city, #"{"applications":[{"id":91,"applicationType":2,"auditStatus":0}]}"#)
-        XCTAssertThrowsError(try MerchantContentCommand.cancelClaim(poiID: 91).validate(against: s))
+        XCTAssertNoThrow(try MerchantContentCommand.cancelClaim(poiID: 91).validate(against: s))
+        let otherQuery = try snapshot(.applications, #"{"applications":[{"id":91,"applicationType":2,"auditStatus":0}]}"#)
+        XCTAssertThrowsError(try MerchantContentCommand.cancelClaim(poiID: 91).validate(against: otherQuery))
+        let conflict = try snapshot(.city, #"{"applications":[{"id":91,"poiId":92,"applicationType":2,"auditStatus":0}]}"#)
+        XCTAssertThrowsError(try MerchantContentCommand.cancelClaim(poiID: 91).validate(against: conflict))
     }
     func testClaimQuotaBlocksBeforeSend() throws {
         let s = try snapshot(.claimable(keyword: ""), #"{"rows":[{"poiId":18}],"catalog":{"used":2,"max":2}}"#)

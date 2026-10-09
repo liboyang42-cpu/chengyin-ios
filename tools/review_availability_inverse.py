@@ -22,11 +22,22 @@ def contract():
     return json.loads(raw)
 
 
+def before_feature_batch(relative, raw):
+    try:
+        from .run138_current_source_projection import original_feature_batch_bytes
+    except ImportError:
+        try:
+            from tools.run138_current_source_projection import original_feature_batch_bytes
+        except ModuleNotFoundError:
+            from run138_current_source_projection import original_feature_batch_bytes
+    return original_feature_batch_bytes(relative, raw)
+
+
 def verify_current(root):
     root = Path(root)
     plan = contract()
     for relative, expected in plan['scope'].items():
-        if digest((root / relative).read_bytes()) != expected['after_sha256']:
+        if digest(before_feature_batch(relative, (root / relative).read_bytes())) != expected['after_sha256']:
             raise ValueError('Current review candidate changed: ' + relative)
     for relative, expected in plan['unchanged_dependencies'].items():
         if digest((root / relative).read_bytes()) != expected:
@@ -72,7 +83,7 @@ no historical projection. Raw bytes and UTF-8 strings preserve their input type.
     if relative not in contract()['scope']:
         return raw
     verify_current(root)
-    return _transform(relative, raw, inverse=True)
+    return _transform(relative, before_feature_batch(relative, raw), inverse=True)
 
 
 def candidate_source(relative, raw):

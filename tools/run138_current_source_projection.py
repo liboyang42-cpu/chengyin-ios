@@ -71,6 +71,80 @@ def validate_entries(root=ROOT):
     expected = planning().contract(root)['entry_projection_module_sha256']
     if hashlib.sha256((root / 'tools/run138_current_source_projection.py').read_bytes()).hexdigest() != expected:
         raise ValueError('Current CI projection implementation changed')
+    validate_feature_batch_sources(root)
+    validate_description_sources(root)
+
+
+def original_feature_batch_bytes(relative, raw, root=ROOT):
+    """Restore the pinned input of an existing gate for this product batch only."""
+    row = planning().contract(root)['feature_batch_sources'].get(relative)
+    if row is None:
+        return raw
+    text_input = isinstance(raw, str)
+    value = raw.encode('utf-8') if text_input else raw
+    if hashlib.sha256(value).hexdigest() != row['after_sha256']:
+        raise ValueError('Unknown current feature-batch source: ' + relative)
+    source = value.decode('utf-8')
+    for hunk in reversed(row['hunks']):
+        if source.count(hunk['after']) != 1:
+            raise ValueError('Missing or repeated feature-batch span: ' + relative)
+        source = source.replace(hunk['after'], hunk['before'], 1)
+    restored = source.encode('utf-8')
+    if hashlib.sha256(restored).hexdigest() != row['before_sha256']:
+        raise ValueError('Feature-batch predecessor not restored exactly: ' + relative)
+    return restored.decode('utf-8') if text_input else restored
+
+
+def validate_feature_batch_sources(root=ROOT):
+    root = Path(root)
+    c = planning().contract(root)
+    for relative in c['feature_batch_sources']:
+        original_feature_batch_bytes(relative, (root / relative).read_bytes(), root)
+    for relative, expected in c['feature_batch_support_sha256'].items():
+        if hashlib.sha256((root / relative).read_bytes()).hexdigest() != expected:
+            raise ValueError('Current feature-batch input changed: ' + relative)
+
+
+def original_description_bytes(relative, raw, root=ROOT):
+    """Reverse only this exact product increment, before unchanged old assertions."""
+    raw = original_feature_batch_bytes(relative, raw, root)
+    row = planning().contract(root)['node_description_sources'].get(relative)
+    if row is None:
+        return raw
+    if hashlib.sha256(raw).hexdigest() != row['after_sha256']:
+        raise ValueError('Unknown current node-description source: ' + relative)
+    if row['before_sha256'] is None:
+        return None
+    source = raw.decode('utf-8')
+    for hunk in reversed(row['hunks']):
+        if source.count(hunk['after']) != 1:
+            raise ValueError('Missing or repeated node-description span: ' + relative)
+        source = source.replace(hunk['after'], hunk['before'], 1)
+    restored = source.encode('utf-8')
+    if hashlib.sha256(restored).hexdigest() != row['before_sha256']:
+        raise ValueError('Original node-description source not restored exactly: ' + relative)
+    return restored
+
+
+def validate_description_sources(root=ROOT):
+    root = Path(root)
+    c = planning().contract(root)
+    for relative in c['node_description_sources']:
+        original_description_bytes(relative, (root / relative).read_bytes(), root)
+    adapter = root / 'Tests/ContractChecks/test_run130_topic_media_source_adapter.py'
+    if hashlib.sha256(adapter.read_bytes()).hexdigest() != c['node_description_adapter_sha256']:
+        raise ValueError('Node-description historical entry changed')
+
+
+def description_sources_before_buffer(sources, root=ROOT):
+    validate_description_sources(root)
+    restored = {}
+    for relative, source in sources.items():
+        value = original_description_bytes(relative, source.encode('utf-8'), root)
+        if value is None:
+            raise ValueError('New node-description source has no historical preimage')
+        restored[relative] = value.decode('utf-8')
+    return restored
 
 
 def is_current_ui(directory):
@@ -106,7 +180,7 @@ def previous_text(relative, source):
     current = planning()
     if not relative.startswith('Tests/AppUITests/'):
         return source
-    owned = set(current.source_contract()['files']) | set(current.ui52_layer().contract()['files']) | current.followons().owned_ui_paths()
+    owned = set(current.source_contract()['files']) | set(current.ui52_layer().contract()['files']) | current.followons().owned_ui_paths() | {p for p in current.contract()['feature_batch_sources'] if p.startswith('Tests/AppUITests/')}
     if relative not in owned:
         return source
     name = Path(relative).name
@@ -171,7 +245,7 @@ def frozen_context(stage='all', root=ROOT):
     root = Path(root)
     current = planning()
     c = current.validate_current(root / 'Tests/AppUITests', root / 'tools/ui_duration_weights.json', root)
-    if stage not in {'all', 'ui52', 'coupon'}:
+    if stage not in {'all', 'ui52', 'coupon', 'review'}:
         raise ValueError('Unknown reviewed historical context')
     key = (str(root.resolve()), current.canonical(c), stage)
     cached = _contexts.get(key)
@@ -187,6 +261,9 @@ def frozen_context(stage='all', root=ROOT):
     _lives.append(life)
     target = Path(life.name) / 'source'
     shutil.copytree(root, target, ignore=lambda directory, names: ignore_context_names(root, directory, names))
+    for relative in c['feature_batch_sources']:
+        if relative.startswith('Tests/AppUITests/') or (stage == 'review' and relative == 'App/ProjectEditView.swift'):
+            (target / relative).write_bytes(original_feature_batch_bytes(relative, (root / relative).read_bytes(), root))
     for relative in current.source_contract(root)['files']:
         raw = current.original_source(relative, (root / relative).read_bytes(), root)
         destination = target / relative
@@ -203,7 +280,7 @@ def frozen_context(stage='all', root=ROOT):
             continue
         (target / relative).write_bytes(current.followons().source_before_followons(relative, (root / relative).read_bytes()))
     for relative, row in current.followons().availability().contract()['scope'].items():
-        if row['before_sha256'] is not None:
+        if stage != 'review' and row['before_sha256'] is not None:
             (target / relative).write_bytes(current.followons().historical_app_source(relative, (root / relative).read_bytes(), root))
     for relative in entry_contract(root)['files']:
         (target / relative).write_bytes(historical_entry_bytes(root, relative))
