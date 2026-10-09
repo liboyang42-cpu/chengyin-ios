@@ -5,7 +5,21 @@ import XCTest
     var requests: [ShopNPCHTTPRequest] = []
     var json = #"{"code":200,"data":{"safeText":"Synthetic reply"}}"#
     func perform(_ request: ShopNPCHTTPRequest) async throws -> ShopNPCHTTPResponse {
-        requests.append(request); return .init(status: 200, body: Data(json.utf8))
+        requests.append(request)
+        var envelope = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(json.utf8)) as? [String: Any])
+        var payload = try XCTUnwrap(envelope["data"] as? [String: Any])
+        payload["requestId"] = try fixtureRequestID(request.body); payload["outcomeStatus"] = "SUCCEEDED"
+        payload["safetyDecision"] = "PASS"; payload["retryable"] = false; envelope["data"] = payload
+        return .init(status: 200, body: try JSONSerialization.data(withJSONObject: envelope))
+    }
+
+    // Synthetic 9b success replies echo the exact text/multipart request ID.
+    private func fixtureRequestID(_ bytes: Data) throws -> String {
+        if let body = try? JSONSerialization.jsonObject(with: bytes) as? [String: Any], let id = body["requestId"] as? String { return id }
+        let marker = "name=\"requestId\"\r\n\r\n"
+        let tail = String(decoding: bytes, as: UTF8.self).components(separatedBy: marker)
+        guard tail.count == 2, let id = tail.last?.components(separatedBy: "\r\n").first, UUID(uuidString: id) != nil else { throw ShopNPCFailure.invalid }
+        return id
     }
     func validateResume(scope: ShopNPCScope, grants: ShopNPCGrants) throws {}
 }

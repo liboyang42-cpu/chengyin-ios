@@ -1,0 +1,121 @@
+{
+  "merchant.insightProfile.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "店铺承接资料"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Store cooperation profile"
+        }
+      }
+    }
+  },
+  "merchant.insightProfile.configured": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已配置承接资料。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The cooperation profile is configured."
+        }
+      }
+    }
+  },
+  "merchant.insightProfile.notConfigured": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "尚未配置承接资料。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The cooperation profile is not configured."
+        }
+      }
+    }
+  },
+  "merchant.insightProfile.unknown": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "承接资料的配置状态暂未确认。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The cooperation profile’s configuration status is unavailable."
+        }
+      }
+    }
+  },
+  "merchant.insightProfile.configure": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "配置承接资料"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Set up cooperation profile"
+        }
+      }
+    }
+  },
+  "merchant.insightProfile.edit": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "查看或修改承接设置"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "View or edit cooperation settings"
+        }
+      }
+    }
+  },
+  "merchant.insightProfile.unavailable": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前门店或配置状态尚未确认，请重新读取后再打开设置。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reload to confirm the current store and configuration status before opening settings."
+        }
+      }
+    }
+  }
+}

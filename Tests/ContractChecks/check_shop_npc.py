@@ -21,7 +21,10 @@ for field in ['requestId','nodeId','message']:
  check(field in http and "'"+field+"'" in source,field)
 check('body[\'asr\'] as String?' in source,'top-level source ASR')
 check('asr: voice ? body.asr : nil' in model,'top-level native ASR')
-check('safe.isEmpty ? body.data?.text' in model,'safe text fallback')
+check('body.data?.text' not in model and 'safe.isEmpty ?' not in model,'no unverified legacy text fallback')
+for field in ['data.requestId', 'data.outcomeStatus', 'data.safetyDecision', 'data.retryable']:
+ check(field in model,'required response evidence '+field)
+check('reply.requestID == review.id' in state,'response matches exact reviewed request')
 check('code == 200' in model,'business envelope gate')
 for value in ['sessionID','accountID','roleID','accessRevision','nodeID']:
  check('let '+value in model,'scope '+value)

@@ -8,6 +8,7 @@ struct ActivityDetailView: View {
     var playReaderForActivity: ((Int)->PlaySessionReader)? = nil
     var registrationEnabled = false
     var peopleProfile: ActivityPeopleProfileContext? = nil
+    var requiredClubDestination: ((Int, @escaping () -> Bool) -> AnyView)? = nil
     var body: some View {
         if let session = reader as? AppSession {
             SessionActivityDetailView(id: id, session: session,
@@ -15,7 +16,7 @@ struct ActivityDetailView: View {
         } else {
             ActivityDetailContentView(id: id, reader: reader,
                 playReaderForActivity: playReaderForActivity, registrationEnabled: registrationEnabled,
-                peopleProfile: peopleProfile)
+                peopleProfile: peopleProfile, requiredClubDestination: requiredClubDestination)
         }
     }
 }
@@ -31,11 +32,20 @@ struct ActivityDetailView: View {
                 ContentUnavailableView("activity.signInRequired", systemImage: "person.crop.circle.badge.exclamationmark")
                     .accessibilityIdentifier("activity.detail.signIn")
             } else {
+                let activityIdentity = session.activityPresentationIdentity
+                let clubIdentity = session.clubIdentity
                 ActivityDetailContentView(id: id, reader: session,
                     playReaderForActivity: playReaderForActivity,
                     topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) },
                     registrationEnabled: registrationEnabled,
-                    peopleProfile: .init(reader: session.socialAccountReader, squareReader: session.squareReader, actions: session.socialActionCoordinator))
+                    peopleProfile: .init(reader: session.socialAccountReader, squareReader: session.squareReader, actions: session.socialActionCoordinator),
+                    requiredClubDestination: { clubID, selectionCurrent in
+                        AnyView(CoopRelationClubProfileHost(id: clubID, base: session, isCurrent: { [weak session] in
+                            guard let session else { return false }
+                            return selectionCurrent() && session.account != nil &&
+                                session.activityPresentationIdentity == activityIdentity && session.clubIdentity == clubIdentity
+                        }))
+                    })
                     .id(session.contentDetailRevision)
             }
         }.appNavigationTitle("activity.details")
@@ -49,9 +59,19 @@ struct ActivityDetailView: View {
     var topicDestination: ((Int) -> AnyView)? = nil
     var registrationEnabled=false
     var peopleProfile: ActivityPeopleProfileContext? = nil
+    var requiredClubDestination: ((Int, @escaping () -> Bool) -> AnyView)? = nil
     @State private var loadedPeopleSnapshotID: UUID?
     @State private var loadedProfileIdentity: SocialAccountIdentity?
     @State private var profileSelection: ActivityPersonProfileSelection?
+    @State private var requiredClubSelection: ActivityRequiredClubSelection?
+    @State private var gateReadID: UUID?
+    @State private var gateActivityID: Int?
+    @State private var latestGateActivityID: Int?
+    @State private var gateReaderID: ObjectIdentifier?
+    @State private var gateReaderIdentity: String?
+    @State private var latestGateReaderID: ObjectIdentifier?
+    @State private var gatePresentationID = UUID()
+    @State private var gateIsVisible = false
     @State private var showsReview = false
     @State private var showsRegistration=false
     @State private var access: ActivityDetailAccess?
@@ -59,6 +79,13 @@ struct ActivityDetailView: View {
     @State private var failed=false
     @State private var generation=0
     @State private var loads = SignedInContentDetailLoadOwner()
+    private var gateScope: ActivityRequiredClubScope? {
+        guard gateActivityID == id, latestGateActivityID == id,
+              gateReaderID == ObjectIdentifier(reader), latestGateReaderID == ObjectIdentifier(reader),
+              gateReaderIdentity == reader.activityPresentationIdentity else { return nil }
+        return .init(activityID: id, readerID: ObjectIdentifier(reader), identity: reader.activityPresentationIdentity,
+                     readID: gateReadID, presentationID: gatePresentationID, isConfigured: reader.isConfigured)
+    }
     var body: some View {
         // Group with nil access produces EmptyView, which cannot host the initial task.
         // Keep one concrete root for the task and navigation title through every state.
@@ -83,6 +110,8 @@ struct ActivityDetailView: View {
                     } description: {
                         if let message, !message.isEmpty { Text(message) }
                         else { Text("activity.clubRequiredHint") }
+                    } actions: {
+                        requiredClubAction(access)
                     }
                 case .allowed(let detail):
                     detailContent(detail)
@@ -92,7 +121,26 @@ struct ActivityDetailView: View {
         .appNavigationTitle("activity.details")
         .navigationBarTitleDisplayMode(.inline)
         .task(id:id) { await loads.run { await load() } }
+        .onAppear { gateIsVisible = true; gatePresentationID = UUID() }
         .onDisappear { loads.cancel(); generation += 1; loading = false }
+        .onDisappear { gateIsVisible = false; gatePresentationID = UUID() }
+        .onChange(of: id) { _, value in
+            latestGateActivityID = value; gateReadID = nil; requiredClubSelection = nil
+        }
+        .onChange(of: ObjectIdentifier(reader)) { _, value in
+            latestGateReaderID = value; gateReadID = nil; requiredClubSelection = nil
+        }
+        .onChange(of: reader.activityPresentationIdentity) { _, _ in gateReadID = nil; requiredClubSelection = nil }
+        .navigationDestination(item: $requiredClubSelection) { selection in
+            if selection.mayRemainOpen(access: access, in: gateScope), let requiredClubDestination {
+                requiredClubDestination(selection.clubID, {
+                    requiredClubSelection?.id == selection.id && selection.mayRemainOpen(access: access, in: gateScope)
+                })
+            } else {
+                ContentUnavailableView("activity.requiredClub.changed", systemImage: "arrow.clockwise")
+                    .accessibilityIdentifier("activity.requiredClub.stale")
+            }
+        }
         .onChange(of: peopleProfile?.reader.identity) { _, _ in
             profileSelection = nil; loadedProfileIdentity = nil
             loads.start { await load() }
@@ -113,6 +161,29 @@ struct ActivityDetailView: View {
         }
         .sheet(isPresented:$showsRegistration) {
             if let access,case .allowed(let detail)=access { SessionRegistrationSheet(activity:detail) }
+        }
+    }
+    @ViewBuilder private func requiredClubAction(_ renderedAccess: ActivityDetailAccess) -> some View {
+        let renderedScope = gateScope
+        let clubID: Int? = {
+            if case .clubRequired(let value, _) = renderedAccess { return value }
+            return nil
+        }()
+        if let clubID, clubID > 0 {
+            Button {
+                guard gateIsVisible, requiredClubSelection == nil, requiredClubDestination != nil,
+                      let selection = ActivityRequiredClubSelection(access: renderedAccess, currentAccess: access,
+                          rendered: renderedScope, current: gateScope) else { return }
+                requiredClubSelection = selection
+            } label: { Label("activity.requiredClub.open", systemImage: "person.3") }
+                .frame(minHeight: 44)
+                .disabled(requiredClubDestination == nil || renderedScope == nil || !gateIsVisible || requiredClubSelection != nil)
+                .accessibilityIdentifier("activity.requiredClub.open")
+        }
+        if requiredClubDestination == nil || renderedScope == nil || (clubID ?? 0) <= 0 {
+            Text("activity.requiredClub.unavailable").font(.footnote).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("activity.requiredClub.unavailable")
         }
     }
     private func detailContent(_ detail:ActivityDetail) -> some View {
@@ -235,6 +306,10 @@ struct ActivityDetailView: View {
     @MainActor private func load() async {
         generation += 1
         let operation=generation
+        let capturedActivityID = id
+        let capturedReaderID = ObjectIdentifier(reader), capturedReaderIdentity = reader.activityPresentationIdentity
+        latestGateReaderID = capturedReaderID; latestGateActivityID = capturedActivityID
+        gateReadID = nil; gateActivityID = nil; gateReaderID = nil; gateReaderIdentity = nil; requiredClubSelection = nil
         let profileIdentity = peopleProfile?.reader.identity
         loading=true;failed=false;access=nil;loadedProfileIdentity=nil
         profileSelection=nil;loadedPeopleSnapshotID=nil
@@ -242,8 +317,12 @@ struct ActivityDetailView: View {
         do {
             let result=try await reader.activityDetail(id:id)
             try Task.checkCancellation()
-            if generation == operation, profileIdentity == peopleProfile?.reader.identity {
+            if generation == operation, profileIdentity == peopleProfile?.reader.identity,
+               latestGateReaderID == capturedReaderID, latestGateActivityID == capturedActivityID,
+               capturedReaderIdentity == reader.activityPresentationIdentity {
                 access=result; loadedProfileIdentity=profileIdentity; loadedPeopleSnapshotID=UUID()
+                gateActivityID = capturedActivityID; gateReaderID = capturedReaderID
+                gateReaderIdentity = capturedReaderIdentity; gateReadID = UUID()
             }
         }
         catch is CancellationError { }

@@ -5,7 +5,7 @@ import XCTest
     final class HTTP: ShopNPCHTTPTransport {
         var requests: [ShopNPCHTTPRequest] = []
         var status = 200
-        var json = #"{"code":200,"data":{"text":"answer"}}"#
+        var json = #"{"code":200,"data":{"safeText":"answer"}}"#
         var error = false
         var suspended: CheckedContinuation<Void, Never>?
         var hold = false
@@ -13,7 +13,21 @@ import XCTest
             requests.append(request)
             if hold { await withCheckedContinuation { suspended = $0 } }
             if error { throw ShopNPCFailure.unknownOutcome }
-            return .init(status: status, body: Data(json.utf8))
+            var envelope = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(json.utf8)) as? [String: Any])
+            var payload = (envelope["data"] as? [String: Any]) ?? [:]
+            payload["requestId"] = try fixtureRequestID(request.body); payload["outcomeStatus"] = "SUCCEEDED"
+            payload["safetyDecision"] = "PASS"; payload["retryable"] = false
+            envelope["data"] = payload
+            return .init(status: status, body: try JSONSerialization.data(withJSONObject: envelope))
+        }
+
+        // Synthetic 9b success replies echo the exact text/multipart request ID.
+        private func fixtureRequestID(_ bytes: Data) throws -> String {
+            if let body = try? JSONSerialization.jsonObject(with: bytes) as? [String: Any], let id = body["requestId"] as? String { return id }
+            let marker = "name=\"requestId\"\r\n\r\n"
+            let tail = String(decoding: bytes, as: UTF8.self).components(separatedBy: marker)
+            guard tail.count == 2, let id = tail.last?.components(separatedBy: "\r\n").first, UUID(uuidString: id) != nil else { throw ShopNPCFailure.invalid }
+            return id
         }
     }
     func scope(_ session: String = "s") -> ShopNPCScope { .init(sessionID: session, accountID: "u", roleID: "player", accessRevision: 1, nodeID: ShopNPCNodeID(17)!) }
@@ -39,11 +53,11 @@ import XCTest
         XCTAssertFalse(body.contains("merchantId")); XCTAssertFalse(r.path.contains("uploadOSS"))
     }
     func testASRIsTopLevelAndSafeTextWins() throws {
-        let r = try ShopNPCReply.decode(Data(#"{"code":200,"asr":"top","data":{"asr":"wrong","safeText":"safe","text":"plain"}}"#.utf8), voice: true)
+        let r = try ShopNPCReply.decode(Data(#"{"code":200,"asr":"top","data":{"requestId":"00000000-0000-0000-0000-000000000001","outcomeStatus":"SUCCEEDED","safetyDecision":"PASS","retryable":false,"asr":"wrong","safeText":"safe","text":"plain"}}"#.utf8), voice: true)
         XCTAssertEqual(r.asr, "top"); XCTAssertEqual(r.text, "safe"); XCTAssertEqual(r.audio, .unavailableInSource)
     }
-    func testEmptySafeTextFallsBackToText() throws { XCTAssertEqual(try ShopNPCReply.decode(Data(#"{"code":200,"data":{"safeText":"","text":"plain"}}"#.utf8), voice: false).text, "plain") }
-    func testTextIgnoresASR() throws { XCTAssertNil(try ShopNPCReply.decode(Data(#"{"code":200,"asr":"x"}"#.utf8), voice: false).asr) }
+    func testEmptySafeTextNeverFallsBackToUnverifiedText() { XCTAssertThrowsError(try ShopNPCReply.decode(Data(#"{"code":200,"data":{"requestId":"00000000-0000-0000-0000-000000000001","outcomeStatus":"SUCCEEDED","safetyDecision":"PASS","retryable":false,"safeText":"","text":"plain"}}"#.utf8), voice: false)) }
+    func testTextIgnoresASR() throws { XCTAssertNil(try ShopNPCReply.decode(Data(#"{"code":200,"asr":"x","data":{"requestId":"00000000-0000-0000-0000-000000000001","outcomeStatus":"SUCCEEDED","safetyDecision":"PASS","retryable":false,"safeText":"safe"}}"#.utf8), voice: false).asr) }
     func testBusinessErrorPreservesMessage() {
         XCTAssertThrowsError(try ShopNPCReply.decode(Data(#"{"code":403,"msg":"店铺分身对话还没开放"}"#.utf8), voice: false)) { XCTAssertEqual($0 as? ShopNPCFailure, .server(code: 403, message: "店铺分身对话还没开放")) }
     }
@@ -121,7 +135,7 @@ import XCTest
         let h = HTTP(); h.json = #"{"code":200,"data":{}}"#
         let c = ShopNPCCoordinator(scope: scope(), grants: grants(), client: .init(transport: h))
         try c.reviewText("hello"); await c.transmit(reviewID: try XCTUnwrap(c.pending).id)
-        XCTAssertEqual(c.failure, .malformed); XCTAssertEqual(c.messages.count, 1); XCTAssertTrue(c.messages[0].mine)
+        XCTAssertEqual(c.failure, .malformed); XCTAssertTrue(c.messages.isEmpty); XCTAssertNotNil(c.pending)
     }
 
 }

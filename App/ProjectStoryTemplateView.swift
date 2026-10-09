@@ -5,17 +5,28 @@ import SwiftUI
 @MainActor struct ProjectStoryTemplateView: View {
     @ObservedObject var controller: ProjectStoryTemplatePresentation
     let original: ProjectStoryTemplatePresentation.Opening
+    var nodeSelection = false
+    private var title: Text { nodeSelection ? Text("projectNodeTemplate.title", tableName: "ProjectNodeTemplateSelection") : Text("projectStoryTemplate.title") }
     var body: some View {
         NavigationStack {
             Form {
-                Section { Text("projectStoryTemplate.scope").font(.footnote) }
+                Section {
+                    if nodeSelection { Text("projectNodeTemplate.scope", tableName: "ProjectNodeTemplateSelection").font(.footnote) }
+                    else { Text("projectStoryTemplate.scope").font(.footnote) }
+                }
                 if let review = controller.review {
                     Section("projectStoryTemplate.previewTitle") {
                         Text(verbatim: review.source.row.title).font(.headline).accessibilityIdentifier("projectStoryTemplate.preview.title")
-                        ProjectStoryTemplatePreview(source: review.source).accessibilityElement(children: .contain).accessibilityIdentifier("projectStoryTemplate.preview")
+                        Group {
+                            if nodeSelection { ProjectStoryTemplatePreview(source: review.source, nodeSelection: true) }
+                            else { ProjectStoryTemplatePreview(source: review.source) }
+                        }.accessibilityElement(children: .contain).accessibilityIdentifier("projectStoryTemplate.preview")
                     }
                     Section {
-                        Button("projectStoryTemplate.apply") { _ = controller.apply(review, original: original) }
+                        Button(action: { _ = controller.apply(review, original: original) }, label: {
+                            if nodeSelection { Text("projectNodeTemplate.apply", tableName: "ProjectNodeTemplateSelection") }
+                            else { Text("projectStoryTemplate.apply") }
+                        })
                             .disabled(controller.busy || !controller.isCurrent(original))
                             .accessibilityIdentifier("projectStoryTemplate.apply")
                         Button("projectStoryTemplate.back") { controller.back(original) }
@@ -37,12 +48,13 @@ import SwiftUI
                         }
                     }
                 }
+                if nodeSelection && controller.state == .unsupported { Text("projectNodeTemplate.unsupported", tableName: "ProjectNodeTemplateSelection") }
                 if controller.busy { ProgressView().accessibilityIdentifier("projectStoryTemplate.busy") }
                 if [.failed, .changed, .saveFailed].contains(controller.state) {
                     Text(LocalizedStringKey("projectStoryTemplate." + controller.state.rawValue))
                         .accessibilityIdentifier("projectStoryTemplate.status")
                 }
-            }.navigationTitle("projectStoryTemplate.title").navigationBarTitleDisplayMode(.inline)
+            }.navigationTitle(title).navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .cancellationAction) {
                     Button("projectStoryTemplate.close") { controller.close(original) }
                         .accessibilityIdentifier("projectStoryTemplate.close")
@@ -53,10 +65,12 @@ import SwiftUI
 
 private struct ProjectStoryTemplatePreview: View {
     let source: ProjectStoryTemplateDraft
+    var nodeSelection = false
     var body: some View {
         switch source.content {
         case .gameplay:
-            Text("projectStoryTemplate.gameplay")
+            if nodeSelection { Text("projectNodeTemplate.gameplay", tableName: "ProjectNodeTemplateSelection") }
+            else { Text("projectStoryTemplate.gameplay") }
             LabeledContent("projectEdit.templateID", value: String(source.row.id.rawValue))
                 .accessibilityIdentifier("projectStoryTemplate.preview.templateID")
         case .album(let images):

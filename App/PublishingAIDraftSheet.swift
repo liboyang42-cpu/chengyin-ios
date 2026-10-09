@@ -30,16 +30,23 @@ import SwiftUI
                     if !model.flow.canGenerate && !model.flow.busy && model.flow.quotaReadState != .loading && model.flow.quota?.exhausted != true { Text("contextPublish.ai.unavailable").font(.caption) }
                 }
                 PublishingAIQuotaSection(flow: model.flow)
-                if let result = model.flow.candidate {
-                    Section("contextPublish.ai.generated") {
+                if let result = model.flow.candidate, let candidateGeneration = model.flow.candidateGeneration {
+                    Section(model.flow.candidateIsPrevious ? LocalizedStringKey("publishingAICandidate.previous") : LocalizedStringKey("contextPublish.ai.generated")) {
+                        if model.flow.candidateIsPrevious { Text("publishingAICandidate.previousNotice").font(.footnote) }
+                        if let sourceIdea = model.flow.candidateSourceIdea {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("publishingAICandidate.sourceIdea").font(.caption).foregroundStyle(.secondary)
+                                Text(verbatim: sourceIdea).textSelection(.enabled)
+                            }.accessibilityIdentifier("publishingAICandidate.sourceIdea")
+                        }
                         Text(verbatim: result.draft.title).font(.headline)
                         if let subtitle = result.draft.subtitle { Text(verbatim: subtitle) }
                         Text(verbatim: result.draft.description)
                         Text("contextPublish.ai.placesUnconfirmed").font(.caption)
                         ForEach(result.draft.nodes) { node in VStack(alignment: .leading) { Text(verbatim: node.name); Text(verbatim: node.description).font(.caption) } }
-                        Button("contextPublish.ai.use") {
-                            if let draft = model.flow.accept() { accept(draft); dismiss() }
-                        }.accessibilityIdentifier("contextPublish.ai.use")
+                        Button(model.flow.candidateIsPrevious ? LocalizedStringKey("publishingAICandidate.usePrevious") : LocalizedStringKey("contextPublish.ai.use")) {
+                            if let draft = model.flow.accept(candidateGeneration: candidateGeneration) { accept(draft); dismiss() }
+                        }.disabled(!model.flow.canAcceptCandidate).accessibilityIdentifier("contextPublish.ai.use")
                     }
                 }
             }.navigationTitle("contextPublish.ai.title")

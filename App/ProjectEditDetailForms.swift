@@ -202,7 +202,8 @@ import SwiftUI
                 }
                 Section("projectEdit.nodes") {
                     ForEach(chapter.wrappedValue.nodes) { node in
-                        NavigationLink { ProjectEditNodeView(model: model, chapterID: chapterID, nodeID: node.id, starterLease: starterLease, chapterOverride: chapter) } label: {
+                        NavigationLink { ProjectEditNodeView(model: model, chapterID: chapterID, nodeID: node.id, starterLease: starterLease, chapterOverride: chapter,
+                            allowsGameplayRemoval: chapterOverride == nil && mediaScope == nil && starterLease == nil) } label: {
                             Label { ProjectEditName(value: node.name, fallback: "projectEdit.untitledNode") } icon: { Image(systemName: "mappin.circle") }
                         }.accessibilityIdentifier("projectEdit.node." + node.id)
                             .deleteDisabled(handlesPendingRemoval && removalCapture == nil)
@@ -302,6 +303,7 @@ import SwiftUI
     var starterLease: ProjectEditStarterController.Destination? = nil
     var chapterOverride: Binding<ProjectEditChapter>? = nil
     var initialIssueAnchor: String? = nil
+    var allowsGameplayRemoval: Bool? = nil
     private var targetChapter: Binding<ProjectEditChapter> { chapterOverride ?? starterLease.map { model.starterChapter($0) } ?? model.chapter(chapterID) }
     private var node: Binding<ProjectEditNode> {
         Binding(get: { targetChapter.wrappedValue.nodes.first { $0.id == nodeID } ?? .init() }, set: { value in
@@ -320,6 +322,14 @@ import SwiftUI
                 .merchantDraftSelection(.init(model: model, node: node,
                 sourceID: "saved:\(chapterID):\(nodeID)", nodeRevision: { model.draftMutationRevision },
                 isCurrent: { model.fullEdit && targetChapter.wrappedValue.nodes.contains { $0.id == nodeID } }))
+            if (allowsGameplayRemoval ?? (chapterOverride == nil && starterLease == nil)) && model.draft.owner == .personal {
+                ProjectNodeTemplateSelectionField(model: model, chapterID: chapterID, nodeID: nodeID)
+                    .id([Data(chapterID.utf8), Data(nodeID.utf8)])
+            }
+            if (allowsGameplayRemoval ?? (chapterOverride == nil && starterLease == nil)) && (node.wrappedValue.templateID ?? 0) > 0 {
+                ProjectNodeGameplayRemovalField(model: model, chapterID: chapterID, nodeID: nodeID)
+                    .id([Data(chapterID.utf8), Data(nodeID.utf8)])
+            }
             ProjectNodeNarrativeEntry(model: model, chapterID: chapterID, nodeID: nodeID)
             if let key = model.coordinator.messageKey { Section { Text(LocalizedStringKey(key)).accessibilityIdentifier("projectPrepared.nodeSaveStatus") } }
         }.modifier(ProjectEditIssueInitialScroll(anchor: initialIssueAnchor)).disabled(!model.fullEdit).appNavigationTitle("projectEdit.nodeDetails")

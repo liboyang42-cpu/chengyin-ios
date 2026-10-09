@@ -65,6 +65,12 @@ import SwiftUI
                                     }
                                 }.accessibilityElement(children: .contain)
                             }
+                            if let notice = coordinator.serviceNotice {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("shopNPCOutcome.serviceNotice").font(.caption).foregroundStyle(.secondary)
+                                    Text(verbatim: notice).textSelection(.enabled)
+                                }.accessibilityIdentifier("shopNPCOutcome.serviceNotice")
+                            }
                             if sending {
                                 ProgressView("shopNPC.busy").accessibilityIdentifier("shopNPC.busy")
                                 Button("shopNPC.stopWaiting") { coordinator.stopWaiting(); localFailure = nil }
@@ -161,25 +167,38 @@ import SwiftUI
             case .voice(let clip): Text("shopNPC.voiceReview"); Text(verbatim: "\(clip.bytes.count) bytes · \(Int(clip.duration)) s")
             }
             Text("shopNPC.transmissionDisclosure").font(.footnote)
-            if coordinator.failure == .unknownOutcome { Text("shopNPC.retryNotice").font(.footnote) }
-            Button {
-                typing = false; localFailure = nil
-                attempt {
-                    let intent = try coordinator.prepareTransmission(reviewID: review.id)
-                    Task {
-                        guard scenePhase == .active, showsConversation, coordinator.scope == review.scope else { return }
-                        await coordinator.transmit(reviewID: review.id, intent: intent)
-                        guard showsConversation, coordinator.scope == review.scope else { return }
-                        // Clear only this accepted draft, never on cancel, failure or an uncertain result.
-                        if coordinator.pending == nil, coordinator.failure == nil, review.replacing == nil,
-                           case .text(let text) = review.content, draft.trimmingCharacters(in: .whitespacesAndNewlines) == text { draft = "" }
-                        revision += 1
-                    }
+            if coordinator.failure == .unknownOutcome || coordinator.failure == .malformed || coordinator.failure == .replyProcessing || coordinator.failure == .replyRetryable {
+                Text("shopNPC.retryNotice").font(.footnote)
+            }
+            TimelineView(.periodic(from: .now, by: 1)) { _ in
+                if coordinator.serverRetrySecondsRemaining > 0 {
+                    LabeledContent("shopNPCOutcome.retrySeconds") { Text(verbatim: String(coordinator.serverRetrySecondsRemaining)) }
+                        .accessibilityIdentifier("shopNPCOutcome.retrySeconds")
                 }
-            } label: {
-                Text(coordinator.failure == nil ? LocalizedStringKey("shopNPC.confirmSend") : LocalizedStringKey("shopNPC.retry"))
-            }.buttonStyle(.borderedProminent).controlSize(.large).disabled(sending || recording || !showsConversation)
-                .accessibilityIdentifier("shopNPC.confirmSend")
+                if coordinator.pendingIsTerminalServiceResponse {
+                    Text("shopNPCOutcome.newQuestion").font(.footnote)
+                } else {
+                    Button {
+                        typing = false; localFailure = nil
+                        attempt {
+                            let intent = try coordinator.prepareTransmission(reviewID: review.id)
+                            Task {
+                                guard scenePhase == .active, showsConversation, coordinator.scope == review.scope else { return }
+                                await coordinator.transmit(reviewID: review.id, intent: intent)
+                                guard showsConversation, coordinator.scope == review.scope else { return }
+                                // Clear only this accepted draft, never on cancel, failure or an uncertain result.
+                                if coordinator.pending == nil, coordinator.failure == nil, review.replacing == nil,
+                                   case .text(let text) = review.content, draft.trimmingCharacters(in: .whitespacesAndNewlines) == text { draft = "" }
+                                revision += 1
+                            }
+                        }
+                    } label: {
+                        Text(coordinator.failure == nil ? LocalizedStringKey("shopNPC.confirmSend") : LocalizedStringKey("shopNPC.retry"))
+                    }
+                    .buttonStyle(.borderedProminent).controlSize(.large).disabled(!coordinator.canConfirmPending || recording || !showsConversation)
+                    .accessibilityIdentifier("shopNPC.confirmSend")
+                }
+            }
             Button(role: .cancel) { coordinator.cancelReview(); revision += 1 } label: {
                 Text("shopNPC.cancel").frame(minHeight: 44).contentShape(Rectangle())
             }

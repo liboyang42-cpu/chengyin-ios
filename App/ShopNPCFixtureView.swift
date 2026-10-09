@@ -11,7 +11,19 @@ import SwiftUI
             return .init(status: 200, body: Data(#"{"code":503,"msg":"Synthetic failure / 测试失败"}"#.utf8))
         }
         if args.contains("--reference-npc-pending") { try await Task.sleep(for: .seconds(30)) }
-        return .init(status: 200, body: Data(#"{"code":200,"data":{"text":"Fixture reply / 测试回答"},"asr":"Fixture question / 测试问题"}"#.utf8))
+        let id = try fixtureRequestID(request.body)
+        return .init(status: 200, body: try JSONSerialization.data(withJSONObject: ["code": 200,
+            "data": ["requestId": id, "outcomeStatus": "SUCCEEDED", "safetyDecision": "PASS", "retryable": false,
+                     "safeText": "Fixture reply / 测试回答"], "asr": "Fixture question / 测试问题"]))
+    }
+
+    // Synthetic 9b success replies echo the exact text/multipart request ID.
+    private func fixtureRequestID(_ bytes: Data) throws -> String {
+        if let body = try? JSONSerialization.jsonObject(with: bytes) as? [String: Any], let id = body["requestId"] as? String { return id }
+        let marker = "name=\"requestId\"\r\n\r\n"
+        let tail = String(decoding: bytes, as: UTF8.self).components(separatedBy: marker)
+        guard tail.count == 2, let id = tail.last?.components(separatedBy: "\r\n").first, UUID(uuidString: id) != nil else { throw ShopNPCFailure.invalid }
+        return id
     }
 }
 /// In-memory fixtures only. Never connected to application credentials, recording, or network.

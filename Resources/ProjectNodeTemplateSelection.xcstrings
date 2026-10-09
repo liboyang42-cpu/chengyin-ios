@@ -1,0 +1,118 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "projectNodeTemplate.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My saved gameplay drafts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本人已有玩法草稿"
+          }
+        }
+      }
+    },
+    "projectNodeTemplate.choose": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a saved personal gameplay draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择本人已有玩法草稿"
+          }
+        }
+      }
+    },
+    "projectNodeTemplate.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose one of your saved personal gameplay drafts. Its exact source is checked again when you confirm. Only the existing place node’s local reference changes; this grants no publishing or usage rights."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择本人已保存的玩法草稿，确认时会再次核对同一来源。这里只改当前地点节点的本地引用，不授予发布或使用权限。"
+          }
+        }
+      }
+    },
+    "projectNodeTemplate.apply": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use on this node and save locally"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "绑定到此节点并保存到本机"
+          }
+        }
+      }
+    },
+    "projectNodeTemplate.gameplay": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When changing the reference, the existing node, coordinates and story stay in place; a blank node name uses the selected title. Prior template cache is cleared for a changed ID; private gameplay configuration is not copied."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更换玩法时保留当前节点、坐标和故事；节点名为空时使用玩法标题。换 ID 会清除旧模板缓存，不复制私有玩法配置。"
+          }
+        }
+      }
+    },
+    "projectNodeTemplate.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personal draft reading is not configured or this is not a current ordinary place node. Your existing reference is unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本人草稿读取尚未配置，或当前不是普通地点节点；现存引用保持不变。"
+          }
+        }
+      }
+    },
+    "projectNodeTemplate.unsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This source cannot be bound as ordinary node gameplay here. Album insertion remains in its existing story flow. Your current reference is unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此来源不能在这里作为普通节点玩法绑定；相册仍使用原故事插入流程，当前引用保持不变。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

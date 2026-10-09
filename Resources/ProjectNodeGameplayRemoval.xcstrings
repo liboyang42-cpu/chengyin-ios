@@ -1,0 +1,118 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "projectNodeGameplay.remove": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove gameplay reference"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移除玩法引用"
+          }
+        }
+      }
+    },
+    "projectNodeGameplay.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only an ordinary place node can have its gameplay reference removed here. The node, story and uploaded template are retained."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这里只能移除普通地点节点的玩法引用，节点、故事和模板本身都会保留。"
+          }
+        }
+      }
+    },
+    "projectNodeGameplay.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No removable current reference, or this is a story-only/branch-graph node. Existing data is unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前没有可移除引用，或属于无地点故事玩法、分支路线；现存数据保持不变。"
+          }
+        }
+      }
+    },
+    "projectNodeGameplay.confirmTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove this node’s gameplay reference?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移除此节点的玩法引用？"
+          }
+        }
+      }
+    },
+    "projectNodeGameplay.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove and save locally"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移除并保存到本机"
+          }
+        }
+      }
+    },
+    "projectNodeGameplay.impact": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This clears the template ID and its saved template information/name. Dependent story or outcome conditions are not migrated and should be reviewed. It does not delete the node or the template."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这会清除模板 ID 及关联模板资料、名称。依赖玩法结果的故事或条件不会自动迁移，请重新检查；不会删除节点或模板本身。"
+          }
+        }
+      }
+    },
+    "projectNodeGameplay.saveUnconfirmed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local saving was not confirmed. The original node remains in the editor; storage may be partially updated. No automatic retry is made. Reopen the draft and inspect its recovery state before continuing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未能确认本机保存。编辑器仍保留原节点，存储可能部分更新，不会自动重试。请重新打开草稿并检查恢复状态后继续。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

@@ -1,0 +1,53 @@
+{
+  "activity.requiredClub.open": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "View required club"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "查看所属俱乐部"
+        }
+      }
+    }
+  },
+  "activity.requiredClub.unavailable": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The required club is not available from this activity response."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "本次活动回复中的俱乐部入口暂不可用。"
+        }
+      }
+    }
+  },
+  "activity.requiredClub.changed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The activity access response has changed."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "活动访问状态已变化。"
+        }
+      }
+    }
+  }
+}

@@ -21,11 +21,17 @@ import FoundationNetworking
                 return result
             }
             if fail { throw URLError(.networkConnectionLost) }
-            return (Data(#"{"code":200,"data":{"text":"answer"}}"#.utf8), 200)
+            return (try replyBytes(request, answer: "answer"), 200)
         }
         func finish(_ index: Int, answer: String = "late answer") {
-            let bytes = try! JSONSerialization.data(withJSONObject: ["code": 200, "data": ["text": answer]])
+            let bytes = try! replyBytes(requests[index], answer: answer)
             waiting.removeValue(forKey: index)?.resume(returning: (bytes, 200))
+        }
+        private func replyBytes(_ request: URLRequest, answer: String) throws -> Data {
+            let body = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(request.httpBody)) as? [String: Any])
+            let id = try XCTUnwrap(body["requestId"] as? String)
+            return try JSONSerialization.data(withJSONObject: ["code": 200, "data": ["requestId": id,
+                "outcomeStatus": "SUCCEEDED", "safetyDecision": "PASS", "retryable": false, "safeText": answer]])
         }
         enum WaitFailure: Error { case requestNotDispatched(Int) }
         func waitFor(_ index: Int) async throws {

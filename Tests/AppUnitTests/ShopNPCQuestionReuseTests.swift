@@ -4,7 +4,11 @@ import XCTest
 @MainActor private final class QuestionReuseAppTransport: ShopNPCHTTPTransport {
     var calls = 0
     func perform(_ request: ShopNPCHTTPRequest) async throws -> ShopNPCHTTPResponse {
-        calls += 1; return .init(status: 200, body: Data(#"{"code":200,"data":{"safeText":"Synthetic answer"}}"#.utf8))
+        calls += 1
+        let body = try XCTUnwrap(JSONSerialization.jsonObject(with: request.body) as? [String: Any])
+        let id = try XCTUnwrap(body["requestId"] as? String)
+        return .init(status: 200, body: try JSONSerialization.data(withJSONObject: ["code": 200, "data": ["requestId": id,
+            "outcomeStatus": "SUCCEEDED", "safetyDecision": "PASS", "retryable": false, "safeText": "Synthetic answer"]]))
     }
 }
 @MainActor final class ShopNPCQuestionReuseAppTests: XCTestCase {

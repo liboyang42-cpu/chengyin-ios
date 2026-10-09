@@ -72,7 +72,20 @@ public struct PublishingAIThemeDraft: Equatable {
 @MainActor public final class PublishingAIDraftFlow {
     public enum QuotaReadState: Equatable { case unavailable, idle, loading, fresh, stale, failed }
     public var idea = ""
-    public private(set) var candidate: PublishingAIThemeDraft?
+    private var storedCandidate: PublishingAIThemeDraft?
+    private var storedCandidateIdea: String?
+    private var storedCandidateGeneration: Int?
+    public var candidate: PublishingAIThemeDraft? {
+        guard isCurrent else { clearCandidate(); return nil }
+        return storedCandidate
+    }
+    public var candidateSourceIdea: String? { candidate == nil ? nil : storedCandidateIdea }
+    public var candidateGeneration: Int? { candidate == nil ? nil : storedCandidateGeneration }
+    public var candidateIsPrevious: Bool {
+        guard candidate != nil, let storedCandidateIdea else { return false }
+        return storedCandidateGeneration != generation || !storedCandidateIdea.utf8.elementsEqual(idea.trimmingCharacters(in: .whitespacesAndNewlines).utf8)
+    }
+    public var canAcceptCandidate: Bool { candidate != nil && isCurrent && !busy }
     private var storedQuota: PublishingAIQuota?
     private var storedQuotaReadAt: Date?
     private var storedQuotaState: QuotaReadState = .idle
@@ -89,10 +102,15 @@ public struct PublishingAIThemeDraft: Equatable {
     private let openedSession: PublishingSession?
     private var generation = 0
     private var closed = false
+    private var ownerRetired = false
     private let now: () -> Date
     private var quotaTask: Task<PublishingAIQuota, Error>?
     private var quotaTaskID: UUID?
-    private var isCurrent: Bool { !closed && openedSession != nil && client?.session == openedSession }
+    private var isCurrent: Bool {
+        guard !closed, !ownerRetired, let openedSession else { return false }
+        guard client?.session == openedSession else { ownerRetired = true; clearCandidate(); return false }
+        return true
+    }
     public init(client: (any PublishingAIDraftServing)?, product: ProjectEditProduct, now: @escaping () -> Date = Date.init) {
         self.client = client; self.product = product; openedSession = client?.session; self.now = now
     }
@@ -123,31 +141,37 @@ public struct PublishingAIThemeDraft: Equatable {
         onChange?()
     }
     public func generate() async {
+        _ = candidate // Retire any previous-owner projection before considering a new request.
         guard canGenerate else { messageKey = quota?.exhausted == true ? "contextPublish.ai.exhausted" : "contextPublish.ai.unavailable"; onChange?(); return }
         let prompt = idea.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !prompt.isEmpty, prompt.count <= 300 else { messageKey = "contextPublish.ai.promptRequired"; onChange?(); return }
         guard let client else { return }
-        generation += 1; let stamp = generation; busy = true; candidate = nil; messageKey = nil; serverMessage = nil
+        generation += 1; let stamp = generation; busy = true; messageKey = nil; serverMessage = nil
         if storedQuota != nil { storedQuotaState = .stale }
         onChange?()
         do {
             let value = try await client.generate(idea: prompt, product: product)
-            guard stamp == generation, !closed, client.session == openedSession, !Task.isCancelled else { return }
-            candidate = value; busy = false; onChange?(); await loadQuota()
+            guard stamp == generation, isCurrent, client.session == openedSession, !Task.isCancelled else { return }
+            // Replace value and provenance together only after a valid current response.
+            storedCandidate = value; storedCandidateIdea = prompt; storedCandidateGeneration = stamp
+            busy = false; onChange?(); await loadQuota()
         } catch {
-            guard stamp == generation, !closed, client.session == openedSession else { return }
+            guard stamp == generation, isCurrent, client.session == openedSession else { return }
             busy = false; messageKey = "contextPublish.ai.failed"
             if case PublishModesError.rejected(let reason) = error, !reason.isEmpty { serverMessage = reason }
             onChange?()
         }
     }
-    public func accept() -> QuickPublishDraft? {
-        guard !closed, !busy, client?.session == openedSession else { return nil }
+    public func accept(candidateGeneration expected: Int? = nil) -> QuickPublishDraft? {
+        guard canAcceptCandidate, expected == nil || expected == storedCandidateGeneration else { return nil }
         let value = candidate?.draft; close(); return value
+    }
+    private func clearCandidate() {
+        storedCandidate = nil; storedCandidateIdea = nil; storedCandidateGeneration = nil
     }
     private func clearQuota() {
         quotaTask?.cancel(); quotaTask = nil; quotaTaskID = nil
         storedQuota = nil; storedQuotaReadAt = nil; storedQuotaState = .unavailable; onChange?()
     }
-    public func close() { closed = true; generation += 1; clearQuota(); client?.cancel(); candidate = nil; idea = ""; busy = false; serverMessage = nil; onChange?() }
+    public func close() { closed = true; generation += 1; clearQuota(); client?.cancel(); clearCandidate(); idea = ""; busy = false; serverMessage = nil; onChange?() }
 }

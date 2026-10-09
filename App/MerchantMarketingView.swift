@@ -15,6 +15,7 @@ import SwiftUI
                     onSuggestion: { route in onSuggestion(route); selectedSuggestion = route })
                     .navigationDestination(item: $selectedSuggestion) { route in
                         if case .recommendation(let target) = route, target.origin != recommendationOrigin { AnyView(Text("merchantMarketing.stale")) }
+                        else if case .cooperationSettings(let origin) = route, origin != recommendationOrigin { AnyView(Text("merchantMarketing.stale")) }
                         else if let suggestionDestination { suggestionDestination(route) }
                         else { AnyView(Text("merchantMarketing.unavailable")) }
                     }
@@ -108,6 +109,7 @@ import SwiftUI
         }
     }
     @ViewBuilder private func insightSections(_ insight: MerchantMarketingInsight) -> some View {
+        insightProfile(insight)
         Section("merchantMarketing.facts") {
             LabeledContent("merchantMarketing.window", value: insight.facts["window"].text ?? "—")
             LabeledContent("merchantMarketing.sample", value: value(insight.facts["sampleMembers"].integer))
@@ -167,6 +169,15 @@ import SwiftUI
             guard scope != nil, model.service.scope == scope, model.insight == insight, !model.busy,
                   route.origin == recommendationOrigin, loadedRecommendationOrigin == recommendationOrigin else { return }
             onSuggestion(.recommendation(route))
+        }
+    }
+    private func insightProfile(_ insight: MerchantMarketingInsight) -> some View {
+        let scope = model.service.scope
+        let origin = !model.busy && loadedRecommendationOrigin == recommendationOrigin ? loadedRecommendationOrigin : nil
+        return MerchantInsightProfileSummary(profile: insight.metadata["profile"], origin: origin) { source in
+            guard scope != nil, model.service.scope == scope, model.insight == insight, !model.busy,
+                  source == recommendationOrigin, loadedRecommendationOrigin == recommendationOrigin else { return }
+            onSuggestion(.cooperationSettings(source))
         }
     }
     @ViewBuilder private func entitlementSections(_ subscriptions: [MerchantMarketingEntitlement]) -> some View {

@@ -117,6 +117,10 @@ import SwiftUI
                         } else { Text("merchantMarketing.unavailable") }
                     }
                 } else { Text("merchantMarketing.stale") }
+            case .cooperationSettings(let origin):
+                if session.merchantOperationsReader.isAuthenticated, session.merchantOperationsReader.scope == origin.readerScope {
+                    MerchantOperationsDocumentView(reader: session.merchantOperationsReader, destination: .cooperation)
+                } else { Text("merchantMarketing.stale") }
             }
         }.id(session.sessionRevision)
     }
