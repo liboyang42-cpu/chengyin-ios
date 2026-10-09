@@ -18037,6 +18037,108 @@
         }
       }
     },
+    "clubAICandidate.adoptPrevious": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use this previous plan"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "采用这份旧方案"
+          }
+        }
+      }
+    },
+    "clubAICandidate.generation": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Result number on this page"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本页结果编号"
+          }
+        }
+      }
+    },
+    "clubAICandidate.previous": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Previous successful plan"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上一份成功方案"
+          }
+        }
+      }
+    },
+    "clubAICandidate.previousNotice": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This earlier plan uses the original inputs below. A failed later request or newer form edits have not changed it. Choosing it opens this earlier draft for manual editing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这份旧方案来自下方的原始输入。后续失败的请求或新的表单编辑尚未改变它；采用后会打开这份旧草稿供手动编辑。"
+          }
+        }
+      }
+    },
+    "clubAICandidate.source": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inputs used for this plan"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生成这份方案时的输入"
+          }
+        }
+      }
+    },
+    "clubAICandidate.unspecified": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not specified"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未指定"
+          }
+        }
+      }
+    },
     "compliance.agreeNotice": {
       "localizations": {
         "en": {
@@ -52816,6 +52918,57 @@
           "stringUnit": {
             "state": "translated",
             "value": "探索值暂不可编辑：保留的源记录表明后端会校验，但不会保存。"
+          }
+        }
+      }
+    },
+    "merchant.coopCapacityClear.draftHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capacity is cleared in this local draft. It takes effect only after confirming the save."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接待人数已在本地草稿中清空，确认保存后生效。"
+          }
+        }
+      }
+    },
+    "merchant.coopCapacityClear.review": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This save will clear the capacity field and leave the number of guests unspecified."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次将清空接待人数，保存后该字段不再设置人数。"
+          }
+        }
+      }
+    },
+    "merchant.coopChargeChoice.required": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose free or paid hosting before reviewing the save."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择免费承接或收费承接，再审阅保存。"
           }
         }
       }

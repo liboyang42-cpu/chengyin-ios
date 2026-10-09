@@ -80,7 +80,7 @@ final class MerchantOperationsContractTests: XCTestCase {
         XCTAssertEqual(Set(value.fields.keys), ["capacity", "availableTime", "chargeType", "demand", "suitActivityTypes", "coopOpen"])
     }
     func testCooperationCapacityIsOptionalNonnegativeInteger() throws {
-        var value = try decode(MerchantCoopSettings.self, #"{}"#)
+        var value = try decode(MerchantCoopSettings.self, #"{"chargeType":0}"#)
         XCTAssertNil(value.blocker); XCTAssertNil(value.fields["capacity"])
         for text in ["-1", "1.5", "abc"] { value.capacity = text; XCTAssertEqual(value.blocker, "merchant.operations.capacityInvalid") }
         value.capacity = "0"; XCTAssertNil(value.blocker)

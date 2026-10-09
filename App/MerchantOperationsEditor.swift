@@ -120,6 +120,7 @@ struct MerchantOperationsEditor: View {
         case .cooperation(let value):
             Section("merchant.operations.cooperation") {
                 coopField("merchant.operations.capacity", \.capacity, "capacity", number: true)
+                if value.clearsCapacity { Text("merchant.coopCapacityClear.draftHint").font(.footnote).foregroundStyle(.secondary) }
                 coopField("merchant.operations.availableTime", \.availableTime, "availableTime")
                 Picker("merchant.operations.chargeType", selection: Binding<Int?>(get: {
                     guard case .cooperation(let value) = coordinator.draft else { return nil }; return value.chargeType
@@ -286,6 +287,10 @@ struct MerchantOperationsConfirmationView: View {
                     }
                 }
                 Section("merchant.operations.frozenDraft") {
+                    if case .cooperation(let value) = confirmation.draft, value.clearsCapacity {
+                        Text("merchant.coopCapacityClear.review").fixedSize(horizontal: false, vertical: true)
+                            .accessibilityIdentifier("merchant.coopCapacityClear.review")
+                    }
                     if case .decor(let value) = confirmation.draft, value.featuredType == 1, let id = value.featuredID, id > 0 {
                         LabeledContent("merchant.featuredPicker.reviewActivity", value: String(id))
                         Text("merchant.featuredPicker.finalValidation").font(.footnote)

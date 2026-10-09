@@ -34,6 +34,7 @@ public struct TemplateAuthoringPending: Codable, Equatable {
     public let createdAt: Date
     public var terminal: Bool = false
     public var acknowledged: Bool? = nil
+    public var savedDraft: TemplateAuthoringSavedDraft? = nil
 }
 @MainActor public protocol TemplateAuthoringStorage: AnyObject {
     func read(_ key: String) throws -> Data?
@@ -72,12 +73,18 @@ public enum TemplateAuthoringRestore: Equatable {
     public func pending(session: TemplateAuthoringSession, identity: TemplateAuthoringIdentity) throws -> TemplateAuthoringPending? {
         guard let raw = try storage.read(key(session, "pending:" + identity.draftID.uuidString)) else { return nil }
         let value = try JSONDecoder().decode(TemplateAuthoringPending.self, from: raw)
-        guard value.ownerKey == session.ownerKey, value.identity == identity else { throw TemplateAuthoringError.invalidContract }
+        guard value.ownerKey == session.ownerKey, value.identity == identity,
+              value.savedDraft == nil || value.savedDraft?.matches(value, session: session) == true else { throw TemplateAuthoringError.invalidContract }
         return value
     }
     public func savePending(_ value: TemplateAuthoringPending, session: TemplateAuthoringSession) throws {
         guard value.ownerKey == session.ownerKey else { throw TemplateAuthoringError.changedSession }
+        guard value.savedDraft == nil || value.savedDraft?.matches(value, session: session) == true else { throw TemplateAuthoringError.invalidContract }
+        // Receipt and terminal flag occupy one existing pending record, never two independent writes.
         try storage.write(JSONEncoder().encode(value), key: key(session, "pending:" + value.identity.draftID.uuidString))
+        if value.savedDraft != nil {
+            guard try pending(session: session, identity: value.identity) == value else { throw TemplateAuthoringError.storageUnavailable }
+        }
     }
     public func clearPending(session: TemplateAuthoringSession, identity: TemplateAuthoringIdentity) throws {
         try storage.remove(key(session, "pending:" + identity.draftID.uuidString))

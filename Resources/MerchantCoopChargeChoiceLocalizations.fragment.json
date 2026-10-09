@@ -1,0 +1,19 @@
+{
+  "merchant.coopChargeChoice.required": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请选择免费承接或收费承接，再审阅保存。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Choose free or paid hosting before reviewing the save."
+        }
+      }
+    }
+  }
+}

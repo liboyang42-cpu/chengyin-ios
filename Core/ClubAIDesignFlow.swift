@@ -88,23 +88,48 @@ public struct ClubAIDesignResult: Equatable {
     private let current: () -> PublishingSession?
     private var generation = 0
     private var resultSession: PublishingSession?
-    public private(set) var result: ClubAIDesignResult?
+    private var storedResult: ClubAIDesignResult?
+    private var storedInput: ClubAIDesignInput?
+    private var storedGeneration: Int?
+    private var resultOwnerRetired = false
+    public var result: ClubAIDesignResult? {
+        guard let resultSession else { return nil }
+        if current() != resultSession {
+            resultOwnerRetired = true; generation += 1; busy = false; clearResult(); return nil
+        }
+        guard !resultOwnerRetired, failure != .identity else { clearResult(); return nil }
+        return storedResult
+    }
+    public var resultInput: ClubAIDesignInput? { result == nil ? nil : storedInput }
+    public var resultGeneration: Int? { result == nil ? nil : storedGeneration }
+    public var canAdoptResult: Bool { result != nil && !busy }
+    public func resultIsPrevious(comparedTo input: ClubAIDesignInput?) -> Bool {
+        guard result != nil, let storedInput else { return false }
+        guard let input else { return true }
+        return storedGeneration != generation || storedInput.minutes != input.minutes ||
+            !storedInput.idea.utf8.elementsEqual(input.idea.utf8) || !storedInput.style.utf8.elementsEqual(input.style.utf8)
+    }
     public private(set) var failure: ClubAIDesignFailure?
     public private(set) var busy = false
     public var isConfigured: Bool { generator != nil }
-    public var canGenerate: Bool { isConfigured && current() != nil && !busy && failure != .quota && failure != .identity && failure != .unknown }
+    public var canGenerate: Bool { isConfigured && !resultOwnerRetired && current() != nil && !busy && failure != .quota && failure != .identity && failure != .unknown }
     public init(generator: (any ClubAIDesignGenerating)?, current: @escaping () -> PublishingSession?) { self.generator = generator; self.current = current }
-    public func cancel() { generation += 1; result = nil; failure = nil; resultSession = nil; busy = false }
+    private func clearResult() { storedResult = nil; storedInput = nil; storedGeneration = nil; resultSession = nil }
+    public func cancel() { generation += 1; clearResult(); failure = nil; busy = false; resultOwnerRetired = false }
     public func generate(_ input: ClubAIDesignInput) async {
+        _ = result // A changed owner cannot reuse an earlier result or queued generation.
         guard canGenerate else { if generator == nil { failure = .unavailable }; return }
         guard let generator, let session = current() else { failure = .unavailable; return }
-        generation += 1; let request = generation; result = nil; failure = nil; resultSession = nil; busy = true
+        generation += 1; let request = generation; failure = nil; busy = true
         let outcome = await generator.generate(input, session: session)
         guard request == generation, current() == session, !Task.isCancelled else { if request == generation { cancel() }; return }
         busy = false
         switch outcome {
         case .acknowledged(let value):
-            do { result = try ClubAIDesignResult(value: value); resultSession = session }
+            do {
+                let candidate = try ClubAIDesignResult(value: value)
+                storedResult = candidate; storedInput = input; storedGeneration = request; resultSession = session
+            }
             catch { failure = error as? ClubAIDesignFailure ?? .parse }
         case .rejected(let message):
             if message.contains("今日AI次数已用完") { failure = .quota }
@@ -114,8 +139,10 @@ public struct ClubAIDesignResult: Equatable {
         case .unavailable, .notSent: failure = .unavailable
         }
     }
-    public func adopt(clubID: Int) throws -> ProjectEditDraft {
+    public func adopt(clubID: Int, generation expected: Int? = nil) throws -> ProjectEditDraft {
+        guard !busy else { throw ClubAIDesignFailure.unavailable }
         guard resultSession != nil, current() == resultSession, let result else { throw ClubAIDesignFailure.identity }
+        guard expected == nil || expected == storedGeneration else { throw ClubAIDesignFailure.invalid }
         return try result.draft(clubID: clubID)
     }
 }

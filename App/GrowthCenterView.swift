@@ -14,6 +14,12 @@ extension EnvironmentValues {
 
 @MainActor struct GrowthCenterView: View {
     let reader: any GrowthCenterReading
+    @Environment(\.growthExploreHomeAction) private var onExploreHome
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var badgePresentationID = UUID()
+    @State private var badgeVisible = false
+    @State private var badgeExploreConsumed = false
+    @State private var latestReaderID: ObjectIdentifier?
     @StateObject private var model = GrowthCenterScreenModel<GrowthCenterOverview>()
     private var key: GrowthCenterLoadKey { GrowthCenterLoadKey(scope: reader.scope) }
     var body: some View {
@@ -50,6 +56,10 @@ extension EnvironmentValues {
             }
         }
         .modifier(GrowthCenterReadLifecycle(key: key, refresh: load, cancel: model.cancelPending))
+        .onAppear { badgeVisible = true; badgeExploreConsumed = false; badgePresentationID = UUID(); latestReaderID = ObjectIdentifier(reader) }
+        .onDisappear { badgeVisible = false; badgePresentationID = UUID() }
+        .onChange(of: scenePhase) { _, _ in badgePresentationID = UUID() }
+        .onChange(of: ObjectIdentifier(reader)) { _, value in latestReaderID = value; badgePresentationID = UUID() }
     }
     @ViewBuilder private func score(_ overview: GrowthCenterOverview) -> some View {
         Section("growth.score") {
@@ -93,7 +103,24 @@ extension EnvironmentValues {
         Section("growth.badges") {
             if let issue = overview.center.issue { GrowthCenterIssueView(issue: issue, retry: { Task { await load() } }) }
             else if let center = overview.center.value {
-                if center.badges.isEmpty { Text("growth.badges.empty").foregroundStyle(.secondary).accessibilityIdentifier("growth.badges.empty") }
+                if center.badges.isEmpty {
+                    Text("growth.badges.empty").foregroundStyle(.secondary).accessibilityIdentifier("growth.badges.empty")
+                    if let onExploreHome {
+                        let selection = GrowthBadgeExploreSelection(readerID: ObjectIdentifier(reader), key: key,
+                            center: center, presentationID: badgePresentationID)
+                        Button("growthExplore.openHome") {
+                            guard !badgeExploreConsumed, scenePhase == .active,
+                                  selection.accepts(readerID: latestReaderID, key: key, center: model.value(key: key)?.center.value,
+                                      presentationID: badgePresentationID, visible: badgeVisible,
+                                      authenticated: reader.isAuthenticated, configured: reader.isConfigured,
+                                      loading: model.isLoading, hasIssue: model.issue(key: key) != nil || model.value(key: key)?.center.issue != nil) else { return }
+                            badgeExploreConsumed = true; badgePresentationID = UUID()
+                            onExploreHome()
+                        }.buttonStyle(.bordered).frame(minHeight: 44)
+                            .disabled(badgeExploreConsumed || !badgeVisible || scenePhase != .active)
+                            .accessibilityIdentifier("growthExplore.badges.openHome")
+                    }
+                }
                 ForEach(Array(center.badges.enumerated()), id: \.offset) { index, badge in
                     if let moment = GrowthCenterFormatting.badgeMoment(badge.obtainedAt) {
                         DisclosureGroup {
@@ -119,8 +146,25 @@ extension EnvironmentValues {
         return Text("growth.unranked")
     }
     private func load() async {
+        badgePresentationID = UUID(); badgeExploreConsumed = false; latestReaderID = ObjectIdentifier(reader)
         guard reader.isAuthenticated, reader.isConfigured else { model.invalidate(); return }
         let captured = key
         await model.load(key: captured, currentKey: { key }) { try await reader.overview() }
+    }
+}
+
+/// Only an explicitly decoded successful center record can establish no badges.
+/// Missing/failed center sections never become an empty array or a navigation receipt.
+struct GrowthBadgeExploreSelection {
+    let readerID: ObjectIdentifier
+    let key: GrowthCenterLoadKey
+    let center: GrowthCenterRecord
+    let presentationID: UUID
+    func accepts(readerID: ObjectIdentifier?, key: GrowthCenterLoadKey, center: GrowthCenterRecord?,
+                 presentationID: UUID, visible: Bool, authenticated: Bool, configured: Bool,
+                 loading: Bool, hasIssue: Bool) -> Bool {
+        visible && authenticated && configured && !loading && !hasIssue &&
+            self.readerID == readerID && self.key == key && self.presentationID == presentationID &&
+            self.center.badges.isEmpty && self.center == center
     }
 }

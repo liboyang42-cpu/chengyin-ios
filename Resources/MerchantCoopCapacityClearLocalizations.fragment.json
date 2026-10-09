@@ -1,0 +1,36 @@
+{
+  "merchant.coopCapacityClear.draftHint": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "接待人数已在本地草稿中清空，确认保存后生效。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Capacity is cleared in this local draft. It takes effect only after confirming the save."
+        }
+      }
+    }
+  },
+  "merchant.coopCapacityClear.review": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "本次将清空接待人数，保存后该字段不再设置人数。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This save will clear the capacity field and leave the number of guests unspecified."
+        }
+      }
+    }
+  }
+}

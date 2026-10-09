@@ -35,6 +35,28 @@ public struct TemplateAuthoringReview: Equatable, Identifiable {
     public var shelfLocked: Bool { shelfBusy || shelfBlocked || shelfPending != nil }
     public lazy var shelfReader = TemplateOwnShelfReader(adapter: adapter, currentSession: currentSession)
     public var session: TemplateAuthoringSession? { currentSession() }
+    public var savedDraft: TemplateAuthoringSavedDraft? {
+        guard state == .acknowledged, let session = captured, currentSession() == session,
+              let pending, pending.identity == identity, let saved = pending.savedDraft, saved.matches(pending, session: session) else { return nil }
+        return saved
+    }
+    /// Explicit user action only. Keep the old acknowledged receipt/journal; unknown locks never reset.
+    @discardableResult public func beginNewDraft(after saved: TemplateAuthoringSavedDraft) -> Bool {
+        guard savedDraft == saved, let session = captured, currentSession() == session else { return false }
+        let stamp = generation
+        do {
+            guard try store.active(session: session) == identity, let pending,
+                  try store.pending(session: session, identity: identity) == pending else { throw TemplateAuthoringError.storageUnavailable }
+            let next = TemplateAuthoringIdentity(), empty = TemplateAuthoringDraft()
+            try store.save(empty, session: session, identity: next)
+            guard try store.active(session: session) == next,
+                  case .ready(let verified) = store.load(session: session, identity: next),
+                  ProjectEditPendingMaterials.exactData(verified.draft) == ProjectEditPendingMaterials.exactData(empty) else { throw TemplateAuthoringError.storageUnavailable }
+            guard active(session, stamp) else { throw TemplateAuthoringError.changedSession }
+            identity = next; draft = empty; self.pending = nil; review = nil; restore = .missing
+            generation += 1; state = .editing; messageKey = nil; return true
+        } catch { state = .blocked; messageKey = "templateAuthor.storageFailed"; return false }
+    }
     public var canRead: Bool { adapter.canRead }
     public var canSubmit: Bool { adapter.canSubmit }
     public var canSimulate: Bool { adapter.canSimulate }
@@ -112,11 +134,16 @@ public struct TemplateAuthoringReview: Equatable, Identifiable {
                 return
             }
             pending = intent; state = .submitting
-            let outcome = await adapter.submit(value.request)
+            let submission = await adapter.submitWithReceipt(value.request)
+            let outcome = submission.outcome
             guard active(session, stamp) else { return }
             switch outcome {
             case .simulated, .acknowledged:
-                var terminal = intent; terminal.terminal = true; terminal.acknowledged = outcome == .acknowledged; try store.savePending(terminal, session: session); pending = terminal
+                var terminal = intent; terminal.terminal = true; terminal.acknowledged = outcome == .acknowledged
+                if outcome == .acknowledged, let id = submission.savedMemberTemplateID {
+                    terminal.savedDraft = try .init(operationID: value.id, ownerKey: session.ownerKey, identity: identity, memberTemplateID: id, request: value.request)
+                }
+                try store.savePending(terminal, session: session); pending = terminal
                 state = outcome == .acknowledged ? .acknowledged : .simulated; messageKey = outcome == .acknowledged ? "templateAuthor.acknowledged" : "templateAuthor.simulated"
             case .notSent, .unauthorized, .rejected:
                 try store.clearPending(session: session, identity: identity); pending = nil; state = .editing

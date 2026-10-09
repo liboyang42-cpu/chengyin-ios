@@ -42,15 +42,20 @@ public enum TemplateAuthoringOutcome: Equatable {
         return try TemplateOwnShelfPage.decode(data, httpStatus: status)
     }
     public func submit(_ request: TemplateAuthoringRequest) async -> TemplateAuthoringOutcome {
-        guard TemplateAuthoringContract.permitsRemoteConfiguration(request), canSubmit, let transport, request.mutates else { return .notSent }
+        await submitWithReceipt(request).outcome
+    }
+    public func submitWithReceipt(_ request: TemplateAuthoringRequest) async -> TemplateAuthoringSubmission {
+        guard TemplateAuthoringContract.permitsRemoteConfiguration(request), canSubmit, let transport, request.mutates else { return .init(outcome: .notSent, savedMemberTemplateID: nil) }
         do {
             let (data, status) = try await transport.send(request)
-            // A 5xx or unreadable response cannot prove that a mutation did not happen.
-            guard status < 500 else { return .uncertain }
+            guard status < 500 else { return .init(outcome: .uncertain, savedMemberTemplateID: nil) }
             try TemplateAuthoringContract.requireSuccess(data, httpStatus: status)
-            return canSimulate ? .simulated : .acknowledged
-        } catch APIError.unauthorized { return .unauthorized }
-        catch let failure as TemplateAuthoringRejection { return .rejected(failure) }
-        catch { return .uncertain }
+            let outcome: TemplateAuthoringOutcome = canSimulate ? .simulated : .acknowledged
+            // Preserve legacy acknowledged semantics. Missing/invalid IDs cannot become a handoff.
+            let id = outcome == .acknowledged ? try? TemplateAuthoringSavedDraft.responseID(data, request: request) : nil
+            return .init(outcome: outcome, savedMemberTemplateID: id)
+        } catch APIError.unauthorized { return .init(outcome: .unauthorized, savedMemberTemplateID: nil) }
+        catch let failure as TemplateAuthoringRejection { return .init(outcome: .rejected(failure), savedMemberTemplateID: nil) }
+        catch { return .init(outcome: .uncertain, savedMemberTemplateID: nil) }
     }
 }

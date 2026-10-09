@@ -1,0 +1,182 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "projectNodeCreate.create": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create gameplay for this node"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "为此节点新建玩法"
+          }
+        }
+      }
+    },
+    "projectNodeCreate.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open the existing personal gameplay editor. A real saved draft receipt is required before returning to this exact node; a local save alone cannot create a template ID."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开现有本人玩法编辑器。只有真实保存草稿回执才能返回此节点，仅本机保存不会产生玩法 ID。"
+          }
+        }
+      }
+    },
+    "projectNodeCreate.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Creation or owner draft reading is unavailable, or an existing operation remains locked. Existing drafts and references are kept."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新建或本人草稿读取暂不可用，或已有操作仍锁定；现有草稿与引用均保留。"
+          }
+        }
+      }
+    },
+    "projectNodeCreate.draftOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This entry saves a personal gameplay draft only. It does not publish to the template marketplace or the topic."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此入口只保存本人玩法草稿，不发布到玩法广场或主题。"
+          }
+        }
+      }
+    },
+    "projectNodeCreate.return": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review this saved draft for the captured node"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "核对这份已保存草稿并返回原节点"
+          }
+        }
+      }
+    },
+    "projectNodeCreate.noReceipt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "There is no verified real saved-draft ID to return. A simulated, uncertain or ID-less result is not a created template reference. Do not resubmit an unknown operation."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前没有可核验的真实草稿 ID。模拟、未知或未返回 ID 的结果不能用作新玩法引用；请勿重发结果未知的操作。"
+          }
+        }
+      }
+    },
+    "projectNodeCreate.retryRead": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry reading this same saved ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重读同一个已保存 ID"
+          }
+        }
+      }
+    },
+    "projectNodeCreate.reviewTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm new gameplay binding"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认新玩法绑定"
+          }
+        }
+      }
+    },
+    "projectNodeCreate.returnScope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The saved member-template ID is shown below. Its owner/detail is checked now and again on confirmation. No private gameplay configuration is copied to this node."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下方是保存返回的成员模板 ID。现已核读本人详情，确认时会再次核对；不会向节点复制私有玩法配置。"
+          }
+        }
+      }
+    },
+    "projectNodeCreate.apply": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bind this saved gameplay and save locally"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "绑定这份已保存玩法并保存到本机"
+          }
+        }
+      }
+    },
+    "projectNodeCreate.readFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This returned draft could not be verified as current, owned ordinary gameplay. The node is unchanged. Retry reads only the same ID and never saves another template."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法确认该返回草稿仍是本人的有效普通玩法，节点未改。重试只读取同一个 ID，不会另存一份模板。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

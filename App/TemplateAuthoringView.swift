@@ -186,13 +186,18 @@ import SwiftUI
     @State private var discard = false
     let sessionRevision: UInt64
     let metadataReader: (any DiscoveryReading)?
+    private let onSavedDraft: ((TemplateAuthoringSavedDraft) -> Void)?
+    private let canReturnSavedDraft: (TemplateAuthoringSavedDraft) -> Bool
     init(coordinator: TemplateAuthoringCoordinator, sessionRevision: UInt64, metadataReader: (any DiscoveryReading)? = nil,
-         imageSelectionApproved: @escaping () -> Bool = { false }, mediaFixtureMode: String? = nil) {
+         imageSelectionApproved: @escaping () -> Bool = { false }, mediaFixtureMode: String? = nil,
+         onSavedDraft: ((TemplateAuthoringSavedDraft) -> Void)? = nil,
+         canReturnSavedDraft: @escaping (TemplateAuthoringSavedDraft) -> Bool = { _ in false }) {
         let value = TemplateAuthoringModel(coordinator: coordinator)
         value.mediaImageSelectionApproved = imageSelectionApproved; value.mediaFixtureMode = mediaFixtureMode
         _model = StateObject(wrappedValue: value)
         _media = StateObject(wrappedValue: .init(model: value, imageSelectionApproved: imageSelectionApproved, fixtureMode: mediaFixtureMode))
         self.sessionRevision = sessionRevision; self.metadataReader = metadataReader
+        self.onSavedDraft = onSavedDraft; self.canReturnSavedDraft = canReturnSavedDraft
     }
     var body: some View {
         Form {
@@ -210,6 +215,18 @@ import SwiftUI
                 }
             }
             if let key = model.coordinator.messageKey { Section { Text(LocalizedStringKey(key)).accessibilityIdentifier("templateAuthor.status") } }
+            if let onSavedDraft {
+                Section {
+                    Text("projectNodeCreate.draftOnly", tableName: "ProjectNodeTemplateCreation")
+                    if let saved = model.coordinator.savedDraft {
+                        Text(verbatim: "#" + String(saved.memberTemplateID.rawValue))
+                        Button(action: { onSavedDraft(saved) }, label: { Text("projectNodeCreate.return", tableName: "ProjectNodeTemplateCreation") })
+                            .disabled(!canReturnSavedDraft(saved)).accessibilityIdentifier("projectNodeCreate.return")
+                    } else if model.coordinator.locked {
+                        Text("projectNodeCreate.noReceipt", tableName: "ProjectNodeTemplateCreation")
+                    }
+                }
+            }
         }
         .navigationTitle("templateAuthor.title")
         .disabled(model.busy)
@@ -288,7 +305,9 @@ import SwiftUI
                 Button("templateAuthor.preview") { preview = true }.disabled(!model.draft.publishIssues.isEmpty || model.draft.validationMethod == .preference).accessibilityIdentifier("templateAuthor.preview")
                 if model.draft.validationMethod.isLocalConfigurationOnly { Text("templateAuthor.localConfigurationOnly") }
                 Button("templateAuthor.reviewDraft") { model.prepare(.saveDraft) }.disabled(!model.draft.canSave || model.draft.validationMethod.isLocalConfigurationOnly).accessibilityIdentifier("templateAuthor.reviewDraft")
-                Button("templateAuthor.reviewPublish") { model.prepare(.publish) }.disabled(!model.draft.publishIssues.isEmpty || model.draft.validationMethod.isLocalConfigurationOnly).accessibilityIdentifier("templateAuthor.reviewPublish")
+                if onSavedDraft == nil {
+                    Button("templateAuthor.reviewPublish") { model.prepare(.publish) }.disabled(!model.draft.publishIssues.isEmpty || model.draft.validationMethod.isLocalConfigurationOnly).accessibilityIdentifier("templateAuthor.reviewPublish")
+                }
             }
             if !model.draft.publishIssues.isEmpty {
                 Section("templateAuthor.validationTitle") { ForEach(Array(Set(model.draft.publishIssues)).sorted(), id: \.self) { Text(LocalizedStringKey($0)).foregroundStyle(.secondary) } }

@@ -325,6 +325,8 @@ import SwiftUI
             if (allowsGameplayRemoval ?? (chapterOverride == nil && starterLease == nil)) && model.draft.owner == .personal {
                 ProjectNodeTemplateSelectionField(model: model, chapterID: chapterID, nodeID: nodeID)
                     .id([Data(chapterID.utf8), Data(nodeID.utf8)])
+                ProjectNodeTemplateCreationField(model: model, chapterID: chapterID, nodeID: nodeID)
+                    .id([Data(chapterID.utf8), Data(nodeID.utf8)])
             }
             if (allowsGameplayRemoval ?? (chapterOverride == nil && starterLease == nil)) && (node.wrappedValue.templateID ?? 0) > 0 {
                 ProjectNodeGameplayRemovalField(model: model, chapterID: chapterID, nodeID: nodeID)

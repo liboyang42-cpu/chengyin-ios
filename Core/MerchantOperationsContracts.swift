@@ -173,6 +173,22 @@ public struct MerchantStoreDecor: Decodable, Equatable {
 }
 public struct MerchantCoopSettings: Decodable, Equatable {
     public var capacity: String
+    private var loadedCapacity: String
+    /// A missing or already-empty source value is never an implicit clear request.
+    public var clearsCapacity: Bool {
+        !loadedCapacity.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            && capacity.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+    /// Baseline freshness compares returned form facts, not local edit bookkeeping.
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.capacity == rhs.capacity && lhs.availableTime == rhs.availableTime && lhs.chargeType == rhs.chargeType
+            && lhs.demand == rhs.demand && lhs.suitActivityTypes == rhs.suitActivityTypes && lhs.coopOpen == rhs.coopOpen
+    }
+    /// Only a definite acknowledgement consumes this local edit intent.
+    mutating func acknowledgeCapacityEdit() {
+        if clearsCapacity { capacity = "" }
+        loadedCapacity = capacity
+    }
     public var availableTime: String
     public var chargeType: Int?
     public var demand: String
@@ -183,6 +199,7 @@ public struct MerchantCoopSettings: Decodable, Equatable {
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         capacity = (try? c.decode(String.self, forKey: .capacity)) ?? c.merchantInteger(.capacity).map(String.init) ?? ""
+        loadedCapacity = capacity
         availableTime = try c.decodeIfPresent(String.self, forKey: .availableTime) ?? ""
         chargeType = c.merchantInteger(.chargeType)
         demand = try c.decodeIfPresent(String.self, forKey: .demand) ?? ""
@@ -192,12 +209,14 @@ public struct MerchantCoopSettings: Decodable, Equatable {
     public var blocker: String? {
         let text = capacity.trimmingCharacters(in: .whitespacesAndNewlines)
         if !text.isEmpty && (Int(text) == nil || Int(text)! < 0) { return "merchant.operations.capacityInvalid" }
-        if let chargeType, ![0, 1].contains(chargeType) { return "merchant.operations.chargeUnknown" }
+        guard let chargeType else { return "merchant.coopChargeChoice.required" }
+        if ![0, 1].contains(chargeType) { return "merchant.operations.chargeUnknown" }
         return nil
     }
     public var fields: [String: Any] {
         var fields: [String: Any] = ["availableTime": availableTime.trimmingCharacters(in: .whitespacesAndNewlines), "demand": demand.trimmingCharacters(in: .whitespacesAndNewlines)]
         if let capacity = Int(capacity.trimmingCharacters(in: .whitespacesAndNewlines)) { fields["capacity"] = capacity }
+        else if clearsCapacity { fields["capacity"] = NSNull(); fields["params"] = ["clearCapacity": true] }
         if let chargeType { fields["chargeType"] = chargeType }
         if let suitActivityTypes { fields["suitActivityTypes"] = suitActivityTypes }
         if let coopOpen { fields["coopOpen"] = coopOpen }

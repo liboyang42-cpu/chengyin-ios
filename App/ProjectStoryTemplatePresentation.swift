@@ -106,12 +106,26 @@ import SwiftUI
     }
     @discardableResult func select(_ row: ProjectStoryTemplateRow, original: Opening) -> Task<Void, Never>? {
         guard owns(original), [.ready, .failed, .changed, .unsupported].contains(state), rows.contains(row), review == nil else { return nil }
+        return resolve(row.id, expected: row, original: original)
+    }
+    /// A real /draft receipt supplies this member ID. Still owner-read before preview and again before apply.
+    @discardableResult func openCreatedNode(_ original: Opening, id: MemberPlayTemplateID) -> Task<Void, Never>? {
+        guard opening == nil, isCurrent(original), case .nodeReference = original.target else { return nil }
+        opening = original; rows = []; review = nil; nextPage = nil
+        return resolve(id, expected: nil, original: original)
+    }
+    @discardableResult func refreshCreatedNode(_ original: Opening, id: MemberPlayTemplateID) -> Task<Void, Never>? {
+        guard owns(original), !busy, review == nil, case .nodeReference = original.target else { return nil }
+        return resolve(id, expected: nil, original: original)
+    }
+    private func resolve(_ id: MemberPlayTemplateID, expected: ProjectStoryTemplateRow?, original: Opening) -> Task<Void, Never> {
         let stamp = UUID(); requestID = stamp; state = .resolving
         let task = Task { [weak self] in
             do {
-                let source = try await original.source.detail(id: row.id, session: original.lease.session)
+                let source = try await original.source.detail(id: id, session: original.lease.session)
                 guard let self, self.accepts(stamp, original) else { return }
-                guard source.row == row else { throw ProjectStoryTemplateError.sourceChanged }
+                guard source.row.id == id, source.row.accountID == original.lease.session.accountID,
+                      expected == nil || source.row == expected else { throw ProjectStoryTemplateError.sourceChanged }
                 let next = try original.target.applying(source, to: self.editor.draft, identity: original.lease.identity, session: original.lease.session)
                 self.review = .init(source: source, draft: next); self.state = .ready
             } catch {
@@ -126,15 +140,18 @@ import SwiftUI
     func back(_ original: Opening) {
         guard owns(original), !busy else { return }; review = nil; state = .ready
     }
-    @discardableResult func apply(_ selected: Review, original: Opening) -> Task<Void, Never>? {
-        guard owns(original), review?.id == selected.id, [.ready, .saveFailed].contains(state) else { return nil }
+    @discardableResult func apply(_ selected: Review, original: Opening, authorization: @escaping @MainActor () -> Bool = { true }) -> Task<Void, Never>? {
+        guard authorization(), owns(original), review?.id == selected.id, [.ready, .saveFailed].contains(state) else { return nil }
         // Claim synchronously before the second owner read. A read never applies by itself.
         let stamp = UUID(); requestID = stamp; state = .applying
         let task = Task { [weak self] in
             do {
                 let current = try await original.source.detail(id: selected.source.row.id, session: original.lease.session)
                 guard let self, self.accepts(stamp, original), self.review?.id == selected.id else { return }
+                guard authorization() else { self.close(original); return }
                 guard current == selected.source else { throw ProjectStoryTemplateError.sourceChanged }
+                // No suspension between this final capability check and the local write.
+                guard authorization() else { self.close(original); return }
                 let saved: Bool
                 switch original.target {
                 case .storyGap: saved = self.editor.persistExistingStoryChange(selected.draft, lease: original.lease)

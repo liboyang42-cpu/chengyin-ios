@@ -24,6 +24,7 @@ import SwiftUI
         if !minutes.isEmpty, Int(minutes) == nil { return nil }
         return try? .init(idea: idea, style: style, minutes: minutes.isEmpty ? nil : Int(minutes))
     }
+    private var showsPreviousResult: Bool { generating || model.flow.resultIsPrevious(comparedTo: input) }
     var body: some View {
         let _ = model.revision
         Form {
@@ -40,14 +41,32 @@ import SwiftUI
                 Button("context.ai.generate") {
                     guard let input else { return }; focused = false
                     let request = UUID(); operationID = request; generating = true
-                    Task { await model.flow.generate(input); guard operationID == request else { return }; generating = false; model.revision += 1 }
+                    Task {
+                        guard operationID == request, generating, !Task.isCancelled else { return }
+                        await model.flow.generate(input)
+                        guard operationID == request else { return }; generating = false; model.revision += 1
+                    }
                 }.disabled(input == nil || !model.flow.canGenerate).accessibilityIdentifier("club.context.ai.generate")
             }
             if let failure = model.flow.failure {
                 Text(LocalizedStringKey("context.ai.error." + String(describing: failure)))
             }
-            if let result = model.flow.result {
-                Section("context.ai.plan") {
+            if let result = model.flow.result, let resultGeneration = model.flow.resultGeneration, let source = model.flow.resultInput {
+                Section(showsPreviousResult ? LocalizedStringKey("clubAICandidate.previous") : LocalizedStringKey("context.ai.plan")) {
+                    if showsPreviousResult { Text("clubAICandidate.previousNotice").font(.footnote) }
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("clubAICandidate.source").font(.caption).foregroundStyle(.secondary)
+                        LabeledContent("clubAICandidate.generation") { Text(verbatim: String(resultGeneration)) }
+                        LabeledContent("context.ai.idea") { Text(verbatim: source.idea).textSelection(.enabled) }
+                        LabeledContent("context.ai.style") {
+                            if source.style.isEmpty { Text("clubAICandidate.unspecified") }
+                            else { Text(verbatim: source.style) }
+                        }
+                        LabeledContent("context.ai.minutes") {
+                            if let minutes = source.minutes { Text(verbatim: String(minutes)) }
+                            else { Text("clubAICandidate.unspecified") }
+                        }
+                    }.accessibilityIdentifier("clubAICandidate.source")
                     Text(verbatim: result.title).font(.headline)
                     Text(verbatim: result.subtitle); Text(verbatim: result.storyline)
                     if !result.fitReason.isEmpty { Text(verbatim: result.fitReason) }
@@ -60,7 +79,10 @@ import SwiftUI
                 if !result.promoCopy.isEmpty { Section("context.ai.promo") { Text(verbatim: result.promoCopy).textSelection(.enabled) } }
                 Section {
                     Text("context.ai.adoptHint")
-                    Button("context.ai.adopt") { if let draft = try? model.flow.adopt(clubID: clubID) { onAdopt(draft) } }
+                    Button(showsPreviousResult ? LocalizedStringKey("clubAICandidate.adoptPrevious") : LocalizedStringKey("context.ai.adopt")) {
+                        guard !generating else { return }
+                        if let draft = try? model.flow.adopt(clubID: clubID, generation: resultGeneration) { onAdopt(draft) }
+                    }.disabled(generating || !model.flow.canAdoptResult)
                         .accessibilityIdentifier("club.context.ai.adopt")
                 }
             }

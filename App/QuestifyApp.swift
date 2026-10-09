@@ -214,6 +214,10 @@ struct SessionRootView: View {
         .environmentObject(session)
         .environment(\.projectCategoryReader, session)
         .environment(\.projectChapterAudioPlayback, session.platformConsumers.audioFactory)
+        .environment(\.projectNodeTemplateCreationFactory, {
+            .init(coordinator: session.templateAuthoringEditor(), sessionRevision: session.sessionRevision, metadataReader: session,
+                  imageSelectionApproved: { session.retainedImagePickerHost.nativeSelectionEnabled })
+        })
         .environment(\.verificationCodeFactory, { session.makeVerificationCodeCoordinator(target: $0) })
         .environment(\.withdrawalSupportReader, session.withdrawalSupportReader)
         .environment(\.squareRelatedTopic, .init(squareScope: session.squareReader.scope, reader: session.topicReader))

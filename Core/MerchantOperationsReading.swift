@@ -226,6 +226,11 @@ public struct MerchantOperationsConfirmation: Identifiable, Equatable {
                     guard !Task.isCancelled, operation == generation, reader.scope == value.scope, reader.isAuthenticated else { return }
                     issue = .key(destination == .npcMapPoint ? "merchantMapPoint.readbackFailed" : destination == .businessStatus ? "merchant.operations.statusReadbackFailed" : "merchant.operations.profileReadbackFailed")
                 }
+            } else if case .cooperation(var accepted) = value.draft {
+                accepted.acknowledgeCapacityEdit()
+                let saved = MerchantOperationsDraft.cooperation(accepted)
+                baseline = saved; draft = saved; document = .draft(saved)
+                exampleSaved = reader.isOfflineExample; issue = reader.isOfflineExample ? nil : .key("merchant.operations.acknowledged")
             } else {
                 baseline = value.draft; draft = value.draft; document = .draft(value.draft)
                 exampleSaved = reader.isOfflineExample; issue = reader.isOfflineExample ? nil : .key("merchant.operations.acknowledged")
