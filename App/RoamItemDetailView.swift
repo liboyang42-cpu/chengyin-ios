@@ -140,6 +140,13 @@ struct RoamItemDetailView: View {
         }
     }
     @ViewBuilder private func placeContent(_ place: RoamPlace) -> some View {
+        if eventScope != nil, currentPlace == place {
+            Section {
+                RoamPlaceReadStatusLabel(status: place.readStatus)
+                Text("roamPlaceRead.notice").font(.footnote).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }.accessibilityIdentifier("roamPlaceRead.detail")
+        }
         if let node {
             if !node.isPublished {
                 Section { Label("roam.notPublished", systemImage: "eye.slash") }
@@ -344,6 +351,34 @@ struct RoamItemDetailView: View {
             guard operation == generation, isCurrent else { return }
             node = nil; merchant = nil; issue = RoamScreenIssue(error: error)
         }
+    }
+}
+
+/// A snapshot description only. Render both fields independently rather than
+/// repairing apparently inconsistent values with a client-side business rule.
+struct RoamPlaceReadStatusLabel: View {
+    let status: RoamPlaceReadStatus
+    var discoveryKey: String {
+        switch status.discovered {
+        case .yes: "roamPlaceRead.discovered"
+        case .no: "roamPlaceRead.notDiscovered"
+        case .unknown: "roamPlaceRead.discoveryUnknown"
+        }
+    }
+    var redemptionKey: String {
+        switch status.pendingRedemption {
+        case .yes: "roamPlaceRead.pending"
+        case .no: "roamPlaceRead.noPending"
+        case .unknown: "roamPlaceRead.redemptionUnknown"
+        }
+    }
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Label(LocalizedStringKey(discoveryKey), systemImage: status.discovered == .unknown ? "questionmark.circle" : "map")
+            Label(LocalizedStringKey(redemptionKey), systemImage: status.pendingRedemption == .unknown ? "questionmark.circle" : "ticket")
+        }.fixedSize(horizontal: false, vertical: true)
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("roamPlaceRead.status")
     }
 }
 

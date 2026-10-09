@@ -45,8 +45,10 @@ struct MerchantContentBoundary: View {
     @Environment(\.merchantCouponManagementDestination) private var couponManagementDestination
     let service: any MerchantContentServing
     let query: MerchantContentQuery
+    let focusedTopicID: Int?
+    let focusedMerchantID: Int?
     @StateObject private var model: MerchantContentViewModel
-    init(service: any MerchantContentServing, query: MerchantContentQuery) { self.service = service; self.query = query; _model = StateObject(wrappedValue: .init(service: service, query: query)) }
+    init(service: any MerchantContentServing, query: MerchantContentQuery, focusedTopicID: Int? = nil, focusedMerchantID: Int? = nil) { self.service = service; self.query = query; self.focusedTopicID = focusedTopicID; self.focusedMerchantID = focusedMerchantID; _model = StateObject(wrappedValue: .init(service: service, query: query)) }
     private var c: MerchantContentCoordinator { model.coordinator }
     var body: some View {
         ScrollView {
@@ -54,7 +56,9 @@ struct MerchantContentBoundary: View {
                 MerchantContentBoundary()
                 MerchantContentStatus(model: model)
                 if c.isCurrent, let snapshot = c.snapshot {
-                    content(snapshot)
+                    if query == .recruiting, let focusedMerchantID, snapshot.access.merchantID != focusedMerchantID {
+                        Text("merchantMarketing.stale").accessibilityIdentifier("merchant.insightNavigation.storeChanged")
+                    } else { content(snapshot) }
                 } else if c.busy { ProgressView("merchant.loading") }
             }.padding()
         }
@@ -74,7 +78,9 @@ struct MerchantContentBoundary: View {
                 NavigationLink { couponManagementDestination() } label: { Label("couponManagement.title", systemImage: "ticket") }
                     .accessibilityIdentifier("couponManagement.marketing.entry")
             }
-            MerchantContentRows(service: service, model: model, rows: s.rows, kind: .query(query))
+            let focus = MerchantInsightRecruitingFocus(rows: s.rows, topicID: focusedTopicID)
+            if focus.unavailable { Text("merchant.insightNavigation.notLoaded").font(.footnote).accessibilityIdentifier("merchant.insightNavigation.notLoaded") }
+            MerchantContentRows(service: service, model: model, rows: focus.rows, kind: .query(query), focusedTopicID: focus.matchedID)
         case .chapters(let topic): MerchantContentRecruitView(service: service, snapshot: s, topicID: topic)
         case .project(let topic): MerchantContentProjectView(service: service, model: model, value: s.value, topicID: topic)
         case .city:
@@ -183,6 +189,7 @@ struct MerchantContentFields: View {
     @ObservedObject var model: MerchantContentViewModel
     let rows: [MerchantContentValue]
     let kind: Kind
+    var focusedTopicID: Int? = nil
     private var rowNamespace: String {
         switch kind { case .city: return "city"; case .cityApplication: return "cityApplication"; case .player: return "player"; case .query(let query): return query.key }
     }
@@ -193,6 +200,10 @@ struct MerchantContentFields: View {
             if rows.isEmpty { ContentUnavailableView("merchant.content.empty", systemImage: "tray") }
             ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
                 VStack(alignment: .leading, spacing: 12) {
+                    if case .query(.recruiting) = kind, let focusedTopicID, row["id"].integer == focusedTopicID {
+                        Label("merchant.insightNavigation.located", systemImage: "scope")
+                            .accessibilityIdentifier("merchant.insightNavigation.located." + String(focusedTopicID))
+                    }
                     Text(verbatim: row["merchantName"].text ?? row["name"].text ?? row["title"].text ?? row["topicName"].text ?? row["activityName"].text ?? row["poiName"].text ?? "—").font(.headline)
                     MerchantContentFields(value: row, names: fields)
                     actions(row)

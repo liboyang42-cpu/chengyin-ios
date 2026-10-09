@@ -101,6 +101,22 @@ import SwiftUI
             case .topicCooperation: CooperationFlowWorkbench(reader: session.cooperationFlowReader)
             case .decoration: MerchantOperationsDocumentView(reader: session.merchantOperationsReader, destination: .decor, imageHost: session.retainedMerchantImages)
             case .content: ProjectEditView(coordinator: session.projectEditor(product: .city), sessionRevision: session.sessionRevision, publisherClient: session.publisherLifecycleContext?.client, publisherHost: { AnyView(SessionPublisherLifecycleView(session: session, resource: $0)) }).id(session.projectEditorContextID)
+            case .recommendation(let route):
+                if session.merchantOperationsReader.isAuthenticated, session.merchantOperationsReader.scope == route.origin.readerScope {
+                    switch route.kind {
+                    case .topic:
+                        MerchantContentDocumentView(service: session.merchantContentService, query: .recruiting,
+                            focusedTopicID: route.targetID, focusedMerchantID: route.origin.merchantID)
+                    case .partner:
+                        if let owner = PublicMerchantOwnerID(route.targetID) {
+                            let home = session.publicMerchantHomeContext
+                            let reader = CoopRelationMerchantReader(base: home.reader, owner: owner, isCurrent: {
+                                session.merchantOperationsReader.isAuthenticated && session.merchantOperationsReader.scope == route.origin.readerScope
+                            })
+                            PublicMerchantHomeView(target: .ownerMemberID(owner), context: .init(reader: reader, image: home.image))
+                        } else { Text("merchantMarketing.unavailable") }
+                    }
+                } else { Text("merchantMarketing.stale") }
             }
         }.id(session.sessionRevision)
     }

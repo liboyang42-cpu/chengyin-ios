@@ -249,7 +249,7 @@ struct RoamBrowserView: View {
             ForEach(visibleItems) { item in
                 Button {
                     select(item, key: renderedKey, snapshot: renderedItems)
-                } label: { RoamItemRow(item: item) }
+                } label: { RoamItemRow(item: item, showsCurrentReadStatus: true) }
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("roam.row.\(item.id)")
             }
@@ -312,12 +312,18 @@ struct RoamBrowserView: View {
 struct RoamItemRow: View {
     let item: RoamMapItem
     var navigable = true
+    // Explicit opt-in by the current authorized result list. Retained rows and
+    // other callers cannot accidentally display old account facts as current.
+    var showsCurrentReadStatus = false
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             Image(systemName: item.symbol).foregroundStyle(.tint).frame(width: 26)
             VStack(alignment: .leading, spacing: 6) {
                 RoamTitle(item.title).font(.headline)
                 Text(item.kindLabel).font(.caption).foregroundStyle(.secondary)
+                if showsCurrentReadStatus, case .place(let place) = item {
+                    RoamPlaceReadStatusLabel(status: place.readStatus).font(.caption)
+                }
                 if let address = item.address, !address.isEmpty { Text(verbatim: address).font(.subheadline) }
                 if let distance = item.distance, distance >= 0, distance.isFinite {
                     RoamDistanceLabel(meters: distance)

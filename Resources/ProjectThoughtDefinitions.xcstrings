@@ -1,0 +1,342 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "projectThoughts.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Foreshadowing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "伏笔"
+          }
+        }
+      }
+    },
+    "projectThoughts.name": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name · up to 20 UTF-16 units"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "名称 · 不超过 20 个 UTF-16 单元"
+          }
+        }
+      }
+    },
+    "projectThoughts.summary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Description · up to 60 UTF-16 units"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一句话 · 不超过 60 个 UTF-16 单元"
+          }
+        }
+      }
+    },
+    "projectThoughts.steps": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Steps until fulfilled · optional"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "走多少步后应验 · 可留空"
+          }
+        }
+      }
+    },
+    "projectThoughts.when": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obtain after this choice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选中后得到"
+          }
+        }
+      }
+    },
+    "projectThoughts.done": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fulfil after this choice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选中后应验"
+          }
+        }
+      }
+    },
+    "projectThoughts.add": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add foreshadowing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加伏笔"
+          }
+        }
+      }
+    },
+    "projectThoughts.remove": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove this definition"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除此伏笔定义"
+          }
+        }
+      }
+    },
+    "projectThoughts.removeTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove this foreshadowing definition?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除这个伏笔定义？"
+          }
+        }
+      }
+    },
+    "projectThoughts.removeImpact": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Known current references are listed below. They are not removed or reassigned and must be corrected before publishing. Other unsupported legacy references are not inferred."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下方列出当前可识别的引用。删除不会移除或迁移它们，发布前须修正；不推断未知旧格式引用。"
+          }
+        }
+      }
+    },
+    "projectThoughts.noKnownImpacts": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No matching supported reference was found in this draft."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前草稿未找到匹配的已支持引用。"
+          }
+        }
+      }
+    },
+    "projectThoughts.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Up to 8 definitions. Internal keys are assigned automatically and stay stable. Use 1–100000 steps, a fulfilment choice, or an existing node condition. Changes stay in this sheet until Save."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最多 8 个伏笔，内部标识自动生成并保持稳定。应验至少设置 1–100000 步、选项条件或已有到站条件之一；保存前只在此面板暂存。"
+          }
+        }
+      }
+    },
+    "projectThoughts.unsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The saved rules contain an unsupported version, field type or condition. They have been kept unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "现存规则含暂不支持的版本、字段类型或条件，已原样保留。"
+          }
+        }
+      }
+    },
+    "projectThoughts.noOptions": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No matching template option tags are present in this draft. No tags are guessed or fetched automatically."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿中没有同一玩法模板的可用选项标签，不会猜测或自动读取新标签。"
+          }
+        }
+      }
+    },
+    "projectThoughts.retainedTag": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved selection; its source option is not currently available."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已保存的选择，当前找不到其来源选项。"
+          }
+        }
+      }
+    },
+    "projectThoughts.retainedWhenNodes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Existing obtain-at-node conditions · preserved"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已有到站后得到条件 · 保留"
+          }
+        }
+      }
+    },
+    "projectThoughts.retainedDoneNodes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Existing fulfil-at-node conditions · preserved"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已有到站后应验条件 · 保留"
+          }
+        }
+      }
+    },
+    "projectThoughts.invalid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check names, descriptions, step/condition limits and initial-state values. Rules must remain within 16 KiB. Nothing has been applied."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请检查名称、描述、步数或条件上限及初始状态数值；规则须不超过 16 KiB，尚未应用更改。"
+          }
+        }
+      }
+    },
+    "projectThoughts.save": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save definitions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存伏笔定义"
+          }
+        }
+      }
+    },
+    "projectThoughts.reference": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a defined foreshadowing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择已定义伏笔"
+          }
+        }
+      }
+    },
+    "projectThoughts.noDefinitions": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No selectable definitions are available. The existing reference is preserved."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无可选伏笔定义，现存引用会保留。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

@@ -89,6 +89,10 @@ public struct OfficialEvent: Decodable, Equatable, Identifiable {
     public let collective: OfficialCollectiveProgress?
     public var isCompleteRecord: Bool { id > 0 && !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
     public var isV2: Bool { (contractVersion ?? 1) >= 2 }
+    /// Exact official_event codes from the existing task-list source. This is a
+    /// display classification only, never participation or operation authority.
+    public var hasKnownListStatus: Bool { status.map { [0, 1, 2, 3, 4, 5, 6, 9].contains($0) } == true }
+    public var hasEndedListStatus: Bool { status.map { [5, 6, 9].contains($0) } == true }
     public var completedMissionCount: Int { missions.filter { $0.complete == true }.count }
     public var recruitmentWarningReason: String? {
         guard recruitmentBlocked == true,
@@ -139,7 +143,7 @@ public struct OfficialEvent: Decodable, Equatable, Identifiable {
     }
     public var statusKey: String {
         guard let status else { return "official.status.unknown" }
-        if status >= 5 { return "official.status.ended" }
+        if hasEndedListStatus { return "official.status.ended" }
         switch status {
         case 1: return "official.status.upcoming"
         case 2: return "official.status.registration"
@@ -150,7 +154,8 @@ public struct OfficialEvent: Decodable, Equatable, Identifiable {
     }
     /// Read-only explanation of the source CTA state machine; never enables a write.
     public var participationKey: String {
-        if let status, status >= 5 { return "official.status.ended" }
+        guard hasKnownListStatus else { return "official.participation.unavailable" }
+        if hasEndedListStatus { return "official.status.ended" }
         if paused { return "official.status.paused" }
         if signed == true {
             if status == 3 && isV2 {
@@ -173,9 +178,11 @@ public enum OfficialEventBucket: String, CaseIterable, Identifiable {
     public var titleKey: String { "official.bucket." + rawValue }
     public func includes(_ value: OfficialEvent) -> Bool {
         switch self {
-        case .live: return value.status == 2 || value.status == 3
+        // Keep unknown returned records inspectable, with their unknown label.
+        // Inclusion in this overview is not a claim that the event is live.
+        case .live: return value.status == 2 || value.status == 3 || !value.hasKnownListStatus
         case .upcoming: return value.status == 1
-        case .ended: return (value.status ?? -1) >= 5
+        case .ended: return value.hasEndedListStatus
         case .mine: return true
         }
     }
@@ -188,6 +195,22 @@ public enum OfficialEventFilter {
             row.isCompleteRecord && seen.insert(row.id).inserted && bucket.includes(row) &&
                 (keyword.isEmpty || [row.title, row.subtitle ?? "", row.city ?? ""].contains { $0.lowercased().contains(keyword) })
         }
+    }
+}
+
+/// A local presentation query shared by public and already-authorized "mine"
+/// results. It never fetches private rows or changes a reader's request scope.
+public struct OfficialEventBrowseQuery: Equatable {
+    public let bucket: OfficialEventBucket
+    public let keyword: String
+    public init(bucket: OfficialEventBucket, keyword: String) { self.bucket = bucket; self.keyword = keyword }
+    public var isPrivate: Bool { bucket == .mine }
+    public var emptyKey: String {
+        if !keyword.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return "official.searchEmpty" }
+        return isPrivate ? "official.emptyMine" : "official.empty"
+    }
+    public func visible(_ rows: [OfficialEvent]) -> [OfficialEvent] {
+        OfficialEventFilter.visible(rows, bucket: bucket, keyword: keyword)
     }
 }
 public struct OfficialPartyInvite: Decodable, Equatable, Identifiable {

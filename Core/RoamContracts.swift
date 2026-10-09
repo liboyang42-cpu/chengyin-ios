@@ -31,6 +31,24 @@ public enum RoamPlaceFilter: String, CaseIterable, Hashable {
 }
 public enum RoamEventFilter: String, CaseIterable, Hashable { case all, activity, topic }
 
+/// Independent, account-scoped facts from the existing nearby read. Neither
+/// field grants completion, a coupon, a reward or permission to redeem.
+public struct RoamPlaceReadStatus: Equatable {
+    public enum Fact: Equatable { case yes, no, unknown }
+    public let discovered: Fact
+    public let pendingRedemption: Fact
+    public init(found: Bool?, pendingRedeem: Bool?) {
+        discovered = Self.fact(found); pendingRedemption = Self.fact(pendingRedeem)
+    }
+    private static func fact(_ value: Bool?) -> Fact {
+        switch value {
+        case true: return .yes
+        case false: return .no
+        case nil: return .unknown
+        }
+    }
+}
+
 public struct RoamPlace: Decodable, Equatable, Identifiable {
     public let id: Int
     public let name: String
@@ -41,8 +59,11 @@ public struct RoamPlace: Decodable, Equatable, Identifiable {
     public let description: String?
     public let xp: Int?
     public let couponTemplateId: Int?
+    public let found: Bool?
+    public let pendingRedeem: Bool?
+    public var readStatus: RoamPlaceReadStatus { .init(found: found, pendingRedeem: pendingRedeem) }
     public var isSupported: Bool { id > 0 && (type == 1 || type == 2) }
-    enum CodingKeys: String, CodingKey { case id, name, lat, lng, type, radiusM, address, description, xp, couponTemplateId }
+    enum CodingKeys: String, CodingKey { case id, name, lat, lng, type, radiusM, address, description, xp, couponTemplateId, found, pendingRedeem }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id = try c.decodeIfPresent(Int.self, forKey: .id) ?? 0
@@ -53,6 +74,10 @@ public struct RoamPlace: Decodable, Equatable, Identifiable {
         address = try c.roamText(.address); description = try c.roamText(.description)
         xp = try c.decodeIfPresent(Int.self, forKey: .xp)
         couponTemplateId = try c.decodeIfPresent(Int.self, forKey: .couponTemplateId)
+        // Numeric/string truthiness is not part of this Boolean response contract.
+        // A malformed optional fact stays unknown without inventing a negative.
+        found = try? c.decode(Bool.self, forKey: .found)
+        pendingRedeem = try? c.decode(Bool.self, forKey: .pendingRedeem)
     }
 }
 

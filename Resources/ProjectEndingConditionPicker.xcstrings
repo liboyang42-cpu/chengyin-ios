@@ -1,0 +1,150 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "projectEndingChoice.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ending condition source"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结局条件来源"
+          }
+        }
+      }
+    },
+    "projectEndingChoice.choose": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a defined source"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择已有条件来源"
+          }
+        }
+      }
+    },
+    "projectEndingChoice.current": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved value"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "现存值"
+          }
+        }
+      }
+    },
+    "projectEndingChoice.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only this condition’s reference changes after confirmation. Its operator, other conditions and fallback remain unchanged. Unknown saved values stay intact until you choose a replacement."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认后只改此条件的引用，运算符、其它条件和兜底设置保持不变；未知现存值在明确替换前保留。"
+          }
+        }
+      }
+    },
+    "projectEndingChoice.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No unambiguous source is available. Nodes need a unique saved server ID; no ID is invented."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无可明确定位的来源。站点须有唯一的已保存服务端 ID，不会生成或猜测 ID。"
+          }
+        }
+      }
+    },
+    "projectEndingChoice.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm this source"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认此来源"
+          }
+        }
+      }
+    },
+    "projectEndingChoice.kind.thought": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fulfilled foreshadowing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "伏笔应验"
+          }
+        }
+      }
+    },
+    "projectEndingChoice.kind.tag": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Authored option tag"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已有选项标签"
+          }
+        }
+      }
+    },
+    "projectEndingChoice.kind.node": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visited saved node"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "到过已保存站点"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

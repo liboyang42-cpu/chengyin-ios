@@ -105,10 +105,20 @@ public struct MerchantMarketingDashboard: Equatable {
 }
 
 /// Only this enum can be handed to a navigation host; never expose model URLs as routes.
-public enum MerchantInsightDestination: String, CaseIterable, Hashable {
-    case topicCooperation = "topic_coop", decoration = "decor", content = "content"
+public enum MerchantInsightDestination: Hashable {
+    case topicCooperation, decoration, content
+    case recommendation(MerchantInsightRecommendationRoute)
+    /// The legacy AI string whitelist stays finite. Recommendation IDs are never parsed from AI type/URL text.
+    public static let allCases: [Self] = [.topicCooperation, .decoration, .content]
+    public init?(rawValue: String) {
+        switch rawValue { case "topic_coop": self = .topicCooperation; case "decor": self = .decoration
+        case "content": self = .content; default: return nil }
+    }
     public var sourcePath: String {
-        switch self { case .topicCooperation: return "/merchant/coop"; case .decoration: return "/merchant/decor"; case .content: return "/publish/pro" }
+        switch self {
+        case .topicCooperation: return "/merchant/coop"; case .decoration: return "/merchant/decor"; case .content: return "/publish/pro"
+        case .recommendation(let route): return route.kind == .topic ? "/merchant/coop" : "/merchant/home"
+        }
     }
 }
 public struct MerchantMarketingInsight: Equatable {

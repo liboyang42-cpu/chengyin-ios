@@ -22,17 +22,14 @@ import SwiftUI
                     Text("contextPublish.ai.notice")
                     TextField("contextPublish.ai.prompt", text: Binding(get: { model.flow.idea }, set: { model.flow.idea = $0; model.revision += 1 }), axis: .vertical)
                         .lineLimit(3...8).disabled(model.flow.busy).accessibilityIdentifier("contextPublish.ai.prompt")
-                    if let quota = model.flow.quota, let remaining = quota.remaining, quota.limited {
-                        LabeledContent("contextPublish.ai.remaining", value: String(remaining))
-                    }
-                    if model.flow.quota?.exhausted == true { Text("contextPublish.ai.exhausted") }
                     if let key = model.flow.messageKey { Text(LocalizedStringKey(key)) }
                     if let message = model.flow.serverMessage { Text(verbatim: message) }
                     if model.flow.busy { ProgressView("contextPublish.ai.generating") }
                     Button("contextPublish.ai.generate") { Task { await model.flow.generate() } }
                         .disabled(!model.flow.canGenerate).accessibilityIdentifier("contextPublish.ai.generate")
-                    if !model.flow.canGenerate && !model.flow.busy && model.flow.quota?.exhausted != true { Text("contextPublish.ai.unavailable").font(.caption) }
+                    if !model.flow.canGenerate && !model.flow.busy && model.flow.quotaReadState != .loading && model.flow.quota?.exhausted != true { Text("contextPublish.ai.unavailable").font(.caption) }
                 }
+                PublishingAIQuotaSection(flow: model.flow)
                 if let result = model.flow.candidate {
                     Section("contextPublish.ai.generated") {
                         Text(verbatim: result.draft.title).font(.headline)

@@ -27,7 +27,8 @@ class OfficialPreferenceUIRegressions(unittest.TestCase):
         self.assertNotIn('.accessibilityIdentifier("official.browser")', text)
         for leaf in ['official.search', 'official.filter', 'official.more']:
             self.assertIn(f'.accessibilityIdentifier("{leaf}")', text)
-        self.assertIn('privateList ? "" : keyword', text)
+        self.assertIn('let visible = query.visible(rows)', text)
+        self.assertIn('isPrivate: privateList, requestID: privateList ? "mine" : "public"', text)
         self.assertIn('canPublish && publisherScope == reader.scope', text)
 
     def test_official_price_assertion_is_exact_semantic_unknown_value(self):

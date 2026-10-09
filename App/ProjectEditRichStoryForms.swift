@@ -70,6 +70,7 @@ import SwiftUI
                 }
             case .thought:
                 Section {
+                    ProjectThoughtReferencePicker(model: model, block: $block, chapterID: chapterID)
                     TextField("projectEdit.rich.thoughtKey", text: text("thoughtKey")).textInputAutocapitalization(.never).autocorrectionDisabled()
                     Text("projectEdit.rich.thoughtHint").font(.caption).foregroundStyle(.secondary)
                 }
@@ -124,6 +125,7 @@ import SwiftUI
     @Binding var condition: ProjectEditJSON?
     let plain: Bool
     let ending: Bool
+    var endingContext: ProjectEndingConditionContext? = nil
     private var object: [String: ProjectEditJSON] { condition?.object ?? [:] }
     private var op: String { object["op"]?.text ?? "HAS_TAG" }
     private func text(_ key: String, integer: Bool = false) -> Binding<String> {
@@ -146,6 +148,9 @@ import SwiftUI
                     ForEach(ProjectEditRichStoryContract.conditionOps, id: \.self) { Text(LocalizedStringKey("projectEdit.rich.op." + $0)).tag($0) }
                 }
             }
+            if let endingContext, ending && ["HAS_TAG", "NODE_COMPLETED"].contains(op) {
+                ProjectEndingConditionEntry(context: endingContext).id(endingContext.id)
+            }
             if op == "HAS_TAG" {
                 TextField("projectEdit.rich.tag", text: text("value")).textInputAutocapitalization(.never).autocorrectionDisabled()
                 Text(LocalizedStringKey(plain || ending ? "projectEdit.rich.tagThoughtHint" : "projectEdit.rich.tagHint")).font(.caption).foregroundStyle(.secondary)
@@ -164,6 +169,7 @@ import SwiftUI
 @MainActor struct ProjectEditChapterStorySettings: View {
     @Binding var chapter: ProjectEditChapter
     let isFirst: Bool
+    var model: ProjectEditModel? = nil
     private var ending: [String: ProjectEditJSON]? { chapter.preserved["ending"]?.object }
     private var conditions: [ProjectEditJSON] { ending?["when"]?.array ?? [] }
     var body: some View {
@@ -184,7 +190,8 @@ import SwiftUI
                 }))
                 if ending?["fallback"] != .bool(true) {
                     ForEach(conditions.indices, id: \.self) { index in
-                        ProjectEditStoryConditionEditor(condition: condition(index), plain: false, ending: true)
+                        ProjectEditStoryConditionEditor(condition: condition(index), plain: false, ending: true,
+                            endingContext: model.map { .init(model: $0, chapterID: chapter.id, index: index) })
                         Button("projectEdit.rich.removeCondition", role: .destructive) { var rows = conditions; guard rows.indices.contains(index) else { return }; rows.remove(at: index); setConditions(rows) }
                     }
                     Button("projectEdit.rich.addCondition") { setConditions(conditions + [.object(["op": .string("HAS_TAG"), "value": .string("")])]) }.disabled(conditions.count >= 16)

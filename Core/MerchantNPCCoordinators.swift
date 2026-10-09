@@ -1,6 +1,17 @@
 import Foundation
 
 @MainActor public final class MerchantNPCChatCoordinator {
+    /// A local completion receipt, not a server authorization or business result.
+    /// Only a successfully completed exact request/attempt can create one.
+    public struct CompletedRequest: Equatable {
+        public let requestID: UUID
+        fileprivate let scope: MerchantNPCScope
+        fileprivate let generation: Int
+        fileprivate let operation: UUID
+        fileprivate init(requestID: UUID, scope: MerchantNPCScope, generation: Int, operation: UUID) {
+            self.requestID = requestID; self.scope = scope; self.generation = generation; self.operation = operation
+        }
+    }
     public let scope: MerchantNPCScope
     private let currentScope: () -> MerchantNPCScope?
     private let grants: () -> MerchantNPCGrants
@@ -12,6 +23,27 @@ import Foundation
     public private(set) var sending = false
     public private(set) var requestID: UUID?
     public private(set) var retryAt: Date?
+    private var storedHistory = MerchantNPCConversationHistory()
+    private var displayedRequestID: UUID?
+    private var completedOperation: UUID?
+    /// Scope/authorization loss erases the retained display projection on access,
+    /// even before an enclosing navigation owner finishes its invalidation.
+    public var conversationHistory: MerchantNPCConversationHistory {
+        guard isCurrent, grants().chatAllowed else {
+            // Remove the completed turn's legacy display mirror as well. Never
+            // touch an unresolved request's original message, ID or retry lock.
+            if requestID == nil, let displayedRequestID,
+               storedHistory.turns.contains(where: { $0.id == displayedRequestID }) {
+                message = nil; reply = nil; self.displayedRequestID = nil
+            }
+            storedHistory.clear(); return storedHistory
+        }
+        return storedHistory
+    }
+    public var currentTurnIsRecorded: Bool {
+        guard let displayedRequestID else { return false }
+        return conversationHistory.turns.contains { $0.id == displayedRequestID }
+    }
     private var attempts = 0
     private var generation = 0
     private var transmission: Task<MerchantNPCReply, Error>?
@@ -44,11 +76,14 @@ import Foundation
         lifecycle = .active; onChange?()
     }
     public var canSend: Bool { isCurrent && grants().chatAllowed && !sending && requestID == nil && transmission == nil }
-    public func send(_ text: String) async {
-        guard canSend, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
-        message = text.trimmingCharacters(in: .whitespacesAndNewlines); requestID = UUID(); attempts = 0
+    @discardableResult public func send(_ text: String) async -> CompletedRequest? {
+        guard canSend, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
+        let capturedRequest = UUID(), capturedGeneration = generation
+        message = text.trimmingCharacters(in: .whitespacesAndNewlines); requestID = capturedRequest; attempts = 0
+        displayedRequestID = capturedRequest
         reply = nil; retryAt = nil
         await run()
+        return completion(requestID: capturedRequest, generation: capturedGeneration)
     }
     /// Stops local waiting, not server processing or billing. Preserve the exact
     /// unknown request/payload. A second transport cannot start until the cancelled
@@ -56,31 +91,46 @@ import Foundation
     public func stopWaiting() {
         guard isCurrent, sending, requestID != nil else { return }
         generation += 1; transmission?.cancel(); sending = false
-        reply = nil; failure = .unknownOutcome; onChange?()
+        completedOperation = nil; reply = nil; failure = .unknownOutcome; onChange?()
     }
     public var isStoppingLocalWait: Bool { isCurrent && !sending && transmission != nil }
     public var canAbandon: Bool { isCurrent && !sending && transmission == nil }
     public var canRetry: Bool {
         isCurrent && grants().chatAllowed && !sending && transmission == nil && requestID != nil && attempts < 3 && (retryAt ?? .distantPast) <= Date() && (reply?.canRetry == true || failure == .unknownOutcome)
     }
-    public func retry() async {
-        guard let capturedRequestID = requestID else { return }
-        await retry(requestID: capturedRequestID)
+    @discardableResult public func retry() async -> CompletedRequest? {
+        guard let capturedRequestID = requestID else { return nil }
+        return await retry(requestID: capturedRequestID)
     }
     /// Deferred retry intents belong to the request that was visible when the user chose retry.
-    public func retry(requestID expectedRequestID: UUID) async {
-        guard requestID == expectedRequestID, canRetry else { return }
+    @discardableResult public func retry(requestID expectedRequestID: UUID) async -> CompletedRequest? {
+        guard requestID == expectedRequestID, canRetry else { return nil }
+        let capturedGeneration = generation
         await run()
+        return completion(requestID: expectedRequestID, generation: capturedGeneration)
     }
-    public func abandon() { guard canAbandon else { return }; requestID = nil; retryAt = nil; reply = nil; message = nil; failure = nil; onChange?() }
+    public func isCurrentCompletion(_ value: CompletedRequest) -> Bool {
+        isCurrent && grants().chatAllowed && value.scope == scope && value.generation == generation &&
+        value.requestID == displayedRequestID && value.operation == completedOperation &&
+        requestID == nil && !sending && transmission == nil && failure == nil &&
+        reply?.succeeded == true && reply?.canRetry == false &&
+        reply?.safeText?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
+    }
+    private func completion(requestID: UUID, generation: Int) -> CompletedRequest? {
+        guard let completedOperation else { return nil }
+        let value = CompletedRequest(requestID: requestID, scope: scope, generation: generation, operation: completedOperation)
+        return isCurrentCompletion(value) ? value : nil
+    }
+    public func abandon() { guard canAbandon else { return }; requestID = nil; displayedRequestID = nil; completedOperation = nil; retryAt = nil; reply = nil; message = nil; failure = nil; onChange?() }
     public func invalidate() { lifecycle = .invalidated; generation += 1; clearConversation(); onChange?() }
     private func clearConversation() {
         transmission?.cancel(); transmission = nil; transmissionID = nil
+        storedHistory.clear(); displayedRequestID = nil; completedOperation = nil
         reply = nil; message = nil; requestID = nil; retryAt = nil; failure = nil; sending = false; attempts = 0
     }
     private func run() async {
         guard isCurrent, grants().chatAllowed, transmission == nil, let message, let requestID else { return }
-        sending = true; attempts += 1; failure = nil; let stamp = generation
+        sending = true; attempts += 1; failure = nil; completedOperation = nil; let stamp = generation
         let operation = UUID(), client = self.client, scope = self.scope
         let task = Task<MerchantNPCReply, Error> {
             try Task.checkCancellation()
@@ -100,8 +150,12 @@ import Foundation
             guard generation == stamp else { return }
             guard isCurrent, grants().chatAllowed, !Task.isCancelled else { invalidate(); return }
             reply = result
+            storedHistory.record(requestID: requestID, question: message, reply: result)
             retryAt = Date().addingTimeInterval(TimeInterval(max(0, result.retryAfterSeconds ?? 0)))
             if !result.canRetry { self.requestID = nil }
+            if result.succeeded, !result.canRetry, result.safeText?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {
+                completedOperation = operation
+            }
         } catch {
             guard generation == stamp else { return }
             guard isCurrent, grants().chatAllowed, !Task.isCancelled else { invalidate(); return }

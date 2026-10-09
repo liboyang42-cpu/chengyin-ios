@@ -88,7 +88,8 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
             }
             if let marketingModel {
                 // Source merchant tools expose this entry. Visibility is separate from service/AI/settlement grants.
-                Section { MerchantMarketingEntry(model: marketingModel, isSourceVisible: true, suggestionDestination: marketingDestination) }
+                Section { MerchantMarketingEntry(model: marketingModel, isSourceVisible: true, suggestionDestination: marketingDestination,
+                    recommendationOrigin: .init(merchantID: access.merchantID, readerScope: operationsReader?.scope)) }
             }
             if let operationsReader {
                 Section {

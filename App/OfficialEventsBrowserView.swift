@@ -10,16 +10,15 @@ import SwiftUI
     @State private var keyword = ""
     @State private var publisherScope: UUID?
     @State private var canPublish = false
-    private var privateList: Bool { bucket == .mine }
+    private var query: OfficialEventBrowseQuery { .init(bucket: bucket, keyword: keyword) }
+    private var privateList: Bool { query.isPrivate }
     var body: some View {
         NavigationStack {
             VStack(spacing: 12) {
                 VStack(spacing: 8) {
-                    if !privateList {
-                        TextField("official.search", text: $keyword)
-                            .textFieldStyle(.roundedBorder).submitLabel(.search)
-                            .frame(minHeight: 44).accessibilityIdentifier("official.search")
-                    }
+                    TextField("official.search", text: $keyword)
+                        .textFieldStyle(.roundedBorder).submitLabel(.search)
+                        .frame(minHeight: 44).accessibilityIdentifier("official.search")
                     Picker("official.filter", selection: $bucket) {
                         ForEach(OfficialEventBucket.allCases) { value in
                             Text(LocalizedStringKey(value.titleKey)).tag(value)
@@ -45,16 +44,17 @@ import SwiftUI
                 }
             }
             .task(id: reader.scope) { await checkPublisherPermission() }
+            .onChange(of: reader.scope) { _, _ in keyword = "" }
             // Keep IDs on the search, filter, and action leaves. A VStack ID can
             // propagate to those controls and hide their individual identifiers.
         }
     }
     private func eventList(_ rows: [OfficialEvent]) -> some View {
-        let visible = OfficialEventFilter.visible(rows, bucket: bucket, keyword: privateList ? "" : keyword)
+        let visible = query.visible(rows)
         return List {
             Section {
                 LabeledContent("official.results", value: String(visible.count)).font(.caption)
-                if visible.isEmpty { Text(privateList ? "official.emptyMine" : (keyword.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "official.empty" : "official.searchEmpty")) }
+                if visible.isEmpty { Text(LocalizedStringKey(query.emptyKey)) }
             }
             ForEach(visible) { event in
                 NavigationLink { OfficialEventDetailView(id: event.id, reader: reader, actions: actions, onLogin: onLogin) } label: { OfficialEventCard(event: event) }

@@ -119,7 +119,7 @@ final class OfficialEventTests: XCTestCase {
         XCTAssertEqual(OfficialEventFilter.visible(rows, bucket: .live, keyword: "  EXAMPLE CITY ").map(\.id), [71])
         XCTAssertEqual(OfficialEventFilter.visible(rows, bucket: .live, keyword: "offline").map(\.id), [71])
         let missing = try decode(OfficialEvent.self, #"{"id":99,"title":"No status","activityStart":"2000-01-01"}"#)
-        XCTAssertFalse(OfficialEventBucket.live.includes(missing)); XCTAssertEqual(missing.statusKey, "official.status.unknown")
+        XCTAssertTrue(OfficialEventBucket.live.includes(missing)); XCTAssertEqual(missing.statusKey, "official.status.unknown")
     }
     func testMissingFactsAreUnknownAndFlagsMatchSource() throws {
         let missing = try decode(OfficialEvent.self, #"{"id":71,"title":"Synthetic"}"#)
@@ -296,4 +296,43 @@ final class OfficialEventTests: XCTestCase {
         do { _ = try await reader.events(); XCTFail() } catch { XCTAssertEqual(error as? APIError, .notConfigured) }
         do { _ = try await reader.myEvents(); XCTFail() } catch { XCTAssertEqual(error as? APIError, .unauthorized) }
     }
+    func testOnlyKnownEndedCodesEnterArchive() throws {
+        for status in [5, 6, 9] {
+            let value = try decode(OfficialEvent.self, "{\"id\":71,\"title\":\"Synthetic\",\"status\":\(status)}")
+            XCTAssertTrue(value.hasKnownListStatus); XCTAssertTrue(value.hasEndedListStatus)
+            XCTAssertTrue(OfficialEventBucket.ended.includes(value)); XCTAssertFalse(OfficialEventBucket.live.includes(value))
+            XCTAssertEqual(value.statusKey, "official.status.ended")
+        }
+    }
+    func testUnknownNewCodesStayInspectablyUnknownAndNeverBecomeActionEligibility() throws {
+        for status in [-1, 7, 8, 10, 99, Int.max] {
+            let value = try decode(OfficialEvent.self, "{\"id\":71,\"title\":\"Synthetic\",\"status\":\(status),\"signed\":true}")
+            XCTAssertFalse(value.hasKnownListStatus); XCTAssertFalse(value.hasEndedListStatus)
+            XCTAssertTrue(OfficialEventBucket.live.includes(value)); XCTAssertFalse(OfficialEventBucket.ended.includes(value))
+            XCTAssertFalse(OfficialEventBucket.upcoming.includes(value))
+            XCTAssertEqual(value.statusKey, "official.status.unknown")
+            XCTAssertEqual(value.participationKey, "official.participation.unavailable")
+        }
+    }
+    func testMissingAndMalformedStatusDoesNotBecomeEndedOrSignedAction() throws {
+        for raw in ["null", "\"3\"", "true", "{}"] {
+            let value = try decode(OfficialEvent.self, "{\"id\":71,\"title\":\"Synthetic\",\"status\":\(raw),\"signed\":true}")
+            XCTAssertNil(value.status); XCTAssertTrue(OfficialEventBucket.live.includes(value))
+            XCTAssertFalse(OfficialEventBucket.ended.includes(value))
+            XCTAssertEqual(value.participationKey, "official.participation.unavailable")
+        }
+    }
+    func testMineSearchUsesTitleSubtitleAndCityWithoutChangingItsPrivateSource() throws {
+        let rows = try decode([OfficialEvent].self, #"[{"id":1,"title":"Harbor Walk","status":3},{"id":2,"title":"Museum","subtitle":"Harbor stories","status":5},{"id":3,"title":"Garden","city":"Harbor","status":1},{"id":4,"title":"Elsewhere","status":3}]"#)
+        let query = OfficialEventBrowseQuery(bucket: .mine, keyword: "  HARBOR ")
+        XCTAssertTrue(query.isPrivate); XCTAssertEqual(query.visible(rows).map(\.id), [1, 2, 3])
+        XCTAssertEqual(query.emptyKey, "official.searchEmpty")
+        XCTAssertEqual(OfficialEventBrowseQuery(bucket: .mine, keyword: " ").emptyKey, "official.emptyMine")
+        XCTAssertEqual(OfficialEventBrowseQuery(bucket: .live, keyword: "").emptyKey, "official.empty")
+    }
+    func testUnknownVisibilityStillRejectsIncompleteAndDuplicateRows() throws {
+        let rows = try decode([OfficialEvent].self, #"[{"id":1,"title":"Unknown","status":99},{"id":1,"title":"Duplicate"},{"id":0,"title":"Invalid"},{"id":2,"title":""}]"#)
+        XCTAssertEqual(OfficialEventBrowseQuery(bucket: .live, keyword: "unknown").visible(rows).map(\.id), [1])
+    }
+
 }

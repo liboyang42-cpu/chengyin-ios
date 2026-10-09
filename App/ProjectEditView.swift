@@ -503,6 +503,7 @@ import SwiftUI
                 ProjectEditReferenceField(title: "projectEdit.cover", value: $model.draft.imgUrl, identifier: "projectEdit.cover").id("project-issue-anchor-cover")
                 ProjectEditReferenceField(title: "projectEdit.gallery", value: $model.draft.imgArr, identifier: "projectEdit.gallery")
                 ProjectEditCategoryField(selection: $model.draft.categoryIDs).categoryEditing(model).id("project-issue-anchor-categories")
+                ProjectThoughtDefinitionsEntry(model: model)
             }.disabled(!model.canEdit)
             Section("projectEdit.schedule") {
                 Text(LocalizedStringKey(model.draft.product == .city ? "projectEdit.city" : "projectEdit.freeExplore"))

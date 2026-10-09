@@ -80,7 +80,7 @@ import SwiftUI
                         }
                     }
                 }
-                ProjectEditChapterStorySettings(chapter: chapter, isFirst: model.draft.chapters.first?.id == chapterID).id("project-issue-anchor-chapterSettings")
+                ProjectEditChapterStorySettings(chapter: chapter, isFirst: model.draft.chapters.first?.id == chapterID, model: chapterOverride == nil && mediaScope == nil && starterLease == nil ? model : nil).id("project-issue-anchor-chapterSettings")
                 if model.draft.product == .city && chapterOverride == nil && mediaScope == nil && starterLease == nil &&
                     model.draft.chapters.first?.id.utf8.elementsEqual(chapterID.utf8) == true {
                     ProjectInitialStateEntry(model: model, chapterID: chapterID).id(Data(chapterID.utf8))

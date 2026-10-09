@@ -1,0 +1,121 @@
+{
+  "roamPlaceRead.discovered": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Read result: discovered"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "本次读取：已发现"
+        }
+      }
+    }
+  },
+  "roamPlaceRead.notDiscovered": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Read result: no discovery record"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "本次读取：暂无发现记录"
+        }
+      }
+    }
+  },
+  "roamPlaceRead.discoveryUnknown": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Discovery record unknown"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "发现记录未知"
+        }
+      }
+    }
+  },
+  "roamPlaceRead.pending": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Read result: redemption pending"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "本次读取：待核销"
+        }
+      }
+    }
+  },
+  "roamPlaceRead.noPending": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Read result: no pending redemption record"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "本次读取：暂无待核销记录"
+        }
+      }
+    }
+  },
+  "roamPlaceRead.redemptionUnknown": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Redemption status unknown"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "核销状态未知"
+        }
+      }
+    }
+  },
+  "roamPlaceRead.notice": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Read-only records from this nearby result. They do not confirm completion, reward delivery, or eligibility to claim."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前附近读取中的只读记录，不代表已完成、奖励到账或领取资格。"
+        }
+      }
+    }
+  }
+}

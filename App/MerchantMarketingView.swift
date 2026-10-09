@@ -1,33 +1,42 @@
 import SwiftUI
 
 /// Additive host destination. Feature visibility and all service grants are independently default off.
-struct MerchantMarketingEntry: View {
+@MainActor struct MerchantMarketingEntry: View {
     let model: MerchantMarketingCoordinator
     var isSourceVisible = false
     var onSuggestion: (MerchantInsightDestination) -> Void = { _ in }
     var suggestionDestination: ((MerchantInsightDestination) -> AnyView)? = nil
+    var recommendationOrigin: MerchantInsightOrigin? = nil
     @State private var selectedSuggestion: MerchantInsightDestination?
     var body: some View {
         if isSourceVisible {
             NavigationLink {
-                MerchantMarketingView(model: model, onSuggestion: { route in onSuggestion(route); selectedSuggestion = route })
+                MerchantMarketingView(model: model, recommendationOrigin: suggestionDestination == nil ? nil : recommendationOrigin,
+                    onSuggestion: { route in onSuggestion(route); selectedSuggestion = route })
                     .navigationDestination(item: $selectedSuggestion) { route in
-                        if let suggestionDestination { suggestionDestination(route) }
+                        if case .recommendation(let target) = route, target.origin != recommendationOrigin { AnyView(Text("merchantMarketing.stale")) }
+                        else if let suggestionDestination { suggestionDestination(route) }
                         else { AnyView(Text("merchantMarketing.unavailable")) }
                     }
             } label: { Label("merchantMarketing.dashboard", systemImage: "chart.bar.xaxis") }
             .accessibilityIdentifier("merchantMarketing.entry")
+            .onChange(of: recommendationOrigin) { _, _ in selectedSuggestion = nil }
+            .onChange(of: model.scopeIdentity) { _, _ in selectedSuggestion = nil }
         }
     }
 }
 
-struct MerchantMarketingView: View {
+@MainActor struct MerchantMarketingView: View {
     @Environment(\.locale) private var locale
     @Bindable var model: MerchantMarketingCoordinator
     var onSuggestion: (MerchantInsightDestination) -> Void = { _ in }
+    let recommendationOrigin: MerchantInsightOrigin?
     @State private var selected: MerchantMarketingCoordinator.Surface = .dashboard
-    init(model: MerchantMarketingCoordinator, initialSurface: MerchantMarketingCoordinator.Surface = .dashboard, onSuggestion: @escaping (MerchantInsightDestination) -> Void = { _ in }) {
-        self.model = model; self.onSuggestion = onSuggestion; _selected = State(initialValue: initialSurface)
+    @State private var loadedRecommendationOrigin: MerchantInsightOrigin?
+    @State private var refreshTask: Task<Void, Never>?
+    private var loadKey: String { selected.rawValue + ":" + model.scopeIdentity + ":" + (recommendationOrigin?.readerScope.uuidString ?? "none") + ":" + String(recommendationOrigin?.merchantID ?? 0) }
+    init(model: MerchantMarketingCoordinator, initialSurface: MerchantMarketingCoordinator.Surface = .dashboard, recommendationOrigin: MerchantInsightOrigin? = nil, onSuggestion: @escaping (MerchantInsightDestination) -> Void = { _ in }) {
+        self.model = model; self.onSuggestion = onSuggestion; self.recommendationOrigin = recommendationOrigin; _selected = State(initialValue: initialSurface)
     }
     var body: some View {
         List {
@@ -51,12 +60,21 @@ struct MerchantMarketingView: View {
             if let rounds = model.rounds { predictionSections(rounds) }
         }
         .navigationTitle(LocalizedStringKey(selected.titleKey))
-        .toolbar { Button("merchantMarketing.refresh") { Task { await model.load(selected) } }.disabled(model.busy) }
-        .task(id: selected) { await model.load(selected) }
-        .onChange(of: model.scopeIdentity) { _, _ in model.sessionChanged(); Task { await model.load(selected) } }
+        .toolbar { Button("merchantMarketing.refresh") { refreshTask?.cancel(); refreshTask = Task { await loadSurface() } }.disabled(model.busy) }
+        .task(id: loadKey) { await loadSurface() }
+        .onChange(of: loadKey) { _, _ in refreshTask?.cancel(); refreshTask = nil; loadedRecommendationOrigin = nil }
+        .onDisappear { refreshTask?.cancel(); refreshTask = nil }
         .sheet(isPresented: Binding(get: { model.review != nil }, set: { if !$0 { model.cancelReview() } })) {
             if let accepted = model.review { MerchantPredictionReviewView(model: model, accepted: accepted) }
         }
+    }
+    private func loadSurface() async {
+        let origin = recommendationOrigin, scope = model.service.scope
+        loadedRecommendationOrigin = nil
+        await model.load(selected)
+        guard !Task.isCancelled, model.service.scope == scope, !model.busy,
+              recommendationOrigin == origin, model.insight != nil else { return }
+        loadedRecommendationOrigin = origin
     }
     private func failure(_ error: MerchantMarketingFailure) -> some View {
         Section {
@@ -136,12 +154,19 @@ struct MerchantMarketingView: View {
             }
         }
         Section("merchantMarketing.recommendedTopics") {
-            ForEach(Array(insight.recommendedTopics.enumerated()), id: \.offset) { _, item in Text(item["name"].text ?? "—") }
+            recommendationRows(insight.recommendedTopics, kind: .topic, insight: insight)
         }
         Section("merchantMarketing.recommendedPartners") {
-            ForEach(Array(insight.recommendedPartners.enumerated()), id: \.offset) { _, item in
-                VStack(alignment: .leading) { Text(item["name"].text ?? "—"); if let reason = item["reason"].text { Text(reason) } }
-            }
+            recommendationRows(insight.recommendedPartners, kind: .partner, insight: insight)
+        }
+    }
+    private func recommendationRows(_ rows: [MerchantMarketingValue], kind: MerchantInsightRecommendationRoute.Kind, insight: MerchantMarketingInsight) -> some View {
+        let scope = model.service.scope
+        let origin = !model.busy && loadedRecommendationOrigin == recommendationOrigin ? loadedRecommendationOrigin : nil
+        return MerchantInsightRecommendationRows(rows: rows, kind: kind, origin: origin) { route in
+            guard scope != nil, model.service.scope == scope, model.insight == insight, !model.busy,
+                  route.origin == recommendationOrigin, loadedRecommendationOrigin == recommendationOrigin else { return }
+            onSuggestion(.recommendation(route))
         }
     }
     @ViewBuilder private func entitlementSections(_ subscriptions: [MerchantMarketingEntitlement]) -> some View {

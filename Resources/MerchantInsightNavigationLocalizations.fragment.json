@@ -1,0 +1,104 @@
+{
+  "merchant.insightNavigation.host": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "主办方"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Host"
+        }
+      }
+    }
+  },
+  "merchant.insightNavigation.topic": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "在招募列表定位主题"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Locate topic in recruitment list"
+        }
+      }
+    }
+  },
+  "merchant.insightNavigation.partner": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "查看商家主页"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "View merchant profile"
+        }
+      }
+    }
+  },
+  "merchant.insightNavigation.unavailable": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "推荐编号或当前店铺信息无法确认，暂不能打开。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The recommendation identity or current store could not be verified. Opening is unavailable."
+        }
+      }
+    }
+  },
+  "merchant.insightNavigation.notLoaded": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "未能在当前已加载的招募列表中唯一定位该推荐，请重新读取列表。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This recommendation could not be uniquely located in the loaded recruitment list. Reload the list."
+        }
+      }
+    }
+  },
+  "merchant.insightNavigation.located": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已定位推荐主题"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Recommended topic located"
+        }
+      }
+    }
+  }
+}

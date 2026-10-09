@@ -21,12 +21,13 @@ import SwiftUI
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 16) {
                     if model.coordinator.isCurrent {
-                        if let message = model.coordinator.message {
+                        MerchantNPCConversationHistoryView(history: model.coordinator.conversationHistory)
+                        if !model.coordinator.currentTurnIsRecorded, let message = model.coordinator.message {
                             ChatMessageBubble(isOwn: true) { Text("messaging.you") } content: {
                                 Text(verbatim: message).textSelection(.enabled)
                             }
                         }
-                        if let reply = model.coordinator.reply {
+                        if !model.coordinator.currentTurnIsRecorded, let reply = model.coordinator.reply {
                             ChatMessageBubble(isOwn: false) { Text("referenceChat.merchantAI") } content: {
                                 if let safe = reply.safeText, !safe.isEmpty {
                                     Text(verbatim: safe).textSelection(.enabled).accessibilityIdentifier("merchantNPC.reply")
@@ -36,15 +37,22 @@ import SwiftUI
                             Text(verbatim: reply.outcomeStatus).font(.caption).foregroundStyle(.secondary)
                             if reply.successAudioURL != nil { Text("merchantNPC.playbackOff") }
                         }
+                        if model.coordinator.currentTurnIsRecorded, model.coordinator.reply?.successAudioURL != nil {
+                            Text("merchantNPC.playbackOff")
+                        }
                         if model.coordinator.requestID != nil {
                             TimelineView(.periodic(from: .now, by: 1)) { _ in
                                 Button("merchantNPC.retry") {
                                     let capturedGeneration = compositionGeneration
+                                    let submitted = text
                                     guard let capturedRequestID = model.coordinator.requestID else { return }
                                     Task {
                                         guard compositionGeneration == capturedGeneration, scenePhase == .active,
                                               model.coordinator.requestID == capturedRequestID else { return }
-                                        await model.coordinator.retry(requestID: capturedRequestID)
+                                        let completion = await model.coordinator.retry(requestID: capturedRequestID)
+                                        if MerchantNPCComposerRetention.shouldClear(submitted: submitted, currentDraft: text,
+                                                capturedGeneration: capturedGeneration, currentGeneration: compositionGeneration,
+                                                completion: completion, coordinator: model.coordinator) { text = "" }
                                     }
                                 }.disabled(!model.coordinator.canRetry)
                             }
@@ -88,9 +96,10 @@ import SwiftUI
                             let submitted = text; let capturedGeneration = compositionGeneration
                             Task {
                                 guard compositionGeneration == capturedGeneration, scenePhase == .active else { return }
-                                await model.coordinator.send(submitted)
-                                guard model.coordinator.isCurrent, compositionGeneration == capturedGeneration, text == submitted else { return }
-                                text = ""
+                                let completion = await model.coordinator.send(submitted)
+                                if MerchantNPCComposerRetention.shouldClear(submitted: submitted, currentDraft: text,
+                                        capturedGeneration: capturedGeneration, currentGeneration: compositionGeneration,
+                                        completion: completion, coordinator: model.coordinator) { text = "" }
                             }
                         }.frame(minWidth: 44, minHeight: 44)
                             .disabled(!model.coordinator.canSend || text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)

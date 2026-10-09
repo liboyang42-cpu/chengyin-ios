@@ -89,8 +89,10 @@ public struct ProjectInitialState {
         }
         return recovery
     }
-    public var recoveryChanges: [RecoveryChange] {
-        guard !readOnly, !isUnchanged, let values = try? values(), let old = try? Self.object(root["recovery"]),
+    public var recoveryChanges: [RecoveryChange] { recoveryChanges(includeUnchanged: false) }
+    public var associatedRecoveryChanges: [RecoveryChange] { recoveryChanges(includeUnchanged: true) }
+    private func recoveryChanges(includeUnchanged: Bool) -> [RecoveryChange] {
+        guard !readOnly, includeUnchanged || !isUnchanged, let values = try? values(), let old = try? Self.object(root["recovery"]),
               let next = try? recovery(values: values) else { return [] }
         return Self.recoveryDefaults.keys.sorted().compactMap { key in
             guard let before = try? Self.integer(old[key], fallback: Self.recoveryDefaults[key]!),
@@ -99,18 +101,27 @@ public struct ProjectInitialState {
         }
     }
     public func serialized(matching original: ProjectEditJSON?) throws -> ProjectEditJSON? {
+        try serialized(matching: original, thoughtReplacement: nil)
+    }
+    /// Explicit associated edit, sharing the same source-safe defaults and recovery policy.
+    public func serialized(replacingThoughts thoughts: [ProjectEditJSON], matching original: ProjectEditJSON?) throws -> ProjectEditJSON? {
+        try serialized(matching: original, thoughtReplacement: thoughts)
+    }
+    private func serialized(matching original: ProjectEditJSON?, thoughtReplacement: [ProjectEditJSON]?) throws -> ProjectEditJSON? {
         let sourceEncoder = JSONEncoder(); sourceEncoder.outputFormatting = [.sortedKeys]
         let sourceBytes = try sourceEncoder.encode(raw.map { ["raw": $0] } ?? [:])
         let currentBytes = try sourceEncoder.encode(original.map { ["raw": $0] } ?? [:])
         guard !readOnly, sourceBytes == currentBytes else { throw ProjectEditError.invalidDraft }
-        if isUnchanged { return raw } // Opening, cancel and numeric no-op never normalize the imported string.
+        if isUnchanged && thoughtReplacement == nil { return raw } // Opening, cancel and numeric no-op never normalize the imported string.
         let values = try values()
         var next = root, hpObject = try Self.object(root["hp"]), luckObject = try Self.object(root["luck"])
         hpObject["enabled"] = .bool(hp.enabled); hpObject["init"] = .number(Decimal(values.hpInitial)); hpObject["max"] = .number(Decimal(values.hpMax))
         luckObject["enabled"] = .bool(luck.enabled); luckObject["init"] = .number(Decimal(values.luckInitial)); luckObject["max"] = .number(Decimal(values.luckMax))
         next["hp"] = .object(hpObject); next["luck"] = .object(luckObject); next["schemaVersion"] = .number(1)
-        next["stateEnabled"] = .bool(hp.enabled || luck.enabled || (root["stateEnabled"] == .bool(true) && root["attributes"]?.array?.isEmpty == false))
+        next["stateEnabled"] = .bool(thoughtReplacement != nil ? root["stateEnabled"] == .bool(true) :
+            hp.enabled || luck.enabled || (root["stateEnabled"] == .bool(true) && root["attributes"]?.array?.isEmpty == false))
         next["recovery"] = .object(try recovery(values: values))
+        if let thoughtReplacement { next["thoughts"] = thoughtReplacement.isEmpty ? nil : .array(thoughtReplacement) }
         let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
         let bytes = try encoder.encode(ProjectEditJSON.object(next))
         guard bytes.count <= 16 * 1024 else { throw ProjectEditError.invalidDraft }
