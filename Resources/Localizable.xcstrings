@@ -42938,13 +42938,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Filter the current loaded page only. The same filter is applied when you change pages."
+            "value": "Filters apply to shown reviews. Load more keeps earlier pages; Next and Previous replace the page."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅筛选当前已加载页。切换页码时保留筛选条件并重新筛选。"
+            "value": "筛选适用于当前展示的评价。加载更多会保留先前页；上一页和下一页会替换当前页。"
           }
         }
       }
@@ -138580,6 +138580,683 @@
           "stringUnit": {
             "state": "translated",
             "value": "此会话暂不可回复。待确认的消息会保留，不会自动重试。"
+          }
+        }
+      }
+    },
+    "merchant.operatorRoster.loadedScope": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Counts reflect the latest loaded team list. Refresh to check for changes."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "人数与邀请数仅反映最近加载的团队名单，可刷新查看变化。"
+          }
+        }
+      }
+    },
+    "merchant.operatorRoster.members": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current employees"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前员工"
+          }
+        }
+      }
+    },
+    "merchant.operatorRoster.loadedMembers": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Active employees in this list"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此名单中的在职员工"
+          }
+        }
+      }
+    },
+    "merchant.operatorRoster.membersEmpty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No active employees in this list. Use Prepare operator invitation to choose a role."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此名单中暂无在职员工。可通过“准备团队邀请”选择岗位。"
+          }
+        }
+      }
+    },
+    "merchant.operatorRoster.invites": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pending invitations"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待接受邀请"
+          }
+        }
+      }
+    },
+    "merchant.operatorRoster.loadedInvites": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pending invitations in this list"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此名单中的待接受邀请"
+          }
+        }
+      }
+    },
+    "merchant.operatorRoster.invitesEmpty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No pending invitations in this list."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此名单中暂无待接受邀请。"
+          }
+        }
+      }
+    },
+    "merchant.operatorRoster.history": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Previous team records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "历史团队记录"
+          }
+        }
+      }
+    },
+    "merchant.operatorRoster.historyScope": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These loaded records are outside the current employee and pending invitation counts. Their statuses come from the server."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以下已加载记录不计入当前员工和待接受邀请数量，状态以服务端返回为准。"
+          }
+        }
+      }
+    },
+    "merchant.operatorRoster.previousMembers": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Removed employees"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已移除员工"
+          }
+        }
+      }
+    },
+    "merchant.operatorRoster.previousInvites": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accepted, expired or revoked invitations"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已接受、已过期或已撤销的邀请"
+          }
+        }
+      }
+    },
+    "merchant.operatorRoster.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The team list could not be displayed. Refresh to try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法显示团队名单，请刷新重试。"
+          }
+        }
+      }
+    },
+    "playerLeaderboard.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This session’s leaderboard"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本局榜单"
+          }
+        }
+      }
+    },
+    "playerLeaderboard.rank": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rank"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "排名"
+          }
+        }
+      }
+    },
+    "playerLeaderboard.team": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Team"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队伍"
+          }
+        }
+      }
+    },
+    "playerLeaderboard.score": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collaborations"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "协作次数"
+          }
+        }
+      }
+    },
+    "playerLeaderboard.metric": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Counts distinct normally completed nodes. Fallback completions are excluded."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按正常完成的不同节点计分，兜底完成不计入榜单。"
+          }
+        }
+      }
+    },
+    "playerLeaderboard.empty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This session’s leaderboard is enabled. No entries are available yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本局榜单已开启，暂时没有记录。"
+          }
+        }
+      }
+    },
+    "playerLeaderboard.unconfirmed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This session’s ranking could not be confirmed. Refresh to check again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前本局榜单无法确认，请刷新后核对。"
+          }
+        }
+      }
+    },
+    "merchantNPCCharacter.readback": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save acknowledged. The latest NPC profile and review result have been loaded from the server."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存已确认。已从服务器重新读取最新角色资料与审核结果。"
+          }
+        }
+      }
+    },
+    "merchantNPCCharacter.readbackFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save acknowledged, but the latest NPC profile could not be loaded. Refresh to check its review result. This does not resend your changes."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存已确认，但未能读取最新角色资料。请刷新查看审核结果；刷新不会重新提交修改。"
+          }
+        }
+      }
+    },
+    "projectClubLead.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Club-led participation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "俱乐部承接"
+          }
+        }
+      }
+    },
+    "projectClubLead.enabled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invite clubs to lead"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀请俱乐部带队"
+          }
+        }
+      }
+    },
+    "projectClubLead.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow clubs to apply to lead this city topic. This edits the working draft; clubs are not contacted here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "允许俱乐部申请承接本城市定向主题。这里仅修改当前草稿，不会联系俱乐部。"
+          }
+        }
+      }
+    },
+    "projectClubLead.unsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This saved club-lead setting is not supported by this editor. It is preserved read-only and blocks a full submission."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此已存俱乐部承接设置暂不受本编辑器支持。原值只读保留，完整提交已阻止。"
+          }
+        }
+      }
+    },
+    "projectClubLead.ineligible": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only city topics without an owning club can open club-led applications. This topic submits the setting as off; its stored preference is retained locally."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅未归属俱乐部的城市定向主题可开放俱乐部承接。此主题提交为关闭，原偏好仍保留在本地草稿。"
+          }
+        }
+      }
+    },
+    "mapDatePreset.today": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今天"
+          }
+        }
+      }
+    },
+    "mapDatePreset.tomorrow": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tomorrow"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "明天"
+          }
+        }
+      }
+    },
+    "mapDatePreset.disclosure": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uses your phone’s date when selected. The date range stays fixed until you change it. Filters use the activity’s supplied start day; activities without a date remain visible."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按选择时手机上的日期填写；日期范围保持不变，直到再次修改。筛选依据活动提供的开始日期；未提供日期的活动仍会显示。"
+          }
+        }
+      }
+    },
+    "merchant.business.reviews.loadMore": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Load more reviews"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加载更多评价"
+          }
+        }
+      }
+    },
+    "merchant.business.reviews.reloadSourcePage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload original page to manage"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新读取原页以管理"
+          }
+        }
+      }
+    },
+    "merchant.business.reviews.sourcePageNotice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This review was read again from its original page. Actions use this fresh page only."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已重新读取此评价所在原页。操作仅以本次新读取的页面为依据。"
+          }
+        }
+      }
+    },
+    "merchant.business.reviews.sourcePageMissing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This review is no longer on its original page. Close this view and refresh the review list."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此评价已不在原页。请关闭此页并刷新评价列表。"
+          }
+        }
+      }
+    },
+    "mapDatePicker.start": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose start date"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择开始日期"
+          }
+        }
+      }
+    },
+    "mapDatePicker.end": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose end date"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择结束日期"
+          }
+        }
+      }
+    },
+    "mapDatePicker.year": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Year"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "年"
+          }
+        }
+      }
+    },
+    "mapDatePicker.month": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Month"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "月"
+          }
+        }
+      }
+    },
+    "mapDatePicker.day": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Day"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日"
+          }
+        }
+      }
+    },
+    "mapDatePicker.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认"
+          }
+        }
+      }
+    },
+    "mapDatePicker.disclosure": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gregorian dates, 1970–2050. Confirm updates this filter draft; Apply saves the filters."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公历日期，1970–2050 年。确认后仅更新当前筛选草稿，点击“应用”后才生效。"
+          }
+        }
+      }
+    },
+    "mapDatePicker.invalidOrder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The start date must be on or before the end date."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始日期不能晚于结束日期。"
           }
         }
       }
