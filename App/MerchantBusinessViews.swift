@@ -380,6 +380,11 @@ import SwiftUI
                 }
                 TextField("merchant.business.sourceStart", text: $sourceStart).textInputAutocapitalization(.never)
                 TextField("merchant.business.sourceEnd", text: $sourceEnd).textInputAutocapitalization(.never)
+                MerchantCRMDateRangePicker(context: state.isCurrent && !state.isBusy
+                    ? .init(scope: reader.scope, authorization: reader.authorizationGeneration, merchantID: state.snapshot?.access.merchantID) : nil,
+                    start: sourceStart, end: sourceEnd) { value in
+                    sourceStart = value.start; sourceEnd = value.end
+                }
                 Button("merchant.business.applyFilter", action: applyCustomerFilter)
             }
         }

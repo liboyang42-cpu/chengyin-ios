@@ -66,8 +66,7 @@ struct ProfileOrderDetailView: View {
                 }
                 Section("profile.orders.schedule") {
                     ProfileOptionalRow(key: "profile.orders.participateDate", value: order.participateDate)
-                    ProfileOptionalRow(key: "profile.orders.start", value: order.startDate)
-                    ProfileOptionalRow(key: "profile.orders.end", value: order.endDate)
+                    ProfileOrderTicketScheduleRows(order: order)
                     ProfileOptionalRow(key: "profile.orders.location", value: order.addressName)
                     PlatformExternalMapHost(destination: .init(name: order.meetingPoint ?? "", address: order.meetingPoint, latitude: order.gatherLatitude, longitude: order.gatherLongitude), scope: mediaScope, makeModel: makeExternalMaps)
                     ProfileOptionalRow(key: "profile.orders.expires", value: order.expiresAt)
@@ -122,6 +121,61 @@ struct ProfileOrderDetailView: View {
         }
         .appNavigationTitle("profile.orders.detail")
         .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+/// Presentation only; the enclosing ProfileReadScreen owns the existing reader/scope lifetime.
+struct ProfileOrderTicketScheduleRows: View {
+    let order: ProfileOrder
+    var body: some View {
+        let schedule = ProfileOrderSchedulePresentation(order)
+        if schedule.isTicket {
+            Text("profileTicketSchedule.title").font(.subheadline.weight(.semibold))
+                .accessibilityIdentifier("profile.order.ticketSchedule")
+            ProfileOrderTicketTimeRow(label: "profile.orders.start", value: schedule.start)
+            ProfileOrderTicketTimeRow(label: "profile.orders.end", value: schedule.end)
+            Text("profileTicketSchedule.phoneTimeZone").font(.caption).foregroundStyle(.secondary)
+        } else {
+            if schedule.start != .absent || schedule.end != .absent {
+                Text("profileTicketSchedule.ownerTimes").font(.caption).foregroundStyle(.secondary)
+                    .accessibilityIdentifier("profile.order.ownerSchedule")
+            }
+            if schedule.start != .absent { ProfileOrderTicketTimeRow(label: "profile.orders.start", value: schedule.start) }
+            if schedule.end != .absent { ProfileOrderTicketTimeRow(label: "profile.orders.end", value: schedule.end) }
+        }
+    }
+}
+struct ProfileOrderSchedulePresentation {
+    let isTicket: Bool
+    let start: ProfileOrderTicketTime
+    let end: ProfileOrderTicketTime
+    init(_ order: ProfileOrder) {
+        if let schedule = order.ticketSchedule {
+            isTicket = true; start = schedule.start; end = schedule.end
+        } else {
+            func source(_ value: String?) -> ProfileOrderTicketTime {
+                guard let value, !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return .absent }
+                return .source(value)
+            }
+            isTicket = false; start = source(order.startDate); end = source(order.endDate)
+        }
+    }
+}
+struct ProfileOrderTicketTimeRow: View {
+    let label: LocalizedStringKey
+    let value: ProfileOrderTicketTime
+    @Environment(\.timeZone) private var phoneTimeZone
+    var body: some View {
+        LabeledContent(label) {
+            if let display = value.display(phoneTimeZone: phoneTimeZone) {
+                Text(verbatim: display).textSelection(.enabled).monospacedDigit()
+            } else if case .source(let raw) = value {
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text(verbatim: raw).textSelection(.enabled)
+                    Text("profileTicketSchedule.unparsed").font(.caption).foregroundStyle(.secondary)
+                }.fixedSize(horizontal: false, vertical: true)
+            } else { Text("profile.orders.unknown") }
+        }
     }
 }
 

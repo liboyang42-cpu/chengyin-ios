@@ -144,6 +144,54 @@
           }
         }
       }
+    },
+    "projectStoryCondition.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Who can hear this voice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "谁能听到这句"
+          }
+        }
+      }
+    },
+    "projectStoryCondition.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a fulfilled foreshadowing or an authored option tag. Confirmation changes only this voice’s condition value. To let everyone hear it, use the existing condition switch. Unknown saved fields stay intact."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择已定义伏笔应验或已有选项标签。确认只改这句内心声音的条件值；要让所有人听到，可关闭原条件开关。未知现存字段保持不变。"
+          }
+        }
+      }
+    },
+    "projectStoryCondition.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No defined foreshadowing or verified option tag is available. The saved value remains unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无已定义伏笔或可核实的选项标签，现存值保持不变。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

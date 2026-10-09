@@ -16,7 +16,8 @@ public enum MerchantBusinessMutation: Equatable {
     case revokeInvite(id: MerchantOperatorInviteID, version: Int, reason: String)
     public var titleKey: String {
         switch self {
-        case .addNote: return "merchant.business.addNote"; case .hideNote: return "merchant.business.hideNote"
+        case .addNote(_, _, let correction): return correction == nil ? "merchant.business.addNote" : "merchant.business.correctNote"
+        case .hideNote: return "merchant.business.hideNote"
         case .assignTag: return "merchant.business.assignTag"; case .removeTag: return "merchant.business.removeTag"
         case .batchTag: return "merchant.business.batchTag"; case .aftercare: return "merchant.business.respond"
         case .review(_, _, let action, _): return "merchant.business.review.\(action.rawValue)"

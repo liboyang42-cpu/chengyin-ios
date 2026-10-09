@@ -47,6 +47,33 @@ public enum ProfileRegistrationState: Equatable {
 /// Shared read projection of MyRegistration and RegistrationDetail. Detail is always fetched
 /// from /info; list snapshots are never treated as a fresh detail response. Unknown values
 /// and missing prices remain unknown, including absent refund applications versus payout 0.
+/// Ordinary ticket-session times from the current order response, not a purchase-time snapshot.
+/// ApplicationConfig pins Jackson's bare timestamps to Asia/Shanghai. Reuse the
+/// established ordinary-time parser and explicitly format into the phone's zone.
+public enum ProfileOrderTicketTime: Equatable {
+    case absent, unknown, source(String)
+    public func display(phoneTimeZone: TimeZone) -> String? {
+        guard case .source(let raw) = self else { return nil }
+        return SearchMapActivityTime(raw).display(phoneTimeZone: phoneTimeZone)
+    }
+}
+public struct ProfileOrderTicketSchedule: Decodable, Equatable {
+    public let start: ProfileOrderTicketTime
+    public let end: ProfileOrderTicketTime
+    public var hasSourceFields: Bool { start != .absent || end != .absent }
+    private enum CodingKeys: String, CodingKey { case startTime, endTime }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        func time(_ key: CodingKeys) -> ProfileOrderTicketTime {
+            guard c.contains(key), (try? c.decodeNil(forKey: key)) != true else { return .absent }
+            guard let raw = try? c.decode(String.self, forKey: key) else { return .unknown }
+            guard !raw.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return .absent }
+            return .source(raw)
+        }
+        start = time(.startTime); end = time(.endTime)
+    }
+}
+
 public struct ProfileOrder: Decodable, Equatable, Identifiable {
     public let id: Int
     public let memberID: Int?
@@ -63,6 +90,7 @@ public struct ProfileOrder: Decodable, Equatable, Identifiable {
     public let endDate: String?
     public let addressName: String?
     public let meetingPoint: String?
+    public let ticketSchedule: ProfileOrderTicketSchedule?
     public let gatherLatitude: Double?
     public let gatherLongitude: Double?
     public let participateDate: String?
@@ -113,6 +141,16 @@ public struct ProfileOrder: Decodable, Equatable, Identifiable {
         let meetingPoint: String?
         let gatherLat: Double?
         let gatherLng: Double?
+        let schedule: ProfileOrderTicketSchedule?
+        private enum CodingKeys: String, CodingKey { case meetingPoint, gatherLat, gatherLng }
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            meetingPoint = try c.decodeIfPresent(String.self, forKey: .meetingPoint)
+            gatherLat = try c.decodeIfPresent(Double.self, forKey: .gatherLat)
+            gatherLng = try c.decodeIfPresent(Double.self, forKey: .gatherLng)
+            let value = try ProfileOrderTicketSchedule(from: decoder)
+            schedule = value.hasSourceFields ? value : nil
+        }
     }
     private struct RefundInfo: Decodable { let refundable: Bool? }
     private struct RefundApplication: Decodable {
@@ -149,6 +187,7 @@ public struct ProfileOrder: Decodable, Equatable, Identifiable {
         addressName = owner?.addressName
         let meeting = try c.decodeIfPresent(MeetingTicket.self, forKey: .omsTicket)
         meetingPoint = meeting?.meetingPoint
+        ticketSchedule = meeting?.schedule
         gatherLatitude = meeting?.gatherLat; gatherLongitude = meeting?.gatherLng
         participateDate = try c.decodeIfPresent(String.self, forKey: .participateDate)
         if c.contains(.payableAmount), !(try c.decodeNil(forKey: .payableAmount)) {

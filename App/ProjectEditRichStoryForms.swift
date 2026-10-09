@@ -7,6 +7,7 @@ import SwiftUI
     @Binding var block: ProjectEditBlock
     let chapterID: String
     var chapterOverride: Binding<ProjectEditChapter>? = nil
+    var allowsStoryConditionSource = false
     private var nodes: [ProjectEditNode] { (chapterOverride ?? model.chapter(chapterID)).wrappedValue.nodes }
     private var beat: ProjectEditNarrativeBeat? { ProjectEditNarrativeBeat(rawValue: block.fieldText("beat")) }
     private func text(_ key: String, integer: Bool = false) -> Binding<String> {
@@ -37,7 +38,13 @@ import SwiftUI
                 }
                 if block.kind == .text { narrativeSection }
                 if block.kind == .voice || (block.kind == .text && !block.isNarrative) {
-                    Section("projectEdit.rich.condition") { ProjectEditStoryConditionEditor(condition: value("when"), plain: true, ending: false) }
+                    Section("projectEdit.rich.condition") {
+                        ProjectEditStoryConditionEditor(condition: value("when"), plain: true, ending: false)
+                        if block.kind == .voice && allowsStoryConditionSource {
+                            ProjectStoryConditionEntry(model: model, chapterID: chapterID, block: $block)
+                                .id([Data(chapterID.utf8), Data(block.id.utf8)])
+                        }
+                    }
                 }
             case .node:
                 Section("projectEdit.rich.location") {

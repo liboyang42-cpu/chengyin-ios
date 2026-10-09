@@ -31,7 +31,8 @@ import SwiftUI
             }
             if allowed("merchant:crm:read") {
                 Section("merchant.engagement.currentFilter") {
-                    MerchantCRMFilterFields(filter: $filter)
+                    MerchantCRMFilterFields(filter: $filter, dateContext: !model.loading && model.issue == nil
+                        ? .init(scope: reader.scope, authorization: reader.authorizationGeneration, merchantID: model.access?.merchantID) : nil)
                     if allowed("merchant:crm:segment") {
                         Button("merchant.engagement.saveSegment") { editor = .init(kind: .segment) }.accessibilityIdentifier("merchant.engagement.saveSegment")
                     }
@@ -168,6 +169,7 @@ import SwiftUI
 
 struct MerchantCRMFilterFields: View {
     @Binding var filter: MerchantCRMFilter
+    var dateContext: MerchantCRMDateRangePicker.Context? = nil
     var body: some View {
         TextField("merchant.business.search", text: $filter.keyword)
         Picker("merchant.business.segment", selection: $filter.segment) {
@@ -179,6 +181,10 @@ struct MerchantCRMFilterFields: View {
         TextField("merchant.engagement.tagID", text: Binding(get: { filter.tagID.map(String.init) ?? "" }, set: { filter.tagID = Int($0) })).keyboardType(.numberPad)
         TextField("merchant.business.sourceStart", text: Binding(get: { filter.sourceStart ?? "" }, set: { filter.sourceStart = $0.isEmpty ? nil : $0 }))
         TextField("merchant.business.sourceEnd", text: Binding(get: { filter.sourceEnd ?? "" }, set: { filter.sourceEnd = $0.isEmpty ? nil : $0 }))
+        MerchantCRMDateRangePicker(context: dateContext, start: filter.sourceStart ?? "", end: filter.sourceEnd ?? "") { value in
+            if value.start != (filter.sourceStart ?? "") { filter.sourceStart = value.start.isEmpty ? nil : value.start }
+            if value.end != (filter.sourceEnd ?? "") { filter.sourceEnd = value.end.isEmpty ? nil : value.end }
+        }
     }
 }
 struct MerchantEngagementStatus: View {

@@ -20,12 +20,28 @@ struct MerchantBusinessEditorContext: Identifiable {
     @State private var decision: MerchantAftercareDecision = .agree
     @State private var evidence = ""
     @State private var issue: String?
+    @State private var noteCorrectionCancelled = false
+    @State private var confirmCancelCorrection = false
+    private var noteCorrectionID: Int? {
+        guard !noteCorrectionCancelled, case .note(_, let correction) = context.kind else { return nil }
+        return correction
+    }
     var body: some View {
         NavigationStack {
             Form {
                 Text("merchant.business.localDraft").foregroundStyle(.secondary)
                 switch context.kind {
-                case .note:
+                case .note(let customer, _):
+                    Text(noteCorrectionID == nil ? "merchant.business.addNote" : "merchant.business.correctNote")
+                        .font(.headline).accessibilityIdentifier("merchant.noteCorrection.mode")
+                    LabeledContent("merchant.business.target", value: "customer:\(customer.rawValue)")
+                    if let note = noteCorrectionID {
+                        LabeledContent("merchant.business.field.correctsNoteId", value: String(note))
+                        MerchantNoteCorrectionTargetSummary(customer: customer, noteID: note, snapshot: snapshot)
+                        Text("merchant.noteCorrection.append").font(.footnote).foregroundStyle(.secondary)
+                        Button("merchant.noteCorrection.cancel") { confirmCancelCorrection = true }
+                            .accessibilityIdentifier("merchant.noteCorrection.cancel")
+                    }
                     TextField("merchant.business.noteContent", text: $content, axis: .vertical).lineLimit(3...8).accessibilityIdentifier("merchant.business.editor.content")
                 case .tag:
                     TextField("merchant.business.tagName", text: $name).accessibilityIdentifier("merchant.business.editor.tagName")
@@ -65,6 +81,12 @@ struct MerchantBusinessEditorContext: Identifiable {
             }
             .navigationTitle("merchant.business.localActions")
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { dismiss() } } }
+            .confirmationDialog("merchant.noteCorrection.cancelTitle", isPresented: $confirmCancelCorrection, titleVisibility: .visible) {
+                Button("merchant.noteCorrection.confirmCancel", role: .destructive) {
+                    noteCorrectionCancelled = true; content = ""; issue = nil
+                }.accessibilityIdentifier("merchant.noteCorrection.confirmCancel")
+                Button("merchant.noteCorrection.keep", role: .cancel) { }
+            } message: { Text("merchant.noteCorrection.cancelBody") }
             .onAppear {
                 if case .aftercare(let row) = context.kind, let first = try? row.fields.mbStrings("allowedDecisions").first, let value = MerchantAftercareDecision(rawValue: first) { decision = value }
                 if case .role(let row) = context.kind { role = row.fields.mbText("roleCode") ?? "" }
@@ -75,7 +97,7 @@ struct MerchantBusinessEditorContext: Identifiable {
     private func makeMutation() throws -> MerchantBusinessMutation {
         func id(_ row: MerchantBusinessRecord) throws -> Int { guard let id = Int(row.id), id > 0 else { throw MerchantBusinessFailure.invalid }; return id }
         switch context.kind {
-        case .note(let customer, let corrects): return .addNote(customer: customer, content: content, correctsNoteID: corrects)
+        case .note(let customer, let corrects): return .addNote(customer: customer, content: content, correctsNoteID: noteCorrectionCancelled ? nil : corrects)
         case .tag(let ids):
             if ids.count == 1 { return .assignTag(customer: ids[0], name: name, color: color) }
             return .batchTag(customers: ids, name: name, color: color)
@@ -101,6 +123,10 @@ struct MerchantBusinessEditorContext: Identifiable {
             List {
                 Section("merchant.business.frozenReview") {
                     Text(LocalizedStringKey(review.mutation.titleKey)).font(.headline)
+                    if case .addNote(let customer, _, let correction) = review.mutation, let note = correction {
+                        MerchantNoteCorrectionTargetSummary(customer: customer, noteID: note, snapshot: review.baseline)
+                        Text("merchant.noteCorrection.append").font(.footnote).foregroundStyle(.secondary)
+                    }
                     LabeledContent("merchant.business.storeID", value: String(review.baseline.access.merchantID))
                     LabeledContent("merchant.business.target", value: review.mutation.targetKey)
                     if case .json(let fields) = review.request.body {
@@ -118,6 +144,24 @@ struct MerchantBusinessEditorContext: Identifiable {
                 } else { Text("merchant.business.disabled").accessibilityIdentifier("merchant.business.dispatchDisabled") }
                 Button("action.cancel", action: cancel).disabled(busy).accessibilityIdentifier("merchant.business.cancelReview")
             }.navigationTitle("merchant.business.reviewDraft").interactiveDismissDisabled(busy)
+        }
+    }
+}
+
+private struct MerchantNoteCorrectionTargetSummary: View {
+    let customer: MerchantCustomerID
+    let noteID: Int
+    let snapshot: MerchantBusinessSnapshot?
+    private var summary: String? {
+        guard let snapshot, snapshot.document.query == .customer(customer) else { return nil }
+        return snapshot.document.rows.first {
+            $0.kind == .timeline && ["NOTE", "NOTE_CORRECTION"].contains($0.fields.mbText("type") ?? "") && $0.fields["noteId"]?.integer == noteID
+        }?.fields.mbText("description")
+    }
+    var body: some View {
+        if let summary, !summary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            LabeledContent("merchant.noteCorrection.originalSummary", value: summary)
+                .font(.subheadline).accessibilityIdentifier("merchant.noteCorrection.targetSummary")
         }
     }
 }

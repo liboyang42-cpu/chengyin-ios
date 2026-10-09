@@ -145193,6 +145193,512 @@
           }
         }
       }
+    },
+    "merchant.crmDate.choose": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择来源日期"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose source dates"
+          }
+        }
+      }
+    },
+    "merchant.crmDate.localOnly": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这里只修改本地筛选日期，应用筛选或保存分群后才使用。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These changes update only the local filter. They are used when you apply the filter or save the segment."
+          }
+        }
+      }
+    },
+    "merchant.crmDate.rangeHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可只选一端，也可选择同一天。起止日期相隔不能超过366天。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Either bound may be empty, and both may be the same date. The end date may be at most 366 days after the start."
+          }
+        }
+      }
+    },
+    "merchant.crmDate.invalid": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请检查日期：结束不能早于开始，两端相隔不能超过366天。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check the dates: the end must be on or after the start and no more than 366 days later."
+          }
+        }
+      }
+    },
+    "merchant.crmDate.stale": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账号、门店权限或原筛选已变化，请重新打开日期选择。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The account, store authorization or original filter changed. Reopen date selection."
+          }
+        }
+      }
+    },
+    "merchant.crmDate.apply": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用到本地筛选"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply to local filter"
+          }
+        }
+      }
+    },
+    "merchant.crmDate.enabled": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用此日期"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use this date"
+          }
+        }
+      }
+    },
+    "merchant.crmDate.unrecognized": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原日期格式暂不识别；重新选择或明确清空后才能应用。取消会保留原文。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This original date format is unrecognized. Select a replacement or explicitly clear it before applying. Cancel preserves the original text."
+          }
+        }
+      }
+    },
+    "merchant.crmDate.replace": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新选择日期"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select a replacement date"
+          }
+        }
+      }
+    },
+    "merchant.crmDate.clear": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清空此日期"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear this date"
+          }
+        }
+      }
+    },
+    "profileTicketSchedule.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ticket session times"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "票种场次时间"
+          }
+        }
+      }
+    },
+    "profileTicketSchedule.ownerTimes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activity or route times (ticket session times unavailable)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动/路线时段（票种场次时间未提供）"
+          }
+        }
+      }
+    },
+    "profileTicketSchedule.phoneTimeZone": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Full timestamps use your phone’s time zone; date-only values stay calendar dates."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完整时刻按手机时区显示；仅日期保持原日历日期。"
+          }
+        }
+      }
+    },
+    "profileTicketSchedule.unparsed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source text; time could not be parsed or converted."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来源原文，时间未能解析或转换。"
+          }
+        }
+      }
+    },
+    "merchant.noteCorrection.append": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更正会追加一条新记录，原备注正文保留。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A correction adds a new record and preserves the original note."
+          }
+        }
+      }
+    },
+    "merchant.noteCorrection.cancel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消更正"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel correction"
+          }
+        }
+      }
+    },
+    "merchant.noteCorrection.cancelTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消本次更正？"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel this correction?"
+          }
+        }
+      }
+    },
+    "merchant.noteCorrection.cancelBody": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这会清空正在输入的正文，并转为新增备注。原记录不受影响。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This clears the text you are entering and switches to adding a new note. The original record is preserved."
+          }
+        }
+      }
+    },
+    "merchant.noteCorrection.confirmCancel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清空正文并取消更正"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear text and cancel correction"
+          }
+        }
+      }
+    },
+    "merchant.noteCorrection.keep": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续更正"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep correcting"
+          }
+        }
+      }
+    },
+    "merchant.noteCorrection.originalSummary": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "被更正备注摘要"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original note summary"
+          }
+        }
+      }
+    },
+    "merchantGreetingPreview.open": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preview handwritten greeting"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预览手写开场白"
+          }
+        }
+      }
+    },
+    "merchantGreetingPreview.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Greeting layout preview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开场白排版预览"
+          }
+        }
+      }
+    },
+    "merchantGreetingPreview.boundary": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is a local preview of your handwritten draft, not an AI reply. Previewing does not save or publish any changes."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这里只在本地预览你的手写草稿，不是 AI 回复。预览不会保存或发布任何修改。"
+          }
+        }
+      }
+    },
+    "merchantGreetingPreview.handwritten": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Handwritten draft · chat layout only"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手写草稿 · 仅预览聊天排版"
+          }
+        }
+      }
+    },
+    "merchantGreetingPreview.noName": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No name entered"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未填写名称"
+          }
+        }
+      }
+    },
+    "merchantGreetingPreview.noGreeting": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No greeting entered. Write one in the character editor to preview it here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未填写开场白。请在角色编辑页填写后再来预览。"
+          }
+        }
+      }
+    },
+    "merchantGreetingPreview.ephemeral": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only the current name and greeting are shown. Closing, editing, changing accounts or leaving the app clears this preview."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这里只显示当前名称和开场白。关闭、编辑、切换账号或离开应用后会清除本次预览。"
+          }
+        }
+      }
+    },
+    "merchantGreetingPreview.retired": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This preview has closed. Return to the character editor to open a new preview."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次预览已失效。请返回角色编辑页重新打开。"
+          }
+        }
+      }
+    },
+    "merchantGreetingPreview.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preview is unavailable during loading, review or an unresolved save, or when the name and greeting exceed 4,096 UTF-8 bytes in total."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加载、待确认保存或保存结果未明时无法预览；名称和开场白合计超过 4,096 个 UTF-8 字节时也无法预览。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

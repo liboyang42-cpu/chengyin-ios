@@ -144,7 +144,8 @@ import SwiftUI
                                     }
                                 }
                             case .dream, .mood, .thought, .voice, .odd, .reveal:
-                                NavigationLink { ProjectEditRichBlockEditor(model: model, block: blockBinding(block.id), chapterID: chapterID, chapterOverride: chapter) } label: { ProjectEditRichBlockSummary(block: block, nodes: chapter.wrappedValue.nodes) }
+                                NavigationLink { ProjectEditRichBlockEditor(model: model, block: blockBinding(block.id), chapterID: chapterID, chapterOverride: chapter,
+                                    allowsStoryConditionSource: chapterOverride == nil && mediaScope == nil && starterLease == nil) } label: { ProjectEditRichBlockSummary(block: block, nodes: chapter.wrappedValue.nodes) }
                                     .accessibilityIdentifier("projectEdit.rich.block." + block.id)
                             }
                         }.onMove { from, to in

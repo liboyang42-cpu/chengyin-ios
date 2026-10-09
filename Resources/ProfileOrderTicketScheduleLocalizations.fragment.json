@@ -1,0 +1,70 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "profileTicketSchedule.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ticket session times"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "票种场次时间"
+          }
+        }
+      }
+    },
+    "profileTicketSchedule.ownerTimes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activity or route times (ticket session times unavailable)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动/路线时段（票种场次时间未提供）"
+          }
+        }
+      }
+    },
+    "profileTicketSchedule.phoneTimeZone": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Full timestamps use your phone’s time zone; date-only values stay calendar dates."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完整时刻按手机时区显示；仅日期保持原日历日期。"
+          }
+        }
+      }
+    },
+    "profileTicketSchedule.unparsed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source text; time could not be parsed or converted."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来源原文，时间未能解析或转换。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

@@ -1,0 +1,121 @@
+{
+  "merchant.noteCorrection.append": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "更正会追加一条新记录，原备注正文保留。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "A correction adds a new record and preserves the original note."
+        }
+      }
+    }
+  },
+  "merchant.noteCorrection.cancel": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "取消更正"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Cancel correction"
+        }
+      }
+    }
+  },
+  "merchant.noteCorrection.cancelTitle": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "取消本次更正？"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Cancel this correction?"
+        }
+      }
+    }
+  },
+  "merchant.noteCorrection.cancelBody": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这会清空正在输入的正文，并转为新增备注。原记录不受影响。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This clears the text you are entering and switches to adding a new note. The original record is preserved."
+        }
+      }
+    }
+  },
+  "merchant.noteCorrection.confirmCancel": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "清空正文并取消更正"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Clear text and cancel correction"
+        }
+      }
+    }
+  },
+  "merchant.noteCorrection.keep": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "继续更正"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Keep correcting"
+        }
+      }
+    }
+  },
+  "merchant.noteCorrection.originalSummary": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "被更正备注摘要"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Original note summary"
+        }
+      }
+    }
+  }
+}
