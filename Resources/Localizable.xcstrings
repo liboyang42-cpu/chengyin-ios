@@ -1412,6 +1412,57 @@
         }
       }
     },
+    "activity.requiredClub.changed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The activity access response has changed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动访问状态已变化。"
+          }
+        }
+      }
+    },
+    "activity.requiredClub.open": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View required club"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看所属俱乐部"
+          }
+        }
+      }
+    },
+    "activity.requiredClub.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The required club is not available from this activity response."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次活动回复中的俱乐部入口暂不可用。"
+          }
+        }
+      }
+    },
     "activity.reviews.authorUnknown": {
       "extractionState": "manual",
       "localizations": {
@@ -56840,6 +56891,125 @@
           "stringUnit": {
             "state": "translated",
             "value": "推荐编号或当前店铺信息无法确认，暂不能打开。"
+          }
+        }
+      }
+    },
+    "merchant.insightProfile.configure": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set up cooperation profile"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配置承接资料"
+          }
+        }
+      }
+    },
+    "merchant.insightProfile.configured": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The cooperation profile is configured."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已配置承接资料。"
+          }
+        }
+      }
+    },
+    "merchant.insightProfile.edit": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View or edit cooperation settings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看或修改承接设置"
+          }
+        }
+      }
+    },
+    "merchant.insightProfile.notConfigured": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The cooperation profile is not configured."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未配置承接资料。"
+          }
+        }
+      }
+    },
+    "merchant.insightProfile.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store cooperation profile"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "店铺承接资料"
+          }
+        }
+      }
+    },
+    "merchant.insightProfile.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload to confirm the current store and configuration status before opening settings."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前门店或配置状态尚未确认，请重新读取后再打开设置。"
+          }
+        }
+      }
+    },
+    "merchant.insightProfile.unknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The cooperation profile’s configuration status is unavailable."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "承接资料的配置状态暂未确认。"
           }
         }
       }
@@ -112286,6 +112456,74 @@
         }
       }
     },
+    "publishingAICandidate.previous": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Previous successful draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上一份成功草稿"
+          }
+        }
+      }
+    },
+    "publishingAICandidate.previousNotice": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This result was generated for the idea shown below. New typing or a failed later request has not changed it. Choosing it will use this earlier draft."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这份结果来自下方的原始想法。新输入或后续失败的请求尚未改变它；采用时会使用这份旧草稿。"
+          }
+        }
+      }
+    },
+    "publishingAICandidate.sourceIdea": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original idea for this draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这份草稿的原始想法"
+          }
+        }
+      }
+    },
+    "publishingAICandidate.usePrevious": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use this previous draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "采用这份旧草稿"
+          }
+        }
+      }
+    },
     "publishingAIQuota.boundary": {
       "extractionState": "manual",
       "localizations": {
@@ -123906,6 +124144,125 @@
           "stringUnit": {
             "state": "translated",
             "value": "此节点数据已不再是当前有效读取。请返回节点刷新后再查看规则。"
+          }
+        }
+      }
+    },
+    "shopNPCOutcome.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The service reported a final failure for this request."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端已报告这条请求终结失败。"
+          }
+        }
+      }
+    },
+    "shopNPCOutcome.newQuestion": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This request has ended and cannot be retried with this ID. Close this review to edit or record a new question."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这条请求已终结，不能使用同一请求编号重试。关闭此审阅后，可以编辑或录制一个新问题。"
+          }
+        }
+      }
+    },
+    "shopNPCOutcome.processing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server is still processing this request. Keep this review to retry the same request when available."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端仍在处理这条请求。保留此审阅，待可重试时继续同一请求。"
+          }
+        }
+      }
+    },
+    "shopNPCOutcome.rejected": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The service rejected this request. It is a completed service result, not an NPC answer."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端已拒绝这条请求。这是已终结的服务结果，并非 NPC 回答。"
+          }
+        }
+      }
+    },
+    "shopNPCOutcome.retrySeconds": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server-requested wait remaining (seconds)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端要求的剩余等待时间（秒）"
+          }
+        }
+      }
+    },
+    "shopNPCOutcome.retryable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The service has not completed this request successfully. You can retry the same request when available."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这条请求尚未成功完成。待可重试时，可以继续同一请求。"
+          }
+        }
+      }
+    },
+    "shopNPCOutcome.serviceNotice": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Service notice, not an AI answer"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务提示，并非 AI 回答"
           }
         }
       }
