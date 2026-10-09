@@ -204,10 +204,12 @@ import SwiftUI
 }
 
 @MainActor struct MerchantBusinessPage: View {
+    @Environment(\.scenePhase) private var scenePhase
     let reader: any MerchantBusinessReading
     let journal: any MerchantBusinessIntentStore
     @State private var query: MerchantBusinessQuery
     @StateObject private var model: MerchantBusinessViewModel
+    @StateObject private var draftReturn: MerchantReviewDraftReturn
     @State private var keyword = ""
     @FocusState private var aftercareSearchFocused: Bool
     @State private var segment = "all"
@@ -222,7 +224,9 @@ import SwiftUI
     private let reviewSource: MerchantReviewSourcePage?
     init(reader: any MerchantBusinessReading, journal: any MerchantBusinessIntentStore, query: MerchantBusinessQuery, reviewSource: MerchantReviewSourcePage? = nil) {
         self.reader = reader; self.journal = journal; self.reviewSource = reviewSource
-        _query = State(initialValue: query); _model = StateObject(wrappedValue: .init(reader: reader, journal: journal))
+        let owner = MerchantBusinessViewModel(reader: reader, journal: journal)
+        _query = State(initialValue: query); _model = StateObject(wrappedValue: owner)
+        _draftReturn = StateObject(wrappedValue: .init(owner: owner))
         if case .customers(let filter) = query {
             _keyword = State(initialValue: filter.keyword); _segment = State(initialValue: filter.segment)
             _sourceType = State(initialValue: filter.sourceType ?? 0); _tagID = State(initialValue: filter.tagID ?? 0)
@@ -231,6 +235,7 @@ import SwiftUI
     }
     private var state: MerchantBusinessCoordinator { model.coordinator }
     var body: some View {
+        let presentedReview = state.confirmation
         List {
             if reader.isOfflineExample { Text("merchant.business.synthetic").font(.footnote).foregroundStyle(.secondary) }
             filters
@@ -245,6 +250,10 @@ import SwiftUI
                 Section("merchant.business.receipt") {
                     Text(reader.isOfflineExample ? "merchant.business.syntheticSaved" : "merchant.business.productionSaved")
                     if let message = receipt.message { Text(message) }
+                    if let invitation = state.operatorInvitation {
+                        MerchantOperatorInvitationReceiptView(owner: model, presentationID: invitation.id)
+                            .id(invitation.id)
+                    }
                     if case .refund = query { Text(receipt.refundActuallyConfirmed ? "merchant.business.platformRefunded" : "merchant.business.opinionOnly") }
                     Button("action.retry") { Task { await reload() } }
                 }
@@ -339,15 +348,36 @@ import SwiftUI
         .appNavigationTitle(key: query.titleKey)
         .task(id: reader.scope) { await reload() }
         .refreshable { await reload() }
-        .sheet(item: $editor, onDismiss: { if let mutation = pendingMutation { pendingMutation = nil; if sourcePageCanPrepare(mutation) { model.prepare(mutation) } } }) { context in
-            MerchantBusinessEditor(context: context, snapshot: state.snapshot, onReview: { mutation in
+        .sheet(item: $editor, onDismiss: { draftReturn.discard(); if let mutation = pendingMutation { pendingMutation = nil; if sourcePageCanPrepare(mutation) { model.prepare(mutation) } } }) { context in
+            MerchantBusinessEditor(context: context, snapshot: state.snapshot, reviewInitialContent: draftReturn.initialContent(for: context.id), aftercareEvidenceOwner: {
+                MerchantAftercareEvidenceOwner(editorID: context.id, document: model,
+                    editorIsCurrent: { editor?.id == context.id && pendingMutation == nil })
+            }, onReview: { mutation in
+                draftReturn.discard()
                 guard sourcePageCanPrepare(mutation) else { pendingMutation = nil; editor = nil; return }
                 pendingMutation = mutation; editor = nil
             })
         }
-        .sheet(item: Binding(get: { state.confirmation }, set: { if $0 == nil { model.cancel() } })) { review in
+        .sheet(item: Binding(get: { state.confirmation }, set: { value in
+            if value == nil, let presentedReview { draftReturn.cancelReview(id: presentedReview.id) }
+        })) { review in
+            let capture = draftReturn.capture(review)
             MerchantBusinessReviewSheet(review: review, canExecute: reader.canExecute(review.mutation, merchantID: review.baseline.access.merchantID), isSynthetic: reader.isOfflineExample, busy: state.isBusy,
-                issue: state.failureKey, cancel: model.cancel, confirm: { Task { await model.confirm(review) } })
+                issue: state.failureKey, cancel: { draftReturn.cancelReview(id: review.id) },
+                confirm: {
+                    if case .review(_, _, let action, _) = review.mutation, action != .delete {
+                        if draftReturn.beginConfirmation(id: review.id) { Task { await model.confirm(review) } }
+                    } else { Task { await model.confirm(review) } }
+                },
+                editDraft: capture.map { captured in { _ = draftReturn.requestReturn(captured) } })
+                .onDisappear {
+                    if let ticket = draftReturn.didDismiss(reviewID: review.id) {
+                        Task {
+                            guard let restored = draftReturn.resume(ticket, editorIsVacant: scenePhase == .active && editor == nil && pendingMutation == nil) else { return }
+                            editor = restored
+                        }
+                    }
+                }
         }
         .sheet(item: $reviewSourceDestination) { destination in
             NavigationStack {
@@ -357,9 +387,17 @@ import SwiftUI
                     } }
             }
         }
-        .onChange(of: reader.scope) { _, _ in editor = nil; pendingMutation = nil; reviewSourceDestination = nil; selection = []; model.invalidate() }
-        .onChange(of: reader.authorizationGeneration) { _, _ in editor = nil; pendingMutation = nil; reviewSourceDestination = nil; selection = []; model.invalidate() }
-        .onDisappear { editor = nil; pendingMutation = nil; model.invalidate() }
+        .onAppear { if scenePhase == .active { draftReturn.activate() } }
+        .onChange(of: model.revision) { _, _ in
+            if let retired = draftReturn.synchronize(), editor?.id == retired { editor = nil }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { draftReturn.activate() }
+            else if let retired = draftReturn.retire(), editor?.id == retired { editor = nil }
+        }
+        .onChange(of: reader.scope) { _, _ in draftReturn.retire(); if scenePhase == .active { draftReturn.activate() }; editor = nil; pendingMutation = nil; reviewSourceDestination = nil; selection = []; model.invalidate() }
+        .onChange(of: reader.authorizationGeneration) { _, _ in draftReturn.retire(); if scenePhase == .active { draftReturn.activate() }; editor = nil; pendingMutation = nil; reviewSourceDestination = nil; selection = []; model.invalidate() }
+        .onDisappear { draftReturn.retire(); editor = nil; pendingMutation = nil; model.invalidate() }
     }
     @ViewBuilder private var filters: some View {
         if case .customers = query {
@@ -421,9 +459,18 @@ import SwiftUI
             }
         }
         if case .redemptions(let filter, _) = query {
-            Picker("merchant.business.filter", selection: Binding(get: { filter }, set: { query = .redemptions(filter: $0, page: 1); Task { await reload() } })) {
-                ForEach(["all", "pending", "settled"], id: \.self) { Text(LocalizedStringKey("merchant.business.filter." + String($0))).tag($0) }
-            }
+            Picker("merchant.business.filter", selection: Binding(get: { filter }, set: { raw in
+                guard let selected = MerchantRedemptionFilter(rawValue: raw), raw != filter else { return }
+                query = .redemptions(filter: selected.rawValue, page: 1); Task { await reload() }
+            })) {
+                ForEach(MerchantRedemptionFilter.allCases, id: \.rawValue) { option in
+                    Text(LocalizedStringKey(option.titleKey)).tag(option.rawValue)
+                }
+                if MerchantRedemptionFilter(rawValue: filter) == nil {
+                    Text("merchant.redemptionFilter.unknown").tag(filter).disabled(true)
+                }
+            }.accessibilityIdentifier("merchant.business.redemptions.filter")
+            Text("merchant.redemptionFilter.meaning").font(.footnote).foregroundStyle(.secondary)
         }
     }
     @ViewBuilder private func summary(_ document: MerchantBusinessDocument) -> some View {
@@ -462,7 +509,7 @@ import SwiftUI
             VStack(alignment: .leading, spacing: 10) {
                 Text(row.title).font(.headline)
                 MerchantBusinessRecordFields(row: row, access: access, compact: false,
-                    settlementReader: reader, settlementSnapshot: {
+                    reviewPhotoOwner: model, settlementReader: reader, settlementSnapshot: {
                         guard state.isCurrent, !state.isBusy, state.failureKey == nil else { return nil }
                         return state.snapshot
                     })

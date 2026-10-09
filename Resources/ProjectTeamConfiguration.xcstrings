@@ -1,0 +1,227 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "projectTeamConfiguration.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Theme team settings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题组队设置"
+          }
+        }
+      }
+    },
+    "projectTeamConfiguration.unsupported": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These saved team settings are unsupported or absent from an older local draft. They are preserved; full saving is blocked. Reload the current editor before continuing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前组队设置暂不支持，或旧版本地草稿缺少已保存的设置。原始内容会保留，完整保存已阻止。请重新加载当前编辑器后继续。"
+          }
+        }
+      }
+    },
+    "projectTeamConfiguration.scope": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose when players can form a team for this city-orienteering theme. Apply changes only this local draft."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设置经典定向主题的组队入口。应用只修改当前本地草稿。"
+          }
+        }
+      }
+    },
+    "projectTeamConfiguration.mode": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Team entry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "组队入口"
+          }
+        }
+      }
+    },
+    "projectTeamConfiguration.modeOff": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Off"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭"
+          }
+        }
+      }
+    },
+    "projectTeamConfiguration.modeAtRegistration": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "During registration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "报名时组队"
+          }
+        }
+      }
+    },
+    "projectTeamConfiguration.modeAfterRegistration": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invite after registration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "报名后邀请"
+          }
+        }
+      }
+    },
+    "projectTeamConfiguration.maximum": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maximum selectable team size"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可选队伍人数上限"
+          }
+        }
+      }
+    },
+    "projectTeamConfiguration.defaults": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When no value was saved, the server defaults are Off and 4. Applying without a change keeps the original stored shape."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未保存设置时，服务端默认关闭组队、人数上限为 4。不作修改直接应用会保留原始存储形式。"
+          }
+        }
+      }
+    },
+    "projectTeamConfiguration.capacityScope": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This does not change ticket pricing, ticket team size, or any existing team membership."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此处不会修改门票价格、门票组队人数或现有队伍成员。"
+          }
+        }
+      }
+    },
+    "projectTeamConfiguration.stale": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The editor changed. Reopen team settings from the current draft."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑器已发生变化，请从当前草稿重新打开组队设置。"
+          }
+        }
+      }
+    },
+    "projectTeamConfiguration.cancel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消"
+          }
+        }
+      }
+    },
+    "projectTeamConfiguration.apply": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply to draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用到草稿"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

@@ -155,3 +155,93 @@ import XCTest
     }
 
 }
+
+extension ProjectEditPreparedReviewTests {
+    private func recruitmentReviewSetup() async throws -> (ProjectEditModel, Owner, ProjectEditSyntheticService, Storage) {
+        let owner = try Owner(), storage = Storage(); var draft = ProjectEditSyntheticFixtures.draft(product: .freeExplore)
+        draft.baseRevision = "server-r1"; draft.clubID = 31; draft.openMerchantPool = true; draft.preserved["openClubPool"] = .number(0)
+        draft.chapters[0].id = "chapter-11"; draft.chapters[0].preserved["id"] = .number(11)
+        for (key, value) in ["recruitEnabled": ProjectEditJSON.number(1), "termsMode": .string("REVSHARE"), "categoryId": .number(5),
+            "category": .string("Café"), "maxMerchant": .number(2), "perkMinValue": .null, "maxPerHeadFee": .string("12.30")] {
+            draft.chapters[0].preserved[key] = value
+        }
+        let initial = ProjectEditSnapshot(topicID: 71, draft: draft), service = ProjectEditSyntheticService(snapshot: initial)
+        let model = ProjectEditModel(coordinator: .init(initial: initial, service: service, store: .init(storage: storage), currentSession: { owner.session }))
+        await model.load(); return (model, owner, service, storage)
+    }
+    func testRecruitmentUnrelatedRenamePreparesRawCarryOverWithoutSubmitting() async throws {
+        let (model, _, service, _) = try await recruitmentReviewSetup()
+        let before = ProjectChapterRecruitmentCarryOver.rawFields(model.draft.chapters[0].preserved)
+        model.draft.name = "Only the topic name changed"; model.review()
+        let review = try XCTUnwrap(model.confirmation), chapter = try XCTUnwrap(review.payload["chapters"]?.array?.first?.object)
+        XCTAssertTrue(model.reviewIsCurrent(review)); XCTAssertTrue(model.reviewLocalSaveConfirmed)
+        XCTAssertEqual(ProjectEditPendingMaterials.exactData(ProjectChapterRecruitmentCarryOver.rawFields(chapter)), ProjectEditPendingMaterials.exactData(before))
+        XCTAssertEqual(chapter["maxPerHeadFee"], .string("12.30")); XCTAssertTrue(service.submissions.isEmpty)
+    }
+    func testRecruitmentChangesAndRawTypeReplacementCannotPrepare() async throws {
+        for change in ["fee", "type", "terms", "club", "owner", "revision", "missing"] {
+            let (model, _, service, _) = try await recruitmentReviewSetup()
+            switch change {
+            case "fee": model.draft.chapters[0].preserved["maxPerHeadFee"] = .string("13.00")
+            case "type": model.draft.chapters[0].preserved["maxPerHeadFee"] = .number(Decimal(string: "12.30")!)
+            case "terms": model.draft.chapters[0].preserved["termsMode"] = .string("PERK")
+            case "club": model.draft.clubID = 32
+            case "owner": model.draft.owner = .merchant
+            case "revision": model.draft.baseRevision = "server-r2"
+            default: model.draft.chapters[0].preserved["maxPerHeadFee"] = nil
+            }
+            model.review(); XCTAssertNil(model.confirmation); XCTAssertNil(model.coordinator.confirmation); XCTAssertTrue(service.submissions.isEmpty)
+        }
+    }
+    func testRecruitmentFreshCanonicalTextChangeBlocksBeforeDispatch() async throws {
+        let (model, _, service, _) = try await recruitmentReviewSetup(), baseline = service.snapshot
+        model.draft.name = "Unrelated edit"; model.review(); let review = try XCTUnwrap(model.confirmation)
+        service.snapshot.draft.chapters[0].preserved["category"] = .string("Cafe\u{301}")
+        XCTAssertEqual(service.snapshot, baseline) // Old Equatable-only guard would pass.
+        await model.submit(review)
+        XCTAssertTrue(service.submissions.isEmpty); XCTAssertEqual(model.coordinator.state, .blocked)
+        XCTAssertEqual(model.coordinator.messageKey, "projectEdit.revisionConflict")
+    }
+    func testRecruitmentFreshRawTypeAndRevisionChangesBlockBeforeDispatch() async throws {
+        for change in ["feeType", "revision"] {
+            let (model, _, service, _) = try await recruitmentReviewSetup(); model.review(); let review = try XCTUnwrap(model.confirmation)
+            if change == "feeType" { service.snapshot.draft.chapters[0].preserved["maxPerHeadFee"] = .number(Decimal(string: "12.30")!) }
+            else { service.snapshot.draft.baseRevision = "server-r2" }
+            await model.submit(review); XCTAssertTrue(service.submissions.isEmpty); XCTAssertEqual(model.coordinator.state, .blocked)
+        }
+    }
+    func testRecruitmentOwnerEpochAndSameByteRestoreRetirePreparedRequest() async throws {
+        for change in ["owner", "epoch", "restore"] {
+            let (model, owner, service, _) = try await recruitmentReviewSetup(); model.review(); let review = try XCTUnwrap(model.confirmation)
+            let bytes = ProjectEditPendingMaterials.exactData(model.draft)
+            if change == "restore" { model.restore(); XCTAssertEqual(ProjectEditPendingMaterials.exactData(model.draft), bytes) }
+            else { owner.session = try .init(accountID: change == "owner" ? 902 : 901, epoch: 2, storageNamespace: "prepared-nodes") }
+            XCTAssertFalse(model.reviewIsCurrent(review)); await model.submit(review); XCTAssertTrue(service.submissions.isEmpty)
+        }
+    }
+    func testRecruitmentReviewDoesNotEnableReadOnlyServiceSubmission() async throws {
+        let (source, owner, _, _) = try await recruitmentReviewSetup(), initial = try XCTUnwrap(source.coordinator.snapshot)
+        let service = RecruitmentReadOnlyService(initial), storage = Storage()
+        let model = ProjectEditModel(coordinator: .init(initial: initial, service: service, store: .init(storage: storage), currentSession: { owner.session }))
+        await model.load(); model.draft.name = "Local edit"; model.review(); let review = try XCTUnwrap(model.confirmation)
+        XCTAssertFalse(model.coordinator.canSubmit); await model.submit(review); XCTAssertEqual(service.submissions, 0)
+    }
+    func testRecruitmentRawFeeSurvivesExistingLocalSaveAndRestore() async throws {
+        let (model, owner, service, storage) = try await recruitmentReviewSetup(), initial = try XCTUnwrap(model.coordinator.snapshot)
+        model.draft.name = "Restored ordinary edit"; model.saveLocal()
+        let restored = ProjectEditModel(coordinator: .init(initial: initial, service: service, store: .init(storage: storage), currentSession: { owner.session }))
+        await restored.load(); XCTAssertTrue(restored.canRestore); restored.restore(); restored.review()
+        let review = try XCTUnwrap(restored.confirmation)
+        XCTAssertEqual(review.payload["chapters"]?.array?.first?.object?["maxPerHeadFee"], .string("12.30")); XCTAssertTrue(service.submissions.isEmpty)
+    }
+}
+
+@MainActor private final class RecruitmentReadOnlyService: ProjectEditServing {
+    let snapshot: ProjectEditSnapshot
+    var authority: ProjectEditServiceAuthority { .readOnly }
+    var submissions = 0
+    init(_ snapshot: ProjectEditSnapshot) { self.snapshot = snapshot }
+    func preflight(topicID: Int?, session: ProjectEditSession) async throws -> ProjectEditPreflight { .init(capability: .init(canProPublish: false, remaining: 0), snapshot: snapshot) }
+    func submit(_ operation: ProjectEditPending, session: ProjectEditSession) async -> ProjectEditWriteOutcome { submissions += 1; return .notSent }
+    func terminalReceipt(operationID: UUID, session: ProjectEditSession) async throws -> ProjectEditWriteOutcome? { nil }
+}

@@ -1,0 +1,121 @@
+{
+  "social.guideTemplates.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Ready-made games"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "现成玩法"
+        }
+      }
+    }
+  },
+  "social.guideTemplates.hint": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Explore a few games, or browse the full template library."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "先了解几种玩法，也可以进入模板库浏览更多。"
+        }
+      }
+    }
+  },
+  "social.guideTemplates.unavailable": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Game templates are unavailable in this context."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前暂时无法查看玩法模板。"
+        }
+      }
+    }
+  },
+  "social.guideTemplates.empty": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No games to show here yet."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂无可展示的玩法。"
+        }
+      }
+    }
+  },
+  "social.guideTemplates.used": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Times used"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "使用次数"
+        }
+      }
+    }
+  },
+  "social.guideTemplates.failed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Game templates could not be loaded. Other guide sections are still available."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "玩法模板加载失败，仍可查看指南的其他内容。"
+        }
+      }
+    }
+  },
+  "social.guideTemplates.browse": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Browse all templates"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "浏览全部模板"
+        }
+      }
+    }
+  }
+}

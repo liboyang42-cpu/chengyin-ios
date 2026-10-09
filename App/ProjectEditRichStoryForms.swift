@@ -8,6 +8,7 @@ import SwiftUI
     let chapterID: String
     var chapterOverride: Binding<ProjectEditChapter>? = nil
     var allowsStoryConditionSource = false
+    var allowsAlbumImageSource = false
     private var nodes: [ProjectEditNode] { (chapterOverride ?? model.chapter(chapterID)).wrappedValue.nodes }
     private var beat: ProjectEditNarrativeBeat? { ProjectEditNarrativeBeat(rawValue: block.fieldText("beat")) }
     private func text(_ key: String, integer: Bool = false) -> Binding<String> {
@@ -62,8 +63,21 @@ import SwiftUI
                             TextField("projectEdit.imageReference", text: image(index, "url"))
                                 .accessibilityIdentifier("projectEdit.rich.image.\(index)")
                             TextField("projectEdit.rich.imageCaption", text: image(index, "line"), axis: .vertical)
-                            Button("projectEdit.rich.removeImage", role: .destructive) { block.removeDreamImage(index: index) }
+                            if allowsAlbumImageSource {
+                                ProjectAlbumPhotoRemovalButton(model: model, chapterID: chapterID, blockID: block.id, index: index)
+                                    .id(ProjectAlbumPhotoRemovalIdentity(owner: ObjectIdentifier(model), chapter: Data(chapterID.utf8), block: Data(block.id.utf8), index: index))
+                            } else {
+                                Button("projectEdit.rich.removeImage", role: .destructive) { block.removeDreamImage(index: index) }
+                            }
+                            if allowsAlbumImageSource {
+                                ProjectAlbumPhotoOrderButtons(model: model, chapterID: chapterID, blockID: block.id, index: index)
+                                    .id([Data(chapterID.utf8), Data(block.id.utf8), Data(String(index).utf8)])
+                            }
                         }
+                    }
+                    if allowsAlbumImageSource {
+                        ProjectAlbumImageAuthorField(model: model, chapterID: chapterID, blockID: block.id)
+                            .id([Data(chapterID.utf8), Data(block.id.utf8)])
                     }
                     Button("projectEdit.rich.addImage") { block.appendDreamImage() }.disabled(block.dreamImages.count >= 6)
                         .accessibilityIdentifier("projectEdit.rich.addImage")
@@ -244,5 +258,75 @@ struct ProjectEditRichBlockSummary: View {
                     condition["value"]?.integer.map(String.init), condition["nodeId"]?.integer.map(String.init)].compactMap { $0 }.joined(separator: " ")).font(.caption)
             }
         }
+    }
+}
+
+
+/// A rendered album action expires on any draft mutation or presentation retirement.
+@MainActor final class ProjectAlbumPhotoOrderPresentation: ObservableObject {
+    struct Capture {
+        let hostID: UUID
+        let lease: ProjectEditStarterController.Lease
+        let incarnation: UUID
+        let revision: Int
+        let snapshot: ProjectAlbumPhotoOrder
+    }
+    let model: ProjectEditModel
+    let chapterID: String, blockID: String
+    let index: Int
+    @Published private(set) var active = false
+    private var hostID = UUID()
+    init(model: ProjectEditModel, chapterID: String, blockID: String, index: Int) {
+        self.model = model; self.chapterID = chapterID; self.blockID = blockID; self.index = index
+    }
+    func setActive(_ value: Bool) {
+        guard active != value else { return }
+        hostID = UUID(); active = value
+    }
+    func capture() -> Capture? {
+        guard active, model.fullEdit, let lease = model.captureStarterLease() else { return nil }
+        let snapshot = ProjectAlbumPhotoOrder(draft: model.draft, chapterID: chapterID, blockID: blockID, index: index)
+        guard snapshot.available else { return nil }
+        return .init(hostID: hostID, lease: lease, incarnation: model.editorIncarnation,
+            revision: model.draftMutationRevision, snapshot: snapshot)
+    }
+    @discardableResult func move(_ direction: ProjectAlbumPhotoOrder.Direction, captured: Capture) -> Bool {
+        guard active, captured.hostID == hostID, model.fullEdit,
+              model.editorIncarnation == captured.incarnation,
+              model.draftMutationRevision == captured.revision,
+              model.isCurrentStarterLease(captured.lease),
+              let next = try? captured.snapshot.moving(direction, in: model.draft) else { return false }
+        model.draft = next // Existing local draft autosave / Save local owns persistence.
+        return true
+    }
+}
+
+@MainActor private struct ProjectAlbumPhotoOrderButtons: View {
+    @ObservedObject var model: ProjectEditModel
+    @StateObject private var presentation: ProjectAlbumPhotoOrderPresentation
+    @Environment(\.scenePhase) private var scenePhase
+    init(model: ProjectEditModel, chapterID: String, blockID: String, index: Int) {
+        self.model = model
+        _presentation = StateObject(wrappedValue: .init(model: model, chapterID: chapterID, blockID: blockID, index: index))
+    }
+    var body: some View {
+        let captured = presentation.capture()
+        HStack {
+            moveButton(.up, key: "projectAlbumOrder.up", captured: captured)
+            moveButton(.down, key: "projectAlbumOrder.down", captured: captured)
+        }
+        .onAppear { presentation.setActive(scenePhase == .active) }
+        .onChange(of: scenePhase) { _, phase in presentation.setActive(phase == .active) }
+        .onDisappear { presentation.setActive(false) }
+    }
+    private func moveButton(_ direction: ProjectAlbumPhotoOrder.Direction, key: String,
+                            captured: ProjectAlbumPhotoOrderPresentation.Capture?) -> some View {
+        Button {
+            guard scenePhase == .active, let captured else { return }
+            presentation.move(direction, captured: captured)
+        } label: { Text(LocalizedStringKey(key), tableName: "ProjectAlbumPhotoOrder") }
+            .buttonStyle(.borderless)
+            .disabled(captured?.snapshot.canMove(direction) != true)
+            .accessibilityIdentifier(key + "." + String(presentation.index))
     }
 }

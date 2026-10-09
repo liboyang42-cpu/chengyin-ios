@@ -1,5 +1,32 @@
 import Foundation
 
+/// Mirrors NpcChatService's String.trim() followed by codePointCount, not
+/// Foundation whitespace trimming, UTF-16 units or Swift grapheme clusters.
+/// This projection never changes the user's stored composer text.
+public struct MerchantNPCMessageDraft: Equatable {
+    public static let maximumCodePoints = 300
+    public let message: String
+    public let codePointCount: Int
+    public var isValid: Bool { codePointCount > 0 && codePointCount <= Self.maximumCodePoints }
+    public init(_ raw: String) {
+        message = Self.normalized(raw)
+        codePointCount = message.unicodeScalars.count
+    }
+    public static func normalized(_ raw: String) -> String {
+        let scalars = raw.unicodeScalars
+        var start = scalars.startIndex
+        var end = scalars.endIndex
+        // Java String.trim() removes only edge values U+0000...U+0020.
+        while start < end, scalars[start].value <= 0x20 { start = scalars.index(after: start) }
+        while start < end {
+            let previous = scalars.index(before: end)
+            guard scalars[previous].value <= 0x20 else { break }
+            end = previous
+        }
+        return String(scalars[start..<end])
+    }
+}
+
 @MainActor public final class MerchantNPCChatCoordinator {
     /// A local completion receipt, not a server authorization or business result.
     /// Only a successfully completed exact request/attempt can create one.
@@ -77,9 +104,11 @@ import Foundation
     }
     public var canSend: Bool { isCurrent && grants().chatAllowed && !sending && requestID == nil && transmission == nil }
     @discardableResult public func send(_ text: String) async -> CompletedRequest? {
-        guard canSend, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
+        guard canSend else { return nil }
+        let draft = MerchantNPCMessageDraft(text)
+        guard draft.isValid else { return nil }
         let capturedRequest = UUID(), capturedGeneration = generation
-        message = text.trimmingCharacters(in: .whitespacesAndNewlines); requestID = capturedRequest; attempts = 0
+        message = draft.message; requestID = capturedRequest; attempts = 0
         displayedRequestID = capturedRequest
         reply = nil; retryAt = nil
         await run()
@@ -97,6 +126,34 @@ import Foundation
     public var canAbandon: Bool { isCurrent && !sending && transmission == nil }
     public var canRetry: Bool {
         isCurrent && grants().chatAllowed && !sending && transmission == nil && requestID != nil && attempts < 3 && (retryAt ?? .distantPast) <= Date() && (reply?.canRetry == true || failure == .unknownOutcome)
+    }
+    /// Read-only explanation of the existing retry gates. It never grants a send,
+    /// changes the deadline or replaces the original request/body.
+    public struct RetryRecovery: Equatable {
+        public enum State: Equatable {
+            case waitingForReply, stoppingLocalWait, cooldown(seconds: Int)
+            case retryAvailable, attemptLimitReached, unavailable
+        }
+        public let requestID: UUID
+        public let attemptCount: Int
+        public let retryAt: Date?
+        public let state: State
+        public let outcomeUnknown: Bool
+        public let canAbandon: Bool
+    }
+    public func retryRecovery(at now: Date = Date()) -> RetryRecovery? {
+        guard isCurrent, grants().chatAllowed, let requestID else { return nil }
+        let state: RetryRecovery.State
+        if sending { state = .waitingForReply }
+        else if transmission != nil { state = .stoppingLocalWait }
+        else if attempts >= 3 { state = .attemptLimitReached }
+        else if !(reply?.canRetry == true || failure == .unknownOutcome) { state = .unavailable }
+        else if let retryAt, retryAt > now {
+            let seconds = retryAt.timeIntervalSince(now)
+            state = .cooldown(seconds: seconds.isFinite ? Int(min(86_400, max(1, ceil(seconds)))) : 86_400)
+        } else { state = .retryAvailable }
+        return RetryRecovery(requestID: requestID, attemptCount: attempts, retryAt: retryAt,
+            state: state, outcomeUnknown: failure == .unknownOutcome, canAbandon: canAbandon)
     }
     @discardableResult public func retry() async -> CompletedRequest? {
         guard let capturedRequestID = requestID else { return nil }

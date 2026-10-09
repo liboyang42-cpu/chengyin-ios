@@ -90,6 +90,8 @@ extension KeychainTokenStore: AppTokenStorage {}
     let makeProjectTopicImageUploadTransport: @MainActor () -> any HTTPTransport
     let projectStoryImageUploadApproval: @MainActor (RuntimeDependencyContext) -> ProjectStoryImageUploadApproval?
     let makeProjectStoryImageUploadTransport: @MainActor () -> any HTTPTransport
+    let projectNodeImageUploadApproval: @MainActor (RuntimeDependencyContext) -> ProjectNodeImageUploadApproval?
+    let makeProjectNodeImageUploadTransport: @MainActor () -> (any ProjectNodeImageDispatching)?
     let ownedTopicCoverApproval: @MainActor (RuntimeDependencyContext) -> OwnedTopicCoverApproval?
     let makeOwnedTopicCoverTransport: @MainActor (Int) -> any HTTPTransport
     let ownedOrderReadApproval: @MainActor (RuntimeDependencyContext) -> OwnedOrderReadApproval?
@@ -123,6 +125,8 @@ extension KeychainTokenStore: AppTokenStorage {}
          projectTopicImageUploadApproval: @escaping @MainActor (RuntimeDependencyContext) -> ProjectTopicImageUploadApproval? = { _ in nil },
          makeProjectTopicImageUploadTransport: @escaping @MainActor () -> any HTTPTransport = { ResponseLimitedHTTPTransport(enabled: true, maximumResponseBytes: 64 * 1024) },
          projectStoryImageUploadApproval: @escaping @MainActor (RuntimeDependencyContext) -> ProjectStoryImageUploadApproval? = { _ in nil },
+         projectNodeImageUploadApproval: @escaping @MainActor (RuntimeDependencyContext) -> ProjectNodeImageUploadApproval? = { _ in nil },
+         makeProjectNodeImageUploadTransport: @escaping @MainActor () -> (any ProjectNodeImageDispatching)? = { ProjectNodeImageNetworkTransport(enabled: true) },
          makeProjectStoryImageUploadTransport: @escaping @MainActor () -> any HTTPTransport = { ResponseLimitedHTTPTransport(enabled: true, maximumResponseBytes: 64 * 1024) },
          ownedTopicCoverApproval: @escaping @MainActor (RuntimeDependencyContext) -> OwnedTopicCoverApproval? = { _ in nil },
          makeOwnedTopicCoverTransport: @escaping @MainActor (Int) -> any HTTPTransport = { ResponseLimitedHTTPTransport(enabled: true, maximumResponseBytes: $0) },
@@ -154,6 +158,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         self.projectStoryAudioUploadApproval = projectStoryAudioUploadApproval; self.makeProjectStoryAudioUploadTransport = makeProjectStoryAudioUploadTransport
         self.projectTopicImageUploadApproval = projectTopicImageUploadApproval; self.makeProjectTopicImageUploadTransport = makeProjectTopicImageUploadTransport
         self.projectStoryImageUploadApproval = projectStoryImageUploadApproval; self.makeProjectStoryImageUploadTransport = makeProjectStoryImageUploadTransport
+        self.projectNodeImageUploadApproval = projectNodeImageUploadApproval; self.makeProjectNodeImageUploadTransport = makeProjectNodeImageUploadTransport
         self.ownedTopicCoverApproval = ownedTopicCoverApproval; self.makeOwnedTopicCoverTransport = makeOwnedTopicCoverTransport
         self.sessionDependencies = sessionDependencies ?? { _ in .dormant }
         self.couponLocks = couponLocks

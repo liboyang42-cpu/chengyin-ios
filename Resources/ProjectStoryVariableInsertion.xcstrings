@@ -1,0 +1,150 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "projectStoryVariable.open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Append a profile variable…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在末尾添加建档变量…"
+          }
+        }
+      }
+    },
+    "projectStoryVariable.append": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Append token"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加到末尾"
+          }
+        }
+      }
+    },
+    "projectStoryVariable.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile variables"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "建档变量"
+          }
+        }
+      }
+    },
+    "projectStoryVariable.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No declared profile variables are available in this draft."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前草稿没有可用的已声明建档变量。"
+          }
+        }
+      }
+    },
+    "projectStoryVariable.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select a declared profile key, then append its token to the end of this text. Existing text stays unchanged. This updates the working draft and uses the usual autosave or Save local flow."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择已声明的建档键，将其变量标记添加到这段文字末尾。原有文字保持不变。此操作更新当前草稿，沿用自动保存或“保存到本地”流程。"
+          }
+        }
+      }
+    },
+    "projectStoryVariable.reason.identity": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This text block could not be uniquely identified. Its text is unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法唯一识别这段文字，原文保持不变。"
+          }
+        }
+      }
+    },
+    "projectStoryVariable.reason.declarations": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The template snapshots cannot establish unique profile keys. Existing text and tokens are unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前模板快照无法确认唯一的建档键。原文及变量标记保持不变。"
+          }
+        }
+      }
+    },
+    "projectStoryVariable.reason.unsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Variable append is available for supported nonempty plain-text story blocks."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只有受支持的非空普通故事文字块可以添加变量。"
+          }
+        }
+      }
+    },
+    "projectStoryVariable.limit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choices that would exceed the text length limit are unavailable."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加后会超出文字长度限制的选项不可用。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

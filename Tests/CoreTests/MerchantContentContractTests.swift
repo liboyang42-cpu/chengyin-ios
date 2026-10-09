@@ -206,12 +206,12 @@ final class MerchantContentContractTests: XCTestCase {
         _ = try await service(t, box: box).load(.registration(id: 22))
         let request = try XCTUnwrap(t.requests.last); XCTAssertEqual(request.httpMethod, "POST"); XCTAssertEqual(request.url?.query, "id=22"); XCTAssertNil(request.httpBody)
     }
-    func testProjectListCarriesMerchantScopeButWorkspaceDoesNotInventScope() async throws {
+    func testProjectListAndWorkspaceCarryDocumentedMerchantScope() async throws {
         let t = ContentScriptTransport(), box = SessionBox()
         for data in [#"{"rows":[],"total":0}"#, #"{"host":{}}"#] { t.append(MerchantContentFixtureData.access); t.append(data) }
         let s = try service(t, box: box); _ = try await s.load(.projects); _ = try await s.load(.project(topicID: 70))
         XCTAssertTrue(String(decoding: t.requests[1].httpBody!, as: UTF8.self).contains("MERCHANT"))
-        XCTAssertEqual(try JSONDecoder().decode([String: Int].self, from: t.requests[3].httpBody!), ["topicId": 70])
+        XCTAssertEqual(try JSONDecoder().decode([String: MerchantContentValue].self, from: t.requests[3].httpBody!), ["topicId": .integer(70), "scope": .string("MERCHANT")])
     }
     func testNPCNullIsValidUnconfiguredAndMultipartRead() async throws {
         let t = ContentScriptTransport(), box = SessionBox(); t.append(MerchantContentFixtureData.access); t.append("null")

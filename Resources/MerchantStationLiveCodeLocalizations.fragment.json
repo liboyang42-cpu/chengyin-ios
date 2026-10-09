@@ -1,0 +1,70 @@
+{
+  "merchant.stationLiveCode.image": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "现场签到二维码"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Live station check-in QR code"
+        }
+      }
+    }
+  },
+  "merchant.stationLiveCode.remaining": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "剩余秒数"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Seconds remaining"
+        }
+      }
+    }
+  },
+  "merchant.stationLiveCode.unavailable": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此现场码已隐藏或不可用。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This live code is hidden or unavailable."
+        }
+      }
+    }
+  },
+  "merchant.stationLiveCode.refreshHint": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "仅供现场扫码使用。到期或离开后，请点击上方重试获取新码。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "For on-site scanning. After expiry or leaving this screen, use Retry above to request a new code."
+        }
+      }
+    }
+  }
+}

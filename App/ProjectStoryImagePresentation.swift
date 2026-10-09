@@ -11,6 +11,8 @@ import SwiftUI
         let savedReference: String?
         let storyTopologyRevision: Int
         let storyGapRevision: Int
+        let albumDraftRevision: Int?
+        let albumHostID: UUID?
     }
     struct Presentation: Identifiable {
         let opening: Opening
@@ -19,7 +21,9 @@ import SwiftUI
     }
     @Published private(set) var presentation: Presentation?
     private let editor: ProjectEditModel
-    private var appliedTopology: (openingID: UUID, revision: Int, gapRevision: Int)?
+    private var appliedTopology: (openingID: UUID, revision: Int, gapRevision: Int, draftRevision: Int)?
+    private var albumHostID = UUID()
+    @Published private var albumHostActive = false
     private let host: ProjectStoryMediaChapterHost
     init(editor: ProjectEditModel, host: ProjectStoryMediaChapterHost = .ordinary) {
         self.editor = editor; self.host = host
@@ -47,16 +51,57 @@ import SwiftUI
         guard let target = fresh ?? recovery?.target else { return nil }
         return .init(lease: lease, target: target, recoveryOnly: recovery, source: source, journal: journal, chapterName: chapter.name,
                      savedReference: blockID.flatMap { id in chapter.blocks?.first(where: { $0.id == id })?.url },
-                     storyTopologyRevision: editor.storyTopologyRevision, storyGapRevision: editor.storyGapRevision)
+                     storyTopologyRevision: editor.storyTopologyRevision, storyGapRevision: editor.storyGapRevision, albumDraftRevision: nil, albumHostID: nil)
+    }
+    /// The album entry explicitly owns a visible, active ordinary-editor lifetime.
+    /// Retiring it also invalidates retained button captures, even after returning to the page.
+    func setAlbumHostActive(_ active: Bool) {
+        guard active != albumHostActive else { return }
+        albumHostActive = active
+        if !active {
+            albumHostID = UUID()
+            if let current = presentation, current.opening.target.isAlbumAppend { close(current) }
+        }
+    }
+    func captureAlbum(chapterID: String, blockID: String) -> Opening? {
+        guard case .ordinary = host, albumHostActive, presentation == nil,
+              let lease = editor.captureStarterLease(), let source = editor.coordinator.storyImageSource,
+              source.isCurrent(session: lease.session), let journal = editor.coordinator.storyImageJournal,
+              let chapter = editor.draft.chapters.first(where: { $0.id.utf8.elementsEqual(chapterID.utf8) }) else { return nil }
+        let fresh = try? ProjectStoryImageTarget(draft: editor.draft, identity: lease.identity, session: lease.session,
+            chapterID: chapterID, appendingToAlbum: blockID)
+        var recovery: ProjectStoryImageJournal.Entry?
+        if fresh == nil, let saved = try? journal.read(session: lease.session, identity: lease.identity) {
+            let matches = saved.entries.filter { entry in
+                guard !entry.applied, entry.target.chapterID.utf8.elementsEqual(chapterID.utf8),
+                      entry.target.action == .appendAlbumImage(Data(blockID.utf8)),
+                      let receipt = entry.receipt, receipt.reference.utf16.count <= 500,
+                      source.permitsReference(receipt.reference, session: lease.session) else { return false }
+                return entry.target.hasAppliedReference(receipt, in: editor.draft, identity: lease.identity, session: lease.session)
+            }
+            if matches.count == 1 { recovery = matches[0] }
+        }
+        guard let target = fresh ?? recovery?.target else { return nil }
+        return .init(lease: lease, target: target, recoveryOnly: recovery, source: source, journal: journal,
+            chapterName: chapter.name, savedReference: nil, storyTopologyRevision: editor.storyTopologyRevision,
+            storyGapRevision: editor.storyGapRevision, albumDraftRevision: editor.draftMutationRevision, albumHostID: albumHostID)
     }
     func isCurrent(_ original: Opening) -> Bool {
         guard ownsContext(original) else { return false }
+        if let revision = original.albumDraftRevision {
+            let expected = appliedTopology?.openingID == original.target.id ? appliedTopology?.draftRevision : nil
+            guard editor.draftMutationRevision == (expected ?? revision) else { return false }
+        }
         let expected = appliedTopology?.openingID == original.target.id ? appliedTopology?.revision : nil
         let expectedGap = appliedTopology?.openingID == original.target.id ? appliedTopology?.gapRevision : nil
         return editor.storyTopologyRevision == (expected ?? original.storyTopologyRevision) &&
             editor.storyGapRevision == (expectedGap ?? original.storyGapRevision)
     }
     private func ownsContext(_ original: Opening) -> Bool {
+        if original.target.isAlbumAppend {
+            guard case .ordinary = host, albumHostActive, original.albumHostID == albumHostID,
+                  original.albumDraftRevision != nil else { return false }
+        }
         guard host.allows(editor: editor, chapterID: original.target.chapterID), editor.isCurrentStarterLease(original.lease), editor.editorIncarnation == original.lease.incarnation,
               editor.coordinator.session == original.lease.session, editor.coordinator.identity == original.lease.identity,
               let source = editor.coordinator.storyImageSource, ObjectIdentifier(source) == ObjectIdentifier(original.source),
@@ -68,7 +113,7 @@ import SwiftUI
     func open(_ original: Opening) {
         guard presentation == nil, isCurrent(original), editor.isCurrentStarterLease(original.lease) else { return }
         if let recovery = original.recoveryOnly {
-            guard editor.draft.chapters.first(where: { $0.id == original.target.chapterID })?.blocks?.count == 200,
+            guard (original.target.isAlbumAppend || editor.draft.chapters.first(where: { $0.id == original.target.chapterID })?.blocks?.count == 200),
                   recovery.target == original.target, !recovery.applied, let receipt = recovery.receipt,
                   let saved = try? original.journal.read(session: original.lease.session, identity: original.lease.identity),
                   saved.entries.contains(recovery), original.source.permitsReference(receipt.reference, session: original.lease.session),
@@ -85,13 +130,15 @@ import SwiftUI
     func apply(_ original: Presentation) {
         guard presentation?.id == original.id, isCurrent(original.opening),
               let next = original.flow.draftForApply() else { return }
+        let beforeSaveRevision = editor.draftMutationRevision
         guard editor.persistLocalChange(next, lease: original.opening.lease) else { original.flow.localSaveFailed(); return }
         // Only this synchronous, exact successful draft save may advance the presentation's
         // topology. An external reorder/delete/restore, including ABA, cannot borrow it.
         guard presentation?.id == original.id, ownsContext(original.opening),
+              original.opening.albumDraftRevision == nil || editor.draftMutationRevision == beforeSaveRevision + 1,
               let expected = ProjectEditPendingMaterials.exactData(next),
               ProjectEditPendingMaterials.exactData(editor.draft) == expected else { close(original); return }
-        appliedTopology = (original.opening.target.id, editor.storyTopologyRevision, editor.storyGapRevision)
+        appliedTopology = (original.opening.target.id, editor.storyTopologyRevision, editor.storyGapRevision, editor.draftMutationRevision)
         original.flow.didSaveAppliedDraft()
         if original.flow.state == .applied { close(original) }
     }

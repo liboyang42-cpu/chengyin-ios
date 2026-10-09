@@ -144,3 +144,145 @@ import FoundationNetworking
         XCTAssertFalse(f.canApply); XCTAssertNil(f.draftForApply()); XCTAssertEqual(c.wire.requests.count, 1)
     }
 }
+
+// Album-append regressions. Authored here; execution requires the Swift test toolchain.
+@MainActor extension ProjectStoryImageTests {
+    private func albumContext(_ count: Int = 2) -> Context {
+        let c = Context()
+        var album = ProjectEditBlock(kind: .dream); album.id = "album-é"
+        album.sourceFields = ["title": .string(" Raw title "), "images": .array((0..<count).map { index in
+            .object(["url": .string("https://example.com/same.jpg"), "line": index == 0 ? .null : .string(" caption e\u{301} ")])
+        })]
+        c.draft.chapters[0].blocks?.insert(album, at: 1)
+        return c
+    }
+    private func albumTarget(_ c: Context) throws -> ProjectStoryImageTarget {
+        try .init(draft: c.draft, identity: c.identity, session: c.session, chapterID: c.draft.chapters[0].id, appendingToAlbum: "album-é")
+    }
+    private func albumReceipt(_ c: Context) throws -> ProjectStoryUploadedImage {
+        try .restore(attemptID: UUID(), ownerKey: c.session.ownerKey, reference: "https://example.com/e%CC%81.jpg")
+    }
+    func testAlbumAppendPreservesEveryPriorRawFieldAndDuplicatePhotoOrdinal() throws {
+        let c = albumContext(), target = try albumTarget(c), receipt = try albumReceipt(c), before = c.draft
+        let next = try target.applying(receipt, to: before, identity: c.identity, session: c.session)
+        var expected = before
+        let raw = try XCTUnwrap(before.chapters[0].blocks?[1].sourceFields?["images"]?.array)
+        expected.chapters[0].blocks?[1].sourceFields?["images"] = .array(raw + [.object(["url": .string(receipt.reference), "line": .string("")])])
+        XCTAssertEqual(ProjectEditPendingMaterials.exactData(next), ProjectEditPendingMaterials.exactData(expected))
+        XCTAssertEqual(ProjectEditPendingMaterials.exactData(before), ProjectEditPendingMaterials.exactData(c.draft))
+        XCTAssertTrue(target.hasAppliedReference(receipt, in: next, identity: c.identity, session: c.session))
+    }
+    func testAlbumZeroThroughFiveCanAppendButSixCannotMintAnotherTarget() throws {
+        for count in 0...5 {
+            let c = albumContext(count), target = try albumTarget(c), receipt = try albumReceipt(c)
+            let next = try target.applying(receipt, to: c.draft, identity: c.identity, session: c.session)
+            XCTAssertEqual(next.chapters[0].blocks?[1].sourceFields?["images"]?.array?.count, count + 1)
+            XCTAssertTrue(target.hasAppliedReference(receipt, in: next, identity: c.identity, session: c.session))
+        }
+        XCTAssertThrowsError(try albumTarget(albumContext(6)))
+        XCTAssertThrowsError(try albumTarget(albumContext(7)))
+    }
+    func testAlbumMalformedRawRowsAndUnknownFieldsNeverGetCompactedOrReplaced() throws {
+        let rows: [ProjectEditJSON?] = [nil, .null, .string("legacy"), .array([.null]), .array([.string("legacy")]),
+            .array([.object(["url": .string(""), "line": .string("")])]),
+            .array([.object(["url": .string("https://example.com/a"), "extra": .bool(true)])]),
+            .array([.object(["url": .string("https://example.com/a"), "line": .number(1)])]),
+            .array([.object(["url": .string(String(repeating: "x", count: 501))])]),
+            .array([.object(["url": .string("https://example.com/a"), "line": .string(String(repeating: "😀", count: 41))])])]
+        for raw in rows {
+            let c = albumContext(); c.draft.chapters[0].blocks?[1].sourceFields?["images"] = raw
+            let before = ProjectEditPendingMaterials.exactData(c.draft)
+            XCTAssertThrowsError(try albumTarget(c)); XCTAssertEqual(ProjectEditPendingMaterials.exactData(c.draft), before)
+        }
+        let c = albumContext(); c.draft.chapters[0].blocks?[1].sourceFields?["unknown"] = .bool(true)
+        XCTAssertThrowsError(try albumTarget(c))
+    }
+    func testAlbumIdentityRejectsCanonicalAliasesAndDuplicatesAcrossChapters() throws {
+        let c = albumContext(), chapter = c.draft.chapters[0]
+        XCTAssertThrowsError(try ProjectStoryImageTarget(draft: c.draft, identity: c.identity, session: c.session,
+            chapterID: chapter.id, appendingToAlbum: "album-e\u{301}"))
+        var other = chapter; other.id = "other"; other.blocks?[1].id = "album-e\u{301}"; c.draft.chapters.append(other)
+        XCTAssertThrowsError(try albumTarget(c))
+        c.draft.chapters = [chapter, chapter]; XCTAssertThrowsError(try albumTarget(c))
+    }
+    func testAlbumUnsupportedShapeAndConflictingActionsFailClosed() throws {
+        for mode in 0..<6 {
+            let c = albumContext()
+            switch mode {
+            case 0: c.draft.chapters[0].schemaVersion = 2
+            case 1: c.draft.chapters[0].blocks?[1].content = "unexpected"
+            case 2: c.draft.chapters[0].blocks?[1].url = "unexpected"
+            case 3: c.draft.chapters[0].blocks?[1].nodeID = "unexpected"
+            case 4: c.draft.chapters[0].blocks?[1].kind = .image
+            default: c.draft.chapters[0].blocks?[1].sourceFields?["title"] = .number(1)
+            }
+            XCTAssertThrowsError(try albumTarget(c))
+        }
+        let c = albumContext()
+        XCTAssertThrowsError(try ProjectStoryImageTarget(draft: c.draft, identity: c.identity, session: c.session,
+            chapterID: c.draft.chapters[0].id, replacing: "album-é", appendingToAlbum: "album-é"))
+    }
+    func testAlbumInverseRequiresExactWholePreimageAndExactLastCaption() throws {
+        let c = albumContext(), target = try albumTarget(c), receipt = try albumReceipt(c)
+        let applied = try target.applying(receipt, to: c.draft, identity: c.identity, session: c.session)
+        for mutation in 0..<7 {
+            var changed = applied
+            var images = try XCTUnwrap(changed.chapters[0].blocks?[1].sourceFields?["images"]?.array)
+            switch mutation {
+            case 0: images[0] = .object(["url": .string("https://example.com/same.jpg"), "line": .string("")])
+            case 1: images[2] = .object(["url": .string(receipt.reference), "line": .null])
+            case 2: images.swapAt(0, 2)
+            case 3: changed.chapters[0].blocks?[1].sourceFields?["title"] = .string("Changed")
+            case 4: changed.chapters[0].blocks?[0].content += "changed neighbor"
+            case 5: changed.chapters[0].blocks?[1].id = "album-e\u{301}"
+            default: images.append(images[2])
+            }
+            changed.chapters[0].blocks?[1].sourceFields?["images"] = .array(images)
+            XCTAssertFalse(target.hasAppliedReference(receipt, in: changed, identity: c.identity, session: c.session))
+        }
+    }
+    func testAlbumTargetRejectsStaleDraftOwnerAndOversizedReceipt() throws {
+        let c = albumContext(), target = try albumTarget(c), receipt = try albumReceipt(c)
+        c.draft.chapters[0].name += "new"
+        XCTAssertThrowsError(try target.applying(receipt, to: c.draft, identity: c.identity, session: c.session))
+        let other = try ProjectEditSession(accountID: 8, epoch: 2, storageNamespace: c.session.storageNamespace)
+        XCTAssertFalse(target.matches(c.draft, identity: c.identity, session: other))
+        let fresh = albumContext(), selected = try albumTarget(fresh)
+        let large = try ProjectStoryUploadedImage.restore(attemptID: UUID(), ownerKey: fresh.session.ownerKey, reference: "https://example.com/" + String(repeating: "a", count: 500))
+        XCTAssertThrowsError(try selected.applying(large, to: fresh.draft, identity: fresh.identity, session: fresh.session))
+    }
+    func testAlbumActionRoundTripKeepsOldActionEncodingAndExactBytes() throws {
+        let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]
+        let old: [(ProjectStoryImageTarget.Action, String)] = [(.append, #"{"append":{}}"#), (.replace("a"), #"{"replace":{"_0":"a"}}"#), (.insertBefore("a"), #"{"insertBefore":{"_0":"a"}}"#)]
+        for (action, json) in old { XCTAssertEqual(try encoder.encode(action), Data(json.utf8)) }
+        let c = albumContext(), target = try albumTarget(c)
+        let restored = try JSONDecoder().decode(ProjectStoryImageTarget.self, from: encoder.encode(target))
+        XCTAssertEqual(restored, target)
+        XCTAssertNotEqual(ProjectStoryImageTarget.Action.appendAlbumImage(Data("é".utf8)), .appendAlbumImage(Data("e\u{301}".utf8)))
+    }
+    func testAlbumExistingFlowRequiresExplicitUploadThenExplicitAppendAndCanReopenReceipt() async throws {
+        let c = albumContext(), selected = try albumTarget(c), source = try source(c), before = ProjectEditPendingMaterials.exactData(c.draft)
+        let f = ProjectStoryImageFlow(target: selected, session: c.session, identity: c.identity, source: source, journal: c.journal, currentDraft: { c.draft }, parentCurrent: { c.current })
+        f.load(); f.stageCropped(try image()); XCTAssertTrue(c.wire.requests.isEmpty)
+        let claim = try XCTUnwrap(f.claimUpload(try XCTUnwrap(f.review))); await f.upload(claim)
+        XCTAssertEqual(c.wire.requests.count, 1); XCTAssertEqual(ProjectEditPendingMaterials.exactData(c.draft), before)
+        f.close()
+        let next = ProjectStoryImageFlow(target: try albumTarget(c), session: c.session, identity: c.identity, source: source, journal: c.journal, currentDraft: { c.draft }, parentCurrent: { c.current })
+        next.load(); c.draft = try XCTUnwrap(next.draftForApply()); next.didSaveAppliedDraft()
+        XCTAssertEqual(next.state, .applied); XCTAssertEqual(c.draft.chapters[0].blocks?[1].sourceFields?["images"]?.array?.count, 3)
+        XCTAssertEqual(c.wire.requests.count, 1)
+    }
+    func testAlbumSixthPhotoReceiptOnlyRecoveryCannotSelectOrAppendAgain() async throws {
+        let c = albumContext(5), selected = try albumTarget(c), source = try source(c)
+        let f = ProjectStoryImageFlow(target: selected, session: c.session, identity: c.identity, source: source, journal: c.journal, currentDraft: { c.draft }, parentCurrent: { c.current })
+        try await upload(f); c.draft = try XCTUnwrap(f.draftForApply())
+        let entry = try XCTUnwrap(c.journal.read(session: c.session, identity: c.identity).entries.last); f.close()
+        let next = ProjectStoryImageFlow(target: selected, session: c.session, identity: c.identity, source: source, journal: c.journal,
+            recoveryOnly: entry, currentDraft: { c.draft }, parentCurrent: { c.current })
+        next.load(); let before = ProjectEditPendingMaterials.exactData(c.draft)
+        XCTAssertFalse(next.canPick); XCTAssertNil(next.beginPicking()); XCTAssertTrue(next.alreadyApplied)
+        XCTAssertEqual(ProjectEditPendingMaterials.exactData(next.draftForApply()), ProjectEditPendingMaterials.exactData(Optional(c.draft)))
+        next.didSaveAppliedDraft(); XCTAssertEqual(next.state, .applied)
+        XCTAssertEqual(ProjectEditPendingMaterials.exactData(c.draft), before); XCTAssertEqual(c.wire.requests.count, 1)
+    }
+}

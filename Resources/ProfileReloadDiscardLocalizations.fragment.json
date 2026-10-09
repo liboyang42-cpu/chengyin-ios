@@ -1,0 +1,53 @@
+{
+  "profile.reloadDiscard.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "重新载入个人资料？"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reload profile?"
+        }
+      }
+    }
+  },
+  "profile.reloadDiscard.confirm": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "放弃修改并重新载入"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Discard changes and reload"
+        }
+      }
+    }
+  },
+  "profile.reloadDiscard.message": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "载入成功后，将替换尚未保存的昵称、简介和路线偏好。载入失败时保留当前修改。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "A successful reload replaces unsaved changes to your nickname, introduction and route preferences. If it fails, your changes are kept."
+        }
+      }
+    }
+  }
+}

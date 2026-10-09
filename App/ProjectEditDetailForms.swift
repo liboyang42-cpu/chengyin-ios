@@ -63,6 +63,9 @@ import SwiftUI
         let templateInsertion = usesRealMediaChapter ? storyTemplates.capture(chapterID: chapterID, before: nil) : nil
         let audioInsertion = usesRealMediaChapter ? storyAudios.captureInsertion(chapterID: chapterID, before: nil) : nil
         let imageOpening = usesRealMediaChapter ? storyImages.capture(chapterID: chapterID) : nil
+        let handlesCityNodeRemoval = model.draft.product == .city && chapterOverride == nil && mediaScope == nil && starterLease == nil
+        ProjectCityStoryNodeRemovalHost(model: model, chapterID: chapterID) { cityRemoval in
+        let cityRemovalCapture = handlesCityNodeRemoval ? cityRemoval.capture() : nil
         Form {
             if exists {
                 if let pendingMaterialName { Section { Text("projectPending.storyPlacementScope"); Text(verbatim: pendingMaterialName) } }
@@ -102,13 +105,22 @@ import SwiftUI
                             if usesRealMediaChapter { mediaGap(before: block.id) }
                             switch block.kind {
                             case .text:
-                                TextField("projectEdit.story", text: blockBinding(block.id).content, axis: .vertical).lineLimit(3...12)
-                                    .accessibilityIdentifier("projectEdit.block." + block.id)
+                                if chapterOverride == nil && mediaScope == nil && starterLease == nil && ProjectEmptyStoryTextRemoval.supports(block) {
+                                    ProjectStoryTextField(model: model, chapterID: chapterID, blockID: block.id)
+                                        .id(ProjectStoryTextHostIdentity(owner: ObjectIdentifier(model), chapter: Data(chapterID.utf8), block: Data(block.id.utf8)))
+                                } else {
+                                    TextField("projectEdit.story", text: blockBinding(block.id).content, axis: .vertical).lineLimit(3...12)
+                                        .accessibilityIdentifier("projectEdit.block." + block.id)
+                                }
+                                if chapterOverride == nil && mediaScope == nil && starterLease == nil && !block.isNarrative {
+                                    ProjectStoryVariablePicker(model: model, chapterID: chapterID, blockID: block.id)
+                                        .id(ProjectStoryVariableHostIdentity(owner: ObjectIdentifier(model), chapter: Data(chapterID.utf8), block: Data(block.id.utf8)))
+                                }
                                 NavigationLink("projectEdit.rich.editDetails") { ProjectEditRichBlockEditor(model: model, block: blockBinding(block.id), chapterID: chapterID, chapterOverride: chapter) }
                             case .node:
                                 NavigationLink { ProjectEditRichBlockEditor(model: model, block: blockBinding(block.id), chapterID: chapterID, chapterOverride: chapter) } label: {
                                     Label { Text(verbatim: chapter.wrappedValue.nodes.first { $0.id == block.nodeID }?.name ?? "") } icon: { Image(systemName: "mappin.circle") }
-                                }
+                                }.deleteDisabled(handlesCityNodeRemoval && !cityRemoval.canRemove(block.nodeID, captured: cityRemovalCapture))
                             case .image, .audio:
                                 ProjectEditReferenceField(title: LocalizedStringKey(block.kind == .image ? "projectEdit.imageReference" : "projectEdit.audioReference"), value: blockBinding(block.id).url, identifier: "projectEdit.block." + block.id, showsDeferredHint: false)
                                 if block.kind == .image {
@@ -145,12 +157,19 @@ import SwiftUI
                                 }
                             case .dream, .mood, .thought, .voice, .odd, .reveal:
                                 NavigationLink { ProjectEditRichBlockEditor(model: model, block: blockBinding(block.id), chapterID: chapterID, chapterOverride: chapter,
-                                    allowsStoryConditionSource: chapterOverride == nil && mediaScope == nil && starterLease == nil) } label: { ProjectEditRichBlockSummary(block: block, nodes: chapter.wrappedValue.nodes) }
+                                    allowsStoryConditionSource: chapterOverride == nil && mediaScope == nil && starterLease == nil,
+                                    allowsAlbumImageSource: chapterOverride == nil && mediaScope == nil && starterLease == nil) } label: { ProjectEditRichBlockSummary(block: block, nodes: chapter.wrappedValue.nodes) }
                                     .accessibilityIdentifier("projectEdit.rich.block." + block.id)
                             }
                         }.onMove { from, to in
                             var c = chapter.wrappedValue; c.blocks?.move(fromOffsets: from, toOffset: to); chapter.wrappedValue = c
                         }.onDelete { offsets in
+                            // Route from rendered kinds. A stale city-node callback
+                            // never falls through into the original direct delete.
+                            if handlesCityNodeRemoval && offsets.contains(where: { blocks.indices.contains($0) && blocks[$0].kind == .node }) {
+                                _ = cityRemoval.interceptStory(offsets: offsets, captured: cityRemovalCapture)
+                                return
+                            }
                             var c = chapter.wrappedValue
                             let deleted = offsets.compactMap { c.blocks?.indices.contains($0) == true ? c.blocks?[$0] : nil }
                             let removedIDs = Set(deleted.map(\.id))
@@ -201,14 +220,25 @@ import SwiftUI
                 if handlesPendingRemoval {
                     Section { ProjectPendingNodeRemovalStatus(controller: pendingNodeRemoval) }
                 }
+                if handlesCityNodeRemoval {
+                    Section {
+                        Text("projectCityNodeRemoval.scope", tableName: "ProjectCityStoryNodeRemoval").font(.footnote)
+                        ProjectCityStoryNodeRemovalStatus(controller: cityRemoval)
+                    }
+                }
                 Section("projectEdit.nodes") {
                     ForEach(chapter.wrappedValue.nodes) { node in
                         NavigationLink { ProjectEditNodeView(model: model, chapterID: chapterID, nodeID: node.id, starterLease: starterLease, chapterOverride: chapter,
-                            allowsGameplayRemoval: chapterOverride == nil && mediaScope == nil && starterLease == nil) } label: {
+                            allowsGameplayRemoval: chapterOverride == nil && mediaScope == nil && starterLease == nil,
+                            allowsRouteMapping: chapterOverride == nil && mediaScope == nil && starterLease == nil) } label: {
                             Label { ProjectEditName(value: node.name, fallback: "projectEdit.untitledNode") } icon: { Image(systemName: "mappin.circle") }
                         }.accessibilityIdentifier("projectEdit.node." + node.id)
-                            .deleteDisabled(handlesPendingRemoval && removalCapture == nil)
+                            .deleteDisabled((handlesPendingRemoval && removalCapture == nil) || (handlesCityNodeRemoval && !cityRemoval.canRemove(node.id, captured: cityRemovalCapture)))
                     }.onDelete { offsets in
+                        if handlesCityNodeRemoval {
+                            cityRemoval.openNodes(offsets: offsets, captured: cityRemovalCapture)
+                            return
+                        }
                         if handlesPendingRemoval {
                             pendingNodeRemoval.open(offsets: offsets, captured: removalCapture)
                             return
@@ -242,6 +272,7 @@ import SwiftUI
                 ProjectStoryTemplateView(controller: storyTemplates, original: original)
             }
             .modifier(ProjectPendingNodeRemovalPresentation(controller: pendingNodeRemoval))
+            .modifier(ProjectCityStoryNodeRemovalPresentation(controller: cityRemoval))
             .onChange(of: model.draftMutationRevision) { _, _ in pendingNodeRemoval.synchronize(); audioPreview.synchronize() }
             .onChange(of: model.editorIncarnation) { _, _ in pendingNodeRemoval.retire(); audioPreview.retire() }
             .onChange(of: model.coordinator.session) { _, _ in audioPreview.retire() }
@@ -253,12 +284,18 @@ import SwiftUI
                 if let imagePresentation { storyImages.close(imagePresentation) }
                 if let audioPresentation { storyAudios.close(audioPresentation) }
             }
+        }.id(ProjectCityStoryNodeRemovalHostIdentity(owner: ObjectIdentifier(model), chapter: Data(chapterID.utf8)))
     }
     @ViewBuilder private func mediaGap(before blockID: String) -> some View {
         let image = storyImages.capture(chapterID: chapterID, insertingBefore: blockID)
         let audio = storyAudios.captureInsertion(chapterID: chapterID, before: blockID)
         let template = storyTemplates.capture(chapterID: chapterID, before: blockID)
+        let ordinary = chapterOverride == nil && mediaScope == nil && starterLease == nil
+        let text = ordinary ? ProjectStoryTextInsertionAction(model: model, chapterID: chapterID, beforeBlockID: blockID) : nil
+        let rich = ordinary ? ProjectRichStoryInsertionAction(model: model, chapterID: chapterID, beforeBlockID: blockID) : nil
         Menu(imageText("projectStoryMedia.insertBefore", "Insert before this block")) {
+            if ordinary { ProjectStoryTextInsertionButton(action: text, beforeBlockID: blockID) }
+            if ordinary { ProjectRichStoryInsertionButton(action: rich, beforeBlockID: blockID) }
             Button("projectEdit.addImage") {
                 guard let image, exists else { return }; openImage(image)
             }.disabled(image == nil).accessibilityIdentifier("projectStoryImage.insertBefore." + blockID)
@@ -270,7 +307,7 @@ import SwiftUI
                 guard let template, exists, storyImages.presentation == nil, storyAudios.presentation == nil else { return }
                 _ = storyTemplates.open(template)
             }.disabled(template == nil).accessibilityIdentifier("projectStoryTemplate.insertBefore." + blockID)
-        }.disabled(!model.fullEdit || (image == nil && audio == nil && template == nil))
+        }.disabled(!model.fullEdit || (text == nil && rich == nil && image == nil && audio == nil && template == nil))
             .accessibilityIdentifier("projectStoryMedia.gap." + blockID)
     }
     private func openImage(_ opening: ProjectStoryImagePresentation.Opening) {
@@ -305,6 +342,7 @@ import SwiftUI
     var chapterOverride: Binding<ProjectEditChapter>? = nil
     var initialIssueAnchor: String? = nil
     var allowsGameplayRemoval: Bool? = nil
+    var allowsRouteMapping: Bool? = nil
     private var targetChapter: Binding<ProjectEditChapter> { chapterOverride ?? starterLease.map { model.starterChapter($0) } ?? model.chapter(chapterID) }
     private var node: Binding<ProjectEditNode> {
         Binding(get: { targetChapter.wrappedValue.nodes.first { $0.id == nodeID } ?? .init() }, set: { value in
@@ -332,6 +370,27 @@ import SwiftUI
             if (allowsGameplayRemoval ?? (chapterOverride == nil && starterLease == nil)) && (node.wrappedValue.templateID ?? 0) > 0 {
                 ProjectNodeGameplayRemovalField(model: model, chapterID: chapterID, nodeID: nodeID)
                     .id([Data(chapterID.utf8), Data(nodeID.utf8)])
+            }
+            if (allowsRouteMapping ?? (chapterOverride == nil && starterLease == nil)) && model.draft.preserved["routeMode"] == .string("BRANCH_GRAPH") {
+                ProjectNodeRouteMappingEntry(model: model, chapterID: chapterID, nodeID: nodeID)
+                    .id([Data(chapterID.utf8), Data(nodeID.utf8)])
+            }
+            if allowsGameplayRemoval ?? (chapterOverride == nil && starterLease == nil) {
+                ProjectNodeBusinessHoursField(model: model, chapterID: chapterID, nodeID: nodeID)
+                    .id(ProjectNodeBusinessHoursHostIdentity(owner: ObjectIdentifier(model), chapter: Data(chapterID.utf8), node: Data(nodeID.utf8)))
+            }
+            if allowsGameplayRemoval ?? (chapterOverride == nil && starterLease == nil) {
+                ProjectNodePlacePickerEntry(model: model, chapterID: chapterID, nodeID: nodeID)
+                ProjectNodeDurationField(model: model, chapterID: chapterID, nodeID: nodeID)
+                    .id([Data(chapterID.utf8), Data(nodeID.utf8)])
+            }
+            if allowsGameplayRemoval ?? (chapterOverride == nil && starterLease == nil) {
+                ProjectNodePhotoRemovalField(model: model, chapterID: chapterID, nodeID: nodeID)
+                    .id([Data(chapterID.utf8), Data(nodeID.utf8)])
+                if chapterOverride == nil && starterLease == nil {
+                    ProjectNodeImageAuthorField(model: model, chapterID: chapterID, nodeID: nodeID)
+                        .id(ProjectNodeImageHostIdentity(owner: ObjectIdentifier(model), chapter: Data(chapterID.utf8), node: Data(nodeID.utf8)))
+                }
             }
             ProjectNodeNarrativeEntry(model: model, chapterID: chapterID, nodeID: nodeID)
             if let key = model.coordinator.messageKey { Section { Text(LocalizedStringKey(key)).accessibilityIdentifier("projectPrepared.nodeSaveStatus") } }
@@ -375,9 +434,15 @@ import SwiftUI
                 TextField("projectEdit.longitude", text: $node.longitude).keyboardType(.numbersAndPunctuation).accessibilityIdentifier("projectEdit.longitude").id("project-issue-anchor-coordinates")
                 TextField("projectEdit.latitude", text: $node.latitude).keyboardType(.numbersAndPunctuation).accessibilityIdentifier("projectEdit.latitude")
                 Text("projectEdit.coordinatesHint").font(.caption).foregroundStyle(.secondary)
-                Stepper(value: $node.nodeTime, in: 0...Int.max) {
+                Stepper {
                     LabeledContent("projectEdit.nodeMinutes", value: String(node.nodeTime))
-                }.id("project-issue-anchor-nodeTime")
+                } onIncrement: {
+                    if let next = ProjectNodeDuration.adjusted(node.nodeTime, by: 1) { node.nodeTime = next }
+                } onDecrement: {
+                    if let next = ProjectNodeDuration.adjusted(node.nodeTime, by: -1) { node.nodeTime = next }
+                }
+                .disabled(!(0...ProjectNodeDuration.maximumMinutes).contains(node.nodeTime))
+                .id("project-issue-anchor-nodeTime")
                 ProjectEditReferenceField(title: "projectEdit.nodeImages", value: $node.imgUrl, identifier: "projectEdit.nodeImages")
             }
             Section("projectEdit.gameplay") {

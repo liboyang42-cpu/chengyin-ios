@@ -101,7 +101,11 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
             }
             if let businessReader, let businessJournal {
                 Section {
-                    NavigationLink { MerchantBusinessHomeView(reader: businessReader, journal: businessJournal).id(businessReader.scope) } label: { Label("merchant.business.title", systemImage: "building.2.crop.circle") }
+                    NavigationLink {
+                        MerchantBusinessHomeView(reader: businessReader, journal: businessJournal)
+                            .environment(\.merchantAftercareEvidenceDependencies, aftercareEvidenceDependencies(journal: businessJournal))
+                            .id(businessReader.scope)
+                    } label: { Label("merchant.business.title", systemImage: "building.2.crop.circle") }
                         .accessibilityIdentifier("merchant.business.open")
                 }
             }
@@ -174,7 +178,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                             .accessibilityIdentifier("merchant.orders.entry")
                     }
                     if access.allows(.projects) {
-                        NavigationLink { MerchantProjectsView(reader: reader) } label: { Label("merchant.projects", systemImage: "calendar") }
+                        NavigationLink { MerchantProjectsView(reader: reader, contentService: contentService) } label: { Label("merchant.projects", systemImage: "calendar") }
                             .accessibilityIdentifier("merchant.projects.entry")
                     }
                 }
@@ -190,6 +194,10 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
             async let e: Void = loadEvents()
             _ = await (d, t, e)
         }
+    }
+    private func aftercareEvidenceDependencies(journal: any MerchantBusinessIntentStore) -> MerchantAftercareEvidenceDependencies? {
+        guard let engagementReader, let exportRecovery else { return nil }
+        return .init(reader: engagementReader, journal: journal, recovery: exportRecovery)
     }
     private func loadDashboard() async {
         guard access.canReadDashboard else { return }

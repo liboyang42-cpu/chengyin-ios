@@ -25,10 +25,10 @@ public struct SearchMapService {
         try query.validate(); try validate(token)
         let query = GlobalSearchQuery(keyword: query.keyword, categoryID: query.categoryID, startDate: query.startDate, endDate: query.endDate, minimumPrice: query.minimumPrice, maximumPrice: query.maximumPrice)
         guard query.canSearch else { return GlobalSearchResults(rows: []) }
-        async let topics = attempt { try await self.topicRows(query, token: token) }
-        async let activities = attempt { try await self.activityRows(query, area: nil, sortType: nil, pageSize: 12, token: token) }
-        async let clubs = attempt { try await self.clubRows(query, token: token) }
-        async let merchants = attempt { try await self.merchantRows(query, token: token) }
+        async let topics = attemptGlobalSearch { try await self.topicRows(query, token: token) }
+        async let activities = attemptGlobalSearch { try await self.activityRows(query, area: nil, sortType: nil, pageSize: 12, token: token) }
+        async let clubs = attemptGlobalSearch { try await self.clubRows(query, token: token) }
+        async let merchants = attemptGlobalSearch { try await self.merchantRows(query, token: token) }
         let (topicResult, activityResult, clubResult, merchantResult) = try await (topics, activities, clubs, merchants)
         try Task.checkCancellation()
         let failures: [(GlobalSearchKind, SearchMapFailure?)] = [(.topic, topicResult.failure), (.activity, activityResult.failure), (.club, clubResult.failure), (.merchant, merchantResult.failure)]
@@ -54,20 +54,24 @@ public struct SearchMapService {
         try query.filter.validate(); try validate(token)
         guard query.sortType == 1 || query.sortType == 2 else { throw APIError.invalidRequest }
         async let activities = attemptActivityPage { try await self.cityActivityPage(query, page: 1, token: token) }
-        async let nodes = attempt { () async throws -> [SearchMapCityNode] in
-            // This source endpoint is private; guests retain public activity results and a sign-in gate.
-            guard token != nil else { throw APIError.unauthorized }
-            var fields = ["lat":String(query.area.coordinate.latitude), "lng":String(query.area.coordinate.longitude), "radius":"20000"]
-            add(query.filter.keyword, key: "keyword", to: &fields)
-            if let id = query.filter.categoryID { fields["categoryId"] = String(id) }
-            add(query.tag, key: "tag", to: &fields); add(query.cityRole, key: "cityRole", to: &fields)
-            let data = try await get("api/city/nodes", fields: fields, token: token)
-            return try decode(SearchMapCityRows.self, data).rows.filter { $0.coordinate != nil }
-        }
+        async let nodes = attempt { try await self.cityNodes(query, token: token).filter { $0.coordinate != nil } }
         let (activityResult, nodeResult) = try await (activities, nodes)
         return CityNodeSearchResults(activities: activityResult.page?.rows ?? [],
             nodes: unique(nodeResult.rows, by: { $0.id }), activityFailure: activityResult.failure,
             nodeFailure: nodeResult.failure, activityPage: activityResult.page)
+    }
+    /// Existing city-node read only; no activity or search-source fan-out.
+    public func cityNodes(_ query: CityNodeSearchQuery, token: String? = nil) async throws -> [SearchMapCityNode] {
+        try query.filter.validate(); try validate(token)
+        guard query.sortType == 1 || query.sortType == 2 else { throw APIError.invalidRequest }
+        // This source endpoint is private; guests cannot read city nodes.
+        guard token != nil else { throw APIError.unauthorized }
+        var fields = ["lat":String(query.area.coordinate.latitude), "lng":String(query.area.coordinate.longitude), "radius":"20000"]
+        add(query.filter.keyword, key: "keyword", to: &fields)
+        if let id = query.filter.categoryID { fields["categoryId"] = String(id) }
+        add(query.tag, key: "tag", to: &fields); add(query.cityRole, key: "cityRole", to: &fields)
+        let data = try await get("api/city/nodes", fields: fields, token: token)
+        return try decode(SearchMapCityRows.self, data).rows
     }
     /// Only the activity layer is paged. Existing city POIs remain a separate first-read layer.
     public func cityActivityPage(_ query: CityNodeSearchQuery, page: Int, token: String? = nil) async throws -> SearchMapActivityPage {
@@ -200,6 +204,21 @@ public struct SearchMapService {
         do { return try JSONDecoder().decode(type, from: data) }
         catch let error as APIError { throw error }
         catch { throw APIError.malformedResponse }
+    }
+    /// Global search can retain failed lanes. Explicit denial must escape that fallback.
+    private func attemptGlobalSearch<T>(_ operation: () async throws -> [T]) async throws -> (rows: [T], failure: SearchMapFailure?) {
+        do { return (try await operation(), nil) }
+        catch is CancellationError { throw CancellationError() }
+        catch {
+            if let failure = error as? APIError {
+                switch failure {
+                case .unauthorized, .httpStatus(401), .businessCode(401): return ([], .unauthorized)
+                case .httpStatus(403), .businessCode(403): throw failure
+                default: break
+                }
+            }
+            return ([], .unavailable)
+        }
     }
     private func attemptActivityPage(_ operation: () async throws -> SearchMapActivityPage) async throws -> (page: SearchMapActivityPage?, failure: SearchMapFailure?) {
         do { return (try await operation(), nil) }

@@ -3,12 +3,21 @@ import Foundation
 import FoundationNetworking
 #endif
 
-public struct ProfileEditService: ProfileEditServing {
+/// An image-bearing save requires a separately injected checked transport. The ordinary
+/// profile transport cannot be reused as an implicit avatar-upload/save capability.
+public protocol ProfileAvatarEditServing: ProfileEditServing {
+    @MainActor var avatarSavingAvailable: Bool { get }
+    @MainActor func saveAvatar(_ payload: ProfileEditPayload, token: String, isCurrent: @escaping @MainActor () -> Bool) async throws
+}
+
+public struct ProfileEditService: ProfileEditServing, ProfileAvatarEditServing {
     private let configuration: APIConfiguration
     private let transport: any HTTPTransport
-    public init(configuration: APIConfiguration, transport: any HTTPTransport) {
-        self.configuration = configuration; self.transport = transport
+    private let avatarTransport: (any ProfileAvatarDispatching)?
+    public init(configuration: APIConfiguration, transport: any HTTPTransport, avatarTransport: (any ProfileAvatarDispatching)? = nil) {
+        self.configuration = configuration; self.transport = transport; self.avatarTransport = avatarTransport
     }
+    @MainActor public var avatarSavingAvailable: Bool { avatarTransport?.isConfigured == true }
     private func request(_ path: String, token: String) throws -> URLRequest {
         guard AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
         return try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent(path), fields: [:], token: token, includesBody: false)
@@ -31,6 +40,7 @@ public struct ProfileEditService: ProfileEditServing {
         catch { throw APIError.malformedResponse }
     }
     public func save(_ payload: ProfileEditPayload, token: String) async throws {
+        guard payload.avatarReplacement == nil else { throw ProfileEditWriteError.notSent }
         var prepared: URLRequest
         do {
             prepared = try request("api/user/update", token: token)
@@ -51,4 +61,30 @@ public struct ProfileEditService: ProfileEditServing {
             throw ProfileEditWriteError.rejected(.init(code: envelope.code, message: envelope.msg))
         }
     }
+    @MainActor public func saveAvatar(_ payload: ProfileEditPayload, token: String,
+                                     isCurrent: @escaping @MainActor () -> Bool) async throws {
+        guard payload.avatarReplacement != nil, let avatarTransport, avatarSavingAvailable, isCurrent() else { throw ProfileEditWriteError.notSent }
+        let prepared: URLRequest
+        do {
+            var request = try request("api/user/update", token: token)
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = try JSONEncoder().encode(payload)
+            try Task.checkCancellation(); prepared = request
+        } catch { throw ProfileEditWriteError.notSent }
+        let authorization = ProfileAvatarDispatchAuthorization(request: prepared) {
+            avatarTransport.isConfigured && isCurrent()
+        }
+        let data: Data, status: Int
+        do { (data, status) = try await avatarTransport.send(prepared, authorization: authorization) }
+        catch { throw authorization.didForward ? ProfileEditWriteError.outcomeUnknown : ProfileEditWriteError.notSent }
+        guard authorization.didForward else { throw ProfileEditWriteError.notSent }
+        guard authorization.isCurrent(), data.count <= 64 * 1024 else { throw ProfileEditWriteError.outcomeUnknown }
+        let envelope = try? JSONDecoder().decode(Response.self, from: data)
+        if status == 401 || status == 403 {
+            throw ProfileEditWriteError.rejected(.init(httpStatus: status, code: envelope?.code, message: envelope?.msg))
+        }
+        guard (200..<300).contains(status), let envelope else { throw ProfileEditWriteError.outcomeUnknown }
+        guard envelope.code == 200 else { throw ProfileEditWriteError.rejected(.init(code: envelope.code, message: envelope.msg)) }
+    }
+
 }

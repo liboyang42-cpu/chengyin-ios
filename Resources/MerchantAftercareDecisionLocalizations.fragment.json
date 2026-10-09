@@ -1,0 +1,70 @@
+{
+  "merchant.aftercareDecision.changeTitle": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "更换商家意见？"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Change merchant opinion?"
+        }
+      }
+    }
+  },
+  "merchant.aftercareDecision.changeBody": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "更换意见会清空当前说明，已填写的凭证保持不变。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Changing the opinion clears the current explanation. The evidence you entered is kept."
+        }
+      }
+    }
+  },
+  "merchant.aftercareDecision.discard": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "清空说明并更换意见"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Clear explanation and change opinion"
+        }
+      }
+    }
+  },
+  "merchant.aftercareDecision.keep": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "保留当前意见"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Keep current opinion"
+        }
+      }
+    }
+  }
+}

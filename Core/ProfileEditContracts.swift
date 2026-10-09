@@ -39,10 +39,15 @@ public struct ProfileEditDraft: Equatable {
     public var introduction: String
     /// Nil preserves the complete wire string. An explicit empty selection clears preferences.
     public var routePreferenceIDs: [Int]?
-    public init(name: String = "", introduction: String = "", routePreferenceIDs: [Int]? = nil) {
+    public private(set) var avatarReplacement: ProfileAvatarReplacement?
+    public init(name: String = "", introduction: String = "", routePreferenceIDs: [Int]? = nil, avatarReplacement: ProfileAvatarReplacement? = nil) {
         self.name = name; self.introduction = introduction; self.routePreferenceIDs = routePreferenceIDs
+        self.avatarReplacement = avatarReplacement
     }
-    public var normalized: Self { .init(name: name.trimmingCharacters(in: .whitespacesAndNewlines), introduction: introduction.trimmingCharacters(in: .whitespacesAndNewlines), routePreferenceIDs: routePreferenceIDs) }
+    public func stagingAvatar(_ value: ProfileAvatarReplacement) -> Self {
+        .init(name: name, introduction: introduction, routePreferenceIDs: routePreferenceIDs, avatarReplacement: value)
+    }
+    public var normalized: Self { .init(name: name.trimmingCharacters(in: .whitespacesAndNewlines), introduction: introduction.trimmingCharacters(in: .whitespacesAndNewlines), routePreferenceIDs: routePreferenceIDs, avatarReplacement: avatarReplacement) }
     public var isValid: Bool {
         let ids = routePreferenceIDs ?? []
         return !normalized.name.isEmpty && ids.allSatisfy { $0 > 0 } && Set(ids).count == ids.count
@@ -55,14 +60,25 @@ public struct ProfileEditPayload: Encodable, Equatable {
     public let wechat: String
     public let casePics: String
     public let tagIds: String
+    public let avatarReplacement: ProfileAvatarReplacement?
+    enum CodingKeys: String, CodingKey { case name, introduction, avatar, wechat, casePics, tagIds }
     public init(draft: ProfileEditDraft, preserving snapshot: ProfileEditSnapshot) throws {
         guard draft.isValid else { throw APIError.invalidRequest }
         name = draft.normalized.name; introduction = draft.normalized.introduction
-        avatar = snapshot.avatar; wechat = snapshot.wechat; casePics = snapshot.casePics
+        if let replacement = draft.avatarReplacement {
+            guard replacement.receipt.target.snapshotHash == ProfileAvatarExact.snapshot(snapshot) else { throw APIError.invalidRequest }
+        }
+        avatarReplacement = draft.avatarReplacement
+        avatar = draft.avatarReplacement?.reference ?? snapshot.avatar; wechat = snapshot.wechat; casePics = snapshot.casePics
         tagIds = draft.routePreferenceIDs.map { $0.map(String.init).joined(separator: ",") } ?? snapshot.tagIds
     }
     public func matches(_ snapshot: ProfileEditSnapshot) -> Bool {
-        name == snapshot.nickname && introduction == snapshot.introduction && avatar == snapshot.avatar
+        if avatarReplacement != nil {
+            guard zip([name, introduction, avatar, wechat, casePics, tagIds],
+                      [snapshot.nickname, snapshot.introduction, snapshot.avatar, snapshot.wechat, snapshot.casePics, snapshot.tagIds])
+                .allSatisfy({ $0.0.utf8.elementsEqual($0.1.utf8) }) else { return false }
+        }
+        return name == snapshot.nickname && introduction == snapshot.introduction && avatar == snapshot.avatar
         && wechat == snapshot.wechat && casePics == snapshot.casePics && tagIds == snapshot.tagIds
     }
 }

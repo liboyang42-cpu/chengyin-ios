@@ -1,0 +1,70 @@
+{
+  "objects.badgeLayout.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Badge layout"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "徽章布局"
+        }
+      }
+    }
+  },
+  "objects.badgeLayout.list": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "List"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "列表"
+        }
+      }
+    }
+  },
+  "objects.badgeLayout.wall": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Static wall"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "静态墙"
+        }
+      }
+    }
+  },
+  "objects.badgeLayout.staticOnly": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "A static grid of the same badges. Tap a badge to view its details."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "以静态网格展示同一组徽章，点按徽章查看详情。"
+        }
+      }
+    }
+  }
+}

@@ -28,13 +28,43 @@ import SwiftUI
 @MainActor final class MerchantContentViewModel: ObservableObject {
     let coordinator: MerchantContentCoordinator
     @Published var revision = 0
-    init(service: any MerchantContentServing, query: MerchantContentQuery) { coordinator = .init(service: service, query: query) }
-    func load() async { revision += 1; await coordinator.load(); revision += 1 }
-    func prepare(_ c: MerchantContentCommand) { coordinator.prepare(c); revision += 1 }
+    private let projectEntryIsCurrent: (() -> Bool)?
+    private let focusedTopicID: Int?
+    private let focusedMerchantID: Int?
+    private var rejectedProjectProjection = false
+    init(service: any MerchantContentServing, query: MerchantContentQuery, focusedTopicID: Int? = nil, focusedMerchantID: Int? = nil, projectEntryIsCurrent: (() -> Bool)? = nil) {
+        coordinator = .init(service: service, query: query); self.projectEntryIsCurrent = projectEntryIsCurrent
+        self.focusedTopicID = focusedTopicID; self.focusedMerchantID = focusedMerchantID
+    }
+    // A guarded list entry owns the entire document, including recovery/status controls.
+    // Other existing document callers retain their original coordinator behavior.
+    var projectPresentationIsCurrent: Bool {
+        guard projectEntryIsCurrent != nil else { return true }
+        guard projectEntryIsCurrent?() == true, !rejectedProjectProjection else { return false }
+        guard let snapshot = coordinator.snapshot else { return true }
+        return snapshot.scope == coordinator.service.scope && MerchantProjectWorkspacePresentation.matches(snapshot: snapshot, topicID: focusedTopicID, merchantID: focusedMerchantID)
+    }
+    var projectActionsAreCurrent: Bool {
+        guard projectEntryIsCurrent != nil else { return true }
+        return projectPresentationIsCurrent && coordinator.isCurrent && coordinator.snapshot != nil
+    }
+    func load() async {
+        guard projectEntryIsCurrent?() != false else { return }
+        rejectedProjectProjection = false
+        revision += 1; await coordinator.load()
+        if projectEntryIsCurrent?() == false { coordinator.invalidate() }
+        else if !projectPresentationIsCurrent {
+            rejectedProjectProjection = true
+            // Only retire the rejected local projection. Never reconcile or remove a journal record.
+            coordinator.invalidate()
+        }
+        revision += 1
+    }
+    func prepare(_ c: MerchantContentCommand) { guard projectActionsAreCurrent else { return }; coordinator.prepare(c); revision += 1 }
     func cancel() { coordinator.cancelReview(); revision += 1 }
-    func confirm(_ r: MerchantContentReview) async { revision += 1; await coordinator.confirm(r); revision += 1 }
-    func reconcile() async { revision += 1; await coordinator.reconcile(); revision += 1 }
-    func retryStation() async { revision += 1; await coordinator.retryStation(); revision += 1 }
+    func confirm(_ r: MerchantContentReview) async { guard projectActionsAreCurrent else { return }; revision += 1; await coordinator.confirm(r); revision += 1 }
+    func reconcile() async { guard projectActionsAreCurrent else { return }; revision += 1; await coordinator.reconcile(); revision += 1 }
+    func retryStation() async { guard projectActionsAreCurrent else { return }; revision += 1; await coordinator.retryStation(); revision += 1 }
     func suspend() { coordinator.suspend(); revision += 1 }
     func invalidate() { coordinator.invalidate(); revision += 1 }
 }
@@ -47,19 +77,27 @@ struct MerchantContentBoundary: View {
     let query: MerchantContentQuery
     let focusedTopicID: Int?
     let focusedMerchantID: Int?
+    let projectEntryIsCurrent: (() -> Bool)?
     @StateObject private var model: MerchantContentViewModel
-    init(service: any MerchantContentServing, query: MerchantContentQuery, focusedTopicID: Int? = nil, focusedMerchantID: Int? = nil) { self.service = service; self.query = query; self.focusedTopicID = focusedTopicID; self.focusedMerchantID = focusedMerchantID; _model = StateObject(wrappedValue: .init(service: service, query: query)) }
+    init(service: any MerchantContentServing, query: MerchantContentQuery, focusedTopicID: Int? = nil, focusedMerchantID: Int? = nil, projectEntryIsCurrent: (() -> Bool)? = nil) {
+        self.service = service; self.query = query; self.focusedTopicID = focusedTopicID; self.focusedMerchantID = focusedMerchantID
+        self.projectEntryIsCurrent = projectEntryIsCurrent
+        _model = StateObject(wrappedValue: .init(service: service, query: query, focusedTopicID: focusedTopicID, focusedMerchantID: focusedMerchantID, projectEntryIsCurrent: projectEntryIsCurrent))
+    }
     private var c: MerchantContentCoordinator { model.coordinator }
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 18) {
                 MerchantContentBoundary()
+                if !model.projectPresentationIsCurrent { Text("merchant.projectWorkspace.changed") }
+                else {
                 MerchantContentStatus(model: model)
                 if c.isCurrent, let snapshot = c.snapshot {
                     if query == .recruiting, let focusedMerchantID, snapshot.access.merchantID != focusedMerchantID {
                         Text("merchantMarketing.stale").accessibilityIdentifier("merchant.insightNavigation.storeChanged")
                     } else { content(snapshot) }
                 } else if c.busy { ProgressView("merchant.loading") }
+                }
             }.padding()
         }
         .appNavigationTitle(key: "merchant.content." + query.key)
@@ -68,7 +106,7 @@ struct MerchantContentBoundary: View {
         // Clearing the source rows here would remove the pushed NavigationLink's owner.
         // Scope changes still invalidate via load(), and isCurrent rejects stale display data.
         .onDisappear { model.suspend() }
-        .sheet(item: Binding(get: { c.isCurrent ? c.review : nil }, set: { if $0 == nil { model.cancel() } })) { MerchantContentReviewView(model: model, review: $0) }
+        .sheet(item: Binding(get: { c.isCurrent && model.projectActionsAreCurrent ? c.review : nil }, set: { if $0 == nil { model.cancel() } })) { MerchantContentReviewView(model: model, review: $0) }
     }
     @ViewBuilder private func content(_ s: MerchantContentSnapshot) -> some View {
         switch query {
@@ -118,7 +156,8 @@ struct MerchantContentBoundary: View {
             Text("merchant.content.voiceBoundary").font(.footnote).foregroundStyle(.secondary)
         case .voice: MerchantContentFields(value: s.value, names: ["voiceStatus", "voiceSample"])
         case .game: MerchantContentStationView(service: service, snapshot: s)
-        case .poster, .liveCode: MerchantContentCodeView(snapshot: s)
+        case .poster: MerchantContentCodeView(snapshot: s)
+        case .liveCode: MerchantStationLiveCodeView(owner: model, snapshot: s).id(s.observedAt)
         case .cityPlacement, .nodeAuthoring: EmptyView()
         default:
             if case .registrations = query { MerchantContentRegistrationFilters(service: service) }

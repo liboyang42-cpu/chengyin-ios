@@ -87,6 +87,7 @@ public enum ProjectEditStoryContract {
     /// Server authority, content checks, ownership and publish readiness remain server-owned.
     public static func validatePayload(_ payload: [String: ProjectEditJSON], baseline: ProjectEditSnapshot? = nil) throws {
         let selected = try path(payload: payload, baseline: baseline)
+        try ProjectChapterRecruitmentCarryOver.validatePayload(payload, baseline: baseline)
         guard selected == createPath || selected == updatePath else { return }
         if baseline?.scope == .whitelist { return }
         guard let chapters = payload["chapters"]?.array, !chapters.isEmpty else { throw ProjectEditError.invalidDraft }

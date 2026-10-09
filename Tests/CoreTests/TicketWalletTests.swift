@@ -220,40 +220,149 @@ final class TicketWalletTests: XCTestCase {
         do { _ = try await reader.ticketWallet(); XCTFail() } catch { XCTAssertEqual(error as? APIError, .unauthorized) }
         XCTAssertEqual(invalidations, [session])
     }
-    @MainActor func testScreenGenerationFreshReadScopeHidingAndDisappearance() async throws {
-        let model = TicketWalletReadModel<String>()
+    @MainActor private final class LifetimeReader: TicketWalletReading {
         var scope = UUID()
-        await model.load(scope: scope, currentScope: { scope }) { "first" }
-        XCTAssertEqual(model.visibleValue(scope: scope), "first")
+        var isConfigured = true
+        var isAuthenticated = true
+        var isOfflineExample = false
+        func ticketWallet() async throws -> TicketWalletSnapshot { throw APIError.notConfigured }
+        func ticketDetail(id: Int) async throws -> TicketWalletTicket { throw APIError.notConfigured }
+    }
+    @MainActor func testScreenGenerationFreshReadScopeHidingAndDisappearance() async throws {
+        let model = TicketWalletReadModel<String>(), reader = LifetimeReader()
+        var owner = TicketWalletReadOwner(reader: reader)
+        var permit = try XCTUnwrap(model.beginPresentation(owner: owner))
+        await model.load(presentation: permit, currentOwner: { owner }) { "first" }
+        XCTAssertEqual(model.visibleValue(owner: owner), "first")
         var pending: CheckedContinuation<String, Error>?
-        let oldScope = scope
-        let old = Task { await model.load(scope: oldScope, currentScope: { scope }) { try await withCheckedThrowingContinuation { pending = $0 } } }
+        let old = Task { await model.load(presentation: permit, currentOwner: { owner }) { try await withCheckedThrowingContinuation { pending = $0 } } }
         while pending == nil { await Task.yield() }
-        XCTAssertNil(model.visibleValue(scope: scope)); XCTAssertTrue(model.isLoading)
-        await model.load(scope: scope, currentScope: { scope }) { "newer" }
+        XCTAssertNil(model.visibleValue(owner: owner)); XCTAssertTrue(model.isLoading)
+        await model.load(presentation: permit, currentOwner: { owner }) { "newer" }
         pending?.resume(returning: "stale"); await old.value
-        XCTAssertEqual(model.visibleValue(scope: scope), "newer")
-        model.cancelPending()
-        XCTAssertEqual(model.visibleValue(scope: scope), "newer", "Pushing detail must preserve list row identity")
-        scope = UUID(); XCTAssertNil(model.visibleValue(scope: scope))
-        await model.load(scope: scope, currentScope: { scope }) { throw APIError.httpStatus(503) }
-        XCTAssertNil(model.visibleValue(scope: scope)); XCTAssertEqual(model.visibleIssue(scope: scope), .failure)
-        model.invalidate(); XCTAssertNil(model.visibleIssue(scope: scope)); XCTAssertNil(model.loadedScope)
+        XCTAssertEqual(model.visibleValue(owner: owner), "newer")
+        model.endPresentation()
+        XCTAssertEqual(model.visibleValue(owner: owner), "newer", "Pushing detail must preserve list row identity")
+        reader.scope = UUID(); owner = TicketWalletReadOwner(reader: reader)
+        XCTAssertNil(model.visibleValue(owner: owner))
+        permit = try XCTUnwrap(model.beginPresentation(owner: owner))
+        await model.load(presentation: permit, currentOwner: { owner }) { throw APIError.httpStatus(503) }
+        XCTAssertNil(model.visibleValue(owner: owner)); XCTAssertEqual(model.visibleIssue(owner: owner), .failure)
+        model.invalidate(); XCTAssertNil(model.visibleIssue(owner: owner)); XCTAssertNil(model.loadedScope)
     }
     @MainActor func testScreenStaleFailureAndLateResponseAfterLeavingCannotReplaceNewState() async throws {
-        let model = TicketWalletReadModel<String>()
-        let scope = UUID()
+        let model = TicketWalletReadModel<String>(), reader = LifetimeReader()
+        let owner = TicketWalletReadOwner(reader: reader), permit = try XCTUnwrap(model.beginPresentation(owner: TicketWalletReadOwner(reader: reader)))
         var pending: CheckedContinuation<String, Error>?
-        let old = Task { await model.load(scope: scope, currentScope: { scope }) { try await withCheckedThrowingContinuation { pending = $0 } } }
+        let old = Task { await model.load(presentation: permit, currentOwner: { owner }) { try await withCheckedThrowingContinuation { pending = $0 } } }
         while pending == nil { await Task.yield() }
-        await model.load(scope: scope, currentScope: { scope }) { "current" }
+        await model.load(presentation: permit, currentOwner: { owner }) { "current" }
         pending?.resume(throwing: APIError.unauthorized); await old.value
-        XCTAssertEqual(model.visibleValue(scope: scope), "current"); XCTAssertNil(model.visibleIssue(scope: scope))
+        XCTAssertEqual(model.visibleValue(owner: owner), "current"); XCTAssertNil(model.visibleIssue(owner: owner))
         pending = nil
-        let leaving = Task { await model.load(scope: scope, currentScope: { scope }) { try await withCheckedThrowingContinuation { pending = $0 } } }
+        let leaving = Task { await model.load(presentation: permit, currentOwner: { owner }) { try await withCheckedThrowingContinuation { pending = $0 } } }
         while pending == nil { await Task.yield() }
-        model.cancelPending()
+        model.endPresentation()
         pending?.resume(returning: "late"); await leaving.value
-        XCTAssertNil(model.visibleValue(scope: scope)); XCTAssertFalse(model.isLoading)
+        XCTAssertNil(model.visibleValue(owner: owner)); XCTAssertFalse(model.isLoading)
     }
+    @MainActor func testQueuedListAndDetailRetriesAfterDepartureMakeZeroHttpRequests() async throws {
+        for id in [Int?.none, 7] {
+            let session = try TicketWalletReadSession(accountID: 1, epoch: 1, token: "synthetic-first")
+            let transport = TicketWalletTransport()
+            let reader = TicketWalletSessionReader(service: try service(transport), currentSession: { session })
+            let owner = TicketWalletReadOwner(reader: reader, id: id), model = TicketWalletReadModel<Int>()
+            let captured = try XCTUnwrap(model.beginPresentation(owner: owner))
+            let queued = {
+                await model.load(presentation: captured, currentOwner: { TicketWalletReadOwner(reader: reader, id: id) }) {
+                    if let id { return try await reader.ticketDetail(id: id).id }
+                    return try await reader.ticketWallet().tickets.count
+                }
+            }
+            model.endPresentation()
+            XCTAssertTrue(reader.isAuthenticated); XCTAssertEqual(reader.scope, owner.scope)
+            await queued()
+            let requests = await transport.requests; XCTAssertTrue(requests.isEmpty)
+            XCTAssertNil(model.value); XCTAssertNil(model.issue); XCTAssertFalse(model.isLoading)
+        }
+    }
+    @MainActor func testOldPermitAfterBackAndReopenCannotDispatchOrClearFreshRows() async throws {
+        let reader = LifetimeReader(), model = TicketWalletReadModel<String>()
+        let owner = TicketWalletReadOwner(reader: reader), old = try XCTUnwrap(model.beginPresentation(owner: TicketWalletReadOwner(reader: reader)))
+        await model.load(presentation: old, currentOwner: { owner }) { "before push" }
+        model.endPresentation()
+        XCTAssertEqual(model.visibleValue(owner: owner), "before push")
+        let fresh = try XCTUnwrap(model.beginPresentation(owner: owner)); XCTAssertNotEqual(old, fresh)
+        await model.load(presentation: fresh, currentOwner: { owner }) { "after Back" }
+        var staleDispatches = 0
+        await model.load(presentation: old, currentOwner: { owner }) { staleDispatches += 1; return "stale" }
+        XCTAssertEqual(staleDispatches, 0); XCTAssertEqual(model.visibleValue(owner: owner), "after Back")
+        XCTAssertEqual(model.presentation, fresh)
+    }
+    @MainActor func testReaderReplacementAndRequestedIdChangeHideFactsEvenWhenScopeIsEqual() async throws {
+        let reader = LifetimeReader(), replacement = LifetimeReader(), model = TicketWalletReadModel<String>()
+        replacement.scope = reader.scope
+        let owner = TicketWalletReadOwner(reader: reader, id: 7), permit = try XCTUnwrap(model.beginPresentation(owner: TicketWalletReadOwner(reader: reader, id: 7)))
+        await model.load(presentation: permit, currentOwner: { owner }) { "private" }
+        for changed in [TicketWalletReadOwner(reader: replacement, id: 7), TicketWalletReadOwner(reader: reader, id: 8), TicketWalletReadOwner(reader: reader)] {
+            XCTAssertNil(model.visibleValue(owner: changed)); var dispatches = 0
+            await model.load(presentation: permit, currentOwner: { changed }) { dispatches += 1; return "wrong" }
+            XCTAssertEqual(dispatches, 0)
+        }
+        let changed = TicketWalletReadOwner(reader: replacement, id: 7)
+        _ = model.beginPresentation(owner: changed); XCTAssertNil(model.value)
+    }
+    @MainActor func testAuthConfigurationAndInvalidIdCannotAcquireOrReusePermit() async throws {
+        let reader = LifetimeReader(), model = TicketWalletReadModel<String>()
+        let original = TicketWalletReadOwner(reader: reader), permit = try XCTUnwrap(model.beginPresentation(owner: TicketWalletReadOwner(reader: reader)))
+        await model.load(presentation: permit, currentOwner: { original }) { "private" }
+        reader.isAuthenticated = false
+        let guest = TicketWalletReadOwner(reader: reader)
+        XCTAssertNil(model.visibleValue(owner: guest)); XCTAssertNil(model.beginPresentation(owner: guest)); XCTAssertNil(model.value)
+        var requests = 0
+        await model.load(presentation: permit, currentOwner: { guest }) { requests += 1; return "wrong" }
+        reader.isAuthenticated = true; reader.isConfigured = false
+        XCTAssertNil(model.beginPresentation(owner: TicketWalletReadOwner(reader: reader)))
+        reader.isConfigured = true
+        for id in [0, -1] { XCTAssertNil(model.beginPresentation(owner: TicketWalletReadOwner(reader: reader, id: id))) }
+        XCTAssertEqual(requests, 0)
+    }
+    @MainActor func testDepartureBeforeSuccessOrAuthFailureReceiptDoesNotPublish() async throws {
+        for unauthorized in [false, true] {
+            let reader = LifetimeReader(), model = TicketWalletReadModel<String>()
+            let owner = TicketWalletReadOwner(reader: reader), permit = try XCTUnwrap(model.beginPresentation(owner: TicketWalletReadOwner(reader: reader)))
+            var pending: CheckedContinuation<String, Error>?
+            let task = Task { await model.load(presentation: permit, currentOwner: { owner }) { try await withCheckedThrowingContinuation { pending = $0 } } }
+            while pending == nil { await Task.yield() }
+            model.endPresentation()
+            if unauthorized { pending?.resume(throwing: APIError.unauthorized) } else { pending?.resume(returning: "late") }
+            await task.value
+            XCTAssertNil(model.value); XCTAssertNil(model.issue); XCTAssertFalse(model.isLoading)
+        }
+    }
+    @MainActor func testCancelledQueuedTaskDoesNotDispatchAndCurrentAuthFailureKeepsLoginOutcome() async throws {
+        let reader = LifetimeReader(), model = TicketWalletReadModel<String>()
+        let owner = TicketWalletReadOwner(reader: reader), permit = try XCTUnwrap(model.beginPresentation(owner: TicketWalletReadOwner(reader: reader)))
+        var dispatches = 0
+        let queued = Task { await model.load(presentation: permit, currentOwner: { owner }) { dispatches += 1; return "wrong" } }
+        queued.cancel(); await queued.value
+        XCTAssertEqual(dispatches, 0); XCTAssertNil(model.issue)
+        await model.load(presentation: permit, currentOwner: { owner }) { throw APIError.unauthorized }
+        XCTAssertEqual(model.visibleIssue(owner: owner), .login)
+        await model.load(presentation: permit, currentOwner: { owner }) { throw CancellationError() }
+        XCTAssertNil(model.issue); XCTAssertFalse(model.isLoading)
+    }
+    @MainActor func testChangedReaderOwnerAtReceiptCannotRestorePrivateFacts() async throws {
+        let reader = LifetimeReader(), replacement = LifetimeReader(), model = TicketWalletReadModel<String>()
+        replacement.scope = reader.scope
+        var owner = TicketWalletReadOwner(reader: reader, id: 7)
+        let permit = try XCTUnwrap(model.beginPresentation(owner: owner))
+        var pending: CheckedContinuation<String, Error>?
+        let task = Task { await model.load(presentation: permit, currentOwner: { owner }) { try await withCheckedThrowingContinuation { pending = $0 } } }
+        while pending == nil { await Task.yield() }
+        owner = TicketWalletReadOwner(reader: replacement, id: 7)
+        pending?.resume(returning: "old private facts"); await task.value
+        XCTAssertNil(model.value); XCTAssertNil(model.issue); XCTAssertFalse(model.isLoading)
+    }
+
 }

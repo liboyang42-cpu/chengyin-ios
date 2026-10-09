@@ -1,0 +1,342 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "projectInitialAttributes.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Custom initial attributes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自定义初始属性"
+          }
+        }
+      }
+    },
+    "projectInitialAttributes.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit the topic’s initial declarations locally. Apply keeps them in this draft; use the existing review and save flow to submit. Existing runs retain their frozen settings."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在本地编辑本主题的初始属性声明。应用后保留在当前草稿，再通过原有审核与保存流程提交。已有对局保留各自冻结的设置。"
+          }
+        }
+      }
+    },
+    "projectInitialAttributes.enabled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable initial state"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启用初始状态"
+          }
+        }
+      }
+    },
+    "projectInitialAttributes.enabledHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This explicitly changes the existing stateEnabled setting. Adding or removing a declaration does not toggle it. Energy, luck and check settings are preserved."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此开关显式修改现有 stateEnabled 设置。添加或移除声明不会自动切换；精力、幸运与检定设置均保留。"
+          }
+        }
+      }
+    },
+    "projectInitialAttributes.key": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stable key"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "稳定标识"
+          }
+        }
+      }
+    },
+    "projectInitialAttributes.keyLocked": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Existing keys cannot be renamed here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已有标识不能在此改名。"
+          }
+        }
+      }
+    },
+    "projectInitialAttributes.label": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Label"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "名称"
+          }
+        }
+      }
+    },
+    "projectInitialAttributes.initial": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Initial value"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "初始值"
+          }
+        }
+      }
+    },
+    "projectInitialAttributes.minimum": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minimum"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下限"
+          }
+        }
+      }
+    },
+    "projectInitialAttributes.maximum": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maximum"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上限"
+          }
+        }
+      }
+    },
+    "projectInitialAttributes.visible": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visible to player"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "向玩家展示"
+          }
+        }
+      }
+    },
+    "projectInitialAttributes.flagHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "clue.* and tag.* use bounds 0 and 1; the initial value must be 0 or 1."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "clue.* 与 tag.* 的上下限固定为 0 和 1，初始值也须为 0 或 1。"
+          }
+        }
+      }
+    },
+    "projectInitialAttributes.integerHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use integers from −10000 to 10000. The initial value must be within the minimum and maximum."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "填写 −10000 至 10000 的整数，初始值须位于上下限之间。"
+          }
+        }
+      }
+    },
+    "projectInitialAttributes.keysHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Up to 32 declarations. Keys start with clue., relation., tag. or counter., followed by 1–48 lowercase letters, digits or underscores; the first character after the dot must be a letter. Labels allow up to 24 UTF-16 units."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最多 32 项声明。标识以 clue.、relation.、tag. 或 counter. 开头，点后为 1 至 48 位小写字母、数字或下划线，首位须为字母。名称最多 24 个 UTF-16 单元。"
+          }
+        }
+      }
+    },
+    "projectInitialAttributes.add": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add declaration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加声明"
+          }
+        }
+      }
+    },
+    "projectInitialAttributes.remove": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove initial declaration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移除初始声明"
+          }
+        }
+      }
+    },
+    "projectInitialAttributes.removeTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove this initial declaration?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移除此初始声明？"
+          }
+        }
+      }
+    },
+    "projectInitialAttributes.removeHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only this declaration will be removed from the local draft. Registered keys, references and existing-run snapshots are not deleted or rewritten. The server’s existing save and reference checks still apply."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅从本地草稿移除这项初始声明。已注册标识、引用和已有对局快照不会被删除或改写；仍须通过服务端原有的保存与引用检查。"
+          }
+        }
+      }
+    },
+    "projectInitialAttributes.apply": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply to draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用到草稿"
+          }
+        }
+      }
+    },
+    "projectInitialAttributes.invalid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check unique valid keys, labels, integer values and bounds. This draft could not be applied."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请检查标识是否合法且不重复、名称、整数值及上下限。本次尚未应用到草稿。"
+          }
+        }
+      }
+    },
+    "projectInitialAttributes.unsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These imported rules cannot be safely edited here. Their original contents are preserved."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此导入规则无法在这里安全编辑，原始内容已保留。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

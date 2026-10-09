@@ -1,10 +1,19 @@
 import Foundation
 
+/// Owner/draft validity remains dynamic through the checked transport's final forward.
+@MainActor public final class ProfileAvatarSaveValidity: Equatable {
+    private let current: () -> Bool
+    public init(current: @escaping () -> Bool) { self.current = current }
+    public var isCurrent: Bool { current() }
+    nonisolated public static func == (lhs: ProfileAvatarSaveValidity, rhs: ProfileAvatarSaveValidity) -> Bool { lhs === rhs }
+}
+
 public struct ProfileEditConfirmation: Identifiable, Equatable {
     public let id: UUID
     public let payload: ProfileEditPayload
     fileprivate let snapshot: ProfileEditSnapshot
     fileprivate let session: ProfileEditSession
+    fileprivate let avatarValidity: ProfileAvatarSaveValidity?
 }
 /// Retain in AppSession, not the navigation destination. Unknown writes remain locked even
 /// through navigation and same-account reauthentication. Reconciliation never repeats a POST.
@@ -31,6 +40,11 @@ public final class ProfileEditCoordinator {
     public var identity: ProfileReadIdentity? { currentSession()?.identity }
     public var viewerRevision: UInt64? { currentSession()?.viewerRevision }
     public var isConfigured: Bool { service != nil }
+    public var avatarSavingAvailable: Bool { (service as? any ProfileAvatarEditServing)?.avatarSavingAvailable == true }
+    public func avatarScope(source: ProfileAvatarUploadClient, editorID: UUID, lifetimeID: UUID) -> ProfileAvatarScope? {
+        guard avatarSavingAvailable, !isBusy, !isLocked, let session = currentSession(), snapshot?.id == session.identity.accountID else { return nil }
+        return source.scope(session: session, editorID: editorID, lifetimeID: lifetimeID)
+    }
     public var isLocked: Bool { currentSession().map { pending[$0.identity.accountID] != nil } ?? false }
     public init(service: (any ProfileEditServing)?, currentSession: @escaping () -> ProfileEditSession?,
                 onUnauthorized: @escaping (ProfileEditSession) -> Void = { _ in }, onSaved: @escaping () -> Void = {}) {
@@ -80,9 +94,14 @@ public final class ProfileEditCoordinator {
             return false
         }
     }
-    public func prepare(_ draft: ProfileEditDraft) async {
+    public func prepare(_ draft: ProfileEditDraft, avatarValidity: ProfileAvatarSaveValidity? = nil) async {
         synchronizeSession()
         guard !isBusy, !isLocked, let expected = session, let original = snapshot else { return }
+        if let avatar = draft.avatarReplacement {
+            guard avatarSavingAvailable, avatarValidity?.isCurrent == true, avatar.permits(session: expected, snapshot: original) else {
+                messageKey = "profile.avatar.changed"; return
+            }
+        }
         guard draft.isValid else { messageKey = "profile.edit.nameRequired"; return }
         guard draft.normalized != original.draft.normalized else { messageKey = "profile.edit.unchanged"; return }
         generation += 1; let request = generation; isBusy = true; confirmation = nil; messageKey = nil; remoteMessage = nil
@@ -92,8 +111,14 @@ public final class ProfileEditCoordinator {
             guard active(expected, request) else { return }
             guard latest.draft == original.draft,
                   draft.routePreferenceIDs == nil || latest.tagIds == original.tagIds else { snapshot = latest; messageKey = "profile.edit.changed"; return }
+            if let avatar = draft.avatarReplacement {
+                guard avatarValidity?.isCurrent == true, avatar.permits(session: expected, snapshot: latest) else {
+                    messageKey = "profile.avatar.changed"; return
+                }
+            }
             let payload = try ProfileEditPayload(draft: draft, preserving: latest)
-            confirmation = .init(id: UUID(), payload: payload, snapshot: latest, session: expected)
+            confirmation = .init(id: UUID(), payload: payload, snapshot: latest, session: expected,
+                                 avatarValidity: draft.avatarReplacement == nil ? nil : avatarValidity)
         } catch {
             guard active(expected, request) else { return }
             messageKey = "profile.edit.loadFailed"
@@ -111,13 +136,29 @@ public final class ProfileEditCoordinator {
             let latest = try await read(expected)
             guard active(expected, request) else { return }
             guard latest == value.snapshot else { snapshot = latest; messageKey = "profile.edit.changed"; return }
+            if value.payload.avatarReplacement != nil {
+                // Image-bearing full replacement preserves exact server bytes, not
+                // only Swift's canonically equivalent String values.
+                guard ProfileAvatarExact.snapshot(latest) == ProfileAvatarExact.snapshot(value.snapshot) else {
+                    snapshot = latest; messageKey = "profile.edit.changed"; return
+                }
+            }
         } catch {
             guard active(expected, request) else { return }
             messageKey = "profile.edit.loadFailed"; return
         }
         pending[expected.identity.accountID] = PendingWrite(payload: value.payload)
         do {
-            try await service.save(value.payload, token: expected.token)
+            if let avatar = value.payload.avatarReplacement {
+                guard let imageService = service as? any ProfileAvatarEditServing else { throw ProfileEditWriteError.notSent }
+                try await imageService.saveAvatar(value.payload, token: expected.token) { [weak self] in
+                    guard let self else { return false }
+                    return self.active(expected, request) && value.avatarValidity?.isCurrent == true &&
+                        avatar.permits(session: expected, snapshot: value.snapshot)
+                }
+            } else {
+                try await service.save(value.payload, token: expected.token)
+            }
             pending[expected.identity.accountID]?.acknowledged = true
         }
         catch let error as ProfileEditWriteError {

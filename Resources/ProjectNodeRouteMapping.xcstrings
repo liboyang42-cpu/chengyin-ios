@@ -1,0 +1,230 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "projectRouteMapping.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outcome destinations"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果去向"
+          }
+        }
+      }
+    },
+    "projectRouteMapping.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a destination for an existing outcome route. Only its target changes. Existing conditions, effects, fallback routes and gameplay stay intact."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "为现有结果路线选择目标节点。仅更改目标，保留现有条件、效果、回退路线和玩法。"
+          }
+        }
+      }
+    },
+    "projectRouteMapping.current": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current destination ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前目标节点 ID"
+          }
+        }
+      }
+    },
+    "projectRouteMapping.choose": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose destination"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择目标节点"
+          }
+        }
+      }
+    },
+    "projectRouteMapping.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply destination"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用目标节点"
+          }
+        }
+      }
+    },
+    "projectRouteMapping.reason.unsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read-only: this graph or configuration is outside the supported existing-route format or size."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只读：此图或配置超出支持的现有路线格式或大小。"
+          }
+        }
+      }
+    },
+    "projectRouteMapping.reason.identity": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read-only: every chapter and node must have an unambiguous identity, and every graph reference must use an existing server node ID."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只读：章节和节点必须具有唯一身份，所有图引用必须使用现有服务端节点 ID。"
+          }
+        }
+      }
+    },
+    "projectRouteMapping.reason.outcomes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read-only: declared outcomes cannot be verified from the current, matching gameplay template snapshot."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只读：无法从当前匹配的玩法模板快照验证已声明的结果。"
+          }
+        }
+      }
+    },
+    "projectRouteMapping.reason.ambiguous": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read-only: this outcome does not identify exactly one existing route edge."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只读：此结果无法唯一对应一条现有路线边。"
+          }
+        }
+      }
+    },
+    "projectRouteMapping.reason.cycle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unavailable: this destination creates an unsafe cycle or a loop through a fallback route."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不可用：此目标会产生不安全循环或经过回退路线的循环。"
+          }
+        }
+      }
+    },
+    "projectRouteMapping.reason.reachability": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unavailable: all nodes and endings must remain reachable from the start, and every node must still reach an ending."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不可用：所有节点和终点必须从起点可达，且每个节点仍能到达终点。"
+          }
+        }
+      }
+    },
+    "projectRouteMapping.reason.fallback": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unavailable: branching and gated destinations need a valid fallback to an ungated node."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不可用：分支和带现实门禁的目标需要通往无门禁节点的有效回退路线。"
+          }
+        }
+      }
+    },
+    "projectRouteMapping.reason.noEdges": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This node has no existing outcome route to change."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此节点没有可更改的现有结果路线。"
+          }
+        }
+      }
+    },
+    "projectRouteMapping.reason.changed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The editor or source changed. Close this sheet and choose again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑器或来源已变化。请关闭此页面后重新选择。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

@@ -1,0 +1,294 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "projectNodeImage.add": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a node photo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加节点照片"
+          }
+        }
+      }
+    },
+    "projectNodeImage.append": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Append photo and save locally"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加照片并在本地保存"
+          }
+        }
+      }
+    },
+    "projectNodeImage.choose": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose one photo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择一张照片"
+          }
+        }
+      }
+    },
+    "projectNodeImage.close": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭"
+          }
+        }
+      }
+    },
+    "projectNodeImage.confirmCrop": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm local crop"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认本地裁剪"
+          }
+        }
+      }
+    },
+    "projectNodeImage.crop": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crop to 4:3"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "裁剪为4:3"
+          }
+        }
+      }
+    },
+    "projectNodeImage.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The photo operation is unavailable or could not be completed. Existing photos are unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "照片操作不可用或未能完成。已有照片保持不变。"
+          }
+        }
+      }
+    },
+    "projectNodeImage.finishLocal": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finish local receipt saving"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成本地回执保存"
+          }
+        }
+      }
+    },
+    "projectNodeImage.localFailure": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The draft or applied receipt save did not complete. The upload receipt is retained. Retry this local save without uploading again. Draft and receipt storage are separate steps."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿或应用回执尚未完成保存，上传回执会保留。可重试本地保存，无需再次上传。草稿与回执分别保存。"
+          }
+        }
+      }
+    },
+    "projectNodeImage.persistReceipt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save upload receipt locally"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在本地保存上传回执"
+          }
+        }
+      }
+    },
+    "projectNodeImage.receiptOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is a legacy upload reference, not proof of ownership, moderation or an immutable asset version."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这是旧版上传接口返回的引用，不证明素材归属、审核状态或不可变版本。"
+          }
+        }
+      }
+    },
+    "projectNodeImage.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose one local photo, crop to 4:3, explicitly upload, then append its reference to this node. This does not publish, delete or verify an asset."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择一张本地照片并裁剪为4:3，明确上传后再将返回引用添加到此节点。此操作不会发布、删除或核验素材。"
+          }
+        }
+      }
+    },
+    "projectNodeImage.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Node photo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "节点照片"
+          }
+        }
+      }
+    },
+    "projectNodeImage.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An upload has no saved response. It may have reached the server. This node remains locked against another upload; no retry or upload-status result is inferred."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有一次上传尚无已保存的响应，可能已到达服务器。此节点保持上传锁定，不会自动重试或推断上传状态。"
+          }
+        }
+      }
+    },
+    "projectNodeImage.unstored": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The upload response could not be saved. Recovery currently exists only in this app session; save the receipt locally before appending."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上传响应尚未成功保存，目前仅在本次应用会话中可恢复。请先保存回执，再添加照片。"
+          }
+        }
+      }
+    },
+    "projectNodeImage.unsupportedReference": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The returned reference cannot be safely represented in the existing photo list. Its unapplied receipt is retained."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回引用无法安全写入现有照片列表，其尚未应用的上传回执会保留。"
+          }
+        }
+      }
+    },
+    "projectNodeImage.upload": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upload photo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上传照片"
+          }
+        }
+      }
+    },
+    "projectNodeImage.uploadReview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upload this cropped photo using the separately approved node-photo channel. Selection and cropping alone send nothing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通过单独授权的节点照片通道上传此裁剪结果。仅选择和裁剪不会发送照片。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

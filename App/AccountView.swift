@@ -49,7 +49,7 @@ struct AccountView: View {
                     NavigationLink { SocialInviteHistoryView(reader: session.socialAccountReader, squareReader: session.squareReader, actions: session.socialActionCoordinator).id(session.socialAccountReader.identity) } label: {
                         Label("social.invites.title", systemImage: "person.2.badge.plus")
                     }.accessibilityIdentifier("account.inviteHistory")
-                    NavigationLink { SocialPlayGuideView(reader: session.socialAccountReader, onOpenDestination: onOpenGuideDestination).id(session.socialAccountReader.identity) } label: {
+                    NavigationLink { SocialPlayGuideView(reader: session.socialAccountReader, onOpenDestination: onOpenGuideDestination, templateReader: session).id(session.socialAccountReader.identity) } label: {
                         Label("social.guide.title", systemImage: "book")
                     }.accessibilityIdentifier("account.playGuide")
                 }
@@ -143,11 +143,28 @@ struct AccountView: View {
             .onChange(of: session.accountCollectionReader.scope) { _, _ in savedPost = nil }
             .sheet(isPresented:$showsSettings) { SettingsView() }
             .sheet(isPresented:$showsCooperation) { CooperationBrowserView(reader:session.cooperationReader,onClose:{ showsCooperation=false },peerReader:session.cooperationFlowReader).id(session.cooperationReader.scope) }
-            .sheet(isPresented:$showsTickets) { TicketWalletView(reader:session.ticketWalletReader,onClose:{ showsTickets=false },makeTeamCoordinator:{ session.makeTeamCoordinator() },orderLifecycleCoordinator:session.orderLifecycleCoordinator).id(session.ticketWalletReader.scope) }
+            .sheet(isPresented:$showsTickets) { TicketWalletView(reader:session.ticketWalletReader,onClose:{ showsTickets=false },makeTeamCoordinator:{ session.makeTeamCoordinator() },orderLifecycleCoordinator:session.orderLifecycleCoordinator).environment(\.ticketWalletPlayProvider, ticketPlayProvider).id(session.ticketWalletReader.scope) }
             .confirmationDialog("auth.signOutConfirm",isPresented:$confirmsLogout,titleVisibility:.visible) {
                 Button("auth.signOut",role:.destructive) { Task { await session.logout() } }
                 Button("action.cancel",role:.cancel) {}
             }
+        }
+    }
+
+    @MainActor private var ticketPlayProvider: TicketWalletPlayProvider {
+        TicketWalletPlayProvider(reader: session.ticketWalletReader, revision: session.sessionRevision,
+            currentRevision: { session.sessionRevision }) { entry in
+            AnyView(SessionPlayRuntimeView(session: session, destination: .journey(entry.scope))
+                .toolbar {
+                    ToolbarItem(placement: .primaryAction) {
+                        NavigationLink {
+                            TicketWalletDetailView(id: entry.registrationID, reader: session.ticketWalletReader)
+                                .environment(\.ticketWalletPlayProvider, nil)
+                                .id(session.ticketWalletReader.scope)
+                        } label: { Label("ticketWallet.detail", systemImage: "ticket") }
+                        .accessibilityIdentifier("ticketWallet.play.ticket")
+                    }
+                })
         }
     }
 }

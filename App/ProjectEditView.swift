@@ -333,7 +333,9 @@ import SwiftUI
                 basicFields
                 ProjectTopicMediaHost(editor: model)
                 ProjectEditPendingSection(model: model, controller: pending)
+                ProjectDraftStoryPreviewEntry(model: model)
                 chapterStructure(opening: opening).id("project-issue-anchor-chapters")
+                ProjectTeamConfigurationEntry(model: model)
                 ProjectClubLeadFields(model: model).id("project-issue-anchor-clubLead")
                 Section("projectEdit.tickets") {
                     ForEach(model.draft.tickets) { ticket in
@@ -462,6 +464,7 @@ import SwiftUI
     private func chapterStructure(opening: ProjectEditStarterController.Lease?) -> some View {
         let removalCapture = chapterRemoval.capture()
         return Section("projectEdit.structure") {
+            ProjectDraftNodeOverviewEntry(model: model).id(ObjectIdentifier(model))
             if chapterRemoval.saveUnconfirmed {
                 ProjectChapterRemovalStatus(controller: chapterRemoval)
             }

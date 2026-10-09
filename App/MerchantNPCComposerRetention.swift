@@ -10,6 +10,6 @@ import Foundation
         guard capturedGeneration == currentGeneration,
               submitted.utf8.elementsEqual(currentDraft.utf8),
               let completion, coordinator.isCurrentCompletion(completion), let message = coordinator.message else { return false }
-        return submitted.trimmingCharacters(in: .whitespacesAndNewlines).utf8.elementsEqual(message.utf8)
+        return MerchantNPCMessageDraft.normalized(submitted).utf8.elementsEqual(message.utf8)
     }
 }

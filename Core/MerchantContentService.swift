@@ -197,7 +197,9 @@ public struct MerchantContentReceipt: Equatable {
         case .registration(let id):
             value = try await read("api/registration/merchant/info", query: ["id": String(id)], session: s)
             guard value["id"].integer == id else { throw MerchantContentFailure.malformed }
-        case .project(let id): value = try await read("api/project/home", .json(optionalTopic(id)), session: s)
+        case .project(let id):
+            var fields = optionalTopic(id); fields["scope"] = .string("MERCHANT")
+            value = try await read("api/project/home", .json(fields), session: s)
         case .players(let id): value = try await read("api/project/players", .json(optionalTopic(id)), session: s)
         case .city: value = try await read("api/merchant/city-node/list", session: s)
         case .claimable(let keyword):

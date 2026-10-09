@@ -6,6 +6,7 @@ struct ProfileOrdersView: View {
     var lifecycleCoordinator: OrderLifecycleCoordinator? = nil
     var mediaScope: UUID = UUID()
     var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
+    var ticketReader: (any TicketWalletReading)? = nil
     var body: some View {
         ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.orders", load: { try await reader.profileOrders() }) { orders in
             if orders.isEmpty {
@@ -14,7 +15,7 @@ struct ProfileOrdersView: View {
                 List {
                     Section {
                         ForEach(orders) { order in
-                            NavigationLink { ProfileOrderDetailView(id: order.id, reader: reader, lifecycleCoordinator: lifecycleCoordinator, mediaScope: mediaScope, makeExternalMaps: makeExternalMaps) } label: {
+                            NavigationLink { ProfileOrderDetailView(id: order.id, reader: reader, lifecycleCoordinator: lifecycleCoordinator, mediaScope: mediaScope, makeExternalMaps: makeExternalMaps, ticketReader: ticketReader) } label: {
                                 ProfileOrderRow(order: order)
                             }.accessibilityIdentifier("profile.order.\(order.id)")
                         }
@@ -51,6 +52,10 @@ struct ProfileOrderDetailView: View {
     var lifecycleCoordinator: OrderLifecycleCoordinator? = nil
     var mediaScope: UUID = UUID()
     var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
+    var ticketReader: (any TicketWalletReading)? = nil
+    @State private var ticketTarget: ProfileOrderTicketTarget?
+    @State private var ticketEntryVisible = false
+    @State private var ticketPresentationID = UUID()
     var body: some View {
         ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.order.detail", load: { try await reader.profileOrder(id: id) }) { order in
             List {
@@ -116,12 +121,47 @@ struct ProfileOrderDetailView: View {
                         }.accessibilityIdentifier("profile.order.lifecycle")
                     }
                 }
+                if let ticketReader {
+                    Section { ticketEntry(order: order, tickets: ticketReader) }
+                }
+                ExploreCompletionEntry(order: order, requestedID: id, origin: reader)
                 Section { Text("profile.readOnly").foregroundStyle(.secondary) }
             }
         }
         .appNavigationTitle("profile.orders.detail")
         .navigationBarTitleDisplayMode(.inline)
+        .navigationDestination(item: $ticketTarget) { target in
+            if let ticketReader, target.registrationID == id, target.matches(origin: reader, tickets: ticketReader) {
+                ProfileOrderTicketDestination(target: target, origin: reader, tickets: ticketReader)
+                    .id(target.id)
+            } else { ProfileOrderTicketUnavailableView() }
+        }
+        .onAppear { ticketEntryVisible = true; ticketPresentationID = UUID() }
+        // A push must not remove its destination. Retire only activation callbacks here.
+        .onDisappear { ticketEntryVisible = false; ticketPresentationID = UUID() }
+        .onChange(of: reader.identity) { _, _ in retireTicketEntry() }
+        .onChange(of: reader.isConfigured) { _, _ in retireTicketEntry() }
+        .onChange(of: ObjectIdentifier(reader)) { _, _ in retireTicketEntry() }
+        .onChange(of: ticketReader.map { ObjectIdentifier($0) }) { _, _ in retireTicketEntry() }
+        .onChange(of: ticketReader?.scope) { _, _ in retireTicketEntry() }
+        .onChange(of: ticketReader?.isAuthenticated) { _, _ in retireTicketEntry() }
+        .onChange(of: ticketReader?.isConfigured) { _, _ in retireTicketEntry() }
+        .onChange(of: id) { _, _ in retireTicketEntry() }
     }
+    @ViewBuilder private func ticketEntry(order: ProfileOrder, tickets: any TicketWalletReading) -> some View {
+        let renderedPresentation = ticketPresentationID
+        let target = ProfileOrderTicketTarget(order: order, requestedID: id, origin: reader, tickets: tickets)
+        Button {
+            guard ticketEntryVisible, ticketTarget == nil, renderedPresentation == ticketPresentationID,
+                  let target, target.matches(origin: reader, tickets: tickets) else { return }
+            ticketTarget = target
+        } label: { Label("orderTicketEntry.open", systemImage: "ticket") }
+            .frame(minHeight: 44).disabled(target == nil || !ticketEntryVisible)
+            .accessibilityIdentifier("orderTicketEntry.open")
+        Text(target == nil ? "orderTicketEntry.unavailable" : "orderTicketEntry.freshRead")
+            .font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+    }
+    private func retireTicketEntry() { ticketTarget = nil; ticketPresentationID = UUID() }
 }
 
 /// Presentation only; the enclosing ProfileReadScreen owns the existing reader/scope lifetime.

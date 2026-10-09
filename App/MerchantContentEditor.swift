@@ -153,8 +153,8 @@ import SwiftUI
                 Text("merchant.content.civilTime").font(.footnote)
             }
         case .verify:
-            Section { field("submissionId"); Toggle("merchant.content.approve", isOn: Binding(get: { approve }, set: { approve = $0; dirty = true; model.cancel() }))
-                if !approve { reasonPicker(["ANSWER_MISMATCH", "EVIDENCE_UNCLEAR", "DUPLICATE_SUBMISSION"]) }
+            MerchantStationSubmissionImportView(owner: model, snapshot: snapshot, nodeID: station["nodeId"].safeInteger ?? 0, text: $text, approve: $approve) {
+                dirty = true; model.cancel()
             }
         }
     }

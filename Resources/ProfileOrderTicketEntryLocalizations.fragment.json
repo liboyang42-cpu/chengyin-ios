@@ -1,0 +1,66 @@
+{
+  "orderTicketEntry.open": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "View this ticket"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "查看本订单票券"
+        }
+      }
+    }
+  },
+  "orderTicketEntry.freshRead": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Opens a freshly checked ticket for this registration. This does not issue a code or confirm payment."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "将重新读取本报名记录的票券。此操作不会生成核销码，也不代表支付已确认。"
+        }
+      }
+    }
+  },
+  "orderTicketEntry.unavailable": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Ticket access is unavailable"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂时无法查看票券"
+        }
+      }
+    }
+  },
+  "orderTicketEntry.changed": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Return to Orders and reopen this order after signing in with the correct account and restoring access."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请使用正确账号登录并恢复读取权限后，返回订单列表重新打开此订单。"
+        }
+      }
+    }
+  }
+}

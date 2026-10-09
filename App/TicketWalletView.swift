@@ -13,6 +13,7 @@ import SwiftUI
     @State private var refreshOnActive = false
     private var key: TicketWalletLoadKey { TicketWalletLoadKey(reader: reader) }
     var body: some View {
+        let offeredPresentation = model.presentation
         NavigationStack {
             List {
                 if reader.isOfflineExample { Text("ticketWallet.offlineExample").font(.caption) }
@@ -20,15 +21,15 @@ import SwiftUI
                     TicketWalletIssueView(issue: .login)
                     if let onSignIn { Button("ticketWallet.signIn", action: onSignIn) }
                 } else if !reader.isConfigured { TicketWalletIssueView(issue: .notConfigured) }
-                else if model.isLoading || model.loadedScope != key.scope { ProgressView("ticketWallet.loading") }
-                else if let issue = model.issue(scope: key.scope) {
-                    TicketWalletIssueView(issue: issue, retry: { Task { await load() } })
-                } else if let snapshot = model.value(scope: key.scope) {
+                else if model.isLoading || model.loadedOwner != key { ProgressView("ticketWallet.loading") }
+                else if let issue = model.issue(owner: key) {
+                    TicketWalletIssueView(issue: issue, retry: { schedule(offeredPresentation) })
+                } else if let snapshot = model.value(owner: key) {
                     if let partial = snapshot.partialFailure {
                         Section {
                             Text(LocalizedStringKey(partial.lane == .route ? "ticketWallet.partial.route" : "ticketWallet.partial.activity"))
                                 .font(.headline).accessibilityIdentifier("ticketWallet.partialFailure")
-                            TicketWalletIssueView(issue: partial.issue, retry: { Task { await load() } })
+                            TicketWalletIssueView(issue: partial.issue, retry: { schedule(offeredPresentation) })
                         }
                     }
                     if snapshot.tickets.isEmpty {
@@ -40,7 +41,7 @@ import SwiftUI
                     ForEach(Array(snapshot.tickets.enumerated()), id: \.offset) { _, ticket in
                         if ticket.action == .detail {
                             NavigationLink {
-                                TicketWalletDetailView(id: ticket.id, reader: reader, lifecycleCoordinator: orderLifecycleCoordinator)
+                                TicketWalletDetailView(id: ticket.id, reader: reader, lifecycleCoordinator: orderLifecycleCoordinator, makeTeamCoordinator: makeTeamCoordinator)
                             } label: { TicketWalletRow(ticket: ticket) }
                             .buttonStyle(QuestifyCardButtonStyle())
                             .accessibilityIdentifier("ticketWallet.row.\(ticket.id)")
@@ -67,29 +68,38 @@ import SwiftUI
             .toolbar {
                 if let onClose { ToolbarItem(placement: .cancellationAction) { Button("action.close", action: onClose) } }
                 ToolbarItem(placement: .primaryAction) {
-                    Button { Task { await load() } } label: { Label("ticketWallet.refresh", systemImage: "arrow.clockwise") }
+                    Button { schedule(offeredPresentation) } label: { Label("ticketWallet.refresh", systemImage: "arrow.clockwise") }
                         .disabled(model.isLoading || !reader.isAuthenticated || !reader.isConfigured)
                         .accessibilityIdentifier("ticketWallet.refresh")
                 }
             }
-            .task(id: key) { await load() }
-            .refreshable { await load() }
-            .onAppear { isVisible = true; refreshOnActive = false }
-            .onDisappear { isVisible = false; model.cancelPending() }
+            .onChange(of: key) { _, _ in replacePresentation() }
+            .refreshable {
+                await model.refresh(presentation: offeredPresentation, currentOwner: key) { await load(presentation: $0) }
+            }
+            .onAppear { isVisible = true; refreshOnActive = false; replacePresentation() }
+            .onDisappear { isVisible = false; model.endPresentation() }
             .onChange(of: scenePhase) { _, phase in
-                if phase == .background { refreshOnActive = true }
-                else if phase == .active && refreshOnActive && isVisible {
+                if phase == .background { refreshOnActive = true; model.endPresentation() }
+                else if phase == .active && isVisible && (refreshOnActive || model.presentation == nil) {
                     refreshOnActive = false
-                    Task { await load() }
+                    replacePresentation()
                 }
             }
             .accessibilityIdentifier("ticketWallet.list")
         }
     }
-    private func load() async {
-        guard reader.isAuthenticated, reader.isConfigured else { model.invalidate(); return }
-        let captured = key.scope
-        await model.load(scope: captured, currentScope: { reader.scope }) { try await reader.ticketWallet() }
+    private func replacePresentation() {
+        guard isVisible, scenePhase == .active else { model.endPresentation(preservingValues: false); return }
+        schedule(model.beginPresentation(owner: key))
+    }
+    private func schedule(_ permit: TicketWalletReadPresentation?) {
+        model.schedule(presentation: permit, currentOwner: key) { await load(presentation: $0) }
+    }
+    private func load(presentation: TicketWalletReadPresentation) async {
+        guard isVisible, scenePhase == .active, !Task.isCancelled,
+              model.accepts(presentation, currentOwner: key) else { return }
+        await model.load(presentation: presentation, currentOwner: { key }) { try await reader.ticketWallet() }
     }
 }
 

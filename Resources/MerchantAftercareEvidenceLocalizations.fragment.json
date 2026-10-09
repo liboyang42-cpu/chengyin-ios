@@ -1,0 +1,121 @@
+{
+  "merchant.aftercareEvidence.open": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "选择并添加售后凭证"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Choose and attach aftercare evidence"
+        }
+      }
+    }
+  },
+  "merchant.aftercareEvidence.separateResponse": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "先审核并上传一张图片，再明确添加到当前回复草稿。上传不等于提交意见；回复仍需单独审核确认。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Review and upload one image, then explicitly attach it to this draft. Uploading does not submit your opinion. The response still needs its own review and confirmation."
+        }
+      }
+    }
+  },
+  "merchant.aftercareEvidence.uploadReview": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请核对上方门店、退款单和图片。确认只上传此凭证，不会提交回复或执行退款。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Check the store, refund case and image above. Confirming uploads only this evidence. It does not submit a response or issue a refund."
+        }
+      }
+    }
+  },
+  "merchant.aftercareEvidence.confirmUpload": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "确认上传此凭证"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Confirm evidence upload"
+        }
+      }
+    }
+  },
+  "merchant.aftercareEvidence.replaceHint": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前草稿已有凭证。选择“替换凭证并返回”才会替换原凭证；取消会保留原草稿。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This draft already has evidence. Replace it only by choosing “Replace evidence and return.” Cancel keeps the original draft."
+        }
+      }
+    }
+  },
+  "merchant.aftercareEvidence.attach": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "添加到回复草稿并返回"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Attach to response draft and return"
+        }
+      }
+    }
+  },
+  "merchant.aftercareEvidence.replace": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "替换凭证并返回"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Replace evidence and return"
+        }
+      }
+    }
+  }
+}

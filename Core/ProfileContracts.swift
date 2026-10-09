@@ -84,6 +84,7 @@ public struct ProfileOrder: Decodable, Equatable, Identifiable {
     public let registrationStatus: Int?
     public let verificationStatus: Int?
     public let paymentStatus: Int?
+    public let purchaseKind: Int?
     public let title: String?
     public let productType: Int?
     public let startDate: String?
@@ -123,7 +124,7 @@ public struct ProfileOrder: Decodable, Equatable, Identifiable {
     public var registrationState: ProfileRegistrationState { .init(code: registrationStatus) }
 
     private enum CodingKeys: String, CodingKey {
-        case id, memberId, ticketId, ownerType, ownerId, registrationNo, registrationStatus, verificationStatus, paymentStatus
+        case id, memberId, ticketId, ownerType, ownerId, registrationNo, registrationStatus, verificationStatus, paymentStatus, purchaseKind
         case cmsActivity, cmsTopic, omsTicket, participateDate, payableAmount, realName, phone, ticketName, orderNum
         case paymentTime, paymentTypeLabel, createTime, verificationTime, expiresAt, organizerName
         case statusText, orderHint, refundInfo, refundApplication
@@ -177,6 +178,7 @@ public struct ProfileOrder: Decodable, Equatable, Identifiable {
         registrationStatus = try c.decodeIfPresent(Int.self, forKey: .registrationStatus)
         verificationStatus = try c.decodeIfPresent(Int.self, forKey: .verificationStatus)
         paymentStatus = try c.decodeIfPresent(Int.self, forKey: .paymentStatus)
+        purchaseKind = (try? c.decodeIfPresent(ProfileOrderStatusInteger.self, forKey: .purchaseKind))?.value
         // Source precedence is the associated activity object, then the topic object.
         let owner = try c.decodeIfPresent(Owner.self, forKey: .cmsActivity)
             ?? c.decodeIfPresent(Owner.self, forKey: .cmsTopic)

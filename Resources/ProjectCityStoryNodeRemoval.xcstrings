@@ -1,0 +1,134 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "projectCityNodeRemoval.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove city node"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除城市节点"
+          }
+        }
+      }
+    },
+    "projectCityNodeRemoval.warning": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove this node and its story node block? You can undo for five seconds while you remain here and the draft is unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要删除这个节点及其故事节点块吗？停留在此页面且草稿未变化时，可在五秒内撤销。"
+          }
+        }
+      }
+    },
+    "projectCityNodeRemoval.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove node"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除节点"
+          }
+        }
+      }
+    },
+    "projectCityNodeRemoval.removed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Node removed from the local draft."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "节点已从本地草稿删除。"
+          }
+        }
+      }
+    },
+    "projectCityNodeRemoval.undo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Undo removal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤销删除"
+          }
+        }
+      }
+    },
+    "projectCityNodeRemoval.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Node removal supports one ordinary, unlinked city node at a time. Graphs, linked story content, unknown dependency data and unsaved access remain protected."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每次仅支持删除一个普通、无关联的城市节点。路线图、关联故事内容、未知依赖数据及未保存的访问状态会受到保护。"
+          }
+        }
+      }
+    },
+    "projectCityNodeRemoval.unsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This selection cannot be safely removed here. Keep linked nodes and unknown route or dependency data unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此选择无法在这里安全删除。关联节点、未知路线或依赖数据将保持不变。"
+          }
+        }
+      }
+    },
+    "projectCityNodeRemoval.saveUnconfirmed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local saving could not be confirmed. Further removal and undo are paused. Reopen the draft and inspect the saved content before continuing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法确认本地保存结果，已暂停继续删除和撤销。请重新打开草稿并检查已保存的内容后再继续。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

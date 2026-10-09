@@ -1,0 +1,742 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "projectDraftStoryPreview.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Story-content preview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "故事内容预览"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preview unsaved story content"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预览未保存的故事内容"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read the current local draft in authored chapter order. Conditions and variable tokens are not evaluated. This does not run games, select a route or determine rewards."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按作者编排的章节顺序阅读当前本地草稿。条件和变量占位符不执行判断；这里不运行玩法、不选择路线，也不计算奖励。"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.mediaScope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Image and audio references are shown as placeholders. No media is fetched or played. Album captions stay in their authored order."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图片和音频引用显示为占位说明，不加载或播放媒体。相册说明保留作者编排的顺序。"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.pendingExcluded": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pending materials excluded from this story"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未进入故事的待放置素材"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.unplacedNodes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Placed nodes without story markers are not inserted into this reading sequence"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "缺少故事标记的已放置节点未插入本次阅读顺序"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "There are no chapters in this local draft."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前本地草稿还没有章节。"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.emptyChapter": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This chapter has no story blocks to read."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本章没有可阅读的故事块。"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.emptyText": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This text block is empty."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此文本块为空。"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.emptyAlbum": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This album has no readable captions."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此相册还没有可阅读的图片说明。"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.emptyCaption": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No caption for this image."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这张图片尚无说明。"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.unsupportedChapter": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This chapter’s version or role cannot be represented safely in this preview. Return to the editor to inspect it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本章的版本或角色无法在此安全预览，请返回编辑器检查。"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.unsupportedBlock": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Some content or metadata cannot be represented here. Any readable authored text is shown without interpreting those fields."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "部分内容或元数据无法在此预览。可读取的作者文本仍会显示，但不会解释这些字段。"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.conditional": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conditional content shown for author review; its condition has not been evaluated."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此条件内容为作者检查而展示，触发条件尚未判断。"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.endingScope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is an authored ending chapter, not a selected or achieved ending."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这是作者编写的结局章节，不代表已选中或已达成这个结局。"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.nodeScope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Node marker and authored description only; no game or answer is executed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅展示节点标记和作者说明，不运行玩法或提交答案。"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.effectScope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Effect marker only; no effect is executed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅展示效果标记，不执行效果。"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.emptyMedia": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This local media reference is empty."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此本地媒体引用为空。"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.mediaReference": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media reference present; loading and playback are excluded from this text preview."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已填写媒体引用；本次文本预览不加载或播放媒体。"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.untitledTopic": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Untitled draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未命名草稿"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.untitledChapter": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Untitled chapter"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未命名章节"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.stale": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The draft or account changed. Close this preview and open the current draft again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿或账号已变化，请关闭预览后重新打开当前草稿。"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.chapter": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chapter"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "章节"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.previous": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Previous chapter"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上一章"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.next": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next chapter"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下一章"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.chapterPosition": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chapter position"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "章节位置"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.role.chapter": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chapter content"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "章节内容"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.role.opening": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opening chapter content"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "序章内容"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.role.ending": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ending chapter content"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结局章节内容"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.role.unsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unsupported chapter role"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不支持的章节角色"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.reason.identity": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duplicate or ambiguous chapter, node or block identities prevent a reliable preview."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "章节、节点或故事块的标识重复或不明确，暂时无法可靠预览。"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.reason.limit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This draft exceeds the bounded local preview size. Its content has not been truncated or changed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此草稿超出本地预览的容量限制，内容未被截断或修改。"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.reason.branchRoute": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Branch-route preview is not connected here. Existing branch data is preserved; this screen will not invent a route."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此处尚未接通分支路线预览。原有分支数据保留，不会推断一条路线。"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.reason.unsupportedRoute": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This route mode is not supported by the local story preview."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地故事预览暂不支持此路线模式。"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.kind.text": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Story text"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "故事文本"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.kind.voice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voice text"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "内心声音文本"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.kind.narrative": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Node narrative"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "节点叙事"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.kind.node": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Node marker"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "节点标记"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.kind.image": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Image placeholder"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图片占位"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.kind.audio": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio placeholder"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "音频占位"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.kind.album": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Album captions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "相册说明"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.kind.thought": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thought declaration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "伏笔说明"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.kind.mood": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atmosphere marker"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "氛围标记"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.kind.odd": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Effect marker"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "效果标记"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.kind.reveal": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reveal text"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "揭示文本"
+          }
+        }
+      }
+    },
+    "projectDraftStoryPreview.kind.unsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unavailable story content"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法预览的故事内容"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

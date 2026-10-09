@@ -1,0 +1,246 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "projectNodeOverview.open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View all placed nodes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看所有已编排节点"
+          }
+        }
+      }
+    },
+    "projectNodeOverview.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draft node overview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿节点总览"
+          }
+        }
+      }
+    },
+    "projectNodeOverview.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All placed nodes, in chapter and node order. Pending materials and temporary starter candidates are excluded. This overview does not change the draft."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按章节和节点顺序列出已编排节点，不包含待编排素材或临时新建候选。此总览不会修改草稿。"
+          }
+        }
+      }
+    },
+    "projectNodeOverview.mapUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Map preview is unavailable: stored coordinates have no verified MapKit display datum. Numeric validity does not establish map alignment."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地图预览暂不可用：保存的坐标尚无经过验证的 MapKit 显示坐标系。数值有效不代表地图位置准确。"
+          }
+        }
+      }
+    },
+    "projectNodeOverview.pendingExcluded": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pending materials excluded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未列入的待编排素材"
+          }
+        }
+      }
+    },
+    "projectNodeOverview.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "There are no placed nodes in this draft."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前草稿没有已编排节点。"
+          }
+        }
+      }
+    },
+    "projectNodeOverview.openChapter": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open chapter story editor"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开章节故事编辑器"
+          }
+        }
+      }
+    },
+    "projectNodeOverview.openNode": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open node editor"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开节点编辑器"
+          }
+        }
+      }
+    },
+    "projectNodeOverview.stale": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This editor context has changed. Return to the current draft."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑上下文已变化，请返回当前草稿。"
+          }
+        }
+      }
+    },
+    "projectNodeOverview.reason.identity": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Node or chapter identities are missing or ambiguous. No editor target was chosen."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "节点或章节标识缺失或存在歧义，未选择任何编辑目标。"
+          }
+        }
+      }
+    },
+    "projectNodeOverview.reason.limit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This draft exceeds the supported overview size. Its content is unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿超出总览支持的规模，内容保持不变。"
+          }
+        }
+      }
+    },
+    "projectNodeOverview.coordinate.missing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coordinates are missing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未填写坐标。"
+          }
+        }
+      }
+    },
+    "projectNodeOverview.coordinate.invalid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coordinates are incomplete, nonnumeric, nonfinite or out of range."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "坐标不完整、不是有效有限数值或超出范围。"
+          }
+        }
+      }
+    },
+    "projectNodeOverview.coordinate.zero": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A zero coordinate is treated as unset by this editor."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此编辑器将零坐标视为未设置。"
+          }
+        }
+      }
+    },
+    "projectNodeOverview.coordinate.datumUnverified": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coordinates are numerically valid; their display datum is unverified."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "坐标数值有效，但显示坐标系尚未验证。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

@@ -63,6 +63,7 @@ import SwiftUI
         Section {
             Button { controller.open() } label: { Text("projectInitialState.title", tableName: "ProjectInitialState") }
                 .disabled(!controller.available).accessibilityIdentifier("projectInitialState.open")
+            ProjectInitialAttributesEntry(model: model, chapterID: controller.chapterID)
         }
         .sheet(item: controller.binding(original)) { original in ProjectInitialStateSheet(controller: controller, original: original) }
         .onChange(of: model.editorIncarnation) { _, _ in controller.retire() }

@@ -86,6 +86,7 @@ public struct MerchantBusinessConfirmation: Equatable, Identifiable {
     public private(set) var snapshot: MerchantBusinessSnapshot?
     public private(set) var confirmation: MerchantBusinessConfirmation?
     public private(set) var receipt: MerchantBusinessReceipt?
+    public private(set) var operatorInvitation: MerchantOperatorInvitationPresentation?
     public private(set) var failure: MerchantBusinessFailure?
     public private(set) var failureKey: String?
     public private(set) var isBusy = false
@@ -96,6 +97,7 @@ public struct MerchantBusinessConfirmation: Equatable, Identifiable {
     public init(reader: any MerchantBusinessReading, journal: any MerchantBusinessIntentStore) { self.reader = reader; self.journal = journal }
     public var isCurrent: Bool { loadedScope != nil && loadedScope == reader.scope }
     public func invalidate() {
+        operatorInvitation?.retire(); operatorInvitation = nil
         generation += 1; snapshot = nil; loadedScope = nil; confirmation = nil; receipt = nil; failure = nil; failureKey = nil; isBusy = false
         // Journal remains intact across refresh, navigation, logout, replacement and relaunch.
     }
@@ -113,6 +115,7 @@ public struct MerchantBusinessConfirmation: Equatable, Identifiable {
         } catch { if generation == self.generation, scope == reader.scope { set(error) } }
     }
     public func prepare(_ mutation: MerchantBusinessMutation) {
+        operatorInvitation?.retire(); operatorInvitation = nil
         confirmationGeneration += 1
         confirmation = nil; receipt = nil; failure = nil; failureKey = nil
         guard isCurrent, !isBusy, let scope = loadedScope, let snapshot else { set(MerchantBusinessFailure.stale); return }
@@ -155,6 +158,9 @@ public struct MerchantBusinessConfirmation: Equatable, Identifiable {
             guard generation == self.generation, confirmationGeneration == self.confirmationGeneration, reader.scope == review.scope, reader.authorizationGeneration == review.authorizationGeneration, !Task.isCancelled else { return }
             // Only a confirmed response from this dispatch clears its exact journal record.
             try journal.complete(intent); receipt = result; isLocked = false; snapshot = nil; loadedScope = nil
+            if case .inviteOperator = review.mutation {
+                operatorInvitation = .init(receipt: result, review: review)
+            }
         } catch {
             // Errors received after dispatch are not proof of rollback, including 401/403/409.
             // Preflight permission/auth failures return before the journal is reserved.
@@ -163,6 +169,25 @@ public struct MerchantBusinessConfirmation: Equatable, Identifiable {
             guard generation == self.generation, reader.scope == review.scope else { return }
             isLocked = !definite; set(definite ? error : MerchantBusinessFailure.unknown)
         }
+    }
+    public func operatorInvitationCode(id: UUID, now: Date = Date(), uptime: TimeInterval = ProcessInfo.processInfo.systemUptime) -> String? {
+        guard let presentation = operatorInvitation, presentation.id == id else { return nil }
+        return presentation.revealedCode(reader: reader, receipt: receipt, now: now, uptime: uptime)
+    }
+    public func operatorInvitationIsCurrent(id: UUID, now: Date = Date(), uptime: TimeInterval = ProcessInfo.processInfo.systemUptime) -> Bool {
+        guard let presentation = operatorInvitation, presentation.id == id else { return false }
+        return presentation.isCurrent(reader: reader, receipt: receipt, now: now, uptime: uptime)
+    }
+    public func operatorInvitationAccessMatches(id: UUID, access: MerchantBusinessAccess) -> Bool {
+        guard let presentation = operatorInvitation, presentation.id == id, presentation.matches(receipt) else { return false }
+        return presentation.matchesAccess(access)
+    }
+    public func retireOperatorInvitation(id: UUID) {
+        guard let presentation = operatorInvitation, presentation.id == id else { return }
+        let ownsReceipt = presentation.matches(receipt)
+        presentation.retire(); operatorInvitation = nil
+        // Also remove the original raw response, but never a newer/different receipt.
+        if ownsReceipt { receipt = nil }
     }
     private func set(_ error: Error) {
         if let failure = error as? MerchantBusinessFailure { self.failure = failure; failureKey = failure.key }

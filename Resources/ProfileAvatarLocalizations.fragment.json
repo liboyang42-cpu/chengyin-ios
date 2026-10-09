@@ -1,0 +1,308 @@
+{
+  "profile.avatar.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Profile avatar"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "个人头像"
+        }
+      }
+    }
+  },
+  "profile.avatar.unavailable": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Avatar editing is unavailable in this configuration."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前配置暂不支持修改头像。"
+        }
+      }
+    }
+  },
+  "profile.avatar.select": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Choose an avatar"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "选择头像"
+        }
+      }
+    }
+  },
+  "profile.avatar.hint": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Choose and crop a photo, review its upload, then stage it for your profile review."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "选择并裁剪照片，确认上传后，再加入资料修改草稿。"
+        }
+      }
+    }
+  },
+  "profile.avatar.preview": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Selected avatar preview"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已选头像预览"
+        }
+      }
+    }
+  },
+  "profile.avatar.crop": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Crop avatar · 1:1"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "裁剪头像 · 1:1"
+        }
+      }
+    }
+  },
+  "profile.avatar.uploadDisclosure": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Upload sends this cropped image to your configured service. It does not save your profile."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "上传会将这张裁剪后的图片发送至已配置的服务，不会自动保存个人资料。"
+        }
+      }
+    }
+  },
+  "profile.avatar.upload": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Confirm image upload"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "确认上传图片"
+        }
+      }
+    }
+  },
+  "profile.avatar.uploaded": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Image uploaded. Stage it to include it in your profile changes."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "图片已上传。加入草稿后，才能随个人资料一起确认保存。"
+        }
+      }
+    }
+  },
+  "profile.avatar.stage": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Stage this avatar"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "将此头像加入草稿"
+        }
+      }
+    }
+  },
+  "profile.avatar.staged": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "New avatar staged. Review and save your profile to apply it."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "新头像已加入草稿。请确认并保存个人资料后应用。"
+        }
+      }
+    }
+  },
+  "profile.avatar.confirmChange": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This review includes your newly staged avatar."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "本次确认包含已加入草稿的新头像。"
+        }
+      }
+    }
+  },
+  "profile.avatar.discard": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Discard staged avatar"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "放弃草稿头像"
+        }
+      }
+    }
+  },
+  "profile.avatar.discardTitle": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Discard this staged avatar?"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "放弃这张草稿头像？"
+        }
+      }
+    }
+  },
+  "profile.avatar.working": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Working…"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "处理中…"
+        }
+      }
+    }
+  },
+  "profile.avatar.failed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The image was not uploaded. You can choose it again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "图片未上传，可以重新选择。"
+        }
+      }
+    }
+  },
+  "profile.avatar.unknown": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This upload or its local record could not be confirmed. New uploads stay blocked; closing will not retry it."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "本次上传结果或本地记录暂时无法确认。已暂停新上传，关闭页面不会重试。"
+        }
+      }
+    }
+  },
+  "profile.avatar.changed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The avatar context changed. Discard the staged avatar and review a new selection."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "头像的使用环境已变化。请放弃草稿头像后重新选择并确认。"
+        }
+      }
+    }
+  }
+}

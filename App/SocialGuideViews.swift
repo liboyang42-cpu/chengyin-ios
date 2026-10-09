@@ -3,6 +3,7 @@ import SwiftUI
 @MainActor struct SocialPlayGuideView: View {
     let reader: any SocialAccountReading
     var onOpenDestination: ((SocialGuideDestination) -> Void)? = nil
+    var templateReader: (any DiscoveryReading)? = nil
     var body: some View {
         List {
             Section("social.guide.modes") {
@@ -14,6 +15,7 @@ import SwiftUI
                     }.padding(.vertical, 5)
                 }
             }
+            SocialGuideTemplateSection(reader: templateReader)
             Section("social.guide.information") {
                 SocialReadScreen(reader: reader, requestKey: "information-list", load: { try await reader.informationList() }) { rows in
                     if rows.isEmpty { Text("social.guide.empty") }

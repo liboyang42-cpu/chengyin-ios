@@ -74,9 +74,15 @@ struct ProjectStoryImagePreparedReferences: View {
     private struct Row: Identifiable { let id: String, reference: String }
     private var rows: [Row] {
         (payload["chapters"]?.array ?? []).enumerated().flatMap { chapter, raw in
-            (raw.object?["blocks"]?.array ?? []).enumerated().compactMap { block, raw -> Row? in
-                guard raw.object?["type"]?.text == "image", let reference = raw.object?["url"]?.text else { return nil }
-                return .init(id: "\(chapter).\(block)", reference: reference)
+            (raw.object?["blocks"]?.array ?? []).enumerated().flatMap { block, raw -> [Row] in
+                if raw.object?["type"]?.text == "image", let reference = raw.object?["url"]?.text {
+                    return [.init(id: "\(chapter).\(block)", reference: reference)]
+                }
+                guard raw.object?["type"]?.text == "dream" else { return [] }
+                return (raw.object?["images"]?.array ?? []).enumerated().compactMap { index, image in
+                    guard let reference = image.object?["url"]?.text else { return nil }
+                    return .init(id: "\(chapter).\(block).album.\(index)", reference: reference)
+                }
             }
         }
     }
@@ -110,7 +116,11 @@ struct ProjectStoryImagePreparedReferences: View {
         NavigationStack {
             Form {
                 Section {
-                    Text(text("projectStoryImage.scope", "Choose and crop a local story image, then explicitly upload it. Apply the returned reference to this captured chapter and save the local draft. This does not publish or approve the story."))
+                    if flow.target.isAlbumAppend {
+                        Text("projectAlbumImage.uploadScope", tableName: "ProjectAlbumImageAuthor")
+                    } else {
+                        Text(text("projectStoryImage.scope", "Choose and crop a local story image, then explicitly upload it. Apply the returned reference to this captured chapter and save the local draft. This does not publish or approve the story."))
+                    }
                     Text(verbatim: original.opening.chapterName).accessibilityIdentifier("projectStoryImage.chapter")
                     if let saved = original.opening.savedReference {
                         LabeledContent {
@@ -151,8 +161,10 @@ struct ProjectStoryImagePreparedReferences: View {
                         Text(verbatim: receipt.reference).textSelection(.enabled).accessibilityIdentifier("projectStoryImage.reference")
                         Text(text("projectStoryImage.referenceScope", "This is the existing upload API's reference. It does not prove media ownership, a frozen asset version, or eligibility for an approved release."))
                         if !flow.referenceFitsStory { Text(text("projectStoryImage.referenceTooLong", "The returned reference exceeds the story's existing 500-character limit. Its receipt is retained, but it cannot be applied.")) }
-                        Button(text("projectStoryImage.apply", "Apply to this chapter and save locally")) { model.apply() }
-                            .buttonStyle(.borderless).disabled(!flow.canApply).accessibilityIdentifier("projectStoryImage.apply")
+                        Button { model.apply() } label: {
+                            if flow.target.isAlbumAppend { Text("projectAlbumImage.append", tableName: "ProjectAlbumImageAuthor") }
+                            else { Text(text("projectStoryImage.apply", "Apply to this chapter and save locally")) }
+                        }.buttonStyle(.borderless).disabled(!flow.canApply).accessibilityIdentifier("projectStoryImage.apply")
                     }
                 }
                 if flow.unresolvedUploadCount > 0 && !flow.hasUnstoredReceipt {
@@ -167,7 +179,7 @@ struct ProjectStoryImagePreparedReferences: View {
                 if flow.state == .unauthorized { Text(text("projectStoryImage.unauthorized", "Sign in again before uploading another story image. The unresolved attempt is retained.")) }
                 if flow.state == .uploading { ProgressView().accessibilityIdentifier("projectStoryImage.busy") }
             }
-            .navigationTitle(text("projectStoryImage.title", "Story image"))
+            .navigationTitle(flow.target.isAlbumAppend ? Text("projectAlbumImage.title", tableName: "ProjectAlbumImageAuthor") : Text(text("projectStoryImage.title", "Story image")))
             .toolbar { ToolbarItem(placement: .cancellationAction) {
                 Button(text("projectStoryImage.close", "Close")) { model.close(); close() }.accessibilityIdentifier("projectStoryImage.close")
             } }

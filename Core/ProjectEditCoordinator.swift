@@ -37,6 +37,8 @@ public struct ProjectEditContinuation {
     public let topicImageSource: (any ProjectTopicImageUploading)?
     public let storyImageSource: (any ProjectStoryImageUploading)?
     public let storyImageJournal: ProjectStoryImageJournal?
+    public let nodeImageSource: (any ProjectNodeImageUploading)?
+    public let nodeImageJournal: ProjectNodeImageJournal?
     public let storyAudioSource: (any ProjectStoryAudioUploading)?
     public let storyAudioJournal: ProjectStoryAudioJournal?
     public let storyTemplateSource: (any ProjectStoryTemplateReading)?
@@ -66,8 +68,8 @@ public struct ProjectEditContinuation {
         return false
         #endif
     }
-    public init(initial: ProjectEditSnapshot, service: any ProjectEditServing, store: ProjectEditLocalStore, releasePreparationSource: (any ApprovedTopicReleasePreparing)? = nil, releasePublicationSource: (any ApprovedTopicReleasePublishing)? = nil, releasePublicationJournal: ApprovedTopicReleasePublicationJournal? = nil, releaseReviewSource: (any ApprovedTopicReviewServing)? = nil, releaseReviewJournal: ApprovedTopicReviewJournal? = nil, ownedCoverSource: (any OwnedTopicCoverServing)? = nil, ownedCoverJournal: OwnedTopicCoverJournal? = nil, topicImageSource: (any ProjectTopicImageUploading)? = nil, storyImageSource: (any ProjectStoryImageUploading)? = nil, storyImageJournal: ProjectStoryImageJournal? = nil, storyAudioSource: (any ProjectStoryAudioUploading)? = nil, storyAudioJournal: ProjectStoryAudioJournal? = nil, merchantDraftSource: (any ProjectMerchantDraftReading)? = nil, storyTemplateSource: (any ProjectStoryTemplateReading)? = nil, currentSession: @escaping () -> ProjectEditSession?) {
-        self.initial = initial; self.service = service; self.store = store; self.releasePreparationSource = releasePreparationSource; self.releasePublicationSource = releasePublicationSource; self.releasePublicationJournal = releasePublicationJournal; self.releaseReviewSource = releaseReviewSource; self.releaseReviewJournal = releaseReviewJournal; self.ownedCoverSource = ownedCoverSource; self.ownedCoverJournal = ownedCoverJournal; self.topicImageSource = topicImageSource; self.storyImageSource = storyImageSource; self.storyImageJournal = storyImageJournal; self.storyAudioSource = storyAudioSource; self.storyAudioJournal = storyAudioJournal; self.merchantDraftSource = merchantDraftSource; self.storyTemplateSource = storyTemplateSource; self.currentSession = currentSession
+    public init(initial: ProjectEditSnapshot, service: any ProjectEditServing, store: ProjectEditLocalStore, releasePreparationSource: (any ApprovedTopicReleasePreparing)? = nil, releasePublicationSource: (any ApprovedTopicReleasePublishing)? = nil, releasePublicationJournal: ApprovedTopicReleasePublicationJournal? = nil, releaseReviewSource: (any ApprovedTopicReviewServing)? = nil, releaseReviewJournal: ApprovedTopicReviewJournal? = nil, ownedCoverSource: (any OwnedTopicCoverServing)? = nil, ownedCoverJournal: OwnedTopicCoverJournal? = nil, topicImageSource: (any ProjectTopicImageUploading)? = nil, storyImageSource: (any ProjectStoryImageUploading)? = nil, storyImageJournal: ProjectStoryImageJournal? = nil, nodeImageSource: (any ProjectNodeImageUploading)? = nil, nodeImageJournal: ProjectNodeImageJournal? = nil, storyAudioSource: (any ProjectStoryAudioUploading)? = nil, storyAudioJournal: ProjectStoryAudioJournal? = nil, merchantDraftSource: (any ProjectMerchantDraftReading)? = nil, storyTemplateSource: (any ProjectStoryTemplateReading)? = nil, currentSession: @escaping () -> ProjectEditSession?) {
+        self.initial = initial; self.service = service; self.store = store; self.releasePreparationSource = releasePreparationSource; self.releasePublicationSource = releasePublicationSource; self.releasePublicationJournal = releasePublicationJournal; self.releaseReviewSource = releaseReviewSource; self.releaseReviewJournal = releaseReviewJournal; self.ownedCoverSource = ownedCoverSource; self.ownedCoverJournal = ownedCoverJournal; self.topicImageSource = topicImageSource; self.storyImageSource = storyImageSource; self.storyImageJournal = storyImageJournal; self.nodeImageSource = nodeImageSource; self.nodeImageJournal = nodeImageJournal; self.storyAudioSource = storyAudioSource; self.storyAudioJournal = storyAudioJournal; self.merchantDraftSource = merchantDraftSource; self.storyTemplateSource = storyTemplateSource; self.currentSession = currentSession
     }
     /// Copies into a fresh coordinator/identity. The original remains saved and unchanged.
     public func copyForMode(_ draft: ProjectEditDraft, to product: ProjectEditProduct) throws -> ProjectEditCoordinator {
@@ -77,7 +79,7 @@ public struct ProjectEditContinuation {
               draft.product == snapshot.draft.product else { throw ProjectEditError.changedSession }
         let copy = try ProjectDraftModeCopy.copy(draft, to: product)
         try store.save(draft, session: session, identity: identity)
-        let coordinator = ProjectEditCoordinator(initial: .init(draft: copy), service: service, store: store, releasePreparationSource: releasePreparationSource, releasePublicationSource: releasePublicationSource, releasePublicationJournal: releasePublicationJournal, releaseReviewSource: releaseReviewSource, releaseReviewJournal: releaseReviewJournal, ownedCoverSource: ownedCoverSource, ownedCoverJournal: ownedCoverJournal, topicImageSource: topicImageSource, storyImageSource: storyImageSource, storyImageJournal: storyImageJournal, storyAudioSource: storyAudioSource, storyAudioJournal: storyAudioJournal, merchantDraftSource: merchantDraftSource, storyTemplateSource: storyTemplateSource, currentSession: currentSession)
+        let coordinator = ProjectEditCoordinator(initial: .init(draft: copy), service: service, store: store, releasePreparationSource: releasePreparationSource, releasePublicationSource: releasePublicationSource, releasePublicationJournal: releasePublicationJournal, releaseReviewSource: releaseReviewSource, releaseReviewJournal: releaseReviewJournal, ownedCoverSource: ownedCoverSource, ownedCoverJournal: ownedCoverJournal, topicImageSource: topicImageSource, storyImageSource: storyImageSource, storyImageJournal: storyImageJournal, nodeImageSource: nodeImageSource, nodeImageJournal: nodeImageJournal, storyAudioSource: storyAudioSource, storyAudioJournal: storyAudioJournal, merchantDraftSource: merchantDraftSource, storyTemplateSource: storyTemplateSource, currentSession: currentSession)
         coordinator.isolatedDraftIdentity = try ProjectEditDraftIdentity()
         coordinator.isolatedOwner = session
         return coordinator
@@ -232,7 +234,7 @@ public struct ProjectEditContinuation {
         synchronizeSession(); confirmation = nil
         guard !hasUnconfirmedChapterRemoval, !isBusy, !isLocked, state != .blocked, state != .simulated, state != .acknowledged, capturedSession == currentSession(), let baseline = snapshot else { return }
         let session = capturedSession
-        issues = ProjectEditValidation.issues(draft, scope: baseline.scope)
+        issues = ProjectEditValidation.issues(draft, scope: baseline.scope, baseline: baseline)
         guard issues.isEmpty else { messageKey = "projectEdit.invalid"; return }
         guard draft.product == baseline.draft.product, draft.owner == baseline.draft.owner,
               draft.baseRevision == baseline.draft.baseRevision,
@@ -240,7 +242,7 @@ public struct ProjectEditContinuation {
             messageKey = "projectEdit.lockedFields"; return
         }
         do {
-            let payload = try ProjectEditContract.payload(draft, topicID: baseline.topicID, scope: baseline.scope)
+            let payload = try ProjectEditContract.payload(draft, topicID: baseline.topicID, scope: baseline.scope, baseline: baseline)
             confirmation = .init(id: UUID(), draft: draft, payload: payload, session: session, baseline: baseline)
             messageKey = canSimulate ? "projectEdit.fixtureNotice" : "projectEdit.unconfigured"
         } catch { messageKey = "projectEdit.invalid" }
@@ -260,7 +262,8 @@ public struct ProjectEditContinuation {
             if value.baseline.topicID == nil {
                 guard check.capability.allowsCreate else { state = .blocked; messageKey = "projectEdit.capabilityBlocked"; return }
             } else {
-                guard check.snapshot == value.baseline else { state = .blocked; messageKey = "projectEdit.revisionConflict"; return }
+                guard check.snapshot == value.baseline,
+                      ProjectChapterRecruitmentCarryOver.matchesFresh(check.snapshot, baseline: value.baseline) else { state = .blocked; messageKey = "projectEdit.revisionConflict"; return }
             }
             if let existing = try store.pending(session: session, identity: identity) {
                 pending = existing; state = .unknown; messageKey = "projectEdit.unknown"; return

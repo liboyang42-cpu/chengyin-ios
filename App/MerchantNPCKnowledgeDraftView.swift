@@ -51,6 +51,9 @@ import SwiftUI
 @MainActor struct MerchantNPCKnowledgeDraftView: View {
     @ObservedObject var model: MerchantNPCKnowledgeDraftModel
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var dismissal = MerchantNPCKnowledgeDismissal()
+    @State private var showsDiscardReview = false
     private var coordinator: MerchantNPCKnowledgeDraftCoordinator { model.coordinator }
     var body: some View {
         Form {
@@ -90,14 +93,35 @@ import SwiftUI
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
-                Button("action.cancel") { model.cancel(); dismiss() }
+                Button("action.cancel") { requestClose() }
+                    .disabled(coordinator.isCurrent && coordinator.phase == .saving)
                     .accessibilityIdentifier("merchantKnowledge.cancel")
             }
         }
         .accessibilityIdentifier("merchantKnowledge.editor")
+        .interactiveDismissDisabled(MerchantNPCKnowledgeDismissal.blocksInteractiveDismissal(model))
+        .alert("merchantKnowledgeDismiss.title", isPresented: $showsDiscardReview, presenting: dismissal.review) { review in
+            Button("merchantKnowledgeDismiss.discard", role: .destructive) {
+                if dismissal.discard(review, model: model, isActive: scenePhase == .active) { dismiss() }
+                showsDiscardReview = false
+            }
+            Button("merchantKnowledgeDismiss.keepEditing", role: .cancel) { clearDiscardReview() }
+        } message: { _ in Text("merchantKnowledgeDismiss.warning") }
         .task { await model.open() }
-        .onDisappear { model.cancel() }
+        .onChange(of: model.revision) { _, _ in clearDiscardReview() }
+        .onChange(of: coordinator.scope) { _, _ in clearDiscardReview() }
+        .onChange(of: coordinator.isCurrent) { _, current in if !current { clearDiscardReview() } }
+        .onChange(of: scenePhase) { _, phase in if phase != .active { clearDiscardReview() } }
+        .onDisappear { clearDiscardReview(); model.cancel() }
     }
+    private func requestClose() {
+        switch dismissal.prepare(model, isActive: scenePhase == .active) {
+        case .close: model.cancel(); dismiss()
+        case .confirm: showsDiscardReview = true
+        case .blocked: break
+        }
+    }
+    private func clearDiscardReview() { dismissal.keepEditing(); showsDiscardReview = false }
 
     private var products: some View {
         Section("merchantKnowledge.products") {

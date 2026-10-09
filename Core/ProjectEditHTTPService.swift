@@ -78,7 +78,8 @@ public struct ProjectEditCredentials: Equatable {
             if operation.identity.topicID == nil {
                 guard fresh.capability.allowsCreate else { return .notSent }
             } else {
-                guard let baseline = operation.baseline, fresh.snapshot == baseline else { return .notSent }
+                guard let baseline = operation.baseline, fresh.snapshot == baseline,
+                      ProjectChapterRecruitmentCarryOver.matchesFresh(fresh.snapshot, baseline: baseline) else { return .notSent }
             }
             if let id = operation.identity.topicID {
                 guard operation.payload["id"]?.integer == id, operation.payload["publishToCreative"] == nil || operation.payload["publishToCreative"] == .number(0) else { return .notSent }

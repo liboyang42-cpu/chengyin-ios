@@ -1,0 +1,230 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "projectPlace.open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose node place"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择节点地点"
+          }
+        }
+      }
+    },
+    "projectPlace.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose an existing city place"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择已有城市地点"
+          }
+        }
+      }
+    },
+    "projectPlace.centerHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a manual GCJ-02 search centre. Search does not change your node and does not use device location."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手动输入 GCJ-02 搜索中心。搜索不会修改节点，也不会使用设备定位。"
+          }
+        }
+      }
+    },
+    "projectPlace.latitude": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search-centre latitude"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜索中心纬度"
+          }
+        }
+      }
+    },
+    "projectPlace.longitude": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search-centre longitude"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜索中心经度"
+          }
+        }
+      }
+    },
+    "projectPlace.keyword": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Place keyword (optional)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地点关键词（可选）"
+          }
+        }
+      }
+    },
+    "projectPlace.search": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search places"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜索地点"
+          }
+        }
+      }
+    },
+    "projectPlace.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No places found. Change the centre or keyword and search again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未找到地点。请修改中心或关键词后重新搜索。"
+          }
+        }
+      }
+    },
+    "projectPlace.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Places could not be loaded. Try searching again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地点加载失败，请重新搜索。"
+          }
+        }
+      }
+    },
+    "projectPlace.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Place search is unavailable for this account or configuration. Your node is unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前账号或配置暂不支持地点搜索。节点未被修改。"
+          }
+        }
+      }
+    },
+    "projectPlace.invalid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter valid latitude and longitude. Use at most 256 UTF-8 bytes for the keyword, without surrounding spaces or control characters."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请输入有效经纬度。关键词最多 256 个 UTF-8 字节，不能含首尾空格或控制字符。"
+          }
+        }
+      }
+    },
+    "projectPlace.invalidResult": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unavailable: this place has no usable address label or coordinates."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不可选：此地点缺少可用地址名称或坐标。"
+          }
+        }
+      }
+    },
+    "projectPlace.applyHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply this place’s GCJ-02 coordinates and use its name as the address label. Your existing nonempty node name and other details will be kept."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用此地点的 GCJ-02 坐标，并将地点名称作为地址。保留已有的非空节点名称和其他信息。"
+          }
+        }
+      }
+    },
+    "projectPlace.apply": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply selected place"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用所选地点"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

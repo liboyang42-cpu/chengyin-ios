@@ -24,6 +24,7 @@ struct MerchantBusinessField: View {
     let row: MerchantBusinessRecord
     let access: MerchantBusinessAccess
     var compact: Bool
+    var reviewPhotoOwner: MerchantBusinessViewModel? = nil
     var settlementReader: (any MerchantBusinessReading)? = nil
     var settlementSnapshot: (() -> MerchantBusinessSnapshot?)? = nil
     private var keys: [String] {
@@ -72,22 +73,9 @@ struct MerchantBusinessField: View {
         if row.kind == .customer, row.fields["paidAmount"] == nil || row.fields["paidAmount"] == .null {
             Text("merchant.business.sensitiveUnavailable").font(.footnote).foregroundStyle(.secondary)
         }
-        if row.kind == .review, let images = row.fields["imageUrls"]?.array, !images.isEmpty {
-            NavigationLink {
-                List {
-                    ForEach(Array(images.enumerated()), id: \.offset) { index, image in
-                        if let value = image.string, MerchantBusinessRecord.safeHTTPS(value), let url = URL(string: value) {
-                            AsyncImage(url: url) { phase in
-                                switch phase {
-                                case .success(let image): image.resizable().scaledToFit().accessibilityLabel(Text("merchant.business.reviewImage"))
-                                case .failure: Label("merchant.business.imageUnavailable", systemImage: "photo.badge.exclamationmark")
-                                default: ProgressView()
-                                }
-                            }.frame(minHeight: 120).accessibilityIdentifier("merchant.business.image.\(index)")
-                        }
-                    }
-                }.navigationTitle("merchant.business.imagesAvailable")
-            } label: { Label("merchant.business.imagesAvailable", systemImage: "photo.on.rectangle") }
+        if row.kind == .review, let reviewPhotoOwner {
+            MerchantReviewPhotoGalleryEntry(owner: reviewPhotoOwner, row: row)
+                .id(ObjectIdentifier(reviewPhotoOwner))
         }
     }
     private func visible(_ key: String) -> Bool {

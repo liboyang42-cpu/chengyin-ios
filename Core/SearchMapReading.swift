@@ -26,6 +26,7 @@ public struct SearchMapContext: Equatable {
     func categories() async throws -> [DiscoveryCategory]
     func merchantDiscovery(tag: MerchantDiscoveryTag) async throws -> [MerchantDiscoveryRow]
     func search(_ query: GlobalSearchQuery) async throws -> GlobalSearchResults
+    func cityNodes(_ query: CityNodeSearchQuery) async throws -> [SearchMapCityNode]
     func citySearch(_ query: CityNodeSearchQuery) async throws -> CityNodeSearchResults
     func cityActivityPage(_ query: CityNodeSearchQuery, page: Int) async throws -> SearchMapActivityPage
     func nearby(area: RoamSearchArea) async throws -> SearchMapNearbyResults
@@ -34,6 +35,7 @@ public struct SearchMapContext: Equatable {
 }
 /// Older fixture readers have no discovery data; do not invent empty successful results.
 public extension SearchMapReading {
+    func cityNodes(_ query: CityNodeSearchQuery) async throws -> [SearchMapCityNode] { throw APIError.notConfigured }
     var manualAreaRevision: UInt64 { 0 }
     func selectManualArea(_ area: RoamSearchArea?) {}
     func merchantDiscovery(tag: MerchantDiscoveryTag) async throws -> [MerchantDiscoveryRow] { throw APIError.notConfigured }
@@ -73,6 +75,12 @@ public extension SearchMapReading {
             if token != nil, !result.gatedKinds.isEmpty { throw APIError.unauthorized }
             return result
         }
+    }
+    public func cityNodes(_ query: CityNodeSearchQuery) async throws -> [SearchMapCityNode] {
+        // Injection does not activate an unapproved reader.
+        guard currentContext().manualMapApprovalRevision != nil else { throw APIError.notConfigured }
+        manualAreaSelection?.ensureSelected(query.area)
+        return try await read { try await $0.cityNodes(query, token: $1) }
     }
     public func citySearch(_ query: CityNodeSearchQuery) async throws -> CityNodeSearchResults {
         manualAreaSelection?.ensureSelected(query.area)

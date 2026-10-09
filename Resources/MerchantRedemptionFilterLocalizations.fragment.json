@@ -1,0 +1,104 @@
+{
+  "merchant.redemptionFilter.all": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "全部"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "All"
+        }
+      }
+    }
+  },
+  "merchant.redemptionFilter.pending": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "待处理"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Pending"
+        }
+      }
+    }
+  },
+  "merchant.redemptionFilter.handled": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已处理"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Processed"
+        }
+      }
+    }
+  },
+  "merchant.redemptionFilter.no_cash": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "不结现金"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No cash settlement"
+        }
+      }
+    }
+  },
+  "merchant.redemptionFilter.unknown": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前筛选未识别，请选择"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Unrecognized current filter; choose an option"
+        }
+      }
+    }
+  },
+  "merchant.redemptionFilter.meaning": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "“已处理”包括已结算、已调整和结算前已撤销的记录。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Processed includes settled, adjusted and reversed-before-settlement records."
+        }
+      }
+    }
+  }
+}

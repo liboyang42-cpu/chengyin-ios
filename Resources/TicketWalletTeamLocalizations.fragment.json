@@ -1,0 +1,226 @@
+{
+  "ticketTeam.open": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Find my team for this ticket"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "查找这张票对应的队伍"
+        }
+      }
+    }
+  },
+  "ticketTeam.lookupHint": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Uses your existing team access. A ticket does not establish team membership."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "使用已有队伍访问权限查询，持票不代表已加入队伍。"
+        }
+      }
+    }
+  },
+  "ticketTeam.changed": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Account or access changed. Reopen this ticket to continue."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "账号或访问权限已变化，请重新打开这张票。"
+        }
+      }
+    }
+  },
+  "ticketTeam.retry": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Retry lookup"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "重新查询"
+        }
+      }
+    }
+  },
+  "ticketTeam.loading": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Checking your teams…"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "正在查询你的队伍…"
+        }
+      }
+    }
+  },
+  "ticketTeam.empty": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No matching active team"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂无对应的有效队伍"
+        }
+      }
+    }
+  },
+  "ticketTeam.emptyHint": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Your team list was checked. No active team matched this ticket’s route or activity."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已查询你的队伍，未找到与这张票的路线或场次对应的有效队伍。"
+        }
+      }
+    }
+  },
+  "ticketTeam.choose": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Choose a matching team"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "选择对应队伍"
+        }
+      }
+    }
+  },
+  "ticketTeam.detail": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Current team details"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前队伍详情"
+        }
+      }
+    }
+  },
+  "ticketTeam.readOnly": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Team information only. This does not join a team, grant admission or change your ticket."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "仅查看队伍信息，不会加入队伍、授予入场资格或改变票据。"
+        }
+      }
+    }
+  },
+  "ticketTeam.title": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This ticket’s teams"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这张票的队伍"
+        }
+      }
+    }
+  },
+  "ticketTeam.unavailable": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Team lookup is not configured for this session."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前会话未配置队伍查询。"
+        }
+      }
+    }
+  },
+  "ticketTeam.failed": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Could not verify your current team information. Try again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂时无法核实当前队伍信息，请重试。"
+        }
+      }
+    }
+  },
+  "ticketTeam.membershipChanged": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This team’s owner, status or membership no longer matches. Refresh the lookup."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "该队伍的归属、状态或成员资格已不匹配，请重新查询。"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,130 @@
+{
+  "merchantNPCRecovery.confirmTitle": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Stop retrying this request?"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "停止重试这条请求？"
+        }
+      }
+    }
+  },
+  "merchantNPCRecovery.confirmAbandon": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Stop retrying"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "停止重试"
+        }
+      }
+    }
+  },
+  "merchantNPCRecovery.abandonConsequences": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This only releases the request on this screen. It does not cancel server processing or delete chat records. Your typed draft stays. Sending again creates a new request and may incur another charge."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这只会解除当前页面对这条请求的保留，不会取消服务器处理，也不会删除聊天记录。已输入的草稿会保留。再次发送会创建新请求，并可能再次计费。"
+        }
+      }
+    }
+  },
+  "merchantNPCRecovery.retrySeconds": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Seconds until retry"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "距离可重试秒数"
+        }
+      }
+    }
+  },
+  "merchantNPCRecovery.availableAfter": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Retry available after"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "可重试时间"
+        }
+      }
+    }
+  },
+  "merchantNPCRecovery.explicitRetry": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The server asked you to wait. Retry will not send automatically."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务器要求稍后重试。倒计时结束后不会自动发送。"
+        }
+      }
+    }
+  },
+  "merchantNPCRecovery.sameRequest": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Retry sends the same question with its original request ID."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "重试会使用原请求编号发送同一条问题。"
+        }
+      }
+    }
+  },
+  "merchantNPCRecovery.limitReached": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This request has reached this screen’s retry limit. No further retry will be sent. You can stop retrying to return to your draft."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这条请求已达到当前页面的重试上限，不会继续重试。你可以停止重试并返回草稿。"
+        }
+      }
+    }
+  }
+}

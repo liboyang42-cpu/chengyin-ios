@@ -40,7 +40,7 @@ def verify_current(root):
         if digest(before_feature_batch(relative, (root / relative).read_bytes())) != expected['after_sha256']:
             raise ValueError('Current review candidate changed: ' + relative)
     for relative, expected in plan['unchanged_dependencies'].items():
-        if digest((root / relative).read_bytes()) != expected:
+        if digest(before_feature_batch(relative, (root / relative).read_bytes())) != expected:
             raise ValueError('Existing review authority changed: ' + relative)
 
 

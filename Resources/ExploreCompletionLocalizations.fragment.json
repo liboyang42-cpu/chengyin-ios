@@ -1,0 +1,546 @@
+{
+  "exploreCompletion.open": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "View exploration completion"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "查看探索完成记录"
+        }
+      }
+    }
+  },
+  "exploreCompletion.title": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Exploration completion"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "探索完成记录"
+        }
+      }
+    }
+  },
+  "exploreCompletion.loading": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reading completion facts…"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "正在读取完成记录…"
+        }
+      }
+    }
+  },
+  "exploreCompletion.changed": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This reading is no longer available in the current session."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前会话已无法读取这份记录。"
+        }
+      }
+    }
+  },
+  "exploreCompletion.denied": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Access to this completion record was denied."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂时无权查看这份完成记录。"
+        }
+      }
+    }
+  },
+  "exploreCompletion.failed": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Completion records could not be read. Try again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "完成记录暂时无法读取，请重试。"
+        }
+      }
+    }
+  },
+  "exploreCompletion.retry": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Read again"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "重新读取"
+        }
+      }
+    }
+  },
+  "exploreCompletion.noTopic": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The source journey is unavailable. No completion progress can be shown."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂未取得关联主题，无法展示完成进度。"
+        }
+      }
+    }
+  },
+  "exploreCompletion.readOnly": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "These are server-reported records. Reading them does not claim rewards, redeem benefits, follow anyone or join a club."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此处仅展示服务器返回的记录。读取不会领取奖励、核销权益、关注用户或加入俱乐部。"
+        }
+      }
+    }
+  },
+  "exploreCompletion.progress": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reported progress"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已报告的进度"
+        }
+      }
+    }
+  },
+  "exploreCompletion.completed": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The server reports completion."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务器已标记完成。"
+        }
+      }
+    }
+  },
+  "exploreCompletion.inProgress": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Completion has not been confirmed."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "尚未确认完成。"
+        }
+      }
+    }
+  },
+  "exploreCompletion.collected": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Collected"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已收集"
+        }
+      }
+    }
+  },
+  "exploreCompletion.notCollected": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Not collected"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "未收集"
+        }
+      }
+    }
+  },
+  "exploreCompletion.stamps": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Chapter stamps"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "章节凭证"
+        }
+      }
+    }
+  },
+  "exploreCompletion.noStamps": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No chapter stamps were returned."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "尚未返回章节凭证。"
+        }
+      }
+    }
+  },
+  "exploreCompletion.chapter": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Chapter"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "章节"
+        }
+      }
+    }
+  },
+  "exploreCompletion.awards": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reported reward credits"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已报告的奖励到账记录"
+        }
+      }
+    }
+  },
+  "exploreCompletion.awardsNotReported": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Completion is confirmed, but credited reward details have not been reported. Read again later."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已确认完成，但尚未返回奖励到账明细，可稍后重新读取。"
+        }
+      }
+    }
+  },
+  "exploreCompletion.notCompletedAwards": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Completion is not confirmed. Missing credit records do not mean a zero reward."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "尚未确认完成。未返回到账记录不代表奖励为零。"
+        }
+      }
+    }
+  },
+  "exploreCompletion.points": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reported points"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已报告积分"
+        }
+      }
+    }
+  },
+  "exploreCompletion.xp": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reported exploration XP"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已报告探索值"
+        }
+      }
+    }
+  },
+  "exploreCompletion.coupon": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Configured completion coupon"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已配置的完成奖励券"
+        }
+      }
+    }
+  },
+  "exploreCompletion.granted": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reported as credited"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已报告到账"
+        }
+      }
+    }
+  },
+  "exploreCompletion.notGranted": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No credit reported"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "尚未报告到账"
+        }
+      }
+    }
+  },
+  "exploreCompletion.amount": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reported amount"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已报告数量"
+        }
+      }
+    }
+  },
+  "exploreCompletion.revisit": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Return-visit information"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "回访信息"
+        }
+      }
+    }
+  },
+  "exploreCompletion.club": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Club"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "俱乐部"
+        }
+      }
+    }
+  },
+  "exploreCompletion.followed": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reported as followed"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已报告关注"
+        }
+      }
+    }
+  },
+  "exploreCompletion.notFollowed": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Not reported as followed"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "未报告关注"
+        }
+      }
+    }
+  },
+  "exploreCompletion.joined": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reported as joined"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已报告加入"
+        }
+      }
+    }
+  },
+  "exploreCompletion.notJoined": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Not reported as joined"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "未报告加入"
+        }
+      }
+    }
+  },
+  "exploreCompletion.nextEdition": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Next edition"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "下一期"
+        }
+      }
+    }
+  },
+  "exploreCompletion.nextPending": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No next edition has been provided."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂未提供下一期信息。"
+        }
+      }
+    }
+  }
+}

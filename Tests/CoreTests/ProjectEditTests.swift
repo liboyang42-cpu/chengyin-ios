@@ -431,3 +431,161 @@ private func projectTicketIdentityFixture() -> Data {
     }
     func terminalReceipt(operationID: UUID, session: ProjectEditSession) async throws -> ProjectEditWriteOutcome? { nil }
 }
+
+// Recruitment carry-over is a preservation exception, never a creation/edit grant.
+extension ProjectEditTests {
+    private func recruitmentBaseline(fee: ProjectEditJSON? = .string("12.30")) -> ProjectEditSnapshot {
+        var draft = ProjectEditSyntheticFixtures.draft(product: .freeExplore)
+        draft.baseRevision = "server-r1"; draft.clubID = 31; draft.openMerchantPool = true
+        draft.preserved["openClubPool"] = .number(0); draft.publishToCreative = false
+        draft.chapters[0].id = "chapter-11"; draft.chapters[0].preserved["id"] = .number(11)
+        let fields: [String: ProjectEditJSON] = ["recruitEnabled": .number(1), "termsMode": .string("REVSHARE"),
+            "categoryId": .number(5), "category": .string("Café"), "maxMerchant": .number(2),
+            "perkMinValue": .null, "allowedValidationMethods": .string("1, 3,"), "maxNodeXp": .number(10)]
+        for (key, value) in fields { draft.chapters[0].preserved[key] = value }
+        draft.chapters[0].preserved["maxPerHeadFee"] = fee
+        return .init(topicID: 71, draft: draft)
+    }
+    func testRecruitmentReadbackPreservesRawTypesAndAbsentFieldsWithoutDefaults() throws {
+        for fee: ProjectEditJSON? in [nil, .null, .string("12.30"), .number(Decimal(string: "12.30")!), .bool(true), .object(["future": .string("e\u{301}")])] {
+            var envelope = try JSONDecoder().decode(ProjectEditJSON.self, from: projectTicketIdentityFixture()).object!
+            var body = envelope["data"]!.object!, rows = body["chapters"]!.array!, chapter = rows[0].object!
+            chapter["maxPerHeadFee"] = fee; chapter["termsMode"] = .string("REVSHARE")
+            rows[0] = .object(chapter); body["chapters"] = .array(rows); envelope["data"] = .object(body)
+            let decoded = try ProjectEditContract.decodeEditDetail(JSONEncoder().encode(ProjectEditJSON.object(envelope)), expectedTopicID: 71, owner: .personal)
+            let preserved = decoded.draft.chapters[0].preserved
+            XCTAssertEqual(ProjectEditPendingMaterials.exactData(preserved["maxPerHeadFee"]), ProjectEditPendingMaterials.exactData(fee))
+            XCTAssertNil(preserved["recruitEnabled"]); XCTAssertNil(preserved["maxMerchant"])
+            let restored = try JSONDecoder().decode(ProjectEditDraft.self, from: JSONEncoder().encode(decoded.draft))
+            XCTAssertEqual(ProjectEditPendingMaterials.exactData(restored), ProjectEditPendingMaterials.exactData(decoded.draft))
+        }
+    }
+    func testUnchangedServerRecruitmentAllowsUnrelatedEditAndExactLegacyPayload() throws {
+        for fee in [ProjectEditJSON.string("0012.30"), .number(Decimal(string: "12.30")!)] {
+            let baseline = recruitmentBaseline(fee: fee); var draft = baseline.draft; draft.name = "Unrelated rename"
+            XCTAssertTrue(ProjectChapterRecruitmentCarryOver.allows(draft, baseline: baseline))
+            XCTAssertTrue(ProjectEditValidation.issues(draft, baseline: baseline).isEmpty)
+            let payload = try ProjectEditContract.payload(draft, topicID: 71, scope: .full, baseline: baseline)
+            let row = try XCTUnwrap(payload["chapters"]?.array?.first?.object)
+            XCTAssertEqual(ProjectEditPendingMaterials.exactData(ProjectChapterRecruitmentCarryOver.rawFields(row)),
+                           ProjectEditPendingMaterials.exactData(ProjectChapterRecruitmentCarryOver.rawFields(baseline.draft.chapters[0].preserved)))
+            XCTAssertEqual(try ProjectEditStoryContract.path(payload: payload, baseline: baseline), "api/topic/update")
+            XCTAssertNoThrow(try ProjectEditStoryContract.validatePayload(payload, baseline: baseline))
+        }
+    }
+    func testUnchangedServerRecruitmentAlsoWorksThroughExistingV2Validation() throws {
+        var baseline = recruitmentBaseline(); baseline.draft.chapters[0].preserved["_nativeStoredStoryFlow"] = .bool(true)
+        let node = baseline.draft.chapters[0].nodes[0]
+        baseline.draft.chapters[0].blocks = [.init(kind: .text, content: "Story"), .init(kind: .node, nodeID: node.id)]
+        var draft = baseline.draft; draft.chapters[0].nodes[0].description = "Unrelated node edit"
+        let payload = try ProjectEditContract.payload(draft, topicID: 71, scope: .full, baseline: baseline)
+        XCTAssertEqual(try ProjectEditStoryContract.path(payload: payload, baseline: baseline), "api/topic/v2/update")
+        XCTAssertNoThrow(try ProjectEditStoryContract.validatePayload(payload, baseline: baseline))
+    }
+    func testNewCopiedMissingBaselineAndWrongTopicNeverReceiveException() {
+        let baseline = recruitmentBaseline(), draft = baseline.draft
+        XCTAssertFalse(ProjectChapterRecruitmentCarryOver.allows(draft, baseline: nil))
+        XCTAssertFalse(ProjectChapterRecruitmentCarryOver.allows(draft, baseline: .init(draft: draft)))
+        XCTAssertThrowsError(try ProjectEditContract.payload(draft, topicID: nil, scope: .full, baseline: baseline))
+        XCTAssertThrowsError(try ProjectEditContract.payload(draft, topicID: 72, scope: .full, baseline: baseline))
+        XCTAssertThrowsError(try ProjectEditContract.payload(draft, topicID: 71, scope: .full))
+    }
+    func testChangedOwnerClubProductRevisionOrPoolRejectBaselineException() {
+        let baseline = recruitmentBaseline()
+        for kind in ["owner", "club", "product", "revision", "pool"] {
+            var draft = baseline.draft
+            switch kind {
+            case "owner": draft.owner = .merchant
+            case "club": draft.clubID = 32
+            case "product": draft.product = .city
+            case "revision": draft.baseRevision = "server-r2"
+            default: draft.openMerchantPool = false
+            }
+            XCTAssertFalse(ProjectChapterRecruitmentCarryOver.allows(draft, baseline: baseline))
+            XCTAssertThrowsError(try ProjectEditContract.payload(draft, topicID: 71, scope: .full, baseline: baseline))
+        }
+        var unknown = baseline; unknown.draft.baseRevision = ""
+        XCTAssertFalse(ProjectChapterRecruitmentCarryOver.allows(unknown.draft, baseline: unknown))
+    }
+    func testDuplicateMissingReplacedAndCanonicalAliasChapterIdentityReject() {
+        let baseline = recruitmentBaseline()
+        for kind in ["duplicate", "missing", "serverID", "localID", "empty"] {
+            var draft = baseline.draft
+            switch kind {
+            case "duplicate": let first = draft.chapters[0]; draft.chapters.append(first)
+            case "missing": draft.chapters = []
+            case "serverID": draft.chapters[0].preserved["id"] = .number(12)
+            case "localID": draft.chapters[0].id = "other"
+            default: draft.chapters[0].id = ""
+            }
+            XCTAssertFalse(ProjectChapterRecruitmentCarryOver.allows(draft, baseline: baseline))
+        }
+        var original = baseline; original.draft.chapters[0].id = "é"; var changed = original.draft; changed.chapters[0].id = "e\u{301}"
+        XCTAssertFalse(ProjectChapterRecruitmentCarryOver.allows(changed, baseline: original))
+    }
+    func testSameLookingDifferentRawTypeAndCanonicalTextAreNotUnchanged() {
+        let baseline = recruitmentBaseline()
+        for field in ["maxPerHeadFee", "category", "maxMerchant", "recruitEnabled", "perkMinValue"] {
+            var draft = baseline.draft
+            switch field {
+            case "maxPerHeadFee": draft.chapters[0].preserved[field] = .number(Decimal(string: "12.30")!)
+            case "category": draft.chapters[0].preserved[field] = .string("Cafe\u{301}")
+            case "perkMinValue": draft.chapters[0].preserved[field] = nil
+            default: draft.chapters[0].preserved[field] = .string(field == "maxMerchant" ? "2" : "1")
+            }
+            XCTAssertFalse(ProjectChapterRecruitmentCarryOver.allows(draft, baseline: baseline))
+        }
+    }
+    func testMissingAndMalformedFeesRemainPreservedButCannotUseException() {
+        for fee: ProjectEditJSON? in [nil, .null, .string(""), .string(" 12.30"), .string("12.300"), .string("+12"), .string("1e2"), .string("１２"), .number(0), .number(-1), .number(Decimal(string: "1.001")!), .bool(true), .array([])] {
+            let baseline = recruitmentBaseline(fee: fee)
+            XCTAssertFalse(ProjectChapterRecruitmentCarryOver.allows(baseline.draft, baseline: baseline))
+            XCTAssertEqual(ProjectEditPendingMaterials.exactData(baseline.draft.chapters[0].preserved["maxPerHeadFee"]), ProjectEditPendingMaterials.exactData(fee))
+        }
+    }
+    func testMalformedRecruitmentShapeAndUnsupportedMethodsFailClosed() {
+        for (field, value): (String, ProjectEditJSON) in [("recruitEnabled", .number(2)), ("maxMerchant", .number(128)), ("categoryId", .number(0)), ("category", .number(5)), ("perkMinValue", .number(1)), ("maxNodeXp", .number(-1)), ("allowedValidationMethods", .string("1,,3")), ("allowedValidationMethods", .string("1,\u{301}3")), ("allowedValidationMethods", .string("\u{A0}1"))] {
+            var baseline = recruitmentBaseline(); baseline.draft.chapters[0].preserved[field] = value
+            XCTAssertFalse(ProjectChapterRecruitmentCarryOver.allows(baseline.draft, baseline: baseline))
+        }
+    }
+    func testFinalLegacyAndV2PayloadGuardRejectsContextAndRawChanges() throws {
+        for v2 in [false, true] {
+            var baseline = recruitmentBaseline()
+            if v2 { baseline.draft.chapters[0].preserved["_nativeStoredStoryFlow"] = .bool(true); let node = baseline.draft.chapters[0].nodes[0]; baseline.draft.chapters[0].blocks = [.init(kind: .text, content: "Story"), .init(kind: .node, nodeID: node.id)] }
+            let original = try ProjectEditContract.payload(baseline.draft, topicID: 71, scope: .full, baseline: baseline)
+            for field in ["scope", "id", "clubId", "productType", "fee", "missing", "duplicate"] {
+                var payload = original
+                switch field {
+                case "scope": payload[field] = .string("MERCHANT")
+                case "id": payload[field] = .number(72)
+                case "clubId": payload[field] = .number(32)
+                case "productType": payload[field] = .number(1)
+                case "missing": payload["chapters"] = .array([])
+                case "duplicate": let row = payload["chapters"]!.array![0]; payload["chapters"] = .array([row, row])
+                default: var rows = payload["chapters"]!.array!, row = rows[0].object!; row["maxPerHeadFee"] = .number(Decimal(string: "12.30")!); rows[0] = .object(row); payload["chapters"] = .array(rows)
+                }
+                XCTAssertThrowsError(try ProjectEditStoryContract.validatePayload(payload, baseline: baseline))
+            }
+            XCTAssertThrowsError(try ProjectEditStoryContract.validatePayload(original))
+        }
+    }
+    func testFreshSnapshotCanonicalEquivalenceDoesNotSatisfyRawCarryOverBinding() {
+        let baseline = recruitmentBaseline(); var fresh = baseline
+        fresh.draft.chapters[0].preserved["category"] = .string("Cafe\u{301}")
+        XCTAssertEqual(fresh, baseline) // Existing Equatable alone cannot see this change.
+        XCTAssertFalse(ProjectChapterRecruitmentCarryOver.matchesFresh(fresh, baseline: baseline))
+        XCTAssertTrue(ProjectChapterRecruitmentCarryOver.matchesFresh(baseline, baseline: baseline))
+        XCTAssertFalse(ProjectChapterRecruitmentCarryOver.matchesFresh(nil, baseline: baseline))
+        fresh = baseline; fresh.draft.baseRevision = "server-r2"
+        XCTAssertFalse(ProjectChapterRecruitmentCarryOver.matchesFresh(fresh, baseline: baseline))
+    }
+    func testOrdinaryAndWhitelistBehaviorDoesNotGainRecruitmentAuthorization() throws {
+        let ordinary = ProjectEditSyntheticFixtures.snapshot()
+        XCTAssertTrue(ProjectChapterRecruitmentCarryOver.matchesFresh(nil, baseline: ordinary)) // Additive guard only; existing equality is still mandatory.
+        XCTAssertNoThrow(try ProjectEditContract.payload(ordinary.draft, topicID: ordinary.topicID, scope: .full))
+        let original = recruitmentBaseline(), whitelist = ProjectEditSnapshot(topicID: 71, scope: .whitelist, draft: original.draft)
+        let payload = try ProjectEditContract.payload(whitelist.draft, topicID: 71, scope: .whitelist, baseline: whitelist)
+        XCTAssertNil(payload["chapters"]); XCTAssertNoThrow(try ProjectEditStoryContract.validatePayload(payload, baseline: whitelist))
+    }
+}

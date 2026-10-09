@@ -213,6 +213,7 @@ struct SessionRootView: View {
         }
         .environmentObject(session)
         .environment(\.projectCategoryReader, session)
+            .environment(\.projectNodePlaceReader, session.searchMapReader)
         .environment(\.projectChapterAudioPlayback, session.platformConsumers.audioFactory)
         .environment(\.projectNodeTemplateCreationFactory, {
             .init(coordinator: session.templateAuthoringEditor(), sessionRevision: session.sessionRevision, metadataReader: session,

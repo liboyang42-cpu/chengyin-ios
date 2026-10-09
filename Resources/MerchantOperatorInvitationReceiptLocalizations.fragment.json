@@ -1,0 +1,206 @@
+{
+  "merchant.operatorInvite.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Created operator invitation"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已创建员工邀请"
+        }
+      }
+    }
+  },
+  "merchant.operatorInvite.identifier": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Invitation ID"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "邀请编号"
+        }
+      }
+    }
+  },
+  "merchant.operatorInvite.expires": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Server expiry (UTC+08:00)"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务器到期时间（UTC+08:00）"
+        }
+      }
+    }
+  },
+  "merchant.operatorInvite.warning": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This code lets its recipient accept the role shown above. Reveal it only for the intended person."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "持有此码的人可接受上方显示的员工角色。请仅向预期的受邀人展示。"
+        }
+      }
+    }
+  },
+  "merchant.operatorInvite.hide": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Hide code"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "隐藏邀请码"
+        }
+      }
+    }
+  },
+  "merchant.operatorInvite.reveal": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Check access and reveal code"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "检查权限并显示邀请码"
+        }
+      }
+    }
+  },
+  "merchant.operatorInvite.recipientInstructions": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The recipient can enter this code in the operator invitation screen, then review and accept the invitation."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "受邀人可在员工邀请页面输入此码，然后查看并接受邀请。"
+        }
+      }
+    }
+  },
+  "merchant.operatorInvite.memoryLifetime": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This app keeps the code on this screen for up to 10 minutes or until server expiry, whichever comes first. It clears the screen when you leave or put the app in the background."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此页面最多保留邀请码 10 分钟，或在服务器到期时提前清除。离开页面或将应用切到后台时会清除显示。"
+        }
+      }
+    }
+  },
+  "merchant.operatorInvite.unavailable": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The invitation was created, but this response cannot safely display its code. Reload the team to manage or revoke it."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "邀请已创建，但此响应无法安全显示邀请码。请重新加载团队以管理或撤销邀请。"
+        }
+      }
+    }
+  },
+  "merchant.operatorInvite.close": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Clear invitation from this screen"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "清除此页面的邀请码"
+        }
+      }
+    }
+  },
+  "merchant.operatorInvite.accessFailed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Access could not be checked. The code stays hidden. Choose Reveal to try the access check again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "无法检查权限，邀请码保持隐藏。可再次选择显示以重试权限检查。"
+        }
+      }
+    }
+  },
+  "merchant.operatorInvite.checkingAccess": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Checking current access…"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "正在检查当前权限…"
+        }
+      }
+    }
+  }
+}

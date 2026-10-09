@@ -13,12 +13,13 @@ import SwiftUI
     @Environment(\.scenePhase) private var scenePhase
     init(coordinator: MerchantNPCChatCoordinator) { _model = StateObject(wrappedValue: .init(coordinator)) }
     var body: some View {
+        let draftValidation = MerchantNPCMessageDraft(text)
         VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 4) {
                 Text("referenceChat.merchantAI").font(.headline)
                 Text("merchantNPC.chatDisclosure").font(.footnote).foregroundStyle(.secondary)
             }.frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal).padding(.vertical, 8)
-            ScrollView {
+            MerchantNPCTranscriptScroll(coordinator: model.coordinator, event: .capture(model.coordinator)) {
                 LazyVStack(alignment: .leading, spacing: 16) {
                     if model.coordinator.isCurrent {
                         MerchantNPCConversationHistoryView(history: model.coordinator.conversationHistory)
@@ -41,22 +42,19 @@ import SwiftUI
                             Text("merchantNPC.playbackOff")
                         }
                         if model.coordinator.requestID != nil {
-                            TimelineView(.periodic(from: .now, by: 1)) { _ in
-                                Button("merchantNPC.retry") {
-                                    let capturedGeneration = compositionGeneration
-                                    let submitted = text
-                                    guard let capturedRequestID = model.coordinator.requestID else { return }
-                                    Task {
-                                        guard compositionGeneration == capturedGeneration, scenePhase == .active,
-                                              model.coordinator.requestID == capturedRequestID else { return }
-                                        let completion = await model.coordinator.retry(requestID: capturedRequestID)
-                                        if MerchantNPCComposerRetention.shouldClear(submitted: submitted, currentDraft: text,
-                                                capturedGeneration: capturedGeneration, currentGeneration: compositionGeneration,
-                                                completion: completion, coordinator: model.coordinator) { text = "" }
-                                    }
-                                }.disabled(!model.coordinator.canRetry)
+                            MerchantNPCRecoveryView(coordinator: model.coordinator, revision: model.revision,
+                                                    currentRevision: { model.revision }) { capturedRequestID in
+                                let capturedGeneration = compositionGeneration
+                                let submitted = text
+                                Task {
+                                    guard compositionGeneration == capturedGeneration, scenePhase == .active,
+                                          model.coordinator.requestID == capturedRequestID else { return }
+                                    let completion = await model.coordinator.retry(requestID: capturedRequestID)
+                                    if MerchantNPCComposerRetention.shouldClear(submitted: submitted, currentDraft: text,
+                                            capturedGeneration: capturedGeneration, currentGeneration: compositionGeneration,
+                                            completion: completion, coordinator: model.coordinator) { text = "" }
+                                }
                             }
-                            Button("merchantNPC.abandon") { model.coordinator.abandon() }.disabled(!model.coordinator.canAbandon)
                         }
                         if model.coordinator.sending {
                             ProgressView("merchantNPC.pending")
@@ -81,7 +79,7 @@ import SwiftUI
                             .accessibilityIdentifier("merchantNPC.startNewConversation")
                     } else { Text("merchantNPC.sessionChanged") }
                 }.padding().frame(maxWidth: .infinity, alignment: .leading)
-            }.scrollDismissesKeyboard(.interactively)
+            }
         }
         .safeAreaInset(edge: .bottom) {
             if model.coordinator.isCurrent {
@@ -102,8 +100,18 @@ import SwiftUI
                                         completion: completion, coordinator: model.coordinator) { text = "" }
                             }
                         }.frame(minWidth: 44, minHeight: 44)
-                            .disabled(!model.coordinator.canSend || text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                            .disabled(!model.coordinator.canSend || !draftValidation.isValid)
                             .accessibilityIdentifier("merchantNPC.send")
+                    }
+                    LabeledContent("merchantNPCMessage.count") {
+                        Text(verbatim: "\(draftValidation.codePointCount) / \(MerchantNPCMessageDraft.maximumCodePoints)")
+                    }.font(.caption).accessibilityElement(children: .combine)
+                        .accessibilityIdentifier("merchantNPCMessage.count")
+                    Text("merchantNPCMessage.limitHint").font(.caption).foregroundStyle(.secondary)
+                    if draftValidation.codePointCount > MerchantNPCMessageDraft.maximumCodePoints {
+                        Label("merchantNPCMessage.overLimit", systemImage: "exclamationmark.circle")
+                            .font(.footnote).foregroundStyle(.red)
+                            .accessibilityIdentifier("merchantNPCMessage.overLimit")
                     }
                 }.padding().background(.regularMaterial)
             }

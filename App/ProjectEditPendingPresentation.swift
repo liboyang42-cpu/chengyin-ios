@@ -74,6 +74,7 @@ import SwiftUI
                     Form {
                         Section { Text("projectPending.localOnly") }
                         if controller.saveUnconfirmed { Section { Text("projectPending.saveUnconfirmed").accessibilityIdentifier("projectPending.saveUnconfirmed") } }
+                        ProjectPendingNodePlacePickerEntry(model: model, pending: controller, destination: original)
                         ProjectEditNodeFields(node: controller.node(for: original))
                             .descriptionEditing(.init(model: model, sourceID: "pending:\(original.id)",
                                 isCurrent: { controller.isCurrent(original) }))

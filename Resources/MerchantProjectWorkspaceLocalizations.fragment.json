@@ -1,0 +1,53 @@
+{
+  "merchant.projectWorkspace.open": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Open project workspace"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "打开项目工作台"
+        }
+      }
+    }
+  },
+  "merchant.projectWorkspace.explanation": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "View the current host or participation information. The server checks access again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "查看当前主办或承接信息，服务器将重新检查权限。"
+        }
+      }
+    }
+  },
+  "merchant.projectWorkspace.changed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This project selection is no longer current. Reload the project list."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此项目选择已失效，请重新加载项目列表。"
+        }
+      }
+    }
+  }
+}

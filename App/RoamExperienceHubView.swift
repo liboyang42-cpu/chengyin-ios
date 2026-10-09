@@ -23,7 +23,7 @@ import SwiftUI
                 }.padding(.vertical, 8)
             }
             Section("roam.experience.yourRoam") {
-                NavigationLink { RoamHistoryView(reader: reader) } label: { Label("roam.experience.history", systemImage: "clock.arrow.circlepath") }
+                NavigationLink { RoamHistoryView(reader: reader, liveDestination: liveDestination) } label: { Label("roam.experience.history", systemImage: "clock.arrow.circlepath") }
                     .accessibilityIdentifier("roam.experience.history.open")
                 NavigationLink { RoamRecoveryView(reader: reader) } label: { Label("roam.experience.recovery", systemImage: "arrow.clockwise.circle") }
                     .accessibilityIdentifier("roam.experience.recovery.open")

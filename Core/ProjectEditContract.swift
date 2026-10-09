@@ -6,12 +6,12 @@ public enum ProjectEditContract {
     public static let sourceUpdatePath = "/api/topic/update"
     public static let sourceDetailPath = "/api/topic/edit-detail"
     public static let sourcePrecheckPath = "/api/ai/safety/precheck"
-    public static let chapterCarryOver = ["imgArr", "audioUrl", "atmospherePreset", "recruitEnabled", "termsMode", "categoryId", "category", "maxMerchant", "perkMinValue", "allowedValidationMethods", "maxNodeXp", "calculatedDistance"]
-    public static let topicCarryOver = ProjectEditStoryContract.topicFields + ["completeRuleJson", "publishMode", "audioUrl", "audioDuration", "selfPlay", "selfPlayPrice", "selfPlayQuota", "finishMedalName", "finishMedalImg", "completeRewardCouponId"]
+    public static let chapterCarryOver = ["imgArr", "audioUrl", "atmospherePreset", "recruitEnabled", "termsMode", "categoryId", "category", "maxMerchant", "perkMinValue", "maxPerHeadFee", "allowedValidationMethods", "maxNodeXp", "calculatedDistance"]
+    public static let topicCarryOver = ProjectEditStoryContract.topicFields + ProjectTeamConfiguration.fields + ProjectTopicBudgetCarryOver.fields + ["completeRuleJson", "publishMode", "audioUrl", "audioDuration", "selfPlay", "selfPlayPrice", "selfPlayQuota", "finishMedalName", "finishMedalImg", "completeRewardCouponId"]
     public static let whitelist = ["name", "subtitle", "description", "imgUrl", "imgArr", "categoryIds", "scope"]
 
-    public static func payload(_ draft: ProjectEditDraft, topicID: Int?, scope: ProjectEditScope) throws -> [String: ProjectEditJSON] {
-        guard ProjectEditValidation.issues(draft, scope: scope).isEmpty else { throw ProjectEditError.invalidDraft }
+    public static func payload(_ draft: ProjectEditDraft, topicID: Int?, scope: ProjectEditScope, baseline: ProjectEditSnapshot? = nil) throws -> [String: ProjectEditJSON] {
+        guard ProjectEditValidation.issues(draft, scope: scope, baseline: baseline).isEmpty else { throw ProjectEditError.invalidDraft }
         var payload: [String: ProjectEditJSON] = [
             "name": .string(draft.name), "subtitle": .string(draft.subtitle), "description": .string(draft.description),
             "imgUrl": .string(draft.imgUrl), "imgArr": .string(draft.imgArr),
@@ -19,6 +19,8 @@ public enum ProjectEditContract {
         ]
         if let topicID { guard topicID > 0 else { throw ProjectEditError.invalidContract }; payload["id"] = .number(Decimal(topicID)) }
         if scope == .whitelist { guard topicID != nil else { throw ProjectEditError.invalidContract }; return payload }
+        guard ProjectTopicBudgetCarryOver.allows(draft, topicID: topicID, baseline: baseline) else { throw ProjectEditError.invalidDraft }
+        guard ProjectTeamConfiguration.canSubmit(draft, baseline: baseline) else { throw ProjectEditError.invalidDraft }
         payload["startDate"] = .string(ProjectEditValidation.dateTime(draft.startDate)!)
         payload["endDate"] = .string(ProjectEditValidation.dateTime(draft.endDate, endOfDay: true)!)
         payload["productType"] = .number(Decimal(draft.product.rawValue))
@@ -30,6 +32,7 @@ public enum ProjectEditContract {
         if let clubID = draft.clubID { payload["clubId"] = .number(Decimal(clubID)) }
         if draft.product == .freeExplore { payload["recruitDeadline"] = .string(ProjectEditValidation.dateTime(draft.recruitDeadline, endOfDay: true)!) }
         for key in topicCarryOver { if let value = draft.preserved[key] { payload[key] = value } }
+        if topicID == nil { payload["xpBudget"] = nil } // Preserve the existing create-body shape.
         if draft.completionRules != nil || draft.preserved["completeRuleJson"] != nil {
             let rules = (draft.completionRules ?? .init(raw: draft.preserved["completeRuleJson"])).forProduct(draft.product)
             payload["completeRuleJson"] = try rules.serialized(matching: draft.preserved["completeRuleJson"])
@@ -55,7 +58,7 @@ public enum ProjectEditContract {
             if let sync = ticket.localMetadata["syncWithTheme"] { p["syncWithTheme"] = sync }
             return .object(p)
         })
-        try ProjectEditStoryContract.validatePayload(payload)
+        try ProjectEditStoryContract.validatePayload(payload, baseline: baseline)
         return payload
     }
     private static func chapterPayload(_ chapter: ProjectEditChapter, product: ProjectEditProduct, storyFlow: Bool, editing: Bool) throws -> [String: ProjectEditJSON] {
@@ -119,6 +122,7 @@ public enum ProjectEditContract {
             for key in ["id", "opening", "ending"] { if let value = source[key] { c.preserved[key] = value } }
             c.schemaVersion = source["schemaVersion"]?.integer ?? 1; c.required = source["required"]?.integer ?? 1
             for key in chapterCarryOver { if let value = source[key] { c.preserved[key] = value } }
+            ProjectChapterRecruitmentCarryOver.restoreRawFields(source, in: &c)
             // Source aliases, rather than cosmetic UI colors, define the stored preset.
             // Preserve unknown values/types so a normal edit cannot silently turn
             // future data into DEFAULT. Only known values use the existing mapping.

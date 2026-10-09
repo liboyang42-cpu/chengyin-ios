@@ -63,7 +63,17 @@ public struct MerchantStationProjection: Equatable {
               ["READY", "RUNNING"].contains(status), ["READY", "ACTIVE"].contains(s["status"].text ?? ""),
               (s["capacity"].safeInteger ?? 0) > 0, let checklist = s["preparationChecklist"].array, !checklist.isEmpty,
               checklist.allSatisfy({ $0["checked"].flag == true }), let start = s["serviceStartAt"].text, let end = s["serviceEndAt"].text else { return false }
-        return MerchantStationCommand.validTime(start) && MerchantStationCommand.validTime(end) && start < end
+        guard let startKey = Self.liveCodeTimeKey(start), let endKey = Self.liveCodeTimeKey(end) else { return false }
+        return startKey < endKey
+    }
+    /// Read-only compatibility with GameSessionRuntimeServiceImpl.formatDate and the
+    /// mini-program's dateTimeKey. Server civil time has no offset (JVM default zone);
+    /// compare minute keys without interpreting it in the phone's timezone.
+    private static func liveCodeTimeKey(_ value: String) -> String? {
+        guard [16, 19].contains(value.utf8.count),
+              value.range(of: #"^[0-9]{4}-[0-9]{2}-[0-9]{2} (?:[01][0-9]|2[0-3]):[0-5][0-9](?::[0-5][0-9])?$"#, options: .regularExpression) != nil else { return nil }
+        let minute = String(value.prefix(16))
+        return MerchantStationCommand.validTime(minute) ? minute : nil
     }
 }
 public struct MerchantStationCommand: Codable, Equatable {

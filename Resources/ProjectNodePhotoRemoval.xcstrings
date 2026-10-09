@@ -1,0 +1,150 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "projectNodePhotos.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Existing node photos"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "现有节点照片"
+          }
+        }
+      }
+    },
+    "projectNodePhotos.count": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photos"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "照片数量"
+          }
+        }
+      }
+    },
+    "projectNodePhotos.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This node has no photos."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此节点没有照片。"
+          }
+        }
+      }
+    },
+    "projectNodePhotos.remove": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove this photo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移除此照片"
+          }
+        }
+      }
+    },
+    "projectNodePhotos.confirmTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove this photo from the draft?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从草稿中移除此照片？"
+          }
+        }
+      }
+    },
+    "projectNodePhotos.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove photo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移除照片"
+          }
+        }
+      }
+    },
+    "projectNodePhotos.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This changes the node’s photo list in the current draft. It uses the editor’s usual autosave and Save local action. Stored image files remain in place."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此操作更改当前草稿中的节点照片列表，沿用编辑器的自动保存和“保存到本地”操作。已存储的图片文件保持不变。"
+          }
+        }
+      }
+    },
+    "projectNodePhotos.reason.identity": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This node is no longer uniquely available in the current editor. Reopen its details."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前编辑器中无法唯一定位此节点。请重新打开节点详情。"
+          }
+        }
+      }
+    },
+    "projectNodePhotos.reason.unsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This saved photo list cannot be safely split into individual photos. Its original value is preserved."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法安全地将此已保存列表拆分成单张照片，原始值保持不变。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

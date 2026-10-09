@@ -61,34 +61,71 @@ public struct TicketWalletReadSession: Equatable {
     }
 }
 
-/// Generation guard shared by both screens; fresh reads clear all previous private content.
-/// It stays framework-independent so overlap, cancellation and scope hiding can be unit tested.
+/// A local read owner is not a grant. It binds visible results and callbacks to the exact reader,
+/// scope, configuration, authentication state and requested registration (nil means the wallet list).
+public struct TicketWalletReadOwner: Hashable {
+    public let readerID: ObjectIdentifier
+    public let scope: UUID
+    public let configured: Bool
+    public let authenticated: Bool
+    public let id: Int?
+    @MainActor public init(reader: any TicketWalletReading, id: Int? = nil) {
+        readerID = ObjectIdentifier(reader); scope = reader.scope
+        configured = reader.isConfigured; authenticated = reader.isAuthenticated; self.id = id
+    }
+    public var canRead: Bool { configured && authenticated && (id.map { $0 > 0 } ?? true) }
+}
+public struct TicketWalletReadPresentation: Equatable {
+    fileprivate let nonce = UUID()
+    public let owner: TicketWalletReadOwner
+    fileprivate init(owner: TicketWalletReadOwner) { self.owner = owner }
+}
+
+/// The UI captures a permit before queueing work. Departure retires that permit even when
+/// account and reader scope stay unchanged. Same-owner rows may remain for a pushed destination.
 @MainActor public final class TicketWalletReadModel<Value> {
     public private(set) var value: Value?
     public private(set) var issue: TicketWalletIssue?
-    public private(set) var loadedScope: UUID?
+    public private(set) var loadedOwner: TicketWalletReadOwner?
+    public var loadedScope: UUID? { loadedOwner?.scope }
     public private(set) var isLoading = false
-    private var generation: UInt64 = 0
+    public private(set) var presentation: TicketWalletReadPresentation?
+    private var generation = UUID()
     public init() {}
-    public func visibleValue(scope: UUID) -> Value? { loadedScope == scope ? value : nil }
-    public func visibleIssue(scope: UUID) -> TicketWalletIssue? { loadedScope == scope ? issue : nil }
+    public func visibleValue(owner: TicketWalletReadOwner) -> Value? { loadedOwner == owner ? value : nil }
+    public func visibleIssue(owner: TicketWalletReadOwner) -> TicketWalletIssue? { loadedOwner == owner ? issue : nil }
     public func invalidate() {
-        generation &+= 1; value = nil; issue = nil; loadedScope = nil; isLoading = false
+        generation = UUID(); value = nil; issue = nil; loadedOwner = nil; isLoading = false
     }
-    /// Preserve the current same-scope navigation rows while a pushed screen is visible.
-    public func cancelPending() { generation &+= 1; isLoading = false }
-    public func load(scope: UUID, currentScope: () -> UUID, operation: () async throws -> Value) async {
+    public func cancelPending() { generation = UUID(); isLoading = false }
+    @discardableResult public func beginPresentation(owner: TicketWalletReadOwner) -> TicketWalletReadPresentation? {
+        if loadedOwner != owner { invalidate() } else { cancelPending() }
+        presentation = owner.canRead ? TicketWalletReadPresentation(owner: owner) : nil
+        return presentation
+    }
+    public func endPresentation(preservingValues: Bool = true) {
+        presentation = nil
+        if preservingValues { cancelPending() } else { invalidate() }
+    }
+    public func accepts(_ permit: TicketWalletReadPresentation, currentOwner: TicketWalletReadOwner) -> Bool {
+        presentation == permit && permit.owner == currentOwner && currentOwner.canRead
+    }
+    public func load(presentation permit: TicketWalletReadPresentation, currentOwner: () -> TicketWalletReadOwner,
+                     operation: () async throws -> Value) async {
+        // Reject old queued work before clearing rows or changing a newer request generation.
+        guard !Task.isCancelled, accepts(permit, currentOwner: currentOwner()) else { return }
         invalidate()
         let captured = generation
         isLoading = true
         defer { if generation == captured { isLoading = false } }
         do {
             let result = try await operation()
-            guard !Task.isCancelled, generation == captured, currentScope() == scope else { return }
-            value = result; loadedScope = scope
+            guard !Task.isCancelled, generation == captured, accepts(permit, currentOwner: currentOwner()) else { return }
+            value = result; loadedOwner = permit.owner
         } catch {
-            guard !Task.isCancelled, !(error is CancellationError), generation == captured, currentScope() == scope else { return }
-            issue = TicketWalletIssue(error); loadedScope = scope
+            guard !Task.isCancelled, !(error is CancellationError), generation == captured,
+                  accepts(permit, currentOwner: currentOwner()) else { return }
+            issue = TicketWalletIssue(error); loadedOwner = permit.owner
         }
     }
 }

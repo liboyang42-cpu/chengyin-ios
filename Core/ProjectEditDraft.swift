@@ -236,7 +236,7 @@ public enum ProjectEditValidation {
         guard let date = f.date(from: shape), f.string(from: date) == shape else { return nil }
         return shape
     }
-    public static func issues(_ draft: ProjectEditDraft, scope: ProjectEditScope = .full) -> [ProjectEditIssue] {
+    public static func issues(_ draft: ProjectEditDraft, scope: ProjectEditScope = .full, baseline: ProjectEditSnapshot? = nil) -> [ProjectEditIssue] {
         var issues: [ProjectEditIssue] = []
         func need(_ condition: Bool, _ id: String, _ key: String) { if !condition { issues.append(.init(id, "projectEdit.validation." + key)) } }
         need(!draft.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, "name", "name")
@@ -244,6 +244,8 @@ public enum ProjectEditValidation {
         need(!draft.imgUrl.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, "cover", "cover")
         need(!draft.categoryIDs.isEmpty && draft.categoryIDs.allSatisfy { $0 > 0 }, "categories", "categories")
         guard scope == .full else { return issues }
+        let recruitmentCarryOver = ProjectChapterRecruitmentCarryOver.allows(draft, baseline: baseline)
+        need(recruitmentCarryOver, "recruitmentCarryOver", "merchant")
         if !ProjectClubLead.supportsEditing(draft) { issues.append(.init("clubLead", "projectClubLead.unsupported")) }
         need((try? PublishingTopicRewards(draft: draft).applying(to: draft)) != nil, "topicRewards", "rewards")
         let rules = (draft.completionRules ?? .init(raw: draft.preserved["completeRuleJson"])).forProduct(draft.product)
@@ -273,7 +275,8 @@ public enum ProjectEditValidation {
             }
             if draft.product == .freeExplore, chapter.preserved["recruitEnabled"]?.integer == 1 {
                 need((chapter.preserved["categoryId"]?.integer ?? 0) > 0, "merchantCategory\(ci)", "merchant")
-                need(["PERK", "TRAFFIC"].contains(chapter.preserved["termsMode"]?.text ?? ""), "terms\(ci)", "merchant")
+                need(["PERK", "TRAFFIC"].contains(chapter.preserved["termsMode"]?.text ?? "") ||
+                    (recruitmentCarryOver && chapter.preserved["termsMode"]?.text?.utf8.elementsEqual("REVSHARE".utf8) == true), "terms\(ci)", "merchant")
                 need((0...127).contains(chapter.preserved["maxMerchant"]?.integer ?? 0), "merchantQuota\(ci)", "merchant")
                 if let raw = chapter.preserved["perkMinValue"], raw != .null {
                     let v: Decimal? = { if case .number(let n) = raw { return n }; return decimal(raw.text ?? "") }()

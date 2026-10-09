@@ -1,0 +1,102 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "projectAlbumImage.choose": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a photo from this device"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从设备添加照片"
+          }
+        }
+      }
+    },
+    "projectAlbumImage.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose one photo, review its crop, explicitly upload it, then append its reference to this album. Existing captions and photo order stay unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择一张照片并确认裁剪，明确上传后，再将照片引用追加到这个相册。已有说明和照片顺序保持不变。"
+          }
+        }
+      }
+    },
+    "projectAlbumImage.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo append is unavailable for this album or account. It needs a current editable album with fewer than six well-formed photo entries, or an exact saved receipt awaiting completion. Existing values are retained."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前相册或账号暂不能追加照片。需要当前可编辑、照片条目完整且不足六张的相册，或等待完成的精确已存回执。已有内容会保留。"
+          }
+        }
+      }
+    },
+    "projectAlbumImage.uploadScope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upload one selected photo using this account’s existing image upload permission. Then explicitly append its returned reference to the captured album. Local draft saving and receipt saving are separate steps; this does not publish the story."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用此账号现有的图片上传权限上传一张所选照片，然后明确将返回的引用追加到刚才的相册。本地草稿保存和回执保存是分别进行的步骤；这不会发布故事。"
+          }
+        }
+      }
+    },
+    "projectAlbumImage.append": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Append photo to this album"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "追加照片到此相册"
+          }
+        }
+      }
+    },
+    "projectAlbumImage.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Album photo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "相册照片"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}
