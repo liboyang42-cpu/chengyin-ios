@@ -129,3 +129,9 @@ abe535809517ceb327223679f85c14b5f5b8b6d7:App/CouponRuntimeFixture.swift:generic-
 # CI132 reviewed narrative-prose false positive; no credential value is present.
 # Exact historical finding only. Other commits, paths, rules and lines remain scanned.
 c95737b4c54881a7492ca72bd31f68749304d1d1:docs/square-post-local-media.md:generic-api-key:31
+
+# Exact 65023b8 file-digest false positives; all three SHA-256 values recomputed.
+# Audit: docs/security/gitleaks-file-digest-audit-2026-10-10.md
+65023b84211895bf6c3f6d8ec64804edbfc45e4d:tools/run138_editor_readiness_contract.json:generic-api-key:174
+65023b84211895bf6c3f6d8ec64804edbfc45e4d:tools/run138_editor_readiness_contract.json:generic-api-key:243
+65023b84211895bf6c3f6d8ec64804edbfc45e4d:tools/run138_editor_readiness_contract.json:generic-api-key:4028

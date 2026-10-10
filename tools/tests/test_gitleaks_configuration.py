@@ -13,6 +13,23 @@ MAIN_MERGE_FINDINGS = {f"{r['commit']}:{r['path']}:{r['rule']}:{r['line']}" for 
 IMPORT_COMMIT = "e39c367a35e1f15f9553701cbad56d0d10796c80"
 COVERAGE_PROSE_FINDING = "bcd754bd41dd41b3dad22a436211cd89ee47b657:docs/public-template/composition-read-grant.md:generic-api-key:75"
 CI132_PROSE_FINDING = "c95737b4c54881a7492ca72bd31f68749304d1d1:docs/square-post-local-media.md:generic-api-key:31"
+FILE_DIGEST_COMMIT = "65023b84211895bf6c3f6d8ec64804edbfc45e4d"
+FILE_DIGEST_PATH = "tools/run138_editor_readiness_contract.json"
+FILE_DIGEST_RECORDS = (
+    (174, "current_ui_sources", "WeChatAppAuthFlowTests.swift",
+     "Tests/AppUITests/WeChatAppAuthFlowTests.swift",
+     "ea2f3808becfbbc25f684cadf02ed8ad3f402d91ea621ead1b4d0c107890aeaa"),
+    (243, "previous_ui_sources", "WeChatAppAuthFlowTests.swift",
+     "Tests/AppUITests/WeChatAppAuthFlowTests.swift",
+     "ea2f3808becfbbc25f684cadf02ed8ad3f402d91ea621ead1b4d0c107890aeaa"),
+    (4028, "feature_batch_support_sha256", "Tests/ContractChecks/test_merchant_business_access_lifetime.py",
+     "Tests/ContractChecks/test_merchant_business_access_lifetime.py",
+     "a808e190bda202c021e4cbada812e684d92e4e7ac6848d2016c944c3d3d494e4"),
+)
+FILE_DIGEST_FINDINGS = {
+    f"{FILE_DIGEST_COMMIT}:{FILE_DIGEST_PATH}:generic-api-key:{row[0]}"
+    for row in FILE_DIGEST_RECORDS
+}
 
 COUPON_FIXTURE_FINDINGS = {
     f"abe535809517ceb327223679f85c14b5f5b8b6d7:App/CouponRuntimeFixture.swift:generic-api-key:{line}"
@@ -24,11 +41,11 @@ class GitleaksConfigurationTests(unittest.TestCase):
     def test_reviewed_ignores_are_commit_bound(self):
         entries = [line.strip() for line in (ROOT / ".gitleaksignore").read_text().splitlines()
                    if line.strip() and not line.lstrip().startswith("#")]
-        self.assertEqual(len(entries), 89)
-        self.assertEqual(len(set(entries)), 89)
+        self.assertEqual(len(entries), 92)
+        self.assertEqual(len(set(entries)), 92)
         self.assertEqual(entries.count(COVERAGE_PROSE_FINDING), 1)
         self.assertEqual(entries.count(CI132_PROSE_FINDING), 1)
-        legacy = [entry for entry in entries if entry not in (COVERAGE_PROSE_FINDING, CI132_PROSE_FINDING) and entry not in COUPON_FIXTURE_FINDINGS and entry not in MAIN_MERGE_FINDINGS]
+        legacy = [entry for entry in entries if entry not in (COVERAGE_PROSE_FINDING, CI132_PROSE_FINDING) and entry not in COUPON_FIXTURE_FINDINGS and entry not in MAIN_MERGE_FINDINGS and entry not in FILE_DIGEST_FINDINGS]
         self.assertEqual(len(legacy), 42)
         for entry in legacy:
             with self.subTest(entry=entry):
@@ -57,6 +74,36 @@ class GitleaksConfigurationTests(unittest.TestCase):
                 self.assertNotIn(f"{MAIN_MERGE_COMMIT}:{row['path']}:{row['rule']}:{unlisted_line}", entries)
                 self.assertNotIn(f"{MAIN_MERGE_COMMIT}:{row['path']}:other-rule:{row['line']}", entries)
         self.assertFalse(any(entry.startswith("6757dfac63086ac80bc849df587895bcaaa820df:") for entry in entries))
+
+    def test_file_digest_findings_recompute_from_exact_native_source_bytes(self):
+        raw = (ROOT / FILE_DIGEST_PATH).read_text()
+        contract = json.loads(raw)
+        for number, section, key, source, line_digest in FILE_DIGEST_RECORDS:
+            with self.subTest(line=number):
+                line = raw.splitlines()[number - 1]
+                self.assertEqual(hashlib.sha256(line.encode()).hexdigest(), line_digest)
+                expected = hashlib.sha256((ROOT / source).read_bytes()).hexdigest()
+                self.assertEqual(contract[section][key], expected)
+                # Bind the actual finding line to the reviewed JSON field, not just a matching value elsewhere.
+                self.assertEqual(json.loads("{" + line.strip().rstrip(",") + "}"), {key: expected})
+
+    def test_file_digest_exceptions_cannot_ignore_new_commits_paths_rules_or_lines(self):
+        entries = [line.strip() for line in (ROOT / ".gitleaksignore").read_text().splitlines()
+                   if line.strip() and not line.lstrip().startswith("#")]
+        self.assertEqual({entry for entry in entries if FILE_DIGEST_PATH in entry}, FILE_DIGEST_FINDINGS)
+        self.assertEqual({entry for entry in entries if entry.startswith(FILE_DIGEST_COMMIT + ":")}, FILE_DIGEST_FINDINGS)
+        for finding in FILE_DIGEST_FINDINGS:
+            self.assertEqual(entries.count(finding), 1)
+            commit, path, rule, line = finding.split(":")
+            for other in (f"{path}:{rule}:{line}",
+                          f"{'0' * 40}:{path}:{rule}:{line}",
+                          f"{commit}:tools/other.json:{rule}:{line}",
+                          f"{commit}:{path}:other-rule:{line}",
+                          f"{commit}:{path}:{rule}:{int(line) - 1}",
+                          f"{commit}:{path}:{rule}:{int(line) + 1}"):
+                with self.subTest(other=other):
+                    self.assertNotIn(other, entries)
+        self.assertFalse((ROOT / ".gitleaks.toml").exists())
 
     def test_new_prose_exception_is_exact_and_new_text_is_not_ignored(self):
         commit, path, rule, line = COVERAGE_PROSE_FINDING.split(":")
