@@ -83,46 +83,83 @@ public struct TemplateOwnShelfPage {
     public private(set) var page = 0
     public private(set) var hasMore = false
     public private(set) var busy = false
+    public private(set) var isShowingRefreshSnapshot = false
     public private(set) var messageKey: String?
     public init(adapter: TemplateAuthoringAdapter, currentSession: @escaping () -> TemplateAuthoringSession?) {
         self.adapter = adapter; self.currentSession = currentSession
     }
     public func synchronizeSession() {
-        guard owner != currentSession() else { return }
+        guard owner != currentSession() || !adapter.canRead else { return }
         leave(); owner = currentSession()
     }
-    public func leave() { generation += 1; busy = false; rows = []; page = 0; hasMore = false; messageKey = nil }
+    public func leave() { generation += 1; busy = false; rows = []; page = 0; hasMore = false; messageKey = nil; isShowingRefreshSnapshot = false }
+    /// A same-scope display snapshot only. It cannot authorize a shelf mutation.
+    public func refreshSnapshot(keyword: String) -> [DiscoveryPlayTemplate] {
+        synchronizeSession()
+        guard owner != nil, owner == currentSession(), adapter.canRead, self.keyword == keyword, !Task.isCancelled else { return [] }
+        return rows
+    }
     public func refresh(keyword: String = "") async {
+        let snapshot = refreshSnapshot(keyword: keyword)
         leave(); self.keyword = keyword; owner = currentSession()
+        rows = snapshot; isShowingRefreshSnapshot = !snapshot.isEmpty
         await fetch(page: 1)
     }
     public func loadMore() async {
-        guard owner == currentSession() else { leave(); owner = currentSession(); return }
+        guard owner == currentSession(), adapter.canRead else { leave(); owner = currentSession(); return }
         guard !busy, hasMore, page < TemplateOwnShelfPage.maximumPages else { return }
         await fetch(page: page + 1)
     }
     private func fetch(page requested: Int) async {
-        guard let owner, owner == currentSession() else { messageKey = "templateAuthor.signIn"; return }
+        guard !Task.isCancelled, adapter.canRead else { leave(); return }
+        guard let owner, owner == currentSession() else { leave(); messageKey = "templateAuthor.signIn"; return }
         guard !busy else { return }
         let stamp = generation; busy = true; messageKey = nil
         defer { if generation == stamp { busy = false } }
         do {
             let result = try await adapter.listMinePage(page: requested, keyword: keyword)
             guard generation == stamp else { return }
-            guard self.owner == owner, currentSession() == owner, !Task.isCancelled else { leave(); return }
+            guard self.owner == owner, currentSession() == owner, adapter.canRead, !Task.isCancelled else { leave(); return }
             // Offset pagination is not a snapshot. Refuse overlapping pages rather than
             // silently hiding a shifted/missing row or letting duplicates grant authority.
-            let existing = Set(rows.map(\.id))
-            guard result.rows.allSatisfy({ !existing.contains($0.id) }) else { throw TemplateAuthoringError.invalidContract }
-            rows += result.rows; page = requested
+            if requested == 1 {
+                rows = result.rows; isShowingRefreshSnapshot = false
+            } else {
+                let existing = Set(rows.map(\.id))
+                guard result.rows.allSatisfy({ !existing.contains($0.id) }) else {
+                    messageKey = "templateAuthor.shelf.moreFailed"; return
+                }
+                rows += result.rows
+            }
+            page = requested
             let continuation = !result.rows.isEmpty && (result.total.map { rows.count < $0 } ?? (result.rows.count == TemplateOwnShelfPage.pageSize))
             hasMore = continuation && page < TemplateOwnShelfPage.maximumPages
             messageKey = continuation && !hasMore ? "templateAuthor.shelf.pageLimit" : rows.isEmpty ? "templateAuthor.shelf.empty" : nil
         } catch {
             guard generation == stamp else { return }
-            guard self.owner == owner, currentSession() == owner, !Task.isCancelled else { leave(); return }
-            // Keep successful pages and the same next page for explicit retry.
+            guard self.owner == owner, currentSession() == owner, adapter.canRead, !Task.isCancelled else { leave(); return }
+            if error is CancellationError || (error as? URLError)?.code == .cancelled { leave(); return }
+            // Only an explicit transient first-page failure may retain this snapshot.
+            // Existing continuation retries keep their pages, except auth/contract failures.
+            if (requested == 1 && !Self.isTransientRefreshFailure(error)) || Self.invalidatesReadScope(error) { leave() }
+            // Retained refresh snapshots restart at page one; continuation retries
+            // keep the same next page when their previous pages remain valid.
             messageKey = requested == 1 ? "templateAuthor.listUnavailable" : "templateAuthor.shelf.moreFailed"
+        }
+    }
+    private static func isTransientRefreshFailure(_ error: Error) -> Bool {
+        if case APIError.httpStatus(let status) = error { return (500...599).contains(status) }
+        guard let error = error as? URLError else { return false }
+        return [.timedOut, .cannotFindHost, .cannotConnectToHost, .networkConnectionLost,
+                .dnsLookupFailed, .notConnectedToInternet].contains(error.code)
+    }
+    private static func invalidatesReadScope(_ error: Error) -> Bool {
+        if error is TemplateAuthoringRejection || error is DecodingError { return true }
+        if let error = error as? TemplateAuthoringError, error == .invalidContract || error == .unavailable { return true }
+        guard let error = error as? APIError else { return false }
+        switch error {
+        case .httpStatus(let status): return !(500...599).contains(status)
+        default: return true
         }
     }
 }

@@ -21,6 +21,7 @@ import SwiftUI
     @State private var review: TemplateOwnShelfReview?
     @State private var busy = false
     @State private var locked = true
+    @State private var readSnapshot = false
     var body: some View {
         List {
             Section {
@@ -55,8 +56,10 @@ import SwiftUI
                     Button(LocalizedStringKey(row.publishStatus == 1 ? "templateAuthor.shelf.removeLibrary" : "templateAuthor.shelf.addLibrary")) {
                         prepare(row.id, .libraryStatus)
                     }.disabled(!coordinator.canSubmit || locked || busy || !coordinator.rows.contains(row)).accessibilityIdentifier("templateAuthor.shelf.library.\(row.id)")
+                        .disabled(readSnapshot)
                     Button("templateAuthor.shelf.delete", role: .destructive) { prepare(row.id, .remove) }
                         .disabled(!coordinator.canSubmit || locked || busy || !coordinator.rows.contains(row)).accessibilityIdentifier("templateAuthor.shelf.delete.\(row.id)")
+                        .disabled(readSnapshot)
                 }
             }
             if hasMore {
@@ -130,9 +133,11 @@ import SwiftUI
     private func sync() {
         coordinator.synchronizeSession(); coordinator.shelfReader.synchronizeSession()
         rows = coordinator.shelfReader.rows; hasMore = coordinator.shelfReader.hasMore
+        readSnapshot = coordinator.shelfReader.isShowingRefreshSnapshot
         readMessageKey = coordinator.shelfReader.messageKey; messageKey = coordinator.shelfMessageKey; locked = coordinator.shelfLocked
     }
     private func prepare(_ id: Int, _ action: TemplateOwnShelfAction) {
+        guard !coordinator.shelfReader.isShowingRefreshSnapshot else { return }
         coordinator.prepareShelf(templateID: id, action: action); review = coordinator.shelfReview; sync()
     }
     private func loadMore() async {
@@ -143,8 +148,15 @@ import SwiftUI
     }
     private func refresh() async {
         let stamp = UUID(); viewRequest = stamp
-        busy = true; review = nil; rows = []; hasMore = false; readMessageKey = nil; messageKey = nil
-        coordinator.synchronizeSession()
+        defer {
+            if stamp == viewRequest, Task.isCancelled {
+                rows = []; hasMore = false; readSnapshot = false; busy = false
+            }
+        }
+        busy = true; review = nil; hasMore = false; readMessageKey = nil; messageKey = nil
+        coordinator.synchronizeSession(); coordinator.cancelShelfReview()
+        rows = coordinator.shelfReader.refreshSnapshot(keyword: keyword)
+        readSnapshot = !rows.isEmpty
         await coordinator.shelfReader.refresh(keyword: keyword)
         guard stamp == viewRequest, !Task.isCancelled else { return }
         // Preserve the independent, unfiltered first-100 write preflight and reconciliation.

@@ -43,6 +43,67 @@ import XCTest
         coordinator.prepareShelf(templateID: 41, action: .remove); XCTAssertNil(coordinator.shelfReview)
         XCTAssertEqual(wire.requests.count, count); XCTAssertFalse(coordinator.canSubmit)
     }
+    func testLoadedReadOnlyRefreshSnapshotSurvives503ThenReplacesAndClears() async throws {
+        let wire = Wire(), session = try root(wire, Grants(), Vault()).makeSession(); await login(session); wire.requests = []
+        let coordinator = session.templateShelfCoordinator(); await coordinator.shelfReader.refresh()
+        let paused = expectation(description: "cached refresh suspended"); wire.pause = true; wire.onPaused = { paused.fulfill() }
+        let task = Task { await coordinator.shelfReader.refresh() }
+        await fulfillment(of: [paused], timeout: 2)
+        XCTAssertEqual(coordinator.shelfReader.rows.map(\.id), [41]); XCTAssertTrue(coordinator.shelfReader.isShowingRefreshSnapshot)
+        wire.finish(code: -1); await task.value
+        XCTAssertEqual(coordinator.shelfReader.rows.map(\.id), [41]); XCTAssertTrue(coordinator.shelfReader.isShowingRefreshSnapshot)
+        XCTAssertEqual(coordinator.shelfReader.messageKey, "templateAuthor.listUnavailable")
+        XCTAssertFalse(coordinator.shelfReader.hasMore); XCTAssertFalse(coordinator.canSubmit)
+        let count = wire.requests.count
+        await coordinator.shelfReader.loadMore(); await coordinator.loadMine()
+        coordinator.prepareShelf(templateID: 41, action: .remove)
+        XCTAssertNil(coordinator.shelfReview); XCTAssertTrue(coordinator.rows.isEmpty); XCTAssertEqual(wire.requests.count, count)
+        wire.pause = false; wire.shelfIDs = [41, 42]
+        await coordinator.shelfReader.refresh()
+        XCTAssertEqual(coordinator.shelfReader.rows.map(\.id), [41, 42]); XCTAssertFalse(coordinator.shelfReader.isShowingRefreshSnapshot)
+        wire.shelfIDs = []; await coordinator.shelfReader.refresh()
+        XCTAssertTrue(coordinator.shelfReader.rows.isEmpty); XCTAssertFalse(coordinator.shelfReader.isShowingRefreshSnapshot)
+        XCTAssertEqual(coordinator.shelfReader.messageKey, "templateAuthor.shelf.empty")
+        XCTAssertEqual(wire.requests.compactMap { TemplateShelfReadRoute(request: $0, baseURL: base) }, Array(repeating: .page(1, keyword: ""), count: 4))
+    }
+    func testCachedRefreshNeverSurvivesOwnerLeaseABAExpiryOrCancellation() async throws {
+        for transition in ["owner", "roleABA", "sessionABA", "revoke", "reissue", "expire", "cancel"] {
+            for code in [200, 401, -1] {
+                let wire = Wire(), grants = Grants(), vault = Vault(), session = try root(wire, grants, vault).makeSession(); await login(session)
+                let coordinator = session.templateShelfCoordinator(); await coordinator.shelfReader.refresh()
+                XCTAssertEqual(coordinator.shelfReader.rows.map(\.id), [41])
+                let paused = expectation(description: "cached lifetime refresh suspended"); wire.pause = true; wire.onPaused = { paused.fulfill() }
+                let task = Task { await coordinator.shelfReader.refresh() }
+                await fulfillment(of: [paused], timeout: 2)
+                XCTAssertTrue(coordinator.shelfReader.isShowingRefreshSnapshot)
+                switch transition {
+                case "owner": await session.logout(); wire.account = 8; await login(session)
+                case "roleABA": wire.role = "merchant"; await session.refreshOwnAccount(); wire.role = "player"; await session.refreshOwnAccount()
+                case "sessionABA": await session.logout(); await login(session)
+                case "revoke": grants.retained?.revoke(); grants.enabled = false
+                case "reissue": grants.retained?.revoke(); grants.retained = nil; _ = session.templateShelfViewIdentity
+                case "expire": let lease = try XCTUnwrap(grants.retained); lease.expireIfNeeded(now: lease.expiresAt)
+                default: task.cancel()
+                }
+                wire.finish(code: code); await task.value
+                XCTAssertTrue(coordinator.shelfReader.rows.isEmpty, "\(transition) \(code)")
+                XCTAssertFalse(coordinator.shelfReader.isShowingRefreshSnapshot); XCTAssertFalse(coordinator.canSubmit)
+                XCTAssertNil(coordinator.shelfReview); XCTAssertEqual(session.account?.id, wire.account)
+                XCTAssertEqual(vault.value, "synthetic-\(wire.account)")
+            }
+        }
+    }
+    func testCachedSnapshotPreparationClearsRevokedScopeBeforeAnotherRequest() async throws {
+        let wire = Wire(), grants = Grants(), session = try root(wire, grants, Vault()).makeSession(); await login(session)
+        let coordinator = session.templateShelfCoordinator(); await coordinator.shelfReader.refresh(keyword: "q")
+        XCTAssertEqual(coordinator.shelfReader.refreshSnapshot(keyword: "q").map(\.id), [41])
+        grants.retained?.revoke(); grants.enabled = false
+        let count = wire.requests.count
+        XCTAssertTrue(coordinator.shelfReader.refreshSnapshot(keyword: "q").isEmpty)
+        XCTAssertTrue(coordinator.shelfReader.rows.isEmpty)
+        await coordinator.shelfReader.refresh(keyword: "q")
+        XCTAssertEqual(wire.requests.count, count); XCTAssertFalse(coordinator.shelfReader.isShowingRefreshSnapshot)
+    }
     func testShelfLeaseChangesPreserveUnsavedLocalEditorAndDormantAuthority() async throws {
         let wire = Wire(), grants = Grants(), session = try root(wire, grants, Vault()).makeSession(); await login(session)
         let editor = session.templateAuthoringEditor(); editor.change(.init(title: "Unsaved local draft"))
@@ -206,6 +267,7 @@ import XCTest
         var requests: [URLRequest] = [], account = 7, role = "player", code = 200, pause = false, onPaused: (() -> Void)?
         var pending: CheckedContinuation<(Data, Int), Error>?, pendingJSON = "{}"
         var pagedLegacy = false, detailOwner: Int?
+        var shelfIDs = [41]
         func finish(code: Int) { let saved = pending; pending = nil; if code == -1 { saved?.resume(throwing: APIError.httpStatus(503)); return }; saved?.resume(returning: (Data((code == 200 ? pendingJSON : "{\"code\":\(code)}").utf8), 200)) }
         func send(_ request: URLRequest) async throws -> (Data, Int) {
             requests.append(request); let path = request.url!.path, json: String
@@ -223,7 +285,11 @@ import XCTest
             }
             if path.hasSuffix("/phone") { json = "{\"code\":200,\"token\":\"synthetic-\(account)\",\"data\":{\"id\":\(account),\"role\":\"\(role)\"}}" }
             else if path.hasSuffix("/userInfo") { json = "{\"code\":200,\"appUser\":{\"userId\":\(account),\"role\":\"\(role)\"}}" }
-            else if path.hasSuffix("/my-list") { json = "{\"code\":\(code),\"data\":{\"rows\":[{\"id\":41,\"title\":\"Owned template\",\"memberId\":\(account)}],\"total\":1}}" }
+            else if path.hasSuffix("/my-list") {
+                let rows = shelfIDs.map { ["id": $0, "title": "Owned template", "memberId": account] as [String: Any] }
+                let payload: [String: Any] = ["rows": rows, "total": rows.count]
+                json = String(decoding: try JSONSerialization.data(withJSONObject: ["code": code, "data": payload]), as: UTF8.self)
+            }
             else { json = "{\"code\":\(code),\"data\":{\"id\":41,\"memberId\":\(account),\"title\":\"Fresh owned detail\"}}" }
             if path.contains("/template/"), pause { pendingJSON = json; return try await withCheckedThrowingContinuation { pending = $0; onPaused?() } }
             return (Data(json.utf8), 200)

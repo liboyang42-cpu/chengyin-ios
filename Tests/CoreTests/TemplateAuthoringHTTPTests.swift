@@ -179,6 +179,23 @@ import FoundationNetworking
         try store.savePending(legacy, session: XCTUnwrap(credentials.session))
         XCTAssertEqual(try store.pending(session: XCTUnwrap(credentials.session), identity: identity), legacy)
     }
+    func testRefreshSnapshotCannotReplaceHundredRowWritePreflightOrOldReview() async throws {
+        let http = HTTP(); let page = #"{"code":200,"data":{"rows":[{"id":42,"title":"Same","publishStatus":0}],"total":1}}"#
+        http.replies = [response(shelf()), response(page), response("{}", 503), response("{}", 503)]
+        let c = try coordinator(http, credentials: Credentials(try session()))
+        await c.loadMine(); await c.shelfReader.refresh()
+        c.prepareShelf(templateID: 42, action: .remove); let old = try XCTUnwrap(c.shelfReview)
+        c.cancelShelfReview(); await c.shelfReader.refresh(); await c.loadMine()
+        XCTAssertEqual(c.shelfReader.rows.map(\.id), [42]); XCTAssertTrue(c.shelfReader.isShowingRefreshSnapshot)
+        XCTAssertTrue(c.rows.isEmpty); XCTAssertTrue(c.shelfLocked)
+        c.prepareShelf(templateID: 42, action: .remove); XCTAssertNil(c.shelfReview)
+        await c.confirmShelf(old); XCTAssertEqual(http.requests.count, 4); XCTAssertNil(c.shelfPending)
+        for (request, count) in zip(http.requests, [100, 10, 10, 100]) {
+            XCTAssertEqual(request.url?.path, "/api/template/my-list")
+            let body = String(decoding: try XCTUnwrap(request.httpBody), as: UTF8.self)
+            XCTAssertTrue(body.contains("name=\"pageSize\"\r\n\r\n\(count)\r\n"))
+        }
+    }
     func testBuilderRejectsGenericIDAndExistingEdit() throws {
         let config = try APIConfiguration(baseURL: XCTUnwrap(URL(string: "https://example.test")))
         XCTAssertThrowsError(try TemplateAuthoringWireRequestBuilder.make(.init(path: "/api/template/delete", body: .form(["id":"42"]), mutates: true), configuration: config, token: "fake"))
@@ -317,5 +334,183 @@ import FoundationNetworking
             await task.value
             XCTAssertTrue(reader.rows.isEmpty); XCTAssertEqual(reader.page, 0); XCTAssertFalse(reader.busy)
         }
+    }
+}
+
+/// Real reader state-machine tests. Authored here; requires the Apple Swift toolchain.
+@MainActor final class TemplateOwnShelfRefreshSnapshotTests: XCTestCase {
+    private final class Transport: TemplateAuthoringTransport {
+        var authority: TemplateAuthoringAuthority = .injectedHTTP
+        var requests: [TemplateAuthoringRequest] = []
+        var replies: [Result<(Data, Int), Error>] = []
+        var pending: [CheckedContinuation<(Data, Int), Error>] = []
+        var onPending: (() -> Void)?
+        func send(_ request: TemplateAuthoringRequest) async throws -> (Data, Int) {
+            requests.append(request)
+            if !replies.isEmpty { return try replies.removeFirst().get() }
+            return try await withCheckedThrowingContinuation { pending.append($0); onPending?() }
+        }
+    }
+    private func owner(_ epoch: UInt64 = 1, revision: String = "one") throws -> TemplateAuthoringSession {
+        try .init(accountID: 7, namespace: "fixture", epoch: epoch, authorizationRevision: revision)
+    }
+    private func page(_ ids: [Int], total: Int? = nil, title: String = "Snapshot") throws -> (Data, Int) {
+        var value: [String: Any] = ["rows": ids.map { ["id": $0, "title": title] as [String: Any] }]
+        if let total { value["total"] = total }
+        return (try JSONSerialization.data(withJSONObject: ["code": 200, "data": value]), 200)
+    }
+    private func suspendedRefresh(_ reader: TemplateOwnShelfReader, _ wire: Transport, keyword: String = "q") async -> Task<Void, Never> {
+        let paused = expectation(description: "refresh transport suspended")
+        wire.onPending = { paused.fulfill() }
+        let task = Task { await reader.refresh(keyword: keyword) }
+        await fulfillment(of: [paused], timeout: 2)
+        wire.onPending = nil
+        return task
+    }
+    func testOnlyExplicitTransientFailuresRetainSnapshotAndRequireFirstPageRetry() async throws {
+        let failures: [Error] = [APIError.httpStatus(500), APIError.httpStatus(503), APIError.httpStatus(599),
+            URLError(.timedOut), URLError(.cannotFindHost), URLError(.cannotConnectToHost),
+            URLError(.networkConnectionLost), URLError(.dnsLookupFailed), URLError(.notConnectedToInternet)]
+        for failure in failures {
+            let wire = Transport(), session = try owner()
+            wire.replies = [.success(try page(Array(1...10), total: 20)), .success(try page([11], total: 20))]
+            let reader = TemplateOwnShelfReader(adapter: .init(transport: wire), currentSession: { session })
+            await reader.refresh(keyword: "q"); await reader.loadMore()
+            let refresh = await suspendedRefresh(reader, wire)
+            XCTAssertEqual(reader.rows.map(\.id), Array(1...11)); XCTAssertTrue(reader.busy)
+            XCTAssertTrue(reader.isShowingRefreshSnapshot); XCTAssertFalse(reader.hasMore)
+            try XCTUnwrap(wire.pending.first).resume(throwing: failure); wire.pending.removeFirst()
+            await refresh.value
+            XCTAssertEqual(reader.rows.map(\.id), Array(1...11), "\(failure)")
+            XCTAssertTrue(reader.isShowingRefreshSnapshot); XCTAssertFalse(reader.busy)
+            XCTAssertEqual(reader.page, 0); XCTAssertFalse(reader.hasMore)
+            XCTAssertEqual(reader.messageKey, "templateAuthor.listUnavailable")
+            await reader.loadMore(); XCTAssertEqual(wire.requests.count, 3, "A stale snapshot cannot continue old offsets")
+            wire.replies = [.success(try page([7], total: 1, title: "Fresh"))]
+            await reader.refresh(keyword: "q")
+            XCTAssertEqual(reader.rows.map(\.id), [7]); XCTAssertEqual(reader.rows.first?.title, "Fresh")
+            XCTAssertFalse(reader.isShowingRefreshSnapshot); XCTAssertNil(reader.messageKey)
+            XCTAssertEqual(wire.requests[2], wire.requests[3]); XCTAssertEqual(reader.page, 1)
+        }
+    }
+    func testRefreshReplacesOverlappingIDsAndValidEmptyClearsSnapshot() async throws {
+        let wire = Transport(), session = try owner()
+        wire.replies = [.success(try page(Array(1...10), total: 20)), .success(try page(Array(11...20), total: 20)),
+            .success(try page([7, 21], total: 2, title: "Updated")), .success(try page([], total: 0))]
+        let reader = TemplateOwnShelfReader(adapter: .init(transport: wire), currentSession: { session })
+        await reader.refresh(keyword: "q"); await reader.loadMore(); await reader.refresh(keyword: "q")
+        XCTAssertEqual(reader.rows.map(\.id), [7, 21]); XCTAssertEqual(reader.rows.first?.title, "Updated")
+        XCTAssertFalse(reader.isShowingRefreshSnapshot); XCTAssertEqual(reader.page, 1)
+        await reader.refresh(keyword: "q")
+        XCTAssertTrue(reader.rows.isEmpty); XCTAssertFalse(reader.isShowingRefreshSnapshot)
+        XCTAssertFalse(reader.hasMore); XCTAssertEqual(reader.messageKey, "templateAuthor.shelf.empty")
+    }
+    func testAuthContractUnknownAndCancellationFailuresClearRefreshSnapshot() async throws {
+        let failures: [Error] = [APIError.unauthorized, APIError.httpStatus(401), APIError.httpStatus(403), APIError.httpStatus(400),
+            TemplateAuthoringRejection(message: "denied", code: 403), TemplateAuthoringRejection(message: "business refusal", code: 503),
+            TemplateAuthoringError.invalidContract, TemplateAuthoringError.uncertain, APIError.malformedResponse,
+            DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "fixture")),
+            URLError(.badURL), URLError(.secureConnectionFailed), URLError(.cancelled), CancellationError()]
+        for failure in failures {
+            let wire = Transport(), session = try owner(); wire.replies = [.success(try page([7])), .failure(failure)]
+            let reader = TemplateOwnShelfReader(adapter: .init(transport: wire), currentSession: { session })
+            await reader.refresh(keyword: "q"); await reader.refresh(keyword: "q")
+            XCTAssertTrue(reader.rows.isEmpty, "\(failure)"); XCTAssertEqual(reader.page, 0)
+            XCTAssertFalse(reader.isShowingRefreshSnapshot); XCTAssertFalse(reader.busy); XCTAssertFalse(reader.hasMore)
+        }
+        for response in [#"{"code":200,"data":{}}"#, #"{"code":200,"data":{"rows":[{"id":7},{"id":7}]}}"#, #"{"code":403}"#] {
+            let wire = Transport(), session = try owner(); wire.replies = [.success(try page([7])), .success((Data(response.utf8), 200))]
+            let reader = TemplateOwnShelfReader(adapter: .init(transport: wire), currentSession: { session })
+            await reader.refresh(keyword: "q"); await reader.refresh(keyword: "q")
+            XCTAssertTrue(reader.rows.isEmpty); XCTAssertFalse(reader.isShowingRefreshSnapshot)
+        }
+    }
+    func testContinuationAuthAndContractErrorsClearRowsButOverlapRemainsRetryable() async throws {
+        let failures: [Error] = [APIError.unauthorized, APIError.httpStatus(403), TemplateAuthoringError.invalidContract]
+        for failure in failures {
+            let wire = Transport(), session = try owner()
+            wire.replies = [.success(try page(Array(1...10))), .failure(failure)]
+            let reader = TemplateOwnShelfReader(adapter: .init(transport: wire), currentSession: { session })
+            await reader.refresh(); await reader.loadMore()
+            XCTAssertTrue(reader.rows.isEmpty); XCTAssertEqual(reader.page, 0); XCTAssertFalse(reader.hasMore)
+        }
+        let wire = Transport(), session = try owner()
+        wire.replies = [.success(try page(Array(1...10))), .success(try page([10, 11])), .success(try page([11]))]
+        let reader = TemplateOwnShelfReader(adapter: .init(transport: wire), currentSession: { session })
+        await reader.refresh(); await reader.loadMore()
+        XCTAssertEqual(reader.rows.map(\.id), Array(1...10)); XCTAssertEqual(reader.page, 1); XCTAssertTrue(reader.hasMore)
+        await reader.loadMore(); XCTAssertEqual(reader.rows.map(\.id), Array(1...11))
+        XCTAssertEqual(wire.requests[1], wire.requests[2])
+    }
+    func testAlreadyCancelledRefreshClearsSnapshotWithoutDispatch() async throws {
+        let wire = Transport(), session = try owner(); wire.replies = [.success(try page([7]))]
+        let reader = TemplateOwnShelfReader(adapter: .init(transport: wire), currentSession: { session })
+        await reader.refresh(keyword: "q")
+        let task = Task { await reader.refresh(keyword: "q") }; task.cancel(); await task.value
+        XCTAssertTrue(reader.rows.isEmpty); XCTAssertFalse(reader.isShowingRefreshSnapshot)
+        XCTAssertEqual(wire.requests.count, 1)
+    }
+    func testNewKeywordNeverDisplaysPreviousQuerySnapshot() async throws {
+        let wire = Transport(), session = try owner(); wire.replies = [.success(try page([7]))]
+        let reader = TemplateOwnShelfReader(adapter: .init(transport: wire), currentSession: { session })
+        await reader.refresh(keyword: "q")
+        XCTAssertTrue(reader.refreshSnapshot(keyword: "other").isEmpty)
+        let task = await suspendedRefresh(reader, wire, keyword: "other")
+        XCTAssertTrue(reader.rows.isEmpty); XCTAssertFalse(reader.isShowingRefreshSnapshot)
+        try XCTUnwrap(wire.pending.first).resume(throwing: URLError(.timedOut)); await task.value
+        XCTAssertTrue(reader.rows.isEmpty); XCTAssertEqual(reader.keyword, "other")
+    }
+    func testSameKeywordNewGenerationRejectsOldSuccessAndError() async throws {
+        for oldFails in [false, true] {
+            let wire = Transport(), session = try owner(); wire.replies = [.success(try page([7]))]
+            let reader = TemplateOwnShelfReader(adapter: .init(transport: wire), currentSession: { session })
+            await reader.refresh(keyword: "q")
+            let old = await suspendedRefresh(reader, wire)
+            let new = await suspendedRefresh(reader, wire)
+            try XCTUnwrap(wire.pending.last).resume(returning: page([8], total: 1)); await new.value
+            if oldFails { try XCTUnwrap(wire.pending.first).resume(throwing: APIError.httpStatus(503)) }
+            else { try XCTUnwrap(wire.pending.first).resume(returning: page([7])) }
+            await old.value
+            XCTAssertEqual(reader.rows.map(\.id), [8]); XCTAssertFalse(reader.isShowingRefreshSnapshot)
+            XCTAssertNil(reader.messageKey); XCTAssertFalse(reader.busy)
+        }
+    }
+    func testCachedRefreshLifetimeTransitionsAndABAFenceAllLateResults() async throws {
+        for transition in ["owner", "epoch", "role", "sessionABA", "roleABA", "revoke", "leave", "cancel"] {
+            for fails in [false, true] {
+                let wire = Transport(); wire.replies = [.success(try page([7]))]
+                let original = try owner(); var session: TemplateAuthoringSession? = original
+                let reader = TemplateOwnShelfReader(adapter: .init(transport: wire), currentSession: { session })
+                await reader.refresh(keyword: "q"); let task = await suspendedRefresh(reader, wire)
+                XCTAssertTrue(reader.isShowingRefreshSnapshot)
+                switch transition {
+                case "owner": session = nil
+                case "epoch": session = try owner(2)
+                case "role": session = try owner(revision: "two")
+                case "sessionABA": session = nil; reader.synchronizeSession(); session = original; reader.synchronizeSession()
+                case "roleABA": session = try owner(revision: "two"); reader.synchronizeSession(); session = original; reader.synchronizeSession()
+                case "revoke": wire.authority = .disabled
+                case "leave": reader.leave()
+                default: task.cancel()
+                }
+                if fails { try XCTUnwrap(wire.pending.first).resume(throwing: APIError.httpStatus(503)) }
+                else { try XCTUnwrap(wire.pending.first).resume(returning: page([8])) }
+                await task.value
+                XCTAssertTrue(reader.rows.isEmpty, transition); XCTAssertFalse(reader.isShowingRefreshSnapshot)
+                XCTAssertEqual(reader.page, 0); XCTAssertFalse(reader.busy)
+            }
+        }
+    }
+    func testRefreshAtHundredPageBoundaryRestartsAtOneWithoutPage101() async throws {
+        let wire = Transport(), session = try owner()
+        for n in 0..<100 { wire.replies.append(.success(try page(Array((n * 10 + 1)...(n * 10 + 10)), total: 2000))) }
+        wire.replies += [.failure(URLError(.timedOut)), .success(try page([1], total: 1))]
+        let reader = TemplateOwnShelfReader(adapter: .init(transport: wire), currentSession: { session })
+        await reader.refresh(keyword: "q"); for _ in 0..<101 { await reader.loadMore() }
+        XCTAssertEqual(reader.page, 100); XCTAssertEqual(wire.requests.count, 100)
+        await reader.refresh(keyword: "q"); XCTAssertEqual(reader.rows.count, 1000); XCTAssertTrue(reader.isShowingRefreshSnapshot)
+        await reader.loadMore(); XCTAssertEqual(wire.requests.count, 101)
+        await reader.refresh(keyword: "q"); XCTAssertEqual(reader.rows.map(\.id), [1]); XCTAssertEqual(reader.page, 1)
+        XCTAssertEqual(Array(wire.requests.suffix(2)), [try TemplateOwnShelfPage.request(page: 1, keyword: "q"), try TemplateOwnShelfPage.request(page: 1, keyword: "q")])
     }
 }

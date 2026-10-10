@@ -1,5 +1,6 @@
 """Negative controls for historical byte identity, not current storage behavior."""
 import hashlib
+import json
 from itertools import product
 from pathlib import Path
 import tempfile
@@ -62,7 +63,19 @@ class CreatorPendingSyntheticStorageHistoryTests(unittest.TestCase):
         self.directory = tempfile.TemporaryDirectory()
         self.addCleanup(self.directory.cleanup)
         self.root = Path(self.directory.name)
-        self.postimages = {name: (ROOT / name).read_bytes() for name in history.APP_SHA256}
+        self.currentimages = {name: (ROOT / name).read_bytes() for name in history.APP_SHA256}
+        self.manifest = (ROOT / history.EVOLUTION_FILE).read_bytes()
+        self.evolution = json.loads(self.manifest)['files']
+        self.postimages = dict(self.currentimages)
+        for name, row in self.evolution.items():
+            data = self.postimages[name]
+            self.assertEqual(digest(data), row['reviewed_sha256'])
+            for delta in reversed(row['inverse_deltas']):
+                offset = delta['postimage_offset']
+                after, before = bytes.fromhex(delta['postimage_hex']), bytes.fromhex(delta['preimage_hex'])
+                self.assertEqual(data[offset:offset + len(after)], after)
+                data = data[:offset] + before + data[offset + len(after):]
+            self.postimages[name] = data
         self.preimage = (ROOT / history.PREIMAGE_FILE).read_bytes()
         self.preimages = {FIXTURE: self.preimage}
         for name, deltas in OTHER_DELTAS.items():
@@ -74,10 +87,13 @@ class CreatorPendingSyntheticStorageHistoryTests(unittest.TestCase):
         for name, (before, after) in history.APP_SHA256.items():
             self.assertEqual(digest(self.preimages[name]), before, name)
             self.assertEqual(digest(self.postimages[name]), after, name)
+        for name, raw in self.preimages.items():
+            self.assertEqual(raw, (ROOT / history.PREIMAGE_FILES[name]).read_bytes())
         self.install(self.postimages)
 
     def install(self, sources):
-        for name, raw in {**sources, history.PREIMAGE_FILE: self.preimage}.items():
+        inputs = {history.PREIMAGE_FILES[name]: data for name, data in self.preimages.items()}
+        for name, raw in {**sources, **inputs, history.EVOLUTION_FILE: self.manifest}.items():
             path = self.root / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(raw)
@@ -213,6 +229,17 @@ class CreatorPendingSyntheticStorageHistoryTests(unittest.TestCase):
         for row in source_index()['helper_sources']:
             if row['path'] == FIXTURE:
                 continue
+            if row['path'] == 'App/TemplateAuthoringMineView.swift':
+                from tools.tests.creator_shelf_refresh_history import SOURCE_SHA256
+                for name in SOURCE_SHA256:
+                    path = self.root / name
+                    path.parent.mkdir(parents=True, exist_ok=True)
+                    path.write_bytes((ROOT / name).read_bytes())
+                with patch.object(history, 'historical_pre_club_source') as reader:
+                    restored = self.project(row['path'])
+                    self.assertEqual(digest(restored), row['sha256'])
+                    reader.assert_not_called()
+                continue
             with self.subTest(path=row['path']):
                 raw = history.historical_pre_club_source(ROOT / row['path']).read_bytes()
                 path = self.root / row['path']
@@ -242,6 +269,172 @@ class CreatorPendingSyntheticStorageHistoryTests(unittest.TestCase):
         # Exact guard file from reviewed tree 82e9abd1afa6180815ef7ea5ea314d6eb692e036.
         self.assertEqual(digest(historical_guard),
                          'ea2dd4b7a5e4854a713eca620cda046b28b9091bd272006dc88466bb1bb716a4')
+
+    def test_current_complete_bundle_restores_the_same_original_helper_hash(self):
+        self.install(self.currentimages)
+        self.assertEqual(self.project(), self.preimage)
+        self.assertEqual(digest(self.project()),
+                         'a7fe8e68a972c3ffc0eb4390654669d85c78771c24237c9b2c09b34a68bfcf75')
+        for name, row in self.evolution.items():
+            original = self.preimages[name]
+            restored = original
+            for offset, after, before in history.STORAGE_INVERSE_DELTAS[name]:
+                self.assertEqual(restored[offset:offset + len(before)], before)
+                restored = restored[:offset] + after + restored[offset + len(before):]
+            self.assertEqual(restored, self.postimages[name])
+            for delta in row['inverse_deltas']:
+                offset = delta['postimage_offset']
+                before, after = bytes.fromhex(delta['preimage_hex']), bytes.fromhex(delta['postimage_hex'])
+                self.assertEqual(restored[offset:offset + len(before)], before)
+                restored = restored[:offset] + after + restored[offset + len(before):]
+            self.assertEqual(restored, self.currentimages[name])
+            self.assertEqual(digest(original), history.APP_SHA256[name][0])
+
+    def test_every_distinct_mixed_three_generation_bundle_fails_closed(self):
+        names = tuple(history.APP_SHA256)
+        states = (self.preimages, self.postimages, self.currentimages)
+        accepted = {tuple(state[name] for name in names) for state in states}
+        tested = set()
+        for generations in product(states, repeat=len(names)):
+            bundle = tuple(state[name] for state, name in zip(generations, names))
+            if bundle in accepted or bundle in tested:
+                continue
+            tested.add(bundle)
+            with self.subTest(hashes=tuple(map(digest, bundle))):
+                self.rejects(dict(zip(names, bundle)))
+        self.assertEqual(len(accepted), 3)
+        self.assertEqual(len(tested), 15)
+
+    def test_each_evolution_region_missing_duplicated_moved_or_partially_inverted_fails(self):
+        for name, row in self.evolution.items():
+            raw = self.currentimages[name]
+            for number, delta in enumerate(row['inverse_deltas']):
+                offset = delta['postimage_offset']
+                after, before = bytes.fromhex(delta['postimage_hex']), bytes.fromhex(delta['preimage_hex'])
+                self.assertEqual(raw.count(after), 1)
+                missing = raw[:offset] + raw[offset + len(after):]
+                mutations = {'missing': missing, 'duplicated': raw[:offset] + after + raw[offset:],
+                             'moved': after + missing,
+                             'partial_inverse': raw[:offset] + before + raw[offset + len(after):]}
+                for mutation, data in mutations.items():
+                    with self.subTest(path=name, region=number, mutation=mutation):
+                        self.rejects({**self.currentimages, name: data})
+
+    def test_current_bundle_unrelated_crlf_storage_and_default_mutations_fail(self):
+        for name, raw in self.currentimages.items():
+            for label, data in [('unrelated', b'// Added.\n' + raw),
+                                ('crlf', raw.replace(b'\n', b'\r\n'))]:
+                with self.subTest(path=name, mutation=label):
+                    self.rejects({**self.currentimages, name: data})
+        for name, old, new in [
+            (COMPOSITION, b'= nil\n#endif', b'= TemplateAuthoringMemoryStorage()\n#endif'),
+            (SESSION, b'        return templateAuthoringSecureStorage\n',
+             b'        return TemplateAuthoringMemoryStorage()\n'),
+        ]:
+            raw = self.currentimages[name]
+            self.assertEqual(raw.count(old), 1)
+            self.rejects({**self.currentimages, name: raw.replace(old, new, 1)})
+        for name, deltas in OTHER_DELTAS.items():
+            for after, before in deltas:
+                raw = self.currentimages[name]
+                self.assertEqual(raw.count(after), 1)
+                self.rejects({**self.currentimages, name: raw.replace(after, before, 1)})
+
+    def test_only_evolved_bundle_requires_each_later_complete_app_preimage(self):
+        for label, sources in [('original', self.preimages), ('changed', self.postimages),
+                               ('evolved', self.currentimages)]:
+            for name, original in self.preimages.items():
+                mutations = [None, original[:-1], original + b'\n',
+                             original.replace(b'\n', b'\r\n'), self.postimages[name]]
+                for number, data in enumerate(mutations):
+                    with self.subTest(state=label, path=name, mutation=number):
+                        self.install(sources)
+                        path = self.root / history.PREIMAGE_FILES[name]
+                        if data is None:
+                            path.unlink()
+                        else:
+                            path.write_bytes(data)
+                        if label == 'evolved' or name == FIXTURE:
+                            with self.assertRaises(ValueError):
+                                self.project()
+                        else:
+                            self.assertEqual(self.project(), self.preimage)
+
+    def test_manifest_missing_or_mutated_is_never_hidden_by_cached_history(self):
+        changed = json.loads(self.manifest)
+        changed['files'][COMPOSITION]['inverse_deltas'].pop()
+        mutations = [None, self.manifest[:-1], self.manifest + b'\n',
+                     self.manifest.replace(b'\n', b'\r\n'), json.dumps(changed).encode()]
+        for sources in (self.preimages, self.postimages, self.currentimages):
+            for number, raw in enumerate(mutations):
+                with self.subTest(state=digest(sources[SESSION]), mutation=number):
+                    self.install(sources)
+                    self.assertEqual(self.project(), self.preimage)
+                    path = self.root / history.EVOLUTION_FILE
+                    if raw is None:
+                        path.unlink()
+                    else:
+                        path.write_bytes(raw)
+                    if sources is self.currentimages:
+                        with self.assertRaises(ValueError):
+                            self.project()
+                    else:
+                        self.assertEqual(self.project(), self.preimage)
+
+    def test_legacy_minimal_bundle_needs_no_later_manifest_or_app_preimages(self):
+        for label, sources in [('original', self.preimages), ('changed', self.postimages)]:
+            for mutation in ('missing', 'corrupt'):
+                with self.subTest(state=label, later_inputs=mutation):
+                    self.install(sources)
+                    later = [history.EVOLUTION_FILE, history.PREIMAGE_FILES[COMPOSITION],
+                             history.PREIMAGE_FILES[SESSION]]
+                    for relative in later:
+                        path = self.root / relative
+                        if mutation == 'missing':
+                            path.unlink()
+                        else:
+                            path.write_bytes(b'Corrupt later-generation evidence.\n')
+                    self.assertEqual(self.project(), self.preimage)
+                    self.assertEqual(self.project(), self.preimage)
+                    (self.root / history.PREIMAGE_FILE).write_bytes(self.preimage + b'\n')
+                    with self.assertRaisesRegex(ValueError, 'preimage changed'):
+                        self.project()
+
+    def test_same_absent_later_inputs_cannot_admit_the_evolved_bundle(self):
+        for relative in (history.EVOLUTION_FILE, history.PREIMAGE_FILES[COMPOSITION],
+                         history.PREIMAGE_FILES[SESSION]):
+            with self.subTest(path=relative):
+                self.install(self.currentimages)
+                (self.root / relative).unlink()
+                with self.assertRaises(ValueError):
+                    self.project()
+
+    def test_current_sources_are_read_only_and_later_mutations_remain_visible(self):
+        self.install(self.currentimages)
+        before = {path: path.read_bytes() for path in self.root.rglob('*') if path.is_file()}
+        self.assertEqual(self.project(), self.preimage)
+        after = {path: path.read_bytes() for path in self.root.rglob('*') if path.is_file()}
+        self.assertEqual(before, after)
+        for name in history.APP_SHA256:
+            with self.subTest(path=name):
+                self.install(self.currentimages)
+                self.assertEqual(self.project(), self.preimage)
+                path = self.root / name
+                path.write_bytes(path.read_bytes() + b'\n')
+                with self.assertRaisesRegex(ValueError, 'Mixed or unreviewed'):
+                    self.project()
+
+    def test_all_old_sha_anchors_and_original_guard_bytes_stay_exact(self):
+        self.assertEqual(history.APP_SHA256[COMPOSITION], (
+            '2c1d87087325898aaa78cb644b780c3132736536c1971318c473eddabdf439d4',
+            '006923cb90a730259ba135784ae802350125c31cfb584d89a88d4209f8986dbb'))
+        self.assertEqual(history.APP_SHA256[SESSION], (
+            'e2f082a23132df938bebd49972eb4a1eab79c1070a76f04348cae080a28a377f',
+            '5ac846ff656a7b74f0c9bd28200f11a257ae260f5c881f201c2a3b026af6dd09'))
+        self.assertEqual(history.APP_SHA256[FIXTURE], (
+            'a7fe8e68a972c3ffc0eb4390654669d85c78771c24237c9b2c09b34a68bfcf75',
+            '4084ba4106fb94630ba3091ef7eb754e29864a21a85c38123b82ec58e4f7ebee'))
+        self.test_original_guard_changes_are_limited_to_helper_byte_read_connection()
 
 
 if __name__ == '__main__':

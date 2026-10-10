@@ -85,3 +85,59 @@ This fixture does not establish real Keychain or physical-device behavior.
 `PlayRecoverySystemStorageTests`, and `PlayRecoveryDeviceStorageAcceptanceTests`
 remain separate, unchanged acceptance gates. They also do not establish the
 exact template storage adapter's behavior in the UI-test app process.
+
+
+## Exact later App evolution admission (2026-10-10)
+
+The historical gate also validates AppCompositionRoot and AppSession as part of
+its complete three-file bundle. Reviewed project node-image wiring and the
+project metadata category reader evolved those two files after the storage
+change. The fixture remained byte-identical to its reviewed storage postimage.
+The older adapter therefore rejected the integrated bundle; its 14 negative
+controls also failed in setup because they treated current App bytes as the old
+storage postimage. This is a historical projection failure, not evidence of a
+current storage failure.
+
+The adapter now admits exactly three complete bundle states: the original,
+the reviewed storage-only change, and the reviewed integrated App evolution.
+Its original six before/after SHA-256 anchors, original fixture inverse,
+FixtureSupport preimage, historical budget gate, inventory and budgets are
+unchanged. The additional state requires all three current file identities
+together. It cannot admit independently mixed generations.
+
+The complete historical App files come from the delivered
+`Native-iOS-Local-Validated-d09c-Full-Source-20261008.zip`, SHA-256
+`684c097c212c708296ffb431f0719eece3a291a9c81b60459e834819b4106de2`.
+Its frozen source manifest has SHA-256
+`7f7256b6ae18eeac9573185a54621e986a9f332fdb8307d049fbab2cf49f9abe`
+and binds all three storage postimages to the adapter's existing hashes.
+The two new complete App preimages are reconstructed from those delivered
+postimages using the already reviewed storage deltas and must match the
+existing original hashes `2c1d8708…` and `e2f082a2…`. No historical App bytes
+are inferred from a current digest.
+
+The hash-bound `reviewed-evolution.json` records the complete old/current file
+identities and nine exact raw-byte regions: three AppCompositionRoot regions,
+five AppSession project node-image regions, and one AppSession category-reader
+region. The integrated source is commit
+`3a94b2c32a89acb6b0da981bfe9f407b2476f2f4`, tree
+`6b43dc7a42586de04cff8c1cb6b5bc078fd0e83d`. For this complete bundle only,
+the adapter reverses those exact bounded regions, requires the unchanged old
+storage postimage hashes, then reverses the original storage deltas and compares
+every complete result to its original-SHA-bound preimage. Tests reconstruct
+both forward stages byte-for-byte as well. No production source is rewritten,
+and no result is cached across reads. The two original accepted bundle states
+retain the exact old input domain: they require only their three bound App
+sources and the existing FixtureSupport preimage. Missing or corrupt later
+manifest/App-preimage files cannot reject an otherwise valid legacy bundle.
+Only the evolved state requires those additional evidence inputs.
+
+The historical controls now retain all 14 existing cases and add coverage for
+all 15 distinct invalid three-generation bundles; missing, duplicated, moved
+and partially inverted evolution regions; every complete preimage and manifest;
+legacy minimal-root acceptance despite missing/corrupt later evidence; current
+nil/secure-storage and CRLF mutations; read-only projection; and later
+mutations after a successful read. Current creator storage behavior remains
+covered separately by the unchanged consent, observation, pending and synthetic
+storage source contracts. These checks do not replace Apple compilation,
+AppUnit/UI execution, physical-device or real Keychain acceptance.
