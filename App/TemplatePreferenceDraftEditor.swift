@@ -47,6 +47,7 @@ import SwiftUI
                     }
                 Button("templateAuthor.preference.example") { replaceExample = true }
                     .accessibilityIdentifier("templateAuthor.preference.example")
+                TemplatePreferenceRemovalPanel(model: model)
                 Button("templateAuthor.preference.check") { validate() }
                     .disabled(checking || !editable).accessibilityIdentifier("templateAuthor.preference.check")
                 if checking { ProgressView("templateAuthor.preference.checking") }

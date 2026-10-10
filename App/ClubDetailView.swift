@@ -56,6 +56,10 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                 if club.isOwner, let session = reader as? AppSession {
                     Section { NavigationLink("context.ai.title") { SessionClubAIDesignView(session: session, clubID: id) }.accessibilityIdentifier("club.context.openAI") }
                 }
+                if let session = reader as? AppSession {
+                    // Keep the scope binder mounted for non-owners so owner loss fences old callbacks immediately.
+                    ClubMerchantDiscoveryView(club: club, clubReader: reader, reader: session.cooperationFlowReader)
+                }
                 if let community { Section { ClubCommunityEntry(clubID: id, identity: reader.clubIdentity, context: community) } }
                 // V2 governance has its own access/me model, including delegated event staff.
                 if let governance = management?.governance {
