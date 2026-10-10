@@ -6,6 +6,7 @@ from decimal import Decimal
 from pathlib import Path
 import hashlib,json,re,tempfile,unittest
 from tools.tests.club_parity_budget_history import historical_pre_club_source, historical_pre_club_module
+from tools.tests.player_map_history_budget_history import validated_pre_run129_directory
 from tools.tests.combined_native_budget_history import before_combined,canonical,materialize_independent_ui,source_index,CURRENT_PROFILE_SHA256
 from tools.tests.story_media_budget_history import before_story_media
 from tools.tests.reviewed_map_budget_history import before_reviewed_map
@@ -55,8 +56,9 @@ class CombinedNativeBudgetTests(unittest.TestCase):
   for branch,count,classes in [('media',704,141),('map',664,108)]:
    with tempfile.TemporaryDirectory() as tmp:
     sources=materialize_independent_ui(tmp,branch);found=shard.discover(sources);self.assertEqual((sum(found.values()),len(found)),(count,classes))
-   for row in source_index()[branch]['ui_sources']:
-    if 'historical_file' not in row:self.assertEqual(hashlib.sha256(historical_pre_club_source(ROOT/row['path']).read_bytes()).hexdigest(),row['sha256'])
+   with validated_pre_run129_directory(ROOT) as current:
+    for row in source_index()[branch]['ui_sources']:
+     if 'historical_file' not in row:self.assertEqual(hashlib.sha256(historical_pre_club_source(current/Path(row['path']).name).read_bytes()).hexdigest(),row['sha256'])
  def test_64_fits_and_65_is_chosen_for_30_seconds_additional_margin(self):
   self.assertEqual((shard.DEFAULT_SHARD_COUNT,ci_gates.SHARD_COUNT,self.plan['shard_count']),(65,65,65));self.assertEqual((self.plan['deadline_seconds'],self.plan['startup_reserve_seconds'],self.plan['complete_method_limit_seconds']),(1800,300,900));self.assertEqual(sum(self.costs.values()),Decimal('89264.732'));self.assertEqual(max(self.costs.values()),1470)
   counts=shard.discover(self.ui_root)
