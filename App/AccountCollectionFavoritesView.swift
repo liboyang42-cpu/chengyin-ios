@@ -5,6 +5,7 @@ import SwiftUI
     let onOpenTopic: (Int) -> Void
     var pageSize = 10
     var onOpenPost: ((SquareContentRoute) -> Void)? = nil
+    var favoriteRemoval: ProfileFavoriteRemovalController? = nil
     @State private var selectedTab: Tab = .posts
     private enum Tab: Hashable { case posts, topics }
     var body: some View {
@@ -16,7 +17,7 @@ import SwiftUI
             .pickerStyle(.segmented).padding()
             .accessibilityIdentifier("accountCollection.favorites.tabs")
             if selectedTab == .posts {
-                AccountCollectionFavoritePostsView(reader: reader, pageSize: pageSize, onOpenPost: onOpenPost)
+                AccountCollectionFavoritePostsView(reader: reader, pageSize: pageSize, onOpenPost: onOpenPost, favoriteRemoval: favoriteRemoval)
             } else {
                 AccountCollectionFavoriteTopicsView(reader: reader, onOpenTopic: onOpenTopic, pageSize: pageSize)
             }
@@ -107,6 +108,7 @@ private struct AccountCollectionFavoriteCard: View {
     let onOpenTopic: (Int) -> Void
     var rewards: (any NonCashRewardReading)? = nil
     var onOpenPost: ((SquareContentRoute) -> Void)? = nil
+    var favoriteRemoval: ProfileFavoriteRemovalController? = nil
     var body: some View {
         Section {
             NavigationLink {
@@ -114,7 +116,7 @@ private struct AccountCollectionFavoriteCard: View {
             } label: { Label("rewards.title", systemImage: "gift") }
             .accessibilityIdentifier("rewards.open")
             NavigationLink {
-                AccountCollectionFavoritesView(reader: reader, onOpenTopic: onOpenTopic, onOpenPost: onOpenPost).id(reader.scope)
+                AccountCollectionFavoritesView(reader: reader, onOpenTopic: onOpenTopic, onOpenPost: onOpenPost, favoriteRemoval: favoriteRemoval).id(reader.scope)
             } label: { Label("accountCollection.favorites.title", systemImage: "heart") }
             .accessibilityIdentifier("accountCollection.openFavorites")
             NavigationLink {
@@ -129,6 +131,7 @@ private struct AccountCollectionFavoriteCard: View {
     let reader: any AccountCollectionReading
     let pageSize: Int
     let onOpenPost: ((SquareContentRoute) -> Void)?
+    let favoriteRemoval: ProfileFavoriteRemovalController?
     @StateObject private var model = AccountCollectionPostsScreenModel()
     private var key: AccountCollectionLoadKey { AccountCollectionLoadKey(reader: reader) }
     var body: some View {
@@ -157,6 +160,11 @@ private struct AccountCollectionFavoriteCard: View {
                     .disabled(onOpenPost == nil)
                     .accessibilityIdentifier("accountCollection.post.\(post.id)")
                     .questifyCardListRow()
+                    if let favoriteRemoval {
+                        ProfileFavoriteRemovalEntry(post: post, scope: key.scope, controller: favoriteRemoval,
+                            isCurrent: { reader.isAuthenticated && reader.isConfigured && model.state.loadedScope == reader.scope },
+                            onRemoved: { await refresh() })
+                    }
                     NativeMediaGalleryEntry(sources: post.images, scope: reader.scope, titleKey: "media.destination.squareImages")
                 }
                 if let issue = model.state.moreIssue {

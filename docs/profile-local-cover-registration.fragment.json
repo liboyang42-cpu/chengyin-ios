@@ -1,0 +1,37 @@
+{
+  "status": "PENDING_PARENT_INTEGRATION",
+  "app_sources": [
+    "App/ProfileLocalCoverSection.swift",
+    "App/ProfileLocalCoverFixture.swift"
+  ],
+  "core_sources": [
+    "Core/ProfileLocalCover.swift",
+    "Core/ProfileLocalCoverFileStore.swift"
+  ],
+  "app_unit_test_sources": [
+    "Tests/AppUnitTests/ProfileLocalCoverAppTests.swift"
+  ],
+  "app_ui_test_sources": [
+    "Tests/AppUITests/ProfileLocalCoverFlowTests.swift"
+  ],
+  "spm_test_sources": [
+    "Tests/CoreTests/ProfileLocalCoverTests.swift"
+  ],
+  "localization_fragment": "Resources/ProfileLocalCoverLocalizations.fragment.json",
+  "new_localization_keys": 18,
+  "ui_fixture_launch": {
+    "flag": "--uitesting-profile-local-cover",
+    "host": "ProfileLocalCoverFixtureHost()",
+    "debug_only": true,
+    "uses_seventh_fixture_reader": true
+  },
+  "central_files_modified": [],
+  "merge_instructions": [
+    "Register the two new App and two new Core files in the app target plus tests and merge 18 bilingual keys.",
+    "Add the DEBUG fixture launch flag centrally. It injects a locally generated image into the real preview/confirm/cancel editor, not the system photo picker.",
+    "Apply after seventh increment, preserving its author-post refresh section; merge AccountView’s six-line addition with any newer central entries.",
+    "Keep all prior editor packages, root body split and fixture API-base changes. AppSession and production permissions are unchanged.",
+    "Do not describe this package as completion of Mini upload/sync or image URL preview."
+  ],
+  "apple": "NOT_RUN"
+}

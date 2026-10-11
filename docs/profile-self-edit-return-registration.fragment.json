@@ -1,0 +1,39 @@
+{
+  "status": "READY_FOR_CENTRAL_REGISTRATION",
+  "app_sources": [
+    "App/ProfileSelfEditAccess.swift",
+    "App/ProfileSelfEditFixture.swift"
+  ],
+  "core_sources": [
+    "Core/ProfileSelfEditNavigation.swift"
+  ],
+  "app_unit_test_sources": [
+    "Tests/AppUnitTests/ProfileSelfEditReturnTests.swift"
+  ],
+  "app_ui_test_sources": [
+    "Tests/AppUITests/ProfileSelfEditReturnFlowTests.swift"
+  ],
+  "spm_test_sources": [
+    "Tests/CoreTests/ProfileSelfEditNavigationTests.swift"
+  ],
+  "localization_fragment": "Resources/ProfileSelfEditLocalizations.fragment.json",
+  "new_localization_keys": 2,
+  "fixture_launch": {
+    "flag": "--uitesting-profile-self-edit-return",
+    "scenario_flag": "--profile-self-edit-scenario",
+    "host": "ProfileSelfEditFixtureHost(scenario: scenario)",
+    "scenarios": [
+      "own",
+      "other",
+      "guest"
+    ],
+    "debug_only": true
+  },
+  "ordinary_wiring": "Included: AccountView public-self destination passes its existing profileEditCoordinator, contentDetailRevision and session category reader. No AppSession changes or additional runtime grant are needed. Other public-profile callers retain nil selfEditAccess.",
+  "dependencies": "Apply after seventh and eighth exact afterimages; merge AccountView additively, preserving central edits. New files referenced by normal path require source registration.",
+  "editor_dependency": "Existing ProfileEditView retained byte-identical to base415 including central body split; use centrally integrated first-six editor enhancements, never overwrite with historical editor source.",
+  "central_files_modified": [],
+  "new_endpoints": [],
+  "new_production_approvals": [],
+  "apple": "NOT_RUN"
+}

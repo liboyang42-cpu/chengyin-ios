@@ -1,0 +1,182 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "profile.favoriteRemoval.open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove saved post…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消收藏帖文…"
+          }
+        }
+      }
+    },
+    "profile.favoriteRemoval.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove saved post"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消收藏帖文"
+          }
+        }
+      }
+    },
+    "profile.favoriteRemoval.postID": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Post ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "帖文编号"
+          }
+        }
+      }
+    },
+    "profile.favoriteRemoval.explanation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This removes the post from your saved posts only. It does not delete the post or remove a topic like."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅从本人的收藏中移除此帖文，不删除帖文，也不取消主题点赞。"
+          }
+        }
+      }
+    },
+    "profile.favoriteRemoval.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm removal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认取消收藏"
+          }
+        }
+      }
+    },
+    "profile.favoriteRemoval.working": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking the current saved state…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在核对当前收藏状态…"
+          }
+        }
+      }
+    },
+    "profile.favoriteRemoval.changed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This account or reviewed action changed. Close and reopen from the current saved list."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账户或本次审阅已变化，请关闭后从当前收藏列表重新打开。"
+          }
+        }
+      }
+    },
+    "profile.favoriteRemoval.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The current saved state could not be verified. Retry the check before confirming."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未能核对当前收藏状态，请重试核对后再确认。"
+          }
+        }
+      }
+    },
+    "profile.favoriteRemoval.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The previous result is not confirmed. Do not submit again. You can check the current saved state without sending another removal."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上次结果尚未确认，不能再次提交。可以只核对当前状态，不重发取消请求。"
+          }
+        }
+      }
+    },
+    "profile.favoriteRemoval.check": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check current state only"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅核对当前状态"
+          }
+        }
+      }
+    },
+    "profile.favoriteRemoval.removed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This post is no longer saved. Done refreshes your saved list."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已确认此帖文不在收藏中，点击完成后刷新收藏列表。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

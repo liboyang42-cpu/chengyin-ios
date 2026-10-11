@@ -1,0 +1,37 @@
+{
+  "status": "CONTRACT_AND_INJECTABLE_CHAIN_READY_PRODUCTION_NOT_ENABLED",
+  "app_sources": [
+    "App/ProfileFavoriteRemovalView.swift",
+    "App/ProfileFavoriteRemovalFixture.swift"
+  ],
+  "core_sources": [
+    "Core/ProfileFavoriteRemoval.swift"
+  ],
+  "app_unit_test_sources": [
+    "Tests/AppUnitTests/ProfileFavoriteRemovalAppTests.swift"
+  ],
+  "app_ui_test_sources": [
+    "Tests/AppUITests/ProfileFavoriteRemovalFlowTests.swift"
+  ],
+  "spm_test_sources": [
+    "Tests/CoreTests/ProfileFavoriteRemovalTests.swift"
+  ],
+  "localization_fragment": "Resources/ProfileFavoriteRemovalLocalizations.fragment.json",
+  "new_localization_keys": 11,
+  "fixture_launch": {
+    "flag": "--uitesting-profile-favorite-removal",
+    "scenario_flag": "--profile-favorite-removal-scenario",
+    "host": "ProfileFavoriteRemovalFixtureHost(scenario: scenario)",
+    "debug_only": true
+  },
+  "ordinary_injection": "AccountCollectionAccountLinks.favoriteRemoval -> AccountCollectionFavoritesView.favoriteRemoval -> per-post entry; nil default deliberately hides the action. No root/AppSession injection done.",
+  "required_production_dependencies": [
+    "Exact ProfileFavoriteRemovalApproval, paths = api/creativesquare/info + api/creativesquare/bookmark, account/post/identity/expiry bounded",
+    "Existing ephemeral session/token and matching collectionScope/namespace; no new credentials",
+    "Existing approved no-redirect transport and durable OperationPendingJournal",
+    "Central factory/AccountView injection after separate permission review; do not fabricate a grant from a base URL"
+  ],
+  "central_files_modified": [],
+  "production_enabled": false,
+  "apple": "NOT_RUN"
+}

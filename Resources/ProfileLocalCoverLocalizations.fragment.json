@@ -1,0 +1,294 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "profile.localCover.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cover on this device"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机封面"
+          }
+        }
+      }
+    },
+    "profile.localCover.deviceOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only for your account on this device. This image is not uploaded, shared with other people or synced to other devices."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅供此账户在本机显示，不上传、不向他人展示，也不同步到其他设备。"
+          }
+        }
+      }
+    },
+    "profile.localCover.edit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Customize this device’s cover"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设置本机封面"
+          }
+        }
+      }
+    },
+    "profile.localCover.choose": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a photo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择照片"
+          }
+        }
+      }
+    },
+    "profile.localCover.crop": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adjust a 16:9 cover"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "调整 16:9 封面"
+          }
+        }
+      }
+    },
+    "profile.localCover.preview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local cover preview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机封面预览"
+          }
+        }
+      }
+    },
+    "profile.localCover.default": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Default cover"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "默认封面"
+          }
+        }
+      }
+    },
+    "profile.localCover.saveReview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save this cropped image as your cover on this device?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将这张裁剪后的图片保存为本机封面？"
+          }
+        }
+      }
+    },
+    "profile.localCover.save": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save on this device"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存到本机"
+          }
+        }
+      }
+    },
+    "profile.localCover.restore": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore default cover…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复默认封面…"
+          }
+        }
+      }
+    },
+    "profile.localCover.restoreReview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove this device’s saved cover and restore the default? Your photo library and online profile will not change."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移除本机已保存的封面并恢复默认？不会更改相册原图或线上资料。"
+          }
+        }
+      }
+    },
+    "profile.localCover.restoreConfirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore default"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认恢复默认"
+          }
+        }
+      }
+    },
+    "profile.localCover.selecting": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparing selected photo…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在处理所选照片…"
+          }
+        }
+      }
+    },
+    "profile.localCover.invalid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This image could not be prepared. Choose another photo."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法处理这张图片，请重新选择。"
+          }
+        }
+      }
+    },
+    "profile.localCover.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The local cover could not be verified. Close the preview and reload the saved cover before trying again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未能验证本机封面。请关闭预览并重新读取已保存的封面后再试。"
+          }
+        }
+      }
+    },
+    "profile.localCover.changed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The saved cover changed elsewhere. Close the preview and reload it before making another change."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已保存的封面发生变化。请关闭预览并重新读取后再修改。"
+          }
+        }
+      }
+    },
+    "profile.localCover.saved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cover saved on this device."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机封面已保存。"
+          }
+        }
+      }
+    },
+    "profile.localCover.reload": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload saved cover"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新读取本机封面"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

@@ -1,0 +1,85 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "profile.selfGrowth.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My growth overview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我的成长概览"
+          }
+        }
+      }
+    },
+    "profile.selfGrowth.points": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Growth points"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成长积分"
+          }
+        }
+      }
+    },
+    "profile.selfGrowth.checkins": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lifetime check-ins"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "累计打卡"
+          }
+        }
+      }
+    },
+    "profile.selfGrowth.streak": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Consecutive days"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "连续打卡天数"
+          }
+        }
+      }
+    },
+    "profile.selfGrowth.openCenter": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open growth center"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看成长中心"
+          }
+        }
+      }
+    }
+  }
+}

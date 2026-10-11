@@ -1,0 +1,37 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "profile.selfEdit.open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit personal introduction"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑个人介绍"
+          }
+        }
+      }
+    },
+    "profile.selfEdit.changed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This profile editor is no longer current"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此资料编辑页面已失效"
+          }
+        }
+      }
+    }
+  }
+}

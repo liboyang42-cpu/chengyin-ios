@@ -1,0 +1,41 @@
+{
+  "status": "READY_FOR_CENTRAL_REGISTRATION",
+  "app_sources": [
+    "App/ProfileSelfProjectsSection.swift",
+    "App/ProfileSelfProjectsFixture.swift"
+  ],
+  "core_sources": [
+    "Core/ProfileSelfProjects.swift"
+  ],
+  "spm_test_sources": [
+    "Tests/CoreTests/ProfileSelfProjectsTests.swift"
+  ],
+  "app_unit_test_sources": [
+    "Tests/AppUnitTests/ProfileSelfProjectsAppTests.swift"
+  ],
+  "app_ui_test_sources": [
+    "Tests/AppUITests/ProfileSelfProjectsFlowTests.swift"
+  ],
+  "localization_fragment": "Resources/ProfileSelfProjectsLocalizations.fragment.json",
+  "new_localization_keys": 10,
+  "fixture_launch": {
+    "flag": "--uitesting-profile-self-projects",
+    "scenario_flag": "--profile-self-projects-scenario",
+    "host": "ProfileSelfProjectsFixtureHost(scenario: scenario)",
+    "debug_only": true
+  },
+  "ordinary_wiring": "Included AccountView selfProjectsAccess(session:) through its existing CreatorContentReading. Own-context-only projects tab. No AppSession edit.",
+  "dependencies": "Base49 already includes #7; exact #8 -> #10 -> #11 -> #12 overlay (43 paths). Additive shared-page merge required.",
+  "existing_reuse": [
+    "CreatorContentReading.projects all/all/all",
+    "CreatorContentProjectsView",
+    "SessionTopicDetailView",
+    "ActivityDetailView",
+    "DiscoveryTemplateDetailView"
+  ],
+  "new_endpoints": [],
+  "new_approvals": [],
+  "media_reader_injection": false,
+  "central_files_modified": [],
+  "apple": "NOT_RUN"
+}

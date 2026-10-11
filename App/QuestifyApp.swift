@@ -86,6 +86,18 @@ struct QuestifyApp: App {
                     ClubOperationsFixtureHostView(scenario: clubOperations)
                 } else if let clubManagement=ClubManagementFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) {
                     ClubManagementFixtureRootView(scenario:clubManagement)
+                } else if ProcessInfo.processInfo.arguments.contains("--uitesting-profile-local-cover") {
+                    ProfileLocalCoverFixtureHost()
+                } else if ProcessInfo.processInfo.arguments.contains("--uitesting-profile-favorite-removal") {
+                    ProfileFavoriteRemovalFixtureHost(scenario: fixtureArgument("--profile-favorite-removal-scenario") ?? "content")
+                } else if ProcessInfo.processInfo.arguments.contains("--uitesting-profile-self-edit-return") {
+                    ProfileSelfEditFixtureHost(scenario: fixtureArgument("--profile-self-edit-scenario") ?? "own")
+                } else if ProcessInfo.processInfo.arguments.contains("--uitesting-profile-self-medals") {
+                    ProfileSelfMedalsFixtureHost(scenario: fixtureArgument("--profile-self-medals-scenario") ?? "content")
+                } else if ProcessInfo.processInfo.arguments.contains("--uitesting-profile-self-growth") {
+                    ProfileSelfGrowthFixtureHost(scenario: fixtureArgument("--profile-self-growth-scenario") ?? "content")
+                } else if ProcessInfo.processInfo.arguments.contains("--uitesting-profile-self-projects") {
+                    ProfileSelfProjectsFixtureHost(scenario: fixtureArgument("--profile-self-projects-scenario") ?? "content")
                 } else if ProcessInfo.processInfo.arguments.contains("--uitesting-profile-author-posts-refresh") {
                     ProfileAuthorPostsRefreshFixtureHost(scenario: fixtureArgument("--profile-author-posts-scenario") ?? "content")
                 } else if let profileEdit=ProfileEditFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) {
@@ -163,6 +175,12 @@ final class AppSessionContainer: ObservableObject {
            ClubActionFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||
            ClubOperationsFixtureHostView.selected(arguments: ProcessInfo.processInfo.arguments) != nil ||
            ClubManagementFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||
+           ProcessInfo.processInfo.arguments.contains("--uitesting-profile-local-cover") ||
+           ProcessInfo.processInfo.arguments.contains("--uitesting-profile-favorite-removal") ||
+           ProcessInfo.processInfo.arguments.contains("--uitesting-profile-self-edit-return") ||
+           ProcessInfo.processInfo.arguments.contains("--uitesting-profile-self-medals") ||
+           ProcessInfo.processInfo.arguments.contains("--uitesting-profile-self-growth") ||
+           ProcessInfo.processInfo.arguments.contains("--uitesting-profile-self-projects") ||
            ProcessInfo.processInfo.arguments.contains("--uitesting-profile-author-posts-refresh") ||
            ProfileEditFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil ||
            RegistrationFixtureScenario.selected(arguments:ProcessInfo.processInfo.arguments) != nil {

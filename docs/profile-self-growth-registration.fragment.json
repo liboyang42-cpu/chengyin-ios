@@ -1,0 +1,39 @@
+{
+  "status": "READY_FOR_CENTRAL_REGISTRATION",
+  "app_sources": [
+    "App/ProfileSelfGrowthSection.swift",
+    "App/ProfileSelfGrowthFixture.swift"
+  ],
+  "core_sources": [
+    "Core/ProfileSelfGrowth.swift"
+  ],
+  "spm_test_sources": [
+    "Tests/CoreTests/ProfileSelfGrowthTests.swift"
+  ],
+  "app_unit_test_sources": [
+    "Tests/AppUnitTests/ProfileSelfGrowthAppTests.swift"
+  ],
+  "app_ui_test_sources": [
+    "Tests/AppUITests/ProfileSelfGrowthFlowTests.swift"
+  ],
+  "localization_fragment": "Resources/ProfileSelfGrowthLocalizations.fragment.json",
+  "new_localization_keys": 5,
+  "fixture_launch": {
+    "flag": "--uitesting-profile-self-growth",
+    "scenario_flag": "--profile-self-growth-scenario",
+    "host": "ProfileSelfGrowthFixtureHost(scenario: scenario)",
+    "debug_only": true
+  },
+  "ordinary_wiring": "Included: AccountView binds its existing growthCenterReader scope to its socialAccountReader identity; only the current own Achievements context can read.",
+  "existing_reuse": [
+    "GrowthCenterReading.overview/leaderboard",
+    "GrowthCenterScreenModel/GrowthCenterReadLifecycle",
+    "GrowthCenterView/GrowthLeaderboardView"
+  ],
+  "dependencies": "Base49 already includes seventh; exact eighth -> tenth -> eleventh afterimages overlaid. Shared page changes require additive central merge.",
+  "new_endpoints": [],
+  "new_approvals": [],
+  "media_reader_injection": false,
+  "central_files_modified": [],
+  "apple": "NOT_RUN"
+}

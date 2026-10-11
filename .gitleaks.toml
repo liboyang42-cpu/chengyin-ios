@@ -25,3 +25,10 @@ condition = "AND"
 regexTarget = "secret"
 paths = ['^tools/run138_editor_readiness_contract\.json$']
 regexes = ['^d5c4b559ba35a52da62527695761a638bb8dfe512f45f73d0010cfa63a1b7942$']
+
+[[rules.allowlists]]
+description = "Only the verified profile self-edit source SHA256 in the readiness source registry"
+condition = "AND"
+regexTarget = "secret"
+paths = ['^tools/run138_editor_readiness_contract\.json$']
+regexes = ['^b6f39b68254a69cfba77701b9354dba0298aab692e07bea6817f8c02abcf5e38$']

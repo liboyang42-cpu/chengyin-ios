@@ -33,6 +33,7 @@ EXPECTED_PATH_REGEXES = [
     r"^tools/targeted_native_selection\.json$",
 ]
 EXPECTED_DIGEST_REGEXES = ["^" + value + "$" for value in REVIEWED_DIGESTS]
+PROFILE_SELF_EDIT_DIGEST = "b6f39b68254a69cfba77701b9354dba0298aab692e07bea6817f8c02abcf5e38"
 
 
 def _require(condition):
@@ -49,7 +50,7 @@ def _validate_reviewed_config(config):
     rule = config["rules"][0]
     _require(set(rule) == {"id", "allowlists"})
     _require(rule["id"] == "generic-api-key")
-    _require(isinstance(rule["allowlists"], list) and len(rule["allowlists"]) == 2)
+    _require(isinstance(rule["allowlists"], list) and len(rule["allowlists"]) == 3)
     allow = rule["allowlists"][0]
     _require(set(allow) == {"description", "condition", "regexTarget", "paths", "regexes"})
     _require(isinstance(allow["description"], str) and allow["description"])
@@ -63,7 +64,13 @@ def _validate_reviewed_config(config):
     _require(readiness["condition"] == "AND" and readiness["regexTarget"] == "secret")
     _require(readiness["paths"] == [r"^tools/run138_editor_readiness_contract\.json$"])
     _require(readiness["regexes"] == [EXPECTED_DIGEST_REGEXES[0]])
-    return allow, readiness
+    profile = rule["allowlists"][2]
+    _require(set(profile) == {"description", "condition", "regexTarget", "paths", "regexes"})
+    _require(isinstance(profile["description"], str) and profile["description"])
+    _require(profile["condition"] == "AND" and profile["regexTarget"] == "secret")
+    _require(profile["paths"] == [r"^tools/run138_editor_readiness_contract\.json$"])
+    _require(profile["regexes"] == ["^" + PROFILE_SELF_EDIT_DIGEST + "$"])
+    return allow, readiness, profile
 
 
 def _exception_applies(config, rule_id, path, extracted_value):
@@ -143,6 +150,22 @@ class GitleaksExactSourceDigestTests(unittest.TestCase):
                            ("paths", [".*"]), ("regexes", EXPECTED_DIGEST_REGEXES)):
             changed = deepcopy(self.config)
             changed["rules"][0]["allowlists"][1][key] = value
+            with self.assertRaises(AssertionError): _validate_reviewed_config(changed)
+
+    def test_profile_self_edit_exception_is_exact_source_digest_and_readiness_path(self):
+        path = "tools/run138_editor_readiness_contract.json"
+        self.assertEqual(hashlib.sha256((ROOT / "App/ProfileSelfEditAccess.swift").read_bytes()).hexdigest(), PROFILE_SELF_EDIT_DIGEST)
+        contract = json.loads((ROOT / path).read_text())
+        self.assertEqual(contract["feature_batch_support_sha256"]["App/ProfileSelfEditAccess.swift"], PROFILE_SELF_EDIT_DIGEST)
+        self.assertTrue(_exception_applies(self.config, "generic-api-key", path, PROFILE_SELF_EDIT_DIGEST))
+        for value in (PROFILE_SELF_EDIT_DIGEST + "0", "0" * 64, PROFILE_SELF_EDIT_DIGEST.upper(), REVIEWED_DIGESTS[1]):
+            self.assertFalse(_exception_applies(self.config, "generic-api-key", path, value))
+        for other in (path + ".bak", "shadow/" + path, "tools/other.json", *TOOL_PATHS):
+            self.assertFalse(_exception_applies(self.config, "generic-api-key", other, PROFILE_SELF_EDIT_DIGEST))
+        self.assertFalse(_exception_applies(self.config, "github-pat", path, PROFILE_SELF_EDIT_DIGEST))
+        for key, value in (("condition", "OR"), ("regexTarget", "line"), ("paths", [".*"]), ("regexes", [r"^[a-f0-9]{64}$"])):
+            changed = deepcopy(self.config)
+            changed["rules"][0]["allowlists"][2][key] = value
             with self.assertRaises(AssertionError): _validate_reviewed_config(changed)
 
     def test_same_path_different_values_are_never_covered(self):

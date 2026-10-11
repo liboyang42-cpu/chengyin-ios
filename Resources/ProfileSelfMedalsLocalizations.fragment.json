@@ -1,0 +1,117 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "profile.selfMedals.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My earned medals"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我获得的勋章"
+          }
+        }
+      }
+    },
+    "profile.selfMedals.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Medals could not be fully loaded. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "勋章暂未加载完整，请重试。"
+          }
+        }
+      }
+    },
+    "profile.selfMedals.retained": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Previously loaded medals are shown while the latest read is unavailable."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时显示上次读取的勋章，最新数据尚未取回。"
+          }
+        }
+      }
+    },
+    "profile.selfMedals.loadedCount": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Medals loaded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已加载勋章"
+          }
+        }
+      }
+    },
+    "profile.selfMedals.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No earned medals yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有获得勋章"
+          }
+        }
+      }
+    },
+    "profile.selfMedals.openWall": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open my badge wall"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看我的勋章墙"
+          }
+        }
+      }
+    },
+    "profile.selfMedals.refresh": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh medals"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新勋章"
+          }
+        }
+      }
+    }
+  }
+}

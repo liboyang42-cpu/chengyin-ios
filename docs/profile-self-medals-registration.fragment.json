@@ -1,0 +1,34 @@
+{
+  "status": "READY_FOR_CENTRAL_REGISTRATION",
+  "app_sources": [
+    "App/ProfileSelfMedalsSection.swift",
+    "App/ProfileSelfMedalsFixture.swift"
+  ],
+  "core_sources": [
+    "Core/ProfileSelfMedals.swift"
+  ],
+  "spm_test_sources": [
+    "Tests/CoreTests/ProfileSelfMedalsTests.swift"
+  ],
+  "app_unit_test_sources": [
+    "Tests/AppUnitTests/ProfileSelfMedalsAppTests.swift"
+  ],
+  "app_ui_test_sources": [
+    "Tests/AppUITests/ProfileSelfMedalsFlowTests.swift"
+  ],
+  "localization_fragment": "Resources/ProfileSelfMedalsLocalizations.fragment.json",
+  "new_localization_keys": 7,
+  "fixture_launch": {
+    "flag": "--uitesting-profile-self-medals",
+    "scenario_flag": "--profile-self-medals-scenario",
+    "host": "ProfileSelfMedalsFixtureHost(scenario: scenario)",
+    "debug_only": true
+  },
+  "ordinary_wiring": "Included: AccountView injects session.profileReader into own public profile; only own Achievements tab reads. Existing ProfileService composite badge-wall read and ObjectBadgeWallView retained.",
+  "dependencies": "Exact seventh -> eighth -> tenth afterimages for shared entry paths; preserve all newer central additions additively.",
+  "new_endpoints": [],
+  "new_approvals": [],
+  "media_reader_injection": false,
+  "central_files_modified": [],
+  "apple": "NOT_RUN"
+}
