@@ -1,0 +1,16 @@
+{
+  "feature": "P045 grouped dynamic-card discussion interactions",
+  "base_commit": "96d727404a966cd3b3d2437c79449046beda560f",
+  "preimage_tree": "c1c158c5d02903f7acf6847d57a2d0cc4b8d7de6",
+  "already_in_baseline": ["club-event-calendar.patch"],
+  "prior_batch_dependencies": ["club-post-image-preview.patch", "club-post-author-profile.patch", "club-post-reference-topic.patch", "club-post-play-preview.patch"],
+  "app_sources": ["App/ClubPostDiscussion.swift", "Core/ClubPostDiscussionSelection.swift"],
+  "modified_sources": ["App/ClubCommunityViews.swift"],
+  "swift_package_tests": ["Tests/CoreTests/ClubPostDiscussionSelectionTests.swift"],
+  "app_unit_tests": ["Tests/AppUnitTests/ClubPostDiscussionReadTests.swift"],
+  "localization_fragment": "Resources/ClubPostDiscussionLocalizations.fragment.json",
+  "pending_native_tests": ["swift test --filter ClubPostDiscussionSelectionTests", "Questify AppUnitTests ClubPostDiscussionReadTests"],
+  "pending_ui_checks": ["body tap and accessibility action expand while long press selects text", "author/image/reference/gameplay buttons remain independent", "same card collapse and other card switch", "loading/empty/error/retry/page boundaries", "late close/refresh/session/role replies rejected", "full-comments sheet returns and refreshes inline page", "source feed page retained and write gates unchanged"],
+  "production_dependency": "Root/integration line owns the existing dormant community source-feed composition.",
+  "registration_policy": "Only central owner updates source registration and merges localization. No PBX, total catalog, CI or existing fixture modifications included."
+}

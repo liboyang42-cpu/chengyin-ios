@@ -1,0 +1,12 @@
+{
+  "feature": "P045 club post image preview",
+  "base_commit": "51d3e24de92427a777f8690f847cec39971b041a",
+  "prior_batch_dependencies": [],
+  "app_sources": ["App/ClubPostImageGallery.swift", "Core/ClubPostImageSelection.swift"],
+  "modified_sources": ["App/ClubCommunityViews.swift", "Core/ClubCommunityContracts.swift"],
+  "swift_package_tests": ["Tests/CoreTests/ClubPostImageSelectionTests.swift"],
+  "localization_fragment": "Resources/ClubPostImagePreviewLocalizations.fragment.json",
+  "pending_native_test": "swift test --filter ClubPostImageSelectionTests",
+  "pending_ui_checks": ["tap second loaded image opens index two", "swipe/previous/next boundaries", "pinch/pan/double-tap/reset", "failed image retry", "close preserves source page and focus", "refresh/post/account change clears preview", "large text and VoiceOver zoom actions"],
+  "registration_policy": "Integrating owner merges the fragment and runs the existing project generator. No PBX or aggregate localization catalog change is included."
+}

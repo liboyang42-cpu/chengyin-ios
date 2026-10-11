@@ -1,0 +1,15 @@
+{
+  "feature": "P045 post author public profile",
+  "base_commit": "51d3e24de92427a777f8690f847cec39971b041a",
+  "preimage_tree": "cd18ac50747907e4ee9a6d246e938a927e952749",
+  "prior_batch_dependencies": ["club-event-calendar.patch", "club-post-image-preview.patch"],
+  "app_sources": ["App/ClubPostAuthorProfile.swift", "Core/ClubPostAuthorRoute.swift"],
+  "modified_sources": ["App/ClubCommunityViews.swift", "App/ClubDetailView.swift", "App/ClubHomeView.swift"],
+  "swift_package_tests": ["Tests/CoreTests/ClubPostAuthorRouteTests.swift"],
+  "localization_fragment": null,
+  "reused_localization_keys": ["social.profile", "club.community.user", "action.close"],
+  "pending_native_test": "swift test --filter ClubPostAuthorRouteTests",
+  "pending_ui_checks": ["club detail author opens exact profile", "club home feed author uses per-post club", "self author and guest public reader", "close/reopen preserves feed page", "reader/account/epoch/role/refresh retirement", "large text and VoiceOver name/close"],
+  "production_dependency": "Existing AppSession community read service is dormant; composition owner must resolve it independently before production end-to-end acceptance.",
+  "registration_policy": "Integrating owner registers only new sources using the existing process. No PBX, catalog or CI change included."
+}

@@ -17,6 +17,7 @@ struct ClubCommunityContext {
 final class ClubCommunityViewModel: ObservableObject {
     let context: ClubCommunityContext
     @Published private(set) var snapshot: ClubCommunitySnapshot?
+    @Published private(set) var imageReadScope = UUID()
     @Published private(set) var loading = false
     @Published var notice: String?
     @Published var review: ClubCommunityReview?
@@ -39,11 +40,11 @@ final class ClubCommunityViewModel: ObservableObject {
         context.coordinator?.cancel()
     }
     func invalidate() {
-        suspend(); snapshot = nil; notice = nil
+        suspend(); imageReadScope = UUID(); snapshot = nil; notice = nil
     }
     func load(_ operation: ClubCommunityRead) async {
         generation &+= 1; let ticket = generation
-        snapshot = nil; loading = true; notice = nil
+        imageReadScope = UUID(); snapshot = nil; loading = true; notice = nil
         do {
             let session = try context.currentSession(); identity = session.identity
             let result = try await context.service.read(operation, session: session) {
@@ -111,6 +112,9 @@ struct ClubCommunityFeedView: View {
     @State private var page = 1
     @State private var composing = false
     @State private var destination: ClubCommunityDestination?
+    @State private var discussion = ClubPostDiscussionState()
+    @Environment(\.clubCustomerTopics) private var topics
+    @Environment(\.clubPostPlayHost) private var discussionHost
     init(context: ClubCommunityContext, identity: ClubReadIdentity, clubID: Int? = nil) {
         self.identity = identity; self.clubID = clubID; _model = StateObject(wrappedValue: ClubCommunityViewModel(context: context))
     }
@@ -123,9 +127,16 @@ struct ClubCommunityFeedView: View {
                 if snapshot.clubCount == 0 { Text("club.community.joinFirst") }
                 else if snapshot.posts.isEmpty { Text("club.community.empty") }
                 ForEach(snapshot.posts) { post in
-                    ClubCommunityPostTile(post: post, clubID: post.clubID ?? clubID, identity: identity, model: model,
-                        openComments: { destination = .init(post: post, clubID: post.clubID ?? clubID, screen: .comments) },
-                        openHistory: { destination = .init(post: post, clubID: post.clubID ?? clubID, screen: .history) })
+                    let target = discussionTarget(post, acceptedPosts: snapshot.posts)
+                    VStack(alignment: .leading, spacing: 8) {
+                        ClubCommunityPostTile(post: post, clubID: post.clubID ?? clubID, identity: identity, model: model,
+                            commentsExpanded: discussion.selection?.post.id == post.id, canOpenComments: target != nil,
+                            openComments: { if let target { toggleDiscussion(target) } },
+                            openHistory: { destination = .init(post: post, clubID: post.clubID ?? clubID, screen: .history) })
+                        if let selected = discussion.selection, selected.post == post {
+                            ClubPostDiscussionPanel(target: selected, source: model, close: { discussion.close() }).id(selected.id)
+                        }
+                    }
                 }
                 HStack {
                     Button("club.community.previous") { page = max(1, page - 1) }.disabled(page == 1)
@@ -149,7 +160,9 @@ struct ClubCommunityFeedView: View {
                 ClubCommunityHistoryView(context: model.context, identity: identity, postID: target.post.id)
             }
         }
-        .onChange(of: identity) { _, _ in destination = nil }
+        .onChange(of: identity) { _, _ in destination = nil; discussion.close() }
+        .onChange(of: model.imageReadScope) { _, _ in discussion.close() }
+        .onChange(of: topics.viewerRevision) { _, _ in discussion.close() }
         .task(id: identity) { model.invalidate(); page = 1; await model.load(operation) }
         .task(id: page) { await model.load(operation) }
         // Pushing a row destination must not remove the NavigationLink that owns it.
@@ -162,6 +175,16 @@ struct ClubCommunityFeedView: View {
             ClubCommunityReviewView(review: review, model: model, refresh: operation)
         }
     }
+    private func discussionTarget(_ post: ClubCommunityPost, acceptedPosts: [ClubCommunityPost]) -> ClubPostDiscussionSelection? {
+        guard let id = post.clubID ?? clubID else { return nil }
+        return .init(post: post, acceptedPosts: acceptedPosts, context: .init(clubID: id, identity: identity,
+            readScope: model.imageReadScope, viewerRevision: topics.viewerRevision))
+    }
+    private func toggleDiscussion(_ target: ClubPostDiscussionSelection) {
+        guard !model.busy, (discussionHost?.isCurrent() ?? true), (try? model.context.currentSession().identity) == identity else { return }
+        discussion.toggle(target, acceptedPosts: model.snapshot?.posts, context: .init(clubID: target.context.clubID,
+            identity: identity, readScope: model.imageReadScope, viewerRevision: topics.viewerRevision))
+    }
 }
 
 @MainActor
@@ -170,6 +193,8 @@ struct ClubCommunityPostTile: View {
     let clubID: Int?
     let identity: ClubReadIdentity
     @ObservedObject var model: ClubCommunityViewModel
+    var commentsExpanded = false
+    var canOpenComments = true
     let openComments: () -> Void
     let openHistory: () -> Void
     @State private var editing = false
@@ -180,21 +205,12 @@ struct ClubCommunityPostTile: View {
     }
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            if let author = post.authorMemberID, author > 0, let open = model.context.onAuthor {
-                Button { open(author) } label: { authorLabel }
-            } else { authorLabel }
-            if post.pinned { Label("club.community.pinned", systemImage: "pin") }
-            if !post.content.isEmpty { Text(verbatim: post.content).textSelection(.enabled) }
-            ForEach(Array(post.images.enumerated()), id: \.offset) { index, image in
-                AsyncImage(url: URL(string: image)) { phase in
-                    if let image = phase.image { image.resizable().scaledToFit() }
-                    else { Image(systemName: "photo").frame(minHeight: 44) }
-                }.accessibilityLabel(Text("club.community.image") + Text(" \(index + 1)"))
-            }
+            ClubPostAuthorProfile(post: post, clubID: clubID, identity: identity, model: model)
+            ClubPostDiscussionBody(post: post, expanded: commentsExpanded, open: canOpenComments ? openComments : nil)
+            ClubPostImageGallery(post: post, clubID: clubID, identity: identity, model: model)
             if !post.sportName.isEmpty, (post.refType == 1 || !post.sportCover.isEmpty) {
-                if let topicID = post.navigableTopicID, let open = model.context.onTopic {
-                    Button(post.sportName) { open(topicID) }
-                } else { Text(verbatim: post.sportName) }
+                ClubPostReferenceView(post: post, clubID: clubID, identity: identity, model: model, openComments: openComments)
+                ClubPostPlayPreview(post: post, clubID: clubID, identity: identity, model: model, openComments: openComments)
             }
             if post.likeCount > 0 || post.commentCount > 0 {
                 HStack { Label("\(post.likeCount)", systemImage: "heart"); Label("\(post.commentCount)", systemImage: "bubble") }.accessibilityElement(children: .combine)
@@ -203,7 +219,8 @@ struct ClubCommunityPostTile: View {
                 HStack {
                     Button { Task { await model.prepare(.toggleLike, clubID: clubID, post: post) } } label: { Label("club.community.like", systemImage: post.liked ? "heart.fill" : "heart") }
                         .disabled(!identity.isSignedIn || model.busy || model.context.coordinator?.permitsInjectedWrites != true)
-                    Button(action: openComments) { Label("club.community.comments", systemImage: "bubble") }
+                    Button(action: openComments) { Label(commentsExpanded ? "club.discussion.collapse" : "club.community.comments", systemImage: "bubble") }
+                        .disabled(!canOpenComments)
                         .accessibilityIdentifier("club.community.comments.\(post.id)")
                 }
                 Menu {
@@ -225,9 +242,6 @@ struct ClubCommunityPostTile: View {
             if let clubID, let fresh = try? await model.context.evidence(clubID, post, nil), fresh.identity == identity { evidence = fresh }
         }
         .sheet(isPresented: $editing, onDismiss: { Task { await model.reviewPendingDraft() } }) { if let clubID { ClubCommunityComposer(model: model, clubID: clubID, post: post) } }
-    }
-    private var authorLabel: some View {
-        Group { if post.nickname.isEmpty { Text("club.community.user") } else { Text(verbatim: post.nickname) } }
     }
 }
 

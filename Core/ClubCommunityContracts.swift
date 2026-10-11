@@ -49,7 +49,7 @@ public struct ClubCommunityRevision: Equatable, Identifiable {
 enum CCWire {
     static func text(_ value: Any?) -> String { ((value as? String) ?? "").trimmingCharacters(in: .whitespacesAndNewlines) }
     static func bool(_ value: Any?) -> Bool { (value as? Bool == true) || (value as? Int == 1) }
-    static func images(_ value: Any?) -> [String] { text(value).split(separator: ";").map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty } }
+    static func images(_ value: Any?) -> [String] { text(value).split(whereSeparator: { $0 == ";" || $0 == "," }).map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty } }
     static func rows(_ value: Any?) throws -> [[String: Any]] {
         if let rows = value as? [[String: Any]] { return rows }
         if let object = value as? [String: Any], let rows = object["rows"] as? [[String: Any]] { return rows }

@@ -66,6 +66,9 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
             }
         }
         .appNavigationTitle("club.title")
+        .environment(\.clubEnrollmentProfile, management?.governance?.enrollmentProfile)
+        .environment(\.clubCustomerTopics, management?.governance?.customerTopics ?? .init())
+        .environment(\.clubPostPlayHost, ClubPostPlayHost.session(reader as? AppSession))
         .task(id: discoveryScope) {
             if locality.phase(in: discoveryScope) != .ready { await loadLocality() }
         }

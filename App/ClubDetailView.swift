@@ -60,7 +60,14 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                     // Keep the scope binder mounted for non-owners so owner loss fences old callbacks immediately.
                     ClubMerchantDiscoveryView(club: club, clubReader: reader, reader: session.cooperationFlowReader)
                 }
-                if let community { Section { ClubCommunityEntry(clubID: id, identity: reader.clubIdentity, context: community) } }
+                if let community {
+                    Section {
+                        ClubCommunityEntry(clubID: id, identity: reader.clubIdentity, context: community)
+                            .environment(\.clubEnrollmentProfile, management?.governance?.enrollmentProfile)
+                            .environment(\.clubCustomerTopics, management?.governance?.customerTopics ?? .init())
+                            .environment(\.clubPostPlayHost, ClubPostPlayHost.session(reader as? AppSession))
+                    }
+                }
                 // V2 governance has its own access/me model, including delegated event staff.
                 if let governance = management?.governance {
                     Section {

@@ -1,0 +1,15 @@
+{
+  "feature": "P045 post reference topic details",
+  "base_commit": "51d3e24de92427a777f8690f847cec39971b041a",
+  "preimage_tree": "acdea4ecd5dcf2c7f5cddb1cb8eae72817ce5a5f",
+  "prior_batch_dependencies": ["club-event-calendar.patch", "club-post-image-preview.patch", "club-post-author-profile.patch"],
+  "app_sources": ["App/ClubPostReferenceView.swift", "Core/ClubPostReferenceRoute.swift"],
+  "modified_sources": ["App/ClubCommunityViews.swift", "App/ClubDetailView.swift", "App/ClubHomeView.swift"],
+  "swift_package_tests": ["Tests/CoreTests/ClubPostReferenceRouteTests.swift"],
+  "localization_fragment": null,
+  "reused_localization_keys": ["roamEvent.openTopic", "club.community.comments", "action.close"],
+  "pending_native_test": "swift test --filter ClubPostReferenceRouteTests",
+  "pending_ui_checks": ["template and activity reference use exact topic", "missing topic opens comments", "close/reopen preserves feed page", "refresh/post/session/revision retirement", "existing topic sign-in/read/error gates", "large text and VoiceOver"],
+  "production_dependency": "Pre-existing AppSession community source read service is dormant; root/sixth own the separate composition fix.",
+  "registration_policy": "Register the new sources through the existing owner. No PBX, aggregate catalog or CI changes included."
+}

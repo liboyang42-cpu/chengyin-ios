@@ -1,0 +1,15 @@
+{
+  "feature": "P045 onPostReferencePlay exact topic gameplay",
+  "base_commit": "96d727404a966cd3b3d2437c79449046beda560f",
+  "preimage_tree": "9865cc8dc5fb7b6be2f7fc7cf5cd5449f3a3927e",
+  "already_in_baseline": ["club-event-calendar.patch"],
+  "prior_batch_dependencies": ["club-post-image-preview.patch", "club-post-author-profile.patch", "club-post-reference-topic.patch"],
+  "app_sources": ["App/ClubPostPlayPreview.swift", "Core/ClubPostPlayRoute.swift"],
+  "modified_sources": ["App/ClubCommunityViews.swift", "App/ClubDetailView.swift", "App/ClubHomeView.swift"],
+  "swift_package_tests": ["Tests/CoreTests/ClubPostPlayRouteTests.swift"],
+  "localization_fragment": "Resources/ClubPostPlayLocalizations.fragment.json",
+  "pending_native_test": "swift test --filter ClubPostPlayRouteTests",
+  "pending_ui_checks": ["Try opens actual journey/topic gameplay, not details or purchase", "ordinary covered topic card can try without remix flag", "missing topic falls back to comments", "close and nested back preserve source feed", "guest sign-in retires prior action instead of replay", "account/epoch/role/host/read/post invalidation", "existing runtime unavailable/read-error/access gates", "large text and VoiceOver"],
+  "production_dependency": "Existing dormant community source read service is handled separately by the composition owner; existing gameplay read approvals remain authoritative.",
+  "registration_policy": "Central owner registers sources and merges localization; no PBX, total catalog, CI or shared fixture change included."
+}

@@ -9,7 +9,7 @@ import unittest
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
-DISCOVERY_HELPER_FINGERPRINT = 'e055cf82cd796d0bc28f71a7465c59aa483a635e1b3baadea15c7ddaf74e2bc2'
+DISCOVERY_HELPER_FINGERPRINT = '7eed8480f0a3c10a8f070d2efb5038ffa37f2e2220af2be0a662226c49906c4d'
 
 def load(relative, name):
     spec = importlib.util.spec_from_file_location(name, ROOT / relative)

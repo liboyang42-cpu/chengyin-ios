@@ -14,17 +14,19 @@ public struct TemplateChoiceOptionRows {
 
     public init(draft: TemplateAuthoringDraft) {
         let mediaProjection = draft.choiceOptionMedia
+        let parsedMedia: [String: TemplateAuthoringJSON]
         if mediaProjection.isSupported, let raw = draft.questionOptionMediaJson, !raw.isEmpty,
            let value = try? JSONDecoder().decode(TemplateAuthoringJSON.self, from: Data(raw.utf8)), let object = value.object {
-            media = object
-        } else { media = [:] }
+            parsedMedia = object
+        } else { parsedMedia = [:] }
+        media = parsedMedia
         let knownAnswer = draft.correctAnswer == nil || draft.correctAnswer == "" || Letter(rawValue: draft.correctAnswer ?? "") != nil
         supportsReordering = draft.finishEnabled && draft.validationMethod == .choice && mediaProjection.isSupported && knownAnswer
         originalFields = supportsReordering ? Self.bytes(draft) : []
         // Empty-but-present text is an explicitly added blank row. A media-only or
         // answer-only historical row must also stay visible and cannot be dropped on load.
         let last = Letter.allCases.lastIndex { letter in
-            draft[keyPath: Self.path(letter)] != nil || media[letter.rawValue] != nil || draft.correctAnswer == letter.rawValue
+            draft[keyPath: Self.path(letter)] != nil || parsedMedia[letter.rawValue] != nil || draft.correctAnswer == letter.rawValue
         }
         let count = mediaProjection.isSupported ? max(2, (last ?? 1) + 1) : 4
         letters = Array(Letter.allCases.prefix(count))
