@@ -583,8 +583,8 @@
     "App/PlayBranchHistoryFixtureSupport.swift": "60e6d26239482cf5f525b458f3b99108a46ed9d5dcc03a2e8f7d609c323b02c3",
     "App/ProjectSubmissionEvidenceViews.swift": "50553cf5fa45ddfaf30c5660bfb2fb5942ff6016798153303ece4115b88ab858",
     "tools/tests/test_ci138_followon_integration.py": "9c35e10de42b097dded356474751a5e94f3ee2c5caa10bc52d9da57aba7a86ce",
-    "tools/run_static_checks.py": "5765354aae29e6b044cd45bc6145c3a35b6420579295631a5c74bca4959a1ed4",
-    "tools/tests/test_native_static_checks.py": "f1a980c56b45f543465417d3a2d884a2dc1fc624eaeb6625d84ace7f88735f0c"
+    "tools/run_static_checks.py": "a681d224bfbef5372678a11625fa6330da097b470592e0572c1afd88f77a0210",
+    "tools/tests/test_native_static_checks.py": "b471892d1834b973424f1d74d4e00fb12fe37a8df8689f063441813d265eee3a"
   },
   "followon_handshake_contract_sha256": "ef9ebd949381cd2814c1c7e0368f5f9404625eeab8793eff7bc8a516b23815a8",
   "followon_cost_basis": "Retain all prior whole-method floors. UI49 adds two existing strict Form reveals at 40 seconds each (980 total). Coupon full method 380, Frozen publication940, Square methods110/120 and unchanged19.197 give +168.948. Story/UI78 reorder/direction/arrival changes add no new capped stage; story900 includes unmeasured AX overhead. Exact new 940/980 exceptions are current-only. No historical profile, workflow or gate changes.",
@@ -3987,6 +3987,16 @@
           "after": "            if token != nil, !result.gatedKinds.isEmpty { throw APIError.unauthorized }\n            return result\n        }\n    }\n    public func cityNodes(_ query: CityNodeSearchQuery) async throws -> [SearchMapCityNode] {\n        // Injection does not activate an unapproved reader.\n        guard currentContext().manualMapApprovalRevision != nil else { throw APIError.notConfigured }\n        manualAreaSelection?.ensureSelected(query.area)\n        return try await read { try await $0.cityNodes(query, token: $1) }\n    }\n    public func citySearch(_ query: CityNodeSearchQuery) async throws -> CityNodeSearchResults {\n        manualAreaSelection?.ensureSelected(query.area)\n"
         }
       ]
+    },
+    "App/ProjectNodeImageCrop.swift": {
+      "before_sha256": "f9997b618a2d850070052092f2e83ef8b81b7ee1bcadba1cb7e7b846e7ab964a",
+      "after_sha256": "47901a84bfc8ffa2f69dca618ab4de6eb7a151f7cc20fdebd4cb79425bcdb894",
+      "hunks": [
+        {
+          "before": "    @State private var horizontal=0.5,vertical=0.5,zoom=1.0\n",
+          "after": "    @State private var horizontal=0.5\n    @State private var vertical=0.5\n    @State private var zoom=1.0\n"
+        }
+      ]
     }
   },
   "feature_batch_support_sha256": {
@@ -4452,7 +4462,7 @@
     "Tests/CoreTests/ProjectTeamConfigurationTests.swift": "76da9df6c0b43e03b7cf04a0574dd12e982d39431ea27141a04208ef6236cfd3",
     "App/ProjectNodeImageAuthorView.swift": "a7006d55e77a1a643797bcbf48617418ce9965cc86bf96dc83e19a638ad8e7de",
     "App/ProjectNodeImageCompositionRoute.swift": "9c010ba99f45f37d0ad2b502123e1a871418cd09940682f4693dbf49b8b3045f",
-    "App/ProjectNodeImageCrop.swift": "f9997b618a2d850070052092f2e83ef8b81b7ee1bcadba1cb7e7b846e7ab964a",
+    "App/ProjectNodeImageCrop.swift": "47901a84bfc8ffa2f69dca618ab4de6eb7a151f7cc20fdebd4cb79425bcdb894",
     "App/ProjectNodeImagePresentation.swift": "28013a0c087517efb256fbe159ea7b21128ba6b59ae7458c1cec8b998a11d2d5",
     "Core/ProjectNodeImageFlow.swift": "90c0c7fd65a1f745b184e4cde241d9ae873f5a0b7f76fe5382bcb22ad4964d57",
     "Core/ProjectNodeImageJournal.swift": "c482001d625f9c705aaf014d07914e2addb12841ecd69de357fe5c129511dc09",
@@ -4489,7 +4499,7 @@
     "Tests/CoreTests/ProjectNodePlaceSelectionTests.swift": "b864c152cf35a1b55c055d634c3394d591c7eb4f27986af725edbb27dd8e3fc1",
     "Tests/CoreTests/SearchMapCityNodeReadTests.swift": "0574a6a4f69386b0e48264824dd606e2b0c708a8495ffe9fc821e72e0c755463",
     "tools/check_profile_read_failure_contract.py": "e492facdded0e76615721d90081b912738ba490e503aab61a7ed549a6b2a4b8a",
-    "Tests/ContractChecks/test_profile_read_failure_remote_admission.py": "fa88459ba1d948253d825335db9bf8391cc59aa2dac2935019eabfcab23b25a0",
+    "Tests/ContractChecks/test_profile_read_failure_remote_admission.py": "d1d7ad397a76f668f47bcc4243c23a397d560e90220b01bd99dd91a85bfe3163",
     "Tests/CoreTests/ProfileEditTests.swift": "6319234ba77c43afec858692bc9ff00308be774b58ea585069a7b3dc90ce654c",
     "tools/tests/test_gitleaks_configuration.py": "a5f5cd4f8670fb10405ab73fba1ac15700ace46a0c8dd4e8321e29e5da90cb30"
   },

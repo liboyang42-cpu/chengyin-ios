@@ -20,30 +20,18 @@ from urllib.parse import unquote, urlparse
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
-BASE_COMMIT = '3be47584fcf893b4a525caaebd38d5fd54200be5'
-BASE_TREE = '7a983fc94199e003592eeb5d9c9484c75343fe0c'
+BASE_COMMIT = '656e00f192ef37b05a02c084d089995d7ee8acca'
+BASE_TREE = '01b452d2de9804f66e2aeb6731afe582d6b9e36f'
 PATHS = ('.github/workflows/native-targeted.yml', 'tools/targeted_native_selection.json',
          'tools/run_targeted_native.py', 'tools/tests/test_targeted_native.py')
-REPAIR_PATHS = (
-    'Tests/CoreTests/ProjectCityStoryNodeRemovalTests.swift',
-    'tools/run138_editor_readiness_contract.json',
-    'tools/run138_editor_readiness.py',
-    'Tests/ContractChecks/test_profile_read_failure_remote_admission.py')
-GROUPS = {'core': ('QuestifyCoreTests', None, 10),
-          'app-unit': ('QuestifyAppUnitTests', 'QuestifyAppUnitTests', 12),
+REPAIR_PATHS = ('App/ProjectNodeImageCrop.swift', 'tools/run138_editor_readiness_contract.json', 'tools/run138_editor_readiness.py', 'Tests/ContractChecks/test_profile_read_failure_remote_admission.py', 'tools/run_static_checks.py', 'tools/tests/test_native_static_checks.py')
+GROUPS = {'core': ('QuestifyCoreTests', None, 24),
+          'app-unit': ('QuestifyAppUnitTests', 'QuestifyAppUnitTests', 14),
           'ui': ('QuestifyUITests', 'Questify', 7)}
-BOUND_SOURCES = {'.github/workflows/native-ios.yml', 'tools/ci_gates.py',
-    'tools/build_simulator_keychain_host.py', 'tools/prepare_simulator_keychain_host.py',
-    'Questify.xcodeproj/project.pbxproj',
-    'Questify.xcodeproj/xcshareddata/xcschemes/Questify.xcscheme',
-    'Questify.xcodeproj/xcshareddata/xcschemes/QuestifyAppUnitTests.xcscheme',
-    'Config/AppUnitTests.xcconfig', 'Config/Base.xcconfig',
-    'App/TemplateAuthoringMineView.swift', 'Core/TemplateAuthoringShelf.swift',
-    'Tests/CoreTests/TemplateAuthoringHTTPTests.swift',
-    'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift',
-    'Tests/AppUITests/TemplateOwnShelfFlowTests.swift'}
+BOUND_SOURCES = {'.github/workflows/native-ios.yml', 'App/MerchantDecorTagEditor.swift', 'App/MerchantOperationsEditor.swift', 'App/MerchantOperationsFixtureSupport.swift', 'App/MerchantOperationsViews.swift', 'App/ProfileEditView.swift', 'App/ProjectNodeImageCrop.swift', 'App/TemplateAuthoringMineView.swift', 'Config/AppUnitTests.xcconfig', 'Config/Base.xcconfig', 'Core/MerchantDecorTagDraft.swift', 'Core/MerchantOperationsReading.swift', 'Core/ProfileEditCoordinator.swift', 'Core/ProfileEditService.swift', 'Core/TemplateAuthoringShelf.swift', 'Package.swift', 'Questify.xcodeproj/project.pbxproj', 'Questify.xcodeproj/xcshareddata/xcschemes/Questify.xcscheme', 'Questify.xcodeproj/xcshareddata/xcschemes/QuestifyAppUnitTests.xcscheme', 'Tests/AppUITests/TemplateOwnShelfFlowTests.swift', 'Tests/AppUnitTests/MerchantDecorTagPickerTests.swift', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift', 'Tests/CoreTests/MerchantDecorTagDraftTests.swift', 'Tests/CoreTests/ProfileEditTests.swift', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift', 'tools/build_simulator_keychain_host.py', 'tools/ci_gates.py', 'tools/prepare_simulator_keychain_host.py'}
+FIXED_METHOD_SOURCES = (('QuestifyAppUnitTests/MerchantDecorTagPickerTests/testDuplicateOverLimitHistoricalTagsStayUnchangedOnOpenCancelAndInvalidOwner', 'Tests/AppUnitTests/MerchantDecorTagPickerTests.swift'), ('QuestifyAppUnitTests/MerchantDecorTagPickerTests/testSemicolonTagApplyCancelAndReopenPreserveExactLabels', 'Tests/AppUnitTests/MerchantDecorTagPickerTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testCachedRefreshNeverSurvivesOwnerLeaseABAExpiryOrCancellation', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testCachedSnapshotPreparationClearsRevokedScopeBeforeAnotherRequest', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testClonedTransportRejectsLateLeaseReplacementTokenRoleAndErrors', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testCurrent401ExpiresOnlyCurrentOwner', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testGuestDefaultNilRevokedReaderAndReplacementNeverAdoptLease', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testLateShelfAndDetailSuccess401ErrorNeverApplyAcrossLifetimeChanges', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testLoadedReadOnlyRefreshSnapshotSurvives503ThenReplacesAndClears', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testNormalFactoryPagedShelfDetailAndEveryWriterRemainOff', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testOuterClonesOnlyAdmitExactReadsAndDenyAllAdjacentMutations', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testOwnerConfigurationFactoryDoesNotAlterLocalDraftAndClearsOnLeaseChange', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testSearchedPageElevenLegacyStoryRequiresFreshOwnedDetail', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testShelfLeaseChangesPreserveUnsavedLocalEditorAndDormantAuthority', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyCoreTests/MerchantDecorTagDraftTests/testHistoricalLabelsRemainByteExactUntilExplicitRemoval', 'Tests/CoreTests/MerchantDecorTagDraftTests.swift'), ('QuestifyCoreTests/MerchantDecorTagDraftTests/testSemicolonCustomLabelRemainsOneLiteralTag', 'Tests/CoreTests/MerchantDecorTagDraftTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testAcknowledgedWriteReadbackFailureKeepsLockUntilReadOnlyRetry', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testCancelledReadDoesNotPublishLateServerExplanation', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testFailedRefreshRetainsSnapshotAndShowsExplanation', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testFinalPreWriteReadFailureDoesNotDispatchOrReuseConfirmation', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testInitialReadFailureShowsExactServerMessageAndRetryClearsItWithoutWriting', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testLateFailureCannotPublishAfterSameAccountTokenReplacement', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testNewReadClearsPriorExplanationBeforeResponse', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testPrepareFailureKeepsSnapshotAndRequiresANewReview', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testSessionResetClearsPreviouslyDisplayedExplanation', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testUnauthorizedCallbackInvalidatesFailureBeforePresentation', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testUnknownWriteReadbackFailureAndMatchingRetryNeverUnlockOrResend', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testWhitespaceAndNonServerErrorsNeverBecomeUserText', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/TemplateAuthoringHTTPTests/testRefreshSnapshotCannotReplaceHundredRowWritePreflightOrOldReview', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testAlreadyCancelledRefreshClearsSnapshotWithoutDispatch', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testAuthContractUnknownAndCancellationFailuresClearRefreshSnapshot', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testCachedRefreshLifetimeTransitionsAndABAFenceAllLateResults', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testContinuationAuthAndContractErrorsClearRowsButOverlapRemainsRetryable', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testNewKeywordNeverDisplaysPreviousQuerySnapshot', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testOnlyExplicitTransientFailuresRetainSnapshotAndRequireFirstPageRetry', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testRefreshAtHundredPageBoundaryRestartsAtOneWithoutPage101', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testRefreshReplacesOverlappingIDsAndValidEmptyClearsSnapshot', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testSameKeywordNewGenerationRejectsOldSuccessAndError', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'), ('QuestifyUITests/TemplateOwnShelfFlowTests/testAccountChangeDismissesReviewAndSignoutClearsShelf', 'Tests/AppUITests/TemplateOwnShelfFlowTests.swift'), ('QuestifyUITests/TemplateOwnShelfFlowTests/testChineseLargeTextCanCancelReview', 'Tests/AppUITests/TemplateOwnShelfFlowTests.swift'), ('QuestifyUITests/TemplateOwnShelfFlowTests/testDefaultDisabledHasNoMutationConfirmation', 'Tests/AppUITests/TemplateOwnShelfFlowTests.swift'), ('QuestifyUITests/TemplateOwnShelfFlowTests/testDeleteRequiresSeparateReviewAndSimulationIsLabelled', 'Tests/AppUITests/TemplateOwnShelfFlowTests.swift'), ('QuestifyUITests/TemplateOwnShelfFlowTests/testLibraryReviewShowsIdentityAndCancellationDoesNotSubmit', 'Tests/AppUITests/TemplateOwnShelfFlowTests.swift'), ('QuestifyUITests/TemplateOwnShelfFlowTests/testOwnedDetailBackAndReopenKeepsStableDestination', 'Tests/AppUITests/TemplateOwnShelfFlowTests.swift'), ('QuestifyUITests/TemplateOwnShelfFlowTests/testUnknownLocksBothActionsAcrossReopen', 'Tests/AppUITests/TemplateOwnShelfFlowTests.swift'))
 METHOD = re.compile(r'(QuestifyCoreTests|QuestifyAppUnitTests|QuestifyUITests)/([A-Za-z][A-Za-z0-9_]*)/(test[A-Za-z0-9_]+)')
-SELECTION_CONTRACT_SHA256 = '88f704405c7de7f6da7bfb0e7cf7ac525d85b90b841d07fdc3a67fcd2d0e6285'
+SELECTION_CONTRACT_SHA256 = '4fbd8a90e916b10c643f95744dabf3374c01c57d665e74c81f1bfd9b82609bb3'
 LIMIT = 10 * 1024 * 1024
 
 
@@ -108,25 +96,37 @@ def validate_reviewed_repairs(selection, root):
         require(not path.is_symlink() and path.resolve().is_relative_to(root.resolve()), 'Repair escaped checkout')
         restored[row['path']] = inverse_reviewed_repair(row, path.read_bytes())
     current = read_json(root / REPAIR_PATHS[1])
-    previous = json.loads(restored[REPAIR_PATHS[1]], object_pairs_hook=unique_object)
-    test = repairs[0]
-    require(current['feature_batch_support_sha256'][test['path']] == test['after_sha256'], 'Current repair support is not genuine')
-    require(current['feature_batch_sources'][test['path']] == {k: test[k] for k in ['before_sha256', 'after_sha256', 'hunks']}, 'Missing exact central repair inverse')
-    del current['feature_batch_sources'][test['path']]
-    current['feature_batch_support_sha256'][test['path']] = test['before_sha256']
-    admission = repairs[3]
-    require(current['feature_batch_support_sha256'][admission['path']] == admission['after_sha256'], 'Current admission support is not genuine')
-    current['feature_batch_support_sha256'][admission['path']] = admission['before_sha256']
-    require(current == previous, 'Unrelated central contract semantics changed')
+    crop = repairs[0]
+    require(current['feature_batch_support_sha256'][crop['path']] == crop['after_sha256'], 'Current crop support is not genuine')
+    require(current['feature_batch_sources'][crop['path']] == {k: crop[k] for k in ['before_sha256', 'after_sha256', 'hunks']}, 'Missing exact central crop inverse')
+    require(current['feature_batch_support_sha256'][repairs[3]['path']] == repairs[3]['after_sha256'], 'Current admission support is not genuine')
+    for row in repairs[4:]:
+        require(current['followon_support_sha256'][row['path']] == row['after_sha256'], 'Current static support is not genuine')
+    pins = re.findall(r"^CONTRACT_SHA256 = '([0-9a-f]{64})'$", (root / REPAIR_PATHS[2]).read_text(), re.MULTILINE)
+    require(pins == [repairs[1]['after_sha256']], 'Current readiness pin differs from complete contract')
     return restored
+
+
+def declared_methods(source, target):
+    """Count declarations; bound complete source hashes authenticate Swift syntax."""
+    counts, current = {}, None
+    for line in source.splitlines():
+        cls = re.search(r'\bfinal class (\w+)\s*:\s*XCTestCase', line)
+        if cls:
+            current = cls.group(1)
+        for method in re.finditer(r'\bfunc (test\w+)\s*\(', line):
+            if current:
+                name = target + '/' + current + '/' + method.group(1)
+                counts[name] = counts.get(name, 0) + 1
+    return counts
 
 
 def validate_selection(selection, root):
     require(isinstance(selection, dict) and type(selection.get('version')) is int and selection.get('version') == 1, 'Unsupported selection version')
-    require(selection.get('name') == 'creator-shelf-refresh-v1', 'Unknown fixed selection')
+    require(selection.get('name') == 'shelf-profile-merchant-v2', 'Unknown fixed selection')
     require(selection.get('base_commit') == BASE_COMMIT and selection.get('base_tree') == BASE_TREE, 'Wrong reviewed base')
     require(selection.get('repository') == 'liboyang42-cpu/chengyin-ios' and selection.get('branch') == 'migration/native-ios', 'Wrong repository or branch')
-    require(selection.get('allowed_changes') == ['M\t' + p for p in PATHS + REPAIR_PATHS], 'Changed exact eight-path boundary')
+    require(selection.get('allowed_changes') == ['M\t' + p for p in PATHS + REPAIR_PATHS], 'Changed exact ten-path boundary')
     sources = selection.get('source_files')
     require(isinstance(sources, list) and all(isinstance(row, dict) and set(row) == {'path', 'sha256'} for row in sources), 'Invalid source bindings')
     hashes = {row['path']: row['sha256'] for row in sources}
@@ -140,24 +140,26 @@ def validate_selection(selection, root):
     rows = selection.get('groups')
     require(isinstance(rows, list) and [r.get('name') for r in rows] == list(GROUPS), 'Missing/reordered test groups')
     for group in rows:
+        require(set(group) == {'name', 'kind', 'target', 'scheme', 'methods', 'method_sources'}, 'Unexpected group selection fields')
         target, scheme, count = GROUPS[group['name']]
         require(group.get('target') == target and group.get('scheme') == scheme, 'Wrong test target or scheme')
         require(group.get('kind') == ('swift' if scheme is None else 'xcode'), 'Wrong test runner')
         methods = group.get('methods')
         require(isinstance(methods, list) and len(methods) == count and methods == sorted(set(methods)), 'Empty, duplicate or changed method selection')
-        require(group.get('source') in hashes, 'Unbound test source')
-        source = (root / group['source']).read_text()
-        declared, current = set(), None
-        for line in source.splitlines():
-            cls = re.search(r'\bfinal class (\w+)\s*:\s*XCTestCase', line)
-            if cls:
-                current = cls.group(1)
-            method = re.search(r'\bfunc (test\w+)\s*\(', line)
-            if current and method:
-                declared.add(target + '/' + current + '/' + method.group(1))
-        for identifier in methods:
+        bindings = group.get('method_sources')
+        require(isinstance(bindings, list) and all(isinstance(row, dict) and set(row) == {'method', 'source'} for row in bindings), 'Missing exact method/source bindings')
+        require([row['method'] for row in bindings] == methods, 'Incomplete, duplicate or reordered method/source bindings')
+        require([(row['method'], row['source']) for row in bindings] == [row for row in FIXED_METHOD_SOURCES if row[0].startswith(target + '/')], 'Changed fixed method/source identity')
+        prefix = {'core': 'Tests/CoreTests/', 'app-unit': 'Tests/AppUnitTests/', 'ui': 'Tests/AppUITests/'}[group['name']]
+        declarations = {}
+        for row in bindings:
+            path = row['source']
+            require(isinstance(path, str) and path in hashes and path.startswith(prefix), 'Unbound or wrong-target method source')
+            if path not in declarations:
+                declarations[path] = declared_methods((root / path).read_text(), target)
+            identifier = row['method']
             require(METHOD.fullmatch(identifier) is not None and identifier.startswith(target + '/'), 'Not an exact method')
-            require(identifier in declared, 'Selected method is not declared in bound source')
+            require(declarations[path].get(identifier) == 1, 'Selected method is not uniquely declared in its own bound source')
     validate_reviewed_repairs(selection, root)
     require(hashlib.sha256(encode(selection).encode()).hexdigest() == SELECTION_CONTRACT_SHA256, 'Fixed selection contract changed')
     return selection
@@ -202,7 +204,7 @@ def verify_scope(root, selection):
     require(re.fullmatch('[a-f0-9]{40}', head) is not None and head == os.environ.get('GITHUB_SHA'), 'Actual HEAD differs from GITHUB_SHA')
     require(checked(['git', 'rev-parse', BASE_COMMIT + '^{tree}'], root) == BASE_TREE, 'Baseline tree differs')
     changes = checked(['git', 'diff', '--name-status', BASE_COMMIT, head], root).splitlines()
-    require(set(changes) == {'M\t' + p for p in PATHS + REPAIR_PATHS} and len(changes) == len(PATHS) + len(REPAIR_PATHS), 'Source changes differ from eight exact reviewed modifications')
+    require(set(changes) == {'M\t' + p for p in PATHS + REPAIR_PATHS} and len(changes) == len(PATHS) + len(REPAIR_PATHS), 'Source changes differ from ten exact reviewed modifications')
     require(not checked(['git', 'status', '--porcelain', '--untracked-files=normal'], root), 'Checkout is not clean')
     validate_selection(selection, root)
     return {'source_sha': head, 'source_tree': checked(['git', 'rev-parse', 'HEAD^{tree}'], root),
@@ -427,7 +429,7 @@ class Diagnostic:
         self.deadline = time.monotonic() + 2460  # reserve finalization before job's 45-minute cap
         self.receipt = {'version': 1, 'scope': 'selected-native-diagnostic-only', 'status': 'INCOMPLETE',
                         'selection': selection['name'], 'selection_sha256': digest(root / PATHS[1]),
-                        'expected_count': 29, 'actual_count': 0, 'groups': {},
+                        'expected_count': 45, 'actual_count': 0, 'groups': {},
                         'coverage_boundary': selection['coverage_boundary']}
         for group in selection['groups']:
             self.receipt['groups'][group['name']] = {'status': 'NOT_RUN', 'expected': group['methods'],
@@ -556,7 +558,7 @@ def validate_pass_receipt(receipt, expected, selection):
     for key, value in expected.items():
         require(bool(value) and receipt.get(key) == value, 'Receipt identity mismatch: ' + key)
     require(receipt.get('base_commit') == BASE_COMMIT and receipt.get('base_tree') == BASE_TREE, 'Wrong receipt base')
-    require(receipt.get('selection') == selection['name'] and receipt.get('expected_count') == 29 and receipt.get('actual_count') == 29, 'Wrong total executed count')
+    require(receipt.get('selection') == selection['name'] and receipt.get('expected_count') == 45 and receipt.get('actual_count') == 45, 'Wrong total executed count')
     require(set(receipt.get('groups', {})) == set(GROUPS), 'Missing receipt group')
     toolchain = receipt.get('toolchain')
     require(isinstance(toolchain, dict) and set(toolchain) == {'xcode', 'developer', 'swift', 'sdk_version', 'sdk_path'} and all(isinstance(v, str) and v for v in toolchain.values()), 'Incomplete receipt toolchain')
@@ -621,7 +623,7 @@ def report(output, summary, root=ROOT):
     lines = ['Targeted native diagnostics: ' + receipt.get('status', 'INCOMPLETE'),
              'Source SHA: ' + receipt.get('source_sha', 'NOT_RECORDED'),
              'Source tree: ' + receipt.get('source_tree', 'NOT_RECORDED'),
-             'Actual methods: ' + str(receipt.get('actual_count', 0)) + ' / 29',
+             'Actual methods: ' + str(receipt.get('actual_count', 0)) + ' / 45',
              receipt.get('coverage_boundary', '')]
     for name, group in receipt.get('groups', {}).items():
         lines.append(name + ': ' + group['status'] + ', actual ' + str(group['actual_count']))
@@ -648,7 +650,7 @@ def main():
     selection = read_json(args.selection or root / PATHS[1])
     validate_selection(selection, root)
     if args.action == 'validate':
-        print('Validated fixed selection: Core 10, AppUnit 12, UI 7; Apple execution NOT_RUN')
+        print('Validated fixed selection: Core 24, AppUnit 14, UI 7; Apple execution NOT_RUN')
         return 0
     require(args.output is not None and 'RUNNER_TEMP' in os.environ, 'Fresh runner output required')
     temp = Path(os.environ['RUNNER_TEMP']).resolve(strict=True)

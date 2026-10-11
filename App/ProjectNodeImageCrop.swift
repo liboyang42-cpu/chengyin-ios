@@ -48,7 +48,9 @@ import UIKit
 @MainActor struct ProjectNodeImageCropView:View {
     let draft:ProjectNodeImageCrop.Draft
     let confirm:(UUID,Double,Double,Double)->Void,cancel:(UUID)->Void
-    @State private var horizontal=0.5,vertical=0.5,zoom=1.0
+    @State private var horizontal=0.5
+    @State private var vertical=0.5
+    @State private var zoom=1.0
     var body:some View{
         VStack(alignment:.leading){
             Text("projectNodeImage.crop",tableName:"ProjectNodeImageAuthor").font(.headline)

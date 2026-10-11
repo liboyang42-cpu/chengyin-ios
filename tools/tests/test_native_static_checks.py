@@ -2,14 +2,18 @@
 import copy
 import hashlib
 import importlib.util
+import io
 import json
 import os
 from pathlib import Path
 import re
+import select
+import signal
 import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from unittest import mock
 
@@ -20,6 +24,32 @@ import run_static_checks as runner
 spec = importlib.util.spec_from_file_location('live_static_ci_gates', ROOT / 'tools/ci_gates.py')
 gates = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(gates)
+
+
+def read_until(process, marker, timeout=10):
+    """Bounded read of real pipe bytes; no readline waiting for a newline."""
+    output = b''
+    deadline = time.monotonic() + timeout
+    while marker not in output:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0 or not select.select([process.stdout], [], [], remaining)[0]:
+            raise AssertionError('Timed out waiting for live output: ' + repr(output))
+        chunk = os.read(process.stdout.fileno(), 65536)
+        if not chunk:
+            raise AssertionError('Process exited before live output: ' + repr(output))
+        output += chunk
+    return output
+
+
+def finish_process(process):
+    if process.poll() is None:
+        process.terminate()
+    try:
+        process.communicate(timeout=12)
+    except subprocess.TimeoutExpired:
+        process.kill()
+        process.communicate(timeout=5)
+        raise
 
 
 class StaticRunnerFixtures(unittest.TestCase):
@@ -111,6 +141,72 @@ class StaticRunnerFixtures(unittest.TestCase):
         self.commit(); self.execute(1)
         self.assertEqual(json.loads((self.output / 'tools.json').read_text())['outcome_counts']['failures'], 1)
         self.assertEqual(json.loads((self.output / 'contracts.json').read_text())['outcome_counts']['successes'], 1)
+
+    def test_live_partial_output_precedes_completion_and_matches_artifact_once(self):
+        release = self.temp / 'release'
+        self.tools.write_text(
+            'import os, sys, time, unittest\nfrom pathlib import Path\n'
+            'class Tools(unittest.TestCase):\n'
+            ' def test_stream(self):\n'
+            '  os.write(2, b"STDERR-BEFORE\\n")\n'
+            '  sys.stdout.write("VISIBLE-PARTIAL")\n'
+            '  while not Path(os.environ["RELEASE"]).exists(): time.sleep(.01)\n'
+            '  os.write(1, b"\\xff\\n")\n')
+        self.commit()
+        command = [sys.executable, '-B', str(self.root / 'tools/run_static_checks.py'),
+                   'run', '--output', str(self.output), '--github-output', str(self.github_output)]
+        process = subprocess.Popen(command, cwd=self.root, env=dict(self.environment, RELEASE=str(release)),
+                                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        self.addCleanup(finish_process, process)
+        early = read_until(process, b'VISIBLE-PARTIAL')
+        self.assertIsNone(process.poll())
+        self.assertFalse((self.output / 'tools.json').exists())
+        self.assertIn(b'DISCOVERY START tools', early)
+        self.assertIn(b'DISCOVERY END tools duration_seconds=', early)
+        self.assertIn(b'START test_probe.Tools.test_stream', early)
+        self.assertIn(b'STDERR-BEFORE', early)
+        self.assertNotIn(b'END test_probe.Tools.test_stream', early)
+        release.touch()
+        tail, _ = process.communicate(timeout=15)
+        self.assertEqual(process.returncode, 0, early + tail)
+        expected = b''
+        for name, specification in runner.SUITES.items():
+            raw = (self.output / (name + '.log')).read_bytes()
+            expected += ('Full static discovery: ' + name + ' ' + str(specification) + '\n').encode() + raw
+            self.assertEqual((early + tail).count(raw), 1)
+        self.assertEqual(early + tail, expected)
+        self.assertIn(b'VISIBLE-PARTIAL\xff\n', expected)
+        self.assertRegex(expected, rb'END test_probe.Tools.test_stream duration_seconds=\d+\.\d{6}')
+        self.assertEqual(self.verify(self.receipt()), self.receipt())
+
+    def test_logged_failure_skip_and_import_error_keep_counts_and_exit_status(self):
+        cases = [
+            ('failure', 'import unittest\nclass Tools(unittest.TestCase):\n def test_one(self): self.fail("fixture")\n', 1, 1, 0, 1, 0),
+            ('skip', 'import unittest\nclass Tools(unittest.TestCase):\n @unittest.skip("fixture")\n def test_one(self): pass\n', 1, 1, 1, 0, 0),
+            ('class_skip', 'import unittest\nclass Tools(unittest.TestCase):\n @classmethod\n def setUpClass(cls): raise unittest.SkipTest("fixture")\n def test_one(self): pass\n', 1, 0, 1, 0, 0),
+            ('import_error', 'raise RuntimeError("fixture import failure")\n', 1, 1, 0, 0, 1),
+        ]
+        for name, source, discovered, executed, skips, failures, errors in cases:
+            with self.subTest(case=name):
+                self.tools.write_text(source)
+                self.commit()
+                self.output = self.temp / name
+                self.github_output = self.temp / (name + '-output')
+                result = self.execute(1)
+                self.assertEqual(result.returncode, 1)
+                report = json.loads((self.output / 'tools.json').read_text())
+                self.assertEqual((report['discovered_count'], report['executed_count'], report['tests_run'],
+                                  report['skip_count'], len(report['failures']), len(report['errors'])),
+                                 (discovered, executed, executed, skips, failures, errors))
+                self.assertEqual(bool(report['discovery_errors']), name == 'import_error')
+                log = (self.output / 'tools.log').read_text()
+                self.assertEqual(result.stdout.count(log), 1)
+                self.assertIn('DISCOVERY START tools', log)
+                self.assertIn('DISCOVERY END tools duration_seconds=', log)
+                for identifier in report['executed_ids']:
+                    self.assertIn('START ' + identifier + '\n', log)
+                    self.assertIn('END ' + identifier + ' duration_seconds=', log)
+                self.assertTrue((self.output / 'contracts.json').exists())
 
     def test_empty_discovery_is_not_success(self):
         self.tools.unlink(); self.commit(); self.execute(1)
@@ -340,6 +436,378 @@ class StaticRunnerFixtures(unittest.TestCase):
         denied = subprocess.run(command + ['aggregate', '--static-artifact', str(self.output)],
                                 cwd=self.root, env=env, text=True, capture_output=True)
         self.assertNotEqual(denied.returncode, 0)
+
+
+class StaticObservabilityFixtures(unittest.TestCase):
+    def setUp(self):
+        self.life = tempfile.TemporaryDirectory(prefix='native-static-output-')
+        self.addCleanup(self.life.cleanup)
+        self.base = Path(self.life.name)
+        self.log = self.base / 'child.log'
+
+    def start_wrapper(self, child):
+        code = ('import os, sys\nfrom pathlib import Path\n'
+                'sys.path.insert(0, ' + repr(str(ROOT / 'tools')) + ')\n'
+                'import run_static_checks as runner\n'
+                'result = runner.run_logged_process(' + repr([sys.executable, '-B', '-u', '-c', child]) +
+                ', Path.cwd(), dict(os.environ), Path(' + repr(str(self.log)) + '))\n'
+                'print("CHILD_RETURN_CODE=" + str(result.returncode), flush=True)\n')
+        process = subprocess.Popen([sys.executable, '-B', '-u', '-c', code],
+                                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        self.addCleanup(finish_process, process)
+        return process
+
+    def test_tee_preserves_nonzero_exit_and_merged_bytes(self):
+        process = self.start_wrapper('import os\nos.write(1, b"out\\n")\nos.write(2, b"err\\n")\nraise SystemExit(7)')
+        output, _ = process.communicate(timeout=10)
+        self.assertEqual(process.returncode, 0, output)
+        self.assertEqual(self.log.read_bytes(), b'out\nerr\n')
+        self.assertEqual(output, self.log.read_bytes() + b'CHILD_RETURN_CODE=7\n')
+
+    def test_tee_retries_short_console_writes_without_losing_bytes(self):
+        class ShortWriter(io.BytesIO):
+            def write(self, value):
+                return super().write(value[:3])
+        output = ShortWriter()
+        console = mock.Mock(buffer=output)
+        command = [sys.executable, '-B', '-u', '-c', 'import os; os.write(1, bytes(range(256)))']
+        with mock.patch.object(runner.sys, 'stdout', console):
+            result = runner.run_logged_process(command, self.base, dict(os.environ), self.log)
+        self.assertEqual(result.returncode, 0)
+        self.assertEqual(output.getvalue(), bytes(range(256)))
+        self.assertEqual(output.getvalue(), self.log.read_bytes())
+
+    def test_cancellation_during_short_write_flushes_the_pending_chunk(self):
+        for signum in [signal.SIGTERM, signal.SIGINT]:
+            with self.subTest(signal=signum):
+                class InterruptedWriter(io.BytesIO):
+                    sent = False
+
+                    def write(self, value):
+                        if not self.sent:
+                            self.sent = True
+                            os.kill(os.getpid(), signum)
+                        return super().write(value[:3])
+                output = InterruptedWriter()
+                log = self.base / ('cancel-' + str(signum) + '.log')
+                command = [sys.executable, '-B', '-u', '-c',
+                           'import os,time; os.write(1, bytes(range(256))); time.sleep(30)']
+                with mock.patch.object(runner.sys, 'stdout', mock.Mock(buffer=output)):
+                    with self.assertRaises(SystemExit) as stopped:
+                        runner.run_logged_process(command, self.base, dict(os.environ), log)
+                self.assertEqual(stopped.exception.code, 128 + signum)
+                self.assertEqual(output.getvalue(), bytes(range(256)))
+                self.assertEqual(output.getvalue(), log.read_bytes())
+
+    def test_killed_child_with_inherited_writer_cannot_hold_tee_open(self):
+        # The grandchild inherits stdout/stderr and ignores TERM. A pipe tee
+        # would wait forever after the direct child dies unless it cleans up.
+        grandchild = ('import signal,time\n'
+                      'signal.signal(signal.SIGTERM, signal.SIG_IGN)\n'
+                      'print("INHERITED-WRITER", flush=True)\ntime.sleep(30)')
+        child = ('import os,signal,subprocess,sys,time\n'
+                 'print("CHILD_PID=" + str(os.getpid()), flush=True)\n'
+                 'subprocess.Popen([sys.executable,"-u","-c",' + repr(grandchild) + '])\ntime.sleep(30)')
+        process = self.start_wrapper(child)
+        early = read_until(process, b'INHERITED-WRITER\n')
+        pid = int(re.search(rb'CHILD_PID=(\d+)', early).group(1))
+        os.kill(pid, signal.SIGKILL)
+        tail, _ = process.communicate(timeout=10)
+        self.assertEqual(process.returncode, 0, early + tail)
+        self.assertEqual(early + tail, self.log.read_bytes() + b'CHILD_RETURN_CODE=-9\n')
+
+    def test_parent_timeout_term_reaps_child_and_relays_shutdown_output(self):
+        child = ('import os,signal,time\n'
+                 'def stop(signum, frame):\n'
+                 ' print("SHUTDOWN", flush=True)\n raise SystemExit(0)\n'
+                 'signal.signal(signal.SIGTERM, stop)\n'
+                 'print("CHILD_PID=" + str(os.getpid()), flush=True)\ntime.sleep(30)')
+        process = self.start_wrapper(child)
+        early = read_until(process, b'CHILD_PID=')
+        # The marker is deliberately a complete short print in the fixture.
+        while b'\n' not in early:
+            early += read_until(process, b'\n')
+        pid = int(re.search(rb'CHILD_PID=(\d+)', early).group(1))
+        with self.assertRaises(subprocess.TimeoutExpired):
+            process.wait(timeout=.05)
+        process.terminate()
+        tail, _ = process.communicate(timeout=10)
+        self.assertEqual(process.returncode, 128 + signal.SIGTERM, early + tail)
+        self.assertEqual(early + tail, self.log.read_bytes())
+        self.assertIn(b'SHUTDOWN\n', early + tail)
+        with self.assertRaises(ProcessLookupError):
+            os.kill(pid, 0)
+
+    def test_parent_term_escalates_for_child_ignoring_term(self):
+        child = ('import os,signal,time\n'
+                 'signal.signal(signal.SIGTERM, signal.SIG_IGN)\n'
+                 'print("CHILD_PID=" + str(os.getpid()), flush=True)\ntime.sleep(30)')
+        process = self.start_wrapper(child)
+        early = read_until(process, b'\n')
+        pid = int(re.search(rb'CHILD_PID=(\d+)', early).group(1))
+        started = time.monotonic()
+        process.terminate()
+        time.sleep(.05)
+        process.terminate()  # Repeated cancellation must not interrupt cleanup.
+        tail, _ = process.communicate(timeout=10)
+        self.assertLess(time.monotonic() - started, 10)
+        self.assertEqual(process.returncode, 128 + signal.SIGTERM, early + tail)
+        self.assertEqual(early + tail, self.log.read_bytes())
+        with self.assertRaises(ProcessLookupError):
+            os.kill(pid, 0)
+
+    def test_import_and_class_setup_stacks_show_location_without_locals(self):
+        directory = self.base / 'source/tools/tests'
+        directory.mkdir(parents=True)
+        for phase in ['import', 'class_setup']:
+            with self.subTest(phase=phase):
+                body = ('import time, unittest\n'
+                        'def stall():\n'
+                        ' private_local = "SECRET-LOCAL-MUST-NOT-APPEAR"\n'
+                        ' time.sleep(.2)\n')
+                if phase == 'import':
+                    body += 'stall()\n'
+                body += 'class Probe(unittest.TestCase):\n'
+                if phase == 'class_setup':
+                    body += ' @classmethod\n def setUpClass(cls): stall()\n'
+                body += ' def test_one(self): pass\n'
+                (directory / 'test_probe.py').write_text(body)
+                code = ('import os,sys\nfrom pathlib import Path\n'
+                        'sys.path.insert(0, ' + repr(str(ROOT / 'tools')) + ')\n'
+                        'import run_static_checks as runner\n'
+                        'original = runner._diagnostic_watchdog\n'
+                        'def accelerated(stopped, interval, descriptor):\n'
+                        ' assert interval == 60\n original(stopped, .05, descriptor)\n'
+                        'runner._diagnostic_watchdog = accelerated\n'
+                        'os.environ["NATIVE_STATIC_DIAGNOSTIC_STACKS"] = "1"\n'
+                        'report = runner.suite_report("tools", Path(' + repr(str(self.base / 'source')) + '))\n'
+                        'print("REPORT=" + runner.encode(report))\n')
+                result = subprocess.run([sys.executable, '-B', '-u', '-c', code],
+                                        capture_output=True, text=True, timeout=10)
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                report = json.loads(result.stdout.split('REPORT=', 1)[1])
+                self.assertEqual((report['discovered_count'], report['tests_run'], report['skip_count']), (1, 1, 0))
+                self.assertEqual(report['successes'], ['test_probe.Probe.test_one'])
+                self.assertEqual(report['discovery_errors'], [])
+                self.assertNotIn('SECRET-LOCAL-MUST-NOT-APPEAR', result.stdout + result.stderr)
+                self.assertIn('in stall', result.stderr)
+                stack = result.stderr.index('Timeout')
+                end = result.stderr.index('DISCOVERY END tools')
+                self.assertLess(result.stderr.index('DISCOVERY START tools'), stack)
+                if phase == 'import':
+                    self.assertLess(stack, end)
+                else:
+                    self.assertLess(end, stack)
+                    self.assertLess(stack, result.stderr.index('START test_probe.Probe.test_one'))
+
+    def test_startup_cancellation_owns_child_inside_popen_and_at_handoff(self):
+        for boundary in ['inside_popen', 'returned_handle']:
+            for signum in [signal.SIGTERM, signal.SIGINT]:
+                with self.subTest(boundary=boundary, signal=signum):
+                    captured = []
+                    handlers = {value: signal.getsignal(value) for value in [signal.SIGTERM, signal.SIGINT]}
+                    mask = signal.pthread_sigmask(signal.SIG_BLOCK, [])
+
+                    def cleanup(processes=captured):
+                        for process in processes:
+                            if process.poll() is None:
+                                os.killpg(process.pid, signal.SIGKILL)
+                            process.wait(timeout=5)
+                    self.addCleanup(cleanup)
+
+                    def trace(frame, event, arg):
+                        process = None
+                        if (boundary == 'inside_popen' and event == 'return'
+                                and frame.f_code is subprocess.Popen._execute_child.__code__):
+                            process = frame.f_locals['self']
+                        elif (boundary == 'returned_handle' and event == 'line'
+                              and frame.f_code is runner.run_logged_process.__code__):
+                            process = frame.f_locals.get('process')
+                        if process is not None:
+                            captured.append(process)
+                            sys.settrace(None)
+                            os.kill(os.getpid(), signum)
+                            # Refresh CPython's tracing locals snapshot after
+                            # the handler changes a closure cell; do not write
+                            # its pre-signal value back when this trace returns.
+                            frame.f_locals
+                        return trace
+
+                    command = [sys.executable, '-B', '-u', '-c', 'import time; time.sleep(60)']
+                    log = self.base / (boundary + '-' + str(signum) + '.log')
+                    try:
+                        sys.settrace(trace)
+                        with self.assertRaises(SystemExit) as stopped:
+                            runner.run_logged_process(command, self.base, dict(os.environ), log)
+                    finally:
+                        sys.settrace(None)
+                    self.assertEqual(stopped.exception.code, 128 + signum)
+                    self.assertEqual(len(captured), 1)
+                    self.assertIsNotNone(captured[0].poll())
+                    with self.assertRaises(ProcessLookupError):
+                        os.kill(captured[0].pid, 0)
+                    self.assertEqual(signal.pthread_sigmask(signal.SIG_BLOCK, []), mask)
+                    self.assertEqual({value: signal.getsignal(value) for value in handlers}, handlers)
+
+    def test_first_cancellation_at_cleanup_entry_still_reaps_child(self):
+        source = Path(runner.__file__).read_text().splitlines()
+        # R2's phase assignment and R2b's handle check are their respective
+        # first cleanup instructions; the same regression must fail on R2.
+        targets = [index for index, line in enumerate(source, 1)
+                   if line.strip() in {"phase = 'cleanup'", 'if process is not None:'}]
+        boundary = min(targets)
+        for signum in [signal.SIGTERM, signal.SIGINT]:
+            with self.subTest(signal=signum):
+                captured = []
+
+                def cleanup(processes=captured):
+                    for process in processes:
+                        if process.poll() is None:
+                            os.killpg(process.pid, signal.SIGKILL)
+                        process.wait(timeout=5)
+                self.addCleanup(cleanup)
+
+                def trace(frame, event, arg):
+                    if (event == 'line' and frame.f_code is runner.run_logged_process.__code__
+                            and frame.f_lineno == boundary):
+                        captured.append(frame.f_locals['process'])
+                        sys.settrace(None)
+                        os.kill(os.getpid(), signum)
+                        frame.f_locals  # Refresh the post-handler closure snapshot.
+                    return trace
+
+                class FailedConsole:
+                    def write(self, value):
+                        return 0
+
+                    def flush(self):
+                        pass
+                command = [sys.executable, '-B', '-u', '-c',
+                           'import time; print("ready", flush=True); time.sleep(60)']
+                log = self.base / ('cleanup-' + str(signum) + '.log')
+                try:
+                    sys.settrace(trace)
+                    with mock.patch.object(runner.sys, 'stdout', mock.Mock(buffer=FailedConsole())):
+                        with self.assertRaises(SystemExit) as stopped:
+                            runner.run_logged_process(command, self.base, dict(os.environ), log)
+                finally:
+                    sys.settrace(None)
+                self.assertEqual(stopped.exception.code, 128 + signum)
+                self.assertEqual(len(captured), 1)
+                self.assertIsNotNone(captured[0].poll())
+                with self.assertRaises(ProcessLookupError):
+                    os.kill(captured[0].pid, 0)
+
+    def test_child_starts_with_original_unblocked_cancellation_mask(self):
+        before = signal.pthread_sigmask(signal.SIG_BLOCK, [])
+        self.assertTrue({signal.SIGTERM, signal.SIGINT}.isdisjoint(before))
+        code = ('import json,signal; '
+                'print(json.dumps(sorted(map(int, signal.pthread_sigmask(signal.SIG_BLOCK, [])))))')
+        output = io.BytesIO()
+        with mock.patch.object(runner.sys, 'stdout', mock.Mock(buffer=output)):
+            result = runner.run_logged_process([sys.executable, '-B', '-u', '-c', code],
+                                               self.base, dict(os.environ), self.log)
+        self.assertEqual(result.returncode, 0)
+        self.assertEqual(json.loads(output.getvalue()), sorted(map(int, before)))
+        self.assertEqual(output.getvalue(), self.log.read_bytes())
+
+    def test_test_markers_use_monotonic_elapsed_without_changing_outcomes(self):
+        class Probe(unittest.TestCase):
+            def test_success(self):
+                pass
+        stream = io.StringIO()
+        result = runner.RecordingResult(unittest.runner._WritelnDecorator(stream), True, 2)
+        test = Probe('test_success')
+        with mock.patch.object(runner.time, 'monotonic', side_effect=[100.0, 100.25]):
+            test.run(result)
+        self.assertEqual(result.testsRun, 1)
+        self.assertEqual(result.executed_ids, [test.id()])
+        self.assertEqual(result.success_ids, [test.id()])
+        self.assertTrue(result.wasSuccessful())
+        self.assertIn('START ' + test.id() + '\n', stream.getvalue())
+        self.assertIn('END ' + test.id() + ' duration_seconds=0.250000\n', stream.getvalue())
+
+    def test_diagnostic_stacks_are_opt_in_sixty_seconds_and_always_cancelled(self):
+        with mock.patch.object(runner.threading, 'Thread') as thread, \
+             mock.patch.object(runner.threading, 'Event') as event:
+            with mock.patch.dict(os.environ, {'NATIVE_STATIC_DIAGNOSTIC_STACKS': '0'}):
+                with runner.diagnostic_stacks():
+                    pass
+            thread.assert_not_called()
+            event.assert_not_called()
+            with mock.patch.dict(os.environ, {'NATIVE_STATIC_DIAGNOSTIC_STACKS': '1'}):
+                with self.assertRaisesRegex(RuntimeError, 'fixture failure'):
+                    with runner.diagnostic_stacks():
+                        raise RuntimeError('fixture failure')
+            thread.assert_called_once_with(target=runner._diagnostic_watchdog,
+                args=(event.return_value, 60, sys.stderr.fileno()),
+                name='static-stack-diagnostics', daemon=True)
+            thread.return_value.start.assert_called_once_with()
+            event.return_value.set.assert_called_once_with()
+            thread.return_value.join.assert_called_once_with()
+
+    def test_diagnostic_worker_repeats_real_interval_and_stops_without_native_watchdog(self):
+        stopped = mock.Mock()
+        stopped.wait.side_effect = [False, False, True]
+        with mock.patch.object(runner.faulthandler, 'dump_traceback') as dump, \
+             mock.patch.object(runner.faulthandler, 'dump_traceback_later') as unsafe, \
+             mock.patch.object(runner.os, 'write') as write:
+            runner._diagnostic_watchdog(stopped, 60, 2)
+        self.assertEqual(stopped.wait.call_args_list, [mock.call(60)] * 3)
+        self.assertEqual(dump.call_args_list, [mock.call(file=2, all_threads=True)] * 2)
+        self.assertEqual(write.call_args_list, [mock.call(2, b'Timeout (60-second diagnostic interval)!\n')] * 2)
+        unsafe.assert_not_called()
+
+    def test_diagnostic_worker_error_does_not_change_body_exception_or_leave_worker(self):
+        before = set(runner.threading.enumerate())
+        for error in [OSError('private failure'), RuntimeError('private failure'), ValueError('private failure')]:
+            stopped = mock.Mock()
+            stopped.wait.return_value = False
+            with mock.patch.object(runner.faulthandler, 'dump_traceback', side_effect=error), \
+                 mock.patch.object(runner.os, 'write'):
+                runner._diagnostic_watchdog(stopped, 60, 2)
+            stopped.wait.assert_called_once_with(60)
+        with mock.patch.dict(os.environ, {'NATIVE_STATIC_DIAGNOSTIC_STACKS': '1'}):
+            for _ in range(20):
+                with self.assertRaisesRegex(RuntimeError, 'original body failure'):
+                    with runner.diagnostic_stacks():
+                        raise RuntimeError('original body failure')
+        self.assertEqual(set(runner.threading.enumerate()), before)
+
+    def test_diagnostic_frame_churn_and_teardown_preserve_real_process_outcome(self):
+        code = ("import os,sys,time,types,threading,faulthandler\n"
+                "from pathlib import Path\n"
+                "sys.path.insert(0, " + repr(str(ROOT / 'tools')) + ")\n"
+                "import run_static_checks as runner\n"
+                "original = runner._diagnostic_watchdog\n"
+                "samples = []\n"
+                "dump = runner.faulthandler.dump_traceback\n"
+                "def real_dump(**kwargs):\n"
+                " samples.append(1)\n dump(**kwargs)\n"
+                "runner.faulthandler.dump_traceback = real_dump\n"
+                "def accelerated(stopped, interval, descriptor):\n"
+                " assert interval == 60\n original(stopped, .00001, descriptor)\n"
+                "runner._diagnostic_watchdog = accelerated\n"
+                "os.environ['NATIVE_STATIC_DIAGNOSTIC_STACKS'] = '1'\n"
+                "baseline = set(threading.enumerate())\n"
+                "def template(): return 1\n"
+                "with open(os.devnull, 'w') as out:\n"
+                " sys.stderr = out\n"
+                " for iteration in range(12):\n"
+                "  with runner.diagnostic_stacks():\n"
+                "   until = time.monotonic() + .025\n"
+                "   while time.monotonic() < until:\n"
+                "    code = template.__code__.replace(); function = types.FunctionType(code, {})\n"
+                "    assert function() == 1\n"
+                "    del function, code\n"
+                "  assert set(threading.enumerate()) == baseline\n"
+                "assert len(samples) >= 12, len(samples)\n"
+                "print('CHURN_AND_CANCEL_OK')\n")
+        result = subprocess.run([sys.executable, '-B', '-u', '-c', code],
+                                capture_output=True, text=True, timeout=10)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(result.stdout.strip(), 'CHURN_AND_CANCEL_OK')
+        self.assertEqual(result.stderr, '')
 
 
 class LiveStaticWorkflowTests(unittest.TestCase):

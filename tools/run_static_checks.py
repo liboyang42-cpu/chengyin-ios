@@ -7,15 +7,19 @@ The artifact is an integrity receipt, not a signature or a cross-run cache.
 """
 import argparse
 from collections import Counter
+from contextlib import contextmanager
+import faulthandler
 import hashlib
 import json
 import os
 from pathlib import Path
 import re
+import signal
 import stat
 import subprocess
 import sys
 import time
+import threading
 import unittest
 
 SUITES = {
@@ -585,14 +589,65 @@ class RecordingResult(unittest.TextTestResult):
         # never start their methods and are accounted separately in affected_ids.
         self.executed_ids = []
         self.success_ids = []
+        self.test_started = {}
 
     def startTest(self, test):
         self.executed_ids.append(test.id())
+        self.test_started[id(test)] = time.monotonic()
+        self.stream.writeln('START ' + test.id())
+        self.stream.flush()
         super().startTest(test)
+
+    def stopTest(self, test):
+        elapsed = time.monotonic() - self.test_started.pop(id(test))
+        super().stopTest(test)
+        self.stream.writeln('END ' + test.id() + f' duration_seconds={elapsed:.6f}')
+        self.stream.flush()
 
     def addSuccess(self, test):
         self.success_ids.append(test.id())
         super().addSuccess(test)
+
+
+def _diagnostic_watchdog(stopped, interval, descriptor):
+    # Unlike dump_traceback_later's native watchdog, this Python worker holds
+    # the GIL while faulthandler reads frames, so active frame/code teardown
+    # cannot race the dump. A C extension holding the GIL can delay sampling.
+    while not stopped.wait(interval):
+        try:
+            os.write(descriptor, f'Timeout ({interval:g}-second diagnostic interval)!\n'.encode())
+            faulthandler.dump_traceback(file=descriptor, all_threads=True)
+        except (OSError, RuntimeError, ValueError):
+            # Optional diagnostics must not replace or change suite outcomes.
+            return
+
+
+@contextmanager
+def diagnostic_stacks():
+    # Stack locations only: no source lines, frame locals, or failure messages.
+    if os.environ.get('NATIVE_STATIC_DIAGNOSTIC_STACKS') != '1':
+        yield
+        return
+    try:
+        descriptor = sys.stderr.fileno()
+    except (AttributeError, OSError, ValueError):
+        yield
+        return
+    stopped = threading.Event()
+    worker = threading.Thread(target=_diagnostic_watchdog,
+                              args=(stopped, 60, descriptor),
+                              name='static-stack-diagnostics', daemon=True)
+    try:
+        try:
+            worker.start()
+        except RuntimeError:
+            # A resource failure starting optional diagnostics is non-fatal.
+            pass
+        yield
+    finally:
+        stopped.set()
+        if worker.ident is not None:
+            worker.join()
 
 
 def suite_report(name, root):
@@ -602,15 +657,22 @@ def suite_report(name, root):
     specification = SUITES[name]
     sys.path.insert(0, str(root))
     loader = unittest.TestLoader()
-    try:
-        suite = loader.discover(str(root / specification['directory']), pattern=specification['pattern'])
-        discovery_errors = list(loader.errors)
-    except (ImportError, OSError) as error:
-        suite = unittest.TestSuite()
-        discovery_errors = [str(error)]
-    discovered = [test.id() for test in flatten(suite)]
-    started = time.monotonic()
-    result = unittest.TextTestRunner(verbosity=2, resultclass=RecordingResult).run(suite)
+    with diagnostic_stacks():
+        discovery_started = time.monotonic()
+        print('DISCOVERY START ' + name, file=sys.stderr, flush=True)
+        try:
+            try:
+                suite = loader.discover(str(root / specification['directory']), pattern=specification['pattern'])
+                discovery_errors = list(loader.errors)
+            except (ImportError, OSError) as error:
+                suite = unittest.TestSuite()
+                discovery_errors = [str(error)]
+            discovered = [test.id() for test in flatten(suite)]
+        finally:
+            elapsed = time.monotonic() - discovery_started
+            print(f'DISCOVERY END {name} duration_seconds={elapsed:.6f}', file=sys.stderr, flush=True)
+        started = time.monotonic()
+        result = unittest.TextTestRunner(verbosity=2, resultclass=RecordingResult).run(suite)
     skipped = []
     for test, reason in result.skipped:
         identifier = test.id()
@@ -736,6 +798,92 @@ def verify_bundle(directory, root, expected=None):
     return value
 
 
+def run_logged_process(command, root, environment, log):
+    """Relay the exact merged child bytes as they arrive, without a pipe wait.
+
+    A file-backed tee preserves the artifact even when CI interrupts the parent.
+    Unlike a pipe reader, it cannot hang on an inherited writer after child exit.
+    Read only each observed snapshot so a noisy writer cannot starve cancellation.
+    """
+    termination_signal = None
+
+    def interrupted(signum, frame):
+        nonlocal termination_signal
+        if termination_signal is None:
+            termination_signal = signum
+            # Only record here: asynchronous exceptions can interrupt Popen's
+            # handle transfer or even the first instruction of cleanup. The
+            # protected 100 ms loop below owns propagation and child cleanup.
+
+    previous = {signum: signal.signal(signum, interrupted)
+                for signum in (signal.SIGTERM, signal.SIGINT)}
+    try:
+        with log.open('xb') as stream, log.open('rb') as replay:
+            def relay_available():
+                remaining = os.fstat(replay.fileno()).st_size - replay.tell()
+                while remaining:
+                    # Defer cancellation until the already-read bytes have
+                    # reached stdout; otherwise a partial write loses its tail.
+                    mask = signal.pthread_sigmask(signal.SIG_BLOCK, previous)
+                    try:
+                        chunk = replay.read(min(65536, remaining))
+                        if not chunk:
+                            break
+                        pending = memoryview(chunk)
+                        while pending:
+                            written = sys.stdout.buffer.write(pending)
+                            if written is None or written <= 0:
+                                raise OSError('Static console output stopped accepting bytes')
+                            pending = pending[written:]
+                        sys.stdout.buffer.flush()
+                        remaining -= len(chunk)
+                    finally:
+                        signal.pthread_sigmask(signal.SIG_SETMASK, mask)
+
+            process = None
+            try:
+                # Defer signals in Python, without blocking their OS mask:
+                # the child must not inherit TERM/INT blocked during startup.
+                process = subprocess.Popen(command, cwd=root, env=environment,
+                                           stdout=stream, stderr=subprocess.STDOUT,
+                                           start_new_session=True)
+                while True:
+                    if termination_signal is not None:
+                        raise SystemExit(128 + termination_signal)
+                    try:
+                        returncode = process.wait(timeout=0.1)
+                    except subprocess.TimeoutExpired:
+                        returncode = None
+                    relay_available()
+                    if returncode is not None:
+                        return subprocess.CompletedProcess(command, returncode)
+            finally:
+                # Reap on interruption and kill residual inherited writers; no
+                # helper thread or unbounded communicate()/pipe read can linger.
+                if process is not None:
+                    try:
+                        try:
+                            os.killpg(process.pid, signal.SIGTERM)
+                        except ProcessLookupError:
+                            pass
+                        try:
+                            process.wait(timeout=5)
+                        except subprocess.TimeoutExpired:
+                            pass
+                    finally:
+                        try:
+                            os.killpg(process.pid, signal.SIGKILL)
+                        except ProcessLookupError:
+                            pass
+                        process.wait(timeout=5)
+                        relay_available()
+    finally:
+        for signum, handler in previous.items():
+            signal.signal(signum, handler)
+        if termination_signal is not None:
+            raise SystemExit(128 + termination_signal)
+
+
 def run_all(root, directory):
     root = Path(root).resolve()
     if sys.flags.optimize or os.environ.get('PYTHONOPTIMIZE'):
@@ -762,13 +910,11 @@ def run_all(root, directory):
         check_source_boundary('before ' + name)
         report = directory / (name + '.json')
         log = directory / (name + '.log')
-        command = [sys.executable, '-B', str(root / 'tools/run_static_checks.py'), '_suite',
+        command = [sys.executable, '-B', '-u', str(root / 'tools/run_static_checks.py'), '_suite',
                    '--suite', name, '--report', str(report)]
         print('Full static discovery:', name, SUITES[name], flush=True)
-        with log.open('x') as stream:
-            result = subprocess.run(command, cwd=root, env=environment, stdout=stream, stderr=subprocess.STDOUT)
+        result = run_logged_process(command, root, environment, log)
         check_source_boundary('after ' + name)
-        print(log.read_text(), end='', flush=True)
         try:
             if result.returncode:
                 raise ValueError('Suite process did not succeed: ' + name)
