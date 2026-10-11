@@ -20,10 +20,15 @@ from urllib.parse import unquote, urlparse
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
-BASE_COMMIT = '6ae3e545b373dd5cddc47356a57d0cb6ee928e70'
-BASE_TREE = 'dc1573c54487cb5402b083b0ff91d3a98025eca9'
+BASE_COMMIT = '3be47584fcf893b4a525caaebd38d5fd54200be5'
+BASE_TREE = '7a983fc94199e003592eeb5d9c9484c75343fe0c'
 PATHS = ('.github/workflows/native-targeted.yml', 'tools/targeted_native_selection.json',
          'tools/run_targeted_native.py', 'tools/tests/test_targeted_native.py')
+REPAIR_PATHS = (
+    'Tests/CoreTests/ProjectCityStoryNodeRemovalTests.swift',
+    'tools/run138_editor_readiness_contract.json',
+    'tools/run138_editor_readiness.py',
+    'Tests/ContractChecks/test_profile_read_failure_remote_admission.py')
 GROUPS = {'core': ('QuestifyCoreTests', None, 10),
           'app-unit': ('QuestifyAppUnitTests', 'QuestifyAppUnitTests', 12),
           'ui': ('QuestifyUITests', 'Questify', 7)}
@@ -38,7 +43,7 @@ BOUND_SOURCES = {'.github/workflows/native-ios.yml', 'tools/ci_gates.py',
     'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift',
     'Tests/AppUITests/TemplateOwnShelfFlowTests.swift'}
 METHOD = re.compile(r'(QuestifyCoreTests|QuestifyAppUnitTests|QuestifyUITests)/([A-Za-z][A-Za-z0-9_]*)/(test[A-Za-z0-9_]+)')
-SELECTION_CONTRACT_SHA256 = 'f2fb9e1e47329d7851f2e7da80ca87c7c7e9e59d206b55fcbec256f7defa6dee'
+SELECTION_CONTRACT_SHA256 = '88f704405c7de7f6da7bfb0e7cf7ac525d85b90b841d07fdc3a67fcd2d0e6285'
 LIMIT = 10 * 1024 * 1024
 
 
@@ -80,12 +85,48 @@ def write_json(path, value):
     temporary.replace(path)
 
 
+
+def inverse_reviewed_repair(row, raw):
+    require(hashlib.sha256(raw).hexdigest() == row['after_sha256'], 'Changed reviewed repair: ' + row['path'])
+    source = raw.decode('utf-8')
+    for hunk in reversed(row['hunks']):
+        require(source.count(hunk['after']) == 1, 'Missing/duplicate reviewed repair hunk')
+        source = source.replace(hunk['after'], hunk['before'], 1)
+    restored = source.encode('utf-8')
+    require(hashlib.sha256(restored).hexdigest() == row['before_sha256'], 'Repair did not restore complete predecessor')
+    require(hashlib.sha1(b'blob ' + str(len(restored)).encode() + b'\0' + restored).hexdigest() == row['before_blob'], 'Repair predecessor differs from reviewed Git blob')
+    return restored
+
+
+def validate_reviewed_repairs(selection, root):
+    repairs = selection.get('reviewed_repairs')
+    require(isinstance(repairs, list) and [row.get('path') for row in repairs] == list(REPAIR_PATHS), 'Missing/changed reviewed repair scope')
+    restored = {}
+    for row in repairs:
+        require(set(row) == {'path', 'before_sha256', 'before_blob', 'after_sha256', 'hunks'} and isinstance(row['hunks'], list) and bool(row['hunks']), 'Invalid reviewed repair binding')
+        path = root / row['path']
+        require(not path.is_symlink() and path.resolve().is_relative_to(root.resolve()), 'Repair escaped checkout')
+        restored[row['path']] = inverse_reviewed_repair(row, path.read_bytes())
+    current = read_json(root / REPAIR_PATHS[1])
+    previous = json.loads(restored[REPAIR_PATHS[1]], object_pairs_hook=unique_object)
+    test = repairs[0]
+    require(current['feature_batch_support_sha256'][test['path']] == test['after_sha256'], 'Current repair support is not genuine')
+    require(current['feature_batch_sources'][test['path']] == {k: test[k] for k in ['before_sha256', 'after_sha256', 'hunks']}, 'Missing exact central repair inverse')
+    del current['feature_batch_sources'][test['path']]
+    current['feature_batch_support_sha256'][test['path']] = test['before_sha256']
+    admission = repairs[3]
+    require(current['feature_batch_support_sha256'][admission['path']] == admission['after_sha256'], 'Current admission support is not genuine')
+    current['feature_batch_support_sha256'][admission['path']] = admission['before_sha256']
+    require(current == previous, 'Unrelated central contract semantics changed')
+    return restored
+
+
 def validate_selection(selection, root):
     require(isinstance(selection, dict) and type(selection.get('version')) is int and selection.get('version') == 1, 'Unsupported selection version')
     require(selection.get('name') == 'creator-shelf-refresh-v1', 'Unknown fixed selection')
     require(selection.get('base_commit') == BASE_COMMIT and selection.get('base_tree') == BASE_TREE, 'Wrong reviewed base')
     require(selection.get('repository') == 'liboyang42-cpu/chengyin-ios' and selection.get('branch') == 'migration/native-ios', 'Wrong repository or branch')
-    require(selection.get('allowed_additions') == list(PATHS), 'Changed four-path boundary')
+    require(selection.get('allowed_changes') == ['M\t' + p for p in PATHS + REPAIR_PATHS], 'Changed exact eight-path boundary')
     sources = selection.get('source_files')
     require(isinstance(sources, list) and all(isinstance(row, dict) and set(row) == {'path', 'sha256'} for row in sources), 'Invalid source bindings')
     hashes = {row['path']: row['sha256'] for row in sources}
@@ -117,6 +158,7 @@ def validate_selection(selection, root):
         for identifier in methods:
             require(METHOD.fullmatch(identifier) is not None and identifier.startswith(target + '/'), 'Not an exact method')
             require(identifier in declared, 'Selected method is not declared in bound source')
+    validate_reviewed_repairs(selection, root)
     require(hashlib.sha256(encode(selection).encode()).hexdigest() == SELECTION_CONTRACT_SHA256, 'Fixed selection contract changed')
     return selection
 
@@ -160,7 +202,7 @@ def verify_scope(root, selection):
     require(re.fullmatch('[a-f0-9]{40}', head) is not None and head == os.environ.get('GITHUB_SHA'), 'Actual HEAD differs from GITHUB_SHA')
     require(checked(['git', 'rev-parse', BASE_COMMIT + '^{tree}'], root) == BASE_TREE, 'Baseline tree differs')
     changes = checked(['git', 'diff', '--name-status', BASE_COMMIT, head], root).splitlines()
-    require(set(changes) == {'A\t' + p for p in PATHS} and len(changes) == len(PATHS), 'Source changes exceed four added diagnostic paths')
+    require(set(changes) == {'M\t' + p for p in PATHS + REPAIR_PATHS} and len(changes) == len(PATHS) + len(REPAIR_PATHS), 'Source changes differ from eight exact reviewed modifications')
     require(not checked(['git', 'status', '--porcelain', '--untracked-files=normal'], root), 'Checkout is not clean')
     validate_selection(selection, root)
     return {'source_sha': head, 'source_tree': checked(['git', 'rev-parse', 'HEAD^{tree}'], root),

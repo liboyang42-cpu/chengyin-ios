@@ -71,7 +71,7 @@ final class ProjectCityStoryNodeRemovalTests:XCTestCase {
     func testAmbiguousRawIDsPendingAliasesAndBlockIdentityAreRejected()throws {
         var d=draft();d.chapters[0].nodes[0].id="é";d.chapters[0].blocks?[1].nodeID="é";d.chapters[0].nodes[1].id="e\u{301}";XCTAssertThrowsError(try remove(d,id:"é"))
         d=draft();d.pendingMaterials?.append(.init(node:d.chapters[0].nodes[0]));XCTAssertThrowsError(try remove(d))
-        d=draft();d.chapters[0].blocks?[2].id=d.chapters[0].blocks![0].id;XCTAssertThrowsError(try remove(d))
+        d=draft();let duplicateBlockID=d.chapters[0].blocks![0].id;d.chapters[0].blocks?[2].id=duplicateBlockID;XCTAssertThrowsError(try remove(d))
         XCTAssertThrowsError(try remove(draft(),id:"missing"))
     }
     func testStoryOnlyNodeAndFalseLocationRequirementStayProtected()throws {

@@ -128,6 +128,57 @@ class SelectionAndCommands(unittest.TestCase):
         self.assertIn('SHARD_COUNT = 79', (SOURCE / 'tools/ci_gates.py').read_text())
 
 
+class ReviewedCompileRepair(unittest.TestCase):
+    def test_complete_predecessors_and_unrelated_contract_semantics_are_preserved(self):
+        restored = runner.validate_reviewed_repairs(SELECTION, SOURCE)
+        self.assertEqual(set(restored), set(runner.REPAIR_PATHS))
+        self.assertEqual(runner.hashlib.sha256(restored[runner.REPAIR_PATHS[1]]).hexdigest(),
+                         '58ff3d8f33a15cb17ff8ac753ae39799a68434a2c742e4630abe9c0b24154f1b')
+        old = restored[runner.REPAIR_PATHS[0]].decode()
+        current = (SOURCE / runner.REPAIR_PATHS[0]).read_text()
+        self.assertEqual(re.findall(r'func (test\w+)', old), re.findall(r'func (test\w+)', current))
+        self.assertEqual(re.findall(r'XCTAssert\w+\(.*', old), re.findall(r'XCTAssert\w+\(.*', current))
+        self.assertEqual(runner.digest(SOURCE / 'tools/run138_current_source_projection.py'),
+                         'c0e6a5351bd024bdcbf8d1152bb4e8cb683cc5ff15e370627a14e229a1158727')
+
+    def test_real_central_projection_accepts_current_support_and_exact_inverse(self):
+        def load(path, name):
+            spec = importlib.util.spec_from_file_location(name, path)
+            module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
+            return module
+        current = load(TOOLS / 'run138_editor_readiness.py', 'targeted_current_readiness')
+        projection = load(SOURCE / 'tools/run138_current_source_projection.py', 'targeted_current_projection')
+        path = runner.REPAIR_PATHS[0]; row = SELECTION['reviewed_repairs'][0]
+        with mock.patch.object(projection, 'planning', return_value=current):
+            projection.validate_feature_batch_sources(SOURCE)
+            old = projection.original_feature_batch_bytes(path, (SOURCE / path).read_bytes(), SOURCE)
+            self.assertEqual(runner.hashlib.sha256(old).hexdigest(), row['before_sha256'])
+            for raw in [old, (SOURCE / path).read_bytes() + b'\n']:
+                with self.assertRaises(ValueError): projection.original_feature_batch_bytes(path, raw, SOURCE)
+            changed = copy.deepcopy(current.contract(SOURCE))
+            changed['feature_batch_support_sha256'][path] = row['before_sha256']
+            with mock.patch.object(current, 'contract', return_value=changed), self.assertRaises(ValueError):
+                projection.validate_feature_batch_sources(SOURCE)
+            changed = copy.deepcopy(current.contract(SOURCE)); del changed['feature_batch_sources'][path]
+            with mock.patch.object(runner, 'read_json', return_value=changed), self.assertRaises((ValueError, KeyError)):
+                runner.validate_reviewed_repairs(SELECTION, SOURCE)
+
+    def test_repair_inverse_rejects_off_hunk_changes_even_with_rehashed_postimage(self):
+        for row in SELECTION['reviewed_repairs']:
+            raw = (SOURCE / row['path']).read_bytes()
+            for mutant in [raw + b'\n', raw.replace(row['hunks'][0]['after'].encode(), b'', 1),
+                           raw + row['hunks'][0]['after'].encode()]:
+                forged = copy.deepcopy(row); forged['after_sha256'] = runner.hashlib.sha256(mutant).hexdigest()
+                with self.subTest(path=row['path']), self.assertRaises(ValueError):
+                    runner.inverse_reviewed_repair(forged, mutant)
+        for mode in ['missing', 'extra', 'support']:
+            changed = copy.deepcopy(SELECTION)
+            if mode == 'missing': changed['reviewed_repairs'].pop()
+            elif mode == 'extra': changed['reviewed_repairs'].append(copy.deepcopy(changed['reviewed_repairs'][0]))
+            else: changed['reviewed_repairs'][0]['after_sha256'] = '0' * 64
+            with self.assertRaises(ValueError): runner.validate_selection(changed, SOURCE)
+
+
 class Results(unittest.TestCase):
     def setUp(self):
         self.group = SELECTION['groups'][1]
@@ -327,22 +378,26 @@ class RuntimeBoundaries(unittest.TestCase):
             (root / 'escaped').symlink_to('/etc')
             with self.assertRaises(ValueError): runner.products_digest(root)
 
-    def test_scope_requires_exact_sha_base_and_only_four_added_paths(self):
+    def test_scope_requires_exact_sha_base_and_only_eight_modified_paths(self):
         def output(command, root):
             if command[1:3] == ['rev-parse', 'HEAD']: return 'a' * 40
             if command[1:3] == ['rev-parse', runner.BASE_COMMIT + '^{tree}']: return runner.BASE_TREE
             if command[1:3] == ['rev-parse', 'HEAD^{tree}']: return 'b' * 40
             if command[1] == 'status': return ''
-            if command[1] == 'diff': return '\n'.join('A\t' + p for p in runner.PATHS)
+            if command[1] == 'diff': return '\n'.join(['M\t' + p for p in runner.PATHS + runner.REPAIR_PATHS])
             raise AssertionError(command)
         with mock.patch.dict(os.environ, {'GITHUB_SHA': 'a' * 40}), mock.patch.object(runner, 'checked', side_effect=output):
             self.assertEqual(runner.verify_scope(SOURCE, SELECTION)['source_tree'], 'b' * 40)
-        for field in ['head', 'base', 'diff', 'dirty']:
+        for field in ['head', 'base', 'diff', 'dirty', 'missing-repair', 'wrong-status', 'old-additions', 'duplicate']:
             def mutated(command, root):
                 original = output(command, root)
                 if field == 'head' and command[1:3] == ['rev-parse', 'HEAD']: return 'c' * 40
                 if field == 'base' and command[1:3] == ['rev-parse', runner.BASE_COMMIT + '^{tree}']: return 'c' * 40
                 if field == 'diff' and command[1] == 'diff': return original + '\nM\tApp/AppSession.swift'
+                if field == 'missing-repair' and command[1] == 'diff': return '\n'.join(original.splitlines()[:-1])
+                if field == 'wrong-status' and command[1] == 'diff': return original.replace('M\t' + runner.REPAIR_PATHS[0], 'A\t' + runner.REPAIR_PATHS[0])
+                if field == 'old-additions' and command[1] == 'diff': return original.replace('M\t' + runner.PATHS[0], 'A\t' + runner.PATHS[0])
+                if field == 'duplicate' and command[1] == 'diff': return original + '\n' + original.splitlines()[0]
                 if field == 'dirty' and command[1] == 'status': return ' M App/AppSession.swift'
                 return original
             with mock.patch.dict(os.environ, {'GITHUB_SHA': 'a' * 40}), mock.patch.object(runner, 'checked', side_effect=mutated), self.assertRaises(ValueError):

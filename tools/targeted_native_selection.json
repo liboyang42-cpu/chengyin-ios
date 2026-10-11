@@ -1,16 +1,10 @@
 {
   "version": 1,
   "name": "creator-shelf-refresh-v1",
-  "base_commit": "6ae3e545b373dd5cddc47356a57d0cb6ee928e70",
-  "base_tree": "dc1573c54487cb5402b083b0ff91d3a98025eca9",
+  "base_commit": "3be47584fcf893b4a525caaebd38d5fd54200be5",
+  "base_tree": "7a983fc94199e003592eeb5d9c9484c75343fe0c",
   "repository": "liboyang42-cpu/chengyin-ios",
   "branch": "migration/native-ios",
-  "allowed_additions": [
-    ".github/workflows/native-targeted.yml",
-    "tools/targeted_native_selection.json",
-    "tools/run_targeted_native.py",
-    "tools/tests/test_targeted_native.py"
-  ],
   "groups": [
     {
       "name": "core",
@@ -127,5 +121,85 @@
       "path": "Tests/AppUITests/TemplateOwnShelfFlowTests.swift",
       "sha256": "3ead06d83d63800015dd8255d73aae100ab8ae85fc0553787edc12d6951419ce"
     }
+  ],
+  "reviewed_repairs": [
+    {
+      "path": "Tests/CoreTests/ProjectCityStoryNodeRemovalTests.swift",
+      "before_sha256": "c0d731ccb927b9bad2ae07f65fac52ac99f924e121c66bede81ee5b411742bba",
+      "before_blob": "98caba0b7472b5b403bed02841d04616fef6c8e9",
+      "after_sha256": "bad6293bda4a08e10687686625969954a6b906f9b8c618c8462579840d343a3c",
+      "hunks": [
+        {
+          "before": "        d=draft();d.chapters[0].blocks?[2].id=d.chapters[0].blocks![0].id;XCTAssertThrowsError(try remove(d))\n",
+          "after": "        d=draft();let duplicateBlockID=d.chapters[0].blocks![0].id;d.chapters[0].blocks?[2].id=duplicateBlockID;XCTAssertThrowsError(try remove(d))\n"
+        }
+      ]
+    },
+    {
+      "path": "tools/run138_editor_readiness_contract.json",
+      "before_sha256": "58ff3d8f33a15cb17ff8ac753ae39799a68434a2c742e4630abe9c0b24154f1b",
+      "before_blob": "99b4af2eaf68eeb1a47b6793943224b82d04289e",
+      "after_sha256": "b5dff5b209ce495bb46075dcc514a20ebd2e4561a9d1ea3aadb02b02f8d393c9",
+      "hunks": [
+        {
+          "before": "  },\n  \"node_description_adapter_sha256\": \"8646d202950f7535a3a04995a5b107ebf5be13144e427a886d8f7b0fda96da3d\",\n  \"feature_batch_sources\": {\n    \"App/ProjectEditView.swift\": {\n      \"before_sha256\": \"34891e8b33e8e09225854cb37ccd979668aeec264fdb64138c5163782cf3f725\",\n      \"after_sha256\": \"cd1e2c69457a187343cf5236bc5afef9a4587a2c9f1a2d7835859be9ea99a4fc\",\n",
+          "after": "  },\n  \"node_description_adapter_sha256\": \"8646d202950f7535a3a04995a5b107ebf5be13144e427a886d8f7b0fda96da3d\",\n  \"feature_batch_sources\": {\n    \"Tests/CoreTests/ProjectCityStoryNodeRemovalTests.swift\": {\n      \"before_sha256\": \"c0d731ccb927b9bad2ae07f65fac52ac99f924e121c66bede81ee5b411742bba\",\n      \"after_sha256\": \"bad6293bda4a08e10687686625969954a6b906f9b8c618c8462579840d343a3c\",\n      \"hunks\": [\n        {\n          \"before\": \"        d=draft();d.chapters[0].blocks?[2].id=d.chapters[0].blocks![0].id;XCTAssertThrowsError(try remove(d))\\n\",\n          \"after\": \"        d=draft();let duplicateBlockID=d.chapters[0].blocks![0].id;d.chapters[0].blocks?[2].id=duplicateBlockID;XCTAssertThrowsError(try remove(d))\\n\"\n        }\n      ]\n    },\n    \"App/ProjectEditView.swift\": {\n      \"before_sha256\": \"34891e8b33e8e09225854cb37ccd979668aeec264fdb64138c5163782cf3f725\",\n      \"after_sha256\": \"cd1e2c69457a187343cf5236bc5afef9a4587a2c9f1a2d7835859be9ea99a4fc\",\n"
+        },
+        {
+          "before": "    \"Tests/AppUnitTests/ProjectCityStoryNodeRemovalPresentationTests.swift\": \"986074d480743bc30cd2fcaccea0fc67c64318a1f7a98d7911e3da82c780e234\",\n    \"Tests/ContractChecks/test_merchant_review_draft_return.py\": \"e9f31299585059f9ce7f6e23002bd815471f7ba85e83707fe9fd571934dd1968\",\n    \"Tests/ContractChecks/test_project_city_story_node_removal.py\": \"cfedb0582099f570184bd67c787ec5cadfe27db1fac686996ed2b1b3277901a0\",\n    \"Tests/CoreTests/ProjectCityStoryNodeRemovalTests.swift\": \"c0d731ccb927b9bad2ae07f65fac52ac99f924e121c66bede81ee5b411742bba\",\n    \"App/ProjectNodePlacePicker.swift\": \"abd4946cc584aad843bf980623bf72e19323b4612c3ecba163603389a6f644dc\",\n    \"App/ProjectPendingNodePlacePicker.swift\": \"0ddb7384a476c01672dc5c3df23ab1dad95b49214551f6ad7a24c38f9337c75d\",\n    \"Core/ProjectNodePlaceSelection.swift\": \"c94718ea4116b1cd1f1ffadf31b29d134e879afadf1daa6abf36cea5fd5afb65\",\n",
+          "after": "    \"Tests/AppUnitTests/ProjectCityStoryNodeRemovalPresentationTests.swift\": \"986074d480743bc30cd2fcaccea0fc67c64318a1f7a98d7911e3da82c780e234\",\n    \"Tests/ContractChecks/test_merchant_review_draft_return.py\": \"e9f31299585059f9ce7f6e23002bd815471f7ba85e83707fe9fd571934dd1968\",\n    \"Tests/ContractChecks/test_project_city_story_node_removal.py\": \"cfedb0582099f570184bd67c787ec5cadfe27db1fac686996ed2b1b3277901a0\",\n    \"Tests/CoreTests/ProjectCityStoryNodeRemovalTests.swift\": \"bad6293bda4a08e10687686625969954a6b906f9b8c618c8462579840d343a3c\",\n    \"App/ProjectNodePlacePicker.swift\": \"abd4946cc584aad843bf980623bf72e19323b4612c3ecba163603389a6f644dc\",\n    \"App/ProjectPendingNodePlacePicker.swift\": \"0ddb7384a476c01672dc5c3df23ab1dad95b49214551f6ad7a24c38f9337c75d\",\n    \"Core/ProjectNodePlaceSelection.swift\": \"c94718ea4116b1cd1f1ffadf31b29d134e879afadf1daa6abf36cea5fd5afb65\",\n"
+        },
+        {
+          "before": "    \"Tests/CoreTests/ProjectNodePlaceSelectionTests.swift\": \"b864c152cf35a1b55c055d634c3394d591c7eb4f27986af725edbb27dd8e3fc1\",\n    \"Tests/CoreTests/SearchMapCityNodeReadTests.swift\": \"0574a6a4f69386b0e48264824dd606e2b0c708a8495ffe9fc821e72e0c755463\",\n    \"tools/check_profile_read_failure_contract.py\": \"e492facdded0e76615721d90081b912738ba490e503aab61a7ed549a6b2a4b8a\",\n    \"Tests/ContractChecks/test_profile_read_failure_remote_admission.py\": \"7da17371272409260ed364f7c1aed5d2777380039fd8a9354b3b084266d25b30\",\n    \"Tests/CoreTests/ProfileEditTests.swift\": \"6319234ba77c43afec858692bc9ff00308be774b58ea585069a7b3dc90ce654c\",\n    \"tools/tests/test_gitleaks_configuration.py\": \"a5f5cd4f8670fb10405ab73fba1ac15700ace46a0c8dd4e8321e29e5da90cb30\"\n  },\n",
+          "after": "    \"Tests/CoreTests/ProjectNodePlaceSelectionTests.swift\": \"b864c152cf35a1b55c055d634c3394d591c7eb4f27986af725edbb27dd8e3fc1\",\n    \"Tests/CoreTests/SearchMapCityNodeReadTests.swift\": \"0574a6a4f69386b0e48264824dd606e2b0c708a8495ffe9fc821e72e0c755463\",\n    \"tools/check_profile_read_failure_contract.py\": \"e492facdded0e76615721d90081b912738ba490e503aab61a7ed549a6b2a4b8a\",\n    \"Tests/ContractChecks/test_profile_read_failure_remote_admission.py\": \"fa88459ba1d948253d825335db9bf8391cc59aa2dac2935019eabfcab23b25a0\",\n    \"Tests/CoreTests/ProfileEditTests.swift\": \"6319234ba77c43afec858692bc9ff00308be774b58ea585069a7b3dc90ce654c\",\n    \"tools/tests/test_gitleaks_configuration.py\": \"a5f5cd4f8670fb10405ab73fba1ac15700ace46a0c8dd4e8321e29e5da90cb30\"\n  },\n"
+        }
+      ]
+    },
+    {
+      "path": "tools/run138_editor_readiness.py",
+      "before_sha256": "ccdfbee9c92584ccf88008bc2bf21a6107025b936dde0bd9f4d186ba997b6197",
+      "before_blob": "7b1e2d3ad13d349a6837535cd810ea8b7c8f0da4",
+      "after_sha256": "1e2245022db8dddb36571389fdb9451fff5e465215cb92fc86b183a18b9c4557",
+      "hunks": [
+        {
+          "before": "ROOT = Path(__file__).resolve().parents[1]\n# Bind the validator bytes loaded for this process, including its contract pin.\nIMPLEMENTATION_SHA256 = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()\nCONTRACT_SHA256 = '58ff3d8f33a15cb17ff8ac753ae39799a68434a2c742e4630abe9c0b24154f1b'\nSOURCE_CONTRACT = 'Tests/ContractChecks/fixtures/project_editor_readiness.json'\nREVIEW = 'ProjectEditReviewReadinessFlowTests.testLocalEditReviewAndCancelledConfirmation'\nWHITELIST = 'ProjectEditFlowTests.testWhitelistDisablesStructureAndScheduleButKeepsCopyEditable'\n",
+          "after": "ROOT = Path(__file__).resolve().parents[1]\n# Bind the validator bytes loaded for this process, including its contract pin.\nIMPLEMENTATION_SHA256 = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()\nCONTRACT_SHA256 = 'b5dff5b209ce495bb46075dcc514a20ebd2e4561a9d1ea3aadb02b02f8d393c9'\nSOURCE_CONTRACT = 'Tests/ContractChecks/fixtures/project_editor_readiness.json'\nREVIEW = 'ProjectEditReviewReadinessFlowTests.testLocalEditReviewAndCancelledConfirmation'\nWHITELIST = 'ProjectEditFlowTests.testWhitelistDisablesStructureAndScheduleButKeepsCopyEditable'\n"
+        }
+      ]
+    },
+    {
+      "path": "Tests/ContractChecks/test_profile_read_failure_remote_admission.py",
+      "before_sha256": "7da17371272409260ed364f7c1aed5d2777380039fd8a9354b3b084266d25b30",
+      "before_blob": "e57e85d9a4a62983506d9ccfa2886268b04b29b7",
+      "after_sha256": "fa88459ba1d948253d825335db9bf8391cc59aa2dac2935019eabfcab23b25a0",
+      "hunks": [
+        {
+          "before": "SCANNER_PATH = 'tools/tests/test_gitleaks_configuration.py'\n\n# Combined admission authenticates current bytes before either historical layer.\nCOMBINED_ADMISSION_FINGERPRINT = '52f81ba30c3117b6781789bca754b1051ab6c407410c8f261b4bc5715ab18431'\nPROFILE_R2_CONTRACT_SHA256 = '3538a4526a2f42c07a8837ddb2cd12e4598ecf0d97459b36e4fcd61fb7e07efb'\nPROFILE_R2_ADMISSION_SHA256 = '81041b1c2ba2e328284555841f3b14b0e3630ed78f1190f701a86016ab558d84'\nCOMBINED_ADMISSION_PATH = 'Tests/ContractChecks/test_profile_read_failure_remote_admission.py'\n",
+          "after": "SCANNER_PATH = 'tools/tests/test_gitleaks_configuration.py'\n\n# Combined admission authenticates current bytes before either historical layer.\nCOMBINED_ADMISSION_FINGERPRINT = '68d103c2fe63d87835e8742680959782c8bebe8200748a50c19bf3a1129d1c1a'\nPROFILE_R2_CONTRACT_SHA256 = '3538a4526a2f42c07a8837ddb2cd12e4598ecf0d97459b36e4fcd61fb7e07efb'\nPROFILE_R2_ADMISSION_SHA256 = '81041b1c2ba2e328284555841f3b14b0e3630ed78f1190f701a86016ab558d84'\nCOMBINED_ADMISSION_PATH = 'Tests/ContractChecks/test_profile_read_failure_remote_admission.py'\n"
+        },
+        {
+          "before": "           '                MerchantDecorTagEditor(model: model)\\n'\n           '            }\\n'}\n\ndef _combined_profile_contract(data, root=ROOT):\n    try:\n        return _combined_profile_contract_checked(data, root)\n",
+          "after": "           '                MerchantDecorTagEditor(model: model)\\n'\n           '            }\\n'}\n\n# The compiler-only repair is a new finite layer over the already reviewed\n# complete profile/merchant contract. It never substitutes historical products.\nCOMPILE_REPAIR_PATH = 'Tests/CoreTests/ProjectCityStoryNodeRemovalTests.swift'\nCOMPILE_REPAIR_ROW = {'before_sha256': 'c0d731ccb927b9bad2ae07f65fac52ac99f924e121c66bede81ee5b411742bba', 'after_sha256': 'bad6293bda4a08e10687686625969954a6b906f9b8c618c8462579840d343a3c', 'hunks': [{'before': '        d=draft();d.chapters[0].blocks?[2].id=d.chapters[0].blocks![0].id;XCTAssertThrowsError(try remove(d))\\n', 'after': '        d=draft();let duplicateBlockID=d.chapters[0].blocks![0].id;d.chapters[0].blocks?[2].id=duplicateBlockID;XCTAssertThrowsError(try remove(d))\\n'}]}\nCOMBINED_PRECOMPILE_SHA256 = '58ff3d8f33a15cb17ff8ac753ae39799a68434a2c742e4630abe9c0b24154f1b'\nCOMBINED_PRECOMPILE_ADMISSION_SHA256 = '7da17371272409260ed364f7c1aed5d2777380039fd8a9354b3b084266d25b30'\n\n\ndef _compile_repair_combined_contract(contract, root=ROOT):\n    # Current complete module/raw group checks must have run before this layer.\n    row = contract['feature_batch_sources'].get(COMPILE_REPAIR_PATH)\n    if row != COMPILE_REPAIR_ROW:\n        raise ValueError('Unknown compiler repair inverse')\n    support = contract['feature_batch_support_sha256']\n    value = (Path(root) / COMPILE_REPAIR_PATH).read_bytes()\n    if digest(value) != row['after_sha256'] or support.get(COMPILE_REPAIR_PATH) != row['after_sha256']:\n        raise ValueError('Changed compiler repair current source/support')\n    for hunk in reversed(row['hunks']):\n        after = hunk['after'].encode(); before = hunk['before'].encode()\n        if value.count(after) != 1:\n            raise ValueError('Missing or repeated compiler repair hunk')\n        value = value.replace(after, before, 1)\n    if digest(value) != row['before_sha256']:\n        raise ValueError('Compiler repair did not restore complete original test')\n    del contract['feature_batch_sources'][COMPILE_REPAIR_PATH]\n    support[COMPILE_REPAIR_PATH] = row['before_sha256']\n    support[COMBINED_ADMISSION_PATH] = COMBINED_PRECOMPILE_ADMISSION_SHA256\n    restored = (json.dumps(contract, indent=2, ensure_ascii=False)+'\\n').encode()\n    if digest(restored) != COMBINED_PRECOMPILE_SHA256:\n        raise ValueError('Complete reviewed combined contract not restored')\n    return contract\n\n\ndef _combined_profile_contract(data, root=ROOT):\n    try:\n        return _combined_profile_contract_checked(data, root)\n"
+        },
+        {
+          "before": "            raise ValueError('Changed combined raw input: ' + name)\n        if name in support and support[name] != expected:\n            raise ValueError('Changed combined support binding: ' + name)\n    row = contract['feature_batch_sources'][MERCHANT_SOURCE_PATH]\n    if row['after_sha256'] != COMBINED_RAW_SHA256[MERCHANT_SOURCE_PATH] or row['hunks'][-1] != MERCHANT_TAG_HUNK:\n        raise ValueError('Unknown combined merchant inverse')\n",
+          "after": "            raise ValueError('Changed combined raw input: ' + name)\n        if name in support and support[name] != expected:\n            raise ValueError('Changed combined support binding: ' + name)\n    contract = _compile_repair_combined_contract(contract, root)\n    support = contract['feature_batch_support_sha256']\n    row = contract['feature_batch_sources'][MERCHANT_SOURCE_PATH]\n    if row['after_sha256'] != COMBINED_RAW_SHA256[MERCHANT_SOURCE_PATH] or row['hunks'][-1] != MERCHANT_TAG_HUNK:\n        raise ValueError('Unknown combined merchant inverse')\n"
+        },
+        {
+          "before": "        self.assertEqual(result.errors,[])\n        self.assertEqual(result.skipped,[])\n\nSCANNER_READER_HUNKS = [('ROOT = Path(__file__).resolve().parents[2]\\n', \"ROOT = Path(__file__).resolve().parents[2]\\n\\n# This adapter restores only the original line-bound historical contract input.\\nimport importlib.util\\n_profile_spec = importlib.util.spec_from_file_location(\\n    'profile_read_failure_remote_admission',\\n    ROOT / 'Tests/ContractChecks/test_profile_read_failure_remote_admission.py')\\n_profile_admission = importlib.util.module_from_spec(_profile_spec)\\n_profile_spec.loader.exec_module(_profile_admission)\\n\"), ('raw = (ROOT / FILE_DIGEST_PATH).read_text()', \"raw = _profile_admission.historical_readiness_contract(\\n            (ROOT / FILE_DIGEST_PATH).read_bytes(), ROOT).decode('utf-8')\")]\n\nif __name__ == '__main__':\n",
+          "after": "        self.assertEqual(result.errors,[])\n        self.assertEqual(result.skipped,[])\n\nclass CompileRepairCombinedAdmission(unittest.TestCase):\n    def test_exact_new_layer_preserves_all_three_complete_contract_floors(self):\n        data=(ROOT/READINESS_PATH).read_bytes()\n        restored=_compile_repair_combined_contract(json.loads(data))\n        encoded=(json.dumps(restored,indent=2,ensure_ascii=False)+'\\n').encode()\n        self.assertEqual(digest(encoded),COMBINED_PRECOMPILE_SHA256)\n        self.assertEqual(digest(_combined_profile_contract(data)),PROFILE_R2_CONTRACT_SHA256)\n        self.assertEqual(digest(historical_readiness_contract(data)),ORIGINAL_READINESS_SHA256)\n        source=(ROOT/COMPILE_REPAIR_PATH).read_text()\n        hunk=COMPILE_REPAIR_ROW['hunks'][0]\n        self.assertEqual(source.count(hunk['after']),1)\n        old=source.replace(hunk['after'],hunk['before'],1)\n        self.assertEqual(digest(old.encode()),COMPILE_REPAIR_ROW['before_sha256'])\n        self.assertEqual(re.findall(r'func (test\\w+)',source),re.findall(r'func (test\\w+)',old))\n        self.assertEqual(re.findall(r'XCTAssert\\w+\\(.*',source),re.findall(r'XCTAssert\\w+\\(.*',old))\n\n    def test_old_new_mixed_order_and_repinned_incomplete_groups_fail(self):\n        probe=ProfileMerchantCombinedAdmission()\n        data=(ROOT/READINESS_PATH).read_bytes(); current=json.loads(data)\n        # Wrong order: starting from the already projected combined/profile/original\n        # contract cannot pass current admission even when its runner pin changes.\n        combined=_compile_repair_combined_contract(json.loads(data))\n        for value in [combined,_combined_profile_contract(data),historical_readiness_contract(data)]:\n            probe.reject_repinned(value)\n        for mode in ['missing-row','missing-support','old-support','old-module-support','extra-hunk','changed-hunk','other-field']:\n            changed=json.loads(data)\n            if mode=='missing-row':del changed['feature_batch_sources'][COMPILE_REPAIR_PATH]\n            elif mode=='missing-support':del changed['feature_batch_support_sha256'][COMPILE_REPAIR_PATH]\n            elif mode=='old-support':changed['feature_batch_support_sha256'][COMPILE_REPAIR_PATH]=COMPILE_REPAIR_ROW['before_sha256']\n            elif mode=='old-module-support':changed['feature_batch_support_sha256'][COMBINED_ADMISSION_PATH]=COMBINED_PRECOMPILE_ADMISSION_SHA256\n            elif mode=='extra-hunk':changed['feature_batch_sources'][COMPILE_REPAIR_PATH]['hunks']*=2\n            elif mode=='changed-hunk':changed['feature_batch_sources'][COMPILE_REPAIR_PATH]['hunks'][0]['before']+=' '\n            else:changed['startup_reserve_seconds']+=1\n            with self.subTest(mode=mode):probe.reject_repinned(changed)\n        path=ROOT/COMPILE_REPAIR_PATH; rawdata=path.read_bytes(); hunk=COMPILE_REPAIR_ROW['hunks'][0]\n        for value in [rawdata+b'\\n',rawdata.replace(hunk['after'].encode(),hunk['before'].encode(),1),rawdata+hunk['after'].encode()]:\n            with probe.substituted({str(path):value}),self.assertRaises(ValueError):_combined_profile_contract(data)\n\n\nSCANNER_READER_HUNKS = [('ROOT = Path(__file__).resolve().parents[2]\\n', \"ROOT = Path(__file__).resolve().parents[2]\\n\\n# This adapter restores only the original line-bound historical contract input.\\nimport importlib.util\\n_profile_spec = importlib.util.spec_from_file_location(\\n    'profile_read_failure_remote_admission',\\n    ROOT / 'Tests/ContractChecks/test_profile_read_failure_remote_admission.py')\\n_profile_admission = importlib.util.module_from_spec(_profile_spec)\\n_profile_spec.loader.exec_module(_profile_admission)\\n\"), ('raw = (ROOT / FILE_DIGEST_PATH).read_text()', \"raw = _profile_admission.historical_readiness_contract(\\n            (ROOT / FILE_DIGEST_PATH).read_bytes(), ROOT).decode('utf-8')\")]\n\nif __name__ == '__main__':\n"
+        }
+      ]
+    }
+  ],
+  "allowed_changes": [
+    "M\t.github/workflows/native-targeted.yml",
+    "M\ttools/targeted_native_selection.json",
+    "M\ttools/run_targeted_native.py",
+    "M\ttools/tests/test_targeted_native.py",
+    "M\tTests/CoreTests/ProjectCityStoryNodeRemovalTests.swift",
+    "M\ttools/run138_editor_readiness_contract.json",
+    "M\ttools/run138_editor_readiness.py",
+    "M\tTests/ContractChecks/test_profile_read_failure_remote_admission.py"
   ]
 }

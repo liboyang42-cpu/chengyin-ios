@@ -670,6 +670,16 @@
   },
   "node_description_adapter_sha256": "8646d202950f7535a3a04995a5b107ebf5be13144e427a886d8f7b0fda96da3d",
   "feature_batch_sources": {
+    "Tests/CoreTests/ProjectCityStoryNodeRemovalTests.swift": {
+      "before_sha256": "c0d731ccb927b9bad2ae07f65fac52ac99f924e121c66bede81ee5b411742bba",
+      "after_sha256": "bad6293bda4a08e10687686625969954a6b906f9b8c618c8462579840d343a3c",
+      "hunks": [
+        {
+          "before": "        d=draft();d.chapters[0].blocks?[2].id=d.chapters[0].blocks![0].id;XCTAssertThrowsError(try remove(d))\n",
+          "after": "        d=draft();let duplicateBlockID=d.chapters[0].blocks![0].id;d.chapters[0].blocks?[2].id=duplicateBlockID;XCTAssertThrowsError(try remove(d))\n"
+        }
+      ]
+    },
     "App/ProjectEditView.swift": {
       "before_sha256": "34891e8b33e8e09225854cb37ccd979668aeec264fdb64138c5163782cf3f725",
       "after_sha256": "cd1e2c69457a187343cf5236bc5afef9a4587a2c9f1a2d7835859be9ea99a4fc",
@@ -4467,7 +4477,7 @@
     "Tests/AppUnitTests/ProjectCityStoryNodeRemovalPresentationTests.swift": "986074d480743bc30cd2fcaccea0fc67c64318a1f7a98d7911e3da82c780e234",
     "Tests/ContractChecks/test_merchant_review_draft_return.py": "e9f31299585059f9ce7f6e23002bd815471f7ba85e83707fe9fd571934dd1968",
     "Tests/ContractChecks/test_project_city_story_node_removal.py": "cfedb0582099f570184bd67c787ec5cadfe27db1fac686996ed2b1b3277901a0",
-    "Tests/CoreTests/ProjectCityStoryNodeRemovalTests.swift": "c0d731ccb927b9bad2ae07f65fac52ac99f924e121c66bede81ee5b411742bba",
+    "Tests/CoreTests/ProjectCityStoryNodeRemovalTests.swift": "bad6293bda4a08e10687686625969954a6b906f9b8c618c8462579840d343a3c",
     "App/ProjectNodePlacePicker.swift": "abd4946cc584aad843bf980623bf72e19323b4612c3ecba163603389a6f644dc",
     "App/ProjectPendingNodePlacePicker.swift": "0ddb7384a476c01672dc5c3df23ab1dad95b49214551f6ad7a24c38f9337c75d",
     "Core/ProjectNodePlaceSelection.swift": "c94718ea4116b1cd1f1ffadf31b29d134e879afadf1daa6abf36cea5fd5afb65",
@@ -4479,7 +4489,7 @@
     "Tests/CoreTests/ProjectNodePlaceSelectionTests.swift": "b864c152cf35a1b55c055d634c3394d591c7eb4f27986af725edbb27dd8e3fc1",
     "Tests/CoreTests/SearchMapCityNodeReadTests.swift": "0574a6a4f69386b0e48264824dd606e2b0c708a8495ffe9fc821e72e0c755463",
     "tools/check_profile_read_failure_contract.py": "e492facdded0e76615721d90081b912738ba490e503aab61a7ed549a6b2a4b8a",
-    "Tests/ContractChecks/test_profile_read_failure_remote_admission.py": "7da17371272409260ed364f7c1aed5d2777380039fd8a9354b3b084266d25b30",
+    "Tests/ContractChecks/test_profile_read_failure_remote_admission.py": "fa88459ba1d948253d825335db9bf8391cc59aa2dac2935019eabfcab23b25a0",
     "Tests/CoreTests/ProfileEditTests.swift": "6319234ba77c43afec858692bc9ff00308be774b58ea585069a7b3dc90ce654c",
     "tools/tests/test_gitleaks_configuration.py": "a5f5cd4f8670fb10405ab73fba1ac15700ace46a0c8dd4e8321e29e5da90cb30"
   },

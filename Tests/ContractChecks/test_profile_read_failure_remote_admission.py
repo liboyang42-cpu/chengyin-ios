@@ -29,7 +29,7 @@ READINESS_PATH = 'tools/run138_editor_readiness_contract.json'
 SCANNER_PATH = 'tools/tests/test_gitleaks_configuration.py'
 
 # Combined admission authenticates current bytes before either historical layer.
-COMBINED_ADMISSION_FINGERPRINT = '52f81ba30c3117b6781789bca754b1051ab6c407410c8f261b4bc5715ab18431'
+COMBINED_ADMISSION_FINGERPRINT = '68d103c2fe63d87835e8742680959782c8bebe8200748a50c19bf3a1129d1c1a'
 PROFILE_R2_CONTRACT_SHA256 = '3538a4526a2f42c07a8837ddb2cd12e4598ecf0d97459b36e4fcd61fb7e07efb'
 PROFILE_R2_ADMISSION_SHA256 = '81041b1c2ba2e328284555841f3b14b0e3630ed78f1190f701a86016ab558d84'
 COMBINED_ADMISSION_PATH = 'Tests/ContractChecks/test_profile_read_failure_remote_admission.py'
@@ -72,6 +72,39 @@ MERCHANT_TAG_HUNK = {'after': '            Section("merchant.operations.tags") {
            '                MerchantDecorTagEditor(model: model)\n'
            '            }\n'}
 
+# The compiler-only repair is a new finite layer over the already reviewed
+# complete profile/merchant contract. It never substitutes historical products.
+COMPILE_REPAIR_PATH = 'Tests/CoreTests/ProjectCityStoryNodeRemovalTests.swift'
+COMPILE_REPAIR_ROW = {'before_sha256': 'c0d731ccb927b9bad2ae07f65fac52ac99f924e121c66bede81ee5b411742bba', 'after_sha256': 'bad6293bda4a08e10687686625969954a6b906f9b8c618c8462579840d343a3c', 'hunks': [{'before': '        d=draft();d.chapters[0].blocks?[2].id=d.chapters[0].blocks![0].id;XCTAssertThrowsError(try remove(d))\n', 'after': '        d=draft();let duplicateBlockID=d.chapters[0].blocks![0].id;d.chapters[0].blocks?[2].id=duplicateBlockID;XCTAssertThrowsError(try remove(d))\n'}]}
+COMBINED_PRECOMPILE_SHA256 = '58ff3d8f33a15cb17ff8ac753ae39799a68434a2c742e4630abe9c0b24154f1b'
+COMBINED_PRECOMPILE_ADMISSION_SHA256 = '7da17371272409260ed364f7c1aed5d2777380039fd8a9354b3b084266d25b30'
+
+
+def _compile_repair_combined_contract(contract, root=ROOT):
+    # Current complete module/raw group checks must have run before this layer.
+    row = contract['feature_batch_sources'].get(COMPILE_REPAIR_PATH)
+    if row != COMPILE_REPAIR_ROW:
+        raise ValueError('Unknown compiler repair inverse')
+    support = contract['feature_batch_support_sha256']
+    value = (Path(root) / COMPILE_REPAIR_PATH).read_bytes()
+    if digest(value) != row['after_sha256'] or support.get(COMPILE_REPAIR_PATH) != row['after_sha256']:
+        raise ValueError('Changed compiler repair current source/support')
+    for hunk in reversed(row['hunks']):
+        after = hunk['after'].encode(); before = hunk['before'].encode()
+        if value.count(after) != 1:
+            raise ValueError('Missing or repeated compiler repair hunk')
+        value = value.replace(after, before, 1)
+    if digest(value) != row['before_sha256']:
+        raise ValueError('Compiler repair did not restore complete original test')
+    del contract['feature_batch_sources'][COMPILE_REPAIR_PATH]
+    support[COMPILE_REPAIR_PATH] = row['before_sha256']
+    support[COMBINED_ADMISSION_PATH] = COMBINED_PRECOMPILE_ADMISSION_SHA256
+    restored = (json.dumps(contract, indent=2, ensure_ascii=False)+'\n').encode()
+    if digest(restored) != COMBINED_PRECOMPILE_SHA256:
+        raise ValueError('Complete reviewed combined contract not restored')
+    return contract
+
+
 def _combined_profile_contract(data, root=ROOT):
     try:
         return _combined_profile_contract_checked(data, root)
@@ -107,6 +140,8 @@ def _combined_profile_contract_checked(data, root=ROOT):
             raise ValueError('Changed combined raw input: ' + name)
         if name in support and support[name] != expected:
             raise ValueError('Changed combined support binding: ' + name)
+    contract = _compile_repair_combined_contract(contract, root)
+    support = contract['feature_batch_support_sha256']
     row = contract['feature_batch_sources'][MERCHANT_SOURCE_PATH]
     if row['after_sha256'] != COMBINED_RAW_SHA256[MERCHANT_SOURCE_PATH] or row['hunks'][-1] != MERCHANT_TAG_HUNK:
         raise ValueError('Unknown combined merchant inverse')
@@ -395,6 +430,45 @@ class ProfileMerchantCombinedAdmission(unittest.TestCase):
         self.assertEqual(result.failures,[])
         self.assertEqual(result.errors,[])
         self.assertEqual(result.skipped,[])
+
+class CompileRepairCombinedAdmission(unittest.TestCase):
+    def test_exact_new_layer_preserves_all_three_complete_contract_floors(self):
+        data=(ROOT/READINESS_PATH).read_bytes()
+        restored=_compile_repair_combined_contract(json.loads(data))
+        encoded=(json.dumps(restored,indent=2,ensure_ascii=False)+'\n').encode()
+        self.assertEqual(digest(encoded),COMBINED_PRECOMPILE_SHA256)
+        self.assertEqual(digest(_combined_profile_contract(data)),PROFILE_R2_CONTRACT_SHA256)
+        self.assertEqual(digest(historical_readiness_contract(data)),ORIGINAL_READINESS_SHA256)
+        source=(ROOT/COMPILE_REPAIR_PATH).read_text()
+        hunk=COMPILE_REPAIR_ROW['hunks'][0]
+        self.assertEqual(source.count(hunk['after']),1)
+        old=source.replace(hunk['after'],hunk['before'],1)
+        self.assertEqual(digest(old.encode()),COMPILE_REPAIR_ROW['before_sha256'])
+        self.assertEqual(re.findall(r'func (test\w+)',source),re.findall(r'func (test\w+)',old))
+        self.assertEqual(re.findall(r'XCTAssert\w+\(.*',source),re.findall(r'XCTAssert\w+\(.*',old))
+
+    def test_old_new_mixed_order_and_repinned_incomplete_groups_fail(self):
+        probe=ProfileMerchantCombinedAdmission()
+        data=(ROOT/READINESS_PATH).read_bytes(); current=json.loads(data)
+        # Wrong order: starting from the already projected combined/profile/original
+        # contract cannot pass current admission even when its runner pin changes.
+        combined=_compile_repair_combined_contract(json.loads(data))
+        for value in [combined,_combined_profile_contract(data),historical_readiness_contract(data)]:
+            probe.reject_repinned(value)
+        for mode in ['missing-row','missing-support','old-support','old-module-support','extra-hunk','changed-hunk','other-field']:
+            changed=json.loads(data)
+            if mode=='missing-row':del changed['feature_batch_sources'][COMPILE_REPAIR_PATH]
+            elif mode=='missing-support':del changed['feature_batch_support_sha256'][COMPILE_REPAIR_PATH]
+            elif mode=='old-support':changed['feature_batch_support_sha256'][COMPILE_REPAIR_PATH]=COMPILE_REPAIR_ROW['before_sha256']
+            elif mode=='old-module-support':changed['feature_batch_support_sha256'][COMBINED_ADMISSION_PATH]=COMBINED_PRECOMPILE_ADMISSION_SHA256
+            elif mode=='extra-hunk':changed['feature_batch_sources'][COMPILE_REPAIR_PATH]['hunks']*=2
+            elif mode=='changed-hunk':changed['feature_batch_sources'][COMPILE_REPAIR_PATH]['hunks'][0]['before']+=' '
+            else:changed['startup_reserve_seconds']+=1
+            with self.subTest(mode=mode):probe.reject_repinned(changed)
+        path=ROOT/COMPILE_REPAIR_PATH; rawdata=path.read_bytes(); hunk=COMPILE_REPAIR_ROW['hunks'][0]
+        for value in [rawdata+b'\n',rawdata.replace(hunk['after'].encode(),hunk['before'].encode(),1),rawdata+hunk['after'].encode()]:
+            with probe.substituted({str(path):value}),self.assertRaises(ValueError):_combined_profile_contract(data)
+
 
 SCANNER_READER_HUNKS = [('ROOT = Path(__file__).resolve().parents[2]\n', "ROOT = Path(__file__).resolve().parents[2]\n\n# This adapter restores only the original line-bound historical contract input.\nimport importlib.util\n_profile_spec = importlib.util.spec_from_file_location(\n    'profile_read_failure_remote_admission',\n    ROOT / 'Tests/ContractChecks/test_profile_read_failure_remote_admission.py')\n_profile_admission = importlib.util.module_from_spec(_profile_spec)\n_profile_spec.loader.exec_module(_profile_admission)\n"), ('raw = (ROOT / FILE_DIGEST_PATH).read_text()', "raw = _profile_admission.historical_readiness_contract(\n            (ROOT / FILE_DIGEST_PATH).read_bytes(), ROOT).decode('utf-8')")]
 
