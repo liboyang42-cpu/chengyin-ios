@@ -205,7 +205,7 @@ import XCTest
     }
     func testStagedAvatarAndPreferencesSurviveFieldCancelAndApply() async throws {
         let (model, service, box) = try await harness(); model.draft.routePreferenceIDs = [7, 4]
-        let transport = ProfileFieldAvatarTransport(), url = try XCTUnwrap(URL(string: "https://profile.invalid/"))
+        let transport = ProfileFieldAvatarTransport(), url = try XCTUnwrap(URL(string: "https://profile.example/"))
         let approval = try ProfileAvatarApproval(baseURL: url, namespace: "field-fixture", accountID: 901,
             approvedOrigins: ["https://avatar.invalid"], nativePicker: true)
         let source = ProfileAvatarUploadClient(configuration: try APIConfiguration(baseURL: url), approval: approval, transport: transport,

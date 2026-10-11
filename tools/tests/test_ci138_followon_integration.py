@@ -45,6 +45,9 @@ def component_inputs():
 
 
 class CI138FollowonIntegrationTests(unittest.TestCase):
+    def setUp(self):
+        self.enterContext(_club_history.club_authenticated_transaction(Path(__file__).resolve().parents[2]))
+
     def admit(self, root):
         return readiness.validate_current(root / 'Tests/AppUITests',
                                           root / 'tools/ui_duration_weights.json', root)

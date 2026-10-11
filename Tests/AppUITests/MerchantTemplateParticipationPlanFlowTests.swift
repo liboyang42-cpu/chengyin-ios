@@ -51,7 +51,10 @@ final class MerchantTemplateParticipationPlanFlowTests: XCTestCase {
         app.buttons["merchant.operations.confirm.cancel"].tap()
         let field = app.textFields["merchant.participation.duration"]
         XCTAssertTrue(revealFixtureElement(field, in: app, towardTop: true)); XCTAssertEqual(field.value as? String, "15")
-        review(app); XCTAssertFalse(app.buttons["merchant.operations.confirm"].isEnabled)
+        review(app)
+        let retainedConfirm = app.buttons["merchant.operations.confirm"]
+        XCTAssertTrue(revealFixtureElement(retainedConfirm, in: app, requiresHittable: false))
+        XCTAssertFalse(retainedConfirm.isEnabled)
         app.buttons["merchant.operations.confirm.cancel"].tap()
         XCTAssertFalse(app.staticTexts["merchant.operations.exampleSaved"].exists)
         attachFixtureScreenshot(self, app: app, name: "Merchant participation plan retained after local review")

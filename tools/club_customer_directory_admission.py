@@ -1544,16 +1544,28 @@ def _club_tree_sha256(root):
     if root.is_symlink() or root.resolve() != root:
         raise ValueError('Symlinked finite club historical context')
     result = {}
+    # Match run138_current_source_projection.context_generated_path exactly:
+    # only root-generated paths and Python caches, never nested source names.
+    def generated(relative):
+        parts = relative.parts
+        text = relative.as_posix()
+        return ('__pycache__' in parts or (parts and parts[0] in {'.git', '.build', 'DerivedData'})
+                or text == '.DS_Store' or any(text == prefix or text.startswith(prefix + '/')
+                    for prefix in ('Questify.xcodeproj/xcuserdata',
+                                   'Questify.xcodeproj/project.xcworkspace/xcuserdata')))
     def failed(error):
         raise ValueError('Unreadable finite club historical context') from error
     for directory, subdirectories, files in _club_os.walk(root, onerror=failed):
+        ignored = {name for name in subdirectories + files
+                   if generated((Path(directory) / name).relative_to(root))}
         for name in subdirectories + files:
-            if (Path(directory) / name).is_symlink():
+            if name not in ignored and (Path(directory) / name).is_symlink():
                 raise ValueError('Symlink in finite club historical context')
-        subdirectories[:] = [name for name in subdirectories if name != '__pycache__']
+        subdirectories[:] = [name for name in subdirectories if name not in ignored]
         for name in files:
-            path = Path(directory) / name
-            result[path.relative_to(root).as_posix()] = digest(path.read_bytes())
+            if name not in ignored:
+                path = Path(directory) / name
+                result[path.relative_to(root).as_posix()] = digest(path.read_bytes())
     return result
 
 
