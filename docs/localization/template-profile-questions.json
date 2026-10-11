@@ -1,0 +1,102 @@
+{
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "templateProfile.kindHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choice questions need two options. An undersized list is replaced with two blank choices; switching to text keeps an existing choice list."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选项题至少有两项；不足两项时会重建两个空选项。切回文字题会保留已有选项。"
+          }
+        }
+      }
+    },
+    "templateProfile.questionsHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep 1–8 questions. Open a question to edit its text and type."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留 1–8 个问题，进入问题编辑文案和题型。"
+          }
+        }
+      }
+    },
+    "templateProfile.optionsHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep 2–6 options. New keys are unique across all questions; open an option to edit its content and effects."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留 2–6 个选项。新编号在全部问题间不重复，进入选项编辑文案和效果。"
+          }
+        }
+      }
+    },
+    "templateProfile.addQuestion": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add profile question"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加建档问题"
+          }
+        }
+      }
+    },
+    "templateProfile.addOption": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add profile option"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加建档选项"
+          }
+        }
+      }
+    },
+    "templateProfile.reopen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The question or draft has changed. Return and reopen this list."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "问题或草稿已改变，请返回后重新打开此列表。"
+          }
+        }
+      }
+    }
+  }
+}

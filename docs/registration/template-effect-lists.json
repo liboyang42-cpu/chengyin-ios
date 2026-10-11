@@ -1,0 +1,15 @@
+{
+  "feature": "P036 typed effects-list authoring",
+  "app_sources": [
+    "App/TemplateEffectListView.swift",
+    "Core/TemplateEffectList.swift"
+  ],
+  "app_unit_tests": [
+    "Tests/AppUnitTests/TemplateEffectListControllerTests.swift"
+  ],
+  "package_tests": [
+    "Tests/CoreTests/TemplateEffectListTests.swift"
+  ],
+  "localization_fragment": "docs/localization/template-effect-lists.json",
+  "integration_note": "Apply after creator-blind-options-96d7274 (which depends on creator-qa-answers-96d7274). Preserve their Creator view mounts. New typed destination only for existing schema effect paths; generic legacy fallback and condition editors stay. No effect execution or production grant."
+}

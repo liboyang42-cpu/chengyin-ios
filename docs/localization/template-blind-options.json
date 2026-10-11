@@ -1,0 +1,150 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "templateBlindOptions.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tasting options and answer"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "盲品选项与答案"
+          }
+        }
+      }
+    },
+    "templateBlindOptions.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use 2–6 options with unique codes. The answer follows its code when renamed, and moves to the first remaining option when removed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请配置 2–6 个编号不同的选项。修改正确选项的编号时答案会同步更新；删除它时答案转为剩余第一项。"
+          }
+        }
+      }
+    },
+    "templateBlindOptions.optionNumber %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Option %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选项 %lld"
+          }
+        }
+      }
+    },
+    "templateBlindOptions.removeNumber %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove option %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除选项 %lld"
+          }
+        }
+      }
+    },
+    "templateBlindOptions.selected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Correct answer"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正确答案"
+          }
+        }
+      }
+    },
+    "templateBlindOptions.choose": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set as answer"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设为正确答案"
+          }
+        }
+      }
+    },
+    "templateBlindOptions.add": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add tasting option"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加盲品选项"
+          }
+        }
+      }
+    },
+    "templateBlindOptions.noAnswer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose an option with a unique valid code as the answer."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择一个编号有效且不重复的选项作为答案。"
+          }
+        }
+      }
+    },
+    "templateBlindOptions.unsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved fields are retained. Adjust the existing option list and answer fields to use this composer."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已保留原有内容。请先调整下方原有选项列表和答案字段，再使用联动编辑。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

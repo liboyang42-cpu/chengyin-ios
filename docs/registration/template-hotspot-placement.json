@@ -1,0 +1,16 @@
+{
+  "base": "41571fed5c27d4766d0bebb02e2800d798f1edbd",
+  "dependencies": [],
+  "app_sources": [
+    "App/TemplateHotspotPlacementView.swift",
+    "Core/TemplateHotspotPlacement.swift"
+  ],
+  "app_unit_tests": [
+    "Tests/AppUnitTests/TemplateHotspotPlacementControllerTests.swift"
+  ],
+  "package_tests": [
+    "Tests/CoreTests/TemplateHotspotPlacementTests.swift"
+  ],
+  "localization_fragment": "docs/localization/template-hotspot-placement.json",
+  "integration_note": "Top-level Creator seam is independent of earlier generic field changes. Apply patch, preserving sealed QA/blind/effects mounts; do not whole-file overwrite. No central files modified."
+}

@@ -9930,8 +9930,8 @@ class Split404PartitionProtocol(unittest.TestCase):
 
     def test_exact_three_partitions_union87_reparses_all_raw_results(self):
         identity,artifacts=self.fixture();result=self.r.aggregate_split404(self.selection,identity,artifacts,'success')
-        self.assertEqual((result['actual_count'],result['counts']),(882,{'core':532,'app-unit':265,'ui':85}))
-        self.assertEqual(len({row['method'] for row in result['actual']}),882)
+        self.assertEqual((result['actual_count'],result['counts']),(1132,{'core':656,'app-unit':391,'ui':85}))
+        self.assertEqual(len({row['method'] for row in result['actual']}),1132)
 
     def test_every_new6_core_omission_rejected_even_after_rehash(self):
         self.assertEqual(len(self.r.MERCHANT_METHODS),6)
@@ -10154,7 +10154,7 @@ class Split404PartitionProtocol(unittest.TestCase):
         raw=(CLUB87_SOURCE/'.github/workflows/native-targeted.yml').read_text()
         for text in ('partition: [core, app-unit, ui]','fail-fast: false','max-parallel: 3','continue-on-error: false','needs: [targeted]','if: always()','retention-days: 1','overwrite: false','merge-multiple: false','fetch-depth: 2','persist-credentials: false','contents: read'):
             self.assertIn(text,raw)
-        self.assertIn('native-targeted-882-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-',raw)
+        self.assertIn('native-targeted-1132-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-',raw)
         for text in ('permissions: write','id-token:','secrets.','token:','continue-on-error: true','merge-multiple: true'):
             self.assertNotIn(text,raw)
 
@@ -10445,10 +10445,10 @@ class Club87SourceBoundary(unittest.TestCase):
 
     def test_complete87_new16_and_published_merchant6_preserved_with_exclusive_partition(self):
         layer=self.r.split404_layer(CLUB87_SELECTION)
-        self.assertEqual([len(p['methods']) for p in layer['partitions']],[532,265,85])
+        self.assertEqual([len(p['methods']) for p in layer['partitions']],[656,391,85])
         flat=[m for p in layer['partitions'] for m in p['methods']]
-        self.assertEqual(len(flat),882);self.assertEqual(len(set(flat)),882)
-        self.assertEqual(len(layer['partitions'][0]['methods']),532)
+        self.assertEqual(len(flat),1132);self.assertEqual(len(set(flat)),1132)
+        self.assertEqual(len(layer['partitions'][0]['methods']),656)
         self.assertTrue(set(self.r.MERCHANT_METHODS)<=set(flat))
         self.assertTrue(all(row['method'] in flat for row in self.r.CLUB87_LAYER['added_methods']))
 
@@ -10572,7 +10572,7 @@ class Split404CommandDiagnostics(unittest.TestCase):
 
     def test_raw_command_artifact_is_fixed_same_run_bounded_diagnostic_only(self):
         raw=(CLUB87_SOURCE/'.github/workflows/native-targeted.yml').read_text()
-        self.assertIn('native-command-882-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.partition }}',raw)
+        self.assertIn('native-command-1132-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.partition }}',raw)
         block=raw.split('      - name: Preserve bounded initial inventory and Core failure diagnostics\n',1)[1].split('      - name:',1)[0]
         self.assertIn('if: always()',block);self.assertIn('retention-days: 1',block);self.assertIn('overwrite: false',block)
         paths=[line.strip() for line in block.splitlines() if 'command-evidence/' in line]

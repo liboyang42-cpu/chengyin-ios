@@ -1,0 +1,182 @@
+{
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "templatePoems.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit poem pool"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑城市签文"
+          }
+        }
+      }
+    },
+    "templatePoems.instructions": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paste or write a whole poem, one sentence per line. Keep 1–4 lines, up to 24 characters per line. Empty lines and surrounding whitespace are omitted from saved lines while your input keeps them."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "整段粘贴或输入签文，一行一句。每条 1–4 行，每行最多 24 字；写回时忽略空行及行首行尾空白，输入框仍保留你的换行。"
+          }
+        }
+      }
+    },
+    "templatePoems.changed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The draft changed elsewhere. Reload before continuing; the stored poem text is preserved."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿已在其他位置改变，请重新载入后继续；已写入的签文会保留。"
+          }
+        }
+      }
+    },
+    "templatePoems.reload": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload stored poems"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新载入签文"
+          }
+        }
+      }
+    },
+    "templatePoems.unsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This stored format needs the existing line editor. Return to reopen it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此存量格式请使用原逐行编辑器，请返回后重新打开。"
+          }
+        }
+      }
+    },
+    "templatePoems.number %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poem %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "签文 %lld"
+          }
+        }
+      }
+    },
+    "templatePoems.input": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Whole poem text"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "整段签文"
+          }
+        }
+      }
+    },
+    "templatePoems.lineCount %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld nonempty lines / 4"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有效行数 %lld / 4"
+          }
+        }
+      }
+    },
+    "templatePoems.preview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Normalized text preview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有效行预览"
+          }
+        }
+      }
+    },
+    "templatePoems.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No nonempty poem lines yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有有效签文内容。"
+          }
+        }
+      }
+    },
+    "templatePoems.add": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add poem"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加开场签"
+          }
+        }
+      }
+    }
+  }
+}

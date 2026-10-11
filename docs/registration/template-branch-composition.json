@@ -1,0 +1,16 @@
+{
+  "base": "41571fed5c27d4766d0bebb02e2800d798f1edbd",
+  "dependencies": [],
+  "app_sources": [
+    "App/TemplateBranchCompositionFields.swift",
+    "Core/TemplateBranchComposition.swift"
+  ],
+  "app_unit_tests": [
+    "Tests/AppUnitTests/TemplateBranchCompositionControllerTests.swift"
+  ],
+  "package_tests": [
+    "Tests/CoreTests/TemplateBranchCompositionTests.swift"
+  ],
+  "localization_fragment": "docs/localization/template-branch-composition.json",
+  "integration_note": "Apply branch seams additively to common Creator view; retain previously delivered QA/blind/effects/hotspot mounts. No central files changed."
+}

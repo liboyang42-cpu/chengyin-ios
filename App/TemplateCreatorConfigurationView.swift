@@ -4,6 +4,8 @@ import SwiftUI
     @ObservedObject var model: TemplateAuthoringModel
     let family: TemplateCreatorFamily
     private var issues: [TemplateCreatorIssue] { model.draft.advanced.creatorIssues(family) }
+    private var usesHotspotPlacement: Bool { family == .hiddenObject && TemplateHotspotPlacement(model.draft.advanced).isSupported && TemplateHotspotPlacement(model.draft.advanced).sceneURL != nil }
+    private var configurationFields: [TemplateCreatorField] { TemplateCreatorSchema.fields(family).filter { !usesHotspotPlacement || $0.id != "hotspots" } }
     var body: some View {
         Form {
             Section {
@@ -11,7 +13,10 @@ import SwiftUI
                 Text(LocalizedStringKey(family.providerKey)).font(.footnote).foregroundStyle(.secondary)
             }
             if model.draft.advanced.enabled(family.rawValue) {
-                TemplateCreatorFieldsView(model: model, family: family, fields: TemplateCreatorSchema.fields(family), path: [])
+                TemplateCreatorFieldsView(model: model, family: family, fields: configurationFields, path: [])
+                if usesHotspotPlacement {
+                    Section { NavigationLink("templateHotspots.title") { TemplateHotspotPlacementView(model: model) } }
+                }
                 Section("creator.review") {
                     NavigationLink("creator.rehearse") { TemplateCreatorRehearsalView(draft: model.draft.advanced, family: family) }.disabled(!issues.isEmpty)
                     Text("creator.localOnly").font(.footnote)
@@ -37,7 +42,13 @@ import SwiftUI
     let path: [TemplateCreatorPath]
     var body: some View {
         ForEach(fields) { field in
-            TemplateCreatorFieldView(model: model, family: family, field: field, path: path + [.field(field.id)])
+            if family == .multiplayer, path.isEmpty, ["roles", "turnOrder"].contains(field.id), TemplateMultiplayerPlan(model.draft.advanced).isSupported {
+                if field.id == "roles" {
+                    NavigationLink("templateTeam.title") { TemplateMultiplayerPlanEditor(model: model) }
+                }
+            } else {
+                TemplateCreatorFieldView(model: model, family: family, field: field, path: path + [.field(field.id)])
+            }
         }
     }
 }
@@ -57,7 +68,9 @@ import SwiftUI
     }, set: { write(.string($0)) }) }
     private var rows: [TemplateAuthoringJSON] { current.array ?? [] }
     private var hidden: Bool {
+        if family == .blindTaste && field.id == "options" && path == [.field("options")] && TemplateBlindOptions(model.draft.advanced).isSupported { return true }
         if family == .qa && field.id == "options" && object["mode"]?.string != "PICK" { return true }
+        if family == .qa && field.id == "correct" && TemplateQAAnswerSelection(model.draft.advanced).isSupported { return true }
         if family == .qa && field.id == "answerText" && object["mode"]?.string != "TYPE" { return true }
         if family == .profile && path.count > 1 {
             if ["options", "override"].contains(field.id) && object["kind"]?.string == "text" { return true }
@@ -69,15 +82,31 @@ import SwiftUI
         if field.id == "value" && object["op"]?.string == "NODE_COMPLETED" { return true }
         if family == .hiddenObject && field.id == "r" { return true }
         if family == .compare && field.id == "effects" { return true }
+        if let step = branchStep {
+            if ["outcomeCode", "outcomeLabel"].contains(field.id) && !step.terminal { return true }
+            if field.id == "options" && step.terminal { return true }
+        }
         return false
     }
     var body: some View {
         if !hidden {
-            if family == .compare && field.id == "maxAttempts" {
+            if family == .blindTaste && field.id == "answerKey" && path == [.field("answerKey")] {
+                TemplateBlindOptionFields(model: model)
+                if !TemplateBlindOptions(model.draft.advanced).isSupported { control.accessibilityIdentifier("creator.field.blindTaste.answerKey") }
+            } else if family == .qa && field.id == "multi" && path == [.field("multi")] {
+                if model.draft.advanced.text("qa", "mode") == "PICK" {
+                    TemplateQAAnswerFields(model: model)
+                    if !TemplateQAAnswerSelection(model.draft.advanced).isSupported { control.accessibilityIdentifier("creator.field.qa.multi") }
+                }
+            } else if family == .compare && field.id == "maxAttempts" {
                 Toggle("creator.compare.limitAttempts", isOn: Binding(get: { current != .null }, set: { write($0 ? .number(3) : nil) }))
                     .accessibilityIdentifier("creator.compare.limitAttempts")
                 if current != .null { control.accessibilityIdentifier("creator.field.compare.maxAttempts") }
                 else { Text("creator.compare.unlimited").font(.footnote) }
+            } else if usesProfileRows {
+                profileRows.accessibilityIdentifier("creator.field.profile." + field.id)
+            } else if field.id == "kind", let index = profileQuestionIndex, profileComposition.isSupported {
+                TemplateProfileKindFields(model: model, questionIndex: index).id(profileComposition.questions[index].key)
             } else { control.accessibilityIdentifier("creator.field." + family.rawValue + "." + field.id) }
         }
     }
@@ -102,7 +131,11 @@ import SwiftUI
                 ForEach(choices, id: \.self) { value in Text(LocalizedStringKey("creator.choice." + (value.isEmpty ? "empty" : value))).tag(value) }
             }
         case .toggle:
-            Toggle(LocalizedStringKey(field.labelKey), isOn: Binding(get: { current.bool }, set: { write(.bool($0)) }))
+            if field.id == "terminal", let index = branchStepIndex, let step = branchStep {
+                TemplateBranchTerminalFields(model: model, stepIndex: index).id(step.id)
+            } else {
+                Toggle(LocalizedStringKey(field.labelKey), isOn: Binding(get: { current.bool }, set: { write(.bool($0)) }))
+            }
         case .stateValue:
             TextField(LocalizedStringKey(["ADD_TAG", "HAS_TAG"].contains(object["op"]?.string ?? "") ? "creator.field.tagValue" : field.labelKey), text: text)
                 .textInputAutocapitalization(.never)
@@ -116,7 +149,14 @@ import SwiftUI
                 }
             }
         case .rows(let fields, let minimum, let maximum, _):
+            if TemplateEffectList.isEffectPath(family, path), TemplateEffectList(model.draft.advanced, family: family, path: path).isSupported {
+                NavigationLink { TemplateEffectListView(model: model, family: family, path: path, titleKey: field.labelKey) }
+                    label: { LabeledContent(LocalizedStringKey(field.labelKey), value: String(rows.count)) }
+            } else {
             NavigationLink {
+                if family == .pricePair, path == [.field("items")], TemplatePictureChoices(model.draft.advanced).isSupported {
+                    TemplatePictureChoiceEditor(model: model)
+                } else {
                 List {
                     ForEach(rows.indices, id: \.self) { index in
                         NavigationLink {
@@ -130,13 +170,24 @@ import SwiftUI
                         }
                     }.onDelete { indexes in var copy = rows; for index in indexes.sorted(by: >) { copy.remove(at: index) }; write(.array(copy)) }
                         .onMove { source, destination in var copy = rows; copy.move(fromOffsets: source, toOffset: destination); write(.array(copy)) }
-                    Button("creator.add") { model.draft.advanced.addCreatorRow(family, path: path, field: field) }.disabled(rows.count >= maximum)
+                    if family == .branch, path == [.field("steps")], branchComposition.isSupported {
+                        TemplateBranchAddRowButton(model: model)
+                    } else if field.id == "options", let index = branchStepIndex, let step = branchStep {
+                        TemplateBranchAddRowButton(model: model, stepIndex: index).id(step.id)
+                    } else {
+                        Button("creator.add") { model.draft.advanced.addCreatorRow(family, path: path, field: field) }.disabled(rows.count >= maximum)
+                    }
                     Text(verbatim: "\(rows.count) / \(minimum)…\(maximum)").font(.caption)
                 }.toolbar { EditButton() }.navigationTitle(LocalizedStringKey(field.labelKey))
+                }
             } label: { LabeledContent(LocalizedStringKey(field.labelKey), value: String(rows.count)) }
+            }
         case .strings(_, let max, let length): stringRows(max: max, length: length)
         case .poems:
             NavigationLink {
+                if family == .dailySign, TemplateDailyPoemPool(model.draft.advanced).isSupported {
+                    TemplateDailyPoemEditor(model: model)
+                } else {
                 List {
                     ForEach(rows.indices, id: \.self) { index in
                         NavigationLink {
@@ -147,12 +198,42 @@ import SwiftUI
                     }.onDelete { indexes in var copy = rows; for index in indexes.sorted(by: >) { copy.remove(at: index) }; write(.array(copy)) }
                     Button("creator.add") { var copy = rows; copy.append(.array([.string("")])); write(.array(copy)) }.disabled(rows.count >= 60)
                 }.navigationTitle(LocalizedStringKey(field.labelKey))
+                }
             } label: { LabeledContent(LocalizedStringKey(field.labelKey), value: String(rows.count)) }
         }
+    }
+    private var branchComposition: TemplateBranchComposition { .init(model.draft.advanced) }
+    private var branchStepIndex: Int? {
+        guard family == .branch, path.count == 3, path[0] == .field("steps"), case .index(let index) = path[1] else { return nil }
+        return index
+    }
+    private var branchStep: TemplateBranchComposition.Step? {
+        guard let index = branchStepIndex, branchComposition.isSupported, branchComposition.steps.indices.contains(index) else { return nil }
+        return branchComposition.steps[index]
     }
     private func rowLabel(_ index: Int) -> String {
         let row = rows[index].object ?? [:]
         return ["label", "title", "name", "line", "key", "id", "op", "url"].compactMap { row[$0]?.string }.first(where: { !$0.isEmpty }) ?? String(index + 1)
+    }
+    private var profileComposition: TemplateProfileQuestionComposition { .init(model.draft.advanced) }
+    private var profileQuestionIndex: Int? {
+        guard family == .profile, path.count == 3, path[0] == .field("questions"), case .index(let index) = path[1],
+              profileComposition.questions.indices.contains(index) else { return nil }
+        return index
+    }
+    private var usesProfileRows: Bool {
+        family == .profile && profileComposition.isSupported &&
+            (path == [.field("questions")] || (field.id == "options" && profileQuestionIndex != nil))
+    }
+    @ViewBuilder private var profileRows: some View {
+        if case .rows(let fields, _, _, _) = field.kind {
+            NavigationLink {
+                TemplateProfileQuestionRowsEditor(model: model, questionIndex: profileQuestionIndex) { index in
+                    Form { TemplateCreatorFieldsView(model: model, family: family, fields: fields, path: path + [.index(index)]) }
+                        .navigationTitle(LocalizedStringKey(field.labelKey))
+                }
+            } label: { LabeledContent(LocalizedStringKey(field.labelKey), value: String(rows.count)) }
+        }
     }
     private func stringRows(max: Int, length: Int) -> some View {
         VStack(alignment: .leading) {

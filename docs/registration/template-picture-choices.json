@@ -1,0 +1,16 @@
+{
+  "base": "49c68c6420270b0a0cc7ec8d18bc8561f329d796",
+  "dependencies": [],
+  "app_sources": [
+    "App/TemplatePictureChoiceEditor.swift",
+    "Core/TemplatePictureChoices.swift"
+  ],
+  "app_unit_tests": [
+    "Tests/AppUnitTests/TemplatePictureChoiceEditorTests.swift"
+  ],
+  "package_tests": [
+    "Tests/CoreTests/TemplatePictureChoicesTests.swift"
+  ],
+  "localization_fragment": "docs/localization/template-picture-choices.json",
+  "integration_note": "Additive four-line destination branch inside generic rows NavigationLink. Keep all prior Creator entries. Central files untouched."
+}

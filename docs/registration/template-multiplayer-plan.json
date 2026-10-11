@@ -1,0 +1,16 @@
+{
+  "base": "49c68c6420270b0a0cc7ec8d18bc8561f329d796",
+  "dependencies": [],
+  "app_sources": [
+    "App/TemplateMultiplayerPlanEditor.swift",
+    "Core/TemplateMultiplayerPlan.swift"
+  ],
+  "app_unit_tests": [
+    "Tests/AppUnitTests/TemplateMultiplayerPlanEditorTests.swift"
+  ],
+  "package_tests": [
+    "Tests/CoreTests/TemplateMultiplayerPlanTests.swift"
+  ],
+  "localization_fragment": "docs/localization/template-multiplayer-plan.json",
+  "integration_note": "Additive top-level field-list routing for multiplayer roles/turnOrder only. Retain all prior Creator routing. Central files unchanged."
+}

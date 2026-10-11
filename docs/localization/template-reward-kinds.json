@@ -1,0 +1,36 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "templateRewardKinds.coupon": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Coupon reward" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "优惠券奖励" } }
+      }
+    },
+    "templateRewardKinds.feedback": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Text feedback" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "文字反馈" } }
+      }
+    },
+    "templateRewardKinds.medal": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Medal reward" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "勋章奖励" } }
+      }
+    },
+    "templateRewardKinds.clearNotice": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Choose one or more reward types. Turning a type off clears only its contents." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "可选择一种或多种奖励，关闭某一类时只清除该类内容。" } }
+      }
+    },
+    "templateRewardKinds.empty": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Choose a reward type and add its contents before publishing, or turn off the reward module." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "发布前请选择奖励类型并填写内容，或关闭奖励模块。" } }
+      }
+    }
+  },
+  "version": "1.0"
+}

@@ -1,0 +1,8 @@
+{
+  "feature": "P036 complete independent reward configuration",
+  "app_sources": ["App/TemplateRewardKindEditor.swift", "Core/TemplateRewardKinds.swift"],
+  "app_unit_tests": ["Tests/AppUnitTests/TemplateRewardKindEditorTests.swift"],
+  "package_tests": ["Tests/CoreTests/TemplateRewardKindsTests.swift"],
+  "localization_fragment": "docs/localization/template-reward-kinds.json",
+  "integration_note": "Apply after the sealed medal-clear candidate. Register new sources/App tests and merge localization additively. This is local editing over existing fields, not a coupon catalog/issuance service or a new production grant."
+}

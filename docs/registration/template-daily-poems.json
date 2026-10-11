@@ -1,0 +1,16 @@
+{
+  "base": "41571fed5c27d4766d0bebb02e2800d798f1edbd",
+  "dependencies": [],
+  "app_sources": [
+    "App/TemplateDailyPoemEditor.swift",
+    "Core/TemplateDailyPoemPool.swift"
+  ],
+  "app_unit_tests": [
+    "Tests/AppUnitTests/TemplateDailyPoemEditorTests.swift"
+  ],
+  "package_tests": [
+    "Tests/CoreTests/TemplateDailyPoemPoolTests.swift"
+  ],
+  "localization_fragment": "docs/localization/template-daily-poems.json",
+  "integration_note": "Destination branch inside existing poems NavigationLink. Apply additively; keep earlier Creator additions. No central files edited."
+}

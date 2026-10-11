@@ -99,27 +99,53 @@ import SwiftUI
 }
 @MainActor struct TemplateAuthoringRewardStoryFields: View {
     @ObservedObject var model: TemplateAuthoringModel
+    @StateObject private var rewards: TemplateRewardKindEditor
+    init(model: TemplateAuthoringModel) {
+        self.model = model; _rewards = StateObject(wrappedValue: .init(model: model))
+    }
     var body: some View {
         Section("templateAuthor.reward") {
-            Toggle("templateAuthor.moduleEnabled", isOn: $model.draft.rewardEnabled)
+            Toggle("templateAuthor.moduleEnabled", isOn: rewards.moduleEnabled())
             if model.draft.rewardEnabled {
-                TemplateAuthoringField("feedbackText", text: model.optional(\.feedbackText), multiline: true)
-                TemplateAuthoringField("couponId", text: model.number(\.couponId))
-                TemplateAuthoringField("medalName", text: model.optional(\.medalName))
-                TemplateAuthoringField("medalImg", text: model.optional(\.medalImg))
-                Picker("templateAuthor.field.medalStyle", selection: $model.draft.medalStyle) {
-                    Text("templateOwnerConfig.missing").tag(Optional<String>.none)
-                    Text("templateAuthor.medalStyle.glow").tag(Optional("glow"))
-                    Text("templateAuthor.medalStyle.enamel").tag(Optional("enamel"))
-                    if let raw = model.draft.medalStyle, !["glow", "enamel"].contains(raw) {
-                        Text(verbatim: raw).tag(Optional(raw))
-                    }
+                Text("templateRewardKinds.clearNotice").font(.caption).foregroundStyle(.secondary)
+                Toggle("templateRewardKinds.coupon", isOn: rewards.toggle(.coupon))
+                    .accessibilityIdentifier("templateRewardKinds.coupon")
+                if rewards.isEnabled(.coupon) {
+                    TemplateAuthoringField("couponId", text: rewards.coupon())
                 }
-                Button("templateReward.clearMedal", role: .destructive, action: model.clearRewardMedalAction())
-                    .disabled(!model.canClearRewardMedal)
-                    .accessibilityIdentifier("templateReward.clearMedal")
+                Toggle("templateRewardKinds.feedback", isOn: rewards.toggle(.feedback))
+                    .accessibilityIdentifier("templateRewardKinds.feedback")
+                if rewards.isEnabled(.feedback) {
+                    TemplateAuthoringField("feedbackText", text: rewards.text(.feedback), multiline: true)
+                }
+                Toggle("templateRewardKinds.medal", isOn: rewards.toggle(.medal))
+                    .accessibilityIdentifier("templateRewardKinds.medal")
+                if rewards.isEnabled(.medal) {
+                    TemplateAuthoringField("medalName", text: rewards.text(.medalName))
+                    TemplateAuthoringField("medalImg", text: rewards.text(.medalImage))
+                    Picker("templateAuthor.field.medalStyle", selection: rewards.medalStyle()) {
+                        Text("templateOwnerConfig.missing").tag(Optional<String>.none)
+                        Text("templateAuthor.medalStyle.glow").tag(Optional("glow"))
+                        Text("templateAuthor.medalStyle.enamel").tag(Optional("enamel"))
+                        if let raw = model.draft.medalStyle, !["glow", "enamel"].contains(raw) {
+                            Text(verbatim: raw).tag(Optional(raw))
+                        }
+                    }
+                    Button("templateReward.clearMedal", role: .destructive, action: model.clearRewardMedalAction())
+                        .disabled(!model.canClearRewardMedal)
+                        .accessibilityIdentifier("templateReward.clearMedal")
+                }
+                if !rewards.hasSelection {
+                    Text("templateRewardKinds.empty").font(.caption).foregroundStyle(.secondary)
+                        .accessibilityIdentifier("templateRewardKinds.empty")
+                }
             }
         }
+        .disabled(!model.canEdit)
+        .onAppear { rewards.resume() }
+        .onDisappear { rewards.retire() }
+        .onChange(of: model.mediaReviewGeneration) { _, _ in rewards.reload() }
+        .onChange(of: model.draft.rewardEnabled) { _, _ in rewards.reload() }
         Section("templateAuthor.story") {
             Toggle("templateAuthor.moduleEnabled", isOn: $model.draft.storyEnabled)
             if model.draft.storyEnabled {

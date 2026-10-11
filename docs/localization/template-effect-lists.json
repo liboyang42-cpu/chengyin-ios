@@ -1,0 +1,134 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "templateEffects.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configure what this choice or outcome changes. These are draft settings; they do not apply effects to any player. Up to 16 effects."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配置选项或结果对应的变化；这里只编辑草稿，不会对玩家执行效果。最多 16 条。"
+          }
+        }
+      }
+    },
+    "templateEffects.rowNumber %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Effect %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "效果 %lld"
+          }
+        }
+      }
+    },
+    "templateEffects.variableHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use a clue., relation. or counter. variable. sys.luck supports INC by 1–3 under the existing contract."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "变量使用 clue.、relation. 或 counter. 前缀。既有合同中的 sys.luck 仅支持增加 1–3。"
+          }
+        }
+      }
+    },
+    "templateEffects.tagHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use tag. followed by a lowercase identifier, for example tag.brave."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用 tag. 加小写标识，例如 tag.brave。"
+          }
+        }
+      }
+    },
+    "templateEffects.numberHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a whole number from -99 to 99. Existing variable-specific limits still apply."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "输入 -99 至 99 的整数；具体变量仍遵循已有范围限制。"
+          }
+        }
+      }
+    },
+    "templateEffects.add": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add effect"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加效果"
+          }
+        }
+      }
+    },
+    "templateEffects.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No effects configured for this choice or outcome."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此选项或结果尚未配置效果。"
+          }
+        }
+      }
+    },
+    "templateEffects.reopen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This entry or draft has changed. Go back and reopen the intended effect list."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所属条目或草稿已变更。请返回后重新打开需要编辑的效果列表。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

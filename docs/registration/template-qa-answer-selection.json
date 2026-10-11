@@ -1,0 +1,15 @@
+{
+  "feature": "P036 QA single/multiple correct-answer workflow",
+  "app_sources": [
+    "App/TemplateQAAnswerEditor.swift",
+    "Core/TemplateQAAnswerSelection.swift"
+  ],
+  "app_unit_tests": [
+    "Tests/AppUnitTests/TemplateQAAnswerEditorTests.swift"
+  ],
+  "package_tests": [
+    "Tests/CoreTests/TemplateQAAnswerSelectionTests.swift"
+  ],
+  "localization_fragment": "docs/localization/template-qa-answer-selection.json",
+  "integration_note": "Apply on 96d7274 or later with the exact TemplateCreatorConfigurationView before image. Independent of pending choice/medal/reward increments. Register new sources and App test; merge strings additively. No central project/catalog edits included; no service/production permission change."
+}

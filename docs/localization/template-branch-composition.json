@@ -1,0 +1,86 @@
+{
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "templateBranch.terminalHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turning this into an ending removes all its choices. Existing outcome text is kept."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设为终点会清空此步骤的全部选项，已有结局文字会保留。"
+          }
+        }
+      }
+    },
+    "templateBranch.continueWithChoice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue with a choice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加选项，继续分支"
+          }
+        }
+      }
+    },
+    "templateBranch.choiceHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Options to edit each choice and its destination. Fill a valid path to an ending."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "进入“选项”编辑文案和下一步骤，确保路径能到达终点。"
+          }
+        }
+      }
+    },
+    "templateBranch.addStep": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add story step"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加剧情步骤"
+          }
+        }
+      }
+    },
+    "templateBranch.addChoice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add branch choice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加分支选项"
+          }
+        }
+      }
+    }
+  }
+}

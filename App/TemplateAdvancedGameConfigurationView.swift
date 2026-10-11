@@ -49,6 +49,9 @@ import SwiftUI
                             return faces.indices.contains(index) ? faces[index].string ?? "" : ""
                         }, set: { model.draft.advanced.setFace(index, $0) }))
                     }
+                    NavigationLink("templateD6.preview") { TemplateD6RehearsalView(model: model) }
+                        .disabled((try? TemplateD6Rehearsal(draft: model.draft.advanced)) == nil)
+                        .accessibilityIdentifier("templateD6.open")
                     }
                 case .react: field(game.section, "rounds"); field(game.section, "goalMs")
                 case .shake:

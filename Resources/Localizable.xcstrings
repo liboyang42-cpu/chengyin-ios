@@ -155499,6 +155499,1734 @@
           }
         }
       }
+    },
+    "templateBlindOptions.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tasting options and answer"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "盲品选项与答案"
+          }
+        }
+      }
+    },
+    "templateBlindOptions.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use 2–6 options with unique codes. The answer follows its code when renamed, and moves to the first remaining option when removed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请配置 2–6 个编号不同的选项。修改正确选项的编号时答案会同步更新；删除它时答案转为剩余第一项。"
+          }
+        }
+      }
+    },
+    "templateBlindOptions.optionNumber %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Option %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选项 %lld"
+          }
+        }
+      }
+    },
+    "templateBlindOptions.removeNumber %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove option %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除选项 %lld"
+          }
+        }
+      }
+    },
+    "templateBlindOptions.selected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Correct answer"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正确答案"
+          }
+        }
+      }
+    },
+    "templateBlindOptions.choose": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set as answer"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设为正确答案"
+          }
+        }
+      }
+    },
+    "templateBlindOptions.add": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add tasting option"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加盲品选项"
+          }
+        }
+      }
+    },
+    "templateBlindOptions.noAnswer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose an option with a unique valid code as the answer."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择一个编号有效且不重复的选项作为答案。"
+          }
+        }
+      }
+    },
+    "templateBlindOptions.unsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved fields are retained. Adjust the existing option list and answer fields to use this composer."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已保留原有内容。请先调整下方原有选项列表和答案字段，再使用联动编辑。"
+          }
+        }
+      }
+    },
+    "templateBranch.terminalHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turning this into an ending removes all its choices. Existing outcome text is kept."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设为终点会清空此步骤的全部选项，已有结局文字会保留。"
+          }
+        }
+      }
+    },
+    "templateBranch.continueWithChoice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue with a choice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加选项，继续分支"
+          }
+        }
+      }
+    },
+    "templateBranch.choiceHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Options to edit each choice and its destination. Fill a valid path to an ending."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "进入“选项”编辑文案和下一步骤，确保路径能到达终点。"
+          }
+        }
+      }
+    },
+    "templateBranch.addStep": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add story step"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加剧情步骤"
+          }
+        }
+      }
+    },
+    "templateBranch.addChoice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add branch choice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加分支选项"
+          }
+        }
+      }
+    },
+    "templateD6.preview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "D6 local samples"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "D6 本地样例"
+          }
+        }
+      }
+    },
+    "templateD6.sampleOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose example die values to inspect this configuration. These local samples are not actual rolls, scores, rewards or server receipts."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择示例点数，检查当前配置。这里仅展示本地样例，不代表正式掷骰、得分、奖励或服务端回执。"
+          }
+        }
+      }
+    },
+    "templateD6.configuration": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current configuration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前配置"
+          }
+        }
+      }
+    },
+    "templateD6.oneDie": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One die"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一颗骰子"
+          }
+        }
+      }
+    },
+    "templateD6.twoDice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Two dice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "两颗骰子"
+          }
+        }
+      }
+    },
+    "templateD6.sumOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Two dice show the sum only; it does not select a face action."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "两颗骰子只展示点数之和，不对应某一面的任务。"
+          }
+        }
+      }
+    },
+    "templateD6.exampleValues": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose example values"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择示例点数"
+          }
+        }
+      }
+    },
+    "templateD6.dieNumber %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第 %lld 颗骰子"
+          }
+        }
+      }
+    },
+    "templateD6.showSample": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show local sample"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看本地样例"
+          }
+        }
+      }
+    },
+    "templateD6.sampleResult": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local sample result"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地样例结果"
+          }
+        }
+      }
+    },
+    "templateD6.configurationChanged": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The current configuration is unavailable or has changed. Reload it to start a new sample."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前配置不可用或已变更。重新载入后可开始新的样例。"
+          }
+        }
+      }
+    },
+    "templateD6.reload": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload current configuration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新载入当前配置"
+          }
+        }
+      }
+    },
+    "templatePoems.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit poem pool"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑城市签文"
+          }
+        }
+      }
+    },
+    "templatePoems.instructions": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paste or write a whole poem, one sentence per line. Keep 1–4 lines, up to 24 characters per line. Empty lines and surrounding whitespace are omitted from saved lines while your input keeps them."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "整段粘贴或输入签文，一行一句。每条 1–4 行，每行最多 24 字；写回时忽略空行及行首行尾空白，输入框仍保留你的换行。"
+          }
+        }
+      }
+    },
+    "templatePoems.changed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The draft changed elsewhere. Reload before continuing; the stored poem text is preserved."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿已在其他位置改变，请重新载入后继续；已写入的签文会保留。"
+          }
+        }
+      }
+    },
+    "templatePoems.reload": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload stored poems"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新载入签文"
+          }
+        }
+      }
+    },
+    "templatePoems.unsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This stored format needs the existing line editor. Return to reopen it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此存量格式请使用原逐行编辑器，请返回后重新打开。"
+          }
+        }
+      }
+    },
+    "templatePoems.number %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poem %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "签文 %lld"
+          }
+        }
+      }
+    },
+    "templatePoems.input": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Whole poem text"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "整段签文"
+          }
+        }
+      }
+    },
+    "templatePoems.lineCount %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld nonempty lines / 4"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有效行数 %lld / 4"
+          }
+        }
+      }
+    },
+    "templatePoems.preview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Normalized text preview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有效行预览"
+          }
+        }
+      }
+    },
+    "templatePoems.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No nonempty poem lines yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有有效签文内容。"
+          }
+        }
+      }
+    },
+    "templatePoems.add": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add poem"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加开场签"
+          }
+        }
+      }
+    },
+    "templateEffects.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configure what this choice or outcome changes. These are draft settings; they do not apply effects to any player. Up to 16 effects."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配置选项或结果对应的变化；这里只编辑草稿，不会对玩家执行效果。最多 16 条。"
+          }
+        }
+      }
+    },
+    "templateEffects.rowNumber %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Effect %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "效果 %lld"
+          }
+        }
+      }
+    },
+    "templateEffects.variableHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use a clue., relation. or counter. variable. sys.luck supports INC by 1–3 under the existing contract."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "变量使用 clue.、relation. 或 counter. 前缀。既有合同中的 sys.luck 仅支持增加 1–3。"
+          }
+        }
+      }
+    },
+    "templateEffects.tagHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use tag. followed by a lowercase identifier, for example tag.brave."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用 tag. 加小写标识，例如 tag.brave。"
+          }
+        }
+      }
+    },
+    "templateEffects.numberHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a whole number from -99 to 99. Existing variable-specific limits still apply."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "输入 -99 至 99 的整数；具体变量仍遵循已有范围限制。"
+          }
+        }
+      }
+    },
+    "templateEffects.add": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add effect"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加效果"
+          }
+        }
+      }
+    },
+    "templateEffects.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No effects configured for this choice or outcome."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此选项或结果尚未配置效果。"
+          }
+        }
+      }
+    },
+    "templateEffects.reopen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This entry or draft has changed. Go back and reopen the intended effect list."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所属条目或草稿已变更。请返回后重新打开需要编辑的效果列表。"
+          }
+        }
+      }
+    },
+    "templateHotspots.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Place hidden targets"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在图上标目标"
+          }
+        }
+      }
+    },
+    "templateHotspots.instructions": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Load the scene, select a target, then tap its location. Tap the selected target again to cancel."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先加载场景，选择一个目标，再点图上的位置。再次选择同一目标可取消。"
+          }
+        }
+      }
+    },
+    "templateHotspots.loadScene": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Load / retry scene"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加载／重试场景图"
+          }
+        }
+      }
+    },
+    "templateHotspots.sceneUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Return to the form and enter a supported HTTPS scene address."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请返回表单填写可用的 HTTPS 场景图地址。"
+          }
+        }
+      }
+    },
+    "templateHotspots.targetNumber %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Target %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目标 %lld"
+          }
+        }
+      }
+    },
+    "templateHotspots.cancel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel selection"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消选中"
+          }
+        }
+      }
+    },
+    "templateHotspots.mark": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mark location"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "标位置"
+          }
+        }
+      }
+    },
+    "templateHotspots.unplaced": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Needs a position"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没标"
+          }
+        }
+      }
+    },
+    "templateHotspots.placed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Position set"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已有位置"
+          }
+        }
+      }
+    },
+    "templateHotspots.add": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add target"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加目标"
+          }
+        }
+      }
+    },
+    "templateHotspots.countBoundary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep 3–5 targets. Detection radius is managed by the system."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留 3–5 个目标，判定半径由系统管理。"
+          }
+        }
+      }
+    },
+    "templateHotspots.canvas": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scene: tap to place the selected target"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "场景图：点按以标记选中目标的位置"
+          }
+        }
+      }
+    },
+    "templateHotspots.loadFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The scene could not load. Use Load / retry scene to try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "场景图加载失败，请点击“加载／重试场景图”重试。"
+          }
+        }
+      }
+    },
+    "templateHotspots.loading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading scene"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载场景图"
+          }
+        }
+      }
+    },
+    "templateTeam.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Roles and turn order"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "角色与轮次顺序"
+          }
+        }
+      }
+    },
+    "templateTeam.instructions": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configure the roles, then enter their IDs in turn order. Renaming or removing a role does not change the order automatically."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先配置角色，再按轮次输入角色 ID。修改或删除角色后，轮次顺序不会自动改写。"
+          }
+        }
+      }
+    },
+    "templateTeam.changed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The draft changed. Reload this plan before editing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿已变化，请重新载入配置后编辑。"
+          }
+        }
+      }
+    },
+    "templateTeam.reload": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload plan"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新载入配置"
+          }
+        }
+      }
+    },
+    "templateTeam.unsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This older configuration uses a different format. Its original data has been kept."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这份旧配置格式不同，原始数据已保留。"
+          }
+        }
+      }
+    },
+    "templateTeam.roleNumber %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Role %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "角色 %lld"
+          }
+        }
+      }
+    },
+    "templateTeam.up": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move up"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上移"
+          }
+        }
+      }
+    },
+    "templateTeam.down": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move down"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下移"
+          }
+        }
+      }
+    },
+    "templateTeam.add": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add role"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加角色"
+          }
+        }
+      }
+    },
+    "templateTeam.roleCount %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld roles · 1–20 required"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 个角色 · 需 1–20 个"
+          }
+        }
+      }
+    },
+    "templateTeam.order": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn order"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "轮次顺序"
+          }
+        }
+      }
+    },
+    "templateTeam.orderHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Separate role IDs with commas, Chinese commas, spaces or newlines. Repeated IDs are kept; 1–100 turns are allowed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "角色 ID 可用逗号、中文逗号、空格或换行分隔。重复 ID 会保留，需 1–100 个轮次。"
+          }
+        }
+      }
+    },
+    "templateTeam.preview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parsed turn-order preview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解析后的轮次预览"
+          }
+        }
+      }
+    },
+    "templateTeam.emptyOrder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter at least one role ID."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请输入至少一个角色 ID。"
+          }
+        }
+      }
+    },
+    "templateTeam.unresolved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Role missing or ID duplicated"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "角色不存在或 ID 重复"
+          }
+        }
+      }
+    },
+    "templatePictures.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Picture choices"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "猜图选项"
+          }
+        }
+      }
+    },
+    "templatePictures.instructions": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add and name the pictures, then choose exactly one correct answer. Removing the answer leaves it unset until you choose again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加图片并填写名称，再选定唯一正确答案。删除正确项后，需要重新选择答案。"
+          }
+        }
+      }
+    },
+    "templatePictures.changed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The draft changed. Reload these choices before editing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿已变化，请重新载入选项后编辑。"
+          }
+        }
+      }
+    },
+    "templatePictures.reload": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload choices"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新载入选项"
+          }
+        }
+      }
+    },
+    "templatePictures.unsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This older list uses a different format. Its original data has been kept."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这份旧选项使用不同格式，原始数据已保留。"
+          }
+        }
+      }
+    },
+    "templatePictures.correctCount %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Correct answers selected: %lld (choose one)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已选正确答案：%lld 个（应为 1 个）"
+          }
+        }
+      }
+    },
+    "templatePictures.number %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Picture %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图片 %lld"
+          }
+        }
+      }
+    },
+    "templatePictures.addressHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Optional: an HTTPS address or a site path. This editor saves the address without loading the image."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选填 HTTPS 地址或站内路径。此处仅保存地址，不加载图片。"
+          }
+        }
+      }
+    },
+    "templatePictures.selected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is the correct answer"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这张是正确答案"
+          }
+        }
+      }
+    },
+    "templatePictures.select": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose as the correct answer"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设为正确答案"
+          }
+        }
+      }
+    },
+    "templatePictures.up": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move up"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上移"
+          }
+        }
+      }
+    },
+    "templatePictures.down": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move down"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下移"
+          }
+        }
+      }
+    },
+    "templatePictures.add": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a picture"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加一张"
+          }
+        }
+      }
+    },
+    "templatePictures.count %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld pictures · 3–8 required"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 张图片 · 需 3–8 张"
+          }
+        }
+      }
+    },
+    "templateProfile.kindHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choice questions need two options. An undersized list is replaced with two blank choices; switching to text keeps an existing choice list."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选项题至少有两项；不足两项时会重建两个空选项。切回文字题会保留已有选项。"
+          }
+        }
+      }
+    },
+    "templateProfile.questionsHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep 1–8 questions. Open a question to edit its text and type."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留 1–8 个问题，进入问题编辑文案和题型。"
+          }
+        }
+      }
+    },
+    "templateProfile.optionsHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep 2–6 options. New keys are unique across all questions; open an option to edit its content and effects."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留 2–6 个选项。新编号在全部问题间不重复，进入选项编辑文案和效果。"
+          }
+        }
+      }
+    },
+    "templateProfile.addQuestion": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add profile question"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加建档问题"
+          }
+        }
+      }
+    },
+    "templateProfile.addOption": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add profile option"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加建档选项"
+          }
+        }
+      }
+    },
+    "templateProfile.reopen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The question or draft has changed. Return and reopen this list."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "问题或草稿已改变，请返回后重新打开此列表。"
+          }
+        }
+      }
+    },
+    "templateQAAnswers.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Correct answers"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正确答案"
+          }
+        }
+      }
+    },
+    "templateQAAnswers.singleHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose one correct option. Choosing another replaces it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点选一个正确答案；选择另一个时会自动替换。"
+          }
+        }
+      }
+    },
+    "templateQAAnswers.multipleHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select every correct option. Turning multiple selection off keeps the first selected option."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "逐项勾选正确答案；关闭多选时保留排在最前的已选答案。"
+          }
+        }
+      }
+    },
+    "templateQAAnswers.optionNumber %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Option %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选项 %lld"
+          }
+        }
+      }
+    },
+    "templateQAAnswers.emptyLabel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Untitled option"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未填写选项文字"
+          }
+        }
+      }
+    },
+    "templateQAAnswers.selected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Correct answer selected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已选为正确答案"
+          }
+        }
+      }
+    },
+    "templateQAAnswers.notSelected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not selected as a correct answer"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未选为正确答案"
+          }
+        }
+      }
+    },
+    "templateQAAnswers.noAnswer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose at least one correct answer before rehearsal."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请至少选择一个正确答案，再进行演练。"
+          }
+        }
+      }
+    },
+    "templateQAAnswers.unsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved fields are retained. Adjust the option list or multiple-selection field to use the answer selector."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已保留原有内容。请先调整选项列表或多选字段，再使用答案选择器。"
+          }
+        }
+      }
+    },
+    "templateRewardKinds.coupon": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coupon reward"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "优惠券奖励"
+          }
+        }
+      }
+    },
+    "templateRewardKinds.feedback": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text feedback"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文字反馈"
+          }
+        }
+      }
+    },
+    "templateRewardKinds.medal": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Medal reward"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "勋章奖励"
+          }
+        }
+      }
+    },
+    "templateRewardKinds.clearNotice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose one or more reward types. Turning a type off clears only its contents."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可选择一种或多种奖励，关闭某一类时只清除该类内容。"
+          }
+        }
+      }
+    },
+    "templateRewardKinds.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a reward type and add its contents before publishing, or turn off the reward module."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发布前请选择奖励类型并填写内容，或关闭奖励模块。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

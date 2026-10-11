@@ -1,0 +1,16 @@
+{
+  "base": "41571fed5c27d4766d0bebb02e2800d798f1edbd",
+  "dependencies": [],
+  "app_sources": [
+    "App/TemplateProfileQuestionFields.swift",
+    "Core/TemplateProfileQuestionComposition.swift"
+  ],
+  "app_unit_tests": [
+    "Tests/AppUnitTests/TemplateProfileQuestionControllerTests.swift"
+  ],
+  "package_tests": [
+    "Tests/CoreTests/TemplateProfileQuestionCompositionTests.swift"
+  ],
+  "localization_fragment": "docs/localization/template-profile-questions.json",
+  "integration_note": "Independent profile field-body list and kind-picker dispatch. Merge additively; preserve prior Creator mounts. No central changes."
+}
