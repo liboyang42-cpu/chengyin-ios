@@ -106231,13 +106231,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "载入成功后，将替换尚未保存的昵称、简介和路线偏好。载入失败时保留当前修改。"
+            "value": "载入成功后，将替换尚未保存的资料修改和暂存头像。载入失败时保留当前草稿。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A successful reload replaces unsaved changes to your nickname, introduction and route preferences. If it fails, your changes are kept."
+            "value": "A successful reload replaces unsaved profile changes and the staged avatar. If it fails, your draft is kept."
           }
         }
       }
@@ -149123,13 +149123,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "返回会放弃尚未保存的昵称、简介、路线偏好和暂存头像。结果未知的保存仍保持待核对状态，返回不会重试保存。"
+            "value": "返回会放弃尚未保存的资料修改和暂存头像。结果未知的保存仍保持待核对状态，返回不会重试保存。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Going back discards unsaved changes to your nickname, introduction, route preferences and staged avatar. An unresolved save stays pending; going back does not retry it."
+            "value": "Going back discards unsaved profile changes and the staged avatar. An unresolved save stays pending; going back does not retry it."
           }
         }
       }
@@ -150242,6 +150242,1003 @@
           "stringUnit": {
             "state": "translated",
             "value": "这些是本次编辑中的待审预案，不代表已确认路线安全或无障碍，也不会取消订单、退款或发放奖励。未启用运行时替代分支。"
+          }
+        }
+      }
+    },
+    "merchant.templateMetadata.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Template metadata"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模板基本信息"
+          }
+        }
+      }
+    },
+    "merchant.templateMetadata.duration": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Game duration (minutes)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩法时长（分钟）"
+          }
+        }
+      }
+    },
+    "merchant.templateMetadata.players": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Game player-count description"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "游戏人数说明"
+          }
+        }
+      }
+    },
+    "merchant.templateMetadata.scopeHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These are existing template fields. The player-count description is not a venue capacity limit. Local participation and exit plans are not copied into them. Existing server permissions and save restrictions still apply."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这是既有模板字段。游戏人数说明不等于现场人数上限；本地参与安排和退出预案不会自动写入这些字段。仍受既有服务端权限与保存限制约束。"
+          }
+        }
+      }
+    },
+    "merchant.templateMetadata.omissionHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leaving a value blank omits it from the request and does not clear an existing value. The server defaults an omitted duration to 0 for a new template."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "留空时请求不发送该字段，不会清除已有值；新模板未填写时长时，服务端默认返回0。"
+          }
+        }
+      }
+    },
+    "merchant.templateMetadata.durationInvalid": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter whole minutes from 0 to 2,147,483,647, or leave blank."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请填写0至2,147,483,647之间的整数分钟数，或留空。"
+          }
+        }
+      }
+    },
+    "merchant.templateMetadata.readback": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save acknowledged. The template was reloaded from the server; this does not establish separate publication or review approval."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端已确认保存，并已重新读取模板；这不代表另行发布或审核已获批准。"
+          }
+        }
+      }
+    },
+    "merchant.templateMetadata.readbackFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save was acknowledged, but current template details could not be verified. The submitted copy is hidden. Reload to read again; this does not resend the save."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端已确认保存，但当前模板详情尚未核实，已隐藏提交副本。重新加载只会再次读取，不会重复保存。"
+          }
+        }
+      }
+    },
+    "merchant.preparation.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Experience preparation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "体验准备信息"
+          }
+        }
+      }
+    },
+    "merchant.preparation.venueLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suitable venue type"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "适用场所类型"
+          }
+        }
+      }
+    },
+    "merchant.preparation.materials": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Required materials"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所需材料"
+          }
+        }
+      }
+    },
+    "merchant.preparation.unspecified": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a venue type"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择场所类型"
+          }
+        }
+      }
+    },
+    "merchant.preparation.unknownVenue": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The current source value is retained. Choose a listed venue only if you want to replace it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前来源值已保留；只有选择列表中的场所类型才会替换它。"
+          }
+        }
+      }
+    },
+    "merchant.preparation.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Venue type and materials are template descriptions. The merchant still needs to verify on-site suitability and availability."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "场所类型和材料清单属于模板说明，现场是否适用及材料是否可用仍需商家核实。"
+          }
+        }
+      }
+    },
+    "merchant.preparation.omissionHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An empty value is omitted from the request and does not clear an existing server value. Saving uses the existing template permissions and readback flow."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "留空时请求不发送该字段，不会清除已有服务端值。保存沿用既有模板权限与回读流程。"
+          }
+        }
+      }
+    },
+    "merchant.preparation.venue.scenicArea": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scenic area"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "景区"
+          }
+        }
+      }
+    },
+    "merchant.preparation.venue.park": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Park or green space"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公园绿地"
+          }
+        }
+      }
+    },
+    "merchant.preparation.venue.shoppingDistrict": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shopping district"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商圈街区"
+          }
+        }
+      }
+    },
+    "merchant.preparation.venue.historicDistrict": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Historic town or street"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "古镇老街"
+          }
+        }
+      }
+    },
+    "merchant.preparation.venue.museum": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Museum"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "博物馆"
+          }
+        }
+      }
+    },
+    "merchant.preparation.venue.campus": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Campus"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "校园"
+          }
+        }
+      }
+    },
+    "merchant.preparation.venue.indoorVenue": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Indoor venue"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "室内场馆"
+          }
+        }
+      }
+    },
+    "merchant.ruleSteps.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Player instructions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩家玩法规则"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "merchant.ruleSteps.playerVisible": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Players can see these instructions. Do not include staff-only answers or secret words."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这些规则会展示给玩家，请勿填写仅供店员使用的答案或暗号。"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "merchant.ruleSteps.step %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Step %1$lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第 %1$lld 步"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "merchant.ruleSteps.instruction": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What should the player do?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩家需要做什么？"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "merchant.ruleSteps.remove": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove step"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除步骤"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "merchant.ruleSteps.removeStep %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove step %1$lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除第 %1$lld 步"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "merchant.ruleSteps.add": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add step"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加一步"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "merchant.ruleSteps.limits": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add up to 12 steps, with 60 characters per step. Existing longer rules are kept until you edit them."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最多添加 12 步，每步 60 字。已有超限规则在编辑前保留原文。"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "merchant.ruleSteps.emptyHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blank steps are omitted. Clearing every step clears the saved instructions after you confirm."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "空步骤不会写入。清空所有步骤并确认保存后，会清除已保存的玩法规则。"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "merchant.ruleSteps.clearReview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saving will clear the existing player instructions."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存后将清空现有玩家玩法规则。"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "merchant.ruleSteps.emptyReview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No player instructions."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无玩家玩法规则。"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "merchant.ruleSteps.countLimit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Before saving edited rules, reduce them to 12 steps or fewer."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存已编辑规则前，请将步骤减少到 12 步以内。"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "merchant.ruleSteps.oneLine": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use one line per step. Add another step instead of inserting a line break."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每步只写一行。需要换行时，请添加下一步。"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "merchant.ruleSteps.textLimit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A step exceeds the 60-character editing limit. Shorten it before saving."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有步骤超过 60 字编辑上限，请缩短后再保存。"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "profile.case.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "探索作品"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Portfolio"
+          }
+        }
+      }
+    },
+    "profile.case.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "作品描述"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Portfolio description"
+          }
+        }
+      }
+    },
+    "profile.case.descriptionUnavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前资料响应未提供作品描述，暂不能编辑；已有图片仍可查看。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This profile response did not include a portfolio description. You can still view existing images."
+          }
+        }
+      }
+    },
+    "profile.case.images": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "作品图片"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Portfolio images"
+          }
+        }
+      }
+    },
+    "profile.case.imagesEmpty": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无作品图片"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No portfolio images"
+          }
+        }
+      }
+    },
+    "profile.case.imagesOmitted": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "超过预览上限的图片数"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Images beyond the preview limit"
+          }
+        }
+      }
+    },
+    "profile.case.imagesReadOnly": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本页可预览已有图片，暂不支持增删或上传。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Existing images can be previewed. Adding, removing and uploading images are not available yet."
+          }
+        }
+      }
+    },
+    "profile.contactQR.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "联系二维码"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contact QR code"
+          }
+        }
+      }
+    },
+    "profile.contactQR.open": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "管理二维码"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage QR code"
+          }
+        }
+      }
+    },
+    "profile.contactQR.available": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已添加"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Added"
+          }
+        }
+      }
+    },
+    "profile.contactQR.empty": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未添加"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not added"
+          }
+        }
+      }
+    },
+    "profile.contactQR.staged": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待移除"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pending removal"
+          }
+        }
+      }
+    },
+    "profile.contactQR.remove": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移除二维码"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove QR code"
+          }
+        }
+      }
+    },
+    "profile.contactQR.restore": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留原二维码"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep original QR code"
+          }
+        }
+      }
+    },
+    "profile.contactQR.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成只暂存保留或移除的选择，回到资料页后仍需审阅并保存。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done only stages the choice to keep or remove this QR code. Review and save from the profile page to submit it."
+          }
+        }
+      }
+    },
+    "profile.contactQR.noUpload": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂不支持新增或替换二维码。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adding or replacing a QR code is not available yet."
+          }
+        }
+      }
+    },
+    "profile.contactQR.reviewRemoval": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将移除联系二维码。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The contact QR code will be removed."
+          }
+        }
+      }
+    },
+    "templateChoiceRows.count": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choice options"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择题选项"
+          }
+        }
+      }
+    },
+    "templateChoiceRows.add": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add option"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加选项"
+          }
+        }
+      }
+    },
+    "templateChoiceRows.remove": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove option"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除选项"
+          }
+        }
+      }
+    },
+    "templateChoiceRows.removeLetter %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove option %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除选项 %@"
+          }
+        }
+      }
+    },
+    "templateChoiceRows.reorderUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This draft contains an unrecognized attachment or answer format. Its stored data is preserved; adding or removing options is unavailable."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此草稿含有无法识别的附件或答案格式，已保留原始数据，暂不能增删选项。"
+          }
+        }
+      }
+    },
+    "templateReward.clearMedal": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear medal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除勋章"
           }
         }
       }

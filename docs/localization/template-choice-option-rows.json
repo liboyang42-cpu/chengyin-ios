@@ -1,0 +1,36 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "templateChoiceRows.count": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Choice options" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "选择题选项" } }
+      }
+    },
+    "templateChoiceRows.add": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Add option" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "添加选项" } }
+      }
+    },
+    "templateChoiceRows.remove": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Remove option" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "删除选项" } }
+      }
+    },
+    "templateChoiceRows.removeLetter %@": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Remove option %@" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "删除选项 %@" } }
+      }
+    },
+    "templateChoiceRows.reorderUnavailable": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "This draft contains an unrecognized attachment or answer format. Its stored data is preserved; adding or removing options is unavailable." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "此草稿含有无法识别的附件或答案格式，已保留原始数据，暂不能增删选项。" } }
+      }
+    }
+  },
+  "version": "1.0"
+}

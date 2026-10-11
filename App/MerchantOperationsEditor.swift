@@ -180,6 +180,33 @@ struct MerchantOperationsEditor: View {
                     ForEach(MerchantTemplateMethod.allCases, id: \.rawValue) { method in Text(LocalizedStringKey(method.titleKey)).tag(method.rawValue) }
                 }.accessibilityIdentifier("merchant.operations.method")
             }
+            Section("merchant.templateMetadata.title") {
+                templateField("merchant.templateMetadata.duration", \.gameDurationMinutes, "gameDurationMinutes")
+                templateField("merchant.templateMetadata.players", \.players, "players")
+                Text("merchant.templateMetadata.scopeHint").font(.footnote).foregroundStyle(.secondary)
+                Text("merchant.templateMetadata.omissionHint").font(.footnote).foregroundStyle(.secondary)
+            }
+            Section("merchant.preparation.title") {
+                Picker("merchant.preparation.venueLabel", selection: Binding(get: { currentTemplate?.usageLocation ?? "" }, set: { text in
+                    guard var value = currentTemplate else { return }
+                    value.usageLocation = text; model.edit(.template(value))
+                })) {
+                    Text("merchant.preparation.unspecified").tag("").disabled(true)
+                    if !value.usageLocation.isEmpty, MerchantTemplateVenueChoice(rawValue: value.usageLocation) == nil {
+                        Text(verbatim: value.usageLocation).tag(value.usageLocation)
+                    }
+                    ForEach(MerchantTemplateVenueChoice.allCases, id: \.rawValue) { choice in
+                        Text(LocalizedStringKey(choice.titleKey)).tag(choice.rawValue)
+                    }
+                }.pickerStyle(.menu).accessibilityIdentifier("merchant.preparation.venue")
+                if !value.usageLocation.isEmpty, MerchantTemplateVenueChoice(rawValue: value.usageLocation) == nil {
+                    Text("merchant.preparation.unknownVenue").font(.footnote).foregroundStyle(.secondary)
+                }
+                templateField("merchant.preparation.materials", \.requiredMaterials, "requiredMaterials")
+                Text("merchant.preparation.hint").font(.footnote).foregroundStyle(.secondary)
+                Text("merchant.preparation.omissionHint").font(.footnote).foregroundStyle(.secondary)
+            }
+            MerchantTemplateRuleStepsFields(model: model)
             MerchantTemplateParticipationPlanFields(model: model)
             MerchantTemplateExitPlanFields(model: model)
             if value.method == .secretWord { Section { templateField("merchant.operations.answer", \.questionAnswer, "answer") } }
@@ -314,8 +341,35 @@ struct MerchantOperationsConfirmationView: View {
                     }
                     if case .template(let value) = confirmation.draft, let method = value.method { Text(LocalizedStringKey(method.titleKey)) }
                 }
+                if case .template(let template) = confirmation.draft {
+                    Section("merchant.templateMetadata.title") {
+                        LabeledContent("merchant.templateMetadata.duration", value: template.gameDurationMinutes.trimmingCharacters(in: .whitespacesAndNewlines))
+                            .accessibilityIdentifier("merchant.templateMetadata.review.duration")
+                        LabeledContent("merchant.templateMetadata.players", value: template.players.trimmingCharacters(in: .whitespacesAndNewlines))
+                            .accessibilityIdentifier("merchant.templateMetadata.review.players")
+                        Text("merchant.templateMetadata.omissionHint").font(.footnote).foregroundStyle(.secondary)
+                    }
+                }
+                if case .template(let template) = confirmation.draft {
+                    Section("merchant.preparation.title") {
+                        LabeledContent("merchant.preparation.venueLabel") {
+                            if let choice = MerchantTemplateVenueChoice(rawValue: template.usageLocation) {
+                                Text(LocalizedStringKey(choice.titleKey))
+                            } else { Text(verbatim: template.usageLocation) }
+                        }.accessibilityIdentifier("merchant.preparation.review.venue")
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("merchant.preparation.materials").font(.caption).foregroundStyle(.secondary)
+                            Text(verbatim: template.requiredMaterials.trimmingCharacters(in: .whitespacesAndNewlines))
+                                .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("merchant.preparation.review.materials")
+                        }
+                        Text("merchant.preparation.omissionHint").font(.footnote).foregroundStyle(.secondary)
+                    }
+                }
                 if case .template(let template) = confirmation.draft, let plan = template.participationPlan {
                     MerchantTemplateParticipationPlanReview(plan: plan)
+                }
+                if case .template(let template) = confirmation.draft {
+                    MerchantTemplateRuleStepsReview(rules: template.ruleSteps)
                 }
                 if case .template(let template) = confirmation.draft, let plan = template.exitPlan {
                     MerchantTemplateExitPlanReview(plan: plan)
@@ -470,6 +524,62 @@ private struct MerchantTemplateExitPlanReview: View {
                     .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("merchant.exitPlan.review.failureExit")
             }
             Text("merchant.exitPlan.reviewBoundary").font(.footnote).foregroundStyle(.secondary)
+        }
+    }
+}
+
+@MainActor
+private struct MerchantTemplateRuleStepsFields: View {
+    @ObservedObject var model: MerchantOperationsViewModel
+    private var template: MerchantNodeTemplate? {
+        if case .template(let value) = model.coordinator.draft { return value }; return nil
+    }
+    private func edit(_ action: (inout MerchantTemplateRuleSteps) -> Void) {
+        guard var value = template else { return }
+        action(&value.ruleSteps); model.edit(.template(value))
+    }
+    var body: some View {
+        if let rules = template?.ruleSteps {
+            Section("merchant.ruleSteps.title") {
+                Text("merchant.ruleSteps.playerVisible").font(.footnote).foregroundStyle(.secondary)
+                ForEach(rules.rows.indices, id: \.self) { index in
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("merchant.ruleSteps.step \(index + 1)").font(.caption).foregroundStyle(.secondary)
+                        TextField("merchant.ruleSteps.instruction", text: Binding(get: {
+                            guard let rows = template?.ruleSteps.rows, rows.indices.contains(index) else { return "" }
+                            return rows[index]
+                        }, set: { text in edit { $0.update(at: index, text: text) } }))
+                            .accessibilityLabel(Text("merchant.ruleSteps.step \(index + 1)"))
+                            .accessibilityIdentifier("merchant.ruleSteps.field.\(index)")
+                        Button(role: .destructive) { edit { $0.remove(at: index) } } label: {
+                            Label("merchant.ruleSteps.remove", systemImage: "minus.circle")
+                        }.buttonStyle(.borderless).disabled(rules.rows.count <= 1)
+                            .accessibilityLabel(Text("merchant.ruleSteps.removeStep \(index + 1)"))
+                            .accessibilityIdentifier("merchant.ruleSteps.remove.\(index)")
+                    }
+                }
+                Button("merchant.ruleSteps.add", systemImage: "plus") { edit { $0.add() } }
+                    .disabled(!rules.canAdd).accessibilityIdentifier("merchant.ruleSteps.add")
+                Text("merchant.ruleSteps.limits").font(.footnote).foregroundStyle(.secondary)
+                Text("merchant.ruleSteps.emptyHint").font(.footnote).foregroundStyle(.secondary)
+            }
+        }
+    }
+}
+
+private struct MerchantTemplateRuleStepsReview: View {
+    let rules: MerchantTemplateRuleSteps
+    var body: some View {
+        Section("merchant.ruleSteps.title") {
+            Text("merchant.ruleSteps.playerVisible").font(.footnote).foregroundStyle(.secondary)
+            if rules.isClearing {
+                Text("merchant.ruleSteps.clearReview").accessibilityIdentifier("merchant.ruleSteps.review.clear")
+            } else if let text = rules.wireValue, !text.isEmpty {
+                Text(verbatim: text).fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("merchant.ruleSteps.review.text")
+            } else {
+                Text("merchant.ruleSteps.emptyReview").accessibilityIdentifier("merchant.ruleSteps.review.empty")
+            }
         }
     }
 }

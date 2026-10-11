@@ -54,9 +54,11 @@ final class ProfileEditModel: ObservableObject {
     private static func sameDraft(_ lhs: ProfileEditDraft, _ rhs: ProfileEditDraft) -> Bool {
         lhs.name.utf8.elementsEqual(rhs.name.utf8) && lhs.introduction.utf8.elementsEqual(rhs.introduction.utf8)
         && lhs.routePreferenceIDs == rhs.routePreferenceIDs && lhs.avatarReplacement == rhs.avatarReplacement
+        && ProfileCasePortfolio.sameText(lhs.caseIntroduction, rhs.caseIntroduction)
+        && lhs.removesContactQR == rhs.removesContactQR
     }
     private static func sameSnapshot(_ lhs: ProfileEditSnapshot, _ rhs: ProfileEditSnapshot) -> Bool {
-        lhs.id == rhs.id && zip([lhs.nickname, lhs.introduction, lhs.avatar, lhs.wechat, lhs.casePics, lhs.tagIds],
+        lhs.id == rhs.id && ProfileCasePortfolio.sameText(lhs.caseIntroduction, rhs.caseIntroduction) && zip([lhs.nickname, lhs.introduction, lhs.avatar, lhs.wechat, lhs.casePics, lhs.tagIds],
                               [rhs.nickname, rhs.introduction, rhs.avatar, rhs.wechat, rhs.casePics, rhs.tagIds])
             .allSatisfy { $0.0.utf8.elementsEqual($0.1.utf8) }
     }
@@ -66,6 +68,8 @@ final class ProfileEditModel: ObservableObject {
             && draft.introduction.utf8.elementsEqual(snapshot.introduction.utf8)
         let samePreferences = draft.routePreferenceIDs.map { $0.map(String.init).joined(separator: ",").utf8.elementsEqual(snapshot.tagIds.utf8) } ?? true
         return !sameText || !samePreferences || draft.avatarReplacement != nil
+            || (draft.caseIntroduction.map { !ProfileCasePortfolio.sameText($0, snapshot.caseIntroduction) } ?? false)
+            || (draft.removesContactQR && !snapshot.wechat.isEmpty)
     }
     /// This is local scratch editing, never an independent server save.
     var canBeginTextEdit: Bool {
@@ -106,9 +110,20 @@ final class ProfileEditModel: ObservableObject {
         switch value.field {
         case .name: next.name = text
         case .introduction: next.introduction = text
+        case .caseIntroduction:
+            guard snapshot.caseIntroduction != nil else { return false }
+            next.caseIntroduction = ProfileCasePortfolio.sameText(text, snapshot.caseIntroduction) ? nil : text
+        case .contactQR:
+            // A QR editor may retain original bytes or clear them, never supply a replacement URL.
+            guard text.isEmpty || text.utf8.elementsEqual(snapshot.wechat.utf8) else { return false }
+            next.removesContactQR = text.isEmpty && !snapshot.wechat.isEmpty
         }
         draft = next
         return true
+    }
+    @discardableResult func confirmContactQR(_ value: ProfileTextFieldEdit, remove: Bool) -> Bool {
+        guard value.field == .contactQR else { return false }
+        return confirmTextEdit(value, text: remove ? "" : value.snapshot.wechat)
     }
     func ownsAvatarScope(_ scope: ProfileAvatarScope) -> Bool {
         avatarActive && scope.editorID == avatarEditorID && scope.lifetimeID == avatarLifetimeID &&
@@ -126,7 +141,7 @@ final class ProfileEditModel: ObservableObject {
     }
     func discardAvatar(id: UUID) {
         guard !busy, !coordinator.isLocked, draft.avatarReplacement?.id == id else { return }
-        draft = .init(name: draft.name, introduction: draft.introduction, routePreferenceIDs: draft.routePreferenceIDs)
+        draft = .init(name: draft.name, introduction: draft.introduction, routePreferenceIDs: draft.routePreferenceIDs, caseIntroduction: draft.caseIntroduction, removesContactQR: draft.removesContactQR)
     }
     func observeAvatarRetirement(_ action: @escaping () -> Void) { avatarRetirement = action }
     func retireAvatar() { cancelExit(); avatarActive = false; avatarLifetimeID = UUID(); avatarPreview = nil; avatarRetirement?() }
@@ -298,15 +313,16 @@ struct ProfileEditView: View {
     let sessionRevision: UInt64
     let categoryReader: (any DiscoveryReading)?
     let avatarDependencies: ProfileAvatarDependencies?
+    let caseImageReader: (any RetainedPublicImageReading)?
     @State private var showPreferences = false
     @State private var showReloadConfirmation = false
     @State private var showExitConfirmation = false
     private var selectedPreferences: [Int] {
         model.draft.routePreferenceIDs ?? (model.coordinator.snapshot?.tagIds ?? "").split(separator: ",").compactMap { Int($0.trimmingCharacters(in: .whitespacesAndNewlines)) }
     }
-    init(coordinator: ProfileEditCoordinator, sessionRevision: UInt64, categoryReader: (any DiscoveryReading)? = nil, avatarDependencies: ProfileAvatarDependencies? = nil) {
+    init(coordinator: ProfileEditCoordinator, sessionRevision: UInt64, categoryReader: (any DiscoveryReading)? = nil, avatarDependencies: ProfileAvatarDependencies? = nil, caseImageReader: (any RetainedPublicImageReading)? = nil) {
         _model = StateObject(wrappedValue: ProfileEditModel(coordinator: coordinator))
-        self.sessionRevision = sessionRevision; self.categoryReader = categoryReader; self.avatarDependencies = avatarDependencies
+        self.sessionRevision = sessionRevision; self.categoryReader = categoryReader; self.avatarDependencies = avatarDependencies; self.caseImageReader = caseImageReader
     }
     private var editorForm: some View {
         Form {
@@ -321,6 +337,13 @@ struct ProfileEditView: View {
                         textFieldRow(.introduction, value: model.draft.introduction)
                     } header: { Text("profile.edit.details") }
                         .disabled(!model.canBeginTextEdit)
+                    Section("profile.case.title") {
+                        textFieldRow(.caseIntroduction, value: model.draft.caseIntroduction ?? model.coordinator.snapshot?.caseIntroduction ?? "")
+                            .disabled(!model.canBeginTextEdit)
+                    }
+                    ProfileContactQRSection(wechat: model.coordinator.snapshot?.wechat ?? "", removes: model.draft.removesContactQR) {
+                        model.beginTextEdit(.contactQR)
+                    }.disabled(!model.canBeginTextEdit)
                     ProfileAvatarDraftSection(model: model, dependencies: avatarDependencies)
                     Section("context.preferences.title") {
                         LabeledContent("context.preferences.selected", value: String(selectedPreferences.count))
@@ -329,7 +352,7 @@ struct ProfileEditView: View {
                     }
                     Button { Task { await model.prepare() } } label: { Text("profile.edit.review") }
                         .disabled(model.busy || model.coordinator.isLocked || !model.draft.isValid
-                                  || model.textEdit != nil || model.draft.normalized == model.coordinator.snapshot?.draft.normalized)
+                                  || model.textEdit != nil || !(model.coordinator.snapshot.map { model.draft.hasChanges(comparedTo: $0) } ?? false))
                         .accessibilityIdentifier("profile.edit.review")
                 }
                 if let key = model.coordinator.messageKey {
@@ -390,10 +413,17 @@ struct ProfileEditView: View {
         .task(id: sessionRevision) { showPreferences = false; await model.resetAndLoad() }
         .sheet(item: textEditPresentation) { value in
             NavigationStack {
-                ProfileTextFieldEditor(edit: value,
-                    cancel: { model.cancelTextEdit(value) },
-                    confirm: { _ = model.confirmTextEdit(value, text: $0) })
-                    .id(value.id)
+                if value.field == .contactQR {
+                    ProfileContactQREditor(edit: value, reader: caseImageReader,
+                        cancel: { model.cancelTextEdit(value) },
+                        confirm: { _ = model.confirmContactQR(value, remove: $0) })
+                        .id(value.id)
+                } else {
+                    ProfileTextFieldEditor(edit: value, caseImageReader: caseImageReader,
+                        cancel: { model.cancelTextEdit(value) },
+                        confirm: { _ = model.confirmTextEdit(value, text: $0) })
+                        .id(value.id)
+                }
             }.interactiveDismissDisabled(false)
         }
         .sheet(isPresented: $showPreferences) {
@@ -407,6 +437,10 @@ struct ProfileEditView: View {
                     Section {
                         LabeledContent { Text(verbatim: value.payload.name) } label: { Text("profile.edit.name") }
                         LabeledContent { Text(verbatim: value.payload.introduction) } label: { Text("profile.edit.introduction") }
+                        if let text = value.payload.caseIntroduction {
+                            LabeledContent { Text(verbatim: text) } label: { Text("profile.case.description") }
+                        }
+                        if value.payload.removesContactQR { Text("profile.contactQR.reviewRemoval") }
                         if value.payload.avatarReplacement != nil { Text("profile.avatar.confirmChange") }
                         Text("profile.edit.confirmHint")
                     }
@@ -430,7 +464,9 @@ struct ProfileEditView: View {
         Button { model.beginTextEdit(field) } label: {
             HStack {
                 LabeledContent {
-                    if value.isEmpty { Text("profile.fieldEdit.empty").foregroundStyle(.secondary) }
+                    if field == .caseIntroduction, model.coordinator.snapshot?.caseIntroduction == nil {
+                        Text("profile.case.descriptionUnavailable").font(.caption).foregroundStyle(.secondary)
+                    } else if value.isEmpty { Text("profile.fieldEdit.empty").foregroundStyle(.secondary) }
                     else { Text(verbatim: value).lineLimit(3) }
                 } label: { Text(LocalizedStringKey(field.titleKey)) }
                 Image(systemName: "chevron.right").font(.caption).foregroundStyle(.secondary)

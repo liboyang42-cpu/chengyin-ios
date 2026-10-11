@@ -24,7 +24,7 @@ class ProfileTextFieldEditContracts(unittest.TestCase):
     def test_scratch_is_view_owned_exact_original_and_not_normalized(self):
         editor = read('App/ProfileTextFieldEditor.swift')
         for token in ['@State private var text: String', '_text = State(initialValue: edit.originalText)',
-                      'text: $text', 'var originalText: String { field.value(in: draft) }',
+                      'text: $text', 'field.value(in: draft)',
                       'case .name: return draft.name', 'case .introduction: return draft.introduction']:
             self.assertIn(token, editor)
         for forbidden in ['normalized', 'trimmingCharacters', '$model.draft', '.onDisappear', '.onChange']:

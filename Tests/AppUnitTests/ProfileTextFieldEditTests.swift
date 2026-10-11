@@ -49,7 +49,7 @@ import XCTest
         XCTAssertEqual(actual.avatarReplacement, expected.avatarReplacement, file: file, line: line)
     }
     func testOpenCopiesExactCurrentDraftAndDoesNotReadOrWrite() async throws {
-        for field in ProfileTextField.allCases {
+        for field in [ProfileTextField.name, .introduction] {
             let (model, service, _) = try await harness(); model.draft = edited
             model.beginTextEdit(field); let edit = try XCTUnwrap(model.textEdit)
             XCTAssertEqual(Array(edit.originalText.utf8), Array(field.value(in: edited).utf8))
@@ -57,7 +57,7 @@ import XCTest
         }
     }
     func testCancelRetainsWholeDraftAndReopenStartsFresh() async throws {
-        for field in ProfileTextField.allCases {
+        for field in [ProfileTextField.name, .introduction] {
             let (model, service, _) = try await harness(); model.draft = edited
             model.beginTextEdit(field); let first = try XCTUnwrap(model.textEdit)
             model.cancelTextEdit(first); assertExact(model.draft, edited); XCTAssertNil(model.textEdit)

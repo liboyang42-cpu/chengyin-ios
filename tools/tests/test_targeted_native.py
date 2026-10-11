@@ -57,7 +57,7 @@ def club87_published_test_inputs(selection, current):
     # Only this test fixture needs real Git reads for the unchanged parent inverse test.
     # Keep original source files physical; refer to the actual object database, never
     # fabricate a historical commit or copy remote/configuration/credential contents.
-    CLUB87_RUNNER.split262_ensure_public_object(current, CLUB87_RUNNER.FIXTURE_BASE_COMMIT)
+    CLUB87_RUNNER.split404_ensure_public_object(current, CLUB87_RUNNER.FIXTURE_BASE_COMMIT)
     git_directory = Path(CLUB87_RUNNER.checked(['git', 'rev-parse', '--absolute-git-dir'], current))
     if (not git_directory.is_absolute() or not git_directory.is_dir()
             or '\n' in str(git_directory) or '\r' in str(git_directory)):
@@ -9816,9 +9816,9 @@ class CreatorFixtureDiagnosticBoundary(unittest.TestCase):
 CLUB87_291_IDENTITIES = ('SelectionAndCommands.test_actual_bound_source_and_all_65_declarations', 'SelectionAndCommands.test_original_29_methods_are_preserved_and_only_16_added', 'SelectionAndCommands.test_per_method_source_binding_rejects_missing_swapped_duplicate_and_wrong_target', 'SelectionAndCommands.test_repinned_changed_method_and_duplicate_source_declaration_fail', 'SelectionAndCommands.test_duplicate_declaration_is_not_a_unique_method', 'SelectionAndCommands.test_nonboolean_version_and_exact_contract', 'SelectionAndCommands.test_changed_source_hash_and_missing_guard_rejected', 'SelectionAndCommands.test_empty_duplicate_target_and_wildcard_selectors_rejected', 'SelectionAndCommands.test_core_filter_is_exact_set_without_full_suite_fallback', 'SelectionAndCommands.test_every_xcode_method_has_its_own_exact_filter', 'SelectionAndCommands.test_workflow_remains_additive_standard_and_independent', 'SelectionAndCommands.test_original_gates_project_schemes_and_product_sources_are_unchanged', 'ReviewedCompileRepair.test_complete_predecessors_and_unrelated_contract_semantics_are_preserved', 'ReviewedCompileRepair.test_real_central_projection_accepts_current_support_and_exact_inverse', 'ReviewedCompileRepair.test_repair_inverse_rejects_off_hunk_changes_even_with_rehashed_postimage', 'Results.test_xunit_reads_all_forty_four_real_cases', 'Results.test_core_transcript_proves_execution_beyond_swiftpm_xunit', 'Results.test_xunit_failures_skips_and_unknown_status_cannot_pass', 'Results.test_modern_xcresult_exact_target_and_method_set', 'Results.test_xcresult_missing_wrong_target_bad_identifier_and_unknown_schema', 'Results.test_target_url_binding_must_not_override_wrong_bundle', 'Results.test_zero_omitted_extra_duplicate_failed_skipped_timeout_and_cancel_fail', 'Results.test_hidden_repetitions_and_xunit_summary_disagreement_fail', 'Results.test_summary_counts_actual_device_and_no_boolean_counts', 'RuntimeBoundaries.test_single_installed_iphone_and_no_automatic_other_device', 'RuntimeBoundaries.test_run_requires_hosted_mac_exact_repo_branch_and_event', 'RuntimeBoundaries.test_process_exit_is_real_and_timeout_never_passes', 'RuntimeBoundaries.test_core_build_is_once_before_exact_execution_and_failure_stops', 'RuntimeBoundaries.test_core_capture_keeps_stderr_live_and_limits_only_evidence', 'RuntimeBoundaries.test_every_cleanup_wait_is_bounded_even_after_kill', 'RuntimeBoundaries.test_product_target_selection_supports_only_safe_testhost_tokens', 'RuntimeBoundaries.test_product_directory_alias_returns_canonical_safe_run', 'RuntimeBoundaries.test_ambiguous_products_and_extra_target_fail', 'RuntimeBoundaries.test_inventory_detects_product_mutation_and_escaping_links', 'RuntimeBoundaries.test_scope_requires_exact_sha_base_and_nineteen_exact_statuses', 'RuntimeBoundaries.test_duplicate_json_keys_rejected', 'RuntimeBoundaries.test_missing_receipt_reports_not_run', 'ReceiptIdentity.test_exact_same_run_sha_tree_configuration_and_65_results', 'ReceiptIdentity.test_report_revalidates_real_exported_files_not_just_receipt_counts', 'ReceiptIdentity.test_other_run_attempt_sha_tree_selection_or_workflow_rejected', 'ReceiptIdentity.test_missing_or_wrong_configuration_toolchain_simulator_or_group_rejected', 'CreatorCurrentTreeAndCounts.test_every_creator_current_tree_mode_blob_and_presence_is_exact', 'CreatorCurrentTreeAndCounts.test_receipt_counts_are_real_integers_and_outer_fields_are_exact', 'Creator65Contract.test_original_45_exact_bindings_plus_independent_20_are_exactly_65', 'Creator65Contract.test_each_of_the_65_methods_has_one_declaration_in_its_exact_source', 'Creator65Contract.test_each_new_method_rejects_repinned_replacement_or_wrong_source', 'Creator65Contract.test_each_new_declaration_is_checked_before_creator_image_validation', 'Creator65Contract.test_new_source_binding_cannot_be_dropped_even_after_outer_repin', 'Creator65Contract.test_core_44_requires_both_complete_independent_execution_streams', 'Creator65Contract.test_old_45_receipt_cannot_be_upgraded_by_renaming_or_recounting', 'Creator65Contract.test_each_new_method_is_required_in_the_65_receipt', 'Creator65Contract.test_creator_15_and_diagnostic_4_have_exact_independent_statuses', 'Creator65Contract.test_all_creator_current_bytes_sha_and_git_blobs_are_independently_bound', 'Creator65Contract.test_creator_missing_duplicate_reordered_and_changed_rows_reject_outer_repin', 'Creator65Contract.test_every_creator_path_rejects_changed_real_current_bytes', 'Creator65Contract.test_added_files_cannot_be_rehashed_or_claim_predecessors_or_hunks', 'Creator65Contract.test_modified_creator_inverse_requires_complete_predecessor', 'Creator65Contract.test_creator_baseline_requires_each_modified_blob_and_all_four_additions_absent', 'Creator65Contract.test_each_creator_current_sha_and_blob_check_remains_active_after_inner_repin', 'Creator65Contract.test_each_creator_current_file_must_exist_as_a_regular_checkout_file', 'Creator65Contract.test_added_file_null_predecessor_and_empty_hunks_are_independently_enforced', 'ShallowCheckoutBoundaries.test_current_bytes_validate_without_history_but_real_run_scope_requires_it', 'ShallowCheckoutBoundaries.test_real_git_witness_proves_predecessors_and_addition_absence_without_parent_history', 'StaticRepairBinding.test_exact_published_base_nine_paths_and_old_domains_remain_separate', 'StaticRepairBinding.test_complete_current_payload_inverts_to_independent_b75_bytes', 'StaticRepairBinding.test_manifest_cannot_widen_or_change_under_outer_repin', 'StaticRepairBinding.test_every_payload_checks_real_bytes_sha_blob_and_regular_file', 'StaticRepairBinding.test_inverse_rejects_rehashed_off_hunk_and_fabricated_addition_predecessors', 'StaticRepairBinding.test_actual_parent_nine_path_scope_and_receipt_cannot_claim_old_scope', 'StaticRepairBinding.test_each_baseline_and_current_tree_mode_blob_and_addition_absence', 'StaticRepairBinding.test_real_git_subset_witness_binds_b75_payload_and_current_mode_blobs', 'PublishedParentBridge.test_exact_eight_path_parent_bridge_preserves_old_source_domains', 'PublishedParentBridge.test_current_to_true_parent_to_b75_inverses_match_every_historical_source', 'PublishedParentBridge.test_parent_bridge_rejects_repinned_missing_reordered_or_expanded_inputs', 'PublishedParentBridge.test_each_parent_inverse_rejects_rehashed_off_hunk_and_changed_real_sources', 'PublishedParentBridge.test_every_real_parent_bridge_tree_mode_blob_and_presence_is_exact', 'PublishedParentBridge.test_parent_history_and_receipts_cannot_relabel_b75_as_current_parent', 'FixedPublicCreatorRead.test_present_exact_object_never_fetches_or_inspects_network_configuration', 'FixedPublicCreatorRead.test_missing_object_uses_one_whitelisted_bounded_noninteractive_public_read', 'FixedPublicCreatorRead.test_offline_timeout_or_unreadable_config_fail_closed_without_retry', 'FixedPublicCreatorRead.test_existing_or_fetched_wrong_tree_parent_or_duplicate_parent_is_rejected', 'FixedPublicCreatorRead.test_credential_redirect_include_and_auth_configuration_never_reach_fetch', 'FixedPublicCreatorRead.test_public_target_cannot_be_generalized_by_changing_fixed_identity', 'NativeC2afBoundary.test_original83_complete_method_sources_are_unchanged', 'NativeC2afBoundary.test_new14_old15_history34_history19_and_original65_remain_separate', 'NativeC2afBoundary.test_all_eleven_physical_postimages_restore_exact_complete_c2af_sources', 'NativeC2afBoundary.test_no_v5_missing_unknown_or_expanded_current_layer_is_accepted', 'NativeC2afBoundary.test_rehashed_rows_cannot_change_independent_predecessors_or_inverse_shape', 'NativeC2afBoundary.test_each_current_source_rejects_missing_alias_stale_bytes_and_same_stat_mutation', 'NativeC2afBoundary.test_navigation_crlf_cr_and_rehashed_off_hunk_changes_fail_complete_inverse', 'NativeC2afBoundary.test_incomplete_or_forged_predecessor_maps_cannot_feed_historical_checks', 'NativeC2afBoundary.test_native_receipt_requires_current_c2af_layer_before_original65_receipt_checks', 'NativeC2afBoundary.test_all_fourteen_actual_tree_modes_blobs_and_presence_are_mandatory', 'NativeC2afBoundary.test_exact_scope_rejects_wrong_or_missing_parent_and_each_historical_layer', 'NativeC2afBoundary.test_real_git_subset_tree_witness_is_separate_from_mocked_scope_transport', 'FixedPublicRepairRead.test_present_exact_3393_never_fetches', 'FixedPublicRepairRead.test_missing_3393_uses_only_separate_fixed_public_bounded_fetch', 'FixedPublicRepairRead.test_3393_network_failures_and_credential_configuration_refuse_without_retry', 'FixedPublicRepairRead.test_3393_fixed_identity_wrong_tree_parent_merge_and_missing_headers_fail', 'PortableDiagnosticBoundary.test_complete_original83_sources_reject_body_decorator_comment_missing_duplicate_and_line_endings', 'PortableDiagnosticBoundary.test_exact_f04_selection_source_and_four_path_layer_are_mandatory', 'PortableDiagnosticBoundary.test_all_four_actual_current_files_and_both_tree_authorities_are_strict', 'PortableDiagnosticBoundary.test_entry_test_inverse_preserves_exact_f04_and_rejects_old_current_or_off_hunk', 'PortableDiagnosticBoundary.test_new4_and_published14_15_34_19_scope_cannot_be_relabelled', 'PortableDiagnosticBoundary.test_portable_receipt_requires_new_identity_before_original65_checks', 'FixedPublicNativeRead.test_present_c2af_never_fetches', 'FixedPublicNativeRead.test_missing_c2af_is_one_exact_bounded_public_read', 'FixedPublicNativeRead.test_bad_c2af_identity_config_timeout_and_parent_fail_closed', 'DescriptionRepairBoundary.test_complete_original108_methods_and_decorators_are_byte_identical', 'DescriptionRepairBoundary.test_original108_binding_rejects_body_decorator_comment_omission_duplicates_and_newlines', 'DescriptionRepairBoundary.test_new11_old4_native14_15_34_19_and_original65_stay_separate', 'DescriptionRepairBoundary.test_all_eight_current_payloads_restore_exact_complete_7b_bytes', 'DescriptionRepairBoundary.test_selection_missing_unknown_reordered_and_historical_layers_fail', 'DescriptionRepairBoundary.test_each_of_eleven_current_files_rejects_missing_old_and_same_stat_bytes', 'DescriptionRepairBoundary.test_leaf_and_ancestor_symbolic_links_inside_or_outside_root_are_rejected', 'DescriptionRepairBoundary.test_each_payload_rejects_coherently_repinned_off_hunk_postimage', 'DescriptionRepairBoundary.test_inverse_predecessor_hash_blob_hunks_and_complete_path_set_are_independent', 'DescriptionRepairBoundary.test_every_before_and_current_tree_requires_all_eleven_exact_modes_blobs_and_types', 'DescriptionRepairBoundary.test_new11_scope_authenticates_old4_native14_and_all_older_domains', 'DescriptionRepairBoundary.test_scope_rejects_wrong_parent_extra_parent_modes_each_history_and_dirty_checkout', 'DescriptionRepairBoundary.test_description_receipt_requires_new_identity_and_still_requires_all65_actual_results', 'FixedPublicPortableRead.test_present_exact_f04_never_fetches_or_reads_network_configuration', 'FixedPublicPortableRead.test_missing_f04_uses_one_exact_bounded_noninteractive_public_read_without_credentials', 'FixedPublicPortableRead.test_f04_credential_redirect_include_and_auth_configuration_fail_before_fetch', 'FixedPublicPortableRead.test_f04_unreadable_config_offline_and_timeout_fail_closed_without_retry', 'FixedPublicPortableRead.test_existing_or_fetched_f04_wrong_tree_parent_merge_or_missing_headers_fail', 'FixedPublicPortableRead.test_fixed_f04_public_object_identity_cannot_be_generalized', 'SocialActorBoundary.test_complete_original127_methods_and_decorators_are_byte_identical', 'SocialActorBoundary.test_original127_binding_rejects_body_decorator_comment_omission_duplicates_and_newlines', 'SocialActorBoundary.test_new15_old11_old4_native14_15_34_19_and_original65_stay_separate', 'SocialActorBoundary.test_all_twelve_current_payloads_restore_exact_complete_42_bytes', 'SocialActorBoundary.test_selection_missing_unknown_reordered_and_historical_layers_fail', 'SocialActorBoundary.test_each_of_fifteen_current_files_rejects_missing_old_and_same_stat_bytes', 'SocialActorBoundary.test_leaf_and_ancestor_symbolic_links_inside_or_outside_root_are_rejected', 'SocialActorBoundary.test_each_payload_rejects_coherently_repinned_off_hunk_postimage', 'SocialActorBoundary.test_inverse_predecessor_hash_blob_hunks_and_complete_path_set_are_independent', 'SocialActorBoundary.test_every_before_and_current_tree_requires_all_fifteen_exact_modes_blobs_and_types', 'SocialActorBoundary.test_new15_scope_authenticates_old11_old4_native14_and_all_older_domains', 'SocialActorBoundary.test_scope_rejects_wrong_parent_extra_parent_modes_each_history_and_dirty_checkout', 'SocialActorBoundary.test_social_receipt_requires_new_identity_and_still_requires_all65_actual_results', 'SocialActorBoundary.test_actor_leaf_is_only_initializer_annotation_and_equatable_identity_bytes_are_unchanged', 'SocialActorBoundary.test_merchant_single_test_leaf_matches_reviewed_complete_after_and_exact42_before', 'SocialActorBoundary.test_historical_inputs_copy_bytes_without_aliasing_any_current_checkout_file', 'SocialActorBoundary.test_new_performance_control_cannot_claim_any_historical_predecessor', 'FixedPublicDescriptionRead.test_present_exact_7b_never_fetches_or_reads_network_configuration', 'FixedPublicDescriptionRead.test_missing_7b_uses_one_exact_bounded_noninteractive_public_read_without_credentials', 'FixedPublicDescriptionRead.test_7b_credential_redirect_include_and_auth_configuration_fail_before_fetch', 'FixedPublicDescriptionRead.test_7b_unreadable_config_offline_and_timeout_fail_closed_without_retry', 'FixedPublicDescriptionRead.test_existing_or_fetched_7b_wrong_tree_parent_merge_or_missing_headers_fail', 'FixedPublicDescriptionRead.test_fixed_7b_public_object_identity_cannot_be_generalized', 'PathTemplateDiagnosticBoundary.test_original150_complete_method_bytes_and_decorators_are_unchanged', 'PathTemplateDiagnosticBoundary.test_original150_source_identity_rejects_body_comment_missing_and_duplicate_method', 'PathTemplateDiagnosticBoundary.test_complete_bb5_predecessor_json_and_test_bytes_are_fixed', 'PathTemplateDiagnosticBoundary.test_all_three_current_raw_files_reject_missing_old_same_size_mtime_and_links_after_warm', 'PathTemplateDiagnosticBoundary.test_noncanonical_selection_bytes_and_unknown_or_missing_layer_are_rejected', 'PathTemplateDiagnosticBoundary.test_missing_foreign_source_never_falls_back_to_loaded_healthy_root', 'PathTemplateDiagnosticBoundary.test_parent_directory_symlink_is_rejected_even_for_byte_identical_inputs', 'PathTemplateDiagnosticBoundary.test_historical_fixture_has_no_hardlink_into_real_current_source', 'PathTemplateDiagnosticBoundary.test_coherent_outer_repin_cannot_change_before_blobs_or_any_historical_selection_byte', 'PathTemplateDiagnosticBoundary.test_exact_new3_scope_preserves_all_published_fifteen_and_older_layers', 'PathTemplateDiagnosticBoundary.test_scope_rejects_new_parent_merge_mode_missing_extra_and_every_old_scope', 'PathTemplateDiagnosticBoundary.test_receipt_requires_pathfix_and_every_old_identity_and_all65_real_results', 'XctestrunPathTemplateTests.test_plain_and_double_underscore_product_root_aliases', 'XctestrunPathTemplateTests.test_literal_token_product_roots_are_not_reexpanded', 'XctestrunPathTemplateTests.test_double_underscore_product_children_and_absolute_paths', 'XctestrunPathTemplateTests.test_nested_host_tokens_preserve_literal_physical_root_names', 'XctestrunPathTemplateTests.test_unknown_template_tokens_reject_existing_literal_paths', 'XctestrunPathTemplateTests.test_missing_empty_and_recursive_host_tokens_reject', 'XctestrunPathTemplateTests.test_relative_and_missing_product_fields_reject', 'XctestrunPathTemplateTests.test_parent_and_absolute_sibling_escapes_reject', 'XctestrunPathTemplateTests.test_product_links_stay_inside_root_and_run_links_reject', 'XctestrunPathTemplateTests.test_multiple_runs_extra_targets_and_no_match_reject', 'XctestrunPathTemplateTests.test_non_token_double_underscore_names_remain_literal', 'FixedPublicSocialRead.test_present_exact_42_never_fetches_or_reads_network_configuration', 'FixedPublicSocialRead.test_missing_42_uses_one_exact_bounded_noninteractive_public_read_without_credentials', 'FixedPublicSocialRead.test_42_credential_redirect_include_and_auth_configuration_fail_before_fetch', 'FixedPublicSocialRead.test_42_unreadable_config_offline_and_timeout_fail_closed_without_retry', 'FixedPublicSocialRead.test_existing_or_fetched_42_wrong_tree_parent_merge_or_missing_headers_fail', 'FixedPublicSocialRead.test_fixed_42_public_object_identity_cannot_be_generalized', 'AlbumGetterActorBoundary.test_all179_previously_reviewed_method_bytes_remain_exact', 'AlbumGetterActorBoundary.test_exact_eight_payloads_restore_bb5_and_keep_all_other_files_out', 'AlbumGetterActorBoundary.test_only_actor_annotation_changes_and_all_nine_swift_methods_stay_intact', 'AlbumGetterActorBoundary.test_payload_rows_cannot_omit_duplicate_reorder_or_coherently_replace_preimages', 'CasefoldFixtureBoundary.test_all183_complete_method_bytes_decorators_and_comments_remain_unchanged', 'CasefoldFixtureBoundary.test_actual_identical_and_case_variant_names_have_independent_parents', 'CasefoldFixtureBoundary.test_simulated_casefold_directory_collision_rejects_old_layout_not_isolated_helper', 'CasefoldFixtureBoundary.test_selector_complete_function_and_original_literal_cases_remain_fixed', 'CasefoldFixtureBoundary.test_current_three_raw_missing_old_same_stat_symlink_and_foreign_root_rejected', 'CasefoldFixtureBoundary.test_exact_raw_json_and_coherent_before_repin_cannot_forge_predecessor', 'CasefoldFixtureBoundary.test_published54_complete_before_images_and_old_domain_do_not_admit_new_layer', 'CasefoldFixtureBoundary.test_bounded_published54_fixture_never_hardlinks_current_sources', 'CasefoldFixtureBoundary.test_receipt_requires_new_identity_every_old_layer_and_all65_actual_methods', 'FixedPublicPathfixRead.test_present_exact_bb5_never_fetches_or_reads_network_configuration', 'FixedPublicPathfixRead.test_missing_bb5_uses_one_exact_bounded_noninteractive_public_read_without_credentials', 'FixedPublicPathfixRead.test_bb5_credential_redirect_include_and_auth_configuration_fail_before_fetch', 'FixedPublicPathfixRead.test_bb5_unreadable_config_offline_and_timeout_fail_closed_without_retry', 'FixedPublicPathfixRead.test_existing_or_fetched_bb5_wrong_tree_parent_merge_or_missing_headers_fail', 'FixedPublicPathfixRead.test_fixed_bb5_public_object_identity_cannot_be_generalized', 'BoundedByteTransformBoundary.test_complete_original198_methods_are_preserved_without_weakened_assertions', 'BoundedByteTransformBoundary.test_warm_boundaries_reject_each_current_raw_same_size_mtime_missing_and_symlink', 'BoundedByteTransformBoundary.test_all_five_source_inverses_restore_complete_published_c3a_bytes', 'BoundedByteTransformBoundary.test_old_defaults_reject_new_layer_and_mixed_foreign_current_roots', 'BoundedByteTransformBoundary.test_exact_raw_selection_and_inverse_payload_cannot_be_coherently_rebound', 'BoundedByteTransformBoundary.test_warm_async_and_threaded_boundary_still_reads_actual_root_bytes', 'BoundedByteTransformBoundary.test_bounded_physical_predecessors_share_no_inodes', 'BoundedByteTransformBoundary.test_receipt_requires_all_new_and_old_identity_fields', 'FixedPublicCasefoldRead.test_present_exact_54f_never_fetches_or_reads_network_configuration', 'FixedPublicCasefoldRead.test_missing_54f_uses_one_exact_bounded_noninteractive_public_read_without_credentials', 'FixedPublicCasefoldRead.test_54f_credential_redirect_include_and_auth_configuration_fail_before_fetch', 'FixedPublicCasefoldRead.test_54f_unreadable_config_offline_and_timeout_fail_closed_without_retry', 'FixedPublicCasefoldRead.test_existing_or_fetched_54f_wrong_tree_parent_merge_or_missing_headers_fail', 'FixedPublicCasefoldRead.test_fixed_54f_public_object_identity_cannot_be_generalized', 'MerchantReadbackBoundary.test_original212_complete_methods_and_full_predecessor_files_are_exact', 'MerchantReadbackBoundary.test_exact_current71_retains_all65_and_six_real_new_source_bindings', 'MerchantReadbackBoundary.test_old_defaults_reject_current71_and_current_rejects_old65', 'MerchantReadbackBoundary.test_each_new_method_missing_duplicate_extra_wrong_source_and_old_recount_reject', 'MerchantReadbackBoundary.test_warm_current_six_reject_same_stat_missing_symlink_and_hardlink_aliases', 'MerchantReadbackBoundary.test_root_and_ancestor_links_and_noncanonical_json_fail', 'MerchantReadbackBoundary.test_projection_is_explicit_readonly_same_root_and_reauthenticates_after_warm', 'MerchantReadbackBoundary.test_coherent_payload_repin_cannot_replace_complete_predecessor_or_frozen_postimage', 'MerchantReadbackBoundary.test_current_core_filter_selects_all50_and_each_new_method_exactly', 'MerchantReadbackBoundary.test_core50_requires_both_real_streams_and_every_new_method', 'MerchantReadbackBoundary.test_current71_receipt_rejects_old65_missing_each_new_and_forged_counter', 'MerchantReadbackBoundary.test_receipt_preserves_every_historical_identity_and_result_digest_requirement', 'MerchantReadbackBoundary.test_current_receipt_initialization_is71_and_legacy_initialization_stays65', 'MerchantReadbackBoundary.test_each_before_and_after_tree_path_mode_type_blob_and_addition_absence', 'MerchantReadbackBoundary.test_scope_exact_six_full_trees_githubsha_parent_and_dirty_guards', 'MerchantReadbackBoundary.test_missing_real_parent_fails_without_fetch_or_alternate_object_acquisition', 'MerchantReadbackBoundary.test_report_missing_receipt_stays_not_run_without_scope_or_execution', 'MerchantReadbackBoundary.test_report_revalidates_current50_xml_transcript_and_every_exported_result', 'MerchantReadbackBoundary.test_published7bf_nine_path_bridge_reaches_exact_c3_history_without_network', 'MerchantReadbackBoundary.test_published_bridge_rejects_wrong_headers_diff_every_mode_blob_and_old_chain', 'MerchantReadbackBoundary.test_present_commit_missing_tree_stops_before_any_legacy_fetch_helper', 'MerchantReadbackBoundary.test_complete_tree_reconstruction_authenticates_empty_trees_and_directory_modes', 'MerchantReadbackBoundary.test_cli_alias_source_root_is_rejected_before_normalizing_it_away', 'MerchantReadbackBoundary.test_c3_present_never_fetches_and_fixed_target_cannot_be_generalized', 'MerchantReadbackBoundary.test_c3_missing_commit_or_tree_fetches_one_exact_public_object_with_safe_environment', 'MerchantReadbackBoundary.test_c3_unsafe_configuration_stops_before_fetch', 'MerchantReadbackBoundary.test_c3_config_network_timeout_and_success_without_objects_fail_without_retry', 'MerchantReadbackBoundary.test_c3_wrong_tree_parent_merge_duplicate_or_missing_headers_are_rejected', 'MerchantReadbackBoundary.test_schema_commands_use_exact_observed_result_paths_and_nine_bounded_reads', 'MerchantReadbackBoundary.test_schema_without_actual_result_is_not_run_and_never_invents_a_default_path', 'MerchantReadbackBoundary.test_schema_raw_bytes_metadata_and_receipt_authority_stay_separate', 'MerchantReadbackBoundary.test_schema_time_budget_missing_results_links_and_command_failures_are_explicit', 'MerchantReadbackBoundary.test_schema_streaming_limits_and_timeout_are_real_local_process_controls', 'MerchantReadbackBoundary.test_schema_capture_never_rewrites_test_status_and_respects_cancellation', 'MerchantReadbackBoundary.test_schema_workflow_is_exact_split_allowlist_and_old_no_artifact_domain_restored', 'Split71PartitionProtocol.test_exact_two_partitions_union71_reparses_all_raw_results', 'Split71PartitionProtocol.test_every_new6_core_omission_rejected_even_after_rehash', 'Split71PartitionProtocol.test_legacy65_receipt_cannot_impersonate_split71', 'Split71PartitionProtocol.test_missing_extra_duplicate_partition_and_wrong_artifact_names_rejected', 'Split71PartitionProtocol.test_matrix_cancel_skip_failure_unknown_and_nonstring_success_rejected', 'Split71PartitionProtocol.test_cross_sha_run_attempt_tree_workflow_selection_and_repository_rejected', 'Split71PartitionProtocol.test_wrong_group_same_total_substitution_duplicate_and_zero_results_rejected', 'Split71PartitionProtocol.test_raw_json_tampering_and_rehashed_failure_skip_incomplete_rejected', 'Split71PartitionProtocol.test_nonzero_or_boolean_test_build_and_summary_counts_rejected', 'Split71PartitionProtocol.test_wrong_device_and_reused_device_toolchain_runtime_image_rejected', 'Split71PartitionProtocol.test_products_manifest_archive_and_before_after_changes_rejected', 'Split71PartitionProtocol.test_unknown_missing_negative_nan_and_inconsistent_phase_rejected', 'Split71PartitionProtocol.test_current_selection_budget_partition_or_old_declaration_changes_rejected', 'Split71PartitionProtocol.test_ui_raw_plist_must_match_product_inventory_and_safe_configuration', 'Split71PartitionProtocol.test_device_schema_rejects_note_spoof_mixed_device_wrong_os_and_fabricated_runtime', 'Split71PartitionProtocol.test_core_product_binary_ledger_mutation_is_rejected', 'Split71PartitionProtocol.test_fixed_history_read_is_bounded_sanitized_and_rejects_other_revision', 'Split71PartitionProtocol.test_summary_overall_failure_or_nonempty_failure_list_rejected_after_rehash', 'Split71PartitionProtocol.test_worker_clock_cannot_hide_overhead_overlap_or_exceed_worker_cap', 'Split71PartitionProtocol.test_fixed_two_worker_authorization_does_not_admit_changed_contract', 'Split71PartitionProtocol.test_method_commands_have_only_exact_whole_identities_and_original_timeouts', 'Split71PartitionProtocol.test_evidence_allowlist_refuses_symlinks_extra_products_and_duplicate_json_keys', 'Split71PartitionProtocol.test_current_workflow_uses_fixed_matrix_bounded_same_attempt_artifacts_and_no_permissions_expansion', 'Split71PartitionProtocol.test_split_acquisition_requires_only_its_seven_exact_raw_commands_and_keeps_unsupported_bytes', 'Split71PartitionProtocol.test_split_acquisition_manifest_rejects_failure_timeout_truncation_identity_path_and_scope_even_after_rehash', 'Split71PartitionProtocol.test_split_acquisition_missing_bundle_expired_budget_and_aliased_path_never_become_complete', 'Split71PartitionProtocol.test_split_test_execution_cannot_mark_pass_before_actual_schema_admission', 'Split71PartitionProtocol.test_unknown_raw_help_is_retained_but_no_pass_evidence_is_written', 'Split71PartitionProtocol.test_report_reextracts_both_current_result_documents_before_pass_and_rejects_changed_result', 'CreatorFixtureDiagnosticBoundary.test_current_nine_and_unchanged71_partition_contract', 'CreatorFixtureDiagnosticBoundary.test_complete_parent_diagnostic_and_source_preimages_match_real_git', 'CreatorFixtureDiagnosticBoundary.test_original276_methods_and_complete_parent_test_source_preserved', 'CreatorFixtureDiagnosticBoundary.test_each_complete_nine_input_hot_mutation_and_restoration', 'CreatorFixtureDiagnosticBoundary.test_each_nine_missing_and_alias_rejected', 'CreatorFixtureDiagnosticBoundary.test_old_default_admission_stays_closed_to_current_sources', 'CreatorFixtureDiagnosticBoundary.test_explicit_history_view_reauthenticates_current_source_without_acceptance_cache', 'CreatorFixtureDiagnosticBoundary.test_fixed_public7bf_fetch_has_bounded_credentialfree_target', 'CreatorFixtureDiagnosticBoundary.test_scope_dispatch_remains_explicit_and_result_schema_unchanged', 'CreatorFixtureDiagnosticBoundary.test_merchant_positive_fixture_canonicalizes_real_ancestor_alias_without_weakening_source_guard', 'CreatorFixtureDiagnosticBoundary.test_coherent_user_repin_of_added_control_remains_rejected', 'CreatorFixtureDiagnosticBoundary.test_current_external_root_aliases_never_normalized', 'CreatorFixtureDiagnosticBoundary.test_fixed_public_fetch_rejects_credential_configuration_and_wrong_history', 'CreatorFixtureDiagnosticBoundary.test_current_selection_receipts_bind_new_identity_and_preserve_exact71_results', 'CreatorFixtureDiagnosticBoundary.test_mutation_between_preimage_authentication_and_view_hash_binding_rejects')
 CLUB87_291_SHA256 = '2515b6508f08aac025a88081f154fbf89d57cc83d0a0a5dbafb223499c094507'
 # Real xcresulttool24757 schema0.1.0 retained from published53 run38149425034; result fixtures below remain synthetic.
-SPLIT262_OBSERVED_SCHEMAS = {'summary': b'{\n    "schemas": {\n        "Summary": {\n            "type": "object",\n            "properties": {\n                "title": {\n                    "type": "string"\n                },\n                "startTime": {\n                    "type": "number",\n                    "format": "double",\n                    "description": "Date as a UNIX timestamp (seconds since midnight UTC on January 1, 1970)"\n                },\n                "finishTime": {\n                    "type": "number",\n                    "format": "double",\n                    "description": "Date as a UNIX timestamp (seconds since midnight UTC on January 1, 1970)"\n                },\n                "environmentDescription": {\n                    "type": "string",\n                    "description": "Description of the Test Plan, OS, and environment that was used during testing"\n                },\n                "topInsights": {\n                    "type": "array",\n                    "items": {\n                        "$ref": "#/schemas/InsightSummary"\n                    }\n                },\n                "result": {\n                    "$ref": "#/schemas/TestResult"\n                },\n                "totalTestCount": {\n                    "type": "integer"\n                },\n                "passedTests": {\n                    "type": "integer"\n                },\n                "failedTests": {\n                    "type": "integer"\n                },\n                "skippedTests": {\n                    "type": "integer"\n                },\n                "expectedFailures": {\n                    "type": "integer"\n                },\n                "statistics": {\n                    "type": "array",\n                    "items": {\n                        "$ref": "#/schemas/Statistic"\n                    }\n                },\n                "devicesAndConfigurations": {\n                    "$ref": "#/schemas/DeviceAndConfigurationSummary"\n                },\n                "testFailures": {\n                    "$ref": "#/schemas/TestFailure"\n                }\n            },\n            "required": [\n                "title",\n                "environmentDescription",\n                "topInsights",\n                "result",\n                "totalTestCount",\n                "passedTests",\n                "failedTests",\n                "skippedTests",\n                "expectedFailures",\n                "statistics",\n                "devicesAndConfigurations",\n                "testFailures"\n            ]\n        },\n        "InsightSummary": {\n            "type": "object",\n            "properties": {\n                "impact": {\n                    "type": "string"\n                },\n                "category": {\n                    "type": "string"\n                },\n                "text": {\n                    "type": "string"\n                }\n            },\n            "required": [\n                "impact",\n                "category",\n                "text"\n            ]\n        },\n        "TestResult": {\n            "type": "string",\n            "enum": [\n                "Passed",\n                "Failed",\n                "Skipped",\n                "Expected Failure",\n                "unknown"\n            ]\n        },\n        "Statistic": {\n            "type": "object",\n            "properties": {\n                "title": {\n                    "type": "string"\n                },\n                "subtitle": {\n                    "type": "string"\n                }\n            },\n            "required": [\n                "title",\n                "subtitle"\n            ]\n        },\n        "DeviceAndConfigurationSummary": {\n            "type": "object",\n            "properties": {\n                "device": {\n                    "$ref": "#/schemas/Device"\n                },\n                "testPlanConfiguration": {\n                    "$ref": "#/schemas/Configuration"\n                },\n                "passedTests": {\n                    "type": "integer"\n                },\n                "failedTests": {\n                    "type": "integer"\n                },\n                "skippedTests": {\n                    "type": "integer"\n                },\n                "expectedFailures": {\n                    "type": "integer"\n                }\n            },\n            "required": [\n                "device",\n                "testPlanConfiguration",\n                "passedTests",\n                "failedTests",\n                "skippedTests",\n                "expectedFailures"\n            ]\n        },\n        "Device": {\n            "type": "object",\n            "properties": {\n                "deviceId": {\n                    "type": "string"\n                },\n                "deviceName": {\n                    "type": "string"\n                },\n                "architecture": {\n                    "type": "string"\n                },\n                "modelName": {\n                    "type": "string"\n                },\n                "platform": {\n                    "type": "string"\n                },\n                "osVersion": {\n                    "type": "string"\n                },\n                "osBuildNumber": {\n                    "type": "string"\n                }\n            },\n            "required": [\n                "deviceId",\n                "deviceName",\n                "architecture",\n                "modelName",\n                "osVersion"\n            ]\n        },\n        "Configuration": {\n            "type": "object",\n            "properties": {\n                "configurationId": {\n                    "type": "string"\n                },\n                "configurationName": {\n                    "type": "string"\n                }\n            },\n            "required": [\n                "configurationId",\n                "configurationName"\n            ]\n        },\n        "TestFailure": {\n            "type": "object",\n            "properties": {\n                "testName": {\n                    "type": "string"\n                },\n                "targetName": {\n                    "type": "string"\n                },\n                "failureText": {\n                    "type": "string"\n                },\n                "testIdentifier": {\n                    "type": "integer",\n                    "format": "int64",\n                    "description": "This field is deprecated. Please use testIdentifierString or testIdentifierURL.",\n                    "deprecated": true\n                },\n                "testIdentifierString": {\n                    "type": "string"\n                },\n                "testIdentifierURL": {\n                    "type": "string"\n                }\n            },\n            "required": [\n                "testName",\n                "targetName",\n                "failureText",\n                "testIdentifier",\n                "testIdentifierString"\n            ]\n        }\n    }\n}\n', 'tests': b'{\n    "schemas": {\n        "Tests": {\n            "type": "object",\n            "properties": {\n                "testPlanConfigurations": {\n                    "type": "array",\n                    "items": {\n                        "$ref": "#/schemas/Configuration"\n                    }\n                },\n                "devices": {\n                    "type": "array",\n                    "items": {\n                        "$ref": "#/schemas/Device"\n                    }\n                },\n                "testNodes": {\n                    "type": "array",\n                    "items": {\n                        "$ref": "#/schemas/TestNode"\n                    }\n                }\n            },\n            "required": [\n                "testPlanConfigurations",\n                "devices",\n                "testNodes"\n            ]\n        },\n        "Configuration": {\n            "type": "object",\n            "properties": {\n                "configurationId": {\n                    "type": "string"\n                },\n                "configurationName": {\n                    "type": "string"\n                }\n            },\n            "required": [\n                "configurationId",\n                "configurationName"\n            ]\n        },\n        "Device": {\n            "type": "object",\n            "properties": {\n                "deviceId": {\n                    "type": "string"\n                },\n                "deviceName": {\n                    "type": "string"\n                },\n                "architecture": {\n                    "type": "string"\n                },\n                "modelName": {\n                    "type": "string"\n                },\n                "platform": {\n                    "type": "string"\n                },\n                "osVersion": {\n                    "type": "string"\n                },\n                "osBuildNumber": {\n                    "type": "string"\n                }\n            },\n            "required": [\n                "deviceId",\n                "deviceName",\n                "architecture",\n                "modelName",\n                "osVersion"\n            ]\n        },\n        "TestNode": {\n            "type": "object",\n            "properties": {\n                "nodeIdentifier": {\n                    "type": "string"\n                },\n                "nodeIdentifierURL": {\n                    "type": "string"\n                },\n                "nodeType": {\n                    "$ref": "#/schemas/TestNodeType"\n                },\n                "name": {\n                    "type": "string"\n                },\n                "details": {\n                    "type": "string"\n                },\n                "duration": {\n                    "type": "string",\n                    "description": "Human-readable duration with optional components of days, hours, minutes and seconds"\n                },\n                "durationInSeconds": {\n                    "type": "number",\n                    "format": "double",\n                    "description": "Time interval in seconds"\n                },\n                "result": {\n                    "$ref": "#/schemas/TestResult"\n                },\n                "tags": {\n                    "type": "array",\n                    "items": {\n                        "type": "string"\n                    }\n                },\n                "children": {\n                    "type": "array",\n                    "items": {\n                        "$ref": "#/schemas/TestNode"\n                    }\n                }\n            },\n            "required": [\n                "nodeType",\n                "name"\n            ]\n        },\n        "TestResult": {\n            "type": "string",\n            "enum": [\n                "Passed",\n                "Failed",\n                "Skipped",\n                "Expected Failure",\n                "unknown"\n            ]\n        },\n        "TestNodeType": {\n            "type": "string",\n            "enum": [\n                "Test Plan",\n                "Unit test bundle",\n                "UI test bundle",\n                "Test Suite",\n                "Test Case",\n                "Device",\n                "Test Plan Configuration",\n                "Arguments",\n                "Repetition",\n                "Test Case Run",\n                "Failure Message",\n                "Source Code Reference",\n                "Attachment",\n                "Expression",\n                "Test Value",\n                "Runtime Warning"\n            ]\n        }\n    }\n}\n'}
+SPLIT404_OBSERVED_SCHEMAS = {'summary': b'{\n    "schemas": {\n        "Summary": {\n            "type": "object",\n            "properties": {\n                "title": {\n                    "type": "string"\n                },\n                "startTime": {\n                    "type": "number",\n                    "format": "double",\n                    "description": "Date as a UNIX timestamp (seconds since midnight UTC on January 1, 1970)"\n                },\n                "finishTime": {\n                    "type": "number",\n                    "format": "double",\n                    "description": "Date as a UNIX timestamp (seconds since midnight UTC on January 1, 1970)"\n                },\n                "environmentDescription": {\n                    "type": "string",\n                    "description": "Description of the Test Plan, OS, and environment that was used during testing"\n                },\n                "topInsights": {\n                    "type": "array",\n                    "items": {\n                        "$ref": "#/schemas/InsightSummary"\n                    }\n                },\n                "result": {\n                    "$ref": "#/schemas/TestResult"\n                },\n                "totalTestCount": {\n                    "type": "integer"\n                },\n                "passedTests": {\n                    "type": "integer"\n                },\n                "failedTests": {\n                    "type": "integer"\n                },\n                "skippedTests": {\n                    "type": "integer"\n                },\n                "expectedFailures": {\n                    "type": "integer"\n                },\n                "statistics": {\n                    "type": "array",\n                    "items": {\n                        "$ref": "#/schemas/Statistic"\n                    }\n                },\n                "devicesAndConfigurations": {\n                    "$ref": "#/schemas/DeviceAndConfigurationSummary"\n                },\n                "testFailures": {\n                    "$ref": "#/schemas/TestFailure"\n                }\n            },\n            "required": [\n                "title",\n                "environmentDescription",\n                "topInsights",\n                "result",\n                "totalTestCount",\n                "passedTests",\n                "failedTests",\n                "skippedTests",\n                "expectedFailures",\n                "statistics",\n                "devicesAndConfigurations",\n                "testFailures"\n            ]\n        },\n        "InsightSummary": {\n            "type": "object",\n            "properties": {\n                "impact": {\n                    "type": "string"\n                },\n                "category": {\n                    "type": "string"\n                },\n                "text": {\n                    "type": "string"\n                }\n            },\n            "required": [\n                "impact",\n                "category",\n                "text"\n            ]\n        },\n        "TestResult": {\n            "type": "string",\n            "enum": [\n                "Passed",\n                "Failed",\n                "Skipped",\n                "Expected Failure",\n                "unknown"\n            ]\n        },\n        "Statistic": {\n            "type": "object",\n            "properties": {\n                "title": {\n                    "type": "string"\n                },\n                "subtitle": {\n                    "type": "string"\n                }\n            },\n            "required": [\n                "title",\n                "subtitle"\n            ]\n        },\n        "DeviceAndConfigurationSummary": {\n            "type": "object",\n            "properties": {\n                "device": {\n                    "$ref": "#/schemas/Device"\n                },\n                "testPlanConfiguration": {\n                    "$ref": "#/schemas/Configuration"\n                },\n                "passedTests": {\n                    "type": "integer"\n                },\n                "failedTests": {\n                    "type": "integer"\n                },\n                "skippedTests": {\n                    "type": "integer"\n                },\n                "expectedFailures": {\n                    "type": "integer"\n                }\n            },\n            "required": [\n                "device",\n                "testPlanConfiguration",\n                "passedTests",\n                "failedTests",\n                "skippedTests",\n                "expectedFailures"\n            ]\n        },\n        "Device": {\n            "type": "object",\n            "properties": {\n                "deviceId": {\n                    "type": "string"\n                },\n                "deviceName": {\n                    "type": "string"\n                },\n                "architecture": {\n                    "type": "string"\n                },\n                "modelName": {\n                    "type": "string"\n                },\n                "platform": {\n                    "type": "string"\n                },\n                "osVersion": {\n                    "type": "string"\n                },\n                "osBuildNumber": {\n                    "type": "string"\n                }\n            },\n            "required": [\n                "deviceId",\n                "deviceName",\n                "architecture",\n                "modelName",\n                "osVersion"\n            ]\n        },\n        "Configuration": {\n            "type": "object",\n            "properties": {\n                "configurationId": {\n                    "type": "string"\n                },\n                "configurationName": {\n                    "type": "string"\n                }\n            },\n            "required": [\n                "configurationId",\n                "configurationName"\n            ]\n        },\n        "TestFailure": {\n            "type": "object",\n            "properties": {\n                "testName": {\n                    "type": "string"\n                },\n                "targetName": {\n                    "type": "string"\n                },\n                "failureText": {\n                    "type": "string"\n                },\n                "testIdentifier": {\n                    "type": "integer",\n                    "format": "int64",\n                    "description": "This field is deprecated. Please use testIdentifierString or testIdentifierURL.",\n                    "deprecated": true\n                },\n                "testIdentifierString": {\n                    "type": "string"\n                },\n                "testIdentifierURL": {\n                    "type": "string"\n                }\n            },\n            "required": [\n                "testName",\n                "targetName",\n                "failureText",\n                "testIdentifier",\n                "testIdentifierString"\n            ]\n        }\n    }\n}\n', 'tests': b'{\n    "schemas": {\n        "Tests": {\n            "type": "object",\n            "properties": {\n                "testPlanConfigurations": {\n                    "type": "array",\n                    "items": {\n                        "$ref": "#/schemas/Configuration"\n                    }\n                },\n                "devices": {\n                    "type": "array",\n                    "items": {\n                        "$ref": "#/schemas/Device"\n                    }\n                },\n                "testNodes": {\n                    "type": "array",\n                    "items": {\n                        "$ref": "#/schemas/TestNode"\n                    }\n                }\n            },\n            "required": [\n                "testPlanConfigurations",\n                "devices",\n                "testNodes"\n            ]\n        },\n        "Configuration": {\n            "type": "object",\n            "properties": {\n                "configurationId": {\n                    "type": "string"\n                },\n                "configurationName": {\n                    "type": "string"\n                }\n            },\n            "required": [\n                "configurationId",\n                "configurationName"\n            ]\n        },\n        "Device": {\n            "type": "object",\n            "properties": {\n                "deviceId": {\n                    "type": "string"\n                },\n                "deviceName": {\n                    "type": "string"\n                },\n                "architecture": {\n                    "type": "string"\n                },\n                "modelName": {\n                    "type": "string"\n                },\n                "platform": {\n                    "type": "string"\n                },\n                "osVersion": {\n                    "type": "string"\n                },\n                "osBuildNumber": {\n                    "type": "string"\n                }\n            },\n            "required": [\n                "deviceId",\n                "deviceName",\n                "architecture",\n                "modelName",\n                "osVersion"\n            ]\n        },\n        "TestNode": {\n            "type": "object",\n            "properties": {\n                "nodeIdentifier": {\n                    "type": "string"\n                },\n                "nodeIdentifierURL": {\n                    "type": "string"\n                },\n                "nodeType": {\n                    "$ref": "#/schemas/TestNodeType"\n                },\n                "name": {\n                    "type": "string"\n                },\n                "details": {\n                    "type": "string"\n                },\n                "duration": {\n                    "type": "string",\n                    "description": "Human-readable duration with optional components of days, hours, minutes and seconds"\n                },\n                "durationInSeconds": {\n                    "type": "number",\n                    "format": "double",\n                    "description": "Time interval in seconds"\n                },\n                "result": {\n                    "$ref": "#/schemas/TestResult"\n                },\n                "tags": {\n                    "type": "array",\n                    "items": {\n                        "type": "string"\n                    }\n                },\n                "children": {\n                    "type": "array",\n                    "items": {\n                        "$ref": "#/schemas/TestNode"\n                    }\n                }\n            },\n            "required": [\n                "nodeType",\n                "name"\n            ]\n        },\n        "TestResult": {\n            "type": "string",\n            "enum": [\n                "Passed",\n                "Failed",\n                "Skipped",\n                "Expected Failure",\n                "unknown"\n            ]\n        },\n        "TestNodeType": {\n            "type": "string",\n            "enum": [\n                "Test Plan",\n                "Unit test bundle",\n                "UI test bundle",\n                "Test Suite",\n                "Test Case",\n                "Device",\n                "Test Plan Configuration",\n                "Arguments",\n                "Repetition",\n                "Test Case Run",\n                "Failure Message",\n                "Source Code Reference",\n                "Attachment",\n                "Expression",\n                "Test Value",\n                "Runtime Warning"\n            ]\n        }\n    }\n}\n'}
 
-class Split262PartitionProtocol(unittest.TestCase):
+class Split404PartitionProtocol(unittest.TestCase):
     """Synthetic local protocol controls, never native/Apple execution evidence."""
     r = CLUB87_RUNNER
 
@@ -9830,14 +9830,14 @@ class Split262PartitionProtocol(unittest.TestCase):
         r=self.r; selection=self.selection
         identity={'repository':'liboyang42-cpu/chengyin-ios','ref':'refs/heads/migration/native-ios','event':'push',
             'source_sha':'a'*40,'source_tree':'b'*40,'workflow_sha':'a'*40,'run_id':'123','run_attempt':'2',
-            'selection_sha256':r.CLUB87_SELECTION_RAW_SHA256,'partition_table_sha256':r.split262_hash(selection['club_member_route']['split']['partitions']),
+            'selection_sha256':r.CLUB87_SELECTION_RAW_SHA256,'partition_table_sha256':r.split404_hash(selection['club_member_route']['split']['partitions']),
             'source_archive_sha256':'d'*64}
         toolchain={'xcode':'Xcode fixture','developer':'/Applications/Xcode.app','swift':'Swift fixture','sdk_version':'26.5','sdk_path':'/SDK/fixture','host_sdk_version':'26.5','host_sdk_path':'/SDK/macos','host_triple':'arm64-apple-macosx26.0'}
         artifacts={}
-        for number,partition in enumerate(r.SPLIT262_PARTITIONS,1):
-            groups=r.split262_groups(selection,partition);simulator={'udid':str(number)*8+'-'+str(number)*4+'-'+str(number)*4+'-'+str(number)*4+'-'+str(number)*12,'name':'iPhone Fixture','runtime':'com.apple.CoreSimulator.SimRuntime.iOS-26-5'}
-            receipt=dict(identity,version=2,scope='split262-partition-only',status='PASS',partition=partition,
-                artifact_name=r.split262_artifact_name(identity,partition),toolchain=toolchain,simulator=simulator,
+        for number,partition in enumerate(r.SPLIT404_PARTITIONS,1):
+            groups=r.split404_groups(selection,partition);simulator={'udid':str(number)*8+'-'+str(number)*4+'-'+str(number)*4+'-'+str(number)*4+'-'+str(number)*12,'name':'iPhone Fixture','runtime':'com.apple.CoreSimulator.SimRuntime.iOS-26-5'}
+            receipt=dict(identity,version=2,scope='split404-partition-only',status='PASS',partition=partition,
+                artifact_name=r.split404_artifact_name(identity,partition),toolchain=toolchain,simulator=simulator,
                 runner_image={'ImageOS':'macos26','ImageVersion':'fixture1','RUNNER_ARCH':'ARM64'},groups={})
             device={'deviceId':simulator['udid'],'deviceName':simulator['name'],'architecture':'arm64','modelName':'iPhone Fixture','platform':'iOS Simulator','osVersion':'26.5','osBuildNumber':'fixture-build'}
             config={'configurationId':'1','configurationName':'Test Scheme Action'}
@@ -9848,7 +9848,7 @@ class Split262PartitionProtocol(unittest.TestCase):
                   'simulator-runtimes.json':(r.encode({'runtimes':[dict(runtime,isAvailable=True)]})+'\n').encode()}
             for kind in ('summary','tests'):
                 docs['xcresult-'+kind+'-help.txt']={'summary': b'OVERVIEW: Get test report summary.\n\nUse --schema option to get the output format as JSON Schema. Default schema\nversion: 0.1.0.\n\nUSAGE: xcresulttool get test-results summary [--schema] [--schema-version <schema-version>] --path <path> [--compact]\n\nOPTIONS:\n  --schema                Show output format as JSON Schema.\n  --schema-version <schema-version>\n                          Schema version in major.minor.patch format. Command\n                          will return an error if unknown version is passed.\n  --path <path>           The result bundle path.\n  --compact               Use compact JSON formatting.\n  --version               Show the version.\n  -h, --help              Show help information.\n\n', 'tests': b'OVERVIEW: Get all tests from test report.\n\nUse --schema option to get the output format as JSON Schema. Default schema\nversion: 0.1.0.\n\nUSAGE: xcresulttool get test-results tests [--schema] [--schema-version <schema-version>] --path <path> [--compact]\n\nOPTIONS:\n  --schema                Show output format as JSON Schema.\n  --schema-version <schema-version>\n                          Schema version in major.minor.patch format. Command\n                          will return an error if unknown version is passed.\n  --path <path>           The result bundle path.\n  --compact               Use compact JSON formatting.\n  --version               Show the version.\n  -h, --help              Show help information.\n\n'}[kind]
-                docs['xcresult-'+kind+'-schema.json']=SPLIT262_OBSERVED_SCHEMAS[kind]
+                docs['xcresult-'+kind+'-schema.json']=SPLIT404_OBSERVED_SCHEMAS[kind]
             for group in groups:
                 methods=group['methods'];rows=[{'method':m,'status':'Passed'} for m in methods]
                 receipt['groups'][group['name']]={'status':'PASS','expected':methods,'actual_count':len(methods),'actual':rows,'returncode':0}
@@ -9866,7 +9866,7 @@ class Split262PartitionProtocol(unittest.TestCase):
             total=sum(len(g['methods']) for g in groups);receipt.update(expected_count=total,actual_count=total)
             name=partition;run='fixture.xctestrun'
             ledger=[[run,'file','c'*64]]
-            product={'configuration':r.SPLIT262_CONFIGS[name],'xctestrun':run,'xctestrun_sha256':'c'*64}
+            product={'configuration':r.SPLIT404_CONFIGS[name],'xctestrun':run,'xctestrun_sha256':'c'*64}
             if name=='app-unit':
                 manifest={'commit':identity['source_sha'],'purpose':'isolated-simulator-app-unit','toolchain':{k:toolchain[k] for k in ('xcode','developer')},'targets':{'QuestifyAppUnitTests':run},'source_archive_sha256':'d'*64}
                 raw=(r.encode(manifest)+'\n').encode();docs['app-unit-manifest.json']=raw
@@ -9876,13 +9876,13 @@ class Split262PartitionProtocol(unittest.TestCase):
                 docs['ui-info.plist']=plistlib.dumps({'QuestifyAPIBaseURL':'','CFBundleSupportedPlatforms':['iPhoneSimulator']})
                 ledger.append(['Debug-iphonesimulator/Questify.app/Info.plist','file',r.hashlib.sha256(docs['ui-info.plist']).hexdigest()])
                 ledger.sort()
-            product.update(files=len(ledger),sha256=r.split262_hash(ledger));receipt['products']={name:product}
+            product.update(files=len(ledger),sha256=r.split404_hash(ledger));receipt['products']={name:product}
             receipt['products_before']=copy.deepcopy(receipt['products']);receipt['products_after']=copy.deepcopy(receipt['products'])
             receipt['source_before']={k:identity[k] for k in ('source_sha','source_tree')};receipt['source_after']=dict(receipt['source_before'])
             ledgers={name:ledger}
             if partition=='core':
                 core_ledger=[['Contents/MacOS/QuestifyCorePackageTests','file','e'*64]]
-                receipt['products']['core']={'configuration':r.SPLIT262_CONFIGS['core'],'bundle':'QuestifyCorePackageTests.xctest','files':1,'sha256':r.split262_hash(core_ledger)}
+                receipt['products']['core']={'configuration':r.SPLIT404_CONFIGS['core'],'bundle':'QuestifyCorePackageTests.xctest','files':1,'sha256':r.split404_hash(core_ledger)}
                 receipt['products_before']=copy.deepcopy(receipt['products']);receipt['products_after']=copy.deepcopy(receipt['products'])
                 ledgers={'core':core_ledger}
                 receipt['products']={'core':receipt['products']['core']}
@@ -9891,14 +9891,14 @@ class Split262PartitionProtocol(unittest.TestCase):
                 for key in ('simulator','simulator_runtime','xcresulttool_version'):receipt.pop(key,None)
                 docs['core-build-provenance.json']=(r.encode(dict(version=1,source_sha=identity['source_sha'],source_tree=identity['source_tree'],source_archive_sha256=identity['source_archive_sha256'],target='QuestifyCorePackageTests',host_sdk_version=toolchain['host_sdk_version'],host_sdk_path=toolchain['host_sdk_path'],host_triple=toolchain['host_triple'],argv=['swift','build','--build-tests','--sdk',toolchain['host_sdk_path'],'--triple',toolchain['host_triple']],returncode=0))+'\n').encode()
             docs['products-ledger.json']=(r.encode(ledgers)+'\n').encode()
-            phase_names=['checkout-initialization']+sorted(r.split262_phase_names(partition)-{'checkout-initialization','report'})+['report']
+            phase_names=['checkout-initialization']+sorted(r.split404_phase_names(partition)-{'checkout-initialization','report'})+['report']
             phases={name:{'started_monotonic':float(index+1),'ended_monotonic':float(index+2),'wall_seconds':1.0,'returncode':0} for index,name in enumerate(phase_names)}
-            receipt['worker_clock']=r.split262_worker_clock(phases)
+            receipt['worker_clock']=r.split404_worker_clock(phases)
             docs['phase-times.json']=(r.encode(phases)+'\n').encode()
             if partition!='core':
                 result='/synthetic/'+partition+'/'+partition+'.xcresult'
                 receipt['result_bundle_path']=result;items=[]
-                for filename,command,limit in r.split262_schema_rows(partition,Path(result)):
+                for filename,command,limit in r.split404_schema_rows(partition,Path(result)):
                     docs[filename+'.stderr.txt']=b''
                     row={'argv':command,'status':'CAPTURED','returncode':0,'wall_seconds':0.1,'observed_bytes':{},'truncated':{'stdout':False,'stderr':False},'file':filename}
                     for stream in ('stdout','stderr'):
@@ -9912,7 +9912,7 @@ class Split262PartitionProtocol(unittest.TestCase):
 
     def seal(self,receipt,docs):
         if 'schema-manifest.json' in docs:
-            manifest=self.r.split262_json(docs['schema-manifest.json']);retained=0
+            manifest=self.r.split404_json(docs['schema-manifest.json']);retained=0
             for item in manifest['items']:
                 for stream in ('stdout','stderr'):
                     row=item[stream];raw=docs[row['file']];retained+=len(raw)
@@ -9922,28 +9922,28 @@ class Split262PartitionProtocol(unittest.TestCase):
         docs['receipt.json']=(self.r.encode(receipt)+'\n').encode()
 
     def change_receipt(self,docs,change):
-        receipt=self.r.split262_json(docs['receipt.json']);change(receipt);self.seal(receipt,docs)
+        receipt=self.r.split404_json(docs['receipt.json']);change(receipt);self.seal(receipt,docs)
 
     def rejects(self,identity,artifacts,needs='success'):
         with self.assertRaises((ValueError,KeyError,TypeError)):
-            self.r.aggregate_split262(self.selection,identity,artifacts,needs)
+            self.r.aggregate_split404(self.selection,identity,artifacts,needs)
 
     def test_exact_three_partitions_union87_reparses_all_raw_results(self):
-        identity,artifacts=self.fixture();result=self.r.aggregate_split262(self.selection,identity,artifacts,'success')
-        self.assertEqual((result['actual_count'],result['counts']),(262,{'core':115,'app-unit':126,'ui':21}))
-        self.assertEqual(len({row['method'] for row in result['actual']}),262)
+        identity,artifacts=self.fixture();result=self.r.aggregate_split404(self.selection,identity,artifacts,'success')
+        self.assertEqual((result['actual_count'],result['counts']),(404,{'core':191,'app-unit':177,'ui':36}))
+        self.assertEqual(len({row['method'] for row in result['actual']}),404)
 
     def test_every_new6_core_omission_rejected_even_after_rehash(self):
         self.assertEqual(len(self.r.MERCHANT_METHODS),6)
         for method in self.r.MERCHANT_METHODS:
-            identity,artifacts=self.fixture();docs=artifacts[self.r.split262_artifact_name(identity,'core')]
+            identity,artifacts=self.fixture();docs=artifacts[self.r.split404_artifact_name(identity,'core')]
             target,klass,name=method.split('/')
             docs['core.xml']=docs['core.xml'].replace(('<testcase classname="'+target+'.'+klass+'" name="'+name+'"/>').encode(),b'')
             docs['core-stdout.txt']=b'\n'.join(line for line in docs['core-stdout.txt'].splitlines() if (klass+' '+name+']').encode() not in line)
-            self.seal(self.r.split262_json(docs['receipt.json']),docs);self.rejects(identity,artifacts)
+            self.seal(self.r.split404_json(docs['receipt.json']),docs);self.rejects(identity,artifacts)
 
-    def test_legacy65_receipt_cannot_impersonate_split262(self):
-        identity,artifacts=self.fixture();docs=artifacts[self.r.split262_artifact_name(identity,'app-unit')]
+    def test_legacy65_receipt_cannot_impersonate_split404(self):
+        identity,artifacts=self.fixture();docs=artifacts[self.r.split404_artifact_name(identity,'app-unit')]
         self.change_receipt(docs,lambda r:r.update(version=1,scope='selected-native-diagnostic-only',actual_count=65,expected_count=65))
         self.rejects(identity,artifacts)
 
@@ -9965,50 +9965,50 @@ class Split262PartitionProtocol(unittest.TestCase):
         identity,original=self.fixture()
         for field in identity:
             with self.subTest(field=field):
-                artifacts=copy.deepcopy(original);docs=artifacts[self.r.split262_artifact_name(identity,'app-unit')]
+                artifacts=copy.deepcopy(original);docs=artifacts[self.r.split404_artifact_name(identity,'app-unit')]
                 self.change_receipt(docs,lambda r:r.update({field:'wrong'}));self.rejects(identity,artifacts)
 
     def test_wrong_group_same_total_substitution_duplicate_and_zero_results_rejected(self):
         for mode in ('wrong-target','substitute','duplicate','zero'):
-            identity,artifacts=self.fixture();docs=artifacts[self.r.split262_artifact_name(identity,'ui')]
-            data=self.r.split262_json(docs['ui-tests.json']);nodes=data['testNodes'][0]['children']
+            identity,artifacts=self.fixture();docs=artifacts[self.r.split404_artifact_name(identity,'ui')]
+            data=self.r.split404_json(docs['ui-tests.json']);nodes=data['testNodes'][0]['children']
             if mode=='wrong-target':data['testNodes'][0]['name']='QuestifyAppUnitTests'
             elif mode=='substitute':nodes[0]['nodeIdentifier']='QuestifyUITests/Other/testOther'
             elif mode=='duplicate':nodes[0]=copy.deepcopy(nodes[1])
             else:data['testNodes'][0]['children']=[]
-            docs['ui-tests.json']=(self.r.encode(data)+'\n').encode();receipt=self.r.split262_json(docs['receipt.json']);self.seal(receipt,docs)
+            docs['ui-tests.json']=(self.r.encode(data)+'\n').encode();receipt=self.r.split404_json(docs['receipt.json']);self.seal(receipt,docs)
             self.rejects(identity,artifacts)
 
     def test_raw_json_tampering_and_rehashed_failure_skip_incomplete_rejected(self):
         for status in ('Failed','Skipped','Not Run','Unknown'):
-            identity,artifacts=self.fixture();docs=artifacts[self.r.split262_artifact_name(identity,'ui')]
-            data=self.r.split262_json(docs['ui-tests.json']);data['testNodes'][0]['children'][0]['result']=status
+            identity,artifacts=self.fixture();docs=artifacts[self.r.split404_artifact_name(identity,'ui')]
+            data=self.r.split404_json(docs['ui-tests.json']);data['testNodes'][0]['children'][0]['result']=status
             docs['ui-tests.json']=(self.r.encode(data)+'\n').encode()
             self.rejects(identity,artifacts)
-            self.seal(self.r.split262_json(docs['receipt.json']),docs);self.rejects(identity,artifacts)
+            self.seal(self.r.split404_json(docs['receipt.json']),docs);self.rejects(identity,artifacts)
 
     def test_nonzero_or_boolean_test_build_and_summary_counts_rejected(self):
         for value in (1,124,False,True,'0'):
-            identity,artifacts=self.fixture();docs=artifacts[self.r.split262_artifact_name(identity,'app-unit')]
+            identity,artifacts=self.fixture();docs=artifacts[self.r.split404_artifact_name(identity,'app-unit')]
             self.change_receipt(docs,lambda r:r['groups']['app-unit'].update(returncode=value));self.rejects(identity,artifacts)
         for field in ('totalTestCount','passedTests','failedTests','skippedTests','expectedFailures'):
-            identity,artifacts=self.fixture();docs=artifacts[self.r.split262_artifact_name(identity,'app-unit')]
-            summary=self.r.split262_json(docs['app-unit-summary.json']);summary[field]=False
-            docs['app-unit-summary.json']=(self.r.encode(summary)+'\n').encode();self.seal(self.r.split262_json(docs['receipt.json']),docs)
+            identity,artifacts=self.fixture();docs=artifacts[self.r.split404_artifact_name(identity,'app-unit')]
+            summary=self.r.split404_json(docs['app-unit-summary.json']);summary[field]=False
+            docs['app-unit-summary.json']=(self.r.encode(summary)+'\n').encode();self.seal(self.r.split404_json(docs['receipt.json']),docs)
             self.rejects(identity,artifacts)
-        identity,artifacts=self.fixture();docs=artifacts[self.r.split262_artifact_name(identity,'app-unit')]
-        phases=self.r.split262_json(docs['phase-times.json']);phases['app-build']['returncode']=1
-        docs['phase-times.json']=(self.r.encode(phases)+'\n').encode();self.seal(self.r.split262_json(docs['receipt.json']),docs)
+        identity,artifacts=self.fixture();docs=artifacts[self.r.split404_artifact_name(identity,'app-unit')]
+        phases=self.r.split404_json(docs['phase-times.json']);phases['app-build']['returncode']=1
+        docs['phase-times.json']=(self.r.encode(phases)+'\n').encode();self.seal(self.r.split404_json(docs['receipt.json']),docs)
         self.rejects(identity,artifacts)
 
     def test_wrong_device_and_reused_device_toolchain_runtime_image_rejected(self):
         for mode in ('device','same-device','runtime','toolchain','image'):
-            identity,artifacts=self.fixture();docs=artifacts[self.r.split262_artifact_name(identity,'ui')]
-            receipt=self.r.split262_json(docs['receipt.json'])
+            identity,artifacts=self.fixture();docs=artifacts[self.r.split404_artifact_name(identity,'ui')]
+            receipt=self.r.split404_json(docs['receipt.json'])
             if mode=='device':receipt['simulator']['udid']='4'*8+'-'+'4'*4+'-'+'4'*4+'-'+'4'*4+'-'+'4'*12
             elif mode=='same-device':
-                prior=self.r.split262_json(artifacts[self.r.split262_artifact_name(identity,'app-unit')]['receipt.json']);receipt['simulator']['udid']=prior['simulator']['udid']
-                summary=self.r.split262_json(docs['ui-summary.json']);summary['devicesAndConfigurations'][0]['device']['deviceId']=receipt['simulator']['udid'];docs['ui-summary.json']=(self.r.encode(summary)+'\n').encode()
+                prior=self.r.split404_json(artifacts[self.r.split404_artifact_name(identity,'app-unit')]['receipt.json']);receipt['simulator']['udid']=prior['simulator']['udid']
+                summary=self.r.split404_json(docs['ui-summary.json']);summary['devicesAndConfigurations'][0]['device']['deviceId']=receipt['simulator']['udid'];docs['ui-summary.json']=(self.r.encode(summary)+'\n').encode()
             elif mode=='runtime':receipt['simulator']['runtime']='com.apple.CoreSimulator.SimRuntime.iOS-26-4'
             elif mode=='toolchain':receipt['toolchain']['swift']='other'
             else:receipt['runner_image']['ImageVersion']='other'
@@ -10017,7 +10017,7 @@ class Split262PartitionProtocol(unittest.TestCase):
     def test_products_manifest_archive_and_before_after_changes_rejected(self):
         for mode in ('products','archive','manifest','before','after','source-after','configuration','ledger','xctestrun'):
             with self.subTest(mode=mode):
-                identity,artifacts=self.fixture();docs=artifacts[self.r.split262_artifact_name(identity,'app-unit')];receipt=self.r.split262_json(docs['receipt.json'])
+                identity,artifacts=self.fixture();docs=artifacts[self.r.split404_artifact_name(identity,'app-unit')];receipt=self.r.split404_json(docs['receipt.json'])
                 if mode=='products':receipt['products']={}
                 elif mode=='archive':receipt['source_archive_sha256']='f'*64
                 elif mode=='manifest':receipt['products']['app-unit']['manifest']['commit']='f'*40
@@ -10027,32 +10027,32 @@ class Split262PartitionProtocol(unittest.TestCase):
                 elif mode=='configuration':receipt['products']['app-unit']['configuration']='Release/device'
                 elif mode=='xctestrun':receipt['products']['app-unit']['xctestrun']='other.xctestrun'
                 else:
-                    ledger=self.r.split262_json(docs['products-ledger.json']);ledger['app-unit'][0][2]='0'*64;docs['products-ledger.json']=(self.r.encode(ledger)+'\n').encode()
+                    ledger=self.r.split404_json(docs['products-ledger.json']);ledger['app-unit'][0][2]='0'*64;docs['products-ledger.json']=(self.r.encode(ledger)+'\n').encode()
                 self.seal(receipt,docs);self.rejects(identity,artifacts)
 
     def test_unknown_missing_negative_nan_and_inconsistent_phase_rejected(self):
         for mode in ('unknown','missing','negative','nan','inconsistent','boolean'):
-            identity,artifacts=self.fixture();docs=artifacts[self.r.split262_artifact_name(identity,'app-unit')];phases=self.r.split262_json(docs['phase-times.json'])
+            identity,artifacts=self.fixture();docs=artifacts[self.r.split404_artifact_name(identity,'app-unit')];phases=self.r.split404_json(docs['phase-times.json'])
             if mode=='unknown':phases['free-budget']=phases['boot']
             elif mode=='missing':phases.pop('python-validation')
             elif mode=='negative':phases['boot']['wall_seconds']=-1
             elif mode=='nan':phases['boot']['wall_seconds']=float('nan')
             elif mode=='boolean':phases['boot']['wall_seconds']=True
             else:phases['boot']['wall_seconds']=2
-            docs['phase-times.json']=(self.r.encode(phases)+'\n').encode();self.seal(self.r.split262_json(docs['receipt.json']),docs)
+            docs['phase-times.json']=(self.r.encode(phases)+'\n').encode();self.seal(self.r.split404_json(docs['receipt.json']),docs)
             self.rejects(identity,artifacts)
 
     def test_current_selection_budget_partition_or_old_declaration_changes_rejected(self):
         for key,value in [('global_total',65),('global_counts',{'core':44,'app-unit':14,'ui':7}),('budget_seconds',{}),('admission','NOT_AUTHORIZED')]:
             selection=copy.deepcopy(self.selection);selection['club_member_route']['split'][key]=value
-            with self.assertRaises(ValueError):self.r.split262_layer(selection)
+            with self.assertRaises(ValueError):self.r.split404_layer(selection)
         old=self.r.club87_test_preimage((CLUB87_SOURCE/self.r.PATHS[3]).read_bytes())
         self.assertEqual(self.r.hashlib.sha256(old).hexdigest(),self.r.CLUB87_BEFORE[self.r.PATHS[3]]['sha256'])
 
     def test_ui_raw_plist_must_match_product_inventory_and_safe_configuration(self):
         for mode in ('changed-bytes','live-api','wrong-platform','provisioned'):
-            identity,artifacts=self.fixture();docs=artifacts[self.r.split262_artifact_name(identity,'ui')]
-            receipt=self.r.split262_json(docs['receipt.json']);ledger=self.r.split262_json(docs['products-ledger.json'])
+            identity,artifacts=self.fixture();docs=artifacts[self.r.split404_artifact_name(identity,'ui')]
+            receipt=self.r.split404_json(docs['receipt.json']);ledger=self.r.split404_json(docs['products-ledger.json'])
             info=plistlib.loads(docs['ui-info.plist'])
             if mode=='live-api':info['QuestifyAPIBaseURL']='https://live.invalid'
             elif mode=='wrong-platform':info['CFBundleSupportedPlatforms']=['iPhoneOS']
@@ -10062,7 +10062,7 @@ class Split262PartitionProtocol(unittest.TestCase):
             if mode!='changed-bytes':
                 for row in ledger['ui']:
                     if row[0].endswith('/Info.plist'):row[2]=self.r.hashlib.sha256(docs['ui-info.plist']).hexdigest()
-                ledger['ui'].sort();product=receipt['products']['ui'];product.update(files=len(ledger['ui']),sha256=self.r.split262_hash(ledger['ui']))
+                ledger['ui'].sort();product=receipt['products']['ui'];product.update(files=len(ledger['ui']),sha256=self.r.split404_hash(ledger['ui']))
                 receipt['products_before']=copy.deepcopy(receipt['products']);receipt['products_after']=copy.deepcopy(receipt['products'])
                 docs['products-ledger.json']=(self.r.encode(ledger)+'\n').encode()
             self.seal(receipt,docs);self.rejects(identity,artifacts)
@@ -10070,8 +10070,8 @@ class Split262PartitionProtocol(unittest.TestCase):
     def test_device_schema_rejects_note_spoof_mixed_device_wrong_os_and_fabricated_runtime(self):
         for mode in ('note','mixed-device','wrong-os','runtime','tests-device','tests-configuration','unknown-schema'):
             with self.subTest(mode=mode):
-                identity,artifacts=self.fixture();docs=artifacts[self.r.split262_artifact_name(identity,'ui')]
-                receipt=self.r.split262_json(docs['receipt.json']);summary=self.r.split262_json(docs['ui-summary.json']);tests=self.r.split262_json(docs['ui-tests.json'])
+                identity,artifacts=self.fixture();docs=artifacts[self.r.split404_artifact_name(identity,'ui')]
+                receipt=self.r.split404_json(docs['receipt.json']);summary=self.r.split404_json(docs['ui-summary.json']);tests=self.r.split404_json(docs['ui-tests.json'])
                 if mode=='note':
                     summary['devicesAndConfigurations'][0]['device']['deviceId']='foreign';summary['note']=receipt['simulator']['udid']
                 elif mode=='mixed-device':summary['devicesAndConfigurations'].append(copy.deepcopy(summary['devicesAndConfigurations'][0]))
@@ -10084,54 +10084,54 @@ class Split262PartitionProtocol(unittest.TestCase):
                 self.seal(receipt,docs);self.rejects(identity,artifacts)
 
     def test_core_product_binary_ledger_mutation_is_rejected(self):
-        identity,artifacts=self.fixture();docs=artifacts[self.r.split262_artifact_name(identity,'core')];ledger=self.r.split262_json(docs['products-ledger.json'])
+        identity,artifacts=self.fixture();docs=artifacts[self.r.split404_artifact_name(identity,'core')];ledger=self.r.split404_json(docs['products-ledger.json'])
         ledger['core'][0][2]='f'*64;docs['products-ledger.json']=(self.r.encode(ledger)+'\n').encode()
-        self.seal(self.r.split262_json(docs['receipt.json']),docs);self.rejects(identity,artifacts)
+        self.seal(self.r.split404_json(docs['receipt.json']),docs);self.rejects(identity,artifacts)
 
     def test_fixed_history_read_is_bounded_sanitized_and_rejects_other_revision(self):
-        r=self.r;root=CLUB87_SOURCE;revision=next(iter(r.SPLIT262_PUBLIC_OBJECTS));tree=r.SPLIT262_PUBLIC_OBJECTS[revision]
+        r=self.r;root=CLUB87_SOURCE;revision=next(iter(r.SPLIT404_PUBLIC_OBJECTS));tree=r.SPLIT404_PUBLIC_OBJECTS[revision]
         with mock.patch.object(r,'checked',side_effect=['',tree]),mock.patch.object(r,'execute') as execute:
-            r.split262_ensure_public_object(root,revision);execute.assert_not_called()
+            r.split404_ensure_public_object(root,revision);execute.assert_not_called()
         calls=[]
         def execute(command,where,timeout,capture=False,env=None):
             calls.append((command,timeout,env));return 0,b''
         with mock.patch.object(r,'checked',side_effect=[ValueError('missing'),'',tree]),mock.patch.object(r,'execute',side_effect=execute):
-            r.split262_ensure_public_object(root,revision)
+            r.split404_ensure_public_object(root,revision)
         command,timeout,environment=calls[-1]
         self.assertEqual(timeout,60);self.assertEqual(command[-2:],['https://github.com/liboyang42-cpu/chengyin-ios.git',revision])
         self.assertEqual(environment['HOME'],'/dev/null');self.assertEqual(environment['GIT_CONFIG_GLOBAL'],'/dev/null')
         self.assertFalse(any(k in environment for k in ('GIT_CONFIG_COUNT','HTTPS_PROXY','GITHUB_TOKEN','SSH_AUTH_SOCK')))
         self.assertIn('http.followRedirects=false',command);self.assertIn('--depth=1',command)
-        with self.assertRaises(ValueError):r.split262_ensure_public_object(root,'0'*40)
+        with self.assertRaises(ValueError):r.split404_ensure_public_object(root,'0'*40)
         with mock.patch.object(r,'checked',side_effect=ValueError('missing')),mock.patch.object(r,'execute',return_value=(0,b'http.extraheader\n')),self.assertRaises(ValueError):
-            r.split262_ensure_public_object(root,revision)
+            r.split404_ensure_public_object(root,revision)
 
     def test_summary_overall_failure_or_nonempty_failure_list_rejected_after_rehash(self):
         for field,value in [('result','Failed'),('result','Unknown'),('result',None),('testFailures',[{'failureText':'contradictory'}])]:
-            identity,artifacts=self.fixture();docs=artifacts[self.r.split262_artifact_name(identity,'ui')]
-            summary=self.r.split262_json(docs['ui-summary.json']);summary[field]=value
-            docs['ui-summary.json']=(self.r.encode(summary)+'\n').encode();self.seal(self.r.split262_json(docs['receipt.json']),docs)
+            identity,artifacts=self.fixture();docs=artifacts[self.r.split404_artifact_name(identity,'ui')]
+            summary=self.r.split404_json(docs['ui-summary.json']);summary[field]=value
+            docs['ui-summary.json']=(self.r.encode(summary)+'\n').encode();self.seal(self.r.split404_json(docs['receipt.json']),docs)
             self.rejects(identity,artifacts)
 
     def test_worker_clock_cannot_hide_overhead_overlap_or_exceed_worker_cap(self):
         for mode in ('overhead','overlap','cap'):
-            identity,artifacts=self.fixture();docs=artifacts[self.r.split262_artifact_name(identity,'app-unit')];receipt=self.r.split262_json(docs['receipt.json'])
-            phases=self.r.split262_json(docs['phase-times.json'])
+            identity,artifacts=self.fixture();docs=artifacts[self.r.split404_artifact_name(identity,'app-unit')];receipt=self.r.split404_json(docs['receipt.json'])
+            phases=self.r.split404_json(docs['phase-times.json'])
             if mode=='overhead':receipt['worker_clock']['unclassified_overhead_seconds']=-1
             elif mode=='overlap':
-                phases['boot']=dict(phases['app-test']);receipt['worker_clock']=self.r.split262_worker_clock(phases)
+                phases['boot']=dict(phases['app-test']);receipt['worker_clock']=self.r.split404_worker_clock(phases)
             else:
-                phases['report']['ended_monotonic']+=3000;phases['report']['wall_seconds']+=3000;receipt['worker_clock']=self.r.split262_worker_clock(phases)
+                phases['report']['ended_monotonic']+=3000;phases['report']['wall_seconds']+=3000;receipt['worker_clock']=self.r.split404_worker_clock(phases)
             docs['phase-times.json']=(self.r.encode(phases)+'\n').encode();self.seal(receipt,docs);self.rejects(identity,artifacts)
 
     def test_fixed_three_worker_authorization_does_not_admit_changed_contract(self):
-        self.r.split262_require_admission(self.selection)
+        self.r.split404_require_admission(self.selection)
         selection=copy.deepcopy(self.selection);selection['club_member_route']['split']['peak_macos_jobs']=2
-        with self.assertRaises(ValueError):self.r.split262_require_admission(selection)
+        with self.assertRaises(ValueError):self.r.split404_require_admission(selection)
 
     def test_method_commands_have_only_exact_whole_identities_and_original_timeouts(self):
-        for part in self.r.SPLIT262_PARTITIONS:
-            for group in self.r.split262_groups(self.selection,part):
+        for part in self.r.SPLIT404_PARTITIONS:
+            for group in self.r.split404_groups(self.selection,part):
                 if group['kind']=='swift':continue
                 command=self.r.xcode_test_command(group,Path('/products/run.xctestrun'),'a',Path('/results'))
                 self.assertEqual([x[14:] for x in command if x.startswith('-only-testing:')],group['methods'])
@@ -10139,22 +10139,22 @@ class Split262PartitionProtocol(unittest.TestCase):
         budget=self.selection['club_member_route']['split']['budget_seconds'];self.assertEqual(budget['app-test'],660);self.assertEqual(budget['ui-test'],2190)
 
     def test_evidence_allowlist_refuses_symlinks_extra_products_and_duplicate_json_keys(self):
-        identity,artifacts=self.fixture();docs=artifacts[self.r.split262_artifact_name(identity,'core')]
+        identity,artifacts=self.fixture();docs=artifacts[self.r.split404_artifact_name(identity,'core')]
         with tempfile.TemporaryDirectory() as directory:
             root=Path(directory)
             for name,raw in docs.items():(root/name).write_bytes(raw)
-            self.assertEqual(self.r.split262_read_evidence(root,'core'),docs)
+            self.assertEqual(self.r.split404_read_evidence(root,'core'),docs)
             (root/'Questify.app').mkdir()
-            with self.assertRaises(ValueError):self.r.split262_read_evidence(root,'core')
+            with self.assertRaises(ValueError):self.r.split404_read_evidence(root,'core')
             (root/'Questify.app').rmdir();(root/'core.xml').unlink();(root/'core.xml').symlink_to(root/'receipt.json')
-            with self.assertRaises(ValueError):self.r.split262_read_evidence(root,'core')
-        with self.assertRaises(ValueError):self.r.split262_json(b'{"a":1,"a":2}')
+            with self.assertRaises(ValueError):self.r.split404_read_evidence(root,'core')
+        with self.assertRaises(ValueError):self.r.split404_json(b'{"a":1,"a":2}')
 
     def test_current_workflow_uses_fixed_matrix_bounded_same_attempt_artifacts_and_no_permissions_expansion(self):
         raw=(CLUB87_SOURCE/'.github/workflows/native-targeted.yml').read_text()
         for text in ('partition: [core, app-unit, ui]','fail-fast: false','max-parallel: 3','continue-on-error: false','needs: [targeted]','if: always()','retention-days: 1','overwrite: false','merge-multiple: false','fetch-depth: 2','persist-credentials: false','contents: read'):
             self.assertIn(text,raw)
-        self.assertIn('native-targeted-262-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-',raw)
+        self.assertIn('native-targeted-404-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-',raw)
         for text in ('permissions: write','id-token:','secrets.','token:','continue-on-error: true','merge-multiple: true'):
             self.assertNotIn(text,raw)
 
@@ -10168,10 +10168,10 @@ class Split262PartitionProtocol(unittest.TestCase):
                     calls.append((command,seconds,limit))
                     return {'argv':command,'status':'CAPTURED','returncode':0,'wall_seconds':0.0,'observed_bytes':{'stdout':len(raw),'stderr':0},'truncated':{'stdout':False,'stderr':False},'stdout':raw,'stderr':b''}
                 with mock.patch.object(self.r,'merchant_capture_command',side_effect=capture):
-                    manifest=self.r.split262_capture_schema(output,output,partition,{group:result},{})
+                    manifest=self.r.split404_capture_schema(output,output,partition,{group:result},{})
                 self.assertEqual(manifest['status'],'CAPTURED');self.assertIs(manifest['native_test_result_authority'],False)
                 self.assertEqual(len(calls),9);self.assertTrue(all(0<row[1]<=30 for row in calls))
-                names=[r[0] for r in self.r.split262_schema_rows(partition,result)]
+                names=[r[0] for r in self.r.split404_schema_rows(partition,result)]
                 self.assertEqual([r['file'] for r in manifest['items']],names)
                 self.assertEqual({p.name for p in (output/'schema-evidence').iterdir()},set(names)|{n+'.stderr.txt' for n in names}|{'manifest.json'})
                 self.assertEqual((output/'schema-evidence'/'xcresult-summary-help.txt').read_bytes(),raw)
@@ -10180,8 +10180,8 @@ class Split262PartitionProtocol(unittest.TestCase):
     def test_split_acquisition_manifest_rejects_failure_timeout_truncation_identity_path_and_scope_even_after_rehash(self):
         for mode in ('failure','timeout','truncation','nonzero','boolean','identity','partition','path','extra','missing','total-time','item-time','budget','authority'):
             with self.subTest(mode=mode):
-                identity,artifacts=self.fixture();docs=artifacts[self.r.split262_artifact_name(identity,'app-unit')];receipt=self.r.split262_json(docs['receipt.json'])
-                manifest=self.r.split262_json(docs['schema-manifest.json'])
+                identity,artifacts=self.fixture();docs=artifacts[self.r.split404_artifact_name(identity,'app-unit')];receipt=self.r.split404_json(docs['receipt.json'])
+                manifest=self.r.split404_json(docs['schema-manifest.json'])
                 if mode=='failure':manifest['status']='PARTIAL_OR_FAILED'
                 elif mode=='timeout':manifest['items'][0]['status']='TIMEOUT'
                 elif mode=='truncation':manifest['items'][0]['truncated']['stdout']=True
@@ -10210,7 +10210,7 @@ class Split262PartitionProtocol(unittest.TestCase):
                 def capture(command,root,seconds,limit):
                     return {'argv':command,'status':'CAPTURED','returncode':0,'wall_seconds':0.0,'observed_bytes':{'stdout':2,'stderr':0},'truncated':{'stdout':False,'stderr':False},'stdout':b'{}','stderr':b''}
                 with mock.patch.object(self.r,'merchant_capture_command',side_effect=capture) as call:
-                    manifest=self.r.split262_capture_schema(output,output,'app-unit',{'app-unit':result},{},seconds=0 if mode=='expired' else 90)
+                    manifest=self.r.split404_capture_schema(output,output,'app-unit',{'app-unit':result},{},seconds=0 if mode=='expired' else 90)
                 self.assertEqual(manifest['status'],'PARTIAL_OR_FAILED')
                 self.assertEqual(call.call_count,0 if mode=='expired' else 7)
                 self.assertTrue(all(item['status']=='NOT_RUN' for item in manifest['items'][-2:]))
@@ -10220,8 +10220,8 @@ class Split262PartitionProtocol(unittest.TestCase):
             output=Path(tmp);preflight=output/'preflight.json'
             phases={name:{'started_monotonic':1.0,'ended_monotonic':2.0,'wall_seconds':1.0,'returncode':0} for name in ('checkout-initialization','python-validation','source-validation')}
             self.r.write_json(preflight,phases)
-            job=self.r.Split262Diagnostic(CLUB87_SOURCE,output,self.selection,'ui',preflight)
-            group=self.r.split262_groups(self.selection,'ui')[0];result=output/'ui.xcresult'
+            job=self.r.Split404Diagnostic(CLUB87_SOURCE,output,self.selection,'ui',preflight)
+            group=self.r.split404_groups(self.selection,'ui')[0];result=output/'ui.xcresult'
             command=self.r.xcode_test_command(group,Path('/synthetic/run.xctestrun'),'fixture',result)
             with mock.patch.object(job,'command',return_value=(0,b'')):
                 job.collect(group,command,1000,result)
@@ -10235,19 +10235,19 @@ class Split262PartitionProtocol(unittest.TestCase):
             capture.assert_not_called()
 
     def report_fixture(self):
-        identity,artifacts=self.fixture();partition='ui';docs=artifacts[self.r.split262_artifact_name(identity,partition)]
+        identity,artifacts=self.fixture();partition='ui';docs=artifacts[self.r.split404_artifact_name(identity,partition)]
         temporary=tempfile.TemporaryDirectory();self.addCleanup(temporary.cleanup);root=Path(temporary.name)
         output=root/'output';output.mkdir();capture=output/'schema-evidence';capture.mkdir();result=output/'ui.xcresult';result.mkdir()
-        receipt=self.r.split262_json(docs['receipt.json']);receipt.update(status='EXECUTED',result_bundle_path=str(result))
-        manifest=self.r.split262_json(docs['schema-manifest.json']);manifest['result_bundle_path']=str(result)
-        commands={name:command for name,command,_ in self.r.split262_schema_rows(partition,result)}
+        receipt=self.r.split404_json(docs['receipt.json']);receipt.update(status='EXECUTED',result_bundle_path=str(result))
+        manifest=self.r.split404_json(docs['schema-manifest.json']);manifest['result_bundle_path']=str(result)
+        commands={name:command for name,command,_ in self.r.split404_schema_rows(partition,result)}
         for item in manifest['items']:item['argv']=commands[item['file']]
         docs['schema-manifest.json']=(self.r.encode(manifest)+'\n').encode()
-        phases=self.r.split262_json(docs['phase-times.json']);shift=self.r.time.monotonic()-100
+        phases=self.r.split404_json(docs['phase-times.json']);shift=self.r.time.monotonic()-100
         for phase in phases.values():phase['started_monotonic']+=shift;phase['ended_monotonic']+=shift
         phases.pop('report');docs['phase-times.json']=(self.r.encode(phases)+'\n').encode()
         self.seal(receipt,docs)
-        capture_names={r[0] for r in self.r.split262_schema_rows(partition,result)}
+        capture_names={r[0] for r in self.r.split404_schema_rows(partition,result)}
         capture_names|={n+'.stderr.txt' for n in tuple(capture_names)}
         for name,raw in docs.items():
             if name=='schema-manifest.json':(capture/'manifest.json').write_bytes(raw)
@@ -10257,14 +10257,14 @@ class Split262PartitionProtocol(unittest.TestCase):
 
     def test_unknown_raw_help_is_retained_but_no_pass_evidence_is_written(self):
         identity,output,evidence,docs=self.report_fixture()
-        manifest=self.r.split262_json((output/'schema-evidence'/'manifest.json').read_bytes())
+        manifest=self.r.split404_json((output/'schema-evidence'/'manifest.json').read_bytes())
         raw=b'RAW CURRENT APPLE TOOL HELP: unsupported\n'
         (output/'schema-evidence'/'xcresult-summary-help.txt').write_bytes(raw)
         row=next(r for r in manifest['items'] if r['file']=='xcresult-summary-help.txt')
         old=row['stdout']['byte_count'];row['stdout'].update(byte_count=len(raw),sha256=self.r.hashlib.sha256(raw).hexdigest());row['observed_bytes']['stdout']=len(raw)
         manifest['retained_bytes']+=len(raw)-old;self.r.write_json(output/'schema-evidence'/'manifest.json',manifest)
-        with mock.patch.object(self.r,'split262_identity',return_value=identity),mock.patch.object(self.r,'merchant_capture_command') as command,self.assertRaisesRegex(ValueError,'Unknown xcresulttool schema-help format'):
-            self.r.split262_report(output,evidence,self.selection,CLUB87_SOURCE)
+        with mock.patch.object(self.r,'split404_identity',return_value=identity),mock.patch.object(self.r,'merchant_capture_command') as command,self.assertRaisesRegex(ValueError,'Unknown xcresulttool schema-help format'):
+            self.r.split404_report(output,evidence,self.selection,CLUB87_SOURCE)
         command.assert_not_called();self.assertFalse(evidence.exists())
         self.assertEqual((output/'schema-evidence'/'xcresult-summary-help.txt').read_bytes(),raw)
         self.assertEqual(self.r.read_json(output/'receipt.json')['status'],'EXECUTED')
@@ -10277,39 +10277,39 @@ class Split262PartitionProtocol(unittest.TestCase):
                     calls.append(command);kind=command[4];raw=docs['ui-'+kind+'.json']
                     if changed and kind=='tests':raw=b'{}'
                     return {'status':'CAPTURED','returncode':0,'stdout':raw}
-                with mock.patch.object(self.r,'split262_identity',return_value=identity),mock.patch.object(self.r,'merchant_capture_command',side_effect=capture):
+                with mock.patch.object(self.r,'split404_identity',return_value=identity),mock.patch.object(self.r,'merchant_capture_command',side_effect=capture):
                     if changed:
-                        with self.assertRaisesRegex(ValueError,'Re-extracted xcresult differs'):self.r.split262_report(output,evidence,self.selection,CLUB87_SOURCE)
+                        with self.assertRaisesRegex(ValueError,'Re-extracted xcresult differs'):self.r.split404_report(output,evidence,self.selection,CLUB87_SOURCE)
                         self.assertFalse(evidence.exists())
                     else:
-                        self.r.split262_report(output,evidence,self.selection,CLUB87_SOURCE)
-                        actual=self.r.split262_read_evidence(evidence,'ui');receipt=self.r.split262_json(actual['receipt.json'])
-                        self.assertEqual(len(self.r.validate_split262_partition(receipt,identity,self.selection,actual)),21)
+                        self.r.split404_report(output,evidence,self.selection,CLUB87_SOURCE)
+                        actual=self.r.split404_read_evidence(evidence,'ui');receipt=self.r.split404_json(actual['receipt.json'])
+                        self.assertEqual(len(self.r.validate_split404_partition(receipt,identity,self.selection,actual)),36)
                 self.assertEqual([c[4] for c in calls],['summary','tests'])
 
 
 
     def test_core_provenance_target_sdk_source_and_exit_cannot_be_resealed(self):
-        identity,original=self.fixture();name=self.r.split262_artifact_name(identity,'core')
+        identity,original=self.fixture();name=self.r.split404_artifact_name(identity,'core')
         for key,value in [('target','QuestifyAppUnitTests'),('host_sdk_path','/SDK/other'),('host_sdk_version','1.0'),('host_triple','x86_64-apple-macosx26.0'),('source_sha','f'*40),('returncode',False),('version',True),('argv',['swift','build'])]:
             with self.subTest(key=key):
-                artifacts=copy.deepcopy(original);docs=artifacts[name];value_doc=self.r.split262_json(docs['core-build-provenance.json']);value_doc[key]=value
-                docs['core-build-provenance.json']=(self.r.encode(value_doc)+'\n').encode();self.seal(self.r.split262_json(docs['receipt.json']),docs);self.rejects(identity,artifacts)
+                artifacts=copy.deepcopy(original);docs=artifacts[name];value_doc=self.r.split404_json(docs['core-build-provenance.json']);value_doc[key]=value
+                docs['core-build-provenance.json']=(self.r.encode(value_doc)+'\n').encode();self.seal(self.r.split404_json(docs['receipt.json']),docs);self.rejects(identity,artifacts)
 
     def test_core_evidence_never_substitutes_for_appunit_or_ui(self):
-        identity,original=self.fixture();core=original[self.r.split262_artifact_name(identity,'core')]
+        identity,original=self.fixture();core=original[self.r.split404_artifact_name(identity,'core')]
         for part in ('app-unit','ui'):
             with self.subTest(partition=part):
-                artifacts=copy.deepcopy(original);name=self.r.split262_artifact_name(identity,part);docs=copy.deepcopy(core)
+                artifacts=copy.deepcopy(original);name=self.r.split404_artifact_name(identity,part);docs=copy.deepcopy(core)
                 self.change_receipt(docs,lambda r:r.update(partition=part,artifact_name=name));artifacts[name]=docs;self.rejects(identity,artifacts)
 
     def test_observed24757_schema_refs_enums_and_numeric_format_are_strict(self):
-        for kind,raw in SPLIT262_OBSERVED_SCHEMAS.items():self.r.split262_validate_schema(raw,kind)
+        for kind,raw in SPLIT404_OBSERVED_SCHEMAS.items():self.r.split404_validate_schema(raw,kind)
         for kind,name,change in [('summary','TestResult',{'type':'string','enum':['Passed']}),('tests','TestNodeType',{'type':'string','enum':['Test Case']}),('tests','TestNode',None)]:
-            data=self.r.split262_json(SPLIT262_OBSERVED_SCHEMAS[kind])
+            data=self.r.split404_json(SPLIT404_OBSERVED_SCHEMAS[kind])
             if change is None:data['schemas'][name]['properties']['durationInSeconds']={'type':'number','format':'float'}
             else:data['schemas'][name]=change
-            with self.assertRaises(ValueError):self.r.split262_validate_schema((self.r.encode(data)+'\n').encode(),kind)
+            with self.assertRaises(ValueError):self.r.split404_validate_schema((self.r.encode(data)+'\n').encode(),kind)
 
 
 class Club87SourceBoundary(unittest.TestCase):
@@ -10344,11 +10344,11 @@ class Club87SourceBoundary(unittest.TestCase):
         self.assertEqual(self.r.checked(['git','rev-parse',self.r.FIXTURE_BASE_COMMIT+'^{tree}'],CLUB87_PARENT_SOURCE),self.r.FIXTURE_BASE_TREE)
 
     def test_current87_and_old71_default_domains_are_distinct(self):
-        self.r.validate_split262_selection(CLUB87_SELECTION, CLUB87_SOURCE)
+        self.r.validate_split404_selection(CLUB87_SELECTION, CLUB87_SOURCE)
         old = self.r.club87_predecessor_selection(CLUB87_SELECTION)
         self.assertEqual(old, FIXTURE_SELECTION)
         with self.assertRaises(ValueError): self.r.validate_split71_selection(old, CLUB87_SOURCE)
-        with self.assertRaises(ValueError): self.r.validate_split262_selection(old, CLUB87_SOURCE)
+        with self.assertRaises(ValueError): self.r.validate_split404_selection(old, CLUB87_SOURCE)
         with self.assertRaises(ValueError): self.r.validate_fixture_selection(old, CLUB87_SOURCE)
 
     def test_all24_complete_predecessors_equal_exact_physical_e2b(self):
@@ -10416,38 +10416,38 @@ class Club87SourceBoundary(unittest.TestCase):
         self.assertGreaterEqual(len(calls),2)
 
     def test_complete87_new16_and_published_merchant6_preserved_with_exclusive_partition(self):
-        layer=self.r.split262_layer(CLUB87_SELECTION)
-        self.assertEqual([len(p['methods']) for p in layer['partitions']],[115,126,21])
+        layer=self.r.split404_layer(CLUB87_SELECTION)
+        self.assertEqual([len(p['methods']) for p in layer['partitions']],[191,177,36])
         flat=[m for p in layer['partitions'] for m in p['methods']]
-        self.assertEqual(len(flat),262);self.assertEqual(len(set(flat)),262)
-        self.assertEqual(len(layer['partitions'][0]['methods']),115)
+        self.assertEqual(len(flat),404);self.assertEqual(len(set(flat)),404)
+        self.assertEqual(len(layer['partitions'][0]['methods']),191)
         self.assertTrue(set(self.r.MERCHANT_METHODS)<=set(flat))
         self.assertTrue(all(row['method'] in flat for row in self.r.CLUB87_LAYER['added_methods']))
 
     def test_each_new16_omission_from_raw_results_rejected_even_after_all_rehash(self):
-        helper=Split262PartitionProtocol();helper.r=self.r;helper.selection=CLUB87_SELECTION
+        helper=Split404PartitionProtocol();helper.r=self.r;helper.selection=CLUB87_SELECTION
         for row in self.r.CLUB87_LAYER['added_methods']:
             method=row['method'];part={'QuestifyCoreTests':'core','QuestifyAppUnitTests':'app-unit','QuestifyUITests':'ui'}[method.split('/')[0]];group=part
             with self.subTest(method=method):
-                identity,artifacts=helper.fixture();docs=artifacts[self.r.split262_artifact_name(identity,part)]
+                identity,artifacts=helper.fixture();docs=artifacts[self.r.split404_artifact_name(identity,part)]
                 if part=='core':
                     target,klass,name=method.split('/')
                     docs['core.xml']=docs['core.xml'].replace(('<testcase classname="'+target+'.'+klass+'" name="'+name+'"/>').encode(),b'')
                     docs['core-stdout.txt']=b'\n'.join(line for line in docs['core-stdout.txt'].splitlines() if (klass+' '+name+']').encode() not in line)
                 else:
-                    tests=self.r.split262_json(docs[group+'-tests.json']);tests['testNodes'][0]['children']=[n for n in tests['testNodes'][0]['children'] if n['nodeIdentifier']!=method]
+                    tests=self.r.split404_json(docs[group+'-tests.json']);tests['testNodes'][0]['children']=[n for n in tests['testNodes'][0]['children'] if n['nodeIdentifier']!=method]
                     docs[group+'-tests.json']=(self.r.encode(tests)+'\n').encode()
-                helper.seal(self.r.split262_json(docs['receipt.json']),docs)
+                helper.seal(self.r.split404_json(docs['receipt.json']),docs)
                 helper.rejects(identity,artifacts)
 
     def test_missing_club_worker_or71_receipt_cannot_claim87_success(self):
-        helper=Split262PartitionProtocol();helper.r=self.r;helper.selection=CLUB87_SELECTION
-        identity,artifacts=helper.fixture();artifacts.pop(self.r.split262_artifact_name(identity,'ui'));helper.rejects(identity,artifacts)
-        identity,artifacts=helper.fixture();docs=artifacts[self.r.split262_artifact_name(identity,'app-unit')]
+        helper=Split404PartitionProtocol();helper.r=self.r;helper.selection=CLUB87_SELECTION
+        identity,artifacts=helper.fixture();artifacts.pop(self.r.split404_artifact_name(identity,'ui'));helper.rejects(identity,artifacts)
+        identity,artifacts=helper.fixture();docs=artifacts[self.r.split404_artifact_name(identity,'app-unit')]
         helper.change_receipt(docs,lambda r:r.update(scope='split71-partition-only',expected_count=64,actual_count=64));helper.rejects(identity,artifacts)
 
 
-class Split262CommandDiagnostics(unittest.TestCase):
+class Split404CommandDiagnostics(unittest.TestCase):
     r=CLUB87_RUNNER
 
     def job(self, root, partition='app-unit'):
@@ -10455,7 +10455,7 @@ class Split262CommandDiagnostics(unittest.TestCase):
         now=self.r.time.monotonic()
         phases={name:{'started_monotonic':now-5,'ended_monotonic':now-4,'wall_seconds':1.0,'returncode':0} for name in ('checkout-initialization','python-validation','source-validation')}
         self.r.write_json(path,phases)
-        job=self.r.Split262Diagnostic(CLUB87_SOURCE,root,CLUB87_SELECTION,partition,path)
+        job=self.r.Split404Diagnostic(CLUB87_SOURCE,root,CLUB87_SELECTION,partition,path)
         job.receipt['toolchain']={'host_sdk_path':'/SDK/macos','host_triple':'arm64-apple-macosx26.0'}
         return job
 
@@ -10465,16 +10465,16 @@ class Split262CommandDiagnostics(unittest.TestCase):
                 'truncated':{'stdout':False,'stderr':False},'stdout':stdout,'stderr':stderr}
 
     def test_real24757_help_requires_explicit_schema_json_and_unknown_json_fails(self):
-        helper=Split262PartitionProtocol();helper.r=self.r;helper.selection=CLUB87_SELECTION
-        identity,artifacts=helper.fixture();docs=artifacts[self.r.split262_artifact_name(identity,'app-unit')]
+        helper=Split404PartitionProtocol();helper.r=self.r;helper.selection=CLUB87_SELECTION
+        identity,artifacts=helper.fixture();docs=artifacts[self.r.split404_artifact_name(identity,'app-unit')]
         for kind in ('summary','tests'):
-            self.r.split262_validate_schema_help(docs['xcresult-'+kind+'-help.txt'],kind)
-            self.r.split262_validate_schema(docs['xcresult-'+kind+'-schema.json'],kind)
+            self.r.split404_validate_schema_help(docs['xcresult-'+kind+'-help.txt'],kind)
+            self.r.split404_validate_schema(docs['xcresult-'+kind+'-schema.json'],kind)
             with self.assertRaises((ValueError,TypeError)):
-                self.r.split262_validate_schema(docs['xcresult-'+kind+'-help.txt'],kind)
+                self.r.split404_validate_schema(docs['xcresult-'+kind+'-help.txt'],kind)
             docs['xcresult-'+kind+'-schema.json']=b'{"schemas":{"Device":{}}}'
-            helper.seal(self.r.split262_json(docs['receipt.json']),docs);helper.rejects(identity,artifacts)
-        commands=[(name,argv,limit) for name,argv,limit in self.r.split262_schema_rows('ui') if name.endswith('-schema.json')]
+            helper.seal(self.r.split404_json(docs['receipt.json']),docs);helper.rejects(identity,artifacts)
+        commands=[(name,argv,limit) for name,argv,limit in self.r.split404_schema_rows('ui') if name.endswith('-schema.json')]
         self.assertEqual(len(commands),2)
         self.assertTrue(all(command[-3:]==['--schema','--schema-version','0.1.0'] and limit==1024*1024 for _,command,limit in commands))
 
@@ -10504,7 +10504,7 @@ class Split262CommandDiagnostics(unittest.TestCase):
 
     def test_failed_core_keeps_full_assertion_stdout_stderr_and_xml_without_pass(self):
         with tempfile.TemporaryDirectory() as name:
-            root=Path(name);job=self.job(root,'core');group=self.r.split262_groups(CLUB87_SELECTION,'core')[0];result=root/'core.xml'
+            root=Path(name);job=self.job(root,'core');group=self.r.split404_groups(CLUB87_SELECTION,'core')[0];result=root/'core.xml'
             command=self.r.core_command(group,result)+['--sdk','/SDK/macos','--triple','arm64-apple-macosx26.0'];stdout=b"Core assertion expected POST, fixture failure example only\n";stderr=b'compiler/runtime diagnostic fixture\n';xml=b'<testsuite tests="1"><testcase classname="fixture" name="bad"><failure/></testcase></testsuite>'
             def capture(actual,*args):result.write_bytes(xml);return self.item(actual,stdout,stderr,1,'EXIT_NONZERO')
             with mock.patch.object(self.r,'merchant_capture_command',side_effect=capture),self.assertRaisesRegex(ValueError,'Core command failed'):
@@ -10517,7 +10517,7 @@ class Split262CommandDiagnostics(unittest.TestCase):
     def test_core_success_still_requires_all50_in_both_raw_streams(self):
         for missing in (False,True):
             with self.subTest(missing=missing),tempfile.TemporaryDirectory() as name:
-                root=Path(name);job=self.job(root,'core');group=self.r.split262_groups(CLUB87_SELECTION,'core')[0];result=root/'core.xml';command=self.r.core_command(group,result)+['--sdk','/SDK/macos','--triple','arm64-apple-macosx26.0']
+                root=Path(name);job=self.job(root,'core');group=self.r.split404_groups(CLUB87_SELECTION,'core')[0];result=root/'core.xml';command=self.r.core_command(group,result)+['--sdk','/SDK/macos','--triple','arm64-apple-macosx26.0']
                 methods=group['methods'][:-1] if missing else group['methods'];xml=Creator65Contract.xml(methods);transcript=core_transcript(methods)
                 def capture(actual,*args):result.write_bytes(xml);return self.item(actual,transcript)
                 with mock.patch.object(self.r,'merchant_capture_command',side_effect=capture),mock.patch('builtins.print'):
@@ -10529,7 +10529,7 @@ class Split262CommandDiagnostics(unittest.TestCase):
     def test_missing_oversized_or_linked_core_xml_never_passes_and_retention_is_bounded(self):
         for mode in ('missing','oversized','link','hardlink'):
             with self.subTest(mode=mode),tempfile.TemporaryDirectory() as name:
-                root=Path(name);job=self.job(root,'core');group=self.r.split262_groups(CLUB87_SELECTION,'core')[0];result=root/'core.xml';command=self.r.core_command(group,result)+['--sdk','/SDK/macos','--triple','arm64-apple-macosx26.0']
+                root=Path(name);job=self.job(root,'core');group=self.r.split404_groups(CLUB87_SELECTION,'core')[0];result=root/'core.xml';command=self.r.core_command(group,result)+['--sdk','/SDK/macos','--triple','arm64-apple-macosx26.0']
                 def capture(actual,*args):
                     if mode=='oversized':result.write_bytes(b'x'*(10*1024*1024+1))
                     elif mode in ('link','hardlink'):
@@ -10544,7 +10544,7 @@ class Split262CommandDiagnostics(unittest.TestCase):
 
     def test_raw_command_artifact_is_fixed_same_run_bounded_diagnostic_only(self):
         raw=(CLUB87_SOURCE/'.github/workflows/native-targeted.yml').read_text()
-        self.assertIn('native-command-262-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.partition }}',raw)
+        self.assertIn('native-command-404-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.partition }}',raw)
         block=raw.split('      - name: Preserve bounded initial inventory and Core failure diagnostics\n',1)[1].split('      - name:',1)[0]
         self.assertIn('if: always()',block);self.assertIn('retention-days: 1',block);self.assertIn('overwrite: false',block)
         paths=[line.strip() for line in block.splitlines() if 'command-evidence/' in line]
@@ -10552,8 +10552,8 @@ class Split262CommandDiagnostics(unittest.TestCase):
         self.assertNotIn('.build',block);self.assertNotIn('.xcresult',block);self.assertNotIn('source_archive',block)
 
     def test_consumed_schema_types_objects_arrays_and_refs_reject_incompatible_models(self):
-        helper=Split262PartitionProtocol();helper.r=self.r;helper.selection=CLUB87_SELECTION
-        identity,artifacts=helper.fixture();original=artifacts[self.r.split262_artifact_name(identity,'app-unit')]
+        helper=Split404PartitionProtocol();helper.r=self.r;helper.selection=CLUB87_SELECTION
+        identity,artifacts=helper.fixture();original=artifacts[self.r.split404_artifact_name(identity,'app-unit')]
         changes=[('summary','DeviceAndConfigurationSummary','passedTests',{'type':'string'}),
                  ('summary','Summary','totalTestCount',{'type':'boolean'}),
                  ('summary','Summary','result',{'type':'integer'}),
@@ -10564,19 +10564,19 @@ class Split262CommandDiagnostics(unittest.TestCase):
                  ('tests','TestNode','children',{'type':'array','items':{'$ref':'#/schemas/Configuration'}})]
         for kind,object_name,field,value in changes:
             with self.subTest(kind=kind,object=object_name,field=field):
-                data=self.r.split262_json(original['xcresult-'+kind+'-schema.json']);data['schemas'][object_name]['properties'][field]=value
-                with self.assertRaises(ValueError):self.r.split262_validate_schema((self.r.encode(data)+'\n').encode(),kind)
+                data=self.r.split404_json(original['xcresult-'+kind+'-schema.json']);data['schemas'][object_name]['properties'][field]=value
+                with self.assertRaises(ValueError):self.r.split404_validate_schema((self.r.encode(data)+'\n').encode(),kind)
         for kind,names in [('summary',('Device','Configuration','DeviceAndConfigurationSummary','Summary','TestFailure')),('tests',('Device','Configuration','Tests','TestNode'))]:
             for name in names:
                 with self.subTest(kind=kind,object=name):
-                    data=self.r.split262_json(original['xcresult-'+kind+'-schema.json']);data['schemas'][name]['type']='string'
-                    with self.assertRaises(ValueError):self.r.split262_validate_schema((self.r.encode(data)+'\n').encode(),kind)
+                    data=self.r.split404_json(original['xcresult-'+kind+'-schema.json']);data['schemas'][name]['type']='string'
+                    with self.assertRaises(ValueError):self.r.split404_validate_schema((self.r.encode(data)+'\n').encode(),kind)
 
     def test_job_run_initial_inventory_failure_never_retries_inventory_during_error_capture(self):
         for failed_kind in ('devices','runtimes'):
             with self.subTest(failed_kind=failed_kind),tempfile.TemporaryDirectory() as name:
                 root=Path(name);job=self.job(root);calls=[]
-                job.receipt.update({key:'synthetic-bound-identity' for key in self.r.SPLIT262_ID_KEYS})
+                job.receipt.update({key:'synthetic-bound-identity' for key in self.r.SPLIT404_ID_KEYS})
                 def capture(command,where,seconds,limit):
                     calls.append(command)
                     if command[:3]==['xcrun','simctl','list'] and command[3]==failed_kind:

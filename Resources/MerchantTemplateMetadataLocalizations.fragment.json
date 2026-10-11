@@ -1,0 +1,138 @@
+{
+  "merchant.templateMetadata.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Template metadata"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "模板基本信息"
+        }
+      }
+    }
+  },
+  "merchant.templateMetadata.duration": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Game duration (minutes)"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "玩法时长（分钟）"
+        }
+      }
+    }
+  },
+  "merchant.templateMetadata.players": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Game player-count description"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "游戏人数说明"
+        }
+      }
+    }
+  },
+  "merchant.templateMetadata.scopeHint": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "These are existing template fields. The player-count description is not a venue capacity limit. Local participation and exit plans are not copied into them. Existing server permissions and save restrictions still apply."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这是既有模板字段。游戏人数说明不等于现场人数上限；本地参与安排和退出预案不会自动写入这些字段。仍受既有服务端权限与保存限制约束。"
+        }
+      }
+    }
+  },
+  "merchant.templateMetadata.omissionHint": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Leaving a value blank omits it from the request and does not clear an existing value. The server defaults an omitted duration to 0 for a new template."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "留空时请求不发送该字段，不会清除已有值；新模板未填写时长时，服务端默认返回0。"
+        }
+      }
+    }
+  },
+  "merchant.templateMetadata.durationInvalid": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Enter whole minutes from 0 to 2,147,483,647, or leave blank."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请填写0至2,147,483,647之间的整数分钟数，或留空。"
+        }
+      }
+    }
+  },
+  "merchant.templateMetadata.readback": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Save acknowledged. The template was reloaded from the server; this does not establish separate publication or review approval."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务端已确认保存，并已重新读取模板；这不代表另行发布或审核已获批准。"
+        }
+      }
+    }
+  },
+  "merchant.templateMetadata.readbackFailed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Save was acknowledged, but current template details could not be verified. The submitted copy is hidden. Reload to read again; this does not resend the save."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务端已确认保存，但当前模板详情尚未核实，已隐藏提交副本。重新加载只会再次读取，不会重复保存。"
+        }
+      }
+    }
+  }
+}

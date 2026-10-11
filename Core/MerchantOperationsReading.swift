@@ -20,6 +20,8 @@ public struct MerchantOperationsSession: Equatable {
     var canSave: Bool { get }
     func hasPending(_ destination: MerchantOperationsDestination) -> Bool
     func saveReviewed(_ draft: MerchantOperationsDraft, baseline: MerchantOperationsDraft) async throws
+    /// Returns the ID acknowledged by the existing submit endpoint, not a locally guessed ID.
+    func saveTemplateReviewed(_ draft: MerchantNodeTemplate, baseline: MerchantNodeTemplate) async throws -> Int?
     func access() async throws -> MerchantOperationsAccess
     func document(_ destination: MerchantOperationsDestination) async throws -> MerchantOperationsDocument
     func featuredActivities(page: Int) async throws -> MerchantFeaturedActivityPage
@@ -78,6 +80,15 @@ public struct MerchantOperationsSession: Equatable {
             guard self.currentSession() == session else { throw CancellationError() }
         }
     }
+    public func saveTemplateReviewed(_ draft: MerchantNodeTemplate, baseline: MerchantNodeTemplate) async throws -> Int? {
+        guard let session = currentSession(), let service, let approval, let journal else { throw MerchantOperationsFailure.liveWritesDisabled }
+        let acknowledgement = try await service.save(.template(draft), token: session.token, approval: approval,
+            namespace: session.storageNamespace, accountID: session.accountID, baseline: .template(baseline), journal: journal) {
+                try Task.checkCancellation()
+                guard self.currentSession() == session else { throw CancellationError() }
+            }
+        return acknowledgement.templateID
+    }
     private func read<Value>(_ operation: (MerchantOperationsService, String) async throws -> Value) async throws -> Value {
         guard let session = currentSession() else { throw APIError.unauthorized }
         guard let service else { throw APIError.notConfigured }
@@ -104,7 +115,7 @@ public struct MerchantOperationsConfirmation: Identifiable, Equatable {
 /// Unknown writes remain locked; approved readers restore their minimal durable replay lock.
 @MainActor public final class MerchantOperationsCoordinator {
     public let reader: any MerchantOperationsReading
-    public let destination: MerchantOperationsDestination
+    public private(set) var destination: MerchantOperationsDestination
     public private(set) var document: MerchantOperationsDocument?
     public private(set) var baseline: MerchantOperationsDraft?
     public private(set) var draft: MerchantOperationsDraft?
@@ -182,11 +193,37 @@ public struct MerchantOperationsConfirmation: Identifiable, Equatable {
         }
         isLocked = true
         do {
-            try await reader.saveReviewed(value.draft, baseline: value.baseline)
+            let acknowledgedTemplateID: Int?
+            if case .template(let template) = value.draft, case .template(let baseline) = value.baseline {
+                acknowledgedTemplateID = try await reader.saveTemplateReviewed(template, baseline: baseline)
+            } else {
+                try await reader.saveReviewed(value.draft, baseline: value.baseline)
+                acknowledgedTemplateID = nil
+            }
             guard !Task.isCancelled, operation == generation, reader.scope == value.scope, reader.isAuthenticated else { return }
             draftIdentity = UUID(); templateAssistEdits = .init()
             isLocked = false
-            if destination == .character {
+            if case .template(let submitted) = value.draft {
+                // An acknowledged save is not authoritative field readback. Clear the
+                // submitted copy before reading; read errors cannot retry the write.
+                document = nil; baseline = nil; draft = nil; exampleSaved = false
+                guard let id = acknowledgedTemplateID, id > 0,
+                      submitted.id == nil || submitted.id == id else {
+                    issue = .key("merchant.templateMetadata.readbackFailed"); return
+                }
+                destination = .template(id)
+                do {
+                    let current = try await reader.document(destination)
+                    guard !Task.isCancelled, operation == generation, reader.scope == value.scope, reader.isAuthenticated else { return }
+                    guard case .draft(.template(let returned)) = current, returned.id == id else { throw APIError.malformedResponse }
+                    document = current; baseline = .template(returned); draft = .template(returned)
+                    exampleSaved = reader.isOfflineExample
+                    issue = reader.isOfflineExample ? nil : .key("merchant.templateMetadata.readback")
+                } catch {
+                    guard !Task.isCancelled, operation == generation, reader.scope == value.scope else { return }
+                    issue = .key("merchant.templateMetadata.readbackFailed")
+                }
+            } else if destination == .character {
                 // npc/save acknowledges the write, not its review result. The source
                 // resets review status on edit, so never promote the submitted copy's
                 // old audit fields or unnormalized text into the saved baseline.
@@ -253,4 +290,10 @@ public extension MerchantOperationsReading {
     var canSave: Bool { isOfflineExample }
     func hasPending(_ destination: MerchantOperationsDestination) -> Bool { false }
     func saveReviewed(_ draft: MerchantOperationsDraft, baseline: MerchantOperationsDraft) async throws { try await saveExample(draft) }
+    func saveTemplateReviewed(_ draft: MerchantNodeTemplate, baseline: MerchantNodeTemplate) async throws -> Int? {
+        // A reader without a create receipt must refuse before sending, not guess an ID.
+        guard let id = draft.id, id > 0 else { throw MerchantOperationsFailure.notSent }
+        try await saveReviewed(.template(draft), baseline: .template(baseline))
+        return id
+    }
 }

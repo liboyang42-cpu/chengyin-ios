@@ -1,0 +1,240 @@
+{
+  "merchant.preparation.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Experience preparation"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "体验准备信息"
+        }
+      }
+    }
+  },
+  "merchant.preparation.venueLabel": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Suitable venue type"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "适用场所类型"
+        }
+      }
+    }
+  },
+  "merchant.preparation.materials": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Required materials"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "所需材料"
+        }
+      }
+    }
+  },
+  "merchant.preparation.unspecified": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Choose a venue type"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请选择场所类型"
+        }
+      }
+    }
+  },
+  "merchant.preparation.unknownVenue": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The current source value is retained. Choose a listed venue only if you want to replace it."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前来源值已保留；只有选择列表中的场所类型才会替换它。"
+        }
+      }
+    }
+  },
+  "merchant.preparation.hint": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Venue type and materials are template descriptions. The merchant still needs to verify on-site suitability and availability."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "场所类型和材料清单属于模板说明，现场是否适用及材料是否可用仍需商家核实。"
+        }
+      }
+    }
+  },
+  "merchant.preparation.omissionHint": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "An empty value is omitted from the request and does not clear an existing server value. Saving uses the existing template permissions and readback flow."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "留空时请求不发送该字段，不会清除已有服务端值。保存沿用既有模板权限与回读流程。"
+        }
+      }
+    }
+  },
+  "merchant.preparation.venue.scenicArea": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Scenic area"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "景区"
+        }
+      }
+    }
+  },
+  "merchant.preparation.venue.park": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Park or green space"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "公园绿地"
+        }
+      }
+    }
+  },
+  "merchant.preparation.venue.shoppingDistrict": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Shopping district"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "商圈街区"
+        }
+      }
+    }
+  },
+  "merchant.preparation.venue.historicDistrict": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Historic town or street"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "古镇老街"
+        }
+      }
+    }
+  },
+  "merchant.preparation.venue.museum": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Museum"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "博物馆"
+        }
+      }
+    }
+  },
+  "merchant.preparation.venue.campus": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Campus"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "校园"
+        }
+      }
+    }
+  },
+  "merchant.preparation.venue.indoorVenue": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Indoor venue"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "室内场馆"
+        }
+      }
+    }
+  }
+}

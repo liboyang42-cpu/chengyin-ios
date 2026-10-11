@@ -1,0 +1,8 @@
+{
+  "feature": "P036 clearMedal",
+  "app_sources": ["App/TemplateRewardMedalClear.swift", "Core/TemplateRewardMedalRemoval.swift"],
+  "app_unit_tests": ["Tests/AppUnitTests/TemplateRewardMedalClearTests.swift"],
+  "package_tests": ["Tests/CoreTests/TemplateRewardMedalRemovalTests.swift"],
+  "localization_fragment": "docs/localization/template-reward-medal-clear.json",
+  "integration_note": "Add sources and app tests through the normal project workflow; merge localization additively. The existing local draft and wire contracts suffice; no service or production capability is added."
+}

@@ -58,6 +58,22 @@ import Foundation
             documents[.profile] = .draft(.profile(returned))
         } else { documents[draft.destination] = .draft(draft) }
     }
+    public func saveTemplateReviewed(_ draft: MerchantNodeTemplate, baseline: MerchantNodeTemplate) async throws -> Int? {
+        _ = try MerchantOperationsDraft.template(draft).previews()
+        var returned = draft
+        returned.id = draft.id ?? 73
+        if let duration = MerchantNodeTemplate.validDuration(draft.gameDurationMinutes) { returned.gameDurationMinutes = String(duration) }
+        else { returned.gameDurationMinutes = draft.id == nil ? "0" : baseline.gameDurationMinutes }
+        returned.players = draft.players.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            ? baseline.players : draft.players.trimmingCharacters(in: .whitespacesAndNewlines)
+        returned.usageLocation = draft.usageLocation.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            ? baseline.usageLocation : draft.usageLocation
+        returned.requiredMaterials = draft.requiredMaterials.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            ? baseline.requiredMaterials : draft.requiredMaterials.trimmingCharacters(in: .whitespacesAndNewlines)
+        returned.ruleSteps = .init(sourceText: draft.ruleSteps.wireValue ?? baseline.ruleSteps.wireValue)
+        try await saveExample(.template(returned))
+        return returned.id
+    }
     public func replace(_ destination: MerchantOperationsDestination, with document: MerchantOperationsDocument) { documents[destination] = document }
     public func signOut() { isAuthenticated = false; scope = UUID() }
     public func switchAccount() { scope = UUID(); isAuthenticated = false }

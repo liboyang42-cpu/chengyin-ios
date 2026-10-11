@@ -1,6 +1,6 @@
 import Foundation
 
-/// Only the two text fields are editable. The remaining replacement fields retain their
+/// Text edits are staged together. The remaining replacement fields retain their
 /// wire values, including whitespace and delimiter order; do not round-trip image URLs.
 public struct ProfileEditSnapshot: Decodable, Equatable {
     public let id: Int
@@ -9,8 +9,13 @@ public struct ProfileEditSnapshot: Decodable, Equatable {
     public let avatar: String
     public let wechat: String
     public let casePics: String
+    /// Nil means this response omitted the field; explicit JSON null is an editable empty value.
+    public let caseIntroduction: String?
     public let tagIds: String
-    enum CodingKeys: String, CodingKey { case id, nickname, introduction, avatar, wechat, casePics, tagIds, sysCategoryList }
+    enum CodingKeys: String, CodingKey {
+        case id, nickname, introduction, avatar, wechat, casePics, tagIds, sysCategoryList
+        case caseIntroduction = "caseIntroducton"
+    }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id = try c.decode(Int.self, forKey: .id)
@@ -22,6 +27,8 @@ public struct ProfileEditSnapshot: Decodable, Equatable {
             guard c.contains(key) else { throw APIError.malformedResponse }
             return try c.decodeIfPresent(String.self, forKey: key) ?? ""
         }
+        if c.contains(.caseIntroduction) { caseIntroduction = try preserved(.caseIntroduction) }
+        else { caseIntroduction = nil }
         introduction = try preserved(.introduction)
         avatar = try preserved(.avatar); wechat = try preserved(.wechat); casePics = try preserved(.casePics)
         if c.contains(.tagIds) { tagIds = try preserved(.tagIds) }
@@ -37,17 +44,28 @@ public struct ProfileEditSnapshot: Decodable, Equatable {
 public struct ProfileEditDraft: Equatable {
     public var name: String
     public var introduction: String
+    /// Nil leaves the server field untouched; an explicit empty string clears it.
+    public var caseIntroduction: String?
+    /// Clear-only proposal; no arbitrary replacement URL or upload capability.
+    public var removesContactQR: Bool
     /// Nil preserves the complete wire string. An explicit empty selection clears preferences.
     public var routePreferenceIDs: [Int]?
     public private(set) var avatarReplacement: ProfileAvatarReplacement?
-    public init(name: String = "", introduction: String = "", routePreferenceIDs: [Int]? = nil, avatarReplacement: ProfileAvatarReplacement? = nil) {
+    public init(name: String = "", introduction: String = "", routePreferenceIDs: [Int]? = nil, avatarReplacement: ProfileAvatarReplacement? = nil, caseIntroduction: String? = nil, removesContactQR: Bool = false) {
         self.name = name; self.introduction = introduction; self.routePreferenceIDs = routePreferenceIDs
-        self.avatarReplacement = avatarReplacement
+        self.avatarReplacement = avatarReplacement; self.caseIntroduction = caseIntroduction
+        self.removesContactQR = removesContactQR
     }
     public func stagingAvatar(_ value: ProfileAvatarReplacement) -> Self {
-        .init(name: name, introduction: introduction, routePreferenceIDs: routePreferenceIDs, avatarReplacement: value)
+        .init(name: name, introduction: introduction, routePreferenceIDs: routePreferenceIDs, avatarReplacement: value, caseIntroduction: caseIntroduction, removesContactQR: removesContactQR)
     }
-    public var normalized: Self { .init(name: name.trimmingCharacters(in: .whitespacesAndNewlines), introduction: introduction.trimmingCharacters(in: .whitespacesAndNewlines), routePreferenceIDs: routePreferenceIDs, avatarReplacement: avatarReplacement) }
+    public var normalized: Self { .init(name: name.trimmingCharacters(in: .whitespacesAndNewlines), introduction: introduction.trimmingCharacters(in: .whitespacesAndNewlines), routePreferenceIDs: routePreferenceIDs, avatarReplacement: avatarReplacement, caseIntroduction: caseIntroduction, removesContactQR: removesContactQR) }
+    public func hasChanges(comparedTo snapshot: ProfileEditSnapshot) -> Bool {
+        var ordinary = normalized; ordinary.caseIntroduction = nil; ordinary.removesContactQR = false
+        let caseChanged = caseIntroduction.map { !ProfileCasePortfolio.sameText($0, snapshot.caseIntroduction) } ?? false
+        let contactQRChanged = removesContactQR && !snapshot.wechat.isEmpty
+        return ordinary != snapshot.draft.normalized || caseChanged || contactQRChanged
+    }
     public var isValid: Bool {
         let ids = routePreferenceIDs ?? []
         return !normalized.name.isEmpty && ids.allSatisfy { $0 > 0 } && Set(ids).count == ids.count
@@ -58,21 +76,31 @@ public struct ProfileEditPayload: Encodable, Equatable {
     public let introduction: String
     public let avatar: String
     public let wechat: String
+    /// Review metadata only; deliberately excluded from CodingKeys.
+    public let removesContactQR: Bool
     public let casePics: String
+    public let caseIntroduction: String?
     public let tagIds: String
     public let avatarReplacement: ProfileAvatarReplacement?
-    enum CodingKeys: String, CodingKey { case name, introduction, avatar, wechat, casePics, tagIds }
+    enum CodingKeys: String, CodingKey {
+        case name, introduction, avatar, wechat, casePics, tagIds
+        case caseIntroduction = "caseIntroducton"
+    }
     public init(draft: ProfileEditDraft, preserving snapshot: ProfileEditSnapshot) throws {
-        guard draft.isValid else { throw APIError.invalidRequest }
+        guard draft.isValid, draft.caseIntroduction == nil || snapshot.caseIntroduction != nil else { throw APIError.invalidRequest }
+        caseIntroduction = draft.caseIntroduction
+        removesContactQR = draft.removesContactQR && !snapshot.wechat.isEmpty
         name = draft.normalized.name; introduction = draft.normalized.introduction
         if let replacement = draft.avatarReplacement {
             guard replacement.receipt.target.snapshotHash == ProfileAvatarExact.snapshot(snapshot) else { throw APIError.invalidRequest }
         }
         avatarReplacement = draft.avatarReplacement
-        avatar = draft.avatarReplacement?.reference ?? snapshot.avatar; wechat = snapshot.wechat; casePics = snapshot.casePics
+        avatar = draft.avatarReplacement?.reference ?? snapshot.avatar
+        wechat = removesContactQR ? "" : snapshot.wechat; casePics = snapshot.casePics
         tagIds = draft.routePreferenceIDs.map { $0.map(String.init).joined(separator: ",") } ?? snapshot.tagIds
     }
     public func matches(_ snapshot: ProfileEditSnapshot) -> Bool {
+        if let caseIntroduction, !ProfileCasePortfolio.sameText(caseIntroduction, snapshot.caseIntroduction) { return false }
         if avatarReplacement != nil {
             guard zip([name, introduction, avatar, wechat, casePics, tagIds],
                       [snapshot.nickname, snapshot.introduction, snapshot.avatar, snapshot.wechat, snapshot.casePics, snapshot.tagIds])

@@ -13,6 +13,8 @@ struct ProfileEditFixtureHost: View {
     init(scenario: String) {
         let mode: ProfileEditSyntheticService.Scenario
         switch scenario {
+        case "contactQR": mode = .contactQR
+        case "portfolioImages": mode = .portfolioImages
         case "refreshFailure": mode = .refreshFailure
         case "rejected": mode = .rejected
         case "unknown": mode = .unknown

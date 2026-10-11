@@ -1,0 +1,172 @@
+{
+  "profile.contactQR.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "联系二维码"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Contact QR code"
+        }
+      }
+    }
+  },
+  "profile.contactQR.open": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "管理二维码"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Manage QR code"
+        }
+      }
+    }
+  },
+  "profile.contactQR.available": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已添加"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Added"
+        }
+      }
+    }
+  },
+  "profile.contactQR.empty": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "未添加"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Not added"
+        }
+      }
+    }
+  },
+  "profile.contactQR.staged": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "待移除"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Pending removal"
+        }
+      }
+    }
+  },
+  "profile.contactQR.remove": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "移除二维码"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Remove QR code"
+        }
+      }
+    }
+  },
+  "profile.contactQR.restore": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "保留原二维码"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Keep original QR code"
+        }
+      }
+    }
+  },
+  "profile.contactQR.hint": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "完成只暂存保留或移除的选择，回到资料页后仍需审阅并保存。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Done only stages the choice to keep or remove this QR code. Review and save from the profile page to submit it."
+        }
+      }
+    }
+  },
+  "profile.contactQR.noUpload": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂不支持新增或替换二维码。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Adding or replacing a QR code is not available yet."
+        }
+      }
+    }
+  },
+  "profile.contactQR.reviewRemoval": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "将移除联系二维码。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The contact QR code will be removed."
+        }
+      }
+    }
+  }
+}

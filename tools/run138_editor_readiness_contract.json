@@ -24,6 +24,7 @@
     "TemplateHistoricalHintFlowTests.swift": "c6240505b4ab86c338ed8f34149992338ad37dc6c436a559c162b71ade624f19",
     "RoamExperienceFlowTests.swift": "5c38eb0ba990fdb5dea75121444e882b6add575a34c4afb37a49dfbd74a0ff51",
     "CouponRuntimeFlowTests.swift": "29d491e08624930b2943e4a59bdf605184de68c1bd6d99500637a28af1883225",
+    "MerchantTemplateMetadataFlowTests.swift": "4212ff99e168ef270480c497ab9d1fb1f95bcf79bc803e161a256e0f857c3074",
     "ApprovedTopicReviewUnknownFlowTests.swift": "12d3b39f6819ae294c37399f303cb08dfcc0ac49122460a6683c1df9cadda098",
     "CooperationFlowUITests.swift": "914ac0900365b40e72de7a304b8c058cb6cd5a09b7bcfbb4b56f869337e068f2",
     "PublicMerchantHomeFlowTests.swift": "7ada18a8f87bd815359f10bb4ae7b3b3a20ced50158a7b49af8db60c12a75e08",
@@ -64,6 +65,7 @@
     "SocialAccountFlowTests.swift": "4be80eb36a96fb19420fde772a46661f56217afd20319333c84b0e6f79ba6e36",
     "ReferenceChatTaskFlowTests.swift": "d96e7e68af7b0b36a4f33299b0fbd84d5abcf98b2abed7e7c202839a37fca602",
     "MerchantTemplateParticipationPlanFlowTests.swift": "b4e8c60794037f8e8fb151c3ba11516099482d63cf2784b3085bc9d38a6a7e7f",
+    "ProfileContactQRRemovalFlowTests.swift": "b2e650c4b6733546dc24ca36cce3538f487f476a122ea8e17c50597fd53d02d6",
     "ProjectStoryAudioFlowTests.swift": "09ed44f1047ce78327e94d78d7a96039a40ed1ad375a68f5858ef9e3eddd72c6",
     "ProjectStoryImageMiddleGapFlowTests.swift": "14ccbf3f0c0f1dbb2caacdfc44c3867069033931ad3a1d136809262dea2dece5",
     "ProjectStoryTemplateFlowSupport.swift": "b681a4dfab49f19c0ef17cccf76a0fbd18bd64ea7a0cd4bea7ee5e23c168db9e",
@@ -90,6 +92,7 @@
     "MerchantTemplateAssistFlowTests.swift": "0f3f046377c674ee281923ec2153ff08acce31248e8300c3b2784996a2793498",
     "OrderLifecycleUITests.swift": "47277c352682645056bb751c67be3b0c9bce32a2298f191b87835c13870d19c0",
     "SignedInContentDetailFlowTests.swift": "172f0db6c6a73badeab368f510e1793f54abb63cafbf31e01237e21c431889ff",
+    "ProfileCasePortfolioFlowTests.swift": "171eb446703ca5240139d43fa1acbe3c764b848116e8f97c6b603dd2059d4455",
     "MerchantOnboardingFlowTests.swift": "efe66ffdf924eeaed5833c5bf482f84af643882afbc3d156646f6113e5234cac",
     "NativeVerificationFlowTests.swift": "33812ae6464baffd58bfcc5aed48b3713a4f62ca2bc8befaff03ae76347051cf",
     "ProjectPendingNewChapterFlowTests.swift": "bb7d8be16e5d5e4fa8ec7f67ef6ea8ff37da3821d3a09f2de83fe111b50bc516",
@@ -100,6 +103,7 @@
     "SearchMapFlowTests.swift": "23ff72dd010bded72404168d4f3ecc9da2c3fb553a135585a9009f68486a4c74",
     "OwnedCouponCodeJourneyUITests.swift": "e90cdc1ecbac62b8d258767a54e82848d0118fc562e3a4bbe79cbde395926414",
     "ProjectEditPendingRestoreFlowTests.swift": "36e3ab9017004357c892f91620c0a133892b0750602323a18ad4a765fb9c654f",
+    "MerchantTemplatePreparationFlowTests.swift": "1b5e909777f95a10c36b46631b7f7c8f9091c413ac0fe3a0a5f890b5fe86a673",
     "MerchantOperationsFlowTests.swift": "c67960f25bde6fb02b1b9c8f3cbf3c854c96abfa91b0a55a6769470923b6fa0b",
     "RegistrationWaitlistUITests.swift": "6b798a02b14c8eca196441ece7fef851063788fa1e757ccb8d717e2dc5d4419a",
     "NativePresentationPatternFlowTests.swift": "8d6928510236f31608f35335e3a7e5f04eb6339e16220daf4a768c44b08109f8",
@@ -116,6 +120,7 @@
     "WorkshopCreatorPendingEntryFlowTests.swift": "f83f768726e0b11f63b7ebf013db5da842c12fb06196b19e77f37ba64f0eb9e1",
     "ShopNPCFlowTests.swift": "609f1e4bca562679d582789df265f7b6e340f02341b481609573eee3b97fa8d2",
     "WeChatAppAuthFlowTests.swift": "d5c4b559ba35a52da62527695761a638bb8dfe512f45f73d0010cfa63a1b7942",
+    "MerchantTemplateRuleStepsFlowTests.swift": "48e614784818da1dfdb1a542742da2c7d9db44ad1c6e61efcea050961b005016",
     "PlayCompareFlowTests.swift": "77ab14431d332b6f30ede7c5425f8d97b9ebdce7f3aac413cd1659b67a5c8aa5",
     "TemplateCompositionFlowTests.swift": "2786ec402ff09027d1bd96b1981fb92d287cffcb94c3c4add30de3b5d6530393",
     "AccountSavedPostCollectionFlowTests.swift": "da788dddda108d6f13970424e9d3b8b88a15dbce3ff911d713c25f38204abacf",
@@ -349,11 +354,11 @@
     "ApprovedTopicReviewRequestFlowTests.swift": "1f1e787a1beb9d46675f2662fd61890b0f2d90926bf6bc3d228bf2af3efe8a6b",
     "ClubEnrollmentFlowTests.swift": "fb6bf952ef69e09eb0aef75153752a5515d62e9d27f32048726849b3f9a8ea24"
   },
-  "current_inventory_sha256": "93e23ff0f4fc2d90b3ca004ad95fb36a8d61da24a4b023813eb0cc8de8115ce4",
+  "current_inventory_sha256": "76a66ec3e5470cf5913bd972b3abfd46089a3c77ae076d5915ebbcb4d38477eb",
   "previous_inventory_sha256": "3eff90afa8092ff9d54db78c792fd362da4392c0d479231b84bd31f627b54216",
-  "method_count": 750,
+  "method_count": 765,
   "class_count_before": 162,
-  "class_count_after": 166,
+  "class_count_after": 171,
   "helper_copy_sha256": "74ae59e50a36d4781536dc66dd42f2854f931450a158294c5f3f80d83916959c",
   "method_costs": {
     "ProjectEditReviewReadinessFlowTests.testLocalEditReviewAndCancelledConfirmation": {
@@ -497,9 +502,14 @@
     "ClubLeaderboardMemberFlowTests": 1190,
     "ProfileEditFlowTests": 971.645,
     "MerchantTemplateParticipationPlanFlowTests": 950,
-    "MerchantTemplateExitPlanFlowTests": 850
+    "MerchantTemplateExitPlanFlowTests": 850,
+    "MerchantTemplateMetadataFlowTests": 870,
+    "MerchantTemplatePreparationFlowTests": 1050,
+    "MerchantTemplateRuleStepsFlowTests": 1880,
+    "ProfileCasePortfolioFlowTests": 670,
+    "ProfileContactQRRemovalFlowTests": 840
   },
-  "added_total_seconds": 4403.948,
+  "added_total_seconds": 9713.948,
   "shard_count": 79,
   "deadline_seconds": 1800,
   "startup_reserve_seconds": 300,
@@ -889,7 +899,7 @@
     },
     "Questify.xcodeproj/project.pbxproj": {
       "before_sha256": "0497d3ffb5b6dfd9c3aa0cd67a27594cfcb412fcda57fa3ac5ec63d8cc462ed1",
-      "after_sha256": "0bcc55cdc63b659b8cd44c70b6fb4166cc2350c73f4a5da36853938f8d393af3",
+      "after_sha256": "54189959d7cc03d6a6c12dfd705ebdc8da617b47a4ae43086e7aedcb3e47292b",
       "hunks": [
         {
           "before": "\t\t\"F2C416E5BF616602CFE89B81\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"588CE027521446DF6EC81070\";\n\t\t};\n\t\t\"74E41CC929B3EEB9D9C0C251\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n",
@@ -1954,6 +1964,142 @@
         {
           "before": "\t\t\t\t\"D5402F983840F5F4E7E505C1\",\n\t\t\t\t\"F98B23623F4EB4435190D73A\",\n",
           "after": "\t\t\t\t\"D5402F983840F5F4E7E505C1\",\n\t\t\t\t\"CE7B66D8B6001F399948E4D1\",\n\t\t\t\t\"8B90E3CBBCDB328123249AD3\",\n\t\t\t\t\"F98B23623F4EB4435190D73A\",\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"6D1976384385971B369C88EA\" = {\n",
+          "after": "\t\t};\n\t\t\"5A8D8C25FDE552A6518EEAD2\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"App/ProfileCasePortfolioSection.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"F88AB917BA152B491DDF3620\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"5A8D8C25FDE552A6518EEAD2\";\n\t\t};\n\t\t\"4EACECCB7D53281738EFBF75\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"App/ProfileContactQREditor.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"B0745F7B87EFB6911B99A4DC\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"4EACECCB7D53281738EFBF75\";\n\t\t};\n\t\t\"6D1976384385971B369C88EA\" = {\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"7BD19C8B913BF67D8BC6C863\" = {\n",
+          "after": "\t\t};\n\t\t\"83A6F6377DB5AE4D57EDB183\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"App/TemplateChoiceOptionRowsEditor.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"30ADC41EBFF36D5BA7FCC188\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"83A6F6377DB5AE4D57EDB183\";\n\t\t};\n\t\t\"7BD19C8B913BF67D8BC6C863\" = {\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"A7571D8EB256304D9360AFA9\" = {\n",
+          "after": "\t\t};\n\t\t\"68DA616C705518588C90AAE0\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"App/TemplateRewardMedalClear.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"61A0107FE7A027150C0518DF\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"68DA616C705518588C90AAE0\";\n\t\t};\n\t\t\"A7571D8EB256304D9360AFA9\" = {\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"E1C0F976FD130942E76791ED\" = {\n",
+          "after": "\t\t};\n\t\t\"575FB8789A33D2CA09A296EA\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Core/ProfileCasePortfolio.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"A6DDC0A241D2F510C5FBC265\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"575FB8789A33D2CA09A296EA\";\n\t\t};\n\t\t\"E1C0F976FD130942E76791ED\" = {\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"798607E64FFF24E8C4E40196\" = {\n",
+          "after": "\t\t};\n\t\t\"D863DD9085E912C9973D7843\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Core/TemplateChoiceOptionRows.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"CE72C83CDC5A0A44C357CE4E\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"D863DD9085E912C9973D7843\";\n\t\t};\n\t\t\"798607E64FFF24E8C4E40196\" = {\n"
+        },
+        {
+          "before": "\t\t\t\"fileRef\" = \"7430D19CDAADD353AA881FB7\";\n\t\t};\n",
+          "after": "\t\t\t\"fileRef\" = \"7430D19CDAADD353AA881FB7\";\n\t\t};\n\t\t\"03F8E5F935CDEC711F18471A\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Core/TemplateRewardMedalRemoval.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"902F1DCDF8A3DCB25A8BD76E\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"03F8E5F935CDEC711F18471A\";\n\t\t};\n"
+        },
+        {
+          "before": "\t\t\t\t\"C26CA241BE029CAD13B6F6C3\",\n\t\t\t\t\"6D1976384385971B369C88EA\",\n",
+          "after": "\t\t\t\t\"C26CA241BE029CAD13B6F6C3\",\n\t\t\t\t\"5A8D8C25FDE552A6518EEAD2\",\n\t\t\t\t\"4EACECCB7D53281738EFBF75\",\n\t\t\t\t\"6D1976384385971B369C88EA\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"7C722ECE32E7AA504D582540\",\n\t\t\t\t\"7BD19C8B913BF67D8BC6C863\",\n",
+          "after": "\t\t\t\t\"7C722ECE32E7AA504D582540\",\n\t\t\t\t\"83A6F6377DB5AE4D57EDB183\",\n\t\t\t\t\"7BD19C8B913BF67D8BC6C863\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"B3A3ECDDE359B171036CDF5D\",\n\t\t\t\t\"A7571D8EB256304D9360AFA9\",\n",
+          "after": "\t\t\t\t\"B3A3ECDDE359B171036CDF5D\",\n\t\t\t\t\"68DA616C705518588C90AAE0\",\n\t\t\t\t\"A7571D8EB256304D9360AFA9\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"2A03972C00A352C1E70C11EC\",\n\t\t\t\t\"E1C0F976FD130942E76791ED\",\n",
+          "after": "\t\t\t\t\"2A03972C00A352C1E70C11EC\",\n\t\t\t\t\"575FB8789A33D2CA09A296EA\",\n\t\t\t\t\"E1C0F976FD130942E76791ED\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"89C1F6C0F5F48756D1380E3A\",\n\t\t\t\t\"798607E64FFF24E8C4E40196\",\n",
+          "after": "\t\t\t\t\"89C1F6C0F5F48756D1380E3A\",\n\t\t\t\t\"D863DD9085E912C9973D7843\",\n\t\t\t\t\"798607E64FFF24E8C4E40196\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"7430D19CDAADD353AA881FB7\",\n\t\t\t\t\"86297D159EE16DB294A36177\",\n",
+          "after": "\t\t\t\t\"7430D19CDAADD353AA881FB7\",\n\t\t\t\t\"03F8E5F935CDEC711F18471A\",\n\t\t\t\t\"86297D159EE16DB294A36177\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"3EA1C3550546E088317E139F\",\n\t\t\t\t\"129ED5F415BFEE6DDA97EAE8\",\n\t\t\t\t\"BA851E1F4F3FE032492FB7DC\",\n",
+          "after": "\t\t\t\t\"3EA1C3550546E088317E139F\",\n\t\t\t\t\"6136C16834ED2EC8F94DC372\",\n\t\t\t\t\"129ED5F415BFEE6DDA97EAE8\",\n\t\t\t\t\"0DDCB86C2298577F9FD3D1A8\",\n\t\t\t\t\"45157BB2DCBFC3B8AD142225\",\n\t\t\t\t\"BA851E1F4F3FE032492FB7DC\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"45537B344BC24E8B10D20AA9\",\n\t\t\t\t\"54E072CE26227B2585081955\",\n",
+          "after": "\t\t\t\t\"45537B344BC24E8B10D20AA9\",\n\t\t\t\t\"B8390AF2DAEBBC1CE5F66B41\",\n\t\t\t\t\"AF16AE672F9BD66482E650F1\",\n\t\t\t\t\"54E072CE26227B2585081955\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"E5830D21BA42540EDC9C998C\",\n\t\t\t\t\"424F607C053428BF79CAAE78\",\n",
+          "after": "\t\t\t\t\"E5830D21BA42540EDC9C998C\",\n\t\t\t\t\"76E148E3F33F46E1F9C2974A\",\n\t\t\t\t\"137BBAD514297E8321CEC40E\",\n\t\t\t\t\"424F607C053428BF79CAAE78\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"3C3A638405624CA2D9FA5921\",\n\t\t\t\t\"F7881F64F4E6C3EB28AF0786\",\n",
+          "after": "\t\t\t\t\"3C3A638405624CA2D9FA5921\",\n\t\t\t\t\"3004CF5DE08790C980B82FDD\",\n\t\t\t\t\"F7881F64F4E6C3EB28AF0786\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"823D50F5BAD928C0A4609D42\",\n\t\t\t\t\"F72179907611988318C7C685\",\n",
+          "after": "\t\t\t\t\"823D50F5BAD928C0A4609D42\",\n\t\t\t\t\"496E2196C7DE7AD54A0B7012\",\n\t\t\t\t\"F72179907611988318C7C685\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"E9E90C983628299A019FADE6\",\n\t\t\t\t\"396300A932CC47690D1335C9\",\n",
+          "after": "\t\t\t\t\"E9E90C983628299A019FADE6\",\n\t\t\t\t\"F88AB917BA152B491DDF3620\",\n\t\t\t\t\"B0745F7B87EFB6911B99A4DC\",\n\t\t\t\t\"396300A932CC47690D1335C9\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"61B032F8CB298F7EEC67C6A6\",\n\t\t\t\t\"C5F4031452424CD2E00BEBB1\",\n",
+          "after": "\t\t\t\t\"61B032F8CB298F7EEC67C6A6\",\n\t\t\t\t\"30ADC41EBFF36D5BA7FCC188\",\n\t\t\t\t\"C5F4031452424CD2E00BEBB1\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"7B4FE6875790A70A74BDE15F\",\n\t\t\t\t\"01824F20B6F53B4CC20C293B\",\n",
+          "after": "\t\t\t\t\"7B4FE6875790A70A74BDE15F\",\n\t\t\t\t\"61A0107FE7A027150C0518DF\",\n\t\t\t\t\"01824F20B6F53B4CC20C293B\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"47C54595345DC3785A6552D9\",\n\t\t\t\t\"6824DDCBBDF7B04003B34320\",\n",
+          "after": "\t\t\t\t\"47C54595345DC3785A6552D9\",\n\t\t\t\t\"A6DDC0A241D2F510C5FBC265\",\n\t\t\t\t\"6824DDCBBDF7B04003B34320\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"284DFC31135C54876879B269\",\n\t\t\t\t\"F87CF0E54D350A7BB8C45569\",\n",
+          "after": "\t\t\t\t\"284DFC31135C54876879B269\",\n\t\t\t\t\"CE72C83CDC5A0A44C357CE4E\",\n\t\t\t\t\"F87CF0E54D350A7BB8C45569\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"19C2E363A7AEB6E568BDD178\",\n\t\t\t\t\"5A004C88FCDA94AA04887627\",\n",
+          "after": "\t\t\t\t\"19C2E363A7AEB6E568BDD178\",\n\t\t\t\t\"902F1DCDF8A3DCB25A8BD76E\",\n\t\t\t\t\"5A004C88FCDA94AA04887627\",\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"129ED5F415BFEE6DDA97EAE8\" = {\n",
+          "after": "\t\t};\n\t\t\"6136C16834ED2EC8F94DC372\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUITests/MerchantTemplateMetadataFlowTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"00E4B24CF2702A8742CE78D2\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"6136C16834ED2EC8F94DC372\";\n\t\t};\n\t\t\"129ED5F415BFEE6DDA97EAE8\" = {\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"BA851E1F4F3FE032492FB7DC\" = {\n",
+          "after": "\t\t};\n\t\t\"0DDCB86C2298577F9FD3D1A8\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUITests/MerchantTemplatePreparationFlowTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"8F870F4AF31832A054CF5503\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"0DDCB86C2298577F9FD3D1A8\";\n\t\t};\n\t\t\"45157BB2DCBFC3B8AD142225\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUITests/MerchantTemplateRuleStepsFlowTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"F2E3A5FE65C40255230687C6\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"45157BB2DCBFC3B8AD142225\";\n\t\t};\n\t\t\"BA851E1F4F3FE032492FB7DC\" = {\n"
+        },
+        {
+          "before": "\t\t\t\"fileRef\" = \"45537B344BC24E8B10D20AA9\";\n\t\t};\n",
+          "after": "\t\t\t\"fileRef\" = \"45537B344BC24E8B10D20AA9\";\n\t\t};\n\t\t\"B8390AF2DAEBBC1CE5F66B41\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUITests/ProfileCasePortfolioFlowTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"2E23CF17F5150BB1AEBBE205\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"B8390AF2DAEBBC1CE5F66B41\";\n\t\t};\n\t\t\"AF16AE672F9BD66482E650F1\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUITests/ProfileContactQRRemovalFlowTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"7625D95ED36C10BF4AD01D3E\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"AF16AE672F9BD66482E650F1\";\n\t\t};\n"
+        },
+        {
+          "before": "\t\t\t\t\"FC28C266119056381A74D6E6\",\n\t\t\t\t\"E4BF0A95A6A0E3F1639AEFB4\",\n\t\t\t\t\"A0EF509173BCA11DCB538A15\",\n",
+          "after": "\t\t\t\t\"FC28C266119056381A74D6E6\",\n\t\t\t\t\"00E4B24CF2702A8742CE78D2\",\n\t\t\t\t\"E4BF0A95A6A0E3F1639AEFB4\",\n\t\t\t\t\"8F870F4AF31832A054CF5503\",\n\t\t\t\t\"F2E3A5FE65C40255230687C6\",\n\t\t\t\t\"A0EF509173BCA11DCB538A15\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"C8BCB0C02B80B7111A83E18C\",\n\t\t\t\t\"6D996FF606113ABFECE5D938\",\n",
+          "after": "\t\t\t\t\"C8BCB0C02B80B7111A83E18C\",\n\t\t\t\t\"2E23CF17F5150BB1AEBBE205\",\n\t\t\t\t\"7625D95ED36C10BF4AD01D3E\",\n\t\t\t\t\"6D996FF606113ABFECE5D938\",\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"424F607C053428BF79CAAE78\" = {\n",
+          "after": "\t\t};\n\t\t\"76E148E3F33F46E1F9C2974A\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUnitTests/ProfileCasePortfolioTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"16F74F0875B8EECAC99D65E9\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"76E148E3F33F46E1F9C2974A\";\n\t\t};\n\t\t\"137BBAD514297E8321CEC40E\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUnitTests/ProfileContactQRRemovalTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"88F0CFA986947BD3FFB032B4\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"137BBAD514297E8321CEC40E\";\n\t\t};\n\t\t\"424F607C053428BF79CAAE78\" = {\n"
+        },
+        {
+          "before": "\t\t};\n\t\t\"F7881F64F4E6C3EB28AF0786\" = {\n",
+          "after": "\t\t};\n\t\t\"3004CF5DE08790C980B82FDD\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUnitTests/TemplateChoiceOptionRowsEditorTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"7A6EB64164390C1AF6E3FBE3\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"3004CF5DE08790C980B82FDD\";\n\t\t};\n\t\t\"F7881F64F4E6C3EB28AF0786\" = {\n"
+        },
+        {
+          "before": "\t\t\t\"fileRef\" = \"823D50F5BAD928C0A4609D42\";\n\t\t};\n",
+          "after": "\t\t\t\"fileRef\" = \"823D50F5BAD928C0A4609D42\";\n\t\t};\n\t\t\"496E2196C7DE7AD54A0B7012\" = {\n\t\t\t\"isa\" = \"PBXFileReference\";\n\t\t\t\"lastKnownFileType\" = \"sourcecode.swift\";\n\t\t\t\"path\" = \"Tests/AppUnitTests/TemplateRewardMedalClearTests.swift\";\n\t\t\t\"sourceTree\" = \"<group>\";\n\t\t};\n\t\t\"9D31089CBC0E78FBD5AE9432\" = {\n\t\t\t\"isa\" = \"PBXBuildFile\";\n\t\t\t\"fileRef\" = \"496E2196C7DE7AD54A0B7012\";\n\t\t};\n"
+        },
+        {
+          "before": "\t\t\t\t\"5F13368F03E599783EF37FFD\",\n\t\t\t\t\"2C857E999D5CCB78EC4E39A5\",\n",
+          "after": "\t\t\t\t\"5F13368F03E599783EF37FFD\",\n\t\t\t\t\"16F74F0875B8EECAC99D65E9\",\n\t\t\t\t\"88F0CFA986947BD3FFB032B4\",\n\t\t\t\t\"2C857E999D5CCB78EC4E39A5\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"DC604FA1F77A2C672D9466B0\",\n\t\t\t\t\"76967FE3D7E4A63CF327292F\",\n",
+          "after": "\t\t\t\t\"DC604FA1F77A2C672D9466B0\",\n\t\t\t\t\"7A6EB64164390C1AF6E3FBE3\",\n\t\t\t\t\"76967FE3D7E4A63CF327292F\",\n"
+        },
+        {
+          "before": "\t\t\t\t\"D358F8FFC6769B29314BD848\",\n\t\t\t\t\"14B0700446BE94EA5B04E200\",\n",
+          "after": "\t\t\t\t\"D358F8FFC6769B29314BD848\",\n\t\t\t\t\"9D31089CBC0E78FBD5AE9432\",\n\t\t\t\t\"14B0700446BE94EA5B04E200\",\n"
         }
       ]
     },
@@ -2211,7 +2357,7 @@
     },
     "App/MerchantOperationsEditor.swift": {
       "before_sha256": "2b9a71ae8f0462dd244b6e577db7f640292372c14e21ebefd7d65abdc9987c76",
-      "after_sha256": "ff2fc80339203552415f39c18bf447f507fdde54f966b39409a4a23852fe20a9",
+      "after_sha256": "2728a1253e261b4e7712ed3fc799832668880a53d59300b211ec50b1e843e8be",
       "hunks": [
         {
           "before": "            Section(\"merchant.operations.decor\") {\n                decorField(\"merchant.operations.slogan\", \\.slogan, \"slogan\")\n                decorField(\"merchant.operations.cityRole\", \\.cityRole, \"cityRole\")\n                Text(\"merchant.operations.decorPreserved\").font(.footnote).foregroundStyle(.secondary)\n                if let category = value.categoryID { LabeledContent(\"merchant.operations.category\", value: String(category)) }\n                if let type = value.featuredType, let id = value.featuredID { LabeledContent(\"merchant.operations.featured\", value: \"\\(type) / \\(id)\") }\n            }\n            Section(\"merchant.operations.tags\") {\n                TextField(\"merchant.operations.tags\", text: Binding(get: { currentDecor?.tags.joined(separator: \";\") ?? \"\" }, set: { raw in\n                    guard var value = currentDecor else { return }; value.tags = raw.components(separatedBy: \";\").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }; model.edit(.decor(value))\n                }), axis: .vertical).accessibilityIdentifier(\"merchant.operations.field.tags\")\n                Text(\"merchant.operations.tagsHint\").font(.footnote).foregroundStyle(.secondary)\n            }\n            mediaSection(\"merchant.operations.cover\", field: .coverImage)\n        case .gallery(let value):\n",
@@ -2248,12 +2394,24 @@
         {
           "before": "            }\n            .listRowInsets(EdgeInsets())\n        }\n    }\n}\n",
           "after": "            }\n            .listRowInsets(EdgeInsets())\n        }\n    }\n}\n\n\n/// Uses the existing draft identity, dirty-state guard and immutable review.\n@MainActor\nprivate struct MerchantTemplateParticipationPlanFields: View {\n    @ObservedObject var model: MerchantOperationsViewModel\n    private var template: MerchantNodeTemplate? {\n        if case .template(let value) = model.coordinator.draft { return value }\n        return nil\n    }\n    var body: some View {\n        Section(\"merchant.participation.title\") {\n            Text(\"merchant.participation.localOnly\").font(.footnote).foregroundStyle(.secondary)\n                .accessibilityIdentifier(\"merchant.participation.boundary\")\n            if let plan = template?.participationPlan {\n                field(\"merchant.participation.duration\", \\.durationMinutes, \"duration\")\n                field(\"merchant.participation.capacity\", \\.maximumParticipants, \"capacity\")\n                Picker(\"merchant.participation.staffing\", selection: Binding(get: {\n                    template?.participationPlan?.staffing ?? .unspecified\n                }, set: { value in update { $0.staffing = value } })) {\n                    ForEach(MerchantTemplateParticipationPlan.Staffing.allCases, id: \\.rawValue) { value in\n                        Text(LocalizedStringKey(value.titleKey)).tag(value)\n                    }\n                }.pickerStyle(.menu).accessibilityIdentifier(\"merchant.participation.staffing\")\n                if let blocker = plan.blocker {\n                    Text(LocalizedStringKey(blocker)).foregroundStyle(.secondary)\n                        .accessibilityIdentifier(\"merchant.participation.blocker\")\n                }\n                Button(\"merchant.participation.remove\", role: .destructive) {\n                    guard var value = template else { return }\n                    value.participationPlan = nil; model.edit(.template(value))\n                }.accessibilityIdentifier(\"merchant.participation.remove\")\n            } else {\n                Button(\"merchant.participation.add\") {\n                    guard var value = template else { return }\n                    value.participationPlan = .init(); model.edit(.template(value))\n                }.accessibilityIdentifier(\"merchant.participation.add\")\n            }\n        }\n    }\n    private func update(_ edit: (inout MerchantTemplateParticipationPlan) -> Void) {\n        guard var value = template, var plan = value.participationPlan else { return }\n        edit(&plan); value.participationPlan = plan; model.edit(.template(value))\n    }\n    private func field(_ title: LocalizedStringKey, _ path: WritableKeyPath<MerchantTemplateParticipationPlan, String>, _ id: String) -> some View {\n        TextField(title, text: Binding(get: { template?.participationPlan?[keyPath: path] ?? \"\" }, set: { text in\n            update { $0[keyPath: path] = text }\n        })).keyboardType(.numberPad).accessibilityIdentifier(\"merchant.participation.\" + id)\n    }\n}\n\n@MainActor\nprivate struct MerchantTemplateParticipationPlanReview: View {\n    let plan: MerchantTemplateParticipationPlan\n    var body: some View {\n        Section(\"merchant.participation.reviewTitle\") {\n            LabeledContent(\"merchant.participation.duration\", value: plan.durationMinutes.trimmingCharacters(in: .whitespacesAndNewlines))\n                .accessibilityIdentifier(\"merchant.participation.review.duration\")\n            LabeledContent(\"merchant.participation.capacity\", value: plan.maximumParticipants.trimmingCharacters(in: .whitespacesAndNewlines))\n                .accessibilityIdentifier(\"merchant.participation.review.capacity\")\n            LabeledContent(\"merchant.participation.staffing\") { Text(LocalizedStringKey(plan.staffing.titleKey)) }\n                .accessibilityIdentifier(\"merchant.participation.review.staffing\")\n            Text(\"merchant.participation.reviewBoundary\").font(.footnote).foregroundStyle(.secondary)\n        }\n    }\n}\n\n\n@MainActor\nprivate struct MerchantTemplateExitPlanFields: View {\n    @ObservedObject var model: MerchantOperationsViewModel\n    private var template: MerchantNodeTemplate? {\n        if case .template(let value) = model.coordinator.draft { return value }\n        return nil\n    }\n    var body: some View {\n        Section(\"merchant.exitPlan.title\") {\n            Text(\"merchant.participation.localOnly\").font(.footnote).foregroundStyle(.secondary)\n                .accessibilityIdentifier(\"merchant.exitPlan.boundary\")\n            if let plan = template?.exitPlan {\n                field(\"merchant.exitPlan.offline\", \\.offlineAlternative, \"offline\")\n                field(\"merchant.exitPlan.failureExit\", \\.failureExit, \"failureExit\")\n                Text(\"merchant.exitPlan.instructionsHint\").font(.footnote).foregroundStyle(.secondary)\n                if let blocker = plan.blocker {\n                    Text(LocalizedStringKey(blocker)).foregroundStyle(.secondary)\n                        .accessibilityIdentifier(\"merchant.exitPlan.blocker\")\n                }\n                Button(\"merchant.exitPlan.remove\", role: .destructive) {\n                    guard var value = template else { return }\n                    value.exitPlan = nil; model.edit(.template(value))\n                }.accessibilityIdentifier(\"merchant.exitPlan.remove\")\n            } else {\n                Button(\"merchant.exitPlan.add\") {\n                    guard var value = template else { return }\n                    value.exitPlan = .init(); model.edit(.template(value))\n                }.accessibilityIdentifier(\"merchant.exitPlan.add\")\n            }\n        }\n    }\n    private func field(_ title: LocalizedStringKey, _ path: WritableKeyPath<MerchantTemplateExitPlan, String>, _ id: String) -> some View {\n        TextField(title, text: Binding(get: { template?.exitPlan?[keyPath: path] ?? \"\" }, set: { text in\n            guard var value = template, var plan = value.exitPlan else { return }\n            plan[keyPath: path] = text; value.exitPlan = plan; model.edit(.template(value))\n        }), axis: .vertical).accessibilityIdentifier(\"merchant.exitPlan.\" + id)\n    }\n}\n\n@MainActor\nprivate struct MerchantTemplateExitPlanReview: View {\n    let plan: MerchantTemplateExitPlan\n    var body: some View {\n        Section(\"merchant.exitPlan.reviewTitle\") {\n            VStack(alignment: .leading, spacing: 6) {\n                Text(\"merchant.exitPlan.offline\").font(.caption).foregroundStyle(.secondary)\n                Text(verbatim: plan.offlineAlternative.trimmingCharacters(in: .whitespacesAndNewlines))\n                    .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier(\"merchant.exitPlan.review.offline\")\n            }\n            VStack(alignment: .leading, spacing: 6) {\n                Text(\"merchant.exitPlan.failureExit\").font(.caption).foregroundStyle(.secondary)\n                Text(verbatim: plan.failureExit.trimmingCharacters(in: .whitespacesAndNewlines))\n                    .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier(\"merchant.exitPlan.review.failureExit\")\n            }\n            Text(\"merchant.exitPlan.reviewBoundary\").font(.footnote).foregroundStyle(.secondary)\n        }\n    }\n}\n"
+        },
+        {
+          "before": "                })) {\n                    Text(\"merchant.operations.chooseMethod\").tag(0)\n                    ForEach(MerchantTemplateMethod.allCases, id: \\.rawValue) { method in Text(LocalizedStringKey(method.titleKey)).tag(method.rawValue) }\n                }.accessibilityIdentifier(\"merchant.operations.method\")\n            }\n            MerchantTemplateParticipationPlanFields(model: model)\n            MerchantTemplateExitPlanFields(model: model)\n            if value.method == .secretWord { Section { templateField(\"merchant.operations.answer\", \\.questionAnswer, \"answer\") } }\n            if value.method == .quiz {\n                Section(\"merchant.operations.quiz\") {\n",
+          "after": "                })) {\n                    Text(\"merchant.operations.chooseMethod\").tag(0)\n                    ForEach(MerchantTemplateMethod.allCases, id: \\.rawValue) { method in Text(LocalizedStringKey(method.titleKey)).tag(method.rawValue) }\n                }.accessibilityIdentifier(\"merchant.operations.method\")\n            }\n            Section(\"merchant.templateMetadata.title\") {\n                templateField(\"merchant.templateMetadata.duration\", \\.gameDurationMinutes, \"gameDurationMinutes\")\n                templateField(\"merchant.templateMetadata.players\", \\.players, \"players\")\n                Text(\"merchant.templateMetadata.scopeHint\").font(.footnote).foregroundStyle(.secondary)\n                Text(\"merchant.templateMetadata.omissionHint\").font(.footnote).foregroundStyle(.secondary)\n            }\n            Section(\"merchant.preparation.title\") {\n                Picker(\"merchant.preparation.venueLabel\", selection: Binding(get: { currentTemplate?.usageLocation ?? \"\" }, set: { text in\n                    guard var value = currentTemplate else { return }\n                    value.usageLocation = text; model.edit(.template(value))\n                })) {\n                    Text(\"merchant.preparation.unspecified\").tag(\"\").disabled(true)\n                    if !value.usageLocation.isEmpty, MerchantTemplateVenueChoice(rawValue: value.usageLocation) == nil {\n                        Text(verbatim: value.usageLocation).tag(value.usageLocation)\n                    }\n                    ForEach(MerchantTemplateVenueChoice.allCases, id: \\.rawValue) { choice in\n                        Text(LocalizedStringKey(choice.titleKey)).tag(choice.rawValue)\n                    }\n                }.pickerStyle(.menu).accessibilityIdentifier(\"merchant.preparation.venue\")\n                if !value.usageLocation.isEmpty, MerchantTemplateVenueChoice(rawValue: value.usageLocation) == nil {\n                    Text(\"merchant.preparation.unknownVenue\").font(.footnote).foregroundStyle(.secondary)\n                }\n                templateField(\"merchant.preparation.materials\", \\.requiredMaterials, \"requiredMaterials\")\n                Text(\"merchant.preparation.hint\").font(.footnote).foregroundStyle(.secondary)\n                Text(\"merchant.preparation.omissionHint\").font(.footnote).foregroundStyle(.secondary)\n            }\n            MerchantTemplateRuleStepsFields(model: model)\n            MerchantTemplateParticipationPlanFields(model: model)\n            MerchantTemplateExitPlanFields(model: model)\n            if value.method == .secretWord { Section { templateField(\"merchant.operations.answer\", \\.questionAnswer, \"answer\") } }\n            if value.method == .quiz {\n                Section(\"merchant.operations.quiz\") {\n"
+        },
+        {
+          "before": "                            } else { Text(verbatim: line.value.isEmpty ? \"—\" : line.value).fixedSize(horizontal: false, vertical: true) }\n                        }\n                    }\n                    if case .template(let value) = confirmation.draft, let method = value.method { Text(LocalizedStringKey(method.titleKey)) }\n                }\n                if case .template(let template) = confirmation.draft, let plan = template.participationPlan {\n                    MerchantTemplateParticipationPlanReview(plan: plan)\n                }\n                if case .template(let template) = confirmation.draft, let plan = template.exitPlan {\n                    MerchantTemplateExitPlanReview(plan: plan)\n                }\n                Section {\n",
+          "after": "                            } else { Text(verbatim: line.value.isEmpty ? \"—\" : line.value).fixedSize(horizontal: false, vertical: true) }\n                        }\n                    }\n                    if case .template(let value) = confirmation.draft, let method = value.method { Text(LocalizedStringKey(method.titleKey)) }\n                }\n                if case .template(let template) = confirmation.draft {\n                    Section(\"merchant.templateMetadata.title\") {\n                        LabeledContent(\"merchant.templateMetadata.duration\", value: template.gameDurationMinutes.trimmingCharacters(in: .whitespacesAndNewlines))\n                            .accessibilityIdentifier(\"merchant.templateMetadata.review.duration\")\n                        LabeledContent(\"merchant.templateMetadata.players\", value: template.players.trimmingCharacters(in: .whitespacesAndNewlines))\n                            .accessibilityIdentifier(\"merchant.templateMetadata.review.players\")\n                        Text(\"merchant.templateMetadata.omissionHint\").font(.footnote).foregroundStyle(.secondary)\n                    }\n                }\n                if case .template(let template) = confirmation.draft {\n                    Section(\"merchant.preparation.title\") {\n                        LabeledContent(\"merchant.preparation.venueLabel\") {\n                            if let choice = MerchantTemplateVenueChoice(rawValue: template.usageLocation) {\n                                Text(LocalizedStringKey(choice.titleKey))\n                            } else { Text(verbatim: template.usageLocation) }\n                        }.accessibilityIdentifier(\"merchant.preparation.review.venue\")\n                        VStack(alignment: .leading, spacing: 6) {\n                            Text(\"merchant.preparation.materials\").font(.caption).foregroundStyle(.secondary)\n                            Text(verbatim: template.requiredMaterials.trimmingCharacters(in: .whitespacesAndNewlines))\n                                .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier(\"merchant.preparation.review.materials\")\n                        }\n                        Text(\"merchant.preparation.omissionHint\").font(.footnote).foregroundStyle(.secondary)\n                    }\n                }\n                if case .template(let template) = confirmation.draft, let plan = template.participationPlan {\n                    MerchantTemplateParticipationPlanReview(plan: plan)\n                }\n                if case .template(let template) = confirmation.draft {\n                    MerchantTemplateRuleStepsReview(rules: template.ruleSteps)\n                }\n                if case .template(let template) = confirmation.draft, let plan = template.exitPlan {\n                    MerchantTemplateExitPlanReview(plan: plan)\n                }\n                Section {\n"
+        },
+        {
+          "before": "            }\n            Text(\"merchant.exitPlan.reviewBoundary\").font(.footnote).foregroundStyle(.secondary)\n        }\n    }\n}\n",
+          "after": "            }\n            Text(\"merchant.exitPlan.reviewBoundary\").font(.footnote).foregroundStyle(.secondary)\n        }\n    }\n}\n\n@MainActor\nprivate struct MerchantTemplateRuleStepsFields: View {\n    @ObservedObject var model: MerchantOperationsViewModel\n    private var template: MerchantNodeTemplate? {\n        if case .template(let value) = model.coordinator.draft { return value }; return nil\n    }\n    private func edit(_ action: (inout MerchantTemplateRuleSteps) -> Void) {\n        guard var value = template else { return }\n        action(&value.ruleSteps); model.edit(.template(value))\n    }\n    var body: some View {\n        if let rules = template?.ruleSteps {\n            Section(\"merchant.ruleSteps.title\") {\n                Text(\"merchant.ruleSteps.playerVisible\").font(.footnote).foregroundStyle(.secondary)\n                ForEach(rules.rows.indices, id: \\.self) { index in\n                    VStack(alignment: .leading, spacing: 6) {\n                        Text(\"merchant.ruleSteps.step \\(index + 1)\").font(.caption).foregroundStyle(.secondary)\n                        TextField(\"merchant.ruleSteps.instruction\", text: Binding(get: {\n                            guard let rows = template?.ruleSteps.rows, rows.indices.contains(index) else { return \"\" }\n                            return rows[index]\n                        }, set: { text in edit { $0.update(at: index, text: text) } }))\n                            .accessibilityLabel(Text(\"merchant.ruleSteps.step \\(index + 1)\"))\n                            .accessibilityIdentifier(\"merchant.ruleSteps.field.\\(index)\")\n                        Button(role: .destructive) { edit { $0.remove(at: index) } } label: {\n                            Label(\"merchant.ruleSteps.remove\", systemImage: \"minus.circle\")\n                        }.buttonStyle(.borderless).disabled(rules.rows.count <= 1)\n                            .accessibilityLabel(Text(\"merchant.ruleSteps.removeStep \\(index + 1)\"))\n                            .accessibilityIdentifier(\"merchant.ruleSteps.remove.\\(index)\")\n                    }\n                }\n                Button(\"merchant.ruleSteps.add\", systemImage: \"plus\") { edit { $0.add() } }\n                    .disabled(!rules.canAdd).accessibilityIdentifier(\"merchant.ruleSteps.add\")\n                Text(\"merchant.ruleSteps.limits\").font(.footnote).foregroundStyle(.secondary)\n                Text(\"merchant.ruleSteps.emptyHint\").font(.footnote).foregroundStyle(.secondary)\n            }\n        }\n    }\n}\n\nprivate struct MerchantTemplateRuleStepsReview: View {\n    let rules: MerchantTemplateRuleSteps\n    var body: some View {\n        Section(\"merchant.ruleSteps.title\") {\n            Text(\"merchant.ruleSteps.playerVisible\").font(.footnote).foregroundStyle(.secondary)\n            if rules.isClearing {\n                Text(\"merchant.ruleSteps.clearReview\").accessibilityIdentifier(\"merchant.ruleSteps.review.clear\")\n            } else if let text = rules.wireValue, !text.isEmpty {\n                Text(verbatim: text).fixedSize(horizontal: false, vertical: true)\n                    .accessibilityIdentifier(\"merchant.ruleSteps.review.text\")\n            } else {\n                Text(\"merchant.ruleSteps.emptyReview\").accessibilityIdentifier(\"merchant.ruleSteps.review.empty\")\n            }\n        }\n    }\n}\n"
         }
       ]
     },
     "App/MerchantOperationsViews.swift": {
       "before_sha256": "af90ffe83b625ea53927c06b86d71723029e76e19a9e71a928d4e5dbb896388f",
-      "after_sha256": "62c9d5c038026c4dd8cc7a5c1389aff5caf4308bad0f2df33eeb23b084271833",
+      "after_sha256": "7e7aa82ed8d684baef1f785b5d3331529073710ee080c63b29039ea5a3c2d43d",
       "hunks": [
         {
           "before": "                case .draft:\n                    MerchantOperationsEditor(model: model, templateAssistFactory: templateAssistFactory, imageContext: model.imageContext)\n                case .cityNodes(let catalog): MerchantOperationsCityView(catalog: catalog)\n                case .templates(let rows): MerchantOperationsTemplatesView(reader: reader, rows: rows, imageHost: imageHost, templateAssistFactory: templateAssistFactory)\n                case .assets(let resources): MerchantOperationsAssetsView(resources: resources)\n                }\n            } else if let issue = coordinator.issue, coordinator.loadedScope == reader.scope {\n",
@@ -2266,6 +2424,14 @@
         {
           "before": "                if rows.isEmpty { ContentUnavailableView(\"merchant.operations.empty\", systemImage: \"square.grid.2x2\") }\n                ForEach(rows) { row in\n                    NavigationLink { MerchantOperationsDocumentView(reader: reader, destination: .template(row.id), imageHost: imageHost, templateAssistFactory: templateAssistFactory) } label: {\n                        QuestifyImageEntityCard(imageSource: reader.isOfflineExample ? nil : row.imgUrl, title: row.title, subtitle: row.description, fallbackTitle: \"merchant.operations.untitled\", minimumHeight: 230) {\n                            Text(LocalizedStringKey(templateStatus(row.status)))\n                            if let method = row.validationMethod.flatMap(MerchantTemplateMethod.init(rawValue:)) { Text(LocalizedStringKey(method.titleKey)) }\n                        }\n",
           "after": "                if rows.isEmpty { ContentUnavailableView(\"merchant.operations.empty\", systemImage: \"square.grid.2x2\") }\n                ForEach(rows) { row in\n                    NavigationLink { MerchantOperationsDocumentView(reader: reader, destination: .template(row.id), imageHost: imageHost, templateAssistFactory: templateAssistFactory) } label: {\n                        QuestifyImageEntityCard(imageSource: reader.isOfflineExample ? nil : row.imgUrl, title: row.title, subtitle: row.description, fallbackTitle: \"merchant.operations.untitled\", minimumHeight: 230,\n                            progressiveBlur: .cover, artworkIdentity: .init(owner: reader.scope.uuidString, content: \"merchant-template:\\(row.id)\", version: artworkVersion)) {\n                            Text(LocalizedStringKey(templateStatus(row.status)))\n                            if let method = row.validationMethod.flatMap(MerchantTemplateMethod.init(rawValue:)) { Text(LocalizedStringKey(method.titleKey)) }\n                        }\n"
+        },
+        {
+          "before": "    let galleryBatch = MerchantGalleryBatchModel()\n    let imageOwner: MerchantRetainedImageDocumentOwner?\n    init(reader: any MerchantOperationsReading, destination: MerchantOperationsDestination, imageHost: MerchantRetainedImageHost? = nil) {\n        coordinator = .init(reader: reader, destination: destination)\n        imageOwner = imageHost?.document(reader: reader, destination: destination)\n",
+          "after": "    let galleryBatch = MerchantGalleryBatchModel()\n    private let imageHost: MerchantRetainedImageHost?\n    private(set) var imageOwner: MerchantRetainedImageDocumentOwner?\n    init(reader: any MerchantOperationsReading, destination: MerchantOperationsDestination, imageHost: MerchantRetainedImageHost? = nil) {\n        coordinator = .init(reader: reader, destination: destination)\n        self.imageHost = imageHost\n        imageOwner = imageHost?.document(reader: reader, destination: destination)\n"
+        },
+        {
+          "before": "        galleryBatch.cancel(); imageOwner?.invalidate(); revision += 1\n        await coordinator.confirm(value); await imageOwner?.refresh(coordinator: coordinator); revision += 1\n    }\n",
+          "after": "        galleryBatch.cancel(); imageOwner?.invalidate(); revision += 1\n        let previousDestination = coordinator.destination\n        await coordinator.confirm(value)\n        if previousDestination != coordinator.destination {\n            imageOwner?.invalidate()\n            imageOwner = imageHost?.document(reader: coordinator.reader, destination: coordinator.destination)\n        }\n        await imageOwner?.refresh(coordinator: coordinator); revision += 1\n    }\n"
         }
       ]
     },
@@ -2717,7 +2883,7 @@
     },
     "Core/MerchantOperationsContracts.swift": {
       "before_sha256": "9a673d888c5fe35f76343477f47f9ee0177e0d4e922c3c49f26d1d2a6a72f385",
-      "after_sha256": "cf277141356540ce606e07c16fccf0fe24c57e08778a03229f7b127ed071c16e",
+      "after_sha256": "61a92be737ade58410fac93c2b428dff865681650240584f72d9535037b44d79",
       "hunks": [
         {
           "before": "    public var blocker: String? {\n        if gallery.count > 9 { return \"merchant.operations.galleryLimit\" }\n        if ((featuredType ?? 0) > 0) != ((featuredID ?? 0) > 0) { return \"merchant.operations.featuredIncomplete\" }\n        if (coverImage ?? \"\").isEmpty && slogan.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && cityRole.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && storyTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && gallery.isEmpty && tags.isEmpty { return \"merchant.operations.decorEmpty\" }\n        return nil\n    }\n    /// This full payload is a contract preview only; no production send exists.\n",
@@ -2746,12 +2912,40 @@
         {
           "before": "        }\n        return nil\n    }\n    public var fields: [String: Any] {\n",
           "after": "        }\n        return participationPlan?.blocker ?? exitPlan?.blocker\n    }\n    /// Exact legacy wire fields only. A local participation plan is not a server fact.\n    public var fields: [String: Any] {\n"
+        },
+        {
+          "before": "}\npublic enum MerchantTemplateMethod: Int, CaseIterable {\n",
+          "after": "}\n/// Exact Mini VENUE_OPTIONS. These are template descriptions, not location grants.\npublic enum MerchantTemplateVenueChoice: String, CaseIterable {\n    case scenicArea = \"景区\", park = \"公园绿地\", shoppingDistrict = \"商圈街区\"\n    case historicDistrict = \"古镇老街\", museum = \"博物馆\", campus = \"校园\", indoorVenue = \"室内场馆\"\n    public var titleKey: String {\n        switch self {\n        case .scenicArea: return \"merchant.preparation.venue.scenicArea\"\n        case .park: return \"merchant.preparation.venue.park\"\n        case .shoppingDistrict: return \"merchant.preparation.venue.shoppingDistrict\"\n        case .historicDistrict: return \"merchant.preparation.venue.historicDistrict\"\n        case .museum: return \"merchant.preparation.venue.museum\"\n        case .campus: return \"merchant.preparation.venue.campus\"\n        case .indoorVenue: return \"merchant.preparation.venue.indoorVenue\"\n        }\n    }\n}\n\npublic enum MerchantTemplateMethod: Int, CaseIterable {\n"
+        },
+        {
+          "before": "\npublic struct MerchantNodeTemplate: Decodable, Equatable {\n",
+          "after": "\n/// Mini's ruleInstructions editor: one player-facing instruction per line.\n/// These are editor limits, not a claim that every legacy server value follows them.\npublic struct MerchantTemplateRuleSteps: Equatable {\n    public static let maximumSteps = 12\n    public static let maximumStepLength = 60\n    private let sourceText: String?\n    public private(set) var rows: [String]\n    public private(set) var isEdited = false\n    public init(sourceText: String? = nil) {\n        self.sourceText = sourceText\n        let lines = (sourceText ?? \"\").components(separatedBy: \"\\n\")\n            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }\n        rows = lines.isEmpty ? [\"\"] : lines\n    }\n    /// Missing/null stays omitted; merely opening an old template never rewrites its text.\n    /// An explicit all-empty edit is an empty String, supported by the existing != null SQL.\n    public var wireValue: String? {\n        guard isEdited else { return sourceText }\n        return rows.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }\n            .filter { !$0.isEmpty }.joined(separator: \"\\n\")\n    }\n    public var isClearing: Bool {\n        isEdited && wireValue == \"\" && !(sourceText ?? \"\").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty\n    }\n    public var canAdd: Bool { rows.count < Self.maximumSteps }\n    public mutating func update(at index: Int, text: String) {\n        guard rows.indices.contains(index), rows[index] != text else { return }\n        rows[index] = text; isEdited = true\n    }\n    public mutating func add() {\n        guard canAdd else { return }\n        rows.append(\"\"); isEdited = true\n    }\n    public mutating func remove(at index: Int) {\n        guard rows.count > 1, rows.indices.contains(index) else { return }\n        rows.remove(at: index); isEdited = true\n    }\n    public var blocker: String? {\n        guard isEdited else { return nil }\n        if rows.count > Self.maximumSteps { return \"merchant.ruleSteps.countLimit\" }\n        if rows.contains(where: { $0.rangeOfCharacter(from: .newlines) != nil }) { return \"merchant.ruleSteps.oneLine\" }\n        if rows.contains(where: { $0.utf16.count > Self.maximumStepLength }) { return \"merchant.ruleSteps.textLimit\" }\n        return nil\n    }\n}\n\npublic struct MerchantNodeTemplate: Decodable, Equatable {\n"
+        },
+        {
+          "before": "    public var description = \"\"\n    public var imgURL: String?\n",
+          "after": "    public var description = \"\"\n    /// Existing server metadata: duration is minutes; players is descriptive game player-count text,\n    /// never the venue's maximumParticipants or an approved capacity constraint.\n    public var gameDurationMinutes = \"\"\n    public var players = \"\"\n    /// Existing persisted preparation fields; unfamiliar source venue values are preserved.\n    public var usageLocation = \"\"\n    public var requiredMaterials = \"\"\n    public var ruleSteps = MerchantTemplateRuleSteps()\n    public var imgURL: String?\n"
+        },
+        {
+          "before": "    private enum CodingKeys: String, CodingKey {\n        case id, title, description, imgUrl, validationMethod, questionAnswer, questionName, questionA, questionB, questionC, questionD, correctAnswer, feedbackText, couponId\n    }\n",
+          "after": "    private enum CodingKeys: String, CodingKey {\n        case id, title, description, duration, players, imgUrl, validationMethod, questionAnswer, questionName, questionA, questionB, questionC, questionD, correctAnswer, feedbackText, couponId, usageLocation, requiredMaterials, ruleInstructions\n    }\n"
+        },
+        {
+          "before": "        description = try c.decodeIfPresent(String.self, forKey: .description) ?? \"\"\n        imgURL = try c.decodeIfPresent(String.self, forKey: .imgUrl)\n",
+          "after": "        description = try c.decodeIfPresent(String.self, forKey: .description) ?? \"\"\n        if c.contains(.duration), try !c.decodeNil(forKey: .duration) {\n            if let number = try? c.decode(Int.self, forKey: .duration) { gameDurationMinutes = String(number) }\n            else { gameDurationMinutes = try c.decode(String.self, forKey: .duration) }\n            guard Self.validDuration(gameDurationMinutes) != nil else { throw APIError.malformedResponse }\n        }\n        players = try c.decodeIfPresent(String.self, forKey: .players) ?? \"\"\n        usageLocation = try c.decodeIfPresent(String.self, forKey: .usageLocation) ?? \"\"\n        requiredMaterials = try c.decodeIfPresent(String.self, forKey: .requiredMaterials) ?? \"\"\n        ruleSteps = .init(sourceText: try c.decodeIfPresent(String.self, forKey: .ruleInstructions))\n        imgURL = try c.decodeIfPresent(String.self, forKey: .imgUrl)\n"
+        },
+        {
+          "before": "        }\n        return participationPlan?.blocker ?? exitPlan?.blocker\n    }\n",
+          "after": "        }\n        if !gameDurationMinutes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,\n           Self.validDuration(gameDurationMinutes) == nil { return \"merchant.templateMetadata.durationInvalid\" }\n        if let blocker = ruleSteps.blocker { return blocker }\n        return participationPlan?.blocker ?? exitPlan?.blocker\n    }\n    /// Backend entity Long is copied through an Integer DTO with Math.toIntExact.\n    /// Zero is the existing server's creation default; missing remains omitted.\n    public static func validDuration(_ text: String) -> Int? {\n        let value = text.trimmingCharacters(in: .whitespacesAndNewlines)\n        guard !value.isEmpty, value.utf8.allSatisfy({ $0 >= 48 && $0 <= 57 }),\n              let number = Int(value), number >= 0, number <= Int(Int32.max) else { return nil }\n        return number\n    }\n"
+        },
+        {
+          "before": "        if let id { fields[\"id\"] = id }; if let method { fields[\"validationMethod\"] = method.rawValue }\n        if let imgURL { fields[\"imgUrl\"] = imgURL }; if let couponID { fields[\"couponId\"] = couponID }\n        for (key, value) in [\"description\": description, \"questionAnswer\": questionAnswer, \"questionName\": questionName,\n                              \"questionA\": optionA, \"questionB\": optionB, \"questionC\": optionC, \"questionD\": optionD,\n",
+          "after": "        if let id { fields[\"id\"] = id }; if let method { fields[\"validationMethod\"] = method.rawValue }\n        if let duration = Self.validDuration(gameDurationMinutes) { fields[\"duration\"] = duration }\n        // Picker choices are exact wire values; preserve unfamiliar loaded values byte-for-byte.\n        if !usageLocation.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { fields[\"usageLocation\"] = usageLocation }\n        if let rules = ruleSteps.wireValue { fields[\"ruleInstructions\"] = rules }\n        if let imgURL { fields[\"imgUrl\"] = imgURL }; if let couponID { fields[\"couponId\"] = couponID }\n        for (key, value) in [\"description\": description, \"players\": players, \"requiredMaterials\": requiredMaterials, \"questionAnswer\": questionAnswer, \"questionName\": questionName,\n                              \"questionA\": optionA, \"questionB\": optionB, \"questionC\": optionC, \"questionD\": optionD,\n"
         }
       ]
     },
     "Core/MerchantOperationsReading.swift": {
       "before_sha256": "1a05b0a53216ef39bf580d64bfe440f3a8ad226679ef4437c218f02a450d29e0",
-      "after_sha256": "94454c0a5cf02c2689f09f5cd9f9b2407e7aa76e673598470e06c7c75a07e84f",
+      "after_sha256": "9acaf68907285457ed4af8123a68c29f59618cf84025821f121e3a99069311f4",
       "hunks": [
         {
           "before": "    func saveReviewed(_ draft: MerchantOperationsDraft, baseline: MerchantOperationsDraft) async throws\n    func access() async throws -> MerchantOperationsAccess\n    func document(_ destination: MerchantOperationsDestination) async throws -> MerchantOperationsDocument\n    /// Only the DEBUG synthetic reader implements this. Live readers always reject it.\n    func saveExample(_ draft: MerchantOperationsDraft) async throws\n}\n",
@@ -2776,6 +2970,30 @@
         {
           "before": "        confirmation = nil\n        guard reader.canSave else { issue = .key(\"merchant.operations.liveDisabled\"); return }\n",
           "after": "        confirmation = nil\n        guard !value.draft.localOnlyReview else {\n            issue = .key(\"merchant.participation.localOnly\"); return\n        }\n        guard reader.canSave else { issue = .key(\"merchant.operations.liveDisabled\"); return }\n"
+        },
+        {
+          "before": "    func saveReviewed(_ draft: MerchantOperationsDraft, baseline: MerchantOperationsDraft) async throws\n    func access() async throws -> MerchantOperationsAccess\n",
+          "after": "    func saveReviewed(_ draft: MerchantOperationsDraft, baseline: MerchantOperationsDraft) async throws\n    /// Returns the ID acknowledged by the existing submit endpoint, not a locally guessed ID.\n    func saveTemplateReviewed(_ draft: MerchantNodeTemplate, baseline: MerchantNodeTemplate) async throws -> Int?\n    func access() async throws -> MerchantOperationsAccess\n"
+        },
+        {
+          "before": "    }\n    private func read<Value>(_ operation: (MerchantOperationsService, String) async throws -> Value) async throws -> Value {\n",
+          "after": "    }\n    public func saveTemplateReviewed(_ draft: MerchantNodeTemplate, baseline: MerchantNodeTemplate) async throws -> Int? {\n        guard let session = currentSession(), let service, let approval, let journal else { throw MerchantOperationsFailure.liveWritesDisabled }\n        let acknowledgement = try await service.save(.template(draft), token: session.token, approval: approval,\n            namespace: session.storageNamespace, accountID: session.accountID, baseline: .template(baseline), journal: journal) {\n                try Task.checkCancellation()\n                guard self.currentSession() == session else { throw CancellationError() }\n            }\n        return acknowledgement.templateID\n    }\n    private func read<Value>(_ operation: (MerchantOperationsService, String) async throws -> Value) async throws -> Value {\n"
+        },
+        {
+          "before": "    public let reader: any MerchantOperationsReading\n    public let destination: MerchantOperationsDestination\n    public private(set) var document: MerchantOperationsDocument?\n",
+          "after": "    public let reader: any MerchantOperationsReading\n    public private(set) var destination: MerchantOperationsDestination\n    public private(set) var document: MerchantOperationsDocument?\n"
+        },
+        {
+          "before": "        do {\n            try await reader.saveReviewed(value.draft, baseline: value.baseline)\n            guard !Task.isCancelled, operation == generation, reader.scope == value.scope, reader.isAuthenticated else { return }\n",
+          "after": "        do {\n            let acknowledgedTemplateID: Int?\n            if case .template(let template) = value.draft, case .template(let baseline) = value.baseline {\n                acknowledgedTemplateID = try await reader.saveTemplateReviewed(template, baseline: baseline)\n            } else {\n                try await reader.saveReviewed(value.draft, baseline: value.baseline)\n                acknowledgedTemplateID = nil\n            }\n            guard !Task.isCancelled, operation == generation, reader.scope == value.scope, reader.isAuthenticated else { return }\n"
+        },
+        {
+          "before": "            isLocked = false\n            if destination == .character {\n                // npc/save acknowledges the write, not its review result. The source\n",
+          "after": "            isLocked = false\n            if case .template(let submitted) = value.draft {\n                // An acknowledged save is not authoritative field readback. Clear the\n                // submitted copy before reading; read errors cannot retry the write.\n                document = nil; baseline = nil; draft = nil; exampleSaved = false\n                guard let id = acknowledgedTemplateID, id > 0,\n                      submitted.id == nil || submitted.id == id else {\n                    issue = .key(\"merchant.templateMetadata.readbackFailed\"); return\n                }\n                destination = .template(id)\n                do {\n                    let current = try await reader.document(destination)\n                    guard !Task.isCancelled, operation == generation, reader.scope == value.scope, reader.isAuthenticated else { return }\n                    guard case .draft(.template(let returned)) = current, returned.id == id else { throw APIError.malformedResponse }\n                    document = current; baseline = .template(returned); draft = .template(returned)\n                    exampleSaved = reader.isOfflineExample\n                    issue = reader.isOfflineExample ? nil : .key(\"merchant.templateMetadata.readback\")\n                } catch {\n                    guard !Task.isCancelled, operation == generation, reader.scope == value.scope else { return }\n                    issue = .key(\"merchant.templateMetadata.readbackFailed\")\n                }\n            } else if destination == .character {\n                // npc/save acknowledges the write, not its review result. The source\n"
+        },
+        {
+          "before": "    func saveReviewed(_ draft: MerchantOperationsDraft, baseline: MerchantOperationsDraft) async throws { try await saveExample(draft) }\n}\n",
+          "after": "    func saveReviewed(_ draft: MerchantOperationsDraft, baseline: MerchantOperationsDraft) async throws { try await saveExample(draft) }\n    func saveTemplateReviewed(_ draft: MerchantNodeTemplate, baseline: MerchantNodeTemplate) async throws -> Int? {\n        // A reader without a create receipt must refuse before sending, not guess an ID.\n        guard let id = draft.id, id > 0 else { throw MerchantOperationsFailure.notSent }\n        try await saveReviewed(.template(draft), baseline: .template(baseline))\n        return id\n    }\n}\n"
         }
       ]
     },
@@ -3767,7 +3985,7 @@
     },
     "App/ProfileEditView.swift": {
       "before_sha256": "5bec19374886dc1f2f780a170675ead92425b99a643fcf6b6bf09f5c9e59ac73",
-      "after_sha256": "2984a3b5b5dc9ac638fcb3f3414bbeca41a685a11a3c8aee3ee310d5911f3393",
+      "after_sha256": "45879a75ed1ea5c2fbe3403df07cae9aa7bcda40d03f974954f84c60a4adf427",
       "hunks": [
         {
           "before": "import SwiftUI\n\n@MainActor\nfinal class ProfileEditModel: ObservableObject {\n    let coordinator: ProfileEditCoordinator\n    @Published var draft = ProfileEditDraft()\n    @Published var confirmation: ProfileEditConfirmation?\n    @Published private(set) var busy = false\n    @Published private(set) var revision = 0\n    private var generation = 0\n    private var contextIdentity: ProfileReadIdentity?\n    private var contextViewerRevision: UInt64?\n    init(coordinator: ProfileEditCoordinator) {\n        self.coordinator = coordinator\n        contextIdentity = coordinator.identity; contextViewerRevision = coordinator.viewerRevision\n    }\n    private func synchronizeContext() {\n        guard contextIdentity != coordinator.identity || contextViewerRevision != coordinator.viewerRevision else { return }\n        generation += 1; draft = .init(); confirmation = nil; busy = false\n        contextIdentity = coordinator.identity; contextViewerRevision = coordinator.viewerRevision\n        coordinator.synchronizeSession()\n    }\n    func resetAndLoad() async {\n        generation += 1; draft = .init(); confirmation = nil; busy = false\n        coordinator.synchronizeSession()\n        await load()\n    }\n    func load() async {\n        synchronizeContext()\n        guard !busy else { return }\n        let identity = coordinator.identity, viewerRevision = coordinator.viewerRevision\n",
@@ -3908,6 +4126,50 @@
         {
           "before": "        }\n    }\n}\n",
           "after": "        }\n    }\n    /// Capture this presentation's token so a delayed swipe-dismissal cannot cancel its successor.\n    private var textEditPresentation: Binding<ProfileTextFieldEdit?> {\n        let presented = model.textEdit\n        return .init(get: { model.textEdit }, set: { value in\n            if value == nil, let presented { model.cancelTextEdit(presented) }\n        })\n    }\n    private func textFieldRow(_ field: ProfileTextField, value: String) -> some View {\n        Button { model.beginTextEdit(field) } label: {\n            HStack {\n                LabeledContent {\n                    if value.isEmpty { Text(\"profile.fieldEdit.empty\").foregroundStyle(.secondary) }\n                    else { Text(verbatim: value).lineLimit(3) }\n                } label: { Text(LocalizedStringKey(field.titleKey)) }\n                Image(systemName: \"chevron.right\").font(.caption).foregroundStyle(.secondary)\n                    .accessibilityHidden(true)\n            }.contentShape(Rectangle())\n        }\n        .buttonStyle(.plain)\n        .accessibilityIdentifier(\"profile.fieldEdit.open.\\(field.rawValue)\")\n    }\n\n    private func handleEditorDisappear() {\n        if !showPreferences, model.textEdit == nil, model.confirmation == nil, !model.avatarPresentationActive { model.retireAvatar() }\n        model.retireReload()\n        if let value = model.confirmation { model.coordinator.cancel(value) }\n    }\n\n}\n"
+        },
+        {
+          "before": "        lhs.name.utf8.elementsEqual(rhs.name.utf8) && lhs.introduction.utf8.elementsEqual(rhs.introduction.utf8)\n        && lhs.routePreferenceIDs == rhs.routePreferenceIDs && lhs.avatarReplacement == rhs.avatarReplacement\n    }\n    private static func sameSnapshot(_ lhs: ProfileEditSnapshot, _ rhs: ProfileEditSnapshot) -> Bool {\n        lhs.id == rhs.id && zip([lhs.nickname, lhs.introduction, lhs.avatar, lhs.wechat, lhs.casePics, lhs.tagIds],\n                              [rhs.nickname, rhs.introduction, rhs.avatar, rhs.wechat, rhs.casePics, rhs.tagIds])\n            .allSatisfy { $0.0.utf8.elementsEqual($0.1.utf8) }\n",
+          "after": "        lhs.name.utf8.elementsEqual(rhs.name.utf8) && lhs.introduction.utf8.elementsEqual(rhs.introduction.utf8)\n        && lhs.routePreferenceIDs == rhs.routePreferenceIDs && lhs.avatarReplacement == rhs.avatarReplacement\n        && ProfileCasePortfolio.sameText(lhs.caseIntroduction, rhs.caseIntroduction)\n        && lhs.removesContactQR == rhs.removesContactQR\n    }\n    private static func sameSnapshot(_ lhs: ProfileEditSnapshot, _ rhs: ProfileEditSnapshot) -> Bool {\n        lhs.id == rhs.id && ProfileCasePortfolio.sameText(lhs.caseIntroduction, rhs.caseIntroduction) && zip([lhs.nickname, lhs.introduction, lhs.avatar, lhs.wechat, lhs.casePics, lhs.tagIds],\n                              [rhs.nickname, rhs.introduction, rhs.avatar, rhs.wechat, rhs.casePics, rhs.tagIds])\n            .allSatisfy { $0.0.utf8.elementsEqual($0.1.utf8) }\n"
+        },
+        {
+          "before": "        let samePreferences = draft.routePreferenceIDs.map { $0.map(String.init).joined(separator: \",\").utf8.elementsEqual(snapshot.tagIds.utf8) } ?? true\n        return !sameText || !samePreferences || draft.avatarReplacement != nil\n    }\n    /// This is local scratch editing, never an independent server save.\n",
+          "after": "        let samePreferences = draft.routePreferenceIDs.map { $0.map(String.init).joined(separator: \",\").utf8.elementsEqual(snapshot.tagIds.utf8) } ?? true\n        return !sameText || !samePreferences || draft.avatarReplacement != nil\n            || (draft.caseIntroduction.map { !ProfileCasePortfolio.sameText($0, snapshot.caseIntroduction) } ?? false)\n            || (draft.removesContactQR && !snapshot.wechat.isEmpty)\n    }\n    /// This is local scratch editing, never an independent server save.\n"
+        },
+        {
+          "before": "        case .name: next.name = text\n        case .introduction: next.introduction = text\n        }\n        draft = next\n        return true\n    }\n    func ownsAvatarScope(_ scope: ProfileAvatarScope) -> Bool {\n",
+          "after": "        case .name: next.name = text\n        case .introduction: next.introduction = text\n        case .caseIntroduction:\n            guard snapshot.caseIntroduction != nil else { return false }\n            next.caseIntroduction = ProfileCasePortfolio.sameText(text, snapshot.caseIntroduction) ? nil : text\n        case .contactQR:\n            // A QR editor may retain original bytes or clear them, never supply a replacement URL.\n            guard text.isEmpty || text.utf8.elementsEqual(snapshot.wechat.utf8) else { return false }\n            next.removesContactQR = text.isEmpty && !snapshot.wechat.isEmpty\n        }\n        draft = next\n        return true\n    }\n    @discardableResult func confirmContactQR(_ value: ProfileTextFieldEdit, remove: Bool) -> Bool {\n        guard value.field == .contactQR else { return false }\n        return confirmTextEdit(value, text: remove ? \"\" : value.snapshot.wechat)\n    }\n    func ownsAvatarScope(_ scope: ProfileAvatarScope) -> Bool {\n"
+        },
+        {
+          "before": "    func discardAvatar(id: UUID) {\n        guard !busy, !coordinator.isLocked, draft.avatarReplacement?.id == id else { return }\n        draft = .init(name: draft.name, introduction: draft.introduction, routePreferenceIDs: draft.routePreferenceIDs)\n    }\n    func observeAvatarRetirement(_ action: @escaping () -> Void) { avatarRetirement = action }\n",
+          "after": "    func discardAvatar(id: UUID) {\n        guard !busy, !coordinator.isLocked, draft.avatarReplacement?.id == id else { return }\n        draft = .init(name: draft.name, introduction: draft.introduction, routePreferenceIDs: draft.routePreferenceIDs, caseIntroduction: draft.caseIntroduction, removesContactQR: draft.removesContactQR)\n    }\n    func observeAvatarRetirement(_ action: @escaping () -> Void) { avatarRetirement = action }\n"
+        },
+        {
+          "before": "    let categoryReader: (any DiscoveryReading)?\n    let avatarDependencies: ProfileAvatarDependencies?\n    @State private var showPreferences = false\n    @State private var showReloadConfirmation = false\n",
+          "after": "    let categoryReader: (any DiscoveryReading)?\n    let avatarDependencies: ProfileAvatarDependencies?\n    let caseImageReader: (any RetainedPublicImageReading)?\n    @State private var showPreferences = false\n    @State private var showReloadConfirmation = false\n"
+        },
+        {
+          "before": "        model.draft.routePreferenceIDs ?? (model.coordinator.snapshot?.tagIds ?? \"\").split(separator: \",\").compactMap { Int($0.trimmingCharacters(in: .whitespacesAndNewlines)) }\n    }\n    init(coordinator: ProfileEditCoordinator, sessionRevision: UInt64, categoryReader: (any DiscoveryReading)? = nil, avatarDependencies: ProfileAvatarDependencies? = nil) {\n        _model = StateObject(wrappedValue: ProfileEditModel(coordinator: coordinator))\n        self.sessionRevision = sessionRevision; self.categoryReader = categoryReader; self.avatarDependencies = avatarDependencies\n    }\n    private var editorForm: some View {\n",
+          "after": "        model.draft.routePreferenceIDs ?? (model.coordinator.snapshot?.tagIds ?? \"\").split(separator: \",\").compactMap { Int($0.trimmingCharacters(in: .whitespacesAndNewlines)) }\n    }\n    init(coordinator: ProfileEditCoordinator, sessionRevision: UInt64, categoryReader: (any DiscoveryReading)? = nil, avatarDependencies: ProfileAvatarDependencies? = nil, caseImageReader: (any RetainedPublicImageReading)? = nil) {\n        _model = StateObject(wrappedValue: ProfileEditModel(coordinator: coordinator))\n        self.sessionRevision = sessionRevision; self.categoryReader = categoryReader; self.avatarDependencies = avatarDependencies; self.caseImageReader = caseImageReader\n    }\n    private var editorForm: some View {\n"
+        },
+        {
+          "before": "                    } header: { Text(\"profile.edit.details\") }\n                        .disabled(!model.canBeginTextEdit)\n                    ProfileAvatarDraftSection(model: model, dependencies: avatarDependencies)\n                    Section(\"context.preferences.title\") {\n",
+          "after": "                    } header: { Text(\"profile.edit.details\") }\n                        .disabled(!model.canBeginTextEdit)\n                    Section(\"profile.case.title\") {\n                        textFieldRow(.caseIntroduction, value: model.draft.caseIntroduction ?? model.coordinator.snapshot?.caseIntroduction ?? \"\")\n                            .disabled(!model.canBeginTextEdit)\n                    }\n                    ProfileContactQRSection(wechat: model.coordinator.snapshot?.wechat ?? \"\", removes: model.draft.removesContactQR) {\n                        model.beginTextEdit(.contactQR)\n                    }.disabled(!model.canBeginTextEdit)\n                    ProfileAvatarDraftSection(model: model, dependencies: avatarDependencies)\n                    Section(\"context.preferences.title\") {\n"
+        },
+        {
+          "before": "                    Button { Task { await model.prepare() } } label: { Text(\"profile.edit.review\") }\n                        .disabled(model.busy || model.coordinator.isLocked || !model.draft.isValid\n                                  || model.textEdit != nil || model.draft.normalized == model.coordinator.snapshot?.draft.normalized)\n                        .accessibilityIdentifier(\"profile.edit.review\")\n                }\n",
+          "after": "                    Button { Task { await model.prepare() } } label: { Text(\"profile.edit.review\") }\n                        .disabled(model.busy || model.coordinator.isLocked || !model.draft.isValid\n                                  || model.textEdit != nil || !(model.coordinator.snapshot.map { model.draft.hasChanges(comparedTo: $0) } ?? false))\n                        .accessibilityIdentifier(\"profile.edit.review\")\n                }\n"
+        },
+        {
+          "before": "        .sheet(item: textEditPresentation) { value in\n            NavigationStack {\n                ProfileTextFieldEditor(edit: value,\n                    cancel: { model.cancelTextEdit(value) },\n                    confirm: { _ = model.confirmTextEdit(value, text: $0) })\n                    .id(value.id)\n            }.interactiveDismissDisabled(false)\n        }\n",
+          "after": "        .sheet(item: textEditPresentation) { value in\n            NavigationStack {\n                if value.field == .contactQR {\n                    ProfileContactQREditor(edit: value, reader: caseImageReader,\n                        cancel: { model.cancelTextEdit(value) },\n                        confirm: { _ = model.confirmContactQR(value, remove: $0) })\n                        .id(value.id)\n                } else {\n                    ProfileTextFieldEditor(edit: value, caseImageReader: caseImageReader,\n                        cancel: { model.cancelTextEdit(value) },\n                        confirm: { _ = model.confirmTextEdit(value, text: $0) })\n                        .id(value.id)\n                }\n            }.interactiveDismissDisabled(false)\n        }\n"
+        },
+        {
+          "before": "                        LabeledContent { Text(verbatim: value.payload.name) } label: { Text(\"profile.edit.name\") }\n                        LabeledContent { Text(verbatim: value.payload.introduction) } label: { Text(\"profile.edit.introduction\") }\n                        if value.payload.avatarReplacement != nil { Text(\"profile.avatar.confirmChange\") }\n                        Text(\"profile.edit.confirmHint\")\n",
+          "after": "                        LabeledContent { Text(verbatim: value.payload.name) } label: { Text(\"profile.edit.name\") }\n                        LabeledContent { Text(verbatim: value.payload.introduction) } label: { Text(\"profile.edit.introduction\") }\n                        if let text = value.payload.caseIntroduction {\n                            LabeledContent { Text(verbatim: text) } label: { Text(\"profile.case.description\") }\n                        }\n                        if value.payload.removesContactQR { Text(\"profile.contactQR.reviewRemoval\") }\n                        if value.payload.avatarReplacement != nil { Text(\"profile.avatar.confirmChange\") }\n                        Text(\"profile.edit.confirmHint\")\n"
+        },
+        {
+          "before": "            HStack {\n                LabeledContent {\n                    if value.isEmpty { Text(\"profile.fieldEdit.empty\").foregroundStyle(.secondary) }\n                    else { Text(verbatim: value).lineLimit(3) }\n                } label: { Text(LocalizedStringKey(field.titleKey)) }\n",
+          "after": "            HStack {\n                LabeledContent {\n                    if field == .caseIntroduction, model.coordinator.snapshot?.caseIntroduction == nil {\n                        Text(\"profile.case.descriptionUnavailable\").font(.caption).foregroundStyle(.secondary)\n                    } else if value.isEmpty { Text(\"profile.fieldEdit.empty\").foregroundStyle(.secondary) }\n                    else { Text(verbatim: value).lineLimit(3) }\n                } label: { Text(LocalizedStringKey(field.titleKey)) }\n"
         }
       ]
     },
@@ -4029,7 +4291,7 @@
     },
     "Core/ProfileEditContracts.swift": {
       "before_sha256": "1023b237a4388ccb08e62054b2c8be80e769f0c143dd56af97ad1b3e64f2e46e",
-      "after_sha256": "146acb5466940df9b0711eecca880307973b5deb3f4244bcd05f8a91f677de3d",
+      "after_sha256": "525213b2ff5b11f8a12ecb2e8bcb51cc676856a6231411644272d482613aaf5e",
       "hunks": [
         {
           "before": "    public var introduction: String\n    /// Nil preserves the complete wire string. An explicit empty selection clears preferences.\n    public var routePreferenceIDs: [Int]?\n    public init(name: String = \"\", introduction: String = \"\", routePreferenceIDs: [Int]? = nil) {\n        self.name = name; self.introduction = introduction; self.routePreferenceIDs = routePreferenceIDs\n    }\n    public var normalized: Self { .init(name: name.trimmingCharacters(in: .whitespacesAndNewlines), introduction: introduction.trimmingCharacters(in: .whitespacesAndNewlines), routePreferenceIDs: routePreferenceIDs) }\n    public var isValid: Bool {\n        let ids = routePreferenceIDs ?? []\n        return !normalized.name.isEmpty && ids.allSatisfy { $0 > 0 } && Set(ids).count == ids.count\n",
@@ -4038,12 +4300,44 @@
         {
           "before": "    public let wechat: String\n    public let casePics: String\n    public let tagIds: String\n    public init(draft: ProfileEditDraft, preserving snapshot: ProfileEditSnapshot) throws {\n        guard draft.isValid else { throw APIError.invalidRequest }\n        name = draft.normalized.name; introduction = draft.normalized.introduction\n        avatar = snapshot.avatar; wechat = snapshot.wechat; casePics = snapshot.casePics\n        tagIds = draft.routePreferenceIDs.map { $0.map(String.init).joined(separator: \",\") } ?? snapshot.tagIds\n    }\n    public func matches(_ snapshot: ProfileEditSnapshot) -> Bool {\n        name == snapshot.nickname && introduction == snapshot.introduction && avatar == snapshot.avatar\n        && wechat == snapshot.wechat && casePics == snapshot.casePics && tagIds == snapshot.tagIds\n    }\n}\n",
           "after": "    public let wechat: String\n    public let casePics: String\n    public let tagIds: String\n    public let avatarReplacement: ProfileAvatarReplacement?\n    enum CodingKeys: String, CodingKey { case name, introduction, avatar, wechat, casePics, tagIds }\n    public init(draft: ProfileEditDraft, preserving snapshot: ProfileEditSnapshot) throws {\n        guard draft.isValid else { throw APIError.invalidRequest }\n        name = draft.normalized.name; introduction = draft.normalized.introduction\n        if let replacement = draft.avatarReplacement {\n            guard replacement.receipt.target.snapshotHash == ProfileAvatarExact.snapshot(snapshot) else { throw APIError.invalidRequest }\n        }\n        avatarReplacement = draft.avatarReplacement\n        avatar = draft.avatarReplacement?.reference ?? snapshot.avatar; wechat = snapshot.wechat; casePics = snapshot.casePics\n        tagIds = draft.routePreferenceIDs.map { $0.map(String.init).joined(separator: \",\") } ?? snapshot.tagIds\n    }\n    public func matches(_ snapshot: ProfileEditSnapshot) -> Bool {\n        if avatarReplacement != nil {\n            guard zip([name, introduction, avatar, wechat, casePics, tagIds],\n                      [snapshot.nickname, snapshot.introduction, snapshot.avatar, snapshot.wechat, snapshot.casePics, snapshot.tagIds])\n                .allSatisfy({ $0.0.utf8.elementsEqual($0.1.utf8) }) else { return false }\n        }\n        return name == snapshot.nickname && introduction == snapshot.introduction && avatar == snapshot.avatar\n        && wechat == snapshot.wechat && casePics == snapshot.casePics && tagIds == snapshot.tagIds\n    }\n}\n"
+        },
+        {
+          "before": "\n/// Only the two text fields are editable. The remaining replacement fields retain their\n/// wire values, including whitespace and delimiter order; do not round-trip image URLs.\n",
+          "after": "\n/// Text edits are staged together. The remaining replacement fields retain their\n/// wire values, including whitespace and delimiter order; do not round-trip image URLs.\n"
+        },
+        {
+          "before": "    public let casePics: String\n    public let tagIds: String\n    enum CodingKeys: String, CodingKey { case id, nickname, introduction, avatar, wechat, casePics, tagIds, sysCategoryList }\n    public init(from decoder: Decoder) throws {\n",
+          "after": "    public let casePics: String\n    /// Nil means this response omitted the field; explicit JSON null is an editable empty value.\n    public let caseIntroduction: String?\n    public let tagIds: String\n    enum CodingKeys: String, CodingKey {\n        case id, nickname, introduction, avatar, wechat, casePics, tagIds, sysCategoryList\n        case caseIntroduction = \"caseIntroducton\"\n    }\n    public init(from decoder: Decoder) throws {\n"
+        },
+        {
+          "before": "        }\n        introduction = try preserved(.introduction)\n",
+          "after": "        }\n        if c.contains(.caseIntroduction) { caseIntroduction = try preserved(.caseIntroduction) }\n        else { caseIntroduction = nil }\n        introduction = try preserved(.introduction)\n"
+        },
+        {
+          "before": "    public var introduction: String\n    /// Nil preserves the complete wire string. An explicit empty selection clears preferences.\n",
+          "after": "    public var introduction: String\n    /// Nil leaves the server field untouched; an explicit empty string clears it.\n    public var caseIntroduction: String?\n    /// Clear-only proposal; no arbitrary replacement URL or upload capability.\n    public var removesContactQR: Bool\n    /// Nil preserves the complete wire string. An explicit empty selection clears preferences.\n"
+        },
+        {
+          "before": "    public private(set) var avatarReplacement: ProfileAvatarReplacement?\n    public init(name: String = \"\", introduction: String = \"\", routePreferenceIDs: [Int]? = nil, avatarReplacement: ProfileAvatarReplacement? = nil) {\n        self.name = name; self.introduction = introduction; self.routePreferenceIDs = routePreferenceIDs\n        self.avatarReplacement = avatarReplacement\n    }\n    public func stagingAvatar(_ value: ProfileAvatarReplacement) -> Self {\n        .init(name: name, introduction: introduction, routePreferenceIDs: routePreferenceIDs, avatarReplacement: value)\n    }\n    public var normalized: Self { .init(name: name.trimmingCharacters(in: .whitespacesAndNewlines), introduction: introduction.trimmingCharacters(in: .whitespacesAndNewlines), routePreferenceIDs: routePreferenceIDs, avatarReplacement: avatarReplacement) }\n    public var isValid: Bool {\n",
+          "after": "    public private(set) var avatarReplacement: ProfileAvatarReplacement?\n    public init(name: String = \"\", introduction: String = \"\", routePreferenceIDs: [Int]? = nil, avatarReplacement: ProfileAvatarReplacement? = nil, caseIntroduction: String? = nil, removesContactQR: Bool = false) {\n        self.name = name; self.introduction = introduction; self.routePreferenceIDs = routePreferenceIDs\n        self.avatarReplacement = avatarReplacement; self.caseIntroduction = caseIntroduction\n        self.removesContactQR = removesContactQR\n    }\n    public func stagingAvatar(_ value: ProfileAvatarReplacement) -> Self {\n        .init(name: name, introduction: introduction, routePreferenceIDs: routePreferenceIDs, avatarReplacement: value, caseIntroduction: caseIntroduction, removesContactQR: removesContactQR)\n    }\n    public var normalized: Self { .init(name: name.trimmingCharacters(in: .whitespacesAndNewlines), introduction: introduction.trimmingCharacters(in: .whitespacesAndNewlines), routePreferenceIDs: routePreferenceIDs, avatarReplacement: avatarReplacement, caseIntroduction: caseIntroduction, removesContactQR: removesContactQR) }\n    public func hasChanges(comparedTo snapshot: ProfileEditSnapshot) -> Bool {\n        var ordinary = normalized; ordinary.caseIntroduction = nil; ordinary.removesContactQR = false\n        let caseChanged = caseIntroduction.map { !ProfileCasePortfolio.sameText($0, snapshot.caseIntroduction) } ?? false\n        let contactQRChanged = removesContactQR && !snapshot.wechat.isEmpty\n        return ordinary != snapshot.draft.normalized || caseChanged || contactQRChanged\n    }\n    public var isValid: Bool {\n"
+        },
+        {
+          "before": "    public let wechat: String\n    public let casePics: String\n    public let tagIds: String\n    public let avatarReplacement: ProfileAvatarReplacement?\n    enum CodingKeys: String, CodingKey { case name, introduction, avatar, wechat, casePics, tagIds }\n    public init(draft: ProfileEditDraft, preserving snapshot: ProfileEditSnapshot) throws {\n        guard draft.isValid else { throw APIError.invalidRequest }\n        name = draft.normalized.name; introduction = draft.normalized.introduction\n",
+          "after": "    public let wechat: String\n    /// Review metadata only; deliberately excluded from CodingKeys.\n    public let removesContactQR: Bool\n    public let casePics: String\n    public let caseIntroduction: String?\n    public let tagIds: String\n    public let avatarReplacement: ProfileAvatarReplacement?\n    enum CodingKeys: String, CodingKey {\n        case name, introduction, avatar, wechat, casePics, tagIds\n        case caseIntroduction = \"caseIntroducton\"\n    }\n    public init(draft: ProfileEditDraft, preserving snapshot: ProfileEditSnapshot) throws {\n        guard draft.isValid, draft.caseIntroduction == nil || snapshot.caseIntroduction != nil else { throw APIError.invalidRequest }\n        caseIntroduction = draft.caseIntroduction\n        removesContactQR = draft.removesContactQR && !snapshot.wechat.isEmpty\n        name = draft.normalized.name; introduction = draft.normalized.introduction\n"
+        },
+        {
+          "before": "        avatarReplacement = draft.avatarReplacement\n        avatar = draft.avatarReplacement?.reference ?? snapshot.avatar; wechat = snapshot.wechat; casePics = snapshot.casePics\n        tagIds = draft.routePreferenceIDs.map { $0.map(String.init).joined(separator: \",\") } ?? snapshot.tagIds\n",
+          "after": "        avatarReplacement = draft.avatarReplacement\n        avatar = draft.avatarReplacement?.reference ?? snapshot.avatar\n        wechat = removesContactQR ? \"\" : snapshot.wechat; casePics = snapshot.casePics\n        tagIds = draft.routePreferenceIDs.map { $0.map(String.init).joined(separator: \",\") } ?? snapshot.tagIds\n"
+        },
+        {
+          "before": "    public func matches(_ snapshot: ProfileEditSnapshot) -> Bool {\n        if avatarReplacement != nil {\n",
+          "after": "    public func matches(_ snapshot: ProfileEditSnapshot) -> Bool {\n        if let caseIntroduction, !ProfileCasePortfolio.sameText(caseIntroduction, snapshot.caseIntroduction) { return false }\n        if avatarReplacement != nil {\n"
         }
       ]
     },
     "Core/ProfileEditCoordinator.swift": {
       "before_sha256": "c08da5dead9c78d7256fecf8853f4a9a4122a5cf3ad5cca4dec3cbce7a03982f",
-      "after_sha256": "bbd462eed41321ab249fda4e2f80e48aad51942cc6ce195bbd45b7e52b1e1b67",
+      "after_sha256": "0e1a00e4c3a00d82af47fca36be8944088008cbc0cba186bc1865db01a05aece",
       "hunks": [
         {
           "before": "import Foundation\n\npublic struct ProfileEditConfirmation: Identifiable, Equatable {\n    public let id: UUID\n    public let payload: ProfileEditPayload\n    fileprivate let snapshot: ProfileEditSnapshot\n    fileprivate let session: ProfileEditSession\n}\n/// Retain in AppSession, not the navigation destination. Unknown writes remain locked even\n/// through navigation and same-account reauthentication. Reconciliation never repeats a POST.\n",
@@ -4080,6 +4374,18 @@
         {
           "before": "            reconcile(latest)\n        } catch {\n            guard active(expected, request) else { return }\n            messageKey = \"profile.edit.unknown\"\n        }\n    }\n    private func reconcile(_ value: ProfileEditSnapshot) {\n        guard let unresolved = pending[value.id] else { return }\n",
           "after": "            reconcile(latest)\n        } catch {\n            guard active(expected, request) else { return }\n            remoteMessage = Self.readFailureMessage(error)\n            messageKey = \"profile.edit.unknown\"\n        }\n    }\n    /// Only the explicit server-facing explanation is presentable. Transport/debug\n    /// descriptions can contain URLs or credentials and must never become UI text.\n    /// A whitespace-only explanation falls back to the existing localized status.\n    private static func readFailureMessage(_ error: Error) -> String? {\n        guard let message = (error as? ProfileReadFailure)?.message,\n              !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }\n        return message\n    }\n    private func reconcile(_ value: ProfileEditSnapshot) {\n        guard let unresolved = pending[value.id] else { return }\n"
+        },
+        {
+          "before": "        guard draft.isValid else { messageKey = \"profile.edit.nameRequired\"; return }\n        guard draft.normalized != original.draft.normalized else { messageKey = \"profile.edit.unchanged\"; return }\n        generation += 1; let request = generation; isBusy = true; confirmation = nil; messageKey = nil; remoteMessage = nil\n",
+          "after": "        guard draft.isValid else { messageKey = \"profile.edit.nameRequired\"; return }\n        guard draft.hasChanges(comparedTo: original) else { messageKey = \"profile.edit.unchanged\"; return }\n        generation += 1; let request = generation; isBusy = true; confirmation = nil; messageKey = nil; remoteMessage = nil\n"
+        },
+        {
+          "before": "            guard latest.draft == original.draft,\n                  draft.routePreferenceIDs == nil || latest.tagIds == original.tagIds else { snapshot = latest; messageKey = \"profile.edit.changed\"; return }\n            if let avatar = draft.avatarReplacement {\n",
+          "after": "            guard latest.draft == original.draft,\n                  draft.routePreferenceIDs == nil || latest.tagIds == original.tagIds,\n                  draft.caseIntroduction == nil || ProfileCasePortfolio.sameText(latest.caseIntroduction, original.caseIntroduction),\n                  !draft.removesContactQR || latest.wechat.utf8.elementsEqual(original.wechat.utf8) else { snapshot = latest; messageKey = \"profile.edit.changed\"; return }\n            if let avatar = draft.avatarReplacement {\n"
+        },
+        {
+          "before": "            guard active(expected, request) else { return }\n            guard latest == value.snapshot else { snapshot = latest; messageKey = \"profile.edit.changed\"; return }\n            if value.payload.avatarReplacement != nil {\n",
+          "after": "            guard active(expected, request) else { return }\n            guard latest == value.snapshot,\n                  ProfileCasePortfolio.sameText(latest.caseIntroduction, value.snapshot.caseIntroduction),\n                  !value.payload.removesContactQR || latest.wechat.utf8.elementsEqual(value.snapshot.wechat.utf8) else { snapshot = latest; messageKey = \"profile.edit.changed\"; return }\n            if value.payload.avatarReplacement != nil {\n"
         }
       ]
     },
@@ -4587,7 +4893,7 @@
     },
     "Resources/Localizable.xcstrings": {
       "before_sha256": "8f552d5a3f34a86c19a370c411a08669dfb4440a15f3b3037cd635595b4ff995",
-      "after_sha256": "81907047a7213362ccf37e7b1e7faaf4936a048ca3d56064d725c9b12c855b27",
+      "after_sha256": "f2ad6ed80747b0c4f3ce4453c65235ba7c06a0c3e2592cfa151f29ac037e3e36",
       "hunks": [
         {
           "before": "          }\n        }\n      }\n    }\n  },\n  \"version\": \"1.0\"\n",
@@ -4600,6 +4906,18 @@
         {
           "before": "      }\n    }\n",
           "after": "      }\n    },\n    \"templateNarration.clear\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Clear narration audio\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"清除导览音频\"\n          }\n        }\n      }\n    },\n    \"templateNarration.preview\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Preview narration audio\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"试听导览音频\"\n          }\n        }\n      }\n    },\n    \"templateNarration.closePreview\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Close audio preview\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"关闭音频试听\"\n          }\n        }\n      }\n    },\n    \"templateNarration.previewUnavailable\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Preview needs an approved playback service and a valid HTTPS audio reference.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"试听需要已获准的播放服务和有效的 HTTPS 音频地址。\"\n          }\n        }\n      }\n    },\n    \"profile.fieldEdit.empty\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"未填写\"\n          }\n        },\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Not set\"\n          }\n        }\n      }\n    },\n    \"profile.fieldEdit.hint\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"完成编辑只更新当前草稿，回到资料页后仍需确认保存。取消或下滑关闭会放弃本次字段编辑。\"\n          }\n        },\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Done updates only this draft. Review and save from the profile page to submit changes. Cancel or swipe down to discard this field edit.\"\n          }\n        }\n      }\n    },\n    \"profile.fieldEdit.apply\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"完成\"\n          }\n        },\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Done\"\n          }\n        }\n      }\n    },\n    \"roam.share.savePhotos\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Save to Photos\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"保存到相册\"\n          }\n        }\n      }\n    },\n    \"roam.share.retrySavePhotos\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Retry saving\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"重试保存\"\n          }\n        }\n      }\n    },\n    \"roam.share.savingPhotos\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Saving to Photos…\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"正在保存到相册…\"\n          }\n        }\n      }\n    },\n    \"roam.share.savedPhotos\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Saved to Photos\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"已保存到相册\"\n          }\n        }\n      }\n    },\n    \"roam.share.photoPermissionDenied\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Allow this app to add photos in Settings, then return and retry saving.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"请在设置中允许本应用添加照片，返回后重试保存。\"\n          }\n        }\n      }\n    },\n    \"roam.share.photoPermissionRestricted\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Saving photos is restricted on this device. Retry after the restriction is removed.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"此设备限制了照片保存。限制解除后可重试。\"\n          }\n        }\n      }\n    },\n    \"roam.share.photoSaveUnavailable\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Photo saving is not configured in this app build. You can still use the system share sheet.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"当前应用版本尚未配置相册保存，仍可使用系统分享。\"\n          }\n        }\n      }\n    },\n    \"roam.share.photoSaveFailed\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"The card could not be saved. Retry saving the prepared card.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"足迹卡保存失败，可重试保存已生成的卡片。\"\n          }\n        }\n      }\n    },\n    \"roam.share.openPhotoSettings\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Open Settings\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"打开设置\"\n          }\n        }\n      }\n    },\n    \"roam.share.photoSaveSourceChanged\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"This saved walk changed or is no longer readable. Close this card and reopen the walk to prepare a new one.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"这条漫游记录已更改或暂时无法读取。请关闭足迹卡，重新打开记录并生成新卡片。\"\n          }\n        }\n      }\n    },\n    \"club.calendar.title\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Club activities\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"俱乐部活动\"\n          }\n        }\n      }\n    },\n    \"club.calendar.display\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Activity display\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"活动显示方式\"\n          }\n        }\n      }\n    },\n    \"club.calendar.list\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"List\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"列表\"\n          }\n        }\n      }\n    },\n    \"club.calendar.monthView\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Calendar\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"日历\"\n          }\n        }\n      }\n    },\n    \"club.calendar.previous\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Previous month\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"上一个月\"\n          }\n        }\n      }\n    },\n    \"club.calendar.next\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Next month\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"下一个月\"\n          }\n        }\n      }\n    },\n    \"club.calendar.startDates\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Shown by activity start date. Dates do not confirm availability or registration.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"按活动开始日期显示，日期不代表仍有名额或报名已确认。\"\n          }\n        }\n      }\n    },\n    \"club.calendar.noEvents\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"No activities yet.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"暂无活动。\"\n          }\n        }\n      }\n    },\n    \"club.calendar.noMonthEvents\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"No activities start this month. Try another month.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"本月暂无开始的活动，可切换其他月份查看。\"\n          }\n        }\n      }\n    },\n    \"club.calendar.noDayEvents\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"No activities start on this date.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"当天暂无开始的活动。\"\n          }\n        }\n      }\n    },\n    \"club.calendar.pickDay\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Choose a date to see its activities.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"选择日期查看当天活动。\"\n          }\n        }\n      }\n    },\n    \"club.calendar.undated\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Date unavailable\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"日期待明确\"\n          }\n        }\n      }\n    },\n    \"club.calendar.undatedHint\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"These activities have no usable start date yet. You can still open their details.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"以下活动暂未提供可用的开始日期，仍可查看活动详情。\"\n          }\n        }\n      }\n    },\n    \"club.calendar.dateUnknown\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Start date unavailable\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"开始日期待明确\"\n          }\n        }\n      }\n    },\n    \"club.calendar.untitled\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Untitled activity\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"未命名活动\"\n          }\n        }\n      }\n    },\n    \"club.calendar.day %@ %lld\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"%1$@, %2$lld activities\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"%1$@，%2$lld 个活动\"\n          }\n        }\n      }\n    },\n    \"club.calendar.weekday.1\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Mon\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"一\"\n          }\n        }\n      }\n    },\n    \"club.calendar.weekday.2\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Tue\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"二\"\n          }\n        }\n      }\n    },\n    \"club.calendar.weekday.3\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Wed\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"三\"\n          }\n        }\n      }\n    },\n    \"club.calendar.weekday.4\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Thu\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"四\"\n          }\n        }\n      }\n    },\n    \"club.calendar.weekday.5\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Fri\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"五\"\n          }\n        }\n      }\n    },\n    \"club.calendar.weekday.6\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Sat\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"六\"\n          }\n        }\n      }\n    },\n    \"club.calendar.weekday.7\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Sun\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"日\"\n          }\n        }\n      }\n    },\n    \"merchant.participation.title\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Participation plan (local)\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"参与安排（本地）\"\n          }\n        }\n      }\n    },\n    \"merchant.participation.localOnly\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"These fields stay in this editing session only. They are not sent or saved to the server; leaving, reloading or discarding removes them. A draft with this plan cannot be submitted.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"这些字段只保留在本次编辑中，不发送或保存到服务端；离开、刷新或放弃修改会移除。含此安排的草稿暂不能提交。\"\n          }\n        }\n      }\n    },\n    \"merchant.participation.localOnlyAction\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Local review only; submission unavailable\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"仅本地审阅，暂不能提交\"\n          }\n        }\n      }\n    },\n    \"merchant.participation.add\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Add local participation plan\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"添加本地参与安排\"\n          }\n        }\n      }\n    },\n    \"merchant.participation.remove\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Remove local participation plan\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"移除本地参与安排\"\n          }\n        }\n      }\n    },\n    \"merchant.participation.duration\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Participation time (minutes)\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"参与时长（分钟）\"\n          }\n        }\n      }\n    },\n    \"merchant.participation.capacity\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Maximum participants\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"人数上限\"\n          }\n        }\n      }\n    },\n    \"merchant.participation.staffing\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Employee involvement\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"是否需要员工\"\n          }\n        }\n      }\n    },\n    \"merchant.participation.staffing.unspecified\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Choose employee involvement\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"请选择是否需要员工\"\n          }\n        }\n      }\n    },\n    \"merchant.participation.staffing.selfGuided\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"No employee required\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"不需要员工\"\n          }\n        }\n      }\n    },\n    \"merchant.participation.staffing.staffRequired\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Employee required\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"需要员工\"\n          }\n        }\n      }\n    },\n    \"merchant.participation.durationInvalid\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Enter participation time as a positive whole number of minutes.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"请填写大于零的整数分钟数。\"\n          }\n        }\n      }\n    },\n    \"merchant.participation.capacityInvalid\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Enter a positive whole-number participant limit.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"请填写大于零的整数人数上限。\"\n          }\n        }\n      }\n    },\n    \"merchant.participation.staffingRequired\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Choose whether an employee is required.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"请选择是否需要员工。\"\n          }\n        }\n      }\n    },\n    \"merchant.participation.reviewTitle\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Local participation plan to review\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"审阅本地参与安排\"\n          }\n        }\n      }\n    },\n    \"merchant.participation.reviewBoundary\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Planning details are not proof of staffing, opening hours, capacity, safety approval or publication. Existing server facts, stock and rewards remain authoritative.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"规划内容不代表已确认员工、营业时间、场地容量、安全审核或发布。既有服务端事实、库存与奖励保持权威。\"\n          }\n        }\n      }\n    },\n    \"merchant.exitPlan.title\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Offline and exit plan (local)\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"断网与退出预案（本地）\"\n          }\n        }\n      }\n    },\n    \"merchant.exitPlan.add\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Add local offline and exit plan\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"添加本地断网与退出预案\"\n          }\n        }\n      }\n    },\n    \"merchant.exitPlan.remove\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Remove local offline and exit plan\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"移除本地断网与退出预案\"\n          }\n        }\n      }\n    },\n    \"merchant.exitPlan.offline\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Alternative when offline\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"断网时的替代方式\"\n          }\n        }\n      }\n    },\n    \"merchant.exitPlan.failureExit\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Steps to stop or leave safely\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"失败或中止时的退出步骤\"\n          }\n        }\n      }\n    },\n    \"merchant.exitPlan.instructionsHint\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Describe a non-digital alternative and how participants can stop or leave. Keep each instruction within 600 characters. This does not activate offline gameplay or approve a route.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"填写不依赖网络的替代方式，以及参与者停止或离开的步骤。每项不超过600字符。这不会启用离线玩法或批准路线。\"\n          }\n        }\n      }\n    },\n    \"merchant.exitPlan.offlineRequired\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Describe what participants should do when the connection is unavailable.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"请填写断网时参与者可以采用的替代方式。\"\n          }\n        }\n      }\n    },\n    \"merchant.exitPlan.exitRequired\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Describe how participants can stop or leave if the activity fails or they choose to exit.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"请填写活动失败或参与者主动中止时的退出步骤。\"\n          }\n        }\n      }\n    },\n    \"merchant.exitPlan.textLimit\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Each instruction must stay within the 600-character limit.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"每项预案说明不能超过600字符。\"\n          }\n        }\n      }\n    },\n    \"merchant.exitPlan.reviewTitle\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Local offline and exit plan to review\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"审阅本地断网与退出预案\"\n          }\n        }\n      }\n    },\n    \"merchant.exitPlan.reviewBoundary\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"These are unapproved planning notes for this editing session. They do not confirm a safe or accessible route, cancel an order, issue a refund or grant a reward. No runtime fallback is enabled.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"这些是本次编辑中的待审预案，不代表已确认路线安全或无障碍，也不会取消订单、退款或发放奖励。未启用运行时替代分支。\"\n          }\n        }\n      }\n    }\n"
+        },
+        {
+          "before": "            \"state\": \"translated\",\n            \"value\": \"载入成功后，将替换尚未保存的昵称、简介和路线偏好。载入失败时保留当前修改。\"\n          }\n        },\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"A successful reload replaces unsaved changes to your nickname, introduction and route preferences. If it fails, your changes are kept.\"\n          }\n",
+          "after": "            \"state\": \"translated\",\n            \"value\": \"载入成功后，将替换尚未保存的资料修改和暂存头像。载入失败时保留当前草稿。\"\n          }\n        },\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"A successful reload replaces unsaved profile changes and the staged avatar. If it fails, your draft is kept.\"\n          }\n"
+        },
+        {
+          "before": "            \"state\": \"translated\",\n            \"value\": \"返回会放弃尚未保存的昵称、简介、路线偏好和暂存头像。结果未知的保存仍保持待核对状态，返回不会重试保存。\"\n          }\n        },\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Going back discards unsaved changes to your nickname, introduction, route preferences and staged avatar. An unresolved save stays pending; going back does not retry it.\"\n          }\n",
+          "after": "            \"state\": \"translated\",\n            \"value\": \"返回会放弃尚未保存的资料修改和暂存头像。结果未知的保存仍保持待核对状态，返回不会重试保存。\"\n          }\n        },\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Going back discards unsaved profile changes and the staged avatar. An unresolved save stays pending; going back does not retry it.\"\n          }\n"
+        },
+        {
+          "before": "            \"value\": \"这些是本次编辑中的待审预案，不代表已确认路线安全或无障碍，也不会取消订单、退款或发放奖励。未启用运行时替代分支。\"\n          }\n",
+          "after": "            \"value\": \"这些是本次编辑中的待审预案，不代表已确认路线安全或无障碍，也不会取消订单、退款或发放奖励。未启用运行时替代分支。\"\n          }\n        }\n      }\n    },\n    \"merchant.templateMetadata.title\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Template metadata\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"模板基本信息\"\n          }\n        }\n      }\n    },\n    \"merchant.templateMetadata.duration\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Game duration (minutes)\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"玩法时长（分钟）\"\n          }\n        }\n      }\n    },\n    \"merchant.templateMetadata.players\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Game player-count description\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"游戏人数说明\"\n          }\n        }\n      }\n    },\n    \"merchant.templateMetadata.scopeHint\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"These are existing template fields. The player-count description is not a venue capacity limit. Local participation and exit plans are not copied into them. Existing server permissions and save restrictions still apply.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"这是既有模板字段。游戏人数说明不等于现场人数上限；本地参与安排和退出预案不会自动写入这些字段。仍受既有服务端权限与保存限制约束。\"\n          }\n        }\n      }\n    },\n    \"merchant.templateMetadata.omissionHint\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Leaving a value blank omits it from the request and does not clear an existing value. The server defaults an omitted duration to 0 for a new template.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"留空时请求不发送该字段，不会清除已有值；新模板未填写时长时，服务端默认返回0。\"\n          }\n        }\n      }\n    },\n    \"merchant.templateMetadata.durationInvalid\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Enter whole minutes from 0 to 2,147,483,647, or leave blank.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"请填写0至2,147,483,647之间的整数分钟数，或留空。\"\n          }\n        }\n      }\n    },\n    \"merchant.templateMetadata.readback\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Save acknowledged. The template was reloaded from the server; this does not establish separate publication or review approval.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"服务端已确认保存，并已重新读取模板；这不代表另行发布或审核已获批准。\"\n          }\n        }\n      }\n    },\n    \"merchant.templateMetadata.readbackFailed\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Save was acknowledged, but current template details could not be verified. The submitted copy is hidden. Reload to read again; this does not resend the save.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"服务端已确认保存，但当前模板详情尚未核实，已隐藏提交副本。重新加载只会再次读取，不会重复保存。\"\n          }\n        }\n      }\n    },\n    \"merchant.preparation.title\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Experience preparation\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"体验准备信息\"\n          }\n        }\n      }\n    },\n    \"merchant.preparation.venueLabel\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Suitable venue type\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"适用场所类型\"\n          }\n        }\n      }\n    },\n    \"merchant.preparation.materials\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Required materials\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"所需材料\"\n          }\n        }\n      }\n    },\n    \"merchant.preparation.unspecified\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Choose a venue type\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"请选择场所类型\"\n          }\n        }\n      }\n    },\n    \"merchant.preparation.unknownVenue\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"The current source value is retained. Choose a listed venue only if you want to replace it.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"当前来源值已保留；只有选择列表中的场所类型才会替换它。\"\n          }\n        }\n      }\n    },\n    \"merchant.preparation.hint\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Venue type and materials are template descriptions. The merchant still needs to verify on-site suitability and availability.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"场所类型和材料清单属于模板说明，现场是否适用及材料是否可用仍需商家核实。\"\n          }\n        }\n      }\n    },\n    \"merchant.preparation.omissionHint\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"An empty value is omitted from the request and does not clear an existing server value. Saving uses the existing template permissions and readback flow.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"留空时请求不发送该字段，不会清除已有服务端值。保存沿用既有模板权限与回读流程。\"\n          }\n        }\n      }\n    },\n    \"merchant.preparation.venue.scenicArea\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Scenic area\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"景区\"\n          }\n        }\n      }\n    },\n    \"merchant.preparation.venue.park\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Park or green space\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"公园绿地\"\n          }\n        }\n      }\n    },\n    \"merchant.preparation.venue.shoppingDistrict\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Shopping district\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"商圈街区\"\n          }\n        }\n      }\n    },\n    \"merchant.preparation.venue.historicDistrict\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Historic town or street\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"古镇老街\"\n          }\n        }\n      }\n    },\n    \"merchant.preparation.venue.museum\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Museum\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"博物馆\"\n          }\n        }\n      }\n    },\n    \"merchant.preparation.venue.campus\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Campus\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"校园\"\n          }\n        }\n      }\n    },\n    \"merchant.preparation.venue.indoorVenue\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Indoor venue\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"室内场馆\"\n          }\n        }\n      }\n    },\n    \"merchant.ruleSteps.title\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Player instructions\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"玩家玩法规则\"\n          }\n        }\n      },\n      \"extractionState\": \"manual\"\n    },\n    \"merchant.ruleSteps.playerVisible\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Players can see these instructions. Do not include staff-only answers or secret words.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"这些规则会展示给玩家，请勿填写仅供店员使用的答案或暗号。\"\n          }\n        }\n      },\n      \"extractionState\": \"manual\"\n    },\n    \"merchant.ruleSteps.step %lld\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Step %1$lld\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"第 %1$lld 步\"\n          }\n        }\n      },\n      \"extractionState\": \"manual\"\n    },\n    \"merchant.ruleSteps.instruction\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"What should the player do?\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"玩家需要做什么？\"\n          }\n        }\n      },\n      \"extractionState\": \"manual\"\n    },\n    \"merchant.ruleSteps.remove\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Remove step\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"删除步骤\"\n          }\n        }\n      },\n      \"extractionState\": \"manual\"\n    },\n    \"merchant.ruleSteps.removeStep %lld\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Remove step %1$lld\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"删除第 %1$lld 步\"\n          }\n        }\n      },\n      \"extractionState\": \"manual\"\n    },\n    \"merchant.ruleSteps.add\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Add step\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"添加一步\"\n          }\n        }\n      },\n      \"extractionState\": \"manual\"\n    },\n    \"merchant.ruleSteps.limits\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Add up to 12 steps, with 60 characters per step. Existing longer rules are kept until you edit them.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"最多添加 12 步，每步 60 字。已有超限规则在编辑前保留原文。\"\n          }\n        }\n      },\n      \"extractionState\": \"manual\"\n    },\n    \"merchant.ruleSteps.emptyHint\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Blank steps are omitted. Clearing every step clears the saved instructions after you confirm.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"空步骤不会写入。清空所有步骤并确认保存后，会清除已保存的玩法规则。\"\n          }\n        }\n      },\n      \"extractionState\": \"manual\"\n    },\n    \"merchant.ruleSteps.clearReview\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Saving will clear the existing player instructions.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"保存后将清空现有玩家玩法规则。\"\n          }\n        }\n      },\n      \"extractionState\": \"manual\"\n    },\n    \"merchant.ruleSteps.emptyReview\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"No player instructions.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"暂无玩家玩法规则。\"\n          }\n        }\n      },\n      \"extractionState\": \"manual\"\n    },\n    \"merchant.ruleSteps.countLimit\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Before saving edited rules, reduce them to 12 steps or fewer.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"保存已编辑规则前，请将步骤减少到 12 步以内。\"\n          }\n        }\n      },\n      \"extractionState\": \"manual\"\n    },\n    \"merchant.ruleSteps.oneLine\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Use one line per step. Add another step instead of inserting a line break.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"每步只写一行。需要换行时，请添加下一步。\"\n          }\n        }\n      },\n      \"extractionState\": \"manual\"\n    },\n    \"merchant.ruleSteps.textLimit\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"A step exceeds the 60-character editing limit. Shorten it before saving.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"有步骤超过 60 字编辑上限，请缩短后再保存。\"\n          }\n        }\n      },\n      \"extractionState\": \"manual\"\n    },\n    \"profile.case.title\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"探索作品\"\n          }\n        },\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Portfolio\"\n          }\n        }\n      }\n    },\n    \"profile.case.description\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"作品描述\"\n          }\n        },\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Portfolio description\"\n          }\n        }\n      }\n    },\n    \"profile.case.descriptionUnavailable\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"当前资料响应未提供作品描述，暂不能编辑；已有图片仍可查看。\"\n          }\n        },\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"This profile response did not include a portfolio description. You can still view existing images.\"\n          }\n        }\n      }\n    },\n    \"profile.case.images\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"作品图片\"\n          }\n        },\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Portfolio images\"\n          }\n        }\n      }\n    },\n    \"profile.case.imagesEmpty\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"暂无作品图片\"\n          }\n        },\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"No portfolio images\"\n          }\n        }\n      }\n    },\n    \"profile.case.imagesOmitted\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"超过预览上限的图片数\"\n          }\n        },\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Images beyond the preview limit\"\n          }\n        }\n      }\n    },\n    \"profile.case.imagesReadOnly\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"本页可预览已有图片，暂不支持增删或上传。\"\n          }\n        },\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Existing images can be previewed. Adding, removing and uploading images are not available yet.\"\n          }\n        }\n      }\n    },\n    \"profile.contactQR.title\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"联系二维码\"\n          }\n        },\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Contact QR code\"\n          }\n        }\n      }\n    },\n    \"profile.contactQR.open\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"管理二维码\"\n          }\n        },\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Manage QR code\"\n          }\n        }\n      }\n    },\n    \"profile.contactQR.available\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"已添加\"\n          }\n        },\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Added\"\n          }\n        }\n      }\n    },\n    \"profile.contactQR.empty\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"未添加\"\n          }\n        },\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Not added\"\n          }\n        }\n      }\n    },\n    \"profile.contactQR.staged\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"待移除\"\n          }\n        },\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Pending removal\"\n          }\n        }\n      }\n    },\n    \"profile.contactQR.remove\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"移除二维码\"\n          }\n        },\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Remove QR code\"\n          }\n        }\n      }\n    },\n    \"profile.contactQR.restore\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"保留原二维码\"\n          }\n        },\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Keep original QR code\"\n          }\n        }\n      }\n    },\n    \"profile.contactQR.hint\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"完成只暂存保留或移除的选择，回到资料页后仍需审阅并保存。\"\n          }\n        },\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Done only stages the choice to keep or remove this QR code. Review and save from the profile page to submit it.\"\n          }\n        }\n      }\n    },\n    \"profile.contactQR.noUpload\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"暂不支持新增或替换二维码。\"\n          }\n        },\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Adding or replacing a QR code is not available yet.\"\n          }\n        }\n      }\n    },\n    \"profile.contactQR.reviewRemoval\": {\n      \"extractionState\": \"manual\",\n      \"localizations\": {\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"将移除联系二维码。\"\n          }\n        },\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"The contact QR code will be removed.\"\n          }\n        }\n      }\n    },\n    \"templateChoiceRows.count\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Choice options\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"选择题选项\"\n          }\n        }\n      }\n    },\n    \"templateChoiceRows.add\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Add option\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"添加选项\"\n          }\n        }\n      }\n    },\n    \"templateChoiceRows.remove\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Remove option\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"删除选项\"\n          }\n        }\n      }\n    },\n    \"templateChoiceRows.removeLetter %@\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Remove option %@\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"删除选项 %@\"\n          }\n        }\n      }\n    },\n    \"templateChoiceRows.reorderUnavailable\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"This draft contains an unrecognized attachment or answer format. Its stored data is preserved; adding or removing options is unavailable.\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"此草稿含有无法识别的附件或答案格式，已保留原始数据，暂不能增删选项。\"\n          }\n        }\n      }\n    },\n    \"templateReward.clearMedal\": {\n      \"localizations\": {\n        \"en\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"Clear medal\"\n          }\n        },\n        \"zh-Hans\": {\n          \"stringUnit\": {\n            \"state\": \"translated\",\n            \"value\": \"清除勋章\"\n          }\n"
         }
       ]
     },
@@ -4733,7 +5051,7 @@
     "Core/RoamRetainedRead.swift": "7864b357ca7c20ad9f60f767a788f7a72ac3cd80edcc4554a87ef15d7db0bbe0",
     "Core/SearchMapLayerVisibility.swift": "2e95d0a1b587228fcf6f7b1b893d31c1ef67b3679702953810fb5e39feeec6b5",
     "Core/SearchMapViewportSelection.swift": "8cb68c5decb74da1b172da29507953f5b3fae9ece71eac4cce947c0cc84bcfc7",
-    "Resources/Localizable.xcstrings": "81907047a7213362ccf37e7b1e7faaf4936a048ca3d56064d725c9b12c855b27",
+    "Resources/Localizable.xcstrings": "f2ad6ed80747b0c4f3ce4453c65235ba7c06a0c3e2592cfa151f29ac037e3e36",
     "Resources/MerchantCityClaimWithdrawalLocalizations.fragment.json": "a19e4d670bc4be11489d8a45e4e5e1d4b68e2e074abacd86301f75a44fde800e",
     "Resources/MerchantCityQuotaLocalizations.fragment.json": "8c0b7f0fa055ae9cfd55517319138c01d58ca7fd5c1368196eeb608237bca3be",
     "Resources/MerchantCustomerContactLocalizations.fragment.json": "45fbb42eb318bd44ac1a0c728c1510941701d10aa5bb945fd135686147ca3cc6",
@@ -5076,7 +5394,7 @@
     "App/ProjectStoryTextInsertionButton.swift": "9844c587e8cee24c520ff0ae06d2f260fc2e1c38b04d184334912879eed3651a",
     "Core/ProfileAvatarFlow.swift": "6558a0f7606edd6319fc4088d90483215058e177d0310606c5247761c9f7de19",
     "Core/ProfileAvatarJournal.swift": "0e5f828ded3b4c2ace321afd7fb7f3d6b27bd087fdc046f0026b730747465638",
-    "Core/ProfileAvatarUpload.swift": "77c15238360c99d568019f7065188b85b6d0aac17c13c0f96228a400460ee9b9",
+    "Core/ProfileAvatarUpload.swift": "f9eb0d929be8b9f728937c103753d4eed38a7e38252025bb0f49325cf6de1541",
     "Core/ProjectEmptyStoryTextRemoval.swift": "802bf501a18454f53c331fec20c2c5924e3ee30f3bbebdb0bfc4327e886844e7",
     "Core/ProjectStoryTextInsertion.swift": "3bfa34a812e8911c9dc61e3762e6333dc70bd2ebff8b6a3320797ed20c65954b",
     "Resources/ProfileAvatarLocalizations.fragment.json": "cdf169196f1a916bcd7c62f0cfe766f521df88ded12744ba5467335161458659",
@@ -5198,7 +5516,7 @@
     "Tests/CoreTests/ProjectNodePlaceSelectionTests.swift": "b864c152cf35a1b55c055d634c3394d591c7eb4f27986af725edbb27dd8e3fc1",
     "Tests/CoreTests/SearchMapCityNodeReadTests.swift": "0574a6a4f69386b0e48264824dd606e2b0c708a8495ffe9fc821e72e0c755463",
     "tools/check_profile_read_failure_contract.py": "e492facdded0e76615721d90081b912738ba490e503aab61a7ed549a6b2a4b8a",
-    "Tests/ContractChecks/test_profile_read_failure_remote_admission.py": "d05cb618ce151ed73ca7b47a9a081a3c7563984cad8f29f92c05cecd953ace25",
+    "Tests/ContractChecks/test_profile_read_failure_remote_admission.py": "bbd48ee5446db5a7cce18e61b3a80bfe7c62e9b2e4ede3e65b2bbcdae7a4b4dd",
     "Tests/CoreTests/ProfileEditTests.swift": "6319234ba77c43afec858692bc9ff00308be774b58ea585069a7b3dc90ce654c",
     "tools/tests/test_gitleaks_configuration.py": "616a5e7f28ff5bd6814c91bf10e8f7efd99b8091ad4a8b9dc9d895f8bd2e0ad4",
     "Tests/CoreTests/ClubCustomerPermissionTests.swift": "b4451e3ab27422f568b31c114f2c0cfc30335c24115c36f117b1f64579271590",
@@ -5212,14 +5530,14 @@
     "tools/tests/test_creator_shelf_state_history.py": "2806301717bd6b0d1ff66462cb006e801853daa9a87ffdd9aa679c8deb6994bf",
     "Tests/ContractChecks/test_template_shelf_state_projection.py": "f229a3c1447956510c42368847e70a3c94d0935b838828bb959e124507b51595",
     "tools/tests/creator_shelf_state_history.py": "db500fc7605d2fd12e98b4b042fd11ef284645156d0e4698f688ea3c92890b0e",
-    "Tests/ContractChecks/test_global_search_category_recovery.py": "49548a2ffd425fee934f1dd39439e13fede7c8293646c1dd80b3bf75de79f8f2",
+    "Tests/ContractChecks/test_global_search_category_recovery.py": "790bfd8c925c675a41fc6afe5ccb4cc6518be2a151d85cd52cae526b11aabadc",
     "Tests/CoreTests/GlobalSearchCategoryRecoveryTests.swift": "4a78eca6ec1df117f1fd24675e775e7ffe4c6f1dc85f2e4988d223705092108e",
     "Tests/CoreTests/SearchMapCategoryRecoveryTests.swift": "4f7ed5b79dd4929b5eb828c53e1a07826e1a8b6ff78a09c0f55148faa24a4dad",
     "docs/global-search-category-recovery.md": "886a26d9fa6bbe316551c53fb83d7cdfae754351693d9a671040f6a72c878dca",
     "Tests/CoreTests/RoamRouteReplayTests.swift": "bee4110b199342c675def44f367f9da180da699124b9cf5f9222e7ad06441e0a",
-    "Tests/ContractChecks/test_roam_route_replay.py": "406c7106dd554f8ccf52b829bd4536e6be55caa23d2a07cc258e99391dfcfb02",
+    "Tests/ContractChecks/test_roam_route_replay.py": "6de35fae55452731ded6009e64246658d644e0c3d96cd386dd72d9cfb871e879",
     "docs/roam-route-replay.md": "5c409db1da0daffd0a5143873e96310094c417941b7497e1b5536e02b57a4395",
-    "Tests/ContractChecks/test_category_roam_registration.py": "68745b084cf69282097dc4e5ba519004b1b8d12ee7643d85baa44de2a3a31a52",
+    "Tests/ContractChecks/test_category_roam_registration.py": "21a2818d2504811713e70ab587a30e7a1048924a63dd1b479a84125776d496a7",
     "Tests/AppUnitTests/ClubLeaderboardMemberRouteTests.swift": "91a1011295933822da752baaf3912cc8e36551bbe58597352dff171bf8c96222",
     "Tests/AppUITests/ClubLeaderboardMemberFlowTests.swift": "742da04056398fb638cc53eae154497c332b9c647390a7762665d4db77156b6d",
     "Tests/ContractChecks/test_club_leaderboard_member_navigation.py": "f76bc1c7da34ef0e3df056a02eac732079e2b5103e0b872136dbf2d2e4b8c1a6",
@@ -5228,7 +5546,7 @@
     "tools/tests/test_creator_history_fixture_rejection.py": "f01c504f715ee961df19de807a27e4321420c43e130631d68fb1924323fec85b",
     "tools/run138_current_source_projection.py": "c516a6952473bd0a0b958631f1751bf23085b35dc1b7dae3c3afa2afd3a4709e",
     "App/RoamHistoryShareView.swift": "20713bba31a10b2b3e5d9365e496e69e96234ae9d851e96cfc986b057d9f6df3",
-    "App/TemplateAuthoringDetailForms.swift": "4b1c14e16533888c72208bdec51c0476396c3689e79dcba82fda453c42e257bc",
+    "App/TemplateAuthoringDetailForms.swift": "06553b9348ea718f0d8846a2ad2c01b9c5e9de06c849b89f03c3f6e688d2efa8",
     "App/TemplateAuthoringMetadataSelectors.swift": "9bcd9cf6f470df1bb359dc4f663ffadf2f5fccec7799f4592c758fb76418a6fa",
     "App/TemplateStoryEditor.swift": "60dd8ac32c19c940c1bfa8200b30fc2e6fe81f7ef46e96bb4608380fd94c0aa3",
     "Core/TemplateMetadata.swift": "ff6b5528cc67b62321a5cfc7341d6e572857a3cdd6d561a1446a620bfd16d68a",
@@ -5277,7 +5595,7 @@
     "Tests/ContractChecks/test_merchant_template_participation_plan.py": "dc80be6fe3e7e1ede394e0939af1011a3bf372b590864bb7bf89f1db66c9e1bb",
     "docs/registration/template-narration-audio-preview.json": "509c62250f39b472b761febc2713a23ac70daad666f9dd5e25802f118cbbe316",
     "docs/merchant-template-participation-plan.md": "3a429425a27bdca54b8520fed35f963be650e2081075ae148879270a04cc1a95",
-    "Tests/AppUnitTests/ProfileTextFieldEditTests.swift": "0ab64738ab4507c38599666e36dec6a7616855a3023dfa478eea96541cab62c7",
+    "Tests/AppUnitTests/ProfileTextFieldEditTests.swift": "83c2e5466d0a4af04a553bb08814f5bc88056ce8be2a5413d68ddf227ffddbb6",
     "Tests/CoreTests/ClubEventCalendarTests.swift": "587f8bbaf7b36744c1a46c4cde07ef5112a46ef2d244cf1704f571061b7bcd03",
     "Tests/ContractChecks/test_template_narration_audio_preview.py": "54be9d513e174636b69e64c55086900d8fbee211bc0e728304053456495f96a1",
     "Tests/AppUnitTests/RoamSharePhotoSaveModelTests.swift": "e53b51606e3631893e4ee3fd0262751c2716ce8e05515134a56afdc7060a670d",
@@ -5296,8 +5614,8 @@
     "App/ClubEventCalendarView.swift": "3ab1f0b2c8d5776dbb6c98d3c26cb4ed01319b4a2986005626d6c736c6953f87",
     "Tests/CoreTests/MerchantTemplateExitPlanTests.swift": "d88fa72f67c8e09e441dbdc37c9906870eb199a00212541e3f1f5fc58fae8514",
     "docs/profile-text-field-edit.md": "d0d882dc204f2de4b48321c65a3e6041a37a2a9cf6418ac9e5359a95886b6893",
-    "Tests/ContractChecks/test_profile_text_field_edit.py": "0f7f3c5d9278cf8edd11018d4c5b7d8e2c6986b61f7839d37e140a85cf2d782a",
-    "App/ProfileTextFieldEditor.swift": "8f74180dfefeaa60c1c3e027029ebe79b1eafab7ad98e9694a202e03213a6cb1",
+    "Tests/ContractChecks/test_profile_text_field_edit.py": "352923330881c91cb6d74c387a3c87eb4021999f611518e33910e6286630a4c3",
+    "App/ProfileTextFieldEditor.swift": "afc42b6665ac620b7fe23c3708ca15184a8b8ffbf40544d71fc57068af455449",
     "Tests/ContractChecks/test_merchant_template_exit_plan.py": "6e06ab860aa8fdefe559f07c989907297789871ce980b387af703f46c61a6bf0",
     "Core/RoamSharePhotoSaveState.swift": "dc363f60f6e8ebd84ebc25053fdf070b6000dcebc6b22aef5ccdf2d0e79383dd",
     "Tests/CoreTests/MerchantTemplateParticipationPlanTests.swift": "d02c0358ad1f43a4f112024c94a9875ffae2a1eb07c1f2443388e67d0af98e9a",
@@ -5305,6 +5623,58 @@
     "Tests/AppUITests/MerchantTemplateParticipationPlanFlowTests.swift": "b4e8c60794037f8e8fb151c3ba11516099482d63cf2784b3085bc9d38a6a7e7f",
     "Tests/AppUITests/MerchantTemplateExitPlanFlowTests.swift": "23bd4804a9a9de93deeef8e33975f619aa9bb244ecff7aa712fad05063f14d5c",
     "docs/localization/template-narration-audio-clear.json": "e0b163455e70abfa93f970c6d1eb545c87156f06eaebb9710a0dff9989cf5ef8",
+    "docs/merchant-template-rule-steps.md": "7ba2644adccd34bd615bbbb680ead370bc810529d58cdf33a1cefda42c6b6a22",
+    "Tests/AppUITests/MerchantTemplateRuleStepsFlowTests.swift": "48e614784818da1dfdb1a542742da2c7d9db44ad1c6e61efcea050961b005016",
+    "Tests/AppUnitTests/ProfileCasePortfolioTests.swift": "9b84003d5a6cc6824abc22c21399541cde6a61c82f12e126c4ac7a414ef4bee5",
+    "Tests/AppUITests/MerchantTemplatePreparationFlowTests.swift": "1b5e909777f95a10c36b46631b7f7c8f9091c413ac0fe3a0a5f890b5fe86a673",
+    "docs/registration/template-choice-option-rows.json": "fb99ead366b331d40b815781a3354afae3eccea7d9a420e81a6acc44712a32e9",
+    "Core/MerchantOperationsSyntheticFixtures.swift": "2e7d96c05ac5a2c1e85a61b118571c60066c3e91a974098c76a9069cda435896",
+    "docs/template-reward-medal-clear.md": "1fb104c68b71a5fec52834599f2933f035ab1f808243eedf20a64cf02be58d18",
+    "Tests/ContractChecks/test_merchant_template_rule_steps.py": "5b4044dbaa909bd04bbc62e76a758fc6c93c779d24173afcbe6393c271016626",
+    "Resources/ProfileCasePortfolioLocalizations.fragment.json": "99b7bbd6b5f16d29d7821e017d0364d8921ea78acbd99da8f80ea55df801050d",
+    "App/ProfileCasePortfolioSection.swift": "3316875af2dbc54450a120b4bdab6e1e0ea08dd1648a1bb107b93fd195177b4a",
+    "Tests/AppUnitTests/ProfileContactQRRemovalTests.swift": "11ca5957f3f35b807f3c9eb1fdc23a943cee056cde983dbc9f673068d2e59d2d",
+    "Tests/CoreTests/TemplateRewardMedalRemovalTests.swift": "0794332f5556e09b94abcb970fa7da5693d398327f2caf853bbe004b8bb0bb37",
+    "docs/profile-contact-qr-removal.md": "6caf857ec03fae7b50c31b7ea2ccc72a793ca1b784cfb67965ce6a6842f9e19b",
+    "Core/ProfileCasePortfolio.swift": "f6516e0758f14091d74067e0d400cd90a28f6545b65caa197d53ec5c838b4e1e",
+    "Tests/ContractChecks/test_profile_contact_qr_removal.py": "b79d47d597f888e6b596b9e600e611de2dca00847148a3182253472c40a61a8a",
+    "docs/localization/template-reward-medal-clear.json": "a2dd8e3ec833a5719b00e0944033f355ad48b5e2f27c90c0c4e498462e5704d0",
+    "Tests/CoreTests/MerchantTemplateRuleStepsTests.swift": "e4f9af9bfb0dad26ea77333083f77169ebe8d3df77af29b8ef7387f893624c8e",
+    "App/TemplateRewardMedalClear.swift": "e9e3c1ceea511cdd41a60d747dee9520b7e2e60aa6719fce3acb18e39d90fd3a",
+    "docs/merchant-template-metadata.md": "72f75dffd6a9023f196a60015a6d7a764b9999e38d18be81bf3a8165e99ea3c7",
+    "Tests/ContractChecks/test_merchant_template_preparation.py": "32fdd3e5fdfafe3d816d8decfce3382d767ec21e038b40e4e21ee15d56d1fd7d",
+    "Tests/AppUITests/ProfileCasePortfolioFlowTests.swift": "171eb446703ca5240139d43fa1acbe3c764b848116e8f97c6b603dd2059d4455",
+    "Tests/CoreTests/TemplateChoiceOptionRowsTests.swift": "a426061d27be62cdd026faf131083b4dda5272eb0e298ed3ad7f502c291de51a",
+    "Tests/CoreTests/ProfileContactQRRemovalTests.swift": "165ef4390e63e89af6b903b3b6e08806da812931d3c1417ed45e54ccc65136f8",
+    "docs/registration/template-reward-medal-clear.json": "7b3aeca395a6166bc03665caee76b19d970f3ad4748db6d46e385b48583aa41a",
+    "Tests/AppUITests/MerchantTemplateMetadataFlowTests.swift": "4212ff99e168ef270480c497ab9d1fb1f95bcf79bc803e161a256e0f857c3074",
+    "docs/profile-case-portfolio.md": "61f51777b32a0c59e3f699ed564dc1a4bd27dfdb0e15c1f34d103d0275036ad2",
+    "docs/profile-case-portfolio-registration.fragment.json": "11fb7c4f604a30367636eb767a2f6b1fa84c2e1d541335820bd38db0348b67b9",
+    "docs/merchant-template-preparation.md": "429751d2393936c40e9d030ab733ae4d177315ee740439b55f0acf16ac45254c",
+    "App/ProfileEditFixtureSupport.swift": "f0c59d0603c9931a6054e1ffe4dbd7adf848bc36745dec6dfc8198dc4139ff4b",
+    "Tests/AppUnitTests/TemplateChoiceOptionRowsEditorTests.swift": "e8d5a0ee9a89ed51d4791e35230be2d6a7ca4378729812251a35d00a7764dedc",
+    "Tests/CoreTests/ProfileCasePortfolioTests.swift": "25fa6570762f8efd59a48530ee8f1624a836e1cb008c9f06a1ffeab8b16bdddc",
+    "Tests/ContractChecks/test_profile_case_portfolio.py": "96e76f34fff25e60bc8c4bf001d467254bc9cd46f0e9a252698cb7afc08f34c1",
+    "Resources/ProfileContactQRRemovalLocalizations.fragment.json": "fe53a7ff39ba016665626dbd7e2edbf9249a6233ed6d0db29f1949254f1377fe",
+    "Resources/MerchantTemplateMetadataLocalizations.fragment.json": "aae72acb7b15b2139d7775d18cadb1c44cc6f915a07466f94f30021d059a773a",
+    "Resources/MerchantTemplateRuleStepsLocalizations.fragment.json": "3cb782324ad1f954cb516b045bb9c7befc1b1ed9cbea1ab7ef6690c41c55dd47",
+    "Core/TemplateRewardMedalRemoval.swift": "005c8f4f9790c125f0f76ebdab32cce28d1cd3d323c5e1fe2531c3b1c5067adf",
+    "Tests/AppUITests/ProfileContactQRRemovalFlowTests.swift": "b2e650c4b6733546dc24ca36cce3538f487f476a122ea8e17c50597fd53d02d6",
+    "Tests/ContractChecks/test_template_choice_option_media.py": "a6458339dfb9c876edef5371d65f8e571e02e07270c706f55c5ab06fb8f5f7d4",
+    "Tests/ContractChecks/test_merchant_template_metadata.py": "e42b2e93a6c968b48422c2cd563922ef476c7941617903b6ccbe12b0e2877e2f",
+    "App/ProfileContactQREditor.swift": "51fb1a1d73225b0f72bb6e2922335a336b2126c5da2130a0da1032158f3ccbf3",
+    "docs/template-choice-option-rows.md": "6adb1cdd8cf3074261faea1c7fb0a7d5ebe1a92c71e0bf5af0ffe2f582578516",
+    "Tests/ContractChecks/test_template_choice_option_rows.py": "8ade0833e5f36f7f8acc950524b4eaa10f6d8c9a45df7072fd7f877be81b2f32",
+    "docs/localization/template-choice-option-rows.json": "a9593126e2069ae063c9ccdf2443219cbce2853c6947eb572c08b7b9c2a553fa",
+    "Tests/CoreTests/MerchantTemplatePreparationTests.swift": "b324cdbb30ea3fffec501606d3461c90b36a948cde725c6036729cad4ee3bd80",
+    "App/TemplateChoiceOptionRowsEditor.swift": "99b721f076152c1662284aab9dcd750128a2d9b95ca4e77beae58cd8d5361c17",
+    "Core/ProfileEditSyntheticFixtures.swift": "edbbbe51e4599f06e3656416e821c06bb5e314915e1a2a26ff0fb34f883cc5be",
+    "Core/TemplateChoiceOptionRows.swift": "a6d7774c8ef2ec7eb4aab8a5c3851fe9f20ef9cecb09376803280c6b8ee5c8b0",
+    "Tests/AppUnitTests/TemplateRewardMedalClearTests.swift": "d9e8eb879137326db648c1609b7be789ea98d2033f8948b5cceb5f5f5a1241c5",
+    "docs/profile-contact-qr-removal-registration.fragment.json": "047f428b3d04aa2f12536408b8fd514f24975b76117401d6234ee2dfdfc6fb34",
+    "Tests/ContractChecks/test_template_reward_medal_clear.py": "5efff67458c7fa542ae0d70b4d9219ceb4f4eb3295fb9a7926235efd0ecde931",
+    "Tests/CoreTests/MerchantTemplateMetadataTests.swift": "d1480ca023f399b4cabc60186bd546398ff60e34046ed2e3ffa0b20738f0846a",
+    "Resources/MerchantTemplatePreparationLocalizations.fragment.json": "8309a56f993b0964dfe15c88d615cdce1498dadda6cd0271ce2c09b19b407877",
     "tools/tests/test_readiness_contract_parse_cache.py": "a05486842d224477efc0c91a25c0fb9458858295eb069869c37923903613f3b0"
   },
   "current_method_replacements": {
@@ -5403,10 +5773,10 @@
   "product_ui_budget": {
     "status": "UNMEASURED_SOURCE_BOUND_PRODUCT_UI_INCREMENT",
     "measured": false,
-    "new_methods": 8,
+    "new_methods": 23,
     "changed_existing_methods": 3,
-    "method_count_after": 750,
-    "class_count_after": 166,
+    "method_count_after": 765,
+    "class_count_after": 171,
     "assumptions": {
       "per_reveal_seconds": 40,
       "per_reveal_maximum_swipes": 10,
@@ -5418,11 +5788,16 @@
       "round_up_seconds": 10
     },
     "source_sha256": {
-      "App/MerchantOperationsEditor.swift": "ff2fc80339203552415f39c18bf447f507fdde54f966b39409a4a23852fe20a9",
-      "App/ProfileEditView.swift": "2984a3b5b5dc9ac638fcb3f3414bbeca41a685a11a3c8aee3ee310d5911f3393",
+      "App/MerchantOperationsEditor.swift": "2728a1253e261b4e7712ed3fc799832668880a53d59300b211ec50b1e843e8be",
+      "App/ProfileEditView.swift": "45879a75ed1ea5c2fbe3403df07cae9aa7bcda40d03f974954f84c60a4adf427",
       "Tests/AppUITests/FailureScreenshot.swift": "705ba7fa14128cfd9e81f181fd2b5f5edd0cb464b2ececd26119510d98ed6e49",
       "Tests/AppUITests/MerchantTemplateExitPlanFlowTests.swift": "23bd4804a9a9de93deeef8e33975f619aa9bb244ecff7aa712fad05063f14d5c",
+      "Tests/AppUITests/MerchantTemplateMetadataFlowTests.swift": "4212ff99e168ef270480c497ab9d1fb1f95bcf79bc803e161a256e0f857c3074",
       "Tests/AppUITests/MerchantTemplateParticipationPlanFlowTests.swift": "b4e8c60794037f8e8fb151c3ba11516099482d63cf2784b3085bc9d38a6a7e7f",
+      "Tests/AppUITests/MerchantTemplatePreparationFlowTests.swift": "1b5e909777f95a10c36b46631b7f7c8f9091c413ac0fe3a0a5f890b5fe86a673",
+      "Tests/AppUITests/MerchantTemplateRuleStepsFlowTests.swift": "48e614784818da1dfdb1a542742da2c7d9db44ad1c6e61efcea050961b005016",
+      "Tests/AppUITests/ProfileCasePortfolioFlowTests.swift": "171eb446703ca5240139d43fa1acbe3c764b848116e8f97c6b603dd2059d4455",
+      "Tests/AppUITests/ProfileContactQRRemovalFlowTests.swift": "b2e650c4b6733546dc24ca36cce3538f487f476a122ea8e17c50597fd53d02d6",
       "Tests/AppUITests/ProfileEditFlowTests.swift": "e7f852988ffed57f81015d0e9eb9f0db17dc17f6500ef1522959e008ff417067"
     },
     "methods": {
@@ -5579,14 +5954,229 @@
         "typed_characters": 0,
         "unrounded_seconds": 21.0,
         "seconds": 30
+      },
+      "MerchantTemplateMetadataFlowTests.testExistingMetadataReviewAndSyntheticSaveReadsCanonicalFields": {
+        "source": "Tests/AppUITests/MerchantTemplateMetadataFlowTests.swift",
+        "declaration_sha256": "921c600bd18495a4950f1899e5eaabb6fc786484003ad42e6d022b828323d842",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 0,
+        "bounded_reveal_calls": 10,
+        "direct_action_count": 9,
+        "direct_ax_assertion_count": 4,
+        "typed_characters": 7,
+        "unrounded_seconds": 544.75,
+        "seconds": 550
+      },
+      "MerchantTemplateMetadataFlowTests.testOverflowCannotReviewOrSilentlyClampDuration": {
+        "source": "Tests/AppUITests/MerchantTemplateMetadataFlowTests.swift",
+        "declaration_sha256": "384cf934be55a018b6ea090ec3180922b5a65f590a29649e967e3b886ea855cf",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 0,
+        "bounded_reveal_calls": 5,
+        "direct_action_count": 4,
+        "direct_ax_assertion_count": 3,
+        "typed_characters": 10,
+        "unrounded_seconds": 318.5,
+        "seconds": 320
+      },
+      "MerchantTemplatePreparationFlowTests.testVenueSelectionMaterialsReviewCancelAndSourceReadback": {
+        "source": "Tests/AppUITests/MerchantTemplatePreparationFlowTests.swift",
+        "declaration_sha256": "ef423818d39757818a7ef755212dd74c19b4b461ed3b01023d3adb93ed1cb7f4",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 0,
+        "bounded_reveal_calls": 12,
+        "direct_action_count": 11,
+        "direct_ax_assertion_count": 6,
+        "typed_characters": 15,
+        "unrounded_seconds": 640.75,
+        "seconds": 650
+      },
+      "MerchantTemplatePreparationFlowTests.testReloadRequiresExplicitDiscardAndDoesNotSavePreparationEdits": {
+        "source": "Tests/AppUITests/MerchantTemplatePreparationFlowTests.swift",
+        "declaration_sha256": "b0e7802bbbba1b8992093bdf23f8d490db41dfc69d803c7895beb1cfcd4438a1",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 0,
+        "bounded_reveal_calls": 6,
+        "direct_action_count": 10,
+        "direct_ax_assertion_count": 4,
+        "typed_characters": 15,
+        "unrounded_seconds": 391.75,
+        "seconds": 400
+      },
+      "MerchantTemplateRuleStepsFlowTests.testAddRemoveReviewCancelAndAuthoritativeFixtureReadback": {
+        "source": "Tests/AppUITests/MerchantTemplateRuleStepsFlowTests.swift",
+        "declaration_sha256": "5dfa36d22a27ff0f8c29355143c86f29c08a6380ec55afce169c76d7c2a873a8",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 0,
+        "bounded_reveal_calls": 18,
+        "direct_action_count": 16,
+        "direct_ax_assertion_count": 5,
+        "typed_characters": 40,
+        "unrounded_seconds": 910.0,
+        "seconds": 910
+      },
+      "MerchantTemplateRuleStepsFlowTests.testClearExistingRulesRequiresReviewAndDiscardRestoresSavedText": {
+        "source": "Tests/AppUITests/MerchantTemplateRuleStepsFlowTests.swift",
+        "declaration_sha256": "4d5445ca9d6f89bfb0491e5524e0c7d91254ed5362aadce8d741b719265a851a",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 0,
+        "bounded_reveal_calls": 19,
+        "direct_action_count": 18,
+        "direct_ax_assertion_count": 6,
+        "typed_characters": 39,
+        "unrounded_seconds": 961.75,
+        "seconds": 970
+      },
+      "ProfileCasePortfolioFlowTests.testCancelReopenThenStageDescriptionWithoutLosingOtherFields": {
+        "source": "Tests/AppUITests/ProfileCasePortfolioFlowTests.swift",
+        "declaration_sha256": "7e1f7457e36c4704bd8e176b8735021a3fa58b39bdb37b518b272f35b1fa9e3c",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 30,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 8,
+        "direct_ax_assertion_count": 3,
+        "typed_characters": 17,
+        "unrounded_seconds": 170.25,
+        "seconds": 180
+      },
+      "ProfileCasePortfolioFlowTests.testCaseOnlyEditAppearsInWholeProfileReviewAndVerifiedReadback": {
+        "source": "Tests/AppUITests/ProfileCasePortfolioFlowTests.swift",
+        "declaration_sha256": "ffb5eb1e682b08a9c5fa6c251e03cc3b13139662ec91572630f7463986084207",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 35,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 7,
+        "direct_ax_assertion_count": 2,
+        "typed_characters": 8,
+        "unrounded_seconds": 166.0,
+        "seconds": 170
+      },
+      "ProfileCasePortfolioFlowTests.testEmptyPortfolioShowsExplicitEmptyStateWithoutUploadAction": {
+        "source": "Tests/AppUITests/ProfileCasePortfolioFlowTests.swift",
+        "declaration_sha256": "4affed7b739b7cd5d73d126aa43c555bdae6edbc34c4b18343ccd5f2cc325f3d",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 20,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 1,
+        "direct_ax_assertion_count": 2,
+        "typed_characters": 0,
+        "unrounded_seconds": 119.0,
+        "seconds": 120
+      },
+      "ProfileCasePortfolioFlowTests.testExistingImageGalleryClosesBackToRetainedCaseScratch": {
+        "source": "Tests/AppUITests/ProfileCasePortfolioFlowTests.swift",
+        "declaration_sha256": "9a0f028db381b740348bc331cd3580a15de531af80b61249b9c825770a523f70",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 45,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 9,
+        "direct_ax_assertion_count": 4,
+        "typed_characters": 9,
+        "unrounded_seconds": 190.25,
+        "seconds": 200
+      },
+      "ProfileContactQRRemovalFlowTests.testLocalRemovalCancelLeavesExistingQRCode": {
+        "source": "Tests/AppUITests/ProfileContactQRRemovalFlowTests.swift",
+        "declaration_sha256": "ebc10c228c12a3c1741aa49c0432dccb7e02d5445dae10a86fc1919aeb1593cc",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 30,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 6,
+        "direct_ax_assertion_count": 3,
+        "typed_characters": 0,
+        "unrounded_seconds": 156.0,
+        "seconds": 160
+      },
+      "ProfileContactQRRemovalFlowTests.testStageReopenAndRestoreRemovalBeforeSaving": {
+        "source": "Tests/AppUITests/ProfileContactQRRemovalFlowTests.swift",
+        "declaration_sha256": "e783e071fddb68f5561b0da1d49c65f69dc1ee16d47e2a3459a746f0eb3c2930",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 30,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 8,
+        "direct_ax_assertion_count": 3,
+        "typed_characters": 0,
+        "unrounded_seconds": 166.0,
+        "seconds": 170
+      },
+      "ProfileContactQRRemovalFlowTests.testRemovalIsReviewedAndSavedThroughExistingProfileFlow": {
+        "source": "Tests/AppUITests/ProfileContactQRRemovalFlowTests.swift",
+        "declaration_sha256": "e68651db6204bba8700af71e7e20e8cfd42767007c21cdbfe6597fd5b92547fd",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 45,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 9,
+        "direct_ax_assertion_count": 3,
+        "typed_characters": 0,
+        "unrounded_seconds": 186.0,
+        "seconds": 190
+      },
+      "ProfileContactQRRemovalFlowTests.testViewerEntryClosesWithoutChangingRemovalIntent": {
+        "source": "Tests/AppUITests/ProfileContactQRRemovalFlowTests.swift",
+        "declaration_sha256": "9d6ab71a6d66fce54b1b1e707614aecdd6199403c5bdcbf5b116bba240fc0e8f",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 30,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 5,
+        "direct_ax_assertion_count": 3,
+        "typed_characters": 0,
+        "unrounded_seconds": 151.0,
+        "seconds": 160
+      },
+      "ProfileContactQRRemovalFlowTests.testSwipeDismissDoesNotStageLocalRemoval": {
+        "source": "Tests/AppUITests/ProfileContactQRRemovalFlowTests.swift",
+        "declaration_sha256": "3b37b2d4852dd060384685ef6d4abde6b58a8f4d224bd97c7252ae416735ac98",
+        "measured": false,
+        "existing_method_increment": false,
+        "lifecycle_seconds": 90,
+        "explicit_wait_seconds": 35,
+        "bounded_reveal_calls": 0,
+        "direct_action_count": 6,
+        "direct_ax_assertion_count": 1,
+        "typed_characters": 0,
+        "unrounded_seconds": 157.0,
+        "seconds": 160
       }
     },
     "class_increment_seconds": {
       "ProfileEditFlowTests": 890,
       "MerchantTemplateParticipationPlanFlowTests": 950,
-      "MerchantTemplateExitPlanFlowTests": 850
+      "MerchantTemplateExitPlanFlowTests": 850,
+      "MerchantTemplateMetadataFlowTests": 870,
+      "MerchantTemplatePreparationFlowTests": 1050,
+      "MerchantTemplateRuleStepsFlowTests": 1880,
+      "ProfileCasePortfolioFlowTests": 670,
+      "ProfileContactQRRemovalFlowTests": 840
     },
-    "added_seconds": 2690,
+    "added_seconds": 8000,
     "prior_profile_class_seconds": 81.645
   }
 }

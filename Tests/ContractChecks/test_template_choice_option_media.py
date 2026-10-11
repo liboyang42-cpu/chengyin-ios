@@ -26,7 +26,12 @@ class TemplateChoiceOptionMediaChecks(unittest.TestCase):
     def test_existing_professional_editor_preview_and_owner_share_fields(self):
         forms = read('App/TemplateAuthoringDetailForms.swift')
         self.assertIn('model.draft.validationMethod == .choice', forms)
-        self.assertIn('field: { model.optionMedia($0, $1) }, issueKey: model.optionMediaIssue).disabled(!model.canEdit)', forms)
+        self.assertIn('TemplateChoiceOptionRowsFields(model: model)', forms)
+        rows = read('App/TemplateChoiceOptionRowsEditor.swift')
+        self.assertIn('original = model.optionMedia(letter, kind)', rows)
+        self.assertIn('self.generation == stamp, self.canEdit, self.letters.contains(letter)', rows)
+        self.assertIn('.disabled(!model.draft.choiceOptionMedia.isSupported)', rows)
+        self.assertIn('.disabled(!editor.canEdit)', rows)
         self.assertIn('.disabled(readOnly || !configuration.isSupported)', forms)
         self.assertIn('readOnly && configuration.isSupported && configuration.text(letter, kind) == nil', forms)
         self.assertIn('TemplateChoiceOptionMediaFields(configuration: draft.choiceOptionMedia', read('App/TemplateAuthoringView.swift'))

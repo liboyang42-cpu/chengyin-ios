@@ -65,9 +65,11 @@ final class MerchantOperationsViewModel: ObservableObject {
     let coordinator: MerchantOperationsCoordinator
     @Published private(set) var revision = 0
     let galleryBatch = MerchantGalleryBatchModel()
-    let imageOwner: MerchantRetainedImageDocumentOwner?
+    private let imageHost: MerchantRetainedImageHost?
+    private(set) var imageOwner: MerchantRetainedImageDocumentOwner?
     init(reader: any MerchantOperationsReading, destination: MerchantOperationsDestination, imageHost: MerchantRetainedImageHost? = nil) {
         coordinator = .init(reader: reader, destination: destination)
+        self.imageHost = imageHost
         imageOwner = imageHost?.document(reader: reader, destination: destination)
     }
     func load() async {
@@ -101,7 +103,13 @@ final class MerchantOperationsViewModel: ObservableObject {
     func discard() { galleryBatch.cancel(); coordinator.discardChanges(); imageOwner?.draftChanged(coordinator.draft); revision += 1 }
     func confirm(_ value: MerchantOperationsConfirmation) async {
         galleryBatch.cancel(); imageOwner?.invalidate(); revision += 1
-        await coordinator.confirm(value); await imageOwner?.refresh(coordinator: coordinator); revision += 1
+        let previousDestination = coordinator.destination
+        await coordinator.confirm(value)
+        if previousDestination != coordinator.destination {
+            imageOwner?.invalidate()
+            imageOwner = imageHost?.document(reader: coordinator.reader, destination: coordinator.destination)
+        }
+        await imageOwner?.refresh(coordinator: coordinator); revision += 1
     }
     func invalidate() { galleryBatch.cancel(); imageOwner?.invalidate(); coordinator.invalidate(); revision += 1 }
     func leaveImages() { galleryBatch.cancel(); imageOwner?.invalidate(); revision += 1 }

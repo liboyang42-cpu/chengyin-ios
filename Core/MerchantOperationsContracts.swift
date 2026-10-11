@@ -281,6 +281,23 @@ public enum MerchantOperationsReview {
         case 2: return "merchant.operations.review.rejected"; default: return "merchant.operations.review.unknown" }
     }
 }
+/// Exact Mini VENUE_OPTIONS. These are template descriptions, not location grants.
+public enum MerchantTemplateVenueChoice: String, CaseIterable {
+    case scenicArea = "景区", park = "公园绿地", shoppingDistrict = "商圈街区"
+    case historicDistrict = "古镇老街", museum = "博物馆", campus = "校园", indoorVenue = "室内场馆"
+    public var titleKey: String {
+        switch self {
+        case .scenicArea: return "merchant.preparation.venue.scenicArea"
+        case .park: return "merchant.preparation.venue.park"
+        case .shoppingDistrict: return "merchant.preparation.venue.shoppingDistrict"
+        case .historicDistrict: return "merchant.preparation.venue.historicDistrict"
+        case .museum: return "merchant.preparation.venue.museum"
+        case .campus: return "merchant.preparation.venue.campus"
+        case .indoorVenue: return "merchant.preparation.venue.indoorVenue"
+        }
+    }
+}
+
 public enum MerchantTemplateMethod: Int, CaseIterable {
     case secretWord = 1, photo, quiz, posterCode, gps
     public var titleKey: String { "merchant.operations.method.\(rawValue)" }
@@ -327,10 +344,64 @@ public struct MerchantTemplateExitPlan: Equatable {
     }
 }
 
+/// Mini's ruleInstructions editor: one player-facing instruction per line.
+/// These are editor limits, not a claim that every legacy server value follows them.
+public struct MerchantTemplateRuleSteps: Equatable {
+    public static let maximumSteps = 12
+    public static let maximumStepLength = 60
+    private let sourceText: String?
+    public private(set) var rows: [String]
+    public private(set) var isEdited = false
+    public init(sourceText: String? = nil) {
+        self.sourceText = sourceText
+        let lines = (sourceText ?? "").components(separatedBy: "\n")
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+        rows = lines.isEmpty ? [""] : lines
+    }
+    /// Missing/null stays omitted; merely opening an old template never rewrites its text.
+    /// An explicit all-empty edit is an empty String, supported by the existing != null SQL.
+    public var wireValue: String? {
+        guard isEdited else { return sourceText }
+        return rows.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }.joined(separator: "\n")
+    }
+    public var isClearing: Bool {
+        isEdited && wireValue == "" && !(sourceText ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+    public var canAdd: Bool { rows.count < Self.maximumSteps }
+    public mutating func update(at index: Int, text: String) {
+        guard rows.indices.contains(index), rows[index] != text else { return }
+        rows[index] = text; isEdited = true
+    }
+    public mutating func add() {
+        guard canAdd else { return }
+        rows.append(""); isEdited = true
+    }
+    public mutating func remove(at index: Int) {
+        guard rows.count > 1, rows.indices.contains(index) else { return }
+        rows.remove(at: index); isEdited = true
+    }
+    public var blocker: String? {
+        guard isEdited else { return nil }
+        if rows.count > Self.maximumSteps { return "merchant.ruleSteps.countLimit" }
+        if rows.contains(where: { $0.rangeOfCharacter(from: .newlines) != nil }) { return "merchant.ruleSteps.oneLine" }
+        if rows.contains(where: { $0.utf16.count > Self.maximumStepLength }) { return "merchant.ruleSteps.textLimit" }
+        return nil
+    }
+}
+
 public struct MerchantNodeTemplate: Decodable, Equatable {
     public var id: Int?
     public var title = ""
     public var description = ""
+    /// Existing server metadata: duration is minutes; players is descriptive game player-count text,
+    /// never the venue's maximumParticipants or an approved capacity constraint.
+    public var gameDurationMinutes = ""
+    public var players = ""
+    /// Existing persisted preparation fields; unfamiliar source venue values are preserved.
+    public var usageLocation = ""
+    public var requiredMaterials = ""
+    public var ruleSteps = MerchantTemplateRuleSteps()
     public var imgURL: String?
     public var method: MerchantTemplateMethod?
     public var questionAnswer = ""
@@ -348,13 +419,22 @@ public struct MerchantNodeTemplate: Decodable, Equatable {
     public var exitPlan: MerchantTemplateExitPlan?
     public init() {}
     private enum CodingKeys: String, CodingKey {
-        case id, title, description, imgUrl, validationMethod, questionAnswer, questionName, questionA, questionB, questionC, questionD, correctAnswer, feedbackText, couponId
+        case id, title, description, duration, players, imgUrl, validationMethod, questionAnswer, questionName, questionA, questionB, questionC, questionD, correctAnswer, feedbackText, couponId, usageLocation, requiredMaterials, ruleInstructions
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id = c.merchantInteger(.id)
         title = try c.decodeIfPresent(String.self, forKey: .title) ?? ""
         description = try c.decodeIfPresent(String.self, forKey: .description) ?? ""
+        if c.contains(.duration), try !c.decodeNil(forKey: .duration) {
+            if let number = try? c.decode(Int.self, forKey: .duration) { gameDurationMinutes = String(number) }
+            else { gameDurationMinutes = try c.decode(String.self, forKey: .duration) }
+            guard Self.validDuration(gameDurationMinutes) != nil else { throw APIError.malformedResponse }
+        }
+        players = try c.decodeIfPresent(String.self, forKey: .players) ?? ""
+        usageLocation = try c.decodeIfPresent(String.self, forKey: .usageLocation) ?? ""
+        requiredMaterials = try c.decodeIfPresent(String.self, forKey: .requiredMaterials) ?? ""
+        ruleSteps = .init(sourceText: try c.decodeIfPresent(String.self, forKey: .ruleInstructions))
         imgURL = try c.decodeIfPresent(String.self, forKey: .imgUrl)
         method = c.merchantInteger(.validationMethod).flatMap(MerchantTemplateMethod.init(rawValue:))
         questionAnswer = try c.decodeIfPresent(String.self, forKey: .questionAnswer) ?? ""
@@ -378,14 +458,29 @@ public struct MerchantNodeTemplate: Decodable, Equatable {
             let key = correctAnswer.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
             guard let index = ["A", "B", "C", "D"].firstIndex(of: key), !options[index].isEmpty else { return "merchant.operations.correctRequired" }
         }
+        if !gameDurationMinutes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+           Self.validDuration(gameDurationMinutes) == nil { return "merchant.templateMetadata.durationInvalid" }
+        if let blocker = ruleSteps.blocker { return blocker }
         return participationPlan?.blocker ?? exitPlan?.blocker
+    }
+    /// Backend entity Long is copied through an Integer DTO with Math.toIntExact.
+    /// Zero is the existing server's creation default; missing remains omitted.
+    public static func validDuration(_ text: String) -> Int? {
+        let value = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !value.isEmpty, value.utf8.allSatisfy({ $0 >= 48 && $0 <= 57 }),
+              let number = Int(value), number >= 0, number <= Int(Int32.max) else { return nil }
+        return number
     }
     /// Exact legacy wire fields only. A local participation plan is not a server fact.
     public var fields: [String: Any] {
         var fields: [String: Any] = ["title": title.trimmingCharacters(in: .whitespacesAndNewlines)]
         if let id { fields["id"] = id }; if let method { fields["validationMethod"] = method.rawValue }
+        if let duration = Self.validDuration(gameDurationMinutes) { fields["duration"] = duration }
+        // Picker choices are exact wire values; preserve unfamiliar loaded values byte-for-byte.
+        if !usageLocation.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { fields["usageLocation"] = usageLocation }
+        if let rules = ruleSteps.wireValue { fields["ruleInstructions"] = rules }
         if let imgURL { fields["imgUrl"] = imgURL }; if let couponID { fields["couponId"] = couponID }
-        for (key, value) in ["description": description, "questionAnswer": questionAnswer, "questionName": questionName,
+        for (key, value) in ["description": description, "players": players, "requiredMaterials": requiredMaterials, "questionAnswer": questionAnswer, "questionName": questionName,
                               "questionA": optionA, "questionB": optionB, "questionC": optionC, "questionD": optionD,
                               "correctAnswer": correctAnswer, "feedbackText": feedbackText] {
             let text = value.trimmingCharacters(in: .whitespacesAndNewlines)

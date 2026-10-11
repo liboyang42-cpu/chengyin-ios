@@ -1,0 +1,8 @@
+{
+  "feature": "P036 addChoiceOption/deleteOption",
+  "app_sources": ["App/TemplateChoiceOptionRowsEditor.swift", "Core/TemplateChoiceOptionRows.swift"],
+  "app_unit_tests": ["Tests/AppUnitTests/TemplateChoiceOptionRowsEditorTests.swift"],
+  "package_tests": ["Tests/CoreTests/TemplateChoiceOptionRowsTests.swift"],
+  "localization_fragment": "docs/localization/template-choice-option-rows.json",
+  "integration_note": "Apply this incremental UI patch after the sealed audio-preview candidate. Register only the new sources/tests and merge localization additively. No backend schema or production grant changes are needed."
+}

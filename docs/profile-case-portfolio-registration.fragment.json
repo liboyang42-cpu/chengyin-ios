@@ -1,0 +1,30 @@
+{
+  "status": "PENDING_PARENT_INTEGRATION",
+  "app_sources": [
+    "App/ProfileCasePortfolioSection.swift"
+  ],
+  "core_sources": [
+    "Core/ProfileCasePortfolio.swift"
+  ],
+  "app_unit_test_sources": [
+    "Tests/AppUnitTests/ProfileCasePortfolioTests.swift"
+  ],
+  "app_ui_test_sources": [
+    "Tests/AppUITests/ProfileCasePortfolioFlowTests.swift"
+  ],
+  "spm_test_sources": [
+    "Tests/CoreTests/ProfileCasePortfolioTests.swift"
+  ],
+  "localization_fragment": "Resources/ProfileCasePortfolioLocalizations.fragment.json",
+  "intentional_localization_overrides": [
+    "profile.exitDiscard.message",
+    "profile.reloadDiscard.message"
+  ],
+  "instructions": [
+    "Register new app/Core files with Questify; register the app-unit and UI test sources in their existing targets. SwiftPM discovers the new Core/CoreTests files automatically.",
+    "Merge the seven new keys and intentionally replace the two listed discard-message values with the generalized profile wording; do not overwrite other strings.",
+    "Preserve all prior nickname/introduction, exit and reload registration. Do not enable production services or new media origins."
+  ],
+  "apple": "NOT_RUN",
+  "central_files_modified": []
+}

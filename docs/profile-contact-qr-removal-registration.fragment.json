@@ -1,0 +1,26 @@
+{
+  "status": "PENDING_PARENT_INTEGRATION",
+  "app_sources": [
+    "App/ProfileContactQREditor.swift"
+  ],
+  "app_unit_test_sources": [
+    "Tests/AppUnitTests/ProfileContactQRRemovalTests.swift"
+  ],
+  "app_ui_test_sources": [
+    "Tests/AppUITests/ProfileContactQRRemovalFlowTests.swift"
+  ],
+  "spm_test_sources": [
+    "Tests/CoreTests/ProfileContactQRRemovalTests.swift"
+  ],
+  "localization_fragment": "Resources/ProfileContactQRRemovalLocalizations.fragment.json",
+  "new_localization_keys": 10,
+  "central_files_modified": [],
+  "merge_instructions": [
+    "Apply after the sealed field-edit and case-portfolio batches. The parent must preserve its newer ProfileEditView body decomposition when combining this incremental model/UI patch.",
+    "Register new sources/tests using the canonical project integration process; merge only this fragment.",
+    "Do not enable or reuse merchant-scoped image permissions for personal QR images. The existing Account path does not inject an approved personal image reader.",
+    "The two prior generalized exit/reload message overrides already cover QR changes; no existing localization replacement is required here."
+  ],
+  "apple": "NOT_RUN",
+  "image_loading": "PENDING_AUTHORIZED_PERSONAL_READER_INJECTION"
+}

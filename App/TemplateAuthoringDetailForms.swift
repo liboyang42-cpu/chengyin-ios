@@ -8,11 +8,11 @@ import SwiftUI
             if model.draft.validationMethod.rawValue == 7 {
                 TemplateSensorDraftConfigurationFields(model: model)
             }
-            TemplateAuthoringQAFields(method: model.draft.validationMethod, field: { model.optional($0.draftPath) }, includesHints: false)
+            TemplateAuthoringQAFields(method: model.draft.validationMethod, field: { model.optional($0.draftPath) },
+                includesHints: false, includesChoiceOptions: false)
             TemplateLegacyHintFields(model: model)
             if model.draft.validationMethod == .choice {
-                TemplateChoiceOptionMediaFields(configuration: model.draft.choiceOptionMedia,
-                    field: { model.optionMedia($0, $1) }, issueKey: model.optionMediaIssue).disabled(!model.canEdit)
+                TemplateChoiceOptionRowsFields(model: model)
             }
             if model.draft.validationMethod == .photo {
                 TemplateAuthoringField("photoRequireDesc", text: model.optional(\.photoRequireDesc), multiline: true)
@@ -59,13 +59,14 @@ import SwiftUI
     var readOnly = false
     var annotation: (TemplateQAField) -> String? = { _ in nil }
     var includesHints = true
+    var includesChoiceOptions = true
     var body: some View {
         Group {
             if [.text, .choice].contains(method) {
                 entry(.questionName, multiline: true); entry(.questionImg); entry(.questionAudio)
             }
             if method == .text { entry(.questionAnswer) }
-            if method == .choice {
+            if method == .choice && includesChoiceOptions {
                 entry(.questionA); entry(.questionB); entry(.questionC); entry(.questionD)
                 if readOnly { entry(.correctAnswer) }
                 else {
@@ -114,6 +115,9 @@ import SwiftUI
                         Text(verbatim: raw).tag(Optional(raw))
                     }
                 }
+                Button("templateReward.clearMedal", role: .destructive, action: model.clearRewardMedalAction())
+                    .disabled(!model.canClearRewardMedal)
+                    .accessibilityIdentifier("templateReward.clearMedal")
             }
         }
         Section("templateAuthor.story") {

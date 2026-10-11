@@ -104,14 +104,16 @@ public final class ProfileEditCoordinator {
             }
         }
         guard draft.isValid else { messageKey = "profile.edit.nameRequired"; return }
-        guard draft.normalized != original.draft.normalized else { messageKey = "profile.edit.unchanged"; return }
+        guard draft.hasChanges(comparedTo: original) else { messageKey = "profile.edit.unchanged"; return }
         generation += 1; let request = generation; isBusy = true; confirmation = nil; messageKey = nil; remoteMessage = nil
         defer { if generation == request { isBusy = false } }
         do {
             let latest = try await read(expected)
             guard active(expected, request) else { return }
             guard latest.draft == original.draft,
-                  draft.routePreferenceIDs == nil || latest.tagIds == original.tagIds else { snapshot = latest; messageKey = "profile.edit.changed"; return }
+                  draft.routePreferenceIDs == nil || latest.tagIds == original.tagIds,
+                  draft.caseIntroduction == nil || ProfileCasePortfolio.sameText(latest.caseIntroduction, original.caseIntroduction),
+                  !draft.removesContactQR || latest.wechat.utf8.elementsEqual(original.wechat.utf8) else { snapshot = latest; messageKey = "profile.edit.changed"; return }
             if let avatar = draft.avatarReplacement {
                 guard avatarValidity?.isCurrent == true, avatar.permits(session: expected, snapshot: latest) else {
                     messageKey = "profile.avatar.changed"; return
@@ -137,7 +139,9 @@ public final class ProfileEditCoordinator {
         do {
             let latest = try await read(expected)
             guard active(expected, request) else { return }
-            guard latest == value.snapshot else { snapshot = latest; messageKey = "profile.edit.changed"; return }
+            guard latest == value.snapshot,
+                  ProfileCasePortfolio.sameText(latest.caseIntroduction, value.snapshot.caseIntroduction),
+                  !value.payload.removesContactQR || latest.wechat.utf8.elementsEqual(value.snapshot.wechat.utf8) else { snapshot = latest; messageKey = "profile.edit.changed"; return }
             if value.payload.avatarReplacement != nil {
                 // Image-bearing full replacement preserves exact server bytes, not
                 // only Swift's canonically equivalent String values.

@@ -51,11 +51,16 @@ public enum ProfileAvatarExact {
         return bytes
     }
     public static func snapshot(_ value: ProfileEditSnapshot) -> String {
-        hash(strings([String(value.id), value.nickname, value.introduction, value.avatar, value.wechat, value.casePics, value.tagIds]))
+        var parts = [String(value.id), value.nickname, value.introduction, value.avatar, value.wechat, value.casePics, value.tagIds]
+        if let text = value.caseIntroduction { parts += ["caseIntroducton", text] }
+        return hash(strings(parts))
     }
     public static func draft(_ value: ProfileEditDraft) -> String {
-        hash(strings([value.name, value.introduction, value.routePreferenceIDs.map { "selected:" + $0.map(String.init).joined(separator: ",") } ?? "preserve",
-                      value.avatarReplacement?.id.uuidString ?? "no-avatar-change"]))
+        var parts = [value.name, value.introduction, value.routePreferenceIDs.map { "selected:" + $0.map(String.init).joined(separator: ",") } ?? "preserve",
+                     value.avatarReplacement?.id.uuidString ?? "no-avatar-change"]
+        if let text = value.caseIntroduction { parts += ["caseIntroducton", text] }
+        if value.removesContactQR { parts.append("remove-contact-qr") }
+        return hash(strings(parts))
     }
 }
 public struct ProfileAvatarTarget: Equatable {

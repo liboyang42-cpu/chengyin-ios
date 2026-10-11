@@ -1,0 +1,155 @@
+{
+  "profile.case.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "探索作品"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Portfolio"
+        }
+      }
+    }
+  },
+  "profile.case.description": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "作品描述"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Portfolio description"
+        }
+      }
+    }
+  },
+  "profile.case.descriptionUnavailable": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前资料响应未提供作品描述，暂不能编辑；已有图片仍可查看。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This profile response did not include a portfolio description. You can still view existing images."
+        }
+      }
+    }
+  },
+  "profile.case.images": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "作品图片"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Portfolio images"
+        }
+      }
+    }
+  },
+  "profile.case.imagesEmpty": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂无作品图片"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No portfolio images"
+        }
+      }
+    }
+  },
+  "profile.case.imagesOmitted": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "超过预览上限的图片数"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Images beyond the preview limit"
+        }
+      }
+    }
+  },
+  "profile.case.imagesReadOnly": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "本页可预览已有图片，暂不支持增删或上传。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Existing images can be previewed. Adding, removing and uploading images are not available yet."
+        }
+      }
+    }
+  },
+  "profile.exitDiscard.message": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "返回会放弃尚未保存的资料修改和暂存头像。结果未知的保存仍保持待核对状态，返回不会重试保存。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Going back discards unsaved profile changes and the staged avatar. An unresolved save stays pending; going back does not retry it."
+        }
+      }
+    }
+  },
+  "profile.reloadDiscard.message": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "载入成功后，将替换尚未保存的资料修改和暂存头像。载入失败时保留当前草稿。"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "A successful reload replaces unsaved profile changes and the staged avatar. If it fails, your draft is kept."
+        }
+      }
+    }
+  }
+}
