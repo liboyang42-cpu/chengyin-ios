@@ -43,7 +43,11 @@ CATALOG = 'Resources/Localizable.xcstrings'
 SWIFT_TESTS = 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'
 
 def digest(text): return hashlib.sha256(text.encode()).hexdigest()
-def read(path): return (ROOT / path).read_text()
+def read(path):
+    if path == CATALOG:
+        from Tests.ContractChecks.test_category_roam_registration import creator_catalog_input
+        return creator_catalog_input((ROOT / path).read_bytes(), ROOT).decode()
+    return (ROOT / path).read_text()
 def section(text, first, last):
     start = text.index(first)
     return text[start:text.index(last, start)]

@@ -148,6 +148,8 @@ def digest(raw):
 
 
 def assert_current_raw(root):
+    from Tests.ContractChecks.test_category_roam_registration import creator_history_root
+    root = creator_history_root(root, live_root=ROOT)
     for name, expected in CURRENT_SHA.items():
         if digest((root / name).read_bytes()) != expected:
             raise ValueError('Changed raw state input: ' + name)
@@ -168,7 +170,8 @@ class CreatorShelfStateHistoryTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
-        self.current = {name: (ROOT / name).read_bytes() for name in state.SOURCE_SHA256}
+        from Tests.ContractChecks.test_category_roam_registration import creator_history_sources
+        self.current = creator_history_sources(ROOT, state.SOURCE_SHA256)
         self.legacy = dict(self.current)
         for name in state.INVERSE_DELTAS:
             self.legacy[name] = state.restore_state_bytes(name, self.current[name])
@@ -322,7 +325,8 @@ class CreatorShelfStateHistoryTests(unittest.TestCase):
                 sources[key]=changed
                 with self.assertRaises(ValueError):projection.validate_feature_batch_sources(ROOT)
             sources[key]=raw
-            old=raw.replace(state.SOURCE_SHA256[CATALOG][1].encode(),state.SOURCE_SHA256[CATALOG][0].encode(),1)
+            old_value=json.loads(raw); old_value['feature_batch_support_sha256'][CATALOG]=state.SOURCE_SHA256[CATALOG][0]
+            old=(json.dumps(old_value,ensure_ascii=False,indent=2)+'\n').encode()
             sources[key]=old
             with patch.object(planning,'CONTRACT_SHA256',digest(old)):
                 with self.assertRaisesRegex(ValueError,'Current feature-batch input changed: Resources/Localizable'):
@@ -445,6 +449,8 @@ def _restore_premerchant_history_test(data):
 
 # CLUB_HISTORY_INPUT_BEGIN
 def _restore_preclub_history_test(data):
+    from Tests.ContractChecks.test_category_roam_registration import creator_history_test_preimage
+    data = creator_history_test_preimage(data, ROOT)
     from tools import club_customer_directory_admission as club
     return club.restore_creator_history_test(data)
 # CLUB_HISTORY_INPUT_END

@@ -1,14 +1,17 @@
 import SwiftUI
 
 @MainActor struct GlobalSearchView<Destination: View>: View {
+    @Environment(\.scenePhase) private var scenePhase
     let reader: any SearchMapReading
     var historyNamespace: String? = nil
     var publicMerchant = PublicMerchantHomeContext()
     var onSignIn: (() -> Void)? = nil
     let destination: (SearchMapDestination) -> Destination
     @State private var filter = GlobalSearchQuery()
-    @State private var categories: [DiscoveryCategory] = []
-    @State private var categoryFailed = false
+    @State private var categoryRecovery = SearchMapCategoryRecovery()
+    @State private var categoryPresentationID = UUID()
+    @State private var filterPresentationID = UUID()
+    @State private var filterSheetVisible = false
     @State private var retainedResults = GlobalSearchRetainedResults()
     @State private var isVisible = false
     @State private var issue: String?
@@ -17,7 +20,6 @@ import SwiftUI
     @State private var showsFilters = false
     @State private var history: [String] = []
     @State private var historyFailure = false
-    @State private var categoryGate = SearchMapQueryGate()
     @State private var preparedOwner: ReadOwner?
     private let historyStore = SearchMapLocalHistory()
 
@@ -44,7 +46,7 @@ import SwiftUI
                     TextField("searchMap.placeholder", text: Binding(get: { filter.keyword }, set: setKeyword)).textInputAutocapitalization(.never)
                         .submitLabel(.search).onSubmit { Task { await search() } }
                         .accessibilityIdentifier("searchMap.keyword")
-                    Button { showsFilters = true } label: { Label("searchMap.filters", systemImage: "line.3.horizontal.decrease") }
+                    Button { openFilters() } label: { Label("searchMap.filters", systemImage: "line.3.horizontal.decrease") }
                         .labelStyle(.iconOnly).frame(minWidth: 44, minHeight: 44).accessibilityIdentifier("searchMap.filters")
                 }.padding(12).background(.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 16))
                 Button("searchMap.search") { Task { await search() } }
@@ -70,15 +72,62 @@ import SwiftUI
         }
         .appNavigationTitle("searchMap.title")
         .sheet(isPresented: $showsFilters) {
-            SearchMapFilterSheet(filter: filter, categories: categories, categoryFailed: categoryFailed) { next in
+            let presentationID = filterPresentationID
+            let context = categoryRecovery.context(for: categoryOwner)
+            let applyContext = categoryRecovery.presentationContext(for: categoryOwner)
+            SearchMapFilterSheet(filter: filter, categories: categories, categoryFailed: categoryFailed,
+                                 categoryLoading: categoryLoading, categoryLoaded: categoryLoaded,
+                                 retryCategories: context.map { captured in {
+                                     guard showsFilters, filterSheetVisible, presentationID == filterPresentationID else { return }
+                                     _ = categoryRecovery.retry(in: captured)
+                                 } }) { next in
+                guard showsFilters, filterSheetVisible, presentationID == filterPresentationID,
+                      let applyContext, categoryRecovery.acceptsPresentation(applyContext) else { return }
                 applyFilter(next)
+            }
+            .onAppear {
+                guard showsFilters, presentationID == filterPresentationID, categoryRecovery.owns(categoryOwner) else { return }
+                filterSheetVisible = true; updateCategoryPresentation()
+            }
+            .onDisappear {
+                guard presentationID == filterPresentationID, categoryRecovery.owns(categoryOwner) else { return }
+                filterSheetVisible = false; updateCategoryPresentation()
             }
         }
         .task(id: readOwner) { await prepare() }
-        .onAppear { isVisible = true }
-        .onDisappear { isVisible = false; retainedResults.cancelPending(); categoryGate.invalidate(); loading = false }
+        .onChange(of: categoryOwner) { _, _ in updateCategoryPresentation() }
+        .onChange(of: scenePhase) { _, _ in updateCategoryPresentation() }
+        .onChange(of: showsFilters) { _, visible in
+            if !visible { filterSheetVisible = false }
+            updateCategoryPresentation()
+        }
+        .onAppear { isVisible = true; categoryPresentationID = UUID(); updateCategoryPresentation() }
+        .onDisappear {
+            isVisible = false; retainedResults.cancelPending(); loading = false
+            categoryRecovery.update(reader: reader, presentationID: nil, active: false)
+        }
+    }
+    private var categoryOwner: SearchMapCategoryRecovery.Owner { .init(reader: reader) }
+    private var categories: [DiscoveryCategory] { categoryRecovery.owns(categoryOwner) ? categoryRecovery.categories : [] }
+    private var categoryFailed: Bool { categoryRecovery.owns(categoryOwner) && categoryRecovery.phase == .failed }
+    private var categoryLoading: Bool { categoryRecovery.owns(categoryOwner) && categoryRecovery.phase == .loading }
+    private var categoryLoaded: Bool { categoryRecovery.owns(categoryOwner) && categoryRecovery.phase == .loaded }
+    private func openFilters() {
+        filterPresentationID = UUID(); filterSheetVisible = false; showsFilters = true
+        updateCategoryPresentation()
+    }
+    private func updateCategoryPresentation() {
+        // The page and sheet share the directory, never a draft or search request.
+        // Switching surfaces retires callbacks; a settled directory survives reopening.
+        let presentationID = showsFilters ? (filterSheetVisible ? filterPresentationID : nil) : categoryPresentationID
+        categoryRecovery.update(reader: reader, presentationID: presentationID,
+                                active: isVisible && scenePhase == .active)
+        if let context = categoryRecovery.context(for: categoryOwner) {
+            categoryRecovery.loadIfNeeded(in: context)
+        }
     }
     @ViewBuilder private var suggestions: some View {
+        let context = categoryRecovery.context(for: categoryOwner)
         if !history.isEmpty {
             HStack {
                 Text("searchMap.history").font(.headline)
@@ -92,10 +141,18 @@ import SwiftUI
             }
         }
         Text("searchMap.categories").font(.headline)
-        if categoryFailed { SearchMapIssue(key: "searchMap.categoryFailed") { Task { await prepare(force: true) } } }
+        if categoryLoading {
+            ProgressView("searchMap.loading").accessibilityIdentifier("globalSearch.category.loading")
+        } else if categoryFailed {
+            SearchMapIssue(key: "searchMap.categoryFailed") {
+                guard !showsFilters, let context else { return }
+                _ = categoryRecovery.retry(in: context)
+            }
+        }
         LazyVGrid(columns: [GridItem(.adaptive(minimum: 125))], spacing: 12) {
             ForEach(categories) { category in
                 Button {
+                    guard !showsFilters, let context, categoryRecovery.accepts(context) else { return }
                     var next = filter; next.categoryID = category.id; applyFilter(next)
                 } label: {
                     Text(verbatim: category.name).frame(maxWidth: .infinity, minHeight: 44)
@@ -153,19 +210,13 @@ import SwiftUI
         invalidate(); filter.keyword = value
     }
     private func invalidate() { retainedResults.invalidate(); issue = nil; loading = false; selectedKind = nil }
-    private func prepare(force: Bool = false) async {
+    private func prepare() async {
+        guard !Task.isCancelled else { return }
         if preparedOwner != readOwner {
-            preparedOwner = readOwner; invalidate(); categories = []; categoryFailed = false
+            preparedOwner = readOwner; invalidate()
             history = historyStore.read(namespace: historyNamespace); historyFailure = historyStore.failed
         }
-        guard reader.isConfigured, force || categories.isEmpty else { return }
-        let ticket = categoryGate.begin(scope: reader.scope)
-        do {
-            let value = try await reader.categories()
-            guard categoryGate.accepts(ticket, scope: reader.scope) else { return }; categories = value; categoryFailed = false
-        } catch {
-            guard categoryGate.accepts(ticket, scope: reader.scope) else { return }; categoryFailed = true
-        }
+        updateCategoryPresentation()
     }
     private func search() async {
         let query = filter

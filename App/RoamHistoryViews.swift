@@ -144,19 +144,28 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
     @State private var showShare = false
     @State private var loaded = false
     @State private var error: Error?
+    @State private var loadedOwner: ReadKey?
+    private struct ReadKey: Hashable {
+        let owner: RoamHistoryLiveOwner
+        let timestamp: Int64
+    }
+    private var readKey: ReadKey { .init(owner: .init(reader: reader), timestamp: timestamp) }
+    private var currentRecord: RoamHistoryRecord? { loadedOwner == readKey ? record : nil }
+    private var currentError: Error? { loadedOwner == readKey ? error : nil }
+    private var currentLoaded: Bool { loadedOwner == readKey && loaded }
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 RoamExperienceNotice(offline: reader.isOfflineExample)
-                if let error { RoamExperienceIssue(error: error, retry: load) }
-                else if let record {
+                if let error = currentError { RoamExperienceIssue(error: error, retry: load) }
+                else if let record = currentRecord {
                     RoamExperienceCard {
                         VStack(alignment: .leading, spacing: 18) {
                             Label("roam.experience.savedRecord", systemImage: "book.closed").font(.caption).foregroundStyle(.secondary)
                             if let zone = record.meaningfulZone { Text(verbatim: zone).font(.title2).bold() }
                             else { Text("roam.experience.cityWalk").font(.title2).bold() }
                             if let date = record.recordedAt { Text(date, style: .date) }
-                            RoamRouteSketchView(record: record)
+                            RoamSavedRouteReplayView(reader: reader, record: record)
                             RoamRecordedStats(record: record)
                         }
                     }
@@ -172,18 +181,27 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
                     Button("roam.share.title", systemImage: "square.and.arrow.up") { showShare = true }
                         .accessibilityIdentifier("roam.share.open")
                     Text("roam.experience.historyPrivacy").font(.caption).foregroundStyle(.secondary)
-                } else if loaded {
+                } else if currentLoaded {
                     ContentUnavailableView("roam.experience.recordMissing", systemImage: "questionmark.folder", description: Text("roam.experience.recordMissingHint"))
                         .accessibilityIdentifier("roam.experience.history.missing")
                 } else { ProgressView("roam.loading") }
             }.padding()
         }.navigationTitle("roam.experience.session")
-            .task(id: reader.identity) { showShare = false; load() }
-            .sheet(isPresented: $showShare) { if let record { NavigationStack { RoamHistoryShareView(record: record) } } }
+            .task(id: readKey) { showShare = false; load() }
+            .onChange(of: readKey) { _, _ in showShare = false }
+            .sheet(isPresented: $showShare) { if let record = currentRecord { NavigationStack { RoamHistoryShareView(record: record) } } }
             .accessibilityIdentifier("roam.experience.session")
     }
     private func load() {
-        record = nil; error = nil; loaded = false
-        do { record = try reader.history().first { $0.ts == timestamp }; loaded = true } catch { self.error = error }
+        record = nil; error = nil; loaded = false; loadedOwner = nil
+        let captured = readKey
+        do {
+            let value = try reader.history().first { $0.ts == timestamp }
+            guard captured == readKey else { return }
+            record = value; loaded = true; loadedOwner = captured
+        } catch {
+            guard captured == readKey else { return }
+            self.error = error; loadedOwner = captured
+        }
     }
 }

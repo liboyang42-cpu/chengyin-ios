@@ -14,8 +14,12 @@ import SwiftUI
     let applyCityOptions: ((String, String, Int) -> Void)?
     let categories: [DiscoveryCategory]
     let categoryFailed: Bool
+    let categoryLoading: Bool
+    let categoryLoaded: Bool
+    let retryCategories: (() -> Void)?
     let apply: (GlobalSearchQuery) -> Void
     init(filter: GlobalSearchQuery, categories: [DiscoveryCategory], categoryFailed: Bool,
+         categoryLoading: Bool = false, categoryLoaded: Bool = false, retryCategories: (() -> Void)? = nil,
          tag: String = "", cityRole: String = "", sortType: Int = 1,
          applyCityOptions: ((String, String, Int) -> Void)? = nil, apply: @escaping (GlobalSearchQuery) -> Void) {
         _draft = State(initialValue: filter)
@@ -25,6 +29,7 @@ import SwiftUI
         _maximum = State(initialValue: filter.maximumPrice.map { String($0) } ?? "")
         _dateDraft = State(initialValue: SearchMapDateFilterDraft(filter: filter))
         self.categories = categories; self.categoryFailed = categoryFailed; self.apply = apply
+        self.categoryLoading = categoryLoading; self.categoryLoaded = categoryLoaded; self.retryCategories = retryCategories
     }
     var body: some View {
         NavigationStack {
@@ -42,9 +47,27 @@ import SwiftUI
                     Picker("searchMap.category", selection: $draft.categoryID) {
                         Text("searchMap.all").tag(Int?.none)
                         ForEach(categories) { Text(verbatim: $0.name).tag(Optional($0.id)) }
+                        // Keep an explicit tag for a selection missing from the new directory.
+                        // Only the user's selection/reset/Apply may change this manual draft.
+                        if let selectedID = draft.categoryID, !categories.contains(where: { $0.id == selectedID }) {
+                            (Text("searchMap.category") + Text(verbatim: " #\(selectedID)"))
+                                .tag(Optional(selectedID))
+                        }
                     }
                     .accessibilityIdentifier("searchMap.filter.category")
-                    if categoryFailed { Text("searchMap.categoryFailed").font(.caption) }
+                    if categoryLoading {
+                        ProgressView("searchMap.loading").accessibilityIdentifier("searchMap.category.loading")
+                    } else if categoryFailed {
+                        Text("searchMap.categoryFailed").font(.caption)
+                            .accessibilityIdentifier("searchMap.category.failed")
+                        if let retryCategories {
+                            Button("searchMap.retry", action: retryCategories).frame(minHeight: 44)
+                                .accessibilityIdentifier("searchMap.category.retry")
+                        }
+                    } else if categoryLoaded && categories.isEmpty {
+                        Text("searchMap.empty").font(.caption)
+                            .accessibilityIdentifier("searchMap.category.empty")
+                    }
                 }
                 Section("searchMap.dates") {
                     Button("mapDatePreset.today") { selectDatePreset(.today) }

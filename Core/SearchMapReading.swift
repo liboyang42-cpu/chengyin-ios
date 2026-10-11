@@ -127,3 +127,109 @@ public extension SearchMapReading {
     public func accepts(_ ticket: Ticket, scope: UUID) -> Bool { generation == ticket.generation && ticket.scope == scope && !Task.isCancelled }
     public func invalidate() { generation &+= 1 }
 }
+
+import Observation
+
+/// Read-only category directory for one visible filter presentation. The directory
+/// never owns a query/draft, applies filters, or grants any reader capability.
+@Observable @MainActor public final class SearchMapCategoryRecovery {
+    public enum Phase: Equatable { case idle, loading, loaded, failed }
+    public struct Owner: Hashable {
+        public let readerID: ObjectIdentifier
+        public let scope: UUID
+        public let configured: Bool
+        public let authenticated: Bool
+        public let manualAreaRevision: UInt64
+        @MainActor public init(reader: any SearchMapReading) {
+            readerID = ObjectIdentifier(reader); scope = reader.scope
+            configured = reader.isConfigured; authenticated = reader.isAuthenticated
+            manualAreaRevision = reader.manualAreaRevision
+        }
+    }
+    public struct Context: Equatable {
+        fileprivate let owner: Owner
+        fileprivate let presentationID: UUID
+        fileprivate let generation: UUID
+    }
+    public private(set) var categories: [DiscoveryCategory] = []
+    public private(set) var phase: Phase = .idle
+    private var settledPhase: Phase = .idle
+    private var owner: Owner?
+    private var presentationID: UUID?
+    private var active = false
+    private var generation = UUID()
+    private var pending: UUID?
+    @ObservationIgnored private weak var reader: (any SearchMapReading)?
+    @ObservationIgnored private var task: Task<Void, Never>?
+    public init() {}
+    deinit { task?.cancel() }
+
+    /// Every observed lifetime transition retires old callbacks, including A/B/A.
+    /// Reopening keeps a settled same-owner directory; interrupted reads may resume.
+    public func update(reader: any SearchMapReading, presentationID: UUID?, active: Bool) {
+        let next = Owner(reader: reader)
+        if owner != next || self.presentationID != presentationID || self.active != active {
+            generation = UUID(); task?.cancel(); task = nil; pending = nil
+            if owner != next { categories = []; settledPhase = .idle }
+            phase = settledPhase
+        }
+        self.reader = reader; owner = next
+        self.presentationID = presentationID; self.active = active
+    }
+    public func owns(_ current: Owner) -> Bool {
+        guard let reader else { return false }
+        return owner == current && Owner(reader: reader) == current
+    }
+    /// Local filter edits require a current presentation, not a network capability.
+    public func presentationContext(for current: Owner) -> Context? {
+        guard active, owns(current), let presentationID else { return nil }
+        return Context(owner: current, presentationID: presentationID, generation: generation)
+    }
+    public func acceptsPresentation(_ context: Context) -> Bool {
+        self.presentationContext(for: context.owner) == context
+    }
+    /// A local Apply context must never authorize a category read while unconfigured.
+    public func context(for current: Owner) -> Context? {
+        guard current.configured else { return nil }
+        return presentationContext(for: current)
+    }
+    public func accepts(_ context: Context) -> Bool {
+        self.context(for: context.owner) == context
+    }
+    @discardableResult public func loadIfNeeded(in context: Context) -> Task<Void, Never>? {
+        guard phase == .idle else { return nil }
+        return begin(in: context)
+    }
+    @discardableResult public func retry(in context: Context) -> Task<Void, Never>? {
+        guard phase == .failed else { return nil }
+        return begin(in: context)
+    }
+    private func begin(in context: Context) -> Task<Void, Never>? {
+        guard !Task.isCancelled, pending == nil, accepts(context), let reader else { return nil }
+        let requestID = UUID()
+        // Acquire the single-flight slot before queuing asynchronous work.
+        pending = requestID; phase = .loading
+        let request = Task { [weak self, weak reader] in
+            defer { self?.finishPending(requestID) }
+            guard !Task.isCancelled, let reader, self?.accepts(context) == true else { return }
+            do {
+                let values = try await reader.categories()
+                guard !Task.isCancelled, let self, self.pending == requestID, self.accepts(context) else { return }
+                self.categories = values // An authoritative empty array is a successful directory.
+                self.settledPhase = .loaded; self.phase = .loaded
+            } catch is CancellationError {
+                // Cancellation restores the previous state; it is not a new failure.
+            } catch {
+                guard !Task.isCancelled, let self, self.pending == requestID, self.accepts(context) else { return }
+                self.settledPhase = .failed; self.phase = .failed
+            }
+        }
+        task = request
+        return request
+    }
+    private func finishPending(_ requestID: UUID) {
+        guard pending == requestID else { return }
+        pending = nil; task = nil
+        if phase == .loading { phase = settledPhase }
+    }
+}

@@ -38,6 +38,7 @@ struct RoamExperienceCard<Content: View>: View {
 }
 struct RoamRouteSketchView: View {
     let record: RoamHistoryRecord
+    var visibleSegments: Int? = nil
     var body: some View {
         let sketch = RoamRouteSketch(track: record.track, places: record.pois.map(\.point))
         ZStack {
@@ -48,7 +49,9 @@ struct RoamRouteSketchView: View {
             } else {
                 Canvas { context, size in
                     var path = Path()
-                    for (index, point) in sketch.track.enumerated() {
+                    let segmentCount = max(0, sketch.track.count - 1)
+                    let pointCount = visibleSegments.map { min(segmentCount, max(0, $0)) + 1 } ?? sketch.track.count
+                    for (index, point) in sketch.track.prefix(pointCount).enumerated() {
                         let position = CGPoint(x: point.x * size.width, y: point.y * size.height)
                         if index == 0 { path.move(to: position) } else { path.addLine(to: position) }
                     }
@@ -75,5 +78,78 @@ struct RoamRecordedStats: View {
             if let shops = record.shops { LabeledContent("roam.experience.shops", value: String(shops)) }
             if record.distance == nil && record.durationText == nil && record.shops == nil { Text("roam.experience.statsUnknown").foregroundStyle(.secondary) }
         }.font(.subheadline).monospacedDigit()
+    }
+}
+
+/// Replays only the stored sketch. This view has no location, network or write capability.
+@MainActor struct RoamSavedRouteReplayView: View {
+    let reader: any RoamExperienceReading
+    let record: RoamHistoryRecord
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var replay = RoamRouteReplayState()
+    @State private var visible = false
+    @State private var request: Request?
+    private struct Request {
+        let id = UUID()
+        let context: RoamRouteReplayState.Context
+        let counts: [Int]
+    }
+    private var owner: RoamRouteReplayState.Owner { .init(reader: reader, record: record) }
+    var body: some View {
+        let current = owner
+        let context = replay.context(for: current)
+        VStack(alignment: .leading, spacing: 12) {
+            // Always normalize the complete record; revealing a prefix never rescales it.
+            RoamRouteSketchView(record: record, visibleSegments: context == nil ? nil : replay.visibleSegments)
+            if let context {
+                if replay.phase == .playing {
+                    Button("roamRouteReplay.skip", systemImage: "forward.end") {
+                        synchronize()
+                        guard replay.accepts(context, current: owner) else { return }
+                        replay.skip(in: context, current: owner); request = nil
+                    }.frame(minHeight: 44).accessibilityIdentifier("roamRouteReplay.skip")
+                } else {
+                    Button(LocalizedStringKey(replay.phase == .completed ? "roamRouteReplay.again" : "roamRouteReplay.start"), systemImage: "play") {
+                        synchronize()
+                        guard replay.accepts(context, current: owner) else { return }
+                        if let ticket = replay.start(in: context, current: owner) {
+                            request = Request(context: ticket, counts: replay.plan.counts)
+                        }
+                    }.frame(minHeight: 44).accessibilityIdentifier("roamRouteReplay.start")
+                }
+                ProgressView(value: replay.progress, total: 1)
+                    .accessibilityLabel(Text("roamRouteReplay.progress"))
+                    .accessibilityValue(Text(replay.progress, format: .percent.precision(.fractionLength(0))))
+                    .accessibilityIdentifier("roamRouteReplay.progress")
+                Text(LocalizedStringKey(replay.phase == .playing ? "roamRouteReplay.playing" : (replay.phase == .completed ? "roamRouteReplay.completed" : "roamRouteReplay.ready")))
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+        }
+        .onAppear { visible = true; synchronize() }
+        .onDisappear { visible = false; synchronize() }
+        .onChange(of: owner) { _, _ in synchronize() }
+        .onChange(of: scenePhase) { _, _ in synchronize() }
+        .onChange(of: reduceMotion) { _, _ in synchronize() }
+        .task(id: request?.id) {
+            guard let captured = request else { return }
+            for (index, count) in captured.counts.enumerated() {
+                if index > 0 {
+                    do { try await Task.sleep(nanoseconds: RoamRouteReplayPlan.intervalNanoseconds) }
+                    catch { return }
+                }
+                if reduceMotion { synchronize(); return }
+                guard !Task.isCancelled, visible, scenePhase == .active,
+                      replay.accepts(captured.context, current: owner) else { return }
+                replay.advance(to: count, in: captured.context, current: owner)
+            }
+            // No old-task cleanup can clear a later request.
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("roamRouteReplay.saved")
+    }
+    private func synchronize() {
+        replay.update(owner: owner, active: visible && scenePhase == .active, reduceMotion: reduceMotion)
+        if let captured = request, !replay.accepts(captured.context, current: owner) { request = nil }
     }
 }

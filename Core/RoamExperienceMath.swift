@@ -69,3 +69,96 @@ public struct RoamRouteSketch {
         self.track = Array(normalized.prefix(track.count)); self.places = Array(normalized.dropFirst(track.count))
     }
 }
+
+/// A bounded local display schedule; it never reads, changes or saves a route.
+public struct RoamRouteReplayPlan: Equatable {
+    public static let intervalNanoseconds: UInt64 = 120_000_000
+    public static let maximumFrames = 24
+    public let counts: [Int]
+    public init(segmentCount: Int) {
+        let total = max(0, segmentCount)
+        guard total > 0 else { counts = []; return }
+        let frames = min(total, Self.maximumFrames)
+        let step = total / frames + (total % frames == 0 ? 0 : 1)
+        var result: [Int] = [], count = 0
+        while count < total {
+            count = total - count <= step ? total : count + step
+            result.append(count)
+        }
+        counts = result
+    }
+}
+
+/// Value-only replay authority. Timers live in the SwiftUI detail presentation.
+/// A context belongs to an exact reader/scope, complete record value and visible lifetime.
+public struct RoamRouteReplayState {
+    public struct Owner: Equatable {
+        public let readerID: ObjectIdentifier
+        public let identity: RoamExperienceIdentity?
+        public let storageKey: String?
+        public let configured: Bool
+        public let record: RoamHistoryRecord
+        @MainActor public init(reader: any RoamExperienceReading, record: RoamHistoryRecord) {
+            readerID = ObjectIdentifier(reader); identity = reader.identity
+            storageKey = identity?.scope.storageKey
+            configured = reader.isConfigured; self.record = record
+        }
+    }
+    public struct Context: Equatable {
+        fileprivate let owner: Owner
+        fileprivate let generation: UUID
+    }
+    public enum Phase: Equatable { case ready, playing, completed }
+    public private(set) var phase: Phase = .ready
+    public private(set) var totalSegments = 0
+    /// nil means the unchanged full static sketch, including non-replay callers.
+    public private(set) var visibleSegments: Int?
+    private var owner: Owner?
+    private var active = false
+    private var reduceMotion = false
+    private var generation = UUID()
+    public init() {}
+    public var progress: Double {
+        guard totalSegments > 0 else { return 0 }
+        return Double(visibleSegments ?? totalSegments) / Double(totalSegments)
+    }
+    public var plan: RoamRouteReplayPlan { .init(segmentCount: totalSegments) }
+    public mutating func update(owner: Owner, active: Bool, reduceMotion: Bool) {
+        if self.owner != owner || self.active != active {
+            generation = UUID(); phase = .ready; visibleSegments = nil
+            let points = RoamRouteSketch(track: owner.record.track, places: owner.record.pois.map(\.point)).track
+            let hasLine = zip(points, points.dropFirst()).contains { pair in pair.0 != pair.1 }
+            totalSegments = hasLine ? max(0, points.count - 1) : 0
+        }
+        self.owner = owner; self.active = active; self.reduceMotion = reduceMotion
+        if reduceMotion && phase == .playing { complete() }
+    }
+    public func context(for current: Owner) -> Context? {
+        guard active, owner == current, totalSegments > 0 else { return nil }
+        return Context(owner: current, generation: generation)
+    }
+    public func accepts(_ context: Context, current: Owner) -> Bool {
+        self.context(for: current) == context
+    }
+    @discardableResult public mutating func start(in context: Context, current: Owner) -> Context? {
+        guard accepts(context, current: current), phase != .playing else { return nil }
+        generation = UUID()
+        if reduceMotion { phase = .completed; visibleSegments = nil; return nil }
+        phase = .playing; visibleSegments = 0
+        return self.context(for: current)
+    }
+    public mutating func advance(to count: Int, in context: Context, current: Owner) {
+        guard accepts(context, current: current), phase == .playing else { return }
+        let bounded = min(totalSegments, max(0, count))
+        guard bounded >= (visibleSegments ?? 0) else { return }
+        visibleSegments = bounded
+        if bounded == totalSegments { complete() }
+    }
+    public mutating func skip(in context: Context, current: Owner) {
+        guard accepts(context, current: current), phase == .playing else { return }
+        complete()
+    }
+    private mutating func complete() {
+        generation = UUID(); phase = .completed; visibleSegments = nil
+    }
+}

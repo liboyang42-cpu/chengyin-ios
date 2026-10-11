@@ -9,6 +9,7 @@ import unittest
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
+DISCOVERY_HELPER_FINGERPRINT = '9151580209a925a141535c70e229ab1c0609d3cd0d7b8b544f16f16df2a543a9'
 
 def load(relative, name):
     spec = importlib.util.spec_from_file_location(name, ROOT / relative)
@@ -271,6 +272,8 @@ def _club_bound_merchant_input(contract, root):
 
 
 def _merchant_business_compile_contract(contract, root=ROOT):
+    from Tests.ContractChecks.test_category_roam_registration import profile_contract_inputs
+    contract, root = profile_contract_inputs(contract, root, 'merchant')
     root=Path(root)
     contract,current_encoded=_club_bound_merchant_input(contract,root)
     encoded=(json.dumps(contract,indent=2,ensure_ascii=False)+'\n').encode()
@@ -312,6 +315,8 @@ def _merchant_business_compile_contract(contract, root=ROOT):
 CLUB_DIRECTORY_HELPER_SHA256 = '80b6fb95961ef598ea66aa02e0081938b5df2ae7860a3e3fad76e5c0fa0a2297'
 
 def _club_directory_contract(contract, root=ROOT):
+    from Tests.ContractChecks.test_category_roam_registration import profile_contract_inputs
+    contract, root = profile_contract_inputs(contract, root, 'club')
     helper = Path(root) / 'tools/club_customer_directory_admission.py'
     if digest(helper.read_bytes()) != CLUB_DIRECTORY_HELPER_SHA256:
         raise ValueError('Unreviewed complete club helper input')
@@ -320,6 +325,8 @@ def _club_directory_contract(contract, root=ROOT):
 
 
 def _creator_state_contract(contract, root=ROOT):
+    from Tests.ContractChecks.test_category_roam_registration import profile_contract_inputs
+    contract, root = profile_contract_inputs(contract, root, 'creator')
     # The current full contract, runner and admission module are authenticated by
     # the caller before entering this historical-only layer. Never scan this view.
     root = Path(root)
@@ -356,6 +363,8 @@ def _combined_profile_contract(data, root=ROOT):
 
 
 def _combined_profile_contract_checked(data, root=ROOT):
+    from Tests.ContractChecks.test_category_roam_registration import profile_history_inputs
+    data, root = profile_history_inputs(data, root, 'combined')
     """Exact combined current -> reviewed profile R2 contract, never current admission."""
     root = Path(root)
     runner = (root / 'tools/run138_editor_readiness.py').read_bytes()
@@ -406,6 +415,8 @@ def _combined_profile_contract_checked(data, root=ROOT):
     return restored
 
 def historical_readiness_contract(data, root=ROOT):
+    from Tests.ContractChecks.test_category_roam_registration import profile_history_inputs
+    data, root = profile_history_inputs(data, root, 'history')
     """Historical line reader only; the current central gate still rejects old bytes."""
     if digest(data) == ORIGINAL_READINESS_SHA256:
         return data

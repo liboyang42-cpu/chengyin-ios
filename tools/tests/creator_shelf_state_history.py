@@ -462,6 +462,8 @@ def restore_state_bytes(name, raw):
 
 
 def historical_pre_shelf_state_sources(*, root=ROOT):
+    from Tests.ContractChecks.test_category_roam_registration import creator_history_root
+    root = creator_history_root(root, live_root=ROOT)
     root = Path(root)
     sources = {}
     for name in REFRESH_INPUTS:
