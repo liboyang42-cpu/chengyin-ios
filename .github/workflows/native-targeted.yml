@@ -1,0 +1,39 @@
+name: Targeted native diagnostics
+# First execution is this narrowly scoped push. GitHub only registers manual
+# dispatch after this file exists on the default branch; no main change is implied.
+on:
+  push:
+    branches: [migration/native-ios]
+    paths:
+      - .github/workflows/native-targeted.yml
+      - tools/targeted_native_selection.json
+      - tools/run_targeted_native.py
+      - tools/tests/test_targeted_native.py
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: native-targeted-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  targeted:
+    name: native-targeted-diagnostic
+    runs-on: macos-26
+    # Upper bound, not an expected duration or a replacement for required gates.
+    timeout-minutes: 45
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Validate fixed selection and diagnostic controls
+        run: |
+          python3 -B -m unittest discover -s tools/tests -p test_targeted_native.py -v
+          python3 -B tools/run_targeted_native.py validate
+      - name: Run exact selected native methods on one simulator
+        run: python3 -B tools/run_targeted_native.py run --output "$RUNNER_TEMP/native-targeted"
+      - name: Report exact-SHA selected results, including incomplete runs
+        if: always()
+        run: python3 -B tools/run_targeted_native.py report --output "$RUNNER_TEMP/native-targeted" --summary "$GITHUB_STEP_SUMMARY"

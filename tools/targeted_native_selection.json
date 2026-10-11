@@ -1,0 +1,131 @@
+{
+  "version": 1,
+  "name": "creator-shelf-refresh-v1",
+  "base_commit": "6ae3e545b373dd5cddc47356a57d0cb6ee928e70",
+  "base_tree": "dc1573c54487cb5402b083b0ff91d3a98025eca9",
+  "repository": "liboyang42-cpu/chengyin-ios",
+  "branch": "migration/native-ios",
+  "allowed_additions": [
+    ".github/workflows/native-targeted.yml",
+    "tools/targeted_native_selection.json",
+    "tools/run_targeted_native.py",
+    "tools/tests/test_targeted_native.py"
+  ],
+  "groups": [
+    {
+      "name": "core",
+      "kind": "swift",
+      "target": "QuestifyCoreTests",
+      "scheme": null,
+      "methods": [
+        "QuestifyCoreTests/TemplateAuthoringHTTPTests/testRefreshSnapshotCannotReplaceHundredRowWritePreflightOrOldReview",
+        "QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testAlreadyCancelledRefreshClearsSnapshotWithoutDispatch",
+        "QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testAuthContractUnknownAndCancellationFailuresClearRefreshSnapshot",
+        "QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testCachedRefreshLifetimeTransitionsAndABAFenceAllLateResults",
+        "QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testContinuationAuthAndContractErrorsClearRowsButOverlapRemainsRetryable",
+        "QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testNewKeywordNeverDisplaysPreviousQuerySnapshot",
+        "QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testOnlyExplicitTransientFailuresRetainSnapshotAndRequireFirstPageRetry",
+        "QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testRefreshAtHundredPageBoundaryRestartsAtOneWithoutPage101",
+        "QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testRefreshReplacesOverlappingIDsAndValidEmptyClearsSnapshot",
+        "QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testSameKeywordNewGenerationRejectsOldSuccessAndError"
+      ],
+      "source": "Tests/CoreTests/TemplateAuthoringHTTPTests.swift"
+    },
+    {
+      "name": "app-unit",
+      "kind": "xcode",
+      "target": "QuestifyAppUnitTests",
+      "scheme": "QuestifyAppUnitTests",
+      "methods": [
+        "QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testCachedRefreshNeverSurvivesOwnerLeaseABAExpiryOrCancellation",
+        "QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testCachedSnapshotPreparationClearsRevokedScopeBeforeAnotherRequest",
+        "QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testClonedTransportRejectsLateLeaseReplacementTokenRoleAndErrors",
+        "QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testCurrent401ExpiresOnlyCurrentOwner",
+        "QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testGuestDefaultNilRevokedReaderAndReplacementNeverAdoptLease",
+        "QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testLateShelfAndDetailSuccess401ErrorNeverApplyAcrossLifetimeChanges",
+        "QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testLoadedReadOnlyRefreshSnapshotSurvives503ThenReplacesAndClears",
+        "QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testNormalFactoryPagedShelfDetailAndEveryWriterRemainOff",
+        "QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testOuterClonesOnlyAdmitExactReadsAndDenyAllAdjacentMutations",
+        "QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testOwnerConfigurationFactoryDoesNotAlterLocalDraftAndClearsOnLeaseChange",
+        "QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testSearchedPageElevenLegacyStoryRequiresFreshOwnedDetail",
+        "QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testShelfLeaseChangesPreserveUnsavedLocalEditorAndDormantAuthority"
+      ],
+      "source": "Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift"
+    },
+    {
+      "name": "ui",
+      "kind": "xcode",
+      "target": "QuestifyUITests",
+      "scheme": "Questify",
+      "methods": [
+        "QuestifyUITests/TemplateOwnShelfFlowTests/testAccountChangeDismissesReviewAndSignoutClearsShelf",
+        "QuestifyUITests/TemplateOwnShelfFlowTests/testChineseLargeTextCanCancelReview",
+        "QuestifyUITests/TemplateOwnShelfFlowTests/testDefaultDisabledHasNoMutationConfirmation",
+        "QuestifyUITests/TemplateOwnShelfFlowTests/testDeleteRequiresSeparateReviewAndSimulationIsLabelled",
+        "QuestifyUITests/TemplateOwnShelfFlowTests/testLibraryReviewShowsIdentityAndCancellationDoesNotSubmit",
+        "QuestifyUITests/TemplateOwnShelfFlowTests/testOwnedDetailBackAndReopenKeepsStableDestination",
+        "QuestifyUITests/TemplateOwnShelfFlowTests/testUnknownLocksBothActionsAcrossReopen"
+      ],
+      "source": "Tests/AppUITests/TemplateOwnShelfFlowTests.swift"
+    }
+  ],
+  "coverage_boundary": "29 selected methods only. UI covers existing shelf flows; new 503 snapshot/recovery screen behavior is not covered. Full native required gates, device/live acceptance and physical-device Keychain coverage remain separate.",
+  "source_files": [
+    {
+      "path": ".github/workflows/native-ios.yml",
+      "sha256": "4ca695bdc86a7df5fa1a8ccb480288225a7ea0d1b64cabbf1891a1d753883fa2"
+    },
+    {
+      "path": "tools/ci_gates.py",
+      "sha256": "1bb9bae7686b3e8cda4fdb86060351fa31b4da4145f89065643efeae5ea7625c"
+    },
+    {
+      "path": "tools/build_simulator_keychain_host.py",
+      "sha256": "410e223bc4c8d3779987cf8c25b5fc57a65a634e5829801afb8d34d7a1f1b727"
+    },
+    {
+      "path": "tools/prepare_simulator_keychain_host.py",
+      "sha256": "6f8bf5dcdcc9df5e28913b91fe2c644acfa89e555d11e26f7d4873ae422eee86"
+    },
+    {
+      "path": "Questify.xcodeproj/project.pbxproj",
+      "sha256": "fcf316f51e4bb5b19b7f2b16df7ae161d96cfe5ee8cb6f166fe41b9921eeb552"
+    },
+    {
+      "path": "Questify.xcodeproj/xcshareddata/xcschemes/Questify.xcscheme",
+      "sha256": "41d92b9e86e1c30d9ab44589467782b7db30097e28520c08baeb187d63c31680"
+    },
+    {
+      "path": "Questify.xcodeproj/xcshareddata/xcschemes/QuestifyAppUnitTests.xcscheme",
+      "sha256": "e52272e31041dd7e5b5a90a12724d7ac29573d0f90f8bc646d5cec8cca7057ca"
+    },
+    {
+      "path": "Config/AppUnitTests.xcconfig",
+      "sha256": "ed3f7a0b80831d9b64803acea4d6e21a9c8c6429cca3de778a36dd7b154d982c"
+    },
+    {
+      "path": "Config/Base.xcconfig",
+      "sha256": "5b93366b396a073537bba112571e8b6b05d3dc77ce854efb15beae7132fb56c2"
+    },
+    {
+      "path": "App/TemplateAuthoringMineView.swift",
+      "sha256": "91d2c740529dd2970568cacfcd68409618c6e2d1d6cda007daccfdb3dc8164d7"
+    },
+    {
+      "path": "Core/TemplateAuthoringShelf.swift",
+      "sha256": "3d8865b315f1712f0056d1b376f0f7f2b1aa01e8417dab95f438c200cefe2e91"
+    },
+    {
+      "path": "Tests/CoreTests/TemplateAuthoringHTTPTests.swift",
+      "sha256": "760c57eef41df4f73d89ea5143fd629c68d82ffe1c290a203006371c684e8ee6"
+    },
+    {
+      "path": "Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift",
+      "sha256": "7311d093a69f2291048f9f08110ef1425cd884ede1781abb28c037c1b50a2673"
+    },
+    {
+      "path": "Tests/AppUITests/TemplateOwnShelfFlowTests.swift",
+      "sha256": "3ead06d83d63800015dd8255d73aae100ab8ae85fc0553787edc12d6951419ce"
+    }
+  ]
+}
