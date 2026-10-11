@@ -30,6 +30,9 @@ jobs:
           persist-credentials: false
       - name: Validate fixed selection and diagnostic controls
         run: |
+          # Corrections can move the reviewed base beyond checkout depth two.
+          # Fetch only that exact public commit; do not widen checkout or scope.
+          GIT_TERMINAL_PROMPT=0 git -c credential.helper= fetch --no-tags --depth=1 https://github.com/liboyang42-cpu/chengyin-ios.git 6ae3e545b373dd5cddc47356a57d0cb6ee928e70
           python3 -B -m unittest discover -s tools/tests -p test_targeted_native.py -v
           python3 -B tools/run_targeted_native.py validate
       - name: Run exact selected native methods on one simulator

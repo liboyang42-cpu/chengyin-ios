@@ -111,6 +111,7 @@ class SelectionAndCommands(unittest.TestCase):
         self.assertIn('  workflow_dispatch:', active)
         self.assertIn('  contents: read', active)
         self.assertIn('persist-credentials: false', active)
+        self.assertIn('GIT_TERMINAL_PROMPT=0 git -c credential.helper= fetch --no-tags --depth=1 https://github.com/liboyang42-cpu/chengyin-ios.git ' + runner.BASE_COMMIT, active)
         self.assertIn('timeout-minutes: 45', active)
         self.assertIn('name: native-targeted-diagnostic', active)
         for forbidden in ['needs:', 'matrix:', 'upload-artifact', 'download-artifact', 'secrets.', 'required-native-gates', 'run_static_checks.py', 'ci_gates.py aggregate']:
@@ -250,11 +251,22 @@ class RuntimeBoundaries(unittest.TestCase):
             path = root / 'app.xctestrun'
             value = {'TestTargets': [{'TestBundlePath': '__TESTHOST__/PlugIns/QuestifyAppUnitTests.xctest', 'TestHostPath': '__TESTROOT__/Debug/Questify.app'}]}
             path.write_bytes(plistlib.dumps(value))
-            self.assertEqual(runner.select_xctestrun(root, 'QuestifyAppUnitTests'), path)
+            self.assertEqual(runner.select_xctestrun(root, 'QuestifyAppUnitTests'), path.resolve())
             for target in ['QuestifyUITests', 'Other']:
                 with self.assertRaises(ValueError): runner.select_xctestrun(root, target)
             value['TestTargets'][0]['TestHostPath'] = '/etc'; path.write_bytes(plistlib.dumps(value))
             with self.assertRaises(ValueError): runner.select_xctestrun(root, 'QuestifyAppUnitTests')
+
+    def test_product_directory_alias_returns_canonical_safe_run(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary); products = root / 'actual'; products.mkdir()
+            (products / 'QuestifyUITests.xctest').mkdir()
+            run = products / 'ui.xctestrun'
+            run.write_bytes(plistlib.dumps({'tests': [{'TestBundlePath': '__TESTROOT__/QuestifyUITests.xctest'}]}))
+            alias = root / 'alias'; alias.symlink_to(products, target_is_directory=True)
+            self.assertEqual(runner.select_xctestrun(alias, 'QuestifyUITests'), run.resolve())
+            escaped = products / 'linked.xctestrun'; escaped.symlink_to(run)
+            with self.assertRaises(ValueError): runner.select_xctestrun(alias, 'QuestifyUITests')
 
     def test_ambiguous_products_and_extra_target_fail(self):
         with tempfile.TemporaryDirectory() as temporary:
