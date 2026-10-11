@@ -1,0 +1,66 @@
+{
+  "feature": "P005 local passport metrics on existing Hub",
+  "base": "41571fed5c27d4766d0bebb02e2800d798f1edbd",
+  "app_sources": [
+    "Core/RoamPassportOverview.swift",
+    "App/RoamPassportOverviewView.swift"
+  ],
+  "app_ui_test_sources": [
+    "Tests/AppUITests/RoamPassportOverviewFlowTests.swift"
+  ],
+  "core_test_discovery": "Tests/CoreTests/RoamPassportOverviewTests.swift via existing SwiftPM target",
+  "required_prior_packages": [
+    "roam-reduced-motion"
+  ],
+  "localizations": {
+    "roam.passport.title": {
+      "en": "Your local roaming overview",
+      "zh-Hans": "本机漫游概览"
+    },
+    "roam.passport.shopVisits": {
+      "en": "Known shop visits",
+      "zh-Hans": "已记录探店次数"
+    },
+    "roam.passport.activeDays": {
+      "en": "Active days",
+      "zh-Hans": "活跃日"
+    },
+    "roam.passport.unknown": {
+      "en": "Unavailable",
+      "zh-Hans": "暂无可靠数据"
+    },
+    "roam.passport.partial": {
+      "en": "Only available values are counted. Missing or unrepresentable totals are not treated as zero.",
+      "zh-Hans": "仅汇总已有数据；缺失或无法安全汇总的项目不计作零。"
+    },
+    "roam.passport.distanceCoverage": {
+      "en": "Walks with distance",
+      "zh-Hans": "有距离的记录"
+    },
+    "roam.passport.shopsCoverage": {
+      "en": "Walks with shop counts",
+      "zh-Hans": "有探店次数的记录"
+    },
+    "roam.passport.dateCoverage": {
+      "en": "Walks with valid dates",
+      "zh-Hans": "有有效日期的记录"
+    },
+    "roam.passport.localOnly": {
+      "en": "Based on up to 50 saved walks on this device, not your account’s lifetime totals. Open your records below to review them.",
+      "zh-Hans": "仅基于本机最多 50 条已保存漫游，并非账户终身统计。可从下方漫游记录继续回看。"
+    },
+    "roam.passport.counting": {
+      "en": "Shop visits are summed across walks, not unique shops. Active days use saved timestamps in this device’s time zone.",
+      "zh-Hans": "探店次数按每次漫游累加，不代表去重店铺数。活跃日按已存时间戳与本机时区归并。"
+    }
+  },
+  "central_files_edited": false,
+  "no_new_permissions_endpoints_or_storage": true,
+  "native_acceptance": [
+    "Show four local metrics on ordinary Hub; known/unknown/partial/empty/corrupt/sign-out states.",
+    "Open existing history and exact record, Back to overview; existing album still opens; pull to refresh.",
+    "Time-zone boundary/DST and sums overflow tests; source no date text guessing.",
+    "Run28Core XCTest and4UI XCTest, compile App on Apple."
+  ],
+  "native_execution": "NOT_RUN; no Swift or Apple toolchain on current computer."
+}

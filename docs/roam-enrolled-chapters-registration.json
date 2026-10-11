@@ -1,0 +1,49 @@
+{
+  "feature": "P005 enrolled topic intro -> current registration detail -> existing play provider",
+  "base": "49c68c6420270b0a0cc7ec8d18bc8561f329d796",
+  "app_sources": [
+    "Core/RoamEnrolledChapters.swift",
+    "App/RoamEnrolledChaptersView.swift"
+  ],
+  "app_ui_test_sources": [
+    "Tests/AppUITests/RoamEnrolledChaptersFlowTests.swift"
+  ],
+  "core_test_discovery": "Tests/CoreTests/RoamEnrolledChaptersTests.swift via existing SwiftPM target",
+  "required_prior_packages": [
+    "roam-passport-overview",
+    "roam-official-tasks",
+    "roam-badge-wall"
+  ],
+  "already_in_base": "2-9; do not overlay again",
+  "localizations": {
+    "roam.chapters.title": {
+      "en": "Enrolled topics",
+      "zh-Hans": "\u5df2\u62a5\u540d\u4e3b\u9898"
+    },
+    "roam.chapters.hint": {
+      "en": "Review your topic registrations and chapter status. Open a current registration before continuing to play.",
+      "zh-Hans": "\u67e5\u770b\u5df2\u62a5\u540d\u4e3b\u9898\u548c\u7ae0\u8282\u72b6\u6001\uff0c\u6253\u5f00\u5f53\u524d\u62a5\u540d\u8bb0\u5f55\u540e\u7ee7\u7eed\u6e38\u73a9\u3002"
+    },
+    "roam.chapters.empty": {
+      "en": "No enrolled topics",
+      "zh-Hans": "\u6682\u65e0\u5df2\u62a5\u540d\u4e3b\u9898"
+    },
+    "roam.chapters.changed": {
+      "en": "Your roaming session changed. Return and reopen your enrolled topics.",
+      "zh-Hans": "\u6f2b\u6e38\u4f1a\u8bdd\u5df2\u53d8\u5316\uff0c\u8bf7\u8fd4\u56de\u540e\u91cd\u65b0\u6253\u5f00\u5df2\u62a5\u540d\u4e3b\u9898\u3002"
+    }
+  },
+  "reused_unchanged": [
+    "AppSession.ticketWalletReader",
+    "TicketWalletReading/Service api/registration/list+info read contracts",
+    "TicketWalletDetailView/TicketWalletPlayProvider strict current registration checks",
+    "SessionPlayRuntimeView existing runtime and capability checks"
+  ],
+  "central_files_edited": false,
+  "native_acceptance": [
+    "24 Core and5 UI XCTest; NOT_RUN locally",
+    "Ordinary production Roam -> enrolled topic -> current registration info -> existing play -> registration return -> list back; no new grant or fake runtime success",
+    "Account/epoch/scope/auth/config changes; route-lane failure, duplicate/ambiguous owner identity; old tasks and back refresh",
+    "Offline UI fixtures verify reading/detail only; no synthetic successful play provider is supplied"
+  ]
+}

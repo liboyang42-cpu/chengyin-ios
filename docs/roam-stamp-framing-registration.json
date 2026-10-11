@@ -1,0 +1,56 @@
+{
+  "feature": "P027 pre-shutter framing",
+  "core_test_discovery": "Tests/CoreTests/RoamStampFramingTests.swift is discovered by existing Swift Package target",
+  "required_prior_packages": [
+    "roam-stamp-caption",
+    "roam-created-stamp-album"
+  ],
+  "unchanged_permissions": [
+    "NSCameraUsageDescription existing purpose/OS gate; no new permission key, entitlement, endpoint or Photos request"
+  ],
+  "native_acceptance": [
+    "Apply prior4+6 registration/localization plus this fragment, then compile App/Core/AppUnit tests on Apple.",
+    "Ordinary authorized camera: 40/74/90% framing before shutter; verify actual output pixels against a printed grid and visible card at each ratio.",
+    "Portrait rotation, supported phones/iPad sizes, VoiceOver adjustable slider, cancel during capture, background, retake, rapid shutter.",
+    "Run GPS/EXIF negative-control test, all orientation cases and narrow/wide crop pixel cases.",
+    "Continue existing review/caption/upload/create/created-stamp album, retaining exact pending retry semantics."
+  ],
+  "not_run": [
+    "Swift typecheck/build",
+    "Core/App native XCTest",
+    "Simulator/device camera alignment",
+    "Actual camera/permission/upload/server/Photos writes"
+  ],
+  "base": "41571fed5c27d4766d0bebb02e2800d798f1edbd",
+  "app_sources": [
+    "App/RoamStampFramingCamera.swift",
+    "Core/RoamStampFraming.swift"
+  ],
+  "app_unit_test_sources": [
+    "Tests/AppUnitTests/RoamStampFramingPixelTests.swift"
+  ],
+  "localizations": {
+    "roam.stampFraming.range": {
+      "en": "Capture area",
+      "zh-Hans": "取景范围"
+    },
+    "roam.stampFraming.hint": {
+      "en": "Pinch or adjust the slider before shooting. The centered 4:5 area becomes your stamp.",
+      "zh-Hans": "拍摄前双指缩放或调整滑杆，中央 4:5 范围将成为邮票。"
+    },
+    "roam.stampFraming.retry": {
+      "en": "Couldn’t capture this frame. Adjust it and try again.",
+      "zh-Hans": "这次取景未能拍下，请调整后重试。"
+    },
+    "roam.stampFraming.portrait": {
+      "en": "Turn your device upright to frame this stamp.",
+      "zh-Hans": "请竖持设备，为这张邮票构图。"
+    },
+    "roam.stampFraming.capturing": {
+      "en": "Capturing this frame… Keep the camera steady.",
+      "zh-Hans": "正在拍下当前取景…请保持相机稳定。"
+    }
+  },
+  "central_files_edited": false,
+  "AppSession_edited": false
+}

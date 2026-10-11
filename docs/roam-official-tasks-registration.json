@@ -1,0 +1,45 @@
+{
+  "feature": "P005 Roam official tasks scene",
+  "base": "49c68c6420270b0a0cc7ec8d18bc8561f329d796",
+  "app_sources": [
+    "Core/RoamOfficialTasks.swift",
+    "App/RoamOfficialTasksView.swift"
+  ],
+  "app_ui_test_sources": [
+    "Tests/AppUITests/RoamOfficialTasksFlowTests.swift"
+  ],
+  "core_test_discovery": "Tests/CoreTests/RoamOfficialTasksTests.swift via existing SwiftPM target",
+  "required_prior_packages": [
+    "roam-passport-overview"
+  ],
+  "already_in_base": "packages2-9; do not overlay again",
+  "localizations": {
+    "roam.tasks.title": {
+      "en": "Official roaming activities",
+      "zh-Hans": "漫游官方活动"
+    },
+    "roam.tasks.changed": {
+      "en": "Your roaming account changed",
+      "zh-Hans": "漫游账号已变化"
+    },
+    "roam.tasks.stale": {
+      "en": "Couldn’t refresh. These are the last successfully loaded activities for this account.",
+      "zh-Hans": "本次刷新未成功，当前保留该账号上次完整读取的活动。"
+    }
+  },
+  "existing_reuse": [
+    "OfficialEventReading.events/myEvents/detail",
+    "OfficialEventBrowseQuery",
+    "OfficialEventCard",
+    "OfficialEventDetailView",
+    "OfficialIssueView/OfficialReadOnlyNotice"
+  ],
+  "no_new_writer_or_permission": true,
+  "central_files_edited": false,
+  "native_acceptance": [
+    "Ordinary Roam Hub obtains session.officialEventReader and opens exact official_event detail, never generic activity.",
+    "Live/upcoming/ended/joined; real delegated-scene keyword; empty/error/retry/stale/refresh/back; session changes.",
+    "Run25Core XCTest and5UI XCTest; fixtures are only DEBUG offline Roam host, no production override."
+  ],
+  "native_execution": "NOT_RUN; Swift/Apple tools absent."
+}

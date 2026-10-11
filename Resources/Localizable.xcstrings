@@ -158075,6 +158075,397 @@
           }
         }
       }
+    },
+    "roam.badgeWall.changed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your badge-viewing session changed. Return to roaming and reopen it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "徽章查看会话已变化，请返回漫游后重新打开。"
+          }
+        }
+      }
+    },
+    "roam.chapters.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enrolled topics"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已报名主题"
+          }
+        }
+      }
+    },
+    "roam.chapters.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review your topic registrations and chapter status. Open a current registration before continuing to play."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看已报名主题和章节状态，打开当前报名记录后继续游玩。"
+          }
+        }
+      }
+    },
+    "roam.chapters.empty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No enrolled topics"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无已报名主题"
+          }
+        }
+      }
+    },
+    "roam.chapters.changed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your roaming session changed. Return and reopen your enrolled topics."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "漫游会话已变化，请返回后重新打开已报名主题。"
+          }
+        }
+      }
+    },
+    "roam.tasks.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Official roaming activities"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "漫游官方活动"
+          }
+        }
+      }
+    },
+    "roam.tasks.changed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your roaming account changed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "漫游账号已变化"
+          }
+        }
+      }
+    },
+    "roam.tasks.stale": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t refresh. These are the last successfully loaded activities for this account."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次刷新未成功，当前保留该账号上次完整读取的活动。"
+          }
+        }
+      }
+    },
+    "roam.passport.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your local roaming overview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机漫游概览"
+          }
+        }
+      }
+    },
+    "roam.passport.shopVisits": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Known shop visits"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已记录探店次数"
+          }
+        }
+      }
+    },
+    "roam.passport.activeDays": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Active days"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活跃日"
+          }
+        }
+      }
+    },
+    "roam.passport.unknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无可靠数据"
+          }
+        }
+      }
+    },
+    "roam.passport.partial": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only available values are counted. Missing or unrepresentable totals are not treated as zero."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅汇总已有数据；缺失或无法安全汇总的项目不计作零。"
+          }
+        }
+      }
+    },
+    "roam.passport.distanceCoverage": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Walks with distance"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有距离的记录"
+          }
+        }
+      }
+    },
+    "roam.passport.shopsCoverage": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Walks with shop counts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有探店次数的记录"
+          }
+        }
+      }
+    },
+    "roam.passport.dateCoverage": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Walks with valid dates"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有有效日期的记录"
+          }
+        }
+      }
+    },
+    "roam.passport.localOnly": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Based on up to 50 saved walks on this device, not your account’s lifetime totals. Open your records below to review them."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅基于本机最多 50 条已保存漫游，并非账户终身统计。可从下方漫游记录继续回看。"
+          }
+        }
+      }
+    },
+    "roam.passport.counting": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shop visits are summed across walks, not unique shops. Active days use saved timestamps in this device’s time zone."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "探店次数按每次漫游累加，不代表去重店铺数。活跃日按已存时间戳与本机时区归并。"
+          }
+        }
+      }
+    },
+    "roam.stampFraming.range": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capture area"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取景范围"
+          }
+        }
+      }
+    },
+    "roam.stampFraming.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pinch or adjust the slider before shooting. The centered 4:5 area becomes your stamp."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拍摄前双指缩放或调整滑杆，中央 4:5 范围将成为邮票。"
+          }
+        }
+      }
+    },
+    "roam.stampFraming.retry": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t capture this frame. Adjust it and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这次取景未能拍下，请调整后重试。"
+          }
+        }
+      }
+    },
+    "roam.stampFraming.portrait": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn your device upright to frame this stamp."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请竖持设备，为这张邮票构图。"
+          }
+        }
+      }
+    },
+    "roam.stampFraming.capturing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capturing this frame… Keep the camera steady."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在拍下当前取景…请保持相机稳定。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

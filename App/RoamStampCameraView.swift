@@ -154,27 +154,11 @@ import UIKit
 
 @MainActor struct RoamNativeStampCamera: UIViewControllerRepresentable {
     let finished: (Result<RetainedSelectedImage?, Error>) -> Void
-    func makeCoordinator() -> Coordinator { Coordinator(finished: finished) }
-    func makeUIViewController(context: Context) -> UIImagePickerController {
-        let picker = UIImagePickerController(); picker.sourceType = .camera; picker.cameraDevice = .rear
-        picker.mediaTypes = ["public.image"]; picker.delegate = context.coordinator; picker.allowsEditing = false
-        return picker
+    func makeUIViewController(context: Context) -> RoamStampFramingCameraController {
+        RoamStampFramingCameraController(finished: finished)
     }
-    func updateUIViewController(_ controller: UIImagePickerController, context: Context) {}
-    static func dismantleUIViewController(_ controller: UIImagePickerController, coordinator: Coordinator) { controller.delegate = nil; coordinator.active = false }
-    final class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
-        var active = true
-        let finished: (Result<RetainedSelectedImage?, Error>) -> Void
-        init(finished: @escaping (Result<RetainedSelectedImage?, Error>) -> Void) { self.finished = finished }
-        private func complete(_ result: Result<RetainedSelectedImage?, Error>) { guard active else { return }; active = false; finished(result) }
-        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) { complete(.success(nil)) }
-        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
-            do {
-                guard let image = info[.originalImage] as? UIImage else { throw RetainedImageFailure.invalid }
-                complete(.success(try RoamStampPixelCrop.render(image)))
-            } catch { complete(.failure(error)) }
-        }
-    }
+    func updateUIViewController(_ controller: RoamStampFramingCameraController, context: Context) {}
+    static func dismantleUIViewController(_ controller: RoamStampFramingCameraController, coordinator: ()) { controller.invalidate() }
 }
 /// Explicit 4:5 center crop is shown for review before upload. Redraw normalizes orientation,
 /// resizes to 1600×2000 maximum, and never uploads the camera container's EXIF/GPS metadata.

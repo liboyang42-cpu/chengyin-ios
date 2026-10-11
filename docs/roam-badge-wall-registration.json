@@ -1,0 +1,37 @@
+{
+  "feature": "P005 same-account badge wall from Roam",
+  "base": "49c68c6420270b0a0cc7ec8d18bc8561f329d796",
+  "app_sources": [
+    "Core/RoamBadgeWallReader.swift",
+    "App/RoamBadgeWallDestination.swift"
+  ],
+  "app_ui_test_sources": [
+    "Tests/AppUITests/RoamBadgeWallFlowTests.swift"
+  ],
+  "core_test_discovery": "Tests/CoreTests/RoamBadgeWallReaderTests.swift via existing SwiftPM target",
+  "required_prior_packages": [
+    "roam-passport-overview",
+    "roam-official-tasks"
+  ],
+  "already_in_base": "packages2-9; do not overlay again",
+  "localizations": {
+    "roam.badgeWall.changed": {
+      "en": "Your badge-viewing session changed. Return to roaming and reopen it.",
+      "zh-Hans": "徽章查看会话已变化，请返回漫游后重新打开。"
+    }
+  },
+  "reused_unchanged": [
+    "AppSession.profileReader concrete factory",
+    "ObjectBadgeWallView/ObjectBadgeDetailView",
+    "ProfileReadScreen",
+    "ProfileReading.profileBadges/ProfileService.badgeWall existing read contracts"
+  ],
+  "no_new_writer_permissions_or_media_supplier": true,
+  "central_files_edited": false,
+  "native_acceptance": [
+    "Ordinary Roam Hub -> current-account badge wall -> identity/medal/achievement detail -> native Back.",
+    "Full/partial/empty/error/retry/unconfigured; same-account epoch mismatch and account changes fail closed.",
+    "Run20Core XCTest and5UI XCTest; Swift/Apple currently NOT_RUN.",
+    "Existing Profile fixture payload paired only in DEBUG offline Roam host; no production fixture substitution."
+  ]
+}

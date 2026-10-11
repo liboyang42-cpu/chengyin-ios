@@ -13,6 +13,7 @@ import SwiftUI
     let reader: any RoamExperienceReading
     let stampDestination: (() -> AnyView)?
     let liveDestination: (() -> AnyView)?
+    @State private var passport = RoamPassportOverviewState()
     @AppStorage(ReducedMotionPreference.storageKey) private var reduceMotionLocally = ReducedMotionPreference.defaultValue
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     @QuestifyReduceMotion private var effectiveReduceMotion
@@ -25,7 +26,14 @@ import SwiftUI
                     RoamExperienceNotice(offline: reader.isOfflineExample)
                 }.padding(.vertical, 8)
             }
+            RoamPassportOverviewView(phase: passport.phase(reader: reader)) { passport.load(reader: reader) }
             Section("roam.experience.yourRoam") {
+                NavigationLink { RoamEnrolledChaptersDestination(roamReader: reader) } label: { Label("roam.chapters.title", systemImage: "map.fill") }
+                    .disabled(reader.identity == nil)
+                    .accessibilityIdentifier("roam.chapters.open")
+                NavigationLink { RoamOfficialTasksDestination(roamReader: reader) } label: { Label("roam.tasks.title", systemImage: "checklist") }
+                    .disabled(reader.identity == nil)
+                    .accessibilityIdentifier("roam.tasks.open")
                 NavigationLink { RoamHistoryView(reader: reader, liveDestination: liveDestination) } label: { Label("roam.experience.history", systemImage: "clock.arrow.circlepath") }
                     .accessibilityIdentifier("roam.experience.history.open")
                 NavigationLink { RoamRecoveryView(reader: reader) } label: { Label("roam.experience.recovery", systemImage: "arrow.clockwise.circle") }
@@ -38,6 +46,9 @@ import SwiftUI
                     .accessibilityIdentifier("roam.experience.tiles.open")
                 NavigationLink { RoamStampAlbumView(reader: reader, stampDestination: stampDestination) } label: { Label("roam.experience.album", systemImage: "rectangle.stack") }
                     .accessibilityIdentifier("roam.experience.album.open")
+                NavigationLink { RoamBadgeWallDestination(roamReader: reader) } label: { Label("profile.badges.title", systemImage: "medal") }
+                    .disabled(reader.identity == nil)
+                    .accessibilityIdentifier("roam.badgeWall.open")
                 NavigationLink { if let stampDestination { stampDestination() } else { AnyView(RoamStampCameraView()) } } label: { Label("roam.experience.cityStamp", systemImage: "camera") }
                     .accessibilityIdentifier("roam.experience.cityStamp.open")
                 NavigationLink { RoamVoucherEntryView() } label: { Label("roam.experience.voucher", systemImage: "ticket") }
@@ -63,6 +74,10 @@ import SwiftUI
                     .accessibilityIdentifier(effectiveReduceMotion ? "roam.motion.status.reduced" : "roam.motion.status.system")
             }
         }.navigationTitle("roam.experience.title")
+            .onAppear { passport.load(reader: reader) }
+            .onChange(of: RoamPassportReadOwner(reader: reader)) { _, _ in passport.load(reader: reader) }
+            .refreshable { passport.load(reader: reader) }
+            .onDisappear { passport.invalidate() }
             .accessibilityIdentifier("roam.experience.hub")
     }
 }
