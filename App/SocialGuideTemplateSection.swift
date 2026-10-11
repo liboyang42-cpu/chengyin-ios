@@ -23,7 +23,7 @@ enum SocialGuideTemplateRows {
         let reader: ObjectIdentifier
         let scope: String
         let configured: Bool
-        init(_ reader: any DiscoveryReading) {
+        @MainActor init(_ reader: any DiscoveryReading) {
             self.reader = ObjectIdentifier(reader); scope = reader.discoveryPresentationIdentity; configured = reader.isConfigured
         }
     }

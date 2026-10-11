@@ -262,7 +262,7 @@ def frozen_context(stage='all', root=ROOT):
     target = Path(life.name) / 'source'
     shutil.copytree(root, target, ignore=lambda directory, names: ignore_context_names(root, directory, names))
     for relative in c['feature_batch_sources']:
-        if relative.startswith('Tests/AppUITests/') or (stage == 'review' and relative == 'App/ProjectEditView.swift'):
+        if relative.startswith('Tests/AppUITests/') or (stage == 'review' and relative in {'App/ProjectEditView.swift', 'Tests/AppUnitTests/ProjectEditPreparedReviewTests.swift', 'Core/ProjectEditCoordinator.swift'}):
             (target / relative).write_bytes(original_feature_batch_bytes(relative, (root / relative).read_bytes(), root))
     for relative in current.source_contract(root)['files']:
         raw = current.original_source(relative, (root / relative).read_bytes(), root)

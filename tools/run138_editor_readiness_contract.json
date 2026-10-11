@@ -512,7 +512,7 @@
     "basis": "Same existing gap reveal and tap, same bounded helper, default direction corrected at fresh chapter entry; no new action or wait."
   },
   "entry_contract_sha256": "f9a2475bbd7230951b7b2d9efa87130f502b935ddb1bf44f68b5fd9ead0a3cd2",
-  "entry_projection_module_sha256": "7e14668c3ab789f3903971a8de30a828c1cac36c6755d67f81e92ef29356c7f1",
+  "entry_projection_module_sha256": "3980907d0a3d33e40f229c6f856ac78024b18498ea7c3f4dcd28d34862f8b280",
   "ui52_method_costs": {
     "MerchantMarketingUITests.testNormalMerchantWorkbenchOpensDormantMarketingInBothLanguages": {
       "prior_complete_method_seconds": 114.954,
@@ -4225,6 +4225,16 @@
           "after": "        let initialText = source.node.wrappedValue.description\n        text = initialText; acknowledgedBytes = Data(initialText.utf8)\n"
         }
       ]
+    },
+    "App/SocialGuideTemplateSection.swift": {
+      "before_sha256": "f79b53c8f0ab4ecdd4a21c2d23fe6a1c7b1040c50680dd6b6c1093cdcb3f2c5b",
+      "after_sha256": "0e14cc76c72416cf152f8edbd02383251b2671952f958a18af078e883f4ffc51",
+      "hunks": [
+        {
+          "before": "        init(_ reader: any DiscoveryReading) {\n",
+          "after": "        @MainActor init(_ reader: any DiscoveryReading) {\n"
+        }
+      ]
     }
   },
   "feature_batch_support_sha256": {
@@ -4585,7 +4595,7 @@
     "Tests/CoreTests/ProjectDraftNodeProjectionTests.swift": "dbce6ca6dfb3b78860aaabfdbfcb7c20d514751098fb1e7107bff8c8ca85e3ba",
     "App/ExploreCompletionView.swift": "6e6307a9c39e8547adb941d7b303aac8ea1e4d27df57876297b93b4972a6c365",
     "App/MerchantNPCRecoveryPresentation.swift": "825881004dd9392b8eaad9767e6f42a53d57703f07936bb449e0a6a72db1ee93",
-    "App/SocialGuideTemplateSection.swift": "f79b53c8f0ab4ecdd4a21c2d23fe6a1c7b1040c50680dd6b6c1093cdcb3f2c5b",
+    "App/SocialGuideTemplateSection.swift": "0e14cc76c72416cf152f8edbd02383251b2671952f958a18af078e883f4ffc51",
     "Core/ExploreCompletionContracts.swift": "1487d14692ec13e4d56e889b06c8273657ae0f7755cdd240dbe212dc8a5f23d4",
     "Core/ExploreCompletionRead.swift": "e3115376b0f38e9969e5458d3279c7e2e54f8055f345de47de217f0252d5f7ba",
     "Resources/ExploreCompletionLocalizations.fragment.json": "7cf4a3c8ab176cf63a1386d20b5169c2ee2dfb0113005de9d0706850f588f99b",
@@ -4727,28 +4737,28 @@
     "Tests/CoreTests/ProjectNodePlaceSelectionTests.swift": "b864c152cf35a1b55c055d634c3394d591c7eb4f27986af725edbb27dd8e3fc1",
     "Tests/CoreTests/SearchMapCityNodeReadTests.swift": "0574a6a4f69386b0e48264824dd606e2b0c708a8495ffe9fc821e72e0c755463",
     "tools/check_profile_read_failure_contract.py": "e492facdded0e76615721d90081b912738ba490e503aab61a7ed549a6b2a4b8a",
-    "Tests/ContractChecks/test_profile_read_failure_remote_admission.py": "5b754f40bd7cb9532edcfce645a1855a9f6a00c5499027de57744411fd95d079",
+    "Tests/ContractChecks/test_profile_read_failure_remote_admission.py": "18b2f038512301a8932a399e818179f09964595a77f10e8e990f20d0a2594189",
     "Tests/CoreTests/ProfileEditTests.swift": "6319234ba77c43afec858692bc9ff00308be774b58ea585069a7b3dc90ce654c",
     "tools/tests/test_gitleaks_configuration.py": "a5f5cd4f8670fb10405ab73fba1ac15700ace46a0c8dd4e8321e29e5da90cb30",
     "Tests/CoreTests/ClubCustomerPermissionTests.swift": "b4451e3ab27422f568b31c114f2c0cfc30335c24115c36f117b1f64579271590",
     "Tests/ContractChecks/test_club_customer_permissions.py": "773186689d0583d41d6ab75298e4b815e86dc688a2ce5043cdba43d0a5b2ffba",
     "docs/club-customer-permissions.md": "f32d0102eeb5bb2bc696b139389a5e674140623f7597973ffce5468629cd1f10",
     "Tests/ContractChecks/test_club_customer_directory_remote_admission.py": "09b5c57129442da635c71ff664b9a8c22ff0d694184592b86058312eb073e11e",
-    "tools/club_customer_directory_admission.py": "b8c6be27289110f7bf75d01d28fd41d9778b90dd7c32b78cf0ff849aa1916977",
+    "tools/club_customer_directory_admission.py": "7b2bba4759677e0091b5149a7fc46096280b95ac2b7e94cd77481a24570afb35",
     "Tests/ContractChecks/test_club_customer_keyword_debounce.py": "262ed2f2d1151dbe6994048cc21e76b98799fc34a68caeba59c08947508c8e6c",
     "Tests/AppUnitTests/ClubCustomerKeywordDebounceTests.swift": "2c3cfc1da3d145221e13d9561c1bfb9166b58c84807bfd93034fcaff44b303a5",
     "docs/club-customer-keyword-debounce.md": "1fa12a8011cb1b2c3d7425dcd8f1f8ca07f27be08adb8a545c1be98f97806f0e",
     "tools/tests/test_creator_shelf_state_history.py": "2806301717bd6b0d1ff66462cb006e801853daa9a87ffdd9aa679c8deb6994bf",
     "Tests/ContractChecks/test_template_shelf_state_projection.py": "f229a3c1447956510c42368847e70a3c94d0935b838828bb959e124507b51595",
     "tools/tests/creator_shelf_state_history.py": "db500fc7605d2fd12e98b4b042fd11ef284645156d0e4698f688ea3c92890b0e",
-    "Tests/ContractChecks/test_global_search_category_recovery.py": "8e7db4c7fb4c6f177d4a83afbcc1cf625d36143bba654be8a49db5e4c200c469",
+    "Tests/ContractChecks/test_global_search_category_recovery.py": "b00adbb5175612d05428065ac8d027027a930ce95c97ad6be36a091356d46d2c",
     "Tests/CoreTests/GlobalSearchCategoryRecoveryTests.swift": "4a78eca6ec1df117f1fd24675e775e7ffe4c6f1dc85f2e4988d223705092108e",
     "Tests/CoreTests/SearchMapCategoryRecoveryTests.swift": "4f7ed5b79dd4929b5eb828c53e1a07826e1a8b6ff78a09c0f55148faa24a4dad",
     "docs/global-search-category-recovery.md": "886a26d9fa6bbe316551c53fb83d7cdfae754351693d9a671040f6a72c878dca",
     "Tests/CoreTests/RoamRouteReplayTests.swift": "bee4110b199342c675def44f367f9da180da699124b9cf5f9222e7ad06441e0a",
     "Tests/ContractChecks/test_roam_route_replay.py": "83d0cb05ce9ec6289354c960494e6923b78a2825f6c244ec08b6693dfbe8c5c3",
     "docs/roam-route-replay.md": "5c409db1da0daffd0a5143873e96310094c417941b7497e1b5536e02b57a4395",
-    "Tests/ContractChecks/test_category_roam_registration.py": "7bc7de4110dedfc746145e7a988ab7fad88c9c562fcf524a66596a7d1d8ee2ac"
+    "Tests/ContractChecks/test_category_roam_registration.py": "693a1f0f3a559838578313f26d2bb3cfeda675161378c81d72f1b084dc206c2f"
   },
   "current_method_replacements": {
     "MerchantContentFlowTests.testCityClaimWithdrawalReviewUsesSourcePOIAndCanCancel": {

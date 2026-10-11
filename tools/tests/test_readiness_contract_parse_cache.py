@@ -486,7 +486,8 @@ class DescriptionInitializationCompileAdmissionTests(unittest.TestCase):
         self.assertEqual(len(paths), 52)
         for path in paths:
             file = root / path; file.parent.mkdir(parents=True, exist_ok=True)
-            file.write_bytes((R / path).read_bytes())
+            file.write_bytes(repair.actor_predecessor_fixture_source(
+                path, (R / path).read_bytes(), self.raw()))
         return root, paths
 
     def test_exact_one_hunk_reads_description_once_without_published_self_access(self):
@@ -572,7 +573,7 @@ class DescriptionInitializationCompileAdmissionTests(unittest.TestCase):
         with self.assertRaises(ValueError): repair.profile_history_inputs(raw, root, 'history')
 
     def test_club_fixture_producer_is_exact52_and_its_complete_7b_predecessor_restores(self):
-        from tools import club_customer_directory_admission as club
+        club = repair.actor_predecessor_fixture_helper(R)
         paths = set(club.SOURCE_EDITS) | set(club.ADDED_SUPPORT) | {club.CONTRACT_PATH, repair.RUNNER_PATH} | set(club.EVOLUTION_SOURCES) | set(club.EVOLUTION_SUPPORT) | set(club.FLOOR_INPUTS)
         expected = set(repair.PROFILE_CONTEXT_INPUTS) | set(repair.REPAIR_LEAF_PATHS) | set(repair.NATIVE_CURRENT_INPUTS) | {repair.DESCRIPTION_LEAF_PATH}
         self.assertEqual(paths, expected); self.assertEqual(len(paths), 52)
@@ -590,3 +591,215 @@ class DescriptionInitializationCompileAdmissionTests(unittest.TestCase):
                 methods.append((node.name, ''.join(lines[start-1:node.end_lineno])))
         self.assertEqual(len(methods), 32)
         self.assertEqual(repair.digest(json.dumps(methods, ensure_ascii=True, separators=(',', ':')).encode()), '4b409b92c48e2ff34c0a51234e15345b28e7796b80f854e4495c7cf0798a0403')
+
+
+ACTOR_TEST_INPUT_HUNKS = [{'before': '            file.write_bytes((R / path).read_bytes())\n        return root, paths\n',
+  'after': '            file.write_bytes(repair.actor_predecessor_fixture_source(\n'
+           '                path, (R / path).read_bytes(), self.raw()))\n'
+           '        return root, paths\n'},
+ {'before': '    def test_club_fixture_producer_is_exact52_and_its_complete_7b_predecessor_restores(self):\n'
+            '        from tools import club_customer_directory_admission as club\n',
+  'after': '    def test_club_fixture_producer_is_exact52_and_its_complete_7b_predecessor_restores(self):\n'
+           '        club = repair.actor_predecessor_fixture_helper(R)\n'}]
+
+class SocialReaderKeyActorCompileAdmissionTests(unittest.TestCase):
+    """Actual current53 precedes exact published42/52, 7b51, c2af49 and 47."""
+
+    def raw(self):
+        return (R / repair.CONTRACT_PATH).read_bytes()
+
+    def fixture(self):
+        life = tempfile.TemporaryDirectory(prefix='actor-current53-')
+        self.addCleanup(life.cleanup)
+        root = Path(life.name)
+        paths = set(repair.PROFILE_CONTEXT_INPUTS) | set(repair.REPAIR_LEAF_PATHS) | set(repair.NATIVE_CURRENT_INPUTS) | {repair.DESCRIPTION_LEAF_PATH, repair.ACTOR_LEAF_PATH}
+        self.assertEqual(len(paths), 53)
+        for path in paths:
+            file = root / path; file.parent.mkdir(parents=True, exist_ok=True)
+            file.write_bytes((R / path).read_bytes())
+        return root, paths
+
+    def test_exact_actor_hunk_changes_only_reader_key_initializer(self):
+        path = repair.ACTOR_LEAF_PATH; source = (R / path).read_bytes()
+        row = repair.ACTOR_LEAF_ROW
+        self.assertEqual(row['before_sha256'], 'f79b53c8f0ab4ecdd4a21c2d23fe6a1c7b1040c50680dd6b6c1093cdcb3f2c5b')
+        self.assertEqual(row['after_sha256'], '0e14cc76c72416cf152f8edbd02383251b2671952f958a18af078e883f4ffc51')
+        self.assertEqual(row['hunks'], [{'before': '        init(_ reader: any DiscoveryReading) {\n',
+                                         'after': '        @MainActor init(_ reader: any DiscoveryReading) {\n'}])
+        old = repair.actor_predecessor_source(path, source)
+        self.assertEqual(repair.digest(old), row['before_sha256'])
+        self.assertEqual(source, old.replace(row['hunks'][0]['before'].encode(), row['hunks'][0]['after'].encode(), 1))
+
+    def test_complete_actor_contract_restores_exact_42_and_every_older_floor(self):
+        value = json.loads(self.raw()); old = repair.actor_predecessor_contract(value)
+        self.assertEqual(repair.digest(repair.encode(old)), '6fa7fd18b5000d3843f4c5809d58cd97f0b40dd0b3b41ad933583aa6250522e4')
+        self.assertEqual(len(value['feature_batch_sources']), 135)
+        self.assertEqual(len(old['feature_batch_sources']), 134)
+        self.assertEqual(len(value['feature_batch_support_sha256']), 521)
+        self.assertNotIn(repair.ACTOR_LEAF_PATH, old['feature_batch_sources'])
+        self.assertEqual(value['node_description_sources'], old['node_description_sources'])
+        for reader, expected in [(repair.description_predecessor_contract, '9c26993734c6ba8d4623165187cb0cfcebc1ff20e3c9209da7a2982099ee2cb6'),
+                                 (repair.native_predecessor_contract, 'd3fedafc9efe917220f4c52cb4c82d742f840a7307546da35e4da130a80d7fdb'),
+                                 (repair.repair_predecessor_contract, 'b72d9b1024daadb5273a4de24c0175d42c04516b1f89c6c53c0f9c40dd7a77b6')]:
+            self.assertEqual(repair.digest(repair.encode(reader(value))), expected)
+
+    def test_complete_actor_source_interfaces_restore_exact_42_bytes(self):
+        for path, expected in repair.ACTOR_PRE_SHA256.items():
+            source = (R / path).read_bytes()
+            self.assertEqual(repair.digest(repair.actor_predecessor_source(path, source)), expected)
+            for mutant in (source + b'\n', source.replace(b'\n', b'\r\n'), bytes([source[0] ^ 1]) + source[1:]):
+                with self.subTest(path=path), self.assertRaises((AssertionError, ValueError)):
+                    repair.actor_predecessor_source(path, mutant)
+
+    def test_review_projection_exact_single_hunk_restores_42_then_native_predecessor(self):
+        path = repair.ACTOR_PROJECTION_PATH; source = (R / path).read_bytes()
+        row = repair.ACTOR_PROJECTION_ROW
+        self.assertEqual(row['before_sha256'], '7e14668c3ab789f3903971a8de30a828c1cac36c6755d67f81e92ef29356c7f1')
+        self.assertEqual(row['after_sha256'], '3980907d0a3d33e40f229c6f856ac78024b18498ea7c3f4dcd28d34862f8b280')
+        self.assertEqual(len(row['hunks']), 1)
+        before = repair.actor_predecessor_source(path, source)
+        self.assertEqual(repair.digest(before), row['before_sha256'])
+        self.assertEqual(source, before.replace(row['hunks'][0]['before'].encode(), row['hunks'][0]['after'].encode(), 1))
+        self.assertEqual(repair.digest(repair.native_predecessor_source(path, source)), 'c0e6a5351bd024bdcbf8d1152bb4e8cb683cc5ff15e370627a14e229a1158727')
+        value = json.loads(self.raw()); old = repair.actor_predecessor_contract(value)
+        self.assertEqual(value['entry_projection_module_sha256'], row['after_sha256'])
+        self.assertEqual(old['entry_projection_module_sha256'], row['before_sha256'])
+
+    def test_review_projection_actual_old_missing_same_stat_and_coherent_repin_rejected(self):
+        path = R / repair.ACTOR_PROJECTION_PATH
+        contract = R / repair.CONTRACT_PATH; runner = R / repair.RUNNER_PATH
+        saved = {p: (p.read_bytes(), p.stat()) for p in (path, contract, runner)}
+        for p, (_, stamp) in saved.items(): self.assertEqual(stamp.st_nlink, 1, str(p))
+        raw = saved[contract][0]; source = saved[path][0]
+        repair.checked_current(raw, R)
+        def restore():
+            for p, (data, stamp) in saved.items():
+                p.write_bytes(data); os.utime(p, ns=(stamp.st_atime_ns, stamp.st_mtime_ns))
+        try:
+            for mutant in (repair.actor_predecessor_source(repair.ACTOR_PROJECTION_PATH, source),
+                           bytes([source[0] ^ 1]) + source[1:]):
+                path.write_bytes(mutant); os.utime(path, ns=(saved[path][1].st_atime_ns, saved[path][1].st_mtime_ns))
+                with self.assertRaises((AssertionError, ValueError)): repair.checked_current(raw, R)
+            restore(); path.unlink()
+            with self.assertRaises((AssertionError, ValueError, OSError)): repair.checked_current(raw, R)
+            restore()
+            mutant = bytes([source[0] ^ 1]) + source[1:]
+            value = json.loads(raw); value['entry_projection_module_sha256'] = repair.digest(mutant)
+            changed = repair.encode(value)
+            path.write_bytes(mutant); contract.write_bytes(changed)
+            runner.write_bytes(saved[runner][0].replace(repair.digest(raw).encode(), repair.digest(changed).encode(), 1))
+            with self.assertRaises((AssertionError, ValueError)): repair.checked_current(changed, R)
+        finally:
+            restore()
+        repair.checked_current(raw, R)
+
+    def test_review_projection_current53_old_or_missing_never_uses_healthy_root(self):
+        root, paths = self.fixture(); self.assertEqual(len(paths), 53); raw = self.raw()
+        file = root / repair.ACTOR_PROJECTION_PATH; source = file.read_bytes(); stamp = file.stat()
+        repair.profile_history_inputs(raw, root, 'history')
+        for mutant in (repair.actor_predecessor_source(repair.ACTOR_PROJECTION_PATH, source),
+                       bytes([source[0] ^ 1]) + source[1:]):
+            file.write_bytes(mutant); os.utime(file, ns=(stamp.st_atime_ns, stamp.st_mtime_ns))
+            with self.assertRaises(ValueError): repair.profile_history_inputs(raw, root, 'history')
+        file.unlink()
+        with self.assertRaises(ValueError): repair.profile_history_inputs(raw, root, 'history')
+
+    def test_actor_hunk_missing_duplicate_and_off_hunk_bytes_fail_closed(self):
+        path = repair.ACTOR_LEAF_PATH; source = (R / path).read_bytes()
+        hunk = repair.ACTOR_LEAF_ROW['hunks'][0]['after'].encode()
+        for mutant in (source.replace(hunk, b'', 1), source + hunk,
+                       source.replace(b'@MainActor init', b'@MainActor  init', 1),
+                       source.replace(b'ObjectIdentifier(reader)', b'ObjectIdentifier( reader)', 1)):
+            with self.assertRaises(AssertionError): repair.actor_predecessor_source(path, mutant)
+
+    def test_old_actor_leaf_and_coherent_contract_runner_repins_never_admit(self):
+        path = R / repair.ACTOR_LEAF_PATH; source = path.read_bytes(); raw = self.raw()
+        runnerpath = R / repair.RUNNER_PATH; runner = runnerpath.read_bytes()
+        repair.checked_current(raw, R)
+        for mutant in (repair.actor_predecessor_source(repair.ACTOR_LEAF_PATH, source),
+                       bytes([source[0] ^ 1]) + source[1:]):
+            value = json.loads(raw)
+            value['feature_batch_sources'][repair.ACTOR_LEAF_PATH]['after_sha256'] = repair.digest(mutant)
+            value['feature_batch_support_sha256'][repair.ACTOR_LEAF_PATH] = repair.digest(mutant)
+            changed = repair.encode(value)
+            replacements = {path: mutant, R / repair.CONTRACT_PATH: changed,
+                            runnerpath: runner.replace(repair.digest(raw).encode(), repair.digest(changed).encode(), 1)}
+            original = Path.read_bytes
+            with patch.object(Path, 'read_bytes', lambda p: replacements[p] if p in replacements else original(p)):
+                with self.assertRaises((AssertionError, ValueError)): repair.checked_current(changed, R)
+
+    def test_current53_all_physical_reads_precede_history_and_missing_leaf_is_not_52(self):
+        root, paths = self.fixture(); raw = self.raw(); original = Path.read_bytes; reads = []
+        def read(path):
+            if path.is_relative_to(root): reads.append(str(path.relative_to(root)))
+            return original(path)
+        with patch.object(Path, 'read_bytes', read): repair._profile_parent_inputs(root)
+        self.assertEqual(set(reads), paths); self.assertEqual(len(reads), 53)
+        (root / repair.ACTOR_LEAF_PATH).unlink()
+        with self.assertRaises(ValueError): repair.profile_history_inputs(raw, root, 'history')
+        for path in paths - {repair.ACTOR_LEAF_PATH}:
+            (root / path).write_bytes(repair.actor_predecessor_fixture_source(path, (R / path).read_bytes(), raw))
+        repair.profile_history_inputs(raw, root, 'history')
+        self.assertEqual({str(p.relative_to(root)) for p in root.rglob('*') if p.is_file()}, paths - {repair.ACTOR_LEAF_PATH})
+
+    def test_warm_current53_rejects_same_stat_crlf_cr_old_missing_symlink_and_extra(self):
+        root, _ = self.fixture(); raw = self.raw()
+        repair.profile_history_inputs(raw, root, 'history')
+        file = root / repair.ACTOR_LEAF_PATH; source = file.read_bytes(); stamp = file.stat()
+        for mutant in (bytes([source[0] ^ 1]) + source[1:], source.replace(b'\n', b'\r\n'),
+                       source.replace(b'\n', b'\r'), repair.actor_predecessor_source(repair.ACTOR_LEAF_PATH, source)):
+            file.write_bytes(mutant); os.utime(file, ns=(stamp.st_atime_ns, stamp.st_mtime_ns))
+            with self.assertRaises(ValueError): repair.profile_history_inputs(raw, root, 'history')
+        file.unlink()
+        with self.assertRaises(ValueError): repair.profile_history_inputs(raw, root, 'history')
+        file.symlink_to(R / repair.ACTOR_LEAF_PATH)
+        with self.assertRaises(ValueError): repair.profile_history_inputs(raw, root, 'history')
+        file.unlink(); file.write_bytes(source); (root / 'unknown-input').write_text('unreviewed')
+        with self.assertRaises(ValueError): repair.profile_history_inputs(raw, root, 'history')
+
+    def test_current53_helper_and_explicit_historical52_helper_are_separate(self):
+        from tools import club_customer_directory_admission as club
+        def paths(helper):
+            return set(helper.SOURCE_EDITS) | set(helper.ADDED_SUPPORT) | {helper.CONTRACT_PATH, repair.RUNNER_PATH} | set(helper.EVOLUTION_SOURCES) | set(helper.EVOLUTION_SUPPORT) | set(helper.FLOOR_INPUTS)
+        current_paths = paths(club); old = repair.actor_predecessor_fixture_helper(R)
+        self.assertEqual(len(current_paths), 53); self.assertEqual(len(paths(old)), 52)
+        self.assertEqual(current_paths - paths(old), {repair.ACTOR_LEAF_PATH})
+        self.assertEqual(repair.digest(repair.actor_predecessor_source(repair.ACTOR_HELPER_PATH, (R / repair.ACTOR_HELPER_PATH).read_bytes())), 'b8c6be27289110f7bf75d01d28fd41d9778b90dd7c32b78cf0ff849aa1916977')
+
+    def test_42_contract_is_historical_only_and_cannot_enter_checked_current(self):
+        raw = self.raw(); value = json.loads(raw)
+        old = repair.encode(repair.actor_predecessor_contract(value))
+        with self.assertRaises((AssertionError, ValueError)): repair.checked_current(old, R)
+        mixed = json.loads(raw); mixed['feature_batch_sources'].pop(repair.ACTOR_LEAF_PATH)
+        with self.assertRaises((AssertionError, ValueError)): repair.actor_predecessor_contract(mixed)
+
+    def test_direct_current_reader_rejects_foreign_rows_even_with_exact_historical_argument(self):
+        raw = self.raw(); value = json.loads(raw)
+        old = repair.actor_predecessor_contract(value)
+        runnerpath = R / repair.RUNNER_PATH; runner = runnerpath.read_bytes()
+        changed_value = json.loads(raw); changed_value['unreviewed_actor_boundary'] = True
+        changed = repair.encode(changed_value)
+        replacements = {R / repair.CONTRACT_PATH: changed,
+                        runnerpath: runner.replace(repair.digest(raw).encode(), repair.digest(changed).encode(), 1)}
+        original = Path.read_bytes
+        with patch.object(Path, 'read_bytes', lambda p: replacements[p] if p in replacements else original(p)):
+            for operation in (lambda: repair.actor_current_inputs(changed_value, R),
+                              lambda: repair.description_current_inputs(old, R),
+                              lambda: repair.actor_predecessor_fixture_helper(R)):
+                with self.assertRaises((AssertionError, ValueError)): operation()
+
+    def test_all_original_40_methods_restore_exactly_with_only_declared_reader_adapter(self):
+        import ast
+        source = (R / 'tools/tests/test_readiness_contract_parse_cache.py').read_text()
+        prefix = source.split('\n\nACTOR_TEST_INPUT_HUNKS = ', 1)[0]
+        for row in reversed(ACTOR_TEST_INPUT_HUNKS):
+            self.assertEqual(prefix.count(row['after']), 1)
+            prefix = prefix.replace(row['after'], row['before'], 1)
+        self.assertEqual(repair.digest(prefix.encode()), '17972c390160fc43ee60ab9aad05446081b9346423a8f77a237c3d38e7839c68')
+        lines = prefix.splitlines(True); methods = []
+        for node in ast.walk(ast.parse(prefix)):
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name.startswith('test_'):
+                start = min([node.lineno] + [d.lineno for d in node.decorator_list])
+                methods.append((node.name, ''.join(lines[start-1:node.end_lineno])))
+        self.assertEqual(len(methods), 40)
+        self.assertEqual(repair.digest(json.dumps(methods, ensure_ascii=True, separators=(',', ':')).encode()), 'f88736ab97604bbe3aeb8d63e91d4434e8114febe2b4d82720d8652e183d44e4')

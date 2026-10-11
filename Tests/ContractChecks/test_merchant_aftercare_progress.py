@@ -19,7 +19,7 @@ class MerchantAftercareProgressContracts(unittest.TestCase):
         rendered = app.index('MerchantAftercareProgressView(progress: progress)', snapshot)
         self.assertLess(snapshot, rendered)
         self.assertIn('Section { rowActions(refund, access: snapshot.access) }', app)
-        self.assertIn('.onDisappear { editor = nil; pendingMutation = nil; model.invalidate() }', app)
+        self.assert_page_disappearance_cleanup(app)
         self.assertIn('.onChange(of: reader.authorizationGeneration)', app)
         self.assertIn('authorization == coordinator.reader.authorizationGeneration', app)
         self.assertIn('return try .init(query: query, payload: Self.unwrap(body))', self.read('Core/MerchantBusinessService.swift'))
@@ -77,6 +77,45 @@ class MerchantAftercareProgressContracts(unittest.TestCase):
                      'testRepeatedRefreshKeepsNewerResultWhenOldResponseArrivesLast',
                      'testAccountChangeOrCancellationCannotDisplayOldProgress']:
             self.assertIn('func ' + case, tests)
+
+    def assert_page_disappearance_cleanup(self, app):
+        # Pin the actual page modifier, not a matching comment or nested sheet.
+        page = app.split('@MainActor struct MerchantBusinessPage: View {')
+        self.assertEqual(len(page), 2)
+        body = page[1].split('    @ViewBuilder private var filters:', 1)
+        self.assertEqual(len(body), 2)
+        self.assertEqual(re.findall(r'(?m)^        \.onDisappear\b[^\n]*$', body[0]), [
+            '        .onDisappear { draftReturn.retire(); editor = nil; pendingMutation = nil; model.invalidate() }'
+        ])
+
+    def test_page_disappearance_cleanup_rejects_removal_reorder_duplicate_and_async_gap(self):
+        app = self.read('App/MerchantBusinessViews.swift')
+        self.assert_page_disappearance_cleanup(app)
+        operations = ['draftReturn.retire()', 'editor = nil', 'pendingMutation = nil', 'model.invalidate()']
+        line = '        .onDisappear { ' + '; '.join(operations) + ' }'
+        self.assertEqual(app.count(line), 1)
+        mutations = []
+        for index in range(len(operations)):
+            mutations.append(('remove_' + str(index), operations[:index] + operations[index + 1:]))
+            mutations.append(('duplicate_' + str(index), operations[:index] + [operations[index]] + operations[index:]))
+        for index in range(len(operations) - 1):
+            reordered = operations.copy()
+            reordered[index:index + 2] = reversed(reordered[index:index + 2])
+            mutations.append(('reorder_' + str(index), reordered))
+            mutations.append(('await_gap_' + str(index), operations[:index + 1] + ['await Task.yield()'] + operations[index + 1:]))
+            mutations.append(('task_gap_' + str(index), operations[:index + 1] + ['Task { ' + '; '.join(operations[index + 1:]) + ' }']))
+        changed_sources = [(name, app.replace(line, '        .onDisappear { ' + '; '.join(changed) + ' }', 1))
+                           for name, changed in mutations]
+        changed_sources += [
+            ('duplicate_handler', app.replace(line, line + '\n' + line, 1)),
+            ('comment_decoy', app.replace(line, '        // ' + line.strip(), 1)),
+        ]
+        for name, changed in changed_sources:
+            with self.subTest(mutation=name):
+                self.assertNotEqual(changed, app)
+                with self.assertRaises(AssertionError):
+                    self.assert_page_disappearance_cleanup(changed)
+
 
 if __name__ == '__main__':
     unittest.main()

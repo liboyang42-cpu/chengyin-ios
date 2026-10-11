@@ -43,4 +43,8 @@ def historical_ui_source(directory, case):
     return path
 
 def historical_ui_sources(directory):
+    if Path(directory).resolve() == (ROOT / 'Tests/AppUITests').resolve():
+        from tools.tests.player_map_history_budget_history import validated_pre_run129_directory
+        with validated_pre_run129_directory(ROOT) as current:
+            return historical_ui_sources(current)
     return [historical_ui_source(directory,Path(name).stem) for name in source_index()['baseline_ui_filenames'] if Path(name).stem not in MOVED_CLASSES]
