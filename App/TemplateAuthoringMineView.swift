@@ -17,6 +17,7 @@ import SwiftUI
     @State private var readMessageKey: String?
     @State private var viewRequest = UUID()
     @State private var rows: [DiscoveryPlayTemplate] = []
+    @State private var rowStates: [Int: TemplateOwnShelfStateProjection] = [:]
     @State private var messageKey: String?
     @State private var review: TemplateOwnShelfReview?
     @State private var busy = false
@@ -50,8 +51,15 @@ import SwiftUI
                     }
                     LabeledContent("templateAuthor.shelf.identity", value: String(row.id))
                     if let text = row.description { Text(verbatim: text) }
-                    Text(LocalizedStringKey(row.status == 1 ? "templateAuthor.published" : row.status == 2 ? "templateAuthor.underReview" : "templateAuthor.unpublished"))
-                    Text(LocalizedStringKey(row.publishStatus == 1 ? "templateAuthor.shelf.inLibrary" : "templateAuthor.shelf.outLibrary"))
+                    let state = rowStates[row.id] ?? .unknown
+                    LabeledContent("templateShelfState.personal.title") { Text(LocalizedStringKey(state.personal.rawValue)) }
+                        .accessibilityIdentifier("templateShelfState.personal.\(row.id)")
+                    LabeledContent("templateShelfState.market.title") { Text(LocalizedStringKey(state.market.rawValue)) }
+                        .accessibilityIdentifier("templateShelfState.market.\(row.id)")
+                    if let reason = state.marketReason {
+                        LabeledContent("templateShelfState.market.feedback") { Text(verbatim: reason).textSelection(.enabled) }
+                            .accessibilityIdentifier("templateShelfState.feedback.\(row.id)")
+                    }
                     Text("templateAuthor.existingEditUnavailable").font(.caption).foregroundStyle(.secondary)
                     Button(LocalizedStringKey(row.publishStatus == 1 ? "templateAuthor.shelf.removeLibrary" : "templateAuthor.shelf.addLibrary")) {
                         prepare(row.id, .libraryStatus)
@@ -82,8 +90,8 @@ import SwiftUI
             .onChange(of: sessionRevision) { _, _ in selectedCreatorConsent = nil }
             .onChange(of: sessionRevision) { _, _ in selectedConfiguration = nil }
             .onChange(of: sessionRevision) { _, _ in selectedMember = nil }
-            .task(id: sessionRevision) { rows = []; review = nil; await refresh() }
-            .onDisappear { viewRequest = UUID(); coordinator.shelfReader.leave(); coordinator.leaveShelfScreen(); rows = []; review = nil; busy = false }
+            .task(id: sessionRevision) { rows = []; review = nil; rowStates = [:]; await refresh() }
+            .onDisappear { viewRequest = UUID(); coordinator.shelfReader.leave(); coordinator.leaveShelfScreen(); rows = []; review = nil; busy = false; rowStates = [:] }
             .sheet(item: $review, onDismiss: { coordinator.cancelShelfReview() }) { value in
                 NavigationStack {
                     Form {
@@ -133,6 +141,7 @@ import SwiftUI
     private func sync() {
         coordinator.synchronizeSession(); coordinator.shelfReader.synchronizeSession()
         rows = coordinator.shelfReader.rows; hasMore = coordinator.shelfReader.hasMore
+        rowStates = coordinator.shelfReader.rowStates
         readSnapshot = coordinator.shelfReader.isShowingRefreshSnapshot
         readMessageKey = coordinator.shelfReader.messageKey; messageKey = coordinator.shelfMessageKey; locked = coordinator.shelfLocked
     }
@@ -150,12 +159,13 @@ import SwiftUI
         let stamp = UUID(); viewRequest = stamp
         defer {
             if stamp == viewRequest, Task.isCancelled {
-                rows = []; hasMore = false; readSnapshot = false; busy = false
+                rows = []; hasMore = false; readSnapshot = false; busy = false; rowStates = [:]
             }
         }
         busy = true; review = nil; hasMore = false; readMessageKey = nil; messageKey = nil
         coordinator.synchronizeSession(); coordinator.cancelShelfReview()
         rows = coordinator.shelfReader.refreshSnapshot(keyword: keyword)
+        rowStates = rows.isEmpty ? [:] : coordinator.shelfReader.rowStates
         readSnapshot = !rows.isEmpty
         await coordinator.shelfReader.refresh(keyword: keyword)
         guard stamp == viewRequest, !Task.isCancelled else { return }

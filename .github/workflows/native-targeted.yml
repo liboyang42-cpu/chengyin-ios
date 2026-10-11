@@ -32,7 +32,7 @@ jobs:
         run: |
           # Corrections can move the reviewed base beyond checkout depth two.
           # Fetch only that exact public commit; do not widen checkout or scope.
-          GIT_TERMINAL_PROMPT=0 git -c credential.helper= fetch --no-tags --depth=1 https://github.com/liboyang42-cpu/chengyin-ios.git 656e00f192ef37b05a02c084d089995d7ee8acca
+          GIT_TERMINAL_PROMPT=0 git -c credential.helper= fetch --no-tags --depth=1 https://github.com/liboyang42-cpu/chengyin-ios.git 45b728c7d48cf7969ac864e5693322d45e79394a
           python3 -B -m unittest discover -s tools/tests -p test_targeted_native.py -v
           python3 -B tools/run_targeted_native.py validate
       - name: Run exact selected native methods on one simulator

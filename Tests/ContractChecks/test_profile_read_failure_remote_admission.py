@@ -29,7 +29,7 @@ READINESS_PATH = 'tools/run138_editor_readiness_contract.json'
 SCANNER_PATH = 'tools/tests/test_gitleaks_configuration.py'
 
 # Combined admission authenticates current bytes before either historical layer.
-COMBINED_ADMISSION_FINGERPRINT = '1b2623c89d525aa5de0b34f09d280c57aa63cac7381f59a6709dc81d56337a37'
+COMBINED_ADMISSION_FINGERPRINT = 'd42238ddbf45e0302293fb26de0dc5a384121e6e0ce0428843d3f435419c7617'
 PROFILE_R2_CONTRACT_SHA256 = '3538a4526a2f42c07a8837ddb2cd12e4598ecf0d97459b36e4fcd61fb7e07efb'
 PROFILE_R2_ADMISSION_SHA256 = '81041b1c2ba2e328284555841f3b14b0e3630ed78f1190f701a86016ab558d84'
 COMBINED_ADMISSION_PATH = 'Tests/ContractChecks/test_profile_read_failure_remote_admission.py'
@@ -161,6 +161,156 @@ def _crop_static_contract(contract, root=ROOT):
     return contract
 
 
+# Finite creator-state layer over the exact reviewed fixed45 R3 source contract.
+CREATOR_STATE_PRECONTRACT_SHA256 = '519006c2f95083423c186d289b8b2a1b6ef9c6327b5fd461718548b8e0fc40ce'
+CREATOR_STATE_PREADMISSION_SHA256 = 'd1d7ad397a76f668f47bcc4243c23a397d560e90220b01bd99dd91a85bfe3163'
+CREATOR_STATE_RAW_SHA256 = {'App/TemplateAuthoringMineView.swift': '070653140719b1dd37b8cf5b811c0a6cfef9c66eff13fa06d9a78b6634a4c38f',
+ 'Core/TemplateAuthoringShelf.swift': 'a9261782a98016cf474bbd9a2b2035fd6fbba6bf5ac9bb5682f85c95f4bbb13a',
+ 'Resources/Localizable.xcstrings': '8f552d5a3f34a86c19a370c411a08669dfb4440a15f3b3037cd635595b4ff995',
+ 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift': '7311d093a69f2291048f9f08110ef1425cd884ede1781abb28c037c1b50a2673',
+ 'Tests/ContractChecks/test_template_shelf_read_bridge.py': 'c6739456a84e353060b42225dae9b8c2a472d8f080bb831ccd7bb74c39afaec8',
+ 'Tests/ContractChecks/test_template_shelf_state_projection.py': '92a11a1874c3c442ff7bf76d62ae4e8331e0d7d589f6d55d919e9a4130180dc4',
+ 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift': '760c57eef41df4f73d89ea5143fd629c68d82ffe1c290a203006371c684e8ee6',
+ 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift': 'b2b199d73b7045d4c3de9ce7bc0ea41b10bfc233c6b9c180438fd415d5c99b87'}
+CREATOR_STATE_CATALOG = 'Resources/Localizable.xcstrings'
+CREATOR_STATE_OLD_CATALOG_SHA256 = '6e9a854e14c29ad90a8b4ed88735e5641d15efc53ca810fb49dc366d3509910a'
+CREATOR_STATE_BLOCK_SHA256 = 'a45aae9b4db8fa346be67c9cf4f6b6ca4d8ffe54748cc466558d0031f7a56f8d'
+
+
+# Exact compiler-only merchant leaf layer over the frozen creator13 contract.
+MERCHANT_BUSINESS_COMPILE_PATH = 'App/MerchantBusinessEditor.swift'
+MERCHANT_BUSINESS_COMPILE_HUNK = {'after': '            .onAppear { initializeEditorStateOnAppear() }\n'
+          '        }\n'
+          '    }\n'
+          '    private func initializeEditorStateOnAppear() {\n'
+          '        if case .aftercare(let row) = context.kind {\n'
+          '            let allowedDecisions: [String]? = try? '
+          'row.fields.mbStrings("allowedDecisions")\n'
+          '            if let first = allowedDecisions?.first,\n'
+          '               let value = MerchantAftercareDecision(rawValue: first) { decision = '
+          'value }\n'
+          '        }\n'
+          '        if case .role(let row) = context.kind { role = row.fields.mbText("roleCode") ?? '
+          '"" }\n'
+          '        initializeReviewContent()\n'
+          '    }\n'
+          '    private func initializeReviewContent() {\n',
+ 'before': '            .onAppear {\n'
+           '                if case .aftercare(let row) = context.kind, let first = try? '
+           'row.fields.mbStrings("allowedDecisions").first, let value = '
+           'MerchantAftercareDecision(rawValue: first) { decision = value }\n'
+           '                if case .role(let row) = context.kind { role = '
+           'row.fields.mbText("roleCode") ?? "" }\n'
+           '                initializeReviewContent()\n'
+           '            }\n'
+           '        }\n'
+           '    }\n'
+           '    private func initializeReviewContent() {\n'}
+MERCHANT_BUSINESS_PRE_SOURCE_SHA256 = '37e4fb670565770a72f1c1ad0e1c5b2ac4affc35669514597c80790d4e8f394d'
+MERCHANT_BUSINESS_POST_SOURCE_SHA256 = '13ff93a1d1608d0fc10cbbb1e2aa31b6f7b5496ea37553e052d147ab6611aff0'
+MERCHANT_BUSINESS_PRE_CONTRACT_SHA256 = '427074d1dc2ffa0c530cec669a0d490934fa266de7067b28de2d4d5fc0506e4a'
+MERCHANT_BUSINESS_PRE_ADMISSION_SHA256 = '96232fe4bb8fa3fa376d1542b662508112521e253ae4f03f6ff33be5927a5e3c'
+MERCHANT_BUSINESS_CURRENT_RAW_SHA256 = {'App/MerchantBusinessEditor.swift': '13ff93a1d1608d0fc10cbbb1e2aa31b6f7b5496ea37553e052d147ab6611aff0',
+ 'App/TemplateAuthoringMineView.swift': '070653140719b1dd37b8cf5b811c0a6cfef9c66eff13fa06d9a78b6634a4c38f',
+ 'Core/TemplateAuthoringShelf.swift': 'a9261782a98016cf474bbd9a2b2035fd6fbba6bf5ac9bb5682f85c95f4bbb13a',
+ 'Resources/Localizable.xcstrings': '8f552d5a3f34a86c19a370c411a08669dfb4440a15f3b3037cd635595b4ff995',
+ 'Tests/ContractChecks/test_merchant_review_draft_return.py': 'e5b7c6ce7d66037ed49dba6b32b59fcf213c57e24b6f8694285e7d612575d777',
+ 'Tests/ContractChecks/test_template_shelf_state_projection.py': '92a11a1874c3c442ff7bf76d62ae4e8331e0d7d589f6d55d919e9a4130180dc4',
+ 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift': 'b2b199d73b7045d4c3de9ce7bc0ea41b10bfc233c6b9c180438fd415d5c99b87',
+ 'tools/tests/creator_shelf_refresh_history.py': '55632e1d0235628b55478a6b50a5e5d369bf2c54d73f4d09ec33becf84b6d7e5',
+ 'tools/tests/creator_shelf_state_history.py': '63d498f92184bfdf2349849c683347adc5766e73878cc1f5e86790b68799d2e3',
+ 'tools/tests/test_creator_pending_synthetic_storage_history.py': '8d4b8e0bf04a7ce28622b416956af3628348bf3f86d5af5630fe04bb07e7e739',
+ 'tools/tests/test_creator_shelf_refresh_history.py': '26b98d87f9c465dd2e6cefbc31734e5925c13a86003a9e695a09f4b83ad36061',
+ 'tools/tests/test_creator_shelf_state_history.py': '28e14028204276d0277afb29064d0f2ad65bcb05e57aadf226b63d61e606c924'}
+
+
+MERCHANT_BUSINESS_READER_PATH = 'Tests/ContractChecks/test_merchant_review_draft_return.py'
+MERCHANT_BUSINESS_READER_PRE_SHA256 = 'e9f31299585059f9ce7f6e23002bd815471f7ba85e83707fe9fd571934dd1968'
+MERCHANT_BUSINESS_READER_INVERSE_HUNKS = [('            lines=compiler_historical_read(path).decode().splitlines(keepends=True)\n',
+  '            lines=read(path).decode().splitlines(keepends=True)\n'),
+ ('\n'
+  '# Compiler repair affects only this old fixed-offset historical input.\n'
+  '# All other current-source tests continue to use read() above.\n'
+  'def compiler_historical_read(path):\n'
+  '    from Tests.ContractChecks import test_profile_read_failure_remote_admission as admission\n'
+  "    data=(ROOT/'tools/run138_editor_readiness_contract.json').read_bytes()\n"
+  '    admission._combined_profile_contract(data,ROOT)\n'
+  '    value=(ROOT/path).read_bytes()\n'
+  '    if path==admission.MERCHANT_BUSINESS_COMPILE_PATH:\n'
+  '        hunk=admission.MERCHANT_BUSINESS_COMPILE_HUNK\n'
+  "        after=hunk['after'].encode();before=hunk['before'].encode()\n"
+  "        if value.count(after)!=1:raise ValueError('Missing unique merchant compiler span')\n"
+  '        value=value.replace(after,before,1)\n'
+  '        if hashlib.sha256(value).hexdigest()!=admission.MERCHANT_BUSINESS_PRE_SOURCE_SHA256:\n'
+  "            raise ValueError('Unknown complete merchant compiler predecessor')\n"
+  '    return value\n'
+  '\n',
+  '')]
+
+
+def _merchant_business_compile_contract(contract, root=ROOT):
+    root=Path(root)
+    encoded=(json.dumps(contract,indent=2,ensure_ascii=False)+'\n').encode()
+    if encoded!=(root/READINESS_PATH).read_bytes():raise ValueError('Unknown current merchant compile contract bytes')
+    runner=(root/'tools/run138_editor_readiness.py').read_bytes()
+    pins=re.findall(rb"^CONTRACT_SHA256 = '([0-9a-f]{64})'$",runner,re.MULTILINE)
+    if len(pins)!=1 or pins[0].decode()!=digest(encoded):raise ValueError('Changed merchant compile current pin')
+    if digest(runner.replace(pins[0],ORIGINAL_READINESS_SHA256.encode(),1))!='cafa9858b24a18f3827ce5678701b1e32cf533e66d51dc43788b15a74d60a79f':raise ValueError('Changed merchant compile runner')
+    module=(root/COMBINED_ADMISSION_PATH).read_bytes()
+    slot=rb"^COMBINED_ADMISSION_FINGERPRINT = '[0-9a-f]{64}'$"
+    normalized=re.sub(slot,b"COMBINED_ADMISSION_FINGERPRINT = '<SELF>'",module,flags=re.MULTILINE)
+    support=contract['feature_batch_support_sha256']
+    if digest(normalized)!=COMBINED_ADMISSION_FINGERPRINT or support.get(COMBINED_ADMISSION_PATH)!=digest(module):raise ValueError('Changed merchant compile admission')
+    for name,expected in MERCHANT_BUSINESS_CURRENT_RAW_SHA256.items():
+        if digest((root/name).read_bytes())!=expected:raise ValueError('Changed or mixed merchant compile group: '+name)
+    reader=(root/MERCHANT_BUSINESS_READER_PATH).read_bytes()
+    for after,before in MERCHANT_BUSINESS_READER_INVERSE_HUNKS:
+        if reader.count(after.encode())!=1:raise ValueError('Unknown merchant historical reader adaptation')
+        reader=reader.replace(after.encode(),before.encode(),1)
+    if digest(reader)!=MERCHANT_BUSINESS_READER_PRE_SHA256:raise ValueError('Complete old merchant reader not restored')
+    if support.get(MERCHANT_BUSINESS_READER_PATH)!=MERCHANT_BUSINESS_CURRENT_RAW_SHA256[MERCHANT_BUSINESS_READER_PATH]:raise ValueError('Changed merchant reader support')
+    support[MERCHANT_BUSINESS_READER_PATH]=MERCHANT_BUSINESS_READER_PRE_SHA256
+    row=contract['feature_batch_sources'][MERCHANT_BUSINESS_COMPILE_PATH]
+    if row['after_sha256']!=MERCHANT_BUSINESS_POST_SOURCE_SHA256 or row['hunks'][-1]!=MERCHANT_BUSINESS_COMPILE_HUNK:raise ValueError('Unknown merchant compiler inverse')
+    value=(root/MERCHANT_BUSINESS_COMPILE_PATH).read_bytes()
+    after=MERCHANT_BUSINESS_COMPILE_HUNK['after'].encode();before=MERCHANT_BUSINESS_COMPILE_HUNK['before'].encode()
+    if value.count(after)!=1 or digest(value.replace(after,before,1))!=MERCHANT_BUSINESS_PRE_SOURCE_SHA256:raise ValueError('Merchant compiler predecessor not restored')
+    row['hunks'].pop();row['after_sha256']=MERCHANT_BUSINESS_PRE_SOURCE_SHA256
+    support[COMBINED_ADMISSION_PATH]=MERCHANT_BUSINESS_PRE_ADMISSION_SHA256
+    restored=(json.dumps(contract,indent=2,ensure_ascii=False)+'\n').encode()
+    if digest(restored)!=MERCHANT_BUSINESS_PRE_CONTRACT_SHA256:raise ValueError('Complete creator13 floor not restored')
+    return contract
+
+
+def _creator_state_contract(contract, root=ROOT):
+    # The current full contract, runner and admission module are authenticated by
+    # the caller before entering this historical-only layer. Never scan this view.
+    root = Path(root)
+    for name, expected in CREATOR_STATE_RAW_SHA256.items():
+        if digest((root/name).read_bytes()) != expected:
+            raise ValueError('Changed or mixed creator state input: ' + name)
+    support = contract['feature_batch_support_sha256']
+    if support.get(CREATOR_STATE_CATALOG) != CREATOR_STATE_RAW_SHA256[CREATOR_STATE_CATALOG]:
+        raise ValueError('Unknown creator catalog support binding')
+    value = (root/CREATOR_STATE_CATALOG).read_bytes()
+    first = b'    "templateShelfState.market.feedback": {'
+    last = b'    "templateStory.derivedSummary": {'
+    if value.count(first) != 1 or value.count(last) != 1:
+        raise ValueError('Missing or repeated creator catalog insertion boundary')
+    start = value.index(first); end = value.index(last, start)
+    block = value[start:end]
+    if len(block) != 5730 or digest(block) != CREATOR_STATE_BLOCK_SHA256:
+        raise ValueError('Unreviewed creator catalog insertion')
+    if digest(value[:start]+value[end:]) != CREATOR_STATE_OLD_CATALOG_SHA256:
+        raise ValueError('Creator catalog predecessor not restored exactly')
+    support[CREATOR_STATE_CATALOG] = CREATOR_STATE_OLD_CATALOG_SHA256
+    support[COMBINED_ADMISSION_PATH] = CREATOR_STATE_PREADMISSION_SHA256
+    restored = (json.dumps(contract, indent=2, ensure_ascii=False)+'\n').encode()
+    if digest(restored) != CREATOR_STATE_PRECONTRACT_SHA256:
+        raise ValueError('Complete reviewed fixed45 R3 contract not restored')
+    return contract
+
+
 def _combined_profile_contract(data, root=ROOT):
     try:
         return _combined_profile_contract_checked(data, root)
@@ -196,6 +346,8 @@ def _combined_profile_contract_checked(data, root=ROOT):
             raise ValueError('Changed combined raw input: ' + name)
         if name in support and support[name] != expected:
             raise ValueError('Changed combined support binding: ' + name)
+    contract = _merchant_business_compile_contract(contract, root)
+    contract = _creator_state_contract(contract, root)
     contract = _crop_static_contract(contract, root)
     contract = _static_observability_contract(contract, root)
     contract = _compile_repair_combined_contract(contract, root)
@@ -492,7 +644,7 @@ class ProfileMerchantCombinedAdmission(unittest.TestCase):
 class CompileRepairCombinedAdmission(unittest.TestCase):
     def test_exact_new_layer_preserves_all_three_complete_contract_floors(self):
         data=(ROOT/READINESS_PATH).read_bytes()
-        restored=_compile_repair_combined_contract(_static_observability_contract(_crop_static_contract(json.loads(data))))
+        restored=_compile_repair_combined_contract(_static_observability_contract(_crop_static_contract(_creator_state_contract(_merchant_business_compile_contract(json.loads(data))))))
         encoded=(json.dumps(restored,indent=2,ensure_ascii=False)+'\n').encode()
         self.assertEqual(digest(encoded),COMBINED_PRECOMPILE_SHA256)
         self.assertEqual(digest(_combined_profile_contract(data)),PROFILE_R2_CONTRACT_SHA256)
@@ -510,7 +662,7 @@ class CompileRepairCombinedAdmission(unittest.TestCase):
         data=(ROOT/READINESS_PATH).read_bytes(); current=json.loads(data)
         # Wrong order: starting from the already projected combined/profile/original
         # contract cannot pass current admission even when its runner pin changes.
-        combined=_compile_repair_combined_contract(_static_observability_contract(_crop_static_contract(json.loads(data))))
+        combined=_compile_repair_combined_contract(_static_observability_contract(_crop_static_contract(_creator_state_contract(_merchant_business_compile_contract(json.loads(data))))))
         for value in [combined,_combined_profile_contract(data),historical_readiness_contract(data)]:
             probe.reject_repinned(value)
         for mode in ['missing-row','missing-support','old-support','old-module-support','extra-hunk','changed-hunk','other-field']:
@@ -534,7 +686,7 @@ class StaticObservabilityCombinedAdmission(unittest.TestCase):
 
     def test_exact_static_layer_restores_complete_published_r5_and_all_old_floors(self):
         data = self.current()
-        restored = _static_observability_contract(_crop_static_contract(json.loads(data)))
+        restored = _static_observability_contract(_crop_static_contract(_creator_state_contract(_merchant_business_compile_contract(json.loads(data)))))
         encoded = (json.dumps(restored, indent=2, ensure_ascii=False)+'\n').encode()
         self.assertEqual(digest(encoded), STATIC_OBSERVABILITY_PRECONTRACT_SHA256)
         self.assertEqual(restored['feature_batch_support_sha256'][COMBINED_ADMISSION_PATH],
@@ -580,7 +732,7 @@ class StaticObservabilityCombinedAdmission(unittest.TestCase):
             elif mode == 'old-self': changed['feature_batch_support_sha256'][COMBINED_ADMISSION_PATH] = STATIC_OBSERVABILITY_PREADMISSION_SHA256
             else: del changed['feature_batch_support_sha256'][COMBINED_ADMISSION_PATH]
             with self.subTest(mode=mode): probe.reject_repinned(changed)
-        probe.reject_repinned(_static_observability_contract(_crop_static_contract(json.loads(data))))
+        probe.reject_repinned(_static_observability_contract(_crop_static_contract(_creator_state_contract(_merchant_business_compile_contract(json.loads(data))))))
 
     def test_repinned_new_static_raw_hashes_do_not_authorize_changed_sources(self):
         data = self.current(); probe = ProfileMerchantCombinedAdmission()
@@ -598,15 +750,15 @@ class StaticObservabilityCombinedAdmission(unittest.TestCase):
         for name, row in STATIC_OBSERVABILITY_SUPPORT.items():
             forged = dict(row, before_sha256='0'*64)
             with self.subTest(path=name), patch.dict(STATIC_OBSERVABILITY_SUPPORT, {name:forged}), self.assertRaisesRegex(ValueError, 'Complete published R5'):
-                _static_observability_contract(_crop_static_contract(json.loads(data)))
+                _static_observability_contract(_crop_static_contract(_creator_state_contract(_merchant_business_compile_contract(json.loads(data)))))
         with patch.dict(globals(), {'STATIC_OBSERVABILITY_PREADMISSION_SHA256':'0'*64}), self.assertRaisesRegex(ValueError, 'Complete published R5'):
-            _static_observability_contract(_crop_static_contract(json.loads(data)))
+            _static_observability_contract(_crop_static_contract(_creator_state_contract(_merchant_business_compile_contract(json.loads(data)))))
 
 
 class CropStaticCombinedAdmission(unittest.TestCase):
     def test_exact_crop_layer_restores_frozen_static_and_all_old_floors(self):
         data = (ROOT/READINESS_PATH).read_bytes()
-        restored = _crop_static_contract(json.loads(data))
+        restored = _crop_static_contract(_creator_state_contract(_merchant_business_compile_contract(json.loads(data))))
         encoded = (json.dumps(restored, indent=2, ensure_ascii=False)+'\n').encode()
         self.assertEqual(digest(encoded), CROP_PRESTATIC_CONTRACT_SHA256)
         self.assertNotIn(CROP_COMPILE_REPAIR_PATH, restored['feature_batch_sources'])
@@ -639,7 +791,7 @@ class CropStaticCombinedAdmission(unittest.TestCase):
             elif mode == 'unknown-hunk': changed['feature_batch_sources'][CROP_COMPILE_REPAIR_PATH]['hunks'][0]['before'] += ' '
             else: changed['unreviewed_crop_field'] = True
             with self.subTest(mode=mode): probe.reject_repinned(changed)
-        probe.reject_repinned(_crop_static_contract(json.loads(data)))
+        probe.reject_repinned(_crop_static_contract(_creator_state_contract(_merchant_business_compile_contract(json.loads(data)))))
 
     def test_crop_raw_drift_and_rehashed_mutations_remain_rejected(self):
         data = (ROOT/READINESS_PATH).read_bytes(); probe = ProfileMerchantCombinedAdmission()
@@ -661,7 +813,127 @@ class CropStaticCombinedAdmission(unittest.TestCase):
     def test_crop_self_preimage_is_bound_by_complete_static_contract(self):
         data = (ROOT/READINESS_PATH).read_bytes()
         with patch.dict(globals(), {'CROP_PRESTATIC_ADMISSION_SHA256':'0'*64}), self.assertRaisesRegex(ValueError, 'Complete frozen static'):
-            _crop_static_contract(json.loads(data))
+            _crop_static_contract(_creator_state_contract(_merchant_business_compile_contract(json.loads(data))))
+
+
+class CreatorStateCombinedAdmission(unittest.TestCase):
+    def test_exact_creator_layer_preserves_every_preceding_complete_floor(self):
+        data=(ROOT/READINESS_PATH).read_bytes()
+        restored=_creator_state_contract(_merchant_business_compile_contract(json.loads(data)))
+        encoded=(json.dumps(restored,indent=2,ensure_ascii=False)+'\n').encode()
+        self.assertEqual(digest(encoded),CREATOR_STATE_PRECONTRACT_SHA256)
+        self.assertEqual(restored['feature_batch_support_sha256'][COMBINED_ADMISSION_PATH],CREATOR_STATE_PREADMISSION_SHA256)
+        self.assertEqual(restored['feature_batch_support_sha256'][CREATOR_STATE_CATALOG],CREATOR_STATE_OLD_CATALOG_SHA256)
+        static=_crop_static_contract(restored)
+        self.assertEqual(digest((json.dumps(static,indent=2,ensure_ascii=False)+'\n').encode()),CROP_PRESTATIC_CONTRACT_SHA256)
+        published=_static_observability_contract(static)
+        self.assertEqual(digest((json.dumps(published,indent=2,ensure_ascii=False)+'\n').encode()),STATIC_OBSERVABILITY_PRECONTRACT_SHA256)
+        combined=_compile_repair_combined_contract(published)
+        self.assertEqual(digest((json.dumps(combined,indent=2,ensure_ascii=False)+'\n').encode()),COMBINED_PRECOMPILE_SHA256)
+        self.assertEqual(digest(_combined_profile_contract(data)),PROFILE_R2_CONTRACT_SHA256)
+        self.assertEqual(digest(historical_readiness_contract(data)),ORIGINAL_READINESS_SHA256)
+
+    def test_each_creator_raw_input_drift_or_missing_rejected(self):
+        data=(ROOT/READINESS_PATH).read_bytes();probe=ProfileMerchantCombinedAdmission()
+        for name in CREATOR_STATE_RAW_SHA256:
+            path=ROOT/name;value=path.read_bytes()
+            for mutant in [value+b'\n',value[:-1],b'\xef\xbb\xbf'+value,
+                           value.replace(b'\n',b'\r\n'),bytes([value[0]^1])+value[1:]]:
+                with self.subTest(path=name),probe.substituted({str(path):mutant}),self.assertRaises(ValueError):
+                    _combined_profile_contract(data)
+            original=Path.read_bytes
+            def missing(p):
+                if p==path:raise FileNotFoundError(name)
+                return original(p)
+            with patch.object(Path,'read_bytes',missing),self.assertRaises(ValueError):_combined_profile_contract(data)
+
+    def test_repinned_mixed_creator_bindings_self_and_unknown_changes_rejected(self):
+        data=(ROOT/READINESS_PATH).read_bytes();probe=ProfileMerchantCombinedAdmission()
+        for mode in ['old-catalog','missing-catalog','forged-catalog','old-self','unknown-feature','unknown-top']:
+            changed=json.loads(data);support=changed['feature_batch_support_sha256']
+            if mode=='old-catalog':support[CREATOR_STATE_CATALOG]=CREATOR_STATE_OLD_CATALOG_SHA256
+            elif mode=='missing-catalog':del support[CREATOR_STATE_CATALOG]
+            elif mode=='forged-catalog':support[CREATOR_STATE_CATALOG]='0'*64
+            elif mode=='old-self':support[COMBINED_ADMISSION_PATH]=CREATOR_STATE_PREADMISSION_SHA256
+            elif mode=='unknown-feature':support['tools/unreviewed_creator.py']='0'*64
+            else:changed['unreviewed_creator']=True
+            with self.subTest(mode=mode):probe.reject_repinned(changed)
+        probe.reject_repinned(_creator_state_contract(_merchant_business_compile_contract(json.loads(data))))
+        for name in CREATOR_STATE_RAW_SHA256:
+            path=ROOT/name;mutant=path.read_bytes()+b'\n';changed=json.loads(data)
+            if name in changed['feature_batch_support_sha256']:
+                changed['feature_batch_support_sha256'][name]=digest(mutant)
+            else:changed['feature_batch_support_sha256'][name]=digest(mutant)
+            encoded=(json.dumps(changed,indent=2,ensure_ascii=False)+'\n').encode()
+            runnerpath=ROOT/'tools/run138_editor_readiness.py'
+            runner=runnerpath.read_bytes().replace(digest(data).encode(),digest(encoded).encode(),1)
+            with probe.substituted({str(path):mutant,str(ROOT/READINESS_PATH):encoded,str(runnerpath):runner}),self.assertRaises(ValueError):
+                _combined_profile_contract(encoded)
+
+    def test_catalog_inverse_bounds_and_whole_floor_cannot_be_relaxed(self):
+        data=(ROOT/READINESS_PATH).read_bytes()
+        for name in ['CREATOR_STATE_BLOCK_SHA256','CREATOR_STATE_OLD_CATALOG_SHA256','CREATOR_STATE_PREADMISSION_SHA256']:
+            with patch.dict(globals(),{name:'0'*64}),self.assertRaises(ValueError):
+                _creator_state_contract(_merchant_business_compile_contract(json.loads(data)))
+
+    def test_raw_creator_positive_contract_is_independent_of_all_history(self):
+        directory=str(ROOT/'Tests/ContractChecks');sys.path.insert(0,directory)
+        try:
+            import test_template_shelf_state_projection as state_gate
+            state_gate.ROOT=ROOT
+            with patch.dict(globals(),{'_creator_state_contract':lambda *a,**k:(_ for _ in ()).throw(AssertionError('inverse forbidden')),
+                                       '_combined_profile_contract':lambda *a,**k:(_ for _ in ()).throw(AssertionError('inverse forbidden'))}):
+                result=unittest.TestResult()
+                unittest.defaultTestLoader.loadTestsFromTestCase(state_gate.TemplateShelfStateProjectionContracts).run(result)
+            self.assertEqual(result.testsRun,4);self.assertEqual(result.failures,[]);self.assertEqual(result.errors,[]);self.assertEqual(result.skipped,[])
+        finally:sys.path.pop(0)
+
+
+class MerchantBusinessCompileAdmission(unittest.TestCase):
+    def test_exact_current_group_and_complete_creator_floor(self):
+        from tools import run138_current_source_projection as projection
+        projection.validate_feature_batch_sources(ROOT)
+        data=(ROOT/READINESS_PATH).read_bytes()
+        restored=_merchant_business_compile_contract(json.loads(data))
+        self.assertEqual(digest((json.dumps(restored,indent=2,ensure_ascii=False)+'\n').encode()),MERCHANT_BUSINESS_PRE_CONTRACT_SHA256)
+        self.assertEqual(digest(historical_readiness_contract(data)),ORIGINAL_READINESS_SHA256)
+        self.assertEqual(len(MERCHANT_BUSINESS_CURRENT_RAW_SHA256),12)
+
+    def test_every_current_input_drift_and_absence_rejected(self):
+        probe=ProfileMerchantCombinedAdmission();data=(ROOT/READINESS_PATH).read_bytes()
+        names=[*MERCHANT_BUSINESS_CURRENT_RAW_SHA256,COMBINED_ADMISSION_PATH,READINESS_PATH,'tools/run138_editor_readiness.py']
+        for name in names:
+            path=ROOT/name;value=path.read_bytes()
+            with self.subTest(path=name),probe.substituted({str(path):value+b'\n'}),self.assertRaises(ValueError):
+                _combined_profile_contract((ROOT/READINESS_PATH).read_bytes())
+            original=Path.read_bytes
+            def missing(p):
+                if p==path:raise FileNotFoundError(name)
+                return original(p)
+            with self.subTest(missing=name),patch.object(Path,'read_bytes',missing),self.assertRaises(ValueError):
+                _combined_profile_contract(data)
+
+    def test_repinned_old_new_mixed_rows_and_unknown_inverse_rejected(self):
+        data=(ROOT/READINESS_PATH).read_bytes();probe=ProfileMerchantCombinedAdmission()
+        for mode in ['old-source','missing-hunk','duplicate-hunk','forged-hunk','old-self','unknown-top']:
+            changed=json.loads(data);row=changed['feature_batch_sources'][MERCHANT_BUSINESS_COMPILE_PATH]
+            if mode=='old-source':row['after_sha256']=MERCHANT_BUSINESS_PRE_SOURCE_SHA256
+            elif mode=='missing-hunk':row['hunks'].pop()
+            elif mode=='duplicate-hunk':row['hunks'].append(MERCHANT_BUSINESS_COMPILE_HUNK)
+            elif mode=='forged-hunk':row['hunks'][-1]['before']+='x'
+            elif mode=='old-self':changed['feature_batch_support_sha256'][COMBINED_ADMISSION_PATH]=MERCHANT_BUSINESS_PRE_ADMISSION_SHA256
+            else:changed['unknown_compile']=True
+            with self.subTest(mode=mode):probe.reject_repinned(changed)
+        probe.reject_repinned(_merchant_business_compile_contract(json.loads(data)))
+
+    def test_compile_layer_constants_cannot_relax_preimage_or_group(self):
+        data=(ROOT/READINESS_PATH).read_bytes()
+        for name in ['MERCHANT_BUSINESS_PRE_SOURCE_SHA256','MERCHANT_BUSINESS_POST_SOURCE_SHA256','MERCHANT_BUSINESS_PRE_CONTRACT_SHA256','MERCHANT_BUSINESS_PRE_ADMISSION_SHA256']:
+            with self.subTest(name=name),patch.dict(globals(),{name:'0'*64}),self.assertRaises(ValueError):
+                _merchant_business_compile_contract(json.loads(data))
+        changed=dict(MERCHANT_BUSINESS_CURRENT_RAW_SHA256);changed[MERCHANT_BUSINESS_COMPILE_PATH]=MERCHANT_BUSINESS_PRE_SOURCE_SHA256
+        with patch.dict(globals(),{'MERCHANT_BUSINESS_CURRENT_RAW_SHA256':changed}),self.assertRaises(ValueError):
+            _merchant_business_compile_contract(json.loads(data))
 
 
 SCANNER_READER_HUNKS = [('ROOT = Path(__file__).resolve().parents[2]\n', "ROOT = Path(__file__).resolve().parents[2]\n\n# This adapter restores only the original line-bound historical contract input.\nimport importlib.util\n_profile_spec = importlib.util.spec_from_file_location(\n    'profile_read_failure_remote_admission',\n    ROOT / 'Tests/ContractChecks/test_profile_read_failure_remote_admission.py')\n_profile_admission = importlib.util.module_from_spec(_profile_spec)\n_profile_spec.loader.exec_module(_profile_admission)\n"), ('raw = (ROOT / FILE_DIGEST_PATH).read_text()', "raw = _profile_admission.historical_readiness_contract(\n            (ROOT / FILE_DIGEST_PATH).read_bytes(), ROOT).decode('utf-8')")]

@@ -118,12 +118,17 @@ struct MerchantBusinessEditorContext: Identifiable {
             .onChange(of: snapshot) { _, _ in retireEvidenceFlow() }
             .onChange(of: aftercareEvidenceDraft) { _, _ in retireEvidenceFlow() }
             .onChange(of: confirmAftercareDecision) { _, showing in if showing { retireEvidenceFlow() } }
-            .onAppear {
-                if case .aftercare(let row) = context.kind, let first = try? row.fields.mbStrings("allowedDecisions").first, let value = MerchantAftercareDecision(rawValue: first) { decision = value }
-                if case .role(let row) = context.kind { role = row.fields.mbText("roleCode") ?? "" }
-                initializeReviewContent()
-            }
+            .onAppear { initializeEditorStateOnAppear() }
         }
+    }
+    private func initializeEditorStateOnAppear() {
+        if case .aftercare(let row) = context.kind {
+            let allowedDecisions: [String]? = try? row.fields.mbStrings("allowedDecisions")
+            if let first = allowedDecisions?.first,
+               let value = MerchantAftercareDecision(rawValue: first) { decision = value }
+        }
+        if case .role(let row) = context.kind { role = row.fields.mbText("roleCode") ?? "" }
+        initializeReviewContent()
     }
     private func initializeReviewContent() {
         guard reviewContentContextID != context.id, case .review(let row, let action) = context.kind else { return }

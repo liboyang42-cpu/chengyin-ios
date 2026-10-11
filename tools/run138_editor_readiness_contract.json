@@ -3274,7 +3274,7 @@
     },
     "App/MerchantBusinessEditor.swift": {
       "before_sha256": "5c9aa2f9fdb773b18419728b8ee0c1559517845f95dcbb870bd8e98e509936f1",
-      "after_sha256": "37e4fb670565770a72f1c1ad0e1c5b2ac4affc35669514597c80790d4e8f394d",
+      "after_sha256": "13ff93a1d1608d0fc10cbbb1e2aa31b6f7b5496ea37553e052d147ab6611aff0",
       "hunks": [
         {
           "before": "}\n@MainActor struct MerchantBusinessEditor: View {\n    @Environment(\\.dismiss) private var dismiss\n    let context: MerchantBusinessEditorContext\n    let snapshot: MerchantBusinessSnapshot?\n    let onReview: (MerchantBusinessMutation) -> Void\n    @State private var content = \"\"\n    @State private var name = \"\"\n    @State private var color = \"#2E6D5A\"\n    @State private var role = \"\"\n    @State private var decision: MerchantAftercareDecision = .agree\n    @State private var evidence = \"\"\n    @State private var issue: String?\n    var body: some View {\n        NavigationStack {\n            Form {\n                Text(\"merchant.business.localDraft\").foregroundStyle(.secondary)\n                switch context.kind {\n                case .note:\n                    TextField(\"merchant.business.noteContent\", text: $content, axis: .vertical).lineLimit(3...8).accessibilityIdentifier(\"merchant.business.editor.content\")\n                case .tag:\n                    TextField(\"merchant.business.tagName\", text: $name).accessibilityIdentifier(\"merchant.business.editor.tagName\")\n                    TextField(\"merchant.business.tagColor\", text: $color).textInputAutocapitalization(.characters).autocorrectionDisabled()\n                case .aftercare(let row):\n                    Picker(\"merchant.business.decision\", selection: $decision) {\n                        ForEach(MerchantAftercareDecision.allCases, id: \\.self) { choice in\n                            if (try? row.fields.mbStrings(\"allowedDecisions\").contains(choice.rawValue)) == true {\n                                Text(LocalizedStringKey(\"merchant.business.state.\" + String(choice.rawValue))).tag(choice)\n",
@@ -3299,6 +3299,10 @@
         {
           "before": "                    if isSynthetic { Text(\"merchant.business.synthetic\") }\n                    Button(isSynthetic ? \"merchant.business.confirmSynthetic\" : \"merchant.business.confirmProduction\", action: confirm).disabled(busy).accessibilityIdentifier(\"merchant.business.confirm\")\n                } else { Text(\"merchant.business.disabled\").accessibilityIdentifier(\"merchant.business.dispatchDisabled\") }\n                Button(\"action.cancel\", action: cancel).disabled(busy).accessibilityIdentifier(\"merchant.business.cancelReview\")\n            }.navigationTitle(\"merchant.business.reviewDraft\").interactiveDismissDisabled(busy)\n        }\n    }\n}\n",
           "after": "                    if isSynthetic { Text(\"merchant.business.synthetic\") }\n                    Button(isSynthetic ? \"merchant.business.confirmSynthetic\" : \"merchant.business.confirmProduction\", action: confirm).disabled(busy).accessibilityIdentifier(\"merchant.business.confirm\")\n                } else { Text(\"merchant.business.disabled\").accessibilityIdentifier(\"merchant.business.dispatchDisabled\") }\n                if let editDraft {\n                    Button(\"merchant.reviewDraftReturn.edit\", action: editDraft).disabled(busy)\n                        .accessibilityIdentifier(\"merchant.reviewDraftReturn.edit\")\n                        .accessibilityHint(Text(\"merchant.reviewDraftReturn.hint\"))\n                }\n                Button(\"action.cancel\", action: cancel).disabled(busy).accessibilityIdentifier(\"merchant.business.cancelReview\")\n            }.navigationTitle(\"merchant.business.reviewDraft\").interactiveDismissDisabled(busy)\n        }\n    }\n}\n\nprivate struct MerchantNoteCorrectionTargetSummary: View {\n    let customer: MerchantCustomerID\n    let noteID: Int\n    let snapshot: MerchantBusinessSnapshot?\n    private var summary: String? {\n        guard let snapshot, snapshot.document.query == .customer(customer) else { return nil }\n        return snapshot.document.rows.first {\n            $0.kind == .timeline && [\"NOTE\", \"NOTE_CORRECTION\"].contains($0.fields.mbText(\"type\") ?? \"\") && $0.fields[\"noteId\"]?.integer == noteID\n        }?.fields.mbText(\"description\")\n    }\n    var body: some View {\n        if let summary, !summary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {\n            LabeledContent(\"merchant.noteCorrection.originalSummary\", value: summary)\n                .font(.subheadline).accessibilityIdentifier(\"merchant.noteCorrection.targetSummary\")\n        }\n    }\n}\n"
+        },
+        {
+          "before": "            .onAppear {\n                if case .aftercare(let row) = context.kind, let first = try? row.fields.mbStrings(\"allowedDecisions\").first, let value = MerchantAftercareDecision(rawValue: first) { decision = value }\n                if case .role(let row) = context.kind { role = row.fields.mbText(\"roleCode\") ?? \"\" }\n                initializeReviewContent()\n            }\n        }\n    }\n    private func initializeReviewContent() {\n",
+          "after": "            .onAppear { initializeEditorStateOnAppear() }\n        }\n    }\n    private func initializeEditorStateOnAppear() {\n        if case .aftercare(let row) = context.kind {\n            let allowedDecisions: [String]? = try? row.fields.mbStrings(\"allowedDecisions\")\n            if let first = allowedDecisions?.first,\n               let value = MerchantAftercareDecision(rawValue: first) { decision = value }\n        }\n        if case .role(let row) = context.kind { role = row.fields.mbText(\"roleCode\") ?? \"\" }\n        initializeReviewContent()\n    }\n    private func initializeReviewContent() {\n"
         }
       ]
     },
@@ -4034,7 +4038,7 @@
     "Core/RoamRetainedRead.swift": "7864b357ca7c20ad9f60f767a788f7a72ac3cd80edcc4554a87ef15d7db0bbe0",
     "Core/SearchMapLayerVisibility.swift": "2e95d0a1b587228fcf6f7b1b893d31c1ef67b3679702953810fb5e39feeec6b5",
     "Core/SearchMapViewportSelection.swift": "8cb68c5decb74da1b172da29507953f5b3fae9ece71eac4cce947c0cc84bcfc7",
-    "Resources/Localizable.xcstrings": "6e9a854e14c29ad90a8b4ed88735e5641d15efc53ca810fb49dc366d3509910a",
+    "Resources/Localizable.xcstrings": "8f552d5a3f34a86c19a370c411a08669dfb4440a15f3b3037cd635595b4ff995",
     "Resources/MerchantCityClaimWithdrawalLocalizations.fragment.json": "a19e4d670bc4be11489d8a45e4e5e1d4b68e2e074abacd86301f75a44fde800e",
     "Resources/MerchantCityQuotaLocalizations.fragment.json": "8c0b7f0fa055ae9cfd55517319138c01d58ca7fd5c1368196eeb608237bca3be",
     "Resources/MerchantCustomerContactLocalizations.fragment.json": "45fbb42eb318bd44ac1a0c728c1510941701d10aa5bb945fd135686147ca3cc6",
@@ -4485,7 +4489,7 @@
     "Resources/ProjectCityStoryNodeRemoval.xcstrings": "137615d48be52d52763ebb365083fa91266889768a912a2f10b84764c278bcea",
     "Tests/AppUnitTests/MerchantReviewDraftReturnTests.swift": "0407f306896272c7d8cedc7aa28a1b82a52730920372bf3102b64e6dc046307d",
     "Tests/AppUnitTests/ProjectCityStoryNodeRemovalPresentationTests.swift": "986074d480743bc30cd2fcaccea0fc67c64318a1f7a98d7911e3da82c780e234",
-    "Tests/ContractChecks/test_merchant_review_draft_return.py": "e9f31299585059f9ce7f6e23002bd815471f7ba85e83707fe9fd571934dd1968",
+    "Tests/ContractChecks/test_merchant_review_draft_return.py": "e5b7c6ce7d66037ed49dba6b32b59fcf213c57e24b6f8694285e7d612575d777",
     "Tests/ContractChecks/test_project_city_story_node_removal.py": "cfedb0582099f570184bd67c787ec5cadfe27db1fac686996ed2b1b3277901a0",
     "Tests/CoreTests/ProjectCityStoryNodeRemovalTests.swift": "bad6293bda4a08e10687686625969954a6b906f9b8c618c8462579840d343a3c",
     "App/ProjectNodePlacePicker.swift": "abd4946cc584aad843bf980623bf72e19323b4612c3ecba163603389a6f644dc",
@@ -4499,7 +4503,7 @@
     "Tests/CoreTests/ProjectNodePlaceSelectionTests.swift": "b864c152cf35a1b55c055d634c3394d591c7eb4f27986af725edbb27dd8e3fc1",
     "Tests/CoreTests/SearchMapCityNodeReadTests.swift": "0574a6a4f69386b0e48264824dd606e2b0c708a8495ffe9fc821e72e0c755463",
     "tools/check_profile_read_failure_contract.py": "e492facdded0e76615721d90081b912738ba490e503aab61a7ed549a6b2a4b8a",
-    "Tests/ContractChecks/test_profile_read_failure_remote_admission.py": "d1d7ad397a76f668f47bcc4243c23a397d560e90220b01bd99dd91a85bfe3163",
+    "Tests/ContractChecks/test_profile_read_failure_remote_admission.py": "df08d6c30bcebd89e901e5ae3a5920b22142dbd8b2cf4a7dfa4c765be5917271",
     "Tests/CoreTests/ProfileEditTests.swift": "6319234ba77c43afec858692bc9ff00308be774b58ea585069a7b3dc90ce654c",
     "tools/tests/test_gitleaks_configuration.py": "a5f5cd4f8670fb10405ab73fba1ac15700ace46a0c8dd4e8321e29e5da90cb30"
   },

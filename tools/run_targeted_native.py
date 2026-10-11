@@ -20,18 +20,21 @@ from urllib.parse import unquote, urlparse
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
-BASE_COMMIT = '656e00f192ef37b05a02c084d089995d7ee8acca'
-BASE_TREE = '01b452d2de9804f66e2aeb6731afe582d6b9e36f'
+BASE_COMMIT = '45b728c7d48cf7969ac864e5693322d45e79394a'
+BASE_TREE = '440cdc3bbd4a40369e6cb6762eec6306e4aa921d'
 PATHS = ('.github/workflows/native-targeted.yml', 'tools/targeted_native_selection.json',
          'tools/run_targeted_native.py', 'tools/tests/test_targeted_native.py')
 REPAIR_PATHS = ('App/ProjectNodeImageCrop.swift', 'tools/run138_editor_readiness_contract.json', 'tools/run138_editor_readiness.py', 'Tests/ContractChecks/test_profile_read_failure_remote_admission.py', 'tools/run_static_checks.py', 'tools/tests/test_native_static_checks.py')
-GROUPS = {'core': ('QuestifyCoreTests', None, 24),
+GROUPS = {'core': ('QuestifyCoreTests', None, 44),
           'app-unit': ('QuestifyAppUnitTests', 'QuestifyAppUnitTests', 14),
           'ui': ('QuestifyUITests', 'Questify', 7)}
-BOUND_SOURCES = {'.github/workflows/native-ios.yml', 'App/MerchantDecorTagEditor.swift', 'App/MerchantOperationsEditor.swift', 'App/MerchantOperationsFixtureSupport.swift', 'App/MerchantOperationsViews.swift', 'App/ProfileEditView.swift', 'App/ProjectNodeImageCrop.swift', 'App/TemplateAuthoringMineView.swift', 'Config/AppUnitTests.xcconfig', 'Config/Base.xcconfig', 'Core/MerchantDecorTagDraft.swift', 'Core/MerchantOperationsReading.swift', 'Core/ProfileEditCoordinator.swift', 'Core/ProfileEditService.swift', 'Core/TemplateAuthoringShelf.swift', 'Package.swift', 'Questify.xcodeproj/project.pbxproj', 'Questify.xcodeproj/xcshareddata/xcschemes/Questify.xcscheme', 'Questify.xcodeproj/xcshareddata/xcschemes/QuestifyAppUnitTests.xcscheme', 'Tests/AppUITests/TemplateOwnShelfFlowTests.swift', 'Tests/AppUnitTests/MerchantDecorTagPickerTests.swift', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift', 'Tests/CoreTests/MerchantDecorTagDraftTests.swift', 'Tests/CoreTests/ProfileEditTests.swift', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift', 'tools/build_simulator_keychain_host.py', 'tools/ci_gates.py', 'tools/prepare_simulator_keychain_host.py'}
-FIXED_METHOD_SOURCES = (('QuestifyAppUnitTests/MerchantDecorTagPickerTests/testDuplicateOverLimitHistoricalTagsStayUnchangedOnOpenCancelAndInvalidOwner', 'Tests/AppUnitTests/MerchantDecorTagPickerTests.swift'), ('QuestifyAppUnitTests/MerchantDecorTagPickerTests/testSemicolonTagApplyCancelAndReopenPreserveExactLabels', 'Tests/AppUnitTests/MerchantDecorTagPickerTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testCachedRefreshNeverSurvivesOwnerLeaseABAExpiryOrCancellation', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testCachedSnapshotPreparationClearsRevokedScopeBeforeAnotherRequest', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testClonedTransportRejectsLateLeaseReplacementTokenRoleAndErrors', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testCurrent401ExpiresOnlyCurrentOwner', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testGuestDefaultNilRevokedReaderAndReplacementNeverAdoptLease', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testLateShelfAndDetailSuccess401ErrorNeverApplyAcrossLifetimeChanges', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testLoadedReadOnlyRefreshSnapshotSurvives503ThenReplacesAndClears', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testNormalFactoryPagedShelfDetailAndEveryWriterRemainOff', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testOuterClonesOnlyAdmitExactReadsAndDenyAllAdjacentMutations', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testOwnerConfigurationFactoryDoesNotAlterLocalDraftAndClearsOnLeaseChange', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testSearchedPageElevenLegacyStoryRequiresFreshOwnedDetail', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testShelfLeaseChangesPreserveUnsavedLocalEditorAndDormantAuthority', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyCoreTests/MerchantDecorTagDraftTests/testHistoricalLabelsRemainByteExactUntilExplicitRemoval', 'Tests/CoreTests/MerchantDecorTagDraftTests.swift'), ('QuestifyCoreTests/MerchantDecorTagDraftTests/testSemicolonCustomLabelRemainsOneLiteralTag', 'Tests/CoreTests/MerchantDecorTagDraftTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testAcknowledgedWriteReadbackFailureKeepsLockUntilReadOnlyRetry', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testCancelledReadDoesNotPublishLateServerExplanation', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testFailedRefreshRetainsSnapshotAndShowsExplanation', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testFinalPreWriteReadFailureDoesNotDispatchOrReuseConfirmation', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testInitialReadFailureShowsExactServerMessageAndRetryClearsItWithoutWriting', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testLateFailureCannotPublishAfterSameAccountTokenReplacement', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testNewReadClearsPriorExplanationBeforeResponse', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testPrepareFailureKeepsSnapshotAndRequiresANewReview', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testSessionResetClearsPreviouslyDisplayedExplanation', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testUnauthorizedCallbackInvalidatesFailureBeforePresentation', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testUnknownWriteReadbackFailureAndMatchingRetryNeverUnlockOrResend', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testWhitespaceAndNonServerErrorsNeverBecomeUserText', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/TemplateAuthoringHTTPTests/testRefreshSnapshotCannotReplaceHundredRowWritePreflightOrOldReview', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testAlreadyCancelledRefreshClearsSnapshotWithoutDispatch', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testAuthContractUnknownAndCancellationFailuresClearRefreshSnapshot', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testCachedRefreshLifetimeTransitionsAndABAFenceAllLateResults', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testContinuationAuthAndContractErrorsClearRowsButOverlapRemainsRetryable', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testNewKeywordNeverDisplaysPreviousQuerySnapshot', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testOnlyExplicitTransientFailuresRetainSnapshotAndRequireFirstPageRetry', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testRefreshAtHundredPageBoundaryRestartsAtOneWithoutPage101', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testRefreshReplacesOverlappingIDsAndValidEmptyClearsSnapshot', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testSameKeywordNewGenerationRejectsOldSuccessAndError', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'), ('QuestifyUITests/TemplateOwnShelfFlowTests/testAccountChangeDismissesReviewAndSignoutClearsShelf', 'Tests/AppUITests/TemplateOwnShelfFlowTests.swift'), ('QuestifyUITests/TemplateOwnShelfFlowTests/testChineseLargeTextCanCancelReview', 'Tests/AppUITests/TemplateOwnShelfFlowTests.swift'), ('QuestifyUITests/TemplateOwnShelfFlowTests/testDefaultDisabledHasNoMutationConfirmation', 'Tests/AppUITests/TemplateOwnShelfFlowTests.swift'), ('QuestifyUITests/TemplateOwnShelfFlowTests/testDeleteRequiresSeparateReviewAndSimulationIsLabelled', 'Tests/AppUITests/TemplateOwnShelfFlowTests.swift'), ('QuestifyUITests/TemplateOwnShelfFlowTests/testLibraryReviewShowsIdentityAndCancellationDoesNotSubmit', 'Tests/AppUITests/TemplateOwnShelfFlowTests.swift'), ('QuestifyUITests/TemplateOwnShelfFlowTests/testOwnedDetailBackAndReopenKeepsStableDestination', 'Tests/AppUITests/TemplateOwnShelfFlowTests.swift'), ('QuestifyUITests/TemplateOwnShelfFlowTests/testUnknownLocksBothActionsAcrossReopen', 'Tests/AppUITests/TemplateOwnShelfFlowTests.swift'))
+BOUND_SOURCES = {'Questify.xcodeproj/project.pbxproj', '.github/workflows/native-ios.yml', 'Questify.xcodeproj/xcshareddata/xcschemes/QuestifyAppUnitTests.xcscheme', 'Package.swift', 'App/MerchantOperationsViews.swift', 'App/ProjectNodeImageCrop.swift', 'Tests/CoreTests/MerchantDecorTagDraftTests.swift', 'App/MerchantOperationsFixtureSupport.swift', 'tools/prepare_simulator_keychain_host.py', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift', 'App/ProfileEditView.swift', 'Config/Base.xcconfig', 'App/MerchantDecorTagEditor.swift', 'Questify.xcodeproj/xcshareddata/xcschemes/Questify.xcscheme', 'App/MerchantOperationsEditor.swift', 'Core/MerchantOperationsReading.swift', 'Tests/AppUITests/TemplateOwnShelfFlowTests.swift', 'Core/ProfileEditService.swift', 'Config/AppUnitTests.xcconfig', 'tools/build_simulator_keychain_host.py', 'Tests/CoreTests/ProfileEditTests.swift', 'tools/ci_gates.py', 'Core/ProfileEditCoordinator.swift', 'Core/MerchantDecorTagDraft.swift', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift', 'Tests/AppUnitTests/MerchantDecorTagPickerTests.swift', 'App/TemplateAuthoringMineView.swift', 'Core/TemplateAuthoringShelf.swift', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'}
+FIXED_METHOD_SOURCES = (('QuestifyAppUnitTests/MerchantDecorTagPickerTests/testDuplicateOverLimitHistoricalTagsStayUnchangedOnOpenCancelAndInvalidOwner', 'Tests/AppUnitTests/MerchantDecorTagPickerTests.swift'), ('QuestifyAppUnitTests/MerchantDecorTagPickerTests/testSemicolonTagApplyCancelAndReopenPreserveExactLabels', 'Tests/AppUnitTests/MerchantDecorTagPickerTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testCachedRefreshNeverSurvivesOwnerLeaseABAExpiryOrCancellation', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testCachedSnapshotPreparationClearsRevokedScopeBeforeAnotherRequest', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testClonedTransportRejectsLateLeaseReplacementTokenRoleAndErrors', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testCurrent401ExpiresOnlyCurrentOwner', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testGuestDefaultNilRevokedReaderAndReplacementNeverAdoptLease', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testLateShelfAndDetailSuccess401ErrorNeverApplyAcrossLifetimeChanges', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testLoadedReadOnlyRefreshSnapshotSurvives503ThenReplacesAndClears', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testNormalFactoryPagedShelfDetailAndEveryWriterRemainOff', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testOuterClonesOnlyAdmitExactReadsAndDenyAllAdjacentMutations', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testOwnerConfigurationFactoryDoesNotAlterLocalDraftAndClearsOnLeaseChange', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testSearchedPageElevenLegacyStoryRequiresFreshOwnedDetail', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testShelfLeaseChangesPreserveUnsavedLocalEditorAndDormantAuthority', 'Tests/AppUnitTests/TemplateShelfReadCompositionTests.swift'), ('QuestifyCoreTests/MerchantDecorTagDraftTests/testHistoricalLabelsRemainByteExactUntilExplicitRemoval', 'Tests/CoreTests/MerchantDecorTagDraftTests.swift'), ('QuestifyCoreTests/MerchantDecorTagDraftTests/testSemicolonCustomLabelRemainsOneLiteralTag', 'Tests/CoreTests/MerchantDecorTagDraftTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testAcknowledgedWriteReadbackFailureKeepsLockUntilReadOnlyRetry', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testCancelledReadDoesNotPublishLateServerExplanation', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testFailedRefreshRetainsSnapshotAndShowsExplanation', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testFinalPreWriteReadFailureDoesNotDispatchOrReuseConfirmation', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testInitialReadFailureShowsExactServerMessageAndRetryClearsItWithoutWriting', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testLateFailureCannotPublishAfterSameAccountTokenReplacement', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testNewReadClearsPriorExplanationBeforeResponse', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testPrepareFailureKeepsSnapshotAndRequiresANewReview', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testSessionResetClearsPreviouslyDisplayedExplanation', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testUnauthorizedCallbackInvalidatesFailureBeforePresentation', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testUnknownWriteReadbackFailureAndMatchingRetryNeverUnlockOrResend', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/ProfileReadFailureRecoveryTests/testWhitespaceAndNonServerErrorsNeverBecomeUserText', 'Tests/CoreTests/ProfileEditTests.swift'), ('QuestifyCoreTests/TemplateAuthoringHTTPTests/testRefreshSnapshotCannotReplaceHundredRowWritePreflightOrOldReview', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testAlreadyCancelledRefreshClearsSnapshotWithoutDispatch', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testAuthContractUnknownAndCancellationFailuresClearRefreshSnapshot', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testCachedRefreshLifetimeTransitionsAndABAFenceAllLateResults', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testContinuationAuthAndContractErrorsClearRowsButOverlapRemainsRetryable', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testNewKeywordNeverDisplaysPreviousQuerySnapshot', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testOnlyExplicitTransientFailuresRetainSnapshotAndRequireFirstPageRetry', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testRefreshAtHundredPageBoundaryRestartsAtOneWithoutPage101', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testRefreshReplacesOverlappingIDsAndValidEmptyClearsSnapshot', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfRefreshSnapshotTests/testSameKeywordNewGenerationRejectsOldSuccessAndError', 'Tests/CoreTests/TemplateAuthoringHTTPTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testActualMiniCounterexamplesSeparatePersonalAndMarketplaceStates', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testAlreadyCancelledRefreshCannotDispatchOrKeepSidecars', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testAuthContractAndCancellationErrorsClearEveryCachedState', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testCanonicalOptionalTextAndMissingFieldsRemainCompatible', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testDisplayMetadataNeverChangesSharedDTOOrAcknowledgesPendingMutation', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testEmptyFirstPageClearsRowsAndDisplayStatesTogether', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testExistingBaseDTOValidationIsNotRelaxedByTolerantDisplayColumns', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testFeedbackIsVerbatimOptionalTextAndNeverAnAction', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testMalformedBaseRowsClearStatesWithoutCommittingPartialPage', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testMalformedOptionalColumnsNeverInvalidateAnOtherwiseLegalRow', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testMarketIdentityLongBoundsAreReadFromOriginalBytesWithoutCoercion', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testMarketplaceMatrixIgnoresPersonalPublishStatus', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testNewKeywordCannotRetainOldStateWhenRequestFails', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testOldSuccessAndErrorCannotOverwriteNewSameIDState', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testOverlappingContinuationCannotPartiallyReplaceOrAppendStates', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testPartialMetadataDecodingDoesNotDropOtherFieldsOrOtherRows', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testPersonalReviewPrecedenceMatchesSourceMatrix', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testSameIDsAndEqualBaseRowsStillReplaceChangedDisplayStates', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testScopeTransitionsABARevocationLeaveAndCancelRetireStates', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'), ('QuestifyCoreTests/TemplateOwnShelfStateProjectionTests/testTransientRefreshRetainsStatesWithRowsAndRetryReplacesBoth', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'), ('QuestifyUITests/TemplateOwnShelfFlowTests/testAccountChangeDismissesReviewAndSignoutClearsShelf', 'Tests/AppUITests/TemplateOwnShelfFlowTests.swift'), ('QuestifyUITests/TemplateOwnShelfFlowTests/testChineseLargeTextCanCancelReview', 'Tests/AppUITests/TemplateOwnShelfFlowTests.swift'), ('QuestifyUITests/TemplateOwnShelfFlowTests/testDefaultDisabledHasNoMutationConfirmation', 'Tests/AppUITests/TemplateOwnShelfFlowTests.swift'), ('QuestifyUITests/TemplateOwnShelfFlowTests/testDeleteRequiresSeparateReviewAndSimulationIsLabelled', 'Tests/AppUITests/TemplateOwnShelfFlowTests.swift'), ('QuestifyUITests/TemplateOwnShelfFlowTests/testLibraryReviewShowsIdentityAndCancellationDoesNotSubmit', 'Tests/AppUITests/TemplateOwnShelfFlowTests.swift'), ('QuestifyUITests/TemplateOwnShelfFlowTests/testOwnedDetailBackAndReopenKeepsStableDestination', 'Tests/AppUITests/TemplateOwnShelfFlowTests.swift'), ('QuestifyUITests/TemplateOwnShelfFlowTests/testUnknownLocksBothActionsAcrossReopen', 'Tests/AppUITests/TemplateOwnShelfFlowTests.swift'))
 METHOD = re.compile(r'(QuestifyCoreTests|QuestifyAppUnitTests|QuestifyUITests)/([A-Za-z][A-Za-z0-9_]*)/(test[A-Za-z0-9_]+)')
-SELECTION_CONTRACT_SHA256 = '4fbd8a90e916b10c643f95744dabf3374c01c57d665e74c81f1bfd9b82609bb3'
+SELECTION_CONTRACT_SHA256 = 'a871250c5af6ab9189c08317cf0c2b0563b938084a7a95ecfb7536fdab82aa43'
+CREATOR_PATHS = ('App/TemplateAuthoringMineView.swift', 'Core/TemplateAuthoringShelf.swift', 'Resources/Localizable.xcstrings', 'Tests/ContractChecks/test_template_shelf_state_projection.py', 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift', 'tools/tests/creator_shelf_state_history.py', 'tools/tests/test_creator_shelf_state_history.py', 'tools/tests/creator_shelf_refresh_history.py', 'tools/tests/test_creator_shelf_refresh_history.py', 'tools/tests/test_creator_pending_synthetic_storage_history.py', 'tools/run138_editor_readiness_contract.json', 'tools/run138_editor_readiness.py', 'Tests/ContractChecks/test_profile_read_failure_remote_admission.py', 'App/MerchantBusinessEditor.swift', 'Tests/ContractChecks/test_merchant_review_draft_return.py')
+CREATOR_CHANGES_CONTRACT_SHA256 = 'a0a916e50820419681f69c6e21ad048655f5b5d6db628079cc8a44a96ab7e1e9'
+ALLOWED_CHANGES = ('M	.github/workflows/native-targeted.yml', 'M	tools/targeted_native_selection.json', 'M	tools/run_targeted_native.py', 'M	tools/tests/test_targeted_native.py', 'M	App/TemplateAuthoringMineView.swift', 'M	Core/TemplateAuthoringShelf.swift', 'M	Resources/Localizable.xcstrings', 'A	Tests/ContractChecks/test_template_shelf_state_projection.py', 'A	Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift', 'A	tools/tests/creator_shelf_state_history.py', 'A	tools/tests/test_creator_shelf_state_history.py', 'M	tools/tests/creator_shelf_refresh_history.py', 'M	tools/tests/test_creator_shelf_refresh_history.py', 'M	tools/tests/test_creator_pending_synthetic_storage_history.py', 'M	tools/run138_editor_readiness_contract.json', 'M	tools/run138_editor_readiness.py', 'M	Tests/ContractChecks/test_profile_read_failure_remote_admission.py', 'M	App/MerchantBusinessEditor.swift', 'M	Tests/ContractChecks/test_merchant_review_draft_return.py')
 LIMIT = 10 * 1024 * 1024
 
 
@@ -86,7 +89,71 @@ def inverse_reviewed_repair(row, raw):
     return restored
 
 
+def verify_creator_baseline(selection, root):
+    # The exact published tree is independently fixed. An added path must be
+    # absent from that real tree; no empty-file inverse can stand in for absence.
+    raw = checked(['git', 'ls-tree', '-z', BASE_TREE, '--', *CREATOR_PATHS], root)
+    entries = {}
+    for entry in raw.split('\0'):
+        if not entry:
+            continue
+        metadata, path = entry.split('\t', 1)
+        require(path not in entries, 'Duplicate creator baseline path')
+        entries[path] = metadata.split(' ')
+    require(set(entries) <= set(CREATOR_PATHS), 'Unexpected creator baseline path')
+    for row in selection['creator_changes']:
+        if row['status'] == 'A':
+            require(row['path'] not in entries, 'Added creator file already exists in baseline')
+        else:
+            require(entries.get(row['path']) == ['100644', 'blob', row['before_blob']],
+                    'Creator predecessor differs from exact baseline tree')
+    return entries
+
+
+def verify_creator_current_tree(selection, root, head):
+    raw = checked(['git', 'ls-tree', '-z', head, '--', *CREATOR_PATHS], root)
+    entries = {}
+    for entry in raw.split('\0'):
+        if not entry:
+            continue
+        metadata, path = entry.split('\t', 1)
+        require(path not in entries, 'Duplicate creator current-tree path')
+        entries[path] = metadata.split(' ')
+    require(set(entries) == set(CREATOR_PATHS), 'Incomplete creator current-tree scope')
+    for row in selection['creator_changes']:
+        require(entries[row['path']] == ['100644', 'blob', row['after_blob']],
+                'Creator current tree differs from exact reviewed mode/blob')
+    return entries
+
+
+def validate_creator_changes(selection, root):
+    rows = selection.get('creator_changes')
+    require(isinstance(rows, list) and [r.get('path') for r in rows] == list(CREATOR_PATHS),
+            'Missing/reordered creator current scope')
+    require(hashlib.sha256(encode(rows).encode()).hexdigest() == CREATOR_CHANGES_CONTRACT_SHA256,
+            'Changed independently frozen creator bindings')
+    restored = {}
+    for row in rows:
+        require(set(row) == {'path', 'status', 'before_sha256', 'before_blob', 'after_sha256', 'after_blob', 'hunks'},
+                'Unknown creator binding fields')
+        require(row['status'] + '\t' + row['path'] in ALLOWED_CHANGES, 'Wrong creator path status')
+        path = root / row['path']
+        require(not path.is_symlink() and path.resolve().is_relative_to(root.resolve()), 'Creator source escaped checkout')
+        raw = path.read_bytes()
+        require(hashlib.sha256(raw).hexdigest() == row['after_sha256'], 'Changed complete current creator bytes')
+        require(hashlib.sha1(b'blob ' + str(len(raw)).encode() + b'\0' + raw).hexdigest() == row['after_blob'],
+                'Changed complete current creator blob')
+        if row['status'] == 'A':
+            require(row['before_sha256'] is None and row['before_blob'] is None and row['hunks'] == [],
+                    'Added creator file cannot have a fabricated predecessor')
+        else:
+            require(row['status'] == 'M' and isinstance(row['hunks'], list) and bool(row['hunks']), 'Invalid creator modification')
+            restored[row['path']] = inverse_reviewed_repair(row, raw)
+    return restored
+
+
 def validate_reviewed_repairs(selection, root):
+    creator = validate_creator_changes(selection, root)
     repairs = selection.get('reviewed_repairs')
     require(isinstance(repairs, list) and [row.get('path') for row in repairs] == list(REPAIR_PATHS), 'Missing/changed reviewed repair scope')
     restored = {}
@@ -94,16 +161,16 @@ def validate_reviewed_repairs(selection, root):
         require(set(row) == {'path', 'before_sha256', 'before_blob', 'after_sha256', 'hunks'} and isinstance(row['hunks'], list) and bool(row['hunks']), 'Invalid reviewed repair binding')
         path = root / row['path']
         require(not path.is_symlink() and path.resolve().is_relative_to(root.resolve()), 'Repair escaped checkout')
-        restored[row['path']] = inverse_reviewed_repair(row, path.read_bytes())
+        restored[row['path']] = inverse_reviewed_repair(row, creator.get(row['path'], path.read_bytes()))
     current = read_json(root / REPAIR_PATHS[1])
     crop = repairs[0]
     require(current['feature_batch_support_sha256'][crop['path']] == crop['after_sha256'], 'Current crop support is not genuine')
     require(current['feature_batch_sources'][crop['path']] == {k: crop[k] for k in ['before_sha256', 'after_sha256', 'hunks']}, 'Missing exact central crop inverse')
-    require(current['feature_batch_support_sha256'][repairs[3]['path']] == repairs[3]['after_sha256'], 'Current admission support is not genuine')
+    require(current['feature_batch_support_sha256'][repairs[3]['path']] == next(r['after_sha256'] for r in selection['creator_changes'] if r['path'] == repairs[3]['path']), 'Current admission support is not genuine')
     for row in repairs[4:]:
         require(current['followon_support_sha256'][row['path']] == row['after_sha256'], 'Current static support is not genuine')
     pins = re.findall(r"^CONTRACT_SHA256 = '([0-9a-f]{64})'$", (root / REPAIR_PATHS[2]).read_text(), re.MULTILINE)
-    require(pins == [repairs[1]['after_sha256']], 'Current readiness pin differs from complete contract')
+    require(pins == [next(r['after_sha256'] for r in selection['creator_changes'] if r['path'] == repairs[1]['path'])], 'Current readiness pin differs from complete contract')
     return restored
 
 
@@ -123,10 +190,11 @@ def declared_methods(source, target):
 
 def validate_selection(selection, root):
     require(isinstance(selection, dict) and type(selection.get('version')) is int and selection.get('version') == 1, 'Unsupported selection version')
-    require(selection.get('name') == 'shelf-profile-merchant-v2', 'Unknown fixed selection')
+    require(set(selection) == {'repository', 'groups', 'base_tree', 'base_commit', 'creator_changes', 'branch', 'allowed_changes', 'name', 'version', 'source_files', 'coverage_boundary', 'reviewed_repairs'}, 'Unknown fixed selection fields')
+    require(selection.get('name') == 'shelf-profile-merchant-creator-v3', 'Unknown fixed selection')
     require(selection.get('base_commit') == BASE_COMMIT and selection.get('base_tree') == BASE_TREE, 'Wrong reviewed base')
     require(selection.get('repository') == 'liboyang42-cpu/chengyin-ios' and selection.get('branch') == 'migration/native-ios', 'Wrong repository or branch')
-    require(selection.get('allowed_changes') == ['M\t' + p for p in PATHS + REPAIR_PATHS], 'Changed exact ten-path boundary')
+    require(selection.get('allowed_changes') == list(ALLOWED_CHANGES), 'Changed exact nineteen-path/status boundary')
     sources = selection.get('source_files')
     require(isinstance(sources, list) and all(isinstance(row, dict) and set(row) == {'path', 'sha256'} for row in sources), 'Invalid source bindings')
     hashes = {row['path']: row['sha256'] for row in sources}
@@ -204,9 +272,13 @@ def verify_scope(root, selection):
     require(re.fullmatch('[a-f0-9]{40}', head) is not None and head == os.environ.get('GITHUB_SHA'), 'Actual HEAD differs from GITHUB_SHA')
     require(checked(['git', 'rev-parse', BASE_COMMIT + '^{tree}'], root) == BASE_TREE, 'Baseline tree differs')
     changes = checked(['git', 'diff', '--name-status', BASE_COMMIT, head], root).splitlines()
-    require(set(changes) == {'M\t' + p for p in PATHS + REPAIR_PATHS} and len(changes) == len(PATHS) + len(REPAIR_PATHS), 'Source changes differ from ten exact reviewed modifications')
+    require(set(changes) == set(ALLOWED_CHANGES) and len(changes) == len(ALLOWED_CHANGES), 'Source changes differ from nineteen exact reviewed statuses')
+    verify_creator_current_tree(selection, root, head)
     require(not checked(['git', 'status', '--porcelain', '--untracked-files=normal'], root), 'Checkout is not clean')
     validate_selection(selection, root)
+    # Required for every real run, before any build and again at finalization.
+    # Static source validation stays usable in a history-free shallow checkout.
+    verify_creator_baseline(selection, root)
     return {'source_sha': head, 'source_tree': checked(['git', 'rev-parse', 'HEAD^{tree}'], root),
             'base_commit': BASE_COMMIT, 'base_tree': BASE_TREE}
 
@@ -429,7 +501,7 @@ class Diagnostic:
         self.deadline = time.monotonic() + 2460  # reserve finalization before job's 45-minute cap
         self.receipt = {'version': 1, 'scope': 'selected-native-diagnostic-only', 'status': 'INCOMPLETE',
                         'selection': selection['name'], 'selection_sha256': digest(root / PATHS[1]),
-                        'expected_count': 45, 'actual_count': 0, 'groups': {},
+                        'expected_count': 65, 'actual_count': 0, 'groups': {},
                         'coverage_boundary': selection['coverage_boundary']}
         for group in selection['groups']:
             self.receipt['groups'][group['name']] = {'status': 'NOT_RUN', 'expected': group['methods'],
@@ -558,7 +630,7 @@ def validate_pass_receipt(receipt, expected, selection):
     for key, value in expected.items():
         require(bool(value) and receipt.get(key) == value, 'Receipt identity mismatch: ' + key)
     require(receipt.get('base_commit') == BASE_COMMIT and receipt.get('base_tree') == BASE_TREE, 'Wrong receipt base')
-    require(receipt.get('selection') == selection['name'] and receipt.get('expected_count') == 45 and receipt.get('actual_count') == 45, 'Wrong total executed count')
+    require(receipt.get('selection') == selection['name'] and all(type(receipt.get(k)) is int and receipt[k] == 65 for k in ['expected_count', 'actual_count']), 'Wrong total executed count')
     require(set(receipt.get('groups', {})) == set(GROUPS), 'Missing receipt group')
     toolchain = receipt.get('toolchain')
     require(isinstance(toolchain, dict) and set(toolchain) == {'xcode', 'developer', 'swift', 'sdk_version', 'sdk_path'} and all(isinstance(v, str) and v for v in toolchain.values()), 'Incomplete receipt toolchain')
@@ -566,7 +638,7 @@ def validate_pass_receipt(receipt, expected, selection):
     require(re.fullmatch('[0-9A-Fa-f]{8}(?:-[0-9A-Fa-f]{4}){3}-[0-9A-Fa-f]{12}', simulator.get('udid', '')) is not None and simulator.get('name', '').startswith('iPhone') and simulator.get('runtime', '').startswith('com.apple.CoreSimulator.SimRuntime.iOS-'), 'Incomplete simulator identity')
     for group in selection['groups']:
         actual = receipt['groups'][group['name']]
-        require(actual.get('status') == 'PASS' and actual.get('expected') == group['methods'] and actual.get('actual_count') == len(group['methods']), 'Wrong group result count')
+        require(actual.get('status') == 'PASS' and actual.get('expected') == group['methods'] and type(actual.get('actual_count')) is int and actual['actual_count'] == len(group['methods']), 'Wrong group result count')
         validate_outcomes(actual.get('actual'), group['methods'], actual.get('returncode'))
         if group['kind'] == 'swift':
             require(type(actual.get('build_returncode')) is int and actual['build_returncode'] == 0, 'Core build did not succeed')
@@ -623,7 +695,7 @@ def report(output, summary, root=ROOT):
     lines = ['Targeted native diagnostics: ' + receipt.get('status', 'INCOMPLETE'),
              'Source SHA: ' + receipt.get('source_sha', 'NOT_RECORDED'),
              'Source tree: ' + receipt.get('source_tree', 'NOT_RECORDED'),
-             'Actual methods: ' + str(receipt.get('actual_count', 0)) + ' / 45',
+             'Actual methods: ' + str(receipt.get('actual_count', 0)) + ' / 65',
              receipt.get('coverage_boundary', '')]
     for name, group in receipt.get('groups', {}).items():
         lines.append(name + ': ' + group['status'] + ', actual ' + str(group['actual_count']))
@@ -650,7 +722,7 @@ def main():
     selection = read_json(args.selection or root / PATHS[1])
     validate_selection(selection, root)
     if args.action == 'validate':
-        print('Validated fixed selection: Core 24, AppUnit 14, UI 7; Apple execution NOT_RUN')
+        print('Validated fixed selection: Core 44, AppUnit 14, UI 7; Apple execution NOT_RUN')
         return 0
     require(args.output is not None and 'RUNNER_TEMP' in os.environ, 'Fresh runner output required')
     temp = Path(os.environ['RUNNER_TEMP']).resolve(strict=True)

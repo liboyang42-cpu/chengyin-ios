@@ -89,12 +89,8 @@ def _restore_mine_bytes(postimage):
 
 def historical_pre_shelf_refresh_mine_bytes(*, root=ROOT):
     root = Path(root)
-    sources = {}
-    for name in SOURCE_SHA256:
-        try:
-            sources[name] = (root / name).read_bytes()
-        except OSError as error:
-            raise ValueError('Missing or unreadable shelf refresh history input: ' + name) from error
+    from tools.tests.creator_shelf_state_history import historical_pre_shelf_state_sources
+    sources = historical_pre_shelf_state_sources(root=root)
     identities = {name: _digest(raw) for name, raw in sources.items()}
     original = all(identities[name] == pair[0] for name, pair in SOURCE_SHA256.items())
     changed = all(identities[name] == pair[1] for name, pair in SOURCE_SHA256.items())

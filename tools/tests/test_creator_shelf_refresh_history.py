@@ -54,7 +54,8 @@ class CreatorShelfRefreshHistoryTests(unittest.TestCase):
         self.directory = tempfile.TemporaryDirectory()
         self.addCleanup(self.directory.cleanup)
         self.root = Path(self.directory.name)
-        self.post = {name: (ROOT / name).read_bytes() for name in history.SOURCE_SHA256}
+        from tools.tests.creator_shelf_state_history import historical_pre_shelf_state_sources
+        self.post = historical_pre_shelf_state_sources(root=ROOT)
         self.pre = {}
         for name, raw in self.post.items():
             restored = raw
@@ -174,6 +175,8 @@ class CreatorShelfRefreshHistoryTests(unittest.TestCase):
         restored = raw.replace(added, b'', 1).replace(branch, b'', 1)
         self.assertEqual(digest(restored), STORAGE_OLD_SHA256)
         raw = (ROOT / 'tools/tests/test_creator_pending_synthetic_storage_history.py').read_bytes()
+        raw = raw.replace(b'for name in (*SOURCE_SHA256, *STATE_EXTRA_INPUTS):', b'for name in SOURCE_SHA256:', 1)
+        raw = raw.replace(b'                from tools.tests.creator_shelf_state_history import STATE_EXTRA_INPUTS\n', b'', 1)
         self.assertEqual(raw.count(NEW_STORAGE_TEST_REGION), 1)
         restored = raw.replace(NEW_STORAGE_TEST_REGION, OLD_STORAGE_TEST_REGION, 1)
         self.assertEqual(digest(restored), STORAGE_TEST_OLD_SHA256)

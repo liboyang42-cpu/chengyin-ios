@@ -231,7 +231,8 @@ class CreatorPendingSyntheticStorageHistoryTests(unittest.TestCase):
                 continue
             if row['path'] == 'App/TemplateAuthoringMineView.swift':
                 from tools.tests.creator_shelf_refresh_history import SOURCE_SHA256
-                for name in SOURCE_SHA256:
+                from tools.tests.creator_shelf_state_history import STATE_EXTRA_INPUTS
+                for name in (*SOURCE_SHA256, *STATE_EXTRA_INPUTS):
                     path = self.root / name
                     path.parent.mkdir(parents=True, exist_ok=True)
                     path.write_bytes((ROOT / name).read_bytes())
