@@ -319,7 +319,7 @@ class CategoryRoamRegistrationContracts(unittest.TestCase):
 
 
 # Exact discovery/Roam layer on the frozen club R2 floor.
-ADMISSION_FINGERPRINT = '8def02e4117425200af2964a8bbf0ba333867cceb42a669ad0d6ed4a0cf33800'
+ADMISSION_FINGERPRINT = '1593f471ec9335da9f0c9e72db12061f037ae7ae3a1fe4b00c8431f4641ae3b3'
 CATEGORY_TEMPLATE_OFFSET = 65180
 CURRENT_APPROVED_PATHS = ['App/GlobalSearchView.swift',
  'Core/SearchMapReading.swift',
@@ -7720,7 +7720,6 @@ def _profile_preimage(raw):
 
 
 def _decoded_external_template(raw):
-    import base64, zlib
     first = b'\n# CATEGORY_ROAM_FROZEN_SOURCE_BEGIN\n'
     last = b'# CATEGORY_ROAM_FROZEN_SOURCE_END\n'
     suffix = b"\nif __name__ == '__main__':\n    unittest.main()\n"
@@ -7740,8 +7739,8 @@ def _decoded_external_template(raw):
             'External template must be one literal data assignment')
     encoded = ast.literal_eval(nodes[0].value)
     require(isinstance(encoded, str), 'External template must be literal text data')
-    value = zlib.decompress(base64.b85decode(encoded))
-    require(base64.b85encode(zlib.compress(value, 9)).decode() == encoded,
+    value = decode_frozen_source(encoded.encode())
+    require(encode_frozen_source(value).decode() == encoded,
             'Noncanonical external compressed source template')
     canonical = first + b'FROZEN_REGISTRATION_SOURCE_ZLIB_BASE85 = (\n' + b''.join(
         ('    ' + repr(encoded[i:i+80]) + '\n').encode() for i in range(0, len(encoded), 80)) + b')\n' + last
@@ -8354,11 +8353,10 @@ def native_predecessor_source(path, raw):
         require(len(pins) == 1, 'Unknown native readiness pin')
         old = raw.replace(pins[0], NATIVE_PRE_CONTRACT_SHA256.encode(), 1)
     elif path == CATEGORY_GATE:
-        import base64, zlib
         normalized, source = _decoded_external_template(raw)
         require(source == description_predecessor_source(SELF_PATH, (ROOT / SELF_PATH).read_bytes()), 'Unknown native complete external template')
         old_source = _native_category_preimage(source)
-        encoded = base64.b85encode(zlib.compress(old_source, 9)).decode()
+        encoded = encode_frozen_source(old_source).decode()
         first = b'\n# CATEGORY_ROAM_FROZEN_SOURCE_BEGIN\n'
         last = b'# CATEGORY_ROAM_FROZEN_SOURCE_END\n'
         suffix = b"\nif __name__ == '__main__':\n    unittest.main()\n"
@@ -8548,11 +8546,10 @@ def description_predecessor_source(path, raw):
         require(len(pins) == 1, 'Unknown description readiness pin')
         old = raw.replace(pins[0], DESCRIPTION_PRE_CONTRACT_SHA256.encode(), 1)
     elif path == CATEGORY_GATE:
-        import base64, zlib
         normalized, source = _decoded_external_template(raw)
         require(source == actor_predecessor_source(SELF_PATH, (ROOT / SELF_PATH).read_bytes()), 'Unknown description complete external template')
         old_source = _description_category_preimage(source)
-        encoded = base64.b85encode(zlib.compress(old_source, 9)).decode()
+        encoded = encode_frozen_source(old_source).decode()
         first = b'\n# CATEGORY_ROAM_FROZEN_SOURCE_BEGIN\n'
         last = b'# CATEGORY_ROAM_FROZEN_SOURCE_END\n'
         suffix = b"\nif __name__ == '__main__':\n    unittest.main()\n"
@@ -8861,11 +8858,10 @@ def actor_predecessor_source(path, raw):
         require(len(pins) == 1, 'Unknown actor readiness pin')
         old = raw.replace(pins[0], ACTOR_PRE_CONTRACT_SHA256.encode(), 1)
     elif path == CATEGORY_GATE:
-        import base64, zlib
         normalized, source = _decoded_external_template(raw)
         require(source == album_predecessor_source(SELF_PATH, (ROOT / SELF_PATH).read_bytes()), 'Unknown actor complete external template')
         old_source = _actor_category_preimage(source)
-        encoded = base64.b85encode(zlib.compress(old_source, 9)).decode()
+        encoded = encode_frozen_source(old_source).decode()
         first = b'\n# CATEGORY_ROAM_FROZEN_SOURCE_BEGIN\n'
         last = b'# CATEGORY_ROAM_FROZEN_SOURCE_END\n'
         suffix = b"\nif __name__ == '__main__':\n    unittest.main()\n"
@@ -9221,11 +9217,10 @@ def album_predecessor_source(path, raw):
         require(len(pins) == 1, 'Unknown album readiness pin')
         old = raw.replace(pins[0], ALBUM_PRE_CONTRACT_SHA256.encode(), 1)
     elif path == CATEGORY_GATE:
-        import base64, zlib
         normalized, source = _decoded_external_template(raw)
         require(source == (ROOT / SELF_PATH).read_bytes(), 'Unknown album complete external template')
         old_source = _album_category_preimage(source)
-        encoded = base64.b85encode(zlib.compress(old_source, 9)).decode()
+        encoded = encode_frozen_source(old_source).decode()
         first = b'\n# CATEGORY_ROAM_FROZEN_SOURCE_BEGIN\n'
         last = b'# CATEGORY_ROAM_FROZEN_SOURCE_END\n'
         suffix = b"\nif __name__ == '__main__':\n    unittest.main()\n"
@@ -9329,6 +9324,528 @@ def album_predecessor_fixture_helper(root=ROOT):
                 values[name] = ast.literal_eval(node.value)
     require(set(values) == wanted, 'Incomplete historical fixture helper inputs')
     return SimpleNamespace(**values)
+
+# Exact native54 bounded byte-transform performance predecessor.
+import base64
+from functools import lru_cache
+import zlib
+
+
+MAX_INPUT_BYTES = 1024 * 1024
+MAX_ENTRIES = 8
+MAX_RETAINED_PAYLOAD_BYTES = 40 * 1024 * 1024
+
+
+@lru_cache(maxsize=MAX_ENTRIES, typed=True)
+def _encoded_bytes(raw):
+    if type(raw) is not bytes or len(raw) > MAX_INPUT_BYTES:
+        raise ValueError('Encoded cache input exceeds its immutable-byte bound')
+    return base64.b85encode(zlib.compress(raw, 9))
+
+
+@lru_cache(maxsize=MAX_ENTRIES, typed=True)
+def _compressed_bytes(encoded):
+    if type(encoded) is not bytes or len(encoded) > MAX_INPUT_BYTES:
+        raise ValueError('Compressed cache input exceeds its immutable-byte bound')
+    return base64.b85decode(encoded)
+
+
+def encode_frozen_source(raw):
+    """Return the original level-nine zlib/base85 encoding of immutable bytes."""
+    if type(raw) is not bytes:
+        raise TypeError('Frozen source input must be immutable bytes')
+    if len(raw) > MAX_INPUT_BYTES:
+        return base64.b85encode(zlib.compress(raw, 9))
+    return _encoded_bytes(raw)
+
+
+def decode_frozen_source(encoded):
+    """Decode immutable base85 bytes without retaining decompressed payloads."""
+    if type(encoded) is not bytes:
+        raise TypeError('Frozen source encoding must be immutable bytes')
+    compressed = (base64.b85decode(encoded) if len(encoded) > MAX_INPUT_BYTES
+                  else _compressed_bytes(encoded))
+    return zlib.decompress(compressed)
+
+
+BYTE_CACHE_BASE_COMMIT = '54f708eb260ad20cdf0fb6355cc4eaedb967019a'
+BYTE_CACHE_PRE_FINGERPRINT = '8def02e4117425200af2964a8bbf0ba333867cceb42a669ad0d6ed4a0cf33800'
+BYTE_CACHE_PRE_SHA256 = {'Tests/ContractChecks/test_category_roam_registration.py': '74d2da07e15f74ebc17e5f02a1f48d43e650830ed650879fa5c4751ddcfbc191',
+ 'Tests/ContractChecks/test_global_search_category_recovery.py': '83d2acef192141428f63f08289dd8d1f4899eae9eb8d04e5044427c7064589bd',
+ 'Tests/ContractChecks/test_profile_read_failure_remote_admission.py': '19dfe4cddfd919622e48ce26c626664570e0e4d3547ce085ff2e5cf3b356c8db',
+ 'tools/run138_editor_readiness_contract.json': '4ebecf51baf56324b9f76307df8faf60385a5a9ae7fcede320a3a0bb06474474',
+ 'tools/run138_editor_readiness.py': '09ee41899af2584f4f100405ad4aeceaf01edd25cfccd3147356ef1a61720bd8'}
+BYTE_CACHE_SOURCE_HUNKS = (('def _decoded_external_template(raw):\n'
+  '    import base64, zlib\n'
+  "    first = b'\\n# CATEGORY_ROAM_FROZEN_SOURCE_BEGIN\\n'\n"
+  "    last = b'# CATEGORY_ROAM_FROZEN_SOURCE_END\\n'\n"
+  '    suffix = b"\\nif __name__ == \'__main__\':\\n    unittest.main()\\n"\n'
+  '    require(raw.count(first) == 1 and raw.count(last) == 1,\n'
+  "            'Missing/repeated external source template markers')\n"
+  '    require(raw[CATEGORY_TEMPLATE_OFFSET:].startswith(first) and raw.endswith(last + suffix),\n'
+  "            'Moved external source template or changed suffix')\n"
+  '    start = CATEGORY_TEMPLATE_OFFSET\n'
+  '    finish = len(raw) - len(suffix)\n'
+  '    normalized = raw[:start] + suffix\n'
+  '    require(digest(normalized) == ADAPTED_CATEGORY_GATE_SHA256,\n'
+  "            'Complete category source outside exact template changed')\n"
+  '    body = raw[start + len(first):finish - len(last)]\n'
+  '    nodes = ast.parse(body).body\n'
+  '    require(len(nodes) == 1 and isinstance(nodes[0], ast.Assign) and len(nodes[0].targets) == 1 and\n'
+  '            isinstance(nodes[0].targets[0], ast.Name) and nodes[0].targets[0].id == '
+  "'FROZEN_REGISTRATION_SOURCE_ZLIB_BASE85',\n"
+  "            'External template must be one literal data assignment')\n"
+  '    encoded = ast.literal_eval(nodes[0].value)\n'
+  "    require(isinstance(encoded, str), 'External template must be literal text data')\n"
+  '    value = zlib.decompress(base64.b85decode(encoded))\n'
+  '    require(base64.b85encode(zlib.compress(value, 9)).decode() == encoded,\n'
+  "            'Noncanonical external compressed source template')\n"
+  "    canonical = first + b'FROZEN_REGISTRATION_SOURCE_ZLIB_BASE85 = (\\n' + b''.join(\n"
+  "        ('    ' + repr(encoded[i:i+80]) + '\\n').encode() for i in range(0, len(encoded), 80)) + b')\\n' "
+  '+ last\n'
+  "    require(raw[start:finish] == canonical, 'Changed exact external template data block')\n"
+  '    return normalized, value',
+  'def _decoded_external_template(raw):\n'
+  "    first = b'\\n# CATEGORY_ROAM_FROZEN_SOURCE_BEGIN\\n'\n"
+  "    last = b'# CATEGORY_ROAM_FROZEN_SOURCE_END\\n'\n"
+  '    suffix = b"\\nif __name__ == \'__main__\':\\n    unittest.main()\\n"\n'
+  '    require(raw.count(first) == 1 and raw.count(last) == 1,\n'
+  "            'Missing/repeated external source template markers')\n"
+  '    require(raw[CATEGORY_TEMPLATE_OFFSET:].startswith(first) and raw.endswith(last + suffix),\n'
+  "            'Moved external source template or changed suffix')\n"
+  '    start = CATEGORY_TEMPLATE_OFFSET\n'
+  '    finish = len(raw) - len(suffix)\n'
+  '    normalized = raw[:start] + suffix\n'
+  '    require(digest(normalized) == ADAPTED_CATEGORY_GATE_SHA256,\n'
+  "            'Complete category source outside exact template changed')\n"
+  '    body = raw[start + len(first):finish - len(last)]\n'
+  '    nodes = ast.parse(body).body\n'
+  '    require(len(nodes) == 1 and isinstance(nodes[0], ast.Assign) and len(nodes[0].targets) == 1 and\n'
+  '            isinstance(nodes[0].targets[0], ast.Name) and nodes[0].targets[0].id == '
+  "'FROZEN_REGISTRATION_SOURCE_ZLIB_BASE85',\n"
+  "            'External template must be one literal data assignment')\n"
+  '    encoded = ast.literal_eval(nodes[0].value)\n'
+  "    require(isinstance(encoded, str), 'External template must be literal text data')\n"
+  '    value = decode_frozen_source(encoded.encode())\n'
+  '    require(encode_frozen_source(value).decode() == encoded,\n'
+  "            'Noncanonical external compressed source template')\n"
+  "    canonical = first + b'FROZEN_REGISTRATION_SOURCE_ZLIB_BASE85 = (\\n' + b''.join(\n"
+  "        ('    ' + repr(encoded[i:i+80]) + '\\n').encode() for i in range(0, len(encoded), 80)) + b')\\n' "
+  '+ last\n'
+  "    require(raw[start:finish] == canonical, 'Changed exact external template data block')\n"
+  '    return normalized, value'),
+ ('def native_predecessor_source(path, raw):\n'
+  '    """Exact historical bytes only; current admission remains checked_current."""\n'
+  '    if path in NATIVE_PRE_SHA256 and digest(raw) == NATIVE_PRE_SHA256[path]:\n'
+  '        return raw  # Explicit exact c2af historical input.\n'
+  '    raw = description_predecessor_source(path, raw)\n'
+  '    if path not in NATIVE_PRE_SHA256:\n'
+  '        return raw\n'
+  '    if digest(raw) == NATIVE_PRE_SHA256[path]:\n'
+  '        return raw\n'
+  '    if path == NATIVE_LEAF_PATHS[0]:\n'
+  '        old = _inverse_exact(raw, NATIVE_NAV_ROW, path)\n'
+  "    elif path == 'Questify.xcodeproj/project.pbxproj':\n"
+  '        old = _inverse_exact(raw, NATIVE_PBX_REPAIR_ROW, path)\n'
+  "    elif path == 'tools/club_customer_directory_admission.py':\n"
+  '        old = _inverse_exact(raw, NATIVE_HELPER_ROW, path)\n'
+  '    elif path == NATIVE_PROJECTION_PATH:\n'
+  '        old = _inverse_exact(raw, NATIVE_PROJECTION_ROW, path)\n'
+  '    elif path == SELF_PATH:\n'
+  '        old = _native_category_preimage(raw)\n'
+  '    elif path == PROFILE_PATH:\n'
+  '        slot = b"DISCOVERY_HELPER_FINGERPRINT = \'" + DESCRIPTION_PRE_FINGERPRINT.encode() + b"\'"\n'
+  "        require(raw.count(slot) == 1, 'Unknown native profile source pin')\n"
+  '        old = raw.replace(slot, b"DISCOVERY_HELPER_FINGERPRINT = \'" + NATIVE_PRE_FINGERPRINT.encode() + '
+  'b"\'", 1)\n'
+  '    elif path == RUNNER_PATH:\n'
+  '        raw = native_readiness_source(raw)\n'
+  '        pins = re.findall(rb"(?m)^CONTRACT_SHA256 = \'([0-9a-f]{64})\'$", raw)\n'
+  "        require(len(pins) == 1, 'Unknown native readiness pin')\n"
+  '        old = raw.replace(pins[0], NATIVE_PRE_CONTRACT_SHA256.encode(), 1)\n'
+  '    elif path == CATEGORY_GATE:\n'
+  '        import base64, zlib\n'
+  '        normalized, source = _decoded_external_template(raw)\n'
+  '        require(source == description_predecessor_source(SELF_PATH, (ROOT / SELF_PATH).read_bytes()), '
+  "'Unknown native complete external template')\n"
+  '        old_source = _native_category_preimage(source)\n'
+  '        encoded = base64.b85encode(zlib.compress(old_source, 9)).decode()\n'
+  "        first = b'\\n# CATEGORY_ROAM_FROZEN_SOURCE_BEGIN\\n'\n"
+  "        last = b'# CATEGORY_ROAM_FROZEN_SOURCE_END\\n'\n"
+  '        suffix = b"\\nif __name__ == \'__main__\':\\n    unittest.main()\\n"\n'
+  "        old = normalized[:-len(suffix)] + first + b'FROZEN_REGISTRATION_SOURCE_ZLIB_BASE85 = (\\n' + "
+  "b''.join(\n"
+  "            ('    ' + repr(encoded[i:i+80]) + '\\n').encode() for i in range(0, len(encoded), 80)) + "
+  "b')\\n' + last + suffix\n"
+  '    else:\n'
+  "        raise AssertionError('Unreviewed native predecessor path')\n"
+  "    require(digest(old) == NATIVE_PRE_SHA256[path], 'Complete c2af source not restored: ' + path)\n"
+  '    return old',
+  'def native_predecessor_source(path, raw):\n'
+  '    """Exact historical bytes only; current admission remains checked_current."""\n'
+  '    if path in NATIVE_PRE_SHA256 and digest(raw) == NATIVE_PRE_SHA256[path]:\n'
+  '        return raw  # Explicit exact c2af historical input.\n'
+  '    raw = description_predecessor_source(path, raw)\n'
+  '    if path not in NATIVE_PRE_SHA256:\n'
+  '        return raw\n'
+  '    if digest(raw) == NATIVE_PRE_SHA256[path]:\n'
+  '        return raw\n'
+  '    if path == NATIVE_LEAF_PATHS[0]:\n'
+  '        old = _inverse_exact(raw, NATIVE_NAV_ROW, path)\n'
+  "    elif path == 'Questify.xcodeproj/project.pbxproj':\n"
+  '        old = _inverse_exact(raw, NATIVE_PBX_REPAIR_ROW, path)\n'
+  "    elif path == 'tools/club_customer_directory_admission.py':\n"
+  '        old = _inverse_exact(raw, NATIVE_HELPER_ROW, path)\n'
+  '    elif path == NATIVE_PROJECTION_PATH:\n'
+  '        old = _inverse_exact(raw, NATIVE_PROJECTION_ROW, path)\n'
+  '    elif path == SELF_PATH:\n'
+  '        old = _native_category_preimage(raw)\n'
+  '    elif path == PROFILE_PATH:\n'
+  '        slot = b"DISCOVERY_HELPER_FINGERPRINT = \'" + DESCRIPTION_PRE_FINGERPRINT.encode() + b"\'"\n'
+  "        require(raw.count(slot) == 1, 'Unknown native profile source pin')\n"
+  '        old = raw.replace(slot, b"DISCOVERY_HELPER_FINGERPRINT = \'" + NATIVE_PRE_FINGERPRINT.encode() + '
+  'b"\'", 1)\n'
+  '    elif path == RUNNER_PATH:\n'
+  '        raw = native_readiness_source(raw)\n'
+  '        pins = re.findall(rb"(?m)^CONTRACT_SHA256 = \'([0-9a-f]{64})\'$", raw)\n'
+  "        require(len(pins) == 1, 'Unknown native readiness pin')\n"
+  '        old = raw.replace(pins[0], NATIVE_PRE_CONTRACT_SHA256.encode(), 1)\n'
+  '    elif path == CATEGORY_GATE:\n'
+  '        normalized, source = _decoded_external_template(raw)\n'
+  '        require(source == description_predecessor_source(SELF_PATH, (ROOT / SELF_PATH).read_bytes()), '
+  "'Unknown native complete external template')\n"
+  '        old_source = _native_category_preimage(source)\n'
+  '        encoded = encode_frozen_source(old_source).decode()\n'
+  "        first = b'\\n# CATEGORY_ROAM_FROZEN_SOURCE_BEGIN\\n'\n"
+  "        last = b'# CATEGORY_ROAM_FROZEN_SOURCE_END\\n'\n"
+  '        suffix = b"\\nif __name__ == \'__main__\':\\n    unittest.main()\\n"\n'
+  "        old = normalized[:-len(suffix)] + first + b'FROZEN_REGISTRATION_SOURCE_ZLIB_BASE85 = (\\n' + "
+  "b''.join(\n"
+  "            ('    ' + repr(encoded[i:i+80]) + '\\n').encode() for i in range(0, len(encoded), 80)) + "
+  "b')\\n' + last + suffix\n"
+  '    else:\n'
+  "        raise AssertionError('Unreviewed native predecessor path')\n"
+  "    require(digest(old) == NATIVE_PRE_SHA256[path], 'Complete c2af source not restored: ' + path)\n"
+  '    return old'),
+ ('def description_predecessor_source(path, raw):\n'
+  '    """Exact complete published 7b bytes; never a current-input admission bypass."""\n'
+  '    if path in DESCRIPTION_PRE_SHA256 and digest(raw) == DESCRIPTION_PRE_SHA256[path]:\n'
+  '        return raw  # Explicit exact 7b historical input.\n'
+  '    raw = actor_predecessor_source(path, raw)\n'
+  '    if path not in DESCRIPTION_PRE_SHA256:\n'
+  '        return raw\n'
+  '    if digest(raw) == DESCRIPTION_PRE_SHA256[path]:\n'
+  '        return raw  # Explicit historical-only interface; current checks require new bytes.\n'
+  '    if path == DESCRIPTION_LEAF_PATH:\n'
+  '        old = _inverse_exact(raw, DESCRIPTION_LEAF_ROW, path)\n'
+  '    elif path == DESCRIPTION_HELPER_PATH:\n'
+  '        old = _inverse_exact(raw, DESCRIPTION_HELPER_ROW, path)\n'
+  '    elif path == SELF_PATH:\n'
+  '        old = _description_category_preimage(raw)\n'
+  '    elif path == PROFILE_PATH:\n'
+  '        slot = b"DISCOVERY_HELPER_FINGERPRINT = \'" + ACTOR_PRE_FINGERPRINT.encode() + b"\'"\n'
+  "        require(raw.count(slot) == 1, 'Unknown description profile source pin')\n"
+  '        old = raw.replace(slot, b"DISCOVERY_HELPER_FINGERPRINT = \'" + '
+  'DESCRIPTION_PRE_FINGERPRINT.encode() + b"\'", 1)\n'
+  '    elif path == RUNNER_PATH:\n'
+  '        native_current_readiness_source(raw)\n'
+  '        pins = re.findall(rb"(?m)^CONTRACT_SHA256 = \'([0-9a-f]{64})\'$", raw)\n'
+  "        require(len(pins) == 1, 'Unknown description readiness pin')\n"
+  '        old = raw.replace(pins[0], DESCRIPTION_PRE_CONTRACT_SHA256.encode(), 1)\n'
+  '    elif path == CATEGORY_GATE:\n'
+  '        import base64, zlib\n'
+  '        normalized, source = _decoded_external_template(raw)\n'
+  "        require(source == actor_predecessor_source(SELF_PATH, (ROOT / SELF_PATH).read_bytes()), 'Unknown "
+  "description complete external template')\n"
+  '        old_source = _description_category_preimage(source)\n'
+  '        encoded = base64.b85encode(zlib.compress(old_source, 9)).decode()\n'
+  "        first = b'\\n# CATEGORY_ROAM_FROZEN_SOURCE_BEGIN\\n'\n"
+  "        last = b'# CATEGORY_ROAM_FROZEN_SOURCE_END\\n'\n"
+  '        suffix = b"\\nif __name__ == \'__main__\':\\n    unittest.main()\\n"\n'
+  "        old = normalized[:-len(suffix)] + first + b'FROZEN_REGISTRATION_SOURCE_ZLIB_BASE85 = (\\n' + "
+  "b''.join(\n"
+  "            ('    ' + repr(encoded[i:i+80]) + '\\n').encode() for i in range(0, len(encoded), 80)) + "
+  "b')\\n' + last + suffix\n"
+  '    else:\n'
+  "        raise AssertionError('Unreviewed description predecessor path')\n"
+  "    require(digest(old) == DESCRIPTION_PRE_SHA256[path], 'Complete published 7b source not restored: ' + "
+  'path)\n'
+  '    return old',
+  'def description_predecessor_source(path, raw):\n'
+  '    """Exact complete published 7b bytes; never a current-input admission bypass."""\n'
+  '    if path in DESCRIPTION_PRE_SHA256 and digest(raw) == DESCRIPTION_PRE_SHA256[path]:\n'
+  '        return raw  # Explicit exact 7b historical input.\n'
+  '    raw = actor_predecessor_source(path, raw)\n'
+  '    if path not in DESCRIPTION_PRE_SHA256:\n'
+  '        return raw\n'
+  '    if digest(raw) == DESCRIPTION_PRE_SHA256[path]:\n'
+  '        return raw  # Explicit historical-only interface; current checks require new bytes.\n'
+  '    if path == DESCRIPTION_LEAF_PATH:\n'
+  '        old = _inverse_exact(raw, DESCRIPTION_LEAF_ROW, path)\n'
+  '    elif path == DESCRIPTION_HELPER_PATH:\n'
+  '        old = _inverse_exact(raw, DESCRIPTION_HELPER_ROW, path)\n'
+  '    elif path == SELF_PATH:\n'
+  '        old = _description_category_preimage(raw)\n'
+  '    elif path == PROFILE_PATH:\n'
+  '        slot = b"DISCOVERY_HELPER_FINGERPRINT = \'" + ACTOR_PRE_FINGERPRINT.encode() + b"\'"\n'
+  "        require(raw.count(slot) == 1, 'Unknown description profile source pin')\n"
+  '        old = raw.replace(slot, b"DISCOVERY_HELPER_FINGERPRINT = \'" + '
+  'DESCRIPTION_PRE_FINGERPRINT.encode() + b"\'", 1)\n'
+  '    elif path == RUNNER_PATH:\n'
+  '        native_current_readiness_source(raw)\n'
+  '        pins = re.findall(rb"(?m)^CONTRACT_SHA256 = \'([0-9a-f]{64})\'$", raw)\n'
+  "        require(len(pins) == 1, 'Unknown description readiness pin')\n"
+  '        old = raw.replace(pins[0], DESCRIPTION_PRE_CONTRACT_SHA256.encode(), 1)\n'
+  '    elif path == CATEGORY_GATE:\n'
+  '        normalized, source = _decoded_external_template(raw)\n'
+  "        require(source == actor_predecessor_source(SELF_PATH, (ROOT / SELF_PATH).read_bytes()), 'Unknown "
+  "description complete external template')\n"
+  '        old_source = _description_category_preimage(source)\n'
+  '        encoded = encode_frozen_source(old_source).decode()\n'
+  "        first = b'\\n# CATEGORY_ROAM_FROZEN_SOURCE_BEGIN\\n'\n"
+  "        last = b'# CATEGORY_ROAM_FROZEN_SOURCE_END\\n'\n"
+  '        suffix = b"\\nif __name__ == \'__main__\':\\n    unittest.main()\\n"\n'
+  "        old = normalized[:-len(suffix)] + first + b'FROZEN_REGISTRATION_SOURCE_ZLIB_BASE85 = (\\n' + "
+  "b''.join(\n"
+  "            ('    ' + repr(encoded[i:i+80]) + '\\n').encode() for i in range(0, len(encoded), 80)) + "
+  "b')\\n' + last + suffix\n"
+  '    else:\n'
+  "        raise AssertionError('Unreviewed description predecessor path')\n"
+  "    require(digest(old) == DESCRIPTION_PRE_SHA256[path], 'Complete published 7b source not restored: ' + "
+  'path)\n'
+  '    return old'),
+ ('def actor_predecessor_source(path, raw):\n'
+  '    """Exact complete published 42 bytes; never a current-input admission bypass."""\n'
+  '    if path in ACTOR_PRE_SHA256 and digest(raw) == ACTOR_PRE_SHA256[path]:\n'
+  '        return raw  # Explicit exact 42 historical input.\n'
+  '    raw = album_predecessor_source(path, raw)\n'
+  '    if path not in ACTOR_PRE_SHA256:\n'
+  '        return raw\n'
+  '    if digest(raw) == ACTOR_PRE_SHA256[path]:\n'
+  '        return raw  # Explicit historical-only interface; current checks require new bytes.\n'
+  '    if path == ACTOR_LEAF_PATH:\n'
+  '        old = _inverse_exact(raw, ACTOR_LEAF_ROW, path)\n'
+  '    elif path == ACTOR_HELPER_PATH:\n'
+  '        old = _inverse_exact(raw, ACTOR_HELPER_ROW, path)\n'
+  '    elif path == ACTOR_PROJECTION_PATH:\n'
+  '        old = _inverse_exact(raw, ACTOR_PROJECTION_ROW, path)\n'
+  '    elif path == SELF_PATH:\n'
+  '        old = _actor_category_preimage(raw)\n'
+  '    elif path == PROFILE_PATH:\n'
+  '        slot = b"DISCOVERY_HELPER_FINGERPRINT = \'" + ALBUM_PRE_FINGERPRINT.encode() + b"\'"\n'
+  "        require(raw.count(slot) == 1, 'Unknown actor profile source pin')\n"
+  '        old = raw.replace(slot, b"DISCOVERY_HELPER_FINGERPRINT = \'" + ACTOR_PRE_FINGERPRINT.encode() + '
+  'b"\'", 1)\n'
+  '    elif path == RUNNER_PATH:\n'
+  '        native_current_readiness_source(raw)\n'
+  '        pins = re.findall(rb"(?m)^CONTRACT_SHA256 = \'([0-9a-f]{64})\'$", raw)\n'
+  "        require(len(pins) == 1, 'Unknown actor readiness pin')\n"
+  '        old = raw.replace(pins[0], ACTOR_PRE_CONTRACT_SHA256.encode(), 1)\n'
+  '    elif path == CATEGORY_GATE:\n'
+  '        import base64, zlib\n'
+  '        normalized, source = _decoded_external_template(raw)\n'
+  "        require(source == album_predecessor_source(SELF_PATH, (ROOT / SELF_PATH).read_bytes()), 'Unknown "
+  "actor complete external template')\n"
+  '        old_source = _actor_category_preimage(source)\n'
+  '        encoded = base64.b85encode(zlib.compress(old_source, 9)).decode()\n'
+  "        first = b'\\n# CATEGORY_ROAM_FROZEN_SOURCE_BEGIN\\n'\n"
+  "        last = b'# CATEGORY_ROAM_FROZEN_SOURCE_END\\n'\n"
+  '        suffix = b"\\nif __name__ == \'__main__\':\\n    unittest.main()\\n"\n'
+  "        old = normalized[:-len(suffix)] + first + b'FROZEN_REGISTRATION_SOURCE_ZLIB_BASE85 = (\\n' + "
+  "b''.join(\n"
+  "            ('    ' + repr(encoded[i:i+80]) + '\\n').encode() for i in range(0, len(encoded), 80)) + "
+  "b')\\n' + last + suffix\n"
+  '    else:\n'
+  "        raise AssertionError('Unreviewed actor predecessor path')\n"
+  "    require(digest(old) == ACTOR_PRE_SHA256[path], 'Complete published 42 source not restored: ' + path)\n"
+  '    return old',
+  'def actor_predecessor_source(path, raw):\n'
+  '    """Exact complete published 42 bytes; never a current-input admission bypass."""\n'
+  '    if path in ACTOR_PRE_SHA256 and digest(raw) == ACTOR_PRE_SHA256[path]:\n'
+  '        return raw  # Explicit exact 42 historical input.\n'
+  '    raw = album_predecessor_source(path, raw)\n'
+  '    if path not in ACTOR_PRE_SHA256:\n'
+  '        return raw\n'
+  '    if digest(raw) == ACTOR_PRE_SHA256[path]:\n'
+  '        return raw  # Explicit historical-only interface; current checks require new bytes.\n'
+  '    if path == ACTOR_LEAF_PATH:\n'
+  '        old = _inverse_exact(raw, ACTOR_LEAF_ROW, path)\n'
+  '    elif path == ACTOR_HELPER_PATH:\n'
+  '        old = _inverse_exact(raw, ACTOR_HELPER_ROW, path)\n'
+  '    elif path == ACTOR_PROJECTION_PATH:\n'
+  '        old = _inverse_exact(raw, ACTOR_PROJECTION_ROW, path)\n'
+  '    elif path == SELF_PATH:\n'
+  '        old = _actor_category_preimage(raw)\n'
+  '    elif path == PROFILE_PATH:\n'
+  '        slot = b"DISCOVERY_HELPER_FINGERPRINT = \'" + ALBUM_PRE_FINGERPRINT.encode() + b"\'"\n'
+  "        require(raw.count(slot) == 1, 'Unknown actor profile source pin')\n"
+  '        old = raw.replace(slot, b"DISCOVERY_HELPER_FINGERPRINT = \'" + ACTOR_PRE_FINGERPRINT.encode() + '
+  'b"\'", 1)\n'
+  '    elif path == RUNNER_PATH:\n'
+  '        native_current_readiness_source(raw)\n'
+  '        pins = re.findall(rb"(?m)^CONTRACT_SHA256 = \'([0-9a-f]{64})\'$", raw)\n'
+  "        require(len(pins) == 1, 'Unknown actor readiness pin')\n"
+  '        old = raw.replace(pins[0], ACTOR_PRE_CONTRACT_SHA256.encode(), 1)\n'
+  '    elif path == CATEGORY_GATE:\n'
+  '        normalized, source = _decoded_external_template(raw)\n'
+  "        require(source == album_predecessor_source(SELF_PATH, (ROOT / SELF_PATH).read_bytes()), 'Unknown "
+  "actor complete external template')\n"
+  '        old_source = _actor_category_preimage(source)\n'
+  '        encoded = encode_frozen_source(old_source).decode()\n'
+  "        first = b'\\n# CATEGORY_ROAM_FROZEN_SOURCE_BEGIN\\n'\n"
+  "        last = b'# CATEGORY_ROAM_FROZEN_SOURCE_END\\n'\n"
+  '        suffix = b"\\nif __name__ == \'__main__\':\\n    unittest.main()\\n"\n'
+  "        old = normalized[:-len(suffix)] + first + b'FROZEN_REGISTRATION_SOURCE_ZLIB_BASE85 = (\\n' + "
+  "b''.join(\n"
+  "            ('    ' + repr(encoded[i:i+80]) + '\\n').encode() for i in range(0, len(encoded), 80)) + "
+  "b')\\n' + last + suffix\n"
+  '    else:\n'
+  "        raise AssertionError('Unreviewed actor predecessor path')\n"
+  "    require(digest(old) == ACTOR_PRE_SHA256[path], 'Complete published 42 source not restored: ' + path)\n"
+  '    return old'),
+ ('def album_predecessor_source(path, raw):\n'
+  '    """Exact complete published bb5 bytes; never a current-input admission bypass."""\n'
+  '    if path not in ALBUM_PRE_SHA256:\n'
+  '        return raw\n'
+  '    if digest(raw) == ALBUM_PRE_SHA256[path]:\n'
+  '        return raw  # Explicit historical-only interface; current checks require new bytes.\n'
+  '    if path == ALBUM_LEAF_PATH:\n'
+  '        old = _inverse_exact(raw, ALBUM_LEAF_ROW, path)\n'
+  '    elif path == ALBUM_HELPER_PATH:\n'
+  '        old = _inverse_exact(raw, ALBUM_HELPER_ROW, path)\n'
+  '    elif path == SELF_PATH:\n'
+  '        old = _album_category_preimage(raw)\n'
+  '    elif path == PROFILE_PATH:\n'
+  '        slot = b"DISCOVERY_HELPER_FINGERPRINT = \'" + ADMISSION_FINGERPRINT.encode() + b"\'"\n'
+  "        require(raw.count(slot) == 1, 'Unknown album profile source pin')\n"
+  '        old = raw.replace(slot, b"DISCOVERY_HELPER_FINGERPRINT = \'" + ALBUM_PRE_FINGERPRINT.encode() + '
+  'b"\'", 1)\n'
+  '    elif path == RUNNER_PATH:\n'
+  '        native_current_readiness_source(raw)\n'
+  '        pins = re.findall(rb"(?m)^CONTRACT_SHA256 = \'([0-9a-f]{64})\'$", raw)\n'
+  "        require(len(pins) == 1, 'Unknown album readiness pin')\n"
+  '        old = raw.replace(pins[0], ALBUM_PRE_CONTRACT_SHA256.encode(), 1)\n'
+  '    elif path == CATEGORY_GATE:\n'
+  '        import base64, zlib\n'
+  '        normalized, source = _decoded_external_template(raw)\n'
+  "        require(source == (ROOT / SELF_PATH).read_bytes(), 'Unknown album complete external template')\n"
+  '        old_source = _album_category_preimage(source)\n'
+  '        encoded = base64.b85encode(zlib.compress(old_source, 9)).decode()\n'
+  "        first = b'\\n# CATEGORY_ROAM_FROZEN_SOURCE_BEGIN\\n'\n"
+  "        last = b'# CATEGORY_ROAM_FROZEN_SOURCE_END\\n'\n"
+  '        suffix = b"\\nif __name__ == \'__main__\':\\n    unittest.main()\\n"\n'
+  "        old = normalized[:-len(suffix)] + first + b'FROZEN_REGISTRATION_SOURCE_ZLIB_BASE85 = (\\n' + "
+  "b''.join(\n"
+  "            ('    ' + repr(encoded[i:i+80]) + '\\n').encode() for i in range(0, len(encoded), 80)) + "
+  "b')\\n' + last + suffix\n"
+  '    else:\n'
+  "        raise AssertionError('Unreviewed album predecessor path')\n"
+  "    require(digest(old) == ALBUM_PRE_SHA256[path], 'Complete published bb5 source not restored: ' + "
+  'path)\n'
+  '    return old',
+  'def album_predecessor_source(path, raw):\n'
+  '    """Exact complete published bb5 bytes; never a current-input admission bypass."""\n'
+  '    if path not in ALBUM_PRE_SHA256:\n'
+  '        return raw\n'
+  '    if digest(raw) == ALBUM_PRE_SHA256[path]:\n'
+  '        return raw  # Explicit historical-only interface; current checks require new bytes.\n'
+  '    if path == ALBUM_LEAF_PATH:\n'
+  '        old = _inverse_exact(raw, ALBUM_LEAF_ROW, path)\n'
+  '    elif path == ALBUM_HELPER_PATH:\n'
+  '        old = _inverse_exact(raw, ALBUM_HELPER_ROW, path)\n'
+  '    elif path == SELF_PATH:\n'
+  '        old = _album_category_preimage(raw)\n'
+  '    elif path == PROFILE_PATH:\n'
+  '        slot = b"DISCOVERY_HELPER_FINGERPRINT = \'" + ADMISSION_FINGERPRINT.encode() + b"\'"\n'
+  "        require(raw.count(slot) == 1, 'Unknown album profile source pin')\n"
+  '        old = raw.replace(slot, b"DISCOVERY_HELPER_FINGERPRINT = \'" + ALBUM_PRE_FINGERPRINT.encode() + '
+  'b"\'", 1)\n'
+  '    elif path == RUNNER_PATH:\n'
+  '        native_current_readiness_source(raw)\n'
+  '        pins = re.findall(rb"(?m)^CONTRACT_SHA256 = \'([0-9a-f]{64})\'$", raw)\n'
+  "        require(len(pins) == 1, 'Unknown album readiness pin')\n"
+  '        old = raw.replace(pins[0], ALBUM_PRE_CONTRACT_SHA256.encode(), 1)\n'
+  '    elif path == CATEGORY_GATE:\n'
+  '        normalized, source = _decoded_external_template(raw)\n'
+  "        require(source == (ROOT / SELF_PATH).read_bytes(), 'Unknown album complete external template')\n"
+  '        old_source = _album_category_preimage(source)\n'
+  '        encoded = encode_frozen_source(old_source).decode()\n'
+  "        first = b'\\n# CATEGORY_ROAM_FROZEN_SOURCE_BEGIN\\n'\n"
+  "        last = b'# CATEGORY_ROAM_FROZEN_SOURCE_END\\n'\n"
+  '        suffix = b"\\nif __name__ == \'__main__\':\\n    unittest.main()\\n"\n'
+  "        old = normalized[:-len(suffix)] + first + b'FROZEN_REGISTRATION_SOURCE_ZLIB_BASE85 = (\\n' + "
+  "b''.join(\n"
+  "            ('    ' + repr(encoded[i:i+80]) + '\\n').encode() for i in range(0, len(encoded), 80)) + "
+  "b')\\n' + last + suffix\n"
+  '    else:\n'
+  "        raise AssertionError('Unreviewed album predecessor path')\n"
+  "    require(digest(old) == ALBUM_PRE_SHA256[path], 'Complete published bb5 source not restored: ' + "
+  'path)\n'
+  '    return old'))
+BYTE_CACHE_ALBUM_PREFIX_COUNT = 4
+
+# The four changed functions above the album marker must still restore every
+# complete bb5-and-earlier source. Pure compression helpers add no fixture input.
+ALBUM_CATEGORY_PREFIX_HUNKS = ALBUM_CATEGORY_PREFIX_HUNKS + [
+    {'before': before, 'after': after}
+    for before, after in BYTE_CACHE_SOURCE_HUNKS[:BYTE_CACHE_ALBUM_PREFIX_COUNT]
+]
+
+
+def _byte_cache_category_preimage(raw):
+    """Restore the complete published native54 module by exact finite spans."""
+    marker = b'\n# Exact native54 bounded byte-transform performance predecessor.\n'
+    suffix = b"\nif __name__ == '__main__':\n    unittest.main()\n"
+    require(digest(raw) == IMPLEMENTATION_SHA256, 'Changed complete byte-transform admission source')
+    require(raw.count(marker) == 1 and raw.endswith(suffix), 'Unknown byte-transform source boundary')
+    prefix, _ = raw.split(marker, 1)
+    for before, after in reversed(BYTE_CACHE_SOURCE_HUNKS):
+        before, after = before.encode(), after.encode()
+        require(prefix.count(after) == 1, 'Changed exact byte-transform inverse span')
+        prefix = prefix.replace(after, before, 1)
+    slot = b"ADMISSION_FINGERPRINT = '" + ADMISSION_FINGERPRINT.encode() + b"'"
+    require(prefix.count(slot) == 1, 'Changed byte-transform fingerprint slot')
+    old = prefix.replace(slot, b"ADMISSION_FINGERPRINT = '" + BYTE_CACHE_PRE_FINGERPRINT.encode() + b"'", 1) + suffix
+    require(digest(old) == BYTE_CACHE_PRE_SHA256[SELF_PATH], 'Complete native54 admission not restored')
+    return old
+
+
+def byte_cache_predecessor_source(path, raw, *, root=ROOT):
+    """Audit the exact native54 predecessor only after fresh current admission."""
+    root = Path(root)
+    require(path in BYTE_CACHE_PRE_SHA256, 'Byte-transform predecessor escaped its five-source domain')
+    current_contract = (root / CONTRACT_PATH).read_bytes()
+    checked_current(current_contract, root)
+    require(raw == (root / path).read_bytes(), 'Changed actual byte-transform predecessor input')
+    if path == SELF_PATH:
+        old = _byte_cache_category_preimage(raw)
+    elif path == PROFILE_PATH:
+        slot = b"DISCOVERY_HELPER_FINGERPRINT = '" + ADMISSION_FINGERPRINT.encode() + b"'"
+        require(raw.count(slot) == 1, 'Changed byte-transform profile slot')
+        old = raw.replace(slot, b"DISCOVERY_HELPER_FINGERPRINT = '" + BYTE_CACHE_PRE_FINGERPRINT.encode() + b"'", 1)
+    elif path == RUNNER_PATH:
+        pins = re.findall(rb"(?m)^CONTRACT_SHA256 = '([0-9a-f]{64})'$", raw)
+        require(len(pins) == 1 and pins[0].decode() == digest(current_contract), 'Changed byte-transform runner pin')
+        old = raw.replace(pins[0], BYTE_CACHE_PRE_SHA256[CONTRACT_PATH].encode(), 1)
+    elif path == CONTRACT_PATH:
+        value = json.loads(raw)
+        require(encode(value) == raw, 'Noncanonical byte-transform contract')
+        for name in (SELF_PATH, CATEGORY_GATE, PROFILE_PATH):
+            require(value['feature_batch_support_sha256'][name] == digest((root / name).read_bytes()),
+                    'Changed byte-transform current support: ' + name)
+            value['feature_batch_support_sha256'][name] = BYTE_CACHE_PRE_SHA256[name]
+        old = encode(value)
+    else:
+        normalized, source = _decoded_external_template(raw)
+        require(source == (root / SELF_PATH).read_bytes(), 'Changed byte-transform external template source')
+        encoded = encode_frozen_source(_byte_cache_category_preimage(source)).decode()
+        first = b'\n# CATEGORY_ROAM_FROZEN_SOURCE_BEGIN\n'
+        last = b'# CATEGORY_ROAM_FROZEN_SOURCE_END\n'
+        suffix = b"\nif __name__ == '__main__':\n    unittest.main()\n"
+        old = normalized[:-len(suffix)] + first + b'FROZEN_REGISTRATION_SOURCE_ZLIB_BASE85 = (\n' + b''.join(
+            ('    ' + repr(encoded[i:i+80]) + '\n').encode() for i in range(0, len(encoded), 80)) + b')\n' + last + suffix
+    require(digest(old) == BYTE_CACHE_PRE_SHA256[path], 'Complete native54 source not restored: ' + path)
+    return old
 
 if __name__ == '__main__':
     unittest.main()
